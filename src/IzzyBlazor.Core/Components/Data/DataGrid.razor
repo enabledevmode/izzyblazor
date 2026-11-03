@@ -999,7 +999,7 @@
             <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
         }
 
-        <Form Class="ib-grid-edit-form" id="@RowFormId" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(_cellKey is not null ? null : key == NewRowKey ? "" : key)">
+        <Form Class="ib-grid-edit-form" id="@RowFormId" novalidate="@(Hiding ? "" : null)" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(_cellKey is not null ? null : key == NewRowKey ? "" : key)">
             @if (_editModel is not null)
             {
                 <FormErrors ExceptFields="@EditProperties.Select(p => p.Name).ToList()" />
@@ -1538,7 +1538,8 @@
             <td class="@LeadClass" style="@LeadStyle" colspan="@levels"></td>
         }
         <td class="@ExpanderClass" style="@ExpanderStyle">
-            @if (HasDetail(item))
+            @* Not while it's open only for an edit, which closes it. *@
+            @if (HasDetail(item) && (Details.IsOpen(KeyOf(item)) || !DetailOpen(item)))
             {
                 var key = KeyOf(item);
                 var open = DetailOpen(item);
@@ -1558,7 +1559,8 @@
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? AfterRow(TItem item, int row, int? indent) => !DetailOpen(item) ? null : DetailRow(item, row, indent, HasTemplateDetail(item));
+    // Open only for an edit, it shows only while a column is hidden: there are no fields in it otherwise.
+    internal override RenderFragment? AfterRow(TItem item, int row, int? indent) => !DetailOpen(item) ? null : DetailRow(item, row, indent, HasTemplateDetail(item) && Details.IsOpen(KeyOf(item)));
 
     // The new row being added: its hidden columns' fields go in a detail under it, as for any row.
     /// <inheritdoc />

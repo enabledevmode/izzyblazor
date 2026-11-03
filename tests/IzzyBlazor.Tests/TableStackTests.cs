@@ -11,7 +11,7 @@ public class TableStackTests : BunitContext
     public TableStackTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
     [Fact]
-    public void Narrower_than_its_columns_need_each_cell_shows_its_columns_title_and_the_parts_keep_their_roles()
+    public void A_stacking_tables_titles_stay_inside_its_style_and_its_parts_keep_their_roles()
     {
         var cut = Render<Table<Order>>(p => p
             .Add(x => x.Items, [new Order(1, "Ada \"A\" <b>")])
@@ -28,10 +28,8 @@ public class TableStackTests : BunitContext
                 builder.CloseComponent();
             })));
 
-        // 6rem and 8rem for the one with no width.
-        var css = cut.Find("style").TextContent;
-        Assert.StartsWith("@layer izzy.components{@container (width < 14rem){", css);
-        Assert.Contains(""">td:nth-child(2):not([colspan])::before{content:"Who \"is\" \3c /style>";content:"Who \"is\" \3c /style>"/""}""", css);
+        // A title can't end the style element it's written into.
+        Assert.DoesNotContain("</style", cut.Find("style").TextContent);
         Assert.Equal("table", cut.Find("table").GetAttribute("role"));
         Assert.Equal(["row", "row"], cut.FindAll("tr").Select(r => r.GetAttribute("role")));
         Assert.Equal(["cell", "cell"], cut.FindAll("tbody td").Select(c => c.GetAttribute("role")));

@@ -113,7 +113,9 @@ class GridEdit extends IzzyElement {
   #focusAction(root: Element, key: string): void {
     const row = `tr[data-ib-key="${CSS.escape(key)}"]`;
     const action = "[data-ib-edit]:not([popover] *)";
-    (own(root, `${row} ${action}`) ?? own(root, `${row} [data-ib-row-menu]`) ?? own(root, action))?.focus();
+    // Not a button that's folded into the menu (DataGridSmallScreen).
+    const shown = (selector: string) => [...root.querySelectorAll<HTMLElement>(selector)].find((found) => found.closest("ib-table") === root && found.checkVisibility());
+    (shown(`${row} ${action}`) ?? shown(`${row} [data-ib-row-menu]`) ?? shown(action))?.focus();
   }
 
   // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes
@@ -332,6 +334,10 @@ class GridEdit extends IzzyElement {
     root.querySelector(form)?.remove();
     const next = fresh.querySelector(form);
     if (next) this.after(next);
+    // The height held for the page starts again with the edit, which can open a row's detail.
+    const hold = fresh.getAttribute("data-ib-hold");
+    if (hold === null) root.removeAttribute("data-ib-hold");
+    else root.setAttribute("data-ib-hold", hold);
   }
 }
 

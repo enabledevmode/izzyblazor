@@ -273,8 +273,8 @@
                         {
                             @* In place of the rows: what went wrong and a way to try again. *@
                             _virtualShape = null;
-                            <tr class="ib-table-empty ib-table-error">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
+                            <tr class="ib-table-empty ib-table-error" role="@StackRole("row")">
+                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content ib-data-error-content">
                                         @LoadFailedMessage
                                         @RetryControl(RetryAsync, _providerLoading)
@@ -295,8 +295,8 @@
                         }
                         else if (_items.Count == 0)
                         {
-                            <tr class="ib-table-empty">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
+                            <tr class="ib-table-empty" role="@StackRole("row")">
+                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
                                         @if (NoneTicked() is { } unticked)
                                         {

@@ -11,9 +11,9 @@ const MOVE_LIMIT = 8;
 // The click that ends a long press comes this soon after the finger lifts, or it isn't coming.
 const CLICK_WINDOW = 350;
 
-/** A menu trigger of this row or item, not of one nested inside it. */
+/** A menu trigger of this row or item, not of one nested inside it, nor one hidden with nothing to show. */
 export function ownTrigger(owner: Element, row: string, trigger: string): HTMLElement | null {
-  return [...owner.querySelectorAll<HTMLElement>(trigger)].find((found) => found.closest(row) === owner && !found.matches(":disabled")) ?? null;
+  return [...owner.querySelectorAll<HTMLElement>(trigger)].find((found) => found.closest(row) === owner && !found.matches(":disabled") && found.checkVisibility()) ?? null;
 }
 
 /** Opens the menu behind a trigger at a point on the screen. */

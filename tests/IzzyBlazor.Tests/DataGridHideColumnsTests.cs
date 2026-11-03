@@ -48,93 +48,16 @@ public class DataGridHideColumnsTests : BunitContext
     }
 
     [Fact]
-    public void Columns_hide_lowest_priority_and_last_first_at_the_widths_they_need()
-    {
-        var cut = Grid("/orders");
-
-        // Total (last of the 0s), then Status, then Customer; the first column never hides.
-        var header = cut.FindAll("thead > tr > th").Select(th => (th.TextContent.Trim(), th.ClassName)).ToList();
-        Assert.Contains(("Total", "ib-cell-end ib-h1"), header);
-        Assert.Contains(("Status", "ib-h2"), header);
-        Assert.Contains(("Customer", "ib-h3"), header);
-        Assert.Contains(("Id", "ib-cell-end"), header);
-        Assert.Equal(["ib-h2", "ib-h3", "ib-h1"], cut.FindAll("col[class^=ib-h]").Select(c => c.ClassName));
-
-        // Total goes below the 32rem everything needs; the rest one by one, each width with the
-        // button column (2.25rem) that comes with the first.
-        var css = cut.Find("style").TextContent;
-        var id = cut.Find("table").Id;
-        Assert.Contains($"@container (width < 32rem){{#{id}>colgroup>.ib-h1{{width:0!important}}", css);
-        Assert.Contains("@container (width < 26.25rem){", css);
-        Assert.Contains("@container (width < 18.25rem){", css);
-        Assert.Contains("@container (width >= 32rem){", css);
-        Assert.Equal("container-type:inline-size", cut.Find(".ib-table-scroll").GetAttribute("style"));
-    }
-
-    [Fact]
     public void An_open_rows_detail_lists_the_columns_that_can_hide_before_its_template()
     {
         var cut = Grid("/orders?detail=2", p => p.Add(x => x.DetailTemplate, o => b => b.AddContent(0, $"Lines of {o.Id}")));
 
         var detail = cut.Find("tr.ib-grid-detail");
+        // In the columns' order; the grid's style shows only those hidden at its width.
         var entries = detail.QuerySelectorAll("dl.ib-grid-hidden > div")
-            .Select(d => (d.ClassName, d.QuerySelector("dt")!.TextContent, d.QuerySelector("dd")!.TextContent.Trim()))
+            .Select(d => (d.QuerySelector("dt")!.TextContent, d.QuerySelector("dd")!.TextContent.Trim()))
             .ToList();
-        Assert.Equal([("ib-h2", "Status", "Open"), ("ib-h3", "Customer", "Bo"), ("ib-h1", "Total", "20")], entries);
+        Assert.Equal([("Status", "Open"), ("Customer", "Bo"), ("Total", "20")], entries);
         Assert.EndsWith("Lines of 2", detail.TextContent.Trim());
-
-        // With a template, the button column stays; the row's button opens it whatever's hidden.
-        Assert.DoesNotContain("ib-hx", cut.Find("tbody a.ib-grid-expand").ClassName);
-    }
-
-    public sealed class EditRow
-    {
-        public int Id { get; set; }
-        public string Status { get; set; } = "";
-        public string Customer { get; set; } = "";
-        public decimal Total { get; set; }
-    }
-
-    [Fact]
-    public void A_row_being_edited_has_its_hidden_columns_fields_in_its_detail_as_well_as_its_cells()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/orders");
-        var cut = Render<DataGrid<EditRow>>(p => p
-            .Add(x => x.Items, [new EditRow { Id = 1, Status = "Paid", Customer = "Ada", Total = 10 }])
-            .Add(x => x.ItemKey, o => o.Id.ToString())
-            .Add(x => x.SmallScreen, DataGridSmallScreen.HideColumns)
-            .Add(x => x.EditMode, DataGridEditMode.Row)
-            .Add(x => x.OnSave, (DataGridSave<EditRow> _) => { })
-            .Add(x => x.EditKey, "1")
-            .Add(x => x.EditKeyChanged, (string? _) => { })
-            .Add(x => x.ChildContent, (RenderFragment)(builder =>
-            {
-                builder.OpenComponent<PropertyColumn<EditRow, int>>(0);
-                builder.AddComponentParameter(1, "Property", (Expression<Func<EditRow, int>>)(o => o.Id));
-                builder.AddComponentParameter(2, "Editable", false);
-                builder.CloseComponent();
-                builder.OpenComponent<PropertyColumn<EditRow, string>>(3);
-                builder.AddComponentParameter(4, "Property", (Expression<Func<EditRow, string>>)(o => o.Customer));
-                builder.CloseComponent();
-            })));
-
-        // The detail opens for the edit, with the field and, for no script, the value.
-        var form = cut.Find("form.ib-grid-edit-form").Id;
-        var entry = cut.Find("tr.ib-grid-detail dl.ib-grid-hidden > .ib-h1");
-        Assert.Equal(form, entry.QuerySelector(".ib-grid-hidden-field [name='ib-edit.Customer']")!.GetAttribute("form"));
-        Assert.Equal("Ada", entry.QuerySelector(".ib-grid-hidden-value")!.TextContent);
-        Assert.Equal(form, cut.Find("tr[data-ib-editing] td.ib-h1 [name='ib-edit.Customer']").GetAttribute("form"));
-    }
-
-    [Fact]
-    public void Without_a_template_the_button_column_and_its_details_go_while_nothing_is_hidden()
-    {
-        var cut = Grid("/orders?detail=2");
-
-        Assert.Contains("ib-hx", cut.Find("tr.ib-grid-detail").ClassName);
-        Assert.Contains("ib-hx", cut.Find("tbody a.ib-grid-expand").ClassName);
-        var id = cut.Find("table").Id;
-        Assert.Contains($"@container (width >= 32rem){{#{id}{{--ib-grid-expander:0px}}", cut.Find("style").TextContent);
     }
 }

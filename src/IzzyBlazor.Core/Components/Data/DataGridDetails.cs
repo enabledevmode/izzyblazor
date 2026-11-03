@@ -12,7 +12,10 @@ public partial class DataGrid<TItem>
     /// </summary>
     [Parameter] public RenderFragment<TItem>? DetailTemplate { get; set; }
 
-    /// <summary>Which rows have a detail; all of them when it's not set. A row without one has no button.</summary>
+    /// <summary>
+    /// Which rows have a detail; all of them when it's not set. A row without one has no button, except
+    /// while the grid hides columns to fit, when its detail shows their values.
+    /// </summary>
     [Parameter] public Func<TItem, bool>? ItemHasDetail { get; set; }
 
     /// <summary>
@@ -60,8 +63,8 @@ public partial class DataGrid<TItem>
 
     // A detail opening or closing isn't a page leaving fewer rows: the height held starts again.
     /// <inheritdoc />
-    internal override string? HeldFor => base.HeldFor is { } held && HasExpander && (Details.All || Details.Open.Count > 0)
-        ? $"{held} {(Details.All ? "*" : "")}{string.Join(' ', Details.All ? Details.Shut : Details.Open)}"
+    internal override string? HeldFor => base.HeldFor is { } held && HasExpander && (Details.All || Details.Open.Count > 0 || (Hiding && RowEditKey is not null))
+        ? $"{held} {(Details.All ? "*" : "")}{string.Join(' ', Details.All ? Details.Shut : Details.Open)}{(Hiding && RowEditKey is { } editing ? " edit:" + editing : "")}"
         : base.HeldFor;
 
     // Read again when what it's read from changes: asked for at every row.

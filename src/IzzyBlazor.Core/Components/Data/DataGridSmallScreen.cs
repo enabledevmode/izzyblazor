@@ -28,7 +28,10 @@ public partial class DataGrid<TItem>
     /// <summary>
     /// What it does when its columns don't fit its width: <see cref="DataGridSmallScreen.Scroll"/> (the
     /// default) scrolls sideways; <see cref="DataGridSmallScreen.HideColumns"/> hides columns by their
-    /// <c>Priority</c> and shows their values in the row's detail. Hiding needs an <c>ItemKey</c>.
+    /// <c>Priority</c> and shows their values in the row's detail. Hiding needs an <c>ItemKey</c>, can't
+    /// be used with <c>Virtualize</c>, and makes the grid as wide as its space. A hidden column's header
+    /// is hidden with it, so sort or filter it from the column picker or the filter chips. Widths
+    /// dragged by <c>ResizableColumns</c> count from the next time the server draws the grid.
     /// </summary>
     [Parameter] public DataGridSmallScreen SmallScreen { get; set; }
 
@@ -43,7 +46,8 @@ public partial class DataGrid<TItem>
     private HidePlan? _hidePlan;
     private string? _hidePlanFor;
 
-    internal bool Hiding => SmallScreen == DataGridSmallScreen.HideColumns && Shown.Count > 1;
+    // Not with nothing that can hide: the first column and frozen ones stay.
+    internal bool Hiding => SmallScreen == DataGridSmallScreen.HideColumns && Shown.Skip(1).Any(c => FrozenOf(c) == ColumnFrozen.None);
 
     // A detail button for each row: for a DetailTemplate, or for the values of hidden columns.
     private bool HasExpander => HasDetails || Hiding;
@@ -64,8 +68,10 @@ public partial class DataGrid<TItem>
     {
         get
         {
-            var signature = string.Join('|', Shown.Select(c => $"{c.Priority}:{WidthOf(c)}:{c.MinWidth}:{FrozenOf(c)}"))
-                + $"|{Selectable}|{Grouping.Levels.Count}|{HasDetails}|{(HasActionCell ? $"{ActionWidth(false)}:{ActionWidth(true)}" : "")}";
+            // Asked for at every cell, so cheap: the rows' actions (the action column's width) are
+            // read only when the rows or the edit change.
+            var signature = string.Join('|', Shown.Select(c => $"{KeyOf(c)}:{c.Priority}:{WidthOf(c)}:{c.MinWidth}:{FrozenOf(c)}"))
+                + $"|{Selectable}|{Grouping.Levels.Count}|{HasDetails}|{HasActionCell}|{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(_items)}:{_items.Count}|{RowEditKey}";
             if (_hidePlan is null || _hidePlanFor != signature)
             {
                 (_hidePlanFor, _hidePlan) = (signature, MakePlan());
@@ -167,7 +173,7 @@ public partial class DataGrid<TItem>
         }
         else
         {
-            none.Append(CultureInfo.InvariantCulture, $"{t}>*>tr>*>.ib-hx,{t}>tbody>.ib-hx{{display:none}}");
+            none.Append(CultureInfo.InvariantCulture, $"{t}>*>tr>*>.ib-hx,{t}>tbody>.ib-hx,{t}>*>tr>*>*>.ib-grid-hidden{{display:none}}");
         }
 
         if (HasActionCell)
@@ -229,9 +235,18 @@ public partial class DataGrid<TItem>
                 builder.AddAttribute(8, "class", "ib-grid-hidden-field");
                 builder.AddContent(9, field);
                 builder.CloseElement();
-                builder.OpenElement(10, "span");
+                builder.OpenElement(10, "div");
                 builder.AddAttribute(11, "class", "ib-grid-hidden-value");
                 builder.AddContent(12, column.Cell(item));
+                // A failed save's message, which would be beside the field.
+                foreach (var message in _editContext?.GetValidationMessages(new Microsoft.AspNetCore.Components.Forms.FieldIdentifier(_editModel!, column.EditProperty!.Name)) ?? [])
+                {
+                    builder.OpenElement(14, "div");
+                    builder.AddAttribute(15, "class", "ib-field-error");
+                    builder.AddContent(16, message);
+                    builder.CloseElement();
+                }
+
                 builder.CloseElement();
             }
             else
