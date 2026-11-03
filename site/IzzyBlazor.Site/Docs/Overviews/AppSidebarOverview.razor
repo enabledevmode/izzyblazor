@@ -7,12 +7,12 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A sidebar is the column of links beside the page in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>. On phones it becomes a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
+<TextBlock>A sidebar is the column of links beside the page in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>. It suits an app's main navigation. On phones it becomes a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">A drawer on phones</Heading>
-<TextBlock>On narrow screens the sidebar becomes a drawer, and a menu button in the header opens it. To set the width below which this happens, set <Code>Breakpoint</Code>. It defaults to 768px. The menu button shows only below it.</TextBlock>
+<TextBlock>On narrow screens the sidebar becomes a drawer, and a menu button in the header opens it. To set the width below which this happens, set <Code>Breakpoint</Code>. The default is 768px. The menu button shows only below it.</TextBlock>
 <ExampleViewer Example="app-sidebar-drawer" WidthSwitch />
-<TextBlock>To open the drawer from the right, with the menu button at the right of the header as content sites do, set <Code>DrawerPosition="SidebarPosition.End"</Code>. To move the whole sidebar to the right, set <Code>Position</Code>. <Code>Width</Code> sets the sidebar's width; it defaults to 16rem.</TextBlock>
+<TextBlock>To open the drawer from the right, with the menu button at the right of the header as content sites do, set <Code>DrawerPosition="SidebarPosition.End"</Code>. To move the whole sidebar to the right, set <Code>Position</Code>. To set the sidebar's width, set <Code>Width</Code>. The default is 16rem.</TextBlock>
 <Code Block Language="razor">@FromTheRight</Code>
 
 <Heading Level="2">Pinned at the top and bottom</Heading>
@@ -44,7 +44,7 @@
 <TextBlock>A brand in the <Code>SidebarHeader</Code> lines up with the header beside it.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>The sidebar and its toggle have names for screen readers. The defaults are below.</TextBlock>
+<TextBlock>The sidebar and its toggle have names for screen readers. The defaults are below; to set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 <Prose Class="site-table ib-scroll">
     <table>
         <thead><tr><th>Parameter</th><th>Names</th><th>Default</th></tr></thead>

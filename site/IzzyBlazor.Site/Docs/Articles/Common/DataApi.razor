@@ -7,7 +7,7 @@
 <ArticlePage Section="common" Slug="data-api">
     <Lead>
         In a WebAssembly or Auto app, the <Code>ItemsProvider</Code> runs in the browser, so it sends its
-        <Code>DataRequest</Code> to an API. The request can travel as a query string, as JSON, or as OData query options.
+        <Code>DataRequest</Code> to an API. The request can travel in the URL of a GET, as JSON, or as OData query options.
         On your own server, the request applies only through the fields you declare.
     </Lead>
     <ChildContent>
@@ -34,7 +34,7 @@
 
         <Heading Level="2">Filters as text</Heading>
         <TextBlock>
-            A filter has a text form, a subset of OData's <Code>$filter</Code>. It's the form the query string uses for
+            A filter has a text form, a subset of OData's <Code>$filter</Code>. It's the form the URL uses for
             <Code>filter=</Code>. A filter's <Code>ToString()</Code> writes it, and <Code>Filter.Parse</Code> reads it:
         </TextBlock>
         <Code Block Language="text">@Syntax</Code>
@@ -59,7 +59,7 @@
         </TextBlock>
         <List Gap="2">
             <ListItem>Text that isn't in this form doesn't parse, and <Code>TryParse</Code> returns false.</ListItem>
-            <ListItem>A request read from a query string with such a filter matches nothing. A <Code>skip</Code> or <Code>take</Code> that doesn't parse is left out.</ListItem>
+            <ListItem>A request read from a URL with such a filter matches nothing. A <Code>skip</Code> or <Code>take</Code> that doesn't parse is left out.</ListItem>
             <ListItem>Text ignores case here too, unlike OData's own <Code>contains</Code>.</ListItem>
             <ListItem>
                 The text form doesn't write <Code>MatchCase</Code>, so a condition sent this way ignores case on the server. To

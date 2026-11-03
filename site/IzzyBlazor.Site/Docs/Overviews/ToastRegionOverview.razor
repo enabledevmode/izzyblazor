@@ -5,13 +5,13 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A toast is a short message that appears in a corner of the screen, for news that needs no place on the page, such as "Saved". For a message beside what it's about, use an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
-<TextBlock>Put the ToastRegion in the layout once. <Code>ToastService</Code> then shows toasts in it from anywhere: from a form post on static pages, or from a C# handler on interactive pages. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
+<TextBlock>A toast is a short message that appears in a corner of the screen. It suits news that needs no place on the page, such as "Saved". For a message beside what it's about, use an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+<TextBlock>Put the ToastRegion in the layout once. <Code>ToastService</Code> then shows toasts in it from anywhere: from a form post on <Anchor Href="docs/common/render-modes">static pages</Anchor>, or from a C# handler on interactive pages. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
 
 <Heading Level="2">Showing a toast</Heading>
 <TextBlock>To show a toast, call <Code>Success</Code>, <Code>Info</Code>, <Code>Warning</Code> or <Code>Error</Code> on the injected <Code>ToastService</Code>. A title can follow the message.</TextBlock>
 <ExampleViewer Example="toast-region-show" />
-<TextBlock>On static pages, the toast renders in the response, so it needs no script. On interactive pages, it's added in the browser at once.</TextBlock>
+<TextBlock>On static pages, the toast renders in the response, so it works with JavaScript off. On interactive pages, it's added in the browser at once.</TextBlock>
 <TextBlock>Show toasts in response to an action, not in <Code>OnInitialized</Code>, which runs twice on a prerendered interactive page.</TextBlock>
 
 <Heading Level="2">An action on the toast</Heading>
@@ -39,7 +39,16 @@
 <TextBlock>Toasts stack in the bottom end corner by default. To stack them in another corner or edge, set <Code>Placement</Code>: <Code>TopStart</Code>, <Code>TopCenter</Code>, <Code>TopEnd</Code>, <Code>BottomStart</Code>, <Code>BottomCenter</Code> or <Code>BottomEnd</Code>. To change how they look, set <Code>Variant</Code>, which styles them as alerts are styled; the default, <Code>Outline</Code>, is a raised card.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>The region's name is <Code>Label</Code>, "Notifications" by default. The close buttons' name is <Code>DismissLabel</Code>, "Dismiss" by default. You can also set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>The region and the close buttons have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The region's name</td><td>"Notifications"</td></tr>
+            <tr><td><Code>DismissLabel</Code></td><td>The close buttons' name</td><td>"Dismiss"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

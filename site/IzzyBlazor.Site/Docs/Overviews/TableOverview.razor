@@ -5,6 +5,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>A table is a list of records in rows and columns, which the user can sort, page and filter. It suits records the user scans and compares, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For editing rows, grouping and more, see <Anchor Href="docs/components/data-grid">DataGrid</Anchor>.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
 <OverviewTopics Component="Component" />
@@ -12,7 +13,7 @@
 <Heading Level="2">Sorting and paging</Heading>
 <TextBlock>Sorting reorders the rows when the user clicks a column's title. Paging splits the rows into pages, with page links under the table. Set <Code>Sortable</Code> on a column to sort by it, and <Code>PageSize</Code> on the table to page it.</TextBlock>
 <ExampleViewer Example="table-sort-page" />
-<TextBlock>The column titles and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code> in the URL. Sorting and paging therefore work with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, survive a reload, and can be shared as a link.</TextBlock>
+<TextBlock>The column titles and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code> in the URL. Sorting and paging therefore work with JavaScript off, survive a reload, and can be shared as a link.</TextBlock>
 <List Gap="2">
     <ListItem>To set the order before the user picks one, set <Code>InitialSort</Code>. <Code>"-date"</Code> sorts newest first.</ListItem>
     <ListItem>To add a "Rows per page" menu, set <Code>PageSizeOptions</Code>.</ListItem>
@@ -36,6 +37,20 @@
 <TextBlock>A table's look comes from its size, its lines and its header. Set <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code>, <Code>ShadedHeader</Code> and <Code>Bordered</Code> to change it. Turn <Code>Bordered</Code> off for a table in a card.</TextBlock>
 <TextBlock>To scroll the rows under a sticky header, set <Code>MaxHeight</Code>. To show your own text when there are no rows, set <Code>EmptyText</Code>.</TextBlock>
 <Code Block Language="razor">@Look</Code>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The table has text and names of its own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>EmptyText</Code></td><td>The text when there are no rows</td><td>"No items"</td></tr>
+            <tr><td><Code>SelectAllLabel</Code></td><td>The select-all checkbox's name</td><td>"Select all rows"</td></tr>
+            <tr><td><Code>SelectRowLabel</Code></td><td>Each row checkbox's name</td><td>"Select"</td></tr>
+            <tr><td><Code>LoadMoreText</Code></td><td>The Load more button's text</td><td>"Load more"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Totals row</Heading>
 <TextBlock>A totals row is a footer row under the rows, such as a sum under an amount column. Set <Code>FooterText</Code> on each column that shows a value there. For content other than text, set the column's <Code>Footer</Code> instead.</TextBlock>

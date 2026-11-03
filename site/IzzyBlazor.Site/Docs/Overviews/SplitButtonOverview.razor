@@ -5,31 +5,31 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A SplitButton has a main action and, beside it, an arrow that opens a menu of related ones. Clicking the main button only runs its action, and the arrow only opens the menu. Use it when one action is the usual one; when none is, use a <Anchor Href="docs/components/menu">Menu</Anchor>.</TextBlock>
+<TextBlock>A split button is a button with a main action and, beside it, an arrow that opens a menu of related ones. It suits a set of actions where one is the usual one; when none is, use a <Anchor Href="docs/components/menu">Menu</Anchor>. Clicking the main button only runs its action, and the arrow only opens the menu.</TextBlock>
 
 <Heading Level="2">The main action and its menu</Heading>
-<TextBlock>The main button acts like a <Anchor Href="docs/components/button">Button</Anchor>: to post a form, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. For the other choices, put <Code>MenuItem</Code>s inside the SplitButton. To name the arrow for screen readers, set <Code>MenuLabel</Code>.</TextBlock>
+<TextBlock>The main button acts like a <Anchor Href="docs/components/button">Button</Anchor>: to post a form, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. For the other choices, put <Code>MenuItem</Code>s inside the SplitButton.</TextBlock>
 <ExampleViewer Example="split-button-actions" />
 <TextBlock>Choosing an item runs that item, and the main action stays as it was. The SplitButton doesn't remember the last choice. To make it the default, change <Code>Label</Code> and <Code>Href</Code> or <Code>OnClick</Code> yourself.</TextBlock>
 
 <Heading Level="2">Links and downloads</Heading>
-<TextBlock>To make the main button a link, set <Code>Href</Code>. To open the link in a new tab, set <Code>External</Code> too. Other attributes, such as <Code>download</Code>, go to the main button.</TextBlock>
+<TextBlock>The main button can be a link, such as to a page or a download. To make the main button a link, set <Code>Href</Code>. To open the link in a new tab, set <Code>External</Code> too. Other attributes, such as <Code>download</Code>, go to the main button.</TextBlock>
 <ExampleViewer Example="split-button-links" />
 
 <Heading Level="2">Only an icon</Heading>
-<TextBlock>To show only the main button's icon, set <Code>IconOnly</Code> with a <Code>StartIcon</Code>. The <Code>Label</Code> stays as the button's name and tooltip.</TextBlock>
+<TextBlock>An icon-only split button shows the main button's icon without its text. Set <Code>IconOnly</Code> with a <Code>StartIcon</Code>. The <Code>Label</Code> stays as the button's name and tooltip.</TextBlock>
 <ExampleViewer Example="split-button-icon-only" />
 
 <Heading Level="2">Colors, weights and sizes</Heading>
-<TextBlock>To style both parts together, set <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code>. To make the main button fill the container, set <Code>FullWidth</Code>. Any of these you leave unset come from a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> or <Anchor Href="docs/components/toolbar">Toolbar</Anchor> around it.</TextBlock>
+<TextBlock>The accent, variant and size style both parts together. Set <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code>. To make the main button fill the container, set <Code>FullWidth</Code>. Any of these you leave unset come from a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> or <Anchor Href="docs/components/toolbar">Toolbar</Anchor> around it.</TextBlock>
 <ExampleViewer Example="split-button-looks" />
 
 <Heading Level="2">In a row of buttons</Heading>
-<TextBlock>To join a SplitButton to other buttons, put it in a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor>. Only the row's outer ends are rounded, and the SplitButton gets the group's look.</TextBlock>
+<TextBlock>A split button can join a row of other buttons. Put it in a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor>. Only the row's outer ends are rounded, and the SplitButton gets the group's look.</TextBlock>
 <ExampleViewer Example="split-button-in-group" />
 
 <Heading Level="2">States</Heading>
-<TextBlock>When there's no usual action but the others still work, set <Code>MainDisabled</Code>. When there's nothing else to choose, set <Code>MenuDisabled</Code>. To disable the whole control, or show it loading, set <Code>Disabled</Code> or <Code>Loading</Code>.</TextBlock>
+<TextBlock>Either part can be disabled on its own, or the whole control at once. When there's no usual action but the others still work, set <Code>MainDisabled</Code>. When there's nothing else to choose, set <Code>MenuDisabled</Code>. To disable the whole control, or show it loading, set <Code>Disabled</Code> or <Code>Loading</Code>.</TextBlock>
 <ExampleViewer Example="split-button-states" />
 
 <Heading Level="2">Where the menu opens</Heading>
@@ -37,7 +37,7 @@
 <ExampleViewer Example="split-button-panel-width" />
 
 <Heading Level="2">Running C# on click</Heading>
-<TextBlock>On interactive pages, the main button and each <Code>MenuItem</Code> can run C# when clicked. Set <Code>OnClick</Code> on each.</TextBlock>
+<TextBlock>On <Anchor Href="docs/common/render-modes">interactive pages</Anchor>, the main button and each <Code>MenuItem</Code> can run C# when clicked. Set <Code>OnClick</Code> on each.</TextBlock>
 <ExampleViewer Example="split-button-on-click" />
 
 <Heading Level="2">In a Toolbar</Heading>
@@ -46,7 +46,20 @@
 <Code Block Language="razor">@InToolbar</Code>
 
 <Heading Level="2">With JavaScript off</Heading>
-<TextBlock>With <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, the arrow still opens and closes the menu, and links and form posts work on the main button and on the items, as on a Menu. Alt+Down and the arrow keys require IzzyBlazor's script; without it, Tab to the arrow and press Enter. <Code>OnClick</Code> runs only on interactive pages.</TextBlock>
+<TextBlock>With JavaScript off, the arrow still opens and closes the menu, and links and form posts work on the main button and on the items, as on a Menu. Alt+Down and the arrow keys require IzzyBlazor's script; without it, Tab to the arrow and press Enter. <Code>OnClick</Code> runs only on interactive pages.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The arrow has a name for screen readers, and a loading button and a link that opens in a new tab have words of their own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>MenuLabel</Code></td><td>The arrow's name and tooltip, and the submenu's name in a Toolbar's … menu</td><td>"{Label}: more options"</td></tr>
+            <tr><td><Code>LoadingLabel</Code></td><td>What screen readers hear while <Code>Loading</Code> is set</td><td>"Loading"</td></tr>
+            <tr><td><Code>NewTabLabel</Code></td><td>What screen readers hear after an external link's text</td><td>"(opens in a new tab)"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
@@ -83,7 +96,7 @@
             <MenuItem Href="/drafts">Open drafts</MenuItem>
         </SplitButton>
 
-        @* A link and a download, which work with no script *@
+        @* A link and a download, which work with JavaScript off *@
         <SplitButton Label="Download PDF" Href="/report.pdf" download MenuLabel="Other formats">
             <MenuItem Href="/report.csv" download>CSV</MenuItem>
         </SplitButton>

@@ -5,7 +5,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A confirm button asks before an action that's hard to undo. It opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. The dialog sits beside the button, inside the form it submits.</TextBlock>
+<TextBlock>A confirm button is a button that asks before it acts. It suits actions that are hard to undo, such as deleting. It opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. The dialog sits beside the button, inside the form it submits.</TextBlock>
 <TextBlock>To ask a question from C# on interactive pages, use <Code>DialogService.ConfirmAsync</Code>; see <Anchor Href="docs/components/dialog#dialogs-from-code">Dialog</Anchor>.</TextBlock>
 
 <Heading Level="2">Confirming a form post</Heading>
@@ -31,7 +31,16 @@
 <TextBlock>On interactive pages, set <Code>Loading</Code> while <Code>OnConfirm</Code>'s work runs. The button can't open the dialog again until the work is done.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>To change the dialog's button text, set <Code>ConfirmText</Code> ("Confirm" by default) and <Code>CancelText</Code> ("Cancel"). To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>The dialog's buttons have text of their own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>ConfirmText</Code></td><td>The confirm button's text</td><td>"Confirm"</td></tr>
+            <tr><td><Code>CancelText</Code></td><td>The cancel button's text</td><td>"Cancel"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>OnThisPage lists a long page's sections beside it, so the user sees what's there and can jump to a section. The list is in the server's response, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. With IzzyBlazor's script, it marks the section in view as the page scrolls.</TextBlock>
+<TextBlock>An on-this-page outline is a list of a long page's sections beside it, so the user sees what's there and can jump to a section. It suits long guides and reference pages. The list is in the server's response, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. With IzzyBlazor's script, it marks the section in view as the page scrolls.</TextBlock>
 <TextBlock>For links between pages, use a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor> in the sidebar and <Anchor Href="docs/components/prev-next">PrevNext</Anchor> at the end of each page.</TextBlock>
 
 <Heading Level="2">A guide with its outline</Heading>
@@ -13,7 +13,7 @@
 <TextBlock>The aside shows from its <Code>Breakpoint</Code> up, 1024px by default. This example sets it lower to fit the window.</TextBlock>
 
 <Heading Level="2">Which headings</Heading>
-<TextBlock>OnThisPage lists h2 and h3 headings by default, with each level indented under the one above. To list other levels, such as only h2 on a page of short sections, set <Code>MinLevel</Code> and <Code>MaxLevel</Code>, from 1 to 6. To change its heading, "On this page" by default, set <Code>Title</Code>, or set it for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>OnThisPage lists h2 and h3 headings by default, with each level indented under the one above. To list other levels, such as only h2 on a page of short sections, set <Code>MinLevel</Code> and <Code>MaxLevel</Code>, from 1 to 6.</TextBlock>
 <List Gap="2">
     <ListItem>Only headings in the main area are listed, not those in the header, the sidebar or the aside.</ListItem>
     <ListItem>To leave a heading out, such as one inside a card or a dialog, set <Code>Outline="false"</Code> on it.</ListItem>
@@ -26,6 +26,17 @@
 <Heading Level="2">Without an AppShell</Heading>
 <TextBlock>The list comes from the AppShell, which collects the headings in its <Code>AppMain</Code>. On a page with no AppShell, the server lists nothing and renders OnThisPage hidden. IzzyBlazor's script then lists the headings that have an id in the page's <Code>main</Code> element.</TextBlock>
 <TextBlock>Headings get ids from their text only in an AppShell, so give each heading an <Code>id</Code> on such a page.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The outline has a heading of its own. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Title</Code></td><td>The outline's heading, which also names its landmark</td><td>"On this page"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

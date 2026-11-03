@@ -5,7 +5,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A checkbox group is a list of checkboxes, one for each option, from which the user checks any number. It suits short lists where every option should be in view. For a long list, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>, which takes less room. For one yes-or-no choice, see <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
+<TextBlock>A checkbox group is a list of checkboxes, one for each option, from which the user checks any number. It suits short lists where every option should be in view. For a long list, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>, which needs less room. For one yes-or-no choice, see <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
 
 <Heading Level="2">Several choices</Heading>
 <TextBlock>The group's value is the collection of checked options. Set <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>. Each checked box posts its value, so the group works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
@@ -37,13 +37,24 @@
     <ListItem>On static pages, it checks when the form posts. An empty choice leaves the property null, and <Code>[Required]</Code> catches it.</ListItem>
     <ListItem>On interactive pages, it checks on Save and as the last box is cleared. An empty choice is an empty list, and <Code>[MinLength(1)]</Code> catches it.</ListItem>
 </List>
-<TextBlock>Screen readers don't hear the asterisk. They hear "(required)" after the label instead (<Code>IzzyText.Required</Code>). After a form post that fails, the group's first box takes focus, so its error is read.</TextBlock>
-<TextBlock>A form post can carry values that aren't among the options, and they reach the model. Check them on the server, as this example does.</TextBlock>
+<TextBlock>Screen readers don't hear the asterisk. They hear "(required)" after the label instead (<Code>IzzyText.Required</Code>). After a form post that fails, the group's first box receives focus, so its error is read.</TextBlock>
+<TextBlock>A form post can contain values that aren't among the options, and they reach the model. This example checks them on the server. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
 <TextBlock>The size lines the group up with buttons and other fields. Set <Code>Size</Code> to choose one. For choices that can't change, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="checkbox-group-states" />
-<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the group is disabled while a hidden field posts its value. A disabled group posts nothing; see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the group is disabled while a hidden field posts its value. A disabled group posts nothing. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The select-all box has its own text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>SelectAllText</Code></td><td>The select-all box's text</td><td>"Select all"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

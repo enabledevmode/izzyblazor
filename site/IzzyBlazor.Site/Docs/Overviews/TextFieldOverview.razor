@@ -4,6 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>A text field is a field for one line of text, such as a name, an email address or a password. It suits short text. It's a native input, so it posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For several lines, see <Anchor Href="docs/components/text-area">TextArea</Anchor>. For numbers, see <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
 
 <Heading Level="2">Labels and hints</Heading>
 <TextBlock>A field's label comes from the model: its <Code>[Display(Name)]</Code>, or the property name in words. <Code>[Required]</Code> adds a required mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
@@ -14,11 +15,11 @@
 <Code Block Language="razor">@Types</Code>
 
 <Heading Level="2">Passwords</Heading>
-<TextBlock>Once <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> runs, a password field gets a button that shows and hides the password. To leave the button out, set <Code>Reveal="false"</Code>.</TextBlock>
+<TextBlock>Once IzzyBlazor's script runs, a password field gets a button that shows and hides the password. To leave the button out, set <Code>Reveal="false"</Code>.</TextBlock>
 <ExampleViewer Example="text-field-password" />
 
 <Heading Level="2">Icons</Heading>
-<TextBlock>To show an icon inside the field, set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
+<TextBlock>A field can show an icon inside it, such as a search icon. Set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
 <ExampleViewer Example="text-field-icons" />
 
 <Heading Level="2">A clear button</Heading>
@@ -35,9 +36,20 @@
 <ExampleViewer Example="text-field-validation" />
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. A read-only field posts its value, but the user can't change it; set <Code>ReadOnly</Code>. A disabled field doesn't post; set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="text-field-states" />
-<TextBlock>Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>A password field's reveal button has a name for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>ShowPasswordLabel</Code></td><td>The name of the button that shows and hides a password</td><td>"Show password"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

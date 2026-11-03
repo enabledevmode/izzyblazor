@@ -6,7 +6,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A form collects fields bound to a model, validates them, and submits them to your handler, on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages alike. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
+<TextBlock>A form is a set of fields bound to a model, which it validates and submits to your handler. It suits any data the user enters and saves. It works the same on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
 
 <Heading Level="2">Fields</Heading>
 <TextBlock>Each field in a form is bound to a property of the model, and gets its label, required mark, type and limits from the property's attributes. Bind each field with <Code>@@bind-Value</Code>. The fields post with the form.</TextBlock>
@@ -32,7 +32,7 @@
 </List>
 
 <Heading Level="2">Errors</Heading>
-<TextBlock>An error summary lists every message at the top of the form after a failed submit. It takes focus, so keyboard and screen reader users start there. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
+<TextBlock>An error summary lists every message at the top of the form after a failed submit. It receives focus, so keyboard and screen reader users start there. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
 <ExampleViewer Example="form-errors" />
 <TextBlock>Each field shows its own messages under it too. To show one property's messages beside an input of your own, add <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>, and set the input's <Code>aria-describedby</Code> to that <Code>Id</Code>.</TextBlock>
 
@@ -50,7 +50,7 @@
 <ExampleViewer Example="form-read-only" />
 <List>
     <ListItem>HTML has no read-only select, checkbox, radio or range. A read-only select shows its value in a read-only text field. Checkboxes, switches, radios, segments and sliders are disabled, and hidden fields post their values.</ListItem>
-    <ListItem>See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor> and <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
+    <ListItem>Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
 </List>
 
 <Heading Level="2">Custom validation</Heading>
@@ -60,6 +60,17 @@
 <Heading Level="2">Files</Heading>
 <TextBlock>A form with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor> must send its fields as multipart data, or a form post on static pages sends only the files' names. Set <Code>Multipart</Code> on the form.</TextBlock>
 <Code Block Language="razor">@Files</Code>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The error summary has a heading of its own. The words for marks on fields, such as "(required)" and "(optional)", have no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Title</Code></td><td>The <Code>FormErrors</Code> summary's heading</td><td>"Please fix the following"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

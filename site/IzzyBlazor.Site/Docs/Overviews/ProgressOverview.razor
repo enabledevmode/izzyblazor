@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Progress bar shows how far along a task is, such as an upload or an import. Without a value, it shows that the task is still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
+<TextBlock>A progress bar shows how far along a task is. It suits work with a length you can measure, such as an upload or an import. Without a value, it shows that the task is still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
 
 <Heading Level="2">Value and label</Heading>
 <TextBlock>The bar fills to its <Code>Value</Code>, out of <Code>Max</Code>, which is 100 by default. Its <Code>Label</Code> is the line above the bar, and also its name for screen readers. To show the percentage at the end of that line, set <Code>ShowValue</Code>. To show your own text there instead, such as "3 of 5 files", set <Code>ValueText</Code>.</TextBlock>
@@ -12,7 +12,7 @@
 <TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value below 0 or above <Code>Max</Code> shows as the nearest end.</TextBlock>
 
 <Heading Level="2">Sizes and colors</Heading>
-<TextBlock>To set the bar's thickness, set <Code>Size</Code>: Sm, Md or Lg, to sit with controls of that size. The bar uses the primary color by default. To change it, set <Code>Accent</Code>, such as <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<TextBlock>The size sets the bar's thickness: Sm, Md or Lg, to sit with controls of that size. Set <Code>Size</Code> to choose one. The bar uses the primary color by default. To change it, set <Code>Accent</Code>, such as <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
 <ExampleViewer Example="progress-sizes" />
 <TextBlock>The color doesn't reach screen readers. When the color means a warning, say so in the label or the value text too, such as "almost full".</TextBlock>
 
@@ -22,7 +22,7 @@
 <TextBlock>With reduced motion, the sweep is slower. Once you know how much work there is, set <Code>Value</Code>, and the bar starts to fill.</TextBlock>
 
 <Heading Level="2">Updating from C#</Heading>
-<TextBlock>The bar renders on the server, so on static pages it shows the value from when the page rendered. On interactive pages, change <Code>Value</Code> from C#, and the bar follows.</TextBlock>
+<TextBlock>The bar renders on the server, so on <Anchor Href="docs/common/render-modes">static pages</Anchor> it shows the value from when the page rendered. On interactive pages, change <Code>Value</Code> from C#, and the bar follows.</TextBlock>
 <ExampleViewer Example="progress-from-code" />
 
 <Heading Level="2">Mode support</Heading>

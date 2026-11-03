@@ -4,17 +4,17 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Slider is a native range input. It posts with the form, and it moves with the arrow keys, Page Up and Page Down, and Home and End, with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too. Use it for a value the user judges by eye, such as a volume. When the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
+<TextBlock>A slider is a native range input. It suits a value the user judges by eye, such as a volume. It posts with the form, and it moves with the arrow keys, Page Up and Page Down, and Home and End, with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too. When the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
 
 <Heading Level="2">Showing the value</Heading>
-<TextBlock>To show the value beside the slider, set <Code>ShowValue</Code>. To set how the value reads, such as <Code>"{0}%"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
+<TextBlock>A slider can show its value beside it. To show the value, set <Code>ShowValue</Code>. To set how the value reads, such as <Code>"{0}%"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
 <TextBlock>The ends are 0 and 100 by default. To change them, set <Code>[Range]</Code> on the property, or <Code>Min</Code> and <Code>Max</Code> on the slider. To set the increments, set <Code>Step</Code>.</TextBlock>
 <ExampleViewer Example="slider-value" />
 
 <Heading Level="2">Saving a value</Heading>
 <TextBlock>A slider binds like any field. The value posts as a number with the form.</TextBlock>
 <ExampleViewer Example="slider-budget" />
-<TextBlock>The browser keeps the value on a step between the ends, so a form post from the page is always in range. A crafted form post can send any number. The validator checks <Code>[Range]</Code> on the server, but not the step, so round the value yourself if it must be a multiple. See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>The browser keeps the value on a step between the ends, so a form post from the page is always in range. A crafted form post can send any number. The validator checks <Code>[Range]</Code> on the server, but not the step, so round the value yourself if it must be a multiple. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Following the value live</Heading>
 <TextBlock>By default, the bound value changes when the user lets go of the thumb. On interactive pages, a live slider updates it as the thumb moves instead, for something on the page that follows the value. Set <Code>Live</Code>.</TextBlock>

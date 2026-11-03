@@ -7,60 +7,69 @@
 
 <ArticlePage Section="common" Slug="style-props">
     <Lead>
-        Spacing, sizes, borders and colors are parameters on the components. Each value becomes a class and a CSS variable
-        on the server: nothing is worked out in the browser, and enums and typed values catch most mistakes at build time.
+        Style props set spacing, sizes, borders and colors as parameters on the components. The server turns each value
+        into a class and a CSS variable, so nothing is computed in the browser. Enums and typed values catch most mistakes
+        at build time.
     </Lead>
     <ChildContent>
         <Heading Level="2">Typed values</Heading>
         <TextBlock>
-            Closed sets are enums with IntelliSense: <Code>Align.Center</Code>, <Code>Justify.Between</Code>,
-            <Code>Radius.Md</Code>, <Code>Shadow.Sm</Code>, <Code>Color.Fill</Code>. Sizes are a
-            <Code>Length</Code>: <Code>Length.Prose</Code>, <Code>Length.Full</Code>, <Code>Length.Rem(15)</Code>.
+            A style prop with a fixed set of values is an enum, so IntelliSense lists them: <Code>Align.Center</Code>,
+            <Code>Justify.Between</Code>, <Code>Radius.Md</Code>, <Code>Shadow.Sm</Code>, <Code>Color.Fill</Code>. A size is
+            a <Code>Length</Code>: <Code>Length.Prose</Code>, <Code>Length.Full</Code>, <Code>Length.Rem(15)</Code>.
         </TextBlock>
 
         <Heading Level="2">Spacing</Heading>
         <TextBlock>
-            Use a step from the scale, 0 to 16: steps up to 12 go up 4px at a time (0 to 48px), and 13 to 16 are 56, 64, 80
-            and 96px. Margins also go down to -16, pulling the element outward.
+            Spacing props set margins and padding as a step on the spacing scale, from 0 to 16. Steps up to 12 go up 4px at
+            a time, from 0 to 48px, and steps 13 to 16 are 56, 64, 80 and 96px. A margin can also be negative, down to -16,
+            which pulls the element outward.
         </TextBlock>
         <Code Block Language="razor">@Spacing</Code>
         <TextBlock>
-            A side beats its axis, which beats all sides. <Code>Start</Code> and <Code>End</Code> follow the text direction,
-            so layouts flip in right-to-left languages.
+            A side overrides its axis, and an axis overrides all sides. <Code>Start</Code> and <Code>End</Code> follow the
+            text direction, so layouts flip in right-to-left languages.
         </TextBlock>
 
         <Heading Level="2">Borders, sizes and overflow</Heading>
         <TextBlock>
-            Use <Code>Border</Code> in whole pixels, with an axis or a side like padding, <Code>BorderColor</Code>
-            and <Code>BorderStyle</Code>. On their own, <Code>BorderColor</Code> recolors a component's border and
-            <Code>BorderStyle</Code> restyles a card's.
+            Border props add a border to a component. <Code>Border</Code> sets its width in whole pixels, and like padding it
+            has a version for each axis and side. <Code>BorderColor</Code> and <Code>BorderStyle</Code> set its color and
+            style.
         </TextBlock>
         <ExampleViewer Example="box-borders" />
         <TextBlock>
-            <Code>Width</Code>, <Code>Height</Code> and their minimums and maximums take a <Code>Length</Code>.
-            <Code>Overflow</Code> says what happens to content that doesn't fit:
+            On their own, <Code>BorderColor</Code> recolors a component's border and <Code>BorderStyle</Code> restyles a
+            card's.
+        </TextBlock>
+        <TextBlock>
+            Size props set a component's width and height. <Code>Width</Code>, <Code>Height</Code> and their minimums and
+            maximums accept a <Code>Length</Code>. <Code>Overflow</Code> sets what happens to content that doesn't fit:
             <Code>MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"</Code> scrolls it.
         </TextBlock>
 
         <Heading Level="2">Colors</Heading>
         <TextBlock>
-            <Code>Color</Code> is the text color and <Code>Bg</Code> the background, as in CSS. A theme color as
-            <Code>Bg</Code> picks its text color: <Code>Bg="Color.Primary"</Code> gets <Code>OnPrimary</Code>, and
-            <Code>Bg="Color.DangerSoft"</Code> gets <Code>DangerText</Code>. Controls take an <Code>Accent</Code> instead,
-            a whole set of colors (fill, text on it, a soft tint): <Code>Primary</Code>, <Code>Neutral</Code> or
-            <Code>Danger</Code>, or any color:
+            Color props set a component's text and background. <Code>Color</Code> sets the text color and <Code>Bg</Code>
+            the background, as in CSS. With a theme color as <Code>Bg</Code>, the text color follows:
+            <Code>Bg="Color.Primary"</Code> gets <Code>OnPrimary</Code> text, and <Code>Bg="Color.DangerSoft"</Code> gets
+            <Code>DangerText</Code>.
+        </TextBlock>
+        <TextBlock>
+            Controls have an <Code>Accent</Code> instead. An accent is a whole set of colors: the fill, the text on it, and a
+            soft tint. Set it to <Code>Primary</Code>, <Code>Neutral</Code>, <Code>Danger</Code> or any color:
         </TextBlock>
         <Code Block Language="razor">@Colors</Code>
         <TextBlock>
-            Badges, alerts, banners and toasts take a <Code>Status</Code>, which also sets the icon and what screen readers
-            hear. See <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> for the colors themselves.
+            Badges, alerts, banners and toasts have a <Code>Status</Code>. It sets their color, their icon and what screen
+            readers hear. For the colors themselves, see <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Item props and surface props</Heading>
         <TextBlock>
-            Item props say how a component sits in its parent: margins, widths, <Code>Grow</Code>, <Code>AlignSelf</Code>,
-            <Code>ColSpan</Code>. Nearly every component takes them. Surface props say how a box looks inside: padding,
-            background, radius, shadow, borders, heights. <Code>Box</Code> and everything built on it take both.
+            Item props set how a component sits in its parent, such as its margins, width and <Code>Grow</Code>. Nearly every
+            component has them. Surface props set how a box looks inside, such as its padding, background, radius, shadow and
+            borders. <Code>Box</Code> and every component built on it have both.
         </TextBlock>
         <TextBlock>
             Item props go on the element the parent lays out. For a field, that's the wrapper around the label, control and
@@ -68,18 +77,32 @@
         </TextBlock>
         <Code Block Language="razor">@Items</Code>
         <TextBlock>
-            <Code>Class</Code> and <Code>Style</Code> go on the same element, for anything the props don't cover. On
-            <Code>Menu</Code>, <Code>Popover</Code> and <Code>Tooltip</Code>, item props go on the trigger and
-            <Code>Class</Code> and <Code>Style</Code> on the panel.
+            For anything the props don't cover, set <Code>Class</Code> and <Code>Style</Code>. They go on the same element as
+            the item props. On <Code>Menu</Code>, <Code>Popover</Code> and <Code>Tooltip</Code>, item props go on the
+            trigger, and <Code>Class</Code> and <Code>Style</Code> go on the panel.
         </TextBlock>
 
         <Heading Level="2">Your own values</Heading>
         <TextBlock>
-            <Code>Color.Token("brand")</Code> uses a token of yours, <Code>Color.Of("#ff6600")</Code> a literal color, and
-            <Code>Length.Of("calc(100% - 2rem)")</Code> any CSS length. Raw values are checked for characters that could break
-            out of a style. Add <Code>@@using IzzyBlazor.Units</Code> to write <Code>Width="15.Rem"</Code> or
-            <Code>MinHeight="100.Dvh"</Code>; it's a separate namespace because it adds members to every number in files that
-            import it.
+            When the built-in values don't fit, pass your own:
+        </TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Write</th><th>For</th></tr></thead>
+                <tbody>
+                    <tr><td><code>Color.Token("brand")</code></td><td>A token of your own.</td></tr>
+                    <tr><td><code>Color.Of("#ff6600")</code></td><td>A literal color.</td></tr>
+                    <tr><td><code>Length.Of("calc(100% - 2rem)")</code></td><td>Any CSS length.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            IzzyBlazor checks raw values for characters that could break out of a style.
+        </TextBlock>
+        <TextBlock>
+            To write <Code>Width="15.Rem"</Code> or <Code>MinHeight="100.Dvh"</Code>, add
+            <Code>@@using IzzyBlazor.Units</Code>. It adds members to every number in the files that import it, so it's a
+            separate namespace.
         </TextBlock>
 
         @foreach (var group in _sections)
@@ -100,7 +123,7 @@
                 <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" Class="site-member-text" /></TemplateColumn>
             </Table>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                Taken by @group.Components.Count components:
+                Available on @group.Components.Count components:
                 @for (var i = 0; i < group.Components.Count; i++)
                 {
                     var component = group.Components[i];

@@ -7,7 +7,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A SiteNav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header, for a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
+<TextBlock>A site nav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header. It suits a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
 
 <Heading Level="2">Links that fold into a menu</Heading>
 <TextBlock>On narrow screens, the links fold into a menu button that opens them in a panel under the header. The same button closes the panel, so the header with the site's name stays in view. The links fold below 768px by default; to change that width, set <Code>Breakpoint</Code>.</TextBlock>
@@ -28,7 +28,16 @@
 <TextBlock>On phones, the menu button sits at the end of the header, where users look for it, whatever comes after the links. To put it before the brand, such as on pages whose header starts with a <Code>SidebarToggle</Code>, set <Code>MenuButtonPosition</Code> to <Code>Start</Code>. To leave it where the links are, set <Code>InPlace</Code>.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>The navigation landmark's name is <Code>Label</Code>, "Site" by default, so it differs from a sidebar's "Main". The menu button's name is <Code>MenuLabel</Code>, "Menu" by default.</TextBlock>
+<TextBlock>The landmark and the menu button have names for screen readers. The landmark's default differs from a sidebar's "Main". To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The navigation landmark's name</td><td>"Site"</td></tr>
+            <tr><td><Code>MenuLabel</Code></td><td>The menu button's name</td><td>"Menu"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

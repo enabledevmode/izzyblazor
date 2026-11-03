@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A multi-select is a field where the user picks several options from a list, typing to narrow it. The chosen options show as chips in the field. For a short list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>, which shows every option at once. For one choice, see <Anchor Href="docs/components/combobox">Combobox</Anchor> or <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
+<TextBlock>A multi-select is a field where the user picks several options from a list, typing to narrow it. It suits a long list the user picks several options from. The chosen options show as chips in the field. For a short list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>, which shows every option at once. For one choice, see <Anchor Href="docs/components/combobox">Combobox</Anchor> or <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Choosing several</Heading>
 <TextBlock>The field's value is the collection of chosen options. Set <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>. Typing filters the list, ignoring case and accents, and the list stays open as the user chooses.</TextBlock>
@@ -23,7 +23,7 @@
     <ListItem>The browser checks <Code>[Required]</Code> before the form posts.</ListItem>
     <ListItem>On static pages, the server's <Code>[Required]</Code> catches an empty choice, because the property is null.</ListItem>
     <ListItem>On interactive pages, <Code>[MinLength(1)]</Code> catches it after the last choice is removed, because the property is an empty list.</ListItem>
-    <ListItem>A form post can carry values that aren't among the options, and they reach the model. Check them on the server, as this example does.</ListItem>
+    <ListItem>A form post can contain values that aren't among the options, and they reach the model. This example checks them on the server. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</ListItem>
 </List>
 
 <Heading Level="2">Enum options with icons</Heading>
@@ -32,9 +32,9 @@
 <TextBlock>The chips, typing, and the plain list with JavaScript off use the option's text, not the template. The text is <Code>ItemText</Code>, or else the enum's <Code>[Display(Name)]</Code> or its name. The template writes its own text, so show the same text there.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>The size lines the field up with buttons and other fields; set <Code>Size</Code> to choose one. For choices that post but can't change, set <Code>ReadOnly</Code>. For choices that don't post, set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>The size lines the field up with buttons and other fields; set <Code>Size</Code> to choose one. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="multi-select-states" />
-<TextBlock>HTML has no read-only select, so a read-only MultiSelect shows its choices in a read-only text field and posts them from hidden inputs. See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor> and <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+<TextBlock>HTML has no read-only select, so a read-only MultiSelect shows its choices in a read-only text field and posts them from hidden inputs. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The field shows text when nothing matches, and its buttons have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>

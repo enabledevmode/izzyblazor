@@ -5,7 +5,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A checkbox is a box with a label that the user checks for one yes-or-no choice, such as agreeing to the terms. For a setting that reads as on or off, see <Anchor Href="docs/components/switch">Switch</Anchor>. For several choices from a list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>.</TextBlock>
+<TextBlock>A checkbox is a box with a label that the user checks for one yes-or-no choice. It suits a single choice, such as agreeing to the terms. For a setting that reads as on or off, see <Anchor Href="docs/components/switch">Switch</Anchor>. For several choices from a list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>.</TextBlock>
 
 <Heading Level="2">What it posts</Heading>
 <TextBlock>A checked box posts <Code>true</Code>. An unchecked box posts <Code>false</Code> from a hidden field that follows it, so a property that defaults to true can be turned off on <Anchor Href="docs/common/render-modes">static pages</Anchor>. A disabled box posts nothing.</TextBlock>
@@ -30,7 +30,7 @@
 <Heading Level="2">Sizes and disabled</Heading>
 <TextBlock>The size lines a checkbox up with buttons and other fields. Set <Code>Size</Code> to choose one. For a box that can't change, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="checkbox-sizes" />
-<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the box is disabled while a hidden field posts its value. A disabled box posts nothing; see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the box is disabled while a hidden field posts its value. A disabled box posts nothing. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

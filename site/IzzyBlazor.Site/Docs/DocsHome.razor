@@ -10,13 +10,13 @@
     repeat them as cards.
 *@
 
-<PageMeta Title="Docs · IzzyBlazor" Description="IzzyBlazor's documentation: SSR-first Blazor components, how they work in each render mode, what's in the library and how to start." />
+<PageMeta Title="Docs · IzzyBlazor" Description="The IzzyBlazor docs: a Blazor component library built for static SSR that works in every render mode. Start here to learn how it works." />
 
 <article class="site-article">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Documentation</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            IzzyBlazor is a Blazor component library built for static SSR. Components render as HTML, gain interactivity with a small script, and support C# bindings and events when you choose an interactive render mode.
+            IzzyBlazor is a Blazor component library built for static SSR. Its components render as HTML, and a small script makes them interactive in the browser. When you choose an interactive render mode, they also bind to your C# and raise events.
         </TextBlock>
     </Stack>
 
@@ -25,7 +25,7 @@
         <Code>@Install</Code>
         <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
     </Row>
-    <TextBlock>One set of components for every page. This form posts and validates on a static page, and runs over a circuit on an interactive one, with no change to the markup. The model takes the post through <Code>[SupplyParameterFromForm]</Code>:</TextBlock>
+    <TextBlock>You use the same components on every page. This form posts and validates on <Anchor Href="docs/common/render-modes">static pages</Anchor>, and runs over a circuit on interactive pages, with the same markup. Its model receives the post through <Code>[SupplyParameterFromForm]</Code>:</TextBlock>
     <Code Block Language="razor">@FirstLook</Code>
     <Row Gap="3" Wrap>
         <Button Href="docs/get-started">Get started</Button>
@@ -33,10 +33,10 @@
     </Row>
 
     <Heading Level="2">Static · Interactive</Heading>
-    <TextBlock>Examples on this site run in both of Blazor's render modes. Pick one with the switch, here and on component pages:</TextBlock>
+    <TextBlock>Every example on this site runs in both of Blazor's render modes. To pick one, use the switch, here and on component pages:</TextBlock>
     <List Gap="2">
-        <ListItem><strong>Static</strong>: static server-side rendering, with IzzyBlazor's script adding keyboard handling, live values and the like. No circuit, no WebAssembly.</ListItem>
-        <ListItem><strong>Interactive</strong>: an interactive page on Blazor Server, where C# event handlers and <Code>@@bind</Code> run.</ListItem>
+        <ListItem><strong>Static</strong>: the server renders the page, and IzzyBlazor's script adds keyboard handling, live values and similar behavior. The page needs no circuit and no WebAssembly.</ListItem>
+        <ListItem><strong>Interactive</strong>: the page runs on Blazor Server, so C# event handlers and <Code>@@bind</Code> work.</ListItem>
     </List>
     <ExampleViewer Example="home-settings" ModeSwitch />
 
@@ -44,28 +44,28 @@
     <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Class="site-concepts">
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">One set for every render mode</Heading>
-            <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages, and every page is working HTML before its scripts run. <Anchor Href="docs/common/render-modes">Render modes</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted">The same components work on static, Server, WebAssembly and Auto pages. Every page is working HTML before its scripts run. <Anchor Href="docs/common/render-modes">Render modes</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Forms that post</Heading>
-            <TextBlock Color="Color.Muted"><Code>Form</Code> and its fields bind on a static post and on an interactive page, with labels, limits and messages from your model's attributes. <Anchor Href="docs/common/forms">Forms and validation</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted"><Code>Form</Code> and its fields bind to your model on static pages, through a form post, and on interactive pages. Labels, limits and messages come from your model's attributes. <Anchor Href="docs/common/forms">Forms and validation</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">State in the URL</Heading>
-            <TextBlock Color="Color.Muted">Table, FilterForm and Pagination keep sorting, filters and the page in the query string, so they work with no circuit and links keep them. <Anchor Href="docs/components/table">Table</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted">Table, FilterForm and Pagination store sorting, filters and the page in the URL. They work without a circuit, and a link to the page keeps them. <Anchor Href="docs/components/table">Table</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Style props and themes</Heading>
-            <TextBlock Color="Color.Muted">Spacing, sizes and colors as parameters, and <Code>IzzyTheme</Code> for the preset, brand and fonts, rendered on the server so the theme is there on first paint. <Anchor Href="docs/common/style-props">Style props</Anchor> · <Anchor Href="docs/theming/themes">Theming</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted">Style props set spacing, sizes and colors as parameters. <Code>IzzyTheme</Code> sets the preset, brand and fonts on the server, so the theme is in place on first paint. <Anchor Href="docs/common/style-props">Style props</Anchor> · <Anchor Href="docs/theming/themes">Theming</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Native elements first</Heading>
-            <TextBlock Color="Color.Muted">Buttons, dialogs, selects and disclosures are the browser's own, so focus, keyboard and screen readers work as the platform defines them; the script adds ARIA where it adds behavior.</TextBlock>
+            <TextBlock Color="Color.Muted">Buttons, dialogs, selects and disclosures use the browser's own elements. Focus, the keyboard and screen readers work as the platform defines them. Where IzzyBlazor's script adds behavior, it adds the ARIA that goes with it.</TextBlock>
         </Stack>
     </Grid>
 
     <Heading Level="2">What's in the box</Heading>
-    <TextBlock>@Registry.ComponentCountLabel components in @Registry.Categories.Count categories. <Anchor Href="docs/components">See them all</Anchor>.</TextBlock>
+    <TextBlock>The library has @Registry.ComponentCountLabel components in @Registry.Categories.Count categories. <Anchor Href="docs/components">See them all</Anchor>.</TextBlock>
     <Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="3" Class="site-box">
         @foreach (var category in Registry.Categories)
         {
@@ -92,9 +92,9 @@
 
     <Heading Level="2">Requirements</Heading>
     <List Gap="2">
-        <ListItem><strong>.NET 10</strong>, in a Blazor Web App: static pages, and Server, WebAssembly or Auto pages.</ListItem>
-        <ListItem><strong>Two packages</strong>: <Code>IzzyBlazor</Code> for the server project, and <Code>IzzyBlazor.Core</Code> for a <Code>.Client</Code> project. <Anchor Href="docs/get-started/webassembly-and-auto#packages">Packages</Anchor></ListItem>
-        <ListItem><strong>Current browsers</strong>: Chrome and Edge 123+, Firefox 128+, Safari 17.5+. Newer features, such as the customizable select, are used where the browser has them.</ListItem>
+        <ListItem><strong>.NET 10</strong>, in a Blazor Web App. Its pages can be static, Server, WebAssembly or Auto.</ListItem>
+        <ListItem><strong>Two packages</strong>: <Code>IzzyBlazor</Code> goes in the server project, and <Code>IzzyBlazor.Core</Code> in a <Code>.Client</Code> project. <Anchor Href="docs/get-started/webassembly-and-auto#packages">Packages</Anchor></ListItem>
+        <ListItem><strong>Current browsers</strong>: Chrome and Edge 123+, Firefox 128+, Safari 17.5+. Where a browser supports a newer feature, such as the customizable select, IzzyBlazor uses it.</ListItem>
         <ListItem><strong>MIT licensed</strong>. Pro components are planned.</ListItem>
     </List>
 

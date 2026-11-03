@@ -6,12 +6,12 @@
 <Code Block Language="razor">@Usage</Code>
 <TextBlock>A drawer is a panel that slides in from an edge of the screen, the end edge by default. It suits content that goes with the page rather than interrupting it, such as filters or a navigation menu. A drawer is a <Anchor Href="docs/components/dialog">Dialog</Anchor> with a different <Code>Placement</Code>, so everything a dialog does, it does too.</TextBlock>
 
-<Heading Level="2">Opening it</Heading>
+<Heading Level="2">Opening the drawer</Heading>
 <TextBlock>A drawer opens the same three ways as a dialog. For a button, add a <Code>DialogTrigger</Code> with the drawer's <Code>Id</Code>. For a link, add <Code>?dialog=</Code> and the id to the URL. From C#, set <Code>@@bind-Open</Code>.</TextBlock>
-<TextBlock>The trigger and the link work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too. <Anchor Href="docs/components/dialog#opening-it">Dialog's Overview</Anchor> shows each in every render mode.</TextBlock>
+<TextBlock>The trigger and the link work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too. <Anchor Href="docs/components/dialog#opening-the-dialog">Dialog's Overview</Anchor> shows each in every render mode.</TextBlock>
 
 <Heading Level="2">A form in a drawer</Heading>
-<TextBlock>A drawer can hold a form, such as a list of filters, with its buttons at the bottom. Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer, with its fields in a <Code>DialogBody</Code> and its <Code>FormActions</Code> last. The body fills the drawer's height, so the buttons sit at its bottom as the footer and still submit the form.</TextBlock>
+<TextBlock>A drawer can contain a form, such as a list of filters, with its buttons at the bottom. Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer, with its fields in a <Code>DialogBody</Code> and its <Code>FormActions</Code> last. The body fills the drawer's height, so the buttons sit at its bottom as the footer and still submit the form.</TextBlock>
 <ExampleViewer Example="drawer-filters" />
 <List>
     <ListItem>A form post on static pages closes the drawer.</ListItem>
@@ -43,7 +43,7 @@
 
 <Heading Level="2">Header, footer and closing</Heading>
 <TextBlock>Put the content in a <Code>DialogBody</Code> and the buttons in a <Code>DialogFooter</Code> after it. The body fills the drawer's height, so the footer sits at its bottom. Without a body, the footer follows the content partway down.</TextBlock>
-<TextBlock>Everything else works as on a dialog: <Code>Title</Code> or a <Code>DialogHeader</Code>, <Code>DialogClose</Code>, <Code>CloseOnBackdrop</Code>, <Code>ShowCloseButton</Code> and <Code>InsideForm</Code>. <Anchor Href="docs/components/dialog">Dialog's Overview</Anchor> covers each.</TextBlock>
+<TextBlock>Everything else works as on a dialog: <Code>Title</Code> or a <Code>DialogHeader</Code>, <Code>DialogClose</Code>, <Code>CloseOnBackdrop</Code>, <Code>ShowCloseButton</Code>, <Code>InsideForm</Code> and the close button's <Code>CloseLabel</Code>. <Anchor Href="docs/components/dialog">Dialog's Overview</Anchor> covers each.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

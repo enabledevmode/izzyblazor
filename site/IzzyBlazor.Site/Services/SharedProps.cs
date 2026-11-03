@@ -5,10 +5,10 @@ public static class SharedProps
 {
     public static readonly (string Base, string Title, string Label, string Description)[] Sections =
     [
-        ("LayoutItemBase", "Item props", "item props", "How a component sits in its parent: margins, widths, growing and shrinking, alignment and column spans. Almost every component takes them."),
-        ("StyledComponentBase", "Surface props", "surface props", "How a box looks: padding, background, text color, radius, shadow, borders, heights and overflow. Boxes and containers take them, on top of the item props."),
-        ("FieldBase", "Field props", "field props", "What every form field shares: label, hint, required, disabled, read-only and size, plus the item props on the field's wrapper."),
-        ("IzzyComponentBase", "Common props", "common props", "Every component takes these: extra classes and styles, any other attribute, and hiding by breakpoint."),
+        ("LayoutItemBase", "Item props", "item props", "Item props set how a component sits in its parent, such as its margins, width, growing and shrinking, alignment and column span. Almost every component has them."),
+        ("StyledComponentBase", "Surface props", "surface props", "Surface props set how a box looks, such as its padding, background, text color, radius, shadow, borders, height and overflow. Boxes and containers have them, as well as the item props."),
+        ("FieldBase", "Field props", "field props", "Field props are the ones every form field shares, such as its label, hint, size, and whether it's required, disabled or read-only. A field also has the item props, which go on its wrapper."),
+        ("IzzyComponentBase", "Common props", "common props", "Common props are on every component. They add classes, styles and any other attribute, and hide the component at a breakpoint."),
     ];
 
     public static string Label(string name) => Sections.FirstOrDefault(s => s.Base == name).Label ?? name;

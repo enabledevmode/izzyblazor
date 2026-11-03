@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them. The zone is a real file input with a label that opens the picker, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off. The file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
+<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them. It suits a form that sends a file, such as a photo or a document. The zone is a real file input with a label that opens the picker, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off. The file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
 
 <Heading Level="2">Types, size and posting</Heading>
 <TextBlock>The zone can limit the file types it offers and the largest file it accepts, and it shows both under the prompt ("PNG or JPEG · up to 2 MB"). Set <Code>Accept</Code> to the types, and <Code>MaxFileSize</Code> to the largest size in bytes. On static pages, bind the file to an <Code>IFormFile</Code> property with <Code>[SupplyParameterFromForm]</Code>, named like the field.</TextBlock>
@@ -26,7 +26,7 @@
 <List>
     <ListItem><Code>Required</Code> is the browser's check, so a crafted form post can still leave the file out. Check that it arrived on the server too.</ListItem>
     <ListItem>A file can't be read-only, so a read-only <Anchor Href="docs/components/form">Form</Anchor> disables the zone.</ListItem>
-    <ListItem>A disabled zone posts nothing, so keep its file on the server rather than clearing it after the form post. See <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
+    <ListItem>A disabled zone posts nothing, so keep its file on the server rather than clearing it after the form post. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
 </List>
 
 <Heading Level="2">Checking on the server</Heading>
@@ -50,11 +50,13 @@
 <TextBlock>The zone's prompt, the line under it and its error messages can all be changed. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 <Prose Class="site-table ib-scroll">
     <table>
-        <thead><tr><th>Parameter</th><th>Sets</th></tr></thead>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
         <tbody>
-            <tr><td><Code>ChooseText</Code>, <Code>DragText</Code></td><td>The prompt</td></tr>
-            <tr><td><Code>AcceptText</Code></td><td>The line under the prompt. Set it to empty for none.</td></tr>
-            <tr><td><Code>TooLargeText</Code>, <Code>WrongTypeText</Code></td><td>The messages for a file that's too large or of the wrong type</td></tr>
+            <tr><td><Code>ChooseText</Code></td><td>The prompt's link</td><td>"Choose a file", or "Choose files" with <Code>Multiple</Code></td></tr>
+            <tr><td><Code>DragText</Code></td><td>The rest of the prompt</td><td>"or drag it here", or "or drag them here"</td></tr>
+            <tr><td><Code>AcceptText</Code></td><td>The line under the prompt. Set it to empty for none.</td><td>The types and size limit, such as "PNG or JPEG · up to 2 MB"</td></tr>
+            <tr><td><Code>TooLargeText</Code></td><td>The message for a file that's too large</td><td>"{0} is larger than {1}."</td></tr>
+            <tr><td><Code>WrongTypeText</Code></td><td>The message for a file of the wrong type</td><td>"{0} isn't an accepted file type."</td></tr>
         </tbody>
     </table>
 </Prose>

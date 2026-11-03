@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A color scheme switch lets the user pick System, Light or Dark for the whole app. Put it in the header, once. The <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> in the <Code>head</Code> sets the scheme every page arrives in. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> covers the default scheme and a scheme for part of a page.</TextBlock>
+<TextBlock>A color scheme switch is a control for choosing System, Light or Dark for the whole app. It suits any app with a dark scheme. Put it in the header, once. The <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> in the <Code>head</Code> sets the scheme every page arrives in. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> covers the default scheme and a scheme for part of a page.</TextBlock>
 
 <Heading Level="2">Menu, toggle and segmented</Heading>
 <TextBlock>The switch comes in three looks. Set <Code>Variant</Code> to choose one:</TextBlock>
@@ -32,7 +32,16 @@
 <TextBlock>To show the choice saved in the cookie, leave <Code>Value</Code> unset. A bound value that starts null does the same until the user picks something.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>To change the menu button's or group's name ("Color scheme"), set <Code>Label</Code>. The options' words ("System", "Light", "Dark") and the toggle's ("Switch to dark mode") are set for the whole app; see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>The switch has a name for screen readers, and its options and toggle have words of their own.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The menu button's or group's name</td><td>"Color scheme"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock>The options' words ("System", "Light", "Dark") and the toggle's ("Switch to dark mode", "Switch to light mode") have no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

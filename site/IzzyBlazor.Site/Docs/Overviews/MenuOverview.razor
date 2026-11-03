@@ -5,10 +5,10 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A menu is a list of actions or links that opens from a button. It keeps secondary actions out of the way until the user needs them. For a choice that sets a form field's value, see <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
+<TextBlock>A menu is a list of actions or links that opens from a button. It suits secondary actions, which it keeps out of the way until the user needs them. For a choice that sets a form field's value, see <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Links, posts and actions</Heading>
-<TextBlock>A menu item can go to a page, post a form, or run C#. Set <Code>Href</Code> on a <Code>MenuItem</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on interactive pages. Links and form posts work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too.</TextBlock>
+<TextBlock>A menu item can go to a page, post a form, or run C#. Set <Code>Href</Code> on a <Code>MenuItem</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on <Anchor Href="docs/common/render-modes">interactive pages</Anchor>. Links and form posts work on static pages, with JavaScript off too.</TextBlock>
 <ExampleViewer Example="menu-actions" />
 <List>
     <ListItem>A submit item posts its <Code>Name</Code> and <Code>Value</Code>, so one form can tell its items apart.</ListItem>
@@ -27,7 +27,7 @@
 <TextBlock>The panel fits its items, from 10rem to 24rem wide. To set a width of your own, set <Code>PanelWidth</Code>. Without a <Code>Trigger</Code>, <Code>Label</Code>, <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style the default button.</TextBlock>
 
 <Heading Level="2">Checked items</Heading>
-<TextBlock>A menu can hold options the user checks, such as a sort order or a view setting. For a set of options kept in the URL, such as a sort, add a <Code>MenuRadioGroup</Code> and set its <Code>QueryKey</Code>. For an on/off item, set <Code>Checked</Code> and an <Code>Href</Code>. Both are links, so they work on static pages.</TextBlock>
+<TextBlock>A menu can contain options the user checks, such as a sort order or a view setting. For a set of options kept in the URL, such as a sort, add a <Code>MenuRadioGroup</Code> and set its <Code>QueryKey</Code>. For an on/off item, set <Code>Checked</Code> and an <Code>Href</Code>. Both are links, so they work on static pages.</TextBlock>
 <ExampleViewer Example="menu-checked" />
 <List>
     <ListItem>On interactive pages, to keep them in C# instead, set <Code>@@bind-Value</Code> on the group and <Code>@@bind-Checked</Code> on an item.</ListItem>

@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A color picker is a field for choosing a color: a swatch that opens the browser's color panel. Its value is a hex string such as <Code>#2563eb</Code>. For a few named choices, such as a label's color, a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> can be clearer.</TextBlock>
+<TextBlock>A color picker is a field for choosing a color: a swatch that opens the browser's color panel. It suits a color the user chooses freely, such as a brand color. Its value is a hex string such as <Code>#2563eb</Code>. For a few named choices, such as a label's color, a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> can be clearer.</TextBlock>
 <TextBlock>Underneath is a native color input, so it posts with the form and opens the browser's color panel <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. IzzyBlazor's script adds a hex box beside the swatch, and shows the presets as swatches under it.</TextBlock>
 
 <Heading Level="2">Presets</Heading>
@@ -24,12 +24,12 @@
 <TextBlock>A color input always has a value. A property that's null or not a color shows black, and the form posts <Code>#000000</Code>. Start the property with a color, and treat black as a choice like any other.</TextBlock>
 
 <Heading Level="2">Sizes, swatch only and locked</Heading>
-<TextBlock>The size lines the picker up with other fields; set <Code>Size</Code> to choose one. To show the swatch alone, set <Code>ShowHex="false"</Code>. For a color that posts but can't change, set <Code>ReadOnly</Code>. For one that doesn't post, set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>The size lines the picker up with other fields; set <Code>Size</Code> to choose one. To show the swatch alone, set <Code>ShowHex="false"</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="color-picker-states" />
 <List>
     <ListItem>A read-only picker still shows its hex box, because that's the part that can be focused.</ListItem>
-    <ListItem>A read-only color posts from a hidden field; see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</ListItem>
-    <ListItem>A disabled picker posts nothing, so after a form post its property is null and the field shows black; see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
+    <ListItem>A read-only color posts from a hidden field. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</ListItem>
+    <ListItem>A disabled picker posts nothing. After a form post on static pages, its property keeps the value a new model starts with; if that's null, the field shows black. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
 </List>
 
 <Heading Level="2">Labels and localization</Heading>

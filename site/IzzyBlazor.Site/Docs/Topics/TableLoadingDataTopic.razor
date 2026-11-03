@@ -47,7 +47,7 @@
 </Prose>
 <TextBlock>The table passes the cursor back to the provider as <Code>request.Cursor</Code>.</TextBlock>
 <Code Block Language="razor">@Cursor</Code>
-<TextBlock>If your source has a cursor for the page before, return it as <Code>Previous</Code> too. Without it, interactive tables go back through the cursors they've already followed, and static tables offer First.</TextBlock>
+<TextBlock>If your source has a cursor for the page before, return it as <Code>Previous</Code> too. Without it, <Anchor Href="docs/common/render-modes">interactive</Anchor> tables go back through the cursors they've already followed, and static tables offer First.</TextBlock>
 <ExampleViewer Example="table-cursor-pages" />
 
 <Heading Level="2">Loading on scroll</Heading>
@@ -56,7 +56,7 @@
 <List Gap="2">
     <ListItem>On interactive pages, the rows are added in place. On static pages, the table follows its Load more link, and enhanced navigation adds the rows without a full reload, keeping the scroll position.</ListItem>
     <ListItem>The Load more button under the last row is for keyboard users. It stays out of sight until it has focus. To change its text, set <Code>LoadMoreText</Code>.</ListItem>
-    <ListItem>With <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, Load more shows as a link. It reloads the table with one more page of rows: <Code>?page=3</Code> shows the first three pages, loaded from the provider in one request.</ListItem>
+    <ListItem>With JavaScript off, Load more shows as a link. It reloads the table with one more page of rows: <Code>?page=3</Code> shows the first three pages, loaded from the provider in one request.</ListItem>
     <ListItem>With an <Code>ItemKey</Code>, a row already shown isn't added twice.</ListItem>
     <ListItem>When the parent re-renders, the added pages stay. To start over, call <Code>ReloadAsync()</Code>.</ListItem>
     <ListItem><Code>NextPrevious</Code> and <Code>LoadOnScroll</Code> also work with <Code>Items</Code>. The table then pages by row offset.</ListItem>

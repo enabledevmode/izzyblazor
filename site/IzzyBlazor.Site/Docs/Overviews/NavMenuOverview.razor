@@ -6,7 +6,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A NavMenu is a list of links that marks the link to the current page. The server works out the current page from the URL, so the menu works the same on static and interactive pages, and with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>.</TextBlock>
+<TextBlock>A nav menu is a list of links that marks the link to the current page. It suits a sidebar or a row of section links. The server works out the current page from the URL, so the menu works the same on <Anchor Href="docs/common/render-modes">static and interactive pages</Anchor>, and with JavaScript off.</TextBlock>
 
 <Heading Level="2">Organizing a sidebar</Heading>
 <TextBlock>A sidebar's links can be organized into sections. To name a section, add a <Code>NavLabel</Code>. To fold some links away, put them in a <Code>NavGroup</Code>. For a line between sections, add a <Code>NavDivider</Code>. To show a count or a label on an item, set its <Code>Badge</Code>.</TextBlock>
@@ -18,12 +18,12 @@
 <Code Block Language="razor">@Current</Code>
 <List Gap="2">
     <ListItem>A link to the app's root (<Code>/</Code>) is current only on the home page.</ListItem>
-    <ListItem>A link with a query string is current only when the URL has the same query.</ListItem>
+    <ListItem>A link whose URL has a query is current only when the page's URL has the same query.</ListItem>
     <ListItem>When several links go to one page and differ only by their query, one is current at a time. The link without a query stops being current when a link with a query matches.</ListItem>
 </List>
 
 <Heading Level="2">Badges and counts</Heading>
-<TextBlock>For quiet totals with no fill, as docs and mail sidebars show them, set <Code>BadgeVariant.Plain</Code>. To give a badge a color of its own, such as <Code>Accent.Primary</Code> for an unread count, set <Code>BadgeAccent</Code>. For a status's color, set <Code>BadgeStatus</Code>.</TextBlock>
+<TextBlock>A badge on an item shows a count or a short label beside its text. Set <Code>Badge</Code> on the <Code>NavItem</Code> to add one. For quiet totals with no fill, as docs and mail sidebars show them, set <Code>BadgeVariant.Plain</Code>. To give a badge a color of its own, such as <Code>Accent.Primary</Code> for an unread count, set <Code>BadgeAccent</Code>. For a status's color, set <Code>BadgeStatus</Code>.</TextBlock>
 <ExampleViewer Example="nav-menu-counts" />
 <TextBlock>Long labels wrap rather than being cut off.</TextBlock>
 

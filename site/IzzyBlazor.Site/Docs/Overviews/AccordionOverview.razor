@@ -18,7 +18,7 @@
 <TextBlock>To stop an item from opening, set <Code>Disabled</Code> on it. Exclusive items share a <Code>name</Code>. To group several accordions so that one item is open across all of them, set the same <Code>Name</Code> on each.</TextBlock>
 
 <Heading Level="2">Rich headers and content</Heading>
-<TextBlock>An item's title can hold more than text, such as a badge, and its content can hold text, buttons and lists. For a title with more than text, use an <Code>AccordionHeader</Code>. To show an icon before the title, set <Code>Icon</Code>.</TextBlock>
+<TextBlock>An item's title can contain more than text, such as a badge, and its content can contain text, buttons and lists. For a title with more than text, use an <Code>AccordionHeader</Code>. To show an icon before the title, set <Code>Icon</Code>.</TextBlock>
 <ExampleViewer Example="accordion-content" />
 <TextBlock>The content is a column with a gap, so text, buttons and lists need no wrapper. To change the content's spacing, set <Code>ContentPadding</Code> and <Code>ContentGap</Code> on the accordion for every item, or on one item. To run a table or image edge to edge, set <Code>ContentPadding="0"</Code>.</TextBlock>
 
@@ -27,7 +27,7 @@
 <ExampleViewer Example="accordion-sizes" />
 
 <Heading Level="2">Forms in sections</Heading>
-<TextBlock>An accordion can hold a form in each section, as a settings page does. After a form post, the section whose form posted should be open. Set <Code>Open</Code> on that item to open it from the server.</TextBlock>
+<TextBlock>An accordion can contain a form in each section, as a settings page does. After a form post, the section whose form posted should be open. Set <Code>Open</Code> on that item to open it from the server.</TextBlock>
 <ExampleViewer Example="accordion-settings" />
 <TextBlock>The browser keeps track of which items are open, not the server. On static pages, after every form post or reload, the items set to <Code>Open</Code> are open and the rest are closed. Open the section that posted whether it saved or not (in <Code>OnInvalidSubmit</Code> too), as this example does, so its message or errors are in view.</TextBlock>
 

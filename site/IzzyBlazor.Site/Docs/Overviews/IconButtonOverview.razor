@@ -16,13 +16,24 @@
 <ExampleViewer Example="icon-button-sizes-states" />
 
 <Heading Level="2">Actions on a row</Heading>
-<TextBlock>Icon buttons often act on one row of a list, such as deleting a file. For a link, set <Code>Href</Code>. To post which row a button is on, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. On interactive pages, set <Code>OnClick</Code> to do the same in C#.</TextBlock>
+<TextBlock>Icon buttons often act on one row of a list, such as deleting a file. For a link, set <Code>Href</Code>. To post which row a button is on, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. On <Anchor Href="docs/common/render-modes">interactive pages</Anchor>, set <Code>OnClick</Code> to do the same in C#.</TextBlock>
 <ExampleViewer Example="icon-button-row-actions" />
-<TextBlock>Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip say which one. <Code>OnClick</Code> runs only on interactive pages. On static pages, the form post is what happens, as with Button.</TextBlock>
+<TextBlock>Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip name which one. <Code>OnClick</Code> runs only on interactive pages. On static pages, the form post is what happens, as with Button.</TextBlock>
 
 <Heading Level="2">A tooltip on focus</Heading>
 <TextBlock>The label's tooltip shows on hover. For a hint that also shows on keyboard focus, or for more than the label, such as a shortcut, wrap the button in a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 <Code Block Language="razor">@WithTooltip</Code>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>A loading icon button has a word for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>LoadingLabel</Code></td><td>What screen readers hear before the label while <Code>Loading</Code> is set, as in "Loading Delete"</td><td>"Loading"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

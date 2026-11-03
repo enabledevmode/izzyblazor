@@ -15,11 +15,11 @@
 <TextBlock>For a list too long to send to the browser whole, the combobox can search for options as the user types. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>
 <ExampleViewer Example="combobox-server-search" />
 <List>
-    <ListItem><Code>Search</Code> is called with "" to fill the list on every page. On interactive pages it's called again as the user types, <Code>Debounce</Code> milliseconds after the last key (250 by default).</ListItem>
-    <ListItem>On <Anchor Href="docs/common/render-modes">static pages</Anchor>, the browser filters that first list. Return what the user is most likely to want, or put the page in an interactive render mode.</ListItem>
+    <ListItem><Code>Search</Code> is called with "" to fill the list on every page. On <Anchor Href="docs/common/render-modes">interactive pages</Anchor> it's called again as the user types, <Code>Debounce</Code> milliseconds after the last key (250 by default).</ListItem>
+    <ListItem>On static pages, the browser filters that first list. Return what the user is most likely to want, or put the page in an interactive render mode.</ListItem>
     <ListItem><Code>Search</Code> runs where the component does: on the server, or in the browser on WebAssembly, where it calls your API.</ListItem>
 </List>
-<TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it. So <Code>ItemText</Code> receives any value that's bound or posted: look it up without throwing, as the examples do. Check on the server that a posted value is allowed.</TextBlock>
+<TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it. So <Code>ItemText</Code> receives any value that's bound or posted: look it up without throwing, as the examples do. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Required, with a placeholder</Heading>
 <TextBlock>A required combobox starts empty, showing its placeholder, and the form doesn't post until the user picks an option. Bind a nullable property with <Code>[Required]</Code>, and set <Code>Placeholder</Code>.</TextBlock>
@@ -27,9 +27,9 @@
 <TextBlock>The property must be nullable. An <Code>int</Code> or an enum always has a value (0 or the first member), so the placeholder never shows, and emptying the field is an error.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>The size lines the combobox up with buttons and other fields; set <Code>Size</Code> to choose one. For a value that posts but can't change, set <Code>ReadOnly</Code>. For one that doesn't post, set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>The size lines the combobox up with buttons and other fields; set <Code>Size</Code> to choose one. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="combobox-states" />
-<TextBlock>HTML has no read-only select, so a read-only combobox shows its choice in a read-only text field and posts it from a hidden input. See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor> and <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+<TextBlock>HTML has no read-only select, so a read-only combobox shows its choice in a read-only text field and posts it from a hidden input. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The combobox shows text when nothing matches or a search is running, and its toggle button has a name. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>

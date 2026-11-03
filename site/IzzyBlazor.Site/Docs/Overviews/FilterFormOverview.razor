@@ -7,7 +7,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself. The page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
+<TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It suits a list the user narrows by searching and choosing. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself. The page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
 <TextBlock>To filter a table by its columns instead, use the <Anchor Href="docs/components/table">Table</Anchor>'s own column filters.</TextBlock>
 
 <Heading Level="2">Search, select and checkbox</Heading>
@@ -16,16 +16,16 @@
 <List>
     <ListItem>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the search applies after a pause in typing, and the other fields as they change. Each applies without a full reload, and focus stays where it was.</ListItem>
     <ListItem>A <Code>FilterSelect</Code>'s options come from <Code>Items</Code>, or from an enum set in <Code>EnumType</Code>.</ListItem>
-    <ListItem>The URL holds each option's value. To show the user other text, set <Code>ItemText</Code>.</ListItem>
+    <ListItem>The URL stores each option's value. To show the user other text, set <Code>ItemText</Code>.</ListItem>
 </List>
 
 <Heading Level="2">Dates</Heading>
 <TextBlock>A date filter narrows the list to a date, or a date and time. Add a <Code>FilterDate</Code>; for a date and time, set <Code>Type="DateFieldType.DateTime"</Code>. The page reads the value as a <Code>DateOnly?</Code> or <Code>DateTime?</Code>.</TextBlock>
 <ExampleViewer Example="filter-form-dates" />
 <List>
-    <ListItem>The URL holds what the browser posts, such as <Code>2027-03-01</Code> or <Code>2027-03-01T14:30</Code>, with no time zone.</ListItem>
-    <ListItem>The page decides which zone a time is in. Say it in the <Code>Label</Code>, as in "From (UTC)".</ListItem>
-    <ListItem><Code>Min</Code> and <Code>Max</Code> limit the dates. In this example, To's <Code>Min</Code> follows From.</ListItem>
+    <ListItem>The URL stores the value the browser sends, such as <Code>2027-03-01</Code> or <Code>2027-03-01T14:30</Code>, with no time zone.</ListItem>
+    <ListItem>The page decides which zone a time is in. Name the zone in the <Code>Label</Code>, as in "From (UTC)".</ListItem>
+    <ListItem><Code>Min</Code> and <Code>Max</Code> limit the dates. This example sets the end date's <Code>Min</Code> from the start date.</ListItem>
     <ListItem>A date applies a moment after it changes, so typing one part at a time applies once.</ListItem>
 </List>
 
@@ -39,7 +39,7 @@
 <TextBlock>The form removes a table's page number with or without a <Code>QueryPrefix</Code>, such as <Code>books-page</Code>. The <Anchor Href="demos/filter-form/order-list">order list demo</Anchor> does the same for a whole page.</TextBlock>
 
 <Heading Level="2">Custom inputs</Heading>
-<TextBlock>A filter form can hold inputs of your own, such as a number. Put any input with a <Code>name</Code> in the form, and list the names in <Code>Fields</Code>, so the form doesn't also carry their old values over from the URL.</TextBlock>
+<TextBlock>A filter form can contain inputs of your own, such as a number. Put any input with a <Code>name</Code> in the form, and list the names in <Code>Fields</Code>, so the form doesn't also carry their old values over from the URL.</TextBlock>
 <Code Block Language="razor">@OwnFields</Code>
 <TextBlock>With IzzyBlazor's script, each input applies as a filter field of its kind does:</TextBlock>
 <List>
@@ -49,11 +49,22 @@
 </List>
 <TextBlock>Give each input a label, such as an <Code>aria-label</Code>; the form doesn't add one.</TextBlock>
 
-<Heading Level="2">Saying how many match</Heading>
+<Heading Level="2">Announcing the number of results</Heading>
 <TextBlock>Screen readers don't announce new results. Show the count next to the list in a live region (<Code>aria-live="polite"</Code>), as the examples do; screen readers read it each time it changes.</TextBlock>
 
 <Heading Level="2">Sizes, labels and localization</Heading>
-<TextBlock>To match a compact toolbar, set <Code>Size</Code> on each filter field; the buttons keep their own size. On the form, <Code>Label</Code> sets the search landmark's name ("Filters" by default), and <Code>ApplyText</Code> and <Code>ClearText</Code> set the buttons' text.</TextBlock>
+<TextBlock>To match a compact toolbar, set <Code>Size</Code> on each filter field; the buttons keep their own size.</TextBlock>
+<TextBlock>The form has a name for screen readers, and its buttons have text of their own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The search landmark's name</td><td>"Filters"</td></tr>
+            <tr><td><Code>ApplyText</Code></td><td>The Apply button's text</td><td>"Apply"</td></tr>
+            <tr><td><Code>ClearText</Code></td><td>The Clear link's text</td><td>"Clear"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 <TextBlock>Each filter field's <Code>Label</Code> works differently:</TextBlock>
 <Prose Class="site-table ib-scroll">
     <table>

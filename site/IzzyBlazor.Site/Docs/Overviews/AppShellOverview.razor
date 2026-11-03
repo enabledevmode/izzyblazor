@@ -7,7 +7,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="MainLayout.razor">@Usage</Code>
-<TextBlock>An app shell is the frame around every page of an app: a header, a sidebar, the main area, and optionally an aside and a footer. Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so a static page arrives laid out and works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
+<TextBlock>An app shell is the frame around every page of an app. It has a header, a sidebar and the main area, and it can have an aside and a footer. It suits apps whose pages share the same navigation. Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so <Anchor Href="docs/common/render-modes">static pages</Anchor> arrive laid out and work with JavaScript off.</TextBlock>
 <TextBlock>The shell starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>. To change the id, set <Code>MainId</Code> on the shell.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
@@ -32,7 +32,7 @@
     </table>
 </Prose>
 <ExampleViewer Example="app-shell-variants" WidthSwitch />
-<TextBlock>Put a <Code>Canvas</Code> page's content in <Anchor Href="docs/components/card">Cards</Anchor>. Fills placed straight on the tint look like holes. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
+<TextBlock>On a <Code>Canvas</Code> page, put content in <Anchor Href="docs/components/card">Cards</Anchor>. A filled area placed directly on the tinted background looks like a hole in the page. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
 
 <Heading Level="2">Bars and colors</Heading>
 <TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part. To set whether the header or footer stays in view as the page scrolls, set <Code>Position</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code>. The header stays in view by default; the footer doesn't.</TextBlock>
@@ -43,6 +43,9 @@
 <TextBlock>The brand is the app's name in the header, with an icon or logo before it. Add an <Code>AppBrand</Code> and set <Code>Icon</Code> or <Code>Logo</Code>. To link it home, set <Code>Href</Code>. To show only a logo that already spells the name, set <Code>HideLabel</Code>.</TextBlock>
 <Code Block Language="razor">@Brand</Code>
 <TextBlock>The name stays on one line. On a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The shell's "Skip to content" link has no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>. The sidebar's names are on the <Anchor Href="docs/components/app-sidebar#labels-and-localization">AppSidebar</Anchor> page.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
