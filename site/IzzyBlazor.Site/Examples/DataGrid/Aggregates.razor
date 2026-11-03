@@ -8,7 +8,7 @@
     <PropertyColumn Property="o => o.Status" Filterable />
     <PropertyColumn Property="o => o.Date" Format="MMM d" Aggregate="DataAggregate.Max" AggregateLabel="Latest" />
     <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" Aggregate="DataAggregate.Sum" />
-    <TemplateColumn Title="Paid" Width="6.Rem" Align="CellAlign.End" AggregateLabel="Paid" AggregateFormat="P0"
+    <TemplateColumn Title="Paid" Width="6.Rem" Align="CellAlign.End" AggregateLabel="" AggregateFormat="P0"
                     AggregateBy="g => (double)g.Count(o => o.Status == Status.Paid) / g.Count()">
         @(context.Status == Status.Paid ? "Yes" : "No")
     </TemplateColumn>
