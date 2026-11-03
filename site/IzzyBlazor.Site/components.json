@@ -1703,45 +1703,47 @@
       ]
     },
     {
-      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Items from data, each drawn by a template; links, selection, reordering and paging.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
+      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "A list of items from data, with links, selection, paging and reordering.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
-        { "feature": "Links, the current item, selection and paging" },
-        { "feature": "Actions on each item and its ⋯ menu (links and posting items)" },
-        { "feature": "Reordering from each handle's menu (with script off, each move posts the form)" },
+        { "feature": "Links, the current item, actions and a ⋯ menu on each item" },
+        { "feature": "Selection that posts with a form or binds in C#" },
+        { "feature": "Paging, Load more and loading on scroll" },
+        { "feature": "Reordering from each handle's menu (with JavaScript off, each move posts the form)" },
         { "feature": "Dragging, Alt+arrow shortcuts and announcements", "noscript": "none" },
         { "feature": "The new order bound to C#", "member": "Items" }
       ],
       "examples": [
-        { "id": "list-view-contacts", "title": "Links and the current item", "lead": "Use `ItemText`, `ItemDescription` and `ItemIcon` for a row with no template, `ItemHref` to make each item a link, and `ItemCurrent` for the one the page is showing." },
-        { "id": "list-view-select-items", "title": "Selection", "lead": "Use `SelectionMode` for a checkbox per item (or a radio button, for one), and `SelectAllMode` for whether its select-all takes the page or every match: inside a form the selected items post their `ItemKey` as a `Selection`, and `@bind-Selection` follows them on interactive pages. With script, a checkbox above the list selects the page." },
-        { "id": "list-view-actions", "title": "Actions on items", "lead": "Use `ItemActions` for content at each item's end, such as a badge or an icon button named for its item, and `ItemMenu` for a ⋯ menu of `MenuItem`s, named \"Actions for\" and the item's label. Keep one or two actions visible and put the rest in the menu; a menu that renders nothing for an item leaves it without the button.",
-          "notes": {
-            "noscript": "Star and each menu item post the form with their Name=Value; the menu opens and closes, without arrow keys.",
-            "static": "The same posts; the menu has arrow keys and type-ahead.",
-            "interactive": "OnClick runs C# for each button; nothing posts." } },
-        { "id": "list-view-cards", "title": "Cards in columns", "lead": "Use `Columns` to lay the items out as cards, such as a gallery of products: that many across from 640px up, one on phones. With `ItemHref` each card is a link, and controls inside it still work." },
-        { "id": "list-view-load-more", "title": "Load more", "lead": "Use `PageSize` with `DataPaging.LoadMore` for a button after the last item that adds the next page, and `MaxHeight` to scroll the items in the list's box, the button with them. Numbered pages and `DataPaging.NextPrevious` work as in Table. The page goes in the address, so `QueryPrefix` keeps two lists apart.",
-          "notes": {
-            "noscript": "Load more is a link: the page comes back with four more items.",
-            "static": "The same link; enhanced navigation swaps the list in, with focus on the first new item.",
-            "interactive": "Each press adds four items after the ones shown, and focus moves to the first new one." } },
-        { "id": "list-view-load-on-scroll", "title": "Loading on scroll", "lead": "Use `DataPaging.LoadOnScroll` with a `MaxHeight`: the next page loads as the last item scrolls into view. Its Load more button is for the keyboard, out of sight until it has focus.",
-          "notes": {
-            "noscript": "Nothing loads on scroll: Load more shows after the items, a link that reloads the list with one more page.",
-            "static": "Scroll the list: the next page loads as the last item comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept.",
-            "interactive": "Scroll the list: the next page loads as the last item comes into view, with a spinner after the items while it does." } },
-        { "id": "list-view-save-order", "title": "Reordering, and saving the order", "lead": "Use `Reorderable`. On a static page give it a `Name` and pass the posted `ListOrder` back as `Order`; `Order.Arrange` puts the items in the posted order. On an interactive page, `@bind-Items` keeps the order.",
-          "notes": {
-            "noscript": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
-            "static": "Drag a handle, or use its menu or Alt+arrows: items move in the page and the move is announced. Save order posts the new order.",
-            "interactive": "Drag a handle, or use its menu or Alt+arrows: C# changes the list at once and the move is announced. Save order shows the order @bind-Items holds."
-          } },
-        { "id": "list-view-drag-cards", "title": "Dragging the whole item", "lead": "Use `DragWholeItem` to let a drag start anywhere on an item, such as cards in `Columns`: with a mouse after a small move, on touch after a long press, so a swipe still scrolls the page. Links, buttons and fields in an item keep their presses. With an `ItemMenu` there are no handles: each item's ⋯ menu ends with Move, a submenu of the moves, and Alt+arrows work on the ⋯ button. Without one, the handle stays as the menu of moves.",
-          "notes": {
-            "noscript": "Nothing drags: the moves under Move in each card's ⋯ menu post the form, and the page comes back with the card moved and its ⋯ button focused.",
-            "static": "Drag a card, or press and hold one on a phone: the others move aside to show where it lands. Move in its ⋯ menu and Alt+arrows on the ⋯ button move it too. Save layout posts the new order.",
-            "interactive": "Drag a card, or press and hold one on a phone, or use Move in its ⋯ menu: C# changes the list and the move is announced."
-          } }
+        {"id": "list-view-contacts", "title": "Links and the current item", "lead": "Use `ItemText`, `ItemDescription` and `ItemIcon` to show each item without writing a template. Use `ItemHref` to make each item a link, and `ItemCurrent` to mark the item the page is showing."},
+        {"id": "list-view-actions", "title": "Actions on items", "lead": "Use `ItemActions` for content at the end of each item, such as a badge or an icon button. Use `ItemMenu` for a ⋯ menu of `MenuItem`s; it's named \"Actions for\" and the item's label. Keep one or two actions visible and put the rest in the menu. If the menu renders nothing for an item, that item has no ⋯ button.", "notes": {"noscript": "Star and each menu item post the form with their Name and Value. The menu opens and closes, but has no arrow keys.", "static": "The same form posts. The menu has arrow keys and type-ahead.", "interactive": "Each button's OnClick runs C#, and nothing is posted."}},
+        {"id": "list-view-cards", "title": "Cards in columns", "lead": "Use `Columns` to show the items as cards, such as a product gallery. That many cards fit across from 640px up, and one on phones. With `ItemHref`, each card is a link, and the controls inside it still work."}
+      ],
+      "topics": [
+        {
+          "id": "selection", "title": "Selection", "summary": "Checkboxes or radio buttons on items, posted with a form or bound in C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel"],
+          "examples": [
+            {"id": "list-view-select-items", "title": "Selection", "lead": "Use `SelectionMode` to give each item a checkbox, or a radio button with `SelectionMode.Single`. Inside a form, the selected items post their `ItemKey` as a `Selection`. On interactive pages, use `@bind-Selection` to read and set it from C#. `SelectAllMode` sets what select-all selects: the current page, or every matching item. With IzzyBlazor's script, a checkbox above the list selects the page."}
+          ]
+        },
+        {
+          "id": "loading-data", "title": "Loading data", "summary": "Items from a list or a provider, a page at a time, with Load more or loading on scroll.", "members": ["Items", "ItemsProvider", "ItemKey", "PageSize", "PageSizeOptions", "Page", "Paging", "LoadMoreText", "Cursor", "QueryPrefix", "Loading", "EmptyContent", "EmptyText", "ErrorContent", "ReloadAsync"],
+          "intro": [
+            "Give the list its items with `Items`, or load them a page at a time with an `ItemsProvider`, which works as it does in Table (see Table's Loading data page). Numbered pages and `DataPaging.NextPrevious` work as in Table too; this page shows the two paging styles that suit a list."
+          ],
+          "examples": [
+            {"id": "list-view-load-more", "title": "Load more", "lead": "Use `PageSize` with `DataPaging.LoadMore` to add a Load more button after the last item; each press adds the next page. Use `MaxHeight` to make the list scroll inside its box; the button scrolls with the items. The page is kept in the URL, so give each list on a page its own `QueryPrefix`.", "notes": {"noscript": "Load more is a link, and the page comes back with four more items.", "static": "Load more is the same link. The list updates without a full reload, and focus moves to the first new item.", "interactive": "Each press adds four items after the ones shown, and focus moves to the first new one."}},
+            {"id": "list-view-load-on-scroll", "title": "Loading on scroll", "lead": "Use `DataPaging.LoadOnScroll` with a `MaxHeight` to load the next page when the last item scrolls into view. A Load more button stays for keyboard users; it's hidden until it has focus.", "notes": {"noscript": "Nothing loads on scroll. A Load more link after the items reloads the list with one more page.", "static": "Scroll the list: the next page loads as the last item comes into view, without a full reload, and the scroll position is kept.", "interactive": "Scroll the list: the next page loads as the last item comes into view, with a spinner after the items while it loads."}}
+          ]
+        },
+        {
+          "id": "reordering", "title": "Reordering", "summary": "Let users reorder items by dragging, a handle's menu or the keyboard, and save the new order.", "members": ["Reorderable", "Name", "Order", "SubmitOnMove", "DragWholeItem", "OnMove", "Zone", "Accepts", "MaxItems"],
+          "intro": [
+            "Every move can be made three ways: by dragging, from a menu of moves, or with Alt+arrow keys. The menu also works with JavaScript off, where each move posts the form. To move items between lists, such as the columns of a board, put the lists in a `DropZoneGroup`."
+          ],
+          "examples": [
+            {"id": "list-view-save-order", "title": "Reordering, and saving the order", "lead": "Use `Reorderable` to give each item a drag handle with a menu of moves. On static pages, give the list a `Name`, and pass the posted `ListOrder` back as `Order`; `Order.Arrange` puts your items in the posted order. On interactive pages, use `@bind-Items` to keep the new order.", "notes": {"noscript": "Each move in a handle's menu posts the form. The page comes back with the item moved and its handle focused. Save order saves.", "static": "Drag a handle, or use its menu or Alt+arrow keys. Items move on the page and the move is announced. Save order posts the new order.", "interactive": "Drag a handle, or use its menu or Alt+arrow keys. C# updates the list at once and the move is announced. Save order shows the order @bind-Items holds."}},
+            {"id": "list-view-drag-cards", "title": "Dragging the whole item", "lead": "Use `DragWholeItem` to let a drag start anywhere on an item, such as a card. With a mouse, the drag starts after a small move; on touch, after a long press, so a swipe still scrolls the page. Links, buttons and fields inside the item still work. If the list has an `ItemMenu`, there are no handles: each ⋯ menu ends with a Move submenu, and Alt+arrow keys work on the ⋯ button.", "notes": {"noscript": "Nothing drags. The moves under Move in each card's ⋯ menu post the form, and the page comes back with the card moved and its ⋯ button focused.", "static": "Drag a card, or press and hold one on a phone; the other cards move aside to show where it will land. Move in its ⋯ menu and Alt+arrow keys on the ⋯ button move it too. Save layout posts the new order.", "interactive": "Drag a card, press and hold one on a phone, or use Move in its ⋯ menu. C# updates the list and the move is announced."}}
+          ]
+        }
       ]
     },
     {

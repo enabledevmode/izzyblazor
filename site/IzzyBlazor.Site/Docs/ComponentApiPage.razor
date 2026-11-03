@@ -243,7 +243,8 @@
             .ToList();
 
         // Its members' own links are to this page.
-        _context = ApiMetadata.ContextFor(Registry.TopicApiHref(_component!, topic), _api!, _types.Select(t => t.Name));
+        _context = ApiMetadata.ContextFor(Registry.TopicApiHref(_component!, topic), _api!, _types.Select(t => t.Name))
+            with { Listed = _properties.Concat(_events).Concat(_methods).Select(m => m.Name).ToHashSet() };
     }
 
     private List<ApiMember> Filter(IEnumerable<ApiMember> members) =>

@@ -137,7 +137,9 @@ public sealed partial class ApiMetadata
 
         if (owner == context.Component || context.DeclaredOn.Contains(owner))
         {
-            return $"{context.Page}#{Anchor(member)}";
+            return context.Listed is { } listed && !listed.Contains(member)
+                ? ApiHref?.Invoke(context.Component!, member)
+                : $"{context.Page}#{Anchor(member)}";
         }
 
         if (_components.ContainsKey(owner))
@@ -214,4 +216,10 @@ public sealed record ApiPageContext(string Page, string? Component, IReadOnlySet
     /// page. Members still link to the API page.
     /// </summary>
     public bool Overview { get; init; }
+
+    /// <summary>
+    /// A topic's API page, which lists only some of the component's members: these. A link to any
+    /// other member goes to the component's full API page.
+    /// </summary>
+    public IReadOnlySet<string>? Listed { get; init; }
 }

@@ -52,7 +52,7 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("textfield", 1, "docs/components/text-field")]
     [InlineData("modal", 1, "docs/components/dialog")]
     [InlineData("toggle buttons", 1, "docs/components/button#toggle-buttons")]
-    [InlineData("button loading", 3, "docs/components/button/api#loading")]
+    [InlineData("button loading", 1, "docs/components/button#loading-and-disabled")]
     [InlineData("loading", 1, "docs/components/button/api#loading")]
     [InlineData("cardheader", 1, "docs/components/card/api#cardheader")]
     [InlineData("padding", 1, "docs/common/style-props#styledcomponentbase-padding")]
