@@ -95,7 +95,7 @@ public abstract record Filter
 /// <param name="Operator">How the field's value compares.</param>
 /// <param name="Value">The value to compare with. For <see cref="FilterOperator.In"/> and <see cref="FilterOperator.NotIn"/>, a list of values; for <see cref="FilterOperator.Between"/>, the lower end (null for none).</param>
 /// <param name="Value2">The upper end for <see cref="FilterOperator.Between"/> (null for none).</param>
-/// <param name="MatchCase">For text: match upper and lower case exactly. Text ignores case by default.</param>
+/// <param name="MatchCase">For text: match upper and lower case exactly, and for equality, spaces too. Text ignores case by default.</param>
 public sealed record FieldFilter(
     string Field,
     FilterOperator Operator,

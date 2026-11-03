@@ -192,7 +192,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     // Without the box a lambda to object puts on: a group compares the value itself.
     private LambdaExpression? GroupByValue => GroupBy is null ? null
-        : GroupBy.Body is UnaryExpression { NodeType: ExpressionType.Convert } box ? Expression.Lambda(box.Operand, GroupBy.Parameters) : GroupBy;
+        : Expression.Lambda(GroupBy.Body is UnaryExpression { NodeType: ExpressionType.Convert } box && box.Type == typeof(object) ? box.Operand : GroupBy.Body, GroupBy.Parameters);
 
     /// <summary>The type of the value it groups by, or null when it can't.</summary>
     internal Type? GroupType => GroupBy is null ? OwnGroupType : FilterConvert.KindOf(GroupByValue!.ReturnType) == FieldKind.None ? null : GroupByValue.ReturnType;
@@ -214,8 +214,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>A group's value as the column's type: it may have come over the wire.</summary>
     internal object? GroupValue(object? value)
     {
+        // Text stays as it is, spaces and all, as the database grouped it.
         var plain = FilterConvert.Unwrap(value);
-        return plain is not null && GroupType is { } type && FilterConvert.TryConvert(type, plain, out var typed) ? typed : plain;
+        return plain is not null and not string || GroupType != typeof(string)
+            ? plain is not null && GroupType is { } type && FilterConvert.TryConvert(type, plain, out var typed) ? typed : plain
+            : plain;
     }
 
     /// <summary>A group's value for people, in the column's format.</summary>
@@ -239,15 +242,24 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     internal virtual string? ValueFormat => null;
 
     /// <summary>Why this column's <see cref="Aggregate"/> can't work, or null when it can.</summary>
-    protected virtual string? AggregateProblem => null;
+    private protected virtual string? AggregateProblem => null;
 
     /// <summary>The aggregate of a group as text, or null when it has none.</summary>
     internal string? AggregateText(DataGroup? group)
     {
-        if (EffectiveAggregate is not { } type || group is null || !group.Values.TryGetValue(AggregateKey, out var raw))
+        if (EffectiveAggregate is not { } type || group is null)
         {
             return null;
         }
+
+        // By the name asked for, however a server's answer wrote it.
+        var found = group.Values.FirstOrDefault(v => string.Equals(v.Key, AggregateKey, StringComparison.OrdinalIgnoreCase));
+        if (found.Key is null)
+        {
+            return null;
+        }
+
+        var raw = found.Value;
 
         var value = FilterConvert.Unwrap(raw);
         if (type is DataAggregate.Min or DataAggregate.Max && ValueType is { } valueType && FilterConvert.TryConvert(valueType, value, out var typed))
@@ -543,7 +555,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     private protected override Type? OwnGroupType => FilterConvert.KindOf(typeof(TValue)) == FieldKind.None ? null : typeof(TValue);
 
     /// <inheritdoc />
-    protected override string? AggregateProblem => Aggregate switch
+    private protected override string? AggregateProblem => Aggregate switch
     {
         DataAggregate.Sum or DataAggregate.Avg when FilterConvert.KindOf(typeof(TValue)) != FieldKind.Number =>
             $"The \"{HeaderText}\" column's {nameof(Aggregate)} is {Aggregate}, which only numbers take.",
@@ -792,7 +804,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         : null;
 
     /// <inheritdoc />
-    protected override string? AggregateProblem => Aggregate == DataAggregate.Count ? null : $"The \"{HeaderText}\" column has no one value to work out an {Aggregate} on: use {nameof(AggregateBy)}.";
+    private protected override string? AggregateProblem => Aggregate == DataAggregate.Count ? null : $"The \"{HeaderText}\" column has no one value to work out an {Aggregate} on: use {nameof(AggregateBy)}.";
 
     /// <inheritdoc />
     protected override bool HasSortExpression => SortBy is not null;

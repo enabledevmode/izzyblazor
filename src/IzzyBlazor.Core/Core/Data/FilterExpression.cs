@@ -225,7 +225,7 @@ internal static class FilterExpression
                 return Expression.AndAlso(Expression.NotEqual(body, Expression.Constant(null, type)), Expression.NotEqual(body, Expression.Constant("")));
             case FilterOperator.Equals or FilterOperator.NotEquals:
             {
-                var equal = Equal(body, type, filter.Value, ignoreCase);
+                var equal = Equal(body, type, filter.Value, ignoreCase, exact: text && filter.MatchCase);
                 return filter.Operator == FilterOperator.Equals ? equal : Not(equal);
             }
 
@@ -275,14 +275,20 @@ internal static class FilterExpression
 
     // x == value: text ignoring case (x != null && x.ToLower() == value), enums as their
     // underlying number, as the C# compiler writes it. A null value is x == null.
-    private static Expression Equal(Expression body, Type type, object? value, bool ignoreCase)
+    private static Expression Equal(Expression body, Type type, object? value, bool ignoreCase, bool exact = false)
     {
         if (FilterConvert.Unwrap(value) is null)
         {
             return FilterConvert.CanBeNull(type) ? Expression.Equal(body, Expression.Constant(null, type)) : False;
         }
 
-        if (!FilterConvert.TryConvert(type, value, out var parsed))
+        // Exact text is compared as given: parsing it would trim it.
+        object? parsed = null;
+        if (exact && FilterConvert.Unwrap(value) is string same)
+        {
+            parsed = same;
+        }
+        else if (!FilterConvert.TryConvert(type, value, out parsed))
         {
             return False;
         }

@@ -187,6 +187,102 @@ public class DataGridGroupTests : BunitContext
     }
 
     [Fact]
+    public void Text_from_GroupBy_groups_and_an_aggregate_in_the_first_column_still_shows()
+    {
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Sale, int>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Sale, int>>)(s => s.Units));
+            builder.AddComponentParameter(2, "Aggregate", (DataAggregate?)DataAggregate.Sum);
+            builder.CloseComponent();
+            builder.OpenComponent<TemplateColumn<Sale>>(3);
+            builder.AddComponentParameter(4, "Title", "Who");
+            builder.AddComponentParameter(5, "GroupBy", (Expression<Func<Sale, object?>>)(s => s.Region));
+            builder.AddComponentParameter(6, "ChildContent", (RenderFragment<Sale>)(s => b => b.AddContent(0, s.Region)));
+            builder.CloseComponent();
+        };
+
+        var cut = Grid("/sales?group=Who", null, columns);
+
+        Assert.Equal(new[] { "g:East/Coast", "g:North", "g:West" }, Rows(cut));
+        Assert.Contains("Sum 7", cut.Find("tr.ib-grid-group").TextContent);
+    }
+
+    [Fact]
+    public void An_address_cant_group_by_a_column_people_cant_see()
+    {
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Sale, int>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Sale, int>>)(s => s.Id));
+            builder.CloseComponent();
+            builder.OpenComponent<PropertyColumn<Sale, string>>(2);
+            builder.AddComponentParameter(3, "Property", (Expression<Func<Sale, string>>)(s => s.Region));
+            builder.AddComponentParameter(4, "Visible", false);
+            builder.AddComponentParameter(5, "Pickable", false);
+            builder.CloseComponent();
+        };
+
+        Assert.Empty(Grid("/sales?group=region", null, columns).FindAll("tr.ib-grid-group"));
+    }
+
+    [Fact]
+    public void A_provider_without_groups_ignores_an_address_and_offers_no_menu_item()
+    {
+        Nav.NavigateTo("/sales?group=region");
+        var cut = Render<DataGrid<Sale>>(p => p
+            .Add(x => x.Groupable, true)
+            .Add(x => x.ChildContent, b =>
+            {
+                b.OpenComponent<PropertyColumn<Sale, string>>(0);
+                b.AddComponentParameter(1, "Property", (Expression<Func<Sale, string>>)(s => s.Region));
+                b.CloseComponent();
+            })
+            .Add(x => x.ItemsProvider, r => ValueTask.FromResult(new DataResult<Sale>(Sales, Sales.Length))));
+
+        Assert.Empty(cut.FindAll("tr.ib-grid-group"));
+        Assert.DoesNotContain("Group by", cut.Markup);
+    }
+
+    [Fact]
+    public void Show_only_writes_a_date_the_page_reads_back_in_any_culture()
+    {
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = new("en-GB");
+        try
+        {
+            RenderFragment columns = builder =>
+            {
+                builder.OpenComponent<PropertyColumn<Dated, DateOnly>>(0);
+                builder.AddComponentParameter(1, "Property", (Expression<Func<Dated, DateOnly>>)(d => d.Day));
+                builder.AddComponentParameter(2, "Filterable", true);
+                builder.CloseComponent();
+                builder.OpenComponent<PropertyColumn<Dated, int>>(3);
+                builder.AddComponentParameter(4, "Property", (Expression<Func<Dated, int>>)(d => d.Id));
+                builder.CloseComponent();
+            };
+            Dated[] days = [new(1, new(2026, 11, 2)), new(2, new(2026, 11, 2)), new(3, new(2026, 2, 11))];
+            IRenderedComponent<DataGrid<Dated>> Show(string address)
+            {
+                Nav.NavigateTo(address);
+                return Render<DataGrid<Dated>>(p => p.Add(x => x.Items, days).Add(x => x.Groupable, true).Add(x => x.GroupRowLimit, 1).Add(x => x.ChildContent, columns));
+            }
+
+            var cut = Show("/days?group=day&open=2026-11-02");
+            var href = cut.Find(".ib-grid-group-more a").GetAttribute("href")!;
+            var rows = Show(href).FindAll("tbody tr").Select(r => r.Children[^1].TextContent).ToArray();
+
+            Assert.Equal(new[] { "1", "2" }, rows);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    public sealed record Dated(int Id, DateOnly Day);
+
+    [Fact]
     public void People_group_and_ungroup_and_open_them_all_by_links()
     {
         var cut = Grid("/sales?page=1", p => p.Add(x => x.PageSize, 2));
@@ -206,6 +302,27 @@ public class DataGridGroupTests : BunitContext
         Assert.Empty(cut.FindAll("tr.ib-grid-group"));
         Assert.Equal(new[] { "r:1", "r:2" }, Rows(cut));
         Assert.DoesNotContain("open", Nav.Uri);
+    }
+
+    [Fact]
+    public void In_state_a_group_closes_and_collapse_all_stays_collapsed()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Grid("/sales", p => p
+            .Add(x => x.Group, "region")
+            .Add(x => x.GroupChanged, _ => { })
+            .Add(x => x.GroupsOpen, true));
+        Assert.Contains("r:1", Rows(cut));
+
+        cut.FindAll(".ib-grid-group-bar button").First(b => b.TextContent.Contains("Collapse all")).Click();
+        Assert.DoesNotContain("r:1", Rows(cut));
+
+        cut.Find("tr.ib-grid-group button").Click();
+        Assert.Contains("r:1", Rows(cut));
+
+        cut.Find("tr.ib-grid-group button").Click();
+        Assert.DoesNotContain("r:1", Rows(cut));
+        Assert.DoesNotContain("r:4", Rows(cut));
     }
 
     [Fact]
