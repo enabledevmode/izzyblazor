@@ -4,25 +4,25 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A progress bar shows how far along a task is, such as an upload or an import, or, without a value, that it's still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>; for content still loading, a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place; for the steps of a form, a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
+<TextBlock>A Progress bar shows how far along a task is, such as an upload or an import. Without a value, it shows that the task is still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
 
 <Heading Level="2">Value and label</Heading>
-<TextBlock>Use <Code>Value</Code> for how far along it is, out of <Code>Max</Code> (100 by default), and <Code>Label</Code> for the line above the bar, which is also its name for screen readers. <Code>ShowValue</Code> shows the percentage at the end of that line, and <Code>ValueText</Code> shows your own words in its place, such as "3 of 5 files".</TextBlock>
+<TextBlock>The bar fills to its <Code>Value</Code>, out of <Code>Max</Code>, which is 100 by default. Its <Code>Label</Code> is the line above the bar, and also its name for screen readers. To show the percentage at the end of that line, set <Code>ShowValue</Code>. To show your own text there instead, such as "3 of 5 files", set <Code>ValueText</Code>.</TextBlock>
 <ExampleViewer Example="progress-values" />
-<TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value outside 0 to <Code>Max</Code> is held to the nearest end.</TextBlock>
+<TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value below 0 or above <Code>Max</Code> shows as the nearest end.</TextBlock>
 
 <Heading Level="2">Sizes and colors</Heading>
-<TextBlock>Use <Code>Size</Code> for the bar's thickness (Sm, Md or Lg, to sit with controls of that size) and <Code>Accent</Code> for its color, the primary color by default: <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<TextBlock>To set the bar's thickness, set <Code>Size</Code>: Sm, Md or Lg, to sit with controls of that size. The bar uses the primary color by default. To change it, set <Code>Accent</Code>, such as <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
 <ExampleViewer Example="progress-sizes" />
-<TextBlock>The color doesn't reach screen readers, so a warning needs its words too, as the storage bar's "almost full".</TextBlock>
+<TextBlock>The color doesn't reach screen readers. When the color means a warning, say so in the label or the value text too, such as "almost full".</TextBlock>
 
 <Heading Level="2">Indeterminate</Heading>
-<TextBlock>Leave out <Code>Value</Code> for a bar that sweeps across while the work has no known length. A bar with no <Code>Label</Code> needs an <Code>aria-label</Code> for its name, as the second one here.</TextBlock>
+<TextBlock>An indeterminate bar sweeps across while the work has no known length. Leave out <Code>Value</Code>. A bar without a <Code>Label</Code> needs an <Code>aria-label</Code> for its name.</TextBlock>
 <ExampleViewer Example="progress-indeterminate" />
-<TextBlock>With reduced motion the sweep is slower. Once you know how much there is, set <Code>Value</Code> and the bar starts to fill.</TextBlock>
+<TextBlock>With reduced motion, the sweep is slower. Once you know how much work there is, set <Code>Value</Code>, and the bar starts to fill.</TextBlock>
 
 <Heading Level="2">Updating from C#</Heading>
-<TextBlock>The bar is drawn on the server, so on a static page it shows the value at the time the page rendered. On an interactive page, change <Code>Value</Code> from C# and the bar follows.</TextBlock>
+<TextBlock>The bar renders on the server, so on static pages it shows the value from when the page rendered. On interactive pages, change <Code>Value</Code> from C#, and the bar follows.</TextBlock>
 <ExampleViewer Example="progress-from-code" />
 
 <Heading Level="2">Mode support</Heading>

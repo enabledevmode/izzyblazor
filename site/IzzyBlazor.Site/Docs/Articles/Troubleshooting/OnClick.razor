@@ -13,8 +13,8 @@
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
-            A button with <Code>OnClick</Code> does nothing on a static page: no error, no request, and the page doesn't
-            change. The same goes for other C# events, such as a menu item's <Code>OnClick</Code> or a tag's
+            A button with <Code>OnClick</Code> does nothing on <Anchor Href="docs/common/render-modes">static pages</Anchor>: no error, no request,
+            and the page doesn't change. The same goes for other C# events, such as a menu item's <Code>OnClick</Code> or a tag's
             <Code>OnRemove</Code>, and for code that runs when a bound value changes (<Code>ValueChanged</Code>,
             <Code>@@bind-Value:after</Code>).
         </TextBlock>
@@ -22,8 +22,8 @@
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
-            C# event handlers run over an interactive page's circuit (or in WebAssembly). A static page renders once per
-            request and sends HTML, with nothing left on the server to call, so the button renders as a plain
+            C# event handlers run over an interactive page's circuit, or in WebAssembly. A static page renders once per
+            request and sends HTML, with nothing left on the server to call. So the button renders as a plain
             <Code>&lt;button type="button"&gt;</Code>. The API pages label these parameters <strong>Interactive only</strong>.
         </TextBlock>
 
@@ -31,32 +31,31 @@
         <TextBlock>Pick by what the click should do:</TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>Change data:</strong> make it a <Code>Submit</Code> button in a <Code>Form</Code>. On a static page
-                the post runs <Code>OnValidSubmit</Code>; on an interactive page the same handler runs without a post. With
-                several buttons, give each a <Code>Name</Code> and <Code>Value</Code>, which post with the form on a static
-                page, and an <Code>OnClick</Code> for interactive pages, where nothing posts.
+                <strong>Change data:</strong> make it a <Code>Submit</Code> button in a <Code>Form</Code>. On static pages
+                the form post runs <Code>OnValidSubmit</Code>; on interactive pages the same handler runs without a form
+                post. With several buttons, give each a <Code>Name</Code> and <Code>Value</Code>, which post with the form
+                on static pages. Give each an <Code>OnClick</Code> too, for interactive pages, where nothing posts.
             </ListItem>
             <ListItem>
-                <strong>Show something else:</strong> make it a link with <Code>Href</Code>, carrying any choice in the query
-                string.
+                <strong>Show something else:</strong> make it a link with <Code>Href</Code>, carrying any choice in the URL.
             </ListItem>
             <ListItem>
                 <strong>React to every change:</strong> make the page interactive with <Code>@@rendermode InteractiveServer</Code>
-                (or WebAssembly or Auto). For filters, <Code>FilterForm</Code> applies them through the address, on a
-                static page too.
+                (or WebAssembly or Auto). For filters, <Code>FilterForm</Code> applies them through the URL, on
+                static pages too.
             </ListItem>
         </List>
         <Code Block Language="razor" Title="Post.razor" HighlightLines="3-6,14-15,18,24">@Fixed</Code>
         <TextBlock>
-            Here each button posts its <Code>intent</Code> on a static page, and <Code>OnClick</Code> records it on an
-            interactive one:
+            In this demo, each button posts its <Code>intent</Code> on static pages, and <Code>OnClick</Code> records it
+            on interactive pages:
         </TextBlock>
         <ExampleViewer Example="button-multi-submit" ModeSwitch />
 
         <Heading Level="2">Related</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/button">Button</Anchor>: submit buttons, links and <Code>OnClick</Code>.</ListItem>
-            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: choosing a page's mode, and state on static pages.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: choosing a page's render mode, and state on static pages.</ListItem>
             <ListItem><Anchor Href="docs/troubleshooting/control-named-action">A form posts to [object RadioNodeList]</Anchor>: names to avoid for a button.</ListItem>
         </List>
     </ChildContent>

@@ -6,48 +6,52 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A card frames one thing people look at or act on, such as a project, a person or a plan, and often sits in a grid with others like it. For a band across the page, such as a hero, use a <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
+<TextBlock>A card frames one thing the user looks at or acts on, such as a project, a person or a plan. It often sits in a grid with others like it. For a band across the page, such as a hero, see <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
-<TextBlock>Use <Code>Variant</Code> for <Code>Outline</Code> (the default), <Code>Elevated</Code> or <Code>Filled</Code>, and <Code>Title</Code> and <Code>Description</Code> for the header.</TextBlock>
+<TextBlock>The variant sets how the card stands apart from the page: <Code>Outline</Code> (the default) has a border, <Code>Elevated</Code> a shadow, and <Code>Filled</Code> a tinted background. Set <Code>Variant</Code> to choose one. To give the card a header, set <Code>Title</Code> and <Code>Description</Code>.</TextBlock>
 <ExampleViewer Example="card-variants" />
-<TextBlock>The title is an <Code>h3</Code>; set <Code>TitleLevel</Code> to fit the page's outline. Content between the tags is the body.</TextBlock>
+<TextBlock>The title is an <Code>h3</Code>. To fit the page's outline, set <Code>TitleLevel</Code>. Content between the tags is the body.</TextBlock>
 
 <Heading Level="2">Sizes</Heading>
-<TextBlock>Use <Code>Size</Code> for the padding and the title's size (<Code>Md</Code> by default): <Code>Sm</Code> for dense grids, <Code>Lg</Code> for a card on its own.</TextBlock>
+<TextBlock>The size sets the padding and the title's size. <Code>Sm</Code> suits dense grids, <Code>Md</Code> is the default, and <Code>Lg</Code> suits a card on its own. Set <Code>Size</Code> to choose one.</TextBlock>
 <ExampleViewer Example="card-sizes" />
 
 <Heading Level="2">A linked card</Heading>
-<TextBlock>Use <Code>Href</Code> to make the whole card a link through its title; buttons in <Code>CardActions</Code>, <Code>CardFooter</Code> and the body stay clickable on their own.</TextBlock>
+<TextBlock>A linked card opens a page when the user clicks anywhere on it. Set <Code>Href</Code>; the link is the card's title, so a linked card needs a <Code>Title</Code>. Buttons in <Code>CardActions</Code>, <Code>CardFooter</Code> and the body stay clickable on their own.</TextBlock>
 <ExampleViewer Example="card-linked" />
-<TextBlock>The link is the title, so a linked card needs a <Code>Title</Code>. <Code>CardMedia</Code> draws an image, video or SVG across the top, edge to edge; one that only decorates gets <Code>alt=""</Code> on an <Code>img</Code> or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>. On a linked card an image is part of the link, and a video's controls stay usable above it.</TextBlock>
+<List>
+    <ListItem>A <Code>CardMedia</Code> shows an image, video or SVG across the top, edge to edge.</ListItem>
+    <ListItem>Media that only decorates needs <Code>alt=""</Code> on an <Code>img</Code>, or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>.</ListItem>
+    <ListItem>On a linked card, an image is part of the link, and a video's controls stay usable above it.</ListItem>
+</List>
 
-<Heading Level="2">Your own heading</Heading>
-<TextBlock>Use <Code>CardHeader</Code> for content above the title, such as who wrote it, and <Code>CardActions</Code> for buttons or a <Anchor Href="docs/components/menu">Menu</Anchor> at the end of the heading row.</TextBlock>
+<Heading Level="2">Header content</Heading>
+<TextBlock>The card's heading row can hold more than the title: content above it, such as who wrote the post, and buttons at its end. Put content above the title in a <Code>CardHeader</Code>. Put buttons or a <Anchor Href="docs/components/menu">Menu</Anchor> at the end of the heading row in a <Code>CardActions</Code>.</TextBlock>
 <ExampleViewer Example="card-post" />
 
 <Heading Level="2">Body and footer</Heading>
-<TextBlock>Use <Code>CardBody</Code> for the body's layout, with <Code>Gap</Code>, <Code>Align</Code> and <Code>Direction</Code>, and <Code>CardFooter</Code> for a row of buttons at the bottom, with <Code>Justify</Code>.</TextBlock>
+<TextBlock>The body is the card's content, and the footer is a row of buttons at the bottom. To lay out the body, put it in a <Code>CardBody</Code> and set <Code>Gap</Code>, <Code>Align</Code> and <Code>Direction</Code>. For the footer, add a <Code>CardFooter</Code> and set <Code>Justify</Code>.</TextBlock>
 <ExampleViewer Example="card-footer" />
-<TextBlock>Write the footer last, directly in the card: inside a <Code>CardBody</Code> or a form it's an ordinary row, not the card's footer.</TextBlock>
+<TextBlock>Write the footer last, directly in the card. Inside a <Code>CardBody</Code> or a form, it's an ordinary row, not the card's footer.</TextBlock>
 
 <Heading Level="2">Flush content</Heading>
-<TextBlock>Use <Code>Flush</Code> on a <Code>CardBody</Code> to run a <Anchor Href="docs/components/table">Table</Anchor> or a divided list to the card's edges.</TextBlock>
+<TextBlock>Flush content runs to the card's edges, with no padding, such as a <Anchor Href="docs/components/table">Table</Anchor> or a divided list. Set <Code>Flush</Code> on a <Code>CardBody</Code>.</TextBlock>
 <ExampleViewer Example="card-flush" />
 
 <Heading Level="2">Sections and a footer bar</Heading>
-<TextBlock>Use <Code>Dividers</Code> to make each <Code>CardBody</Code> a section with a line between, and give the <Code>CardFooter</Code> a <Code>Bg</Code> or <Code>BorderTop</Code> to make it a bar across the bottom.</TextBlock>
+<TextBlock>A card can be split into sections with a line between each. Set <Code>Dividers</Code> on the card, and each <Code>CardBody</Code> becomes a section. To make the footer a bar across the bottom, set <Code>Bg</Code> or <Code>BorderTop</Code> on the <Code>CardFooter</Code>.</TextBlock>
 <ExampleViewer Example="card-sections" />
 
 <Heading Level="2">A form in a card</Heading>
-<TextBlock>Put the <Anchor Href="docs/components/form">Form</Anchor> around the card, so the submit button in its <Code>CardFooter</Code> is inside the form.</TextBlock>
+<TextBlock>A card can frame a form, with its submit button in the card's footer. Put the <Anchor Href="docs/components/form">Form</Anchor> around the card, so the submit button in its <Code>CardFooter</Code> is inside the form.</TextBlock>
 <ExampleViewer Example="card-settings" />
-<TextBlock>A <Code>CardFooter</Code> inside a form isn't drawn as the card's footer, and <Code>CardMedia</Code>, <Code>CardHeader</Code> and <Code>CardActions</Code> are drawn at the card's level, so a form inside the card reaches none of them. A form whose buttons are in its own <Code>FormActions</Code> can go inside.</TextBlock>
+<TextBlock>A form inside the card would reach none of the card's own parts. A <Code>CardFooter</Code> inside a form is an ordinary row, and <Code>CardMedia</Code>, <Code>CardHeader</Code> and <Code>CardActions</Code> belong to the card itself. A form whose buttons are in its own <Code>FormActions</Code> can go inside.</TextBlock>
 
 <Heading Level="2">Cards in a grid</Heading>
-<TextBlock>Use a <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code> to fit as many cards to a row as there's room for. Cards in a row take its height, and a <Code>CardFooter</Code> stays at the bottom.</TextBlock>
+<TextBlock>A grid of cards fits as many cards to a row as there's room for. Put the cards in a <Anchor Href="docs/components/grid">Grid</Anchor> and set <Code>MinChildWidth</Code>. The cards in a row share its height, and each <Code>CardFooter</Code> stays at the bottom.</TextBlock>
 <ExampleViewer Example="card-projects" />
-<TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>: above a footer, bare text gets the body's gap, not a section's space.</TextBlock>
+<TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>. Above a footer, bare text gets the body's gap, not a section's space.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

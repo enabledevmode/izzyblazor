@@ -13,9 +13,10 @@
         <Heading Level="2">Create the app</Heading>
         <Code Block Language="bash">dotnet new blazor --empty --interactivity Auto -o MyApp</Code>
         <TextBlock>
-            Use <Code>--interactivity WebAssembly</Code> for pages that only ever run in the browser. Either way you get two
-            projects: <Code>MyApp</Code>, the server, and <Code>MyApp.Client</Code>, where interactive pages and components live.
-            Pages are still static by default; a page runs in the browser once it has a render mode.
+            For pages that only ever run in the browser, use <Code>--interactivity WebAssembly</Code> instead. Either way
+            you get two projects: <Code>MyApp</Code>, the server, and <Code>MyApp.Client</Code>, where interactive pages and
+            components live. Pages are still <Anchor Href="docs/common/render-modes">static</Anchor> by default. A page runs in the browser once
+            you give it a render mode.
         </TextBlock>
 
         <Heading Level="2">Set up the server project</Heading>
@@ -55,30 +56,31 @@
         </TextBlock>
 
         <Heading Level="2">In the browser</Heading>
-        <TextBlock>Components behave the same in the browser, apart from what depends on the request:</TextBlock>
+        <TextBlock>Components behave the same in the browser, except for what depends on the request:</TextBlock>
         <List Gap="2">
             <ListItem>
                 <strong>Keep prerendering on</strong> (the default). <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>'s
                 remembered state, a dismissed <Anchor Href="docs/components/banner">Banner</Anchor> and the choice in
-                <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> are read from cookies on the server and
-                handed to the browser with the prerendered page. With <Code>prerender: false</Code> they start from their defaults.
+                <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> are read from cookies on the
+                server. They reach the browser with the prerendered page. With <Code>prerender: false</Code>, they start from
+                their defaults.
             </ListItem>
             <ListItem>
-                <strong>Toasts show straight away.</strong> A redirect in the browser is a navigation, not a new request, so
-                there's nothing to carry over. <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> stays in the layout,
+                <strong>Toasts show at once.</strong> A redirect in the browser is a navigation, not a new request, so no
+                toast has to be carried over. <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> stays in the layout,
                 which can be static.
             </ListItem>
             <ListItem>
                 <strong>Dialogs opened from code need a host in the browser.</strong> Put one <Code>&lt;DialogHost /&gt;</Code> on the
-                interactive page, or in the layout with a render mode on the host
-                (<Code>&lt;DialogHost @@rendermode="InteractiveAuto" /&gt;</Code>). See
+                interactive page. Or put it in the layout, with a render mode on the host:
+                <Code>&lt;DialogHost @@rendermode="InteractiveAuto" /&gt;</Code>. See
                 <Anchor Href="docs/components/dialog">Dialog</Anchor>.
             </ListItem>
         </List>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
             <ListItem><Anchor Href="docs/components/form">Form</Anchor>: one form that posts on static pages and validates on interactive ones.</ListItem>
             <ListItem><Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>: Bootstrap, your own components and name clashes.</ListItem>
         </List>

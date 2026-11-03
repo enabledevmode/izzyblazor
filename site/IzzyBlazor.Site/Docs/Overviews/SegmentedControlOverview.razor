@@ -4,20 +4,23 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>It's a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> drawn as joined buttons: it posts the same way and works with JavaScript off, and a post can carry a value that isn't among the options, so check it on the server. Use it for two to five short options; for more, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>, and to switch between panels of content, <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+<TextBlock>A SegmentedControl is a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> shown as joined buttons. It posts the same way and works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. Use it for two to five short options.</TextBlock>
+<TextBlock>For more options, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>. To switch between panels of content, use <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+<TextBlock>A form post can carry a value that isn't among the options, so check it on the server; see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Icons</Heading>
-<TextBlock>Use <Code>ItemIcon</Code> to put an icon before each option's text, and <Code>IconOnly</Code> to show only the icons.</TextBlock>
+<TextBlock>To put an icon before each option's text, set <Code>ItemIcon</Code>. To show only the icons, set <Code>IconOnly</Code> too.</TextBlock>
 <ExampleViewer Example="segmented-control-icons" />
 
 <Heading Level="2">Full width, no visible label</Heading>
-<TextBlock>Use <Code>FullWidth</Code> to share the width equally between the segments, and <Code>HideLabel</Code> when something near it, such as a heading, already says what it's for.</TextBlock>
+<TextBlock>To share the width equally between the segments, set <Code>FullWidth</Code>. When something near the control, such as a heading, already says what it's for, set <Code>HideLabel</Code>.</TextBlock>
 <ExampleViewer Example="segmented-control-full-width" />
 
 <Heading Level="2">Sizes and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for a choice that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only radio, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the control is disabled while a hidden field posts its value.</TextBlock>
+<TextBlock>To line the control up with buttons and other fields, set <Code>Size</Code>. For a choice the user can't change, set <Code>Disabled</Code>; a disabled control doesn't post.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only radio. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the control is disabled, and a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="segmented-control-sizes" />
-<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

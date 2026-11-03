@@ -5,15 +5,15 @@
 
 <ArticlePage Section="get-started" Slug="ai-assistants">
     <Lead>
-        Assistants guess at a library they haven't seen, and IzzyBlazor is newer than their training. Connect yours to
-        IzzyBlazor's MCP server and it looks up components, parameters and working examples for the release on this site
+        An AI assistant guesses at a library it hasn't seen, and IzzyBlazor is newer than its training. Connect yours to
+        IzzyBlazor's MCP server, and it looks up components, parameters and working examples for the release on this site
         instead.
     </Lead>
     <ChildContent>
         <Heading Level="2">The server</Heading>
         <TextBlock>
             The server is at <Code>@Endpoint</Code>. It uses the Streamable HTTP transport and needs no sign-in or key. Its
-            tools only read the docs, and it answers for the release this site documents.
+            tools only read the docs, and its answers cover the release this site documents.
         </TextBlock>
 
         <Heading Level="2">Claude Code</Heading>
@@ -33,7 +33,7 @@
         <Heading Level="2">Claude apps</Heading>
         <TextBlock>
             In Claude's desktop app or on claude.ai, open Settings, then Connectors, add a custom connector and paste
-            <Code>@Endpoint</Code>. Any other client that supports Streamable HTTP takes the same address.
+            <Code>@Endpoint</Code>. Any other client that supports Streamable HTTP uses the same URL.
         </TextBlock>
 
         <Heading Level="2">Tools</Heading>
@@ -42,8 +42,9 @@
             <TemplateColumn Title="Answers with">@context!.Answers</TemplateColumn>
         </Table>
         <TextBlock>
-            Answers are Markdown with links to this site. Ask for what you're building ("a settings form that posts on a
-            static page") and the assistant picks the tools; naming IzzyBlazor in the request helps it reach for them.
+            Answers are Markdown with links to this site. Ask for what you're building, such as "a settings form that
+            posts on a static page", and the assistant picks the tools. Naming IzzyBlazor in the request helps it use
+            them.
         </TextBlock>
 
         <Heading Level="2">Without MCP</Heading>

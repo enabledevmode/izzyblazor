@@ -7,40 +7,55 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A sidebar is a part of an <Anchor Href="docs/components/app-shell">AppShell</Anchor>: a column of links beside the page on wide screens and, on phones, a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work with JavaScript off.</TextBlock>
+<TextBlock>A sidebar is the column of links beside the page in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>. On phones it becomes a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">A drawer on phones</Heading>
-<TextBlock>Use <Code>Breakpoint</Code> for the width below which the sidebar becomes a drawer, 768px by default; the menu button shows only below it.</TextBlock>
+<TextBlock>On narrow screens the sidebar becomes a drawer, and a menu button in the header opens it. To set the width below which this happens, set <Code>Breakpoint</Code>. It defaults to 768px. The menu button shows only below it.</TextBlock>
 <ExampleViewer Example="app-sidebar-drawer" WidthSwitch />
-<TextBlock>Use <Code>DrawerPosition="SidebarPosition.End"</Code> to open the drawer from the right, with the menu button at the right of the header, as content sites do; <Code>Position</Code> moves the whole sidebar there, and <Code>Width</Code> sets its width, 16rem by default.</TextBlock>
+<TextBlock>To open the drawer from the right, with the menu button at the right of the header as content sites do, set <Code>DrawerPosition="SidebarPosition.End"</Code>. To move the whole sidebar to the right, set <Code>Position</Code>. <Code>Width</Code> sets the sidebar's width; it defaults to 16rem.</TextBlock>
 <Code Block Language="razor">@FromTheRight</Code>
 
 <Heading Level="2">Pinned at the top and bottom</Heading>
-<TextBlock>Use <Code>SidebarHeader</Code> for what stays at the top, such as a workspace, and <Code>SidebarFooter</Code> for what stays at the bottom, such as the account, while the links between them scroll; write both directly in the sidebar, as the drawer example does.</TextBlock>
+<TextBlock>A sidebar can pin content at its top and bottom while the links between them scroll. Put what stays at the top, such as a workspace, in a <Code>SidebarHeader</Code>. Put what stays at the bottom, such as the account, in a <Code>SidebarFooter</Code>. Write both directly in the sidebar.</TextBlock>
 <Code Block Language="razor">@Pinned</Code>
-<TextBlock>In the drawer the header shares the top row with the close button. With no <Code>SidebarHeader</Code>, the drawer's top row shows the shell's <Code>AppBrand</Code>. Use <Code>SidebarBody</Code> only for spacing, such as a <Code>Gap</Code> between two lists: links written straight in the sidebar are its body too.</TextBlock>
+<TextBlock>In the drawer, the header shares the top row with the close button. With no <Code>SidebarHeader</Code>, the drawer's top row shows the shell's <Code>AppBrand</Code>. Links written straight in the sidebar are its body, so use <Code>SidebarBody</Code> only for spacing, such as a <Code>Gap</Code> between two lists.</TextBlock>
 
 <Heading Level="2">A panel under the header</Heading>
-<TextBlock>Use <Code>SmallScreen="SidebarSmallScreen.Panel"</Code> to open the sidebar under the header on phones, full width, with the header still in view and the menu button turned into its close button.</TextBlock>
+<TextBlock>On phones, the sidebar can open as a full-width panel under the header instead of a drawer. The header stays in view, and the menu button becomes the panel's close button. Set <Code>SmallScreen="SidebarSmallScreen.Panel"</Code> to turn it on.</TextBlock>
 <ExampleViewer Example="app-sidebar-panel" WidthSwitch />
-<TextBlock>A <Anchor Href="docs/components/site-nav">SiteNav</Anchor> in the header, as here, puts its links at the top of the panel on phones, or at the top of the drawer, so a phone has one menu rather than two.</TextBlock>
+<TextBlock>A <Anchor Href="docs/components/site-nav">SiteNav</Anchor> in the header puts its links at the top of the panel or drawer on phones, so a phone has one menu rather than two.</TextBlock>
 
 <Heading Level="2">An icon rail</Heading>
-<TextBlock>Use <Code>Collapsible</Code> to let people shrink the sidebar to an icon rail on wide screens: the menu button collapses and expands it, and each link's text shows as a tooltip.</TextBlock>
+<TextBlock>An icon rail is the sidebar shrunk to its icons on wide screens, which leaves more room for the page. The menu button collapses and expands it, and each link's text shows as a tooltip. Set <Code>Collapsible</Code> to turn it on.</TextBlock>
 <ExampleViewer Example="app-sidebar-icon-rail" WidthSwitch />
-<TextBlock>With the script, the choice is kept in a cookie named after the sidebar's <Code>Id</Code> (<Code>rail-collapsed</Code> here, <Code>ib-sidebar-collapsed</Code> by default), which the server reads, so the next page arrives collapsed; <Code>RememberState="false"</Code> turns that off. <Code>Collapsed</Code> sets how it starts when nothing is remembered. In a shell with no menu button, a chevron in the sidebar's footer row does the collapsing; <Code>CollapseButton</Code> shows or hides that chevron whatever the header has.</TextBlock>
+<List>
+    <ListItem>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the user's choice is kept in a cookie that the server reads, so the next page arrives collapsed. The cookie is named after the sidebar's <Code>Id</Code>: <Code>rail-collapsed</Code> in this example, <Code>ib-sidebar-collapsed</Code> by default. To turn this off, set <Code>RememberState="false"</Code>.</ListItem>
+    <ListItem><Code>Collapsed</Code> sets how the sidebar starts when no choice is remembered.</ListItem>
+    <ListItem>In a shell with no menu button, a chevron in the sidebar's footer row collapses it. To show or hide that chevron whatever the header has, set <Code>CollapseButton</Code>.</ListItem>
+</List>
 
-<Heading Level="2">Collapsing from C#</Heading>
-<TextBlock>Use <Code>@@bind-Collapsed</Code> on an interactive page to follow the rail in C# and to collapse or expand it, as the focus-mode button does here.</TextBlock>
+<Heading Level="2">Binding the collapsed state</Heading>
+<TextBlock>On interactive pages, you can read and set whether the rail is collapsed from C#, as a focus-mode button does. Set <Code>@@bind-Collapsed</Code>.</TextBlock>
 <ExampleViewer Example="app-sidebar-bound-collapse" WidthSwitch />
 
 <Heading Level="2">Full height</Heading>
-<TextBlock>Use <Code>FullHeight</Code> to run the sidebar the full height of the window, with the header and footer beside it, and <Code>ColorScheme="ColorScheme.Dark"</Code> for a dark sidebar in a light app.</TextBlock>
+<TextBlock>A full-height sidebar runs the full height of the window, with the header and footer beside it rather than above and below. Set <Code>FullHeight</Code> to turn it on. For a dark sidebar in a light app, also set <Code>ColorScheme="ColorScheme.Dark"</Code>.</TextBlock>
 <ExampleViewer Example="app-sidebar-full-height" WidthSwitch />
 <TextBlock>A brand in the <Code>SidebarHeader</Code> lines up with the header beside it.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Main"), <Code>CloseLabel</Code> for the drawer's close button ("Close menu") and <Code>CollapseLabel</Code> for the collapse control ("Collapse sidebar"). <Code>SidebarToggle</Code> has its own <Code>Label</Code> ("Open menu"), <Code>CloseLabel</Code> and <Code>CollapseLabel</Code>.</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The sidebar and its toggle have names for screen readers. The defaults are below.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Names</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The navigation landmark</td><td>"Main"</td></tr>
+            <tr><td><Code>CloseLabel</Code></td><td>The drawer's close button</td><td>"Close menu"</td></tr>
+            <tr><td><Code>CollapseLabel</Code></td><td>The collapse control</td><td>"Collapse sidebar"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock><Code>SidebarToggle</Code> has its own <Code>Label</Code> ("Open menu"), <Code>CloseLabel</Code> and <Code>CollapseLabel</Code>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

@@ -4,26 +4,29 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>For two to five short options, a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> takes less room; for a long list, use a <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
+<TextBlock>A RadioGroup shows a set of options, one of which the user chooses. For two to five short options, a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> needs less room. For a long list, use a <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Stacked or in a row</Heading>
-<TextBlock>Use <Code>Orientation.Horizontal</Code> to put a few short options in a row, wrapping when there isn't room; they stack by default. An enum's values are the options, named by their <Code>[Display(Name)]</Code>.</TextBlock>
+<TextBlock>Options stack by default. To put a few short options in a row, set <Code>Orientation.Horizontal</Code>; the row wraps when there isn't room. Bound to an enum, the group shows each value as an option, named by its <Code>[Display(Name)]</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-horizontal" />
 
 <Heading Level="2">Options from a list</Heading>
-<TextBlock>Use <Code>Items</Code> for options that aren't an enum, and <Code>ItemText</Code> for how each one reads.</TextBlock>
+<TextBlock>For options that aren't an enum, set <Code>Items</Code>. To set how each option reads, set <Code>ItemText</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-shipping" />
-<TextBlock>Each radio posts its value as text and Blazor turns it back into the property's type, so use values that do that, such as strings, numbers or enums. A post can carry a value that isn't among the options, and it reaches the model, so check it on the server.</TextBlock>
+<TextBlock>Each radio posts its value as text, and Blazor converts it back to the property's type. Use values that convert, such as strings, numbers or enums.</TextBlock>
+<TextBlock>A form post can carry a value that isn't among the options, and it reaches the model. Check it on the server; see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Required, with nothing chosen</Heading>
-<TextBlock>Bind a nullable property with <Code>[Required]</Code> to start with nothing chosen and need a choice.</TextBlock>
+<TextBlock>A group can start with nothing chosen and require a choice. Bind a nullable property, and give it <Code>[Required]</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-required-choice" />
-<TextBlock>A property that isn't nullable always has a value, so <Code>[Required]</Code> never fails: the option for its starting value (an enum's <Code>0</Code>, unless the model sets another) is chosen from the start. The example also turns away a posted number that isn't one of the enum's values.</TextBlock>
+<TextBlock>A property that isn't nullable always has a value, so <Code>[Required]</Code> never fails. The option for its starting value is chosen from the start: an enum's <Code>0</Code>, unless the model sets another.</TextBlock>
+<TextBlock>A form post can carry any number for an enum property. Before using the value, check that it's one of the enum's values.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for a choice that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only radio, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the group is disabled while a hidden field posts its value.</TextBlock>
+<TextBlock>To line the group up with buttons and other fields, set <Code>Size</Code>. For a choice the user can't change, set <Code>Disabled</Code>; a disabled group doesn't post.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only radio. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the group is disabled, and a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="radio-group-states" />
-<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

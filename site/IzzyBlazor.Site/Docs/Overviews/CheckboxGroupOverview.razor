@@ -5,31 +5,45 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>For a long list, a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor> takes less room; for one yes-or-no choice, use a <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
+<TextBlock>A checkbox group is a list of checkboxes, one for each option, from which the user checks any number. It suits short lists where every option should be in view. For a long list, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>, which takes less room. For one yes-or-no choice, see <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
 
 <Heading Level="2">Several choices</Heading>
-<TextBlock>Bind <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>: each checked box posts its value, so it works with JavaScript off.</TextBlock>
+<TextBlock>The group's value is the collection of checked options. Set <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>. Each checked box posts its value, so the group works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 <ExampleViewer Example="checkbox-group-toppings" />
-<TextBlock>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code> or an interface they implement, and for an enum, <Code>Items</Code> takes its values (<Code>Enum.GetValues&lt;Topping&gt;()</Code>). With no box checked the group posts nothing: on a static page the property is then null, or the model isn't bound at all, so set defaults only when the request isn't this form's post, as the example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>).</TextBlock>
+<List>
+    <ListItem>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code>, or an interface they implement.</ListItem>
+    <ListItem>For an enum, pass its values to <Code>Items</Code>: <Code>Enum.GetValues&lt;Topping&gt;()</Code>.</ListItem>
+    <ListItem>With no box checked, the group posts nothing. On static pages the property is then null, or the model isn't bound at all. So set defaults only when the request isn't this form's post, as this example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>).</ListItem>
+</List>
 
 <Heading Level="2">Descriptions</Heading>
-<TextBlock>Use <Code>ItemDescription</Code> for a line under each option's name. Screen readers hear it after the name, as the box's description. <Code>ItemTemplate</Code> takes markup for the name itself, such as a badge beside it, and all of it names the box.</TextBlock>
+<TextBlock>A description is a line of text under an option's name. Screen readers hear it after the name, as the box's description. Set <Code>ItemDescription</Code> to add one to each option. For markup in the name itself, such as a badge beside it, set <Code>ItemTemplate</Code>; all of it names the box.</TextBlock>
 <ExampleViewer Example="checkbox-group-descriptions" />
 
 <Heading Level="2">Select all</Heading>
-<TextBlock>Use <Code>SelectAll</Code> for a box above the options that checks or clears them all at once, and <Code>SelectAllText</Code> for its text ("Select all" by default).</TextBlock>
+<TextBlock>A select-all box sits above the options and checks or clears them all at once. Set <Code>SelectAll</Code> to add it. To change its text ("Select all" by default), set <Code>SelectAllText</Code>.</TextBlock>
 <ExampleViewer Example="checkbox-group-everything" />
-<TextBlock>The box doesn't post: the options do, as before. It works through the script on static pages, so with JavaScript off it isn't shown and people check each option. On an interactive page, <Code>ValueChanged</Code> runs once for each option it flips, so code that saves on every change sees the steps between.</TextBlock>
+<List>
+    <ListItem>The select-all box doesn't post; the options do, as before.</ListItem>
+    <ListItem>On static pages, <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> runs the box. With JavaScript off it isn't shown, and the user checks each option.</ListItem>
+    <ListItem>On interactive pages, <Code>ValueChanged</Code> runs once for each option the box changes. Code that saves on every change sees each step.</ListItem>
+</List>
 
 <Heading Level="2">At least one</Heading>
-<TextBlock>Use <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to need at least one checked box.</TextBlock>
+<TextBlock>A group can require the user to check at least one box. Add <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to the property.</TextBlock>
 <ExampleViewer Example="checkbox-group-at-least-one" />
-<TextBlock>The browser can't require one of several boxes, so the validator checks it: when the form posts on a static page, where an empty choice leaves the property null for <Code>[Required]</Code>, and on Save or as the last box is cleared on an interactive page, where it's an empty list for <Code>[MinLength(1)]</Code>. Screen readers don't hear the asterisk; they hear "(required)" after the label instead (<Code>IzzyText.Required</Code>). After a post that fails, the group's first box takes focus, so its error is read. A post can carry values that aren't among the options, and they reach the model, so check them on the server, as the example does.</TextBlock>
+<TextBlock>The browser can't require one of several boxes, so the validator checks it:</TextBlock>
+<List>
+    <ListItem>On static pages, it checks when the form posts. An empty choice leaves the property null, and <Code>[Required]</Code> catches it.</ListItem>
+    <ListItem>On interactive pages, it checks on Save and as the last box is cleared. An empty choice is an empty list, and <Code>[MinLength(1)]</Code> catches it.</ListItem>
+</List>
+<TextBlock>Screen readers don't hear the asterisk. They hear "(required)" after the label instead (<Code>IzzyText.Required</Code>). After a form post that fails, the group's first box takes focus, so its error is read.</TextBlock>
+<TextBlock>A form post can carry values that aren't among the options, and they reach the model. Check them on the server, as this example does.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for choices that can't change, which don't post. There's no <Code>ReadOnly</Code>: HTML has no read-only checkbox, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the group is disabled while a hidden field posts its value.</TextBlock>
+<TextBlock>The size lines the group up with buttons and other fields. Set <Code>Size</Code> to choose one. For choices that can't change, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="checkbox-group-states" />
-<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the group is disabled while a hidden field posts its value. A disabled group posts nothing; see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

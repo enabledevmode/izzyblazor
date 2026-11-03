@@ -4,25 +4,26 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A badge is a small label next to something: its status ("Paid"), a category ("Beta") or a count. It's text, not a control. For a keyword that's a link or can be removed, use a <Anchor Href="docs/components/tag">Tag</Anchor>; for a message about something, an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+<TextBlock>A badge is a small label next to something: its status ("Paid"), a category ("Beta") or a count. It's text, not a control. For a keyword that's a link or can be removed, see <Anchor Href="docs/components/tag">Tag</Anchor>. For a message about something, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status</Heading>
-<TextBlock>Use <Code>Status</Code> for what the badge means: Neutral (the default), Info, Success, Warning or Danger. <Code>Accent</Code> takes a color of your own in its place, such as <Code>Accent.Primary</Code> for a brand-colored label or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<TextBlock>The status says what the badge means and sets its color: Neutral (the default), Info, Success, Warning or Danger. Set <Code>Status</Code> to choose one. For a color of your own, set <Code>Accent</Code> instead, such as <Code>Accent.Primary</Code> for a brand-colored label or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
 <ExampleViewer Example="badge-statuses" />
 
 <Heading Level="2">Variants</Heading>
-<TextBlock>Use <Code>Variant</Code> for the weight: <Code>Soft</Code> (the default), <Code>Solid</Code>, <Code>Outline</Code> or <Code>Plain</Code>, which is the text alone in the color's text shade, for quiet counts such as the totals beside sidebar links.</TextBlock>
+<TextBlock>The variant sets how strongly the badge stands out: <Code>Soft</Code> (the default), <Code>Solid</Code>, <Code>Outline</Code> or <Code>Plain</Code>. Set <Code>Variant</Code> to choose one. <Code>Plain</Code> is the text alone, in the color's text shade; it suits quiet counts, such as the totals beside sidebar links.</TextBlock>
 <ExampleViewer Example="badge-variants" />
 
 <Heading Level="2">Dots, counts and icons</Heading>
-<TextBlock>Use <Code>Dot</Code> for a colored dot before a status, <Code>Pill</Code> for fully rounded ends around a count, and <Code>StartIcon</Code> for an icon before the text (with <Code>Dot</Code> set too, only the dot shows). <Code>Size="BadgeSize.Sm"</Code> is a compact badge for counts.</TextBlock>
+<TextBlock>A badge can show a colored dot or an icon before its text, and a count can have fully rounded ends. To show a dot before a status, set <Code>Dot</Code>. To round a count's ends, set <Code>Pill</Code>. To show an icon before the text, set <Code>StartIcon</Code>; with <Code>Dot</Code> set too, only the dot shows.</TextBlock>
 <ExampleViewer Example="badge-dots-counts" />
-<TextBlock>The color, the dot and the icon don't reach screen readers, so the text has to say what it means: "Overdue", not a red badge reading "3 days".</TextBlock>
+<TextBlock>For a compact badge for counts, set <Code>Size="BadgeSize.Sm"</Code>. The color, the dot and the icon don't reach screen readers, so the text has to say what it means: "Overdue", not a red badge reading "3 days".</TextBlock>
 
 <Heading Level="2">In headings and buttons</Heading>
-<TextBlock>A badge sits in a line of text, so it goes inside a heading or a button's label as it is. In a button, a small solid pill (<Code>Size="BadgeSize.Sm"</Code>) sits best beside the label.</TextBlock>
+<TextBlock>A badge sits in a line of text, so you can put it inside a heading or a button's label as it is. In a button, a small solid pill (<Code>Size="BadgeSize.Sm"</Code>) looks best beside the label.</TextBlock>
 <ExampleViewer Example="badge-inline" />
-<TextBlock>A count is read as just the number, as part of the button's name ("Inbox 4"): put it where the words next to it say what it counts. Navigation draws its own badges: use <Code>Badge</Code> on a <Anchor Href="docs/components/nav-menu">NavItem</Anchor> (with <Code>BadgeStatus</Code>, <Code>BadgeAccent</Code> and <Code>BadgeVariant</Code>), a <Anchor Href="docs/components/tabs">Tab</Anchor> or a TabLink rather than nesting a Badge.</TextBlock>
+<TextBlock>Screen readers read a count as just the number, as part of the button's name ("Inbox 4"). Put it where the words next to it say what it counts.</TextBlock>
+<TextBlock>Some components show their own badges. On a <Anchor Href="docs/components/nav-menu">NavItem</Anchor>, a <Anchor Href="docs/components/tabs">Tab</Anchor> or a TabLink, set <Code>Badge</Code> rather than nesting a Badge. A NavItem also has <Code>BadgeStatus</Code>, <Code>BadgeAccent</Code> and <Code>BadgeVariant</Code>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

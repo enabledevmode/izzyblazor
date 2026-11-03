@@ -8,21 +8,21 @@
 <ArticlePage Section="troubleshooting" Slug="state-between-requests">
     <Lead>
         A static page is built afresh for every request, so a field in the component starts over each time. Keep what the
-        page needs in the address, or post it.
+        page needs in the URL, or post it.
     </Lead>
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
             A value set in one request is gone in the next: a count goes back to its first value, a chosen step resets, a
-            list loaded on the first visit is loaded again. Here every post shows 3 guests, however many times it's
-            pressed; on an interactive page the same code counts up.
+            list loaded on the first visit is loaded again. In the code below, every form post shows 3 guests, however many times the
+            button is pressed. On interactive pages the same code counts up.
         </TextBlock>
         <Code Block Language="razor" Title="Booking.razor" HighlightLines="8">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
-            On an interactive page a component instance lives as long as it stays on the page, so its fields keep their values. On
-            a static page, each request (a link followed, a form posted, a reload) creates new components, renders them and
+            On <Anchor Href="docs/common/render-modes">interactive pages</Anchor>, a component instance lives as long as it stays on the page, so
+            its fields keep their values. On static pages, each request (a link followed, a form posted, a reload) creates new components, renders them and
             throws them away. Nothing is kept on the server between requests unless you store it.
         </TextBlock>
 
@@ -30,9 +30,9 @@
         <TextBlock>Keep the state where the next request carries it:</TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>In the address.</strong> Read it with <Code>[SupplyParameterFromQuery]</Code>, and make each change a
+                <strong>In the URL.</strong> Read it with <Code>[SupplyParameterFromQuery]</Code>, and make each change a
                 link that sets it with <Code>NavigationManager.GetUriWithQueryParameter</Code>, which keeps the rest of the
-                query string. It survives a reload, and the page can be shared or bookmarked as it is.
+                URL. It survives a reload, and the page can be shared or bookmarked as it is.
             </ListItem>
             <ListItem>
                 <strong>In the form.</strong> Fields post their values, and the page reads them with
@@ -40,23 +40,23 @@
                 <Code>&lt;input&gt;</Code>.
             </ListItem>
             <ListItem>
-                <strong>Elsewhere.</strong> A database on the server, or a cookie in the browser for a reader's preferences,
+                <strong>Elsewhere.</strong> A database on the server, or a cookie in the browser for the user's preferences,
                 read on each request.
             </ListItem>
         </List>
         <Code Block Language="razor" Title="Booking.razor" HighlightLines="3,9-10,12">@Fixed</Code>
         <ExampleViewer Example="button-state-in-address" ModeSwitch />
         <TextBlock>
-            IzzyBlazor's components use the address the same way: <Code>Table</Code>, <Code>Pagination</Code> and
-            <Code>FilterForm</Code> keep their state in the query string, <Code>Tabs</Code> with a <Code>QueryKey</Code>
-            opens the tab the address names, and a dialog opens from <Code>?dialog=id</Code>.
+            IzzyBlazor's components use the URL the same way. <Code>Table</Code>, <Code>Pagination</Code> and
+            <Code>FilterForm</Code> keep their state in the URL. <Code>Tabs</Code> with a <Code>QueryKey</Code> opens the
+            tab the URL names, and a dialog opens from <Code>?dialog=id</Code>.
         </TextBlock>
 
         <Heading Level="2">Related</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: state on static pages.</ListItem>
             <ListItem><Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor>: links and posts instead of events.</ListItem>
-            <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters and pages in the address.</ListItem>
+            <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters and pages in the URL.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>

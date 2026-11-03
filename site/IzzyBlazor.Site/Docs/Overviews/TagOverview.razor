@@ -4,23 +4,27 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A tag is a keyword, a category or a filter that's applied, and can be a link or removed. For a small status label or a count, use a <Anchor Href="docs/components/badge">Badge</Anchor>; for choosing several values in a form, a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
+<TextBlock>A Tag shows a keyword, a category or an applied filter. It can be a link, and the user can remove it. For a small status label or a count, use a <Anchor Href="docs/components/badge">Badge</Anchor>. For choosing several values in a form, use a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Status and variants</Heading>
-<TextBlock>Use <Code>Status</Code> or <Code>Accent</Code> for the color and <Code>Variant</Code> for the weight: <Code>Soft</Code> (the default), <Code>Solid</Code> or <Code>Outline</Code>.</TextBlock>
+<TextBlock>To set a tag's color, set <Code>Status</Code> or <Code>Accent</Code>. To set its weight, set <Code>Variant</Code>: <Code>Soft</Code> (the default), <Code>Solid</Code> or <Code>Outline</Code>.</TextBlock>
 <ExampleViewer Example="tag-variants" />
 
 <Heading Level="2">Links, icons and sizes</Heading>
-<TextBlock>Use <Code>Href</Code> to make a tag a link, <Code>StartIcon</Code> for an icon and <Code>Size</Code> for 20, 24 or 28px tall.</TextBlock>
+<TextBlock>To make a tag a link, set <Code>Href</Code>. To add an icon, set <Code>StartIcon</Code>. To make it 20, 24 or 28px tall, set <Code>Size</Code>.</TextBlock>
 <ExampleViewer Example="tag-links-sizes" />
 
 <Heading Level="2">Removable</Heading>
-<TextBlock>Use <Code>RemoveHref</Code> for a remove link that works on any page, such as the current address without that filter, and <Code>OnRemove</Code> for C# on interactive ones.</TextBlock>
+<TextBlock>A removable tag has a remove control after its label. For a remove link that works on any page, such as to the current URL without that filter, set <Code>RemoveHref</Code>. To run C# on interactive pages, set <Code>OnRemove</Code>.</TextBlock>
 <ExampleViewer Example="tag-remove" />
-<TextBlock>Give both, as here, when a tag may render in either: an interactive page uses <Code>OnRemove</Code>, and a static one the link. With only <Code>OnRemove</Code>, a static page shows no remove control at all. For a row of filters a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> applies, build each <Code>RemoveHref</Code> with <Code>Navigation.GetUriWithQueryParameter</Code> so the rest of the address stays.</TextBlock>
+<List Gap="2">
+    <ListItem>When a tag may render in either render mode, set both. Interactive pages use <Code>OnRemove</Code>, and static pages use the link.</ListItem>
+    <ListItem>With only <Code>OnRemove</Code>, static pages show no remove control at all.</ListItem>
+    <ListItem>For a row of filters that a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> applies, build each <Code>RemoveHref</Code> with <Code>Navigation.GetUriWithQueryParameter</Code>, so the rest of the URL stays.</ListItem>
+</List>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>RemoveLabel</Code> for the word before the label in the remove control's name ("Remove", as in "Remove Blazor"), or set it for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The remove control's name for screen readers is <Code>RemoveLabel</Code> followed by the tag's label, such as "Remove Blazor". To change the word, "Remove" by default, set <Code>RemoveLabel</Code>, or set it for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

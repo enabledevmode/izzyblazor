@@ -4,31 +4,35 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A popover is for content beside its trigger that people can leave without choosing: filters, a small form, an explanation. For a list of actions use a <Anchor Href="docs/components/menu">Menu</Anchor>, for a task that needs an answer a <Anchor Href="docs/components/dialog">Dialog</Anchor>, and for a short label on hover a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
+<TextBlock>A Popover shows content beside its trigger that the user can leave without choosing anything, such as filters, a small form or an explanation. For a list of actions, use a <Anchor Href="docs/components/menu">Menu</Anchor>. For a task that needs an answer, use a <Anchor Href="docs/components/dialog">Dialog</Anchor>. For a short label on hover, use a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 
 <Heading Level="2">A form in a popover</Heading>
-<TextBlock>Use <Code>Title</Code> to head the panel and name it for screen readers; anything can go inside, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page.</TextBlock>
+<TextBlock>A popover can contain anything, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page. To give the panel a heading, set <Code>Title</Code>; it also names the panel for screen readers.</TextBlock>
 <ExampleViewer Example="popover-filters" />
 
 <Heading Level="2">Placement and width</Heading>
-<TextBlock>Use <Code>Placement</Code> for the side it opens on (<Code>BottomStart</Code> by default) and <Code>PanelWidth</Code> for a set width; otherwise it's as wide as its content, up to 24rem.</TextBlock>
+<TextBlock>A popover opens below its trigger, aligned to its start (<Code>BottomStart</Code>), by default. To open it on another side, set <Code>Placement</Code>. It's as wide as its content, up to 24rem; for a set width, set <Code>PanelWidth</Code>.</TextBlock>
 <ExampleViewer Example="popover-sides" />
-<TextBlock>It moves to the other side when there's no room, and below the trigger when a panel beside it fits on neither side. Where the browser has no CSS anchor positioning the script places it; with JavaScript off there too, it opens in the middle of the screen.</TextBlock>
+<List Gap="2">
+    <ListItem>When there's no room on its side, the panel moves to the other side.</ListItem>
+    <ListItem>When a panel beside the trigger fits on neither side, it opens below the trigger.</ListItem>
+    <ListItem>In browsers without CSS anchor positioning, <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> places the panel. With JavaScript off in those browsers, it opens in the middle of the screen.</ListItem>
+</List>
 
 <Heading Level="2">Staying open</Heading>
-<TextBlock>Use <Code>Mode="PopoverMode.Manual"</Code> for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button.</TextBlock>
+<TextBlock>A manual popover stays open while the user works elsewhere on the page. Escape, a click outside and other popovers don't close it, so it shows a close button. Set <Code>Mode="PopoverMode.Manual"</Code>.</TextBlock>
 <ExampleViewer Example="popover-manual" />
-<TextBlock><Code>ShowCloseButton</Code> adds the close button to an <Code>Auto</Code> popover too, or takes it off a manual one.</TextBlock>
+<TextBlock>To add the close button to an <Code>Auto</Code> popover, or remove it from a manual one, set <Code>ShowCloseButton</Code>.</TextBlock>
 
-<Heading Level="2">Your own trigger</Heading>
-<TextBlock>Use <Code>Trigger</Code> for a button of your own, such as an info icon, and pass it <Code>context</Code> with <Code>@@attributes</Code>, which connects it to the panel.</TextBlock>
+<Heading Level="2">A custom trigger</Heading>
+<TextBlock>A popover can open from a button of your own, such as an info icon. Set <Code>Trigger</Code> to the button, and pass it <Code>context</Code> with <Code>@@attributes</Code>, which connects it to the panel.</TextBlock>
 <ExampleViewer Example="popover-info-button" />
-<TextBlock>The trigger must be a <Code>button</Code> with a name of its own. Without <Code>Trigger</Code>, the built-in button needs a <Code>Label</Code>, and <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style it.</TextBlock>
+<TextBlock>The trigger must be a <Code>button</Code> with a name of its own. Without <Code>Trigger</Code>, the built-in button requires a <Code>Label</Code>. To style the built-in button, set <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code>.</TextBlock>
 
 <Heading Level="2">Opening it from the server or C#</Heading>
-<TextBlock>Use <Code>Open</Code> to show it when the page loads, and <Code>@@bind-Open</Code> on an interactive page to open and close it from C# and follow what people do.</TextBlock>
+<TextBlock>A popover can be open when the page loads; set <Code>Open</Code>. On interactive pages, to open and close it from C# and follow what the user does, bind it with <Code>@@bind-Open</Code>.</TextBlock>
 <Code Block Language="razor">@FromCode</Code>
-<TextBlock>A popover opened this way leaves focus where it is. <Code>Open</Code> from the server needs the script: with JavaScript off the panel stays closed until its trigger is pressed.</TextBlock>
+<TextBlock>A popover opened this way leaves focus where it is. <Code>Open</Code> from the server requires IzzyBlazor's script. With JavaScript off, the panel stays closed until the user presses its trigger.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

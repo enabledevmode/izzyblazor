@@ -5,19 +5,19 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>An alert sits on the page, next to what it's about: the result of a form, or a warning above a table. For a message about the whole app, use a <Anchor Href="docs/components/banner">Banner</Anchor>. For a short notice that doesn't need a place on the page, use a toast from the <Anchor Href="docs/components/toast-region">ToastRegion</Anchor>.</TextBlock>
+<TextBlock>An alert is a message on the page, next to what it's about: the result of a form, or a warning above a table. For a message about the whole app, see <Anchor Href="docs/components/banner">Banner</Anchor>. For a short notice that doesn't need a place on the page, show a toast from the <Anchor Href="docs/components/toast-region">ToastRegion</Anchor>.</TextBlock>
 
 <Heading Level="2">Status</Heading>
-<TextBlock>Use <Code>Status</Code> to say what the message means. It sets the color, the icon, and the word screen readers hear before the message.</TextBlock>
+<TextBlock>The status says what the message means: neutral, info, success, warning or danger. It sets the color, the icon, and the word screen readers hear before the message. Set <Code>Status</Code> to choose one.</TextBlock>
 <ExampleViewer Example="alert-statuses" />
-<TextBlock>Use <Code>Icon</Code> to show a different icon, or <Code>HideIcon</Code> to show none.</TextBlock>
+<TextBlock>To show a different icon, set <Code>Icon</Code>. To show none, set <Code>HideIcon</Code>.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
-<TextBlock>Use <Code>Variant</Code> to set the weight: <Code>Soft</Code> (the default), <Code>Outline</Code> or <Code>Solid</Code>.</TextBlock>
+<TextBlock>The variant sets how strongly the alert stands out from the page. <Code>Soft</Code> (the default) tints the background, <Code>Outline</Code> shows a border in the status color, and <Code>Solid</Code> fills it with the status color. Set <Code>Variant</Code> to choose one.</TextBlock>
 <ExampleViewer Example="alert-variants" />
 
 <Heading Level="2">Actions and dismissing</Heading>
-<TextBlock>Use <Code>Dismissible</Code> to add a close button. It works with JavaScript off too. To put buttons or links under the message, add an <Code>AlertActions</Code> at the end of the alert's content.</TextBlock>
+<TextBlock>A dismissible alert has a close button, so the user can clear a message once it's read. Set <Code>Dismissible</Code> to add it; it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. To put buttons or links under the message, add an <Code>AlertActions</Code> at the end of the alert's content.</TextBlock>
 <ExampleViewer Example="alert-dismiss" />
 <TextBlock>A closed alert stays closed only while the user stays on the page. It shows again:</TextBlock>
 <List>
@@ -26,17 +26,26 @@
     <ListItem>after a form post on static pages, if the alert is inside the form that posted or its text has changed;</ListItem>
     <ListItem>on interactive pages, when <Code>Dismissed</Code> is set back to false.</ListItem>
 </List>
-<TextBlock>So an alert that reports a form post should be inside that form, or its text should say what happened ("Deleted Invoice 12"). Then the next post shows it again. On interactive pages, use <Code>@@bind-Dismissed</Code> to know when the user closes it.</TextBlock>
+<TextBlock>So an alert that reports a form post should be inside that form, or its text should say what happened ("Deleted Invoice 12"). Then the next form post shows it again. To know in C# when the user closes the alert on interactive pages, set <Code>@@bind-Dismissed</Code>.</TextBlock>
 <TextBlock>To keep a message closed on every page, use a Banner, which saves the choice in a cookie.</TextBlock>
 
 <Heading Level="2">After a form post</Heading>
-<TextBlock>To say what a post did, render an alert from the submit handler. It arrives with the response, so it works in every render mode.</TextBlock>
+<TextBlock>An alert can report what a form post did, such as "Saved". It suits forms whose result belongs next to the form, rather than in a toast. Render the alert from the submit handler; it arrives with the response, so it works in every render mode.</TextBlock>
 <ExampleViewer Example="alert-saved" />
 <TextBlock>Put the saved value in the alert's text when you save, rather than binding the text to the field. On interactive pages the field changes as the user types, and the alert would change with it.</TextBlock>
-<TextBlock>On interactive pages, an alert the user has closed stays closed until <Code>Dismissed</Code> changes. The example binds <Code>Dismissed</Code> and sets it to false on each save, so every save shows the alert. On static pages the alert is inside the form that posted, so each response shows it again.</TextBlock>
+<TextBlock>On interactive pages, an alert the user has closed stays closed until <Code>Dismissed</Code> changes. This example binds <Code>Dismissed</Code> and sets it to false on each save, so every save shows the alert. On static pages the alert is inside the form that posted, so each response shows it again.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>Use <Code>StatusLabel</Code> to change the word screen readers hear before the message. The defaults are "Info", "Success", "Warning" and "Error", and none for <Code>Neutral</Code>; set it to <Code>""</Code> to leave it out. Use <Code>DismissLabel</Code> to change the close button's name (default "Dismiss"). To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>Screen readers hear a word for the status before the message, and the close button has a name. The defaults are below; to set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>StatusLabel</Code></td><td>The word before the message. Set it to <Code>""</Code> to leave it out.</td><td>"Info", "Success", "Warning" or "Error"; none for <Code>Neutral</Code></td></tr>
+            <tr><td><Code>DismissLabel</Code></td><td>The close button's name</td><td>"Dismiss"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

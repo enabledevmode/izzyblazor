@@ -4,29 +4,31 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>It's a native range input, so it posts with the form and moves with the arrow keys, Page Up and Page Down, and Home and End, with or without the script. Use it for a value people judge by eye, such as a volume; when the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
+<TextBlock>A Slider is a native range input. It posts with the form, and it moves with the arrow keys, Page Up and Page Down, and Home and End, with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too. Use it for a value the user judges by eye, such as a volume. When the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
 
 <Heading Level="2">Showing the value</Heading>
-<TextBlock>Use <Code>ShowValue</Code> to show the value beside the slider, and <Code>ValueFormat</Code> for how it reads, such as <Code>"{0}%"</Code>; <Code>[Range]</Code>, or <Code>Min</Code> and <Code>Max</Code>, set the ends (0 to 100 by default) and <Code>Step</Code> the increments.</TextBlock>
+<TextBlock>To show the value beside the slider, set <Code>ShowValue</Code>. To set how the value reads, such as <Code>"{0}%"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
+<TextBlock>The ends are 0 and 100 by default. To change them, set <Code>[Range]</Code> on the property, or <Code>Min</Code> and <Code>Max</Code> on the slider. To set the increments, set <Code>Step</Code>.</TextBlock>
 <ExampleViewer Example="slider-value" />
 
 <Heading Level="2">Saving a value</Heading>
-<TextBlock>Bind it like any field: the value posts as a number when the form does.</TextBlock>
+<TextBlock>A slider binds like any field. The value posts as a number with the form.</TextBlock>
 <ExampleViewer Example="slider-budget" />
-<TextBlock>The browser keeps the value on a step between the ends, so a post from the page is always in range. A crafted post can send any number: the validator checks <Code>[Range]</Code> on the server, but not the step, so round the value yourself if it must be a multiple.</TextBlock>
+<TextBlock>The browser keeps the value on a step between the ends, so a form post from the page is always in range. A crafted form post can send any number. The validator checks <Code>[Range]</Code> on the server, but not the step, so round the value yourself if it must be a multiple. See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Following the value live</Heading>
-<TextBlock>Use <Code>Live</Code> on an interactive page to update the bound value as the thumb moves, rather than when it's let go, for something on the page that follows it.</TextBlock>
+<TextBlock>By default, the bound value changes when the user lets go of the thumb. On interactive pages, a live slider updates it as the thumb moves instead, for something on the page that follows the value. Set <Code>Live</Code>.</TextBlock>
 <ExampleViewer Example="slider-live" />
-<TextBlock>Each move is a round trip to the server, so use it only when something follows the value. On a static page the value posts when the form does, either way.</TextBlock>
+<TextBlock>Each move is a round trip to the server, so set <Code>Live</Code> only when something follows the value. On static pages, the value posts with the form either way.</TextBlock>
 
 <Heading Level="2">Empty values</Heading>
-<TextBlock>A range input always has a value: bound to a nullable type that's null, it shows the thumb at the midpoint (snapped to the step) and posts that value. Use a <Anchor Href="docs/components/number-field">NumberField</Anchor> when "not set" must stay possible.</TextBlock>
+<TextBlock>A range input always has a value. Bound to a nullable property that's null, the slider shows the thumb at the midpoint, snapped to the step, and posts that value. When "not set" must stay possible, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with other fields, and <Code>Disabled</Code> for a value that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only range input, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the slider is disabled while a hidden field posts its value.</TextBlock>
+<TextBlock>To line the slider up with other fields, set <Code>Size</Code>. For a value the user can't change, set <Code>Disabled</Code>; a disabled slider doesn't post.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only range input. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the slider is disabled, and a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="slider-states" />
-<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (<Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

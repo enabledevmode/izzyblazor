@@ -4,33 +4,42 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>The diff is computed and colored on the server, so it looks the same with JavaScript off. Lines removed and added carry a <Code>−</Code> or <Code>+</Code> and their old or new line number; the numbers and signs aren't copied when you select the lines.</TextBlock>
+<TextBlock>A diff shows the changes between two versions of a text, line by line, such as two versions of a config file. Removed and added lines carry a <Code>−</Code> or <Code>+</Code> and their old or new line number. The numbers and signs aren't copied when the user selects the lines.</TextBlock>
+<TextBlock>The diff is computed and colored on the server, so it looks the same <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">Two versions</Heading>
-<TextBlock>Use <Code>OldText</Code> and <Code>NewText</Code> for the two texts and <Code>Language</Code> to color them; unchanged lines away from the changes fold.</TextBlock>
+<TextBlock>A diff compares an old and a new text, and folds the unchanged lines away from the changes. Set <Code>OldText</Code> and <Code>NewText</Code> to the two texts. To color them as code, set <Code>Language</Code>.</TextBlock>
 <ExampleViewer Example="diff-versions" />
-<TextBlock>Each text is colored whole before it's cut into lines, so a comment or value across several lines keeps its color. In a removed line beside an added one, the changed words are marked, unless less than half of the longer line is unchanged (<Code>MarkWords</Code> turns this off). <Code>Context</Code> sets how many unchanged lines stay beside each change (3); the rest fold into a row that opens them in place.</TextBlock>
+<List>
+    <ListItem>Each text is colored whole before it's split into lines, so a comment or value across several lines keeps its color.</ListItem>
+    <ListItem>In a removed line beside an added one, the changed words are marked, unless less than half of the longer line is unchanged. To turn this off, set <Code>MarkWords="false"</Code>.</ListItem>
+    <ListItem><Code>Context</Code> sets how many unchanged lines stay beside each change (3 by default). The rest fold into a row that the user clicks to show them in place.</ListItem>
+</List>
 
 <Heading Level="2">Side by side</Heading>
-<TextBlock>Use <Code>Layout</Code> <Code>DiffLayout.Split</Code> to put the old text beside the new; below 45rem wide it shows as unified.</TextBlock>
+<TextBlock>A split diff shows the old text beside the new, with each removed line beside the line it became. It suits wide screens. Set <Code>Layout="DiffLayout.Split"</Code> to turn it on.</TextBlock>
 <ExampleViewer Example="diff-side-by-side" />
-<TextBlock>Each removed line sits beside the line it became, and long lines wrap rather than scroll. Unchanged lines are drawn on both sides, so a split diff sends them twice.</TextBlock>
+<TextBlock>Below 45rem wide, a split diff shows as unified. Long lines wrap rather than scroll. Unchanged lines appear on both sides, so a split diff sends them twice.</TextBlock>
 
-<Heading Level="2">Every line</Heading>
-<TextBlock>Use <Code>Fold="false"</Code> to show every unchanged line and <Code>LineNumbers="false"</Code> to leave the numbers out, for a short text.</TextBlock>
+<Heading Level="2">Showing unchanged lines</Heading>
+<TextBlock>For a short text, a diff can show every line, with no folding. Set <Code>Fold="false"</Code> to show every unchanged line. To leave the line numbers out, set <Code>LineNumbers="false"</Code>.</TextBlock>
 <ExampleViewer Example="diff-every-line" />
 
 <Heading Level="2">A diff computed first</Heading>
-<TextBlock>Use <Code>Lines</Code> for a diff you computed with <Code>TextDiff.Compare</Code> or elsewhere, such as to count the changes first.</TextBlock>
+<TextBlock>You can compute the diff yourself and pass the lines to the component, such as to count the changes first. Compute it with <Code>TextDiff.Compare</Code> or elsewhere, and set <Code>Lines</Code> to the result.</TextBlock>
 <ExampleViewer Example="diff-computed" />
-<TextBlock><Code>TextDiff.Compare(oldText, newText)</Code> returns every line of both texts as a <Code>DiffLine</Code> (its <Code>Kind</Code>, <Code>OldNumber</Code>, <Code>NewNumber</Code> and <Code>Text</Code>), or null when they differ by more lines than it looks for. Lines from elsewhere should be every line of both texts, in order, removed lines before the added lines that replace them.</TextBlock>
+<List>
+    <ListItem><Code>TextDiff.Compare(oldText, newText)</Code> returns every line of both texts as a <Code>DiffLine</Code>, with its <Code>Kind</Code>, <Code>OldNumber</Code>, <Code>NewNumber</Code> and <Code>Text</Code>.</ListItem>
+    <ListItem>It returns null when the texts differ by more lines than it looks for.</ListItem>
+    <ListItem>Lines from elsewhere must be every line of both texts, in order, with removed lines before the added lines that replace them.</ListItem>
+</List>
 
 <Heading Level="2">No changes, or too many</Heading>
-<TextBlock>Use <Code>SameText</Code> and <Code>TooManyText</Code> to change the notes shown when the texts are the same, or differ by more than <Code>MaxChanges</Code> lines.</TextBlock>
+<TextBlock>The diff shows a note when the texts are the same, or when they differ by more than <Code>MaxChanges</Code> lines. To change the notes, set <Code>SameText</Code> and <Code>TooManyText</Code>.</TextBlock>
 <ExampleViewer Example="diff-notes" />
 
 <Heading Level="2">Large texts</Heading>
-<TextBlock>The lines both texts start and end with cost nothing; past them, the comparison's work grows with the length of the rest times the lines that differ, and <Code>MaxChanges</Code> (1,000 lines removed and added) bounds it. Folded lines are still in the page, ready to open, so a 5,000-line file with one change sends 5,000 lines; set <Code>MaxHeight</Code> to keep a long diff in a scrolling box.</TextBlock>
+<TextBlock>A diff compares at most <Code>MaxChanges</Code> removed and added lines (1,000 by default); past that, it shows the too-many note. Folded lines are still in the page, ready to open, so a 5,000-line file with one change sends 5,000 lines. To keep a long diff in a scrolling box, set <Code>MaxHeight</Code>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

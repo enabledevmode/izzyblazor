@@ -20,14 +20,14 @@
         </TextBlock>
         <List Gap="2">
             <ListItem>The browser is redirected, but code after <Code>NavigateTo</Code> still runs, such as a save that should have been skipped.</ListItem>
-            <ListItem>On a static page, it doesn't redirect, and shows your error message although the save worked.</ListItem>
+            <ListItem>On <Anchor Href="docs/common/render-modes">static pages</Anchor>, it doesn't redirect, and shows your error message although the save worked.</ListItem>
         </List>
         <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,13,15">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
-            On a static page, the post's response hasn't started when your handler runs, so <Code>NavigateTo</Code> turns
-            it into a redirect. Whether it stops your code depends on a project setting:
+            On static pages, the form post's response hasn't started when your handler runs, so <Code>NavigateTo</Code>
+            turns it into a redirect. Whether it stops your code depends on a project setting:
         </TextBlock>
         <List Gap="2">
             <ListItem>
@@ -42,7 +42,7 @@
             </ListItem>
         </List>
         <TextBlock>
-            On an interactive page, <Code>NavigateTo</Code> never throws: it starts the navigation and returns, so the code
+            On interactive pages, <Code>NavigateTo</Code> never throws: it starts the navigation and returns, so the code
             after it runs there too, whatever the setting.
         </TextBlock>
 
@@ -50,7 +50,7 @@
         <TextBlock>
             Call <Code>NavigateTo</Code> last, after the <Code>try</Code>/<Code>catch</Code> that guards your work.
             <Code>return</Code> right after any <Code>NavigateTo</Code> that isn't the last line, and on any path that
-            shouldn't redirect. That works in every mode, with the setting on or off:
+            shouldn't redirect. That works in every render mode, with the setting on or off:
         </TextBlock>
         <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,16,19">@Fixed</Code>
         <TextBlock>
@@ -59,14 +59,14 @@
         </TextBlock>
         <ExampleViewer Example="form-redirect-after-save" ModeSwitch />
         <TextBlock>
-            <Code>GetUriWithQueryParameter</Code> keeps the rest of the address. A message that shouldn't be in the address
-            can go in a cookie or in your own store instead, read on the next request.
+            <Code>GetUriWithQueryParameter</Code> keeps the rest of the URL. A message that shouldn't be in the URL can go
+            in a cookie or in your own store instead, read on the next request.
         </TextBlock>
 
         <Heading Level="2">Related</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/form">Form</Anchor>: posting and submitting.</ListItem>
-            <ListItem><Anchor Href="docs/troubleshooting/state-between-requests">A value resets on the next request</Anchor>: why the saved name goes in the address.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/state-between-requests">A value resets on the next request</Anchor>: why the saved name goes in the URL.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>

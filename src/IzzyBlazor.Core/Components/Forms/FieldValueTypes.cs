@@ -33,17 +33,29 @@ public partial class MultiSelect<[DynamicallyAccessedMembers(DynamicallyAccessed
 /// <summary>Checkboxes for several choices, bound to a collection.</summary>
 public partial class CheckboxGroup<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
 
-/// <summary>A date field, or a date and time field.</summary>
+/// <summary>
+/// Lets the user type a date, or a date and time, or choose it from a calendar. Bind it to
+/// <c>DateOnly</c>, <c>DateTime</c> or <c>DateTimeOffset</c>.
+/// </summary>
 public partial class DateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
 /// <inheritdoc cref="DateField{TValue}"/>
 public partial class MultiDateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
-/// <summary>A time of day.</summary>
+/// <summary>
+/// Lets the user type a time of day in the browser's own time input, or choose one from a list.
+/// Bind it to <c>TimeOnly</c> or <c>TimeOnly?</c>.
+/// </summary>
 public partial class TimeField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
-/// <summary>A month on the page.</summary>
+/// <summary>
+/// Shows a month on the page for the user to choose a day from, with the browser's own date input
+/// posting the day. Bind it to <c>DateOnly</c> or <c>DateOnly?</c>.
+/// </summary>
 public partial class Calendar<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
-/// <summary>A length of time.</summary>
+/// <summary>
+/// Lets the user enter a length of time, such as a timeout, with a number box for each unit. Bind it
+/// to <c>TimeSpan</c> or <c>TimeSpan?</c>.
+/// </summary>
 public partial class DurationField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;

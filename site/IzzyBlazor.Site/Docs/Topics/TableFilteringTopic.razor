@@ -38,7 +38,7 @@
 <TextBlock>On interactive pages, <Code>@@bind-Filter</Code> reads and sets the table's filter from C#. The value is a <Code>Filter</Code> that joins the condition of every filtered column with and.</TextBlock>
 <Code Block Language="razor">@BoundFilter</Code>
 <TextBlock>A condition that a column's filter can show appears in that filter, as if the user had set it. Any other condition, such as two conditions joined by or, still applies and appears as a tag below the rows. Removing the tag removes the condition.</TextBlock>
-<TextBlock><Anchor Href="docs/common/data">Data and filters</Anchor> lists the operators and the filter syntax. <Anchor Href="docs/components/table/loading-data">Loading data</Anchor> shows how a column's condition reaches the database.</TextBlock>
+<TextBlock><Anchor Href="docs/common/data#operators">Data and filters</Anchor> lists the operators, and <Anchor Href="docs/common/data-api#filters-as-text">Data from an API</Anchor> the filter syntax. <Anchor Href="docs/components/table/loading-data">Loading data</Anchor> shows how a column's condition reaches the database.</TextBlock>
 
 @code {
     private const string BoundFilter = """

@@ -6,36 +6,38 @@
 <Code Block Language="razor">@Usage</Code>
 
 <Heading Level="2">Labels and hints</Heading>
-<TextBlock>Use <Code>Label</Code> to replace the label from the model (its <Code>[Display(Name)]</Code>, or the property name in words), and <Code>Hint</Code> for help under the field. <Code>[Required]</Code> marks it.</TextBlock>
+<TextBlock>A field's label comes from the model: its <Code>[Display(Name)]</Code>, or the property name in words. <Code>[Required]</Code> adds a required mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
 <ExampleViewer Example="text-field-labels" />
 
 <Heading Level="2">Types</Heading>
-<TextBlock>Use <Code>Type</Code> for email, phone, URL, search or password. It defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code>, <Code>[Url]</Code> and <Code>[DataType(DataType.Password)]</Code>, and sets the on-screen keyboard and, for email and URL, the browser's check.</TextBlock>
+<TextBlock>A field's type sets the on-screen keyboard, and for email and URL, the browser's check. To make the field an email, phone, URL, search or password field, set <Code>Type</Code>. The type defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code>, <Code>[Url]</Code> and <Code>[DataType(DataType.Password)]</Code>.</TextBlock>
 <Code Block Language="razor">@Types</Code>
 
 <Heading Level="2">Passwords</Heading>
-<TextBlock>Use <Code>Reveal="false"</Code> to leave out the show/hide button a password field gets once IzzyBlazor's script runs.</TextBlock>
+<TextBlock>Once <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> runs, a password field gets a button that shows and hides the password. To leave the button out, set <Code>Reveal="false"</Code>.</TextBlock>
 <ExampleViewer Example="text-field-password" />
 
 <Heading Level="2">Icons</Heading>
-<TextBlock>Use <Code>StartIcon</Code> or <Code>EndIcon</Code> for an icon inside the field.</TextBlock>
+<TextBlock>To show an icon inside the field, set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
 <ExampleViewer Example="text-field-icons" />
 
 <Heading Level="2">A clear button</Heading>
-<TextBlock>Use <Code>Clearable</Code> for a button in the field that empties it, there while it holds something. Every field with a value that can be empty has it, and a <Code>Select</Code> goes back to its <Code>Placeholder</Code>.</TextBlock>
+<TextBlock>A clear button empties the field. It shows while the field has a value. Set <Code>Clearable</Code>.</TextBlock>
 <ExampleViewer Example="text-field-clearable" />
+<TextBlock>Every field whose value can be empty has <Code>Clearable</Code>. A <Code>Select</Code> clears back to its <Code>Placeholder</Code>.</TextBlock>
 
 <Heading Level="2">Add-ons</Heading>
-<TextBlock>Use <Code>StartAddon</Code> and <Code>EndAddon</Code> to attach text, a <Anchor Href="docs/components/select">Select</Anchor> or a button to the field. A submit button there posts the form, so a search box works with JavaScript off.</TextBlock>
+<TextBlock>Add-ons attach text, a <Anchor Href="docs/components/select">Select</Anchor> or a button to the side of the field. Set <Code>StartAddon</Code> or <Code>EndAddon</Code>. A submit button in an add-on posts the form, so a search box works with JavaScript off.</TextBlock>
 <ExampleViewer Example="text-field-addons" />
 
 <Heading Level="2">Validation</Heading>
-<TextBlock>Use the model's attributes for the rules. The browser checks required, length, range, email and URL before posting, with your <Code>ErrorMessage</Code>; the server checks every rule and shows its messages under the field.</TextBlock>
+<TextBlock>A field's rules come from the model's attributes. Before the form post, the browser checks required, length, range, email and URL, with your <Code>ErrorMessage</Code>. After it, the server checks every rule and shows its messages under the field.</TextBlock>
 <ExampleViewer Example="text-field-validation" />
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. A read-only field posts its value, but the user can't change it; set <Code>ReadOnly</Code>. A disabled field doesn't post; set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="text-field-states" />
+<TextBlock>Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

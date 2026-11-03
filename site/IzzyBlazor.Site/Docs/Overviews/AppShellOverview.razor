@@ -7,30 +7,42 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="MainLayout.razor">@Usage</Code>
-<TextBlock>An app shell goes in your layout, around <Code>@@Body</Code>. The parts you put in it arrange themselves with CSS alone, so a static page arrives laid out and works with JavaScript off. It starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>; set <Code>MainId</Code> on the shell to change it.</TextBlock>
+<TextBlock>An app shell is the frame around every page of an app: a header, a sidebar, the main area, and optionally an aside and a footer. Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so a static page arrives laid out and works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
+<TextBlock>The shell starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>. To change the id, set <Code>MainId</Code> on the shell.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
 <OverviewTopics Component="Component" />
 
-<Heading Level="2">The parts</Heading>
-<TextBlock>Use <Code>AppHeader</Code>, <Code>AppSidebar</Code>, <Code>AppMain</Code>, <Code>AppAside</Code> and <Code>AppFooter</Code> in any order: each takes its own place, and a part you leave out leaves no gap.</TextBlock>
+<Heading Level="2">Page regions</Heading>
+<TextBlock>Each part of the shell is a region of the page: <Code>AppHeader</Code>, <Code>AppSidebar</Code>, <Code>AppMain</Code>, <Code>AppAside</Code> and <Code>AppFooter</Code>. Write the ones you need, in any order. Each part goes to its own place, and a part you leave out leaves no gap.</TextBlock>
 <ExampleViewer Example="app-shell-parts" WidthSwitch />
-<TextBlock>At phone width the sidebar becomes a drawer behind the menu button (<Code>SidebarToggle</Code>) and the aside hides, each below its own <Code>Breakpoint</Code>: 768px for both here. The <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> page covers the drawer, an icon rail and a panel under the header.</TextBlock>
+<TextBlock>At phone width the sidebar becomes a drawer behind the menu button (<Code>SidebarToggle</Code>), and the aside hides. Each changes below its own <Code>Breakpoint</Code>; this example sets 768px for both. The <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> page covers the drawer, an icon rail and a panel under the header.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
-<TextBlock>Use <Code>Variant</Code> to layer the parts: <Code>Tinted</Code> (the default) tints the sidebar, <Code>Inset</Code> raises the main area as a panel in a tinted frame, <Code>Flat</Code> makes one surface with lines between the parts, and <Code>Canvas</Code> tints the main area so cards stand out.</TextBlock>
+<TextBlock>A variant sets how the parts are layered. Set <Code>Variant</Code> to choose one:</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Variant</th><th>Look</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Tinted</Code> (default)</td><td>The sidebar is tinted.</td></tr>
+            <tr><td><Code>Inset</Code></td><td>The main area is raised as a panel in a tinted frame.</td></tr>
+            <tr><td><Code>Flat</Code></td><td>One surface, with lines between the parts.</td></tr>
+            <tr><td><Code>Canvas</Code></td><td>The main area is tinted, so cards stand out.</td></tr>
+        </tbody>
+    </table>
+</Prose>
 <ExampleViewer Example="app-shell-variants" WidthSwitch />
-<TextBlock>Put a <Code>Canvas</Code> page's content in <Anchor Href="docs/components/card">Cards</Anchor>: fills placed straight on the tint read as holes. Use <Code>Dividers="false"</Code> to drop the lines between the parts when their colors already tell them apart.</TextBlock>
+<TextBlock>Put a <Code>Canvas</Code> page's content in <Anchor Href="docs/components/card">Cards</Anchor>. Fills placed straight on the tint look like holes. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
 
 <Heading Level="2">Bars and colors</Heading>
-<TextBlock>Use <Code>Bg</Code> and <Code>ColorScheme</Code> on a part for its own background or scheme, and <Code>Position</Code> on <Code>AppHeader</Code> and <Code>AppFooter</Code> for whether the bar stays in view (the header does by default; the footer doesn't).</TextBlock>
+<TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part. To set whether the header or footer stays in view as the page scrolls, set <Code>Position</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code>. The header stays in view by default; the footer doesn't.</TextBlock>
 <Code Block Language="razor">@Bars</Code>
-<TextBlock>Text on a <Code>Bg</Code> takes the color's matching text color when it has one, and everything inside a part with a <Code>ColorScheme</Code>, its menus included, follows that scheme. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
+<TextBlock>Text on a <Code>Bg</Code> uses the color's matching text color when it has one. Everything inside a part with a <Code>ColorScheme</Code> follows that scheme, its menus included. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
 
 <Heading Level="2">The brand</Heading>
-<TextBlock>Use <Code>AppBrand</Code> for the app's name in the header, with an <Code>Icon</Code> or a <Code>Logo</Code> before it and <Code>Href</Code> to link home; <Code>HideLabel</Code> shows only a logo that already spells the name.</TextBlock>
+<TextBlock>The brand is the app's name in the header, with an icon or logo before it. Add an <Code>AppBrand</Code> and set <Code>Icon</Code> or <Code>Logo</Code>. To link it home, set <Code>Href</Code>. To show only a logo that already spells the name, set <Code>HideLabel</Code>.</TextBlock>
 <Code Block Language="razor">@Brand</Code>
-<TextBlock>The name stays on one line: on a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
+<TextBlock>The name stays on one line. On a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

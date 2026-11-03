@@ -5,27 +5,33 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A ConfirmButton asks before an action that's hard to undo: it opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits it, with JavaScript off too; the dialog sits beside the button, inside the form it submits. For a question asked from C#, use <Code>DialogService.ConfirmAsync</Code> on an interactive page (see <Anchor Href="docs/components/dialog#dialogs-from-code">Dialog</Anchor>).</TextBlock>
+<TextBlock>A confirm button asks before an action that's hard to undo. It opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. The dialog sits beside the button, inside the form it submits.</TextBlock>
+<TextBlock>To ask a question from C# on interactive pages, use <Code>DialogService.ConfirmAsync</Code>; see <Anchor Href="docs/components/dialog#dialogs-from-code">Dialog</Anchor>.</TextBlock>
 
 <Heading Level="2">Confirming a form post</Heading>
-<TextBlock>Use <Code>Name</Code> and <Code>Value</Code> to post which action was confirmed, so one handler can tell them apart, and <Code>OnConfirm</Code> for the same action on an interactive page.</TextBlock>
+<TextBlock>A form can have several confirm buttons, such as Archive and Delete, handled by one submit handler. To post which action was confirmed, set <Code>Name</Code> and <Code>Value</Code> on each button. On interactive pages, set <Code>OnConfirm</Code> to run the same action.</TextBlock>
 <ExampleViewer Example="confirm-button-form-post" />
-<TextBlock>Don't use <Code>action</Code>, <Code>method</Code> or <Code>target</Code> as the <Code>Name</Code>: a control with one of those names hides the form's own property, and the post goes to the wrong address. An interactive page handles the form in C# without posting it, so nothing fills <Code>[SupplyParameterFromForm]</Code> there: give each button an <Code>OnConfirm</Code>, as the example does. On a static page the confirm button submits the form whether or not <Code>OnConfirm</Code> is set.</TextBlock>
+<List>
+    <ListItem>Don't use <Code>action</Code>, <Code>method</Code> or <Code>target</Code> as the <Code>Name</Code>. A control with one of those names hides the form's own property, and the form post goes to the wrong URL.</ListItem>
+    <ListItem>An interactive page handles the form in C# without posting it, so nothing fills <Code>[SupplyParameterFromForm]</Code> there. Give each button an <Code>OnConfirm</Code>, as this example does.</ListItem>
+    <ListItem>On static pages, the confirm button submits the form whether or not <Code>OnConfirm</Code> is set.</ListItem>
+</List>
 
 <Heading Level="2">Showing what's affected</Heading>
-<TextBlock>Use <Code>Body</Code> for more than a one-line <Code>Message</Code>, such as a list of what will be deleted, and <Code>ConfirmText</Code> for the confirm button's words.</TextBlock>
+<TextBlock>The dialog can show more than a one-line message, such as a list of what will be deleted. Put that content in <Code>Body</Code> instead of <Code>Message</Code>. To change the confirm button's words, set <Code>ConfirmText</Code>.</TextBlock>
 <ExampleViewer Example="confirm-button-affected" />
-<TextBlock>Name the action on the confirm button ("Delete files", not "OK"), so the choice reads on its own.</TextBlock>
+<TextBlock>Name the action on the confirm button ("Delete files", not "OK"), so the choice is clear on its own.</TextBlock>
 
 <Heading Level="2">Other ways to confirm</Heading>
-<TextBlock>Use <Code>Href</Code> to follow a link when confirmed, <Code>Form</Code> with a form's id to submit a form elsewhere on the page, or <Code>FormAction</Code> to post the form it's in to another address.</TextBlock>
+<TextBlock>Confirming can follow a link or submit a different form, instead of the form the button is in. To follow a link when confirmed, set <Code>Href</Code>. To submit a form elsewhere on the page, set <Code>Form</Code> to that form's id. To post the button's own form to another URL, set <Code>FormAction</Code>.</TextBlock>
 <Code Block Language="razor">@Others</Code>
 
-<Heading Level="2">Opening it</Heading>
-<TextBlock>The button opens its dialog with the browser's own <Code>command</Code> attribute, and IzzyBlazor's script does the same where the browser lacks it. That attribute arrived in Chrome and Edge 135, Firefox 144 and Safari 26.2; for older browsers with JavaScript off, keep a way to act without the dialog, such as a separate page for deleting. On an interactive page, set <Code>Loading</Code> while <Code>OnConfirm</Code>'s work runs: the button can't open the dialog again until it's done.</TextBlock>
+<Heading Level="2">Opening the dialog</Heading>
+<TextBlock>The button opens its dialog with the browser's <Code>command</Code> attribute. Where the browser doesn't support it, <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> opens the dialog instead. So in an older browser with JavaScript off, the dialog can't open: keep a way to act without it, such as a separate page for deleting.</TextBlock>
+<TextBlock>On interactive pages, set <Code>Loading</Code> while <Code>OnConfirm</Code>'s work runs. The button can't open the dialog again until the work is done.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>ConfirmText</Code> for the confirm button ("Confirm") and <Code>CancelText</Code> for Cancel ("Cancel"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>To change the dialog's button text, set <Code>ConfirmText</Code> ("Confirm" by default) and <Code>CancelText</Code> ("Cancel"). To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

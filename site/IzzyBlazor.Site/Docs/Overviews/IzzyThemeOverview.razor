@@ -4,30 +4,44 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="App.razor">@Usage</Code>
-<TextBlock>One IzzyTheme in the <Code>head</Code> themes the app. It renders tags and a small style block on the server, so the theme is in place on the first paint, with no script, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
+<TextBlock>IzzyTheme sets the app's colors, shape, spacing and fonts. Put one IzzyTheme in the <Code>head</Code> to theme the app. It renders tags and a small style block on the server, so the theme is in place on the first paint, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
 
 <Heading Level="2">Presets</Heading>
-<TextBlock>Use <Code>Preset</Code> for the starting density, shape and type: <Code>Standard</Code> (the default), <Code>Compact</Code>, <Code>Soft</Code> or <Code>Editorial</Code>; the other settings override its defaults.</TextBlock>
+<TextBlock>A preset sets the starting density, shape and type: <Code>Standard</Code> (the default), <Code>Compact</Code>, <Code>Soft</Code> or <Code>Editorial</Code>. Set <Code>Preset</Code> to choose one. A setting you set yourself overrides the preset's value.</TextBlock>
 <ExampleViewer Example="izzy-theme-presets" />
 
 <Heading Level="2">Brand color</Heading>
-<TextBlock>Use <Code>Brand</Code> for the color of buttons, links and focus rings: a built-in name, hand-tuned in light and dark,</TextBlock>
+<TextBlock>The brand color is the color of buttons, links and focus rings. Set <Code>Brand</Code> to a built-in name, tuned by hand for light and dark:</TextBlock>
 <ExampleViewer Example="izzy-theme-brands" />
-<TextBlock>or a hex color of your own, from which the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark:</TextBlock>
+<TextBlock>Or set it to a hex color of your own. The server derives the fill, the text on it, the accent as text and the soft tint, in light and dark:</TextBlock>
 <ExampleViewer Example="izzy-theme-hex-brand" />
 
 <Heading Level="2">Grays, shape and fonts</Heading>
-<TextBlock>Use <Code>Gray</Code> for the page, surfaces and text (<Code>neutral</Code>, <Code>slate</Code>, <Code>stone</Code>, or a hex page color), <Code>Radius</Code> and <Code>Density</Code> for shape and spacing, and <Code>BodyFont</Code>, <Code>HeadingFont</Code>, <Code>MonoFont</Code> and <Code>HeadingWeight</Code> for type.</TextBlock>
+<TextBlock>The rest of the theme sets the grays, the shape and spacing, and the fonts:</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Gray</Code></td><td>The page, surfaces and text: <Code>neutral</Code>, <Code>slate</Code>, <Code>stone</Code>, or a hex page color</td></tr>
+            <tr><td><Code>Radius</Code>, <Code>Density</Code></td><td>Shape and spacing</td></tr>
+            <tr><td><Code>BodyFont</Code>, <Code>HeadingFont</Code>, <Code>MonoFont</Code>, <Code>HeadingWeight</Code></td><td>Type</td></tr>
+        </tbody>
+    </table>
+</Prose>
 <Code Block Language="razor">@Settings</Code>
-<TextBlock>Inter comes with IzzyBlazor; load any other font yourself, and end each list with a generic family so text shows while it loads.</TextBlock>
+<TextBlock>Inter comes with IzzyBlazor. Load any other font yourself, and end each list with a generic family so text shows while the font loads.</TextBlock>
 
 <Heading Level="2">Light and dark</Heading>
-<TextBlock>Use <Code>ColorScheme</Code> for the scheme a page starts in: unset, it follows the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets people choose, and their choice wins over this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
+<TextBlock>The color scheme a page starts in is light, dark, or the device's. Set <Code>ColorScheme</Code> to choose; unset, it follows the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user choose, and their choice overrides this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
 
 <Heading Level="2">Part of a page</Heading>
-<TextBlock>Put content inside an IzzyTheme to theme only that part: <Code>Brand</Code>, a built-in <Code>Gray</Code>, <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> (shape, density and depth) and <Code>ColorScheme</Code>, which may be <Code>Inverse</Code> there.</TextBlock>
+<TextBlock>An IzzyTheme around part of a page themes only that part, such as a dark panel in a light page. Put the content inside an IzzyTheme, and set any of <Code>Brand</Code>, a built-in <Code>Gray</Code>, <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> (shape, density and depth) and <Code>ColorScheme</Code>. Here <Code>ColorScheme</Code> can also be <Code>Inverse</Code>.</TextBlock>
 <ExampleViewer Example="izzy-theme-part" />
-<TextBlock>What it doesn't set comes from the theme around it; fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide only. For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</TextBlock>
+<List>
+    <ListItem>What the inner theme doesn't set comes from the theme around it.</ListItem>
+    <ListItem>Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide only.</ListItem>
+    <ListItem>For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</ListItem>
+</List>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

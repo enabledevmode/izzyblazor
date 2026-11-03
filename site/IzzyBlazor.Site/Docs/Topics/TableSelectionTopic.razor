@@ -1,10 +1,19 @@
-@* Table's Selection page, moved from its Overview: checkboxes in a form, totals, then bulk actions. *@
+@* Table's Selection page, moved from its Overview: checkboxes in a form, then bulk actions. *@
 
 <Heading Level="2">Selecting rows</Heading>
-<TextBlock>Use <Code>SelectionMode="SelectionMode.Multiple"</Code> with an <Code>ItemKey</Code> for a checkbox per row (<Code>Single</Code> for a radio button). In a form, the checked rows post their keys, so this works with JavaScript off.</TextBlock>
+<TextBlock>Row selection adds a checkbox to each row, so the user can pick rows to act on. Set <Code>SelectionMode="SelectionMode.Multiple"</Code> and give the table an <Code>ItemKey</Code>. For a radio button on each row instead, set <Code>SelectionMode.Single</Code>.</TextBlock>
 <ExampleViewer Example="table-select-rows" />
-<TextBlock>Read them as a <Code>Selection</Code> with <Code>[SupplyParameterFromForm(Name = "selected")]</Code> on a static page, or <Code>@@bind-Selection</Code> on an interactive one; <Code>Apply</Code> gives the selected items from a query. Give columns <Code>FooterText</Code> for a totals row.</TextBlock>
+<TextBlock>In a form, the checked rows post their keys, so selection works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. On static pages, read the keys as a <Code>Selection</Code> with <Code>[SupplyParameterFromForm(Name = "selected")]</Code>. On interactive pages, bind it with <Code>@@bind-Selection</Code>.</TextBlock>
+<TextBlock>To get the selected items from a query, call the selection's <Code>Apply</Code>. The totals under this example come from the columns' <Code>FooterText</Code>; see <Anchor Href="docs/components/table#totals-row">Totals row</Anchor>.</TextBlock>
 
 <Heading Level="2">Bulk actions</Heading>
-<TextBlock>While rows are selected, the footer shows how many, with <Code>Clear selection</Code>. The selection stays as you page, sort and filter. Use <Code>SelectionActions</Code> for buttons on the selection, in a bar above the rows, disabled until something is selected (a link can't be disabled, so it stays live); it's always there, so selecting doesn't move the rows. <Code>SelectAllMode</Code> says what the header checkbox selects: the rows on this page, or, with <Code>SelectAllMode.All</Code>, every row the filters match, which aren't loaded, so <Code>Apply</Code> finds them, and a change of filter clears it. Shift-click a checkbox to select or clear the rows from the last one clicked. With JavaScript off, only the rows checked on the page post.</TextBlock>
+<TextBlock>Bulk actions are buttons that act on every selected row at once. To show them in a bar above the rows, set <Code>SelectionActions</Code>. The bar is always there, so selecting a row doesn't move the rows.</TextBlock>
 <ExampleViewer Example="table-bulk-actions" />
+<List Gap="2">
+    <ListItem>The buttons are disabled until a row is selected. A link can't be disabled, so a link in the bar stays active.</ListItem>
+    <ListItem>While rows are selected, the footer shows how many, with a Clear selection button.</ListItem>
+    <ListItem>The selection stays as the user pages, sorts and filters.</ListItem>
+    <ListItem>Shift-clicking a checkbox selects or clears every row from the last one clicked.</ListItem>
+    <ListItem>With JavaScript off, only the rows checked on the current page post.</ListItem>
+</List>
+<TextBlock>The header checkbox selects the rows on the current page. To make it select every row the filters match, on any page, set <Code>SelectAllMode="SelectAllMode.All"</Code>. Those rows aren't loaded, so call <Code>Apply</Code> to find them. Changing the filter clears this selection.</TextBlock>

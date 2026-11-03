@@ -10,30 +10,41 @@
 <OverviewTopics Component="Component" />
 
 <Heading Level="2">Sorting and paging</Heading>
-<TextBlock>Use <Code>Sortable</Code> on a column and <Code>PageSize</Code> on the table. Headers and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code>, so the table works with no script, survives a reload and can be shared.</TextBlock>
+<TextBlock>Sorting reorders the rows when the user clicks a column's title. Paging splits the rows into pages, with page links under the table. Set <Code>Sortable</Code> on a column to sort by it, and <Code>PageSize</Code> on the table to page it.</TextBlock>
 <ExampleViewer Example="table-sort-page" />
-<TextBlock><Code>InitialSort</Code> sets the order before anyone picks one (<Code>"-date"</Code> for newest first), and <Code>PageSizeOptions</Code> adds a "Rows per page" menu.</TextBlock>
+<TextBlock>The column titles and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code> in the URL. Sorting and paging therefore work with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, survive a reload, and can be shared as a link.</TextBlock>
+<List Gap="2">
+    <ListItem>To set the order before the user picks one, set <Code>InitialSort</Code>. <Code>"-date"</Code> sorts newest first.</ListItem>
+    <ListItem>To add a "Rows per page" menu, set <Code>PageSizeOptions</Code>.</ListItem>
+</List>
 
-<Heading Level="2">State in the component</Heading>
-<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
+<Heading Level="2">Binding the sort, page and filter</Heading>
+<TextBlock>On interactive pages, the table can keep its sort, page and filter in C# instead of the URL. This suits a table in a dialog, or any page whose URL shouldn't change. Bind them with <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code>.</TextBlock>
 <ExampleViewer Example="table-bound" />
-<TextBlock>The table starts from the URL if it has values, and a new sort or filter goes back to page 1. Set the page back to 1 yourself when your own filters change. To set a filter from code, see <Anchor Href="docs/components/table/filtering#filters-in-code">Filters in code</Anchor>.</TextBlock>
+<TextBlock>The table starts from the URL when the URL has values. A new sort or filter returns to page 1. When your own filters change, set the page back to 1 yourself. To set a filter from code, see <Anchor Href="docs/components/table/filtering#filters-in-code">Filters in code</Anchor>.</TextBlock>
 
 <Heading Level="2">Row links</Heading>
-<TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own. Use <Code>RowCurrent</Code> to mark the row the page is showing, such as the one whose details are beside the table: it's drawn as selected and screen readers hear it as current (<Anchor Href="docs/components/app-shell/aside#a-panel-for-the-chosen-row">AppShell</Anchor> has one with its details in an aside).</TextBlock>
+<TextBlock>A row link makes the whole row a link, such as to the item's details page. Set <Code>RowHref</Code> to each row's URL, and <Code>RowLabel</Code> to name the row for screen readers. Links, buttons and checkboxes inside the row still work on their own.</TextBlock>
 <Code Block Language="razor">@RowLinks</Code>
+<TextBlock>To mark the row the page is showing, such as the one whose details are beside the table, set <Code>RowCurrent</Code>. That row looks selected, and screen readers hear it as current. <Anchor Href="docs/components/app-shell/aside#a-panel-for-the-chosen-row">AppShell</Anchor> has an example with the row's details in an aside.</TextBlock>
 
 <Heading Level="2">Several tables on a page</Heading>
-<TextBlock>Use <Code>QueryPrefix</Code> to give each table its own keys in the URL, so they sort and page on their own.</TextBlock>
+<TextBlock>Two tables on one page would share the same <Code>?sort=</Code> and <Code>?page=</Code> keys. To give each table its own keys in the URL, set <Code>QueryPrefix</Code>. Each table then sorts and pages on its own.</TextBlock>
 <Code Block Language="razor">@Prefix</Code>
 
-<Heading Level="2">Lines, size and scrolling</Heading>
-<TextBlock>Use <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code>, <Code>ShadedHeader</Code> and <Code>Bordered</Code> for the look; turn <Code>Bordered</Code> off for a table in a card. <Code>MaxHeight</Code> scrolls the rows under a sticky header, and <Code>EmptyText</Code> shows when there are none.</TextBlock>
+<Heading Level="2">Look, scrolling and empty text</Heading>
+<TextBlock>A table's look comes from its size, its lines and its header. Set <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code>, <Code>ShadedHeader</Code> and <Code>Bordered</Code> to change it. Turn <Code>Bordered</Code> off for a table in a card.</TextBlock>
+<TextBlock>To scroll the rows under a sticky header, set <Code>MaxHeight</Code>. To show your own text when there are no rows, set <Code>EmptyText</Code>.</TextBlock>
 <Code Block Language="razor">@Look</Code>
 
+<Heading Level="2">Totals row</Heading>
+<TextBlock>A totals row is a footer row under the rows, such as a sum under an amount column. Set <Code>FooterText</Code> on each column that shows a value there. For content other than text, set the column's <Code>Footer</Code> instead.</TextBlock>
+<Code Block Language="razor">@Totals</Code>
+
 <Heading Level="2">On a phone</Heading>
-<TextBlock>A table too wide for its space scrolls sideways. With <Code>SmallScreen="TableSmallScreen.Stack"</Code>, each row becomes a card of lines instead, a column's title beside its value, and the column titles stay in a row above, with their sort and filter buttons. It goes by the table's own width, worked out on the server from its columns' <Code>Width</Code> (8rem for one without), so it's right at the first paint with no script; set <Code>StackBelow</Code> to choose the width. For hiding columns instead, use a <Anchor Href="docs/components/data-grid/adaptability">DataGrid</Anchor>.</TextBlock>
+<TextBlock>A table too wide for its space scrolls sideways. To show each row as a card of lines instead, set <Code>SmallScreen="TableSmallScreen.Stack"</Code>. Each line shows a column's title beside its value, and the column titles stay in a row above, with their sort and filter buttons.</TextBlock>
 <ExampleViewer Example="table-stacked" />
+<TextBlock>The table stacks when its own width is narrow, not the window's, and it's right on the first paint, with JavaScript off too. By default it stacks below about the width its columns need. To choose that width, set <Code>StackBelow</Code>. To hide columns on a phone instead, use a <Anchor Href="docs/components/data-grid/adaptability">DataGrid</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
@@ -51,7 +62,8 @@
 
 <Heading Level="2">See also</Heading>
 <List Gap="2">
-    <ListItem><Anchor Href="docs/common/data">Data and filters</Anchor>: the request, filters in code and as text, fields, and calling an API.</ListItem>
+    <ListItem><Anchor Href="docs/common/data">Data and filters</Anchor>: the request, filters in code, fields and operators.</ListItem>
+    <ListItem><Anchor Href="docs/common/data-api">Data from an API</Anchor>: calling your own API, filters as text, and OData.</ListItem>
     <ListItem><Anchor Href="docs/components/filter-form">FilterForm</Anchor>: search and filters of your own, in the URL.</ListItem>
     <ListItem><Anchor Href="docs/components/pagination">Pagination</Anchor>: page links for a list that isn't a table.</ListItem>
     <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: state in the URL on static pages.</ListItem>
@@ -81,6 +93,13 @@
     private const string Prefix = """
         <Table Items="orders" QueryPrefix="o-" PageSize="10">...</Table>     @* ?o-sort=, ?o-page= *@
         <Table Items="refunds" QueryPrefix="r-" PageSize="10">...</Table>
+        """;
+
+    private const string Totals = """
+        <Table Items="orders">
+            <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+            <PropertyColumn Property="o => o.Total" Format="C" FooterText="@orders.Sum(o => o.Total).ToString("C")" />
+        </Table>
         """;
 
     private const string Look = """

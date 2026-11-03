@@ -4,30 +4,46 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>A combobox is a text field with a list of options under it: the user types to narrow the list, then picks one. It suits long lists the user finds an option in by typing. For a short list, see <Anchor Href="docs/components/select">Select</Anchor>, which is simpler. For several choices, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Typing to filter</Heading>
-<TextBlock>Use <Code>Items</Code> and <Code>ItemText</Code> for a long list people find by typing: what's typed filters the options, ignoring case and accents.</TextBlock>
+<TextBlock>As the user types, the list shows only the options that contain the text, ignoring case and accents. Pass the options to <Code>Items</Code>, and set <Code>ItemText</Code> to the text shown for each.</TextBlock>
 <ExampleViewer Example="combobox-filtering" />
-<TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>, with no <Code>Items</Code>. For a short list, a <Anchor Href="docs/components/select">Select</Anchor> is simpler; for several choices, use a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
+<TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. When you bind an enum, its values are the options, named by their <Code>[Display(Name)]</Code>, and <Code>Items</Code> isn't needed.</TextBlock>
 
 <Heading Level="2">Searching a long list</Heading>
-<TextBlock>Use <Code>Search</Code> for a list too long to send whole: it gets what's typed and returns the first matching values, of the bound type, and <Code>ItemTemplate</Code> adds markup to each option, such as an avatar.</TextBlock>
+<TextBlock>For a list too long to send to the browser whole, the combobox can search for options as the user types. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>
 <ExampleViewer Example="combobox-server-search" />
-<TextBlock><Code>Search</Code> is called with "" to fill the list on every page, and on interactive pages again as someone types, <Code>Debounce</Code> milliseconds after the last key (250 by default). On a static page the browser filters that first list, so return what people are most likely to want, or put the page in an interactive render mode. <Code>Search</Code> runs where the component does: on the server, or in the browser on WebAssembly, where it calls your API.</TextBlock>
-<TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it, so <Code>ItemText</Code> gets any value that's bound or posted: look it up without throwing, as the examples do, and check on the server that a posted value is allowed.</TextBlock>
+<List>
+    <ListItem><Code>Search</Code> is called with "" to fill the list on every page. On interactive pages it's called again as the user types, <Code>Debounce</Code> milliseconds after the last key (250 by default).</ListItem>
+    <ListItem>On <Anchor Href="docs/common/render-modes">static pages</Anchor>, the browser filters that first list. Return what the user is most likely to want, or put the page in an interactive render mode.</ListItem>
+    <ListItem><Code>Search</Code> runs where the component does: on the server, or in the browser on WebAssembly, where it calls your API.</ListItem>
+</List>
+<TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it. So <Code>ItemText</Code> receives any value that's bound or posted: look it up without throwing, as the examples do. Check on the server that a posted value is allowed.</TextBlock>
 
 <Heading Level="2">Required, with a placeholder</Heading>
-<TextBlock>Use a nullable property with <Code>[Required]</Code> and a <Code>Placeholder</Code>: nothing is chosen until someone picks an option, and the form doesn't post without one.</TextBlock>
+<TextBlock>A required combobox starts empty, showing its placeholder, and the form doesn't post until the user picks an option. Bind a nullable property with <Code>[Required]</Code>, and set <Code>Placeholder</Code>.</TextBlock>
 <ExampleViewer Example="combobox-required" />
-<TextBlock>Bind a nullable type: an <Code>int</Code> or an enum always has a value (0 or the first member), so the placeholder never shows and emptying the field is an error.</TextBlock>
+<TextBlock>The property must be nullable. An <Code>int</Code> or an enum always has a value (0 or the first member), so the placeholder never shows, and emptying the field is an error.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<TextBlock>The size lines the combobox up with buttons and other fields; set <Code>Size</Code> to choose one. For a value that posts but can't change, set <Code>ReadOnly</Code>. For one that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="combobox-states" />
-<TextBlock>HTML has no read-only select, so a read-only combobox shows its choice in a read-only text field and posts it from a hidden input.</TextBlock>
+<TextBlock>HTML has no read-only select, so a read-only combobox shows its choice in a read-only text field and posts it from a hidden input. See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor> and <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>EmptyText</Code> for "No matches", <Code>SearchingText</Code> for "Searching…" and <Code>ToggleLabel</Code> for the name of the button that opens the list, or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>. Type "zzz" in the first example to see "No matches".</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The combobox shows text when nothing matches or a search is running, and its toggle button has a name. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>EmptyText</Code></td><td>The text when no option matches</td><td>"No matches"</td></tr>
+            <tr><td><Code>SearchingText</Code></td><td>The text while <Code>Search</Code> runs</td><td>"Searching…"</td></tr>
+            <tr><td><Code>ToggleLabel</Code></td><td>The name of the button that opens the list</td><td>"Show options"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock>Type "zzz" in the first example to see "No matches".</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

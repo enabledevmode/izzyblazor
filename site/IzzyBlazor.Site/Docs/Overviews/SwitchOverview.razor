@@ -4,26 +4,27 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A switch is a <Anchor Href="docs/components/checkbox">Checkbox</Anchor> that reads as on or off, and it posts the same way, <Code>true</Code> or <Code>false</Code>, so it works on static pages with JavaScript off. Use it for settings; for agreeing to something or choosing an item, use a checkbox.</TextBlock>
+<TextBlock>A Switch is a <Anchor Href="docs/components/checkbox">Checkbox</Anchor> that reads as on or off. It posts the same way, <Code>true</Code> or <Code>false</Code>, so it works on static pages with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. Use it for settings. For agreeing to something or choosing an item, use a checkbox.</TextBlock>
 
 <Heading Level="2">At the end of the row</Heading>
-<TextBlock>Use <Code>ControlPosition.End</Code> to put the switch at the end of the row, with the hint under the label, as in a list of settings.</TextBlock>
+<TextBlock>In a list of settings, the switch usually sits at the end of the row, with the hint under the label. To put it there, set <Code>ControlPosition.End</Code>.</TextBlock>
 <ExampleViewer Example="switch-control-end" />
 
 <Heading Level="2">Icons on rows</Heading>
-<TextBlock>Use <Code>Icon</Code> for an icon at the start of each row, and a <Anchor Href="docs/components/fieldset">Fieldset</Anchor> with <Code>Dividers</Code> to group the rows under a heading.</TextBlock>
+<TextBlock>To show an icon at the start of each row, set <Code>Icon</Code>. To group the rows under a heading, put them in a <Anchor Href="docs/components/fieldset">Fieldset</Anchor> with <Code>Dividers</Code>.</TextBlock>
 <ExampleViewer Example="switch-icons" />
-<TextBlock>The icon is decorative, so give every row in a group one, or none.</TextBlock>
+<TextBlock>The icon is decorative, so give every row in a group an icon, or none.</TextBlock>
 
 <Heading Level="2">Saving as it changes</Heading>
-<TextBlock>Use <Code>@@bind-Value:after</Code> to save each change on an interactive page; a static page saves when the form posts, so it needs a Save button.</TextBlock>
+<TextBlock>On interactive pages, a switch can save each change as it happens. Bind it with <Code>@@bind-Value:after</Code> and save in the method it calls. Static pages save when the form posts, so they need a Save button.</TextBlock>
 <ExampleViewer Example="switch-save-on-change" />
-<TextBlock>To hide the button on an interactive page, check <Code>AssignedRenderMode</Code> as well as <Code>RendererInfo.IsInteractive</Code>, which is false while the page prerenders, so the button doesn't show and then disappear.</TextBlock>
+<TextBlock>To hide the Save button on interactive pages, check <Code>AssignedRenderMode</Code> as well as <Code>RendererInfo.IsInteractive</Code>. <Code>RendererInfo.IsInteractive</Code> is false while the page prerenders, so checking it alone shows the button and then hides it.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for a switch that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only checkbox, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the switch is disabled while a hidden field posts its value.</TextBlock>
+<TextBlock>To line the switch up with buttons and other fields, set <Code>Size</Code>. For a switch the user can't change, set <Code>Disabled</Code>; a disabled switch doesn't post.</TextBlock>
+<TextBlock>There's no <Code>ReadOnly</Code>, because HTML has no read-only checkbox. In a read-only <Anchor Href="docs/components/form">Form</Anchor>, the switch is disabled, and a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="switch-states" />
-<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (<Code>false</Code>): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

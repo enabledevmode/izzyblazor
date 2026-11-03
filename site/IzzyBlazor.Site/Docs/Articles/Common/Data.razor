@@ -1,238 +1,240 @@
 @page "/docs/common/data"
 
 @* Data and filters: the request a data component hands its provider and the result it gets back,
-   loading from EF Core, filters in code, the operators, the ?filter= syntax, fields, calling an API
-   from WebAssembly, OData endpoints, and failed loads. From the data foundations design
-   (artifacts/izzyblazor-data-foundations-design.md) and Core/Data. *@
+   loading from EF Core, fields, filters in code, the operators, text and case, and dates. Calling
+   an API, the filter syntax, OData and the server's limits are on Data from an API (DataApi.razor).
+   From the data foundations design (artifacts/izzyblazor-data-foundations-design.md) and Core/Data. *@
 
 <ArticlePage Section="common" Slug="data">
     <Lead>
-        A <Code>Table</Code> with an <Code>ItemsProvider</Code> asks for its rows with a <Code>DataRequest</Code>: the range,
-        the sort and the filter. You answer with a <Code>DataResult</Code>. The request applies itself to an EF Core query,
-        travels to an API as a query string or JSON, and never turns a value into code.
+        A <Code>Table</Code> or <Code>DataGrid</Code> with an <Code>ItemsProvider</Code> asks it for rows with a
+        <Code>DataRequest</Code>, and the provider answers with a <Code>DataResult</Code>. The request carries the range,
+        the sort and the filter. It applies itself to an EF Core query, so the database does the work, and it never
+        turns a value into code.
     </Lead>
     <ChildContent>
         <Heading Level="2">The request and the result</Heading>
-        <TextBlock>The request says which rows the component wants:</TextBlock>
+        <TextBlock>
+            The component calls its <Code>ItemsProvider</Code> each time it needs rows. The <Code>DataRequest</Code> it
+            passes describes those rows:
+        </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Member</th><th>What it is</th></tr></thead>
                 <tbody>
-                    <tr><td><code>Skip</code>, <code>Take</code></td><td>The range: rows to skip, and how many to take (null for every row). <code>Page</code> gives the range as a page number, from 1.</td></tr>
-                    <tr><td><code>Sort</code></td><td>A list of <code>SortField</code>s, a key and whether it's descending. A Table sorts by one column.</td></tr>
-                    <tr><td><code>Filter</code></td><td>The filter tree, or null. A Table's is <code>Filter.All</code> of one condition per filtered column, and any other conditions of a bound <code>Filter</code>.</td></tr>
-                    <tr><td><code>Search</code></td><td>Free text to look for in the searchable fields. A Table doesn't set it; a provider can, from your own search box: <code>request with { Search = query }</code>.</td></tr>
+                    <tr><td><code>Skip</code>, <code>Take</code></td><td>The range: how many rows to skip, and how many to take (null for every row). <code>Page</code> gives the same range as a page number, from 1.</td></tr>
+                    <tr><td><code>Sort</code></td><td>A list of <code>SortField</code>s, each a key and whether it's descending. A Table sorts by one column.</td></tr>
+                    <tr><td><code>Filter</code></td><td>The filter, or null. A Table's filter is a <code>Filter.All</code> of one condition per filtered column, plus any other conditions of a bound <code>Filter</code>.</td></tr>
+                    <tr><td><code>Search</code></td><td>Free text to look for in the searchable fields. A Table doesn't set it. A provider can set it from your own search box: <code>request with { Search = query }</code>.</td></tr>
                     <tr><td><code>Cursor</code></td><td>When the component pages by cursor, the <code>Next</code> or <code>Previous</code> of an earlier result.</td></tr>
-                    <tr><td><code>NeedsTotal</code></td><td>Whether to count. False when the component pages by cursor, where the total is optional.</td></tr>
-                    <tr><td><code>CancellationToken</code></td><td>Canceled when a newer request replaces this one. Pass it on.</td></tr>
+                    <tr><td><code>NeedsTotal</code></td><td>Whether the component needs the total count. It's false when the component pages by cursor, where the total is optional.</td></tr>
+                    <tr><td><code>CancellationToken</code></td><td>Canceled when a newer request replaces this one. Pass it on to your queries.</td></tr>
                 </tbody>
             </table>
         </Prose>
         <TextBlock>
-            The result is the rows, with the <Code>Total</Code> that numbered pages need, or the <Code>Next</Code> and
-            <Code>Previous</Code> cursors:
+            The <Code>DataResult</Code> holds the rows. Add the <Code>Total</Code> for numbered pages, or the
+            <Code>Next</Code> and <Code>Previous</Code> cursors when the component pages by cursor:
         </TextBlock>
         <Code Block Language="csharp">@Result</Code>
 
         <Heading Level="2">From a database</Heading>
         <TextBlock>
-            The simplest way needs no provider: pass an EF Core query as a Table's <Code>Items</Code>, and the database
-            sorts, filters and pages it. Write an <Code>ItemsProvider</Code> when you need more, such as scoping by the
-            signed-in user per request, an API in between, or your own search.
+            The simplest way needs no provider. Pass an EF Core query as a Table's <Code>Items</Code>, and the database sorts,
+            filters and pages it. Write an <Code>ItemsProvider</Code> when you need more, such as scoping the rows to the
+            signed-in user per request, calling an API, or running your own search.
         </TextBlock>
         <TextBlock>
-            In a provider, <Code>ToResultAsync</Code> filters, searches and sorts a query, counts what the filter keeps (only when
-            <Code>NeedsTotal</Code>), and lists the range. It takes EF Core's async methods as arguments, so IzzyBlazor
-            doesn't depend on EF Core:
+            In a provider, <Code>ToResultAsync</Code> does the work. It filters, searches and sorts the query, counts the
+            matching rows when <Code>NeedsTotal</Code> is true, and lists the range. You pass EF Core's async methods to it,
+            so IzzyBlazor doesn't depend on EF Core:
         </TextBlock>
         <Code Block Language="razor" HighlightLines="7-9">@FromDatabase</Code>
         <TextBlock>
             The request carries the component's columns, which say how each key reads an item, so the provider never maps
             keys to properties. Each condition becomes a LINQ expression on the column's own property, with its value as a
-            query parameter, and the database does the work. For a list in memory, <Code>request.ToResult(list.AsQueryable())</Code>
-            does the same. <Code>request.Apply(query)</Code> filters, sorts and takes the range without counting;
-            <Code>ApplyFiltering</Code> and <Code>ApplySorting</Code> do one part each.
+            query parameter.
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>For a list in memory, <Code>request.ToResult(list.AsQueryable())</Code> does the same.</ListItem>
+            <ListItem>To filter, sort and take the range without counting, call <Code>request.Apply(query)</Code>.
+                <Code>ApplyFiltering</Code> and <Code>ApplySorting</Code> do one part each.</ListItem>
+            <ListItem>
+                When the provider throws, the Table logs the exception and shows "Couldn't load the rows." with Retry; see
+                <Anchor Href="docs/components/table/loading-data#when-loading-fails">When loading fails</Anchor>. A request the
+                Table canceled isn't an error.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Fields</Heading>
+        <TextBlock>
+            A field is something the data can be sorted, filtered or searched by. It has a key, the expression that reads it,
+            and the things it allows: sorting, filtering, search, and which operators. A Table's columns are its fields.
         </TextBlock>
         <TextBlock>
-            If the provider throws, the Table logs the exception and shows "Couldn't load the rows." with Retry; see
-            <Anchor Href="docs/components/table/loading-data#when-loading-fails">When loading fails</Anchor>. A request it canceled
-            isn't an error.
+            A <Code>PropertyColumn</Code>'s key is its property path in lower case (<Code>customer.name</Code>), unless it
+            has a <Code>SortKey</Code>. A <Code>TemplateColumn</Code>'s key is its <Code>SortKey</Code>. It filters and
+            searches by its <Code>FilterBy</Code> and sorts by its <Code>SortBy</Code>.
         </TextBlock>
+        <TextBlock>
+            Where there are no columns, such as on a server, read the fields from a type with
+            <Code>DataFields.Of&lt;T&gt;()</Code>. It returns each public top-level property a filter can compare, keyed by
+            its name in lower case. Each field is sortable and filterable, text fields are searchable, and an enum's names
+            are its choices.
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>The caption comes from <Code>[Display(Name)]</Code>.</ListItem>
+            <ListItem>The format comes from <Code>[DisplayFormat]</Code> and <Code>[DataType]</Code>.</ListItem>
+            <ListItem>Properties with <Code>[ScaffoldColumn(false)]</Code> or <Code>[Display(AutoGenerateField = false)]</Code> are left out.</ListItem>
+        </List>
+        <TextBlock>To choose the fields and what each allows, declare them yourself:</TextBlock>
+        <Code Block Language="csharp">@Declared</Code>
+        <TextBlock>
+            To limit the operators a field allows, set its <Code>Operators</Code>.
+        </TextBlock>
+        <TextBlock>
+            A field's own <Code>Filter</Code> builds its condition in your code. Write one for a computed value, or a value
+            stored differently from how it's shown. It gets the condition with its values parsed for the field's type, and
+            returns the filter on the item, or null for the usual one. A Table column has the same <Code>Filter</Code>
+            parameter:
+        </TextBlock>
+        <Code Block Language="razor">@Custom</Code>
+        <List Gap="2">
+            <ListItem>It runs for every operator, so check the operator you handle.</ListItem>
+            <ListItem>It matches case, unless you lower both sides.</ListItem>
+        </List>
 
         <Heading Level="2">Filters in code</Heading>
         <TextBlock>
-            A filter is a tree: a condition on one field (<Code>FieldFilter</Code>), conditions joined by and or or
-            (<Code>FilterGroup</Code>), or the opposite of one (<Code>NotFilter</Code>). Fields are named by their key, the
-            same key the address uses (<Code>?f-status=</Code> filters the field <Code>status</Code>): a column's property name
-            in lower case, or its <Code>SortKey</Code> (see <Anchor Href="docs/common/data#fields">Fields</Anchor>).
+            A filter is a tree. A <Code>FieldFilter</Code> is a condition on one field. A <Code>FilterGroup</Code> joins
+            conditions with and or or, and a <Code>NotFilter</Code> keeps what its filter doesn't. Each condition names its
+            field by key, the same key the Table's URL uses: <Code>?f-status=</Code> filters the field <Code>status</Code>.
         </TextBlock>
         <Code Block Language="csharp">@InCode</Code>
         <TextBlock>
-            Bind a Table's <Code>Filter</Code> to set it from code on an interactive page. Each condition a column's panel can
-            show (contains for text, between, at least, at most or equals for a number, on day for a date, in for a choice) shows there; any
-            other, such as an or group, still applies and shows as a tag that removes it. With an <Code>ItemsProvider</Code>, the
-            whole filter reaches it as <Code>request.Filter</Code>:
+            To set a Table's filter from C#, bind its <Code>Filter</Code> on
+            <Anchor Href="docs/common/render-modes">interactive pages</Anchor>. With an <Code>ItemsProvider</Code>, the whole
+            filter reaches the provider as <Code>request.Filter</Code>:
         </TextBlock>
         <Code Block Language="razor">@Bound</Code>
         <TextBlock>
-            A provider that passes conditions on to an API reads one with <Code>Find</Code>: the condition on that field that
-            every match must meet, or null.
+            A condition that a column's filter can show appears in that filter: contains for text; between, at least, at most
+            or equals for a number; on day for a date; and in for a choice. Any other condition, such as an or group, still
+            applies, and appears as a tag the user can remove.
+        </TextBlock>
+        <TextBlock>
+            A provider that passes conditions on to an API reads them with <Code>Find</Code>. It returns the condition on that
+            field that every match must meet, or null:
         </TextBlock>
         <Code Block Language="csharp">@Find</Code>
 
         <Heading Level="2">Operators</Heading>
-        <TextBlock>Which operators a field takes depends on its type. An operator its type doesn't take matches nothing.</TextBlock>
-        <Prose Class="site-table ib-scroll">
-            <table>
-                <thead><tr><th>Type</th><th>Operators</th></tr></thead>
-                <tbody>
-                    <tr><td>Text</td><td><code>Equals</code>, <code>NotEquals</code>, <code>Contains</code>, <code>DoesNotContain</code>, <code>StartsWith</code>, <code>EndsWith</code>, <code>In</code>, <code>NotIn</code>, <code>IsEmpty</code>, <code>IsNotEmpty</code></td></tr>
-                    <tr><td>Numbers, times</td><td><code>Equals</code>, <code>NotEquals</code>, <code>LessThan</code>, <code>LessThanOrEqual</code>, <code>GreaterThan</code>, <code>GreaterThanOrEqual</code>, <code>Between</code>, <code>In</code>, <code>NotIn</code></td></tr>
-                    <tr><td>Dates</td><td>The same, and <code>OnDay</code></td></tr>
-                    <tr><td>Enums, booleans, Guids</td><td><code>Equals</code>, <code>NotEquals</code>, <code>In</code>, <code>NotIn</code></td></tr>
-                    <tr><td>Anything that can be null</td><td>Also <code>IsNull</code> and <code>IsNotNull</code></td></tr>
-                </tbody>
-            </table>
-        </Prose>
-        <List Gap="2">
-            <ListItem>
-                <strong>Text ignores case</strong>, as a Table's filters do. Set <Code>MatchCase</Code> on the condition to match
-                it. <Code>IsEmpty</Code> matches empty text and null; <Code>DoesNotContain</Code> keeps null.
-            </ListItem>
-            <ListItem>
-                <strong>Text ignores case</strong> by lowering both sides, which a database index can't serve.
-                <Code>FilterCase.Database</Code> on a Table or DataGrid, or as a field's <Code>Case</Code>, compares text as it is and
-                leaves it to the database's collation; <Code>FilterCase.MatchCase</Code> compares text as it is too, which is exact in memory, though SQLite's <Code>LIKE</Code> for a starts-with or ends-with still ignores ASCII case. The filter's text
-                doesn't carry this, so an endpoint that reads it, such as an export, sets <Code>Case</Code> on its own fields.
-            </ListItem>
-            <ListItem>
-                <strong>Values are parsed for the field's type</strong>, so <Code>"10"</Code> filters a number and
-                <Code>"Paid"</Code> an enum. Numbers are read as the person writes them in the current culture
-                (<Code>"1.234,5"</Code> in German), then in the invariant form (<Code>"1234.5"</Code>); dates and times in ISO
-                form (<Code>"2026-10-28"</Code>), then the current culture's. A value that doesn't
-                parse matches nothing, as does a condition on a field that doesn't exist.
-            </ListItem>
-            <ListItem>
-                <strong>Number bounds round the way the comparison means.</strong> On a whole-number field, "at least 2.5" is
-                3 or more and "at most 2.5" is 2 or less. A bound beyond what the type holds keeps every row or none.
-                <Code>Between</Code> includes both ends, and a null end has no limit.
-            </ListItem>
-            <ListItem>
-                <strong>A day on a <Code>DateTimeOffset</Code> doesn't translate on SQLite</strong>, as it reads the date on the clock where it was recorded.
-            </ListItem>
-            <ListItem>
-                <strong><Code>OnDay</Code> matches a day.</strong> A <Code>DateTime</Code> keeps the day's range, so an index
-                can serve it; a <Code>DateTimeOffset</Code> compares the day on the clock where it was recorded.
-            </ListItem>
-        </List>
-
-        <Heading Level="2">Filters as text</Heading>
         <TextBlock>
-            <Code>Filter.Parse</Code> reads a filter written in a subset of OData's <Code>$filter</Code>, and a filter's
-            <Code>ToString()</Code> writes one. It's the form the request's query string uses for <Code>?filter=</Code>:
+            An operator sets how a condition compares the field's value. The operators a field allows depend on its type. An
+            operator the type doesn't allow matches nothing.
         </TextBlock>
-        <Code Block Language="text">@Syntax</Code>
         <Prose Class="site-table ib-scroll">
             <table>
-                <thead><tr><th>Write</th><th>For</th></tr></thead>
+                <thead><tr><th>Operator</th><th>Types</th><th>Matches</th></tr></thead>
                 <tbody>
-                    <tr><td><code>eq ne gt ge lt le</code></td><td>Comparisons; <code>eq null</code> and <code>ne null</code> for the null checks</td></tr>
-                    <tr><td><code>status in ('Paid','Pending')</code></td><td>Any of the values; <code>not (status in (...))</code> for none</td></tr>
-                    <tr><td><code>customer contains 'ada'</code></td><td>Also <code>contains(customer,'ada')</code>, and <code>startswith</code>, <code>endswith</code></td></tr>
-                    <tr><td><code>between(total,100,500)</code></td><td>Either end can be <code>null</code>, for no limit</td></tr>
-                    <tr><td><code>isempty(email)</code></td><td>No value or empty text; also <code>isnotempty</code></td></tr>
-                    <tr><td><code>date(placed) eq 2026-10-28</code></td><td>On that day</td></tr>
-                    <tr><td><code>and or not ( )</code></td><td>Groups; <code>and</code> binds before <code>or</code></td></tr>
-                    <tr><td><code>'O''Brien'</code>, <code>-1.5</code>, <code>true</code>, <code>2026-10-28T09:30:00Z</code></td><td>Values: text in single quotes (a quote doubled), numbers, true or false, dates and times, Guids</td></tr>
+                    <tr><td><code>Equals</code></td><td>All</td><td>The value. With a null value, the same as <code>IsNull</code>.</td></tr>
+                    <tr><td><code>NotEquals</code></td><td>All</td><td>Anything but the value.</td></tr>
+                    <tr><td><code>In</code></td><td>All</td><td>Any of the values in a list.</td></tr>
+                    <tr><td><code>NotIn</code></td><td>All</td><td>None of the values in a list.</td></tr>
+                    <tr><td><code>LessThan</code>, <code>LessThanOrEqual</code>, <code>GreaterThan</code>, <code>GreaterThanOrEqual</code></td><td>Numbers, dates, times</td><td>Values below or above the value.</td></tr>
+                    <tr><td><code>Between</code></td><td>Numbers, dates, times</td><td>Values from the first to the second, both included. A null end has no limit.</td></tr>
+                    <tr><td><code>OnDay</code></td><td>Dates</td><td>Dates on the day in the value. See <Anchor Href="docs/common/data#dates">Dates</Anchor>.</td></tr>
+                    <tr><td><code>Contains</code>, <code>DoesNotContain</code></td><td>Text</td><td>Text that contains the value, or doesn't. <code>DoesNotContain</code> also matches null.</td></tr>
+                    <tr><td><code>StartsWith</code>, <code>EndsWith</code></td><td>Text</td><td>Text that starts or ends with the value.</td></tr>
+                    <tr><td><code>IsEmpty</code>, <code>IsNotEmpty</code></td><td>Text</td><td>Empty text or null; or text with at least one character.</td></tr>
+                    <tr><td><code>IsNull</code>, <code>IsNotNull</code></td><td>Any type that can be null</td><td>No value; or any value.</td></tr>
                 </tbody>
             </table>
         </Prose>
         <TextBlock>
-            Parsing only builds the tree: names are field keys and values stay values, so
-            <Code>name eq 'x'' or 1 eq 1'</Code> looks for that exact text. Text that isn't in this form doesn't parse
-            (<Code>TryParse</Code> returns false), and a request read from a query string with such a filter matches nothing.
-            Text ignores case here too, unlike OData's own <Code>contains</Code>. <Code>MatchCase</Code> isn't written, so a
-            condition sent this way ignores case on the server; send the request as JSON to keep it.
-        </TextBlock>
-
-        <Heading Level="2">Fields</Heading>
-        <TextBlock>
-            A field is a key, the expression that reads it, and what can be done with it: sorted, filtered, searched, with
-            which operators. A Table's columns are its fields. A <Code>PropertyColumn</Code>'s key is its property path in
-            lower case (<Code>customer.name</Code>) unless it has a <Code>SortKey</Code>; a <Code>TemplateColumn</Code>'s is its
-            <Code>SortKey</Code>, and it filters and searches by its <Code>FilterBy</Code> and sorts by its <Code>SortBy</Code>.
+            "All" means text, numbers, dates, times, enums, booleans and Guids. Enums, booleans and Guids allow only the
+            operators marked All, plus the null checks when they can be null.
         </TextBlock>
         <TextBlock>
-            Where there are no columns, <Code>DataFields.Of&lt;T&gt;()</Code> reads them from a type: each public top-level
-            property a filter can compare, keyed by its name in lower case, sortable and filterable, with text searchable
-            and an enum's names as its choices. It reads <Code>[Display(Name)]</Code> for the caption,
-            <Code>[DisplayFormat]</Code> and <Code>[DataType]</Code> for the format, and leaves out
-            <Code>[ScaffoldColumn(false)]</Code> and <Code>[Display(AutoGenerateField = false)]</Code> properties. Or declare
-            fields yourself:
+            Values are parsed for the field's type, so <Code>"10"</Code> filters a number and <Code>"Paid"</Code> filters an
+            enum. A value that doesn't parse matches nothing, and so does a condition on a field that doesn't exist.
         </TextBlock>
-        <Code Block Language="csharp">@Declared</Code>
-        <TextBlock>
-            <Code>Operators</Code> narrows what a field takes. <Code>Filter</Code> builds its condition yourself, for a computed
-            value or one stored differently from how it's shown: it gets the condition with its values parsed for the field's
-            type, and returns the filter on the item, or null for the usual one. It runs for every operator, so check the one
-            you handle; and it matches case unless you lower both sides. A Table column takes the same <Code>Filter</Code>
-            parameter.
-        </TextBlock>
-        <Code Block Language="razor">@Custom</Code>
-
-        <Heading Level="2">From the browser to an API</Heading>
-        <TextBlock>
-            In a WebAssembly or Auto app the provider runs in the browser, so it sends the request to an API.
-            <Code>ToQueryString()</Code> writes it for a GET (<Code>sort=-placed&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>,
-            shown unescaped, with <Code>total=false</Code> when it doesn't need the count), and the request also serializes with
-            <Code>System.Text.Json</Code> for a POST. On the server, <Code>DataRequest&lt;T&gt;.Parse</Code> reads it back, and
-            <Code>ToResultAsync</Code> with the fields you declare applies it:
-        </TextBlock>
-        <TextBlock>
-            Both sides use the same row type, here <Code>OrderRow</Code> in a project the client and the server share:
-        </TextBlock>
-        <Code Block Language="razor" Title="Orders.razor (client)">@Client</Code>
-        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="8,11">@Server</Code>
         <List Gap="2">
             <ListItem>
-                <strong>The keys are the client's columns.</strong> The server's fields need the same keys. With the same row
-                type they match; a column on a path, <Code>o =&gt; o.Customer.Name</Code>, is <Code>customer.name</Code>, so give
-                it the <Code>SortKey</Code> of the server's field.
+                Numbers are read first as the user writes them in the current culture (<Code>"1.234,5"</Code> in German), then
+                in the invariant form (<Code>"1234.5"</Code>).
             </ListItem>
             <ListItem>
-                <strong>Only declared fields can be reached.</strong> A condition on a key that isn't a filterable field matches
-                nothing, and a sort by one is left out. <Code>DataFields.Of&lt;T&gt;()</Code> declares every public property,
-                so read it from a type made for the API, not an entity with a password hash on it.
+                Dates and times are read first in ISO form (<Code>"2026-10-28"</Code>), then in the current culture's form.
             </ListItem>
             <ListItem>
-                <strong>Cap the range.</strong> The request asks for its own <Code>Take</Code>, or every row without one.
+                On a whole-number field, a fractional bound rounds the way the comparison means. "At least 2.5" matches 3 or
+                more, and "at most 2.5" matches 2 or less.
             </ListItem>
-            <ListItem>
-                <strong>Large or deep filters match nothing.</strong> A filter of more than 1,000 nodes (conditions, groups and nots), or
-                nested more than 64 deep, matches no rows rather than building an expression that would overflow the
-                server's stack. The text form nests at most 32 deep.
-            </ListItem>
+            <ListItem>A bound beyond what the field's type can store matches every row or none.</ListItem>
         </List>
 
-        <Heading Level="2">OData endpoints</Heading>
+        <Heading Level="2">Text and case</Heading>
         <TextBlock>
-            When the API is an OData endpoint, <Code>ToODataQuery()</Code> writes the request as its query options:
-            <Code>$filter</Code>, <Code>$orderby</Code>, <Code>$skip</Code>, <Code>$top</Code>, <Code>$count</Code> and
-            <Code>$search</Code>. OData compares text with case, so text that ignores case is written lower-cased on both
-            sides (<Code>contains(tolower(customer),'ada')</Code>), and paths use <Code>/</Code>
-            (<Code>customer/name</Code>). Values are written as their fields' types: a Table's request carries its fields, and
-            for a request you read with <Code>Parse</Code>, pass them, <Code>ToODataQuery(fields)</Code>. Keys are lower case;
-            if the service matches property names with case, give the columns a <Code>SortKey</Code> with its names. A cursor
-            isn't part of OData: pass
-            <Code>request.Cursor</Code> on yourself.
+            Text filters ignore case by default, as a Table's filters do. To ignore case, IzzyBlazor lowers both sides of the
+            comparison, and a database index can't serve that. Two settings change it: one for a single condition, and one
+            for every condition on a field.
         </TextBlock>
-        <Code Block Language="csharp">@OData</Code>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Setting</th><th>Applies to</th><th>What it does</th></tr></thead>
+                <tbody>
+                    <tr><td><code>MatchCase</code> on a <code>FieldFilter</code></td><td>That condition</td><td>Matches upper and lower case exactly. For <code>Equals</code>, it matches spaces exactly too.</td></tr>
+                    <tr><td><code>FilterCase</code> on a Table or DataGrid</td><td>Every column filter and the search</td><td>Sets how text compares; see the values below. It reaches the fields through the columns.</td></tr>
+                    <tr><td><code>Case</code> on a <code>DataField</code></td><td>Every condition on that field</td><td>The same values, for fields you declare.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th><code>FilterCase</code></th><th>How text compares</th></tr></thead>
+                <tbody>
+                    <tr><td><code>IgnoreCase</code> (the default)</td><td>Upper and lower case are the same. Both sides are lowered, which an index can't serve.</td></tr>
+                    <tr><td><code>MatchCase</code></td><td>Text is compared as it is. In memory, that's exact. In a database, the database's own comparison still applies: SQLite's <code>LIKE</code>, which EF Core uses for starts-with and ends-with, ignores ASCII case.</td></tr>
+                    <tr><td><code>Database</code></td><td>Text is compared as it is, and the database's collation decides, so an index can serve it. On a list in memory, it's the same as <code>MatchCase</code>.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Text ignores case only when both settings allow it. A condition with <Code>MatchCase</Code> compares as it is,
+            whatever the field's <Code>Case</Code>. A field whose <Code>Case</Code> isn't <Code>IgnoreCase</Code> compares as
+            it is, even when the condition doesn't set <Code>MatchCase</Code>.
+        </TextBlock>
+        <TextBlock>
+            The filter's text form doesn't carry either setting. An endpoint that reads the filter, such as an export, sets
+            <Code>Case</Code> on its own fields to match the screen. See
+            <Anchor Href="docs/common/data-api#filters-as-text">Filters as text</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Dates</Heading>
+        <TextBlock>
+            <Code>OnDay</Code> matches every date on one day. How it compares depends on the field's type:
+        </TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Field type</th><th>How <code>OnDay</code> compares</th></tr></thead>
+                <tbody>
+                    <tr><td><code>DateOnly</code></td><td>The date equals the day.</td></tr>
+                    <tr><td><code>DateTime</code></td><td>The value is within the day's range, from its start to the next day's start, so an index can serve it.</td></tr>
+                    <tr><td><code>DateTimeOffset</code></td><td>The date on the clock where the value was recorded equals the day. EF Core can't translate this on SQLite.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            When a field has a time and the condition's value is a date alone, the condition means the whole day, not its
+            first instant. <Code>Equals</Code> a date matches that day, and "on or before 3 Jan" keeps 3 Jan at noon.
+        </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters, paging by cursor and Load more, with state in the address.</ListItem>
-            <ListItem><Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly and Auto</Anchor>: setting up an app whose components run in the browser.</ListItem>
-            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: why the Table keeps its state in the address.</ListItem>
+            <ListItem><Anchor Href="docs/common/data-api">Data from an API</Anchor>: sending the request from WebAssembly, the filter syntax, OData, and the server's limits.</ListItem>
+            <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters, paging by cursor and Load more, with state in the URL.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: why the Table keeps its state in the URL.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -283,10 +285,6 @@
         return new DataResult<AuditEvent>(items) { Next = next };
         """;
 
-    private const string Syntax = """
-        total ge 100 and (status in ('Paid','Pending') or customer contains 'ada')
-        """;
-
     private const string Declared = """
         IReadOnlyList<DataField<Order>> fields =
         [
@@ -309,50 +307,5 @@
                     ? o => (";" + o.Tags + ";").Contains(";" + tag.ToLower() + ";")
                     : null;
         }
-        """;
-
-    private const string Client = """
-        @inject HttpClient Api
-
-        <Table TItem="OrderRow" ItemsProvider="LoadOrders" PageSize="20">
-            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
-            <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />
-        </Table>
-
-        @code {
-            async ValueTask<DataResult<OrderRow>> LoadOrders(DataRequest<OrderRow> request) =>
-                (await Api.GetFromJsonAsync<DataResult<OrderRow>>(
-                    $"api/orders?{request.ToQueryString()}", request.CancellationToken))!;
-        }
-        """;
-
-    private const string Server = """
-        using Microsoft.EntityFrameworkCore;   // CountAsync, ToListAsync
-
-        app.MapGet("/api/orders", async (HttpContext context, ShopDb db) =>
-        {
-            var request = DataRequest<OrderRow>.Parse(context.Request.QueryString.Value ?? "")
-                with { CancellationToken = context.RequestAborted };
-            // At most 100 rows.
-            request = request with { Take = Math.Min(request.Take ?? 100, 100) };
-            var rows = db.Orders.AsNoTracking()   // an initializer: EF Core filters and sorts on it
-                .Select(o => new OrderRow { Id = o.Id, Customer = o.Customer.Name, Total = o.Total });
-            return await request.ToResultAsync(rows, DataFields.Of<OrderRow>(),
-                count: (q, ct) => q.CountAsync(ct), list: (q, ct) => q.ToListAsync(ct));
-        });
-
-        public sealed record OrderRow
-        {
-            public int Id { get; init; }
-            public string Customer { get; init; } = "";
-            public decimal Total { get; init; }
-        }
-        """;
-
-    private const string OData = """
-        var url = $"odata/Orders?{request.ToODataQuery()}";
-        // Unescaped:
-        // $filter=contains(tolower(customer),'ada') and total ge 100
-        // &$orderby=placed desc&$skip=20&$top=10&$count=true
         """;
 }

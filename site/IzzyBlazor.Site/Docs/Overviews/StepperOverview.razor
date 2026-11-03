@@ -7,31 +7,32 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A stepper shows where someone is in a process, such as a checkout or a setup wizard. It's an ordered list with no script, so it looks the same on every page; the page decides what <Code>Current</Code> is.</TextBlock>
+<TextBlock>A Stepper shows where the user is in a process, such as a checkout or a setup wizard. It's an ordered list that needs no script, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
 
 <Heading Level="2">Steps of a checkout</Heading>
-<TextBlock>Use <Code>Current</Code> for the step someone is on, counting from 1: the steps before it show as done. A <Code>Step</Code>'s <Code>Href</Code> makes its label a link, such as back to a finished step.</TextBlock>
+<TextBlock>The current step is the one the user is on, counting from 1, and the steps before it show as done. Set <Code>Current</Code>. To make a step's label a link, such as back to a finished step, set the <Code>Step</Code>'s <Code>Href</Code>.</TextBlock>
 <ExampleViewer Example="stepper-checkout" WidthSwitch />
-<TextBlock>Here the step is <Code>?step=</Code> in the address, and each step's form moves on to the next step once it's valid, posting on a static page and running C# on an interactive one, so it works with JavaScript off too. Below 640px the steps stay a row of markers, and only the current step's label shows; a finished step's link is still there, on its marker.</TextBlock>
+<TextBlock>This example keeps the step in the URL as <Code>?step=</Code>. Each step's form moves on to the next step once it's valid: with a form post on static pages, and in C# on interactive pages. So it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too.</TextBlock>
+<TextBlock>Below 640px, the steps stay a row of markers, and only the current step's label shows. A finished step's link is still there, on its marker.</TextBlock>
 
 <Heading Level="2">Vertical, with descriptions</Heading>
-<TextBlock>Use <Code>Orientation="Orientation.Vertical"</Code> to keep the steps in a column on every screen. A <Code>Step</Code>'s <Code>Description</Code> adds a line under its label, and its <Code>Icon</Code> shows in the marker until the step is done.</TextBlock>
+<TextBlock>A vertical stepper keeps the steps in a column on every screen. Set <Code>Orientation="Orientation.Vertical"</Code>. To add a line under a step's label, set the <Code>Step</Code>'s <Code>Description</Code>. To show an icon in its marker until the step is done, set its <Code>Icon</Code>.</TextBlock>
 <ExampleViewer Example="stepper-vertical" />
 
 <Heading Level="2">A step that only sometimes applies</Heading>
-<TextBlock>Use <Code>Hidden</Code> to leave out a step that doesn't apply this time, such as a gift message: the steps after it are numbered to match.</TextBlock>
+<TextBlock>Some steps apply only sometimes, such as a gift message. To leave out a step that doesn't apply this time, set its <Code>Hidden</Code>. The steps after it are numbered to match.</TextBlock>
 <ExampleViewer Example="stepper-optional" />
-<TextBlock>Use <Code>Hidden</Code> rather than <Code>@@if</Code>: on an interactive page, Blazor renders a step that appears later after the others, so it would be numbered last.</TextBlock>
+<TextBlock>Use <Code>Hidden</Code> rather than <Code>@@if</Code>. On interactive pages, Blazor renders a step that appears later after the others, so it would be numbered last.</TextBlock>
 
 <Heading Level="2">Sizes</Heading>
-<TextBlock>Use <Code>Size</Code> to scale the markers and the text with the buttons and fields around them.</TextBlock>
+<TextBlock>To scale the markers and the text with the buttons and fields around them, set <Code>Size</Code>.</TextBlock>
 <ExampleViewer Example="stepper-sizes" />
 
 <Heading Level="2">Before the first step and after the last</Heading>
-<TextBlock>Use <Code>Current="0"</Code> when no step has started, and a number past the last step to show every step done, such as on an order's confirmation.</TextBlock>
+<TextBlock>When no step has started, set <Code>Current="0"</Code>. To show every step done, such as on an order's confirmation, set a number past the last step.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the list's name ("Progress"), and <Code>CompletedLabel</Code> for what screen readers hear after a finished step's label in place of its check mark ("(completed)").</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The list's name is <Code>Label</Code>, "Progress" by default. After a finished step's label, screen readers hear <Code>CompletedLabel</Code> in place of its check mark, "(completed)" by default.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

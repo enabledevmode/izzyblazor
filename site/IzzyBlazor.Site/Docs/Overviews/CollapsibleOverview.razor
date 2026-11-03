@@ -3,20 +3,21 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A native <Code>details</Code> element without an accordion's frame, so it opens and closes with JavaScript off too. Use it for one section most people can skip; for several, use an <Anchor Href="docs/components/accordion">Accordion</Anchor>, and for a panel over the page, a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+<TextBlock>A collapsible is one section that the user opens and closes, without an accordion's frame. It suits a single section most users can skip. It's a native <Code>details</Code> element, so it opens and closes <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
+<TextBlock>For several sections, see <Anchor Href="docs/components/accordion">Accordion</Anchor>. For a panel over the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
 <Heading Level="2">Show more</Heading>
-<TextBlock>Use <Code>Label</Code> for the text beside the chevron, for advanced options or details most people can skip.</TextBlock>
+<TextBlock>A "show more" is a line of text with a chevron that opens the section below it. It suits advanced options, or details most users can skip. Set <Code>Label</Code> to the text beside the chevron.</TextBlock>
 <ExampleViewer Example="collapsible-show-more" />
 
-<Heading Level="2">Your own trigger</Heading>
-<TextBlock>Use <Code>Trigger</Code> for inline content of your own in place of the label and chevron.</TextBlock>
+<Heading Level="2">A custom trigger</Heading>
+<TextBlock>The trigger is what the user clicks to open the section. To replace the label and chevron with inline content of your own, set <Code>Trigger</Code>.</TextBlock>
 <ExampleViewer Example="collapsible-custom-trigger" />
 
 <Heading Level="2">Open from the server or C#</Heading>
-<TextBlock>Use <Code>Open</Code> to start it open, such as when a post left an error inside it, and <Code>@@bind-Open</Code> on an interactive page to follow it or open it from C#.</TextBlock>
+<TextBlock>A collapsible can start open, such as when a form post left an error inside it. Set <Code>Open</Code> to start it open. On interactive pages, to read and set whether it's open from C#, set <Code>@@bind-Open</Code>.</TextBlock>
 <Code Block Language="razor">@OpenCode</Code>
-<TextBlock>The browser keeps it open or closed, not the server: on a static page a post or reload draws it as <Code>Open</Code> says.</TextBlock>
+<TextBlock>The browser keeps track of whether it's open, not the server. On static pages, after a form post or reload, it's open or closed as <Code>Open</Code> sets.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

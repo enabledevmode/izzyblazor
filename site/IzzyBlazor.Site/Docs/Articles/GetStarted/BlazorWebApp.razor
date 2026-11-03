@@ -5,16 +5,16 @@
 
 <ArticlePage Section="get-started" Slug="blazor-web-app">
     <Lead>
-        A new Blazor Web App needs one package, a stylesheet, the theme and two lines in <Code>Program.cs</Code>. Pages render
-        on the server as static HTML by default, and you make interactive only the ones that need it.
+        A new Blazor Web App needs one package, a stylesheet, the theme and two lines in <Code>Program.cs</Code>. Pages are
+        <Anchor Href="docs/common/render-modes">static</Anchor> by default, and you make only the pages that need it interactive.
     </Lead>
     <ChildContent>
         <Heading Level="2">Create the app</Heading>
         <TextBlock>You need the .NET 10 SDK. Start from the empty template, which has no Bootstrap or sample styles to override IzzyBlazor's:</TextBlock>
         <Code Block Language="bash">dotnet new blazor --empty -o MyApp</Code>
         <TextBlock>
-            Its pages are static by default, and any page can be made interactive on the server. Add <Code>--interactivity None</Code>
-            for an app that never opens a circuit. For WebAssembly or Auto, see
+            Its pages are static by default, and any page can be made interactive on the server. For an app that never
+            opens a <Anchor Href="docs/common/render-modes">circuit</Anchor>, add <Code>--interactivity None</Code>. For WebAssembly or Auto, see
             <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>.
         </TextBlock>
 
@@ -27,8 +27,8 @@
         <TextBlock>
             <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> sets the preset, brand color and fonts, as in
             <Code>&lt;IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" /&gt;</Code>. It renders on the server, so the
-            theme is there on first paint with no script. There's no script tag to add either: Blazor loads IzzyBlazor's
-            script by itself.
+            theme applies on first paint, with JavaScript off too. You add no script tag: Blazor loads IzzyBlazor's script
+            itself.
         </TextBlock>
 
         <Heading Level="2">Import the components</Heading>
@@ -40,32 +40,33 @@
         </TextBlock>
 
         <Heading Level="2">Register the services</Heading>
-        <TextBlock>Register the services:</TextBlock>
+        <TextBlock>Add IzzyBlazor's services in <Code>Program.cs</Code>:</TextBlock>
         <Code Block Language="csharp" Title="Program.cs" HighlightLines="2">@ProgramCs</Code>
         <TextBlock>
-            <Code>AddIzzyBlazor</Code> adds the toast and dialog services, carries toasts over a redirect, and lets components
-            read their cookies on the server, such as the color scheme someone picked. Other components don't need it.
+            <Code>AddIzzyBlazor</Code> adds the toast and dialog services, and carries toasts over a redirect. It also lets
+            components read their cookies on the server, such as the color scheme the user picked. Other components don't
+            need it.
         </TextBlock>
 
         <Heading Level="2">Add toasts and dialogs</Heading>
         <TextBlock>
-            If you show toasts, put <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> in your layout, once. It
+            To show toasts, put one <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> in your layout. It
             works on static pages too:
         </TextBlock>
         <Code Block Language="razor" Title="Components/Layout/MainLayout.razor" HighlightLines="5">@Layout</Code>
         <TextBlock>
-            To open dialogs from C# with <Code>DialogService</Code>, put one <Code>&lt;DialogHost /&gt;</Code> on the interactive
-            page that opens them, or in the layout with a render mode on the host:
-            <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page need neither; see
-            <Anchor Href="docs/components/dialog">Dialog</Anchor>.
+            To open dialogs from C# with <Code>DialogService</Code>, put one <Code>&lt;DialogHost /&gt;</Code> on the
+            interactive page that opens them. Or put it in the layout, with a render mode on the host:
+            <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page need no host;
+            see <Anchor Href="docs/components/dialog">Dialog</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Build a first page</Heading>
         <TextBlock>A form is a good first page, because it shows what static rendering does on its own:</TextBlock>
         <Code Block Language="razor" Title="Components/Pages/Signup.razor">@Signup</Code>
         <TextBlock>
-            Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message with no circuit, and with
-            JavaScript turned off too. Add <Code>@@rendermode InteractiveServer</Code> under <Code>@@page</Code> and the same
+            Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message with no circuit, and
+            with JavaScript off too. Add <Code>@@rendermode InteractiveServer</Code> under <Code>@@page</Code>, and the same
             markup runs over a circuit instead. See <Anchor Href="docs/components/form">Form</Anchor> for the rest.
         </TextBlock>
 
@@ -75,9 +76,9 @@
         </TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>Its styles win over IzzyBlazor's.</strong> IzzyBlazor's CSS sits in cascade layers so your own CSS
-                always wins, and that includes Bootstrap and the template's <Code>app.css</Code>: button links turn blue on blue
-                and headings change size. Remove the Bootstrap link and the template's rules in <Code>app.css</Code>, or
+                <strong>Its styles win over IzzyBlazor's.</strong> IzzyBlazor's CSS sits in cascade layers, so your own CSS
+                always wins. That includes Bootstrap and the template's <Code>app.css</Code>, so button links turn blue on
+                blue and headings change size. Remove the Bootstrap link and the template's rules in <Code>app.css</Code>, or
                 <Anchor Href="docs/get-started/existing-app#keep-bootstrap">put Bootstrap in a layer</Anchor>.
             </ListItem>
             <ListItem>
@@ -90,7 +91,7 @@
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor>: a header, sidebar and main area for your layout.</ListItem>
-            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
             <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
         </List>
     </ChildContent>

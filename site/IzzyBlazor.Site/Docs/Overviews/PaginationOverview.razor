@@ -4,30 +4,35 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>Each page is a link that sets <Code>?page=</Code> and keeps the rest of the address, so paging works on static pages with JavaScript off, survives a reload and can be shared. Pagination only draws the links: the page reads the number and shows its own rows. A <Anchor Href="docs/components/table">Table</Anchor> pages itself with the same links.</TextBlock>
+<TextBlock>Pagination shows links to the pages of a long list. Each page is a link that sets <Code>?page=</Code> and keeps the rest of the URL, so paging works on static pages with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, survives a reload, and can be shared.</TextBlock>
+<TextBlock>Pagination only renders the links: your page reads the number and shows its own rows. A <Anchor Href="docs/components/table">Table</Anchor> pages itself with the same links.</TextBlock>
 
-<Heading Level="2">Pages in the address</Heading>
-<TextBlock>Use <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>, for how many pages there are, and read the page with <Code>[SupplyParameterFromQuery]</Code> to show its rows.</TextBlock>
+<Heading Level="2">Pages in the URL</Heading>
+<TextBlock>To set how many pages there are, set <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>. To show the page's rows, read the page number with <Code>[SupplyParameterFromQuery]</Code>.</TextBlock>
 <ExampleViewer Example="pagination-url" />
-<TextBlock>Page 1 leaves the key out of the address. Pagination treats a number past the last page as the last, so clamp your own the same way, as the example does; at the ends, previous or next stays in place, marked unavailable.</TextBlock>
+<List Gap="2">
+    <ListItem>Page 1 leaves the key out of the URL.</ListItem>
+    <ListItem>Pagination treats a number past the last page as the last page. Clamp the number you read the same way.</ListItem>
+    <ListItem>On the first and last pages, Previous or Next stays in place, marked unavailable.</ListItem>
+</List>
 
 <Heading Level="2">More than one on a page</Heading>
-<TextBlock>Use <Code>QueryKey</Code> to give each pagination on a page its own key in the address, so they page apart, and <Code>Label</Code> to name each one for screen readers.</TextBlock>
+<TextBlock>Two paginations on one page would share the <Code>page</Code> key. To give each its own key in the URL, so they page separately, set <Code>QueryKey</Code>. To name each one for screen readers, set <Code>Label</Code>.</TextBlock>
 <Code Block Language="razor">@Several</Code>
-<TextBlock>A <Anchor Href="docs/components/filter-form">FilterForm</Anchor> drops a <Code>page</Code> key, or one ending in <Code>-page</Code>, when the filters change, so filtering starts again at page 1.</TextBlock>
+<TextBlock>When its filters change, a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> removes a <Code>page</Code> key, or one ending in <Code>-page</Code>, from the URL, so filtering starts again at page 1.</TextBlock>
 
 <Heading Level="2">Sizes and how many pages show</Heading>
-<TextBlock>Use <Code>Size</Code> to match the buttons and fields around it, <Code>Siblings</Code> for the pages on each side of the current one, and <Code>Boundaries</Code> for the pages always shown at each end.</TextBlock>
+<TextBlock>To match the buttons and fields around it, set <Code>Size</Code>. To set how many pages show on each side of the current one, set <Code>Siblings</Code>. To set how many pages always show at each end, set <Code>Boundaries</Code>.</TextBlock>
 <ExampleViewer Example="pagination-sizes" />
-<TextBlock>The row keeps the same number of slots as the page moves, so the controls don't jump about. Below 640px only the current page and the ends show, with a gap for each run left out, so it fits a phone.</TextBlock>
+<TextBlock>The row keeps the same number of slots as the page changes, so the controls don't jump about. Below 640px, only the current page and the ends show, with a gap for each run left out, so the row fits a phone.</TextBlock>
 
-<Heading Level="2">Bound to C#</Heading>
-<TextBlock>Use <Code>@@bind-Page</Code> on an interactive page to page in C#: the pages become buttons that update the bound value, and the address stays as it is.</TextBlock>
+<Heading Level="2">Binding the page</Heading>
+<TextBlock>On interactive pages, Pagination can page in C# instead of the URL. Bind the page with <Code>@@bind-Page</Code>. The pages become buttons that update the bound value, and the URL stays as it is.</TextBlock>
 <ExampleViewer Example="pagination-bound" />
-<TextBlock>A static page has no C# to update, so there the pages stay links that set the key; start the bound value from the address, as the example does with <Code>?p=</Code>, so both work.</TextBlock>
+<TextBlock>Static pages have no C# to update, so there the pages stay links that set the key. Start the bound value from the URL, so both render modes work. This example reads it from <Code>?p=</Code>.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Pagination"), <Code>PreviousLabel</Code> and <Code>NextLabel</Code> for the arrows ("Previous page", "Next page"), and <Code>PageLabel</Code> for the word read before each number ("Page").</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>Pagination's text for screen readers can be renamed or translated. The navigation landmark's name is <Code>Label</Code>, "Pagination" by default. The arrows' names are <Code>PreviousLabel</Code> and <Code>NextLabel</Code>, "Previous page" and "Next page". The word read before each number is <Code>PageLabel</Code>, "Page".</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
