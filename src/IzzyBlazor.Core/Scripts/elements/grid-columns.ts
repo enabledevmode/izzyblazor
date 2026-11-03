@@ -396,21 +396,28 @@ class GridColumns extends IzzyElement {
   }
 
   // Where among the chips a drop lands: before the first whose middle is past the pointer.
-  #dropAt(event: PointerEvent, chips = this.#chips): number {
+  #dropAt(event: PointerEvent, slots: DOMRect[]): number {
     const rtl = this.#bar && getComputedStyle(this.#bar).direction === "rtl";
-    const index = chips.findIndex((chip) => {
-      const r = chip.getBoundingClientRect();
-      return rtl ? event.clientX > r.left + r.width / 2 : event.clientX < r.left + r.width / 2;
-    });
-    return index < 0 ? chips.length : index;
+    const index = slots.findIndex((r) => (rtl ? event.clientX > r.left + r.width / 2 : event.clientX < r.left + r.width / 2));
+    return index < 0 ? slots.length : index;
   }
 
-  // Shows where a drop would land, or nothing at -1.
-  #mark(at: number): void {
+  // A chip of what's dragged, where a drop would land; none at -1.
+  #mark(at: number, name = ""): void {
     const bar = this.#bar;
-    bar?.toggleAttribute("data-ib-drop", at >= 0);
-    this.#chips.forEach((chip, i) => chip.toggleAttribute("data-ib-drop-before", i === at));
-    bar?.toggleAttribute("data-ib-drop-end", at >= 0 && at === this.#chips.length);
+    let ghost = bar?.querySelector<HTMLElement>(".ib-grid-group-ghost");
+    if (at < 0 || !bar) {
+      ghost?.remove();
+      return;
+    }
+    if (!ghost) {
+      ghost = document.createElement("span");
+      ghost.className = "ib-tag ib-tag-sm ib-grid-group-ghost";
+      ghost.setAttribute("aria-hidden", "true");
+      ghost.textContent = name;
+    }
+    const before = this.#chips[at] ?? bar.querySelector(".ib-grid-group-set");
+    if (ghost.nextElementSibling !== before || !ghost.isConnected) bar.insertBefore(ghost, before);
   }
 
   // The new grouping: into the input C# reads on a bound page, or to its address.
@@ -433,6 +440,7 @@ class GridColumns extends IzzyElement {
   // Dragging a chip among the others changes which level comes first.
   #dragChip(down: PointerEvent, chip: HTMLElement, signal: AbortSignal): void {
     const chips = this.#chips;
+    const slots = chips.map((c) => c.getBoundingClientRect());
     const from = chips.indexOf(chip);
     let dragging = false;
     let at = from;
@@ -440,7 +448,6 @@ class GridColumns extends IzzyElement {
     const options = { signal: abort.signal };
     const finish = (commit: boolean) => {
       abort.abort();
-      chip.style.transform = "";
       chip.removeAttribute("data-ib-lifted");
       this.#mark(-1);
       if (!dragging) return;
@@ -463,9 +470,8 @@ class GridColumns extends IzzyElement {
         dragging = true;
         chip.setAttribute("data-ib-lifted", "");
       }
-      chip.style.transform = `translateX(${dx}px)`;
-      at = this.#dropAt(event, chips);
-      this.#mark(at === from || at === from + 1 ? -1 : at);
+      at = this.#dropAt(event, slots);
+      this.#mark(at === from || at === from + 1 ? -1 : at, chip.textContent?.trim());
     }, options);
     document.addEventListener("pointerup", () => finish(true), options);
     document.addEventListener("pointercancel", () => finish(false), options);
@@ -491,8 +497,11 @@ class GridColumns extends IzzyElement {
     const rtl = getComputedStyle(th).direction === "rtl";
     let to = from;
     let dragging = false;
-    // Over the bar of what's grouped, a header that can be grouped is dropped there instead.
+    // Over the bar of what's grouped, a header that can be grouped is dropped there instead, a chip
+    // of it showing where. Places are from the chips as they were, as the preview moves them.
     const bar = th.dataset.ibGroup ? this.#bar : null;
+    const slots = this.#chips.map((chip) => chip.getBoundingClientRect());
+    const name = th.querySelector(".ib-table-title")?.textContent?.trim() ?? "";
     let at = -1;
     const abort = this.#until(signal);
     const options = { signal: abort.signal };
@@ -541,8 +550,8 @@ class GridColumns extends IzzyElement {
         table.setAttribute("data-ib-dragging", "");
         for (const cell of cells[from]) cell.setAttribute("data-ib-lifted", "");
       }
-      at = bar && this.#inside(bar, event) ? this.#dropAt(event) : -1;
-      this.#mark(at);
+      at = bar && this.#inside(bar, event) ? this.#dropAt(event, slots) : -1;
+      this.#mark(at, name);
       if (at >= 0) {
         to = from;
         paint(0);
