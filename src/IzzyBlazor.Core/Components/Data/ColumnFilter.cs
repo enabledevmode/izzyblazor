@@ -69,23 +69,6 @@ internal static class ColumnFilter
         };
     }
 
-    /// <summary>An operator as a filter row shows it, on its button and in its menu, the same in any language.</summary>
-    public static IconRole IconOf(FilterOperator op) => op switch
-    {
-        FilterOperator.Contains => IconRole.FilterContains,
-        FilterOperator.DoesNotContain => IconRole.FilterDoesNotContain,
-        FilterOperator.NotEquals => IconRole.FilterNotEquals,
-        FilterOperator.StartsWith => IconRole.FilterStartsWith,
-        FilterOperator.EndsWith => IconRole.FilterEndsWith,
-        FilterOperator.GreaterThan => IconRole.FilterGreaterThan,
-        FilterOperator.GreaterThanOrEqual => IconRole.FilterGreaterOrEqual,
-        FilterOperator.LessThan => IconRole.FilterLessThan,
-        FilterOperator.LessThanOrEqual => IconRole.FilterLessOrEqual,
-        FilterOperator.Between => IconRole.FilterBetween,
-        FilterOperator.IsEmpty => IconRole.FilterIsEmpty,
-        FilterOperator.IsNotEmpty => IconRole.FilterIsNotEmpty,
-        _ => IconRole.FilterEquals,
-    };
 
     public static ColumnFilterKind KindOf(Type type) => FilterConvert.KindOf(type) switch
     {

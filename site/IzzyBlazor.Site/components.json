@@ -1601,7 +1601,7 @@
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it. An operator with no value is no filter.",
             "static": "A panel's changes wait for Apply or Enter, and closing it any other way drops them." } },
-            { "id": "data-grid-filter-row", "title": "A row of filters", "lead": "Use `FilterRow` for a field under each title, with its operator in a menu beside it. A range or a list shows what it's set to, and opens the column's panel.",
+            { "id": "data-grid-filter-row", "title": "A row of filters", "lead": "Use `FilterRow` for a field under each title, then the column's filter button, which opens its panel, where the operator is chosen. A list, a range or a date shows what it's set to, and opens the panel too.",
           "notes": {
             "noscript": "Press Enter in a field to filter." } },
             { "id": "data-grid-custom-filter", "title": "A column's own filter", "lead": "Use `FilterTemplate` for your own controls in a column's filter panel, above Clear and Apply. Spread the context's `Attributes` on a control, and its value filters by the column's first operator, or several values by Is any of. Add `SetAsync` as a library field's `ValueChanged`, `FilterText` for what the filter says in its row, and `Filter` if a value means something else.",
