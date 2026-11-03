@@ -161,10 +161,10 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public Expression<Func<IEnumerable<TItem>, object?>>? AggregateBy { get; set; }
 
-    /// <summary>A .NET format string for the aggregates. Defaults to the column's own, except for a count or your own aggregate.</summary>
+    /// <summary>A .NET format string for the aggregate, where every place shows the same one. Defaults to the column's own, except for a count or your own aggregate.</summary>
     [Parameter] public string? AggregateFormat { get; set; }
 
-    /// <summary>The word before an aggregate, such as "Total"; empty for none. Defaults to the aggregate's name, and to none for your own.</summary>
+    /// <summary>The word before the aggregate, such as "Total", where every place shows the same one; empty for none. Defaults to the aggregate's name, and to none for your own.</summary>
     [Parameter] public string? AggregateLabel { get; set; }
 
     /// <summary>
@@ -445,6 +445,16 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
                 {
                     throw new InvalidOperationException(aggregate);
                 }
+            }
+
+            if (AggregateBy is not null && !Aggregates.Contains(DataAggregate.Custom))
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column has an {nameof(AggregateBy)} that no place shows: set Custom where it goes.");
+            }
+
+            if ((AggregateLabel is not null || AggregateFormat is not null) && Aggregates.Skip(1).Any())
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column shows different aggregates in different places, so one {nameof(AggregateLabel)} or {nameof(AggregateFormat)} can't fit them all.");
             }
         }
 

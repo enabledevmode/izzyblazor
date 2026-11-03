@@ -439,6 +439,9 @@ class GridColumns extends IzzyElement {
 
   // Dragging a chip among the others changes which level comes first.
   #dragChip(down: PointerEvent, chip: HTMLElement, signal: AbortSignal): void {
+    // Or it selects the chips' text, and a drag of that cancels this one.
+    down.preventDefault();
+    const bar = this.#bar!;
     const chips = this.#chips;
     const slots = chips.map((c) => c.getBoundingClientRect());
     const from = chips.indexOf(chip);
@@ -470,7 +473,8 @@ class GridColumns extends IzzyElement {
         dragging = true;
         chip.setAttribute("data-ib-lifted", "");
       }
-      at = this.#dropAt(event, slots);
+      // Let go off the bar, it stays where it was.
+      at = this.#inside(bar, event) ? this.#dropAt(event, slots) : from;
       this.#mark(at === from || at === from + 1 ? -1 : at, chip.textContent?.trim());
     }, options);
     document.addEventListener("pointerup", () => finish(true), options);
@@ -486,7 +490,9 @@ class GridColumns extends IzzyElement {
   // Dragging a header: its column follows the pointer, and the others slide aside.
   #dragColumn(down: PointerEvent, th: HTMLTableCellElement, signal: AbortSignal): void {
     const table = this.#table!;
-    const zone = this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th);
+    // A header that can be grouped but not reordered only goes to the bar.
+    const moves = th.hasAttribute("data-ib-reorder");
+    const zone = moves ? this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th) : [th];
     const from = zone.indexOf(th);
     const rects = zone.map((other) => other.getBoundingClientRect());
     const columnOf = (header: HTMLTableCellElement) => [...table.rows].filter((row) => !row.matches(".ib-grid-group")).flatMap((row) => {
@@ -548,11 +554,11 @@ class GridColumns extends IzzyElement {
         if (Math.max(Math.abs(dx), Math.abs(event.clientY - down.clientY)) < DRAG_START) return;
         dragging = true;
         table.setAttribute("data-ib-dragging", "");
-        for (const cell of cells[from]) cell.setAttribute("data-ib-lifted", "");
+        if (moves) for (const cell of cells[from]) cell.setAttribute("data-ib-lifted", "");
       }
       at = bar && this.#inside(bar, event) ? this.#dropAt(event, slots) : -1;
       this.#mark(at, name);
-      if (at >= 0) {
+      if (at >= 0 || !moves) {
         to = from;
         paint(0);
         return;
