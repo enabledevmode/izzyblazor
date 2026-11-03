@@ -1,23 +1,25 @@
-@* Cells that hold controls. One button or menu takes focus directly; with several, or a field that
-   uses the arrows itself, Enter goes in and Escape comes back. The header stays in view when the
-   rows scroll. *@
+@* Cells that hold controls, small to keep the rows' height. One button or menu takes focus directly;
+   with several, or a field that uses the arrows itself, Enter goes in and Escape comes back. The
+   header stays in view when the rows scroll. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" MaxHeight="16.Rem" Caption="Orders to review" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Customer" Sortable Width="12.Rem" />
     <TemplateColumn Title="Note" Context="order">
-        <input class="ib-field-input" aria-label="@($"Note for order {order.Number}")" value="@order.Customer" />
+        @{ var review = _reviews[order.Number]; }
+        <TextField @bind-Value="review.Note" Label="@($"Note for order {order.Number}")" HideLabel Size="ControlSize.Sm" />
     </TemplateColumn>
-    <TemplateColumn Title="Priority" Width="9.Rem" Context="order">
-        <Select @bind-Value="_priority" Items="Priorities" Label="@($"Priority of order {order.Number}")" HideLabel />
+    <TemplateColumn Title="Priority" Width="8.Rem" Context="order">
+        @{ var review = _reviews[order.Number]; }
+        <Select @bind-Value="review.Priority" Items="Priorities" Label="@($"Priority of order {order.Number}")" HideLabel Size="ControlSize.Sm" />
     </TemplateColumn>
-    <TemplateColumn Title="Actions" Width="12.Rem" Context="order">
+    <TemplateColumn Title="Actions" Width="10.Rem" Context="order">
         <Row Gap="1">
             <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Open</Button>
             <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Copy</Button>
         </Row>
     </TemplateColumn>
-    <TemplateColumn Title="More" Width="5.Rem" Context="order">
+    <TemplateColumn Title="More" Width="4.Rem" Context="order">
         <Menu>
             <Trigger Context="wire">
                 <IconButton Icon="Lucide.Ellipsis" Label="@($"Actions for order {order.Number}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="wire" />
@@ -31,5 +33,14 @@
 
 @code {
     private static readonly string?[] Priorities = ["Normal", "High", "Low"];
-    private string? _priority = "Normal";
+
+    // Each order's own note and priority, not one shared by every row.
+    private readonly Dictionary<int, Review> _reviews = Rows.All.ToDictionary(o => o.Number, o => new Review { Priority = o.Number % 4 == 1 ? "High" : "Normal" });
+
+    private sealed class Review
+    {
+        public string? Note { get; set; }
+
+        public string? Priority { get; set; }
+    }
 }
