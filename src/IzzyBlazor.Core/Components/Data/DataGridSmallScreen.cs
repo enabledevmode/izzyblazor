@@ -58,14 +58,15 @@ public partial class DataGrid<TItem>
     /// <summary>The order columns hide in, and the grid's width with each one gone.</summary>
     /// <param name="Levels">Each column that can hide, by its level: 1 hides first.</param>
     /// <param name="Widths">The grid's width in rem with that many hidden; [0] with none.</param>
-    private sealed record HidePlan(Dictionary<ColumnBase<TItem>, int> Levels, double[] Widths);
+    /// <param name="AllSet">With that many hidden, whether every column left has a width.</param>
+    private sealed record HidePlan(Dictionary<ColumnBase<TItem>, int> Levels, double[] Widths, bool[] AllSet);
 
     private HidePlan Plan
     {
         get
         {
             var signature = string.Join('|', Shown.Select(c => $"{c.Priority}:{WidthOf(c)}:{c.MinWidth}:{FrozenOf(c)}"))
-                + $"|{Selectable}|{Grouping.Levels.Count}|{HasDetails}|{(HasActionCell ? ActionWidth : 0)}";
+                + $"|{Selectable}|{Grouping.Levels.Count}|{HasDetails}|{(HasActionCell ? $"{ActionWidth(false)}:{ActionWidth(true)}" : "")}";
             if (_hidePlan is null || _hidePlanFor != signature)
             {
                 (_hidePlanFor, _hidePlan) = (signature, MakePlan());
@@ -92,6 +93,7 @@ public partial class DataGrid<TItem>
         }
 
         var widths = new double[order.Count + 1];
+        var allSet = new bool[order.Count + 1];
         for (var hidden = 0; hidden <= order.Count; hidden++)
         {
             var gone = order.Take(hidden).ToHashSet();
@@ -111,15 +113,16 @@ public partial class DataGrid<TItem>
 
             // As the grid's own width is worked out (GridStyle): the columns without a width share
             // the rest equally, so each needs the largest of their minimums.
+            allSet[hidden] = unset.Count == 0;
             var leads = Grouping.Levels.Count + (HasDetails || (ExpanderComesAndGoes && hidden > 0) ? 1 : 0);
             widths[hidden] = set
                 + (unset.Count > 0 ? unset.Count * unset.Max() : 0)
                 + (Selectable ? SelectRem : 0)
                 + leads * LeadRem
-                + (HasActionCell ? ActionWidth : 0);
+                + (HasActionCell ? ActionWidth(hidden > 0) : 0);
         }
 
-        return new HidePlan(levels, widths);
+        return new HidePlan(levels, widths, allSet);
     }
 
     // Widths the stylesheet gives these columns (data.css). A container query can't read a variable.
@@ -127,15 +130,12 @@ public partial class DataGrid<TItem>
     private const double LeadRem = 2.25;
     private const double DefaultMinRem = 8;
 
-    // The action column's width in rem, as GridStyle sets it.
-    private double ActionWidth
+    // The action column's width in rem, as GridStyle sets it; folded, once a column is hidden.
+    private double ActionWidth(bool folded) => Math.Max(1, folded ? FoldedActionButtons : ActionButtons) switch
     {
-        get
-        {
-            var buttons = ActionButtons;
-            return buttons > 1 ? 0.75 + 2.25 * buttons : 3;
-        }
-    }
+        1 => 3,
+        var buttons => 0.75 + 2.25 * buttons,
+    };
 
     // A length in rem, at a 16px root, or null for one that isn't known on the server.
     private static double? Rem(string css)
@@ -162,6 +162,10 @@ public partial class DataGrid<TItem>
     private string? HideClass(ColumnBase<TItem> column) =>
         Hiding && Plan.Levels.TryGetValue(column, out var level) ? $"ib-h{level}" : null;
 
+    /// <summary>The class of a column's col: its level, or for the first, the one that takes the room left.</summary>
+    private string? ColClass(ColumnBase<TItem> column) =>
+        Hiding && column == Shown[0] ? "ib-grow" : HideClass(column);
+
     // How a hidden cell goes: it keeps its place, at no width, and nothing in it shows or takes focus.
     private const string GoneCell = "visibility:hidden;padding:0;border:0;font-size:0;line-height:0";
 
@@ -186,15 +190,28 @@ public partial class DataGrid<TItem>
             none.Append(CultureInfo.InvariantCulture, $"{t}>*>tr>*>.ib-hx,{t}>tbody>.ib-hx{{display:none}}");
         }
 
+        if (HasActionCell)
+        {
+            none.Append(CultureInfo.InvariantCulture, $"{t}>*>tr>td>.ib-grid-actions .ib-fold-off{{display:none}}");
+        }
+
         for (var level = 1; level < plan.Widths.Length; level++)
         {
             // A column's value in a detail shows only while its column is hidden.
             css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(plan.Widths[level - 1])}){{{t}>*>tr>*>*>dl>.ib-h{level}{{display:none}}}}");
+            // Once one is hidden, buttons that fold are in the row's menu, and the column narrows.
+            var fold = level == 1 && HasActionCell
+                ? $"{t}>*>tr>td>.ib-grid-actions .ib-fold-on{{display:none}}{t}{{--ib-datagrid-menu:{Rems(ActionWidth(true))}!important}}"
+                : "";
             css.Append(CultureInfo.InvariantCulture,
-                $"@container (width < {Rems(plan.Widths[level - 1])}){{{t}>colgroup>.ib-h{level}{{width:0!important}}{t}>*>tr>.ib-h{level}{{{GoneCell}}}{t}>*>tr>.ib-h{level}>*{{display:none}}{t}{{{width}:{Rems(plan.Widths[level])}!important}}}}");
+                $"@container (width < {Rems(plan.Widths[level - 1])}){{{fold}{Grow(level)}{t}>colgroup>.ib-h{level}{{width:0!important}}{t}>*>tr>.ib-h{level}{{{GoneCell}}}{t}>*>tr>.ib-h{level}>*{{display:none}}{t}{{{width}:{Rems(plan.Widths[level])}!important}}}}");
         }
 
         css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(plan.Widths[0])}){{{none}}}");
+
+        // Once only columns with widths are left, the room they don't need goes to the first, not
+        // to all of them (the buttons' columns among them), as fixed layout would share it.
+        string Grow(int level) => plan.AllSet[level] && !plan.AllSet[level - 1] ? $"{t}>colgroup>.ib-grow{{width:auto!important}}" : "";
         return css.Append('}').ToString();
     }
 

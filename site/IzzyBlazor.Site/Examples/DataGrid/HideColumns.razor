@@ -1,12 +1,17 @@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@inject NavigationManager Navigation
 @* Narrow, the columns with the lowest priority hide first, and a row's button shows them under it.
-   Make the window narrower to see them go. *@
+   The row's actions move into its ⋮ menu then. Make the window narrower to see them go. *@
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders that fit a phone" QueryPrefix="narrow-"
           ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"
           SmallScreen="DataGridSmallScreen.HideColumns">
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" Priority="2" />
+    <PropertyColumn Property="o => o.Customer" Priority="2" MinWidth="7.Rem" />
     <PropertyColumn Property="o => o.Date" Format="MMM d" Width="7.Rem" />
     <PropertyColumn Property="o => o.Status" Width="8.Rem" />
     <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" Priority="1" />
+    <ActionColumn Context="order">
+        <RowAction Icon="Lucide.Eye" Label="@($"View {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("order", order.Number)" />
+        <RowAction Icon="Lucide.Copy" Label="@($"Duplicate {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("from", order.Number)" />
+    </ActionColumn>
 </DataGrid>
