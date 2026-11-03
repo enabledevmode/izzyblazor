@@ -189,7 +189,7 @@
     }
     @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
     @Editor
-    @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive))
+    @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive) || ShowsGroupBar)
     {
         <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
                          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-width-text="@TextDefaults.ColumnWidth" @oniblayout="OnLayoutAsync"></ib-grid-columns>
@@ -1635,12 +1635,19 @@
     /// <inheritdoc />
     internal override IReadOnlyDictionary<string, object>? HeaderAttributes(ColumnBase<TItem> column)
     {
-        if (!Rearrangeable)
+        // A header that can be dragged to the bar of what's grouped.
+        var group = ShowsGroupBar && CanGroupBy(column) && !GroupsBy(column);
+        if (!Rearrangeable && !group)
         {
             return null;
         }
 
         var attributes = new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column) };
+        if (group)
+        {
+            attributes["data-ib-group"] = column.GroupToken;
+        }
+
         if (CanMove(column))
         {
             attributes["data-ib-reorder"] = "";
@@ -1978,27 +1985,38 @@
             </div>
         }
 
-        if (GroupedNow && Groupable)
+        if (ShowsGroupBar)
         {
             @GroupBar
         }
     };
 
-    // What's grouped, as chips people can remove: only where they can change it.
+    // What's grouped, as chips people can remove, and a header can be dropped among. A drop is the
+    // script's: it goes to the address with _GROUP_ filled in, or into the input on a bound page.
     private RenderFragment GroupBar => __builder =>
     {
-        <div class="ib-grid-group-bar" role="group" aria-label="@TextDefaults.GroupedBy">
+        <div class="ib-grid-group-bar" role="group" aria-label="@TextDefaults.GroupedBy" data-ib-group-href="@(UseState ? null : GroupHref("_GROUP_"))">
+            @if (!GroupedNow)
+            {
+                <span class="ib-grid-group-hint">@TextDefaults.GroupDropHint</span>
+            }
             @foreach (var level in Grouping.Levels)
             {
                 var column = level.Column;
-                @if (UseState)
-                {
-                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
-                }
-                else
-                {
-                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
-                }
+                <span class="ib-grid-group-chip" data-ib-group-token="@((level.Descending ? "-" : "") + column.GroupToken)">
+                    @if (UseState)
+                    {
+                        <Tag Label="@column.HeaderText" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
+                    }
+                    else
+                    {
+                        <Tag Label="@column.HeaderText" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
+                    }
+                </span>
+            }
+            @if (UseState)
+            {
+                <input type="text" hidden class="ib-grid-group-set" aria-hidden="true" tabindex="-1" @onchange="e => SetGroupAsync(e.Value?.ToString() ?? string.Empty)" />
             }
         </div>
     };

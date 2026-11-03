@@ -68,6 +68,14 @@ public partial class DataGrid<TItem>
     /// </summary>
     [Parameter] public int GroupRowLimit { get; set; } = 100;
 
+    /// <summary>
+    /// Keeps the bar of what's grouped above the grid while nothing is, saying a header can be dragged
+    /// there. Without it the bar shows only while grouped, and the first grouping is from a header's
+    /// menu. Dragging needs script and a mouse or pen; the menu works everywhere.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the bar shows what's grouped, and headers can't be dragged to it.")]
+    public bool GroupPanel { get; set; }
+
     /// <summary>Keeps a grouped column in the table. By default it leaves, as each group's row says its value.</summary>
     [Parameter] public bool ShowGroupedColumns { get; set; }
 
@@ -415,6 +423,9 @@ public partial class DataGrid<TItem>
         await PageChanged.InvokeAsync(1);
         await ReloadIfStaleAsync();
     }
+
+    // The bar of what's grouped: while grouped, or always with GroupPanel, where people can change it.
+    private bool ShowsGroupBar => Groupable && GroupsAvailable && (GroupedNow || GroupPanel);
 
     private bool CanGroupBy(ColumnBase<TItem> column) => Groupable && GroupsAvailable && column.CanGroup;
 

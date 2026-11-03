@@ -41,13 +41,18 @@ class GridColumns extends IzzyElement {
     this.#table = table;
 
     host.addEventListener("click", (event) => this.#onClick(event), { signal });
+    // A chip in the bar of what's grouped moves among the others.
+    host.addEventListener("pointerdown", (event) => {
+      const chip = (event.target as Element).closest<HTMLElement>(".ib-grid-group-chip");
+      if (chip && event.button === 0 && event.pointerType !== "touch" && !(event.target as Element).closest("a, button")) this.#dragChip(event, chip, signal);
+    }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
     table.addEventListener("pointerdown", (event) => this.#onPointerDown(event, signal), { signal });
     table.addEventListener("dblclick", (event) => this.#onDoubleClick(event), { signal });
     table.addEventListener("keydown", (event) => this.#onKey(event), { signal, capture: true });
     // A sort link would start the browser's own drag.
     table.addEventListener("dragstart", (event) => {
-      if ((event.target as Element).closest?.("th[data-ib-reorder]")) event.preventDefault();
+      if ((event.target as Element).closest?.("th[data-ib-reorder], th[data-ib-group]")) event.preventDefault();
     }, { signal });
 
     const changes = new MutationObserver(() => this.#arrive());
@@ -302,7 +307,7 @@ class GridColumns extends IzzyElement {
     const th = target.closest<HTMLTableCellElement>("thead th[data-ib-col]");
     if (!th) return;
     if (handle) this.#dragWidth(event, th, handle, signal);
-    else if (th.hasAttribute("data-ib-reorder") && event.pointerType !== "touch" && !target.closest("button, input, [popover]")) this.#dragColumn(event, th, signal);
+    else if ((th.hasAttribute("data-ib-reorder") || th.hasAttribute("data-ib-group")) && event.pointerType !== "touch" && !target.closest("button, input, [popover]")) this.#dragColumn(event, th, signal);
   }
 
   #dragWidth(down: PointerEvent, th: HTMLTableCellElement, handle: HTMLElement, signal: AbortSignal): void {
@@ -373,6 +378,105 @@ class GridColumns extends IzzyElement {
     if (widest > 0) this.#setWidth(th, Math.ceil(widest) + 1, false);
   }
 
+  get #bar(): HTMLElement | null {
+    return this.#host?.querySelector<HTMLElement>(".ib-grid-group-bar") ?? null;
+  }
+
+  get #chips(): HTMLElement[] {
+    return [...(this.#bar?.querySelectorAll<HTMLElement>(".ib-grid-group-chip") ?? [])];
+  }
+
+  #tokens(): string[] {
+    return this.#chips.map((chip) => chip.dataset.ibGroupToken!);
+  }
+
+  #inside(el: Element, event: PointerEvent): boolean {
+    const r = el.getBoundingClientRect();
+    return event.clientX >= r.left && event.clientX <= r.right && event.clientY >= r.top && event.clientY <= r.bottom;
+  }
+
+  // Where among the chips a drop lands: before the first whose middle is past the pointer.
+  #dropAt(event: PointerEvent, chips = this.#chips): number {
+    const rtl = this.#bar && getComputedStyle(this.#bar).direction === "rtl";
+    const index = chips.findIndex((chip) => {
+      const r = chip.getBoundingClientRect();
+      return rtl ? event.clientX > r.left + r.width / 2 : event.clientX < r.left + r.width / 2;
+    });
+    return index < 0 ? chips.length : index;
+  }
+
+  // Shows where a drop would land, or nothing at -1.
+  #mark(at: number): void {
+    const bar = this.#bar;
+    bar?.toggleAttribute("data-ib-drop", at >= 0);
+    this.#chips.forEach((chip, i) => chip.toggleAttribute("data-ib-drop-before", i === at));
+    bar?.toggleAttribute("data-ib-drop-end", at >= 0 && at === this.#chips.length);
+  }
+
+  // The new grouping: into the input C# reads on a bound page, or to its address.
+  #group(tokens: string[]): void {
+    const bar = this.#bar;
+    const text = tokens.join(",");
+    const input = bar?.querySelector<HTMLInputElement>(".ib-grid-group-set");
+    if (input) {
+      input.value = text;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      return;
+    }
+    const href = bar?.dataset.ibGroupHref?.replace("_GROUP_", encodeURIComponent(text));
+    if (!href) return;
+    const blazor = (window as unknown as { Blazor?: { navigateTo?: (url: string) => void } }).Blazor;
+    if (blazor?.navigateTo) blazor.navigateTo(href);
+    else location.assign(href);
+  }
+
+  // Dragging a chip among the others changes which level comes first.
+  #dragChip(down: PointerEvent, chip: HTMLElement, signal: AbortSignal): void {
+    const chips = this.#chips;
+    const from = chips.indexOf(chip);
+    let dragging = false;
+    let at = from;
+    const abort = this.#until(signal);
+    const options = { signal: abort.signal };
+    const finish = (commit: boolean) => {
+      abort.abort();
+      chip.style.transform = "";
+      chip.removeAttribute("data-ib-lifted");
+      this.#mark(-1);
+      if (!dragging) return;
+      const swallow = (event: Event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      document.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 0);
+      if (!commit || at === from || at === from + 1) return;
+      const tokens = this.#tokens();
+      const [token] = tokens.splice(from, 1);
+      tokens.splice(at > from ? at - 1 : at, 0, token);
+      this.#group(tokens);
+    };
+    document.addEventListener("pointermove", (event) => {
+      const dx = event.clientX - down.clientX;
+      if (!dragging) {
+        if (Math.abs(dx) < DRAG_START) return;
+        dragging = true;
+        chip.setAttribute("data-ib-lifted", "");
+      }
+      chip.style.transform = `translateX(${dx}px)`;
+      at = this.#dropAt(event, chips);
+      this.#mark(at === from || at === from + 1 ? -1 : at);
+    }, options);
+    document.addEventListener("pointerup", () => finish(true), options);
+    document.addEventListener("pointercancel", () => finish(false), options);
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      finish(false);
+    }, { ...options, capture: true });
+  }
+
   // Dragging a header: its column follows the pointer, and the others slide aside.
   #dragColumn(down: PointerEvent, th: HTMLTableCellElement, signal: AbortSignal): void {
     const table = this.#table!;
@@ -387,6 +491,9 @@ class GridColumns extends IzzyElement {
     const rtl = getComputedStyle(th).direction === "rtl";
     let to = from;
     let dragging = false;
+    // Over the bar of what's grouped, a header that can be grouped is dropped there instead.
+    const bar = th.dataset.ibGroup ? this.#bar : null;
+    let at = -1;
     const abort = this.#until(signal);
     const options = { signal: abort.signal };
     const paint = (dx: number) => {
@@ -410,6 +517,7 @@ class GridColumns extends IzzyElement {
       }
       table.removeAttribute("data-ib-dragging");
       for (const cell of cells[from]) cell.removeAttribute("data-ib-lifted");
+      this.#mark(-1);
       if (!dragging) return;
       // The click after a drag isn't a sort. It goes to whatever the press and release share, or
       // nowhere, so it's caught on the document, and only for this moment.
@@ -419,15 +527,26 @@ class GridColumns extends IzzyElement {
       };
       document.addEventListener("click", swallow, { capture: true, once: true });
       setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 0);
-      if (commit && to !== from) this.#moveTo(th, to, true);
+      if (commit && at >= 0) {
+        const tokens = this.#tokens();
+        tokens.splice(at, 0, th.dataset.ibGroup!);
+        this.#group(tokens);
+      } else if (commit && to !== from) this.#moveTo(th, to, true);
     };
     document.addEventListener("pointermove", (event) => {
       const dx = event.clientX - down.clientX;
       if (!dragging) {
-        if (Math.abs(dx) < DRAG_START) return;
+        if (Math.max(Math.abs(dx), Math.abs(event.clientY - down.clientY)) < DRAG_START) return;
         dragging = true;
         table.setAttribute("data-ib-dragging", "");
         for (const cell of cells[from]) cell.setAttribute("data-ib-lifted", "");
+      }
+      at = bar && this.#inside(bar, event) ? this.#dropAt(event) : -1;
+      this.#mark(at);
+      if (at >= 0) {
+        to = from;
+        paint(0);
+        return;
       }
       to = rects.findIndex((r) => (rtl ? event.clientX > r.left + r.width / 2 : event.clientX < r.left + r.width / 2));
       to = to < 0 ? rects.length - 1 : to > from ? to - 1 : to;
