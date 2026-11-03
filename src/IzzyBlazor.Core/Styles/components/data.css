@@ -284,8 +284,8 @@
     --ib-table-px: var(--ib-table-cell-px, var(--ib-space-4));
     --ib-table-font: var(--ib-text-sm);
     --ib-table-stripe: color-mix(in oklab, var(--ib-color-fill) 50%, transparent);
-    /* ShadedHeader's band: lighter than a stripe in light, the subtlest fill in dark. */
-    --ib-table-head-bg: light-dark(color-mix(in oklab, var(--ib-color-fill-subtle) 75%, var(--ib-color-surface)), var(--ib-color-fill-subtle));
+    /* ShadedHeader's band: one small step from the surface, about the same to the eye in light and dark. */
+    --ib-table-head-bg: light-dark(color-mix(in oklab, var(--ib-color-fill-subtle) 75%, var(--ib-color-surface)), color-mix(in oklab, var(--ib-color-fill-subtle) 60%, var(--ib-color-surface)));
 
     display: flex;
     flex-direction: column;
