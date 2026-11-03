@@ -111,8 +111,8 @@
 
         <Heading Level="2">Disabled fields and form posts</Heading>
         <TextBlock>
-            A disabled field posts nothing. After a form post on static pages, its property has its default value, such as
-            <Code>null</Code>, <Code>0</Code> or <Code>false</Code>, not the value the field showed. Keep that value on the
+            A disabled field posts nothing. After a form post on static pages, its property isn't set from the post: it keeps
+            the value a new model starts with, often <Code>null</Code>, <Code>0</Code> or <Code>false</Code>, not the value the field showed. Keep that value on the
             server rather than saving it from the form post.
         </TextBlock>
 

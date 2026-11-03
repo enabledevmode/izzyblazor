@@ -1724,7 +1724,7 @@
         {
           "id": "selection", "title": "Selection", "summary": "Checkboxes or radio buttons select items. The selection posts with a form or binds to C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel"],
           "examples": [
-            {"id": "list-view-select-items", "title": "Selection", "lead": "Each item can have a checkbox, or a radio button for a single choice. Set `SelectionMode`, or `SelectionMode.Single` for radio buttons. Inside a form, the selected items post their `ItemKey` as a `Selection`. On interactive pages, `@bind-Selection` reads and sets it from C#. `SelectAllMode` sets what select-all selects: the current page, or every matching item. With IzzyBlazor's script, a checkbox above the list selects the page."}
+            {"id": "list-view-select-items", "title": "Selection", "lead": "Each item can have a checkbox, or a radio button for a single choice. Set `SelectionMode` to `Multiple` for checkboxes, or `Single` for radio buttons. Inside a form, the selected items post their `ItemKey` as a `Selection`. On interactive pages, `@bind-Selection` reads and sets it from C#. `SelectAllMode` sets what select-all selects: the current page, or every matching item. With IzzyBlazor's script, a checkbox above the list selects the page."}
           ]
         },
         {
