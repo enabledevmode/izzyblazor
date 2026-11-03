@@ -230,6 +230,49 @@ The test: would the preview show something the code doesn't? If not, show the co
 example its own `notes` in `components.json` only for a mode that changes what it does; without
 them the viewer shows none.
 
+#### Writing style
+
+This applies to every page, article, topic, `components.json` lead and note, and doc comment. The
+reader is a .NET developer who knows Blazor and may come from MudBlazor or Radzen.
+
+- **Write whole sentences.** Each clause has its own verb. Not "Text matches anywhere, a date its
+  day"; write "Text matches anywhere in the value. A date matches the whole day."
+- **One fact per sentence.** A section opens with one or two sentences: the parameter and what it
+  does. Caveats, limits and mode differences come after the example, as short sentences or a
+  list. Keep a paragraph to about three sentences. Where there are rows (a type and its operator, a
+  parameter and its default), use a table.
+- **Use plain verbs.** "requires", not "takes"; "sets", not "says"; "the server rejects", not
+  "turns away"; "checked", not "ticked". Avoid "holds", "draws" and "keeps it right" as
+  technical terms.
+- **Say what the user needs, not how it was built.** Leave out browser versions, the arithmetic
+  behind a size, algorithm costs and why a limit exists, unless the reason changes what someone
+  does.
+- **State the rule, not the example's details.** Not "as Discount (%) does"; say what to set.
+  The example shows it.
+- **Explain a shared caveat once**, on the article it belongs to (Forms, Render modes), and link
+  to it in one line.
+- **Headings say what the section is for**: "Labels and localization", not "Its own words";
+  "Indeterminate state", not "A dash of your own". Example titles follow the same rule.
+- **A component's summary** is a noun phrase for what it is, then what it's for: "A grid for
+  editing, grouping and filtering rows, with its state in the URL."
+
+Use the same word for the same idea everywhere:
+
+| Say | Not |
+| --- | --- |
+| with JavaScript off | with no script, without the script, before the script |
+| IzzyBlazor's script (linked to Render modes the first time on a page) | the script, with script |
+| on static pages, on interactive pages | on a static page, on an interactive page |
+| without a full reload | without a reload, without a page load, with no page load |
+| URL | address, query string |
+| the user (someone using the app); you (the developer) | the reader, people, someone |
+| render mode (Static, Interactive); paging style | mode, for anything other than a render mode |
+| the browser's default message; your `[Required]` message | in its own words, in the model's words |
+| a form post | a static post, a post |
+
+Define a term before using it. The terms used most (static, interactive, circuit, JavaScript off)
+are defined on Render modes; link there instead of redefining them.
+
 ### Tests
 
 **A test has to earn its place.** Before adding one, it must pass all of these:
