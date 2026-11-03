@@ -87,6 +87,46 @@ public class DataGridHideColumnsTests : BunitContext
         Assert.DoesNotContain("ib-hx", cut.Find("tbody a.ib-grid-expand").ClassName);
     }
 
+    public sealed class EditRow
+    {
+        public int Id { get; set; }
+        public string Status { get; set; } = "";
+        public string Customer { get; set; } = "";
+        public decimal Total { get; set; }
+    }
+
+    [Fact]
+    public void A_row_being_edited_has_its_hidden_columns_fields_in_its_detail_as_well_as_its_cells()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/orders");
+        var cut = Render<DataGrid<EditRow>>(p => p
+            .Add(x => x.Items, [new EditRow { Id = 1, Status = "Paid", Customer = "Ada", Total = 10 }])
+            .Add(x => x.ItemKey, o => o.Id.ToString())
+            .Add(x => x.SmallScreen, DataGridSmallScreen.HideColumns)
+            .Add(x => x.EditMode, DataGridEditMode.Row)
+            .Add(x => x.OnSave, (DataGridSave<EditRow> _) => { })
+            .Add(x => x.EditKey, "1")
+            .Add(x => x.EditKeyChanged, (string? _) => { })
+            .Add(x => x.ChildContent, (RenderFragment)(builder =>
+            {
+                builder.OpenComponent<PropertyColumn<EditRow, int>>(0);
+                builder.AddComponentParameter(1, "Property", (Expression<Func<EditRow, int>>)(o => o.Id));
+                builder.AddComponentParameter(2, "Editable", false);
+                builder.CloseComponent();
+                builder.OpenComponent<PropertyColumn<EditRow, string>>(3);
+                builder.AddComponentParameter(4, "Property", (Expression<Func<EditRow, string>>)(o => o.Customer));
+                builder.CloseComponent();
+            })));
+
+        // The detail opens for the edit, with the field and, for no script, the value.
+        var form = cut.Find("form.ib-grid-edit-form").Id;
+        var entry = cut.Find("tr.ib-grid-detail dl.ib-grid-hidden > .ib-h1");
+        Assert.Equal(form, entry.QuerySelector(".ib-grid-hidden-field [name='ib-edit.Customer']")!.GetAttribute("form"));
+        Assert.Equal("Ada", entry.QuerySelector(".ib-grid-hidden-value")!.TextContent);
+        Assert.Equal(form, cut.Find("tr[data-ib-editing] td.ib-h1 [name='ib-edit.Customer']").GetAttribute("form"));
+    }
+
     [Fact]
     public void Without_a_template_the_button_column_and_its_details_go_while_nothing_is_hidden()
     {

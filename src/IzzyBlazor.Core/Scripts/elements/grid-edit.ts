@@ -32,6 +32,12 @@ class GridEdit extends IzzyElement {
       if (form.closest("ib-table") !== root) return;
       this.#saving = (form.closest("dialog") ?? form).getAttribute("data-ib-edit-for");
       this.#address = location.href;
+      // A column hidden to fit has its field twice, in its cell and in the row's detail: only the one that shows posts.
+      for (const field of form.id ? root.querySelectorAll<HTMLInputElement>(`:is(td[class*=ib-h], .ib-grid-hidden > div) [form="${CSS.escape(form.id)}"]`) : []) {
+        if (field.disabled || field.checkVisibility({ visibilityProperty: true })) continue;
+        field.disabled = true;
+        setTimeout(() => (field.disabled = false));
+      }
       // A second post from a row's Save, which is outside the form, so that the form's own guard misses it.
       // Blazor's merge takes this away again. Enter waits on it too, as it's the form's default button.
       const save = root.hasAttribute("data-ib-stays-static") && form.id ? root.querySelector<HTMLButtonElement>(`button[form="${CSS.escape(form.id)}"]`) : null;
@@ -257,8 +263,11 @@ class GridEdit extends IzzyElement {
   }
 
   // Not in a closed picker, which has controls of its own and can't take focus.
+  // The first that shows, in the row, then in its detail, where a column hidden to fit has its field.
   #field(row: HTMLElement | null, selector: string): HTMLElement | null | undefined {
-    return row?.querySelector<HTMLElement>(`:is(${selector}):not([popover] *)`);
+    const detail = row?.nextElementSibling;
+    const scope = detail?.matches(".ib-grid-detail") ? [row!, detail] : row ? [row] : [];
+    return scope.flatMap((part) => [...part.querySelectorAll<HTMLElement>(`:is(${selector}):not([popover] *)`)]).find((field) => field.checkVisibility());
   }
 
   async #open(root: Element, link: HTMLAnchorElement): Promise<void> {
@@ -296,11 +305,19 @@ class GridEdit extends IzzyElement {
     // Rows still streaming, or a row that's gone, whose message is only in the whole page.
     if (!from || !into || page.querySelector("blazor-ssr") || (!link.hasAttribute("data-ib-edit-cancel") && !from.querySelector(":scope > tr[data-ib-editing]"))) throw new Error();
     const rowIn = (rows: Element, key?: string) => key && rows.querySelector(`:scope > tr[data-ib-key="${CSS.escape(key)}"]`);
-    for (const row of into.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")) row.replaceWith(rowIn(from, row.dataset.ibKey) || "");
+    // A row goes with its detail, which holds the fields of columns hidden to fit.
+    const withDetail = (row: Element | null | undefined | "") => (row ? [row, ...(row.nextElementSibling?.matches(".ib-grid-detail") ? [row.nextElementSibling] : [])] : []);
+    const swap = (old: Element, rows: Element[]) => {
+      const [, detail] = withDetail(old);
+      detail?.remove();
+      old.replaceWith(...rows);
+    };
+    for (const row of into.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")) swap(row, withDetail(rowIn(from, row.dataset.ibKey)));
     for (const row of [...from.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")]) {
       const old = rowIn(into, row.dataset.ibKey);
-      if (old) old.replaceWith(row);
-      else into.prepend(row);
+      const rows = withDetail(row);
+      if (old) swap(old, rows);
+      else into.prepend(...rows);
     }
     // The rest of the rows' actions and the toolbar's Add are drawn for the old address.
     for (const cell of from.querySelectorAll<HTMLElement>(":scope > tr[data-ib-key] > .ib-grid-menu-cell")) {

@@ -53,7 +53,8 @@ public partial class DataGrid<TItem>
 
     private bool HasDetail(TItem item) => HasTemplateDetail(item) || Hiding;
 
-    private bool DetailOpen(TItem item) => HasDetail(item) && Details.IsOpen(KeyOf(item));
+    // A row being edited shows its hidden columns' fields.
+    private bool DetailOpen(TItem item) => HasDetail(item) && (Details.IsOpen(KeyOf(item)) || (Hiding && IsEditingRow(item)));
 
     private bool DetailBound => OpenDetailsChanged.HasDelegate;
 

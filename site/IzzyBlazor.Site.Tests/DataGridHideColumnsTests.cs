@@ -35,4 +35,26 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
         await Assertions.Expect(values).ToHaveCountAsync(0);
         Assert.True(await grid.EvaluateAsync<bool>("g => g.querySelector('.ib-table-scroll').clientHeight - g.querySelector('.ib-table-scroll > table').offsetHeight < 4"));
     }
+
+    [Fact]
+    public async Task On_a_phone_a_row_edits_its_hidden_columns_in_its_detail_and_saves_them()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited on a phone'])");
+        var first = grid.Locator(".ib-table-scroll tbody tr").First;
+        await first.Locator("[data-ib-row-menu]").ClickAsync();
+        await grid.Locator("ib-popover a[data-ib-edit-row]").First.ClickAsync();
+
+        // Its fields are under it, the first focused; the cells' copies, hidden, don't post.
+        var customer = grid.Locator(".ib-grid-detail").GetByLabel("Customer");
+        await Assertions.Expect(customer).ToBeFocusedAsync();
+        await grid.Locator(".ib-grid-detail").GetByLabel("Total").FillAsync("123.45");
+        await grid.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(grid.Locator("tr[data-ib-editing]")).ToHaveCountAsync(0);
+
+        await first.Locator(".ib-grid-expand").ClickAsync();
+        await Assertions.Expect(grid.Locator(".ib-grid-hidden")).ToContainTextAsync("$123.45");
+    }
 }

@@ -1541,7 +1541,7 @@
             @if (HasDetail(item))
             {
                 var key = KeyOf(item);
-                var open = Details.IsOpen(key);
+                var open = DetailOpen(item);
                 var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
                 // One with only hidden values to show goes while nothing is hidden.
                 var css = HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx";
@@ -1558,11 +1558,16 @@
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? AfterRow(TItem item, int row, int? indent) => !DetailOpen(item) ? null : __builder =>
+    internal override RenderFragment? AfterRow(TItem item, int row, int? indent) => !DetailOpen(item) ? null : DetailRow(item, row, indent, HasTemplateDetail(item));
+
+    // The new row being added: its hidden columns' fields go in a detail under it, as for any row.
+    /// <inheritdoc />
+    internal override RenderFragment? AfterNewRow(TItem item) => !Hiding ? null : DetailRow(item, -1, null, false);
+
+    // One cell across the grid. Its content starts under the row's data, and stays in view when the
+    // grid scrolls sideways.
+    private RenderFragment DetailRow(TItem item, int row, int? indent, bool template) => __builder =>
     {
-        // One cell across the grid. Its content starts under the row's data, and stays in view when the
-        // grid scrolls sideways.
-        var template = HasTemplateDetail(item);
         <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)">
             <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
                 <div class="ib-grid-detail-content">

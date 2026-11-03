@@ -1703,6 +1703,22 @@
     }
   }
 
+  /* A row being edited: a hidden column's field, or with no script, which can't post only the field
+     that shows, its value. */
+  .ib-grid-hidden-value {
+    display: none;
+  }
+
+  @media (scripting: none) {
+    .ib-grid-hidden-field {
+      display: none;
+    }
+
+    .ib-grid-hidden-value {
+      display: inline;
+    }
+  }
+
   .ib-grid-group-aggregate {
     margin-inline-start: var(--ib-space-3);
   }

@@ -35,6 +35,9 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>What follows a data row: its open detail, on a grid.</summary>
     internal virtual RenderFragment? AfterRow(TItem item, int row, int? indent) => null;
 
+    /// <summary>What follows the new row being added.</summary>
+    internal virtual RenderFragment? AfterNewRow(TItem item) => null;
+
     /// <summary>The rows in their groups, in place of the rows; null when there are no groups to draw.</summary>
     internal virtual RenderFragment? GroupRows => null;
 
