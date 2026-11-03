@@ -536,7 +536,9 @@ class Grid extends IzzyElement {
     const inside = target !== cell && target !== this.#targetOf(cell);
     if (inside && this.#onKeyInside(event, target, cell)) return;
     const handled = inside
-      ? !this.#keepsArrows(target) && ((event.altKey && this.#openMenu(event, cell)) || this.#onMove(event, cell))
+      ? // A filter row's field opens its panel too, as a combo box's would.
+        (event.altKey && (!this.#keepsArrows(target) || target.matches(".ib-filter-cell input")) && this.#openMenu(event, cell)) ||
+        (!this.#keepsArrows(target) && this.#onMove(event, cell))
       : this.#onAction(event, target, cell) || this.#onMove(event, cell);
     if (handled) {
       event.preventDefault();
