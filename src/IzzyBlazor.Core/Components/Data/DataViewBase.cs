@@ -437,8 +437,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal int? EffectivePageSize => UseState ? _statePageSize ?? DefaultPageSize : ReadSizeQuery() ?? DefaultPageSize;
 
-    // A page of rows keeps its height as filters leave fewer, so what's below stays. Not a list that grows.
-    internal int? HeldFor => Appending || VirtualRows || GroupedNow ? null : EffectivePageSize;
+    // A page of rows keeps its height as filters leave fewer, so what's below stays. Not a list that
+    // grows. The script holds the tallest height it has seen until this changes.
+    internal virtual string? HeldFor => Appending || VirtualRows || GroupedNow ? null : EffectivePageSize?.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     // The page that holds the first item on view now, at another size. A cursor is for one size,
     // so paging by cursor starts over.

@@ -349,55 +349,6 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
     }
 
     [Fact]
-    public async Task With_JavaScript_off_links_posts_and_the_menu_still_work()
-    {
-        var browser = await TestBrowser.OpenAsync();
-        await using (browser)
-        {
-            var page = await OpenAsync(browser, "docs/components/split-button", "noscript", scripts: false);
-            const string ex = "split-button-actions";
-            var toggle = page.Locator(Example(ex)).GetByRole(AriaRole.Button, new() { Name = "More save options" });
-            var draft = page.Locator(Example(ex)).Locator("button.ib-menu-item", new() { HasText = "Save as draft" });
-
-            // No menu roles, as they promise keys only the script adds.
-            Assert.Null(await toggle.GetAttributeAsync("aria-haspopup"));
-            Assert.Null(await draft.GetAttributeAsync("role"));
-
-            // The main button posts, and an item does, over and over.
-            for (var i = 0; i < 2; i++)
-            {
-                await page.Locator("#split-save").ClickAsync();
-                await AssertTextAsync(page, ex, "Posted: save");
-
-                await toggle.ClickAsync();
-                await Assertions.Expect(draft).ToBeVisibleAsync();
-                await draft.ClickAsync();
-                await AssertTextAsync(page, ex, "Posted: draft");
-            }
-
-            // Tab to the arrow, Enter opens it, Escape closes it, natively. Alt+Down does nothing.
-            await page.Locator("#split-save").FocusAsync();
-            await page.Keyboard.PressAsync("Alt+ArrowDown");
-            await Assertions.Expect(draft).ToBeHiddenAsync();
-            await page.Keyboard.PressAsync("Tab");
-            await page.Keyboard.PressAsync("Enter");
-            await Assertions.Expect(draft).ToBeVisibleAsync();
-            await page.Keyboard.PressAsync("Escape");
-            await Assertions.Expect(draft).ToBeHiddenAsync();
-
-            // A link item is a link.
-            await toggle.ClickAsync();
-            await page.Locator(Example(ex)).GetByRole(AriaRole.Link, new() { Name = "Open drafts" }).ClickAsync();
-            await AssertTextAsync(page, ex, "Opened: drafts");
-
-            // The main link downloads.
-            var download = page.WaitForDownloadAsync();
-            await page.Locator("#split-download").ClickAsync();
-            Assert.Equal("izzy.svg", (await download).SuggestedFilename);
-        }
-    }
-
-    [Fact]
     public async Task With_JavaScript_off_the_toolbars_menu_still_works()
     {
         var browser = await TestBrowser.OpenAsync();

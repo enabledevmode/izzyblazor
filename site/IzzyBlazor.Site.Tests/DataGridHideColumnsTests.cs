@@ -29,5 +29,10 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
         await Assertions.Expect(values).ToBeVisibleAsync();
         // Only the hidden ones: Customer is in the row.
         Assert.Equal("Date Sep 8 Status Failed Total $66.25", await values.EvaluateAsync<string>(@"dl => dl.innerText.split(/\s*\n\s*/).join(' ')"));
+
+        // Closed again, the grid isn't held at the height it had open.
+        await grid.GetByRole(AriaRole.Link, new() { Name = "Hide details for Order 1001" }).ClickAsync();
+        await Assertions.Expect(values).ToHaveCountAsync(0);
+        Assert.True(await grid.EvaluateAsync<bool>("g => g.querySelector('.ib-table-scroll').clientHeight - g.querySelector('.ib-table-scroll > table').offsetHeight < 4"));
     }
 }

@@ -57,6 +57,12 @@ public partial class DataGrid<TItem>
 
     private bool DetailBound => OpenDetailsChanged.HasDelegate;
 
+    // A detail opening or closing isn't a page leaving fewer rows: the height held starts again.
+    /// <inheritdoc />
+    internal override string? HeldFor => base.HeldFor is { } held && HasExpander && (Details.All || Details.Open.Count > 0)
+        ? $"{held} {(Details.All ? "*" : "")}{string.Join(' ', Details.All ? Details.Shut : Details.Open)}"
+        : base.HeldFor;
+
     // Read again when what it's read from changes: asked for at every row.
     private DetailState Details
     {
