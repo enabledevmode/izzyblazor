@@ -434,6 +434,16 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, which only a DataGrid's columns take.");
         }
 
+        if (Priority != 0 && Table is DataGrid<TItem> { SmallScreen: not DataGridSmallScreen.HideColumns })
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, which only a DataGrid with SmallScreen=\"HideColumns\" uses.");
+        }
+
+        if (Priority != 0 && Frozen != ColumnFrozen.None)
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, but it's {nameof(Frozen)}, and frozen columns never hide.");
+        }
+
         if (!Visible && Table is { GridColumns: false })
         {
             throw new InvalidOperationException($"The \"{HeaderText}\" column sets {nameof(Visible)}, which only a DataGrid's columns take.");

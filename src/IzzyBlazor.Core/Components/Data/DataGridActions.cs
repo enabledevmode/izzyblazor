@@ -62,7 +62,11 @@ public sealed class ActionColumn<TItem> : ComponentBase
     /// <summary>The row's actions: <see cref="EditAction"/>, <see cref="DeleteAction"/> and <see cref="RowAction"/>. <c>context</c> is the row.</summary>
     [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
 
-    /// <summary>Where its actions show, unless one says otherwise. <see cref="RowActionOverflow.Always"/> makes it a ⋮ menu.</summary>
+    /// <summary>
+    /// Where its actions show, unless one says otherwise. <see cref="RowActionOverflow.Always"/> makes it
+    /// a ⋮ menu. The default, <see cref="RowActionOverflow.Auto"/>, is buttons, which move into the menu
+    /// once the grid hides columns to fit (<c>DataGridSmallScreen.HideColumns</c>).
+    /// </summary>
     [Parameter] public RowActionOverflow Overflow { get; set; }
 
     [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }

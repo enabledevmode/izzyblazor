@@ -311,8 +311,9 @@ class Grid extends IzzyElement {
       if (control.closest("table") !== table || this.#inOverlay(control)) continue;
       seen.add(control);
       if (!this.#controls.has(control)) this.#controls.set(control, control.getAttribute("tabindex"));
-      // A row being edited is left to Tab: all its fields, then Save and Cancel.
-      if (control.closest("[data-ib-editing]")) {
+      // A row being edited is left to Tab: all its fields, then Save and Cancel, and those of its
+      // columns hidden to fit, in its detail.
+      if (control.closest("[data-ib-editing], [data-ib-editing] + .ib-grid-detail")) {
         if (this.#controls.get(control) === null) control.removeAttribute("tabindex");
         continue;
       }
@@ -331,7 +332,7 @@ class Grid extends IzzyElement {
     if (stale || !this.#chosen) {
       const body = this.#bodyRows[0] ?? this.#rows[0];
       this.#current = (body && (this.#visibleCells(body)[0] ?? body.cells[0])) ?? null;
-    } else if (this.#current && !this.#current.checkVisibility() && table.checkVisibility()) {
+    } else if (this.#current && !this.#current.checkVisibility({ visibilityProperty: true }) && table.checkVisibility()) {
       this.#current = this.#atColumn(this.#current.parentElement as HTMLTableRowElement, this.#columnOf(this.#current)) ?? this.#current;
     }
     if (this.#current && !this.#inside) this.#targetOf(this.#current).tabIndex = 0;
@@ -370,9 +371,9 @@ class Grid extends IzzyElement {
     if (padding) box!.style.removeProperty("scroll-padding-inline");
   }
 
-  // Not the cells of a column hidden at this width, nor a group level's empty lead.
+  // Not the cells of a column hidden at this width (kept in place, at no width), nor a group level's empty lead.
   #visibleCells(row: HTMLTableRowElement): HTMLTableCellElement[] {
-    return [...row.cells].filter((cell) => cell.checkVisibility() && !cell.matches(".ib-grid-lead:empty"));
+    return [...row.cells].filter((cell) => cell.checkVisibility({ visibilityProperty: true }) && !cell.matches(".ib-grid-lead:empty"));
   }
 
   /** The visible cell of a row nearest a column, counting spans. */

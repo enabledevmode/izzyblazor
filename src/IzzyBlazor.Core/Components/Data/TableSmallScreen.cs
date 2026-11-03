@@ -24,8 +24,8 @@ public partial class Table<TItem>
     /// <summary>
     /// What it does when it's narrow: <see cref="TableSmallScreen.Scroll"/> (the default) scrolls
     /// sideways; <see cref="TableSmallScreen.Stack"/> makes each row a card of lines, a column's title
-    /// beside its value, with the header's sort and filter buttons in a row above. It goes by the
-    /// table's own width, below <see cref="Breakpoint"/>.
+    /// beside its value, with the column titles and their sort and filter buttons in a row above. It goes by the
+    /// table's own width, below <see cref="StackBelow"/>.
     /// </summary>
     [Parameter] public TableSmallScreen SmallScreen { get; set; }
 
@@ -33,7 +33,7 @@ public partial class Table<TItem>
     /// With <see cref="TableSmallScreen.Stack"/>, the table's width below which it stacks, such as
     /// <c>Length.Rem(40)</c>. Defaults to about what its columns need: each one's <c>Width</c>, or 8rem.
     /// </summary>
-    [Parameter] public Length? Breakpoint { get; set; }
+    [Parameter] public Length? StackBelow { get; set; }
 
     /// <summary>
     /// A CSP nonce for the style element that holds where it stacks. Defaults to the
@@ -54,6 +54,16 @@ public partial class Table<TItem>
     internal override string? StackRole(string role) => Stacks ? role : null;
 
     /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (StackBelow is not null && SmallScreen != TableSmallScreen.Stack)
+        {
+            throw new InvalidOperationException($"The Table sets {nameof(StackBelow)}, which only a Table with {nameof(SmallScreen)}=\"Stack\" takes.");
+        }
+    }
+
+    /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         // It goes by the width it's given, so it takes all of it rather than its columns' width.
@@ -65,7 +75,7 @@ public partial class Table<TItem>
     {
         get
         {
-            if (Breakpoint is { } set)
+            if (StackBelow is { } set)
             {
                 return StyleValues.Length(set);
             }
@@ -83,10 +93,11 @@ public partial class Table<TItem>
         css.Append(CultureInfo.InvariantCulture, $"{t},{t}>*,{t}>*>tr{{display:block}}");
         // The header's buttons, in a row that wraps.
         css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ib-space-1) var(--ib-space-3);padding:var(--ib-table-py) var(--ib-table-px);border-block-end:1px solid var(--ib-color-border)}}");
-        css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr>th{{display:block;padding:0;border:0}}");
+        css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr>th{{display:block;width:auto;padding:0;border:0}}");
         css.Append(CultureInfo.InvariantCulture, $"{rows}{{padding-block:var(--ib-table-py);border-block-end:1px solid var(--ib-color-border)}}{rows}:last-child{{border-block-end:0}}");
-        css.Append(CultureInfo.InvariantCulture, $"{rows}>td{{display:flex;justify-content:space-between;gap:var(--ib-space-3);padding-block:var(--ib-space-1);border:0;text-align:end}}");
-        css.Append(CultureInfo.InvariantCulture, $"{rows}>td:not([colspan])::before{{color:var(--ib-color-muted);text-align:start}}");
+        // The title floats at the start, and the cell's content, however many parts, flows at the end.
+        css.Append(CultureInfo.InvariantCulture, $"{rows}>td{{display:flow-root;padding-block:var(--ib-space-1);border:0;text-align:end}}");
+        css.Append(CultureInfo.InvariantCulture, $"{rows}>td:not([colspan])::before{{float:inline-start;margin-inline-end:var(--ib-space-3);color:var(--ib-color-muted);text-align:start}}");
 
         // Each column's title beside its value: one rule a column, not a label on every cell. The
         // alternative text keeps screen readers from reading it as well as the column's header.

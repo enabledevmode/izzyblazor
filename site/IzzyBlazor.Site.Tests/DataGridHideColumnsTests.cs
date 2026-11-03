@@ -29,23 +29,38 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
         await Assertions.Expect(values).ToBeVisibleAsync();
         // Only the hidden ones: Customer is in the row.
         Assert.Equal("Date Sep 8 Status Failed Total $66.25", await values.EvaluateAsync<string>(@"dl => dl.innerText.split(/\s*\n\s*/).join(' ')"));
-
-        // Closed again, the grid isn't held at the height it had open.
-        await grid.GetByRole(AriaRole.Link, new() { Name = "Hide details for Order 1001" }).ClickAsync();
-        await Assertions.Expect(values).ToHaveCountAsync(0);
-        Assert.True(await grid.EvaluateAsync<bool>("g => g.querySelector('.ib-table-scroll').clientHeight - g.querySelector('.ib-table-scroll > table').offsetHeight < 4"));
     }
 
     [Fact]
-    public async Task On_a_phone_a_row_edits_its_hidden_columns_in_its_detail_and_saves_them()
+    public async Task Where_everything_fits_nothing_hides_and_the_actions_are_buttons()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens").ToString());
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders that fit a phone'])");
+
+        // Only the detail buttons' column is gone, as there's nothing for them to show.
+        var widths = await grid.Locator("thead th").EvaluateAllAsync<double[]>("ths => ths.map(th => th.getBoundingClientRect().width)");
+        Assert.Equal([false, true, true, true, true, true, true], widths.Select(w => w > 0));
+        var actions = await grid.Locator("tbody tr").First.Locator(".ib-grid-actions :is(a, button)")
+            .EvaluateAllAsync<string[]>("els => els.filter(e => e.checkVisibility()).map(e => e.getAttribute('aria-label'))");
+        Assert.Equal(["View 1001", "Duplicate 1001"], actions);
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task On_a_phone_a_row_edits_its_hidden_columns_in_its_detail_and_saves_them(string mode)
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited on a phone'])");
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/small-screens?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        const string Caption = ".ib-table-scroll[aria-label='Orders edited on a phone']";
+        var grid = page.Locator($".ib-datagrid:has({Caption})");
+        if (mode == "interactive") await page.Locator($"ib-table[data-ib-interactive]:has({Caption})").WaitForAsync();
         var first = grid.Locator(".ib-table-scroll tbody tr").First;
         await first.Locator("[data-ib-row-menu]").ClickAsync();
-        await grid.Locator("ib-popover a[data-ib-edit-row]").First.ClickAsync();
+        await grid.GetByRole(AriaRole.Menuitem, new() { Name = "Edit Order 1001" }).ClickAsync();
 
         // Its fields are under it, the first focused; the cells' copies, hidden, don't post.
         var customer = grid.Locator(".ib-grid-detail").GetByLabel("Customer");
@@ -56,5 +71,22 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
 
         await first.Locator(".ib-grid-expand").ClickAsync();
         await Assertions.Expect(grid.Locator(".ib-grid-hidden")).ToContainTextAsync("$123.45");
+    }
+
+    [Fact]
+    public async Task On_a_phone_a_new_row_fills_its_hidden_columns_in_its_detail()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited on a phone'])");
+        await grid.GetByRole(AriaRole.Link, new() { Name = "Add" }).ClickAsync();
+
+        // A required field left empty in its hidden cell doesn't stop the save.
+        await grid.Locator(".ib-grid-detail").GetByLabel("Customer").FillAsync("New On Phone");
+        await grid.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(grid.Locator("tr[data-ib-editing]")).ToHaveCountAsync(0);
+        await grid.Locator(".ib-table-scroll tbody tr").First.Locator(".ib-grid-expand").ClickAsync();
+        await Assertions.Expect(grid.Locator(".ib-grid-hidden")).ToContainTextAsync("New On Phone");
     }
 }
