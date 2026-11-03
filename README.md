@@ -47,7 +47,7 @@ Install the package in your server project:
 dotnet add package IzzyBlazor --prerelease
 ```
 
-Then add the stylesheet and the namespace, register the services and map the endpoints:
+Then add the stylesheet and the namespace, and register the services:
 
 ```razor
 @* App.razor, in <head> *@

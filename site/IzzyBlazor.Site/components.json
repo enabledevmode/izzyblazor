@@ -1477,7 +1477,7 @@
     },
 
     {
-      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "keywords": ["data grid", "datagrid", "grid"], "parts": ["PropertyColumn", "TemplateColumn"],
+      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "keywords": [], "parts": ["PropertyColumn", "TemplateColumn"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Selected rows post with a form" },
@@ -1600,7 +1600,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Edit, group, filter by row and arrange columns, with state in the URL.", "keywords": [],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Edit, group, filter by row and arrange columns, with state in the URL.", "keywords": ["data grid", "datagrid", "grid"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
