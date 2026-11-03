@@ -1286,6 +1286,16 @@
 
     private string CookieName => $"ib-grid-{LayoutKey}";
 
+    /// <summary>
+    /// Counts and aggregates for an <c>ItemsProvider</c>, which a column's <c>Aggregate</c> needs. It
+    /// gets one request for each level of groups, and one with no keys for the grand total. Answer
+    /// it from a query with <c>request.ToResultAsync</c>. With <c>Items</c>, the grid works these out itself.
+    /// </summary>
+    [Parameter] public Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsProvider { get; set; }
+
+    /// <inheritdoc />
+    internal override Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsSource => GroupsProvider;
+
     /// <inheritdoc />
     internal override string ViewName => "DataGrid";
 

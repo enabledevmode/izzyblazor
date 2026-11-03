@@ -86,6 +86,20 @@
 
     private bool HasFooterRow => Shown.Any(c => c.HasFooter);
 
+    // An aggregate's cell: the word, then the value.
+    internal RenderFragment AggregateCell(ColumnBase<TItem> column, DataGroup? group) => __builder =>
+    {
+        if (column.AggregateText(group) is { } value)
+        {
+            @if (column.AggregateWord(TextDefaults) is { Length: > 0 } word)
+            {
+                <span class="ib-grid-aggregate-word">@word</span>
+                @(" ")
+            }
+            @value
+        }
+    };
+
     private async ValueTask<ItemsProviderResult<VirtualRow>> LoadWindowAsync(ItemsProviderRequest window)
     {
         if (_loadedRequest is not { } basis)
@@ -314,7 +328,7 @@
                                 }
                                 @foreach (var column in Shown)
                                 {
-                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.HasFooter ? column.FooterCell : null)</td>
+                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.WrittenFooter ?? (column.HasFooter ? AggregateCell(column, _grandTotal) : null))</td>
                                 }
                                 @LastEmptyCell
                             </tr>

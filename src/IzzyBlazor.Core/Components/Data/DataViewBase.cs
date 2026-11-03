@@ -254,6 +254,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>The filter as a string that changes when it does, for a view that filters.</summary>
     internal virtual string FilterSignature() => "";
 
+    /// <summary>What else a load needs, past its rows: run with them, and kept only if they're still wanted.</summary>
+    internal virtual ValueTask<Action?> LoadWithRowsAsync(DataRequest<TItem> request) => ValueTask.FromResult<Action?>(null);
+
+    /// <summary>Why this view can't load as it's set up, or null when it can.</summary>
+    internal virtual string? LoadProblem => null;
+
     /// <summary>Adds the derived view's sort, filter and fields to a request, from the raw sort.</summary>
     internal virtual DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) => request;
 
@@ -625,6 +631,11 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal async Task LoadAsync()
     {
+        if (LoadProblem is { } problem)
+        {
+            throw new InvalidOperationException(problem);
+        }
+
         var (sortRaw, pageRaw, cursorRaw) = CurrentState();
         var pageSize = EffectivePageSize;
         // Always reload: the same list may have changed since the last render.
@@ -662,6 +673,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         int? total;
         string? next = null, previous = null;
         var noTotal = false;
+        Action? alongside = null;
         try
         {
             if (ItemsProvider is not null)
@@ -715,6 +727,8 @@ public abstract partial class DataViewBase<TItem> : IDisposable
                 items = [];
                 total = 0;
             }
+
+            alongside = await LoadWithRowsAsync(request);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
@@ -756,6 +770,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
         (_loadError, _moreError, _focusAfterRetry) = (null, false, false);
         (_items, _total, _page, _lastPage) = (items, total, page, page + shownPages - 1);
+        alongside?.Invoke();
         Loaded();
         // All of another filter or search isn't these items: clear it rather than let it grow.
         if (_selection.All && !_selection.MatchesScope(request.Filter, request.Search))
