@@ -272,6 +272,11 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>A page of groups, or null when it isn't grouped.</summary>
     internal virtual ValueTask<GroupedPage?> LoadGroupedAsync(DataRequest<TItem> request, int page, int? pageSize) => ValueTask.FromResult<GroupedPage?>(null);
 
+    /// <summary>State taken from the address once, as sort and page are, on a page that keeps it in the component.</summary>
+    internal virtual void SeedStateFromAddress()
+    {
+    }
+
     /// <summary>The rows loaded aren't in groups.</summary>
     internal virtual void NotGrouped()
     {
@@ -422,7 +427,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     }
 
     // The size when none has been chosen: PageSize, else the first option.
-    internal int? DefaultPageSize => PageSize ?? (PageSizeOptions is { Count: > 0 } o ? o[0] : null);
+    internal int? DefaultPageSize => PageSize ?? (PageSizeOptions is { Count: > 0 } o ? o[0] : GroupedNow ? 25 : null);
 
     // A ?size= from the URL, if it's one of the options.
     internal int? ReadSizeQuery() =>
@@ -500,6 +505,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
             _stateCursor = Cursor ?? (string.IsNullOrEmpty(cursorRaw) ? null : cursorRaw);
             _lastCursorParam = Cursor;
             SyncFilter(first: true);
+            SeedStateFromAddress();
             // A bound PageSize is the current size; otherwise it's the default, and the URL may pick another.
             _statePageSize = PageSizeChanged.HasDelegate ? PageSize : ReadSizeQuery();
             (_lastSortParam, _lastPageParam, _lastPageSizeParam, _stateReady) = (SortParameter, Page, PageSize, true);
@@ -694,7 +700,31 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         Action keepGroups = NotGrouped;
         try
         {
-            if (await LoadGroupedAsync(request, page, pageSize) is { } grouped)
+            // Its groups load from the provider too: the loading state shows while they do.
+            var loadingGroups = GroupedNow && ItemsProvider is not null;
+            if (loadingGroups)
+            {
+                _providerLoading = true;
+                if (RendererInfo.IsInteractive)
+                {
+                    StateHasChanged();
+                }
+            }
+
+            GroupedPage? groupedPage;
+            try
+            {
+                groupedPage = await LoadGroupedAsync(request, page, pageSize);
+            }
+            finally
+            {
+                if (loadingGroups && version == _loadVersion)
+                {
+                    _providerLoading = false;
+                }
+            }
+
+            if (groupedPage is { } grouped)
             {
                 (items, total, page, keepGroups) = (grouped.Items, grouped.Total, grouped.Page, grouped.Keep);
             }

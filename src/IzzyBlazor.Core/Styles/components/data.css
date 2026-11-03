@@ -359,7 +359,7 @@
   }
 
   /* RowLines=false: the lines turn transparent rather than going, so rows keep their height. */
-  .ib-table-no-row-lines .ib-table-grid > tbody > * > td {
+  .ib-table-no-row-lines .ib-table-grid > tbody > * > :is(td, th) {
     border-bottom-color: transparent;
   }
 
@@ -399,7 +399,7 @@
 
   /* A state layer over the cell's own background, so it shows on striped rows too. A row that's a link
      always has it, as all of it can be clicked; for the rest it's asked for, and an edit has its own. */
-  .ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
+  .ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, .ib-grid-group, .ib-grid-group-foot, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
   .ib-table-grid > tbody > tr.ib-table-row-linked:hover > td {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
@@ -1568,12 +1568,15 @@
     border-bottom-color: var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
     overflow: visible;
     padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
-    background-color: var(--ib-color-surface-sunken);
     text-align: start;
-    font-weight: var(--ib-weight-semibold);
   }
 
-  :is(.ib-grid-group, .ib-grid-group-foot) > td {
+  /* Above striping: a group's row is one color, frozen cells too. */
+  .ib-grid-group, .ib-grid-group-foot {
+    --ib-frozen-bg: var(--ib-color-surface-sunken);
+  }
+
+  .ib-datagrid .ib-table-grid > tbody > tr:is(.ib-grid-group, .ib-grid-group-foot) > :is(td, th) {
     background-color: var(--ib-color-surface-sunken);
     font-weight: var(--ib-weight-semibold);
   }
@@ -1602,6 +1605,14 @@
 
   .ib-grid-group-toggle[aria-expanded="true"] > svg {
     rotate: 90deg;
+  }
+
+  .ib-grid-group-toggle > svg:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-grid-group-toggle[aria-expanded="true"] > svg:dir(rtl) {
+    rotate: -90deg;
   }
 
   :is(.ib-grid-group-column, .ib-grid-group-count) {

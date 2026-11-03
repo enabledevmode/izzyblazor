@@ -91,7 +91,7 @@ export function installFocusRescue(): void {
     const record = records.find((r) => [...r.removedNodes].some((n) => n === lost || n.contains(lost)));
     // Toasts move focus themselves, and the region puts its own toasts back.
     // A grid puts focus back in the same row and column itself.
-    if (!record || (record.target instanceof Element && record.target.closest("ib-toasts, table[role=grid]"))) return;
+    if (!record || (record.target instanceof Element && record.target.closest("ib-toasts, table:is([role=grid], [role=treegrid])"))) return;
     rescue(record);
   }).observe(document.documentElement, { childList: true, subtree: true });
 }

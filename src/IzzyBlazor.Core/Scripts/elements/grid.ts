@@ -98,7 +98,16 @@ class Grid extends IzzyElement {
     this.#on(table, "keydown", (event) => this.#onKey(event as KeyboardEvent), signal, true);
     this.#on(table, "focusin", (event) => this.#onFocusIn(event as FocusEvent), signal);
     this.#on(table, "focusout", (event) => this.#onFocusOut(event as FocusEvent), signal);
-    this.#on(table, "change", () => this.#syncSelected(), signal);
+    this.#on(table, "change", (event) => {
+      // A group's box ticks the rows drawn under it, and they report their own changes. Each click
+      // comes back here, and would change the box along the way.
+      const box = event.target as HTMLInputElement;
+      if (box.matches(".ib-table-group-select")) {
+        const on = box.checked;
+        for (const own of this.#underGroup(box)) if (!own.disabled && own.checked !== on) own.click();
+      }
+      this.#syncSelected();
+    }, signal);
     setupContextMenu(table, "tbody > tr, thead > tr > th", "[data-ib-row-menu], [data-ib-menu]", () => true, signal);
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
     this.#on(document, "pointerdown", (event) => {
@@ -455,7 +464,7 @@ class Grid extends IzzyElement {
       this.#window(rows);
       return;
     }
-    const data = this.#bodyRows.filter((row) => row.cells.length > 1);
+    const data = this.#bodyRows.filter((row) => row.cells.length > 1 || row.dataset.ibKey);
     if (this.#arrive && data[0] && data[0].dataset.ibKey !== this.#arrive.from) {
       const row = this.#arrive.to === "first" ? data[0] : data[data.length - 1];
       this.#arrive = null;

@@ -1320,15 +1320,19 @@
     private RenderFragment GroupRow(GroupNode node) => __builder =>
     {
         // The label spans up to the first aggregate, which sits in its own column.
-        var first = GroupAggregates == DataGridGroupAggregates.Footer ? -1 : Shown.ToList().FindIndex(c => c.EffectiveAggregate is not null);
-        var span = first < 0 ? Shown.Count : Math.Max(1, first);
+        var shown = Shown.ToList();
+        var inRow = GroupAggregates == DataGridGroupAggregates.Row;
+        var first = inRow ? shown.FindIndex(c => c.EffectiveAggregate is not null) : -1;
+        // One in the first column has no cell of its own: it goes beside the count.
+        var next = first == 0 ? shown.FindIndex(1, c => c.EffectiveAggregate is not null) : first;
+        var span = next < 0 ? shown.Count : next;
         var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
         <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize" style="--ib-group-depth:@node.Depth">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
                     @* Its rows, when they're drawn: the script ticks them, and they report their own changes. *@
-                    @if (MultiSelect && node.Open)
+                    @if (MultiSelect && node.Open && HasRows(node))
                     {
                         <input type="checkbox" class="ib-check-input ib-table-group-select" aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupSelect, value)" />
                     }
@@ -1352,6 +1356,10 @@
                         </a>
                     }
                     <span class="ib-grid-group-count">@node.Group.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)</span>
+                    @if (first == 0)
+                    {
+                        <span class="ib-grid-group-count">@AggregateCell(shown[0], node.Group)</span>
+                    }
                 </span>
             </th>
             @foreach (var column in Shown.Skip(span))
@@ -1389,7 +1397,7 @@
 
             if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
             {
-                <tr class="ib-grid-group-more" style="--ib-group-depth:@(node.Depth + 1)">
+                <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)" style="--ib-group-depth:@(node.Depth + 1)">
                     <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + (LastEmptyCell is null ? 0 : 1))">
                         @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupShowing, node.Rows.Count, node.Group.Count)
                         @if (OnlyThisGroup(node) is { } only)
@@ -1876,7 +1884,8 @@
         // Rows follow their groups, though a file has none.
         var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
         // Only real keys: a title can hold a comma, and no field has one for a key.
-        var columns = "columns=" + string.Join(",", Shown.Where(c => c.Key is not null).Select(c => Uri.EscapeDataString(c.Key!)));
+        // A grouped column left the table, not the file.
+        var columns = "columns=" + string.Join(",", Grouping.Levels.Select(l => l.Column).Concat(Shown).Distinct().Where(c => c.Key is not null).Select(c => Uri.EscapeDataString(c.Key!)));
         // A fragment would swallow the query, and means nothing to a download.
         href = href.Split('#')[0];
         return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + (request.Length > 0 ? request + "&" : "") + columns;

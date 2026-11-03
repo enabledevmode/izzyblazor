@@ -85,7 +85,7 @@ public partial class DataGrid<TItem>
 
     private string? _stateGroup;
     private bool _stateGroupSet;
-    private IReadOnlyList<string> _stateOpen = [];
+    private IReadOnlyList<string>? _stateOpen;
 
     private List<GroupNode>? _groupRoots;
 
@@ -155,15 +155,26 @@ public partial class DataGrid<TItem>
     {
         {
             var query = UseState ? null : QueryString.Of(Navigation.Uri);
-            var text = UseState
-                ? GroupChanged.HasDelegate ? Group : _stateGroupSet ? _stateGroup : Group ?? InitialGroup
-                : Groupable && query!.TryGetValue(GroupKey, out var inAddress) ? inAddress.ToString() : Group ?? InitialGroup;
+            // What the page says can be anything; what's in an address only what people could choose.
+            string? text;
+            bool chosen;
+            if (UseState)
+            {
+                chosen = !GroupChanged.HasDelegate && _stateGroupSet;
+                text = GroupChanged.HasDelegate ? Group ?? InitialGroup : chosen ? _stateGroup : Group ?? InitialGroup;
+            }
+            else
+            {
+                chosen = query!.TryGetValue(GroupKey, out var inAddress) && TakesAddressGroup(inAddress.ToString());
+                text = chosen ? query[GroupKey].ToString() : Group ?? InitialGroup;
+            }
 
             var levels = new List<GroupLevel>();
             foreach (var token in SortField.ParseList(text))
             {
                 if (levels.Count < DataGroupRequest<TItem>.MaxLevels
                     && Columns.FirstOrDefault(c => c.CanGroup && string.Equals(c.GroupToken, token.Key, StringComparison.OrdinalIgnoreCase)) is { } column
+                    && (!chosen || column.Visible || column.Pickable)
                     && levels.All(l => l.Column != column))
                 {
                     levels.Add(new GroupLevel(column, column.GroupField, token.Descending));
@@ -173,7 +184,7 @@ public partial class DataGrid<TItem>
             IReadOnlyList<string> open, shut;
             if (UseState)
             {
-                var list = OpenGroupsChanged.HasDelegate ? OpenGroups ?? [] : _stateOpen.Count > 0 || OpenGroups is null ? _stateOpen : OpenGroups;
+                var list = OpenGroupsChanged.HasDelegate ? OpenGroups ?? [] : _stateOpen ?? OpenGroups ?? [];
                 open = list.Where(p => !p.StartsWith('!')).Take(MaxOpenPaths).ToList();
                 shut = list.Where(p => p.StartsWith('!')).Select(p => p[1..]).Take(MaxOpenPaths).ToList();
             }
@@ -191,10 +202,12 @@ public partial class DataGrid<TItem>
     // A value's place in a path: invariant, escaped, with its own tokens for no value and an empty one.
     private static string PathPart(object? value)
     {
+        // The same in any culture, so a shared link opens the same group.
         var text = value switch
         {
             null => null,
-            DateTime d => d.ToString("O", CultureInfo.InvariantCulture),
+            DateOnly or bool => FilterConvert.Format(value),
+            DateTime d => d.TimeOfDay == TimeSpan.Zero ? FilterConvert.Format(d) : d.ToString("O", CultureInfo.InvariantCulture),
             DateTimeOffset d => d.ToString("O", CultureInfo.InvariantCulture),
             IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
             _ => value.ToString(),
@@ -235,16 +248,18 @@ public partial class DataGrid<TItem>
         };
 
         // The page's top-level groups, and how many there are in all.
-        var top = Asking(1) with { Skip = pageSize is { } size ? (page - 1) * size : 0, Take = pageSize ?? MaxGroupsOnALevel, NeedsTotal = true };
+        var skip = pageSize is { } size ? (page - 1) * size : 0;
+        var top = Asking(1) with { Skip = skip, Take = pageSize ?? MaxGroupsOnALevel, NeedsTotal = true };
         var result = await LoadGroupsAsync(top);
         var total = result.Total ?? (pageSize is null ? result.Groups.Count : throw new InvalidOperationException($"The DataGrid's {nameof(GroupsProvider)} returned no {nameof(DataGroupResult.Total)}, which pages of groups need."));
         if (result.Groups.Count == 0 && total > 0 && pageSize is { } last && page > LastPage(total, last))
         {
             page = LastPage(total, last);
-            result = await LoadGroupsAsync(top with { Skip = (page - 1) * last });
+            skip = (page - 1) * last;
+            result = await LoadGroupsAsync(top with { Skip = skip });
         }
 
-        var roots = Nodes(result.Groups, state, 0, "", top.Skip, total);
+        var roots = Nodes(result.Groups, state, 0, "", skip, total);
 
         // Each deeper level under the groups open above it, in one request.
         var above = roots;
@@ -261,10 +276,14 @@ public partial class DataGrid<TItem>
             {
                 Filter = And(request.Filter, IzzyBlazor.Filter.Any(parents.Select(p => PathFilter(PathOf(p, state))).ToArray<IzzyBlazor.Filter>())),
             });
+            // By the exact path, or ignoring case when the database's comparison does, and it wrote the
+            // value differently this time. Two values that differ by case keep their own children.
+            var mine = under.Groups.Where(g => g.Keys.Count > depth).GroupBy(g => ParentPath(g, depth, state), StringComparer.Ordinal)
+                .ToLookup(g => (parents.FirstOrDefault(p => p.Path == g.Key) ?? parents.FirstOrDefault(p => string.Equals(p.Path, g.Key, StringComparison.OrdinalIgnoreCase)))?.Path);
             foreach (var parent in parents)
             {
-                var mine = under.Groups.Where(g => g.Keys.Count > depth && SamePath(ParentPath(g, depth, state), parent.Path)).ToList();
-                parent.Children.AddRange(Nodes(mine, state, depth, parent.Path + "/", 0, mine.Count));
+                var children = mine[parent.Path].SelectMany(g => g).ToList();
+                parent.Children.AddRange(Nodes(children, state, depth, parent.Path + "/", 0, children.Count));
                 above.AddRange(parent.Children);
             }
         }
@@ -350,7 +369,7 @@ public partial class DataGrid<TItem>
                 return null;
             }
 
-            filters.Add((column, value is IFormattable f ? f.ToString(null, CultureInfo.InvariantCulture) : value.ToString() ?? ""));
+            filters.Add((column, FilterConvert.Format(value)));
         }
 
         return filters;
@@ -372,7 +391,7 @@ public partial class DataGrid<TItem>
             await SetEqualsFilterAsync(column, value);
         }
 
-        await SetGroupAsync(null);
+        await SetGroupAsync("");
     }
 
     private async Task ToggleGroupAsync(GroupNode node)
@@ -380,7 +399,7 @@ public partial class DataGrid<TItem>
         var state = Grouping;
         var list = state.AllOpen
             ? (Toggled(state.Shut, node.Path, node.Open) ?? []).Select(p => "!" + p).Prepend("*").ToList()
-            : (Toggled(state.Open, node.Path, !node.Open) ?? []).ToList();
+            : (Toggled(state.Open, node.Path, !node.Open) ?? []).Concat(GroupsOpen ? ["!*"] : []).ToList();
         _stateOpen = list;
         await OpenGroupsChanged.InvokeAsync(list);
         await ReloadIfStaleAsync();
@@ -403,7 +422,33 @@ public partial class DataGrid<TItem>
         await ReloadIfStaleAsync();
     }
 
-    private bool CanGroupBy(ColumnBase<TItem> column) => Groupable && column.CanGroup;
+    private bool CanGroupBy(ColumnBase<TItem> column) => Groupable && GroupsAvailable && column.CanGroup;
+
+    // Without a GroupsProvider there's nothing to ask for groups, so the address can't start any.
+    private bool GroupsAvailable => ItemsProvider is null || GroupsProvider is not null;
+
+    // Whether the address's grouping counts. Empty does on any grid, as it's what "Show only this group" writes.
+    private bool TakesAddressGroup(string text) => text.Length == 0 || (Groupable && GroupsAvailable);
+
+    /// <inheritdoc />
+    internal override void SeedStateFromAddress()
+    {
+        var query = QueryString.Of(Navigation.Uri);
+        if (!GroupChanged.HasDelegate && query.TryGetValue(GroupKey, out var group) && TakesAddressGroup(group.ToString()))
+        {
+            (_stateGroup, _stateGroupSet) = (group.ToString(), true);
+        }
+
+        if (!OpenGroupsChanged.HasDelegate && (query.ContainsKey(OpenKey) || query.ContainsKey(ShutKey)))
+        {
+            var open = query.TryGetValue(OpenKey, out var o) ? o.OfType<string>() : [];
+            var shut = query.TryGetValue(ShutKey, out var s) ? s.OfType<string>().Select(p => "!" + p) : [];
+            _stateOpen = [.. open, .. shut];
+        }
+    }
+
+    // Whether its checkbox has anything to tick.
+    private static bool HasRows(GroupNode node) => node.Rows.Count > 0 || node.Children.Any(HasRows);
 
     // The grouping with this column added at the end, or taken out.
     private string GroupTextWith(ColumnBase<TItem> column, bool on)

@@ -11,13 +11,13 @@ public abstract partial class TableViewBase<TItem>
     internal virtual Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsSource => null;
 
     private protected List<DataAggregateField> AggregateFields() =>
-        Shown.Where(c => c.EffectiveAggregate is not null).Select(c => new DataAggregateField(c.AggregateKey, c.EffectiveAggregate!.Value)).ToList();
+        _columns.Where(c => c.EffectiveAggregate is not null).Select(c => new DataAggregateField(c.AggregateKey, c.EffectiveAggregate!.Value)).ToList();
 
     /// <inheritdoc />
     internal override string? LoadProblem =>
         ItemsProvider is null || GroupsSource is not null ? null
         : GroupedNow ? $"A {ViewName} that groups and has an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
-        : Shown.Any(c => c.EffectiveAggregate is not null) ? $"A {ViewName} with an {nameof(ColumnBase<TItem>.Aggregate)} and an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
+        : _columns.Any(c => c.EffectiveAggregate is not null) ? $"A {ViewName} with an {nameof(ColumnBase<TItem>.Aggregate)} and an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
         : null;
 
     /// <summary>The rows in their groups, in place of the rows; null when there are no groups to draw.</summary>

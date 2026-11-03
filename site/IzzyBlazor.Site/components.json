@@ -1565,7 +1565,7 @@
         { "feature": "Column widths and sideways scrolling, set by the server" },
         { "feature": "Frozen columns" },
         { "feature": "Groups from all the data, a page of them, each opened by a link", "member": "Groupable" },
-        { "feature": "Aggregates over everything the filters match, in the footer and on groups", "member": "GroupsProvider" },
+        { "feature": "Aggregates over everything the filters match, in the footer and on groups" },
         { "feature": "Virtual rows on interactive pages, loading on scroll on static ones", "member": "Virtualize" },
         { "feature": "A toolbar with search in the address, its tools placed among yours" },
         { "feature": "CSV and Excel export, streamed from an endpoint you map", "member": "ExportCsvHref" },
