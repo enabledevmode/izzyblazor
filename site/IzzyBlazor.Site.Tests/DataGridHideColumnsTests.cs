@@ -13,12 +13,16 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens").ToString());
         var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders that fit a phone'])");
 
-        // Order and Customer stay; the rest are there at no width, and nothing scrolls sideways.
+        // Order, Customer and the actions stay; the rest are there at no width, and nothing scrolls sideways.
         var widths = await grid.Locator("thead th").EvaluateAllAsync<double[]>("ths => ths.map(th => th.getBoundingClientRect().width)");
-        Assert.Equal(6, widths.Length);
-        Assert.Equal([true, true, true, false, false, false], widths.Select(w => w > 0));
+        Assert.Equal([true, true, true, false, false, false, true], widths.Select(w => w > 0));
         var box = grid.Locator(".ib-table-scroll");
         Assert.True(await box.EvaluateAsync<bool>("b => b.scrollWidth <= b.clientWidth"));
+
+        // The row's actions are in its ⋮ now.
+        var actions = await grid.Locator("tbody tr").First.Locator(".ib-grid-actions :is(a, button)")
+            .EvaluateAllAsync<string[]>("els => els.filter(e => e.checkVisibility()).map(e => e.getAttribute('aria-label'))");
+        Assert.Equal(["Actions for Order 1001"], actions);
 
         await grid.GetByRole(AriaRole.Link, new() { Name = "Show details for Order 1001" }).ClickAsync();
         var values = grid.Locator(".ib-grid-hidden");

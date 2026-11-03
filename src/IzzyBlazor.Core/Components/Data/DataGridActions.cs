@@ -31,7 +31,13 @@ public sealed class DataGridDelete<TItem>
 /// <summary>Where a row's action shows in a <c>DataGrid</c>'s <see cref="ActionColumn{TItem}"/>.</summary>
 public enum RowActionOverflow
 {
-    /// <summary>A button in the row. The default.</summary>
+    /// <summary>
+    /// A button in the row, until the grid hides columns to fit (<c>DataGridSmallScreen.HideColumns</c>);
+    /// then in the row's ⋮ menu. The default.
+    /// </summary>
+    Auto,
+
+    /// <summary>A button in the row, always.</summary>
     Never,
 
     /// <summary>In the row's ⋮ menu.</summary>
@@ -77,7 +83,7 @@ public sealed class ActionColumn<TItem> : ComponentBase
 }
 
 /// <summary>What a row's actions draw: as buttons, or in its menu.</summary>
-internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete);
+internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, bool Folds, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete);
 
 /// <summary>An action in a <c>DataGrid</c>'s <see cref="ActionColumn{TItem}"/>: drawn once as a button or a menu item, by where it shows.</summary>
 public abstract class RowActionBase : ComponentBase
@@ -100,20 +106,36 @@ public abstract class RowActionBase : ComponentBase
             throw new InvalidOperationException($"{GetType().Name} must be inside an ActionColumn.");
         }
 
-        if (Visible && (Overflow ?? scope.Overflow) == RowActionOverflow.Always == scope.InMenu)
+        if (!Visible)
+        {
+            return;
+        }
+
+        var overflow = Overflow ?? scope.Overflow;
+        if (overflow == RowActionOverflow.Auto && scope.Folds)
+        {
+            // Drawn in both places; the grid's style shows the button while every column shows,
+            // and the menu's item once one is hidden.
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", scope.InMenu ? "ib-fold-off" : "ib-fold-on");
+            Draw(builder, scope);
+            builder.CloseElement();
+        }
+        else if ((overflow == RowActionOverflow.Always) == scope.InMenu)
         {
             Draw(builder, scope);
         }
     }
 
     // What a row's actions come to, read without drawing them, as a toolbar's items are.
-    internal static (int Buttons, bool Menu) Count(RenderFragment content, RowActionOverflow fallback, bool canEdit, bool canDelete)
+    // Folding: the grid hides columns, so Auto ones move into the menu then (Auto counts them).
+    internal static (int Buttons, bool Menu, int Auto) Count(RenderFragment content, RowActionOverflow fallback, bool canEdit, bool canDelete, bool folds)
     {
 #pragma warning disable BL0006
         using var builder = new RenderTreeBuilder();
         content(builder);
         var frames = builder.GetFrames();
-        var (buttons, menu) = (0, false);
+        var (buttons, menu, auto) = (0, false, 0);
         for (var i = 0; i < frames.Count; i++)
         {
             ref var frame = ref frames.Array[i];
@@ -151,13 +173,17 @@ public abstract class RowActionBase : ComponentBase
             {
                 menu = true;
             }
+            else if (visible && overflow == RowActionOverflow.Auto && folds)
+            {
+                auto++;
+            }
             else if (visible)
             {
                 buttons++;
             }
         }
 #pragma warning restore BL0006
-        return (buttons, menu);
+        return (buttons, menu, auto);
     }
 }
 

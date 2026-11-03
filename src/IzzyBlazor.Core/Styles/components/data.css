@@ -1227,6 +1227,11 @@
     padding-inline: var(--ib-space-2);
   }
 
+  /* An action drawn as a button and as a menu item; the grid's style shows one (DataGridSmallScreen). */
+  span:is(.ib-fold-on, .ib-fold-off) {
+    display: contents;
+  }
+
   .ib-datagrid .ib-table-grid {
     table-layout: fixed;
   }

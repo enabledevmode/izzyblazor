@@ -76,7 +76,8 @@
 
     `ActionColumn` holds a row's actions in a last column: EditAction, DeleteAction and your own
     RowActions, each a button, or with Overflow="RowActionOverflow.Always" in a ⋮ menu, which works
-    with no script. A grid with editing has one by itself. With script a right-click on the row, a long
+    with no script. In a grid that hides columns, buttons move into the menu once one is hidden, unless
+    they say `Never`. A grid with editing has one by itself. With script a right-click on the row, a long
     press, Shift+F10 or the menu key opens the row's menu. It acts on the row it opened on, and doesn't
     change the selection; actions on the selection go in the bar. A right-click on a link keeps the
     browser's menu, with its "open in new tab": that includes the whole of a row with RowHref, whose ⋮
@@ -862,7 +863,7 @@
 
     private RenderFragment ActionsOf(TItem item) => ActionColumn?.ChildContent is { } written ? written(item) : AutoActions;
 
-    private RowActionOverflow ActionOverflow => ActionColumn?.Overflow ?? RowActionOverflow.Never;
+    private RowActionOverflow ActionOverflow => ActionColumn?.Overflow ?? RowActionOverflow.Auto;
 
     private RenderFragment AutoActions => builder =>
     {
@@ -949,9 +950,9 @@
     };
 
     private RowActionScope ScopeOf(TItem item, bool inMenu) =>
-        new(inMenu, ActionOverflow, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
+        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
 
-    private (int Buttons, bool Menu) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item) && !InCell, CanDeleteRow(item));
+    private (int Buttons, bool Menu, int Auto) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item) && !InCell, CanDeleteRow(item), Hiding);
 
     bool IDataGridToolbar.HasAdd => CanAdd;
 
@@ -1881,11 +1882,13 @@
                 {
                     <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
                 }
-                @if (!edited && ActionCount(item).Menu)
+                @{ var count = edited ? default : ActionCount(item); }
+                @if (count.Menu || count.Auto > 0)
                 {
+                    @* With only buttons that fold, the ⋮ shows once they're in it. *@
                     <Menu>
                         <Trigger Context="wire">
-                            <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)"
+                            <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
                                         Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
                         </Trigger>
                         <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
@@ -2201,7 +2204,7 @@
             }
             @for (var i = 0; i < Shown.Count; i++)
             {
-                <col class="@HideClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+                <col class="@ColClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
             }
             @if (HasActionCell)
             {
@@ -2216,7 +2219,17 @@
     {
         get
         {
-            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
+            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu, auto) ? count + auto + (menu ? 1 : 0) : 0);
+            return InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
+        }
+    }
+
+    // The same once columns hide, and buttons that fold are in the ⋮.
+    private int FoldedActionButtons
+    {
+        get
+        {
+            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu, auto) ? count + (menu || auto > 0 ? 1 : 0) : 0);
             return InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
         }
     }
