@@ -10,7 +10,7 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens").ToString());
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/adaptability").ToString());
         var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders that fit a phone'])");
 
         // Order, Customer and the actions stay; the rest are there at no width, and nothing scrolls sideways.
@@ -36,7 +36,7 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens").ToString());
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/adaptability").ToString());
         var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders that fit a phone'])");
 
         // Only the detail buttons' column is gone, as there's nothing for them to show.
@@ -54,7 +54,7 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/small-screens?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/adaptability?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         const string Caption = ".ib-table-scroll[aria-label='Orders edited on a phone']";
         var grid = page.Locator($".ib-datagrid:has({Caption})");
         if (mode == "interactive") await page.Locator($"ib-table[data-ib-interactive]:has({Caption})").WaitForAsync();
@@ -78,7 +78,7 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/small-screens?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/adaptability?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited on a phone'])");
         await grid.GetByRole(AriaRole.Link, new() { Name = "Add" }).ClickAsync();
 
