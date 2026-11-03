@@ -1,0 +1,12 @@
+@* AppShell's Width and scrolling page, moved from its Overview: a reading column and desktop-app
+   scrolling, each a page of its own in a frame with a phone width. *@
+
+<Heading Level="2">A reading column</Heading>
+<TextBlock>Use <Code>ContentWidth</Code> to center the content of the header, the main area and the footer on one column, such as <Code>Length.Rem(42)</Code> for articles, while the bars and their lines stay full width.</TextBlock>
+<ExampleViewer Example="app-shell-reading" WidthSwitch />
+<TextBlock>A part's own <Code>ContentWidth</Code> wins over the shell's, for a wider header over a narrow article, and a <Anchor Href="docs/components/section">Section</Anchor> in the main area still spans it, for a band of color from edge to edge.</TextBlock>
+
+<Heading Level="2">Scrolling like a desktop app</Heading>
+<TextBlock>Use <Code>ScrollMode="ShellScroll.Main"</Code> to fill the window and scroll only the main area, so the header, the sidebar and the footer never move.</TextBlock>
+<ExampleViewer Example="app-shell-inbox" WidthSwitch />
+<TextBlock>With the default, <Code>ShellScroll.Page</Code>, the window scrolls as on any web page: the header stays at the top and the sidebar's and aside's content stays in view beside the page.</TextBlock>

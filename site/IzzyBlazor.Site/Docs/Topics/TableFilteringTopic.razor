@@ -1,0 +1,35 @@
+@* Table's Filtering page, moved from its Overview: the column filters, lists of values, the address,
+   operators, and filters in code. *@
+
+<Heading Level="2">Column filters</Heading>
+<TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, a date its day, enums and booleans get a list of checkboxes, and a number takes a range: at least, at most, or both.</TextBlock>
+<ExampleViewer Example="table-filters" />
+<TextBlock>The funnel is marked while its column is filtered, and Clear in its panel removes that filter. Use <Code>FilterPanel</Code> for a row below the table that lists every filter, with Clear for all of them; it's always there, so filtering doesn't move anything.</TextBlock>
+
+<Heading Level="2">Lists of values</Heading>
+<TextBlock>An enum or bool column's filter is a list of checkboxes. Every box ticked is no filter, and none ticked shows no rows.</TextBlock>
+<ExampleViewer Example="table-filter-lists" />
+<TextBlock>A text column can list its values too. <Code>FilterList</Code> reads them from <Code>Items</Code>, and <Code>FilterValues</Code> finds them yourself, as from a database, with <Code>FilterValuesRequest.ToResultAsync</Code> doing the work. Each list shows what the other filters leave, and keeps what's ticked listed so it can be unticked.</TextBlock>
+<ExampleViewer Example="table-filter-values" />
+
+<Heading Level="2">Filters in the address</Heading>
+<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (in the example above, <Code>?orders-f-customer=ada</Code>: that table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the others on the page, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total=100&amp;f-total-to=500</Code>, so the form needs no script. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
+
+<Heading Level="2">Choosing an operator</Heading>
+<TextBlock>Use <Code>FilterOperators</Code> to choose an operator in a column's filter, as a DataGrid's columns do by default, or to limit the ones it offers. The first is the default, and a condition with any other matches nothing, even in an address written by hand. It goes in the address when it isn't the default, with its value: <Code>?f-total-op=between&amp;f-total=100&amp;f-total-to=500</Code>.</TextBlock>
+<ExampleViewer Example="table-filter-operators" />
+
+<Heading Level="2">Filters in code</Heading>
+<TextBlock>The filter is a <Code>Filter</Code>: <Code>Filter.All</Code> of one condition per filtered column (contains for text, between for a number, equals for a date, in for a choice, whose <Code>Values</Code> are what's ticked, with null for the blank row and none for nothing ticked). Set one in C# with <Code>@@bind-Filter</Code> to filter from code, on an interactive page. A condition no column's panel can show, such as an or, still applies, and shows as a tag that removes it:</TextBlock>
+<Code Block Language="razor">@BoundFilter</Code>
+<TextBlock><Anchor Href="docs/common/data">Data and filters</Anchor> has the operators and the filter syntax, and <Anchor Href="docs/components/table/loading-data">Loading data</Anchor> how a column's condition reaches the database.</TextBlock>
+
+@code {
+    private const string BoundFilter = """
+        <Table Items="orders" @bind-Filter="filter">...</Table>
+
+        @code {
+            Filter? filter = Filter.Where("status", FilterOperator.Equals, "Paid");
+        }
+        """;
+}

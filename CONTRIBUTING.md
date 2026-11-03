@@ -138,6 +138,11 @@ parameter tables and defaults are never written by hand.
   summary, its example as Usage, each of the component's examples in `components.json` under its
   title and `lead` (one sentence leading with the prop; backticks mark code), the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
   The API page is always generated.
+- A component with many parts can have topic pages under it (`components.json` "topics", as
+  DataGrid's and Table's): each lists its examples and the members its own API page shows. A
+  topic's page is `Docs/Topics/{Name}{Topic}Topic.razor` when written by hand (`TableFilteringTopic`
+  for Table's `filtering`), else its `intro` and its examples under their titles. A hand-written
+  Overview lists them under a "Topics" heading with `<OverviewTopics />`.
 - Accessibility and See also come from the doc comment, for hand-written Overviews too: an
   `<accessibility>` tag (a bullet `<list>`: what the component gives keyboard, screen reader and
   focus users, and what's left to the app) and top-level `<seealso cref="..."/>` tags for related

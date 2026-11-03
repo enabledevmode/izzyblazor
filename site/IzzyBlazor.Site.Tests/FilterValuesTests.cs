@@ -7,15 +7,15 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
 {
     private const string Caption = "Orders by customer";
 
-    private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, bool script = true, string query = "")
+    private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, bool script = true, string query = "", string path = "docs/components/table/filtering", string caption = Caption)
     {
         var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var table = page.Locator("ib-table", new() { HasText = Caption });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"{path}?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var table = page.Locator("ib-table", new() { HasText = caption });
         await table.ScrollIntoViewSettledAsync();
-        if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = Caption }).WaitForAsync();
+        if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = caption }).WaitForAsync();
         return (browser, page, table);
     }
 
@@ -198,10 +198,8 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task A_bound_list_tells_C_sharp_and_leaves_the_address_alone()
     {
-        var (browser, page, _) = await OpenAsync("interactive");
+        var (browser, page, table) = await OpenAsync("interactive", path: "docs/components/table", caption: "Order history");
         await using var _1 = browser;
-        var table = page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Order history'))");
-        await table.ScrollIntoViewSettledAsync();
         var shown = table.Locator("xpath=..").Locator("code").Last;
         var url = page.Url;
 
@@ -215,7 +213,9 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await Assertions.Expect(All(panel)).Not.ToBeCheckedAsync();
         Assert.True(await All(panel).EvaluateAsync<bool>("b => b.indeterminate"));
 
-        await All(panel).CheckAsync();
+        // C# ticks a bound list's Select all, so the box shows it once C# renders, not at the click.
+        await All(panel).ClickAsync();
+        await Assertions.Expect(All(panel)).ToBeCheckedAsync();
         await Assertions.Expect(shown).ToHaveTextAsync("none");
         await Assertions.Expect(Box(panel, name)).ToBeCheckedAsync();
     }

@@ -103,13 +103,24 @@
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } },
-        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true },
-        { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
-        { "id": "app-shell-aside-drawer", "title": "A panel people open", "height": 420, "page": true,
+        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true }
+      ],
+      "topics": [
+        {
+          "id": "width-and-scrolling", "title": "Width and scrolling", "summary": "A reading column, and a shell that fills the window and scrolls only its main area.", "members": ["ContentWidth", "ScrollMode", "AppHeader.ContentWidth", "AppMain.ContentWidth", "AppFooter.ContentWidth"],
+          "examples": []
+        },
+        {
+          "id": "aside", "title": "Asides", "summary": "A column beside the main area: an outline, a page's own panel, and a drawer people open.", "members": ["AppAside", "AsideToggle"],
+          "examples": [
+            { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
+            { "id": "app-shell-aside-drawer", "title": "A panel people open", "height": 420, "page": true,
           "notes": {
               "noscript": "At phone width the panel button is a link to the aside, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves to its close button. The close button, Escape or a tap beside it closes it and puts focus back on the panel button."
             } }
+          ]
+        }
       ],
       "scenarios": [
         { "id": "dashboard", "title": "Dashboard on a tinted canvas", "member": "Variant",
@@ -478,23 +489,35 @@
             "static": "The script measures and adds the keys: Tab reaches the toolbar once, and the arrows move along it."
           } },
         { "id": "toolbar-regions", "title": "Start, center and end" },
-        { "id": "toolbar-priority", "title": "What moves first" },
-        { "id": "toolbar-bulk-actions", "title": "Posting a form",
+        { "id": "toolbar-filters", "title": "Fields, a SegmentedControl and a Menu" }
+      ],
+      "topics": [
+        {
+          "id": "overflow", "title": "What doesn't fit", "summary": "Which controls move into the … menu first, icons before the menu, and wrapping instead.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
+          "examples": [
+            { "id": "toolbar-priority", "title": "What moves first" },
+            { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
+            { "id": "toolbar-wrap", "title": "Wrapping instead" }
+          ]
+        },
+        {
+          "id": "actions", "title": "Actions", "summary": "Form posts, C# on click, toggle buttons and split buttons, from the bar or the menu.", "members": ["ToolbarSplitButton", "ToolbarButton.Submit", "ToolbarButton.Name", "ToolbarButton.Value", "ToolbarButton.FormAction", "ToolbarButton.Form", "ToolbarButton.Pressed", "ToolbarButton.OnClick", "ToolbarIconButton.Submit", "ToolbarIconButton.Name", "ToolbarIconButton.Value", "ToolbarIconButton.FormAction", "ToolbarIconButton.Form", "ToolbarIconButton.Pressed", "ToolbarIconButton.OnClick"],
+          "examples": [
+            { "id": "toolbar-bulk-actions", "title": "Posting a form",
           "notes": {
             "noscript": "Each button, in the bar or the … menu, posts intent=archive, read or delete with the form.",
             "static": "The same posts, without a full reload.",
             "interactive": "OnClick says which was pressed, from the bar or the menu; nothing is posted."
           } },
-        { "id": "toolbar-filters", "title": "Fields, a SegmentedControl and a Menu" },
-        { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["interactive"] },
-        { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["interactive"] },
-        { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
-        { "id": "toolbar-split-button", "title": "Split buttons",
+            { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["interactive"] },
+            { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["interactive"] },
+            { "id": "toolbar-split-button", "title": "Split buttons",
           "notes": {
             "noscript": "The switch needs an interactive page; the rest works.",
             "static": "The switch needs an interactive page; the rest works."
-          } },
-        { "id": "toolbar-wrap", "title": "Wrapping instead" }
+          } }
+          ]
+        }
       ],
       "scenarios": [
         { "id": "app-header", "title": "In an app header",
@@ -1472,46 +1495,63 @@
             "noscript": "Headers and page numbers are links: each click loads the page again.",
             "static": "The same links; Blazor's enhanced navigation swaps the page in without a full reload.",
             "interactive": "The same links; the table follows the URL." } },
-        { "id": "table-filter-operators", "title": "Choosing an operator", "lead": "Use `FilterOperators` on a column to choose an operator in its filter; the first is the default." },
-        { "id": "table-filter-lists", "title": "Lists of values", "lead": "An enum or bool column's filter is a list of checkboxes. All ticked is no filter, and none ticked shows no rows.",
-          "notes": {
-            "noscript": "Tick and press Apply. There's no Select all or search, and none ticked is no filter.",
-            "static": "Ticks apply after a short pause." } },
-        { "id": "table-filter-values", "title": "Lists of looked-up values", "lead": "Use `FilterList` to list a text column's values from `Items`, or `FilterValues` to find them yourself. The list asks when its panel opens, a page at a time, and the other filters narrow it.",
-          "notes": {
-            "noscript": "The columns show their usual filter in place of the list.",
-            "static": "The script asks this page's own address for the values, with one more key, and takes the list from the response." } },
-        { "id": "table-filters", "title": "Column filters",
+        { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
+        { "id": "table-stacked", "widthSwitch": true, "title": "Rows that stack on a phone", "lead": "With `SmallScreen=\"TableSmallScreen.Stack\"`, a table too narrow for its columns turns each row into a card of lines, a column's title beside its value, instead of scrolling sideways. The column titles stay in a row above, with their sort and filter buttons. It goes by the table's own width, worked out on the server from its columns, or set `StackBelow`, and needs no script." }
+      ],
+      "topics": [
+        {
+          "id": "filtering", "title": "Filtering", "summary": "A filter in each column's header, lists of values, operators, and filters in the address.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "examples": [
+            { "id": "table-filters", "title": "Column filters",
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it.",
             "static": "Filters apply as you type." } },
-        { "id": "table-select-rows", "title": "Selection and totals",
+            { "id": "table-filter-lists", "title": "Lists of values", "lead": "An enum or bool column's filter is a list of checkboxes. All ticked is no filter, and none ticked shows no rows.",
+          "notes": {
+            "noscript": "Tick and press Apply. There's no Select all or search, and none ticked is no filter.",
+            "static": "Ticks apply after a short pause." } },
+            { "id": "table-filter-values", "title": "Lists of looked-up values", "lead": "Use `FilterList` to list a text column's values from `Items`, or `FilterValues` to find them yourself. The list asks when its panel opens, a page at a time, and the other filters narrow it.",
+          "notes": {
+            "noscript": "The columns show their usual filter in place of the list.",
+            "static": "The script asks this page's own address for the values, with one more key, and takes the list from the response." } },
+            { "id": "table-filter-operators", "title": "Choosing an operator", "lead": "Use `FilterOperators` on a column to choose an operator in its filter; the first is the default." }
+          ]
+        },
+        {
+          "id": "selection", "title": "Selection", "summary": "Checkboxes that post with a form, totals, and actions on the selected rows.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel", "Column.FooterText", "Column.Footer"],
+          "examples": [
+            { "id": "table-select-rows", "title": "Selection and totals",
           "notes": {
             "noscript": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
             "interactive": "@bind-Selection follows the checkboxes in C#." } },
-        { "id": "table-bulk-actions", "title": "Bulk actions",
+            { "id": "table-bulk-actions", "title": "Bulk actions",
           "notes": {
             "noscript": "Checked rows on this page post with Archive; Clear selection and Select all need script.",
             "static": "The selection stays as you page and filter, and Archive posts all of it, or every match after Select all.",
-            "interactive": "@bind-Selection holds the selection, Select all included." } },
-        { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
-        { "id": "table-cursor-pages", "title": "Next and previous by cursor",
+            "interactive": "@bind-Selection holds the selection, Select all included." } }
+          ]
+        },
+        {
+          "id": "loading-data", "title": "Loading data", "summary": "Rows from a database or an API, paging by cursor, loading on scroll, and a failed load.", "members": ["Items", "ItemsProvider", "PageSize", "Page", "Paging", "Cursor", "LoadMoreText", "Loading", "ErrorContent", "ReloadAsync"],
+          "examples": [
+            { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
             "noscript": "First, Previous and Next are links with the cursor in the URL.",
             "static": "The same links; enhanced navigation swaps the page in.",
             "interactive": "The same links; the table follows the URL." } },
-        { "id": "table-load-on-scroll", "title": "Loading on scroll",
+            { "id": "table-load-on-scroll", "title": "Loading on scroll",
           "notes": {
             "noscript": "Nothing loads on scroll: Load more shows under the rows, a link that reloads the table with one more page.",
             "static": "Scroll the rows: the next page loads as the last one comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept. Tab to the hidden button to load from the keyboard.",
             "interactive": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
-        { "id": "table-stacked", "widthSwitch": true, "title": "Rows that stack on a phone", "lead": "With `SmallScreen=\"TableSmallScreen.Stack\"`, a table too narrow for its columns turns each row into a card of lines, a column's title beside its value, instead of scrolling sideways. The column titles stay in a row above, with their sort and filter buttons. It goes by the table's own width, worked out on the server from its columns, or set `StackBelow`, and needs no script." },
-        { "id": "table-load-error", "title": "When loading fails",
+            { "id": "table-load-error", "title": "When loading fails",
           "notes": {
             "noscript": "Retry is a link that loads the page again. Bring the API back, then the rows come.",
             "static": "The same link; enhanced navigation swaps the page in.",
             "interactive": "Retry asks again. Bring the API back and the table reloads." } }
+          ]
+        }
       ],
       "scenarios": [
         { "id": "activity-log", "title": "Activity log", "member": "Paging",

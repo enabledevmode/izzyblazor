@@ -1,0 +1,15 @@
+@inject Registry Registry
+
+@* An Overview's Topics section: a link to each of its topic pages, with its summary. The Overview
+   writes the "Topics" heading itself, as with OverviewParts, so "On this page" keeps it in order. *@
+
+<List Gap="2">
+    @foreach (var topic in Component.Topics)
+    {
+        <ListItem><Anchor Href="@Registry.TopicHref(Component, topic)">@topic.Title</Anchor>: @topic.Summary</ListItem>
+    }
+</List>
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+}

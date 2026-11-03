@@ -5,9 +5,10 @@
 @inject NavigationManager Navigation
 
 @*
-    A topic of a component too big for one page (components.json "topics"), with the examples listed
-    under it. The component's API, mode support and keys stay on its Overview, so there's one place to
-    look them up.
+    A topic of a component too big for one page (components.json "topics"): a hand-written one where
+    there is one (Docs/Topics/{Name}{Topic}Topic, as TableFilteringTopic), else its intro and the
+    examples listed under it. The component's API, mode support and keys stay on its Overview, so
+    there's one place to look them up.
 *@
 
 @if (_component is not null && _topic is not null)
@@ -20,19 +21,26 @@
         <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
         <ModeSwitch Placement="top" />
 
-        @foreach (var paragraph in _topic.Intro)
+        @if (TopicType(_component, _topic) is { } written)
         {
-            <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
+            <DynamicComponent Type="written" />
         }
-
-        @foreach (var example in _topic.Examples)
+        else
         {
-            <Heading Level="2">@example.Title</Heading>
-            @if (example.Lead is { } lead)
+            @foreach (var paragraph in _topic.Intro)
             {
-                <TextBlock><InlineCode Text="@lead" /></TextBlock>
+                <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
             }
-            <ExampleViewer Example="@example.Id" />
+
+            @foreach (var example in _topic.Examples)
+            {
+                <Heading Level="2">@example.Title</Heading>
+                @if (example.Lead is { } lead)
+                {
+                    <TextBlock><InlineCode Text="@lead" /></TextBlock>
+                }
+                <ExampleViewer Example="@example.Id" />
+            }
         }
 
         <PrevNext PreviousHref="@_previous.Href" PreviousTitle="@_previous.Title" NextHref="@_next.Href" NextTitle="@_next.Title" />
@@ -46,6 +54,14 @@
 
     private RegistryComponent? _component;
     private RegistryTopic? _topic;
+
+    /// <summary>A topic's hand-written page: <c>TableFilteringTopic</c> for Table's <c>filtering</c>.</summary>
+    public static Type? TopicType(RegistryComponent component, RegistryTopic topic) =>
+        typeof(ComponentTopicPage).Assembly.GetType($"IzzyBlazor.Site.Docs.Topics.{TopicTypeName(component, topic)}");
+
+    /// <summary><c>TableLoadingDataTopic</c> for Table's <c>loading-data</c>.</summary>
+    public static string TopicTypeName(RegistryComponent component, RegistryTopic topic) =>
+        component.Name + string.Concat(topic.Id.Split('-').Select(w => char.ToUpperInvariant(w[0]) + w[1..])) + "Topic";
     private (string? Href, string? Title) _previous;
     private (string? Href, string? Title) _next;
 

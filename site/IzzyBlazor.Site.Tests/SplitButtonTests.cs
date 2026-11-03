@@ -192,7 +192,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         var browser = await TestBrowser.OpenAsync();
         await using (browser)
         {
-            var page = await OpenAsync(browser, "docs/components/toolbar", mode);
+            var page = await OpenAsync(browser, "docs/components/toolbar/actions", mode);
             const string ex = "toolbar-split-button";
             await ReadyAsync(page, ex, mode);
             var bar = page.Locator(Example(ex)).Locator("ib-toolbar").First;
@@ -238,7 +238,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         await using (browser)
         {
             // Narrow enough for Save to move.
-            var page = await OpenAsync(browser, "docs/components/toolbar", mode, width: 380);
+            var page = await OpenAsync(browser, "docs/components/toolbar/actions", mode, width: 380);
             const string ex = "toolbar-split-button";
             await ReadyAsync(page, ex, mode);
             await page.WaitForFunctionAsync("() => document.querySelector('[data-ex=\"toolbar-split-button\"] ib-toolbar').hasAttribute('data-ib-measured')");
@@ -311,7 +311,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         var browser = await TestBrowser.OpenAsync();
         await using (browser)
         {
-            var page = await OpenAsync(browser, "docs/components/toolbar", "static");
+            var page = await OpenAsync(browser, "docs/components/toolbar/actions", "static");
             const string ex = "toolbar-split-button";
             await ReadyAsync(page, ex, "static");
             await page.WaitForFunctionAsync("() => [...document.querySelectorAll('[data-ex=\"toolbar-split-button\"] ib-toolbar')].every(t => t.hasAttribute('data-ib-measured'))");
@@ -354,7 +354,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         var browser = await TestBrowser.OpenAsync();
         await using (browser)
         {
-            var page = await OpenAsync(browser, "docs/components/toolbar", "noscript", width: 380, scripts: false);
+            var page = await OpenAsync(browser, "docs/components/toolbar/actions", "noscript", width: 380, scripts: false);
             const string ex = "toolbar-split-button";
             var bar = page.Locator(Example(ex)).Locator("ib-toolbar").First;
             await Assertions.Expect(page.Locator("#toolbar-save")).ToBeHiddenAsync();

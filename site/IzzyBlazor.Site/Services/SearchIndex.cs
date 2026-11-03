@@ -329,6 +329,20 @@ public sealed partial class SearchIndex
             {
                 var topicPage = Registry.TopicHref(component, topic);
                 Add(SearchKind.Section, topic.Title, component.Name, topic.Summary, topicPage);
+                if (pages.TryGetValue(topicPage, out var written))
+                {
+                    AddSections(written, $"{component.Name}: {topic.Title}", SearchGroup.Components);
+                    foreach (var id in written.Examples)
+                    {
+                        if (registry.Example(id) is { } found && !written.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            Add(SearchKind.Example, found.Example.Title, $"{component.Name}: {topic.Title}", Lead(found.Example.Lead), $"{topicPage}#ex-{id}");
+                        }
+                    }
+
+                    continue;
+                }
+
                 var topicIds = Ids(topic.Title, topic.Examples.Select(e => (e.Title, (string?)null)));
                 for (var i = 0; i < topic.Examples.Count; i++)
                 {
@@ -467,8 +481,8 @@ public sealed partial class SearchIndex
     internal sealed record SourceHeading(string Text, string Id, string? Lead);
 
     /// <summary>
-    /// The articles (by their <c>@page</c> route) and hand-written Overviews (by their component's
-    /// name), keyed by address.
+    /// The articles (by their <c>@page</c> route), hand-written Overviews (by their component's
+    /// name) and hand-written topics (<c>TableFilteringTopic</c>), keyed by address.
     /// </summary>
     private static Dictionary<string, SourcePage> ReadPages(Registry registry)
     {
@@ -497,6 +511,13 @@ public sealed partial class SearchIndex
             {
                 href = Registry.OverviewHref(component);
                 title = component.Name;
+            }
+            else if (path.StartsWith("Topics/", StringComparison.Ordinal)
+                     && registry.Components.SelectMany(c => c.Topics.Select(t => (Component: c, Topic: t)))
+                         .FirstOrDefault(x => Docs.ComponentTopicPage.TopicTypeName(x.Component, x.Topic) == path["Topics/".Length..]) is { Topic: not null } written)
+            {
+                href = Registry.TopicHref(written.Component, written.Topic);
+                title = written.Topic.Title;
             }
 
             if (href is not null)
