@@ -811,7 +811,8 @@
 
     // What a filter is set to, in words: the text typed, the choice's name, "2 selected", a range
     // ("100–500", "100 or more"), or the operator and its value ("Starts with ada").
-    private string FilterSummary(ColumnBase<TItem> column, ColumnFilterValue current)
+    // Days as ISO dates, as a tag says them; the row's cell, as the column shows its dates (days).
+    private string FilterSummary(ColumnBase<TItem> column, ColumnFilterValue current, bool days = false)
     {
         if (current.None)
         {
@@ -824,13 +825,14 @@
         }
 
         var culture = System.Globalization.CultureInfo.CurrentCulture;
-        var (kind, value) = (column.FilterKind, current.Value.Trim());
+        string Day(string text) => days ? DayText(column, text) : text;
+        var (kind, value) = (column.FilterKind, Day(current.Value.Trim()));
         string Worded() => ColumnFilter.TextOf(kind, current.Op, TextDefaults) + (value.Length > 0 ? $" {value}" : "");
         switch (current.Op)
         {
             case FilterOperator.Between:
             {
-                var max = current.To?.Trim() ?? "";
+                var max = Day(current.To?.Trim() ?? "");
                 var date = kind == ColumnFilterKind.Date;
                 return (value.Length > 0, max.Length > 0) switch
                 {
@@ -1191,6 +1193,25 @@
         ValueListOf(column).OpenAsList ?? (ValueListFilter(column) is var value && (!value.IsFilter || ColumnFilter.IsListState(value)));
 
     private StringComparer ValueComparer => FilterCase == FilterCase.IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+    // A day as the column shows its dates (its Format, if a date can take it), else the culture's short date.
+    private static string DayText(ColumnBase<TItem> column, string text)
+    {
+        if (column.FilterKind != ColumnFilterKind.Date || !ColumnFilter.TryParseDay(text, out var day))
+        {
+            return text;
+        }
+
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            return column.ValueFormat is { } format ? day.ToString(format, culture) : day.ToString("d", culture);
+        }
+        catch (FormatException)
+        {
+            return day.ToString("d", culture);
+        }
+    }
 
     // A value in words: the blank row's, or what the rows loaded say, as a loader can show a name for an id.
     private string ValueText(ColumnBase<TItem> column, string? value) => value is null
@@ -1595,9 +1616,9 @@
 
     private string FilterPanelId(ColumnBase<TItem> column) => $"{FilterFormId}-{column.Key}-panel";
 
-    // Whether a filter fits in its cell as a field: not a list or a range, which open the column's panel.
+    // Whether a filter fits in its cell as a field: not a list, a range or a date, which open the column's panel.
     private static bool FitsInCell(ColumnBase<TItem> column, ColumnFilterValue current) =>
-        column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && column.FilterTemplate is null && !current.None
+        column.FilterKind is not (ColumnFilterKind.Choice or ColumnFilterKind.Date) && !column.HasValueList && column.FilterTemplate is null && !current.None
         && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
 
     // A few choices by name, in a row's list; null past that, where the count says more than a clipped
@@ -1618,114 +1639,56 @@
         return known ? string.Join(", ", current.Values.Select(v => ValueText(column, v))) : null;
     }
 
-    // A column's filter in the row: its operator's menu as the field's add-on, if it has a choice, then the field, or what the
-    // filter's set to as a button that opens the column's panel, and clears it from here.
+    // A column's filter in the row, every cell one shape: a slot, then the funnel that opens the column's panel (the
+    // header's, moved here). The slot is the value's field while one value with any operator says it all, else what the
+    // filter's set to, which opens the panel too; the operator itself is chosen in the panel. A × in the slot clears it.
     private RenderFragment FilterCell(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
-        var ops = ColumnFilter.OperatorsOf(column);
         var label = FilterLabel(column);
-        var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList || column.FilterTemplate is not null;
-        <div class="ib-filter-cell ib-field ib-field-sm" data-ib-panel="@FilterPanelId(column)" style="anchor-name:@StyleValues.AnchorName(FilterPanelId(column) + "-cell")">
-            <FieldAddons StartAddon="@(!list && ops.Count > 1 ? OperatorMenu(column, current, ops) : null)">
-                @if (FitsInCell(column, current))
+        var panel = FilterPanelId(column);
+        var fits = FitsInCell(column, current);
+        <div class="ib-filter-cell ib-field ib-field-sm" data-ib-panel="@panel" style="anchor-name:@StyleValues.AnchorName(panel + "-cell")">
+            <div class="ib-filter-cell-slot">
+                @if (fits)
                 {
-                    var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
-                    var value = !date ? current.Value : ColumnFilter.TryParseDay(current.Value, out var day) ? day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
-                    var type = date ? "date" : number ? "text" : "search";
-                    // The operator in words, while there's room: a date input can't show one.
-                    var word = !date && ops.Count > 1 ? ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults) : null;
+                    var number = column.FilterKind == ColumnFilterKind.Number;
                     <div class="ib-field-control">
                         @if (UseState)
                         {
-                            <input type="@type" class="ib-field-input" aria-label="@label" placeholder="@word" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter @attributes="InputEvents(column, false, date)" />
+                            <input type="text" class="ib-field-input" aria-label="@label" value="@current.Value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter @attributes="InputEvents(column, false, false)" />
                         }
                         else
                         {
-                            <input type="@type" class="ib-field-input" aria-label="@label" placeholder="@word" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter
+                            <input type="text" class="ib-field-input" aria-label="@label" value="@current.Value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter
                                    name="@FilterQueryKey(column)" form="@FilterRowFormId" data-ib-filter data-ib-row />
                         }
                     </div>
                 }
                 else
                 {
-                    // A list with no filter is blank, as an empty field is. It still has a name to be read by.
-                    var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                    var shown = current.IsFilter ? list ? RowListSummary(column, current) ?? summary : summary : list ? "" : summary;
-                    <button type="button" class="ib-filter-cell-summary" data-empty="@(current.IsFilter ? null : "")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {(shown.Length > 0 ? shown : summary)}")" title="@(shown.Length > 0 ? shown : null)" data-ib-enter><span>@shown</span><Icon Role="IconRole.ChevronDown" /></button>
-                    if (current.IsFilter)
-                    {
-                        var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.HeaderText);
-                        if (UseState)
-                        {
-                            <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Role="IconRole.Close" /></button>
-                        }
-                        else
-                        {
-                            <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" data-ib-filter-clear aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
-                        }
-                    }
+                    // Blank with no filter, as an empty field is. It still has a name to be read by.
+                    var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList || column.FilterTemplate is not null;
+                    var summary = current.IsFilter ? FilterSummary(column, current, days: true) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
+                    var shown = !current.IsFilter ? "" : list ? RowListSummary(column, current) ?? summary : summary;
+                    <button type="button" class="ib-filter-cell-summary" popovertarget="@panel" aria-label="@($"{label}: {(shown.Length > 0 ? shown : summary)}")" title="@(shown.Length > 0 ? shown : null)" data-ib-enter><span>@shown</span></button>
                 }
-            </FieldAddons>
-        </div>
-    };
-
-    // The operators in full words, the current one checked, and Reset. Links on static pages, so the row
-    // needs no script for them; on bound pages, C#.
-    private RenderFragment OperatorMenu(ColumnBase<TItem> column, ColumnFilterValue current, IReadOnlyList<FilterOperator> ops) => __builder =>
-    {
-        var word = ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-        var name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterChangeOperator, column.HeaderText, word);
-        <Menu Placement="Placement.BottomStart" data-ib-user-controlled>
-            <Trigger>
-                <button type="button" class="ib-filter-cell-op" data-ib-menu aria-label="@name" title="@name" @attributes="context"><Icon Role="ColumnFilter.IconOf(current.Op)" /></button>
-            </Trigger>
-            <ChildContent>
-                @foreach (var op in ops)
+                @if (current.IsFilter)
                 {
-                    var opens = op == FilterOperator.Between ? FilterPanelId(column) : null;
+                    var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.HeaderText);
                     if (UseState)
                     {
-                        <MenuItem Icon="IconSet.Current.Get(ColumnFilter.IconOf(op))" Checked="op == current.Op" data-ib-opens-panel="@opens" OnClick="() => OnOperatorAsync(column, new ChangeEventArgs { Value = ColumnFilter.WordOf(op) })">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                        <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Role="IconRole.Close" /></button>
                     }
                     else
                     {
-                        <MenuItem Icon="IconSet.Current.Get(ColumnFilter.IconOf(op))" Checked="op == current.Op" data-ib-opens-panel="@opens" Href="@OperatorHref(column, current, op)">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                        <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" data-ib-filter-clear aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
                     }
                 }
-                <MenuDivider />
-                @if (UseState)
-                {
-                    <MenuItem Icon="IconSet.Current.Get(IconRole.Reset)" data-ib-reset OnClick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Reset</MenuItem>
-                }
-                else
-                {
-                    <MenuItem Icon="IconSet.Current.Get(IconRole.Reset)" data-ib-reset Href="@FilterHref(column, null)">@TextDefaults.Reset</MenuItem>
-                }
-            </ChildContent>
-        </Menu>
+            </div>
+            @{ var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label; }
+            <button type="button" class="ib-table-filter-button" popovertarget="@panel" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name"><Icon Role="IconRole.Filter" /></button>
+        </div>
     };
-
-    // The address with this operator chosen, keeping the values it takes. With none to apply to, it
-    // only shapes the cell and the panel, as the reader takes it.
-    private string OperatorHref(ColumnBase<TItem> column, ColumnFilterValue current, FilterOperator op)
-    {
-        var key = FilterQueryKey(column);
-        var next = current with
-        {
-            Op = op,
-            Values = ColumnFilter.TakesNoValue(op) ? [] : current.Values,
-            To = op == FilterOperator.Between ? current.To : null,
-        };
-        var changes = ColumnFilter.Write(column, key, next);
-        if (!next.IsFilter && op != ColumnFilter.DefaultOperator(column))
-        {
-            changes[$"{key}-op"] = ColumnFilter.WordOf(op);
-        }
-
-        changes[PageKey] = null;
-        changes[CursorKey] = null;
-        return LinkWith(changes);
-    }
 
     // The row's GET form, for no script. It holds every filter, as the panels' form does, so either posts
     // the whole state: the row's fields join it themselves, and this says the rest.

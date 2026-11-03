@@ -474,6 +474,7 @@
   }
 
   .ib-table-filter-button {
+    position: relative;
     display: inline-flex;
     flex: none;
     align-items: center;
@@ -499,9 +500,20 @@
     color: var(--ib-color-on-surface);
   }
 
+  /* Set: the accent and a dot on the funnel's corner, no fill. */
   .ib-table-filter-button[data-active] {
-    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
+  }
+
+  .ib-table-filter-button[data-active]::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - var(--ib-control-icon-sm) / 2 - 1px);
+    inset-inline-end: calc(50% - var(--ib-control-icon-sm) / 2 - 2px);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--ib-color-primary);
   }
 
   .ib-table-filter-button:is(:hover, [data-active]) > .ib-icon {
@@ -810,61 +822,40 @@
 
   /* A DataGrid's FilterRow. */
   .ib-table-filter-row > td {
-    /* Painted as a header is, so a sticky one covers the rows scrolling under it. */
-    background-color: var(--ib-table-bg, var(--ib-color-surface));
     padding-block: 0.25rem;
     border-block-end: 1px solid var(--ib-table-line, var(--ib-color-border));
   }
 
-  /* In a row, whichever it holds: with no operator there's no add-on's group round the rest. */
+  /* In a row, every cell one shape: a slot, then the column's funnel. */
   .ib-filter-cell {
-    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: var(--ib-space-1);
     min-width: 0;
   }
 
-  .ib-filter-cell > :is(.ib-field-group, .ib-field-control, .ib-filter-cell-summary) {
+  .ib-filter-cell-slot {
+    position: relative;
     flex: 1;
     min-width: 0;
   }
 
-  /* The operator is the field's add-on: the button is the add-on's box, as a Button in one is. */
-  .ib-filter-cell .ib-field-addon:has(> ib-popover) {
-    padding: 0;
-    border: 0;
-    background: none;
-  }
-
-  .ib-filter-cell .ib-field-addon > ib-popover {
-    border-radius: inherit;
-  }
-
-  .ib-field-group > .ib-filter-cell-summary {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .ib-field-group:has(> .ib-field-addon-start) > .ib-filter-cell-summary {
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
-  }
-
-  .ib-filter-cell-op {
+  .ib-filter-cell > .ib-table-filter-button {
+    width: var(--ib-field-h);
     height: var(--ib-field-h);
-    border: 1px solid var(--ib-color-border);
-    font: inherit;
-    white-space: nowrap;
-    cursor: pointer;
+    margin: 0;
   }
 
-  /* Drawn as the fields beside it are, and as a Select, since it opens a list of its own. */
+  .ib-filter-cell-slot:has(> .ib-filter-cell-clear:not([hidden])) .ib-field-input {
+    padding-inline-end: 1.75rem;
+  }
+
+  /* Drawn as the fields beside it are. */
   .ib-filter-cell-summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--ib-space-1);
+    width: 100%;
     height: var(--ib-field-h);
     padding-inline: var(--ib-field-px);
     border: 1px solid var(--ib-field-border);
@@ -876,19 +867,10 @@
     cursor: pointer;
   }
 
-  .ib-filter-cell-summary[data-empty] {
-    color: var(--ib-color-subtle);
-  }
-
   .ib-filter-cell-summary > span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .ib-filter-cell-summary > .ib-icon {
-    --ib-icon-size: 0.875rem;
-    color: var(--ib-color-subtle);
   }
 
   .ib-filter-cell-summary:focus-visible,
@@ -897,11 +879,11 @@
     outline-offset: -2px;
   }
 
-  /* Laid over the summary, before its chevron: one button can't hold another. */
+  /* Laid over the slot's end: one button can't hold another. */
   .ib-filter-cell-clear {
     position: absolute;
     inset-block: 0;
-    inset-inline-end: calc(var(--ib-field-px) + 0.875rem);
+    inset-inline-end: 0.25rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -930,37 +912,6 @@
   .ib-table-filter-button[hidden] {
     display: none;
   }
-
-  .ib-filter-cell-op {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--ib-field-h);
-    padding: 0;
-    border-color: var(--ib-field-border);
-    border-radius: inherit;
-    background-color: var(--ib-color-fill);
-    color: var(--ib-color-on-surface);
-    --ib-icon-size: var(--ib-control-icon-sm);
-  }
-
-  .ib-filter-cell-op:hover,
-  .ib-filter-cell ib-popover:has(> :popover-open) > .ib-filter-cell-op {
-    background-color: var(--ib-color-fill-strong, var(--ib-color-fill));
-  }
-
-  .ib-filter-cell-op:focus-visible {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-    outline-offset: -2px;
-  }
-
-  /* Past the slot the operators have for their check, so its icon lines up with theirs. */
-  .ib-menu-item[data-ib-reset]::before {
-    content: "";
-    flex: none;
-    width: 1rem;
-  }
-
 
   /* The scrollbar starts under the row too. */
   .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
@@ -1470,7 +1421,7 @@
   }
 
   @media (scripting: none) {
-    .ib-datagrid [data-ib-menu]:not(.ib-filter-cell-op),
+    .ib-datagrid [data-ib-menu],
     .ib-col-resize,
     .ib-grid-toolbar .ib-toolbar-unit:has(> .ib-col-picker),
     .ib-grid-toolbar-picker-only {
@@ -1889,6 +1840,21 @@
   .ib-datagrid.ib-table .ib-table-grid > * > tr > :is(td, th).ib-frozen {
     background-color: var(--ib-frozen-bg);
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
+  }
+
+  /* A grid's head is a raised band, its filter row with it, so its controls read apart from the rows.
+     After the frozen cells' rule, which it beats in the head. A step stronger in dark, where the
+     subtlest fill barely shows. */
+  .ib-datagrid {
+    --ib-datagrid-head-bg: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
+  }
+
+  .ib-datagrid.ib-table .ib-table-grid > thead > tr > :is(th, td, .ib-frozen) {
+    background-color: var(--ib-datagrid-head-bg);
+  }
+
+  .ib-datagrid .ib-table-grid > thead:has(> .ib-table-filter-row) > tr:not(.ib-table-filter-row) > th {
+    border-bottom-color: transparent;
   }
 
   .ib-table-striped.ib-datagrid > * > .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {

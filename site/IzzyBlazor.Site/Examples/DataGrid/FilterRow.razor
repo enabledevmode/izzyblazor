@@ -1,5 +1,5 @@
-@* A field under each title, with its operator in a menu beside it. Date and Total can take a range, and
-   Status is a list: those show what they're set to, and open the column's panel. *@
+@* A field under each title, then the column's filter button, which opens its panel, where the operator is
+   chosen. Date and Status show what they're set to, and open the panel too. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders by row filter" QueryPrefix="row-" FilterRow Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />

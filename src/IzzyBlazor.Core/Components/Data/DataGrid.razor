@@ -176,9 +176,9 @@
     - Up, Down | Move to the header above or the row below
     - Left, Right | Move to the filter before or after
     - Enter, F2 | Go into the filter's field
-    - Alt+Down | Open the filter's operator menu
+    - Alt+Down | Open the column's filter panel
     Inside a filter cell
-    - Tab, Shift+Tab | Move between the operator button and the field, and back out past either end
+    - Tab, Shift+Tab | Move between the field and the filter button, and back out past either end
     - Enter | In the field, filter now without waiting
     - Escape, F2 | Go back to the cell; the filter stays
     In a filter panel
@@ -1196,8 +1196,9 @@
         : null;
 
     /// <summary>
-    /// Adds a row of filters under the titles, a field for each column, with its operator in a menu
-    /// beside it. A range or a list shows what it's set to, and opens the column's panel.
+    /// Adds a row of filters under the titles: a field for each column, then its filter button, which opens
+    /// the column's panel, where the operator is chosen. A list, a range or a date shows what it's set to,
+    /// and opens the panel too.
     /// </summary>
     [Parameter] public bool FilterRow { get; set; }
 

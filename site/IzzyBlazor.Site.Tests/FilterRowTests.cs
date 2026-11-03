@@ -24,7 +24,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
     {
         var (browser, page, grid) = await OpenAsync(mode);
         await using var _ = browser;
-        var summary = grid.Locator(".ib-filter-cell-summary").First;
+        var summary = grid.Locator(".ib-filter-cell-summary[aria-label^='Filter Status']");
         var panel = page.Locator("[popover]:popover-open");
         await summary.ClickAsync();
 
@@ -57,7 +57,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
     {
         var (browser, page, grid) = await OpenAsync("static");
         await using var _ = browser;
-        var summary = grid.Locator(".ib-filter-cell-summary").First;
+        var summary = grid.Locator(".ib-filter-cell-summary[aria-label^='Filter Status']");
         var panel = page.Locator("[popover]:popover-open");
         var requests = 0;
         page.Request += (_, request) =>
@@ -104,11 +104,11 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
 
     [Theory]
     [InlineData("static")]
-    public async Task Typing_in_a_field_filters_and_the_panel_says_the_same(string mode)
+    public async Task Typing_in_a_field_filters_and_the_funnel_opens_the_panel_saying_the_same(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
         await using var _ = browser;
-        var field = grid.GetByRole(AriaRole.Searchbox, new() { Name = "Filter Customer" }).Locator("visible=true");
+        var field = grid.GetByRole(AriaRole.Textbox, new() { Name = "Filter Customer" }).Locator("visible=true");
 
         await field.FillAsync("ada");
 
@@ -116,7 +116,8 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(grid.Locator("tbody tr").First).ToContainTextAsync("Ada");
         await Assertions.Expect(field).ToHaveValueAsync("ada");
         await Assertions.Expect(grid.Locator("th .ib-table-filter-button[aria-label^='Filter']:visible")).ToHaveCountAsync(0);
-        Assert.Equal("ada", await grid.Locator("[popover] input[name='row-f-customer']").InputValueAsync());
+        await grid.Locator(".ib-filter-cell .ib-table-filter-button[aria-label^='Filter Customer']").ClickAsync();
+        await Assertions.Expect(page.Locator("[popover]:popover-open input[name='row-f-customer']")).ToHaveValueAsync("ada");
     }
 
     [Fact]
@@ -143,7 +144,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         var cell = grid.Locator(".ib-table-filter-row td").Nth(1);
         var field = cell.Locator("input[data-ib-row]");
 
-        // From the Customer header, down onto the row's cell, and into its field past the operator.
+        // From the Customer header, down onto the row's cell, and into its field.
         await grid.Locator("thead th").Nth(1).Locator("[data-ib-primary]").FocusAsync();
         await page.Keyboard.PressAsync("ArrowDown");
         await Assertions.Expect(cell).ToBeFocusedAsync();

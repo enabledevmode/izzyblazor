@@ -88,9 +88,10 @@ class Table extends IzzyElement {
   // is what's read, so one filter has one place that says it.
   #rowEdits = new Set<HTMLInputElement | HTMLSelectElement>();
   // The panel the row last opened, under the row's cell as its button in the header isn't shown, and whose
-  // button in the row gets focus back from it. The element, as its id changes with each response, and
-  // choosing Between draws that button only as the panel opens.
+  // button in the row gets focus back from it. The element, as its id changes with each response.
   #rowPanel: HTMLElement | null = null;
+  // Which of the cell's two ways in opened it, the summary or the funnel, to hand focus back to.
+  #rowOpener = "";
   // Kept for the same reason: setup runs again after the response that made the table shorter.
   #tallest = 0;
   #heldFor = "";
@@ -122,7 +123,7 @@ class Table extends IzzyElement {
         // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
         const active = document.activeElement!;
         if (active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) {
-          this.querySelector<HTMLElement>(`.ib-filter-cell-summary[popovertarget="${CSS.escape(panel.id)}"]`)?.focus();
+          this.querySelector<HTMLElement>(`${this.#rowOpener}[popovertarget="${CSS.escape(panel.id)}"]`)?.focus();
         }
       },
       { capture: true, signal }
@@ -135,10 +136,17 @@ class Table extends IzzyElement {
         const plain = !event.ctrlKey && !event.metaKey && !event.shiftKey;
         // A panel's Clear is done with the panel.
         const panelOf = (id: string | null | undefined) => (id ? document.getElementById(id) : null);
-        const opens = panelOf(target.closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel);
-        const opened = opens ?? panelOf(target.closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
+        const opener = target.closest<HTMLElement>(".ib-filter-cell [popovertarget]");
+        const opened = panelOf(opener?.getAttribute("popovertarget"));
         if (opened) {
           this.#rowPanel = opened;
+          this.#rowOpener = opener!.matches(".ib-filter-cell-summary") ? ".ib-filter-cell-summary" : ".ib-filter-cell .ib-table-filter-button";
+          // The row's field hands over now: from here what's in the panel is what's meant.
+          for (const edit of this.#rowEdits) {
+            const twin = opened.querySelector<HTMLInputElement>(`input[name="${CSS.escape(edit.name)}"]`);
+            if (twin) twin.value = edit.value;
+          }
+          this.#rowEdits.clear();
           this.#placeUnderCell();
           // A cell half scrolled out of the grid leaves no room for its panel on a phone.
           target.closest(".ib-filter-cell")?.scrollIntoView({ block: "nearest" });
@@ -155,41 +163,17 @@ class Table extends IzzyElement {
           }
           stale.href = to.href;
         }
-        // On a static page Between waits for Apply like the rest of the panel, with no trip of its own.
-        const operatorField = opens && staticPage ? opens.querySelector<HTMLSelectElement>("select[data-ib-filter]") : null;
-        if (operatorField) {
-          event.preventDefault();
-          operatorField.value = "between";
-          this.#typing.chosen(operatorField);
-          this.#touch(operatorField);
-          // The row's field hands over now: from here what's in the panel is what's meant.
-          for (const edit of this.#rowEdits) {
-            const twin = opens!.querySelector<HTMLInputElement>(`input[name="${CSS.escape(edit.name)}"]`);
-            if (twin) twin.value = edit.value;
-          }
-          this.#rowEdits.clear();
-        }
-        opens?.showPopover();
         const clear = target.closest("[data-ib-filter-clear]");
         if (clear && plain) this.#closePanel(clear);
-        // An operator is a link on a static page, so what it changes would wait for the response.
-        // Reset would show the column's default, which only the server knows.
-        const operator = target.closest("a.ib-menu-item:not([data-ib-reset], [data-ib-opens-panel])");
-        const cell = operator?.closest(".ib-filter-cell");
-        const icon = operator?.querySelector(":scope > .ib-icon");
-        if (cell && icon && staticPage && plain) {
-          cell.querySelector(".ib-filter-cell-op")?.replaceChildren(icon.cloneNode(true));
-          const field = cell.querySelector<HTMLInputElement>("input[placeholder]");
-          if (field) field.placeholder = operator!.querySelector(".ib-menu-label")!.textContent!;
-        }
         // The × goes with the filter, so focus moves to what stays. A static page's is a link, so it shows now too.
         const wipe = target.closest<HTMLElement>(".ib-filter-cell-clear");
         if (wipe && plain) {
-          const summary = wipe.previousElementSibling as HTMLElement;
-          summary.focus();
+          const slot = wipe.parentElement!.querySelector<HTMLElement>(".ib-filter-cell-summary, input")!;
+          slot.focus();
           if (staticPage) {
             wipe.hidden = true;
-            summary.firstElementChild!.textContent = "";
+            if (slot instanceof HTMLInputElement) slot.value = "";
+            else slot.firstElementChild!.textContent = "";
           }
         }
         const add = target.closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;

@@ -67,19 +67,6 @@ public class DataGridFilterRowTests : BunitContext
         Assert.Equal(new[] { "f-kind=A", "f-name-op=startswith", "f-name=a", "f-total-op=between", "f-total=5", "sort=name" }.Order(), posted);
     }
 
-    [Fact]
-    public void The_menu_chooses_an_operator_by_a_link_keeping_the_value()
-    {
-        var cut = Grid("/orders?f-name=a&page=2");
-
-        var starts = cut.FindAll(".ib-table-filter-row td")[0].QuerySelectorAll("a").First(a => a.TextContent.Contains("Starts with"));
-        var href = starts.GetAttribute("href")!;
-
-        Assert.Contains("f-name-op=startswith", href);
-        Assert.Contains("f-name=a", href);
-        Assert.DoesNotContain("page=", href);
-    }
-
     [Theory]
     [InlineData("?filter=name%20eq%20'Ada'%20or%20total%20eq%2020&f-kind=B", new[] { "Grace" })]
     [InlineData("?filter=name%20eq%20'Ada'%20or%20total%20eq%2020", new[] { "Ada", "Grace" })]

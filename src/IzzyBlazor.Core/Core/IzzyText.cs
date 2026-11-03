@@ -261,11 +261,7 @@ public class IzzyText
     /// <summary>A filter row's list with nothing unticked.</summary>
     public virtual string FilterAll { get; set; } = "All";
 
-    /// <summary>A filter row's operator button; {0} is the column's title and {1} its operator.</summary>
-    public virtual string FilterChangeOperator { get; set; } = "{0}: {1}. Change the operator";
 
-    /// <summary>A filter row's menu item that takes a column's filter back to its default.</summary>
-    public virtual string Reset { get; set; } = "Reset";
 
     /// <summary>A list filter whose search found nothing.</summary>
     public virtual string FilterNoValues { get; set; } = "No values found";
