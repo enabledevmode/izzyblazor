@@ -12,7 +12,7 @@
     <DetailTemplate>
         @* Its own prefix, so each order's lines keep their own sort. *@
         <DataGrid Items="OrderLines.For(context.Number)" Caption="@($"Lines of order {context.Number}")"
-                  QueryPrefix="@($"lines{context.Number}-")" Size="ControlSize.Sm" Bordered>
+                  QueryPrefix="@($"lines{context.Number}-")" Size="ControlSize.Sm" Bordered="false">
             <PropertyColumn Property="l => l.Product" Sortable />
             <PropertyColumn Property="l => l.Quantity" Title="Qty" Width="5.Rem" />
             <PropertyColumn Property="l => l.Price" Format="C" Width="7.Rem" />

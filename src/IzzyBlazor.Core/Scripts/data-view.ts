@@ -10,13 +10,17 @@
  * (indeterminate). Marks the root data-ready while it runs, so CSS can show the checkbox. One that
  * selects every match (data-ib-all-matching) flips nothing: the selection says so, and the boxes follow.
  */
+// The root's own, not a view's inside it, such as a grid in a row's detail.
+const mine = (root: HTMLElement, el: Element | null): boolean => !!el && el.closest(root.localName) === root;
+const own = <T extends Element>(root: HTMLElement, selector: string): T[] => [...root.querySelectorAll<T>(selector)].filter((el) => mine(root, el));
+
 export function setupSelectAll(root: HTMLElement, allSelector: string, itemSelector: string, signal: AbortSignal): void {
   if (!root.querySelector(allSelector)) return;
   root.dataset.ready = "";
 
-  const items = () => [...root.querySelectorAll<HTMLInputElement>(itemSelector)].filter((box) => !box.disabled);
+  const items = () => own<HTMLInputElement>(root, itemSelector).filter((box) => !box.disabled);
   const sync = () => {
-    const all = root.querySelector<HTMLInputElement>(allSelector);
+    const all = own<HTMLInputElement>(root, allSelector)[0];
     if (!all) return;
     // One that selects every match shows the selection, whatever this page's boxes say: checked only
     // for all of them, so that a click from anything less takes them all.
@@ -40,6 +44,7 @@ export function setupSelectAll(root: HTMLElement, allSelector: string, itemSelec
     "change",
     (event) => {
       const target = event.target as HTMLInputElement;
+      if (!mine(root, target)) return;
       if (target.matches(allSelector)) {
         if (target.hasAttribute("data-ib-all-matching")) return;
         // Read once: each item's change event below syncs select-all, which may change it.
@@ -107,7 +112,7 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
   root.dataset.ready = "";
   signal.addEventListener("abort", () => delete root.dataset.ready);
 
-  const boxes = () => [...root.querySelectorAll<HTMLInputElement>(itemSelector)];
+  const boxes = () => own<HTMLInputElement>(root, itemSelector);
   const summary = root.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-summary");
   keepFocus(root, boxes, signal);
   // On interactive pages C# keeps the selection; the script adds only the ranges and focus.
@@ -169,8 +174,8 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     "change",
     (event) => {
       const box = event.target as HTMLInputElement;
+      if (!mine(root, box)) return;
       if (box.hasAttribute("data-ib-all-matching")) {
-        if (box.closest(root.localName) !== root) return;
         state = box.checked ? { keys: new Set(), all: true, ...scope } : empty();
         save();
         render();

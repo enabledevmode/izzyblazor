@@ -43,7 +43,7 @@ class GridColumns extends IzzyElement {
     host.addEventListener("click", (event) => this.#onClick(event), { signal });
     // A chip in the bar of what's grouped moves among the others.
     host.addEventListener("pointerdown", (event) => {
-      const chip = (event.target as Element).closest<HTMLElement>(".ib-grid-group-chip");
+      const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
       if (chip && event.button === 0 && event.pointerType !== "touch" && !(event.target as Element).closest("a, button")) this.#dragChip(event, chip, signal);
     }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
@@ -231,7 +231,7 @@ class GridColumns extends IzzyElement {
   }
 
   #onClick(event: Event): void {
-    const button = (event.target as Element).closest<HTMLElement>("[data-ib-col-action]");
+    const button = this.#mine((event.target as Element).closest<HTMLElement>("[data-ib-col-action]"));
     if (!button) return;
     const action = button.dataset.ibColAction!;
     const key = button.dataset.ibCol;
@@ -268,10 +268,15 @@ class GridColumns extends IzzyElement {
     void this.#save(columns, true, null);
   }
 
+  // This grid's own: not a grid's in one of its details.
+  #mine<T extends Element>(el: T | null | undefined): T | null {
+    return el?.closest("ib-table") === this.#host ? el : null;
+  }
+
   #onChange(event: Event): void {
     const box = event.target as HTMLInputElement;
     const key = box.dataset?.ibColShow;
-    if (!key) return;
+    if (!key || !this.#mine(box)) return;
     if (!box.checked && this.#headers.length <= 1) {
       box.checked = true;
       return;
@@ -282,7 +287,7 @@ class GridColumns extends IzzyElement {
   #onKey(event: KeyboardEvent): void {
     if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || event.ctrlKey || event.metaKey) return;
     if (event.shiftKey === event.altKey) return;
-    const th = (event.target as Element).closest<HTMLTableCellElement>("thead th[data-ib-col]");
+    const th = this.#mine((event.target as Element).closest<HTMLTableCellElement>("thead th[data-ib-col]"));
     if (!th || (event.target as Element).closest("[popover], dialog") || (event.target as Element).matches("input, select, textarea")) return;
     const rtl = getComputedStyle(th).direction === "rtl";
     const forward = (event.key === "ArrowRight") !== rtl;
@@ -304,7 +309,7 @@ class GridColumns extends IzzyElement {
     if (event.button !== 0) return;
     const target = event.target as Element;
     const handle = target.closest<HTMLElement>(".ib-col-resize");
-    const th = target.closest<HTMLTableCellElement>("thead th[data-ib-col]");
+    const th = this.#mine(target.closest<HTMLTableCellElement>("thead th[data-ib-col]"));
     if (!th) return;
     if (handle) this.#dragWidth(event, th, handle, signal);
     else if ((th.hasAttribute("data-ib-reorder") || th.hasAttribute("data-ib-group")) && event.pointerType !== "touch" && !target.closest("button, input, [popover]")) this.#dragColumn(event, th, signal);
@@ -358,7 +363,7 @@ class GridColumns extends IzzyElement {
   // Double-click on a handle: as wide as its header and the rows drawn.
   #onDoubleClick(event: Event): void {
     const handle = (event.target as Element).closest(".ib-col-resize");
-    const th = handle?.closest<HTMLTableCellElement>("thead th[data-ib-col]");
+    const th = this.#mine(handle?.closest<HTMLTableCellElement>("thead th[data-ib-col]"));
     if (!th || !this.#table) return;
     this.#table.toggleAttribute("data-ib-measuring", true);
     const range = document.createRange();
