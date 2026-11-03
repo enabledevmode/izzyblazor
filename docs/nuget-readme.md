@@ -47,7 +47,7 @@ Add the namespace in `_Imports.razor`:
 @using IzzyBlazor
 ```
 
-Register the services and map the endpoints in `Program.cs`:
+Register the services in `Program.cs`:
 
 ```csharp
 builder.Services.AddIzzyBlazor();
