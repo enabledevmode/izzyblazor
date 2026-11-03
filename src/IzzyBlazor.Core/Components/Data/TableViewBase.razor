@@ -471,6 +471,13 @@
     /// <summary>A line between columns. Defaults to false.</summary>
     [Parameter] public bool ColumnLines { get; set; }
 
+    /// <summary>
+    /// Shades the header, and a DataGrid's <c>FilterRow</c> with it, so they read apart from the rows; its
+    /// color is <c>--ib-table-head-bg</c>. Defaults to false. With <see cref="Striped"/> too, the header
+    /// is a little lighter than a stripe.
+    /// </summary>
+    [Parameter] public bool ShadedHeader { get; set; }
+
     /// <summary>A rounded border around the table. Defaults to true; false for a table that sits inside a card or panel.</summary>
     [Parameter] public bool Bordered { get; set; } = true;
 
@@ -2056,6 +2063,7 @@
         classes.Add("ib-table-row-hover", RowHover);
         classes.Add("ib-table-no-row-lines", !RowLines);
         classes.Add("ib-table-column-lines", ColumnLines);
+        classes.Add("ib-table-shaded-head", ShadedHeader);
         classes.Add("ib-table-borderless", !Bordered);
         classes.Add("ib-table-sm", Size == ControlSize.Sm);
         classes.Add("ib-table-lg", Size == ControlSize.Lg);
