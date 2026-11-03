@@ -1227,6 +1227,12 @@
     padding-inline: var(--ib-space-2);
   }
 
+  /* The row's menu at the column's end, so it lines up whatever buttons a row has, and sits at the
+     edge in a column kept wide for Save and Cancel. */
+  .ib-grid-actions > ib-popover {
+    margin-inline-start: auto;
+  }
+
   /* An action drawn as a button and as a menu item; the grid's style shows one (DataGridSmallScreen). */
   span:is(.ib-fold-on, .ib-fold-off) {
     display: contents;
