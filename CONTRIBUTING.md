@@ -138,8 +138,13 @@ parameter tables and defaults are never written by hand.
   summary, its example as Usage, each of the component's examples in `components.json` under its
   title and `lead` (one sentence leading with the prop; backticks mark code), the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
   The API page is always generated.
-- A component with many parts can have topic pages under it (`components.json` "topics", as
-  DataGrid's and Table's): each lists its examples and the members its own API page shows. A
+- A complex component isn't explained on a single page: it gets topic pages under it
+  (`components.json` "topics", as DataGrid's, Table's and ListView's). A component needs them
+  when it has several separate features, each with its own parameters and examples, such as
+  selection, loading data and reordering. Length alone doesn't count: many variations of one idea
+  (Card's layouts, Button's variants) stay on one page. The Overview keeps the basics a newcomer
+  needs first. Use the same topic names across components where the feature is the same
+  (Filtering, Selection, Loading data). Each topic lists its examples and the members its own API page shows. A
   topic's page is `Docs/Topics/{Name}{Topic}Topic.razor` when written by hand (`TableFilteringTopic`
   for Table's `filtering`), else its `intro` and its examples under their titles. A hand-written
   Overview lists them under a "Topics" heading with `<OverviewTopics />`.
