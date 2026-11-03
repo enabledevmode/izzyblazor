@@ -93,9 +93,41 @@ internal sealed class CookieToastCarrier(IHttpContextAccessor http) : IToastCarr
     }
 }
 
-/// <summary>Reads request cookies through the current HttpContext, during static rendering only.</summary>
+/// <summary>
+/// Reads request cookies through the current HttpContext, during static rendering only. Of two with
+/// one name (one on this page's path, an older one on a path above it), the first: browsers send the
+/// most specific path first, and it's the one the page's script reads and writes. Request.Cookies
+/// keeps the last.
+/// </summary>
 internal sealed class HttpRequestCookies(IHttpContextAccessor http) : IRequestCookies
 {
-    public string? Get(string name) =>
-        http.HttpContext is { Response.HasStarted: false } context ? context.Request.Cookies[name] : null;
+    public string? Get(string name)
+    {
+        if (http.HttpContext is not { Response.HasStarted: false } context)
+        {
+            return null;
+        }
+
+        foreach (var header in context.Request.Headers.Cookie)
+        {
+            foreach (var part in (header ?? "").Split(';'))
+            {
+                var eq = part.IndexOf('=');
+                if (eq > 0 && part.AsSpan(0, eq).Trim().SequenceEqual(name))
+                {
+                    var value = part[(eq + 1)..].Trim().Trim('"');
+                    try
+                    {
+                        return Uri.UnescapeDataString(value);
+                    }
+                    catch (UriFormatException)
+                    {
+                        return value;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
 }
