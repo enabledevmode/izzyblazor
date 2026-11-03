@@ -379,7 +379,11 @@
                             {
                                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-filter-builder-tool" popovertarget="@panel">@TextDefaults.FilterEdit</button>
                             }
-                            @ClearAction(count > 0, () => ClearFiltersHref, ClearFiltersAsync)
+                            @* Only with something to clear, named for what it clears; the row keeps its place without it. *@
+                            @if (count > 0)
+                            {
+                                @ClearAction(true, () => ClearFiltersHref, ClearFiltersAsync, TextDefaults.ClearFilters)
+                            }
                         </div>
                     }
                 </div>

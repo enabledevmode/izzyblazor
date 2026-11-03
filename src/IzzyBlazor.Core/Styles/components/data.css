@@ -566,11 +566,13 @@
     display: none;
   }
 
+  /* As tall as its small buttons with none in it, so the first filter's Clear moves nothing. */
   .ib-table-filter-tags {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ib-space-2);
+    min-height: var(--ib-control-h-sm);
   }
 
   /* A long value wraps, with its remove button still in the row. */
