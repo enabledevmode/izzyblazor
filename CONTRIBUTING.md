@@ -216,10 +216,10 @@ outside the Release workflow and broke the Live examples until it was removed.
 An Overview is for using the component; the API page is the reference. Follow Button's:
 
 1. **Usage**: a short code block of the common cases, ready to copy.
-2. **A section per thing to do**: a heading, one sentence that leads with the prop ("Use
-   `Loading` to show a spinner and block clicks."), then its example. Details such as ARIA
-   attributes and edge cases go in the parameter's doc comment or the Accessibility section, not
-   the sentence.
+2. **A section per thing to do**: a heading, a sentence that says what the feature does, and
+   how to turn it on ("A loading button shows a spinner and ignores clicks. Set `Loading` while
+   the work runs."), then its example. Details such as ARIA attributes and edge cases go in the
+   parameter's doc comment or the Accessibility section, not the sentence.
 3. **Mode support**, **Accessibility** (from the doc comment, as above), **Parameters**
    (`<ParameterTable Compact />`) and **See also**, after the examples.
 
@@ -242,8 +242,8 @@ reader is a .NET developer who knows Blazor and may come from MudBlazor or Radze
 
 - **Write whole sentences.** Each clause has its own verb. Not "Text matches anywhere, a date its
   day"; write "Text matches anywhere in the value. A date matches the whole day."
-- **One fact per sentence.** A section opens with one or two sentences: the parameter and what it
-  does. Caveats, limits and mode differences come after the example, as short sentences or a
+- **One fact per sentence.** A section opens with one or two sentences: what the feature does,
+  and the parameter that turns it on. Caveats, limits and mode differences come after the example, as short sentences or a
   list. Keep a paragraph to about three sentences. Where there are rows (a type and its operator, a
   parameter and its default), use a table.
 - **Use plain verbs.** "requires", not "takes"; "sets", not "says"; "the server rejects", not
@@ -252,14 +252,18 @@ reader is a .NET developer who knows Blazor and may come from MudBlazor or Radze
 - **Say what the user needs, not how it was built.** Leave out browser versions, the arithmetic
   behind a size, algorithm costs and why a limit exists, unless the reason changes what someone
   does.
-- **State the rule, not the example's details.** Not "as Discount (%) does"; say what to set.
-  The example shows it.
+- **Options are goal first**: "To list every active filter below the table, set `FilterPanel`."
+  Not "Use `FilterPanel` to…".
+- **Say what an example shows when it isn't obvious**, in its own terms: "This example turns off
+  sorting on the Order column." Don't lean on a label inside it as if the reader had seen it ("as
+  Discount (%) does"); state the rule.
 - **Explain a shared caveat once**, on the article it belongs to (Forms, Render modes), and link
   to it in one line.
 - **Headings say what the section is for**: "Labels and localization", not "Its own words";
   "Indeterminate state", not "A dash of your own". Example titles follow the same rule.
-- **A component's summary** is a noun phrase for what it is, then what it's for: "A grid for
-  editing, grouping and filtering rows, with its state in the URL."
+- **A component's summary** starts with what it does, as a verb: "Displays rows of data in a grid
+  users can sort, filter, group and edit." Where a simpler or related component fits some readers
+  better, the Overview's first paragraph says so: "For a plain list of records, see Table."
 - **Be direct, in the active voice.** Name the feature and say what it does, or what the user
   does with it: "Column filters narrow the rows from each column's header. The filter is kept in
   the URL and can be set from C#." No build-up ("Let users…", "This page shows…"), and never a

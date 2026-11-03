@@ -1600,7 +1600,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "A grid for editing, grouping and filtering rows, with columns users arrange and its state in the URL.", "keywords": ["data grid", "datagrid", "grid"],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
@@ -1703,7 +1703,7 @@
       ]
     },
     {
-      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "A list of items from data, with links, selection, paging and reordering.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
+      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Displays a list of items users can open, select, page through and reorder.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
         { "feature": "Links, the current item, actions and a ⋯ menu on each item" },
         { "feature": "Selection that posts with a form or binds in C#" },
