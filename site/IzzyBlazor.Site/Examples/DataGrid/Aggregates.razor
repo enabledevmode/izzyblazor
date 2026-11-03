@@ -1,10 +1,15 @@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
-@* The footer covers every order the filters match, not just this page. Filter by status and it follows. *@
+@using Status = IzzyBlazor.Site.Examples.Table.OrderStatus
+@* The footer covers every order the filters match, not just this page. Filter by status and it follows.
+   The last column's is your own: the share of orders paid, worked out in the database. *@
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders with totals" QueryPrefix="totals-" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Aggregate="DataAggregate.Count" AggregateLabel="" />
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="7.Rem" Aggregate="DataAggregate.Count" />
     <PropertyColumn Property="o => o.Customer" />
     <PropertyColumn Property="o => o.Status" Filterable />
     <PropertyColumn Property="o => o.Date" Format="MMM d" Aggregate="DataAggregate.Max" AggregateLabel="Latest" />
     <PropertyColumn Property="o => o.Total" Format="C" Width="10.Rem" Aggregate="DataAggregate.Sum" />
-    <TemplateColumn Title="Average" Width="9.Rem" AggregateBy="g => g.Average(o => o.Total)" AggregateFormat="C">@context.Total.ToString("C")</TemplateColumn>
+    <TemplateColumn Title="Paid" Width="8.Rem" Align="CellAlign.End" AggregateLabel="Paid" AggregateFormat="P0"
+                    AggregateBy="g => (double)g.Count(o => o.Status == Status.Paid) / g.Count()">
+        @(context.Status == Status.Paid ? "Yes" : "No")
+    </TemplateColumn>
 </DataGrid>
