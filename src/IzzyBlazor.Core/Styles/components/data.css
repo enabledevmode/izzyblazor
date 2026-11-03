@@ -284,6 +284,8 @@
     --ib-table-px: var(--ib-table-cell-px, var(--ib-space-4));
     --ib-table-font: var(--ib-text-sm);
     --ib-table-stripe: color-mix(in oklab, var(--ib-color-fill) 50%, transparent);
+    /* ShadedHeader's band: lighter than a stripe in light, the subtlest fill in dark. */
+    --ib-table-head-bg: light-dark(color-mix(in oklab, var(--ib-color-fill-subtle) 75%, var(--ib-color-surface)), var(--ib-color-fill-subtle));
 
     display: flex;
     flex-direction: column;
@@ -379,8 +381,8 @@
     box-shadow: none;
   }
 
-  /* The header has no tint: bolder text in the body color over a full-strength line carries it.
-     It is painted the table's own color, so a sticky header covers the rows scrolling under it. */
+  /* The header has no tint unless ShadedHeader asks: bolder text in the body color over a full-strength
+     line carries it. It is painted the table's own color, so a sticky header covers the rows scrolling under it. */
   .ib-table-grid > * > * > th {
     border-bottom-color: var(--ib-color-border);
     background-color: var(--ib-table-bg, var(--ib-color-surface));
@@ -1843,24 +1845,19 @@
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
   }
 
-  /* A grid's head is a raised band, its filter row with it, so its controls read apart from the rows.
-     After the frozen cells' rule, which it beats in the head. A step stronger in dark, where the
-     subtlest fill barely shows. */
-  .ib-datagrid {
-    --ib-datagrid-head-bg: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
+  /* ShadedHeader: the head is a band, a filter row with it, so its controls read apart from the rows.
+     After the frozen cells' rule, which it beats in the head. */
+  .ib-table.ib-table-shaded-head .ib-table-grid > thead > tr > :is(th, td, .ib-frozen) {
+    background-color: var(--ib-table-head-bg);
   }
 
-  .ib-datagrid.ib-table .ib-table-grid > thead > tr > :is(th, td, .ib-frozen) {
-    background-color: var(--ib-datagrid-head-bg);
-  }
-
-  .ib-datagrid .ib-table-grid > thead:has(> .ib-table-filter-row) > tr:not(.ib-table-filter-row) > th {
+  .ib-table-shaded-head .ib-table-grid > thead:has(> .ib-table-filter-row) > tr:not(.ib-table-filter-row) > th {
     border-bottom-color: transparent;
   }
 
   /* Above a sticky head's scrollbar, which starts under it, the band goes on to the edge. */
-  .ib-table-sticky.ib-datagrid > .ib-table-scroll {
-    background-image: linear-gradient(var(--ib-datagrid-head-bg), var(--ib-datagrid-head-bg));
+  .ib-table-sticky.ib-table-shaded-head > .ib-table-scroll {
+    background-image: linear-gradient(var(--ib-table-head-bg), var(--ib-table-head-bg));
     background-size: 100% var(--ib-table-head-h);
     background-repeat: no-repeat;
   }
