@@ -16,14 +16,14 @@
     changes nothing. A first day shades the days it can run to, and days past MinDays, MaxDays or a
     disabled day can't end it. UseNative keeps the browser's calendars. So do no script and a phone,
     unless the field has what a browser's calendar can't show: DateDisabled, MinDays, MaxDays or
-    Presets. Presets the field's rules would turn away are disabled, and they're absolute days from a
+    Presets. `Presets` the field's rules would turn away are disabled, and they're absolute days from a
     today the app passes in, so they follow its zone.
 
     A DateRange holds days, so midnight never enters it. To query a time column:
     range.Contains(order.PlacedAt)        a DateTime compares by its clock date
     var (from, until) = range.ToUtc(zone) from <= x && x < until, either may be null
 
-    Min, Max, MinDays, MaxDays and DateDisabled are checked on the server, along with the end not
+    `Min`, `Max`, MinDays, MaxDays and DateDisabled are checked on the server, along with the end not
     being before the start, so they hold against a phone, no script or a crafted post. DateDisabled
     turns away a span with a disabled day in it, unless AllowDisabledInRange. With Required, a field
     with only one end is turned away too. An empty field is null on an interactive page, and after a

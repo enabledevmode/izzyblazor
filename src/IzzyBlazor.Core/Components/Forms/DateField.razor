@@ -16,20 +16,20 @@
     The calendar writes to the input, so posting and binding don't change. UseNative keeps the
     browser's calendar. So do no script and a phone, unless the field has DateDisabled, which a
     browser's calendar can't show: there it's the library's, and on a phone the input can't be typed
-    in. Min, Max and DateDisabled are checked again on the server, so a typed date is turned away
+    in. `Min`, `Max` and DateDisabled are checked again on the server, so a typed date is turned away
     when the form posts.
 
     With a time, the calendar has a box each for the hour and minute, with seconds if Step has them
     and AM or PM if the culture does, and OK: nothing is written until OK, and closing it any other
     way, by Escape or a click outside, drops the choice. Min
-    and Max stop the days, and their times are checked as the form posts.
+    and `Max` stop the days, and their times are checked as the form posts.
 
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
     Type="DateFieldType.Date" or [DataType(DataType.Date)] on the property (midnight in TimeZone).
 
     Type="DateFieldType.Month" takes a month, held as the 1st of it in a DateOnly or DateTime, and
     Type="DateFieldType.Year" a year, held in an int. Each has a page of twelve to choose from. Min
-    and Max compare whole months or years, so a Min of March 15 allows March.
+    and `Max` compare whole months or years, so a `Min` of March 15 allows March.
     <DateField @bind-Value="Model.Expires" Type="DateFieldType.Month" />
     <DateField @bind-Value="Model.Year" Type="DateFieldType.Year" Min="2000" Max="2030" />
     On a desktop a month is chosen, not typed, and its button shows it, since browsers other than

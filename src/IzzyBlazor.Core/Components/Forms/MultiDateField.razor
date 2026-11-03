@@ -10,8 +10,8 @@
     <MultiDateField @bind-Value="Model.DaysOff" Min="@today" DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
     <MultiDateField @bind-Value="Model.DaysOff" Inline />
 
-    A day toggles and writes at once, so the panel stays open with nothing to confirm. Inline shows the
-    month on the page in place of the button. Min, Max and DateDisabled are checked for each date on the
+    A day toggles and writes at once, so the panel stays open with nothing to confirm. `Inline` shows the
+    month on the page in place of the button. `Min`, `Max` and DateDisabled are checked for each date on the
     server, so they hold against a crafted post. With Required, or [Required], it needs at least one.
     For a run of days in a row, use DateRangeField.
 
