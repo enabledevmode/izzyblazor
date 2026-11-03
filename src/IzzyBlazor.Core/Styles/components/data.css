@@ -1108,6 +1108,7 @@
   /* DataGrid: the server sets the widths, so the layout doesn't wait for the content. */
   .ib-datagrid {
     --ib-datagrid-select: 2.75rem;
+    --ib-datagrid-group: 2.25rem;
     --ib-datagrid-menu: 3rem;
   }
 
@@ -1554,79 +1555,85 @@
   .ib-grid-group-bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: var(--ib-space-2);
     margin-block-end: var(--ib-space-2);
   }
 
-  .ib-grid-group-label {
-    position: sticky;
-    inset-inline-start: calc(var(--ib-datagrid-select, 0px) + var(--ib-table-px));
+  .ib-grid-lead-col {
+    width: var(--ib-datagrid-group);
   }
 
+  /* The chevron fills its level's lead column, so the label starts where a column's text does. */
   .ib-grid-group > th {
-    border-bottom-color: var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
+    padding-inline-start: 0;
     overflow: visible;
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
     text-align: start;
   }
 
-  /* Above striping: a group's row is one color, frozen cells too. */
-  .ib-grid-group, .ib-grid-group-foot {
-    --ib-frozen-bg: var(--ib-color-surface-sunken);
+  .ib-grid-group-label {
+    white-space: nowrap;
+    position: sticky;
+    inset-inline-start: var(--ib-group-at);
   }
 
-  .ib-datagrid .ib-table-grid > tbody > tr:is(.ib-grid-group, .ib-grid-group-foot) > :is(td, th) {
-    background-color: var(--ib-color-surface-sunken);
-    font-weight: var(--ib-weight-semibold);
-  }
-
-  .ib-grid-group:last-child > th {
-    border-bottom: 0;
-  }
-
-  .ib-grid-group-more > td {
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
-    color: var(--ib-color-muted);
-  }
-
-  tr[data-ib-grouped] > td:not(.ib-table-select-cell):is(:first-child, .ib-table-select-cell + td) {
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
-  }
-
-  .ib-grid-group-toggle {
+  :is(.ib-grid-group-toggle, .ib-grid-group-all) {
     display: inline-flex;
     align-items: center;
-    gap: var(--ib-space-1);
     color: inherit;
     font: inherit;
     text-decoration: none;
   }
 
-  .ib-grid-group-toggle[aria-expanded="true"] > svg {
+  :is(.ib-grid-group-toggle, .ib-grid-group-all) > svg {
+    box-sizing: content-box;
+    padding-inline: calc((var(--ib-datagrid-group) - 1em) / 2);
+  }
+
+  .ib-grid-group-all > svg {
+    padding-inline: 0;
+  }
+
+  .ib-grid-group-toggle > svg {
+    margin-inline-end: calc(var(--ib-table-px) - (var(--ib-datagrid-group) - 1em) / 2);
+  }
+
+  .ib-grid-lead:has(.ib-grid-group-all) {
+    text-align: center;
+  }
+
+  :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg {
     rotate: 90deg;
   }
 
-  .ib-grid-group-toggle > svg:dir(rtl) {
+  :is(.ib-grid-group-toggle, .ib-grid-group-all) > svg:dir(rtl) {
     scale: -1 1;
   }
 
-  .ib-grid-group-toggle[aria-expanded="true"] > svg:dir(rtl) {
+  :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg:dir(rtl) {
     rotate: -90deg;
   }
 
-  :is(.ib-grid-group-column, .ib-grid-group-count) {
-    color: var(--ib-color-muted);
-    font-weight: var(--ib-weight-normal);
+  .ib-grid-group-aggregate {
+    margin-inline-start: var(--ib-space-3);
   }
 
-  .ib-grid-group-count {
-    margin-inline-start: var(--ib-space-2);
+  /* Above striping: a group's rows are one color, frozen cells too, and one weight throughout. */
+  .ib-grid-group, .ib-grid-group-foot {
+    --ib-frozen-bg: var(--ib-color-surface-sunken);
   }
 
-  .ib-grid-aggregate-word {
+  .ib-datagrid .ib-table-grid > tbody > tr:is(.ib-grid-group, .ib-grid-group-foot) > :is(td, th) {
+    border-bottom-color: var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
+    background-color: var(--ib-color-surface-sunken);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-grid-group:last-child > th {
+    border-bottom-width: 0;
+  }
+
+  .ib-grid-group-more > td {
     color: var(--ib-color-muted);
-    font-weight: var(--ib-weight-normal);
   }
 
   /* The bar of a page's actions on the selection, above the items. Tinted while something is selected. */

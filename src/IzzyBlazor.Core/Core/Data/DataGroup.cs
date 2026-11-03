@@ -195,6 +195,7 @@ public sealed record DataGroupRequest<TItem>
             .Select(a => (a.Type, Field: Field(a.Key)))
             .Where(a => a.Field is { Aggregatable: true } && GroupQuery<TItem>.Takes(a.Field, a.Type))
             .Select(a => (a.Field!, a.Type))
+            .Distinct()
             .ToList();
         return new GroupQuery<TItem>(keys, aggregates, Skip, Take);
     }
@@ -210,7 +211,7 @@ public sealed record DataGroupResult(IReadOnlyList<DataGroup> Groups, int? Total
 /// <param name="Count">How many rows match, in the whole group.</param>
 public sealed record DataGroup(IReadOnlyList<object?> Keys, int Count)
 {
-    /// <summary>The aggregates, by field key.</summary>
+    /// <summary>The aggregates, by field key and type as <see cref="DataAggregateField"/> writes them: <c>"total:sum"</c>.</summary>
     public IReadOnlyDictionary<string, object?> Values { get; init; } = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 }
 
@@ -309,7 +310,7 @@ internal sealed class GroupQuery<TItem>(
             var values = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
             for (var i = 0; i < aggregates.Count; i++)
             {
-                values[aggregates[i].Field.Key] = row[keys.Count + 1 + i];
+                values[new DataAggregateField(aggregates[i].Field.Key, aggregates[i].Type).ToString()] = row[keys.Count + 1 + i];
             }
 
             return new DataGroup(row[..keys.Count], Convert.ToInt32(row[keys.Count], CultureInfo.InvariantCulture)) { Values = values };

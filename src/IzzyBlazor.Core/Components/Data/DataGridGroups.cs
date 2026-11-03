@@ -6,15 +6,12 @@ namespace IzzyBlazor;
 // A grid's groups: what's grouped and open (the address, or state when bound), and loading a page of
 // groups. A page counts top-level groups. An open group's rows are one ordinary request, with its
 // values in the filter, so an ItemsProvider needn't know about groups.
-/// <summary>Where a <c>DataGrid</c> draws a group's aggregates.</summary>
-public enum DataGridGroupAggregates
-{
-    /// <summary>On the group's own row, in their columns, whether it's open or not. The default.</summary>
-    Row,
-
-    /// <summary>On a row under the group's rows, while it's open.</summary>
-    Footer,
-}
+/// <summary>An aggregate, for a column's <c>AggregateTemplate</c>.</summary>
+/// <param name="Type">What it is.</param>
+/// <param name="Value">Its value, as the column's type for a Min or Max.</param>
+/// <param name="Text">Its value in the column's format.</param>
+/// <param name="Group">The group it's of: in the footer, all the rows.</param>
+public sealed record DataGridAggregate(DataAggregate Type, object? Value, string? Text, DataGroup Group);
 
 /// <summary>A group, for a column's <c>GroupTemplate</c>.</summary>
 /// <param name="Value">Its value, or null for none.</param>
@@ -70,9 +67,6 @@ public partial class DataGrid<TItem>
     /// showing only that group, with the grid's pages. Defaults to 100.
     /// </summary>
     [Parameter] public int GroupRowLimit { get; set; } = 100;
-
-    /// <summary>Where a group's aggregates are drawn: on its own row, or under its rows when it's open.</summary>
-    [Parameter] public DataGridGroupAggregates GroupAggregates { get; set; }
 
     /// <summary>Keeps a grouped column in the table. By default it leaves, as each group's row says its value.</summary>
     [Parameter] public bool ShowGroupedColumns { get; set; }
@@ -235,7 +229,7 @@ public partial class DataGrid<TItem>
             return null;
         }
 
-        var aggregates = AggregateFields();
+        var aggregates = AggregateFields(AggregatePlace.GroupRow, AggregatePlace.GroupFooter);
         DataGroupRequest<TItem> Asking(int levels) => new()
         {
             Keys = state.Levels.Take(levels).Select(l => new SortField(l.Field, l.Descending)).ToList(),

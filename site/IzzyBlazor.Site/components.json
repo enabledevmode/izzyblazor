@@ -1611,10 +1611,15 @@
           ]
         },
         {
-          "id": "grouping", "title": "Grouping and aggregates", "summary": "Group by columns, a page of groups at a time, with totals over all the data.",
+          "id": "aggregates", "title": "Aggregates", "summary": "Totals over every row the filters match, in the footer.",
           "examples": [
-            { "id": "data-grid-grouping", "title": "Groups", "lead": "Use `Groupable` to let people group from a header's menu, and `InitialGroup` to start grouped. Both are in the address, as `?group=status`, and a group's row is a link that opens it, so this works on a static page with no script. A page counts top-level groups, so a group is never split, and a group's count is the whole group's. With an `ItemsProvider`, add a `GroupsProvider`: rows still come from your provider, with the group's value in the filter." },
-            { "id": "data-grid-aggregates", "title": "Aggregates", "lead": "Use `Aggregate` on a column for a sum, average, lowest, highest or count, or `AggregateBy` for your own, as an expression that runs in the database. It covers every row the filters match, and shows in the footer and on each group's row." }
+            { "id": "data-grid-aggregates", "title": "Footer totals", "lead": "Use `Aggregate` on a column for a sum, average, lowest, highest or count in the footer, or `AggregateBy` for your own, as an expression that runs in the database. It covers every row the filters match, not the page, and needs no grouping. With an `ItemsProvider`, add a `GroupsProvider`, which answers for the totals." }
+          ]
+        },
+        {
+          "id": "grouping", "title": "Grouping", "summary": "Group by columns, a page of groups at a time, with values for each group.",
+          "examples": [
+            { "id": "data-grid-grouping", "title": "Groups", "lead": "Use `Groupable` to let people group from a header's menu, and `InitialGroup` to start grouped. Both are in the address, as `?group=status`, and a group's row is a link that opens it, so this works on a static page with no script. A page counts top-level groups, so a group is never split, and a group's count is the whole group's. `GroupAggregate` shows a value on each group's row and `GroupFooterAggregate` one under an open group's rows, separate from the footer's `Aggregate`. With an `ItemsProvider`, add a `GroupsProvider`: rows still come from your provider, with the group's value in the filter." }
           ]
         },
         {

@@ -191,18 +191,28 @@ class GridColumns extends IzzyElement {
     return Math.max(min, Math.min(max, Math.round(width)));
   }
 
+  // A header's column among the data columns, and its <col>: past the selection and groups' lead cells.
+  #place(th: HTMLTableCellElement): [number, number] {
+    let cells = 0;
+    let cols = 0;
+    for (const cell of th.parentElement!.children as HTMLCollectionOf<HTMLTableCellElement>) {
+      if (!cell.matches(".ib-table-select-cell, .ib-grid-lead")) break;
+      cells++;
+      cols += cell.colSpan;
+    }
+    return [th.cellIndex - cells, th.cellIndex - cells + cols];
+  }
+
   /** Shows a width at once: the variable everything uses, and the column if it had none. */
   #show(th: HTMLTableCellElement, width: number): void {
-    const select = this.#table?.tHead?.rows[0].cells[0].matches(".ib-table-select-cell") ? 1 : 0;
-    const index = th.cellIndex - select;
+    const [index, at] = this.#place(th);
     this.#table!.style.setProperty(`--ib-col-${index}`, `${width}px`);
-    const col = this.#table!.querySelector("colgroup")?.children[th.cellIndex] as HTMLElement | undefined;
+    const col = this.#table!.querySelector("colgroup")?.children[at] as HTMLElement | undefined;
     if (col) col.style.width = `var(--ib-col-${index})`;
   }
 
   #hasWidth(th: HTMLTableCellElement): boolean {
-    const select = this.#table?.tHead?.rows[0].cells[0].matches(".ib-table-select-cell") ? 1 : 0;
-    return !!this.#table?.style.getPropertyValue(`--ib-col-${th.cellIndex - select}`);
+    return !!this.#table?.style.getPropertyValue(`--ib-col-${this.#place(th)[0]}`);
   }
 
   #setWidth(th: HTMLTableCellElement, width: number, focus: boolean, hadWidth = this.#hasWidth(th)): void {
@@ -335,9 +345,9 @@ class GridColumns extends IzzyElement {
 
   // A column with no width of its own, after a drag that came to nothing.
   #forget(th: HTMLTableCellElement): void {
-    const select = this.#table?.tHead?.rows[0].cells[0].matches(".ib-table-select-cell") ? 1 : 0;
-    this.#table?.style.removeProperty(`--ib-col-${th.cellIndex - select}`);
-    (this.#table?.querySelector("colgroup")?.children[th.cellIndex] as HTMLElement | undefined)?.style.removeProperty("width");
+    const [index, at] = this.#place(th);
+    this.#table?.style.removeProperty(`--ib-col-${index}`);
+    (this.#table?.querySelector("colgroup")?.children[at] as HTMLElement | undefined)?.style.removeProperty("width");
   }
 
   // Double-click on a handle: as wide as its header and the rows drawn.
@@ -348,7 +358,9 @@ class GridColumns extends IzzyElement {
     this.#table.toggleAttribute("data-ib-measuring", true);
     const range = document.createRange();
     let widest = 0;
+    // A group's row spans its columns differently, and its label isn't the column's content.
     for (const row of this.#table.rows) {
+      if (row.matches(".ib-grid-group")) continue;
       const cell = row.cells[th.cellIndex];
       if (!cell || cell.colSpan > 1) continue;
       const style = getComputedStyle(cell);
@@ -367,7 +379,7 @@ class GridColumns extends IzzyElement {
     const zone = this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th);
     const from = zone.indexOf(th);
     const rects = zone.map((other) => other.getBoundingClientRect());
-    const columnOf = (header: HTMLTableCellElement) => [...table.rows].flatMap((row) => {
+    const columnOf = (header: HTMLTableCellElement) => [...table.rows].filter((row) => !row.matches(".ib-grid-group")).flatMap((row) => {
       const cell = row.cells[header.cellIndex];
       return cell && cell.colSpan === 1 ? [cell] : [];
     });

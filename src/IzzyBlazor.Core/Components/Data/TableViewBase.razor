@@ -16,6 +16,7 @@
             {
                 <td class="@SelectCellClass"></td>
             }
+            @LeadCell
             @foreach (var column in Shown)
             {
                 <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
@@ -31,7 +32,7 @@
         var editing = IsEditingRow(item);
         var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@(indent is { } depth ? $"--ib-group-depth:{depth}" : VirtualRowStyle)" data-ib-grouped="@(indent is null ? null : "")" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -44,6 +45,7 @@
                            @onchange="e => OnSelectChanged(key, e)" />
                 </td>
             }
+            @LeadCell
             @{ var first = true; }
             @foreach (var column in Shown)
             {
@@ -86,21 +88,24 @@
 
     private bool HasFooterRow => Shown.Any(c => c.HasFooter);
 
-    // An aggregate's cell: the word, then the value.
-    internal RenderFragment AggregateCell(ColumnBase<TItem> column, DataGroup? group) => __builder =>
+    // An aggregate's cell, in one weight: "Sum: $1,200", or the column's template.
+    internal RenderFragment AggregateCell(ColumnBase<TItem> column, DataGroup? group, AggregatePlace place) => __builder =>
     {
-        if (column.AggregateTemplate is { } template && group is not null)
+        if (column.AggregateIn(place) is { } type && column.TryAggregate(group, type, out var value))
         {
-            @template(group)
-        }
-        else if (column.AggregateText(group) is { } value)
-        {
-            @if (column.AggregateWord(TextDefaults) is { Length: > 0 } word)
+            var text = column.AggregateText(type, value);
+            if (column.AggregateTemplate is { } template)
             {
-                <span class="ib-grid-aggregate-word">@word</span>
-                @(" ")
+                @template(new DataGridAggregate(type, value, text, group!))
             }
-            @value
+            else if (column.AggregateWord(TextDefaults, type) is { Length: > 0 } word)
+            {
+                @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.AggregateText, word, text)
+            }
+            else
+            {
+                @text
+            }
         }
     };
 
@@ -199,6 +204,7 @@
                                     }
                                 </th>
                             }
+                            @LeadHeader
                             @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
                             @foreach (var column in Shown)
                             {
@@ -231,6 +237,7 @@
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
+                                @LeadCell
                                 @foreach (var column in Shown)
                                 {
                                     <td class="@CellClass(column)" style="@HeaderStyle(column)">
@@ -252,6 +259,7 @@
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
+                                @LeadCell
                                 @foreach (var column in Shown)
                                 {
                                     <td class="@CellClass(column)" style="@CellStyle(column)">@(EditCell(column) ?? column.Cell(added))</td>
@@ -264,7 +272,7 @@
                             @* In place of the rows: what went wrong and a way to try again. *@
                             _virtualShape = null;
                             <tr class="ib-table-empty ib-table-error">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content ib-data-error-content">
                                         @LoadFailedMessage
                                         @RetryControl(RetryAsync, _providerLoading)
@@ -286,7 +294,7 @@
                         else if (_items.Count == 0)
                         {
                             <tr class="ib-table-empty">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
                                         @if (NoneTicked() is { } unticked)
                                         {
@@ -334,9 +342,10 @@
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
+                                @LeadCell
                                 @foreach (var column in Shown)
                                 {
-                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.WrittenFooter ?? (column.HasFooter ? AggregateCell(column, _grandTotal) : null))</td>
+                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.WrittenFooter ?? AggregateCell(column, _grandTotal, AggregatePlace.Footer))</td>
                                 }
                                 @LastEmptyCell
                             </tr>

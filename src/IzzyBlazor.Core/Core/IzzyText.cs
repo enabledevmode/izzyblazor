@@ -622,14 +622,23 @@ public class IzzyText
     /// <summary>A DataGrid header menu's item that stops grouping by the column.</summary>
     public virtual string GroupRemove { get; set; } = "Stop grouping by this column";
 
-    /// <summary>Before what a DataGrid is grouped by.</summary>
+    /// <summary>The name of what a DataGrid is grouped by, its chips.</summary>
     public virtual string GroupedBy { get; set; } = "Grouped by";
 
     /// <summary>Opens all of a DataGrid's groups.</summary>
-    public virtual string GroupExpandAll { get; set; } = "Expand all";
+    public virtual string GroupExpandAll { get; set; } = "Expand all groups";
 
     /// <summary>Closes all of a DataGrid's groups.</summary>
-    public virtual string GroupCollapseAll { get; set; } = "Collapse all";
+    public virtual string GroupCollapseAll { get; set; } = "Collapse all groups";
+
+    /// <summary>A DataGrid group's label: {0} is the column's title, {1} its value.</summary>
+    public virtual string GroupLabel { get; set; } = "{0}: {1}";
+
+    /// <summary>After a DataGrid group's label: {0} is how many rows it has.</summary>
+    public virtual string GroupCount { get; set; } = "({0:N0})";
+
+    /// <summary>A DataGrid aggregate: {0} is its word, {1} its value.</summary>
+    public virtual string AggregateText { get; set; } = "{0}: {1}";
 
     /// <summary>The checkbox on a DataGrid's open group: {0} is its value.</summary>
     public virtual string GroupSelect { get; set; } = "Select the rows of {0}";

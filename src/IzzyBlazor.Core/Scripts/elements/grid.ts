@@ -524,7 +524,7 @@ class Grid extends IzzyElement {
 
   // An open list or picker has the keys first: Escape closes it, and focus stays.
   #isOpen(target: HTMLElement): boolean {
-    if (target.getAttribute("aria-expanded") === "true" && !target.matches(".ib-grid-group-toggle")) return true;
+    if (target.getAttribute("aria-expanded") === "true" && !target.matches(".ib-grid-group-toggle, .ib-grid-group-all")) return true;
     const select = target.closest("select");
     if (!select) return false;
     try {
