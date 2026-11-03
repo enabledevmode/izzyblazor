@@ -1617,15 +1617,16 @@
     margin-inline-start: var(--ib-space-3);
   }
 
-  /* Above striping: a group's rows are one color, frozen cells too, and one weight throughout. */
-  .ib-grid-group, .ib-grid-group-foot {
-    --ib-frozen-bg: var(--ib-color-surface-sunken);
-  }
-
+  /* A group's rows are told apart by weight and chevron, not a band: plain, not striped, unless a
+     theme sets --ib-grid-group-bg. Frozen cells stay opaque. */
   .ib-datagrid .ib-table-grid > tbody > tr:is(.ib-grid-group, .ib-grid-group-foot) > :is(td, th) {
     border-bottom-color: var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
-    background-color: var(--ib-color-surface-sunken);
+    background-color: var(--ib-grid-group-bg, transparent);
     font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-datagrid .ib-table-grid > tbody > tr:is(.ib-grid-group, .ib-grid-group-foot) > .ib-frozen {
+    background-color: var(--ib-grid-group-bg, var(--ib-frozen-bg));
   }
 
   .ib-grid-group:last-child > th {
