@@ -514,6 +514,15 @@
     outline-offset: 0;
   }
 
+  /* A grid's idle header buttons fade until the header is hovered, holds focus or has its menu open,
+     where a pointer can hover: faded, not hidden, so they keep their place, take focus and are named.
+     A filter that's set always shows. */
+  @media (hover: hover) and (pointer: fine) {
+    .ib-datagrid th:not(:hover, :focus-within, :has(:popover-open)) > .ib-table-head .ib-table-filter-button:not([data-active]) {
+      opacity: 0;
+    }
+  }
+
   /* Start-aligned whatever the column's alignment (a number column's header is end-aligned). */
   .ib-table-filter-panel {
     display: flex;
