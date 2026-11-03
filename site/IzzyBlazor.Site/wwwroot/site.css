@@ -393,7 +393,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   .ex-tools > .ex-widths { display: none; }
 }
 @container ex (width >= 640px) {
-  .ex:has(.ex-widths input[value="phone"]:checked) .ex-stage {
+  .ex-phone .ex-stage {
     width: 390px;
     max-width: 100%;
     margin-inline: auto;
@@ -413,7 +413,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .ex-code-toggle:has(input:not(:checked)) .ex-code-show { display: inline; }
 
 /* The code toggle and the width switch: buttons drawn around native inputs. */
-.ex-code-toggle, .ex-widths label {
+.ex-code-toggle, .ex-widths a {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -434,16 +434,17 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   opacity: 0;
   cursor: pointer;
 }
-.ex-code-toggle:hover, .ex-widths label:hover { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
-.ex-widths label:has(input:checked) {
+.ex-code-toggle:hover, .ex-widths a:hover { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
+.ex-widths a[aria-current] {
   background: var(--ib-color-fill-strong);
   color: var(--ib-color-on-surface);
 }
-.ex-code-toggle:has(input:focus-visible), .ex-widths label:has(input:focus-visible) {
+.ex-code-toggle:has(input:focus-visible), .ex-widths a:focus-visible {
   outline: 2px solid var(--ib-color-focus);
   outline-offset: 1px;
 }
 .ex-widths { display: inline-flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.ex-widths a { text-decoration: none; }
 
 /*
  * The page's mode switch (ModeSwitch): segmented link Tabs, then a line on what the current mode
