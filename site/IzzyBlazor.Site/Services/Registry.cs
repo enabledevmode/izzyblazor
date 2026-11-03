@@ -229,6 +229,12 @@ public sealed record RegistryExample
     /// </summary>
     public bool Page { get; init; }
 
+    /// <summary>
+    /// Adds the Desktop/Phone width switch, for an example that lays out by its own width, such as a
+    /// grid that hides columns: Phone narrows the preview to a phone's width.
+    /// </summary>
+    public bool WidthSwitch { get; init; }
+
     public string StartMode => Mode ?? (Modes.Contains("static") ? "static" : Modes[0]);
 }
 

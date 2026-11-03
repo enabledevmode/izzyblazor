@@ -55,7 +55,7 @@
                     <span class="ex-code-show" aria-hidden="true">Show code</span>
                 </label>
             }
-            @if (WidthSwitch)
+            @if (WidthSwitch || _example.WidthSwitch)
             {
                 <fieldset class="ex-widths">
                     <legend class="ib-visually-hidden">Preview width</legend>
@@ -114,7 +114,7 @@
     /// <summary>Shows the code under the preview, with no Preview · Code tabs, as on demos.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
-    /// <summary>Adds a Desktop/Phone width switch, for demo scenarios.</summary>
+    /// <summary>Adds a Desktop/Phone width switch, for demo scenarios. An example can ask for one in components.json.</summary>
     [Parameter] public bool WidthSwitch { get; set; }
 
     /// <summary>
