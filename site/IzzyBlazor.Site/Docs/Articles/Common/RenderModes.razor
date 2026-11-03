@@ -23,8 +23,8 @@
             <ListItem>
                 <strong>Interactive</strong> (Server, WebAssembly or Auto): the page's components keep running after it
                 loads, so <Code>@@bind</Code> and event handlers such as <Code>OnClick</Code> run C# when the user acts.
-                Server runs them on the server, and WebAssembly runs them in the browser. Auto starts on the server and
-                moves to the browser once the WebAssembly runtime has downloaded.
+                Server runs them on the server, and WebAssembly runs them in the browser. Auto uses Server at first, while
+                the WebAssembly runtime downloads, and WebAssembly once it's cached.
             </ListItem>
             <ListItem>
                 <strong>Circuit</strong>: what an interactive Server page runs over. It is the page's components and their
@@ -70,8 +70,8 @@
 
         <Heading Level="2">Choose a render mode</Heading>
         <TextBlock>
-            Keep a page static unless it needs C# to answer the user's clicks, and make only those pages interactive. The
-            render mode is set page by page.
+            Keep a page static unless it needs C# to answer the user's clicks, and make only those pages interactive. You can
+            set a render mode for each page, or for the whole app on <Code>Routes</Code>.
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
