@@ -36,6 +36,35 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Every_member_a_topic_lists_is_in_the_API()
+    {
+        // A topic's API page shows only what it lists, so a renamed member would quietly drop off it.
+        var unknown = new List<string>();
+        foreach (var component in Registry.AllComponents)
+        {
+            var api = Api.Component(component.Name)!;
+            var column = Api.Component("PropertyColumn")!;
+            foreach (var topic in component.Topics)
+            {
+                foreach (var name in topic.Members)
+                {
+                    var dot = name.IndexOf('.');
+                    var owner = dot < 0 ? api : name[..dot] == "Column" ? column : Api.Component(name[..dot]);
+                    var member = dot < 0 ? name : name[(dot + 1)..];
+                    var found = (dot < 0 && (component.Parts.Contains(name) || Api.Type(name) is not null))
+                        || (owner is not null && owner.Properties.Concat(owner.Events).Concat(owner.Methods).Any(m => m.Name == member));
+                    if (!found)
+                    {
+                        unknown.Add($"{component.Id}/{topic.Id}: {name}");
+                    }
+                }
+            }
+        }
+
+        Assert.True(unknown.Count == 0, $"Not in the API: {string.Join(", ", unknown)}");
+    }
+
+    [Fact]
     public void Every_pictogram_is_a_Lucide_icon()
     {
         var unknown = Registry.Components.Where(c => IzzyBlazor.Site.Components.Parts.Pictogram.Lookup(c.Icon) is null).Select(c => $"{c.Id}: {c.Icon}").ToList();

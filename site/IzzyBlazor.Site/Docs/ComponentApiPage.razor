@@ -1,4 +1,5 @@
 @page "/docs/components/{Id}/api"
+@page "/docs/components/{Id}/{Topic}/api"
 @inject Registry Registry
 @inject ApiMetadata Api
 @inject NavigationManager Navigation
@@ -7,28 +8,49 @@
     One generic page for every component's API, built from the metadata alone: properties,
     events, methods, the parts documented with it, and the types they use. The filter is a GET
     form (FilterForm), so it works with JavaScript off and applies as you type with it.
+    A topic's (components.json "members") is the same page with only the members it's about.
 *@
 
 @if (_component is not null && _api is not null)
 {
-    <PageMeta Title="@($"{_component.Name} API · IzzyBlazor")" Description="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" Indexed="!_component.Preview" />
+    <PageMeta Title="@PageTitle" Description="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" Indexed="!_component.Preview" />
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" />
+        <ComponentHeader Component="_component" ApiComponent="_api" Topic="_topic" />
 
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            <Code>IzzyBlazor.@_api.DisplayName</Code> in the @_api.Package package, generated from the @Api.Version assembly
-            and its doc comments.
-        </TextBlock>
+        @if (_topic is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                The members for @_topic.Title.ToLowerInvariant(), and the types they use. Every member of
+                <Code>IzzyBlazor.@_api.DisplayName</Code> is on the <Anchor Href="@Registry.ApiPageHref(_component)">@_component.Name API</Anchor>.
+            </TextBlock>
+        }
+        else
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                <Code>IzzyBlazor.@_api.DisplayName</Code> in the @_api.Package package, generated from the @Api.Version assembly
+                and its doc comments.
+            </TextBlock>
+        }
 
         <FilterForm Label="Filter members">
             <FilterSearch Placeholder="Filter members" Label="Filter members" />
-            <FilterCheckbox Name="inherited" Label="Show inherited" />
+            @if (_topic is null)
+            {
+                <FilterCheckbox Name="inherited" Label="Show inherited" />
+            }
         </FilterForm>
 
-        <Heading Level="2" id="properties">Properties (@_properties.Count)</Heading>
-        <ApiMemberList Members="_properties" Context="_context" ShowDeclaredOn EmptyText="@NoMatch" />
-        @if (Inherited)
+        @if (_properties.Count > 0 || _topic is null)
+        {
+            <Heading Level="2" id="properties">Properties (@_properties.Count)</Heading>
+            <ApiMemberList Members="_properties" Context="_context" ShowDeclaredOn EmptyText="@NoMatch" />
+        }
+        @if (_topic is not null)
+        {
+            @* No inherited members: none is about a topic. *@
+        }
+        else if (Inherited)
         {
             @foreach (var (title, members, name) in _inherited)
             {
@@ -46,7 +68,7 @@
             </InheritedLine>
         }
 
-        @if (_events.Count > 0 || Query is null)
+        @if (_events.Count > 0 || (Query is null && _topic is null))
         {
             <Heading Level="2" id="events">Events (@_events.Count)</Heading>
             <ApiMemberList Members="_events" Context="_context" ShowDeclaredOn EmptyText="@(Query is null ? "No events." : NoMatch)" />
@@ -61,7 +83,7 @@
         @if (_parts.Count > 0)
         {
             <Heading Level="2" id="parts">Parts (@_parts.Count)</Heading>
-            <TextBlock Color="Color.Muted">Components written inside @_component.Name, documented here with it.</TextBlock>
+            <TextBlock Color="Color.Muted">@PartsLine</TextBlock>
             @foreach (var (part, members) in _parts)
             {
                 var anchor = ApiMetadata.Anchor(part.Name);
@@ -103,13 +125,26 @@
             }
         }
 
+        @if (_topic is null)
+        {
         <PrevNext PreviousHref="@(_previous is null ? null : Registry.ApiPageHref(_previous))" PreviousTitle="@(_previous is null ? null : $"{_previous.Name} API")"
                   NextHref="@(_next is null ? null : Registry.ApiPageHref(_next))" NextTitle="@(_next is null ? null : $"{_next.Name} API")" />
+        }
     </article>
 }
 
 @code {
     [Parameter] public string Id { get; set; } = "";
+
+    [Parameter] public string? Topic { get; set; }
+
+    private RegistryTopic? _topic;
+
+    private string PageTitle => _topic is null ? $"{_component!.Name} API · IzzyBlazor" : $"{_topic.Title} API · {_component!.Name} · IzzyBlazor";
+
+    private string PartsLine => _topic is null
+        ? $"Components written inside {_component!.Name}, documented here with it."
+        : $"Components written inside {_component!.Name}, and the columns' members, which PropertyColumn and TemplateColumn share.";
 
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
 
@@ -152,7 +187,8 @@
     {
         _component = Registry.ById(Id);
         _api = _component is null ? null : Api.Component(_component.Name);
-        if (_component is null || _api is null)
+        _topic = Topic is null ? null : _component?.Topics.FirstOrDefault(t => t.Id == Topic && t.Members.Count > 0);
+        if (_component is null || _api is null || (Topic is not null && _topic is null))
         {
             Navigation.NotFound();
             return;
@@ -172,6 +208,42 @@
         _parts = parts.Select(p => (p, Filter(p.Properties.Concat(p.Events).Where(m => m.Obsolete is null)))).ToList();
         _types = typeNames.Select(Api.Type).OfType<ApiType>().OrderBy(t => t.Name, StringComparer.Ordinal).ToList();
         (_previous, _next) = Registry.Around(_component);
+        if (_topic is not null)
+        {
+            ForTopic(_topic, parts);
+        }
+    }
+
+    // Only the topic's members, and the types those use.
+    private void ForTopic(RegistryTopic topic, List<ApiComponent> parts)
+    {
+        var own = topic.Members.Where(m => !m.Contains('.') && !_component!.Parts.Contains(m)).ToHashSet();
+        _properties = _properties.Where(m => own.Contains(m.Name)).ToList();
+        _events = _events.Where(m => own.Contains(m.Name)).ToList();
+        _methods = _methods.Where(m => own.Contains(m.Name)).ToList();
+
+        // Whole parts, a part's members, and the columns' (on PropertyColumn, which TemplateColumn shares).
+        var column = Api.Component("PropertyColumn");
+        var owners = column is null ? parts : [.. parts, column];
+        _parts = owners
+            .Select(p =>
+            {
+                var prefix = p == column ? "Column." : p.Name + ".";
+                var all = Filter(p.Properties.Concat(p.Events).Where(m => m.Obsolete is null));
+                return (Part: p, Members: topic.Members.Contains(p.Name) ? all : all.Where(m => topic.Members.Contains(prefix + m.Name)).ToList());
+            })
+            .Where(p => p.Members.Count > 0 || topic.Members.Contains(p.Part.Name))
+            .ToList();
+
+        var used = _properties.Concat(_events).Concat(_methods).Concat(_parts.SelectMany(p => p.Members)).Select(m => m.Type).ToList();
+        var known = _types.Concat((column?.Types ?? []).Select(Api.Type).OfType<ApiType>()).DistinctBy(t => t.Name);
+        _types = known
+            .Where(t => topic.Members.Contains(t.Name) || used.Any(u => System.Text.RegularExpressions.Regex.IsMatch(u, $@"\b{System.Text.RegularExpressions.Regex.Escape(t.Name)}\b")))
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .ToList();
+
+        // Its members' own links are to this page.
+        _context = ApiMetadata.ContextFor(Registry.TopicApiHref(_component!, topic), _api!, _types.Select(t => t.Name));
     }
 
     private List<ApiMember> Filter(IEnumerable<ApiMember> members) =>
