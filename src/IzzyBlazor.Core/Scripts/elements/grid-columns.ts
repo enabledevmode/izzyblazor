@@ -87,11 +87,11 @@ class GridColumns extends IzzyElement {
   }
 
   #header(key: string): HTMLTableCellElement | null {
-    return [...(this.#table?.querySelectorAll<HTMLTableCellElement>("thead th[data-ib-col]") ?? [])].find((th) => th.dataset.ibCol === key) ?? null;
+    return [...(this.#table?.querySelectorAll<HTMLTableCellElement>(":scope > thead th[data-ib-col]") ?? [])].find((th) => th.dataset.ibCol === key) ?? null;
   }
 
   get #headers(): HTMLTableCellElement[] {
-    return [...(this.#table?.querySelectorAll<HTMLTableCellElement>("thead th[data-ib-col]") ?? [])];
+    return [...(this.#table?.querySelectorAll<HTMLTableCellElement>(":scope > thead th[data-ib-col]") ?? [])];
   }
 
   #layout(): ColumnEntry[] {

@@ -1,0 +1,22 @@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@* Each row's button opens its lines under it, in a grid of their own. Open rows are in the address,
+   so this works on a static page with no script, and the lines are drawn only for open rows. *@
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with their lines" QueryPrefix="orders-" Grow
+          ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")">
+    <ChildContent>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Status" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    </ChildContent>
+    <DetailTemplate>
+        @* Its own prefix, so each order's lines keep their own sort. *@
+        <DataGrid Items="OrderLines.For(context.Number)" Caption="@($"Lines of order {context.Number}")"
+                  QueryPrefix="@($"lines{context.Number}-")" Size="ControlSize.Sm" Bordered>
+            <PropertyColumn Property="l => l.Product" Sortable />
+            <PropertyColumn Property="l => l.Quantity" Title="Qty" Width="5.Rem" />
+            <PropertyColumn Property="l => l.Price" Format="C" Width="7.Rem" />
+            <PropertyColumn Property="l => l.Amount" Format="C" Width="8.Rem" Aggregate="DataAggregate.Sum" AggregateLabel="" />
+        </DataGrid>
+    </DetailTemplate>
+</DataGrid>

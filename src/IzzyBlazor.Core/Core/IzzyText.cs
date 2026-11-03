@@ -634,6 +634,21 @@ public class IzzyText
     /// <summary>Closes all of a DataGrid's groups.</summary>
     public virtual string GroupCollapseAll { get; set; } = "Collapse all groups";
 
+    /// <summary>A DataGrid row's button that opens its detail: {0} is the row's name.</summary>
+    public virtual string DetailShow { get; set; } = "Show details for {0}";
+
+    /// <summary>A DataGrid row's button that closes its detail: {0} is the row's name.</summary>
+    public virtual string DetailHide { get; set; } = "Hide details for {0}";
+
+    /// <summary>Opens every row's detail in a DataGrid.</summary>
+    public virtual string DetailExpandAll { get; set; } = "Show all details";
+
+    /// <summary>Closes every row's detail in a DataGrid.</summary>
+    public virtual string DetailCollapseAll { get; set; } = "Hide all details";
+
+    /// <summary>The name of a DataGrid's column of detail buttons, when it has no button of its own.</summary>
+    public virtual string DetailColumn { get; set; } = "Details";
+
     /// <summary>A DataGrid group's label: {0} is the column's title, {1} its value.</summary>
     public virtual string GroupLabel { get; set; } = "{0}: {1}";
 

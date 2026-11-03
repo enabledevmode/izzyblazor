@@ -29,6 +29,12 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>How many columns they take.</summary>
     internal virtual int LeadSpan => 0;
 
+    /// <summary>A data row's lead cells: <see cref="LeadCell"/>, or the grid's with its detail button.</summary>
+    internal virtual RenderFragment? RowLead(TItem item, int row) => LeadCell;
+
+    /// <summary>What follows a data row: its open detail, on a grid.</summary>
+    internal virtual RenderFragment? AfterRow(TItem item, int row, int? indent) => null;
+
     /// <summary>The rows in their groups, in place of the rows; null when there are no groups to draw.</summary>
     internal virtual RenderFragment? GroupRows => null;
 

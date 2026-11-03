@@ -1,5 +1,9 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 
+// The first that's this grid's own, not a grid's in one of its details.
+const own = <T extends Element = HTMLElement>(root: Element, selector: string): T | null =>
+  [...root.querySelectorAll<T>(selector)].find((el) => el.closest("ib-table") === root) ?? null;
+
 /**
  * <ib-grid-edit> is an empty element in a DataGrid that can edit or delete rows. It moves focus as an
  * editor comes and goes, and on a static page opens one with no round trip for the whole page. With no
@@ -35,7 +39,7 @@ class GridEdit extends IzzyElement {
     // A closed dialog gives focus back by itself, but a circuit starting may have redrawn the button.
     root.addEventListener("close", (event) => {
       const key = (event.target as Element).getAttribute("data-ib-edit-for");
-      const row = key && root.querySelector(`tr[data-ib-key="${CSS.escape(key)}"]`);
+      const row = key && own(root, `tr[data-ib-key="${CSS.escape(key)}"]`);
       if (row && !row.contains(document.activeElement)) this.#focusAction(root, key!);
     }, { signal, capture: true });
     const check = () => {
@@ -44,7 +48,7 @@ class GridEdit extends IzzyElement {
     };
     // Set up again after an enhanced load: a post that left the editor open has Blazor go back to the
     // address it last knew, which isn't one this element pushed.
-    if (this.#address && (root.querySelector("[data-ib-edit-for]") || root.querySelector("tr[data-ib-editing]")) && location.href !== this.#address) {
+    if (this.#address && (own(root, "[data-ib-edit-for]") || own(root, "tr[data-ib-editing]")) && location.href !== this.#address) {
       history.replaceState(history.state, "", this.#address);
     }
     this.#address = "";
@@ -82,7 +86,7 @@ class GridEdit extends IzzyElement {
       this.#began(editing, field as HTMLInputElement);
     }
     // Not gone just for the moment an enhanced load is merging the page.
-    const open = root.querySelector("[data-ib-edit-for]") ?? editing;
+    const open = own(root, "[data-ib-edit-for]") ?? editing;
     if (this.#saving === null) return;
     if (open) {
       // A failed save in a row: to its first invalid field, whose message is beside it.
@@ -90,7 +94,7 @@ class GridEdit extends IzzyElement {
       if (invalid) {
         this.#saving = null;
         invalid.focus();
-      } else if (root.querySelector("[data-ib-edit-for] .ib-form-errors")) this.#saving = null;
+      } else if (own(root, "[data-ib-edit-for] .ib-form-errors")) this.#saving = null;
       return;
     }
     this.#focusAction(root, this.#saving);
@@ -101,7 +105,7 @@ class GridEdit extends IzzyElement {
   #focusAction(root: Element, key: string): void {
     const row = `tr[data-ib-key="${CSS.escape(key)}"]`;
     const action = "[data-ib-edit]:not([popover] *)";
-    (root.querySelector<HTMLElement>(`${row} ${action}`) ?? root.querySelector<HTMLElement>(`${row} [data-ib-row-menu]`) ?? root.querySelector<HTMLElement>(action))?.focus();
+    (own(root, `${row} ${action}`) ?? own(root, `${row} [data-ib-row-menu]`) ?? own(root, action))?.focus();
   }
 
   // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes
@@ -153,7 +157,7 @@ class GridEdit extends IzzyElement {
 
   #cellAt(root: Element, address: string): HTMLElement | null {
     const [column, key] = address.split(/\n(.*)/s);
-    return root.querySelector(`tr[data-ib-key="${CSS.escape(key)}"] > td[data-ib-edit-col="${CSS.escape(column)}"]`);
+    return own(root, `tr[data-ib-key="${CSS.escape(key)}"] > td[data-ib-edit-col="${CSS.escape(column)}"]`);
   }
 
   #start(address: string): void {
@@ -206,7 +210,7 @@ class GridEdit extends IzzyElement {
           if (own[own.indexOf(target) + (key.shiftKey ? -1 : 1)]) return;
           key.preventDefault();
           key.stopPropagation();
-          const cells = [...root.querySelectorAll<HTMLElement>("tbody td[data-ib-edit-col]")];
+          const cells = [...root.querySelectorAll<HTMLElement>("tbody td[data-ib-edit-col]")].filter((c) => c.closest("ib-table") === root);
           const next = cells[cells.indexOf(open) + (key.shiftKey ? -1 : 1)];
           this.#next = next ? this.#addressOf(next) : "";
           // Told to C# first, to wait for how the save ends: an invalid cell stays open.
@@ -266,7 +270,7 @@ class GridEdit extends IzzyElement {
       const named = `ib-dialog[data-query-key="${CSS.escape(link.dataset.ibEdit!)}"]`;
       const editor = page.querySelector(named);
       if (!editor) throw new Error();
-      root.querySelector(named)?.remove();
+      own(root, named)?.remove();
       history.pushState(null, "", link.href);
       // Where the server draws it, so that a later merge leaves it be.
       this.after(document.adoptNode(editor));
@@ -286,10 +290,10 @@ class GridEdit extends IzzyElement {
     const from = fresh?.querySelector(body);
     const into = root.querySelector(body);
     // Rows still streaming, or a row that's gone, whose message is only in the whole page.
-    if (!from || !into || page.querySelector("blazor-ssr") || (!link.hasAttribute("data-ib-edit-cancel") && !from.querySelector("tr[data-ib-editing]"))) throw new Error();
-    const rowIn = (rows: Element, key?: string) => key && rows.querySelector(`tr[data-ib-key="${CSS.escape(key)}"]`);
-    for (const row of into.querySelectorAll<HTMLElement>("tr[data-ib-editing]")) row.replaceWith(rowIn(from, row.dataset.ibKey) || "");
-    for (const row of [...from.querySelectorAll<HTMLElement>("tr[data-ib-editing]")]) {
+    if (!from || !into || page.querySelector("blazor-ssr") || (!link.hasAttribute("data-ib-edit-cancel") && !from.querySelector(":scope > tr[data-ib-editing]"))) throw new Error();
+    const rowIn = (rows: Element, key?: string) => key && rows.querySelector(`:scope > tr[data-ib-key="${CSS.escape(key)}"]`);
+    for (const row of into.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")) row.replaceWith(rowIn(from, row.dataset.ibKey) || "");
+    for (const row of [...from.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")]) {
       const old = rowIn(into, row.dataset.ibKey);
       if (old) old.replaceWith(row);
       else into.prepend(row);
@@ -299,8 +303,8 @@ class GridEdit extends IzzyElement {
       const old = rowIn(into, (cell.parentElement as HTMLElement).dataset.ibKey);
       if (old) old.querySelector(":scope > .ib-grid-menu-cell")?.replaceWith(cell);
     }
-    for (const tool of root.querySelectorAll<HTMLAnchorElement>(".ib-grid-toolbar a[data-ib-edit]")) {
-      const href = fresh.querySelector(`.ib-grid-toolbar a[data-ib-edit="${CSS.escape(tool.dataset.ibEdit!)}"]`)?.getAttribute("href");
+    for (const tool of [...root.querySelectorAll<HTMLAnchorElement>(".ib-grid-toolbar a[data-ib-edit]")].filter((t) => t.closest("ib-table") === root)) {
+      const href = own(fresh, `.ib-grid-toolbar a[data-ib-edit="${CSS.escape(tool.dataset.ibEdit!)}"]`)?.getAttribute("href");
       if (href) tool.setAttribute("href", href);
     }
     const form = ":scope > form[data-ib-edit-for]";

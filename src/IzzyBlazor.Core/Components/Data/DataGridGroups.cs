@@ -453,6 +453,8 @@ public partial class DataGrid<TItem>
             var shut = query.TryGetValue(ShutKey, out var s) ? s.OfType<string>().Select(p => "!" + p) : [];
             _stateOpen = [.. open, .. shut];
         }
+
+        SeedDetailsFromAddress(query);
     }
 
     // Whether its checkbox has anything to tick.
