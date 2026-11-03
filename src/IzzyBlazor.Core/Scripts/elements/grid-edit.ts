@@ -29,6 +29,7 @@ class GridEdit extends IzzyElement {
     if (!root) return;
     root.addEventListener("submit", (event) => {
       const form = event.target as Element;
+      if (form.closest("ib-table") !== root) return;
       this.#saving = (form.closest("dialog") ?? form).getAttribute("data-ib-edit-for");
       this.#address = location.href;
       // A second post from a row's Save, which is outside the form, so that the form's own guard misses it.
@@ -38,6 +39,7 @@ class GridEdit extends IzzyElement {
     }, { signal });
     // A closed dialog gives focus back by itself, but a circuit starting may have redrawn the button.
     root.addEventListener("close", (event) => {
+      if ((event.target as Element).closest("ib-table") !== root) return;
       const key = (event.target as Element).getAttribute("data-ib-edit-for");
       const row = key && own(root, `tr[data-ib-key="${CSS.escape(key)}"]`);
       if (row && !row.contains(document.activeElement)) this.#focusAction(root, key!);
@@ -184,7 +186,9 @@ class GridEdit extends IzzyElement {
   #setupCells(root: Element, signal: AbortSignal): void {
     const live = () => root.hasAttribute("data-ib-interactive");
     const on = (type: string, handler: (event: Event) => void, capture = false) => root.addEventListener(type, handler, { signal, capture });
-    const editable = (target: EventTarget | null) => (target as Element | null)?.closest<HTMLElement>("td[data-ib-edit-col]:not([data-ib-editing])");
+    // This grid's own cells: not a grid's in one of its details.
+    const mine = (cell: HTMLElement | null | undefined) => (cell?.closest("ib-table") === root ? cell : null);
+    const editable = (target: EventTarget | null) => mine((target as Element | null)?.closest<HTMLElement>("td[data-ib-edit-col]:not([data-ib-editing])"));
 
     on("click", (event) => {
       const target = event.target as Element;
@@ -196,7 +200,7 @@ class GridEdit extends IzzyElement {
       const key = event as KeyboardEvent;
       const target = key.target as HTMLElement;
       if (key.isComposing) return;
-      const open = target.closest<HTMLElement>("td[data-ib-editing]");
+      const open = mine(target.closest<HTMLElement>("td[data-ib-editing]"));
       if (open && !target.closest("[popover]") && !target.matches('[aria-expanded="true"]') && !this.#listOpen(target)) {
         const field = this.#field(open, "input:not([type=hidden]), select, textarea") as HTMLInputElement;
         if (key.key === "Escape") {

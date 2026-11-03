@@ -297,7 +297,7 @@ class Grid extends IzzyElement {
     if (!table) return;
     // Group rows have levels, which ARIA only allows on a row in a treegrid.
     table.setAttribute("role", table.querySelector(":scope > * > tr[aria-level]") ? "treegrid" : "grid");
-    if (table.closest("ib-table")?.querySelector(".ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
+    if (table.querySelector(":scope > thead .ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
     else table.removeAttribute("aria-multiselectable");
 
     // A control that came beside the focused one, as a filter's × does: focus is in that cell now, and Tab reaches it.
@@ -602,7 +602,7 @@ class Grid extends IzzyElement {
       return true;
     }
     if (modifier && !event.shiftKey && event.key.toLowerCase() === "a") {
-      const all = this.closest("ib-table")?.querySelector<HTMLInputElement>(".ib-table-select-all");
+      const all = this.#table?.querySelector<HTMLInputElement>(":scope > thead .ib-table-select-all");
       if (!all) return false;
       if (!all.checked) all.click();
       return true;

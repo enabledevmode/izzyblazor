@@ -83,7 +83,7 @@ public partial class DataGrid<TItem>
 
         var open = list.Where(k => k != "*" && !k.StartsWith('!')).TakeLast(SingleDetail ? 1 : MaxOpenPaths).ToList();
         var shut = list.Where(k => k.StartsWith('!') && k != "!*").Select(k => k[1..]).TakeLast(MaxOpenPaths).ToList();
-        var all = !SingleDetail && (list.Contains("*") || (DetailsOpen && list.Count == 0));
+        var all = !SingleDetail && (list.Contains("*") || (DetailsOpen && open.Count == 0 && !list.Contains("!*")));
         return new DetailState(all, open, shut);
     }
 

@@ -399,12 +399,12 @@
 
   /* A state layer over the cell's own background, so it shows on striped rows too. A row that's a link
      always has it, as all of it can be clicked; for the rest it's asked for, and an edit has its own. */
-  .ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, .ib-grid-group, .ib-grid-group-foot, .ib-grid-detail, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
+  .ib-table-row-hover > * > .ib-table-grid > tbody > tr:not(.ib-table-empty, .ib-grid-group, .ib-grid-group-foot, .ib-grid-detail, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
   .ib-table-grid > tbody > tr.ib-table-row-linked:hover > td {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-table-striped .ib-table-grid > tbody > tr[data-ib-even] > td {
+  .ib-table-striped > * > .ib-table-grid > tbody > tr[data-ib-even] > td {
     background-color: var(--ib-table-stripe);
   }
 
@@ -1672,8 +1672,8 @@
     inset-inline-start: 0;
     box-sizing: border-box;
     max-inline-size: var(--ib-box);
-    padding-block: var(--ib-space-3);
-    padding-inline: calc(var(--ib-detail-at) + var(--ib-table-px)) var(--ib-table-px);
+    padding-block: var(--ib-space-2);
+    padding-inline: calc(var(--ib-detail-at) + var(--ib-table-px)) var(--ib-space-2);
   }
 
   .ib-grid-group-aggregate {
@@ -1807,19 +1807,19 @@
   }
 
   /* A selected row, or the current one (RowCurrent): a faint accent tint, and an accent edge at its start. */
-  .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td,
-  .ib-table-striped .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td,
+  .ib-table-grid > tbody > tr:has(> td > .ib-table-select:checked) > td,
+  .ib-table-striped > * > .ib-table-grid > tbody > tr:has(> td > .ib-table-select:checked) > td,
   .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td,
-  .ib-table-striped .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td {
+  .ib-table-striped > * > .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td {
     background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
-  .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid > tbody > tr:has(> td > .ib-table-select:checked) > td:first-child,
   .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset 2px 0 0 var(--ib-color-primary);
   }
 
-  .ib-table-grid:dir(rtl) > tbody > tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid:dir(rtl) > tbody > tr:has(> td > .ib-table-select:checked) > td:first-child,
   .ib-table-grid:dir(rtl) > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset -2px 0 0 var(--ib-color-primary);
   }
@@ -1831,15 +1831,15 @@
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
   }
 
-  .ib-table-striped.ib-datagrid .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {
+  .ib-table-striped.ib-datagrid > * > .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {
     --ib-frozen-tint: var(--ib-table-stripe);
   }
 
-  .ib-datagrid .ib-table-grid > tbody > tr:is(:has(.ib-table-select:checked), [aria-current], :has(> td > .ib-table-row-link[aria-current])) > .ib-frozen {
+  .ib-datagrid .ib-table-grid > tbody > tr:is(:has(> td > .ib-table-select:checked), [aria-current], :has(> td > .ib-table-row-link[aria-current])) > .ib-frozen {
     --ib-frozen-tint: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
-  .ib-datagrid.ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, [data-ib-editing], :has(> td[data-ib-editing])):hover > .ib-frozen {
+  .ib-datagrid.ib-table-row-hover > * > .ib-table-grid > tbody > tr:not(.ib-table-empty, [data-ib-editing], :has(> td[data-ib-editing])):hover > .ib-frozen {
     --ib-frozen-hover: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
