@@ -11,28 +11,30 @@
     <ChildContent>
         <Heading Level="2">On one component</Heading>
         <TextBlock>
-            Most strings are also a parameter on the components that use them, and that wins over the app's text:
+            Most strings are also a parameter on the components that use them. A parameter you set wins over the app's
+            text:
         </TextBlock>
         <Code Block Language="razor">@One</Code>
 
         <Heading Level="2">App-wide</Heading>
-        <TextBlock>Register an <Code>IzzyText</Code> with the strings you want to change; the rest stay English:</TextBlock>
+        <TextBlock>To change a string across the app, register an <Code>IzzyText</Code> with the strings you want to change. The rest stay in English:</TextBlock>
         <Code Block Language="csharp" Title="Program.cs">@AppWide</Code>
 
         <Heading Level="2">Several languages</Heading>
         <TextBlock>
-            Subclass <Code>IzzyText</Code> and read your resources. The strings are read on every render, so each request gets
-            its own culture.
+            To support several languages, subclass <Code>IzzyText</Code> and read your resources. The strings are read on
+            every render, so each request gets its own culture.
         </TextBlock>
         <Code Block Language="csharp">@Localized</Code>
         <TextBlock>
-            On WebAssembly or Auto pages, register it in the <Code>.Client</Code> project's <Code>Program.cs</Code> too:
-            components in the browser use the English text unless that project has one.
+            On WebAssembly or Auto pages, register it in the <Code>.Client</Code> project's <Code>Program.cs</Code> too.
+            Components in the browser use the English text unless that project registers one.
         </TextBlock>
 
         <Heading Level="2">What's in it</Heading>
         <TextBlock>
-            About 85 strings, each named for what it says, so IntelliSense lists them. A few, by where they're used:
+            <Code>IzzyText</Code> has about 85 strings, each named for its text, and IntelliSense lists them. Here are some,
+            by where they're used:
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
@@ -52,8 +54,8 @@
             <Code>IzzyText.English</Code> is a fresh copy of the built-in text, to start from or compare with.
         </TextBlock>
         <Alert Status="Status.Info">
-            Validation messages come from your model's attributes: set <Code>ErrorMessage</Code>, or localize them as you would
-            for any Blazor form. Three come from IzzyBlazor, for a value that can't be read: <Code>IzzyText.NumberInvalid</Code>
+            Validation messages come from your model's attributes. Set <Code>ErrorMessage</Code>, or localize them as you
+            would for any Blazor form. Three messages come from IzzyBlazor, for a value that can't be read: <Code>IzzyText.NumberInvalid</Code>
             (letters in a number field), <Code>ColorInvalid</Code>, and <Code>ValueInvalid</Code> for any other type.
         </Alert>
 

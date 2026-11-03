@@ -4,23 +4,28 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A copy button copies something people paste somewhere else: an install command, an ID, an API key. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in, so use a CopyButton for text that isn't in one, such as a single line of code or a field.</TextBlock>
+<TextBlock>A copy button copies text to the clipboard for the user to paste somewhere else: an install command, an ID, an API key. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in. Use a CopyButton for text that isn't in a Code block, such as a single line of code or a field.</TextBlock>
 
 <Heading Level="2">Copy text</Heading>
-<TextBlock>Use <Code>Text</Code> for a fixed value to copy. By default it's a ghost icon button; give it a <Code>Label</Code> that says what it copies, its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
+<TextBlock>A copy button can copy a fixed value, such as a command shown beside it. Set <Code>Text</Code> to the value. By default it's a ghost icon button, so give it a <Code>Label</Code> that says what it copies; the label is its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
 <ExampleViewer Example="copy-button-command" />
-<TextBlock>After a copy the icon turns to a check for a moment and "Copied" is announced; the button keeps its name.</TextBlock>
+<TextBlock>After a copy, the icon turns to a check for a moment, and screen readers hear "Copied". The button keeps its name.</TextBlock>
 
 <Heading Level="2">Copy from a field</Heading>
-<TextBlock>Use <Code>For</Code> with an element's id to copy what it holds when the button is pressed: an input's or a text area's value, or any other element's text. Give the button content, such as "Copy", and it shows the text after the icon and is named by it.</TextBlock>
+<TextBlock>A copy button can copy what another element contains at the moment it's pressed, such as a field's value. Set <Code>For</Code> to the element's id. It copies an input's or a text area's value, or any other element's text. If you give the button content, such as "Copy", it shows the text after the icon and is named by it.</TextBlock>
 <ExampleViewer Example="copy-button-from-field" />
-<TextBlock>Set one of <Code>Text</Code> and <Code>For</Code>; with both, or neither, it throws. It draws its own icons, so it throws on <Code>StartIcon</Code>, <Code>EndIcon</Code>, <Code>Loading</Code> and <Code>LoadingLabel</Code> too. <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code> work as on a <Anchor Href="docs/components/button">Button</Anchor>.</TextBlock>
+<List>
+    <ListItem>Set exactly one of <Code>Text</Code> and <Code>For</Code>. With both, or neither, the button throws.</ListItem>
+    <ListItem>The button shows its own icons, so it also throws on <Code>StartIcon</Code>, <Code>EndIcon</Code>, <Code>Loading</Code> and <Code>LoadingLabel</Code>.</ListItem>
+    <ListItem><Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code> work as on a <Anchor Href="docs/components/button">Button</Anchor>.</ListItem>
+</List>
 
-<Heading Level="2">Without JavaScript</Heading>
-<TextBlock>Copying needs script, so with JavaScript off the button isn't there at all, from the first paint, and what it would copy stays on the page to select. The browser allows it only on a secure page (https, or localhost while you develop): without clipboard access the button stays as it was and nothing is announced.</TextBlock>
+<Heading Level="2">With JavaScript off</Heading>
+<TextBlock>Copying requires <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>. With JavaScript off, the button isn't shown at all, from the first paint, and the text it would copy stays on the page for the user to select.</TextBlock>
+<TextBlock>The browser allows copying only on a secure page: https, or localhost while you develop. Without clipboard access, the button stays as it was and nothing is announced.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the tooltip and, on an icon-only button, the name ("Copy") and <Code>CopiedLabel</Code> for the word announced after copying ("Copied"). <Anchor Href="docs/common/text">Text and other languages</Anchor> sets them for the whole app.</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>To set the tooltip, and the name of an icon-only button, set <Code>Label</Code> ("Copy" by default). To set the word announced after copying, set <Code>CopiedLabel</Code> ("Copied"). To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

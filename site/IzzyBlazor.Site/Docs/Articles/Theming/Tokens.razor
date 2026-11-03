@@ -6,14 +6,15 @@
 
 <ArticlePage Section="theming" Slug="tokens">
     <Lead>
-        Everything the components draw comes from CSS variables starting <Code>--ib-</Code>. Set one in your own stylesheet
-        for an exact value, on the whole app or on part of a page.
+        Every color, size and shadow the components use comes from a CSS variable that starts with <Code>--ib-</Code>.
+        To set an exact value, set the variable in your own stylesheet, for the whole app or for part of a page.
     </Lead>
     <ChildContent>
         <Heading Level="2">Two levels</Heading>
         <TextBlock>
-            <Anchor Href="docs/theming/themes">IzzyTheme</Anchor> takes the choices that move many values together and keeps
-            them right: contrast, light and dark pairs, whole pixels. A CSS variable takes one exact value:
+            <Anchor Href="docs/theming/themes">IzzyTheme</Anchor> sets choices that move many values together, and works
+            out each value so contrast, light and dark pairs and whole pixels stay correct. A CSS variable sets one exact
+            value:
         </TextBlock>
         <Code Block Language="css">@Root</Code>
         <TextBlock>
@@ -25,27 +26,28 @@
         <Heading Level="2">Colors</Heading>
         <TextBlock>
             Colors are <Code>light-dark()</Code> pairs, so one value covers both schemes. Each accent, such as primary or
-            danger, has an <Code>on-</Code> partner for text on it, and most a <Code>-text</Code> version for text on surfaces;
-            change them together so contrast holds.
+            danger, has an <Code>on-</Code> partner for text on it. Most also have a <Code>-text</Code> version for text on
+            surfaces. Change them together, so the contrast stays high enough.
         </TextBlock>
         <TextBlock>
             Add colors of your own the same way: define a new token such as <Code>--ib-color-promo</Code> and its
             <Code>--ib-color-on-promo</Code>, then use <Code>Color.Token("promo")</Code> or <Code>Accent.Token("promo")</Code>.
-            Text on it takes the <Code>on-</Code> partner.
+            Text on it uses the <Code>on-</Code> partner.
         </TextBlock>
         <Code Block Language="css">@OwnColor</Code>
 
         <Heading Level="2">Brand shades by hand</Heading>
         <TextBlock>
-            A <Code>Brand</Code> color sets four values, worked out for contrast. To choose them yourself, set the four
+            A <Code>Brand</Code> color sets four values, each worked out for contrast. To choose them yourself, set the four
             tokens instead:
         </TextBlock>
         <Code Block Language="css">@BrandShades</Code>
 
         <Heading Level="2">The page and its surfaces</Heading>
         <TextBlock>
-            Surfaces and overlays sit on the page; fills sit inside a surface and get stronger, from subtle to strong, by
-            stepping away from it: darker in light mode, lighter in dark mode, where the page is the darkest layer.
+            Surfaces and overlays sit on the page. Fills sit inside a surface, and get stronger, from subtle to strong, by
+            stepping away from it. They get darker in light mode and lighter in dark mode, where the page is the darkest
+            layer.
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
@@ -53,7 +55,7 @@
                 <tbody>
                     <tr><td>Page</td><td><code>--ib-color-background</code></td><td>The page behind everything</td></tr>
                     <tr><td>Surface</td><td><code>--ib-color-surface</code>, with a border</td><td>Cards, panels, tables, bars: anything on the page</td></tr>
-                    <tr><td>Sunken</td><td><code>--ib-color-surface-sunken</code></td><td>An area in a surface that holds surfaces: a board's columns, a tray of cards</td></tr>
+                    <tr><td>Sunken</td><td><code>--ib-color-surface-sunken</code></td><td>An area in a surface that contains surfaces: a board's columns, a tray of cards</td></tr>
                     <tr><td>Overlay</td><td><code>--ib-color-surface-overlay</code>, with a shadow</td><td>Menus, popovers, toasts. Dialogs use the page's surface, as their backdrop sets them apart</td></tr>
                     <tr><td>Fills</td><td><code>--ib-color-fill-subtle</code></td><td>Large quiet fills inside a surface: a filled card, a panel, a band</td></tr>
                     <tr><td></td><td><code>--ib-color-fill</code></td><td>Small fills that must show: table heads, code, wells</td></tr>
@@ -73,50 +75,56 @@
         </TextBlock>
         <ExampleViewer Example="izzy-theme-part" />
         <TextBlock>
-            It takes <Code>Brand</Code>, a built-in <Code>Gray</Code>, <Code>Radius</Code>, <Code>Density</Code>,
-            <Code>Preset</Code> and <Code>ColorScheme</Code>, and renders a <Code>div</Code>. On part of a page a preset
-            changes density, shape and the card shadow only. For one exact value, use <Code>Style</Code> or a class:
+            Around part of a page, <Code>IzzyTheme</Code> accepts <Code>Brand</Code>, a built-in <Code>Gray</Code>,
+            <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> and <Code>ColorScheme</Code>, and renders a
+            <Code>div</Code>. On part of a page, a preset changes only density, shape and the card shadow. To set one exact
+            value, use <Code>Style</Code> or a class:
         </TextBlock>
         <Code Block Language="razor">@Part</Code>
         <TextBlock>
-            Colors made from the part's own, such as the focus ring, selected rows, hover washes and scrollbars, are worked
-            out where they're used, so they follow it. So does a plain CSS rule on the part. In plain HTML,
+            Colors made from the part's own colors, such as the focus ring, selected rows, hover washes and scrollbars, are
+            worked out where they're used, so they follow the part's theme. So does a plain CSS rule on the part. In plain HTML,
             <Code>data-ib-brand</Code>, <Code>data-ib-gray</Code>, <Code>data-ib-radius</Code>, <Code>data-ib-density</Code>
             and <Code>data-ib-preset</Code> do the same on any element.
         </TextBlock>
         <TextBlock>
-            Menus, popovers, tooltips and a <Code>Dialog</Code> written in the page stay inside the part, so they take its
-            theme. A dialog opened from code with <Code>DialogService</Code> doesn't: pass <Code>ColorScheme</Code>,
-            <Code>Brand</Code> and <Code>Density</Code> in its <Code>DialogOptions</Code> to match. Its gray and radius stay
-            the app's.
+            Menus, popovers, tooltips and a <Code>Dialog</Code> written in the page stay inside the part, so they use its
+            theme. A dialog opened from code with <Code>DialogService</Code> doesn't. To match the part, pass
+            <Code>ColorScheme</Code>, <Code>Brand</Code> and <Code>Density</Code> in its <Code>DialogOptions</Code>. Its
+            gray and radius stay the app's.
         </TextBlock>
 
         <Heading Level="2">Every token</Heading>
+        <TextBlock>
+            Tokens are listed by their full names. Where a name contains <Code>{name}</Code>, replace it with each value the
+            row lists: for success, <Code>--ib-color-{name}</Code> is <Code>--ib-color-success</Code>. A range such as
+            <Code>--ib-text-xs</Code> to <Code>--ib-text-6xl</Code> includes every step between the two.
+        </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Group</th><th>Tokens</th></tr></thead>
                 <tbody>
-                    <tr><td>Page and surfaces</td><td><code>--ib-color-background</code>, <code>-surface</code>, <code>-surface-sunken</code>, <code>-surface-overlay</code>, <code>-overlay-border</code> (an overlay's edge in dark mode), <code>-fill-subtle</code>, <code>-fill</code>, <code>-fill-strong</code></td></tr>
-                    <tr><td>Text and lines</td><td><code>--ib-color-on-surface</code>, <code>-muted</code>, <code>-subtle</code>, <code>-disabled</code>, <code>-border</code>, <code>-outline</code>, <code>-backdrop</code> (behind dialogs)</td></tr>
-                    <tr><td>Brand</td><td><code>--ib-color-primary</code>, <code>-on-primary</code>, <code>-primary-text</code>, <code>-primary-soft</code></td></tr>
-                    <tr><td>Status</td><td><code>--ib-color-success</code>, <code>-warning</code>, <code>-danger</code>, <code>-info</code>, <code>-neutral</code>, each with <code>-on-</code>; the first four with <code>-text</code> and <code>-soft</code>. Tuned against every gray, so change them as a set.</td></tr>
-                    <tr><td>Made from other colors</td><td><code>--ib-color-focus</code>, <code>--ib-color-halo</code>, <code>--ib-color-selected</code>, <code>--ib-state-hover</code>, <code>--ib-state-pressed</code>, <code>--ib-color-segment</code>, <code>--ib-color-on-segment</code>, <code>-segment-edge</code>, <code>-segment-track</code>, <code>--ib-color-scrollbar</code>, <code>-scrollbar-hover</code>. Unset: each is worked out where it's used; set one to replace that.</td></tr>
-                    <tr><td>Shape</td><td><code>--ib-radius-none</code>, <code>-sm</code>, <code>-md</code>, <code>-lg</code>, <code>-xl</code>, <code>-full</code>; <code>--ib-radius-control</code> (buttons, fields, tags) and <code>--ib-radius-control-sm</code> (badges)</td></tr>
-                    <tr><td>Density</td><td><code>--ib-control-h-sm</code>, <code>-md</code>, <code>-lg</code>; <code>--ib-control-font-sm</code>; <code>--ib-control-icon-sm</code>, <code>-md</code>, <code>-lg</code>; <code>--ib-table-cell-py</code>, <code>--ib-card-padding</code>; the spacing scale <code>--ib-space-0</code> to <code>-16</code></td></tr>
-                    <tr><td>Sizes</td><td><code>--ib-size-sm</code>, <code>-md</code>, <code>-lg</code>, <code>-xl</code> (640 to 1280px), <code>--ib-size-prose</code> (a readable line)</td></tr>
-                    <tr><td>Type</td><td><code>--ib-font-body</code>, <code>-heading</code>, <code>-mono</code>; <code>--ib-text-xs</code> to <code>-6xl</code>; <code>--ib-weight-light</code> to <code>-extrabold</code>, and <code>-heading</code>; <code>--ib-leading-none</code> to <code>-loose</code>; <code>--ib-tracking-tighter</code> to <code>-widest</code></td></tr>
-                    <tr><td>Depth</td><td><code>--ib-shadow-none</code>, <code>-xs</code> (under cards), <code>-sm</code>, <code>-md</code>, <code>-lg</code></td></tr>
+                    <tr><td>Page and surfaces</td><td><code>--ib-color-background</code>, <code>--ib-color-surface</code>, <code>--ib-color-surface-sunken</code>, <code>--ib-color-surface-overlay</code>, <code>--ib-color-overlay-border</code> (an overlay's edge in dark mode), <code>--ib-color-fill-subtle</code>, <code>--ib-color-fill</code>, <code>--ib-color-fill-strong</code></td></tr>
+                    <tr><td>Text and lines</td><td><code>--ib-color-on-surface</code>, <code>--ib-color-muted</code>, <code>--ib-color-subtle</code>, <code>--ib-color-disabled</code>, <code>--ib-color-border</code>, <code>--ib-color-outline</code>, <code>--ib-color-backdrop</code> (behind dialogs)</td></tr>
+                    <tr><td>Brand</td><td><code>--ib-color-primary</code>, <code>--ib-color-on-primary</code>, <code>--ib-color-primary-text</code>, <code>--ib-color-primary-soft</code></td></tr>
+                    <tr><td>Status</td><td><code>--ib-color-{name}</code> and <code>--ib-color-on-{name}</code> for success, warning, danger, info and neutral. <code>--ib-color-{name}-text</code> and <code>--ib-color-{name}-soft</code> for success, warning, danger and info. They're tuned against every gray, so change them as a set.</td></tr>
+                    <tr><td>Made from other colors</td><td><code>--ib-color-focus</code>, <code>--ib-color-halo</code>, <code>--ib-color-selected</code>, <code>--ib-state-hover</code>, <code>--ib-state-pressed</code>, <code>--ib-color-segment</code>, <code>--ib-color-on-segment</code>, <code>--ib-color-segment-edge</code>, <code>--ib-color-segment-track</code>, <code>--ib-color-scrollbar</code>, <code>--ib-color-scrollbar-hover</code>. Unset, each is worked out where it's used. Set one to replace it.</td></tr>
+                    <tr><td>Shape</td><td><code>--ib-radius-none</code>, <code>--ib-radius-sm</code>, <code>--ib-radius-md</code>, <code>--ib-radius-lg</code>, <code>--ib-radius-xl</code>, <code>--ib-radius-full</code>; <code>--ib-radius-control</code> (buttons, fields, tags) and <code>--ib-radius-control-sm</code> (badges)</td></tr>
+                    <tr><td>Density</td><td><code>--ib-control-h-sm</code>, <code>--ib-control-h-md</code>, <code>--ib-control-h-lg</code>; <code>--ib-control-font-sm</code>; <code>--ib-control-icon-sm</code>, <code>--ib-control-icon-md</code>, <code>--ib-control-icon-lg</code>; <code>--ib-table-cell-py</code>, <code>--ib-card-padding</code>; the spacing scale, <code>--ib-space-0</code> to <code>--ib-space-16</code></td></tr>
+                    <tr><td>Sizes</td><td><code>--ib-size-sm</code>, <code>--ib-size-md</code>, <code>--ib-size-lg</code>, <code>--ib-size-xl</code> (640 to 1280px); <code>--ib-size-prose</code> (a readable line length)</td></tr>
+                    <tr><td>Type</td><td><code>--ib-font-body</code>, <code>--ib-font-heading</code>, <code>--ib-font-mono</code>; <code>--ib-text-xs</code> to <code>--ib-text-6xl</code>; <code>--ib-weight-light</code> to <code>--ib-weight-extrabold</code>, and <code>--ib-weight-heading</code>; <code>--ib-leading-none</code> to <code>--ib-leading-loose</code>; <code>--ib-tracking-tighter</code> to <code>--ib-tracking-widest</code></td></tr>
+                    <tr><td>Depth</td><td><code>--ib-shadow-none</code>, <code>--ib-shadow-xs</code> (under cards), <code>--ib-shadow-sm</code>, <code>--ib-shadow-md</code>, <code>--ib-shadow-lg</code></td></tr>
                     <tr><td>Motion</td><td><code>--ib-duration-fast</code>, <code>--ib-duration-normal</code>, <code>--ib-ease</code></td></tr>
-                    <tr><td>Code</td><td><code>--ib-code-comment</code>, <code>-keyword</code>, <code>-string</code>, <code>-number</code>, <code>-type</code>, <code>-function</code>, <code>-tag</code>, <code>-attr</code>, <code>-meta</code>, each at least 4.5:1 on the code block</td></tr>
+                    <tr><td>Code</td><td><code>--ib-code-comment</code>, <code>--ib-code-keyword</code>, <code>--ib-code-string</code>, <code>--ib-code-number</code>, <code>--ib-code-type</code>, <code>--ib-code-function</code>, <code>--ib-code-tag</code>, <code>--ib-code-attr</code>, <code>--ib-code-meta</code>. Each has at least 4.5:1 contrast on the code block.</td></tr>
                 </tbody>
             </table>
         </Prose>
 
         <Heading Level="2">Component variables</Heading>
         <TextBlock>
-            A few components have their own variables for what people tune most. Anything not listed, including the
-            <Code>.ib-*</Code> class names, is internal and may change; to style your own way, add a class with
-            <Code>Class</Code>.
+            A few components have their own variables for what's changed most often. Anything not listed, including the
+            <Code>.ib-*</Code> class names, is internal and may change. To style a component your own way, add a class
+            with <Code>Class</Code>.
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
@@ -137,7 +145,7 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/theming/themes">Themes and presets</Anchor>: the choices <Code>IzzyTheme</Code> keeps right for you.</ListItem>
+            <ListItem><Anchor Href="docs/theming/themes">Themes and presets</Anchor>: the choices <Code>IzzyTheme</Code> works out for you.</ListItem>
             <ListItem><Anchor Href="docs/theming/color-scheme">Light and dark</Anchor>: the default scheme and a scheme for part of a page.</ListItem>
         </List>
     </ChildContent>

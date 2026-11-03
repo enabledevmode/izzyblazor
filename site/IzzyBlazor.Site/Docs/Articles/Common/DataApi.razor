@@ -1,0 +1,173 @@
+@page "/docs/common/data-api"
+
+@* Data from an API: a provider in the browser sending its DataRequest to your own API or an OData
+   endpoint, the filter's text form, and what the server enforces. Split from Data and filters
+   (Data.razor), which covers the request, fields, filters in code, operators, case and dates. *@
+
+<ArticlePage Section="common" Slug="data-api">
+    <Lead>
+        In a WebAssembly or Auto app, the <Code>ItemsProvider</Code> runs in the browser, so it sends its
+        <Code>DataRequest</Code> to an API. The request can travel as a query string, as JSON, or as OData query options.
+        On your own server, the request applies only through the fields you declare.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Calling your own API</Heading>
+        <TextBlock>
+            The client writes the request into the URL of a GET with <Code>ToQueryString()</Code>, and the server reads it
+            back with <Code>DataRequest&lt;T&gt;.Parse</Code>. Then <Code>ToResultAsync</Code>, given the fields you declare,
+            applies it to the query. Both sides use the same row type, here <Code>OrderRow</Code> in a project the client
+            and the server share:
+        </TextBlock>
+        <Code Block Language="razor" Title="Orders.razor (client)">@Client</Code>
+        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="8,11">@Server</Code>
+        <TextBlock>
+            The query string looks like <Code>sort=-placed&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code> (shown
+            unescaped). It adds <Code>total=false</Code> when the component doesn't need the count. To send the request in
+            a POST instead, serialize it with <Code>System.Text.Json</Code>.
+        </TextBlock>
+        <TextBlock>
+            The request names fields by the client's column keys, so the server's fields need the same keys. With the same
+            row type they match. A column on a path, such as <Code>o =&gt; o.Customer.Name</Code>, has the key
+            <Code>customer.name</Code>, so give it the <Code>SortKey</Code> of the server's field. See
+            <Anchor Href="docs/common/data#fields">Fields</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Filters as text</Heading>
+        <TextBlock>
+            A filter has a text form, a subset of OData's <Code>$filter</Code>. It's the form the query string uses for
+            <Code>filter=</Code>. A filter's <Code>ToString()</Code> writes it, and <Code>Filter.Parse</Code> reads it:
+        </TextBlock>
+        <Code Block Language="text">@Syntax</Code>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Write</th><th>For</th></tr></thead>
+                <tbody>
+                    <tr><td><code>eq ne gt ge lt le</code></td><td>Comparisons. <code>eq null</code> and <code>ne null</code> are the null checks.</td></tr>
+                    <tr><td><code>status in ('Paid','Pending')</code></td><td>Any of the values. <code>not (status in (...))</code> is none of them.</td></tr>
+                    <tr><td><code>customer contains 'ada'</code></td><td>Text that contains the value. <code>contains(customer,'ada')</code> works too, as do <code>startswith</code> and <code>endswith</code>.</td></tr>
+                    <tr><td><code>between(total,100,500)</code></td><td>A range. Either end can be <code>null</code>, for no limit.</td></tr>
+                    <tr><td><code>isempty(email)</code></td><td>No value, or empty text. <code>isnotempty</code> is the opposite.</td></tr>
+                    <tr><td><code>date(placed) eq 2026-10-28</code></td><td>On that day.</td></tr>
+                    <tr><td><code>and or not ( )</code></td><td>Groups. <code>and</code> binds before <code>or</code>.</td></tr>
+                    <tr><td><code>'O''Brien'</code>, <code>-1.5</code>, <code>true</code>, <code>2026-10-28T09:30:00Z</code></td><td>Values: text in single quotes (with a quote doubled), numbers, true or false, dates and times, and Guids.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Parsing only builds the filter. Names are field keys and values stay values, so
+            <Code>name eq 'x'' or 1 eq 1'</Code> looks for that exact text.
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>Text that isn't in this form doesn't parse, and <Code>TryParse</Code> returns false.</ListItem>
+            <ListItem>A request read from a query string with such a filter matches nothing. A <Code>skip</Code> or <Code>take</Code> that doesn't parse is left out.</ListItem>
+            <ListItem>Text ignores case here too, unlike OData's own <Code>contains</Code>.</ListItem>
+            <ListItem>
+                The text form doesn't write <Code>MatchCase</Code>, so a condition sent this way ignores case on the server. To
+                keep <Code>MatchCase</Code>, send the request as JSON. See
+                <Anchor Href="docs/common/data#text-and-case">Text and case</Anchor>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">OData endpoints</Heading>
+        <TextBlock>
+            When the API is an OData endpoint, <Code>ToODataQuery()</Code> writes the request as its query options:
+            <Code>$filter</Code>, <Code>$orderby</Code>, <Code>$skip</Code>, <Code>$top</Code>, <Code>$count</Code> and
+            <Code>$search</Code>.
+        </TextBlock>
+        <Code Block Language="csharp">@OData</Code>
+        <List Gap="2">
+            <ListItem>
+                OData compares text with case. Text that ignores case is written lower-cased on both sides:
+                <Code>contains(tolower(customer),'ada')</Code>.
+            </ListItem>
+            <ListItem>Field paths use <Code>/</Code>: <Code>customer/name</Code>.</ListItem>
+            <ListItem>
+                Values are written as their fields' types. A Table's request carries its fields. For a request you read with
+                <Code>Parse</Code>, pass the fields: <Code>ToODataQuery(fields)</Code>.
+            </ListItem>
+            <ListItem>
+                Keys are lower case. If the service matches property names with case, give the columns a <Code>SortKey</Code>
+                with the service's names.
+            </ListItem>
+            <ListItem>OData has no cursor. Pass <Code>request.Cursor</Code> on yourself.</ListItem>
+        </List>
+
+        <Heading Level="2">Limits and security</Heading>
+        <TextBlock>
+            A request that comes from the browser can ask for anything, so the server decides what it can reach. These rules
+            apply when you pass your own fields to <Code>ToResultAsync</Code> or <Code>Apply</Code>:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Only declared fields can be reached.</strong> A condition on a key that isn't a filterable field matches
+                nothing, and a sort by one is left out. <Code>DataFields.Of&lt;T&gt;()</Code> declares every public property,
+                so read it from a type made for the API, not from an entity with a password hash on it.
+            </ListItem>
+            <ListItem>
+                <strong>Cap the range.</strong> The request sets its own <Code>Take</Code>, or asks for every row without one.
+                The server example above allows at most 100 rows.
+            </ListItem>
+            <ListItem>
+                <strong>Large or deep filters match nothing.</strong> A filter with more than 1,000 nodes (conditions, groups
+                and nots), or nested more than 64 deep, matches no rows. The text form nests at most 32 deep.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/data">Data and filters</Anchor>: the request and result, fields, filters in code and the operators.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>: setting up an app whose components run in the browser.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Syntax = """
+        total ge 100 and (status in ('Paid','Pending') or customer contains 'ada')
+        """;
+
+    private const string Client = """
+        @inject HttpClient Api
+
+        <Table TItem="OrderRow" ItemsProvider="LoadOrders" PageSize="20">
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />
+        </Table>
+
+        @code {
+            async ValueTask<DataResult<OrderRow>> LoadOrders(DataRequest<OrderRow> request) =>
+                (await Api.GetFromJsonAsync<DataResult<OrderRow>>(
+                    $"api/orders?{request.ToQueryString()}", request.CancellationToken))!;
+        }
+        """;
+
+    private const string Server = """
+        using Microsoft.EntityFrameworkCore;   // CountAsync, ToListAsync
+
+        app.MapGet("/api/orders", async (HttpContext context, ShopDb db) =>
+        {
+            var request = DataRequest<OrderRow>.Parse(context.Request.QueryString.Value ?? "")
+                with { CancellationToken = context.RequestAborted };
+            // At most 100 rows.
+            request = request with { Take = Math.Min(request.Take ?? 100, 100) };
+            var rows = db.Orders.AsNoTracking()   // an initializer: EF Core filters and sorts on it
+                .Select(o => new OrderRow { Id = o.Id, Customer = o.Customer.Name, Total = o.Total });
+            return await request.ToResultAsync(rows, DataFields.Of<OrderRow>(),
+                count: (q, ct) => q.CountAsync(ct), list: (q, ct) => q.ToListAsync(ct));
+        });
+
+        public sealed record OrderRow
+        {
+            public int Id { get; init; }
+            public string Customer { get; init; } = "";
+            public decimal Total { get; init; }
+        }
+        """;
+
+    private const string OData = """
+        var url = $"odata/Orders?{request.ToODataQuery()}";
+        // Unescaped:
+        // $filter=contains(tolower(customer),'ada') and total ge 100
+        // &$orderby=placed desc&$skip=20&$top=10&$count=true
+        """;
+}

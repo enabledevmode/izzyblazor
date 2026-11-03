@@ -4,27 +4,30 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A text area takes its label, hint, required mark and limits from the model, as a <Anchor Href="docs/components/text-field">TextField</Anchor> does. Use a text field for one line, such as a name or a title.</TextBlock>
+<TextBlock>A TextArea is a field for several lines of text. Like a <Anchor Href="docs/components/text-field">TextField</Anchor>, it gets its label, hint, required mark and limits from the model. For one line, such as a name or a title, use a text field.</TextBlock>
 
 <Heading Level="2">Rows and placeholder</Heading>
-<TextBlock>Use <Code>Rows</Code> for how many lines show (4 by default); longer text scrolls, and people can drag the corner to make it taller.</TextBlock>
+<TextBlock>A text area shows 4 lines by default. To show more or fewer, set <Code>Rows</Code>. Longer text scrolls, and the user can drag the corner to make the field taller.</TextBlock>
 <ExampleViewer Example="text-area-rows" />
-<TextBlock>A placeholder disappears as people type, so keep anything they need while writing in the <Code>Hint</Code>.</TextBlock>
+<TextBlock>A placeholder disappears as the user types, so put anything they need while writing in the <Code>Hint</Code>.</TextBlock>
 
 <Heading Level="2">Growing, with a count</Heading>
-<TextBlock>Use <Code>AutoGrow</Code> to grow with the text from <Code>Rows</Code> up, and <Code>ShowCount</Code> to show "n / max" under the field, against the limit from <Code>[StringLength]</Code>, <Code>[MaxLength]</Code> or <Code>MaxLength</Code>.</TextBlock>
+<TextBlock>A growing text area gets taller with the text, starting from <Code>Rows</Code>; set <Code>AutoGrow</Code>. To show "n / max" under the field, set <Code>ShowCount</Code>. The max is the limit from <Code>[StringLength]</Code>, <Code>[MaxLength]</Code> or <Code>MaxLength</Code>.</TextBlock>
 <ExampleViewer Example="text-area-count" />
-<TextBlock>Growing is CSS (<Code>field-sizing</Code>), so it works with JavaScript off in browsers that support it; others keep the scroll bar and the corner to drag. The count needs a limit, and the browser stops typing at it.</TextBlock>
+<List Gap="2">
+    <ListItem>Growing works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> in browsers that support it. Other browsers keep the scroll bar and the corner to drag.</ListItem>
+    <ListItem>The count needs a limit, and the browser stops typing at the limit.</ListItem>
+</List>
 
 <Heading Level="2">Required, with a length</Heading>
-<TextBlock>Use <Code>[Required]</Code> and <Code>[StringLength]</Code> with a <Code>MinimumLength</Code> for the rules, and their <Code>ErrorMessage</Code> for the words the browser and the server show.</TextBlock>
+<TextBlock>To require text of a minimum length, set <Code>[Required]</Code>, and <Code>[StringLength]</Code> with a <Code>MinimumLength</Code>. Their <Code>ErrorMessage</Code> is the message the browser and the server show.</TextBlock>
 <ExampleViewer Example="text-area-feedback" />
-<TextBlock>The browser checks the minimum only on text someone has typed, so the validator's check after posting is the one to rely on; it also catches text that arrives too long, from a crafted post.</TextBlock>
+<TextBlock>The browser checks the minimum only on text the user has typed, so rely on the validator's check after the form post. The validator also catches text that arrives too long from a crafted form post.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for text that posts but can't change, and <Code>Disabled</Code> for text that doesn't post.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. Read-only text posts, and the user can select and copy it but not change it; set <Code>ReadOnly</Code>. Disabled text doesn't post; set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="text-area-states" />
-<TextBlock>Read-only text can still be selected and copied, and it posts like any other, so a crafted post can change it: check it on the server if it matters. A disabled field posts nothing, so after a static post its property is null: keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

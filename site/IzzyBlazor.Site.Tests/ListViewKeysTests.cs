@@ -7,11 +7,11 @@ namespace IzzyBlazor.Site.Tests;
 /// </summary>
 public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(TestBrowser, IPage)> OpenAsync(string mode)
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, string topic = "")
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/list-view?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/list-view{topic}?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         // Interactive: the lists render this once the circuit is up and their boxes answer.
         if (mode == "interactive") await page.Locator("ib-listview[data-ib-interactive]").First.WaitForAsync();
         return (browser, page);
@@ -66,7 +66,7 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("static")]
     public async Task Shift_arrows_and_ctrl_a_select_from_a_checkbox(string mode)
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync(mode, "/selection");
         await using (browser)
         {
             var list = page.Locator("ib-listview", new() { Has = page.GetByRole(AriaRole.Checkbox, new() { Name = "Select all messages" }) });

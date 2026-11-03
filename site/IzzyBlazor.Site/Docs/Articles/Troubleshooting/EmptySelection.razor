@@ -12,10 +12,10 @@
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
-            On a static page, a reader unchecks every box in a <Code>CheckboxGroup</Code> and saves. The save handler
-            gets the defaults instead, so they're saved and the page comes back with those boxes checked again. In a form with other fields, the list
-            arrives as <Code>null</Code> instead, and code that reads <Code>.Count</Code> throws. A
-            <Code>MultiSelect</Code> with nothing selected does the same.
+            On <Anchor Href="docs/common/render-modes">static pages</Anchor>, the user clears every box in a <Code>CheckboxGroup</Code> and
+            saves. The save handler gets the defaults instead, so they're saved, and the page comes back with those boxes
+            checked again. In a form with other fields, the list arrives as <Code>null</Code> instead, and code that reads
+            <Code>.Count</Code> throws. A <Code>MultiSelect</Code> with nothing selected does the same.
         </TextBlock>
         <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="9-10">@Broken</Code>
 
@@ -36,7 +36,8 @@
         </List>
         <TextBlock>
             <Code>Checkbox</Code> and <Code>Switch</Code> don't have this problem: a hidden "false" follows each box, so an
-            unchecked one still posts. A disabled field posts nothing, like any disabled control.
+            unchecked one still posts. A disabled field posts nothing; see
+            <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Fix</Heading>
@@ -46,15 +47,15 @@
         </TextBlock>
         <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="9,11-14,16">@Fixed</Code>
         <TextBlock>
-            On a page with more than one form, a post from another form is a POST too, and this one would come back with
-            nothing checked. Check that the post is this form's: Blazor posts the form's name as <Code>_handler</Code>.
+            On a page with more than one form, a form post from another form is a POST too, and this form would come back
+            with nothing checked. Check that the post is this form's: Blazor posts the form's name as <Code>_handler</Code>.
         </TextBlock>
         <Code Block Language="csharp">@ThisForm</Code>
-        <TextBlock>Uncheck every box and save, in each mode:</TextBlock>
+        <TextBlock>Clear every box and save, in each render mode:</TextBlock>
         <ExampleViewer Example="form-empty-selection" ModeSwitch />
         <TextBlock>
-            On an interactive page nothing is posted: the list is empty rather than <Code>null</Code>, and the defaults
-            apply on the first render. The same code works in every mode.
+            On interactive pages nothing is posted: the list is empty rather than <Code>null</Code>, and the defaults
+            apply on the first render. The same code works in every render mode.
         </TextBlock>
 
         <Heading Level="2">Related</Heading>

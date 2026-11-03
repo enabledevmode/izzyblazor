@@ -6,65 +6,68 @@
 
 <ArticlePage Section="theming" Slug="color-scheme">
     <Lead>
-        Every color comes in a light and a dark version. Pages follow the device's setting until your app or your reader
-        picks one, and any part of a page can have its own scheme.
+        Every color comes in a light and a dark version. Pages follow the device's setting until your app or the user
+        picks a scheme, and any part of a page can have its own.
     </Lead>
     <ChildContent>
         <Heading Level="2">The app's default</Heading>
         <TextBlock>
-            Use <Code>ColorScheme</Code> on the <Code>IzzyTheme</Code> in the <Code>head</Code>: <Code>Auto</Code> (the
-            default) follows the device, and <Code>Light</Code> or <Code>Dark</Code> holds one until the reader picks another.
+            To set the app's default scheme, set <Code>ColorScheme</Code> on the <Code>IzzyTheme</Code> in the
+            <Code>head</Code>. <Code>Auto</Code>, the default, follows the device. <Code>Light</Code> or <Code>Dark</Code>
+            sets that scheme until the user picks another.
         </TextBlock>
         <Code Block Language="razor">@Default</Code>
         <TextBlock>
             In plain HTML, <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the <Code>html</Code> element
-            holds one too, but it also overrides the reader's choice below, so use <Code>IzzyTheme</Code> when readers can pick.
+            sets a scheme too. It also overrides the user's choice, so use <Code>IzzyTheme</Code> when users can pick.
         </TextBlock>
 
-        <Heading Level="2">Let readers choose</Heading>
+        <Heading Level="2">Let users choose</Heading>
         <TextBlock>
-            Use <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>: a menu of System, Light and
-            Dark for headers, a light/dark toggle, or all three side by side for a settings page.
+            A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user pick a scheme. It
+            comes as a menu of System, Light and Dark for headers, a light/dark toggle, or all three side by side for a
+            settings page.
         </TextBlock>
         <ExampleViewer Example="color-scheme-switch-variants" />
         <TextBlock>
             The choice is kept in the <Code>ib-scheme</Code> cookie. The <Code>IzzyTheme</Code> in the <Code>head</Code> reads
-            it on the server, so pages arrive in the reader's scheme with no flash: keep one there, even an empty
-            <Code>&lt;IzzyTheme /&gt;</Code>. Reading the cookie takes <Code>AddIzzyBlazor()</Code>.
-        </TextBlock>
-        <TextBlock>
-            With JavaScript off the switch is hidden, and pages follow the device or a choice saved earlier.
+            it on the server, so each page arrives in the user's scheme with no flash. Keep an <Code>IzzyTheme</Code> there,
+            even an empty <Code>&lt;IzzyTheme /&gt;</Code>. Reading the cookie requires <Code>AddIzzyBlazor()</Code>:
         </TextBlock>
         <Code Block Language="csharp">@Services</Code>
         <TextBlock>
-            On an interactive page, <Code>@@bind-Value</Code> gives you the choice as a <Code>ColorScheme</Code>:
+            With JavaScript off, the switch is hidden, and pages follow the device or a choice saved earlier.
+        </TextBlock>
+        <TextBlock>
+            On interactive pages, <Code>@@bind-Value</Code> gives you the choice as a <Code>ColorScheme</Code>:
             <Code>Auto</Code> for System, <Code>Light</Code> or <Code>Dark</Code>.
         </TextBlock>
 
         <Heading Level="2">A scheme for part of a page</Heading>
         <TextBlock>
-            Use <Code>ColorScheme</Code> on <Code>Box</Code>, <Code>Stack</Code>, <Code>Card</Code> and the other layout
-            components, or a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>: <Code>Dark</Code>
-            for a dark sidebar or header in a light app, <Code>Light</Code>, or <Code>Inverse</Code> for the opposite of the
-            page, even when the page follows the device.
+            Part of a page can have its own scheme, such as a dark sidebar or header in a light app. Set
+            <Code>ColorScheme</Code> on <Code>Box</Code>, <Code>Stack</Code>, <Code>Card</Code> and the other layout
+            components, or on a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>.
+            <Code>Dark</Code> and <Code>Light</Code> set that scheme. <Code>Inverse</Code> sets the opposite of the page's,
+            even when the page follows the device.
         </TextBlock>
         <ExampleViewer Example="box-scheme" />
         <TextBlock>
-            Every color switches inside it, so text, links, buttons, badges, fields, focus rings and menus opened from it keep
-            their contrast. <Code>Bg</Code> still applies on top: <Code>Bg="Color.Fill"</Code> is that scheme's
-            container shade. On your own elements, <Code>data-ib-color-scheme="dark"</Code>, <Code>"light"</Code> or
+            Every color switches inside that part, so text, links, buttons, badges, fields, focus rings and menus opened
+            from it keep their contrast. <Code>Bg</Code> still applies on top: <Code>Bg="Color.Fill"</Code> is that
+            scheme's container shade. On your own elements, <Code>data-ib-color-scheme="dark"</Code>, <Code>"light"</Code> or
             <Code>"inverse"</Code> does the same.
         </TextBlock>
 
         <Heading Level="2">Your colors in both schemes</Heading>
         <TextBlock>
-            Write a color as a <Code>light-dark()</Code> pair and one value covers both schemes, including parts of a page
-            with their own:
+            Write a color as a <Code>light-dark()</Code> pair, and one value covers both schemes, including parts of a page
+            with their own scheme:
         </TextBlock>
         <Code Block Language="css">@LightDark</Code>
         <TextBlock>
-            Give a color the same value twice, or a plain color, if it shouldn't change with the scheme. Keep text at 4.5:1
-            on what it sits on in both.
+            If a color shouldn't change with the scheme, give it the same value twice, or use a plain color. Keep text at
+            4.5:1 contrast against its background in both schemes.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>

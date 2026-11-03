@@ -5,29 +5,38 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>A menu is a list of actions or links that opens from a button. It keeps secondary actions out of the way until the user needs them. For a choice that sets a form field's value, see <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Links, posts and actions</Heading>
-<TextBlock>Give each <Code>MenuItem</Code> an <Code>Href</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on interactive pages. Links and posts work on static pages, with JavaScript off too.</TextBlock>
+<TextBlock>A menu item can go to a page, post a form, or run C#. Set <Code>Href</Code> on a <Code>MenuItem</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on interactive pages. Links and form posts work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too.</TextBlock>
 <ExampleViewer Example="menu-actions" />
-<TextBlock>A submit item posts its <Code>Name</Code> and <Code>Value</Code>, so one form tells its items apart. <Code>FormAction</Code> posts to another address, and <Code>Form</Code> names a form the menu isn't in. <Code>Disabled</Code> shows an item that can't be chosen.</TextBlock>
+<List>
+    <ListItem>A submit item posts its <Code>Name</Code> and <Code>Value</Code>, so one form can tell its items apart.</ListItem>
+    <ListItem>To post to another URL, set <Code>FormAction</Code>. To post a form the menu isn't in, set <Code>Form</Code> to its id.</ListItem>
+    <ListItem>To show an item that can't be chosen, set <Code>Disabled</Code>.</ListItem>
+</List>
 
 <Heading Level="2">Groups, shortcuts and colors</Heading>
-<TextBlock>Use <Code>MenuGroup</Code> for a labeled section and <Code>MenuDivider</Code> for a line between items. <Code>Icon</Code> adds an icon, <Code>Shortcut</Code> shows a key, and <Code>Accent="Accent.Danger"</Code> marks an item that destroys something.</TextBlock>
+<TextBlock>A long menu reads better in labeled sections, with icons and keyboard shortcuts beside its items. For a labeled section, add a <Code>MenuGroup</Code>. For a line between items, add a <Code>MenuDivider</Code>. On an item, <Code>Icon</Code> adds an icon, <Code>Shortcut</Code> shows a key, and <Code>Accent="Accent.Danger"</Code> marks an item that destroys something.</TextBlock>
 <ExampleViewer Example="menu-groups" />
-<TextBlock>A shortcut is only shown: the app handles the keys.</TextBlock>
+<TextBlock>A shortcut is only shown; the app handles the keys.</TextBlock>
 
-<Heading Level="2">Your own trigger</Heading>
-<TextBlock>Use <Code>Trigger</Code> for a button of your own, such as an <Anchor Href="docs/components/icon-button">IconButton</Anchor>, and give it the menu's attributes with <Code>@@attributes="context"</Code>. <Code>Placement</Code> sets where the menu opens.</TextBlock>
+<Heading Level="2">A custom trigger</Heading>
+<TextBlock>The trigger is the button that opens the menu. For a button of your own, such as an <Anchor Href="docs/components/icon-button">IconButton</Anchor>, put it in <Code>Trigger</Code> and give it the menu's attributes with <Code>@@attributes="context"</Code>. To set where the menu opens, set <Code>Placement</Code>.</TextBlock>
 <ExampleViewer Example="menu-trigger" />
-<TextBlock>The panel fits its items, from 10rem to 24rem wide; <Code>PanelWidth</Code> sets a width of your own. Without a <Code>Trigger</Code>, <Code>Label</Code>, <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style the default button.</TextBlock>
+<TextBlock>The panel fits its items, from 10rem to 24rem wide. To set a width of your own, set <Code>PanelWidth</Code>. Without a <Code>Trigger</Code>, <Code>Label</Code>, <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style the default button.</TextBlock>
 
 <Heading Level="2">Checked items</Heading>
-<TextBlock>Use a <Code>MenuRadioGroup</Code> with a <Code>QueryKey</Code> for options kept in the address, such as a sort, and <Code>Checked</Code> with an <Code>Href</Code> for an on/off item. Both are links, so they work on static pages.</TextBlock>
+<TextBlock>A menu can hold options the user checks, such as a sort order or a view setting. For a set of options kept in the URL, such as a sort, add a <Code>MenuRadioGroup</Code> and set its <Code>QueryKey</Code>. For an on/off item, set <Code>Checked</Code> and an <Code>Href</Code>. Both are links, so they work on static pages.</TextBlock>
 <ExampleViewer Example="menu-checked" />
-<TextBlock>On an interactive page, <Code>@@bind-Value</Code> on the group and <Code>@@bind-Checked</Code> on an item keep them in C# instead. <Code>Name</Code> on the group makes its options submit buttons that post with a form, and <Code>KeepOpen</Code> on an item leaves the menu open, to tick several in a row.</TextBlock>
+<List>
+    <ListItem>On interactive pages, to keep them in C# instead, set <Code>@@bind-Value</Code> on the group and <Code>@@bind-Checked</Code> on an item.</ListItem>
+    <ListItem>To make a group's options submit buttons that post with a form, set <Code>Name</Code> on the group.</ListItem>
+    <ListItem>To leave the menu open after an item is chosen, so the user can check several in a row, set <Code>KeepOpen</Code> on the item.</ListItem>
+</List>
 
 <Heading Level="2">Submenus</Heading>
-<TextBlock>Use <Code>MenuSub</Code> for an item that opens another menu beside it. Choosing an item in it closes the whole menu.</TextBlock>
+<TextBlock>A submenu is an item that opens another menu beside it. Add a <Code>MenuSub</Code>. Choosing an item in it closes the whole menu.</TextBlock>
 <ExampleViewer Example="menu-sub" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

@@ -20,21 +20,26 @@
 
         <Heading Level="2">Keep Bootstrap</Heading>
         <TextBlock>
-            IzzyBlazor's CSS sits in cascade layers, so any CSS of yours outside a layer wins over it. That's what makes it easy
-            to adjust, but it means Bootstrap, and rules like the template's <Code>a { color: … }</Code>, override IzzyBlazor's
-            components: button links turn blue on blue and headings change size.
+            IzzyBlazor's CSS sits in cascade layers, so any CSS of yours outside a layer wins over it. That makes IzzyBlazor
+            easy to adjust. It also means Bootstrap, and rules like the template's <Code>a { color: … }</Code>, override
+            IzzyBlazor's components: button links turn blue on blue and headings change size.
         </TextBlock>
         <TextBlock>
-            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Remove its <Code>&lt;link&gt;</Code> and import
-            it at the top of your stylesheet instead, move rules that style bare elements (<Code>body</Code>, <Code>a</Code>,
-            <Code>h1</Code>) into the same layer, and link your stylesheet before IzzyBlazor's. The order matters here because
-            yours now declares a layer:
+            To keep Bootstrap, put it in a layer of its own, declared before IzzyBlazor's:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>Remove Bootstrap's <Code>&lt;link&gt;</Code>, and import it at the top of your stylesheet instead.</ListItem>
+            <ListItem>Move rules that style bare elements (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer.</ListItem>
+            <ListItem>Link your stylesheet before IzzyBlazor's. The order matters, because your stylesheet now declares a layer.</ListItem>
+        </List>
+        <TextBlock>
+            Your stylesheet and <Code>App.razor</Code> then look like this:
         </TextBlock>
         <Code Block Language="css" Title="wwwroot/app.css">@AppCss</Code>
         <Code Block Language="razor" Title="Components/App.razor" HighlightLines="1-2">@AppHead</Code>
         <TextBlock>
-            The first layer declared loses to the ones after it, so IzzyBlazor's components win over Bootstrap, while
-            Bootstrap's classes keep styling your existing markup. Your rules outside a layer still win over both.
+            The first layer declared loses to the ones after it, so IzzyBlazor's components win over Bootstrap. Bootstrap's
+            classes keep styling your existing markup. Your rules outside a layer still win over both.
         </TextBlock>
         <Alert Status="Status.Info" Title="Your pages take IzzyBlazor's page defaults">
             IzzyBlazor sets the page's font, text color and background, and its focus ring. Once Bootstrap is in a layer, those
@@ -59,15 +64,18 @@
         <TextBlock>
             <Code>_Imports.razor</Code> applies to its folder and the folders under it. To bring IzzyBlazor in gradually, put
             <Code>@@using IzzyBlazor</Code> in a folder's own <Code>_Imports.razor</Code> instead of the one in
-            <Code>Components</Code>, and only the pages there see its components. <Code>App.razor</Code> and any layout built
-            with IzzyBlazor need it too, at the top of the file: without it, <Code>&lt;IzzyTheme /&gt;</Code> is read as an
-            unknown HTML element, the build only warns, and the theme never renders.
+            <Code>Components</Code>. Only the pages in that folder see its components.
+        </TextBlock>
+        <TextBlock>
+            <Code>App.razor</Code> and any layout built with IzzyBlazor need the <Code>@@using</Code> too, at the top of the
+            file. Without it, <Code>&lt;IzzyTheme /&gt;</Code> is read as an unknown HTML element, the build only warns, and
+            the theme never renders.
         </TextBlock>
         <Code Block Language="text">@Folders</Code>
         <TextBlock>
-            A page can use a new layout while the rest keep yours: build one with
-            <Anchor Href="docs/components/app-shell">AppShell</Anchor> and set it with <Code>@@layout</Code>, or as the default
-            layout of a folder in its <Code>_Imports.razor</Code>.
+            A page can use a new layout while the rest keep yours. Build one with
+            <Anchor Href="docs/components/app-shell">AppShell</Anchor>, and set it on the page with <Code>@@layout</Code>, or
+            as a folder's default layout in its <Code>_Imports.razor</Code>.
         </TextBlock>
 
         <Heading Level="2">Forms you already have</Heading>
@@ -77,14 +85,14 @@
         </TextBlock>
         <Code Block Language="razor">@EditFormCode</Code>
         <TextBlock>
-            They show their own label, hint and errors. Switch the <Code>EditForm</Code> to IzzyBlazor's
-            <Anchor Href="docs/components/form">Form</Anchor> when you want its layout and columns; it takes the
-            same <Code>Model</Code>, <Code>FormName</Code> and submit events, and adds the DataAnnotations validator itself.
+            They show their own label, hint and errors. For IzzyBlazor's layout and columns, switch the
+            <Code>EditForm</Code> to IzzyBlazor's <Anchor Href="docs/components/form">Form</Anchor>. It has the same
+            <Code>Model</Code>, <Code>FormName</Code> and submit events, and adds the DataAnnotations validator itself.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
             <ListItem><Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor>: match your brand color and fonts.</ListItem>
             <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
         </List>

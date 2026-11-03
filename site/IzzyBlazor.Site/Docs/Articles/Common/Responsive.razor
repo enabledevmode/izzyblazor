@@ -5,8 +5,8 @@
 
 <ArticlePage Section="common" Slug="responsive">
     <Lead>
-        Style props that change with screen size take one value, or one per breakpoint. The server writes classes and CSS
-        variables for the breakpoints you set and nothing else, so a page fits a phone with no script.
+        A style prop that changes with screen size accepts one value, or one value per breakpoint. The server writes
+        classes and CSS variables only for the breakpoints you set, so a page fits a phone with JavaScript off too.
     </Lead>
     <ChildContent>
         <Heading Level="2">One value per breakpoint</Heading>
@@ -24,44 +24,46 @@
             </table>
         </Prose>
         <TextBlock>
-            Each value holds from its breakpoint up, until a larger one replaces it. Only what you set produces CSS, so
-            <Code>new() { Md = 6 }</Code> keeps the component's own value below 768px.
+            Each value applies from its breakpoint up, until a larger breakpoint replaces it. Only the values you set
+            produce CSS, so <Code>new() { Md = 6 }</Code> keeps the component's own value below 768px.
         </TextBlock>
 
         <Heading Level="2">What's responsive</Heading>
         <TextBlock>
-            What changes with screen size takes a map: direction, gap, spacing, columns, sizes, alignment. Switches don't:
-            <Code>Grow</Code>, <Code>Shrink</Code>, <Code>Wrap</Code>, <Code>Inline</Code> and the rest are plain booleans, so
-            you can write them bare, as in <Code>&lt;Row Wrap&gt;</Code>. Each component's API page marks its responsive
-            parameters.
+            Parameters for values that change with screen size accept a map: direction, gap, spacing, columns, sizes and
+            alignment. Switches don't. <Code>Grow</Code>, <Code>Shrink</Code>, <Code>Wrap</Code>, <Code>Inline</Code> and
+            the rest are plain booleans, so you can write them bare, as in <Code>&lt;Row Wrap&gt;</Code>. Each component's
+            API page marks its responsive parameters.
         </TextBlock>
 
         <Heading Level="2">Hide or show by width</Heading>
         <TextBlock>
-            Use <Code>HiddenFrom</Code> or <Code>VisibleFrom</Code> on nearly any component, fields included:
+            To hide a component from a breakpoint up, set <Code>HiddenFrom</Code>. To show it only from a breakpoint up,
+            set <Code>VisibleFrom</Code>. Nearly every component has both, fields included:
         </TextBlock>
         <Code Block Language="razor">@Hidden</Code>
 
         <Heading Level="2">Fluid text</Heading>
         <TextBlock>
-            Use <Code>MinSize</Code> on <Anchor Href="docs/components/heading">Heading</Anchor> or
-            <Anchor Href="docs/components/text-block">TextBlock</Anchor> for text that grows smoothly instead of in steps: the
-            text is <Code>MinSize</Code> on a 360px screen and <Code>Size</Code> at 1280px.
+            Fluid text grows smoothly with the screen instead of in steps. To make a
+            <Anchor Href="docs/components/heading">Heading</Anchor> or <Anchor Href="docs/components/text-block">TextBlock</Anchor>
+            fluid, set <Code>MinSize</Code>. The text is <Code>MinSize</Code> on a 360px screen and <Code>Size</Code> at
+            1280px.
         </TextBlock>
         <Code Block Language="razor">@Fluid</Code>
 
         <Heading Level="2">Sized by the container</Heading>
         <TextBlock>
             A <Anchor Href="docs/components/form">Form</Anchor> or <Anchor Href="docs/components/fieldset">Fieldset</Anchor>
-            with <Code>Columns</Code> (a plain number) follows its own width, not the screen's, so the same form fits a page, a dialog and a
-            drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code>
-            fits as many columns as there's room for.
+            with <Code>Columns</Code> set to a plain number follows its own width, not the screen's. So the same form fits
+            a page, a dialog and a drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with
+            <Code>MinChildWidth</Code> fits as many columns as there's room for.
         </TextBlock>
         <Code Block Language="razor">@Container</Code>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: every prop that takes a map.</ListItem>
+            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: every prop that accepts a map.</ListItem>
             <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: columns in a form.</ListItem>
         </List>
     </ChildContent>

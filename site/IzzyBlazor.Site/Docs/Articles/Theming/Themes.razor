@@ -5,23 +5,23 @@
 
 <ArticlePage Section="theming" Slug="themes">
     <Lead>
-        Set the whole app's look in one place: <Code>IzzyTheme</Code> in <Code>App.razor</Code>'s <Code>head</Code> takes a
-        preset, then your brand color, grays, radius, density and fonts over it. It renders on the server, so the theme is
-        there on first paint, with no script and in every render mode.
+        <Code>IzzyTheme</Code> sets the whole app's look in one place, in <Code>App.razor</Code>'s <Code>head</Code>. It
+        sets a preset, then your brand color, grays, radius, density and fonts over it. It renders on the server, so the
+        theme applies on first paint, in every render mode and with JavaScript off.
     </Lead>
     <ChildContent>
         <Heading Level="2">Set the theme</Heading>
         <TextBlock>Put one <Code>IzzyTheme</Code> in the <Code>head</Code>, after the stylesheet:</TextBlock>
         <Code Block Language="razor" Title="Components/App.razor">@SetTheme</Code>
         <TextBlock>
-            Each setting beats the preset's own; leave it unset to take the preset's. With none at all you get the Standard
-            preset in blue on neutral grays.
+            A parameter you set overrides the preset's value; one you leave unset keeps it. With no parameters at all, you
+            get the Standard preset, in blue on neutral grays.
         </TextBlock>
 
         <Heading Level="2">Presets</Heading>
-        <TextBlock>Use <Code>Preset</Code> for a starting set of defaults: density, shape, type and colors that suit a kind of app.</TextBlock>
+        <TextBlock>A preset is a starting set of defaults: the density, shape, type and colors that suit a kind of app. Set <Code>Preset</Code> to choose one.</TextBlock>
         <ExampleViewer Example="izzy-theme-presets" />
-        <TextBlock>On part of a page a preset doesn't bring its brand and gray, so each card sets them too. Fonts are app-wide, so Editorial's don't show here.</TextBlock>
+        <TextBlock>Each card in this example themes part of a page. There, a preset doesn't bring its brand and gray, so each card sets them too. Fonts are app-wide, so Editorial's fonts don't show here.</TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Preset</th><th>For</th><th>Controls</th><th>Shape</th><th>Type</th><th>Brand</th><th>Gray</th></tr></thead>
@@ -33,43 +33,51 @@
                 </tbody>
             </table>
         </Prose>
-        <TextBlock>Editorial's fonts aren't served with IzzyBlazor: load them yourself, as under <Anchor Href="docs/theming/themes#fonts">Fonts</Anchor>.</TextBlock>
+        <TextBlock>Editorial's fonts don't ship with IzzyBlazor. Load them yourself, as shown under <Anchor Href="docs/theming/themes#fonts">Fonts</Anchor>.</TextBlock>
 
         <Heading Level="2">Your brand color</Heading>
         <TextBlock>
-            Use <Code>Brand</Code> with a hex color, or the name of a built-in one. It becomes the primary accent: primary
-            buttons, links, focus rings, the field halo, selected rows, switches and sliders.
+            The brand color is the primary accent. It colors primary buttons, links, focus rings, the soft ring around a
+            focused field, selected rows, switches and sliders. Set <Code>Brand</Code> to a hex color, or to the name of a
+            built-in one.
         </TextBlock>
         <ExampleViewer Example="izzy-theme-brands" />
         <TextBlock>
-            From a hex color IzzyBlazor works out the fill, the text on it, the color as text and a soft tint, in light and
-            dark, each checked for contrast. In light mode the fill is your color, unless no text can reach 4.5:1 on it; then
-            only its lightness moves. In dark mode a dark color is lifted so controls still show. To set the shades yourself, see
+            From a hex color, IzzyBlazor works out four shades, in light and dark: the fill, the text on it, the color as
+            text and a soft tint. Each is checked for contrast. In light mode the fill is your color, unless no text can
+            reach 4.5:1 on it; then only its lightness changes. In dark mode, a dark color is lightened so controls still
+            show. To set the shades yourself, see
             <Anchor Href="docs/theming/tokens#brand-shades-by-hand">Brand shades by hand</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Grays</Heading>
         <TextBlock>
-            Use <Code>Gray</Code> with <Code>neutral</Code> (the default), <Code>slate</Code> (cool) or <Code>stone</Code>
-            (warm, for serif headings), or a hex color for your light page. From a hex color the surfaces, fills, borders and
-            text are worked out in its hue, with the text checked for contrast and a dark set to match. A very light or dark
-            page color is kept light enough for text to read.
+            The grays color the page, surfaces, fills, borders and text. Set <Code>Gray</Code> to <Code>neutral</Code> (the
+            default), <Code>slate</Code> (cool) or <Code>stone</Code> (warm, for serif headings). Or set it to a hex color
+            for your light page.
+        </TextBlock>
+        <TextBlock>
+            From a hex color, the surfaces, fills, borders and text are worked out in its hue, with the text checked for
+            contrast. A dark set is made to match. A very light or dark page color is kept light enough for text to read.
         </TextBlock>
         <Code Block Language="razor">@Grays</Code>
 
         <Heading Level="2">Radius and density</Heading>
         <TextBlock>
-            Use <Code>Radius</Code> to round everything in proportion: <Code>None</Code>, <Code>Sm</Code>, <Code>Md</Code> (the
-            default), <Code>Lg</Code>, or <Code>Full</Code> for pill-shaped controls. Use <Code>Density</Code> for control
-            heights, table rows and card padding: <Code>Compact</Code> (32px), <Code>Standard</Code> (36px) or
-            <Code>Comfortable</Code> (40px).
+            To round every corner in proportion, set <Code>Radius</Code>: <Code>None</Code>, <Code>Sm</Code>,
+            <Code>Md</Code> (the default), <Code>Lg</Code>, or <Code>Full</Code> for pill-shaped controls.
+        </TextBlock>
+        <TextBlock>
+            Density sets control heights, table rows and card padding. Set <Code>Density</Code> to <Code>Compact</Code>
+            (32px controls), <Code>Standard</Code> (36px) or <Code>Comfortable</Code> (40px).
         </TextBlock>
 
         <Heading Level="2">Fonts</Heading>
         <TextBlock>
-            Body text is Inter, served with IzzyBlazor: browsers download only the character sets a page uses, and nothing
-            once you name another font. Use <Code>BodyFont</Code>, <Code>HeadingFont</Code> and <Code>MonoFont</Code> for your
-            own fonts, and <Code>HeadingWeight</Code> for the headings' weight. Load any font other than Inter yourself:
+            Body text is Inter, which ships with IzzyBlazor. Browsers download only the character sets a page uses, and
+            nothing once you name another font. To use your own fonts, set <Code>BodyFont</Code>, <Code>HeadingFont</Code>
+            and <Code>MonoFont</Code>. To change the headings' weight, set <Code>HeadingWeight</Code>. Load any font other
+            than Inter yourself:
         </TextBlock>
         <Code Block Language="razor">@Fonts</Code>
         <TextBlock>The Editorial preset uses IBM Plex Sans and Newsreader:</TextBlock>
@@ -77,18 +85,18 @@
 
         <Heading Level="2">App-wide or part of a page</Heading>
         <TextBlock>
-            Fonts, <Code>HeadingWeight</Code>, a hex <Code>Gray</Code> and <Code>Scrollbars</Code> (whether the page's own
-            scrollbar is themed too) are app-wide: set them on the <Code>IzzyTheme</Code> in the <Code>head</Code>. The rest
-            also work on part of a page; see <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>.
+            Fonts, <Code>HeadingWeight</Code>, a hex <Code>Gray</Code> and <Code>Scrollbars</Code> are app-wide. Set them on
+            the <Code>IzzyTheme</Code> in the <Code>head</Code>. <Code>Scrollbars</Code> sets whether the page's own
+            scrollbar is themed too. The other parameters also work on part of a page; see <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>.
         </TextBlock>
         <TextBlock>
-            For a strict Content-Security-Policy, pass your nonce as <Code>Nonce</Code>: hex colors and fonts come in a small
-            <Code>style</Code> block.
+            <Code>IzzyTheme</Code> writes hex colors and fonts in a small <Code>style</Code> block. For a strict
+            Content-Security-Policy, pass your nonce as <Code>Nonce</Code>.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/theming/color-scheme">Light and dark</Anchor>: the default scheme and a switch for readers.</ListItem>
+            <ListItem><Anchor Href="docs/theming/color-scheme">Light and dark</Anchor>: the default scheme and a switch for users.</ListItem>
             <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: exact values with CSS variables.</ListItem>
             <ListItem><Anchor Href="docs/components/izzy-theme/api">IzzyTheme API</Anchor>: every parameter.</ListItem>
         </List>

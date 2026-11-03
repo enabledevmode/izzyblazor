@@ -2,29 +2,75 @@
    without a total, then a failed load. *@
 
 <Heading Level="2">Data from a database</Heading>
-<TextBlock>Pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>, and the database sorts, filters and pages. For more control, use <Code>ItemsProvider</Code> to load the rows yourself. It gets a <Code>DataRequest</Code> (the range as <Code>Skip</Code> and <Code>Take</Code>, the <Code>Sort</Code>, the <Code>Filter</Code>, and the columns, which say how each key reads an item) and returns a <Code>DataResult</Code>. <Code>ToResultAsync</Code> counts what the filter keeps and lists the page, through EF Core's async methods:</TextBlock>
+<TextBlock>A table can load its rows from a database, which then sorts, filters and pages them. The simplest way is to pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>. For more control over the query, set <Code>ItemsProvider</Code> and load the rows yourself.</TextBlock>
+<TextBlock>The provider receives a <Code>DataRequest</Code> and returns a <Code>DataResult</Code>. The request has these members:</TextBlock>
+<List Gap="2">
+    <ListItem><Code>Skip</Code> and <Code>Take</Code>: the range of rows to load.</ListItem>
+    <ListItem><Code>Sort</Code>: the sort, first key first.</ListItem>
+    <ListItem><Code>Filter</Code>: the filter, or null for none.</ListItem>
+    <ListItem><Code>Cursor</Code>: the cursor of the page to load, when the table pages by cursor (see <Anchor Href="docs/components/table/loading-data#paging-without-a-total">Paging without a total</Anchor>).</ListItem>
+    <ListItem><Code>CancellationToken</Code>: canceled when the table no longer needs the answer.</ListItem>
+</List>
+<TextBlock>The request also carries the table's columns, which set how each key reads a value from an item. <Code>request.ToResultAsync</Code> uses them to count the rows the filter matches and load the page, through EF Core's async methods:</TextBlock>
 <Code Block Language="razor">@Provider</Code>
-<TextBlock>The filter becomes a LINQ expression on each column's own property, so the database filters, and a value typed into a filter never becomes code. <Code>request.Apply(query)</Code> does the same without counting; <Code>ApplyFiltering</Code> and <Code>ApplySorting</Code> do one part each. To filter a column your own way, such as a value stored differently from how it's shown, give it a <Code>Filter</Code> that returns the condition:</TextBlock>
+<TextBlock>The filter becomes a LINQ expression on each column's property, so the database does the filtering. A value typed into a filter never becomes code.</TextBlock>
+<List Gap="2">
+    <ListItem>To apply the request without counting, call <Code>request.Apply(query)</Code>.</ListItem>
+    <ListItem>To apply only the filter or only the sort, call <Code>ApplyFiltering</Code> or <Code>ApplySorting</Code>.</ListItem>
+</List>
+<TextBlock>To filter a column your own way, such as a value stored differently from how it's shown, set the column's <Code>Filter</Code> to a method that returns the condition:</TextBlock>
 <Code Block Language="razor">@CustomCondition</Code>
 
 <Heading Level="2">Data from an API</Heading>
-<TextBlock>When the rows come from an API, pass the request on. <Code>request.Filter?.Find("status")</Code> reads one column's condition, and <Code>request.ToQueryString()</Code> writes the whole request (<Code>sort=-date&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>). The API reads it back with <Code>DataRequest&lt;Order&gt;.Parse</Code> and applies it through the fields it declares, so a request can't reach other properties. <Code>ToODataQuery()</Code> writes it for an OData endpoint, and the request also serializes with <Code>System.Text.Json</Code>. <Anchor Href="docs/common/data">Data and filters</Anchor> has the operators, the filter syntax and a full client and server.</TextBlock>
-<TextBlock><Code>DataFields.Of&lt;T&gt;()</Code> declares every public property, so read it from a type made for the API, or leave a property out with <Code>[ScaffoldColumn(false)]</Code>. The request asks for its own <Code>Take</Code>, so cap it on the server if it shouldn't ask for every row.</TextBlock>
+<TextBlock>When the rows come from an API, the provider passes the request on to it. <Code>request.ToQueryString()</Code> writes the whole request for the URL, such as <Code>sort=-date&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>. The API reads it back with <Code>DataRequest&lt;Order&gt;.Parse</Code>.</TextBlock>
+<TextBlock>The API applies the request through the fields it declares, so a request can't reach any other property. <Code>DataFields.Of&lt;T&gt;()</Code> declares every public property. Call it on a type made for the API, or leave a property out with <Code>[ScaffoldColumn(false)]</Code>.</TextBlock>
 <Code Block Language="csharp">@OverTheWire</Code>
+<TextBlock>The request sets its own <Code>Take</Code>. If a client shouldn't be able to ask for every row, cap <Code>Take</Code> on the server, as this code does.</TextBlock>
+<List Gap="2">
+    <ListItem>To read one column's condition, call <Code>request.Filter?.Find("status")</Code>.</ListItem>
+    <ListItem>To call an OData endpoint, write the request with <Code>ToODataQuery()</Code>.</ListItem>
+    <ListItem>The request also serializes with <Code>System.Text.Json</Code>.</ListItem>
+</List>
+<TextBlock><Anchor Href="docs/common/data-api">Data from an API</Anchor> has a full client and server, the filter syntax, and OData. <Anchor Href="docs/common/data">Data and filters</Anchor> lists the operators.</TextBlock>
 
 <Heading Level="2">Paging without a total</Heading>
-<TextBlock>When the data pages by cursor (an opaque "next" token, as many APIs and logs do) or has no total, set <Code>Paging</Code> and return the next cursor from your <Code>ItemsProvider</Code>. The table passes it back as <Code>request.Cursor</Code>; the total is optional.</TextBlock>
+<TextBlock>Some data pages by cursor: each page comes with an opaque token for the next one, as many APIs and logs do. Other data has no total. For either, set <Code>Paging</Code> to a paging style that pages by cursor, and return the next cursor from your <Code>ItemsProvider</Code>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Paging style</th><th>What the user sees</th><th>Total</th></tr></thead>
+        <tbody>
+            <tr><td><Code>DataPaging.Pages</Code> (the default)</td><td>Numbered pages and "1–10 of 42"</td><td>Required</td></tr>
+            <tr><td><Code>DataPaging.NextPrevious</Code></td><td>First, Previous and Next, by cursor</td><td>Optional</td></tr>
+            <tr><td><Code>DataPaging.LoadOnScroll</Code></td><td>The next page added under the rows on scroll (see <Anchor Href="docs/components/table/loading-data#loading-on-scroll">Loading on scroll</Anchor>)</td><td>Optional</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock>The table passes the cursor back to the provider as <Code>request.Cursor</Code>.</TextBlock>
 <Code Block Language="razor">@Cursor</Code>
-<TextBlock><Code>DataPaging.NextPrevious</Code> shows First, Previous and Next. Return <Code>Previous</Code> too if your source has it; without it, interactive tables go back through the cursors they've followed, and static ones offer First.</TextBlock>
+<TextBlock>If your source has a cursor for the page before, return it as <Code>Previous</Code> too. Without it, interactive tables go back through the cursors they've already followed, and static tables offer First.</TextBlock>
 <ExampleViewer Example="table-cursor-pages" />
 
 <Heading Level="2">Loading on scroll</Heading>
-<TextBlock><Code>DataPaging.LoadOnScroll</Code> loads the next page as the last row comes into view and adds it under the rows: in place on interactive pages, and on static pages by following its Load more link, which enhanced navigation swaps in with the scroll kept. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Its Load more button, under the last row, is for the keyboard, out of sight until it has focus (<Code>LoadMoreText</Code> sets its text); with JavaScript off it shows, as a link that reloads the table with one more page of rows (<Code>?page=3</Code> shows the first three, asked of the provider as one request). With an <Code>ItemKey</Code>, a row already shown isn't added twice. A parent's re-render keeps the added pages; call <Code>ReloadAsync()</Code> to start over. Both modes also work with <Code>Items</Code>, where the table pages by row offset. (A visible Load more button is a list's pattern: see ListView.)</TextBlock>
+<TextBlock>With loading on scroll, the next page loads as the last row comes into view, and its rows are added under the ones shown. Set <Code>Paging="DataPaging.LoadOnScroll"</Code>. Give the table a <Code>MaxHeight</Code> too, so the rows scroll in their own box and the content under the table stays within reach.</TextBlock>
 <ExampleViewer Example="table-load-on-scroll" />
+<List Gap="2">
+    <ListItem>On interactive pages, the rows are added in place. On static pages, the table follows its Load more link, and enhanced navigation adds the rows without a full reload, keeping the scroll position.</ListItem>
+    <ListItem>The Load more button under the last row is for keyboard users. It stays out of sight until it has focus. To change its text, set <Code>LoadMoreText</Code>.</ListItem>
+    <ListItem>With <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, Load more shows as a link. It reloads the table with one more page of rows: <Code>?page=3</Code> shows the first three pages, loaded from the provider in one request.</ListItem>
+    <ListItem>With an <Code>ItemKey</Code>, a row already shown isn't added twice.</ListItem>
+    <ListItem>When the parent re-renders, the added pages stay. To start over, call <Code>ReloadAsync()</Code>.</ListItem>
+    <ListItem><Code>NextPrevious</Code> and <Code>LoadOnScroll</Code> also work with <Code>Items</Code>. The table then pages by row offset.</ListItem>
+    <ListItem>A visible Load more button suits a list rather than a table. For one, use a <Anchor Href="docs/components/list-view">ListView</Anchor>.</ListItem>
+</List>
 
 <Heading Level="2">When loading fails</Heading>
-<TextBlock>If the <Code>ItemsProvider</Code> throws (or an <Code>IQueryable</Code> in <Code>Items</Code> does), the table logs the exception and shows "Couldn't load the rows." with Retry in place of the rows. On static pages and with JavaScript off, Retry is a link to the same address. <Code>ErrorContent</Code> replaces the message. When loading on scroll, the rows already shown stay, and the message and Retry go under them. A request the table canceled because a newer one replaced it isn't an error: pass <Code>request.CancellationToken</Code> on to stop the work.</TextBlock>
+<TextBlock>If the <Code>ItemsProvider</Code> throws, or an <Code>IQueryable</Code> in <Code>Items</Code> does, the table logs the exception. In place of the rows, it shows "Couldn't load the rows." with a Retry button. To show your own message, set <Code>ErrorContent</Code>.</TextBlock>
 <ExampleViewer Example="table-load-error" />
+<List Gap="2">
+    <ListItem>On static pages and with JavaScript off, Retry is a link to the same URL.</ListItem>
+    <ListItem>When loading on scroll, the rows already shown stay, and the message and Retry appear under them.</ListItem>
+    <ListItem>A request the table canceled because a newer one replaced it isn't an error. Pass <Code>request.CancellationToken</Code> on to stop the work.</ListItem>
+</List>
 
 @code {
     private const string Provider = """

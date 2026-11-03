@@ -5,34 +5,60 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A banner is about the whole app or site: planned maintenance, a trial that's ending, an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it takes a row of its own above the header. For a message about part of a page, use an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+<TextBlock>A banner is a message about the whole app or site: planned maintenance, a trial that's ending, an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it has a row of its own above the header. For a message about part of a page, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status and color</Heading>
-<TextBlock>Use <Code>Status</Code> for what the message means, or <Code>Accent</Code> and <Code>Icon</Code> for an announcement in your brand's color; <Code>Title</Code> is a bold lead-in on the same line, and a <Code>BannerActions</Code> holds a link or button after the text.</TextBlock>
+<TextBlock>The status says what the message means and sets its color and icon. Set <Code>Status</Code> to choose one. For an announcement in your brand's color, set <Code>Accent</Code> and <Code>Icon</Code> instead.</TextBlock>
 <ExampleViewer Example="banner-statuses" />
-<TextBlock>With <Code>Accent</Code>, the status still sets the icon and the word screen readers hear. <Code>Variant</Code> takes <Code>Soft</Code> (the default), <Code>Outline</Code> or <Code>Solid</Code>, as on Alert.</TextBlock>
+<List>
+    <ListItem>With <Code>Accent</Code>, the status still sets the icon and the word screen readers hear.</ListItem>
+    <ListItem><Code>Title</Code> sets a bold lead-in on the same line as the text.</ListItem>
+    <ListItem>To put a link or button after the text, add a <Code>BannerActions</Code>.</ListItem>
+    <ListItem><Code>Variant</Code> is <Code>Soft</Code> (the default), <Code>Outline</Code> or <Code>Solid</Code>, as on Alert.</ListItem>
+</List>
 
 <Heading Level="2">Dismissing</Heading>
-<TextBlock>Use <Code>Dismissible</Code> for a close button; the banner then stays closed on later pages, remembered in a cookie named by <Code>RememberKey</Code>.</TextBlock>
+<TextBlock>A dismissible banner has a close button, and once closed it stays closed on later pages. Set <Code>Dismissible</Code> to add it. The dismissal is remembered in a cookie named by <Code>RememberKey</Code>.</TextBlock>
 <ExampleViewer Example="banner-dismiss" />
-<TextBlock>The script writes the cookie as the banner closes, and the server reads it and leaves the banner out of every later page, static or interactive. Give a new message a new key to show it to everyone again; without a <Code>RememberKey</Code> the key comes from the title, text and links, so changing the message does the same. Where the server can't read cookies (WebAssembly), the script hides a remembered banner as the page loads.</TextBlock>
+<TextBlock><Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> writes the cookie as the banner closes. The server reads it and leaves the banner out of every later page, static or interactive. Where the server can't read cookies (WebAssembly), the script hides a remembered banner as the page loads.</TextBlock>
+<TextBlock>To show a new message to everyone again, give it a new key. Without a <Code>RememberKey</Code>, the key comes from the title, text and links, so changing the message does the same.</TextBlock>
 
 <Heading Level="2">How long it stays closed</Heading>
-<TextBlock>Use <Code>Remember</Code> for how long a dismissal lasts: <Code>Session</Code> (the default) until the browser closes, <Code>Persistent</Code> for a year, or <Code>None</Code> for this page only.</TextBlock>
+<TextBlock>A dismissal can last until the browser closes, for a year, or for this page only. Set <Code>Remember</Code> to choose:</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th><Code>Remember</Code></th><th>The banner stays closed</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Session</Code> (default)</td><td>Until the browser closes</td></tr>
+            <tr><td><Code>Persistent</Code></td><td>For a year</td></tr>
+            <tr><td><Code>None</Code></td><td>On this page only</td></tr>
+        </tbody>
+    </table>
+</Prose>
 <ExampleViewer Example="banner-remembered" WidthSwitch />
-<TextBlock>The server reads the cookie through <Code>AddIzzyBlazor()</Code>, from the IzzyBlazor package. On an interactive page, <Code>@@bind-Dismissed</Code> also hears about a dismissal found in the cookie.</TextBlock>
+<TextBlock>The server reads the cookie through <Code>AddIzzyBlazor()</Code>, from the IzzyBlazor package. On interactive pages, <Code>@@bind-Dismissed</Code> also reports a dismissal found in the cookie.</TextBlock>
 
 <Heading Level="2">In an app</Heading>
-<TextBlock>Put it in an AppShell to give it the row above the header, and use <Code>Position="BarPosition.Sticky"</Code> to keep it in view as the page scrolls.</TextBlock>
+<TextBlock>In an AppShell, a banner has its own row above the header. To keep it in view as the page scrolls, set <Code>Position="BarPosition.Sticky"</Code>.</TextBlock>
 <Code Block Language="razor" Title="MainLayout.razor">@InShell</Code>
-<TextBlock>A sticky banner pushes the sticky header and sidebar down by its height, measured by the script when the message wraps to a second line; with JavaScript off it keeps one line of room.</TextBlock>
+<TextBlock>A sticky banner pushes the sticky header and sidebar down by its height. When the message wraps to a second line, IzzyBlazor's script measures the new height. With JavaScript off, the banner keeps room for one line.</TextBlock>
 
 <Heading Level="2">Shown after the page loads</Heading>
-<TextBlock>Use <Code>Announce</Code> for a banner that appears in response to something, such as a lost connection on an interactive page, so screen readers read it out; one that's there when the page loads is found as a labeled region instead.</TextBlock>
+<TextBlock>A banner can appear in response to something, such as a lost connection on interactive pages. Set <Code>Announce</Code> so screen readers read it out when it appears. Screen readers find a banner that's there when the page loads as a labeled region instead.</TextBlock>
 <Code Block Language="razor">@Later</Code>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the region's name ("Announcement"), <Code>StatusLabel</Code> for the word read before the message, and <Code>DismissLabel</Code> for the close button's name ("Dismiss"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The banner has a region name, a word for the status, and a close button name for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The region's name</td><td>"Announcement"</td></tr>
+            <tr><td><Code>StatusLabel</Code></td><td>The word read before the message</td><td>"Info", "Success", "Warning" or "Error"; none for <Code>Neutral</Code></td></tr>
+            <tr><td><Code>DismissLabel</Code></td><td>The close button's name</td><td>"Dismiss"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

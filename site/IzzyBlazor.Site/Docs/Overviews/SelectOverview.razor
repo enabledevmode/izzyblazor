@@ -7,26 +7,26 @@
 <Code Block Language="razor">@Usage</Code>
 
 <Heading Level="2">Options</Heading>
-<TextBlock>Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>. For anything else, pass <Code>Items</Code> and the <Code>ItemText</Code> for each. <Code>Placeholder</Code> adds a first, empty option.</TextBlock>
+<TextBlock>Bound to an enum, a Select shows each value as an option, named by its <Code>[Display(Name)]</Code>. For any other type, pass <Code>Items</Code>, and set <Code>ItemText</Code> for how each option reads. To add an empty first option, set <Code>Placeholder</Code>.</TextBlock>
 <ExampleViewer Example="select-options" />
-<TextBlock>The label and required mark come from the model as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>: <Code>[Display(Name)]</Code> or the property name in words, and <Code>[Required]</Code>. <Code>Label</Code> replaces the label, and <Code>Hint</Code> adds help under the field.</TextBlock>
+<TextBlock>The label and required mark come from the model, as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>. The label is the <Code>[Display(Name)]</Code>, or the property name in words, and <Code>[Required]</Code> adds the mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
 
 <Heading Level="2">Rich options</Heading>
-<TextBlock>Use <Code>ItemTemplate</Code> for markup in each option, such as an icon and a price. Text with the class <Code>ib-option-hint</Code> shows in the list but not in the closed field.</TextBlock>
+<TextBlock>Rich options show markup in each option, such as an icon and a price. Set <Code>ItemTemplate</Code>. Text with the class <Code>ib-option-hint</Code> shows in the list but not in the closed field.</TextBlock>
 <ExampleViewer Example="select-rich" />
-<TextBlock>The markup shows where the browser has the customizable select (Chrome and Edge 135, Safari 27). Elsewhere IzzyBlazor's script shows <Code>ItemText</Code> in the browser's own list, so keep both; with JavaScript off those browsers show the markup's text run together.</TextBlock>
+<TextBlock>The markup shows in browsers that support the customizable select. In other browsers, <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> shows <Code>ItemText</Code> in the browser's own list, so set both. With JavaScript off, those browsers show the markup's text run together.</TextBlock>
 
 <Heading Level="2">Required, with a placeholder</Heading>
-<TextBlock>Use a nullable property with <Code>[Required]</Code> and a <Code>Placeholder</Code>: nothing is chosen until someone picks an option, and the placeholder can't be picked again.</TextBlock>
+<TextBlock>A Select can start with nothing chosen and require a choice. Bind a nullable property with <Code>[Required]</Code>, and set a <Code>Placeholder</Code>. Nothing is chosen until the user picks an option, and the placeholder can't be picked again.</TextBlock>
 <ExampleViewer Example="select-required" />
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. A read-only field posts its value, but the user can't change it; set <Code>ReadOnly</Code>. A disabled field doesn't post; set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="select-states" />
-<TextBlock>HTML has no read-only select, so a read-only one shows its choice in a read-only text field and posts it from a hidden input.</TextBlock>
+<TextBlock>HTML has no read-only select. A read-only Select shows its choice in a read-only text field and posts it from a hidden input. Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Filtering a page</Heading>
-<TextBlock>Use a <Code>FilterSelect</Code> in a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> to filter a list as soon as someone picks, since a select doesn't post when it changes: it applies on change with the script and has an Apply button without it. On an interactive page, <Code>@@bind-Value:after</Code> runs C# after each change.</TextBlock>
+<TextBlock>A select doesn't post when it changes. To filter a list as soon as the user picks an option, use a <Code>FilterSelect</Code> in a <Anchor Href="docs/components/filter-form">FilterForm</Anchor>. It applies on change with IzzyBlazor's script, and shows an Apply button with JavaScript off. On interactive pages, <Code>@@bind-Value:after</Code> runs C# after each change.</TextBlock>
 <Code Block Language="razor">@Filter</Code>
 
 <Heading Level="2">Mode support</Heading>

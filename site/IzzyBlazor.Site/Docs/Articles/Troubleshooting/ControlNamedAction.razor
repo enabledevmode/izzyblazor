@@ -16,36 +16,37 @@
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
-            On a static page, a form whose submit buttons are named <Code>action</Code> posts to an address like
-            <Code>/[object RadioNodeList]</Code>, or <Code>/[object HTMLButtonElement]</Code> with one button, and shows a
-            page that doesn't exist. With JavaScript off, or on an interactive page, the same form works.
+            On <Anchor Href="docs/common/render-modes">static pages</Anchor>, a form whose submit buttons are named <Code>action</Code> posts to a
+            URL like <Code>/[object RadioNodeList]</Code>, or <Code>/[object HTMLButtonElement]</Code> with one button. The
+            browser then shows a page that doesn't exist. With JavaScript off, or on interactive pages, the same form
+            works.
         </TextBlock>
         <Code Block Language="razor" Title="Post.razor" HighlightLines="3-4">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
             In the browser, a form's controls are also properties of the form element, by name. A control named
-            <Code>action</Code> replaces <Code>form.action</Code>, the address the form posts to, with the control
-            itself, or with a list when several share the name. As an address, that becomes text such as
-            "[object RadioNodeList]". Blazor's enhanced form handling reads
-            <Code>form.action</Code> to send the post, so it sends it there. The browser's own post, with JavaScript off,
-            reads the attribute instead and isn't affected.
+            <Code>action</Code> replaces <Code>form.action</Code>, the URL the form posts to, with the control
+            itself, or with a list when several share the name. As a URL, that becomes text such as
+            "[object RadioNodeList]". Blazor's enhanced form handling reads <Code>form.action</Code> to send the form
+            post, so it sends it there. With JavaScript off, the browser's own form post reads the attribute instead and
+            isn't affected.
         </TextBlock>
         <TextBlock>Other names the form element has go wrong in their own ways, with JavaScript on:</TextBlock>
         <List Gap="2">
             <ListItem><Code>method</Code>: nothing posts, and the console shows that "[object RadioNodeList]" isn't a valid HTTP method.</ListItem>
             <ListItem><Code>enctype</Code>: the form posts as plain text, and the server answers 400 Bad Request.</ListItem>
-            <ListItem><Code>target</Code>: Blazor leaves the post to the browser, so it loads the whole page instead of an enhanced post.</ListItem>
-            <ListItem><Code>elements</Code> and <Code>submit</Code>: Blazor's post works, but scripts that read <Code>form.elements</Code> or call <Code>form.submit()</Code> break; <Code>FilterForm</Code>'s script reads <Code>form.elements</Code>.</ListItem>
+            <ListItem><Code>target</Code>: Blazor leaves the form post to the browser, which reloads the whole page instead of updating it without a full reload.</ListItem>
+            <ListItem><Code>elements</Code> and <Code>submit</Code>: Blazor's form post works, but scripts that read <Code>form.elements</Code> or call <Code>form.submit()</Code> break. <Code>FilterForm</Code>'s script reads <Code>form.elements</Code>.</ListItem>
         </List>
 
         <Heading Level="2">Fix</Heading>
         <TextBlock>Name the buttons something the form element doesn't have, such as <Code>intent</Code>, and read it under that name:</TextBlock>
         <Code Block Language="razor" Title="Post.razor" HighlightLines="3-4,8">@Fixed</Code>
         <TextBlock>
-            An interactive page doesn't post, so <Code>Intent</Code> is <Code>null</Code> there: give each button an
-            <Code>OnClick</Code> too, as the example does and
-            <Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor> shows.
+            Interactive pages don't post, so <Code>Intent</Code> is <Code>null</Code> there. Give each button an
+            <Code>OnClick</Code> too; each button in the demo below has one.
+            <Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor> explains the pattern.
         </TextBlock>
         <ExampleViewer Example="button-multi-submit" ModeSwitch />
 

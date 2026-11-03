@@ -5,33 +5,34 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>Each item is a native <Code>details</Code> element, so the browser opens and closes it, with JavaScript off too. Use it for sections people open one by one, such as FAQs or settings; for a single "show more", use a <Anchor Href="docs/components/collapsible">Collapsible</Anchor>, and for views people switch between, <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+<TextBlock>An accordion is a stack of sections, each with a title the user clicks to open or close it. It suits sections the user opens one by one, such as FAQs or settings. Each item is a native <Code>details</Code> element, so the browser opens and closes it, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
+<TextBlock>For a single "show more", see <Anchor Href="docs/components/collapsible">Collapsible</Anchor>. For views the user switches between, see <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
-<TextBlock>Use <Code>Variant</Code> to draw the items as separate cards (the default), as one bordered box, or flush with the page.</TextBlock>
+<TextBlock>A variant sets how the items are framed. <Code>Separated</Code> (the default) shows each item as its own card, <Code>Bordered</Code> puts them in one bordered box, and <Code>Flush</Code> sets them flush with the page. Set <Code>Variant</Code> to choose one.</TextBlock>
 <ExampleViewer Example="accordion-variants" />
 
 <Heading Level="2">One open at a time</Heading>
-<TextBlock>Use <Code>Exclusive</Code> to keep one item open: opening another closes it, by the browser, with no script. <Code>Disabled</Code> stops an item opening.</TextBlock>
+<TextBlock>An exclusive accordion keeps one item open: opening another item closes the one that was open. It suits steps or answers the user reads one at a time. Set <Code>Exclusive</Code> to turn it on. The browser does the closing, so it works with JavaScript off.</TextBlock>
 <ExampleViewer Example="accordion-exclusive" />
-<TextBlock>Exclusive items share a <Code>name</Code>; set <Code>Name</Code> yourself to group several accordions, so one item is open across all of them.</TextBlock>
+<TextBlock>To stop an item from opening, set <Code>Disabled</Code> on it. Exclusive items share a <Code>name</Code>. To group several accordions so that one item is open across all of them, set the same <Code>Name</Code> on each.</TextBlock>
 
 <Heading Level="2">Rich headers and content</Heading>
-<TextBlock>Use an <Code>AccordionHeader</Code> for a title with more than text, such as a badge, and <Code>Icon</Code> for an icon before it; the content is a column with a gap, so text, buttons and lists need no wrapper.</TextBlock>
+<TextBlock>An item's title can hold more than text, such as a badge, and its content can hold text, buttons and lists. For a title with more than text, use an <Code>AccordionHeader</Code>. To show an icon before the title, set <Code>Icon</Code>.</TextBlock>
 <ExampleViewer Example="accordion-content" />
-<TextBlock><Code>ContentPadding</Code> and <Code>ContentGap</Code> change the content's spacing for every item, or on one item; <Code>ContentPadding="0"</Code> runs a table or image edge to edge.</TextBlock>
+<TextBlock>The content is a column with a gap, so text, buttons and lists need no wrapper. To change the content's spacing, set <Code>ContentPadding</Code> and <Code>ContentGap</Code> on the accordion for every item, or on one item. To run a table or image edge to edge, set <Code>ContentPadding="0"</Code>.</TextBlock>
 
 <Heading Level="2">Sizes</Heading>
-<TextBlock>Use <Code>Size</Code> to scale the titles and spacing together: <Code>Sm</Code> for sidebars and dense pages, <Code>Lg</Code> for FAQ pages.</TextBlock>
+<TextBlock>The size scales the titles and spacing together. <Code>Sm</Code> suits sidebars and dense pages, and <Code>Lg</Code> suits FAQ pages. Set <Code>Size</Code> to choose one.</TextBlock>
 <ExampleViewer Example="accordion-sizes" />
 
 <Heading Level="2">Forms in sections</Heading>
-<TextBlock>Use <Code>Open</Code> on an item to open it from the server, such as the section whose form just posted.</TextBlock>
+<TextBlock>An accordion can hold a form in each section, as a settings page does. After a form post, the section whose form posted should be open. Set <Code>Open</Code> on that item to open it from the server.</TextBlock>
 <ExampleViewer Example="accordion-settings" />
-<TextBlock>The browser keeps which items are open, not the server, so on a static page every post or reload draws them as <Code>Open</Code> says and closes the rest. Open the section that posted, as here, whether it saved or not (<Code>OnInvalidSubmit</Code> too), so its message or errors are in view.</TextBlock>
+<TextBlock>The browser keeps track of which items are open, not the server. On static pages, after every form post or reload, the items set to <Code>Open</Code> are open and the rest are closed. Open the section that posted whether it saved or not (in <Code>OnInvalidSubmit</Code> too), as this example does, so its message or errors are in view.</TextBlock>
 
-<Heading Level="2">Following it from C#</Heading>
-<TextBlock>Use <Code>@@bind-Open</Code> on an <Code>AccordionItem</Code> to know in C# whether it's open, and to open or close it from C#, on an interactive page.</TextBlock>
+<Heading Level="2">Binding the open state</Heading>
+<TextBlock>On interactive pages, you can read and set whether an item is open from C#. Set <Code>@@bind-Open</Code> on an <Code>AccordionItem</Code>.</TextBlock>
 <ExampleViewer Example="accordion-bound" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

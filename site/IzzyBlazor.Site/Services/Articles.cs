@@ -12,13 +12,13 @@ public static class Articles
         new("get-started", "Get started", "Rocket",
         [
             new("blazor-web-app", "Blazor Web App", "Rocket",
-                "Install the package, add the stylesheet and IzzyTheme, register the services and map the endpoints."),
+                "Install the package, add the stylesheet and IzzyTheme, and register the services."),
             new("webassembly-and-auto", "WebAssembly or Auto", "Cpu",
                 "Use IzzyBlazor.Core in the .Client project; the server project keeps IzzyBlazor."),
             new("existing-app", "Add to an existing app", "PackagePlus",
                 "Bring IzzyBlazor into an app that already has pages, a layout and Bootstrap."),
             new("from-radzen", "Migrating from Radzen", "ArrowRightLeft",
-                "Radzen's buttons, data grid and dialogs as IzzyBlazor components: renamed members and what behaves differently."),
+                "Find the IzzyBlazor counterpart of each Radzen component, which members are renamed, and what behaves differently."),
             new("ai-assistants", "AI assistants", "Bot",
                 "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
         ]),
@@ -27,7 +27,7 @@ public static class Articles
             new("themes", "Themes and presets", "Palette",
                 "A preset, your brand color, grays, radius, density and fonts, set once in IzzyTheme."),
             new("color-scheme", "Light and dark", "SunMoon",
-                "The default scheme, a switch for readers, and a scheme for part of a page."),
+                "Set the default color scheme, add a switch so users can change it, and give part of a page its own scheme."),
             new("tokens", "Tokens and customizing", "SlidersHorizontal",
                 "CSS variables for exact values, the surface ladder, and theming part of a page."),
         ]),
@@ -42,7 +42,9 @@ public static class Articles
             new("forms", "Forms and validation", "ClipboardCheck",
                 "Forms that post on static pages, rules from your model, columns, read-only forms and errors."),
             new("data", "Data and filters", "Database",
-                "A provider's request and result, EF Core, filters in code and as text, fields, and calling an API."),
+                "Load a Table or DataGrid's rows from a provider or EF Core, and build filters in code with the operators each type allows."),
+            new("data-api", "Data from an API", "Server",
+                "Send a provider's request from the browser to your own API or an OData endpoint, and limit what the server applies."),
             new("text", "Text and other languages", "Languages",
                 "The words components use, changed app-wide or per component, in one language or several."),
             new("accessibility", "Accessibility", "Accessibility",
@@ -51,19 +53,19 @@ public static class Articles
         new("troubleshooting", "Troubleshooting", "LifeBuoy",
         [
             new("empty-selection", "An empty selection comes back with its defaults", "ListChecks",
-                "Unchecked boxes post nothing, so after a static post the model gets its defaults back, or null.")
+                "Unchecked boxes post nothing, so after a form post on static pages the model gets its defaults back, or null.")
                 { Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["static"] },
             new("form-name", "A form's post fails or arrives empty", "ClipboardX",
-                "A static post finds its form and model by name: FormName on the form, the same name on the model.")
+                "A form post on static pages finds its form and model by name: FormName on the form, the same name on the model.")
                 { Components = ["Form"], Modes = ["static"] },
             new("onclick", "OnClick does nothing on a static page", "MousePointerClick",
                 "A static page has no connection to run C# on a click: post a form or follow a link instead.")
                 { Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["static"] },
             new("state-between-requests", "A value resets on the next request", "RotateCcw",
-                "A static page is built afresh for every request: keep what it needs in the address, or post it.")
+                "A static page is built afresh for every request: keep what it needs in the URL, or post it.")
                 { Modes = ["static"] },
             new("password-after-post", "The password is empty after a failed post", "KeyRound",
-                "A static page doesn't write a password back into its HTML, so the reader types it again.")
+                "A static page doesn't write a password back into its HTML, so the user types it again.")
                 { Components = ["TextField"], Modes = ["static"] },
             new("redirect-after-post", "Code runs after NavigateTo, or the post doesn't redirect", "CornerDownRight",
                 "NavigateTo doesn't always stop your code: make it the last line or return after it, and keep it out of try/catch.")

@@ -6,41 +6,59 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>A form collects fields bound to a model, validates them, and submits them to your handler, on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages alike. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
 
 <Heading Level="2">Fields</Heading>
-<TextBlock>Bind each field to the model with <Code>@@bind-Value</Code>. Fields take their labels, required marks, types and limits from the model's attributes, and post with the form.</TextBlock>
+<TextBlock>Each field in a form is bound to a property of the model, and gets its label, required mark, type and limits from the property's attributes. Bind each field with <Code>@@bind-Value</Code>. The fields post with the form.</TextBlock>
 <ExampleViewer Example="home-settings" />
 <TextBlock><Anchor Href="docs/common/forms">Forms and validation</Anchor> lists what each attribute does.</TextBlock>
 
 <Heading Level="2">Posting and submitting</Heading>
-<TextBlock>Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same name, so a post on a static page fills it (<Anchor Href="docs/troubleshooting/form-name">what goes wrong without it</Anchor>). <Code>OnValidSubmit</Code> runs once the model is valid, in every mode; <Code>OnInvalidSubmit</Code> runs when it isn't, and <Code>OnSubmit</Code> runs in place of both when you validate yourself.</TextBlock>
-<TextBlock>On a static page the post is a real one: Blazor's enhanced form handling sends it without a full reload, and with JavaScript off the browser posts and loads the page. <Code>Enhance="false"</Code> always loads the page. On an interactive page the form submits to C#, with no post.</TextBlock>
+<TextBlock>On static pages, a form post fills the model only when the form and the model property share a name. Set <Code>FormName</Code> on the form, and <Code>[SupplyParameterFromForm]</Code> with the same name on the property (<Anchor Href="docs/troubleshooting/form-name">what goes wrong without it</Anchor>).</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Handler</th><th>Runs</th></tr></thead>
+        <tbody>
+            <tr><td><Code>OnValidSubmit</Code></td><td>When the model is valid, in every render mode</td></tr>
+            <tr><td><Code>OnInvalidSubmit</Code></td><td>When the model isn't valid</td></tr>
+            <tr><td><Code>OnSubmit</Code></td><td>In place of both, when you validate yourself</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<List>
+    <ListItem>On static pages, the form post is a real one. Blazor's enhanced form handling sends it without a full reload.</ListItem>
+    <ListItem>With JavaScript off, the browser posts the form and loads the page. To always load the page, set <Code>Enhance="false"</Code>.</ListItem>
+    <ListItem>On interactive pages, the form submits to C#, with no form post.</ListItem>
+</List>
 
 <Heading Level="2">Errors</Heading>
-<TextBlock>Use a <Code>FormErrors</Code> at the top to list every message after a failed submit; it takes focus, so keyboard and screen reader users start there. <Code>NativeValidation="false"</Code> skips the browser's checks, so the server's messages show at once.</TextBlock>
+<TextBlock>An error summary lists every message at the top of the form after a failed submit. It takes focus, so keyboard and screen reader users start there. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
 <ExampleViewer Example="form-errors" />
-<TextBlock>Each field shows its own messages under it too. <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code> shows one property's messages beside an input of your own, whose <Code>aria-describedby</Code> names its <Code>Id</Code>.</TextBlock>
+<TextBlock>Each field shows its own messages under it too. To show one property's messages beside an input of your own, add <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>, and set the input's <Code>aria-describedby</Code> to that <Code>Id</Code>.</TextBlock>
 
 <Heading Level="2">Columns</Heading>
-<TextBlock>Use <Code>Columns</Code>, up to 4, to lay fields out in columns that fit the form's own width, so one form works on a page, in a dialog and in a drawer. <Code>ColSpan="GridSpan.Full"</Code> gives a field the whole row.</TextBlock>
+<TextBlock>A form can lay its fields out in columns that fit the form's own width, so one form works on a page, in a dialog and in a drawer. Set <Code>Columns</Code>, up to 4. To give a field the whole row, set <Code>ColSpan="GridSpan.Full"</Code> on it.</TextBlock>
 <ExampleViewer Example="form-columns" />
-<TextBlock>Two columns start at 32rem, three at 48rem and four at 64rem. <Code>FormActions</Code>, <Code>FormErrors</Code> and anything else that isn't a field take the whole row.</TextBlock>
+<TextBlock>Two columns start at 32rem, three at 48rem and four at 64rem. <Code>FormActions</Code>, <Code>FormErrors</Code> and anything else that isn't a field fill the whole row.</TextBlock>
 
 <Heading Level="2">Labels beside fields</Heading>
-<TextBlock>Use <Code>Layout="FormLayout.Horizontal"</Code> to put the labels beside the fields from 640px up, and <Code>RequiredMark</Code> for the marks: an asterisk on required fields (the default), "(optional)" on the others, as here, or none.</TextBlock>
+<TextBlock>A horizontal form puts each label beside its field from 640px up, rather than above it. Set <Code>Layout="FormLayout.Horizontal"</Code>. To choose the marks on fields, set <Code>RequiredMark</Code>: an asterisk on required fields (the default), "(optional)" on the others as in this example, or none.</TextBlock>
 <ExampleViewer Example="form-horizontal" />
 
 <Heading Level="2">Read-only and disabled</Heading>
-<TextBlock>Use <Code>ReadOnly</Code> to show a record that posts but can't change, and <Code>Disabled</Code> to turn every field off; disabled fields don't post. Neither touches the buttons, so show the ones that fit.</TextBlock>
+<TextBlock>A read-only form shows a record that posts but can't change, and a disabled form turns every field off. Set <Code>ReadOnly</Code> or <Code>Disabled</Code>. Disabled fields don't post. Neither changes the buttons, so show the ones that fit.</TextBlock>
 <ExampleViewer Example="form-read-only" />
-<TextBlock>HTML has no read-only select, checkbox, radio or range, so a read-only select shows its value in a read-only text field, and checkboxes, switches, radios, segments and sliders are disabled; hidden fields post their values, which a crafted post can change like any other, so check them on the server if it matters.</TextBlock>
+<List>
+    <ListItem>HTML has no read-only select, checkbox, radio or range. A read-only select shows its value in a read-only text field. Checkboxes, switches, radios, segments and sliders are disabled, and hidden fields post their values.</ListItem>
+    <ListItem>See <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor> and <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
+</List>
 
-<Heading Level="2">Your own validation</Heading>
-<TextBlock>Use <Code>Validator</Code> to replace the DataAnnotations validator, with FluentValidation, say. Pass an <Code>EditContext</Code> in place of <Code>Model</Code> to work with the edit context yourself.</TextBlock>
+<Heading Level="2">Custom validation</Heading>
+<TextBlock>A form validates with DataAnnotations by default. To use another validator, such as FluentValidation, set <Code>Validator</Code>. To work with the edit context yourself, pass an <Code>EditContext</Code> in place of <Code>Model</Code>.</TextBlock>
 <Code Block Language="razor">@Validation</Code>
 
 <Heading Level="2">Files</Heading>
-<TextBlock>Use <Code>Multipart</Code> with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor>, so a post on a static page sends the files and not only their names.</TextBlock>
+<TextBlock>A form with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor> must send its fields as multipart data, or a form post on static pages sends only the files' names. Set <Code>Multipart</Code> on the form.</TextBlock>
 <Code Block Language="razor">@Files</Code>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

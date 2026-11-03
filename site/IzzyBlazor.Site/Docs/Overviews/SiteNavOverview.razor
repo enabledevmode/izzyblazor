@@ -7,28 +7,28 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A site nav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header, for a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
+<TextBlock>A SiteNav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header, for a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
 
 <Heading Level="2">Links that fold into a menu</Heading>
-<TextBlock>Use <Code>Breakpoint</Code> for the width below which the links fold into a menu button that opens them in a panel under the header, 768px by default; the same button closes it, so the header with the site's name stays in view.</TextBlock>
+<TextBlock>On narrow screens, the links fold into a menu button that opens them in a panel under the header. The same button closes the panel, so the header with the site's name stays in view. The links fold below 768px by default; to change that width, set <Code>Breakpoint</Code>.</TextBlock>
 <ExampleViewer Example="site-nav-content-site" WidthSwitch />
-<TextBlock>The panel is a native popover, so it opens and closes with JavaScript off, and Escape or a tap outside closes it. With the script, opening it moves focus to the first link, and following a link closes it.</TextBlock>
+<TextBlock>The panel is a native popover, so it opens and closes with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, and Escape or a tap outside closes it. With IzzyBlazor's script, opening the panel moves focus to the first link, and following a link closes it.</TextBlock>
 
 <Heading Level="2">Under the links</Heading>
-<TextBlock>Use <Code>SiteNavFooter</Code> for what goes under the links in the panel, such as the content site's "Watch the series" button; it shows on phones only, in the panel.</TextBlock>
+<TextBlock>The panel can have content under the links, such as a call-to-action button. Add a <Code>SiteNavFooter</Code>. It shows only on phones, in the panel.</TextBlock>
 <Code Block Language="razor">@Footer</Code>
-<TextBlock>On wide screens the footer isn't shown, so put anything people need there too elsewhere on the page as well, as the content site's hero repeats its button.</TextBlock>
+<TextBlock>On wide screens the footer isn't shown, so put anything the user needs there somewhere else on the page as well.</TextBlock>
 
 <Heading Level="2">With a sidebar</Heading>
-<TextBlock>Put a site nav in the header of a shell with an <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> for links to the rest of the site beside the app's own: on phones its menu button stays hidden and the links show at the top of the sidebar's drawer or panel instead, so there's one menu.</TextBlock>
+<TextBlock>A site nav can sit in the header of a shell with an <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>, for links to the rest of the site beside the app's own. On phones, its menu button stays hidden, and the links show at the top of the sidebar's drawer or panel instead, so there's one menu.</TextBlock>
 <Code Block Language="razor">@WithSidebar</Code>
 <TextBlock>The <Anchor Href="demos/app-sidebar/menu-panel">guide demo</Anchor> has site links over a sidebar of chapters.</TextBlock>
 
 <Heading Level="2">Where the menu button goes</Heading>
-<TextBlock>On phones the menu button sits at the end of the header, where people look for it, whatever comes after the links; set <Code>MenuButtonPosition</Code> to <Code>Start</Code> to put it before the brand, as on pages whose header starts with a <Code>SidebarToggle</Code>, or to <Code>InPlace</Code> to leave it where the links are.</TextBlock>
+<TextBlock>On phones, the menu button sits at the end of the header, where users look for it, whatever comes after the links. To put it before the brand, such as on pages whose header starts with a <Code>SidebarToggle</Code>, set <Code>MenuButtonPosition</Code> to <Code>Start</Code>. To leave it where the links are, set <Code>InPlace</Code>.</TextBlock>
 
-<Heading Level="2">Its own words</Heading>
-<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Site", so it differs from a sidebar's "Main") and <Code>MenuLabel</Code> for the menu button's ("Menu").</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The navigation landmark's name is <Code>Label</Code>, "Site" by default, so it differs from a sidebar's "Main". The menu button's name is <Code>MenuLabel</Code>, "Menu" by default.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
