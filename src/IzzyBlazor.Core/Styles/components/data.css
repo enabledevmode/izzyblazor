@@ -824,8 +824,8 @@
   }
 
   /* A DataGrid's FilterRow. */
-  /* The fields sit in the middle: between two lines, the same above and below; shaded, with no line
-     under the titles, none above, where their own padding is the gap. */
+  /* Between two lines, the same room above the fields and below; shaded, with no line under the titles,
+     none above, where their own padding is the gap. */
   .ib-table {
     --ib-filter-row-pt: 0.5rem;
     --ib-filter-row-pb: 0.5rem;
@@ -833,7 +833,6 @@
 
   .ib-table-shaded-head {
     --ib-filter-row-pt: 0;
-    --ib-filter-row-pb: var(--ib-table-py);
   }
 
   .ib-table-filter-row > td {
