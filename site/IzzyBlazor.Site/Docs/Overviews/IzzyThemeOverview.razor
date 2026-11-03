@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="App.razor">@Usage</Code>
-<TextBlock>IzzyTheme sets the app's colors, shape, spacing and fonts. Put one IzzyTheme in the <Code>head</Code> to theme the app. It renders tags and a small style block on the server, so the theme is in place on the first paint, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
+<TextBlock>A theme is the app's colors, shape, spacing and fonts, and IzzyTheme sets it. Put one IzzyTheme in the <Code>head</Code> to theme the app. It sets the theme on the server, so the theme is in place on first paint, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
 
 <Heading Level="2">Presets</Heading>
 <TextBlock>A preset sets the starting density, shape and type: <Code>Standard</Code> (the default), <Code>Compact</Code>, <Code>Soft</Code> or <Code>Editorial</Code>. Set <Code>Preset</Code> to choose one. A setting you set yourself overrides the preset's value.</TextBlock>
@@ -13,7 +13,7 @@
 <Heading Level="2">Brand color</Heading>
 <TextBlock>The brand color is the color of buttons, links and focus rings. Set <Code>Brand</Code> to a built-in name, tuned by hand for light and dark:</TextBlock>
 <ExampleViewer Example="izzy-theme-brands" />
-<TextBlock>Or set it to a hex color of your own. The server derives the fill, the text on it, the accent as text and the soft tint, in light and dark:</TextBlock>
+<TextBlock>Or set it to a hex color of your own. The server derives four colors from it, in light and dark: a fill, the text on that fill, a shade for text in the brand color that stays readable on the page, and a soft tint.</TextBlock>
 <ExampleViewer Example="izzy-theme-hex-brand" />
 
 <Heading Level="2">Grays, shape and fonts</Heading>

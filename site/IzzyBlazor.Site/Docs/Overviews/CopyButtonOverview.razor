@@ -4,14 +4,14 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A copy button copies text to the clipboard for the user to paste somewhere else: an install command, an ID, an API key. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in. Use a CopyButton for text that isn't in a Code block, such as a single line of code or a field.</TextBlock>
+<TextBlock>A copy button is a button that copies text to the clipboard, such as an install command or an API key. It suits text outside a Code block, such as a single line of code or a field. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in.</TextBlock>
 
-<Heading Level="2">Copy text</Heading>
-<TextBlock>A copy button can copy a fixed value, such as a command shown beside it. Set <Code>Text</Code> to the value. By default it's a ghost icon button, so give it a <Code>Label</Code> that says what it copies; the label is its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
+<Heading Level="2">Copying fixed text</Heading>
+<TextBlock>A copy button can copy a fixed value, such as a command shown beside it. Set <Code>Text</Code> to the value. By default it's a ghost icon button, so give it a <Code>Label</Code> that names what it copies; the label is its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
 <ExampleViewer Example="copy-button-command" />
 <TextBlock>After a copy, the icon turns to a check for a moment, and screen readers hear "Copied". The button keeps its name.</TextBlock>
 
-<Heading Level="2">Copy from a field</Heading>
+<Heading Level="2">Copying a field's value</Heading>
 <TextBlock>A copy button can copy what another element contains at the moment it's pressed, such as a field's value. Set <Code>For</Code> to the element's id. It copies an input's or a text area's value, or any other element's text. If you give the button content, such as "Copy", it shows the text after the icon and is named by it.</TextBlock>
 <ExampleViewer Example="copy-button-from-field" />
 <List>
@@ -21,11 +21,20 @@
 </List>
 
 <Heading Level="2">With JavaScript off</Heading>
-<TextBlock>Copying requires <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>. With JavaScript off, the button isn't shown at all, from the first paint, and the text it would copy stays on the page for the user to select.</TextBlock>
+<TextBlock>Copying requires <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>. With JavaScript off, the button isn't shown, and the text it would copy stays on the page for the user to select.</TextBlock>
 <TextBlock>The browser allows copying only on a secure page: https, or localhost while you develop. Without clipboard access, the button stays as it was and nothing is announced.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>To set the tooltip, and the name of an icon-only button, set <Code>Label</Code> ("Copy" by default). To set the word announced after copying, set <Code>CopiedLabel</Code> ("Copied"). To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>The button has a tooltip, and screen readers hear a word after a copy. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The tooltip, and the name of an icon-only button</td><td>"Copy"</td></tr>
+            <tr><td><Code>CopiedLabel</Code></td><td>The word announced after a copy</td><td>"Copied"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

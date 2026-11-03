@@ -5,9 +5,10 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
+<TextBlock>Tabs are a row of labels over panels of content, and the user picks a tab to show its panel. They suit views the user switches between, such as a record's details and its history. They switch <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For sections the user opens one by one, see <Anchor Href="docs/components/accordion">Accordion</Anchor>.</TextBlock>
 
 <Heading Level="2">Picking a tab</Heading>
-<TextBlock>To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>. A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
+<TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>. A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
 <ExampleViewer Example="tabs-modes" />
 <TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tabs#tabs-as-links">TabLink</Anchor>.</TextBlock>
 
@@ -16,7 +17,7 @@
 <ExampleViewer Example="tabs-variants" />
 
 <Heading Level="2">Sizes and full width</Heading>
-<TextBlock>To match the buttons and fields around the tabs, set <Code>Size</Code>. To share the row equally between the tabs, set <Code>FullWidth</Code>.</TextBlock>
+<TextBlock>Tabs can match the size of the controls around them, and they can fill the row. To match the buttons and fields around the tabs, set <Code>Size</Code>. To share the row equally between the tabs, set <Code>FullWidth</Code>.</TextBlock>
 <ExampleViewer Example="tabs-sizes" />
 
 <Heading Level="2">Vertical</Heading>
@@ -31,10 +32,10 @@
 <TextBlock>Tabs can split a long form. Put <Code>Tabs</Code> inside a <Anchor Href="docs/components/form">Form</Anchor>: every panel is part of the form, so every field posts.</TextBlock>
 <ExampleViewer Example="tabs-account-form" />
 <TextBlock>When the server finds errors, the first tab with errors opens, unless the open tab has some. Each tab shows how many errors it has. This example sets <Code>NativeValidation="false"</Code> so the server's errors show.</TextBlock>
-<TextBlock>With the browser's own checks on, the default, the form post waits until they pass. <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> opens the tab of the first field the browser stops at, so its message shows.</TextBlock>
+<TextBlock>With the browser's own checks on, the default, the form post waits until they pass. IzzyBlazor's script opens the tab of the first field the browser stops at, so its message shows.</TextBlock>
 
 <Heading Level="2">Panel padding</Heading>
-<TextBlock>To pad every panel on all sides, set <Code>ContentPadding</Code>. To run a table edge to edge in one panel, set that <Code>Tab</Code>'s own <Code>ContentPadding="0"</Code>.</TextBlock>
+<TextBlock>A panel's padding is the space around its content. To pad every panel on all sides, set <Code>ContentPadding</Code>. To run a table edge to edge in one panel, set that <Code>Tab</Code>'s own <Code>ContentPadding="0"</Code>.</TextBlock>
 <ExampleViewer Example="tabs-padding" />
 
 <Heading Level="2">Tabs as links</Heading>

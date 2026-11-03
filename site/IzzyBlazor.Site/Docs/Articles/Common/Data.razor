@@ -33,7 +33,7 @@
             </table>
         </Prose>
         <TextBlock>
-            The <Code>DataResult</Code> holds the rows. Add the <Code>Total</Code> for numbered pages, or the
+            The <Code>DataResult</Code> contains the rows. Add the <Code>Total</Code> for numbered pages, or the
             <Code>Next</Code> and <Code>Previous</Code> cursors when the component pages by cursor:
         </TextBlock>
         <Code Block Language="csharp">@Result</Code>
@@ -51,7 +51,7 @@
         </TextBlock>
         <Code Block Language="razor" HighlightLines="7-9">@FromDatabase</Code>
         <TextBlock>
-            The request carries the component's columns, which say how each key reads an item, so the provider never maps
+            The request carries the component's columns, which define how each key reads an item, so the provider never maps
             keys to properties. Each condition becomes a LINQ expression on the column's own property, with its value as a
             query parameter.
         </TextBlock>
@@ -118,9 +118,21 @@
         </TextBlock>
         <Code Block Language="razor">@Bound</Code>
         <TextBlock>
-            A condition that a column's filter can show appears in that filter: contains for text; between, at least, at most
-            or equals for a number; on day for a date; and in for a choice. Any other condition, such as an or group, still
-            applies, and appears as a tag the user can remove.
+            A condition that a column's filter can show appears in that filter:
+        </TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Column type</th><th>Conditions its filter shows</th></tr></thead>
+                <tbody>
+                    <tr><td>Text</td><td>Contains</td></tr>
+                    <tr><td>Number</td><td>Between, at least, at most or equals</td></tr>
+                    <tr><td>Date</td><td>On day</td></tr>
+                    <tr><td>Choice</td><td>In</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Any other condition, such as an or group, still applies. It appears as a tag the user can remove.
         </TextBlock>
         <TextBlock>
             A provider that passes conditions on to an API reads them with <Code>Find</Code>. It returns the condition on that

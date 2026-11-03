@@ -6,9 +6,9 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A dialog is a window over the page that the user deals with before going back to the page, such as a short form or a question. For a panel that slides in from an edge, see <Anchor Href="docs/components/drawer">Drawer</Anchor>. For a small panel next to a button that doesn't block the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+<TextBlock>A dialog is a window over the page that the user deals with before going back to it. It suits a short form or a question. For a panel that slides in from an edge, see <Anchor Href="docs/components/drawer">Drawer</Anchor>. For a small panel next to a button that doesn't block the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
-<Heading Level="2">Opening it</Heading>
+<Heading Level="2">Opening the dialog</Heading>
 <TextBlock>A dialog opens three ways: from a button, from a link, or from C#. For a button, add a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>. For a link, add <Code>?dialog=</Code> and the id to the URL. From C#, set <Code>@@bind-Open</Code>.</TextBlock>
 <ExampleViewer Example="dialog-open" />
 <List>
@@ -21,9 +21,9 @@
 <TextBlock>A dialog often contains a short form, such as renaming a file, with its buttons in the dialog's footer. Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog, with its <Code>FormActions</Code> last. The buttons become the dialog's footer and still submit the form.</TextBlock>
 <ExampleViewer Example="dialog-rename" />
 <List>
-    <ListItem>A form post on static pages closes the dialog. With JavaScript off, the browser loads a new page. With IzzyBlazor's script, the script closes the dialog as the form posts.</ListItem>
-    <ListItem>The script opens the dialog again when the response has errors in it.</ListItem>
-    <ListItem>So the errors show with JavaScript off too, set <Code>Open</Code> yourself when the form post fails, as this example does in <Code>OnInvalidSubmit</Code>.</ListItem>
+    <ListItem>On static pages, a form post closes the dialog.</ListItem>
+    <ListItem>With IzzyBlazor's script, the dialog opens again if the response has errors.</ListItem>
+    <ListItem>To show the errors with JavaScript off too, set <Code>Open</Code> in <Code>OnInvalidSubmit</Code>, as this example does.</ListItem>
 </List>
 
 <Heading Level="2">Header, body and footer</Heading>
@@ -52,6 +52,18 @@
 <TextBlock>The component closes the dialog with its result, through the <Code>DialogInstance</Code> it receives:</TextBlock>
 <Code Block Language="razor" Title="EditName.razor">@Content</Code>
 <TextBlock>Static pages can't open a dialog from code. Use a trigger, a link or <Code>Open</Code> there.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The close button has a name for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>CloseLabel</Code></td><td>The close button's name</td><td>"Close"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock>The question <Code>ConfirmAsync</Code> asks has buttons too. To change their text, set <Code>ConfirmText</Code> ("OK" by default) and <Code>CancelText</Code> ("Cancel") in its <Code>ConfirmOptions</Code>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

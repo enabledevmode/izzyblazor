@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A TextArea is a field for several lines of text. Like a <Anchor Href="docs/components/text-field">TextField</Anchor>, it gets its label, hint, required mark and limits from the model. For one line, such as a name or a title, use a text field.</TextBlock>
+<TextBlock>A text area is a field for several lines of text. It suits comments, descriptions and messages. Like a <Anchor Href="docs/components/text-field">TextField</Anchor>, it gets its label, hint, required mark and limits from the model. For one line, such as a name or a title, use a text field.</TextBlock>
 
 <Heading Level="2">Rows and placeholder</Heading>
 <TextBlock>A text area shows 4 lines by default. To show more or fewer, set <Code>Rows</Code>. Longer text scrolls, and the user can drag the corner to make the field taller.</TextBlock>
@@ -20,14 +20,14 @@
 </List>
 
 <Heading Level="2">Required, with a length</Heading>
-<TextBlock>To require text of a minimum length, set <Code>[Required]</Code>, and <Code>[StringLength]</Code> with a <Code>MinimumLength</Code>. Their <Code>ErrorMessage</Code> is the message the browser and the server show.</TextBlock>
+<TextBlock>A text area can require text of a minimum length. Set <Code>[Required]</Code>, and <Code>[StringLength]</Code> with a <Code>MinimumLength</Code>. Their <Code>ErrorMessage</Code> is the message the browser and the server show.</TextBlock>
 <ExampleViewer Example="text-area-feedback" />
 <TextBlock>The browser checks the minimum only on text the user has typed, so rely on the validator's check after the form post. The validator also catches text that arrives too long from a crafted form post.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. Read-only text posts, and the user can select and copy it but not change it; set <Code>ReadOnly</Code>. Disabled text doesn't post; set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. The user can still select and copy it. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="text-area-states" />
-<TextBlock>Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

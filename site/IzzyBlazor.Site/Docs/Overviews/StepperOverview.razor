@@ -7,12 +7,12 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Stepper shows where the user is in a process, such as a checkout or a setup wizard. It's an ordered list that needs no script, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
+<TextBlock>A stepper shows where the user is in a process. It suits a checkout or a setup wizard. It's an ordered list that works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
 
 <Heading Level="2">Steps of a checkout</Heading>
 <TextBlock>The current step is the one the user is on, counting from 1, and the steps before it show as done. Set <Code>Current</Code>. To make a step's label a link, such as back to a finished step, set the <Code>Step</Code>'s <Code>Href</Code>.</TextBlock>
 <ExampleViewer Example="stepper-checkout" WidthSwitch />
-<TextBlock>This example keeps the step in the URL as <Code>?step=</Code>. Each step's form moves on to the next step once it's valid: with a form post on static pages, and in C# on interactive pages. So it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too.</TextBlock>
+<TextBlock>This example keeps the step in the URL as <Code>?step=</Code>. Each step's form moves on to the next step once it's valid: with a form post on static pages, and in C# on interactive pages. So it works with JavaScript off too.</TextBlock>
 <TextBlock>Below 640px, the steps stay a row of markers, and only the current step's label shows. A finished step's link is still there, on its marker.</TextBlock>
 
 <Heading Level="2">Vertical, with descriptions</Heading>
@@ -25,14 +25,23 @@
 <TextBlock>Use <Code>Hidden</Code> rather than <Code>@@if</Code>. On interactive pages, Blazor renders a step that appears later after the others, so it would be numbered last.</TextBlock>
 
 <Heading Level="2">Sizes</Heading>
-<TextBlock>To scale the markers and the text with the buttons and fields around them, set <Code>Size</Code>.</TextBlock>
+<TextBlock>The size scales the markers and the text with the buttons and fields around them. Set <Code>Size</Code> to choose one.</TextBlock>
 <ExampleViewer Example="stepper-sizes" />
 
 <Heading Level="2">Before the first step and after the last</Heading>
-<TextBlock>When no step has started, set <Code>Current="0"</Code>. To show every step done, such as on an order's confirmation, set a number past the last step.</TextBlock>
+<TextBlock>A stepper can show that no step has started yet, or that every step is done. When no step has started, set <Code>Current="0"</Code>. To show every step done, such as on an order's confirmation, set a number past the last step.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>The list's name is <Code>Label</Code>, "Progress" by default. After a finished step's label, screen readers hear <Code>CompletedLabel</Code> in place of its check mark, "(completed)" by default.</TextBlock>
+<TextBlock>The list has a name for screen readers, and a finished step has a word in place of its check mark. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The list's name</td><td>"Progress"</td></tr>
+            <tr><td><Code>CompletedLabel</Code></td><td>What screen readers hear after a finished step's label, in place of its check mark</td><td>"(completed)"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

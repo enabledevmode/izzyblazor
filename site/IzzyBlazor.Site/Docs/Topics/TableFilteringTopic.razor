@@ -20,12 +20,12 @@
 <Heading Level="2">Lists of values</Heading>
 <TextBlock>An enum or bool column filters by a list of checkboxes, one for each value. The user includes a value by checking it and excludes it by clearing it. With every box checked the column isn't filtered; with none checked, no rows match.</TextBlock>
 <ExampleViewer Example="table-filter-lists" />
-<TextBlock>A text column can filter by a list of its values too. To take the values from <Code>Items</Code>, set <Code>FilterList</Code>. To load them yourself, for example from a database, set <Code>FilterValues</Code>; <Code>FilterValuesRequest.ToResultAsync</Code> runs the query for you.</TextBlock>
+<TextBlock>A text column can filter by a list of its values too. To fill the list from <Code>Items</Code>, set <Code>FilterList</Code>. To load them yourself, for example from a database, set <Code>FilterValues</Code>; <Code>FilterValuesRequest.ToResultAsync</Code> runs the query for you.</TextBlock>
 <ExampleViewer Example="table-filter-values" />
 <TextBlock>Each list shows only the values the other filters leave. A checked value stays in the list, so the user can clear it.</TextBlock>
 
 <Heading Level="2">Filters in the URL</Heading>
-<TextBlock>The table keeps each filter in the URL, so a filtered view can be bookmarked or shared, and filtering works with JavaScript off. A text filter appears as <Code>?f-customer=ada</Code>, and a number range as two keys: <Code>?f-total=100&amp;f-total-to=500</Code>.</TextBlock>
+<TextBlock>The table keeps each filter in the URL, so a filtered view can be bookmarked or shared, and filtering works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. A text filter appears as <Code>?f-customer=ada</Code>, and a number range as two keys: <Code>?f-total=100&amp;f-total-to=500</Code>.</TextBlock>
 <TextBlock>When the table has a <Code>QueryPrefix</Code>, the keys start with it. The <Anchor Href="docs/components/table/filtering#ex-table-filters">Column filters</Anchor> example uses the prefix <Code>orders</Code>, so its key is <Code>?orders-f-customer=ada</Code>. See <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>.</TextBlock>
 <TextBlock>For filters that aren't tied to a column, place a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
 

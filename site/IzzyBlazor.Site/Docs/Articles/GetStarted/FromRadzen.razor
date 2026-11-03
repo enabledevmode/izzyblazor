@@ -87,7 +87,7 @@
         <TextBlock>
             <Code>Form</Code> takes the place of <Code>RadzenTemplateForm</Code>. It wraps Blazor's <Code>EditForm</Code>:
             on interactive pages it validates as the user edits, and on static pages it sends a form post, even with
-            JavaScript off. A form that posts on a static page needs a <Code>FormName</Code>; see
+            JavaScript off. A form that posts on static pages needs a <Code>FormName</Code>; see
             <Anchor Href="docs/common/forms">Forms and validation</Anchor>.
         </TextBlock>
 
@@ -112,7 +112,7 @@
         <Heading Level="2">Data grids</Heading>
         <TextBlock>
             <Code>RadzenDataGrid</Code> becomes a <Code>DataGrid</Code>, or a <Code>Table</Code> for a plain list of records.
-            Both take the same columns. A column bound to a property is a <Code>PropertyColumn</Code>, which takes an
+            Both accept the same columns. A column bound to a property is a <Code>PropertyColumn</Code>, which accepts an
             expression instead of the property's name. A column with a template is a <Code>TemplateColumn</Code>, whose
             content is the template. There's no <Code>Columns</Code> wrapper, and <Code>TItem</Code> comes from
             <Code>Items</Code>.

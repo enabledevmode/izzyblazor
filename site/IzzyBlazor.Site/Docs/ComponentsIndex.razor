@@ -5,14 +5,15 @@
 @* Every component by category, from the registry, as one dense list to find a name by eye. The only
    list with the previews, each marked. *@
 
-<PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component by category: what works as plain HTML, on static SSR pages with no circuit, and on interactive pages." />
+<PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component, by category. Each one renders on static pages, and a label marks the ones limited in a render mode." />
 
 <article class="site-article site-article-wide">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            @Registry.AllComponents.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
-            a label says so where one needs an interactive page.
+            IzzyBlazor has @Registry.AllComponents.Count components in @Registry.Categories.Count groups. Every one renders on
+            <Anchor Href="docs/common/render-modes">static pages</Anchor>. A label marks a component that works only on
+            interactive pages, or only partly in one render mode.
         </TextBlock>
     </Stack>
 

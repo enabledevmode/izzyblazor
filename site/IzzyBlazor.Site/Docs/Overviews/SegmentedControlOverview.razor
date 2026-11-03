@@ -4,16 +4,16 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A SegmentedControl is a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> shown as joined buttons. It posts the same way and works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. Use it for two to five short options.</TextBlock>
+<TextBlock>A segmented control is a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> shown as joined buttons. It suits two to five short options. It posts the same way and works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>.</TextBlock>
 <TextBlock>For more options, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>. To switch between panels of content, use <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
-<TextBlock>A form post can carry a value that isn't among the options, so check it on the server; see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>A form post can contain a value that isn't among the options, so check it on the server. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Icons</Heading>
-<TextBlock>To put an icon before each option's text, set <Code>ItemIcon</Code>. To show only the icons, set <Code>IconOnly</Code> too.</TextBlock>
+<TextBlock>An option can show an icon before its text, or only an icon. To put an icon before each option's text, set <Code>ItemIcon</Code>. To show only the icons, set <Code>IconOnly</Code> too.</TextBlock>
 <ExampleViewer Example="segmented-control-icons" />
 
 <Heading Level="2">Full width, no visible label</Heading>
-<TextBlock>To share the width equally between the segments, set <Code>FullWidth</Code>. When something near the control, such as a heading, already says what it's for, set <Code>HideLabel</Code>.</TextBlock>
+<TextBlock>A segmented control can fill the width of its container, and it can hide its label. To share the width equally between the segments, set <Code>FullWidth</Code>. When something near the control, such as a heading, already names what it's for, set <Code>HideLabel</Code>.</TextBlock>
 <ExampleViewer Example="segmented-control-full-width" />
 
 <Heading Level="2">Sizes and disabled</Heading>

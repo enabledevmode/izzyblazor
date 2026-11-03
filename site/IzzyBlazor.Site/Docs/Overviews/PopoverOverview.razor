@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Popover shows content beside its trigger that the user can leave without choosing anything, such as filters, a small form or an explanation. For a list of actions, use a <Anchor Href="docs/components/menu">Menu</Anchor>. For a task that needs an answer, use a <Anchor Href="docs/components/dialog">Dialog</Anchor>. For a short label on hover, use a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
+<TextBlock>A popover is a panel beside its trigger that the user can leave without choosing anything. It suits filters, a small form or an explanation. For a list of actions, use a <Anchor Href="docs/components/menu">Menu</Anchor>. For a task that needs an answer, use a <Anchor Href="docs/components/dialog">Dialog</Anchor>. For a short label on hover, use a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 
 <Heading Level="2">A form in a popover</Heading>
 <TextBlock>A popover can contain anything, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page. To give the panel a heading, set <Code>Title</Code>; it also names the panel for screen readers.</TextBlock>
@@ -29,10 +29,21 @@
 <ExampleViewer Example="popover-info-button" />
 <TextBlock>The trigger must be a <Code>button</Code> with a name of its own. Without <Code>Trigger</Code>, the built-in button requires a <Code>Label</Code>. To style the built-in button, set <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code>.</TextBlock>
 
-<Heading Level="2">Opening it from the server or C#</Heading>
+<Heading Level="2">Opening from the server or C#</Heading>
 <TextBlock>A popover can be open when the page loads; set <Code>Open</Code>. On interactive pages, to open and close it from C# and follow what the user does, bind it with <Code>@@bind-Open</Code>.</TextBlock>
 <Code Block Language="razor">@FromCode</Code>
 <TextBlock>A popover opened this way leaves focus where it is. <Code>Open</Code> from the server requires IzzyBlazor's script. With JavaScript off, the panel stays closed until the user presses its trigger.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The close button has a name for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>CloseLabel</Code></td><td>The close button's name</td><td>"Close"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

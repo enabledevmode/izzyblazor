@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Tooltip shows a short hint about a control on hover and on keyboard focus, such as what an icon does or its shortcut. For a panel the user clicks to open, with links or a form, use a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+<TextBlock>A tooltip is a short hint about a control that shows on hover and on keyboard focus. It suits what an icon does, or its shortcut. For a panel the user clicks to open, with links or a form, use a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
 <Heading Level="2">Placement</Heading>
 <TextBlock>A tooltip shows above its trigger by default. To show it below, before or after the trigger, set <Code>Placement</Code>.</TextBlock>
@@ -12,7 +12,7 @@
 <TextBlock>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, a tooltip with no room on its side, such as above a button at the top of the window, shows on the opposite side. With JavaScript off, it keeps its side.</TextBlock>
 
 <Heading Level="2">Icon buttons and shortcuts</Heading>
-<TextBlock>For more than plain text, such as a keyboard shortcut in a <Anchor Href="docs/components/kbd">Kbd</Anchor>, set <Code>Content</Code>. A hover waits 300 milliseconds before the tooltip shows; to change that, set <Code>Delay</Code>. Keyboard focus shows it at once.</TextBlock>
+<TextBlock>A tooltip can show more than plain text, such as a keyboard shortcut in a <Anchor Href="docs/components/kbd">Kbd</Anchor>. Set <Code>Content</Code> to the markup. A hover waits 300 milliseconds before the tooltip shows; to change that, set <Code>Delay</Code>. Keyboard focus shows it at once.</TextBlock>
 <ExampleViewer Example="tooltip-icon-buttons" />
 <TextBlock>Inside a tooltip, an <Anchor Href="docs/components/icon-button">IconButton</Anchor> leaves out its own <Code>title</Code>, so hovering shows one tooltip, not two. The IconButton still requires its <Code>Label</Code>.</TextBlock>
 

@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A diff shows the changes between two versions of a text, line by line, such as two versions of a config file. Removed and added lines carry a <Code>−</Code> or <Code>+</Code> and their old or new line number. The numbers and signs aren't copied when the user selects the lines.</TextBlock>
+<TextBlock>A diff is a view of the changes between two versions of a text, line by line. It suits reviewing a change, such as to a config file. Removed and added lines carry a <Code>−</Code> or <Code>+</Code> and their old or new line number. The numbers and signs aren't copied when the user selects the lines.</TextBlock>
 <TextBlock>The diff is computed and colored on the server, so it looks the same <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">Two versions</Heading>
@@ -12,14 +12,14 @@
 <ExampleViewer Example="diff-versions" />
 <List>
     <ListItem>Each text is colored whole before it's split into lines, so a comment or value across several lines keeps its color.</ListItem>
-    <ListItem>In a removed line beside an added one, the changed words are marked, unless less than half of the longer line is unchanged. To turn this off, set <Code>MarkWords="false"</Code>.</ListItem>
+    <ListItem>In a removed line beside an added one, the changed words are marked, unless most of the line changed. To turn this off, set <Code>MarkWords="false"</Code>.</ListItem>
     <ListItem><Code>Context</Code> sets how many unchanged lines stay beside each change (3 by default). The rest fold into a row that the user clicks to show them in place.</ListItem>
 </List>
 
 <Heading Level="2">Side by side</Heading>
 <TextBlock>A split diff shows the old text beside the new, with each removed line beside the line it became. It suits wide screens. Set <Code>Layout="DiffLayout.Split"</Code> to turn it on.</TextBlock>
 <ExampleViewer Example="diff-side-by-side" />
-<TextBlock>Below 45rem wide, a split diff shows as unified. Long lines wrap rather than scroll. Unchanged lines appear on both sides, so a split diff sends them twice.</TextBlock>
+<TextBlock>Below 45rem wide, a split diff shows as unified. Long lines wrap rather than scroll.</TextBlock>
 
 <Heading Level="2">Showing unchanged lines</Heading>
 <TextBlock>For a short text, a diff can show every line, with no folding. Set <Code>Fold="false"</Code> to show every unchanged line. To leave the line numbers out, set <Code>LineNumbers="false"</Code>.</TextBlock>
@@ -39,7 +39,19 @@
 <ExampleViewer Example="diff-notes" />
 
 <Heading Level="2">Large texts</Heading>
-<TextBlock>A diff compares at most <Code>MaxChanges</Code> removed and added lines (1,000 by default); past that, it shows the too-many note. Folded lines are still in the page, ready to open, so a 5,000-line file with one change sends 5,000 lines. To keep a long diff in a scrolling box, set <Code>MaxHeight</Code>.</TextBlock>
+<TextBlock>A diff compares at most <Code>MaxChanges</Code> removed and added lines (1,000 by default); past that, it shows the too-many note. Folded lines are still in the page, so a long file sends every line, even when only one changed. To keep a long diff in a scrolling box, set <Code>MaxHeight</Code>.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The diff's notes have text of their own. Screen readers also hear "Added:" or "Removed:" before a changed line; those words have no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>SameText</Code></td><td>The note when the texts are the same</td><td>"The two texts are the same."</td></tr>
+            <tr><td><Code>TooManyText</Code></td><td>The note when the texts differ by more than <Code>MaxChanges</Code> lines</td><td>"The texts differ by more than 1,000 lines, too many to show line by line."</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

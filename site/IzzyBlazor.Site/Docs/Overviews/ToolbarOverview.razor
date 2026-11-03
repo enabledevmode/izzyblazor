@@ -5,15 +5,15 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A Toolbar keeps its controls on one row. What doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. The toolbar works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, so a phone on a slow connection gets the same toolbar.</TextBlock>
+<TextBlock>A toolbar is a row of controls that stays on one line. It suits a set of actions, such as an editor's. What doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. The toolbar works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, so a phone on a slow connection gets the same toolbar.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
 <OverviewTopics Component="Component" />
 
 <Heading Level="2">An editor toolbar</Heading>
-<TextBlock>A toolbar has its own versions of <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>: <Code>ToolbarButton</Code>, <Code>ToolbarIconButton</Code>, <Code>ToolbarButtonGroup</Code> and <Code>ToolbarMenu</Code>. They take the same parameters, and they move into the … menu when the toolbar runs out of room. A group moves as one. Narrow the window to see them move.</TextBlock>
+<TextBlock>A toolbar has its own versions of <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>: <Code>ToolbarButton</Code>, <Code>ToolbarIconButton</Code>, <Code>ToolbarButtonGroup</Code> and <Code>ToolbarMenu</Code>. They accept the same parameters, and they move into the … menu when the toolbar runs out of room. A group moves as one. Narrow the window to see them move.</TextBlock>
 <ExampleViewer Example="toolbar-editor" />
-<TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out. Any other control throws an exception directly in a toolbar; put it in a <Code>ToolbarItem</Code>.</TextBlock>
+<TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out. Put any other control in a <Code>ToolbarItem</Code>. Placed directly in the toolbar, it throws.</TextBlock>
 
 <Heading Level="2">Start, center and end</Heading>
 <TextBlock>A toolbar has three regions: the start, the center and the end. Items sit at the start by default. To put an item in the center or at the end, set its <Code>Position</Code>. For text that stays in the bar, such as a document's name, use <Code>ToolbarText</Code>.</TextBlock>
@@ -34,7 +34,7 @@
 <TextBlock>The header stays the page's banner landmark. Navigation links belong in a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>, because a toolbar is for controls.</TextBlock>
 
 <Heading Level="2">With JavaScript off</Heading>
-<TextBlock>With JavaScript off, the toolbar already shows the right controls in the bar and in the … menu. When IzzyBlazor's script runs, it measures the toolbar and corrects it if needed. With the library's font, Inter, nothing moves.</TextBlock>
+<TextBlock>With JavaScript off, the toolbar already shows the right controls in the bar and in the … menu. When IzzyBlazor's script runs, it measures the toolbar and corrects it if needed.</TextBlock>
 <List Gap="2">
     <ListItem>Give each <Code>ToolbarItem</Code> a <Code>Width</Code>, so the toolbar can allow for it.</ListItem>
     <ListItem>With a theme that uses another font, the toolbar can be a few pixels off until IzzyBlazor's script measures it.</ListItem>
@@ -42,10 +42,21 @@
 
 <Heading Level="2">Width and item order</Heading>
 <List Gap="2">
-    <ListItem>A toolbar takes its width from its container. In a row, or in a box that sizes to its content, give the toolbar <Code>Grow</Code> or a width.</ListItem>
-    <ListItem>The toolbar renders its items in the order they reach it. An item inside a component of your own, such as an <Code>AuthorizeView</Code>, comes after the other items in its position. So does an item that an <Code>@@if</Code> adds on an interactive page.</ListItem>
+    <ListItem>A toolbar's width comes from its container. In a row, or in a box that sizes to its content, give the toolbar <Code>Grow</Code> or a width.</ListItem>
+    <ListItem>The toolbar renders its items in the order they reach it. An item inside a component of your own, such as an <Code>AuthorizeView</Code>, comes after the other items in its position. So does an item that an <Code>@@if</Code> adds on interactive pages.</ListItem>
     <ListItem>A cascading value written around an item inside the toolbar doesn't reach the item.</ListItem>
 </List>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The … button has a name for screen readers. A toolbar's buttons have <Code>LoadingLabel</Code> and <Code>NewTabLabel</Code>, as on a <Anchor Href="docs/components/button#labels-and-localization">Button</Anchor>. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>MoreLabel</Code></td><td>The … button's name and tooltip</td><td>"More actions"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

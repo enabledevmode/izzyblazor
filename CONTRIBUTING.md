@@ -288,6 +288,22 @@ Use the same word for the same idea everywhere:
 | render mode (Static, Interactive); paging style | mode, for anything other than a render mode |
 | the browser's default message; your `[Required]` message | in its own words, in the model's words |
 | a form post | a static post, a post |
+| the page reloads (when it does) | the page loads again, the page comes back, loads the page again |
+| contains, stores; accepts, has; sets | holds; takes; says |
+
+Fixed wordings, so pages read alike:
+
+- An Overview opens with the concept in lower case, then when it suits: "A switch is a checkbox
+  that reads as on or off. It suits settings." Not "A Switch is…" or "Use it for…".
+- Read-only: "For a value the user can see but not change, set `ReadOnly`; it still posts."
+- The Forms caveats, linked in one form: "Before saving a disabled value from a form post, see
+  [Disabled fields and form posts]." and "Before trusting a posted value, see [Values a form post
+  can change]."
+- The first use on a page of static, interactive, JavaScript off or IzzyBlazor's script links to
+  Render modes.
+- A component whose labels can be localized has a "Labels and localization" section.
+- Troubleshooting titles name the symptom as the user meets it ("OnClick does nothing on a static
+  page") and may stay singular.
 
 Define a term before using it. The terms used most (static, interactive, circuit, JavaScript off)
 are defined on Render modes; link there instead of redefining them.

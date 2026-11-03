@@ -5,10 +5,10 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A banner is a message about the whole app or site: planned maintenance, a trial that's ending, an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it has a row of its own above the header. For a message about part of a page, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+<TextBlock>A banner is a message about the whole app or site. It suits planned maintenance, a trial that's ending or an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it has a row of its own above the header. For a message about part of a page, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status and color</Heading>
-<TextBlock>The status says what the message means and sets its color and icon. Set <Code>Status</Code> to choose one. For an announcement in your brand's color, set <Code>Accent</Code> and <Code>Icon</Code> instead.</TextBlock>
+<TextBlock>The status is the kind of message, and it sets the banner's color and icon. Set <Code>Status</Code> to choose one. For an announcement in your brand's color, set <Code>Accent</Code> and <Code>Icon</Code> instead.</TextBlock>
 <ExampleViewer Example="banner-statuses" />
 <List>
     <ListItem>With <Code>Accent</Code>, the status still sets the icon and the word screen readers hear.</ListItem>
@@ -20,7 +20,7 @@
 <Heading Level="2">Dismissing</Heading>
 <TextBlock>A dismissible banner has a close button, and once closed it stays closed on later pages. Set <Code>Dismissible</Code> to add it. The dismissal is remembered in a cookie named by <Code>RememberKey</Code>.</TextBlock>
 <ExampleViewer Example="banner-dismiss" />
-<TextBlock><Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> writes the cookie as the banner closes. The server reads it and leaves the banner out of every later page, static or interactive. Where the server can't read cookies (WebAssembly), the script hides a remembered banner as the page loads.</TextBlock>
+<TextBlock><Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> writes the cookie as the banner closes. The server reads it and leaves the banner out of every later page, static or interactive. Where the server can't read cookies (WebAssembly), IzzyBlazor's script hides a remembered banner as the page loads.</TextBlock>
 <TextBlock>To show a new message to everyone again, give it a new key. Without a <Code>RememberKey</Code>, the key comes from the title, text and links, so changing the message does the same.</TextBlock>
 
 <Heading Level="2">How long it stays closed</Heading>

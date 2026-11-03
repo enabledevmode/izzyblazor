@@ -4,16 +4,16 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>NumberField is a native number input. It posts with the form, the browser checks its limits before the form post, and phones show a number keyboard. For a value the user judges by eye rather than types, such as a volume, use a <Anchor Href="docs/components/slider">Slider</Anchor>.</TextBlock>
+<TextBlock>A number field is a native number input. It suits a value the user types, such as a quantity or a price. It posts with the form, the browser checks its limits before the form post, and phones show a number keyboard. For a value the user judges by eye rather than types, such as a volume, use a <Anchor Href="docs/components/slider">Slider</Anchor>.</TextBlock>
 
 <Heading Level="2">Limits from the model</Heading>
 <TextBlock>Limits set the lowest and highest values the field accepts. Set <Code>[Range]</Code> on the property, or <Code>Min</Code> and <Code>Max</Code> on the field.</TextBlock>
 <ExampleViewer Example="number-field-limits" />
 <TextBlock>The browser checks the range before the form post, and the validator checks it again on the server. Once <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> runs, the browser shows the attribute's <Code>ErrorMessage</Code>. Without an <Code>ErrorMessage</Code>, it shows the browser's default message.</TextBlock>
-<TextBlock>On static pages, a posted value that isn't a number binds as empty, null or 0, with no message of its own. Only a crafted form post can send one; see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>On static pages, a posted value that isn't a number binds as empty, null or 0, with no message of its own. Only a crafted form post can send one. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Decimals and units</Heading>
-<TextBlock>To allow decimals, set <Code>Step</Code> to the smallest increment, such as <Code>0.01</Code> for cents. To show a currency or unit beside the value, set <Code>StartAddon</Code> or <Code>EndAddon</Code>.</TextBlock>
+<TextBlock>A number field can accept decimals, and it can show a currency or unit beside the value. To allow decimals, set <Code>Step</Code> to the smallest increment, such as <Code>0.01</Code> for cents. To show a currency or unit beside the value, set <Code>StartAddon</Code> or <Code>EndAddon</Code>.</TextBlock>
 <ExampleViewer Example="number-field-decimals" />
 <List Gap="2">
     <ListItem>Whole-number types step by 1. Decimal types allow any value unless you set <Code>Step</Code>.</ListItem>
@@ -33,10 +33,21 @@
 <TextBlock>A field bound to <Code>int</Code> can't be empty. On static pages, an emptied field binds as 0. On interactive pages, it shows "The Quantity field must be a number."</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. A read-only field posts its value, but the user can't change it; set <Code>ReadOnly</Code>. A disabled field doesn't post; set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>To line the field up with buttons and other fields, set <Code>Size</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="number-field-states" />
-<TextBlock>Before saving a read-only or disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor> and <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
-<TextBlock>To rename the step buttons for screen readers, set <Code>IncreaseLabel</Code> and <Code>DecreaseLabel</Code>, or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The step buttons have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>IncreaseLabel</Code></td><td>The name of the button that steps up</td><td>"Increase"</td></tr>
+            <tr><td><Code>DecreaseLabel</Code></td><td>The name of the button that steps down</td><td>"Decrease"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

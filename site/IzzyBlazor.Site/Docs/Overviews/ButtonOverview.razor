@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A button runs an action: it posts a form, opens a page, or runs C#. For a button with only an icon, see <Anchor Href="docs/components/icon-button">IconButton</Anchor>.</TextBlock>
+<TextBlock>A button is a control the user clicks to run an action. It suits posting a form, opening a page or running C#. For a button with only an icon, see <Anchor Href="docs/components/icon-button">IconButton</Anchor>.</TextBlock>
 
 <Heading Level="2">Accents and variants</Heading>
 <TextBlock>The accent sets a button's color, and the variant sets how strongly it stands out, from a solid fill to a link. Set <Code>Accent</Code> and <Code>Variant</Code>. Keep one solid primary button per area, for its main action.</TextBlock>
@@ -38,6 +38,18 @@
 <TextBlock>A toggle button turns something on and off, such as Bold. A click toggles it, and screen readers hear whether it's pressed. On interactive pages, set <Code>@@bind-Pressed</Code>.</TextBlock>
 <ExampleViewer Example="button-toggle" />
 <TextBlock>On static pages, set <Code>Pressed</Code> from the server's state, and post the change with <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. A link can't be pressed.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>A loading button and a link that opens in a new tab have words for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>LoadingLabel</Code></td><td>What screen readers hear while <Code>Loading</Code> is set</td><td>"Loading"</td></tr>
+            <tr><td><Code>NewTabLabel</Code></td><td>What screen readers hear after an external link's text</td><td>"(opens in a new tab)"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

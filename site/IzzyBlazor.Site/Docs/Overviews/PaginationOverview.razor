@@ -4,11 +4,11 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>Pagination shows links to the pages of a long list. Each page is a link that sets <Code>?page=</Code> and keeps the rest of the URL, so paging works on static pages with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, survives a reload, and can be shared.</TextBlock>
+<TextBlock>Pagination is a row of links to the pages of a long list. It suits a list too long for one page. Each page is a link that sets <Code>?page=</Code> and keeps the rest of the URL, so paging works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off, survives a reload, and can be shared.</TextBlock>
 <TextBlock>Pagination only renders the links: your page reads the number and shows its own rows. A <Anchor Href="docs/components/table">Table</Anchor> pages itself with the same links.</TextBlock>
 
 <Heading Level="2">Pages in the URL</Heading>
-<TextBlock>To set how many pages there are, set <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>. To show the page's rows, read the page number with <Code>[SupplyParameterFromQuery]</Code>.</TextBlock>
+<TextBlock>The page number is in the URL, and your page reads it to show that page's rows. To set how many pages there are, set <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>. To show the page's rows, read the page number with <Code>[SupplyParameterFromQuery]</Code>.</TextBlock>
 <ExampleViewer Example="pagination-url" />
 <List Gap="2">
     <ListItem>Page 1 leaves the key out of the URL.</ListItem>
@@ -22,7 +22,7 @@
 <TextBlock>When its filters change, a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> removes a <Code>page</Code> key, or one ending in <Code>-page</Code>, from the URL, so filtering starts again at page 1.</TextBlock>
 
 <Heading Level="2">Sizes and how many pages show</Heading>
-<TextBlock>To match the buttons and fields around it, set <Code>Size</Code>. To set how many pages show on each side of the current one, set <Code>Siblings</Code>. To set how many pages always show at each end, set <Code>Boundaries</Code>.</TextBlock>
+<TextBlock>Pagination can match the size of the controls around it, and you choose how many page links it shows. To match the buttons and fields around it, set <Code>Size</Code>. To set how many pages show on each side of the current one, set <Code>Siblings</Code>. To set how many pages always show at each end, set <Code>Boundaries</Code>.</TextBlock>
 <ExampleViewer Example="pagination-sizes" />
 <TextBlock>The row keeps the same number of slots as the page changes, so the controls don't jump about. Below 640px, only the current page and the ends show, with a gap for each run left out, so the row fits a phone.</TextBlock>
 
@@ -32,7 +32,18 @@
 <TextBlock>Static pages have no C# to update, so there the pages stay links that set the key. Start the bound value from the URL, so both render modes work. This example reads it from <Code>?p=</Code>.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>Pagination's text for screen readers can be renamed or translated. The navigation landmark's name is <Code>Label</Code>, "Pagination" by default. The arrows' names are <Code>PreviousLabel</Code> and <Code>NextLabel</Code>, "Previous page" and "Next page". The word read before each number is <Code>PageLabel</Code>, "Page".</TextBlock>
+<TextBlock>Pagination has names and words for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>Label</Code></td><td>The navigation landmark's name</td><td>"Pagination"</td></tr>
+            <tr><td><Code>PreviousLabel</Code></td><td>The previous arrow's name</td><td>"Previous page"</td></tr>
+            <tr><td><Code>NextLabel</Code></td><td>The next arrow's name</td><td>"Next page"</td></tr>
+            <tr><td><Code>PageLabel</Code></td><td>The word read before each number</td><td>"Page"</td></tr>
+        </tbody>
+    </table>
+</Prose>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

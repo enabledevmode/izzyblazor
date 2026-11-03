@@ -13,7 +13,7 @@
         <Heading Level="2">Problem</Heading>
         <TextBlock>
             On <Anchor Href="docs/common/render-modes">static pages</Anchor>, the user clears every box in a <Code>CheckboxGroup</Code> and
-            saves. The save handler gets the defaults instead, so they're saved, and the page comes back with those boxes
+            saves. The save handler gets the defaults instead, so they're saved, and the page reloads with those boxes
             checked again. In a form with other fields, the list arrives as <Code>null</Code> instead, and code that reads
             <Code>.Count</Code> throws. A <Code>MultiSelect</Code> with nothing selected does the same.
         </TextBlock>
