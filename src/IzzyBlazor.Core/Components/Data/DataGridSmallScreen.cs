@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
@@ -137,26 +136,7 @@ public partial class DataGrid<TItem>
         var buttons => 0.75 + 2.25 * buttons,
     };
 
-    // A length in rem, at a 16px root, or null for one that isn't known on the server.
-    private static double? Rem(string css)
-    {
-        var match = LengthPattern().Match(css.Trim());
-        if (!match.Success)
-        {
-            return null;
-        }
-
-        var value = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
-        return match.Groups[2].Value switch
-        {
-            "px" => value / 16,
-            "ch" => value / 2,
-            _ => value,
-        };
-    }
-
-    [GeneratedRegex(@"^(\d+(?:\.\d+)?)(px|rem|em|ch)$")]
-    private static partial Regex LengthPattern();
+    private static double? Rem(string css) => RemLength.Of(css);
 
     /// <summary>The level class of a column that can hide, for its cells and its col.</summary>
     private string? HideClass(ColumnBase<TItem> column) =>

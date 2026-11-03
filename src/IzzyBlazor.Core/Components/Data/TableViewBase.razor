@@ -32,10 +32,10 @@
         var editing = IsEditingRow(item);
         var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
             @if (Selectable)
             {
-                <td class="@SelectCellClass">
+                <td class="@SelectCellClass" role="@StackRole("cell")">
                     @* Keyed by its item: rows are keyed by place, and a tick C# hasn't heard of yet would stay on the
                        next item to take this place. *@
                     <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
@@ -50,7 +50,7 @@
             @foreach (var column in Shown)
             {
                 var cellEditor = editing ? null : CellEditor(item, column);
-                <td class="@CellClass(column)" style="@CellStyle(column)" data-ib-edit-col="@EditColumnKey(item, column)" data-ib-editing="@(cellEditor is null ? null : "")">
+                <td class="@CellClass(column)" role="@StackRole("cell")" style="@CellStyle(column)" data-ib-edit-col="@EditColumnKey(item, column)" data-ib-editing="@(cellEditor is null ? null : "")">
                     @if (first && href is not null)
                     {
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
@@ -185,18 +185,18 @@
             @ErrorStatus
             @GridStyleSheet
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
-                <table id="@GridId" class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
+                <table id="@GridId" class="ib-table-grid" role="@StackRole("table")" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
                     @if (Caption is not null)
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
                     }
                     @ColGroup
-                <thead>
-                        <tr aria-rowindex="@(VirtualRows ? 1 : null)">
+                <thead role="@StackRole("rowgroup")">
+                        <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? 1 : null)">
                             @if (Selectable)
                             {
                                 @* Select all: script only. For the page, it checks the rows, which report their own changes. *@
-                                <th scope="col" class="@SelectCellClass">
+                                <th scope="col" class="@SelectCellClass" role="@StackRole("columnheader")">
                                     @* The column's name while select-all is hidden (no script yet). *@
                                     <span class="ib-visually-hidden ib-table-select-heading">@(SelectRowLabel ?? TextDefaults.SelectRow)</span>
                                     @if (MultiSelect)
@@ -209,7 +209,7 @@
                             @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
                             @foreach (var column in Shown)
                             {
-                                <th scope="col" class="@CellClass(column)" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)" @attributes="HeaderAttributes(column)">
+                                <th scope="col" class="@CellClass(column)" role="@StackRole("columnheader")" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)" @attributes="HeaderAttributes(column)">
                                     @if ((headerFilters is not null && column.CanFilter) || HasHeaderMenu(column))
                                     {
                                         @* The title (or sort control) and a filter button that opens the filter. *@
@@ -252,7 +252,7 @@
                             </tr>
                         }
                     </thead>
-                    <tbody>
+                    <tbody role="@StackRole("rowgroup")">
                         @if (_loadError is null && NewRowItem is { } added)
                         {
                             <tr data-ib-editing="">
@@ -339,16 +339,16 @@
                     </tbody>
                     @if (Shown.Any(c => c.HasFooter))
                     {
-                        <tfoot>
-                            <tr aria-rowindex="@(VirtualRows ? (_total ?? 0) + HeaderRows + 1 : null)">
+                        <tfoot role="@StackRole("rowgroup")">
+                            <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? (_total ?? 0) + HeaderRows + 1 : null)">
                                 @if (Selectable)
                                 {
-                                    <td class="@SelectCellClass"></td>
+                                    <td class="@SelectCellClass" role="@StackRole("cell")"></td>
                                 }
                                 @LeadCell
                                 @foreach (var column in Shown)
                                 {
-                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.WrittenFooter ?? AggregateCell(column, _grandTotal, AggregatePlace.Footer))</td>
+                                    <td class="@CellClass(column)" role="@StackRole("cell")" style="@CellStyle(column)">@(column.WrittenFooter ?? AggregateCell(column, _grandTotal, AggregatePlace.Footer))</td>
                                 }
                                 @LastEmptyCell
                             </tr>
@@ -2234,6 +2234,12 @@
 
     /// <summary>A style element of the view's own, before its scroll box.</summary>
     internal virtual RenderFragment? GridStyleSheet => null;
+
+    /// <summary>
+    /// A table part's role written out, for a table whose parts its style can make blocks, which can
+    /// lose a table's meaning in some browsers. Null: the element's own.
+    /// </summary>
+    internal virtual string? StackRole(string role) => null;
 
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);
