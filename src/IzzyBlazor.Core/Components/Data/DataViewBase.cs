@@ -260,6 +260,23 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>Why this view can't load as it's set up, or null when it can.</summary>
     internal virtual string? LoadProblem => null;
 
+    /// <summary>Whether its rows are in groups now, which pages by number whatever <see cref="Paging"/> says.</summary>
+    internal virtual bool GroupedNow => false;
+
+    /// <summary>How the view pages now.</summary>
+    internal DataPaging ActivePaging => GroupedNow ? DataPaging.Pages : Paging;
+
+    /// <summary>A page of groups in place of a page of rows: its rows in drawn order, the number of groups, and the page they're on.</summary>
+    internal sealed record GroupedPage(IReadOnlyList<TItem> Items, int Total, int Page, Action Keep);
+
+    /// <summary>A page of groups, or null when it isn't grouped.</summary>
+    internal virtual ValueTask<GroupedPage?> LoadGroupedAsync(DataRequest<TItem> request, int page, int? pageSize) => ValueTask.FromResult<GroupedPage?>(null);
+
+    /// <summary>The rows loaded aren't in groups.</summary>
+    internal virtual void NotGrouped()
+    {
+    }
+
     /// <summary>Adds the derived view's sort, filter and fields to a request, from the raw sort.</summary>
     internal virtual DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) => request;
 
@@ -416,7 +433,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     internal int? EffectivePageSize => UseState ? _statePageSize ?? DefaultPageSize : ReadSizeQuery() ?? DefaultPageSize;
 
     // A page of rows keeps its height as filters leave fewer, so what's below stays. Not a list that grows.
-    internal int? HeldFor => Appending || VirtualRows ? null : EffectivePageSize;
+    internal int? HeldFor => Appending || VirtualRows || GroupedNow ? null : EffectivePageSize;
 
     // The page that holds the first item on view now, at another size. A cursor is for one size,
     // so paging by cursor starts over.
@@ -674,9 +691,14 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         string? next = null, previous = null;
         var noTotal = false;
         Action? alongside = null;
+        Action keepGroups = NotGrouped;
         try
         {
-            if (ItemsProvider is not null)
+            if (await LoadGroupedAsync(request, page, pageSize) is { } grouped)
+            {
+                (items, total, page, keepGroups) = (grouped.Items, grouped.Total, grouped.Page, grouped.Keep);
+            }
+            else if (ItemsProvider is not null)
             {
                 // Show the loading state while the provider works (on interactive pages it renders).
                 _providerLoading = true;
@@ -770,6 +792,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
         (_loadError, _moreError, _focusAfterRetry) = (null, false, false);
         (_items, _total, _page, _lastPage) = (items, total, page, page + shownPages - 1);
+        keepGroups();
         alongside?.Invoke();
         Loaded();
         // All of another filter or search isn't these items: clear it rather than let it grow.
@@ -1016,7 +1039,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal static int LastPage(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)size));
 
-    internal string Summary(int size)
+    internal virtual string Summary(int size)
     {
         if (_items.Count == 0)
         {
@@ -1030,13 +1053,13 @@ public abstract partial class DataViewBase<TItem> : IDisposable
             : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TableRangeOpen, first, last);
     }
 
-    internal bool CursorPaging => Paging != DataPaging.Pages;
+    internal bool CursorPaging => ActivePaging != DataPaging.Pages;
 
-    internal bool Appending => Paging is DataPaging.LoadMore or DataPaging.LoadOnScroll;
+    internal bool Appending => ActivePaging is DataPaging.LoadMore or DataPaging.LoadOnScroll;
 
     // Loading on scroll: the button is for the keyboard, out of sight until it has focus (CSS shows
     // it with no script, where it's the only way on).
-    internal bool OnFocusOnly => Paging == DataPaging.LoadOnScroll;
+    internal bool OnFocusOnly => ActivePaging == DataPaging.LoadOnScroll;
 
     // Numbered pages show the footer when there's anything to page; by cursor also on an empty
     // page reached by a cursor, so First leads back.

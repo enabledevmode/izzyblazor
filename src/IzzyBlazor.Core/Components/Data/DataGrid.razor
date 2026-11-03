@@ -172,7 +172,7 @@
     See also: Table.
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
     @if (CanEdit || CanDelete)
     {
@@ -1100,7 +1100,7 @@
     [Parameter] public double RowHeight { get; set; } = 48;
 
     /// <inheritdoc />
-    internal override bool VirtualRows => Virtualize && RendererInfo.IsInteractive;
+    internal override bool VirtualRows => Virtualize && RendererInfo.IsInteractive && !GroupedNow;
 
     /// <inheritdoc />
     internal override bool ByTotal => Virtualize;
@@ -1233,7 +1233,7 @@
     internal override string? ValuesGridSearch => CurrentSearch;
 
     /// <inheritdoc />
-    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate || EditKeyChanged.HasDelegate;
+    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate || EditKeyChanged.HasDelegate || GroupBound;
 
     /// <inheritdoc />
     internal override bool NeedsFilterForm => base.NeedsFilterForm || Searchable;
@@ -1242,7 +1242,7 @@
     internal override IEnumerable<string> ExtraFilterKeys => Searchable ? [SearchKey] : [];
 
     /// <inheritdoc />
-    internal override string FilterSignature() => $"{base.FilterSignature()}|{CurrentSearch}";
+    internal override string FilterSignature() => $"{base.FilterSignature()}|{CurrentSearch}|{GroupSignature}";
 
     /// <inheritdoc />
     internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) =>
@@ -1278,6 +1278,7 @@
     private DataGridLayout? _stored;
     private PersistingComponentStateSubscription? _persisting;
     private List<ColumnBase<TItem>>? _shown;
+    private GroupState? _shownFor;
 
     // One bound follows the parent; given one-way, what people choose after it wins.
     private DataGridLayout? CurrentLayout => LayoutChanged.HasDelegate || !_rearranged ? Layout ?? _stored : _stored;
@@ -1298,6 +1299,102 @@
 
     /// <inheritdoc />
     internal override string ViewName => "DataGrid";
+
+    /// <inheritdoc />
+    internal override RenderFragment? GroupRows => _groupRoots is not { Count: > 0 } roots ? null : __builder =>
+    {
+        foreach (var root in roots)
+        {
+            @GroupRow(root)
+        }
+    };
+
+    private RenderFragment GroupRow(GroupNode node) => __builder =>
+    {
+        // The label spans up to the first aggregate, which sits in its own column.
+        var first = Shown.ToList().FindIndex(c => c.EffectiveAggregate is not null);
+        var span = first < 0 ? Shown.Count : Math.Max(1, first);
+        var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
+        <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize" style="--ib-group-depth:@node.Depth">
+            @if (Selectable)
+            {
+                <td class="@SelectCellClass"></td>
+            }
+            <th scope="row" colspan="@span">
+                @if (UseState)
+                {
+                    <button type="button" class="ib-grid-group-toggle" aria-expanded="@(node.Open ? "true" : "false")" @onclick="() => ToggleGroupAsync(node)">
+                        <Icon Role="IconRole.ChevronRight" />
+                        <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span> @value
+                    </button>
+                }
+                else
+                {
+                    <a class="ib-grid-group-toggle" href="@ToggleHref(node)" aria-expanded="@(node.Open ? "true" : "false")">
+                        <Icon Role="IconRole.ChevronRight" />
+                        <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span> @value
+                    </a>
+                }
+                <span class="ib-grid-group-count">@node.Group.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)</span>
+            </th>
+            @foreach (var column in Shown.Skip(span))
+            {
+                <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group)</td>
+            }
+            @LastEmptyCell
+        </tr>
+        if (node.Open)
+        {
+            foreach (var child in node.Children)
+            {
+                @GroupRow(child)
+            }
+
+            for (var i = 0; i < node.Rows.Count; i++)
+            {
+                @DataRow(node.Rows[i], node.FirstRow + i, null, node.Depth + 1)
+            }
+
+            if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
+            {
+                <tr class="ib-grid-group-more" style="--ib-group-depth:@(node.Depth + 1)">
+                    <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + (LastEmptyCell is null ? 0 : 1))">
+                        @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupShowing, node.Rows.Count, node.Group.Count)
+                        @if (OnlyThisGroup(node) is { } only)
+                        {
+                            @(" ")
+                            if (UseState)
+                            {
+                                <button type="button" class="ib-link" @onclick="() => OnlyThisGroupAsync(only)">@TextDefaults.GroupShowOnly</button>
+                            }
+                            else
+                            {
+                                <a href="@OnlyThisGroupHref(only)">@TextDefaults.GroupShowOnly</a>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    };
+
+    /// <inheritdoc />
+    internal override string Summary(int size)
+    {
+        if (!GroupedNow)
+        {
+            return base.Summary(size);
+        }
+
+        var shown = _groupRoots?.Count ?? 0;
+        if (shown == 0)
+        {
+            return "";
+        }
+
+        var first = (_page - 1L) * size + 1;
+        return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupRange, first, first + shown - 1, _total ?? 0);
+    }
 
     /// <inheritdoc />
     internal override bool MultiSort => true;
@@ -1793,14 +1890,26 @@
     // among those that scroll would overlap them. Within those, a layout's place, else the declared one.
     // At least one always shows: a layout that hides them all is ignored for that.
     /// <inheritdoc />
-    internal override IReadOnlyList<ColumnBase<TItem>> Shown => _shown ??= Arrange();
+    internal override IReadOnlyList<ColumnBase<TItem>> Shown
+    {
+        get
+        {
+            var grouping = Grouping;
+            if (!ReferenceEquals(grouping, _shownFor))
+            {
+                (_shown, _shownFor) = (null, grouping);
+            }
+
+            return _shown ??= Arrange();
+        }
+    }
 
     private List<ColumnBase<TItem>> Arrange()
     {
         var layout = CurrentLayout;
         // One the page says can't be hidden isn't, whatever a stored layout says.
         // Visible says how it starts. What someone chose goes first, on a column they can choose.
-        var visible = Columns.Where(c => c.Pickable && layout?.Column(KeyOf(c))?.Hidden is { } hidden ? !hidden : c.Visible).ToList();
+        var visible = Columns.Where(c => !GroupedColumnLeaves(c)).Where(c => c.Pickable && layout?.Column(KeyOf(c))?.Hidden is { } hidden ? !hidden : c.Visible).ToList();
         return (visible.Count > 0 ? visible : Columns)
             .Select((column, index) => (column, index))
             .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })

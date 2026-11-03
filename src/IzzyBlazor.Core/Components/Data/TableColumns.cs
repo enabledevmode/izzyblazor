@@ -160,6 +160,32 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The word before the aggregate, such as "Total"; empty for none. Defaults to the aggregate's name, and to none for your own.</summary>
     [Parameter] public string? AggregateLabel { get; set; }
 
+    /// <summary>
+    /// In a grid that groups, whether this column can be grouped by. Defaults to true, for a column
+    /// with one value to compare.
+    /// </summary>
+    [Parameter] public bool Groupable { get; set; } = true;
+
+    internal bool CanGroup => Groupable && Key is not null && GroupType is not null;
+
+    /// <summary>The type of the value it groups by, or null when it can't.</summary>
+    internal virtual Type? GroupType => null;
+
+    /// <summary>A group's value as the column's type: it may have come over the wire.</summary>
+    internal object? GroupValue(object? value)
+    {
+        var plain = FilterConvert.Unwrap(value);
+        return plain is not null && GroupType is { } type && FilterConvert.TryConvert(type, plain, out var typed) ? typed : plain;
+    }
+
+    /// <summary>A group's value for people, in the column's format.</summary>
+    internal string? GroupText(object? value) =>
+        value is null ? null : ValueFormat is { } format && value is IFormattable formattable ? formattable.ToString(format, CultureInfo.CurrentCulture) : value.ToString();
+
+    /// <summary>The operators for a request: an open group finds its rows by equality, whatever people can choose.</summary>
+    private protected IReadOnlyList<FilterOperator>? RequestOperators(IReadOnlyList<FilterOperator>? operators) =>
+        operators is null || Table?.GroupsBy(this) != true || operators.Contains(FilterOperator.Equals) ? operators : [.. operators, FilterOperator.Equals];
+
     internal DataAggregate? EffectiveAggregate => AggregateBy is not null ? DataAggregate.Custom : Aggregate;
 
     /// <summary>The aggregate's name in a request. A template column needn't have a key.</summary>
@@ -415,7 +441,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (EffectiveAggregate, AggregateFormat, AggregateLabel));
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (EffectiveAggregate, AggregateFormat, AggregateLabel, Groupable));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -472,6 +498,9 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
 
     /// <inheritdoc />
     internal override string? ValueFormat => Format;
+
+    /// <inheritdoc />
+    internal override Type? GroupType => FilterConvert.KindOf(typeof(TValue)) == FieldKind.None ? null : typeof(TValue);
 
     /// <inheritdoc />
     protected override string? AggregateProblem => Aggregate switch
@@ -544,11 +573,12 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         Caption = HeaderText,
         Format = Format,
         Sortable = CanSort,
-        Filterable = CanFilter,
+        Filterable = CanFilter || Table?.GroupsBy(this) == true,
         Searchable = FilterKind == ColumnFilterKind.Text,
+        Groupable = CanGroup,
         Aggregatable = EffectiveAggregate is not null,
         AggregateBy = AggregateBy,
-        Operators = ColumnFilter.FieldOperators(this),
+        Operators = RequestOperators(ColumnFilter.FieldOperators(this)),
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
         Filter = Filter,

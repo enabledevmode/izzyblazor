@@ -616,6 +616,18 @@ public class IzzyText
 
     // Data and feedback
 
+    /// <summary>A DataGrid group with no value.</summary>
+    public virtual string GroupNone { get; set; } = "(None)";
+
+    /// <summary>A DataGrid group too long to draw: how many are drawn, how many it has.</summary>
+    public virtual string GroupShowing { get; set; } = "Showing {0:N0} of {1:N0}.";
+
+    /// <summary>The link from a group too long to draw to the grid with only its rows.</summary>
+    public virtual string GroupShowOnly { get; set; } = "Show only this group";
+
+    /// <summary>The range of a page of groups: first, last, how many in all.</summary>
+    public virtual string GroupRange { get; set; } = "{0:N0}–{1:N0} of {2:N0} groups";
+
     /// <summary>The word before a DataGrid column's Sum.</summary>
     public virtual string AggregateSum { get; set; } = "Sum";
 
