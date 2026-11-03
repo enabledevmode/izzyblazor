@@ -330,6 +330,23 @@ public class DataGridGroupTests : BunitContext
     }
 
     [Fact]
+    public void GroupPanel_waits_for_a_header_and_a_drop_on_a_bound_page_sets_the_grouping()
+    {
+        var cut = Grid("/sales", p => p.Add(x => x.GroupPanel, true));
+        Assert.Contains("Drag a column header here", cut.Find(".ib-grid-group-bar").TextContent);
+        Assert.Equal("region", cut.Find("thead th[data-ib-group='region']").GetAttribute("data-ib-group"));
+
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        string? group = null;
+        cut = Grid("/sales", p => p.Add(x => x.Group, "region").Add(x => x.GroupChanged, v => group = v));
+
+        // What the script writes when a header or chip is dropped.
+        cut.Find(".ib-grid-group-bar input.ib-grid-group-set").Change("rep,region");
+
+        Assert.Equal("rep,region", group);
+    }
+
+    [Fact]
     public void Bound_on_an_interactive_page_it_opens_in_state()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));

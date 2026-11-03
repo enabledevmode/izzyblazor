@@ -625,6 +625,9 @@ public class IzzyText
     /// <summary>The name of what a DataGrid is grouped by, its chips.</summary>
     public virtual string GroupedBy { get; set; } = "Grouped by";
 
+    /// <summary>A DataGrid's bar of what's grouped, with nothing grouped yet.</summary>
+    public virtual string GroupDropHint { get; set; } = "Drag a column header here to group by it";
+
     /// <summary>Opens all of a DataGrid's groups.</summary>
     public virtual string GroupExpandAll { get; set; } = "Expand all groups";
 
