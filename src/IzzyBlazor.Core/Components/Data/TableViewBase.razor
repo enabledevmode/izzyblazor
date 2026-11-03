@@ -183,8 +183,9 @@
             @AboveGrid
             @SelectionBar
             @ErrorStatus
+            @GridStyleSheet
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
-                <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
+                <table id="@GridId" class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
                     @if (Caption is not null)
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
@@ -1996,7 +1997,13 @@
         builder.CloseComponent();
     };
 
-    private string? ScrollStyle => MaxHeight is { } height ? $"max-height:{StyleValues.Length(height)}" : null;
+    private string? ScrollStyle => (MaxHeight, GridId) switch
+    {
+        (null, null) => null,
+        ({ } height, null) => $"max-height:{StyleValues.Length(height)}",
+        (null, _) => "container-type:inline-size",
+        ({ } height, _) => $"max-height:{StyleValues.Length(height)};container-type:inline-size",
+    };
 
     internal void AddColumn(ColumnBase<TItem> column)
     {
@@ -2220,6 +2227,12 @@
 
     /// <summary>A style for the table element.</summary>
     internal virtual string? GridStyle => null;
+
+    /// <summary>The table element's id, for a style element of the view's own; its scroll box is then a container.</summary>
+    internal virtual string? GridId => null;
+
+    /// <summary>A style element of the view's own, before its scroll box.</summary>
+    internal virtual RenderFragment? GridStyleSheet => null;
 
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);

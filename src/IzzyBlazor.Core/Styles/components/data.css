@@ -1231,6 +1231,10 @@
     table-layout: fixed;
   }
 
+  .ib-datagrid-fill {
+    inline-size: 100%;
+  }
+
   .ib-datagrid-select-col {
     width: var(--ib-datagrid-select);
   }
@@ -1674,6 +1678,24 @@
     max-inline-size: var(--ib-box);
     padding-block: var(--ib-space-2);
     padding-inline: calc(var(--ib-detail-at) + var(--ib-table-px)) var(--ib-space-2);
+  }
+
+  /* Hidden columns' values, labels over values; the grid's own style shows only the hidden ones. */
+  .ib-grid-hidden {
+    margin: 0;
+
+    & > div {
+      margin-block-end: var(--ib-space-2);
+    }
+
+    & dt {
+      color: var(--ib-color-muted);
+      font-size: var(--ib-text-xs);
+    }
+
+    & dd {
+      margin: 0;
+    }
   }
 
   .ib-grid-group-aggregate {

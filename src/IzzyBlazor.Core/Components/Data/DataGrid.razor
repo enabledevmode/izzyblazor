@@ -24,6 +24,11 @@
     edge wherever it's declared. It needs a `Width`. On a phone they scroll like the rest, and so they
     do if the script finds they'd leave too little room for the rows. RowHref can't be used with it.
 
+    `SmallScreen="DataGridSmallScreen.HideColumns"` hides columns that don't fit instead of scrolling,
+    lowest `Priority` first, and a button at each row's start shows their values under it. The first
+    column and frozen ones stay. It goes by the grid's own width, worked out on the server, so it's right
+    at the first paint with no script. The grid takes the whole width it's given, and needs an ItemKey.
+
     <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
         <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" Frozen="ColumnFrozen.Start" />
         <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
@@ -1450,7 +1455,7 @@
     };
 
     /// <inheritdoc />
-    internal override int LeadSpan => Grouping.Levels.Count + (HasDetails ? 1 : 0);
+    internal override int LeadSpan => Grouping.Levels.Count + (HasExpander ? 1 : 0);
 
     // The lead columns hold the groups' chevrons: frozen with the start columns, after the selection.
     private string LeadClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-lead ib-frozen ib-frozen-start" : "ib-grid-lead";
@@ -1489,11 +1494,11 @@
             </th>
         }
 
-        if (HasDetails)
+        if (HasExpander)
         {
             var all = Details.AllOpen;
             var label = all ? TextDefaults.DetailCollapseAll : TextDefaults.DetailExpandAll;
-            <th scope="col" class="@LeadClass" style="@ExpanderStyle">
+            <th scope="col" class="@ExpanderClass" style="@ExpanderStyle">
                 @if (SingleDetail)
                 {
                     <span class="ib-visually-hidden">@TextDefaults.DetailColumn</span>
@@ -1515,27 +1520,37 @@
         ? $"--ib-frozen-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{Grouping.Levels.Count} * var(--ib-datagrid-group))"
         : null;
 
+    // Hiding with no template, the button column goes while nothing is hidden (DataGridSmallScreen.cs).
+    private string ExpanderClass => ExpanderComesAndGoes ? LeadClass + " ib-hx" : LeadClass;
+
+    // The lead columns' width: the button column's is 0 while it's gone.
+    private string LeadWidths => ExpanderComesAndGoes
+        ? $"{Grouping.Levels.Count} * var(--ib-datagrid-group) + var(--ib-grid-expander, var(--ib-datagrid-group))"
+        : $"{LeadSpan} * var(--ib-datagrid-group)";
+
     /// <inheritdoc />
-    internal override RenderFragment? RowLead(TItem item, int row) => !HasDetails ? LeadCell : __builder =>
+    internal override RenderFragment? RowLead(TItem item, int row) => !HasExpander ? LeadCell : __builder =>
     {
         var levels = Grouping.Levels.Count;
         if (levels > 0)
         {
             <td class="@LeadClass" style="@LeadStyle" colspan="@levels"></td>
         }
-        <td class="@LeadClass" style="@ExpanderStyle">
+        <td class="@ExpanderClass" style="@ExpanderStyle">
             @if (HasDetail(item))
             {
                 var key = KeyOf(item);
                 var open = Details.IsOpen(key);
                 var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
+                // One with only hidden values to show goes while nothing is hidden.
+                var css = HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx";
                 if (UseState)
                 {
-                    <button type="button" class="ib-grid-expand" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Role="IconRole.ChevronRight" /></button>
+                    <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Role="IconRole.ChevronRight" /></button>
                 }
                 else
                 {
-                    <a class="ib-grid-expand" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
+                    <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
                 }
             }
         </td>
@@ -1546,14 +1561,24 @@
     {
         // One cell across the grid. Its content starts under the row's data, and stays in view when the
         // grid scrolls sideways.
-        <tr class="ib-grid-detail" id="@DetailId(row)" aria-level="@(indent + 1)">
+        var template = HasTemplateDetail(item);
+        <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)">
             <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
-                <div class="ib-grid-detail-content">@DetailTemplate!(item)</div>
+                <div class="ib-grid-detail-content">
+                    @if (Hiding)
+                    {
+                        @HiddenValues(item)
+                    }
+                    @if (template)
+                    {
+                        @DetailTemplate!(item)
+                    }
+                </div>
             </td>
         </tr>
     };
 
-    private string DetailAt => $"--ib-detail-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{LeadSpan} * var(--ib-datagrid-group))";
+    private string DetailAt => $"--ib-detail-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{LeadWidths})";
 
     /// <inheritdoc />
     internal override string Summary(int size)
@@ -2165,11 +2190,18 @@
             }
             @for (var i = 0; i < LeadSpan; i++)
             {
-                <col class="ib-grid-lead-col" />
+                if (ExpanderComesAndGoes && i == LeadSpan - 1)
+                {
+                    <col class="ib-grid-lead-col" style="width:var(--ib-grid-expander, var(--ib-datagrid-group))" />
+                }
+                else
+                {
+                    <col class="ib-grid-lead-col" />
+                }
             }
             @for (var i = 0; i < Shown.Count; i++)
             {
-                <col style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+                <col class="@HideClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
             }
             @if (HasActionCell)
             {
@@ -2177,6 +2209,17 @@
             }
         </colgroup>
     };
+
+    // How many buttons wide the action column is: as the most a row has, the ⋮ among them. Save and
+    // Cancel have to fit, and starting an edit mustn't move the columns.
+    private int ActionButtons
+    {
+        get
+        {
+            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
+            return InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
+        }
+    }
 
     // Widths are variables on the table, so one change later (a resize) moves everything that uses
     // them. Fixed layout shares the rest equally whatever each column's minimum, so the grid's
@@ -2216,14 +2259,14 @@
                 parts.Add("var(--ib-datagrid-select)");
             }
 
-            parts.AddRange(Enumerable.Repeat("var(--ib-datagrid-group)", LeadSpan));
+            if (LeadSpan > 0)
+            {
+                parts.Add(LeadWidths);
+            }
 
             if (HasActionCell)
             {
-                // As wide as the most buttons a row has, the ⋮ among them.
-                var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
-                // Save and Cancel have to fit, and starting an edit mustn't move the columns.
-                buttons = InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
+                var buttons = ActionButtons;
                 if (buttons > 1)
                 {
                     style.Append(System.FormattableString.Invariant($"--ib-datagrid-menu:{0.75 + 2.25 * buttons}rem;"));
@@ -2259,7 +2302,7 @@
         var frozen = FrozenOf(column);
         if (frozen == ColumnFrozen.None)
         {
-            return null;
+            return HideClass(column);
         }
 
         var side = frozen == ColumnFrozen.Start ? "start" : "end";
@@ -2289,7 +2332,11 @@
                 parts.Add("var(--ib-datagrid-select)");
             }
 
-            parts.AddRange(Enumerable.Repeat("var(--ib-datagrid-group)", LeadSpan));
+            if (LeadSpan > 0)
+            {
+                parts.Add(LeadWidths);
+            }
+
             for (var i = 0; i < index; i++)
             {
                 parts.Add($"var(--ib-col-{i})");
@@ -2339,6 +2386,8 @@
     {
         classes.Add("ib-datagrid");
         classes.Add("ib-datagrid-virtual", VirtualRows);
+        // Hiding goes by the width it's given, so it takes all of it rather than its columns' width.
+        classes.Add("ib-datagrid-fill", SmallScreen == DataGridSmallScreen.HideColumns);
         base.BuildAttributes(classes, styles);
     }
 }

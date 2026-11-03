@@ -98,6 +98,13 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public ColumnFrozen Frozen { get; set; }
 
+    /// <summary>
+    /// In a grid with <c>SmallScreen="DataGridSmallScreen.HideColumns"</c>, which columns stay longest
+    /// when it's narrow: higher stays longer. Defaults to 0; among equals, the last hides first. The
+    /// first column and frozen ones never hide. Not for a Table.
+    /// </summary>
+    [Parameter] public int Priority { get; set; }
+
     /// <summary>In a grid with <c>ResizableColumns</c>, how wide people can make this column. No limit by default.</summary>
     [Parameter] public Length? MaxWidth { get; set; }
 
@@ -420,6 +427,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
         if (Frozen != ColumnFrozen.None && Table is { GridColumns: false })
         {
             throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Frozen)}, which only a DataGrid's columns can be.");
+        }
+
+        if (Priority != 0 && Table is { GridColumns: false })
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, which only a DataGrid's columns take.");
         }
 
         if (!Visible && Table is { GridColumns: false })
