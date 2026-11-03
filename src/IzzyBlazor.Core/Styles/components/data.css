@@ -1601,6 +1601,15 @@
     padding-inline: 0;
   }
 
+  /* Off the text's baseline, so each chevron sits in the middle of its row. */
+  .ib-grid-group-all {
+    display: flex;
+  }
+
+  .ib-grid-group-toggle {
+    vertical-align: middle;
+  }
+
   :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg {
     rotate: 90deg;
   }
