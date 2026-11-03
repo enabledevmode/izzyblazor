@@ -260,10 +260,12 @@ reader is a .NET developer who knows Blazor and may come from MudBlazor or Radze
   "Indeterminate state", not "A dash of your own". Example titles follow the same rule.
 - **A component's summary** is a noun phrase for what it is, then what it's for: "A grid for
   editing, grouping and filtering rows, with its state in the URL."
-- **A topic's summary** says what the page helps you do, as a sentence someone would say: "Let
-  users filter each column from its header, and read or set the filter from the URL or from C#."
-  Not a list of its sections ("Filters in column headers, lists of values, operators, and filters
-  in the URL"). The same goes for any lead: if it reads as a list of nouns, rewrite it.
+- **Be direct, in the active voice.** Name the feature and say what it does, or what the user
+  does with it: "Column filters narrow the rows from each column's header. The filter is kept in
+  the URL and can be set from C#." No build-up ("Let users…", "This page shows…"), and never a
+  list of the page's sections ("Filters in column headers, lists of values, operators, and
+  filters in the URL"). Topic summaries and intros follow this; so does any lead. If a sentence
+  reads as a list of nouns, rewrite it.
 
 Use the same word for the same idea everywhere:
 
