@@ -1,9 +1,9 @@
 @* Each button posts its Name=Value with the form, so the actions work with JavaScript off;
    OnClick says which it was on interactive pages, where nothing posts. A file shared with you
    has no Delete, so its menu is shorter. *@
-<form method="post" @onsubmit="Act" @formname="list-view-files" style="width: 100%">
+<form method="post" @onsubmit="Act" @formname="list-view-files" style="width: 100%; max-width: 32rem">
     <AntiforgeryToken />
-    <Stack Gap="3" MaxWidth="32.Rem" Grow>
+    <Stack Gap="3">
         <ListView Items="_files" ItemKey="f => f.Id" ItemText="f => f.Name" ItemDescription="f => f.Detail" ItemIcon="_ => Lucide.FileText" Bordered Context="file">
             <ItemActions>
                 @if (file.Shared)

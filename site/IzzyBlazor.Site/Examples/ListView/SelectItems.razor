@@ -1,13 +1,13 @@
 @* Selection in a form: each checked item posts its ItemKey, so Archive works with JavaScript off.
    With script, "Select all messages" above the list checks the page. Archived messages leave the
    list; on static pages hidden fields carry them to the next post. *@
-<form method="post" @onsubmit="Submit" @formname="list-view-archive" style="width: 100%">
+<form method="post" @onsubmit="Submit" @formname="list-view-archive" style="width: 100%; max-width: 28rem">
     <AntiforgeryToken />
     @foreach (var id in _archived)
     {
         <input type="hidden" name="archived" value="@id" />
     }
-    <Stack Gap="3" MaxWidth="28.Rem" Grow>
+    <Stack Gap="3">
         <ListView Items="Inbox" ItemKey="m => m.Id" ItemText="m => m.Subject" ItemDescription="m => m.From"
                   SelectionMode="SelectionMode.Multiple" SelectAllLabel="Select all messages" @bind-Selection="_selected" EmptyText="Nothing left in the inbox." Bordered />
         <Row Gap="3" Align="Align.Center" Wrap>
