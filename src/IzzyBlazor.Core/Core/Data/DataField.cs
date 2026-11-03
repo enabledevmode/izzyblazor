@@ -45,6 +45,18 @@ public sealed class DataField<TItem>
     /// <summary>Whether a request's <c>Search</c> looks in it (text that contains the search, by its <see cref="Case"/>).</summary>
     public bool Searchable { get; init; }
 
+    /// <summary>Whether a <see cref="DataGroupRequest{TItem}"/> can group by it.</summary>
+    public bool Groupable { get; init; }
+
+    /// <summary>Whether a <see cref="DataGroupRequest{TItem}"/> can work out an aggregate on it.</summary>
+    public bool Aggregatable { get; init; }
+
+    /// <summary>
+    /// The field's own aggregate (<see cref="DataAggregate.Custom"/>), an expression over a group's
+    /// items, so it runs in the database: <c>(Expression&lt;Func&lt;IEnumerable&lt;Order&gt;, decimal&gt;&gt;)(g =&gt; g.Sum(o =&gt; o.Profit) / g.Sum(o =&gt; o.Total))</c>.
+    /// </summary>
+    public LambdaExpression? AggregateBy { get; init; }
+
     /// <summary>
     /// How text compares in a filter or search on it. <see cref="FieldFilter.MatchCase"/> goes first
     /// for one condition. A grid's <c>FilterCase</c> comes here through its columns; an endpoint that
@@ -109,7 +121,7 @@ public static class DataFields
     /// <summary>
     /// The public properties of <typeparamref name="TItem"/> that a filter can compare (text,
     /// numbers, dates and times, enums, booleans, Guids), keyed by name in lower case
-    /// (<c>"total"</c>). Each is sortable and filterable, and text is searchable. Reads
+    /// (<c>"total"</c>). Each is sortable, filterable, groupable and aggregatable, and text is searchable. Reads
     /// <c>[Display(Name)]</c> for the caption, <c>[DisplayFormat(DataFormatString)]</c> and
     /// <c>[DataType]</c> for the format, and leaves out <c>[ScaffoldColumn(false)]</c> and
     /// <c>[Display(AutoGenerateField = false)]</c> properties.
@@ -147,6 +159,8 @@ public static class DataFields
                     Sortable = true,
                     Filterable = true,
                     Searchable = FilterConvert.KindOf(property.PropertyType) == FieldKind.Text,
+                    Groupable = true,
+                    Aggregatable = true,
                     Choices = EnumChoices(property.PropertyType),
                 });
             }
