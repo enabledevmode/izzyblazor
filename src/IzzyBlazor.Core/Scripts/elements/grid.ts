@@ -282,7 +282,7 @@ class Grid extends IzzyElement {
     return controls.length === 1 && !this.#keepsArrows(controls[0]) ? controls[0] : cell;
   }
 
-  /** Where Enter and F2 go in: a filter cell's field, past its operator button, else the first control. */
+  /** Where Enter and F2 go in: a filter cell's field or summary, else the first control. */
   #entryOf(cell: HTMLTableCellElement): HTMLElement | undefined {
     return this.#own(cell, "[data-ib-enter]") ?? this.#controlsOf(cell)[0];
   }

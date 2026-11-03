@@ -1647,6 +1647,7 @@
         var label = FilterLabel(column);
         var panel = FilterPanelId(column);
         var fits = FitsInCell(column, current);
+        var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList || column.FilterTemplate is not null;
         <div class="ib-filter-cell ib-field ib-field-sm" data-ib-panel="@panel" style="anchor-name:@StyleValues.AnchorName(panel + "-cell")">
             <div class="ib-filter-cell-slot">
                 @if (fits)
@@ -1666,11 +1667,12 @@
                 }
                 else
                 {
-                    // Blank with no filter, as an empty field is. It still has a name to be read by.
-                    var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList || column.FilterTemplate is not null;
-                    var summary = current.IsFilter ? FilterSummary(column, current, days: true) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
+                    // Blank with no filter, as an empty field is, and named so: an empty list as All, an empty date
+                    // by its column alone (its operator would sound like a filter that's set).
+                    var summary = current.IsFilter ? FilterSummary(column, current, days: true) : list ? TextDefaults.FilterAll : "";
                     var shown = !current.IsFilter ? "" : list ? RowListSummary(column, current) ?? summary : summary;
-                    <button type="button" class="ib-filter-cell-summary" popovertarget="@panel" aria-label="@($"{label}: {(shown.Length > 0 ? shown : summary)}")" title="@(shown.Length > 0 ? shown : null)" data-ib-enter><span>@shown</span></button>
+                    var said = shown.Length > 0 ? shown : summary;
+                    <button type="button" class="ib-filter-cell-summary" popovertarget="@panel" aria-label="@(said.Length > 0 ? $"{label}: {said}" : label)" title="@(shown.Length > 0 ? shown : null)" data-ib-enter><span>@shown</span></button>
                 }
                 @if (current.IsFilter)
                 {
@@ -1685,7 +1687,8 @@
                     }
                 }
             </div>
-            @{ var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label; }
+            @* Named apart from the slot: with what's set, else the operator a value would take, which the row doesn't show. *@
+            @{ var name = current.IsFilter ? $"{label}: {FilterSummary(column, current, days: true)}" : list ? label : $"{label}: {ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults)}"; }
             <button type="button" class="ib-table-filter-button" popovertarget="@panel" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name"><Icon Role="IconRole.Filter" /></button>
         </div>
     };
