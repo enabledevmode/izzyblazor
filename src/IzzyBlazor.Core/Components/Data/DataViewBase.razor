@@ -49,11 +49,11 @@
                 <span class="ib-data-summary" role="status">@Summary(size)</span>
                 @SelectionSummary
             </div>
-            @if (Paging == DataPaging.Pages && UseState)
+            @if (ActivePaging == DataPaging.Pages && UseState)
             {
                 <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total ?? 0" PageSize="size" Size="ControlSize.Sm" Label="@pagesLabel" />
             }
-            else if (Paging == DataPaging.Pages)
+            else if (ActivePaging == DataPaging.Pages)
             {
                 <Pagination Page="_page" TotalItems="_total ?? 0" PageSize="size" QueryKey="@PageKey" ClearKeys="LinkClears" Size="ControlSize.Sm" Label="@pagesLabel" />
             }

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace IzzyBlazor;
 
 // A view's aggregates and groups, past its rows.
@@ -8,16 +10,23 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>Where groups and aggregates come from when there's an <c>ItemsProvider</c>.</summary>
     internal virtual Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsSource => null;
 
-    private List<DataAggregateField> AggregateFields() =>
+    private protected List<DataAggregateField> AggregateFields() =>
         Shown.Where(c => c.EffectiveAggregate is not null).Select(c => new DataAggregateField(c.AggregateKey, c.EffectiveAggregate!.Value)).ToList();
 
     /// <inheritdoc />
     internal override string? LoadProblem =>
-        ItemsProvider is not null && GroupsSource is null && Shown.Any(c => c.EffectiveAggregate is not null)
-            ? $"A {ViewName} with an {nameof(ColumnBase<TItem>.Aggregate)} and an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
-            : null;
+        ItemsProvider is null || GroupsSource is not null ? null
+        : GroupedNow ? $"A {ViewName} that groups and has an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
+        : Shown.Any(c => c.EffectiveAggregate is not null) ? $"A {ViewName} with an {nameof(ColumnBase<TItem>.Aggregate)} and an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
+        : null;
 
-    private ValueTask<DataGroupResult> LoadGroupsAsync(DataGroupRequest<TItem> request) =>
+    /// <summary>The rows in their groups, in place of the rows; null when there are no groups to draw.</summary>
+    internal virtual RenderFragment? GroupRows => null;
+
+    /// <summary>Whether the rows are grouped by this column.</summary>
+    internal virtual bool GroupsBy(ColumnBase<TItem> column) => false;
+
+    private protected ValueTask<DataGroupResult> LoadGroupsAsync(DataGroupRequest<TItem> request) =>
         GroupsSource is { } source && ItemsProvider is not null
             ? source(request)
             : ValueTask.FromResult(request.ToResult(AsQuery(SourceItems ?? [])));
