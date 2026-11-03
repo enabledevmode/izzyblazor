@@ -1858,6 +1858,13 @@
     border-bottom-color: transparent;
   }
 
+  /* Above a sticky head's scrollbar, which starts under it, the band goes on to the edge. */
+  .ib-table-sticky.ib-datagrid > .ib-table-scroll {
+    background-image: linear-gradient(var(--ib-datagrid-head-bg), var(--ib-datagrid-head-bg));
+    background-size: 100% var(--ib-table-head-h);
+    background-repeat: no-repeat;
+  }
+
   .ib-table-striped.ib-datagrid > * > .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {
     --ib-frozen-tint: var(--ib-table-stripe);
   }
