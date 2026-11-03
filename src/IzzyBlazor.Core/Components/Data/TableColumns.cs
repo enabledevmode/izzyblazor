@@ -166,10 +166,50 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public bool Groupable { get; set; } = true;
 
-    internal bool CanGroup => Groupable && Key is not null && GroupType is not null;
+    /// <summary>
+    /// What to group by, when it isn't the column's value: for a <see cref="TemplateColumn{TItem}"/>, or a
+    /// coarser key such as <c>o =&gt; o.Placed.Year</c>. It runs in the database, so keep it to what yours can
+    /// translate. "Show only this group" isn't offered, as no filter on the column can say it.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? GroupBy { get; set; }
+
+    /// <summary>A .NET format string for a group's value. Defaults to the column's own when it has no <see cref="GroupBy"/>.</summary>
+    [Parameter] public string? GroupFormat { get; set; }
+
+    /// <summary>A group's label, in place of the column's title and the value. The count stays beside it.</summary>
+    [Parameter] public RenderFragment<DataGridGroup>? GroupTemplate { get; set; }
+
+    /// <summary>The aggregate's cell, in place of its word and value: the group's <c>Values</c> hold it, by the column's key. In the footer, the group is all the rows.</summary>
+    [Parameter] public RenderFragment<DataGroup>? AggregateTemplate { get; set; }
+
+    internal bool CanGroup => Groupable && GroupType is not null;
+
+    /// <summary>Its name in the grouping: a template column needn't have a key.</summary>
+    internal string GroupToken => AggregateKey;
+
+    /// <summary>The field a group request names.</summary>
+    internal string GroupField => GroupBy is null ? GroupToken : $"{GroupToken}.group";
+
+    // Without the box a lambda to object puts on: a group compares the value itself.
+    private LambdaExpression? GroupByValue => GroupBy is null ? null
+        : GroupBy.Body is UnaryExpression { NodeType: ExpressionType.Convert } box ? Expression.Lambda(box.Operand, GroupBy.Parameters) : GroupBy;
 
     /// <summary>The type of the value it groups by, or null when it can't.</summary>
-    internal virtual Type? GroupType => null;
+    internal Type? GroupType => GroupBy is null ? OwnGroupType : FilterConvert.KindOf(GroupByValue!.ReturnType) == FieldKind.None ? null : GroupByValue.ReturnType;
+
+    /// <summary>The type of the column's own value, if it can group by it.</summary>
+    private protected virtual Type? OwnGroupType => null;
+
+    /// <summary>A field for <see cref="GroupBy"/>, which isn't the column's own.</summary>
+    internal DataField<TItem>? GroupByField => GroupByValue is not { } value || GroupType is null ? null : new()
+    {
+        Key = GroupField,
+        Value = value,
+        Caption = HeaderText,
+        Sortable = true,
+        Filterable = true,
+        Groupable = true,
+    };
 
     /// <summary>A group's value as the column's type: it may have come over the wire.</summary>
     internal object? GroupValue(object? value)
@@ -180,11 +220,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>A group's value for people, in the column's format.</summary>
     internal string? GroupText(object? value) =>
-        value is null ? null : ValueFormat is { } format && value is IFormattable formattable ? formattable.ToString(format, CultureInfo.CurrentCulture) : value.ToString();
+        value is null ? null : (GroupFormat ?? (GroupBy is null ? ValueFormat : null)) is { } format && value is IFormattable formattable ? formattable.ToString(format, CultureInfo.CurrentCulture) : value.ToString();
 
     /// <summary>The operators for a request: an open group finds its rows by equality, whatever people can choose.</summary>
     private protected IReadOnlyList<FilterOperator>? RequestOperators(IReadOnlyList<FilterOperator>? operators) =>
-        operators is null || Table?.GroupsBy(this) != true || operators.Contains(FilterOperator.Equals) ? operators : [.. operators, FilterOperator.Equals];
+        operators is null || GroupBy is not null || Table?.GroupsBy(this) != true || operators.Contains(FilterOperator.Equals) ? operators : [.. operators, FilterOperator.Equals];
 
     internal DataAggregate? EffectiveAggregate => AggregateBy is not null ? DataAggregate.Custom : Aggregate;
 
@@ -441,7 +481,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (EffectiveAggregate, AggregateFormat, AggregateLabel, Groupable));
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (EffectiveAggregate, AggregateFormat, AggregateLabel, Groupable, GroupFormat, GroupBy is not null));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -500,7 +540,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     internal override string? ValueFormat => Format;
 
     /// <inheritdoc />
-    internal override Type? GroupType => FilterConvert.KindOf(typeof(TValue)) == FieldKind.None ? null : typeof(TValue);
+    private protected override Type? OwnGroupType => FilterConvert.KindOf(typeof(TValue)) == FieldKind.None ? null : typeof(TValue);
 
     /// <inheritdoc />
     protected override string? AggregateProblem => Aggregate switch
@@ -573,9 +613,9 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         Caption = HeaderText,
         Format = Format,
         Sortable = CanSort,
-        Filterable = CanFilter || Table?.GroupsBy(this) == true,
+        Filterable = CanFilter || (GroupBy is null && Table?.GroupsBy(this) == true),
         Searchable = FilterKind == ColumnFilterKind.Text,
-        Groupable = CanGroup,
+        Groupable = GroupBy is null && CanGroup,
         Aggregatable = EffectiveAggregate is not null,
         AggregateBy = AggregateBy,
         Operators = RequestOperators(ColumnFilter.FieldOperators(this)),

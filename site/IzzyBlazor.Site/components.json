@@ -1564,6 +1564,8 @@
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
         { "feature": "Frozen columns" },
+        { "feature": "Groups from all the data, a page of them, each opened by a link", "member": "Groupable" },
+        { "feature": "Aggregates over everything the filters match, in the footer and on groups", "member": "GroupsProvider" },
         { "feature": "Virtual rows on interactive pages, loading on scroll on static ones", "member": "Virtualize" },
         { "feature": "A toolbar with search in the address, its tools placed among yours" },
         { "feature": "CSV and Excel export, streamed from an endpoint you map", "member": "ExportCsvHref" },
@@ -1606,6 +1608,13 @@
             "noscript": "Press Apply to submit it." } },
             { "id": "data-grid-filter-builder", "title": "A filter builder", "lead": "Use `FilterBuilder` for a button that opens groups of conditions, for what a column's filter can't hold, such as this or that across columns. It applies along with the columns' filters.",
           "notes": { "noscript": "The button is hidden. A `?filter=` link still applies." } }
+          ]
+        },
+        {
+          "id": "grouping", "title": "Grouping and aggregates", "summary": "Group by columns, a page of groups at a time, with totals over all the data.",
+          "examples": [
+            { "id": "data-grid-grouping", "title": "Groups", "lead": "Use `Groupable` to let people group from a header's menu, and `InitialGroup` to start grouped. Both are in the address, as `?group=status`, and a group's row is a link that opens it, so this works on a static page with no script. A page counts top-level groups, so a group is never split, and a group's count is the whole group's. With an `ItemsProvider`, add a `GroupsProvider`: rows still come from your provider, with the group's value in the filter." },
+            { "id": "data-grid-aggregates", "title": "Aggregates", "lead": "Use `Aggregate` on a column for a sum, average, lowest, highest or count, or `AggregateBy` for your own, as an expression that runs in the database. It covers every row the filters match, and shows in the footer and on each group's row." }
           ]
         },
         {

@@ -51,6 +51,16 @@ class Grid extends IzzyElement {
     if (!table) return;
     this.#table = table;
     table.setAttribute("role", "grid");
+    // A group's box ticks the rows drawn under it, and they report their own changes.
+    this.#on(table, "change", (event) => {
+      const box = event.target as HTMLInputElement;
+      if (box.matches(".ib-table-group-select")) {
+        // Each click comes back here, and would change the box along the way.
+        const on = box.checked;
+        for (const own of this.#underGroup(box)) if (!own.disabled && own.checked !== on) own.click();
+      }
+      this.#syncSelected();
+    });
 
     // Cells scroll into view by focus, so the scroll box needs no Tab stop of its own. Still
     // focusable: focus goes there after Retry, and on to a cell.
@@ -255,6 +265,8 @@ class Grid extends IzzyElement {
   #prepare(): void {
     const table = this.#table;
     if (!table) return;
+    // Group rows have levels, which ARIA only allows on a row in a treegrid.
+    table.setAttribute("role", table.querySelector("tr[aria-level]") ? "treegrid" : "grid");
     if (table.closest("ib-table")?.querySelector(".ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
     else table.removeAttribute("aria-multiselectable");
 
@@ -364,6 +376,21 @@ class Grid extends IzzyElement {
       const box = row.querySelector<HTMLInputElement>(":scope > td > .ib-table-select");
       if (box) row.setAttribute("aria-selected", String(box.checked));
     }
+    for (const box of this.#table?.querySelectorAll<HTMLInputElement>(".ib-table-group-select") ?? []) {
+      const under = this.#underGroup(box);
+      box.checked = under.length > 0 && under.every((b) => b.checked || b.disabled);
+    }
+  }
+
+  // The boxes of the rows drawn under a group: the rows after its own, down to one no deeper.
+  #underGroup(box: HTMLInputElement): HTMLInputElement[] {
+    const row = box.closest("tr")!;
+    const boxes = [];
+    for (let next = row.nextElementSibling; next && Number(next.getAttribute("aria-level") ?? 99) > Number(row.getAttribute("aria-level")); next = next.nextElementSibling) {
+      const own = next.querySelector<HTMLInputElement>(":scope > td > .ib-table-select");
+      if (own) boxes.push(own);
+    }
+    return boxes;
   }
 
   #onFocusIn(event: FocusEvent): void {
@@ -488,7 +515,7 @@ class Grid extends IzzyElement {
 
   // An open list or picker has the keys first: Escape closes it, and focus stays.
   #isOpen(target: HTMLElement): boolean {
-    if (target.getAttribute("aria-expanded") === "true") return true;
+    if (target.getAttribute("aria-expanded") === "true" && !target.matches(".ib-grid-group-toggle")) return true;
     const select = target.closest("select");
     if (!select) return false;
     try {
@@ -642,6 +669,11 @@ class Grid extends IzzyElement {
       case "ArrowRight":
       case "ArrowLeft": {
         const forward = (event.key === "ArrowRight") !== rtl;
+        // A group's label opens and closes it, as a treegrid's first cell does.
+        if (cell.tagName === "TH" && row.getAttribute("aria-expanded") === String(!forward)) {
+          cell.querySelector<HTMLElement>(".ib-grid-group-toggle")?.click();
+          return true;
+        }
         this.#focusCell(cells[cells.indexOf(cell) + (forward ? 1 : -1)]);
         return true;
       }

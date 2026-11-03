@@ -1,0 +1,10 @@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@* The footer covers every order the filters match, not just this page. Filter by status and it follows. *@
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with totals" QueryPrefix="totals-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Aggregate="DataAggregate.Count" AggregateLabel="" />
+    <PropertyColumn Property="o => o.Customer" />
+    <PropertyColumn Property="o => o.Status" Filterable />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Aggregate="DataAggregate.Max" AggregateLabel="Latest" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="10.Rem" Aggregate="DataAggregate.Sum" />
+    <TemplateColumn Title="Average" Width="9.Rem" AggregateBy="g => g.Average(o => o.Total)" AggregateFormat="C">@context.Total.ToString("C")</TemplateColumn>
+</DataGrid>

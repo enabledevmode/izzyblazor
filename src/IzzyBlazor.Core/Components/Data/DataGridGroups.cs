@@ -6,6 +6,24 @@ namespace IzzyBlazor;
 // A grid's groups: what's grouped and open (the address, or state when bound), and loading a page of
 // groups. A page counts top-level groups. An open group's rows are one ordinary request, with its
 // values in the filter, so an ItemsProvider needn't know about groups.
+/// <summary>Where a <c>DataGrid</c> draws a group's aggregates.</summary>
+public enum DataGridGroupAggregates
+{
+    /// <summary>On the group's own row, in their columns, whether it's open or not. The default.</summary>
+    Row,
+
+    /// <summary>On a row under the group's rows, while it's open.</summary>
+    Footer,
+}
+
+/// <summary>A group, for a column's <c>GroupTemplate</c>.</summary>
+/// <param name="Value">Its value, or null for none.</param>
+/// <param name="Text">Its value as the column shows it.</param>
+/// <param name="Group">Its count and aggregates, for the whole group.</param>
+/// <param name="Level">Its level, from 0.</param>
+/// <param name="IsOpen">Whether it's open.</param>
+public sealed record DataGridGroup(object? Value, string Text, DataGroup Group, int Level, bool IsOpen);
+
 /// <summary>A grid's groups.</summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
 public partial class DataGrid<TItem>
@@ -52,6 +70,9 @@ public partial class DataGrid<TItem>
     /// showing only that group, with the grid's pages. Defaults to 100.
     /// </summary>
     [Parameter] public int GroupRowLimit { get; set; } = 100;
+
+    /// <summary>Where a group's aggregates are drawn: on its own row, or under its rows when it's open.</summary>
+    [Parameter] public DataGridGroupAggregates GroupAggregates { get; set; }
 
     /// <summary>Keeps a grouped column in the table. By default it leaves, as each group's row says its value.</summary>
     [Parameter] public bool ShowGroupedColumns { get; set; }
@@ -142,10 +163,10 @@ public partial class DataGrid<TItem>
             foreach (var token in SortField.ParseList(text))
             {
                 if (levels.Count < DataGroupRequest<TItem>.MaxLevels
-                    && Columns.FirstOrDefault(c => c.CanGroup && string.Equals(c.Key, token.Key, StringComparison.OrdinalIgnoreCase)) is { } column
+                    && Columns.FirstOrDefault(c => c.CanGroup && string.Equals(c.GroupToken, token.Key, StringComparison.OrdinalIgnoreCase)) is { } column
                     && levels.All(l => l.Column != column))
                 {
-                    levels.Add(new GroupLevel(column, column.Key!, token.Descending));
+                    levels.Add(new GroupLevel(column, column.GroupField, token.Descending));
                 }
             }
 
@@ -324,7 +345,7 @@ public partial class DataGrid<TItem>
         for (var i = 0; i < node.Group.Keys.Count; i++)
         {
             var column = levels[i].Column;
-            if (!column.CanFilter || column.GroupValue(node.Group.Keys[i]) is not { } value || !(column.FilterKind == ColumnFilterKind.Choice || ColumnFilter.OperatorsOf(column).Contains(FilterOperator.Equals)))
+            if (!column.CanFilter || column.GroupBy is not null || column.GroupValue(node.Group.Keys[i]) is not { } value || !(column.FilterKind == ColumnFilterKind.Choice || ColumnFilter.OperatorsOf(column).Contains(FilterOperator.Equals)))
             {
                 return null;
             }
@@ -387,8 +408,8 @@ public partial class DataGrid<TItem>
     // The grouping with this column added at the end, or taken out.
     private string GroupTextWith(ColumnBase<TItem> column, bool on)
     {
-        var tokens = Grouping.Levels.Where(l => l.Column != column).Select(l => (l.Descending ? "-" : "") + l.Field);
-        return string.Join(",", on ? tokens.Append(column.Key!) : tokens);
+        var tokens = Grouping.Levels.Where(l => l.Column != column).Select(l => (l.Descending ? "-" : "") + l.Column.GroupToken);
+        return string.Join(",", on ? tokens.Append(column.GroupToken) : tokens);
     }
 
     // A new grouping starts at the first page with nothing open. None at all is an empty value, or
