@@ -34,6 +34,10 @@ public static class Sitemap
             foreach (var topic in component.Topics)
             {
                 yield return Registry.TopicHref(component, topic);
+                if (topic.Members.Count > 0)
+                {
+                    yield return Registry.TopicApiHref(component, topic);
+                }
             }
         }
 

@@ -1560,7 +1560,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "preview": true, "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "A table with state in the URL, widths set by the server, and sorting by several columns.", "keywords": [],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Edit, group, filter by row and arrange columns, with state in the URL.", "keywords": [],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },

@@ -21,7 +21,11 @@ public sealed record DataGridAggregate(DataAggregate Type, object? Value, string
 /// <param name="IsOpen">Whether it's open.</param>
 public sealed record DataGridGroup(object? Value, string Text, DataGroup Group, int Level, bool IsOpen);
 
-/// <summary>A grid's groups.</summary>
+/// <summary>
+/// A data grid with editing, grouping, filters and columns people arrange, its state in the address
+/// so it works on static pages too. Cells take arrow keys, a row can open a detail, columns hide to fit
+/// a phone, and it exports to CSV and Excel.
+/// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
 public partial class DataGrid<TItem>
 {
