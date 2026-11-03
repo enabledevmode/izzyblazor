@@ -87,12 +87,12 @@ public sealed class DataGroupTests : IDisposable
         foreach (var east in new[] { Both(request).List.Groups.Single(), Both(request).Database.Groups.Single() })
         {
             Assert.Equal(2, east.Count);
-            Assert.Equal(6, Convert.ToInt32(east.Values["units"]));
-            Assert.Equal(15m, Convert.ToDecimal(east.Values["price"]));
-            Assert.Equal(new DateOnly(2026, 1, 6), east.Values["day"]);
-            Assert.Equal("Ada", east.Values["rep"]);
-            Assert.Equal(2, Convert.ToInt32(east.Values["id"]));
-            Assert.Equal(3d, Convert.ToDouble(east.Values["weighted"]));
+            Assert.Equal(6, Convert.ToInt32(east.Values["units:sum"]));
+            Assert.Equal(15m, Convert.ToDecimal(east.Values["price:avg"]));
+            Assert.Equal(new DateOnly(2026, 1, 6), east.Values["day:max"]);
+            Assert.Equal("Ada", east.Values["rep:min"]);
+            Assert.Equal(2, Convert.ToInt32(east.Values["id:count"]));
+            Assert.Equal(3d, Convert.ToDouble(east.Values["weighted:custom"]));
         }
     }
 
@@ -105,7 +105,7 @@ public sealed class DataGroupTests : IDisposable
         foreach (var result in new[] { Both(all).List, Both(all).Database })
         {
             Assert.Equal(6, result.Groups.Single().Count);
-            Assert.Equal(21, Convert.ToInt32(result.Groups.Single().Values["units"]));
+            Assert.Equal(21, Convert.ToInt32(result.Groups.Single().Values["units:sum"]));
         }
 
         foreach (var result in new[] { Both(none).List, Both(none).Database })
@@ -164,7 +164,7 @@ public sealed class DataGroupTests : IDisposable
         var group = forged.ToResult(Sales.AsQueryable(), allowed).Groups[0];
         Assert.Single(group.Keys);
         Assert.Equal("East", group.Keys[0]);
-        Assert.Equal(["units"], group.Values.Keys);
+        Assert.Equal(["units:max"], group.Values.Keys);
     }
 
     public sealed class Sale

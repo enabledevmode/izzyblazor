@@ -7,5 +7,6 @@
     <PropertyColumn Property="o => o.Customer" Sortable />
     <PropertyColumn Property="o => o.Status" Filterable />
     <PropertyColumn Property="o => o.Date" Format="MMM d" GroupBy="o => o.Date.Month" GroupFormat="0" Title="Placed" />
-    <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" Aggregate="DataAggregate.Sum" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="10.Rem"
+                    GroupAggregate="DataAggregate.Max" GroupFooterAggregate="DataAggregate.Sum" Aggregate="DataAggregate.Sum" />
 </DataGrid>

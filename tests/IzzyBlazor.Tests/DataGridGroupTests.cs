@@ -38,6 +38,7 @@ public class DataGridGroupTests : BunitContext
         builder.OpenComponent<PropertyColumn<Sale, int>>(6);
         builder.AddComponentParameter(7, "Property", (Expression<Func<Sale, int>>)(s => s.Units));
         builder.AddComponentParameter(8, "Aggregate", (DataAggregate?)DataAggregate.Sum);
+        builder.AddComponentParameter(9, "GroupAggregate", (DataAggregate?)DataAggregate.Sum);
         builder.CloseComponent();
     };
 
@@ -54,7 +55,9 @@ public class DataGridGroupTests : BunitContext
     }
 
     private static string[] Rows(IRenderedComponent<DataGrid<Sale>> cut) =>
-        cut.FindAll("tbody tr").Select(r => r.ClassList.Contains("ib-grid-group") ? "g:" + r.QuerySelector("th a,th button")!.TextContent.Trim().Split(':')[1].Trim() : "r:" + r.Children[0].TextContent).ToArray();
+        cut.FindAll("tbody tr").Select(r => r.ClassList.Contains("ib-grid-group")
+            ? "g:" + System.Text.RegularExpressions.Regex.Replace(r.QuerySelector("th a,th button")!.TextContent.Trim().Split(':', 2)[1].Trim(), @"\s*\(\d+\)$", "")
+            : "r:" + r.QuerySelectorAll("td").First(c => !c.ClassList.Contains("ib-grid-lead") && !c.ClassList.Contains("ib-table-select-cell")).TextContent).ToArray();
 
     [Fact]
     public void A_page_counts_top_level_groups_and_a_grouped_column_leaves()
@@ -82,9 +85,9 @@ public class DataGridGroupTests : BunitContext
         Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North" }, Rows(cut));
         var group = cut.Find("tr.ib-grid-group");
         Assert.Equal("true", group.GetAttribute("aria-expanded"));
-        Assert.Equal("3", group.QuerySelector(".ib-grid-group-count")!.TextContent);
-        Assert.Equal("Sum 7", group.Children[^1].TextContent.Trim());
-        Assert.Equal("Sum 21", cut.FindAll("tfoot td")[^1].TextContent.Trim());
+        Assert.EndsWith("(3)", group.QuerySelector("th a")!.TextContent.Trim());
+        Assert.Equal("Sum: 7", group.Children[^1].TextContent.Trim());
+        Assert.Equal("Sum: 21", cut.FindAll("tfoot td")[^1].TextContent.Trim());
 
         // And the same link closes it.
         cut = Grid(cut.Find("tr.ib-grid-group a").GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
@@ -176,14 +179,14 @@ public class DataGridGroupTests : BunitContext
             builder.CloseComponent();
             builder.OpenComponent<PropertyColumn<Sale, int>>(7);
             builder.AddComponentParameter(8, "Property", (Expression<Func<Sale, int>>)(s => s.Units));
-            builder.AddComponentParameter(9, "Aggregate", (DataAggregate?)DataAggregate.Max);
+            builder.AddComponentParameter(9, "GroupFooterAggregate", (DataAggregate?)DataAggregate.Max);
             builder.CloseComponent();
         };
 
-        var cut = Grid("/sales?group=Size&open=1", p => p.Add(x => x.GroupAggregates, DataGridGroupAggregates.Footer), columns);
+        var cut = Grid("/sales?group=Size&open=1", null, columns);
 
         Assert.Equal(new[] { "g:0.0", "g:1.0", "r:2", "r:5", "r:6", "g:2.0" }, Rows(cut).Where(r => r != "r:").ToArray());
-        Assert.Equal("Max 5", cut.Find("tr.ib-grid-group-foot").Children[^1].TextContent.Trim());
+        Assert.Equal("Max: 5", cut.Find("tr.ib-grid-group-foot").Children[^1].TextContent.Trim());
     }
 
     [Fact]
@@ -193,7 +196,7 @@ public class DataGridGroupTests : BunitContext
         {
             builder.OpenComponent<PropertyColumn<Sale, int>>(0);
             builder.AddComponentParameter(1, "Property", (Expression<Func<Sale, int>>)(s => s.Units));
-            builder.AddComponentParameter(2, "Aggregate", (DataAggregate?)DataAggregate.Sum);
+            builder.AddComponentParameter(2, "GroupAggregate", (DataAggregate?)DataAggregate.Sum);
             builder.CloseComponent();
             builder.OpenComponent<TemplateColumn<Sale>>(3);
             builder.AddComponentParameter(4, "Title", "Who");
@@ -205,7 +208,7 @@ public class DataGridGroupTests : BunitContext
         var cut = Grid("/sales?group=Who", null, columns);
 
         Assert.Equal(new[] { "g:East/Coast", "g:North", "g:West" }, Rows(cut));
-        Assert.Contains("Sum 7", cut.Find("tr.ib-grid-group").TextContent);
+        Assert.Contains("Sum: 7", cut.Find("tr.ib-grid-group").TextContent);
     }
 
     [Fact]
@@ -293,7 +296,8 @@ public class DataGridGroupTests : BunitContext
         Assert.Equal(new[] { "g:East/Coast", "g:North" }, Rows(cut));
         Assert.DoesNotContain("page=", Nav.Uri);
 
-        var all = cut.FindAll(".ib-grid-group-bar a").First(a => a.TextContent.Contains("Expand all"));
+        var all = cut.Find("thead .ib-grid-group-all");
+        Assert.Equal("Expand all groups", all.GetAttribute("aria-label"));
         cut = Grid(all.GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
         Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North", "r:4" }, Rows(cut));
 
@@ -314,7 +318,7 @@ public class DataGridGroupTests : BunitContext
             .Add(x => x.GroupsOpen, true));
         Assert.Contains("r:1", Rows(cut));
 
-        cut.FindAll(".ib-grid-group-bar button").First(b => b.TextContent.Contains("Collapse all")).Click();
+        cut.Find("thead button.ib-grid-group-all").Click();
         Assert.DoesNotContain("r:1", Rows(cut));
 
         cut.Find("tr.ib-grid-group button").Click();

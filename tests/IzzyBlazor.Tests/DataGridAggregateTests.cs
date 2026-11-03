@@ -43,7 +43,7 @@ public class DataGridAggregateTests : BunitContext
         var cells = cut.FindAll("tfoot td");
         Assert.Equal(2, cut.FindAll("tbody tr").Count);
         Assert.Equal("Total", cells[0].TextContent);
-        Assert.Equal("Sum 10.0", cells[1].TextContent.Trim());
+        Assert.Equal("Sum: 10.0", cells[1].TextContent.Trim());
         Assert.Equal("300", cells[2].TextContent.Trim());
     }
 
@@ -56,14 +56,14 @@ public class DataGridAggregateTests : BunitContext
             .Add(x => x.GroupsProvider, r =>
             {
                 asked = r;
-                return ValueTask.FromResult(new DataGroupResult([new DataGroup([], 4) { Values = new Dictionary<string, object?> { ["qty"] = JsonSerializer.Deserialize<JsonElement>("99") } }]));
+                return ValueTask.FromResult(new DataGroupResult([new DataGroup([], 4) { Values = new Dictionary<string, object?> { ["qty:sum"] = JsonSerializer.Deserialize<JsonElement>("99") } }]));
             })
             .Add(x => x.PageSize, 2)
             .Add(x => x.ChildContent, Columns));
 
         Assert.Empty(asked!.Keys);
         Assert.Contains(new DataAggregateField("qty", DataAggregate.Sum), asked.Aggregates);
-        Assert.Equal("Sum 99.0", cut.FindAll("tfoot td")[1].TextContent.Trim());
+        Assert.Equal("Sum: 99.0", cut.FindAll("tfoot td")[1].TextContent.Trim());
     }
 
     [Fact]

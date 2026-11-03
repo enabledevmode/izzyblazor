@@ -1319,15 +1319,14 @@
 
     private RenderFragment GroupRow(GroupNode node) => __builder =>
     {
-        // The label spans up to the first aggregate, which sits in its own column.
+        // The label starts in the lead column of its level and spans up to the first aggregate, which
+        // sits in its own column. One in the first column has no cell of its own: it goes after the label.
         var shown = Shown.ToList();
-        var inRow = GroupAggregates == DataGridGroupAggregates.Row;
-        var first = inRow ? shown.FindIndex(c => c.EffectiveAggregate is not null) : -1;
-        // One in the first column has no cell of its own: it goes beside the count.
-        var next = first == 0 ? shown.FindIndex(1, c => c.EffectiveAggregate is not null) : first;
+        var first = shown.FindIndex(c => c.AggregateIn(AggregatePlace.GroupRow) is not null);
+        var next = first == 0 ? shown.FindIndex(1, c => c.AggregateIn(AggregatePlace.GroupRow) is not null) : first;
         var span = next < 0 ? shown.Count : next;
         var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
-        <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize" style="--ib-group-depth:@node.Depth">
+        <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -1338,7 +1337,11 @@
                     }
                 </td>
             }
-            <th scope="row" colspan="@span">
+            @if (node.Depth > 0)
+            {
+                <td class="@LeadClass" colspan="@node.Depth"></td>
+            }
+            <th scope="row" colspan="@(LeadSpan - node.Depth + span)" style="@LabelAt(node.Depth)">
                 @* Sticks, as the cell is as wide as its columns and a frozen column may be under it. *@
                 <span class="ib-grid-group-label">
                     @if (UseState)
@@ -1355,16 +1358,15 @@
                             @GroupLabel(node, value)
                         </a>
                     }
-                    <span class="ib-grid-group-count">@node.Group.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)</span>
                     @if (first == 0)
                     {
-                        <span class="ib-grid-group-count">@AggregateCell(shown[0], node.Group)</span>
+                        <span class="ib-grid-group-aggregate">@AggregateCell(shown[0], node.Group, AggregatePlace.GroupRow)</span>
                     }
                 </span>
             </th>
             @foreach (var column in Shown.Skip(span))
             {
-                <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group)</td>
+                <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group, AggregatePlace.GroupRow)</td>
             }
             @LastEmptyCell
         </tr>
@@ -1380,16 +1382,17 @@
                 @DataRow(node.Rows[i], node.FirstRow + i, null, node.Depth + 1)
             }
 
-            if (GroupAggregates == DataGridGroupAggregates.Footer && AggregateFields().Count > 0)
+            if (Shown.Any(c => c.AggregateIn(AggregatePlace.GroupFooter) is not null))
             {
-                <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)" style="--ib-group-depth:@(node.Depth + 1)">
+                <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)">
                     @if (Selectable)
                     {
                         <td class="@SelectCellClass"></td>
                     }
+                    @LeadCell
                     @foreach (var column in Shown)
                     {
-                        <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group)</td>
+                        <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group, AggregatePlace.GroupFooter)</td>
                     }
                     @LastEmptyCell
                 </tr>
@@ -1397,8 +1400,13 @@
 
             if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
             {
-                <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)" style="--ib-group-depth:@(node.Depth + 1)">
-                    <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + (LastEmptyCell is null ? 0 : 1))">
+                <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)">
+                    @if (Selectable)
+                    {
+                        <td class="@SelectCellClass"></td>
+                    }
+                    @LeadCell
+                    <td colspan="@(Shown.Count + (LastEmptyCell is null ? 0 : 1))">
                         @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupShowing, node.Rows.Count, node.Group.Count)
                         @if (OnlyThisGroup(node) is { } only)
                         {
@@ -1426,10 +1434,48 @@
         }
         else
         {
-            <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span>
-            @(" ")
-            @value
+            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupLabel, node.Level.Column.HeaderText, value)
         }
+
+        @(" ")
+        @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupCount, node.Group.Count)
+    };
+
+    /// <inheritdoc />
+    internal override int LeadSpan => Grouping.Levels.Count;
+
+    // The lead columns hold the groups' chevrons: frozen with the start columns, after the selection.
+    private string LeadClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-lead ib-frozen ib-frozen-start" : "ib-grid-lead";
+
+    private string? LeadStyle => Selectable && Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "--ib-frozen-at:var(--ib-datagrid-select)" : null;
+
+    // Where a label sticks: past the selection and the lead columns of the levels above it.
+    private string LabelAt(int depth) =>
+        $"--ib-group-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{depth} * var(--ib-datagrid-group))";
+
+    /// <inheritdoc />
+    internal override RenderFragment? LeadCell => LeadSpan == 0 ? null : __builder =>
+    {
+        <td class="@LeadClass" style="@LeadStyle" colspan="@LeadSpan"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LeadHeader => LeadSpan == 0 ? null : __builder =>
+    {
+        // One control opens or closes them all.
+        var state = Grouping;
+        var all = state.AllOpen && state.Shut.Count == 0;
+        var label = all ? TextDefaults.GroupCollapseAll : TextDefaults.GroupExpandAll;
+        <th scope="col" class="@LeadClass" style="@LeadStyle" colspan="@LeadSpan">
+            @if (UseState)
+            {
+                <button type="button" class="ib-grid-group-all" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetAllOpenAsync(!all)"><Icon Role="IconRole.ChevronRight" /></button>
+            }
+            else
+            {
+                <a class="ib-grid-group-all" href="@AllOpenHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
+            }
+        </th>
     };
 
     /// <inheritdoc />
@@ -1932,25 +1978,20 @@
             </div>
         }
 
-        if (GroupedNow)
+        if (GroupedNow && Groupable)
         {
             @GroupBar
         }
     };
 
-    // What's grouped, each removable when people can change it, and open or close them all.
+    // What's grouped, as chips people can remove: only where they can change it.
     private RenderFragment GroupBar => __builder =>
     {
         <div class="ib-grid-group-bar" role="group" aria-label="@TextDefaults.GroupedBy">
-            <span class="ib-grid-group-column">@TextDefaults.GroupedBy</span>
             @foreach (var level in Grouping.Levels)
             {
                 var column = level.Column;
-                @if (!Groupable)
-                {
-                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" />
-                }
-                else if (UseState)
+                @if (UseState)
                 {
                     <Tag Label="@column.HeaderText" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
                 }
@@ -1958,16 +1999,6 @@
                 {
                     <Tag Label="@column.HeaderText" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
                 }
-            }
-            @if (UseState)
-            {
-                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" OnClick="() => SetAllOpenAsync(true)">@TextDefaults.GroupExpandAll</Button>
-                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" OnClick="() => SetAllOpenAsync(false)">@TextDefaults.GroupCollapseAll</Button>
-            }
-            else
-            {
-                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" Href="@AllOpenHref(true)">@TextDefaults.GroupExpandAll</Button>
-                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" Href="@AllOpenHref(false)">@TextDefaults.GroupCollapseAll</Button>
             }
         </div>
     };
@@ -2037,6 +2068,10 @@
             {
                 <col class="ib-datagrid-select-col" />
             }
+            @for (var i = 0; i < LeadSpan; i++)
+            {
+                <col class="ib-grid-lead-col" />
+            }
             @for (var i = 0; i < Shown.Count; i++)
             {
                 <col style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
@@ -2084,6 +2119,8 @@
             {
                 parts.Add("var(--ib-datagrid-select)");
             }
+
+            parts.AddRange(Enumerable.Repeat("var(--ib-datagrid-group)", LeadSpan));
 
             if (HasActionCell)
             {
@@ -2156,6 +2193,7 @@
                 parts.Add("var(--ib-datagrid-select)");
             }
 
+            parts.AddRange(Enumerable.Repeat("var(--ib-datagrid-group)", LeadSpan));
             for (var i = 0; i < index; i++)
             {
                 parts.Add($"var(--ib-col-{i})");
