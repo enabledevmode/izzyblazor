@@ -1559,25 +1559,36 @@
     margin-block-end: var(--ib-space-2);
   }
 
+  .ib-grid-group-label {
+    position: sticky;
+    inset-inline-start: calc(var(--ib-datagrid-select, 0px) + var(--ib-table-px));
+  }
+
   .ib-grid-group > th {
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 1.25rem);
+    border-bottom-color: var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
+    overflow: visible;
+    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
     background-color: var(--ib-color-surface-sunken);
     text-align: start;
     font-weight: var(--ib-weight-semibold);
   }
 
-  .ib-grid-group > td {
+  :is(.ib-grid-group, .ib-grid-group-foot) > td {
     background-color: var(--ib-color-surface-sunken);
     font-weight: var(--ib-weight-semibold);
   }
 
+  .ib-grid-group:last-child > th {
+    border-bottom: 0;
+  }
+
   .ib-grid-group-more > td {
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 1.25rem);
+    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
     color: var(--ib-color-muted);
   }
 
   tr[data-ib-grouped] > td:not(.ib-table-select-cell):is(:first-child, .ib-table-select-cell + td) {
-    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 1.25rem);
+    padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 0.75rem);
   }
 
   .ib-grid-group-toggle {
@@ -1697,14 +1708,14 @@
 
   /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset. */
   .ib-table-select,
-  .ib-table-select-all {
+  :is(.ib-table-select-all, .ib-table-group-select) {
     --ib-check-size: 1rem;
     margin: 0;
     margin-block-start: 0;
   }
 
   /* Select-all only works with script. */
-  ib-table:not([data-ready]) .ib-table-select-all {
+  ib-table:not([data-ready]) :is(.ib-table-select-all, .ib-table-group-select) {
     visibility: hidden;
   }
 

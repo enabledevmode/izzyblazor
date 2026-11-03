@@ -161,6 +161,32 @@ public class DataGridGroupTests : BunitContext
     }
 
     [Fact]
+    public void A_template_column_groups_by_a_computed_key_with_aggregates_under_the_rows()
+    {
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Sale, int>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Sale, int>>)(s => s.Id));
+            builder.CloseComponent();
+            builder.OpenComponent<TemplateColumn<Sale>>(2);
+            builder.AddComponentParameter(3, "Title", "Size");
+            builder.AddComponentParameter(4, "GroupBy", (Expression<Func<Sale, object?>>)(s => s.Units / 3));
+            builder.AddComponentParameter(5, "GroupFormat", "0.0");
+            builder.AddComponentParameter(6, "ChildContent", (RenderFragment<Sale>)(s => b => b.AddContent(0, s.Units)));
+            builder.CloseComponent();
+            builder.OpenComponent<PropertyColumn<Sale, int>>(7);
+            builder.AddComponentParameter(8, "Property", (Expression<Func<Sale, int>>)(s => s.Units));
+            builder.AddComponentParameter(9, "Aggregate", (DataAggregate?)DataAggregate.Max);
+            builder.CloseComponent();
+        };
+
+        var cut = Grid("/sales?group=Size&open=1", p => p.Add(x => x.GroupAggregates, DataGridGroupAggregates.Footer), columns);
+
+        Assert.Equal(new[] { "g:0.0", "g:1.0", "r:2", "r:5", "r:6", "g:2.0" }, Rows(cut).Where(r => r != "r:").ToArray());
+        Assert.Equal("Max 5", cut.Find("tr.ib-grid-group-foot").Children[^1].TextContent.Trim());
+    }
+
+    [Fact]
     public void People_group_and_ungroup_and_open_them_all_by_links()
     {
         var cut = Grid("/sales?page=1", p => p.Add(x => x.PageSize, 2));

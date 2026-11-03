@@ -631,6 +631,9 @@ public class IzzyText
     /// <summary>Closes all of a DataGrid's groups.</summary>
     public virtual string GroupCollapseAll { get; set; } = "Collapse all";
 
+    /// <summary>The checkbox on a DataGrid's open group: {0} is its value.</summary>
+    public virtual string GroupSelect { get; set; } = "Select the rows of {0}";
+
     /// <summary>A DataGrid group with no value.</summary>
     public virtual string GroupNone { get; set; } = "(None)";
 

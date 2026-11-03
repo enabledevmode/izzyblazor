@@ -31,7 +31,7 @@
         var editing = IsEditingRow(item);
         var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@(indent is { } depth ? $"--ib-group-depth:{depth}" : VirtualRowStyle)" data-ib-grouped="@(indent is null ? null : "")" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@(indent is { } depth ? $"--ib-group-depth:{depth}" : VirtualRowStyle)" data-ib-grouped="@(indent is null ? null : "")" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -89,7 +89,11 @@
     // An aggregate's cell: the word, then the value.
     internal RenderFragment AggregateCell(ColumnBase<TItem> column, DataGroup? group) => __builder =>
     {
-        if (column.AggregateText(group) is { } value)
+        if (column.AggregateTemplate is { } template && group is not null)
+        {
+            @template(group)
+        }
+        else if (column.AggregateText(group) is { } value)
         {
             @if (column.AggregateWord(TextDefaults) is { Length: > 0 } word)
             {
@@ -2310,7 +2314,7 @@
         {
             Sort = sort,
             Filter = CurrentFilter(),
-            Fields = _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList(),
+            Fields = _columns.Select(c => c.ToField(TextDefaults)).Concat(_columns.Select(c => c.GroupByField)).OfType<DataField<TItem>>().ToList(),
         };
     }
 

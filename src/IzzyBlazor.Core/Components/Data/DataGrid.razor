@@ -30,6 +30,14 @@
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
     </DataGrid>
 
+    `Groupable` lets people group by columns from a header's menu, and `InitialGroup` or `Group` starts
+    grouped. The grouping and what's open are in the address (`?group=status&open=Shipped`), so a group's
+    row is a link and this works with no script. A page counts top-level groups, a group is never split,
+    and whatever `Paging` or `Virtualize` say, a grouped grid draws numbered pages. `Aggregate` on a column
+    works out a value over every row the filters match, for the footer and each group's row. With an
+    ItemsProvider, either one needs a GroupsProvider: rows still come from your provider, with the group's
+    values in the filter.
+
     `LayoutKey` remembers how one person has arranged the columns (widths, order, hidden, frozen) in a
     cookie, so the server draws it on the first paint with no flash. It's per person and per page; a
     shared link still shows the same rows, since sort, filter and page are in the address. To keep
@@ -1312,30 +1320,39 @@
     private RenderFragment GroupRow(GroupNode node) => __builder =>
     {
         // The label spans up to the first aggregate, which sits in its own column.
-        var first = Shown.ToList().FindIndex(c => c.EffectiveAggregate is not null);
+        var first = GroupAggregates == DataGridGroupAggregates.Footer ? -1 : Shown.ToList().FindIndex(c => c.EffectiveAggregate is not null);
         var span = first < 0 ? Shown.Count : Math.Max(1, first);
         var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
         <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize" style="--ib-group-depth:@node.Depth">
             @if (Selectable)
             {
-                <td class="@SelectCellClass"></td>
+                <td class="@SelectCellClass">
+                    @* Its rows, when they're drawn: the script ticks them, and they report their own changes. *@
+                    @if (MultiSelect && node.Open)
+                    {
+                        <input type="checkbox" class="ib-check-input ib-table-group-select" aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupSelect, value)" />
+                    }
+                </td>
             }
             <th scope="row" colspan="@span">
-                @if (UseState)
-                {
-                    <button type="button" class="ib-grid-group-toggle" aria-expanded="@(node.Open ? "true" : "false")" @onclick="() => ToggleGroupAsync(node)">
-                        <Icon Role="IconRole.ChevronRight" />
-                        <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span> @value
-                    </button>
-                }
-                else
-                {
-                    <a class="ib-grid-group-toggle" href="@ToggleHref(node)" aria-expanded="@(node.Open ? "true" : "false")">
-                        <Icon Role="IconRole.ChevronRight" />
-                        <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span> @value
-                    </a>
-                }
-                <span class="ib-grid-group-count">@node.Group.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)</span>
+                @* Sticks, as the cell is as wide as its columns and a frozen column may be under it. *@
+                <span class="ib-grid-group-label">
+                    @if (UseState)
+                    {
+                        <button type="button" class="ib-grid-group-toggle" aria-expanded="@(node.Open ? "true" : "false")" @onclick="() => ToggleGroupAsync(node)">
+                            <Icon Role="IconRole.ChevronRight" />
+                            @GroupLabel(node, value)
+                        </button>
+                    }
+                    else
+                    {
+                        <a class="ib-grid-group-toggle" href="@ToggleHref(node)" aria-expanded="@(node.Open ? "true" : "false")">
+                            <Icon Role="IconRole.ChevronRight" />
+                            @GroupLabel(node, value)
+                        </a>
+                    }
+                    <span class="ib-grid-group-count">@node.Group.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)</span>
+                </span>
             </th>
             @foreach (var column in Shown.Skip(span))
             {
@@ -1353,6 +1370,21 @@
             for (var i = 0; i < node.Rows.Count; i++)
             {
                 @DataRow(node.Rows[i], node.FirstRow + i, null, node.Depth + 1)
+            }
+
+            if (GroupAggregates == DataGridGroupAggregates.Footer && AggregateFields().Count > 0)
+            {
+                <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)" style="--ib-group-depth:@(node.Depth + 1)">
+                    @if (Selectable)
+                    {
+                        <td class="@SelectCellClass"></td>
+                    }
+                    @foreach (var column in Shown)
+                    {
+                        <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group)</td>
+                    }
+                    @LastEmptyCell
+                </tr>
             }
 
             if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
@@ -1375,6 +1407,20 @@
                     </td>
                 </tr>
             }
+        }
+    };
+
+    private RenderFragment GroupLabel(GroupNode node, string value) => __builder =>
+    {
+        if (node.Level.Column.GroupTemplate is { } template)
+        {
+            @template(new DataGridGroup(node.Value, value, node.Group, node.Depth, node.Open))
+        }
+        else
+        {
+            <span class="ib-grid-group-column">@node.Level.Column.HeaderText:</span>
+            @(" ")
+            @value
         }
     };
 
@@ -1827,7 +1873,8 @@
     // Everything that matches what's on screen, not its page, in the columns on screen.
     private string ExportHref(string href)
     {
-        var request = _loadedRequest is { } loaded ? (loaded with { Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
+        // Rows follow their groups, though a file has none.
+        var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
         // Only real keys: a title can hold a comma, and no field has one for a key.
         var columns = "columns=" + string.Join(",", Shown.Where(c => c.Key is not null).Select(c => Uri.EscapeDataString(c.Key!)));
         // A fragment would swallow the query, and means nothing to a download.
