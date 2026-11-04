@@ -1877,9 +1877,26 @@
     },
     {
       "id": "tree-view", "icon": "ListTree", "name": "TreeView", "category": "Data display", "summary": "Shows items nested in items, such as folders, as branches that open and close.", "keywords": ["tree", "treeview", "hierarchy", "folders", "nested list", "file browser"],
+      "features": [
+        { "feature": "Links, the current item, and branches that open" },
+        { "feature": "Branches opened by hand stay open across pages", "noscript": "none" },
+        { "feature": "Selection that posts with a form or binds in C#" },
+        { "feature": "Checking a parent checks its branch; mixed parents", "noscript": "none" },
+        { "feature": "One Tab stop, arrow keys and typeahead in a tree to choose from", "noscript": "none" },
+        { "feature": "The open branches bound to C#", "member": "Expanded" }
+      ],
       "examples": [
         { "id": "tree-view-folders", "title": "A tree of links", "lead": "To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`. Its branch arrives open. A link with children gets its own button at its end that opens them." },
         { "id": "tree-view-teams", "title": "Text and descriptions", "lead": "Set `ItemChildren` to each item's children. With no template, `ItemText`, `ItemDescription` and `ItemIcon` draw each item; to start branches open, set `ItemExpanded`." }
+      ],
+      "topics": [
+        {
+          "id": "selection", "title": "Selection", "summary": "Checkboxes or a single choice. The keys post with a form or bind to C#.", "members": ["ItemKey", "SelectionMode", "Selection", "SelectionName", "Cascade", "ItemSelectable"],
+          "examples": [
+            { "id": "tree-view-permissions", "title": "Checkboxes", "lead": "To give each item a checkbox, set `SelectionMode` to `Multiple` and `ItemKey`. Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed box; to make each box its own, set `Cascade` to `false`. In a form the checked keys post under `SelectionName`, parents included; on an interactive page bind them with `@bind-Selection`. Give the tree an `AriaLabel`." },
+            { "id": "tree-view-category", "title": "One choice", "lead": "To choose one item, set `SelectionMode` to `Single`. A click, Space or Enter selects it, and the branch holding it starts open." }
+          ]
+        }
       ]
     },
     {

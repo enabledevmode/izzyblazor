@@ -1816,6 +1816,7 @@
   .ib-table-group-select,
   .ib-listview-select,
   .ib-listview-select-all,
+  .ib-tree-select,
   .ib-col-picker-list .ib-check-input {
     --ib-check-size: 1rem;
     margin: 0;
@@ -2776,6 +2777,46 @@
     border-radius: var(--ib-radius-md);
   }
 
+  /* A tree to choose from: the arrow's room before every item, the branch's button over it, then
+     the box. With script, a single choice hides its radio and shows the selected item filled. */
+  .ib-tree-selects .ib-tree-item {
+    padding-inline-start: calc(var(--ib-space-2) * 2 + var(--ib-tree-arrow));
+    cursor: pointer;
+  }
+
+  .ib-tree-selects .ib-tree-toggle {
+    inset-inline: 0 auto;
+    width: calc(var(--ib-space-2) * 2 + var(--ib-tree-arrow));
+  }
+
+  label.ib-tree-item:hover {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-tree-select {
+    flex: none;
+  }
+
+  ib-tree[data-ib-ready][data-ib-select=single] .ib-tree-select {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ib-tree-item:has(> .ib-tree-select[type=radio]:checked) {
+    background-color: var(--ib-color-primary-soft);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-tree [role=treeitem]:focus {
+    outline: none;
+  }
+
+  .ib-tree [role=treeitem]:focus-visible > .ib-tree-item {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
   .ib-tree-icon {
     flex: none;
     color: var(--ib-color-muted);
@@ -2818,7 +2859,8 @@
   }
 
   @media (forced-colors: active) {
-    .ib-tree-current {
+    .ib-tree-current,
+    .ib-tree-item:has(> .ib-tree-select[type=radio]:checked) {
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }
