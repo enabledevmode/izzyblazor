@@ -1,11 +1,11 @@
 @* Drag a handle, or open its menu, to put the backlog in priority order. On a static page the grid
    posts with its form: Order holds the posted keys and any menu move, and the grid shows them.
-   Sorting by Title turns the handles off until the sort is cleared. *@
+   The columns don't sort: the order is the data. *@
 <Form Model="this" FormName="data-grid-backlog" OnValidSubmit="Save">
     <Stack Gap="3" Grow>
         <DataGrid @bind-Items="_tasks" ItemKey="t => t.Id" RowLabel="t => t.Title" Caption="Backlog"
                   ReorderableRows OrderName="order" Order="Order">
-            <PropertyColumn Property="t => t.Title" Sortable />
+            <PropertyColumn Property="t => t.Title" />
             <PropertyColumn Property="t => t.Owner" Width="10.Rem" />
             <PropertyColumn Property="t => t.Points" Title="Points" Width="6.Rem" />
         </DataGrid>

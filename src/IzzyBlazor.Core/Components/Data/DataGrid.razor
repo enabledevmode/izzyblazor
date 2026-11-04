@@ -111,7 +111,7 @@
 
     `ReorderableRows` puts a handle at each row's start: drag it, or use its menu, to put the rows in
     their own order. It needs an ItemKey and every row in Items, and the handles work only while the
-    grid isn't sorted, filtered, searched or grouped. On interactive pages bind `@bind-Items`; on static
+    grid isn't sorted, filtered, searched or grouped, so leave those off: the order is the data. On interactive pages bind `@bind-Items`; on static
     pages give it an `OrderName` inside a form and pass the posted ListOrder back as `Order`.
 
     Accessibility:
