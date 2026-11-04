@@ -73,6 +73,31 @@
     width: 100%;
   }
 
+  /* Floating: fixed to a bottom corner, above an AppShell's sticky footer and the safe area;
+     under a sticky banner (21) and toasts. */
+  .ib-btn-float {
+    --ib-float-gap: max(var(--ib-space-4), env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    position: fixed;
+    z-index: 20;
+    inset-block-end: calc(max(var(--ib-shell-bottom, 0px), env(safe-area-inset-bottom, 0px)) + var(--ib-space-4));
+    inset-inline-end: var(--ib-float-gap);
+    border-radius: var(--ib-radius-xl);
+    box-shadow: var(--ib-shadow-lg);
+  }
+
+  .ib-btn-float-start {
+    inset-inline: var(--ib-float-gap) auto;
+  }
+
+  .ib-btn-float-center {
+    inset-inline: 50% auto;
+    translate: -50%;
+  }
+
+  .ib-btn-float-center:dir(rtl) {
+    translate: 50%;
+  }
+
   /* Accents */
   .ib-btn-primary { --ib-accent: var(--ib-color-primary); --ib-on-accent: var(--ib-color-on-primary); --ib-accent-text: var(--ib-color-primary-text); --ib-accent-soft: var(--ib-color-primary-soft); }
   .ib-btn-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }

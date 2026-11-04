@@ -402,6 +402,7 @@
         { "id": "button-states", "title": "Loading and disabled" },
         { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
         { "id": "button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
+        { "id": "button-floating", "title": "A floating button with a label", "height": 360, "page": true, "lead": "`Floating` on a Button keeps its text: an extended floating action button. `FloatPosition` puts this one at the bottom center." },
         { "id": "button-state-in-address", "title": "A count in the URL",
           "notes": {
             "noscript": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -433,7 +434,8 @@
             "noscript": "Delete posts the file's name, and the page reloads without the file. Restore is a link back.",
             "static": "Delete posts without a full reload, and the response redirects to a URL listing what's deleted.",
             "interactive": "Delete runs OnClick in C#, and nothing is posted."
-          } }
+          } },
+        { "id": "icon-button-floating", "title": "A floating action button", "height": 360, "page": true, "lead": "`Floating` fixes the button to the window's bottom corner, raised and large, for the page's main action. `FloatPosition` picks the corner." }
       ]
     },
     {
