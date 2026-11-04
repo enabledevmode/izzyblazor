@@ -2162,13 +2162,15 @@
   }
 
   /* PinField: one input, with a box per character drawn under it (CSS draws data-c). Without
-     script it's that input, wide-spaced; with it the input goes clear over the boxes. */
+     script it's that input, wide-spaced; with it the input goes clear over the boxes, which
+     shrink to fit a narrow screen. */
   .ib-pin {
     width: fit-content;
+    max-width: 100%;
   }
 
   .ib-pin-input {
-    width: calc(var(--ib-pin-length) * 1.6ch + 2 * var(--ib-field-px));
+    width: calc(var(--ib-pin-length) * var(--ib-pin-ch, 1.6ch) + 2 * var(--ib-field-px) + 2px);
     letter-spacing: 0.6ch;
     font-variant-numeric: tabular-nums;
   }
@@ -2176,6 +2178,7 @@
   .ib-pin-boxes {
     display: none;
     gap: var(--ib-space-2);
+    min-width: 0;
   }
 
   @media (scripting: enabled) {
@@ -2198,12 +2201,18 @@
     ib-pin-field:not([data-ib-failed]) > .ib-pin-input::selection {
       background: none;
     }
+
+    /* The browser paints autofill over author styles; the boxes show the code anyway. */
+    ib-pin-field:not([data-ib-failed]) > .ib-pin-input:autofill {
+      opacity: 0;
+    }
   }
 
   .ib-pin-box {
     display: grid;
     place-items: center;
     width: calc(var(--ib-field-h) * 1.05);
+    min-width: 0;
     height: calc(var(--ib-field-h) * 1.25);
     border: 1px solid var(--ib-field-border);
     border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
@@ -2216,6 +2225,7 @@
     content: attr(data-c);
   }
 
+  /* The box typing goes into: the server marks the next one, then the script follows the caret. */
   .ib-pin:has(> :focus-visible) > .ib-pin-boxes > [data-active] {
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 28%, transparent));
@@ -2233,10 +2243,34 @@
     border-color: var(--ib-color-danger);
   }
 
+  /* Read-only: the fill with a border, as other fields. Disabled: the fill without one. */
+  .ib-pin:has(> [readonly]) > .ib-pin-boxes > .ib-pin-box {
+    background-color: var(--ib-color-fill);
+  }
+
   .ib-pin:has(> :disabled) > .ib-pin-boxes > .ib-pin-box {
     border-color: transparent;
     color: var(--ib-color-disabled);
     background-color: var(--ib-color-fill);
+  }
+
+  /* Forced colors drop the shadow and force borders: an outline marks the box, and the caret keeps its color. */
+  @media (forced-colors: active) and (scripting: enabled) {
+    ib-pin-field:not([data-ib-failed]) > .ib-pin-input {
+      forced-color-adjust: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-pin:has(> :focus-visible) > .ib-pin-boxes > [data-active] {
+      outline: 2px solid Highlight;
+      outline-offset: 1px;
+    }
+
+    .ib-pin:has(> :focus-visible) > .ib-pin-boxes > [data-active]:not([data-c])::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
   }
 
   /* FormActions: the buttons at the end of a form, across the whole row. */
