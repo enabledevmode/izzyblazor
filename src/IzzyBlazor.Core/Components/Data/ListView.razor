@@ -85,7 +85,7 @@
         @* The form's default button, ahead of the items' buttons: Enter in another field submits the
            form, rather than pressing the first item's (often disabled) Move up or its Delete. On an
            interactive page it only raises the form's submit. *@
-        <button type="submit" class="ib-data-default-submit" tabindex="-1" aria-hidden="true"></button>
+        <button type="submit" class="ib-data-default-submit ib-visually-hidden" tabindex="-1" aria-hidden="true"></button>
     }
     @* The items and, in a list that grows, Load more after them: one box, which scrolls with a MaxHeight. *@
     <div class="@(MaxHeight is null ? "ib-listview-body" : "ib-listview-body ib-listview-scroll")" style="@BodyStyle" role="@(MaxHeight is null ? null : "region")"
