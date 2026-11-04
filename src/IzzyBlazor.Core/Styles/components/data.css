@@ -1228,11 +1228,12 @@
   }
 
   .ib-table-grid > * > * > :is(th, td).ib-grid-grip-cell {
-    padding-inline: var(--ib-space-1) 0;
+    padding-inline: var(--ib-space-1);
     text-align: center;
   }
 
-  .ib-datagrid-grip .ib-table-select-cell.ib-frozen-start {
+  /* Its own rows, not a nested grid's in a detail. */
+  .ib-datagrid-grip > .ib-table-scroll > table > * > tr > .ib-table-select-cell.ib-frozen-start {
     --ib-frozen-at: var(--ib-datagrid-grip);
   }
 
@@ -1246,13 +1247,15 @@
     filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.2));
   }
 
+  /* Lines along it too, as a shadow hardly shows on a dark page. */
   .ib-sortable-list > tr.ib-sortable-dragging > td {
     background-color: var(--ib-color-surface-overlay);
+    box-shadow: inset 0 1px var(--ib-color-border), inset 0 -1px var(--ib-color-border);
   }
 
   /* What can't fit stays in its cell (its padding leaves room for a focus ring). Text wraps;
      numbers stay on one line, as a split one misreads. */
-  .ib-datagrid .ib-table-grid > * > * > :is(th, td):not(.ib-table-select-cell) {
+  .ib-datagrid .ib-table-grid > * > * > :is(th, td):not(.ib-table-select-cell, .ib-grid-grip-cell) {
     overflow: clip;
   }
 
@@ -2238,7 +2241,7 @@
 
   /* Only the script drags: without it the handle is just the menu's button, and the page scrolls. */
   @media (scripting: enabled) {
-    .ib-sortable .ib-sortable-handle {
+    :is(.ib-sortable, .ib-grid-grip-cell) .ib-sortable-handle:enabled {
       cursor: grab;
       touch-action: none;
     }
@@ -2348,7 +2351,7 @@
   }
 
   @media (scripting: none) {
-    .ib-sortable .ib-menu-shortcut {
+    :is(.ib-sortable, .ib-grid-grip-cell) .ib-menu-shortcut {
       display: none;
     }
   }

@@ -278,7 +278,7 @@ class Sortable extends IzzyElement {
     // group, which shares one count.
     const seq = (this.seq = Math.max(...this.group().map((zone) => Math.max(zone.seq, Number(zone.dataset.ibSeq ?? 0)))) + 1);
     const focused = document.activeElement;
-    const hadFocus = item.contains(focused);
+    const hadFocus = this.unitOf(item).some((el) => el.contains(focused));
     this.settling = true;
     let timer = 0;
     const done = (answered: boolean) => {

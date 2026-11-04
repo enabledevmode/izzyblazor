@@ -287,7 +287,7 @@ export function trackDrag(options: SortOptions): void {
     frame = requestAnimationFrame(autoScroll);
   };
 
-  const finish = (drop: boolean) => {
+  const finish = (drop: boolean, escaped = false) => {
     abort.abort();
     cancelAnimationFrame(frame);
     clearTimeout(held);
@@ -312,8 +312,14 @@ export function trackDrag(options: SortOptions): void {
     };
     // The click that follows the pointerup would open the handle's menu, or follow the item's link.
     // (A touch's comes later; <ib-sortable> cancels its touchend instead.)
-    item.addEventListener("click", swallow, { capture: true, once: true });
-    setTimeout(() => item.removeEventListener("click", swallow, { capture: true }), 0);
+    const swallowClick = () => {
+      item.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => item.removeEventListener("click", swallow, { capture: true }), 0);
+    };
+    // Cancelled by Escape, the pointer is still down: its click comes after it's up (WebKit
+    // would open the handle's menu).
+    if (escaped) document.addEventListener("pointerup", swallowClick, { capture: true, once: true });
+    else swallowClick();
     if (drop && target) options.onDrop(from, to, settle, target);
     else if (drop && to !== from) options.onDrop(from, to, settle);
     else settle();
@@ -353,7 +359,7 @@ export function trackDrag(options: SortOptions): void {
       if (e.key !== "Escape" || !dragging) return;
       e.preventDefault();
       e.stopPropagation();
-      finish(false);
+      finish(false, true);
     },
     { signal, capture: true }
   );

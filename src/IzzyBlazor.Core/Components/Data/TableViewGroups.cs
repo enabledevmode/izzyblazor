@@ -41,8 +41,8 @@ public abstract partial class TableViewBase<TItem>
     internal virtual IReadOnlyDictionary<string, object>? RowAttributes(TItem item) => null;
 
     /// <summary>
-    /// What keeps a data row's elements when rows aren't virtual: nothing (rows are kept by place),
-    /// or the item's key, where rows move and focus moves with them.
+    /// What keeps a data row and its detail when rows aren't virtual: nothing (rows are kept by
+    /// place), or the item's key, where rows move, so focus and a detail's state move with them.
     /// </summary>
     internal virtual object? RowKey(string key) => null;
 

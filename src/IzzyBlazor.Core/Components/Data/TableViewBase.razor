@@ -26,6 +26,12 @@
         </tr>
     };
 
+    private RenderFragment RowWithDetail(TItem item, int row) => __builder =>
+    {
+        @DataRow(item, row, null)
+        @AfterRow(item, row, null)
+    };
+
     // One row. With virtual rows, absolute is its place among all the rows, and it's kept by that.
     internal RenderFragment DataRow(TItem item, int row, int? absolute, int? indent = null) => __builder =>
     {
@@ -33,7 +39,7 @@
         var editing = IsEditingRow(item);
         var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute ?? RowKey(key)" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @attributes="RowAttributes(item)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @attributes="RowAttributes(item)" @ref="_rowRefs[absolute is null ? row : -1]">
             @GripCell(item, row)
             @if (Selectable)
             {
@@ -336,8 +342,23 @@
                             {
                                 @for (var index = 0; index < _items.Count; index++)
                                 {
-                                    @DataRow(_items[index], index, null)
-                                    @AfterRow(_items[index], index, null)
+                                    var item = _items[index];
+                                    var at = index;
+                                    if (RowKey(KeyOf(item)) is { } rowKey)
+                                    {
+                                        @* Opened here, so the key sits among the loop's own siblings: in a fragment
+                                           of its own it would only be compared with the row at the same place. By hand,
+                                           as Razor finds only public components by tag; numbered past Razor's own. *@
+                                        __builder.OpenComponent<KeyedRows>(100000);
+                                        __builder.SetKey(rowKey);
+                                        __builder.AddComponentParameter(100001, nameof(KeyedRows.ChildContent), RowWithDetail(item, at));
+                                        __builder.CloseComponent();
+                                    }
+                                    else
+                                    {
+                                        @DataRow(item, at, null)
+                                        @AfterRow(item, at, null)
+                                    }
                                 }
                             }
                         }
