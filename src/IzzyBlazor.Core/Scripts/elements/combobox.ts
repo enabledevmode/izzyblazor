@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { track } from "../position";
+import { fetchPart } from "../fetch-part";
 
 /**
  * <ib-combobox> turns a Combobox's native select into a text input with a filtered listbox
@@ -9,6 +10,10 @@ import { track } from "../position";
  * The select stays in the form under the input: choosing sets select.value and fires `change`
  * on it, so form posts, required validation and Blazor's @bind all work as without script.
  * With data-server, Blazor fills the list from the typed text and this element doesn't filter.
+ * On a static page with a search (data-ib-suggest-key), each pause in typing fetches the page with
+ * the text in its address and takes this field's options out of the answer; until it comes, and if
+ * it fails, the options there are narrowed here. Emptying the text or choosing brings back the
+ * first results the page came with.
  *
  * MultiSelect uses the same element over a <select multiple>: choosing toggles an option and the
  * list stays open, the chosen options show as chips (drawn here from the select, so they're right
@@ -44,6 +49,12 @@ class Combobox extends IzzyElement {
   // Server search: the text the list's results are for ("" for the first results).
   #searched = "";
   #free = false;
+  // Page fetch: the key naming this field, the first results, the text the options answer.
+  #fetchKey: string | null = null;
+  #first: Node[] = [];
+  #answered = "";
+  #timer = 0;
+  #request: AbortController | null = null;
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
@@ -54,6 +65,9 @@ class Combobox extends IzzyElement {
     this.#input = input;
     this.#list = list;
     this.dataset.ready = "";
+    this.#fetchKey = this.hasAttribute("data-server") ? null : (this.dataset.ibSuggestKey ?? null);
+    this.#first = this.options.map((o) => o.cloneNode(true));
+    this.#answered = this.#searched = "";
     input.form?.addEventListener("reset", () => setTimeout(() => this.syncText(), 0), { signal });
     if (this.#free) {
       input.removeAttribute("list");
@@ -178,6 +192,8 @@ class Combobox extends IzzyElement {
     observer.observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-busy", "data-query"] });
     signal.addEventListener("abort", () => {
       observer.disconnect();
+      clearTimeout(this.#timer);
+      this.#request?.abort();
       this.close();
       delete this.dataset.ready;
     });
@@ -235,7 +251,8 @@ class Combobox extends IzzyElement {
   }
 
   private filter(query: string): void {
-    const server = this.hasAttribute("data-server");
+    // A page fetch's options answer their text; for any other text they're narrowed here.
+    const server = this.hasAttribute("data-server") || (!!this.#fetchKey && query === this.#answered);
     const q = fold(query);
     let shown = 0;
     for (const option of this.options) {
@@ -260,11 +277,86 @@ class Combobox extends IzzyElement {
     this.#typed = true;
     this.#input.setCustomValidity("");
     this.#after = null;
-    if (this.hasAttribute("data-server") && !this.#multiple) {
+    if ((this.hasAttribute("data-server") || this.#fetchKey) && !this.#multiple) {
       this.#pending = true;
       this.#searched = this.#input.value;
     }
+    if (this.#fetchKey) this.ask();
     this.open(false);
+  }
+
+  /** Page fetch: after a pause, ask the page for the typed text's options. */
+  private ask(): void {
+    clearTimeout(this.#timer);
+    this.#request?.abort();
+    const text = this.#input.value;
+    if (!text.trim()) this.restore();
+    else if (text === this.#answered) this.take(null, text);
+    else this.#timer = window.setTimeout(() => this.fetchFor(text), Number(this.dataset.ibDebounce ?? 250));
+  }
+
+  private async fetchFor(text: string): Promise<void> {
+    const request = (this.#request = new AbortController());
+    const key = this.#fetchKey!;
+    const url = new URL(location.href);
+    url.hash = "";
+    url.searchParams.set("ib-suggest", key);
+    url.searchParams.set("ib-suggest-q", text);
+    this.busy(true);
+    let answer: Element | null = null;
+    try {
+      answer = await fetchPart(url, `ib-combobox[data-ib-suggest-key="${CSS.escape(key)}"] > [role=listbox][data-ib-answered]`, request.signal);
+    } catch {
+      if (request.signal.aborted) return;
+    }
+    if (request !== this.#request) return;
+    this.#request = null;
+    // No answer: the options stay, narrowed here.
+    this.take(answer ? [...answer.querySelectorAll(":scope > [role=option]")] : null, text);
+  }
+
+  /** Page fetch: the first results again, with nothing on its way. */
+  private restore(): void {
+    clearTimeout(this.#timer);
+    this.#request?.abort();
+    this.#request = null;
+    this.take(this.#answered ? this.#first : null, "");
+  }
+
+  /**
+   * Page fetch: puts in the options for `text` (none: keeps these) and ends the wait. Setting
+   * data-query lets the list's observer do what Enter or leaving asked for meanwhile.
+   */
+  private take(options: Node[] | null, text: string): void {
+    const list = this.#list;
+    if (options) {
+      const value = this.#free ? null : this.#select.value;
+      for (const o of this.options) o.remove();
+      const empty = list.querySelector(".ib-combobox-empty");
+      options.forEach((node, i) => {
+        const option = document.importNode(node, true) as HTMLElement;
+        option.id = `${list.id}-${i}`;
+        option.hidden = false;
+        option.removeAttribute("data-active");
+        if (value !== null) option.setAttribute("aria-selected", String(option.dataset.value === value));
+        list.insertBefore(option, empty);
+      });
+      this.#answered = text;
+    }
+    this.busy(false);
+    list.dataset.query = text;
+    // Autocomplete closes when nothing it has matches; what came may.
+    if (options && this.#free && this.#typed && !this.isOpen && document.activeElement === this.#input) this.open(false);
+  }
+
+  /** Page fetch: the list is busy, and its empty row says "Searching…" meanwhile. */
+  private busy(on: boolean): void {
+    if (on) this.#list.setAttribute("aria-busy", "true");
+    else this.#list.removeAttribute("aria-busy");
+    const empty = this.#list.querySelector<HTMLElement>(".ib-combobox-empty[data-ib-searching]");
+    if (!empty) return;
+    empty.dataset.ibNone ??= empty.textContent ?? "";
+    empty.textContent = on ? empty.dataset.ibSearching! : empty.dataset.ibNone;
   }
 
   /** A server search's results are in: do what Enter or leaving the field asked for meanwhile. */
@@ -431,12 +523,13 @@ class Combobox extends IzzyElement {
    */
   private searchAll(): void {
     const reset = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-reset");
-    if (!reset || this.#searched === "") return;
+    if ((!reset && !this.#fetchKey) || this.#searched === "") return;
     this.#searched = "";
     // What was typed is gone, so no Enter or leaving waits for its results.
     this.#pending = false;
     this.#after = null;
-    reset.dispatchEvent(new Event("input", { bubbles: true }));
+    if (reset) reset.dispatchEvent(new Event("input", { bubbles: true }));
+    else this.restore();
   }
 
   private setValue(value: string, text: string): void {
@@ -452,6 +545,8 @@ class Combobox extends IzzyElement {
       return;
     }
     if (select.value === value) return;
+    // A page fetch's option may not be in the select yet: add it, so it posts.
+    if (![...select.options].some((o) => o.value === value)) select.add(new Option(text, value));
     select.value = value;
     for (const o of this.options) o.setAttribute("aria-selected", String(o.dataset.value === value));
     select.dispatchEvent(new Event("input", { bubbles: true }));

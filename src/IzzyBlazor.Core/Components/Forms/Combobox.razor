@@ -126,7 +126,7 @@
                 </div>
             }
             @* Shown in the list, but read through the status below: a listbox holds only options. *@
-            <div class="ib-combobox-empty" aria-hidden="true">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
+            <div class="ib-combobox-empty" aria-hidden="true" data-ib-searching="@(PageFetches ? SearchingText ?? TextDefaults.Searching : null)">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
         <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
         @if (ServerFiltered)

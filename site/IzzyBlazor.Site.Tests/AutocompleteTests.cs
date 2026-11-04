@@ -36,6 +36,21 @@ public sealed class AutocompleteTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
+    public async Task A_provider_finds_suggestions_as_you_type_on_a_static_page()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using var _ = browser;
+        var example = page.Locator("[data-ex='autocomplete-provider']");
+        await example.Locator("ib-combobox[data-ib-suggest-key][data-ready]").WaitForAsync();
+        var product = example.GetByRole(AriaRole.Combobox);
+
+        // The page came with the first 8 of 400; this one comes from the fetch.
+        await product.PressSequentiallyAsync("lamp, walnut");
+        await example.GetByRole(AriaRole.Option, new() { Name = "Nova Lamp, walnut" }).ClickAsync();
+        await Assertions.Expect(product).ToHaveValueAsync("Nova Lamp, walnut");
+    }
+
+    [Fact]
     public async Task A_provider_finds_suggestions_as_you_type_on_an_interactive_page()
     {
         var (browser, page) = await OpenAsync("interactive");

@@ -17,7 +17,7 @@
 
     protected override void OnInitialized() => Model ??= new();
 
-    // Called with "" for the first list, then with what's typed on interactive pages.
+    // Called with "" for the first list, then for each pause in typing.
     private static async Task<IEnumerable<int?>> FindPeople(string text, CancellationToken token)
     {
         await Task.Delay(text.Length == 0 ? 0 : 300, token); // a database query
