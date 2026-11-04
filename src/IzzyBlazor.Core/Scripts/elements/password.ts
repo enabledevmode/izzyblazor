@@ -28,42 +28,48 @@ export function setupPassword(control: HTMLElement, input: HTMLInputElement, sig
   const list = input.id ? document.getElementById(`${input.id}-rules`) : null;
   const status = field?.querySelector<HTMLElement>(":scope > .ib-password-status");
   if (!list) return;
+  // As the server and Identity check them: ASCII letters and digits, UTF-16 lengths.
   const checks: Record<string, (value: string, n: number) => boolean> = {
-    length: (v, n) => v.length >= n,
+    length: (v, n) => v.length >= n && v.trim() !== "",
     lower: (v) => /[a-z]/.test(v),
     upper: (v) => /[A-Z]/.test(v),
     digit: (v) => /[0-9]/.test(v),
-    // As .NET's char.IsLetterOrDigit: letters and decimal digits.
-    symbol: (v) => /[^\p{L}\p{Nd}]/u.test(v),
+    symbol: (v) => /[^A-Za-z0-9]/.test(v),
     unique: (v, n) => new Set(v.split("")).size >= n,
   };
-  const items = [...list.querySelectorAll<HTMLElement>(":scope > li[data-rule]")];
-  // The state's text is this script's: without it, nothing would say "met" truthfully.
-  const states = items.map((item) => {
-    let state = item.querySelector<HTMLElement>(":scope > .ib-rule-state");
-    if (!state) {
-      state = document.createElement("span");
-      state.className = "ib-rule-state ib-visually-hidden";
-      item.append(state);
-    }
-    return state;
-  });
   let allMet: boolean | null = null;
+  // The items are read each time: an interactive page can change the rules, or the value, in place.
   const update = () => {
+    const items = [...list.querySelectorAll<HTMLElement>(":scope > li[data-rule]")];
     let met = 0;
-    items.forEach((item, i) => {
+    for (const item of items) {
       const ok = checks[item.dataset.rule ?? ""]?.(input.value, Number(item.dataset.n ?? 0)) ?? false;
       if (ok) met++;
       item.toggleAttribute("data-met", ok);
+      // The state's text is this script's: without it, nothing would say "met" truthfully.
+      let state = item.querySelector<HTMLElement>(":scope > .ib-rule-state");
+      if (!state) {
+        state = document.createElement("span");
+        state.className = "ib-rule-state ib-visually-hidden";
+        item.append(state);
+      }
       const text = `, ${ok ? list.dataset.ibMet : list.dataset.ibUnmet}`;
-      if (states[i].textContent !== text) states[i].textContent = text;
-    });
-    const all = input.value.length > 0 && met === items.length;
+      if (state.textContent !== text) state.textContent = text;
+    }
+    const all = input.value.length > 0 && items.length > 0 && met === items.length;
+    // The browser holds the post too, as the server would refuse it and the field come back empty.
+    input.setCustomValidity(input.value.length > 0 && !all ? (list.dataset.ibInvalid ?? "") : "");
     // Announced as it becomes true while typing, not for what the page came with.
     if (status && allMet !== null && all !== allMet) status.textContent = all ? (list.dataset.ibAll ?? "") : "";
     allMet = all;
   };
   input.addEventListener("input", update, { signal });
+  // A value set by the app (an interactive page clearing the form) fires no input: read it again.
+  input.addEventListener("focus", update, { signal });
+  input.addEventListener("change", update, { signal });
   input.form?.addEventListener("reset", () => setTimeout(update), { signal });
+  const observer = new MutationObserver(update);
+  observer.observe(list, { childList: true });
+  signal.addEventListener("abort", () => observer.disconnect());
   update();
 }

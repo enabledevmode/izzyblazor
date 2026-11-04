@@ -55,7 +55,7 @@
                passwordrules="@Requirements?.AppleRules()"
                required="@IsRequired"
                maxlength="@(MaxLength ?? AnnotatedMaxLength)"
-               minlength="@(MinLength ?? AnnotatedMinLength)"
+               minlength="@(MinLength ?? AnnotatedMinLength ?? (Requirements?.RequiredLength > 0 ? Requirements.RequiredLength : null))"
                disabled="@IsDisabled"
                readonly="@IsReadOnly"
                aria-invalid="@(Invalid ? "true" : null)"
@@ -82,9 +82,10 @@
         @* Filled by the script while Caps Lock is on: a status that's there from the start, so it's announced. *@
         <p class="ib-field-capslock" data-ib-capslock="@TextDefaults.CapsLockOn"><Icon Role="IconRole.Warning" /><span role="status"></span></p>
     }
-    @if (Requirements is { } rules)
+    @if (ListsRules)
     {
-        <ul class="ib-password-rules" id="@RulesId" data-ib-met="@TextDefaults.RuleMet" data-ib-unmet="@TextDefaults.RuleNotMet" data-ib-all="@TextDefaults.PasswordRulesMet">
+        var rules = Requirements!;
+        <ul class="ib-password-rules" id="@RulesId" data-ib-met="@TextDefaults.RuleMet" data-ib-unmet="@TextDefaults.RuleNotMet" data-ib-all="@TextDefaults.PasswordRulesMet" data-ib-invalid="@UnmetMessage">
             @foreach (var (key, count, _) in rules.Each())
             {
                 <li data-rule="@key" data-n="@(count > 0 ? count : null)"><Icon Role="IconRole.Check" Class="ib-rule-met" /><Icon Role="IconRole.Minus" Class="ib-rule-unmet" /><span>@RuleText(key, count)</span></li>
@@ -155,7 +156,12 @@
 
     private string RulesId => FieldId + "-rules";
 
-    private string? InputDescribedBy => Requirements is null ? DescribedBy : DescribedBy is null ? RulesId : $"{RulesId} {DescribedBy}";
+    // Rules that ask nothing list nothing.
+    private bool ListsRules => Requirements?.Each().Any() == true;
+
+    private string? InputDescribedBy => !ListsRules ? DescribedBy : DescribedBy is null ? RulesId : $"{RulesId} {DescribedBy}";
+
+    private string UnmetMessage => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordRulesUnmet, ResolvedLabel ?? FieldIdentifier.FieldName);
 
     private string RuleText(string key, int count) => key switch
     {
@@ -181,9 +187,7 @@
 
     /// <inheritdoc />
     private protected override string? OwnRuleError(string? value) =>
-        value is { Length: > 0 } && Requirements is { } rules && !rules.IsMetBy(value)
-            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordRulesUnmet, ResolvedLabel ?? FieldIdentifier.FieldName)
-            : null;
+        value is { Length: > 0 } && Requirements is { } rules && !rules.IsMetBy(value) ? UnmetMessage : null;
 
     private TextFieldType ResolvedType => Type
         ?? (Attribute<System.ComponentModel.DataAnnotations.EmailAddressAttribute>() is not null ? TextFieldType.Email
