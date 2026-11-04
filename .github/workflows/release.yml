@@ -70,7 +70,7 @@ jobs:
           css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
           js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
           date=$(gzip -c src/IzzyBlazor.Core/wwwroot/date.css | wc -c)
-          echo "CSS gzip: $css bytes (budget 49152)"
+          echo "CSS gzip: $css bytes (budget 51200)"
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
@@ -87,7 +87,7 @@ jobs:
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
           echo "Largest on-demand element: $big bytes (budget 6144)"
-          test "$css" -le 49152 && test "$date" -le 3072 && test "$js" -le 15360 && test "$big" -le 6144
+          test "$css" -le 51200 && test "$date" -le 3072 && test "$js" -le 15360 && test "$big" -le 6144
 
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts

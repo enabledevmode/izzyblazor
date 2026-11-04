@@ -1,0 +1,19 @@
+@* A tree to read, not to navigate: each team with a muted line under it, the top level open. *@
+<TreeView Items="_teams" ItemChildren="t => t.Teams" ItemText="t => t.Name" ItemDescription="t => t.Lead"
+          ItemIcon="_ => Lucide.Users" ItemExpanded="t => t.Teams.Length > 0 && _teams.Contains(t)" MaxWidth="20.Rem" Grow />
+
+@code {
+    private readonly Team[] _teams =
+    [
+        new("Engineering", "Ada Lovelace",
+        [
+            new("Platform", "Alan Turing", [new("Storage", "Barbara Liskov", []), new("Networking", "Radia Perlman", [])]),
+            new("Apps", "Grace Hopper", []),
+        ]),
+        new("Design", "Susan Kare", [new("Research", "Don Norman", [])]),
+        new("Operations", "Katherine Johnson", []),
+    ];
+    @* hide *@
+    private sealed record Team(string Name, string Lead, Team[] Teams);
+    @* /hide *@
+}

@@ -1,0 +1,24 @@
+@* Each folder links to this page with ?folder=, and the one in the address is current: its branch
+   arrives open, in every mode, with no script. *@
+@inject NavigationManager Navigation
+<TreeView Items="_folders" ItemChildren="f => f.Folders" ItemKey="f => f.Id" ItemText="f => f.Name"
+          ItemIcon="_ => Lucide.Folder" ItemHref="@(f => Navigation.GetUriWithQueryParameter("folder", f.Id))"
+          ItemCurrent="@(f => f.Id == (Folder ?? "invoices"))" AriaLabel="Folders" MaxWidth="18.Rem" Grow />
+
+@code {
+    [SupplyParameterFromQuery] private string? Folder { get; set; }
+
+    private readonly Item[] _folders =
+    [
+        new("documents", "Documents",
+        [
+            new("contracts", "Contracts", []),
+            new("finance", "Finance", [new("invoices", "Invoices", []), new("receipts", "Receipts", [])]),
+        ]),
+        new("photos", "Photos", [new("2025", "2025", []), new("2026", "2026", [])]),
+        new("shared", "Shared", []),
+    ];
+    @* hide *@
+    private sealed record Item(string Id, string Name, Item[] Folders);
+    @* /hide *@
+}

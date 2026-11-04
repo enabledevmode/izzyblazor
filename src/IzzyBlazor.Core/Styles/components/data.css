@@ -2666,3 +2666,161 @@
     }
   }
 }
+
+/* TreeView: nested lists, each item with children a <details>. In a tree of links the arrow sits at
+   the end (as in NavGroup), and a link with children gets its own button there; otherwise the
+   arrow comes first and items without children leave its room, so every level's text lines up. */
+@layer izzy.components {
+  .ib-tree {
+    --ib-tree-arrow: var(--ib-control-icon-md);
+
+    display: block;
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-tree-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* A level's text starts under its parent's: the arrow plus the gap in. */
+  .ib-tree-group {
+    margin-top: 0.125rem;
+    padding-inline-start: calc(var(--ib-tree-arrow) + var(--ib-space-2));
+  }
+
+  .ib-tree-li {
+    position: relative;
+    min-width: 0;
+  }
+
+  .ib-tree-item {
+    --ib-icon-size: var(--ib-control-icon-md);
+
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-height: var(--ib-control-h-md);
+    padding: max(var(--ib-space-1), round(down, calc((var(--ib-control-h-md) - 1lh) / 2), 1px)) var(--ib-space-2);
+    border-radius: var(--ib-radius-md);
+    color: var(--ib-color-on-surface);
+    text-decoration: none;
+  }
+
+  .ib-tree:not(.ib-tree-links) .ib-tree-leaf {
+    padding-inline-start: calc(var(--ib-space-2) * 2 + var(--ib-tree-arrow));
+  }
+
+  .ib-tree-branch > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .ib-tree-branch > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  a.ib-tree-item:hover,
+  summary.ib-tree-item:hover,
+  .ib-tree-toggle:hover {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-tree-item:focus-visible,
+  .ib-tree-toggle:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-tree-current,
+  .ib-tree-current:hover {
+    background-color: var(--ib-color-primary-soft);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-tree-disabled > * {
+    opacity: 0.55;
+  }
+
+  .ib-tree-chevron {
+    flex: none;
+    color: var(--ib-color-muted);
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-tree-branch[open] > summary .ib-tree-chevron {
+    rotate: 90deg;
+  }
+
+  .ib-tree-links summary.ib-tree-item .ib-tree-chevron {
+    order: 1;
+  }
+
+  /* A link's own button, on the link's first line at its end. */
+  .ib-tree-has-toggle {
+    padding-inline-end: var(--ib-control-h-md);
+  }
+
+  .ib-tree-toggle {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    display: grid;
+    place-items: center;
+    width: var(--ib-control-h-md);
+    height: var(--ib-control-h-md);
+    border-radius: var(--ib-radius-md);
+  }
+
+  .ib-tree-icon {
+    flex: none;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-tree-current .ib-tree-icon {
+    color: inherit;
+  }
+
+  .ib-tree-text,
+  .ib-tree-content {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ib-tree-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-tree-description {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-tree-current .ib-tree-description {
+    color: inherit;
+  }
+
+  .ib-tree-empty {
+    padding: var(--ib-space-2);
+    color: var(--ib-color-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-tree-chevron {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-tree-current {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+}
