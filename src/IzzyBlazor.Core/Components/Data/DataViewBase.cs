@@ -825,6 +825,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         (_items, _total, _page, _lastPage) = (items, total, page, page + shownPages - 1);
         keepGroups();
         alongside?.Invoke();
+        // Pages added later are one page each, after the ones loaded here. Set before Loaded, which
+        // may ask what was loaded (a DataGrid's own order, for moving rows).
+        (_loadedRequest, _loadedSize) = (request with { Take = pageSize }, pageSize ?? 0);
         Loaded();
         // All of another filter or search isn't these items: clear it rather than let it grow.
         if (_selection.All && !_selection.MatchesScope(request.Filter, request.Search))
@@ -833,8 +836,6 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         }
 
         (_cursor, _next, _previous) = byCursor ? (cursor, next, previous) : (null, null, null);
-        // Pages added later are one page each, after the ones loaded here.
-        (_loadedRequest, _loadedSize) = (request with { Take = pageSize }, pageSize ?? 0);
         if (ByTotal && growing && (shownPages + 1) * pageSize!.Value > MaxGrownRows)
         {
             _next = null;

@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { trackDrag, type DropTarget } from "../sortable";
+import { trackDrag, unitsOf, type DropTarget } from "../sortable";
 
 const HANDLE = ".ib-sortable-handle";
 // The button whose menu holds the moves: the handle, or the item's ⋯ button when it has no handle.
@@ -34,6 +34,9 @@ const IN_LIST = new Set(["up", "down", "top", "bottom"]);
  * menu's "Move to" items (data-ib-move="to", data-ib-zone) move it to the end of one. On a static
  * page the node moves there and its hidden Zones input changes with it.
  * With JavaScript off, the menu items post the form and the server moves the item.
+ * A DataGrid's (data-ib-rows) sits beside its table, as a custom element can't sit between a table
+ * and its rows: it works on the grid around it, whose tbody is the list and whose rows are the
+ * items. A row's open detail row (data-ib-follows) moves with it.
  */
 class Sortable extends IzzyElement {
   // The last drop reported to C#, and whether one is waiting for its render.
@@ -43,7 +46,18 @@ class Sortable extends IzzyElement {
   private dropped = false;
 
   get list(): HTMLElement | null {
-    return this.querySelector(":scope > .ib-sortable-list");
+    return this.rows
+      ? (this.parentElement?.querySelector<HTMLElement>(":scope > .ib-table-scroll > table > tbody.ib-sortable-list") ?? null)
+      : this.querySelector(":scope > .ib-sortable-list");
+  }
+
+  private get rows(): boolean {
+    return this.hasAttribute("data-ib-rows");
+  }
+
+  /** Where the presses and keys happen: the element, or a grid's around it. */
+  private get host(): HTMLElement {
+    return (this.rows && this.parentElement) || this;
   }
 
   private get live(): boolean {
@@ -59,22 +73,23 @@ class Sortable extends IzzyElement {
   }
 
   protected setup(signal: AbortSignal): void {
-    this.addEventListener("click", (event) => this.onClick(event), { signal });
-    this.addEventListener("keydown", (event) => this.onKey(event), { signal });
-    this.addEventListener("pointerdown", (event) => this.onPointerDown(event), { signal });
+    const host = this.host;
+    host.addEventListener("click", (event) => this.onClick(event), { signal });
+    host.addEventListener("keydown", (event) => this.onKey(event), { signal });
+    host.addEventListener("pointerdown", (event) => this.onPointerDown(event), { signal });
     // A drag from the item: a link or image would start the browser's own drag, a held touch
     // would open its context menu, and a moving one would scroll the page.
-    this.addEventListener("dragstart", (event) => this.fromItem(event.target as Element) && event.preventDefault(), { signal });
-    this.addEventListener("contextmenu", (event) => this.sorting && event.preventDefault(), { signal });
+    host.addEventListener("dragstart", (event) => this.fromItem(event.target as Element) && event.preventDefault(), { signal });
+    host.addEventListener("contextmenu", (event) => this.sorting && event.preventDefault(), { signal });
     // Only lists that drag from the item: a listener that can cancel touchmove makes every scroll
     // starting over the list wait for the script (handles don't need it: touch-action: none).
     // ListView re-creates the element when DragWholeItem changes, so this runs again.
     if (this.whole) {
-      this.addEventListener("touchmove", (event) => this.sorting && event.preventDefault(), { signal, passive: false });
+      host.addEventListener("touchmove", (event) => this.sorting && event.preventDefault(), { signal, passive: false });
     }
     // A touch lifted and let go in place is still a tap to the browser, whose click comes later
     // than the drag's own swallowing: cancelling the touchend stops it.
-    this.addEventListener("touchend", (event) => {
+    host.addEventListener("touchend", (event) => {
       if (!this.dropped) return;
       this.dropped = false;
       if (event.cancelable) event.preventDefault();
@@ -277,7 +292,7 @@ class Sortable extends IzzyElement {
       // went; if the user has gone elsewhere meanwhile, focus stays there.
       const now = this.findItem(key);
       const lost = !document.activeElement || document.activeElement === document.body || !focused?.isConnected;
-      if (hadFocus && lost && now) now.closest<Sortable>("ib-sortable")?.triggerOf(now)?.focus();
+      if (hadFocus && lost && now) this.ownerOf(now).triggerOf(now)?.focus();
     };
     // The render applies its moves and data-ib-seq together, before this runs.
     const observer = new MutationObserver(() => {
@@ -290,7 +305,17 @@ class Sortable extends IzzyElement {
   }
 
   items(): HTMLElement[] {
-    return [...(this.list?.children ?? [])] as HTMLElement[];
+    return [...(this.list?.children ?? [])].filter((el): el is HTMLElement => el.matches(ITEM));
+  }
+
+  /** The list an item is in: its zone, or this grid's. */
+  private ownerOf(item: HTMLElement): Sortable {
+    return item.closest<Sortable>("ib-sortable") ?? this;
+  }
+
+  /** An item and the elements that follow it (a grid row's detail). */
+  private unitOf(item: HTMLElement): HTMLElement[] {
+    return (this.list ? unitsOf(this.list) : []).find((unit) => unit[0] === item) ?? [item];
   }
 
   /** An item by key, in this list or another zone of its group. */
@@ -355,8 +380,9 @@ class Sortable extends IzzyElement {
     const rest = items.filter((el) => el !== item);
     const handle = this.triggerOf(item);
     // Moving a node drops focus from inside it.
-    const hadFocus = item.contains(document.activeElement);
-    list.insertBefore(item, rest[to] ?? null);
+    const unit = this.unitOf(item);
+    const hadFocus = unit.some((el) => el.contains(document.activeElement));
+    for (const el of unit) list.insertBefore(el, rest[to] ?? null);
     if (focus || hadFocus) handle?.focus();
     this.refreshEnds();
     this.announce(item, to, items.length);
@@ -403,7 +429,7 @@ class Sortable extends IzzyElement {
       const now = place(item);
       if (!item || !now || (now[0] === was?.[0] && now[1] === was?.[1])) return;
       observer.disconnect();
-      item.closest<Sortable>("ib-sortable")?.triggerOf(item)?.focus();
+      this.ownerOf(item).triggerOf(item)?.focus();
     });
     for (const zone of this.group()) if (zone.list) observer.observe(zone.list, { childList: true });
     setTimeout(() => observer.disconnect(), 2000);

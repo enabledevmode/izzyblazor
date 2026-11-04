@@ -109,6 +109,11 @@
     invalid cell stays open. A new row is edited as with `Row`, and so is every row on a static page. Besides
     the limits of `Row`, it can't be used with `RowHref`.
 
+    `ReorderableRows` puts a handle at each row's start: drag it, or use its menu, to put the rows in
+    their own order. It needs an ItemKey and every row in Items, and the handles work only while the
+    grid isn't sorted, filtered, searched or grouped. On interactive pages bind `@bind-Items`; on static
+    pages give it an `OrderName` inside a form and pass the posted ListOrder back as `Order`.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop, with the keys below. A cell with one link, button or
@@ -119,6 +124,8 @@
     - Sortable headers are links, and the first sorted column has `aria-sort`. With several sorted,
       each says its place and direction ("Sort 2, descending").
     - Row checkboxes and filter buttons are named as in a Table.
+    - With `ReorderableRows`, each row's handle is named "Move" and the row's label, and its menu
+      moves the row without dragging. Every move is announced: "Moved Ada to position 3 of 5".
     - The toolbar is one Tab stop with script, with arrow keys between its controls. The tools that
       show only an icon are named for what they do, and have that as a hover tooltip.
 
@@ -134,6 +141,7 @@
     - F2 | Edit the row, from a cell of text, in a grid that edits rows
     - Enter | On a row that's a link, follow it, from a cell of text
     - Alt+Down | Open the cell's menu
+    - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a row's handle, move the row
     - Shift+F10, Menu | Open the row's menu (on a link, only Shift+F10)
     Inside a cell
     - Tab | Move among its controls, and back out past either end
@@ -208,6 +216,7 @@
         <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
                          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-width-text="@TextDefaults.ColumnWidth" @oniblayout="OnLayoutAsync"></ib-grid-columns>
     }
+    @RowSorter
     @Body
 </ib-table>
 
@@ -1342,6 +1351,7 @@
         var span = next < 0 ? shown.Count : next;
         var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
         <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize">
+            @GripEmptyCell
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -1401,6 +1411,7 @@
             if (Shown.Any(c => c.AggregateIn(AggregatePlace.GroupFooter) is not null))
             {
                 <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)">
+                    @GripEmptyCell
                     @if (Selectable)
                     {
                         <td class="@SelectCellClass"></td>
@@ -1417,6 +1428,7 @@
             if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
             {
                 <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)">
+                    @GripEmptyCell
                     @if (Selectable)
                     {
                         <td class="@SelectCellClass"></td>
@@ -1463,11 +1475,11 @@
     // The lead columns hold the groups' chevrons: frozen with the start columns, after the selection.
     private string LeadClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-lead ib-frozen ib-frozen-start" : "ib-grid-lead";
 
-    private string? LeadStyle => Selectable && Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "--ib-frozen-at:var(--ib-datagrid-select)" : null;
+    private string? LeadStyle => StartSpan > 0 && Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? $"--ib-frozen-at:calc({StartWidths}0px)" : null;
 
     // Where a label sticks: past the selection and the lead columns of the levels above it.
     private string LabelAt(int depth) =>
-        $"--ib-group-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{depth} * var(--ib-datagrid-group))";
+        $"--ib-group-at:calc({StartWidths}{depth} * var(--ib-datagrid-group))";
 
     /// <inheritdoc />
     internal override RenderFragment? LeadCell => LeadSpan == 0 ? null : __builder =>
@@ -1520,7 +1532,7 @@
 
     // The detail buttons' column: frozen past the selection and the groups' lead columns.
     private string? ExpanderStyle => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start)
-        ? $"--ib-frozen-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{Grouping.Levels.Count} * var(--ib-datagrid-group))"
+        ? $"--ib-frozen-at:calc({StartWidths}{Grouping.Levels.Count} * var(--ib-datagrid-group))"
         : null;
 
     // Hiding with no template, the button column goes while nothing is hidden (DataGridSmallScreen.cs).
@@ -1572,8 +1584,8 @@
     // grid scrolls sideways.
     private RenderFragment DetailRow(TItem item, int row, int? indent, bool template) => __builder =>
     {
-        <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)">
-            <td colspan="@(Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
+        <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)" data-ib-follows="@(HasGrip ? "" : null)">
+            <td colspan="@(Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
                 <div class="ib-grid-detail-content">
                     @if (Hiding)
                     {
@@ -1588,7 +1600,125 @@
         </tr>
     };
 
-    private string DetailAt => $"--ib-detail-at:calc({(Selectable ? "var(--ib-datagrid-select) + " : "")}{LeadWidths})";
+    private string DetailAt => $"--ib-detail-at:calc({StartWidths}{LeadWidths})";
+
+    // The widths of the columns before the lead ones, each followed by " + ": the handles and the selection.
+    private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (Selectable ? "var(--ib-datagrid-select) + " : "");
+
+    // Moving rows (DataGridReorder.cs): the drag, the menus' moves in place and their shortcuts on
+    // static pages, and the live region that announces every move. Beside the table, as a custom
+    // element can't sit between a table and its rows.
+    private RenderFragment? RowSorter => !HasGrip ? null : __builder =>
+    {
+        <ib-sortable class="ib-visually-hidden" data-ib-rows=""
+                     data-ib-interactive="@(MovesLive ? "" : null)"
+                     data-ib-seq="@(RendererInfo.IsInteractive ? _rowMoveSeq.ToString(System.Globalization.CultureInfo.InvariantCulture) : null)"
+                     @onibmove="DropRowAsync" @onibmove:stopPropagation="true"
+                     data-ib-submit="@(PostsOrder && SubmitOnMove ? "" : null)"
+                     data-ib-moved="@TextDefaults.MovedTo"
+                     data-ib-cancelled="@(MovesLive ? TextDefaults.MoveCancelled : null)">
+            @if (PostsOrder)
+            {
+                @* The form's default button, ahead of the rows' moves: Enter in another field submits the
+                   form, rather than pressing the first row's (disabled) Move up. *@
+                <button type="submit" class="ib-data-default-submit" tabindex="-1" aria-hidden="true"></button>
+            }
+            <div role="status">@_moveAnnouncement</div>
+            @if (MovesLive)
+            {
+                @* The script's own, for a drop no render answered: C# owns the one above. *@
+                <div role="status" data-ib-say></div>
+            }
+        </ib-sortable>
+    };
+
+    private string GripCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-grip-cell ib-frozen ib-frozen-start" : "ib-grid-grip-cell";
+
+    /// <inheritdoc />
+    internal override string? RowsClass => HasGrip ? "ib-sortable-list" : null;
+
+    /// <inheritdoc />
+    internal override string? OwnRowClass => HasGrip ? "ib-sortable-item" : null;
+
+    /// <inheritdoc />
+    internal override object? RowKey(string key) => HasGrip ? key : null;
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? RowAttributes(TItem item) => !HasGrip ? null : CanMove(item) && MoveBlockedReason is null
+        ? new Dictionary<string, object> { ["data-ib-label"] = LabelOf(item), ["data-ib-movable"] = "" }
+        : new Dictionary<string, object> { ["data-ib-label"] = LabelOf(item) };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripHeader => !HasGrip ? null : __builder =>
+    {
+        <th scope="col" class="@GripCellClass"><span class="ib-visually-hidden">@TextDefaults.MoveColumn</span></th>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripEmptyCell => !HasGrip ? null : __builder =>
+    {
+        <td class="@GripCellClass"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripCell(TItem item, int row) => !HasGrip ? null : __builder =>
+    {
+        var key = KeyOf(item);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, LabelOf(item));
+        <td class="@GripCellClass">
+            @if (!CanMove(item))
+            {
+            }
+            else if (MoveBlockedReason is { } reason)
+            {
+                <span title="@reason">
+                    <IconButton Icon="Lucide.GripVertical" Label="@($"{label}: {reason}")" Disabled Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle" />
+                </span>
+            }
+            else
+            {
+                var focus = !MovesLive && key == _moveFocusKey;
+                <Menu>
+                    <Trigger Context="wire">
+                        <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle ib-sortable-trigger"
+                                    autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+                    </Trigger>
+                    <ChildContent>
+                        @RowMove(new(ListMoveKind.Up, key), TextDefaults.MoveUp, "Alt+↑", row == 0)
+                        @RowMove(new(ListMoveKind.Down, key), TextDefaults.MoveDown, "Alt+↓", row == _items.Count - 1)
+                        @RowMove(new(ListMoveKind.Top, key), TextDefaults.MoveToTop, "Alt+Home", row == 0)
+                        @RowMove(new(ListMoveKind.Bottom, key), TextDefaults.MoveToBottom, "Alt+End", row == _items.Count - 1)
+                    </ChildContent>
+                </Menu>
+            }
+            @if (PostsOrder && InOwnOrder)
+            {
+                @* Only in the grid's own order: a sorted order posted with the form would save as the rows' own. *@
+                <input type="hidden" name="@OrderKeysName" value="@key" />
+            }
+        </td>
+    };
+
+    // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the row in place.
+    private RenderFragment RowMove(ListMove move, string text, string shortcut, bool disabled) => __builder =>
+    {
+        var kind = move.Kind.ToString().ToLowerInvariant();
+        if (MovesLive)
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@kind" OnClick="() => MoveRowAsync(move)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@kind" Submit Name="@OrderMoveName" Value="@move.ToString()">@text</MenuItem>
+        }
+    };
+
+    /// <inheritdoc />
+    internal override void Loaded()
+    {
+        base.Loaded();
+        ArrangePosted();
+    }
 
     /// <inheritdoc />
     internal override string Summary(int size)
@@ -1689,6 +1819,7 @@
             PageSize ??= 50;
         }
 
+        CheckReorder();
         _shown = null;
         ForgetEndedEdit();
         // Bound, it starts from the address, as sort and page do, and then follows the parent.
@@ -2196,6 +2327,10 @@
     internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
     {
         <colgroup>
+            @if (HasGrip)
+            {
+                <col class="ib-datagrid-grip-col" />
+            }
             @if (Selectable)
             {
                 <col class="ib-datagrid-select-col" />
@@ -2276,6 +2411,11 @@
                 }
             }
 
+            if (HasGrip)
+            {
+                parts.Add("var(--ib-datagrid-grip)");
+            }
+
             if (Selectable)
             {
                 parts.Add("var(--ib-datagrid-select)");
@@ -2349,6 +2489,11 @@
         var parts = new List<string>();
         if (frozen == ColumnFrozen.Start)
         {
+            if (HasGrip)
+            {
+                parts.Add("var(--ib-datagrid-grip)");
+            }
+
             if (Selectable)
             {
                 parts.Add("var(--ib-datagrid-select)");
@@ -2408,6 +2553,7 @@
     {
         classes.Add("ib-datagrid");
         classes.Add("ib-datagrid-virtual", VirtualRows);
+        classes.Add("ib-datagrid-grip", HasGrip);
         // Hiding goes by the width it's given, so it takes all of it rather than its columns' width.
         classes.Add("ib-datagrid-fill", SmallScreen == DataGridSmallScreen.HideColumns);
         base.BuildAttributes(classes, styles);

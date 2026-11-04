@@ -21,6 +21,34 @@ public abstract partial class TableViewBase<TItem>
         : _columns.Any(c => c.AggregateIn(AggregatePlace.Footer) is not null) ? $"A {ViewName} with an {nameof(ColumnBase<TItem>.Aggregate)} and an {nameof(ItemsProvider)} needs a GroupsProvider, as the rows it holds are only a page's."
         : null;
 
+    /// <summary>The first cell of every row, before the selection, for a grid's row handles: in the header, an empty one, and a data row's.</summary>
+    internal virtual RenderFragment? GripHeader => null;
+
+    internal virtual RenderFragment? GripEmptyCell => null;
+
+    internal virtual RenderFragment? GripCell(TItem item, int row) => null;
+
+    /// <summary>How many columns the handles take: 0 or 1.</summary>
+    internal virtual int GripSpan => 0;
+
+    /// <summary>The class of the body's rows group, a grid's list of rows that move.</summary>
+    internal virtual string? RowsClass => null;
+
+    /// <summary>A class every data row has, a grid's rows that move.</summary>
+    internal virtual string? OwnRowClass => null;
+
+    /// <summary>A data row's own attributes, for a grid's rows that move.</summary>
+    internal virtual IReadOnlyDictionary<string, object>? RowAttributes(TItem item) => null;
+
+    /// <summary>
+    /// What keeps a data row's elements when rows aren't virtual: nothing (rows are kept by place),
+    /// or the item's key, where rows move and focus moves with them.
+    /// </summary>
+    internal virtual object? RowKey(string key) => null;
+
+    /// <summary>The columns before the lead cells: the handles and the selection.</summary>
+    internal int StartSpan => GripSpan + (Selectable ? 1 : 0);
+
     /// <summary>Cells before the columns, for a grid's groups: in the header, and in a row.</summary>
     internal virtual RenderFragment? LeadHeader => null;
 

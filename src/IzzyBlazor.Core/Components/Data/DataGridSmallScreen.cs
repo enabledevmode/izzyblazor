@@ -71,7 +71,7 @@ public partial class DataGrid<TItem>
             // Asked for at every cell, so cheap: the rows' actions (the action column's width) are
             // read only when the rows or the edit change.
             var signature = string.Join('|', Shown.Select(c => $"{KeyOf(c)}:{c.Priority}:{WidthOf(c)}:{c.MinWidth}:{FrozenOf(c)}"))
-                + $"|{Selectable}|{Grouping.Levels.Count}|{HasDetails}|{HasActionCell}|{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(_items)}:{_items.Count}|{RowEditKey}";
+                + $"|{Selectable}|{HasGrip}|{Grouping.Levels.Count}|{HasDetails}|{HasActionCell}|{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(_items)}:{_items.Count}|{RowEditKey}";
             if (_hidePlan is null || _hidePlanFor != signature)
             {
                 (_hidePlanFor, _hidePlan) = (signature, MakePlan());
@@ -123,6 +123,7 @@ public partial class DataGrid<TItem>
             widths[hidden] = set
                 + (unset.Count > 0 ? unset.Count * unset.Max() : 0)
                 + (Selectable ? SelectRem : 0)
+                + (HasGrip ? GripRem : 0)
                 + leads * LeadRem
                 + (HasActionCell ? ActionWidth(hidden > 0) : 0);
         }
@@ -132,6 +133,7 @@ public partial class DataGrid<TItem>
 
     // Widths the stylesheet gives these columns (data.css). A container query can't read a variable.
     private const double SelectRem = 2.75;
+    private const double GripRem = 2.5;
     private const double LeadRem = 2.25;
     private const double DefaultMinRem = 8;
 

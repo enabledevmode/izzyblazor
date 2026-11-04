@@ -12,6 +12,7 @@
     private RenderFragment SkeletonRow => __builder =>
     {
         <tr class="ib-table-skeleton-row" aria-hidden="true" style="@VirtualRowStyle">
+            @GripEmptyCell
             @if (Selectable)
             {
                 <td class="@SelectCellClass"></td>
@@ -32,7 +33,8 @@
         var editing = IsEditingRow(item);
         var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute ?? RowKey(key)" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @attributes="RowAttributes(item)" @ref="_rowRefs[absolute is null ? row : -1]">
+            @GripCell(item, row)
             @if (Selectable)
             {
                 <td class="@SelectCellClass" role="@StackRole("cell")">
@@ -193,6 +195,7 @@
                     @ColGroup
                 <thead role="@StackRole("rowgroup")">
                         <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? 1 : null)">
+                            @GripHeader
                             @if (Selectable)
                             {
                                 @* Select all: script only. For the page, it checks the rows, which report their own changes. *@
@@ -234,6 +237,7 @@
                         @if (ShowsFilterRow && headerFilters is not null)
                         {
                             <tr class="ib-table-filter-row" aria-rowindex="@(VirtualRows ? 2 : null)">
+                                @GripEmptyCell
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass"></td>
@@ -252,10 +256,11 @@
                             </tr>
                         }
                     </thead>
-                    <tbody role="@StackRole("rowgroup")">
+                    <tbody class="@RowsClass" role="@StackRole("rowgroup")">
                         @if (_loadError is null && NewRowItem is { } added)
                         {
                             <tr data-ib-editing="">
+                                @GripEmptyCell
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass"></td>
@@ -274,7 +279,7 @@
                             @* In place of the rows: what went wrong and a way to try again. *@
                             _virtualShape = null;
                             <tr class="ib-table-empty ib-table-error" role="@StackRole("row")">
-                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
+                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content ib-data-error-content">
                                         @LoadFailedMessage
                                         @RetryControl(RetryAsync, _providerLoading)
@@ -296,7 +301,7 @@
                         else if (_items.Count == 0)
                         {
                             <tr class="ib-table-empty" role="@StackRole("row")">
-                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
+                                <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
                                         @if (NoneTicked() is { } unticked)
                                         {
@@ -341,6 +346,7 @@
                     {
                         <tfoot role="@StackRole("rowgroup")">
                             <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? (_total ?? 0) + HeaderRows + 1 : null)">
+                                @GripEmptyCell
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass" role="@StackRole("cell")"></td>
@@ -1963,7 +1969,7 @@
 
     private string? RowClasses(TItem item, string? href)
     {
-        var classes = string.Join(' ', new[] { RowClass?.Invoke(item), href is null ? null : "ib-table-row-linked" }.Where(c => !string.IsNullOrEmpty(c)));
+        var classes = string.Join(' ', new[] { RowClass?.Invoke(item), href is null ? null : "ib-table-row-linked", OwnRowClass }.Where(c => !string.IsNullOrEmpty(c)));
         return classes.Length > 0 ? classes : null;
     }
 
