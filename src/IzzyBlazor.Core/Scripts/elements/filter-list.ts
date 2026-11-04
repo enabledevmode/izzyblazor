@@ -1,6 +1,7 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { setupLoadOnScroll } from "../data-view";
 import { navigateTo } from "../filtering";
+import { fetchPart } from "../fetch-part";
 
 /**
  * <ib-filter-list> adds what a list filter can't do in HTML: Select all, which ticks or unticks the
@@ -407,8 +408,7 @@ class FilterList extends IzzyElement {
 
     let answer: Element | null = null;
     try {
-      const response = await fetch(url, { signal: request.signal });
-      if (response.ok) answer = this.#listIn(await response.text());
+      answer = await fetchPart(url, `ib-filter-list[data-ib-list-key="${CSS.escape(this.dataset.ibListKey!)}"][data-ib-answered]`, request.signal);
     } catch {
       if (request.signal.aborted) return;
     }
@@ -456,14 +456,6 @@ class FilterList extends IzzyElement {
       else search?.focus({ preventScroll: true });
     }
     narrow();
-  }
-
-  // This list in a response. On a stream-rendered page it arrives in a template after the first flush.
-  #listIn(html: string): Element | null {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const selector = `ib-filter-list[data-ib-list-key="${CSS.escape(this.dataset.ibListKey!)}"][data-ib-answered]`;
-    const streamed = [...doc.querySelectorAll<HTMLTemplateElement>("blazor-ssr template")].map((t) => t.content.querySelector(selector)).filter(Boolean);
-    return streamed.pop() ?? doc.querySelector(selector);
   }
 }
 
