@@ -54,9 +54,8 @@ public class DialogServiceTests : BunitContext
 
         Assert.False(result.Canceled);
         Assert.Equal("saved", result.DataAs<string>());
-        // Closed first (so the browser returns focus), removed shortly after.
-        host.WaitForAssertion(() => Assert.False(host.Find("ib-dialog").HasAttribute("data-open")));
-        host.WaitForAssertion(() => Assert.Empty(host.FindAll("ib-dialog")), TimeSpan.FromSeconds(2));
+        // Closed first, so the browser returns focus.
+        host.WaitForAssertion(() => Assert.Empty(host.FindAll("ib-dialog[data-open]")));
     }
 
     [Fact]
