@@ -4,7 +4,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// What a new password must have, for <see cref="TextField.Requirements"/>: shown as a list under the
-/// field, ticked as it's typed, and checked on the server. The properties are named and checked as
+/// field, checked off as it's typed, and checked on the server. The properties are named and checked as
 /// ASP.NET Core Identity's <c>PasswordOptions</c>, so an app passes its own rules across. The defaults
 /// differ: here every rule is off until set, where Identity's are on (a length of 6, a digit, both
 /// cases and a symbol), so copy each value, not only the ones you changed.

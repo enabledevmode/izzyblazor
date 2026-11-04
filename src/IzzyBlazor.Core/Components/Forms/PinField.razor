@@ -4,8 +4,8 @@
 
 @*
     A short code typed into boxes: a one-time code from an authenticator app, a text message or an
-    email, or a PIN. One real input holds the whole code, so paste, autofill, screen readers and
-    posting are the browser's own; it sits, clear, over the boxes.
+    email, or a PIN. A single text input over the boxes contains the whole code, so pasting,
+    autofill, screen readers and form posts work as in any text field.
 
     <PinField @bind-Value="Model.Code" Label="Code from the app" />
     <PinField @bind-Value="Model.Pin" Length="4" Masked AutoComplete="current-password" Label="PIN" />
@@ -17,7 +17,7 @@
     - It's one text input named by its label, so screen readers hear one field, "Code from the app,
       edit text", not a box per digit; the boxes are hidden from them.
     - `autocomplete="one-time-code"` (`AutoComplete`) lets phones offer a code from a text message
-      or email; digits open the number keyboard.
+      or email; phones show the number keyboard for digits.
     - Masked, it's a password input: screen readers don't read the characters, and the browser
       doesn't keep them in its form history.
     - The focus ring is drawn on the box the next character goes into.
@@ -68,7 +68,7 @@
 
     /// <summary>
     /// Hides the characters, for a PIN: it's a password input, so screen readers don't read it, and a
-    /// static page doesn't write it back after a post. Phones may not offer a texted code for it.
+    /// static page doesn't fill it in again after a form post. Phones may not offer a texted code for it.
     /// </summary>
     [Parameter] public bool Masked { get; set; }
 
