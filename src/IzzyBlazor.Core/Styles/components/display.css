@@ -326,6 +326,23 @@
     height: auto;
   }
 
+  /* Dark on light in both schemes: not every scanner reads light on dark. */
+  .ib-qr {
+    display: block;
+    inline-size: var(--ib-qr-size, 10rem);
+    max-inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 1;
+  }
+
+  .ib-qr-light {
+    fill: var(--ib-qr-light, #fff);
+  }
+
+  .ib-qr-dark {
+    fill: var(--ib-qr-dark, #000);
+  }
+
   .ib-image-ratio {
     width: 100%;
     aspect-ratio: var(--ib-ratio);
