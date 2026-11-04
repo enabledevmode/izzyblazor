@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
+@inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own suggestions show (a datalist), styled and announced as the browser does.")]
 
 @*
@@ -12,8 +13,10 @@
 
     Suggestions come from Items, from Search (called with the typed text), or from ItemsProvider
     (a DataRequest whose Search is the typed text and whose Take is MaxSuggestions). On
-    interactive pages each pause in typing asks again for new suggestions; static pages ask once,
-    with "", and typing narrows those in the browser.
+    interactive pages each pause in typing asks again for new suggestions. Static pages do too,
+    with script: each pause fetches the page with the typed text in its address (ib-suggest,
+    ib-suggest-q) and takes this field's suggestions out of the response. That render sees the
+    address, not the form's current values.
 
     Accessibility:
     - The input is a `combobox` with a `listbox` of suggestions: focus stays in the input, and the
@@ -43,7 +46,9 @@
     <ib-combobox class="ib-field-control ib-combobox ib-autocomplete"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
                  data-free
-                 data-server="@(ServerFiltered ? "" : null)">
+                 data-server="@(ServerFiltered ? "" : null)"
+                 data-ib-suggest-key="@(PageFetches ? SuggestionKey : null)"
+                 data-ib-debounce="@(PageFetches ? Debounce : null)">
         <input @attributes="InputAttributes"
                id="@FieldId"
                type="text"
@@ -76,7 +81,8 @@
              role="listbox"
              aria-labelledby="@LabelId"
              aria-busy="@(_searching ? "true" : null)"
-             data-query="@(ServerFiltered ? _resultsQuery : null)">
+             data-query="@(ServerFiltered ? _resultsQuery : null)"
+             data-ib-answered="@(_answered ? "" : null)">
             @{ var index = 0; }
             @foreach (var text in Suggestions)
             {
@@ -108,20 +114,20 @@
 
     /// <summary>
     /// Finds suggestions for the typed text, for lists too long to send whole. Called with "" to
-    /// fill the list at first (on every page), and as the user types on interactive pages. Return a
-    /// short list, such as the first 10 matches.
+    /// fill the list at first, and for each pause in typing. Return a short list, such as the first
+    /// 10 matches.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once, when the page loads, and typing narrows those in the browser; asking Search again for each pause in typing needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Notes = "On static pages, each pause in typing fetches the page with the typed text in its address, and Search runs in that render; it sees the address, not the form's current values.")]
     public Func<string, CancellationToken, Task<IEnumerable<string>>>? Search { get; set; }
 
     /// <summary>
     /// Finds suggestions with the provider signature Table and DataGrid use: the request's
     /// <c>Search</c> is the typed text and its <c>Take</c> is <see cref="MaxSuggestions"/>, and
     /// <c>request.ToResult(query)</c> (or <c>ToResultAsync</c>, through EF Core) applies both to a
-    /// query of strings. Called with an empty search to fill the list at first, and as the user types
-    /// on interactive pages.
+    /// query of strings. Called with an empty search to fill the list at first, and for each pause in
+    /// typing.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, ItemsProvider fills the list once, when the page loads, and typing narrows those in the browser; asking it again for each pause in typing needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Notes = "On static pages, each pause in typing fetches the page with the typed text in its address, and ItemsProvider runs in that render; it sees the address, not the form's current values.")]
     public Func<DataRequest<string>, ValueTask<DataResult<string>>>? ItemsProvider { get; set; }
 
     /// <summary>The most suggestions <see cref="ItemsProvider"/> is asked for (its request's <c>Take</c>). Defaults to 50.</summary>
@@ -146,6 +152,8 @@
     private IReadOnlyList<string>? _results;
     private string _resultsQuery = "";
     private bool _searching;
+    // This render answers the script's fetch for this field's suggestions.
+    private bool _answered;
 
     private string ListId => FieldId + "-list";
     private string NativeListId => FieldId + "-suggestions";
@@ -155,6 +163,9 @@
 
     // Server filtering needs a circuit; without one the browser filters the first results.
     private bool ServerFiltered => Searches && RendererInfo.IsInteractive;
+
+    // Static: the script fetches the page for each pause in typing.
+    private bool PageFetches => Searches && !WillBeInteractive && SuggestionKey is not null;
 
     private Dictionary<string, object>? SearchAttributes => ServerFiltered
         ? new() { ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, OnSearchInput) }
@@ -202,7 +213,11 @@
 
         if (Searches && _results is null)
         {
-            _results = await FindAsync("", CancellationToken.None);
+            // Another field's fetch: its render is thrown away, so don't search.
+            var asked = false;
+            var text = PageFetches ? IzzyRequest.SuggestionFor(Navigation, SuggestionKey!, out asked) : null;
+            _answered = asked;
+            _results = text is not null && !asked ? [] : await FindAsync(text ?? "", CancellationToken.None);
         }
     }
 

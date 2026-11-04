@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TValue
 @inherits FieldBase<TValue>
+@inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain dropdown with no typing to filter.")]
 
 @*
@@ -19,8 +20,10 @@
     - Interactive with Search: typing calls Search on the server (debounced) and the list shows
       its results; Enter or leaving the field before they come waits for them. Choosing, Escape
       or leaving puts the chosen text back and, after a search, calls Search("") again, so the
-      list opens with the first results. Without a circuit, Search("") fills the list once and it filters in the
-      browser.
+      list opens with the first results.
+    - Static with Search: the same, by fetching the page with the typed text in its address
+      (ib-suggest, ib-suggest-q) and taking this field's options out of the response. That render
+      sees the address, not the form's current values.
 
     Accessibility:
     - With script, the input is a `combobox` with a `listbox` of options: focus stays in the
@@ -49,7 +52,9 @@
     {
     <ib-combobox class="ib-field-control ib-has-end ib-combobox"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
-                 data-server="@(ServerFiltered ? "" : null)">
+                 data-server="@(ServerFiltered ? "" : null)"
+                 data-ib-suggest-key="@(PageFetches ? SuggestionKey : null)"
+                 data-ib-debounce="@(PageFetches ? Debounce : null)">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-field-select ib-combobox-select"
@@ -97,7 +102,8 @@
              role="listbox"
              aria-labelledby="@LabelId"
              aria-busy="@(_searching ? "true" : null)"
-             data-query="@(ServerFiltered ? _resultsQuery : null)">
+             data-query="@(ServerFiltered ? _resultsQuery : null)"
+             data-ib-answered="@(_answered ? "" : null)">
             @{ var index = 0; }
             @foreach (var item in ListOptions.DistinctBy(FormatValueAsString))
             {
@@ -157,16 +163,18 @@
     // The text _results were found for, so the script knows which search they answer.
     private string _resultsQuery = "";
     private bool _searching;
+    // This render answers the script's fetch for this field's options.
+    private bool _answered;
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically, or with <see cref="Search"/>.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }
 
     /// <summary>
     /// Finds options for the typed text, for lists too long to send whole. Called with "" to fill
-    /// the list at first (on every page), and as the user types on interactive pages. Return a
-    /// short list, such as the first 50 matches.
+    /// the list at first, and for each pause in typing. Return a short list, such as the first 50
+    /// matches.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once, when the page loads, and typing narrows those in the browser; asking Search again for each pause in typing needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Notes = "On static pages, each pause in typing fetches the page with the typed text in its address, and Search runs in that render; it sees the address, not the form's current values.")]
     public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
 
     /// <summary>Milliseconds to wait after the last keystroke before calling <see cref="Search"/>.</summary>
@@ -199,6 +207,9 @@
 
     // Server filtering needs a circuit; without one the browser filters the first results.
     private bool ServerFiltered => Search is not null && RendererInfo.IsInteractive;
+
+    // Static: the script fetches the page for each pause in typing.
+    private bool PageFetches => Search is not null && !WillBeInteractive && SuggestionKey is not null;
 
     // Keystrokes go to the server only when it does the searching.
     private Dictionary<string, object>? SearchAttributes => ServerFiltered
@@ -252,7 +263,12 @@
     {
         if (Search is not null && _results is null)
         {
-            _results = (await Search("", CancellationToken.None)).ToList();
+            // Another field's fetch: its render is thrown away, so don't search.
+            var asked = false;
+            var text = PageFetches ? IzzyRequest.SuggestionFor(Navigation, SuggestionKey!, out asked) : null;
+            _answered = asked;
+            _results = text is not null && !asked ? [] : (await Search(text ?? "", CancellationToken.None)).ToList();
+            _resultsQuery = asked ? text! : "";
         }
     }
 

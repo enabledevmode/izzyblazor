@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -48,6 +49,28 @@ public class ComboboxRenderTests : BunitContext
         .Add(c => c.Search, FindPeople)
         .Add(c => c.Debounce, 0)
         .Add(c => c.ItemText, id => People[id!.Value]));
+
+    [Fact]
+    public void A_static_page_fetched_for_its_suggestions_searches_the_typed_text_and_says_so()
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("owners?ib-suggest=_model.OwnerId&ib-suggest-q=gr");
+        var cut = People_();
+
+        Assert.Equal(["gr"], _searches);
+        Assert.Equal("_model.OwnerId", cut.Find("ib-combobox").GetAttribute("data-ib-suggest-key"));
+        Assert.True(cut.Find("[role=listbox]").HasAttribute("data-ib-answered"));
+        Assert.Equal(["Grace Hopper"], cut.FindAll("[role=option]").Select(o => o.TextContent.Trim()));
+    }
+
+    [Fact]
+    public void Another_fields_fetch_skips_the_search()
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("owners?ib-suggest=_model.Country&ib-suggest-q=fr");
+        var cut = People_();
+
+        Assert.Empty(_searches);
+        Assert.False(cut.Find("[role=listbox]").HasAttribute("data-ib-answered"));
+    }
 
     [Fact]
     public void Renders_a_posting_select_and_a_combobox_input()
