@@ -15,13 +15,12 @@ public sealed class PasswordTests(SiteFixture site) : IClassFixture<SiteFixture>
         var password = example.Locator("input[type=password]");
         var rules = example.Locator(".ib-password-rules > li");
 
-        await password.FillAsync("aaaaaaaaaaaaaaaa");
-        await Assertions.Expect(rules.Nth(0)).ToHaveAttributeAsync("data-met", "");
-        await Assertions.Expect(rules.Nth(1)).Not.ToHaveAttributeAsync("data-met", "");
-        await Assertions.Expect(rules.Nth(1)).ToContainTextAsync("not yet");
+        await password.FillAsync("correct horse");
+        await Assertions.Expect(rules.Nth(0)).Not.ToHaveAttributeAsync("data-met", "");
+        await Assertions.Expect(rules.Nth(0)).ToContainTextAsync("not yet");
 
         await password.FillAsync("correct horse battery staple");
-        await Assertions.Expect(rules.Nth(1)).ToContainTextAsync("met");
+        await Assertions.Expect(rules.Nth(0)).ToHaveAttributeAsync("data-met", "");
         await Assertions.Expect(example.Locator(".ib-password-status")).ToHaveTextAsync("All requirements met.");
         await example.GetByRole(AriaRole.Button, new() { Name = "Create account" }).ClickAsync();
         await Assertions.Expect(example).ToContainTextAsync("Account created.");

@@ -4,8 +4,10 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// What a new password must have, for <see cref="TextField.Requirements"/>: shown as a list under the
-/// field, ticked as it's typed, and checked on the server. The properties are named as ASP.NET Core
-/// Identity's <c>PasswordOptions</c>, so an app passes its own rules across in one line.
+/// field, ticked as it's typed, and checked on the server. The properties are named and checked as
+/// ASP.NET Core Identity's <c>PasswordOptions</c>, so an app passes its own rules across. The defaults
+/// differ: here every rule is off until set, where Identity's are on (a length of 6, a digit, both
+/// cases and a symbol), so copy each value, not only the ones you changed.
 /// </summary>
 /// <example>
 /// <code>
@@ -17,7 +19,7 @@ namespace IzzyBlazor;
 /// </example>
 public sealed record PasswordRules
 {
-    /// <summary>The fewest characters. NIST SP 800-63B asks for 15, or 8 where a second factor is also needed.</summary>
+    /// <summary>The fewest characters, counted as <c>string.Length</c> is (as Identity counts them); only spaces don't count.</summary>
     public int RequiredLength { get; init; }
 
     /// <summary>At least one digit, 0 to 9.</summary>
@@ -29,7 +31,7 @@ public sealed record PasswordRules
     /// <summary>At least one uppercase letter, A to Z.</summary>
     public bool RequireUppercase { get; init; }
 
-    /// <summary>At least one character that's neither a letter nor a digit.</summary>
+    /// <summary>At least one character that isn't an ASCII letter or digit, as Identity counts it: <c>!</c>, a space, or <c>é</c>.</summary>
     public bool RequireNonAlphanumeric { get; init; }
 
     /// <summary>The fewest different characters. 1 or less asks nothing.</summary>
@@ -40,7 +42,7 @@ public sealed record PasswordRules
     {
         if (RequiredLength > 0)
         {
-            yield return ("length", RequiredLength, p => p.Length >= RequiredLength);
+            yield return ("length", RequiredLength, p => p.Length >= RequiredLength && !string.IsNullOrWhiteSpace(p));
         }
 
         if (RequireLowercase)
@@ -60,7 +62,7 @@ public sealed record PasswordRules
 
         if (RequireNonAlphanumeric)
         {
-            yield return ("symbol", 0, p => p.Any(c => !char.IsLetterOrDigit(c)));
+            yield return ("symbol", 0, p => p.Any(c => !char.IsAsciiLetterOrDigit(c)));
         }
 
         if (RequiredUniqueChars > 1)
