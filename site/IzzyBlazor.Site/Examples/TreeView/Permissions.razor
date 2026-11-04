@@ -1,0 +1,45 @@
+@* Checkboxes in a form: checking a parent checks its branch, and Save posts every checked key,
+   parents included, so it works on a static page. *@
+<form method="post" @onsubmit="Save" @formname="tree-view-permissions" style="width: 100%; max-width: 22rem">
+    <AntiforgeryToken />
+    <Stack Gap="3">
+        <TreeView Items="_areas" ItemChildren="a => a.Children" ItemKey="a => a.Code" ItemText="a => a.Name"
+                  SelectionMode="SelectionMode.Multiple" SelectionName="granted" @bind-Selection="_granted" AriaLabel="Permissions" />
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button Submit>Save</Button>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
+        </Row>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the checked keys post as "granted".
+    [SupplyParameterFromForm(FormName = "tree-view-permissions", Name = "granted")]
+    private Selection? Posted { get; set; }
+
+    // Interactive pages: bound to the boxes.
+    private Selection? _granted = Selection.Of("orders.view");
+    private string? _status;
+
+    private readonly Area[] _areas =
+    [
+        new("orders", "Orders", [new("orders.view", "View orders", []), new("orders.refund", "Refund orders", [])]),
+        new("products", "Products",
+        [
+            new("products.view", "View products", []),
+            new("products.edit", "Edit products", [new("products.price", "Change prices", []), new("products.stock", "Change stock", [])]),
+        ]),
+        new("settings", "Settings", []),
+    ];
+
+    protected override void OnInitialized() => _granted = Posted ?? _granted;
+
+    private void Save()
+    {
+        var keys = (Posted ?? _granted)?.Keys ?? [];
+        _status = keys.Length == 0 ? "No permissions granted." : $"Saved {keys.Length} permissions: {string.Join(", ", keys)}.";
+    }
+    @* hide *@
+    private sealed record Area(string Code, string Name, Area[] Children);
+    @* /hide *@
+}

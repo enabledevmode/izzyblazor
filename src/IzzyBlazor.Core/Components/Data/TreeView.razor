@@ -1,7 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits StyledComponentBase
-@attribute [ModeSupport]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a tree you select from is a list of checkboxes or radio buttons in branches that open: no arrow keys, and checking a parent doesn't check its children.")]
 
 @*
     Items nested in items, from data: folders, categories, a company's teams. Items are the top
@@ -11,13 +11,25 @@
               ItemHref="@(f => $"files?folder={f.Id}")" ItemCurrent="f => f.Id == folder" />
 
     Each item with children opens and closes, with no script. A branch starts open when it holds
-    the current item (ItemCurrent) or ItemExpanded says so, so a page arrives with its own place
-    in the tree showing.
+    the current item (ItemCurrent), a selected one, or ItemExpanded says so, so a page arrives with
+    its own place in the tree showing. With script, the branches a person opened stay open as they
+    move between pages; on an interactive page @bind-Expanded follows them.
 
     With no template, ItemText, ItemDescription and ItemIcon draw an icon, the text and a muted
     second line; ChildContent draws each item instead. ItemHref makes items links. In a tree of
     links each item's arrow sits at its end, as in NavGroup, and an item that is a link and has
     children gets its own button to open them; other trees put the arrow first.
+
+    SelectionMode makes a tree to choose from, as ListView's selection: Multiple gives each item a
+    checkbox, Single selects one item. In a form the keys post under SelectionName; on an
+    interactive page bind them with @bind-Selection:
+
+    <TreeView Items="areas" ItemChildren="a => a.Children" ItemKey="a => a.Code" ItemText="a => a.Name"
+              SelectionMode="SelectionMode.Multiple" @bind-Selection="granted" AriaLabel="Permissions" />
+
+    Checking a parent checks its branch, and a parent with some of its branch checked shows a mixed
+    box (Cascade="false" makes each box its own). The selection holds every checked key, parents
+    included.
 
     Accessibility:
     - It's nested lists (`ul` with `role="list"`), so screen readers say how many items each level
@@ -27,13 +39,32 @@
       that says whether it's open. A link with children has a separate button after it, named by
       the item, so Tab reaches the link, then its button.
     - The current item (`ItemCurrent`) is marked `aria-current` ("page" on a link).
-    - A disabled item (`ItemDisabled`) has no link, and is dimmed; its children still open.
-    - Tab goes through the links and buttons in order. Arrow keys don't move through a tree of
-      links: a list of links is read and reached as one.
+    - A disabled item (`ItemDisabled`) has no link or box, and is dimmed; its children still open.
+    - In a tree of links, Tab goes through the links and buttons in order. Arrow keys don't move
+      through it: a list of links is read and reached as one.
+    - With `SelectionMode` and script, it's an ARIA `tree` (give it an `AriaLabel`): one Tab stop,
+      the arrow keys between items, and each item a `treeitem` that says whether it's open and
+      whether it's checked (`aria-checked`, "mixed" for a part-checked parent) or selected. With
+      JavaScript off it's a list of checkboxes or radio buttons in branches.
+
+    Keyboard:
+    - Up, Down | Move to the item above or below
+    - Right | Open an item's branch, or move to its first child
+    - Left | Close an item's branch, or move to its parent
+    - Home, End | Move to the first or last item
+    - * | Open every branch beside the focused item
+    - Space | Check or uncheck the item, or select it
+    - Enter | Select the item; with checkboxes, check or uncheck it
+    - A letter | Move to the next item starting with it
     See also: NavGroup, ListView.
 *@
 
-<ib-tree @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<ib-tree @attributes="AdditionalAttributes" class="@_class" style="@_style"
+         data-ib-select="@(Selects ? (Multiple ? "multiple" : "single") : null)"
+         data-ib-cascade="@(Multiple && Cascade ? "" : null)"
+         data-ib-label="@(Selects ? AriaLabel : null)"
+         data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
+         @onibtoggle="OnToggle" @onibtoggle:stopPropagation="true">
     @if (_roots.Count == 0)
     {
         <div class="ib-tree-empty">
@@ -68,8 +99,8 @@
     [Parameter] public Func<TItem, IEnumerable<TItem>?>? ItemChildren { get; set; }
 
     /// <summary>
-    /// A key that tells items apart, such as an id. Defaults to the item itself, for keeping each
-    /// item's place as the tree changes.
+    /// A key that tells items apart, such as an id. Needed for selection, and for branches a person
+    /// opened to stay open across pages; without it, each item's place is kept by the item itself.
     /// </summary>
     [Parameter] public Func<TItem, string>? ItemKey { get; set; }
 
@@ -86,11 +117,15 @@
     [Parameter] public Func<TItem, IconData?>? ItemIcon { get; set; }
 
     /// <summary>
-    /// Names the button that opens a linked item's children. Defaults to <see cref="ItemText"/>.
+    /// Names an item for screen readers: the button that opens its children, and in a tree to
+    /// choose from the item itself. Defaults to <see cref="ItemText"/>.
     /// </summary>
     [Parameter] public Func<TItem, string>? ItemLabel { get; set; }
 
-    /// <summary>Makes an item a link to this address; <see langword="null"/> leaves it plain.</summary>
+    /// <summary>
+    /// Makes an item a link to this address; <see langword="null"/> leaves it plain. Not with
+    /// <see cref="SelectionMode"/>.
+    /// </summary>
     [Parameter] public Func<TItem, string?>? ItemHref { get; set; }
 
     /// <summary>Marks the item the page is showing. Its branch starts open.</summary>
@@ -99,10 +134,49 @@
     /// <summary>Starts an item's children open.</summary>
     [Parameter] public Func<TItem, bool>? ItemExpanded { get; set; }
 
-    /// <summary>Dims an item and takes away its link. Its children still open.</summary>
+    /// <summary>Dims an item and takes away its link or box. Its children still open.</summary>
     [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
 
-    /// <summary>Names the tree for screen readers, when nothing around it does.</summary>
+    /// <summary>
+    /// The keys of the items whose children are open, on an interactive page; bind it with
+    /// <c>@bind-Expanded</c>. Branches that hold the current or a selected item, or that
+    /// <see cref="ItemExpanded"/> opens, start open too.
+    /// </summary>
+    [Parameter] public IReadOnlyCollection<string>? Expanded { get; set; }
+
+    /// <summary>Raised when a branch opens or closes, on an interactive page, with the open keys.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyCollection<string>> ExpandedChanged { get; set; }
+
+    /// <summary>
+    /// <see cref="SelectionMode.Multiple"/> gives each item a checkbox; <see cref="SelectionMode.Single"/>
+    /// selects one item. Needs <see cref="ItemKey"/>.
+    /// </summary>
+    [Parameter] public SelectionMode SelectionMode { get; set; }
+
+    /// <summary>The selected items' keys. Bind it with <c>@bind-Selection</c>.</summary>
+    [Parameter] public Selection? Selection { get; set; }
+
+    /// <summary>Raised when the selection changes, on an interactive page.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<Selection> SelectionChanged { get; set; }
+
+    /// <summary>
+    /// The form name the selected keys post under, as <c>{name}.Keys</c>; read them with
+    /// <c>[SupplyParameterFromForm(Name = "...")] Selection</c>. Defaults to <c>selected</c>.
+    /// </summary>
+    [Parameter] public string? SelectionName { get; set; }
+
+    /// <summary>Whether an item can be selected; one that can't keeps its place, with its box disabled.</summary>
+    [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
+
+    /// <summary>
+    /// With checkboxes, checking a parent checks its branch, and a parent shows how much of its
+    /// branch is checked. On by default; <see langword="false"/> makes each box its own.
+    /// </summary>
+    [Parameter] public bool Cascade { get; set; } = true;
+
+    /// <summary>Names the tree for screen readers, when nothing around it does. A tree to choose from needs one.</summary>
     [Parameter] public string? AriaLabel { get; set; }
 
     /// <summary>Shown when there are no items. Defaults to "No items" (<see cref="IzzyText.NoItems"/>).</summary>
@@ -114,26 +188,54 @@
     private string? _class;
     private string? _style;
     private List<Node> _roots = [];
+    private HashSet<string> _selected = [];
+    private HashSet<string>? _expanded;
+    private Selection _selection = IzzyBlazor.Selection.None;
 
     private bool Links => ItemHref is not null;
+
+    private bool Selects => SelectionMode != SelectionMode.None;
+
+    private bool Multiple => SelectionMode == SelectionMode.Multiple;
+
+    private string KeysName => $"{SelectionName ?? "selected"}.Keys";
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-tree");
         classes.Add("ib-tree-links", Links);
+        classes.Add("ib-tree-selects", Selects);
         base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (Selects && ItemKey is null)
+        {
+            throw new InvalidOperationException("A TreeView with a SelectionMode needs an ItemKey.");
+        }
+
+        if (Selects && Links)
+        {
+            throw new InvalidOperationException("A TreeView's items can be links (ItemHref) or choices (SelectionMode), not both.");
+        }
+
         (_class, _style) = BuildRootAttributes();
-        _roots = Build(Items, 1);
+        _selection = Selection ?? IzzyBlazor.Selection.None;
+        _selected = [.. _selection.Keys ?? []];
+        if (Expanded is not null)
+        {
+            _expanded = [.. Expanded];
+        }
+
+        _roots = Build(Items, 1, false);
     }
 
-    // The tree as it renders: each item's children read once, and which branches start open.
-    private List<Node> Build(IEnumerable<TItem>? items, int depth)
+    // The tree as it renders: each item's children read once, which are checked, and which
+    // branches start open.
+    private List<Node> Build(IEnumerable<TItem>? items, int depth, bool parentChecked)
     {
         var nodes = new List<Node>();
         if (items is null)
@@ -149,10 +251,14 @@
 
         foreach (var item in items)
         {
-            var children = ItemChildren is null ? [] : Build(ItemChildren(item), depth + 1);
-            var holdsCurrent = children.Exists(c => c.Current || c.HoldsCurrent);
-            var open = holdsCurrent || (children.Count > 0 && ItemExpanded?.Invoke(item) == true);
-            nodes.Add(new Node(item, children, ItemCurrent?.Invoke(item) == true, holdsCurrent, open));
+            var key = ItemKey?.Invoke(item);
+            var selected = key is not null && Selects && (_selected.Contains(key) || (parentChecked && Multiple && Cascade));
+            var children = ItemChildren is null ? [] : Build(ItemChildren(item), depth + 1, selected);
+            // A checked parent says its branch is checked: it doesn't open to show it.
+            var holds = children.Exists(c => c.Current || c.Holds || (c.Selected && !(selected && Cascade)));
+            var open = children.Count > 0
+                       && (holds || ItemExpanded?.Invoke(item) == true || (key is not null && _expanded?.Contains(key) == true));
+            nodes.Add(new Node(item, key, children, ItemCurrent?.Invoke(item) == true, selected, holds, open));
         }
 
         return nodes;
@@ -160,27 +266,29 @@
 
     private string TextOf(TItem item) => ItemText?.Invoke(item) ?? item?.ToString() ?? "";
 
-    private object? KeyOf(TItem item) => ItemKey is null ? item : ItemKey(item);
+    private string LabelOf(TItem item) => ItemLabel?.Invoke(item) ?? TextOf(item);
+
+    private object? KeyOf(Node node) => node.Key ?? (object?)node.Item;
 
     private RenderFragment NodeItem(Node node) => __builder =>
     {
         var item = node.Item;
         var disabled = ItemDisabled?.Invoke(item) == true;
         var href = disabled ? null : ItemHref?.Invoke(item);
-        <li class="ib-tree-li" @key="KeyOf(item)" data-ib-key="@ItemKey?.Invoke(item)">
+        <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key">
             @if (node.Children.Count == 0)
             {
                 @Row(node, href, disabled, toggle: false)
             }
-            else if (href is not null)
+            else if (href is not null || Selects)
             {
-                @* A link with children: the link, then its own button to open them, placed on the
-                   link's line at its end. *@
+                @* A link or a box with children: the item, then its own button to open them, at its
+                   end beside a link, at its start beside a box. *@
                 @Row(node, href, disabled, toggle: false)
                 <details class="ib-tree-branch" open="@node.Open">
                     <summary class="ib-tree-toggle">
                         <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
-                        <span class="ib-visually-hidden">@(ItemLabel?.Invoke(item) ?? TextOf(item))</span>
+                        <span class="ib-visually-hidden">@LabelOf(item)</span>
                     </summary>
                     @Group(node)
                 </details>
@@ -205,7 +313,7 @@
         </ul>
     };
 
-    // An item's line: a link, the summary that opens its children, or plain text.
+    // An item's line: a link, the summary that opens its children, a box's label, or plain text.
     private RenderFragment Row(Node node, string? href, bool disabled, bool toggle) => __builder =>
     {
         var css = "ib-tree-item"
@@ -213,7 +321,21 @@
                   + (disabled ? " ib-tree-disabled" : "")
                   + (node.Children.Count > 0 && href is not null ? " ib-tree-has-toggle" : "")
                   + (node.Children.Count == 0 ? " ib-tree-leaf" : "");
-        if (toggle)
+        if (Selects)
+        {
+            var key = node.Key!;
+            var locked = disabled || ItemSelectable?.Invoke(node.Item) == false;
+            <label class="@css" aria-current="@(node.Current ? "true" : null)">
+                <input @key="key" type="@(Multiple ? "checkbox" : "radio")" class="ib-check-input ib-tree-select" name="@KeysName" value="@key"
+                       checked="@node.Selected" disabled="@locked" @onchange="e => OnSelectChanged(key, e)" />
+                @Content(node.Item)
+            </label>
+            @if (locked && node.Selected && !RendererInfo.IsInteractive)
+            {
+                <input type="hidden" name="@KeysName" value="@key" />
+            }
+        }
+        else if (toggle)
         {
             <summary class="@css" aria-current="@(node.Current ? "true" : null)">
                 <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
@@ -234,7 +356,7 @@
     {
         if (ChildContent is not null)
         {
-            <span class="ib-tree-content">@ChildContent(item)</span>
+            <span class="ib-tree-content" data-ib-label="@(Selects ? LabelOf(item) : null)">@ChildContent(item)</span>
             return;
         }
 
@@ -243,7 +365,7 @@
         {
             <Icon Name="icon" Class="ib-tree-icon" />
         }
-        <span class="ib-tree-text">
+        <span class="ib-tree-text" data-ib-label="@(Selects ? LabelOf(item) : null)">
             <span class="ib-tree-title">@TextOf(item)</span>
             @if (!string.IsNullOrEmpty(description))
             {
@@ -252,5 +374,45 @@
         </span>
     };
 
-    private sealed record Node(TItem Item, List<Node> Children, bool Current, bool HoldsCurrent, bool Open);
+    // The script reports each box it changed, its own clicks and the branch it checks along with
+    // them, so the keys follow the boxes.
+    private async Task OnSelectChanged(string key, ChangeEventArgs e)
+    {
+        // A radio only reports being chosen.
+        var on = !Multiple || e.Value is true;
+        HashSet<string> keys = Multiple ? [.. _selected] : [];
+        if (on)
+        {
+            keys.Add(key);
+        }
+        else
+        {
+            keys.Remove(key);
+        }
+
+        _selected = keys;
+        _selection = IzzyBlazor.Selection.Of(keys);
+        await SelectionChanged.InvokeAsync(_selection);
+    }
+
+    private async Task OnToggle(IzzyToggleEventArgs e)
+    {
+        if (e.Id is null)
+        {
+            return;
+        }
+
+        _expanded ??= [.. OpenKeys(_roots)];
+        if (!(e.Open ? _expanded.Add(e.Id) : _expanded.Remove(e.Id)))
+        {
+            return;
+        }
+
+        await ExpandedChanged.InvokeAsync([.. _expanded]);
+    }
+
+    private static IEnumerable<string> OpenKeys(List<Node> nodes) =>
+        nodes.SelectMany(n => (n.Open && n.Key is not null ? [n.Key] : Array.Empty<string>()).Concat(OpenKeys(n.Children)));
+
+    private sealed record Node(TItem Item, string? Key, List<Node> Children, bool Current, bool Selected, bool Holds, bool Open);
 }

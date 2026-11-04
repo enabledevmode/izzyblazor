@@ -50,4 +50,18 @@ public class TreeViewRenderTests : BunitContext
             .Add(t => t.ItemHref, f => f.Id).Add(t => t.ItemDisabled, f => f.Id == "photos"));
         Assert.Equal(["docs"], linked.FindAll("a").Select(a => a.TextContent.Trim()));
     }
+
+    [Fact]
+    public void A_checked_parent_checks_its_branch_which_posts_and_opens_the_branches_holding_it()
+    {
+        var cut = Render<TreeView<Folder>>(p => p
+            .Add(t => t.Items, Folders).Add(t => t.ItemChildren, f => f.Folders).Add(t => t.ItemText, f => f.Id)
+            .Add(t => t.ItemKey, f => f.Id).Add(t => t.SelectionMode, SelectionMode.Multiple)
+            .Add(t => t.SelectionName, "granted").Add(t => t.Selection, Selection.Of("finance")));
+
+        var boxes = cut.FindAll("input[type=checkbox][name='granted.Keys']");
+        Assert.Equal(["finance", "invoices"], boxes.Where(b => b.HasAttribute("checked")).Select(b => b.GetAttribute("value")));
+        Assert.Equal(["docs"], cut.FindAll("details[open]").Select(d => d.ParentElement!.GetAttribute("data-ib-key")));
+        Assert.Equal("multiple", cut.Find("ib-tree").GetAttribute("data-ib-select"));
+    }
 }
