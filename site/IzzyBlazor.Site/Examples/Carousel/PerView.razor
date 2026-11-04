@@ -1,10 +1,10 @@
-@* One card on a phone, two from Sm and three from Lg; the buttons move a page, and it loops. *@
-<Carousel Label="Plans" ItemsPerView="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="4" Loop Grow>
+@* One card on a phone, two from Sm and three from Xl; the buttons move a page, and it loops. The cards keep their text clear of the buttons. *@
+<Carousel Label="Plans" ItemsPerView="new() { Base = 1, Sm = 2, Xl = 3 }" Gap="4" Loop Grow>
     @foreach (var (name, price, text) in _plans)
     {
         <CarouselItem Label="@name">
             <Card Height="Length.Full">
-                <CardBody>
+                <CardBody PaddingX="12">
                     <TextBlock Weight="FontWeight.Semibold">@name</TextBlock>
                     <TextBlock Size="TextSize.Xl2" Weight="FontWeight.Bold">@price</TextBlock>
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@text</TextBlock>
