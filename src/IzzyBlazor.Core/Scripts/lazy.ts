@@ -7,7 +7,9 @@
  * get data-ib-failed, and CSS lays them out as with no script, which works on its own.
  *
  * Everything else (fields, popovers, menus, dialogs, tabs, the shell) is in the main module,
- * since nearly every page has one. Each import() below is a file of its own in wwwroot/elements,
+ * since nearly every page has one. What every page needs from an element that loads here stays
+ * in the main module: the saved color scheme (scheme.ts) and keeping dismissed messages closed
+ * (dismiss.ts). Each import() below is a file of its own in wwwroot/elements,
  * built separately (build/build-assets.mjs, lazyElements) and loaded relative to this module.
  */
 const loaders: Record<string, () => Promise<unknown>> = {
@@ -34,6 +36,11 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-toolbar": () => import("./elements/toolbar.js"),
   "ib-sortable": () => import("./elements/sortable.js"),
   "ib-listview": () => import("./elements/listview.js"),
+  "ib-tooltip": () => import("./elements/tooltip.js"),
+  "ib-dismiss": () => import("./elements/dismiss.js"),
+  "ib-banner": () => import("./elements/banner.js"),
+  "ib-site-nav": () => import("./elements/site-nav.js"),
+  "ib-scheme-switch": () => import("./elements/scheme-switch.js"),
   // Not an element: ReconnectDialog's code, loaded with the first reconnection state (reconnect.ts).
   "ib-reconnect": () => import("./elements/reconnect.js"),
 };

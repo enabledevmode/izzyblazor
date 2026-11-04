@@ -101,6 +101,11 @@
     display: contents;
   }
 
+  /* Where its code couldn't load (data-ib-failed), the checkbox and its label work as with none. */
+  ib-dismiss[data-ib-failed] {
+    display: none;
+  }
+
   @media (scripting: none) {
     ib-dismiss {
       display: none;
@@ -108,7 +113,7 @@
   }
 
   @media (scripting: enabled) {
-    :is(.ib-alert, .ib-banner):has(> ib-dismiss) > :is(input.ib-alert-dismiss, input.ib-banner-dismiss, label.ib-alert-close, label.ib-banner-close) {
+    :is(.ib-alert, .ib-banner):has(> ib-dismiss:not([data-ib-failed])) > :is(input.ib-alert-dismiss, input.ib-banner-dismiss, label.ib-alert-close, label.ib-banner-close) {
       display: none;
     }
   }

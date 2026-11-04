@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { readCookie, writeCookie } from "../cookies";
+import { COOKIE, apply, channel, choose, mark, parse } from "../scheme";
 
 /**
  * <ib-scheme-switch> runs ColorSchemeSwitch, which CSS hides with no script. A click sets the
@@ -8,56 +9,6 @@ import { readCookie, writeCookie } from "../cookies";
  * `ibscheme` so @bind-Value follows on interactive pages. The other way round, a Value set from
  * C# arrives as data-ib-value, and the switch applies it as if it had been clicked.
  */
-type Scheme = "system" | "light" | "dark";
-
-const COOKIE = "ib-scheme";
-const channel = typeof BroadcastChannel === "function" ? new BroadcastChannel("ib-scheme") : null;
-
-function parse(value: string | null | undefined): Scheme | null {
-  return value === "system" || value === "light" || value === "dark" ? value : null;
-}
-
-// Segments mark the choice with aria-pressed, and menu items with aria-checked. The toggle has
-// nothing to mark: CSS shows the right button.
-function mark(root: ParentNode, scheme: Scheme): void {
-  for (const option of root.querySelectorAll<HTMLElement>("[data-ib-scheme]")) {
-    const on = String(option.dataset.ibScheme === scheme);
-    if (option.classList.contains("ib-segment")) option.setAttribute("aria-pressed", on);
-    else if (option.classList.contains("ib-menu-item")) option.setAttribute("aria-checked", on);
-  }
-}
-
-/** Puts a scheme on the page and on every switch in it. */
-function apply(scheme: Scheme): void {
-  const root = document.documentElement;
-  if (scheme === "system") root.removeAttribute("data-ib-color-scheme");
-  else root.setAttribute("data-ib-color-scheme", scheme);
-
-  // IzzyTheme's meta carries the server's idea of the scheme; keep it from disagreeing.
-  const meta = document.head.querySelector<HTMLMetaElement>('meta[name="ib-color-scheme"]');
-  if (meta && scheme === "system") meta.remove();
-  else if (meta) meta.content = scheme;
-
-  mark(document, scheme);
-}
-
-/**
- * Re-applies the user's saved choice, if they made one: on load (pages without IzzyTheme, or
- * served from a cache) and after enhanced navigation, which can put back the server's <html>.
- * With no saved choice the page keeps what the server sent (IzzyTheme's default, or the system).
- */
-export function applySavedScheme(): void {
-  const saved = parse(readCookie(COOKIE));
-  if (saved) apply(saved);
-}
-
-/** Saves a choice and puts it on this page and the others. */
-function choose(scheme: Scheme): void {
-  writeCookie(COOKIE, scheme);
-  apply(scheme);
-  channel?.postMessage(scheme);
-}
-
 class SchemeSwitch extends IzzyElement {
   #observer: MutationObserver | null = null;
 
@@ -105,11 +56,3 @@ class SchemeSwitch extends IzzyElement {
 }
 
 defineElement("ib-scheme-switch", SchemeSwitch);
-
-// Another tab or a demo frame switched: follow it.
-channel?.addEventListener("message", (event: MessageEvent) => {
-  const scheme = parse(event.data);
-  if (scheme) apply(scheme);
-});
-
-applySavedScheme();
