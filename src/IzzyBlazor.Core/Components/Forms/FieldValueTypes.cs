@@ -33,6 +33,9 @@ public partial class Rating<[DynamicallyAccessedMembers(DynamicallyAccessedMembe
 /// <summary>A select for several choices, bound to a collection.</summary>
 public partial class MultiSelect<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
 
+/// <summary>Two lists to move choices between, bound to a collection in the order chosen.</summary>
+public partial class PickList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
+
 /// <summary>Checkboxes for several choices, bound to a collection.</summary>
 public partial class CheckboxGroup<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
 

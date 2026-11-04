@@ -1,0 +1,21 @@
+@* A longer list: a search box over each list, and Move all moves only the matches. *@
+<PickList Label="Team" @bind-Value="_team" Items="People" ItemText="p => p.Name" Searchable MaxWidth="36.Rem" Grow Context="person">
+    <ItemTemplate><Avatar Name="@person.Name" Size="AvatarSize.Xs" /> @person.Name</ItemTemplate>
+</PickList>
+
+@code {
+    private Person[] _team = [];
+
+    @* hide *@
+    private static readonly Person[] People =
+    [
+        new("Ada Lovelace"), new("Alan Turing"), new("Barbara Liskov"), new("Donald Knuth"), new("Edsger Dijkstra"),
+        new("Grace Hopper"), new("Katherine Johnson"), new("Ken Thompson"), new("Margaret Hamilton"), new("Radia Perlman"),
+    ];
+
+    private sealed record Person(string Name)
+    {
+        public override string ToString() => Name;
+    }
+    @* /hide *@
+}

@@ -846,6 +846,30 @@ public class IzzyText
     /// <summary>A ListView whose items failed to load, with Retry after it.</summary>
     public virtual string ListLoadFailed { get; set; } = "Couldn't load the items.";
 
+    /// <summary>PickList's list of items not chosen.</summary>
+    public virtual string PickAvailable { get; set; } = "Available";
+
+    /// <summary>PickList's list of chosen items.</summary>
+    public virtual string PickChosen { get; set; } = "Chosen";
+
+    /// <summary>PickList's button that moves the selected available items to the chosen list.</summary>
+    public virtual string PickMoveToChosen { get; set; } = "Move to chosen";
+
+    /// <summary>PickList's button that moves every available item (every match, when searching).</summary>
+    public virtual string PickMoveAllToChosen { get; set; } = "Move all to chosen";
+
+    /// <summary>PickList's button that moves the selected chosen items back.</summary>
+    public virtual string PickMoveToAvailable { get; set; } = "Move to available";
+
+    /// <summary>PickList's button that moves every chosen item back (every match, when searching).</summary>
+    public virtual string PickMoveAllToAvailable { get; set; } = "Move all to available";
+
+    /// <summary>Announced when PickList moves items to the chosen list; {0} is their names.</summary>
+    public virtual string PickMovedToChosen { get; set; } = "Moved {0} to chosen";
+
+    /// <summary>Announced when PickList moves items back; {0} is their names.</summary>
+    public virtual string PickMovedToAvailable { get; set; } = "Moved {0} to available";
+
     /// <summary>A TreeView branch whose children load with script, when JavaScript is off.</summary>
     public virtual string TreeNeedsScript { get; set; } = "Turn on JavaScript to see these items.";
 
