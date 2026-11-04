@@ -885,6 +885,9 @@ public class IzzyText
     /// <summary>A Carousel's role description, read after its label: "Featured trips, carousel".</summary>
     public virtual string CarouselRole { get; set; } = "carousel";
 
+    /// <summary>A Carousel's track, which holds the slides and scrolls with the arrow keys.</summary>
+    public virtual string CarouselSlides { get; set; } = "Slides";
+
     /// <summary>A Carousel slide's role description.</summary>
     public virtual string SlideRole { get; set; } = "slide";
 

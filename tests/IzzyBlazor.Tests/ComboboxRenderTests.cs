@@ -47,7 +47,7 @@ public class ComboboxRenderTests : BunitContext
         .Add(c => c.Value, _model.OwnerId)
         .Add(c => c.ValueExpression, () => _model.OwnerId)
         .Add(c => c.Search, FindPeople)
-        .Add(c => c.Debounce, 0)
+        .Add(c => c.Debounce, TimeSpan.Zero)
         .Add(c => c.ItemText, id => People[id!.Value]));
 
     [Fact]

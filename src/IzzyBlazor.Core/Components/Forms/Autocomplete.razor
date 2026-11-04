@@ -48,7 +48,7 @@
                  data-free
                  data-server="@(ServerFiltered ? "" : null)"
                  data-ib-suggest-key="@(PageFetches ? SuggestionKey : null)"
-                 data-ib-debounce="@(PageFetches ? Debounce : null)">
+                 data-ib-debounce="@(PageFetches ? Durations.Ms(Debounce) : null)">
         <input @attributes="InputAttributes"
                id="@FieldId"
                type="text"
@@ -133,8 +133,8 @@
     /// <summary>The most suggestions <see cref="ItemsProvider"/> is asked for (its request's <c>Take</c>). Defaults to 50.</summary>
     [Parameter] public int MaxSuggestions { get; set; } = 50;
 
-    /// <summary>Milliseconds to wait after the last keystroke before searching.</summary>
-    [Parameter] public int Debounce { get; set; } = 250;
+    /// <summary>How long to wait after the last keystroke before searching. Defaults to 250 milliseconds.</summary>
+    [Parameter] public TimeSpan Debounce { get; set; } = TimeSpan.FromMilliseconds(250);
 
     /// <summary>Text in the empty field, such as "Start typing a city".</summary>
     [Parameter] public string? Placeholder { get; set; }

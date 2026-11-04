@@ -2,6 +2,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
 import { writeCookie } from "../cookies";
 
 const KEY_STEP = 16;
+// Held arrow keys report the layout once they stop, so a server render answering an earlier step
+// can't land between two and undo one.
+const KEY_REPORT_MS = 300;
 // A collapsible pane dragged this far below its minimum collapses.
 const SNAP = 0.5;
 
@@ -13,6 +16,8 @@ const SNAP = 0.5;
  * layout to the LayoutKey's cookie and reports it as `iblayout` for an interactive page.
  */
 class Splitter extends IzzyElement {
+  #report = 0;
+
   get #vertical(): boolean {
     return this.classList.contains("ib-splitter-v");
   }
@@ -35,7 +40,10 @@ class Splitter extends IzzyElement {
     }, { signal });
     const sizes = new ResizeObserver(() => this.#describe());
     sizes.observe(this);
-    signal.addEventListener("abort", () => sizes.disconnect());
+    signal.addEventListener("abort", () => {
+      sizes.disconnect();
+      clearTimeout(this.#report);
+    });
     this.#describe();
   }
 
@@ -189,7 +197,7 @@ class Splitter extends IzzyElement {
     else return;
     event.preventDefault();
     this.#place(before, after, clamp(to, low, high), total);
-    this.#changed();
+    this.#changed(true);
   }
 
   // Collapses or restores the collapsible pane beside a bar: the one before, unless only the one after is.
@@ -203,8 +211,8 @@ class Splitter extends IzzyElement {
     this.#changed();
   }
 
-  // After a move: the bars' values and buttons, the cookie, and the page.
-  #changed(): void {
+  // After a move: the bars' values and buttons, the cookie, and the page (for a key, once they stop).
+  #changed(soon = false): void {
     this.#describe();
     const layout = this.#panes()
       .map((pane) => {
@@ -214,7 +222,9 @@ class Splitter extends IzzyElement {
       .join("|");
     const key = this.dataset.ibLayoutKey;
     if (key) writeCookie(`ib-split-${key}`, layout);
-    this.emit("iblayout", { layout });
+    clearTimeout(this.#report);
+    if (soon) this.#report = window.setTimeout(() => this.emit("iblayout", { layout }), KEY_REPORT_MS);
+    else this.emit("iblayout", { layout });
   }
 
   // Each bar's value (its pane's share of the splitter, as APG has it: the pane it's named after
