@@ -63,7 +63,8 @@
     scroll-snap-align: start;
   }
 
-  /* Over the track's edges, centered on it. */
+  /* Over the track's edges, centered on it: a bare chevron, white with a dark halo so it shows on
+     light and dark slides alike, that becomes a button on hover and with focus. */
   .ib-carousel-prev,
   .ib-carousel-next {
     position: absolute;
@@ -71,14 +72,25 @@
     top: calc(50% - var(--ib-carousel-dots-h, 0px) / 2);
     translate: 0 -50%;
     border-radius: var(--ib-radius-full);
-    background: color-mix(in oklab, var(--ib-color-surface-overlay) 60%, transparent);
+    background: transparent;
+    color: #fff;
+    --ib-icon-size: 1.5rem;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease), color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-carousel :is(.ib-carousel-prev, .ib-carousel-next) .ib-icon {
+    filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)) drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
+  }
+
+  .ib-carousel :is(.ib-carousel-prev, .ib-carousel-next):is(:hover, :focus-visible) {
+    background: color-mix(in oklab, var(--ib-color-surface-overlay) 80%, transparent);
     backdrop-filter: blur(6px);
+    color: var(--ib-color-on-surface);
     box-shadow: var(--ib-shadow-sm);
   }
 
-  .ib-carousel-prev:hover,
-  .ib-carousel-next:hover {
-    background: var(--ib-color-surface-overlay);
+  .ib-carousel :is(.ib-carousel-prev, .ib-carousel-next):is(:hover, :focus-visible) .ib-icon {
+    filter: none;
   }
 
   .ib-carousel-prev { inset-inline-start: var(--ib-space-2); }
@@ -94,7 +106,7 @@
     scale: -1 1;
   }
 
-  .ib-carousel:has(> .ib-carousel-dots:not([hidden])) {
+  .ib-carousel:not(.ib-carousel-single):has(> .ib-carousel-dots:not([hidden])) {
     --ib-carousel-dots-h: 2rem;
   }
 
@@ -147,8 +159,37 @@
     outline-offset: -2px;
   }
 
+  /* One slide in view: the dots sit on it, at the bottom, in a dark pill so they show on any slide. */
+  .ib-carousel-single > .ib-carousel-dots {
+    position: absolute;
+    z-index: 1;
+    bottom: var(--ib-space-2);
+    left: 50%;
+    translate: -50% 0;
+    max-width: calc(100% - 2 * var(--ib-space-4));
+    min-height: 0;
+    padding: 0 var(--ib-space-1);
+    border-radius: var(--ib-radius-full);
+    background: rgb(0 0 0 / 0.4);
+    backdrop-filter: blur(6px);
+  }
+
+  .ib-carousel-single .ib-carousel-dot::before {
+    background: rgb(255 255 255 / 0.6);
+  }
+
+  .ib-carousel-single .ib-carousel-dot:is(:hover, [aria-current="true"])::before {
+    background: #fff;
+  }
+
+  .ib-carousel-single .ib-carousel-dot:focus-visible {
+    outline-color: #fff;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .ib-carousel-dot::before {
+    .ib-carousel-dot::before,
+    .ib-carousel-prev,
+    .ib-carousel-next {
       transition: none;
     }
   }

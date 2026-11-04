@@ -49,7 +49,7 @@
         <div class="ib-carousel-track" id="@TrackId" tabindex="0">
             @ChildContent
         </div>
-        @if (Dots)
+        @if (Dots != CarouselDots.None)
         {
             @DotsFragment
         }
@@ -81,8 +81,12 @@
     /// <summary>Shows the previous and next buttons. Defaults to true.</summary>
     [Parameter] public bool Arrows { get; set; } = true;
 
-    /// <summary>Shows a dot for each slide (each page, with several in view). Defaults to true.</summary>
-    [Parameter] public bool Dots { get; set; } = true;
+    /// <summary>
+    /// Where the dots go, a dot for each slide (each page, with several in view):
+    /// <see cref="CarouselDots.Auto"/>, the default, puts them on the slide when one shows at a
+    /// time and below when several do.
+    /// </summary>
+    [Parameter] public CarouselDots Dots { get; set; }
 
     /// <summary>The <see cref="CarouselItem"/>s.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -101,10 +105,10 @@
     /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
     internal int StartDot => _startIndex / Math.Max(1, ItemsPerView.Base);
 
-    // CarouselDots is internal, which markup can't name.
+    // CarouselDotList is internal, which markup can't name.
     private static readonly RenderFragment DotsFragment = builder =>
     {
-        builder.OpenComponent<CarouselDots>(0);
+        builder.OpenComponent<CarouselDotList>(0);
         builder.CloseComponent();
     };
 
@@ -119,6 +123,8 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-carousel");
+        // The dots sit on the slide: asked for, or by default when one slide shows at every width.
+        classes.Add("ib-carousel-single", Dots == CarouselDots.Over || (Dots == CarouselDots.Auto && ItemsPerView.Entries.All(e => e.Value == 1)));
         ApplyResponsive(classes, styles, ItemsPerView, "ib-carousel-per", "carousel-per", PerView);
         ApplyResponsive(classes, styles, Gap, "ib-carousel-gap", "carousel-gap", StyleValues.Spacing);
         base.BuildAttributes(classes, styles);

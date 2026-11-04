@@ -46,6 +46,16 @@ public class CarouselRenderTests : BunitContext
     }
 
     [Fact]
+    public void The_dots_sit_on_the_slide_when_one_shows_unless_placed_below()
+    {
+        Assert.DoesNotContain("ib-carousel-single", Trips().Find("ib-carousel").ClassName);
+        var one = Render<Carousel>(p => p.Add(c => c.Label, "Trips").AddChildContent<CarouselItem>());
+        Assert.Contains("ib-carousel-single", one.Find("ib-carousel").ClassName);
+        var below = Render<Carousel>(p => p.Add(c => c.Label, "Trips").Add(c => c.Dots, CarouselDots.Below).AddChildContent<CarouselItem>());
+        Assert.DoesNotContain("ib-carousel-single", below.Find("ib-carousel").ClassName);
+    }
+
+    [Fact]
     public void Needs_a_label() =>
         Assert.Throws<InvalidOperationException>(() => Render<Carousel>(p => p.AddChildContent<CarouselItem>()));
 }
