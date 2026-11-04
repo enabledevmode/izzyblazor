@@ -1883,6 +1883,8 @@
         { "feature": "Selection that posts with a form or binds in C#" },
         { "feature": "Checking a parent checks its branch; mixed parents", "noscript": "none" },
         { "feature": "One Tab stop, arrow keys and typeahead in a tree to choose from", "noscript": "none" },
+        { "feature": "Children that load when a branch first opens", "noscript": "none" },
+        { "feature": "A search box that narrows the tree", "noscript": "none" },
         { "feature": "The open branches bound to C#", "member": "Expanded" }
       ],
       "examples": [
@@ -1895,6 +1897,13 @@
           "examples": [
             { "id": "tree-view-permissions", "title": "Checkboxes", "lead": "To give each item a checkbox, set `SelectionMode` to `Multiple` and `ItemKey`. Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed box; to make each box its own, set `Cascade` to `false`. In a form the checked keys post under `SelectionName`, parents included; on an interactive page bind them with `@bind-Selection`. Give the tree an `AriaLabel`." },
             { "id": "tree-view-category", "title": "One choice", "lead": "To choose one item, set `SelectionMode` to `Single`. A click, Space or Enter selects it, and the branch holding it starts open." }
+          ]
+        },
+        {
+          "id": "large-trees", "title": "Large trees", "summary": "Children that load when a branch first opens, and a search box that narrows the tree.", "members": ["ItemHasChildren", "ChildrenProvider", "Searchable", "SearchLabel"],
+          "examples": [
+            { "id": "tree-view-load-children", "title": "Children that load", "lead": "For a tree too large to send at once, set `ItemHasChildren` and `ChildrenProvider`. The first time a branch opens, the provider gets the item's key and returns its children. On a static page the script asks the page for them, so there's no endpoint to write; give each tree on the page that loads children an `id`. With JavaScript off, those branches say to turn it on." },
+            { "id": "tree-view-search", "title": "Search", "lead": "To add a search box, set `Searchable`. Typing narrows the tree to the matches and the branches that hold them, and marks the matched text. It searches the items in the page, so children still to load aren't found." }
           ]
         }
       ]

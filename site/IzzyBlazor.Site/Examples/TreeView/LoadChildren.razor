@@ -1,0 +1,19 @@
+@* Each folder's contents load the first time it opens. On a static page the script asks the page
+   for them with the folder's key; on an interactive page the component calls ChildrenProvider. *@
+<TreeView Items="Roots" ItemKey="f => f.Path" ItemText="f => f.Name" ItemIcon="@(f => f.Folder ? Lucide.Folder : Lucide.File)"
+          ItemHasChildren="f => f.Folder" ChildrenProvider="LoadAsync" MaxWidth="20.Rem" Grow />
+
+@code {
+    private static readonly Entry[] Roots = [new("projects", "Projects", true), new("archive", "Archive", true), new("notes.txt", "notes.txt", false)];
+
+    private static async ValueTask<IEnumerable<Entry>> LoadAsync(string path, CancellationToken cancellationToken)
+    {
+        await Task.Delay(400, cancellationToken); // A slow store, for the demo.
+        var depth = path.Count(c => c == '/');
+        Entry[] folders = depth < 2 ? [new($"{path}/2025", "2025", true), new($"{path}/2026", "2026", true)] : [];
+        return [.. folders, new($"{path}/readme.md", "readme.md", false), new($"{path}/plan.txt", "plan.txt", false)];
+    }
+    @* hide *@
+    private sealed record Entry(string Path, string Name, bool Folder);
+    @* /hide *@
+}

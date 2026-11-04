@@ -29,4 +29,20 @@ public sealed class TreeViewTests(SiteFixture site) : IClassFixture<SiteFixture>
         await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(example).ToContainTextAsync("Saved 4 permissions: orders.view, products.edit, products.price, products.stock.");
     }
+
+    [Fact]
+    public async Task A_branch_loads_its_children_from_the_page_on_a_static_page()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/tree-view/large-trees?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-tree')");
+        var example = page.Locator("[data-ex='tree-view-load-children']");
+
+        await example.Locator("li[data-ib-key='projects'] > details > summary").ClickAsync();
+        await Assertions.Expect(example.Locator("li[data-ib-key='projects/readme.md']")).ToBeVisibleAsync();
+        await example.Locator("li[data-ib-key='projects/2025'] > details > summary").ClickAsync();
+        await Assertions.Expect(example.Locator("li[data-ib-key='projects/2025/plan.txt']")).ToBeVisibleAsync();
+    }
 }

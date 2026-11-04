@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { fetchPart } from "../fetch-part";
 
 /**
  * <ib-tree> adds to a TreeView:
@@ -12,6 +13,12 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * - With checkboxes and cascade: a box checks or unchecks its branch, and each parent is checked
  *   when its whole branch is, mixed when part of it is. Every box it changes reports a change, so
  *   posting and @bind-Selection see the boxes as they are.
+ * - On a static page, a branch whose children load (ChildrenProvider) fetches the page with the
+ *   tree's key and the item's (the ib-suggest keys, as a Combobox's search) the first time it
+ *   opens, and takes the answered list in. A failure shows Retry.
+ * - Searchable: the box narrows the tree to matches and their parents, opening their branches and
+ *   marking the matched text (CSS highlights, so Blazor's markup is untouched); clearing it puts
+ *   the branches back as they were.
  */
 
 // Branches opened (true) or closed (false) by hand, by page and tree, then by item key.
@@ -23,12 +30,16 @@ class Tree extends IzzyElement {
   #syncing = false;
   #typed = "";
   #typedAt = 0;
+  // Each branch's open state before a search opened it, to put back when the search is cleared.
+  #before = new Map<HTMLDetailsElement, boolean>();
 
   protected setup(signal: AbortSignal): void {
     const list = this.querySelector<HTMLUListElement>(":scope > .ib-tree-list");
     if (!list) return;
     this.#list = list;
     const interactive = this.hasAttribute("data-ib-interactive");
+    this.dataset.ibReady = "";
+    signal.addEventListener("abort", () => delete this.dataset.ibReady);
     const trees = [...document.querySelectorAll("ib-tree")];
     const id = `${location.pathname}|${this.id || trees.indexOf(this)}`;
     let remembered = memory.get(id);
@@ -65,14 +76,24 @@ class Tree extends IzzyElement {
         const item = details.parentElement as HTMLElement;
         if (this.#selects) item.setAttribute("aria-expanded", String(details.open));
         if (interactive && item.dataset.ibKey) this.emit("ibtoggle", { id: item.dataset.ibKey, open: details.open, seq: 0 });
+        else if (details.open && item.hasAttribute("data-ib-lazy")) this.#load(item, signal);
       },
       { signal, capture: true }
     );
+    this.addEventListener(
+      "click",
+      (event) => {
+        const retry = (event.target as Element).closest("[data-ib-retry]");
+        const item = retry?.closest<HTMLElement>("li[data-ib-lazy]");
+        if (item && item.closest("ib-tree") === this) this.#load(item, signal);
+      },
+      { signal }
+    );
+    this.querySelector<HTMLInputElement>(":scope > .ib-tree-search [data-ib-tree-search]")?.addEventListener("input", (event) => this.#search((event.target as HTMLInputElement).value), { signal });
+    signal.addEventListener("abort", () => CSS.highlights?.delete("ib-tree-match"));
 
     this.#selects = this.hasAttribute("data-ib-select");
     if (!this.#selects) return;
-    this.dataset.ibReady = "";
-    signal.addEventListener("abort", () => delete this.dataset.ibReady);
     this.#prepare();
     if (this.hasAttribute("data-ib-cascade")) this.#mixAll();
     this.#syncAll();
@@ -123,6 +144,7 @@ class Tree extends IzzyElement {
   // The items a person can see: none in a closed branch.
   get #shown(): HTMLElement[] {
     return this.#items.filter((li) => {
+      if (li.hidden) return false;
       for (let d = li.parentElement?.closest("details"); d && this.contains(d); d = d.parentElement?.closest("details")) if (!d.open) return false;
       return true;
     });
@@ -134,6 +156,11 @@ class Tree extends IzzyElement {
 
   #detailsOf(item: Element | null): HTMLDetailsElement | null {
     return item?.querySelector<HTMLDetailsElement>(":scope > details") ?? null;
+  }
+
+  /** An item's line: its link, label or text, or the summary that opens its branch. */
+  #rowOf(item: Element): HTMLElement | null {
+    return item.querySelector<HTMLElement>(":scope > .ib-tree-item, :scope > details > summary.ib-tree-item");
   }
 
   #boxOf(item: Element): HTMLInputElement | null {
@@ -314,6 +341,95 @@ class Tree extends IzzyElement {
     if (to) this.#focus(to);
   }
 
+  /** On a static page: a branch's children, fetched from the page the first time it opens. */
+  async #load(item: HTMLElement, signal: AbortSignal): Promise<void> {
+    const tree = this.dataset.ibTreeKey;
+    const key = item.dataset.ibKey;
+    const status = item.querySelector<HTMLElement>(":scope > details > .ib-tree-status");
+    if (!tree || !key || !status || item.dataset.ibLoading !== undefined) return;
+    item.dataset.ibLoading = "";
+    status.removeAttribute("data-ib-failed");
+    const url = new URL(location.href);
+    url.hash = "";
+    url.searchParams.set("ib-suggest", tree);
+    url.searchParams.set("ib-suggest-q", key);
+    let list: Element | null = null;
+    try {
+      list = await fetchPart(url, `ib-tree[data-ib-tree-key="${CSS.escape(tree)}"] > [data-ib-answered]`, signal);
+    } catch {
+      // Offline or left the page: shown as failed below, unless it's gone.
+    }
+    delete item.dataset.ibLoading;
+    if (signal.aborted || !status.isConnected) return;
+    if (!list) {
+      status.setAttribute("data-ib-failed", "");
+      return;
+    }
+    const group = document.importNode(list, true) as HTMLElement;
+    group.removeAttribute("data-ib-answered");
+    status.replaceWith(group);
+    item.removeAttribute("data-ib-lazy");
+    // A checked parent's children arrive checked.
+    const box = this.#boxOf(item);
+    if (box?.checked && this.hasAttribute("data-ib-cascade")) {
+      this.#syncing = true;
+      for (const li of group.querySelectorAll<HTMLElement>("li")) {
+        const own = this.#boxOf(li);
+        if (own) this.#set(own, true);
+      }
+      this.#syncing = false;
+    }
+  }
+
+  /** Narrows the tree to the items whose text holds the query, and their parents. */
+  #search(text: string): void {
+    const query = text.trim().toLowerCase();
+    const items = this.#items;
+    const ranges: Range[] = [];
+    if (!query) {
+      for (const li of items) li.hidden = false;
+      for (const [details, open] of this.#before) details.open = open;
+      this.#before.clear();
+    } else {
+      for (const li of items) {
+        const details = this.#detailsOf(li);
+        if (details && !this.#before.has(details)) this.#before.set(details, details.open);
+      }
+      // Deepest first, so each parent knows whether any child stays.
+      for (const li of items.reverse()) {
+        const own = this.#mark(this.#rowOf(li), query, ranges);
+        const kept = this.#childrenOf(li).some((c) => !c.hidden);
+        li.hidden = !own && !kept;
+        const details = this.#detailsOf(li);
+        if (details) details.open = kept;
+      }
+    }
+    if (CSS.highlights) {
+      if (ranges.length) CSS.highlights.set("ib-tree-match", new Highlight(...ranges));
+      else CSS.highlights.delete("ib-tree-match");
+    }
+    const found = this.querySelector<HTMLElement>(":scope > [data-ib-tree-found]");
+    if (found) found.textContent = query && !items.some((li) => !li.hidden) ? this.dataset.ibNoMatches ?? "" : "";
+  }
+
+  /** Whether a row's text holds the query, adding a range over each place it does. */
+  #mark(row: HTMLElement | null, query: string, ranges: Range[]): boolean {
+    if (!row) return false;
+    let found = false;
+    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+      const text = node.data.toLowerCase();
+      for (let at = text.indexOf(query); at !== -1; at = text.indexOf(query, at + query.length)) {
+        found = true;
+        const range = new Range();
+        range.setStart(node, at);
+        range.setEnd(node, at + query.length);
+        ranges.push(range);
+      }
+    }
+    return found;
+  }
+
   /** The next item whose name starts with what's been typed; a letter typed again cycles. */
   #typeahead(shown: HTMLElement[], at: number, key: string): HTMLElement | undefined {
     const now = performance.now();
@@ -322,7 +438,7 @@ class Tree extends IzzyElement {
     this.#typedAt = now;
     const repeat = [...this.#typed].every((c) => c === char);
     const prefix = repeat ? char : this.#typed;
-    const name = (li: HTMLElement) => (li.getAttribute("aria-label") ?? li.querySelector(":scope > .ib-tree-item")?.textContent ?? "").trim().toLowerCase();
+    const name = (li: HTMLElement) => (li.getAttribute("aria-label") ?? this.#rowOf(li)?.textContent ?? "").trim().toLowerCase();
     const from = repeat || this.#typed.length === 1 ? at + 1 : at;
     for (let i = 0; i < shown.length; i++) {
       const li = shown[(from + i) % shown.length];

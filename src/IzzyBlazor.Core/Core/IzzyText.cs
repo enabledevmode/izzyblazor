@@ -846,6 +846,9 @@ public class IzzyText
     /// <summary>A ListView whose items failed to load, with Retry after it.</summary>
     public virtual string ListLoadFailed { get; set; } = "Couldn't load the items.";
 
+    /// <summary>A TreeView branch whose children load with script, when JavaScript is off.</summary>
+    public virtual string TreeNeedsScript { get; set; } = "Turn on JavaScript to see these items.";
+
     /// <summary>A ListView item's ⋯ button, which opens its ItemMenu: "Actions for Ada". {0} is the item's label.</summary>
     public virtual string ItemMenu { get; set; } = "Actions for {0}";
 

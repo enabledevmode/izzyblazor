@@ -1,7 +1,8 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits StyledComponentBase
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a tree you select from is a list of checkboxes or radio buttons in branches that open: no arrow keys, and checking a parent doesn't check its children.")]
+@inject NavigationManager Navigation
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a tree you select from is a list of checkboxes or radio buttons in branches that open: no arrow keys, and checking a parent doesn't check its children. Children that load and the search box need it.")]
 
 @*
     Items nested in items, from data: folders, categories, a company's teams. Items are the top
@@ -30,6 +31,11 @@
     Checking a parent checks its branch, and a parent with some of its branch checked shows a mixed
     box (Cascade="false" makes each box its own). The selection holds every checked key, parents
     included.
+
+    For a large tree, ItemHasChildren and ChildrenProvider load a branch's children the first time
+    it opens: on a static page the script fetches the page with the branch's key, so there's no
+    endpoint to write (two such trees on a page need ids). Searchable adds a box that narrows the
+    tree to matches and the branches that hold them.
 
     Accessibility:
     - It's nested lists (`ul` with `role="list"`), so screen readers say how many items each level
@@ -64,8 +70,20 @@
          data-ib-cascade="@(Multiple && Cascade ? "" : null)"
          data-ib-label="@(Selects ? AriaLabel : null)"
          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
+         data-ib-tree-key="@(FetchesChildren ? TreeKey : null)"
+         data-ib-no-matches="@(Searchable ? TextDefaults.NoMatches : null)"
          @onibtoggle="OnToggle" @onibtoggle:stopPropagation="true">
-    @if (_roots.Count == 0)
+    @if (_answer is not null)
+    {
+        @* A page-fetch for one branch's children: the script takes this list into the branch. *@
+        <ul class="ib-tree-list ib-tree-group" role="list" data-ib-answered>
+            @foreach (var node in _answer)
+            {
+                @NodeItem(node)
+            }
+        </ul>
+    }
+    else if (_roots.Count == 0)
     {
         <div class="ib-tree-empty">
             @if (EmptyContent is not null)
@@ -80,6 +98,16 @@
     }
     else
     {
+        @if (Searchable)
+        {
+            @* Narrows in the browser, with script; hidden until it's there. *@
+            <div class="ib-field ib-field-sm ib-tree-search">
+                <div class="ib-field-control">
+                    <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" autocomplete="off" data-ib-tree-search />
+                </div>
+            </div>
+            <div class="ib-visually-hidden" role="status" data-ib-tree-found></div>
+        }
         <ul class="ib-tree-list" role="list" aria-label="@AriaLabel">
             @foreach (var node in _roots)
             {
@@ -130,6 +158,28 @@
 
     /// <summary>Marks the item the page is showing. Its branch starts open.</summary>
     [Parameter] public Func<TItem, bool>? ItemCurrent { get; set; }
+
+    /// <summary>
+    /// Says an item has children to load with <see cref="ChildrenProvider"/> when its branch first
+    /// opens, for items whose <see cref="ItemChildren"/> is empty.
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? ItemHasChildren { get; set; }
+
+    /// <summary>
+    /// Loads an item's children, given its key, the first time its branch opens: in the component on
+    /// an interactive page, and on a static page by the script fetching the page with the key.
+    /// Needs <see cref="ItemKey"/> and <see cref="ItemHasChildren"/>.
+    /// </summary>
+    [Parameter] public Func<string, CancellationToken, ValueTask<IEnumerable<TItem>>>? ChildrenProvider { get; set; }
+
+    /// <summary>
+    /// A search box above the tree that narrows it as you type: matches and their parents stay,
+    /// their branches open. In the browser, over the items it has; with script.
+    /// </summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The search box's name and placeholder. Defaults to "Search" (<see cref="IzzyText.Search"/>).</summary>
+    [Parameter] public string? SearchLabel { get; set; }
 
     /// <summary>Starts an item's children open.</summary>
     [Parameter] public Func<TItem, bool>? ItemExpanded { get; set; }
@@ -191,6 +241,19 @@
     private HashSet<string> _selected = [];
     private HashSet<string>? _expanded;
     private Selection _selection = IzzyBlazor.Selection.None;
+    private List<Node>? _answer;
+    private readonly Dictionary<string, List<TItem>> _loaded = [];
+    private readonly HashSet<string> _failed = [];
+    private readonly HashSet<string> _loading = [];
+
+    // The tree's name in a page-fetch for children: its id, else "tree". Two trees on a page that
+    // load children need ids.
+    private string TreeKey => AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string { Length: > 0 } s ? s : "tree";
+
+    private bool Lazy => ChildrenProvider is not null && ItemHasChildren is not null;
+
+    // On a static page the script fetches a branch's children; a page that will be interactive waits.
+    private bool FetchesChildren => Lazy && !WillBeInteractive;
 
     private bool Links => ItemHref is not null;
 
@@ -233,6 +296,17 @@
         _roots = Build(Items, 1, false);
     }
 
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        // A page-fetch asking this tree for one branch: render only that branch's children.
+        _answer = null;
+        if (FetchesChildren && IzzyRequest.SuggestionFor(Navigation, TreeKey, out var asked) is { Length: > 0 } parent && asked)
+        {
+            _answer = Build(await ChildrenProvider!(parent, CancellationToken.None), 2, false);
+        }
+    }
+
     // The tree as it renders: each item's children read once, which are checked, and which
     // branches start open.
     private List<Node> Build(IEnumerable<TItem>? items, int depth, bool parentChecked)
@@ -254,11 +328,24 @@
             var key = ItemKey?.Invoke(item);
             var selected = key is not null && Selects && (_selected.Contains(key) || (parentChecked && Multiple && Cascade));
             var children = ItemChildren is null ? [] : Build(ItemChildren(item), depth + 1, selected);
+            var lazy = false;
+            if (children.Count == 0 && key is not null && Lazy && ItemHasChildren!(item))
+            {
+                if (_loaded.TryGetValue(key, out var loaded))
+                {
+                    children = Build(loaded, depth + 1, selected);
+                }
+                else
+                {
+                    lazy = true;
+                }
+            }
+
             // A checked parent says its branch is checked: it doesn't open to show it.
             var holds = children.Exists(c => c.Current || c.Holds || (c.Selected && !(selected && Cascade)));
-            var open = children.Count > 0
+            var open = (children.Count > 0 || lazy)
                        && (holds || ItemExpanded?.Invoke(item) == true || (key is not null && _expanded?.Contains(key) == true));
-            nodes.Add(new Node(item, key, children, ItemCurrent?.Invoke(item) == true, selected, holds, open));
+            nodes.Add(new Node(item, key, children, ItemCurrent?.Invoke(item) == true, selected, holds, open, lazy));
         }
 
         return nodes;
@@ -275,8 +362,8 @@
         var item = node.Item;
         var disabled = ItemDisabled?.Invoke(item) == true;
         var href = disabled ? null : ItemHref?.Invoke(item);
-        <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key">
-            @if (node.Children.Count == 0)
+        <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key" data-ib-lazy="@(node.Lazy ? "" : null)">
+            @if (!node.HasChildren)
             {
                 @Row(node, href, disabled, toggle: false)
             }
@@ -305,6 +392,28 @@
 
     private RenderFragment Group(Node node) => __builder =>
     {
+        if (node.Lazy)
+        {
+            @* Children still to load: while they come, or what went wrong (the script sets
+               data-ib-failed on a static page). *@
+            <div class="ib-tree-status" data-ib-failed="@(_failed.Contains(node.Key!) ? "" : null)">
+                <span class="ib-tree-loading"><Spinner Size="IconSize.Sm" /><span aria-hidden="true">@TextDefaults.Loading</span></span>
+                <span class="ib-tree-needs-script">@TextDefaults.TreeNeedsScript</span>
+                <span class="ib-tree-failed">
+                    @TextDefaults.ListLoadFailed
+                    @if (RendererInfo.IsInteractive)
+                    {
+                        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" OnClick="() => LoadAsync(node.Key!)">@TextDefaults.Retry</Button>
+                    }
+                    else
+                    {
+                        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" data-ib-retry>@TextDefaults.Retry</Button>
+                    }
+                </span>
+            </div>
+            return;
+        }
+
         <ul class="ib-tree-list ib-tree-group" role="list">
             @foreach (var child in node.Children)
             {
@@ -319,8 +428,8 @@
         var css = "ib-tree-item"
                   + (node.Current ? " ib-tree-current" : "")
                   + (disabled ? " ib-tree-disabled" : "")
-                  + (node.Children.Count > 0 && href is not null ? " ib-tree-has-toggle" : "")
-                  + (node.Children.Count == 0 ? " ib-tree-leaf" : "");
+                  + (node.HasChildren && href is not null ? " ib-tree-has-toggle" : "")
+                  + (!node.HasChildren ? " ib-tree-leaf" : "");
         if (Selects)
         {
             var key = node.Key!;
@@ -402,6 +511,11 @@
             return;
         }
 
+        if (e.Open && Lazy && !_loaded.ContainsKey(e.Id) && Find(_roots, e.Id) is { Lazy: true })
+        {
+            await LoadAsync(e.Id);
+        }
+
         _expanded ??= [.. OpenKeys(_roots)];
         if (!(e.Open ? _expanded.Add(e.Id) : _expanded.Remove(e.Id)))
         {
@@ -411,8 +525,54 @@
         await ExpandedChanged.InvokeAsync([.. _expanded]);
     }
 
+    // Interactive: a branch's children, the first time it opens, or again from Retry.
+    private async Task LoadAsync(string key)
+    {
+        if (!_loading.Add(key))
+        {
+            return;
+        }
+
+        _failed.Remove(key);
+        try
+        {
+            _loaded[key] = [.. await ChildrenProvider!(key, CancellationToken.None)];
+        }
+        catch (Exception) when (RendererInfo.IsInteractive)
+        {
+            _failed.Add(key);
+        }
+        finally
+        {
+            _loading.Remove(key);
+        }
+
+        _roots = Build(Items, 1, false);
+    }
+
+    private static Node? Find(List<Node> nodes, string key)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Key == key)
+            {
+                return node;
+            }
+
+            if (Find(node.Children, key) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
     private static IEnumerable<string> OpenKeys(List<Node> nodes) =>
         nodes.SelectMany(n => (n.Open && n.Key is not null ? [n.Key] : Array.Empty<string>()).Concat(OpenKeys(n.Children)));
 
-    private sealed record Node(TItem Item, string? Key, List<Node> Children, bool Current, bool Selected, bool Holds, bool Open);
+    private sealed record Node(TItem Item, string? Key, List<Node> Children, bool Current, bool Selected, bool Holds, bool Open, bool Lazy)
+    {
+        public bool HasChildren => Children.Count > 0 || Lazy;
+    }
 }

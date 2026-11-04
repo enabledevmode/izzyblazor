@@ -2847,6 +2847,57 @@
     color: inherit;
   }
 
+  /* A branch whose children load: Loading, or what went wrong and Retry; with no script, why. Its
+     text starts where a child's would. */
+  .ib-tree-status {
+    display: flex;
+    align-items: center;
+    min-height: var(--ib-control-h-md);
+    margin-top: 0.125rem;
+    padding-inline-start: calc(var(--ib-tree-arrow) * 2 + var(--ib-space-2) * 3);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-tree-loading,
+  .ib-tree-failed {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-tree-needs-script,
+  .ib-tree-failed,
+  .ib-tree-status[data-ib-failed] .ib-tree-loading {
+    display: none;
+  }
+
+  .ib-tree-status[data-ib-failed] .ib-tree-failed {
+    display: inline-flex;
+  }
+
+  @media (scripting: none) {
+    .ib-tree-loading {
+      display: none;
+    }
+
+    .ib-tree-needs-script {
+      display: inline;
+    }
+  }
+
+  .ib-tree-search {
+    margin-bottom: var(--ib-space-2);
+  }
+
+  ib-tree:not([data-ib-ready]) > .ib-tree-search {
+    display: none;
+  }
+
+  ::highlight(ib-tree-match) {
+    background-color: var(--ib-color-warning-soft);
+  }
+
   .ib-tree-empty {
     padding: var(--ib-space-2);
     color: var(--ib-color-muted);

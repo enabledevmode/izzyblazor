@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor.Tests;
@@ -63,5 +64,20 @@ public class TreeViewRenderTests : BunitContext
         Assert.Equal(["finance", "invoices"], boxes.Where(b => b.HasAttribute("checked")).Select(b => b.GetAttribute("value")));
         Assert.Equal(["docs"], cut.FindAll("details[open]").Select(d => d.ParentElement!.GetAttribute("data-ib-key")));
         Assert.Equal("multiple", cut.Find("ib-tree").GetAttribute("data-ib-select"));
+    }
+
+    [Fact]
+    public void A_page_fetch_for_a_branch_answers_with_only_that_branchs_children()
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("files?ib-suggest=tree&ib-suggest-q=docs");
+        string? asked = null;
+        var cut = Render<TreeView<Folder>>(p => p
+            .Add(t => t.Items, Folders).Add(t => t.ItemKey, f => f.Id).Add(t => t.ItemText, f => f.Id)
+            .Add(t => t.ItemHasChildren, f => f.Id is "docs" or "photos")
+            .Add(t => t.ChildrenProvider, (key, _) => { asked = key; return ValueTask.FromResult<IEnumerable<Folder>>([new("contracts", [])]); }));
+
+        Assert.Equal("docs", asked);
+        Assert.Equal("tree", cut.Find("ib-tree").GetAttribute("data-ib-tree-key"));
+        Assert.Equal(["contracts"], cut.FindAll("ib-tree > ul[data-ib-answered] > li").Select(li => li.GetAttribute("data-ib-key")));
     }
 }
