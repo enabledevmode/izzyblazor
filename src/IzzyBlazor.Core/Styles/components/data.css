@@ -138,7 +138,8 @@
     --ib-table-bg: var(--ib-card-bg, var(--ib-color-surface));
   }
 
-  .ib-card-flush > .ib-table > .ib-table-scroll {
+  .ib-card-flush > .ib-table > .ib-table-scroll,
+  .ib-table-borderless .ib-table-scroll {
     border: 0;
     border-radius: 0;
     background-color: transparent;
@@ -286,6 +287,9 @@
     --ib-table-stripe: color-mix(in oklab, var(--ib-color-fill) 50%, transparent);
     /* ShadedHeader's band: one small step from the surface, about the same to the eye in light and dark. */
     --ib-table-head-bg: light-dark(color-mix(in oklab, var(--ib-color-fill-subtle) 75%, var(--ib-color-surface)), color-mix(in oklab, var(--ib-color-fill-subtle) 60%, var(--ib-color-surface)));
+    /* A DataGrid's FilterRow: the same room above the fields and below (ShadedHeader: none above). */
+    --ib-filter-row-pt: 0.5rem;
+    --ib-filter-row-pb: 0.5rem;
 
     display: flex;
     flex-direction: column;
@@ -305,7 +309,6 @@
     --ib-table-font: var(--ib-text-md);
   }
 
-  /* A bordered table is a surface, like a card: it stays white on a tinted page. */
   /* With a height held (table.ts), the box takes the room, so the pager stays where it was. */
   .ib-table[data-ib-hold] > .ib-table-scroll {
     flex-grow: 1;
@@ -372,13 +375,6 @@
   /* Borderless, it takes the color of whatever it sits in (a card, a panel). */
   .ib-table-borderless {
     --ib-table-bg: transparent;
-  }
-
-  .ib-table-borderless .ib-table-scroll {
-    border: 0;
-    border-radius: 0;
-    background-color: transparent;
-    box-shadow: none;
   }
 
   /* The header has no tint unless ShadedHeader asks: bolder text in the body color over a full-strength
@@ -519,10 +515,6 @@
     background-color: var(--ib-color-primary);
   }
 
-  .ib-table-filter-button:is(:hover, [data-active]) > .ib-icon {
-    opacity: 1;
-  }
-
   .ib-table-filter-button:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 0;
@@ -548,7 +540,8 @@
     white-space: normal;
   }
 
-  .ib-table-filter-panel-actions {
+  .ib-table-filter-panel-actions,
+  .ib-fb-actions {
     display: flex;
     justify-content: flex-end;
     gap: var(--ib-space-2);
@@ -700,7 +693,9 @@
   }
 
   .ib-fb-head,
-  .ib-fb-rule {
+  .ib-fb-rule,
+  .ib-fb-boxes,
+  .ib-fb-choices {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -802,14 +797,6 @@
     min-width: 3.25rem;
   }
 
-  .ib-fb-boxes,
-  .ib-fb-choices {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ib-space-2);
-  }
-
   .ib-fb-boxes [hidden] {
     display: none;
   }
@@ -819,20 +806,8 @@
     overflow-wrap: anywhere;
   }
 
-  .ib-fb-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--ib-space-2);
-  }
-
-  /* A DataGrid's FilterRow. */
-  /* Between two lines, the same room above the fields and below; shaded, with no line under the titles,
-     none above, where their own padding is the gap. */
-  .ib-table {
-    --ib-filter-row-pt: 0.5rem;
-    --ib-filter-row-pb: 0.5rem;
-  }
-
+  /* A DataGrid's FilterRow, between two lines. Shaded, with no line under the titles, it has no room
+     above, where their own padding is the gap. */
   .ib-table-shaded-head {
     --ib-filter-row-pt: 0;
   }
@@ -966,12 +941,9 @@
     }
   }
 
-  .ib-table-filter-form {
-    display: none;
-  }
-
-  /* The hidden fields that carry the rest of the URL through the filters' GET form: no box of its
-     own, or the table's gap would show around it. */
+  /* With the hidden fields that carry the rest of the URL through the filters' GET form: no box of
+     their own, or the table's gap would show around them. */
+  .ib-table-filter-form,
   .ib-table-filter-kept {
     display: none;
   }
@@ -1066,11 +1038,8 @@
     color: var(--ib-color-on-surface);
   }
 
-  th:is([aria-sort="ascending"], [aria-sort="descending"]) .ib-table-sort-icon {
-    opacity: 1;
-  }
-
-  /* A column's place in a sort of several (DataGrid). */
+  /* Also with a column's place in a sort of several (DataGrid). */
+  th:is([aria-sort="ascending"], [aria-sort="descending"]) .ib-table-sort-icon,
   .ib-table-sort:has(.ib-table-sort-order) .ib-table-sort-icon {
     opacity: 1;
   }
@@ -1374,7 +1343,6 @@
     display: none;
   }
 
-  /* As tall as the bar, so the rows don't move when one takes the other's place. */
   /* Export's two formats: the icon and a small chevron, both inside one button. */
   .ib-grid-export > .ib-icon:last-child {
     --ib-icon-size: 0.875rem;
@@ -1435,6 +1403,7 @@
     margin: 0 0 var(--ib-space-2);
     padding: 0;
     list-style: none;
+    font-size: var(--ib-text-sm);
   }
 
   .ib-col-picker-list li {
@@ -1452,15 +1421,6 @@
     min-width: 0;
     height: 1.5rem;
     padding: 0;
-  }
-
-  .ib-col-picker-list {
-    font-size: var(--ib-text-sm);
-  }
-
-  .ib-col-picker-list .ib-check-input {
-    --ib-check-size: 1rem;
-    margin: 0;
   }
 
   .ib-col-picker-list label {
@@ -1852,10 +1812,13 @@
 
   /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset. */
   .ib-table-select,
-  :is(.ib-table-select-all, .ib-table-group-select) {
+  .ib-table-select-all,
+  .ib-table-group-select,
+  .ib-listview-select,
+  .ib-listview-select-all,
+  .ib-col-picker-list .ib-check-input {
     --ib-check-size: 1rem;
     margin: 0;
-    margin-block-start: 0;
   }
 
   /* Select-all only works with script. */
@@ -1968,19 +1931,16 @@
 
   /* Paging, grouped at the end like AG Grid and MUI: rows per page, the range, the pages. The
      start stays free for selection counts or bulk actions. */
-  .ib-data-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--ib-space-2) var(--ib-space-4);
-  }
-
+  .ib-data-footer,
   .ib-data-footer-info {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ib-space-2) var(--ib-space-4);
+  }
+
+  .ib-data-footer {
+    justify-content: flex-end;
   }
 
   /* Rows per page: a label and a small ghost button opening the sizes. */
@@ -2613,10 +2573,7 @@
   /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset (as Table's). */
   .ib-listview-select,
   .ib-listview-select-all {
-    --ib-check-size: 1rem;
     flex: none;
-    margin: 0;
-    margin-block-start: 0;
   }
 
   .ib-listview-select-all-row {
@@ -2643,17 +2600,6 @@
 
   ib-listview:focus {
     outline: none;
-  }
-
-  /* Out of sight but not display: none, which some browsers skip when Enter submits a form. */
-  .ib-data-default-submit {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    border: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
   }
 
   .ib-listview-select-all-label {
