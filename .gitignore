@@ -12,6 +12,7 @@ playwright-report/
 src/IzzyBlazor.Core/wwwroot/izzyblazor.css
 src/IzzyBlazor.Core/wwwroot/date.css
 src/IzzyBlazor.Core/wwwroot/carousel.css
+src/IzzyBlazor.Core/wwwroot/chart.css
 src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js
 src/IzzyBlazor.Core/wwwroot/elements/
 src/IzzyBlazor.Core/wwwroot/fonts/

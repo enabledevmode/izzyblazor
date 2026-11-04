@@ -1,0 +1,330 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    Bars, lines and areas over a list of items, drawn on the server: the chart is in the page's
+    HTML, so it shows with no script and no circuit, prints, and fills its container's width.
+
+    <Chart Items="months" Argument="m => m.Month" Label="Revenue and costs, 2026" ValueFormat="C0">
+        <ChartSeries Value="m => m.Revenue" />
+        <ChartSeries Value="m => m.Costs" />
+        <ChartSeries Value="m => m.Target" Type="ChartType.Line" />
+    </Chart>
+
+    Argument is what each item is plotted at: names and enums sit in bands, one per item; numbers
+    and dates, on a line or area chart, sit on a scale (any chart with bars uses bands). Each
+    ChartSeries draws one value per item, as SeriesType or its own Type. Stacked stacks bars and
+    areas; Orientation.Horizontal lays bars across, the arguments down the side.
+
+    The text is HTML beside the plot, so it keeps its size at any width; at narrow widths every
+    other label (or every fourth) hides so they don't crowd.
+
+    Accessibility:
+    - A figure captioned by Label, which is required. The plot and its axes are one image named by
+      the label, so a screen reader hears the chart, not each tick.
+    - "Show data" under the chart opens a table of every value (DataTable), with no script.
+    - Lines differ by dash and marker shape as well as color; bars keep the legend's order.
+    - The palette's colors are 3:1 against the surface in dark mode; three of them are lighter in
+      light mode, which the legend and the table make up for.
+    See also: Stat, Table.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <figcaption id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-chart-label")">@Label</figcaption>
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+        @PlotFragment
+    </CascadingValue>
+</figure>
+
+@code {
+    /// <summary>The items to chart, one point or bar per series for each.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// What each item is plotted at, such as <c>m =&gt; m.Month</c>: text, an enum, a number or a
+    /// date. Text and enums are bands in item order; numbers and dates are a scale on a line or
+    /// area chart.
+    /// </summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+
+    /// <summary>What the chart shows, such as "Revenue by month": its caption and accessible name. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>Hides the caption, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideLabel { get; set; }
+
+    /// <summary>How series draw unless they say otherwise. Defaults to <see cref="ChartType.Bar"/>.</summary>
+    [Parameter] public ChartType SeriesType { get; set; }
+
+    /// <summary>Whether bars and areas stack. Lines never do.</summary>
+    [Parameter] public ChartStack Stacked { get; set; }
+
+    /// <summary>
+    /// <see cref="Orientation.Vertical"/>, the default, draws upright columns with the arguments
+    /// along the bottom; <see cref="Orientation.Horizontal"/> draws bars across, the arguments
+    /// down the side, which suits long names.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>The plot's height. Defaults to 18rem. The chart is always as wide as its container.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>A .NET format string for values, such as <c>C0</c>, <c>N1</c> or <c>P0</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>A .NET format string for the arguments, such as <c>MMM</c> or <c>N0</c>.</summary>
+    [Parameter] public string? ArgumentFormat { get; set; }
+
+    /// <summary>Where the value axis starts. Defaults to a round number at or below the lowest value (0 with bars and areas).</summary>
+    [Parameter] public double? ValueMin { get; set; }
+
+    /// <summary>Where the value axis ends. Defaults to a round number at or above the highest value.</summary>
+    [Parameter] public double? ValueMax { get; set; }
+
+    /// <summary>The legend: below the chart when there are two series or more, by default.</summary>
+    [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    /// <summary>The <see cref="ChartSeries{TItem}"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private ChartContext<TItem> _context = null!;
+    private Expression<Func<TItem, object?>>? _lastArgument;
+    private Func<TItem, object?>? _argument;
+    private string? _argumentName;
+    private string? _class;
+    private string? _style;
+    private RenderFragment PlotFragment = null!;
+
+    private static string Pct(double value) => (value * 100).ToString("0.###", CultureInfo.InvariantCulture) + "%";
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _context = new ChartContext<TItem>();
+        PlotFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderPlot);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Plot = plot));
+            builder.CloseComponent();
+        };
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Chart needs a Label, its caption and accessible name, such as \"Revenue by month\".");
+        }
+
+        if (Argument is null)
+        {
+            throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month.");
+        }
+
+        if (!ReferenceEquals(Argument, _lastArgument))
+        {
+            _lastArgument = Argument;
+            _argument = Argument.Compile();
+            _argumentName = ChartMembers.Name(Argument);
+        }
+
+        base.OnParametersSet();
+        _context.BeginPass();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private static double HeightInPixels(Length? height)
+    {
+        var css = height?.Css;
+        if (css is null) return 288;
+        var match = System.Text.RegularExpressions.Regex.Match(css, @"^([\d.]+)(px|rem)$");
+        return match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v)
+            ? match.Groups[2].Value == "rem" ? v * 16 : v
+            : 288;
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var series = _context.Series.Select(s => s.Read(items, SeriesType)).ToList();
+        var horizontal = Orientation == Orientation.Horizontal;
+        var model = ChartLayout.Build(new ChartInput(items.Select(_argument!).ToList(), series)
+        {
+            Stacked = Stacked,
+            Horizontal = horizontal,
+            HeightPx = HeightInPixels(Height),
+            ValueFormat = ValueFormat,
+            ArgumentFormat = ArgumentFormat,
+            ValueMin = ValueMin,
+            ValueMax = ValueMax,
+        });
+        var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
+        var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
+        var marks = _labelId + "-m";
+        var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
+        var room = model.LabelRoom is { } r && !horizontal
+            ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
+            : null;
+
+        <div class="ib-chart-frame" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
+            <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
+                @foreach (var label in side)
+                {
+                    <span style="top:@Pct(horizontal ? label.Pos : 1 - label.Pos)" title="@label.Title">@label.Text</span>
+                }
+            </div>
+            <div class="ib-chart-plot">
+                <svg class="ib-chart-svg">
+                    <defs>
+                        <path id="@(marks)0" d="M-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
+                        <path id="@(marks)1" d="M-3.5,-3.5h7v7h-7z" />
+                        <path id="@(marks)2" d="M0,-5L4.6,3.5H-4.6Z" />
+                        <path id="@(marks)3" d="M0,-5L5,0L0,5L-5,0Z" />
+                    </defs>
+                    @foreach (var line in model.Grid)
+                    {
+                        <line class="@GridClass(line)"
+                              x1="@(horizontal ? Pct(line.Pos) : "0")" x2="@(horizontal ? Pct(line.Pos) : "100%")"
+                              y1="@(horizontal ? "0" : Pct(1 - line.Pos))" y2="@(horizontal ? "100%" : Pct(1 - line.Pos))" />
+                    }
+                    <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        @foreach (var s in model.Series.Where(s => s.Area is not null))
+                        {
+                            <path class="@SeriesClass(s, "ib-chart-area")" style="@ColorStyle(s)" d="@s.Area" />
+                        }
+                    </svg>
+                    @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
+                    {
+                        <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)">
+                            @foreach (var bar in s.Bars)
+                            {
+                                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
+                            }
+                        </g>
+                    }
+                    <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        @foreach (var s in model.Series.Where(s => s.Line is not null))
+                        {
+                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Style % 4}")" style="@ColorStyle(s)" d="@s.Line" />
+                        }
+                    </svg>
+                    @foreach (var s in model.Series.Where(s => s.Marks.Count > 0))
+                    {
+                        <g class="@SeriesClass(s, "ib-chart-marks")" style="@ColorStyle(s)">
+                            @foreach (var mark in s.Marks)
+                            {
+                                <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%"><title>@mark.Title</title></use>
+                            }
+                        </g>
+                    }
+                </svg>
+            </div>
+            <div class="@BottomClass(model, horizontal)" style="@room">
+                @foreach (var label in bottom)
+                {
+                    <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(label.Pos)" title="@label.Title">@label.Text@if (label.Context is { } context)
+                        {<span class="ib-chart-context">@context</span>}</span>
+                }
+            </div>
+        </div>
+
+        @if (legend)
+        {
+            <ul class="ib-chart-legend">
+                @foreach (var s in model.Series)
+                {
+                    <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">
+                        <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
+                            @if (s.Data.Type == ChartType.Bar)
+                            {
+                                <rect x="6" y="0" width="12" height="12" rx="2" />
+                            }
+                            else
+                            {
+                                <line class="@($"ib-chart-dash{s.Style % 4}")" x1="0" x2="24" y1="6" y2="6" />
+                                @if (s.Marks.Count > 0)
+                                {
+                                    <use href="@($"#{marks}{s.Style % 4}")" x="12" y="6" />
+                                }
+                            }
+                        </svg>
+                        @s.Data.Name
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (DataTable != ChartDataTable.None)
+        {
+            <details class="ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary>@TextDefaults.ChartShowData</summary>
+                <div class="ib-chart-table-scroll">
+                    <table class="ib-chart-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                                @foreach (var s in model.Series)
+                                {
+                                    <th scope="col">@s.Data.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < model.ArgumentTexts.Length; i++)
+                            {
+                                var row = i;
+                                <tr>
+                                    <th scope="row">@model.ArgumentTexts[row]</th>
+                                    @for (var s = 0; s < model.Series.Count; s++)
+                                    {
+                                        <td>@model.ValueTexts[s][row]</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+    }
+
+    private static string GridClass(GridLine line) =>
+        (line.Zero ? "ib-chart-grid ib-chart-zero" : "ib-chart-grid") + (line.From > 0 ? $" ib-chart-from{line.From}" : "");
+
+    // Room at the end for half the last label on a scale, which is centered on the plot's edge.
+    private string? FrameStyle(ChartModel model)
+    {
+        var style = (Height is { } h ? $"--ib-chart-height:{h.Css};" : "") + (model.EndRoomPx > 0 ? $"padding-inline-end:{Num(model.EndRoomPx)}px" : "");
+        return style.Length > 0 ? style : null;
+    }
+
+    private static string BottomClass(ChartModel model, bool horizontal) =>
+        "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "") + (!horizontal && model.Kind == ArgumentKind.Category ? " ib-chart-bands" : "");
+
+    private static string SeriesClass(SeriesShape s, string? kind) =>
+        $"{kind} ib-chart-s{s.Slot}{(s.Data.Hidden ? " ib-chart-off" : "")}".TrimStart();
+
+    private static string? ColorStyle(SeriesShape s) => s.Data.Color is { } color ? $"--ib-chart-color:{StyleValues.Raw(color, "color")}" : null;
+}

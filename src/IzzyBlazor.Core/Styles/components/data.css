@@ -2917,3 +2917,10 @@
     }
   }
 }
+
+@layer izzy.components {
+  /* Chart: the rest is in chart.css, which shows it. */
+  .ib-chart {
+    visibility: hidden;
+  }
+}

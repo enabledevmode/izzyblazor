@@ -5,7 +5,7 @@
 // 1. Generates the responsive style-prop CSS from STYLE_PROPS below
 //    (src/IzzyBlazor.Core/Styles/_generated/*.css).
 // 2. Bundles src/IzzyBlazor.Core/Styles/izzyblazor.css -> wwwroot/izzyblazor.css
-//    and src/IzzyBlazor.Core/Styles/{date,carousel}.css -> wwwroot/{date,carousel}.css
+//    and src/IzzyBlazor.Core/Styles/{date,carousel,chart}.css -> wwwroot/{date,carousel,chart}.css
 // 3. Bundles src/IzzyBlazor.Core/Scripts/index.ts      -> wwwroot/IzzyBlazor.Core.lib.module.js
 //    (Blazor loads "<AssemblyName>.lib.module.js" automatically as a JS initializer.)
 //
@@ -213,6 +213,13 @@ const builds = [
     sourcemap: false,
     entryPoints: [join(lib, "Styles", "carousel.css")],
     outfile: join(lib, "wwwroot", "carousel.css"),
+  },
+  {
+    // A sheet of its own, linked by the charts.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "chart.css")],
+    outfile: join(lib, "wwwroot", "chart.css"),
   },
   {
     ...common,
