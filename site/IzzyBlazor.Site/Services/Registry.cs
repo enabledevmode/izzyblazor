@@ -26,7 +26,9 @@ public sealed class Registry
     public Registry(RegistryFile file)
     {
         Categories = file.Categories;
-        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c)).ToList();
+        // Groups in the file's order (foundations first); components by name within each, so a
+        // reader scanning for one they know finds it, and a new one has an obvious place.
+        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)).ToList();
         Components = AllComponents.Where(c => !c.Preview).ToList();
         var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id).ToList();
         if (stray.Count > 0)
