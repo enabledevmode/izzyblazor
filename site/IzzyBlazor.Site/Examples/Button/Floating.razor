@@ -1,0 +1,12 @@
+@* A floating button with a label: Floating on a Button keeps its text beside the icon. Here it's
+   centered at the bottom with FloatPosition. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Inbox</Heading>
+    <Stack Gap="2">
+        @foreach (var i in Enumerable.Range(1, 12))
+        {
+            <Card Padding="3">Message @i</Card>
+        }
+    </Stack>
+</Stack>
+<Button StartIcon="Lucide.Pencil" Floating FloatPosition="FloatPosition.BottomCenter" Href="?compose=1">Compose</Button>

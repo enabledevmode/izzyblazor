@@ -126,6 +126,19 @@ public enum ControlSize
     Lg,
 }
 
+/// <summary>Where a floating button sits in the window. Start and End follow the reading direction.</summary>
+public enum FloatPosition
+{
+    /// <summary>The bottom corner on the end side (the default).</summary>
+    BottomEnd,
+
+    /// <summary>The bottom corner on the start side.</summary>
+    BottomStart,
+
+    /// <summary>The bottom edge, centered.</summary>
+    BottomCenter,
+}
+
 /// <summary>Which side of its label a checkbox or switch sits on.</summary>
 public enum ControlPosition
 {

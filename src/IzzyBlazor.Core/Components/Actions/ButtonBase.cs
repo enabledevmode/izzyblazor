@@ -53,6 +53,17 @@ public abstract class ButtonBase : LayoutItemBase
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<bool> PressedChanged { get; set; }
 
+    /// <summary>
+    /// Makes it a floating action button: fixed to a bottom corner of the window
+    /// (<see cref="FloatPosition"/>), raised, and <see cref="ControlSize.Lg"/> unless
+    /// <see cref="Size"/> is set. In an <see cref="AppShell"/> it sits above a sticky footer. For the
+    /// page's main action, one per page. Not in a <see cref="ButtonGroup"/> or <see cref="Toolbar"/>.
+    /// </summary>
+    [Parameter] public bool Floating { get; set; }
+
+    /// <summary>Where a <see cref="Floating"/> button sits. Defaults to <see cref="FloatPosition.BottomEnd"/>.</summary>
+    [Parameter] public FloatPosition FloatPosition { get; set; } = FloatPosition.BottomEnd;
+
     /// <summary>The label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -72,8 +83,8 @@ public abstract class ButtonBase : LayoutItemBase
     /// <summary>The variant in effect: this button's, else its group's, else Solid.</summary>
     protected ButtonVariant EffectiveVariant => !_variantSet && Group?.DefaultVariant is { } variant ? variant : Variant;
 
-    /// <summary>The size in effect: this button's, else its group's, else Md.</summary>
-    protected ControlSize EffectiveSize => !_sizeSet && Group?.DefaultSize is { } size ? size : Size;
+    /// <summary>The size in effect: this button's, else its group's, else Lg when floating, else Md.</summary>
+    protected ControlSize EffectiveSize => _sizeSet ? Size : Group?.DefaultSize ?? (Floating ? ControlSize.Lg : Size);
 
     /// <summary>Whether the content is a single icon with no visible text.</summary>
     protected virtual bool IconOnly => false;
@@ -87,6 +98,11 @@ public abstract class ButtonBase : LayoutItemBase
         _sizeSet = parameters.TryGetValue<ControlSize>(nameof(Size), out _);
         var task = base.SetParametersAsync(parameters);
         ToolbarControl.Refuse(this, Toolbar, Group);
+        if (Floating && (Group is not null || Toolbar is not null))
+        {
+            throw new InvalidOperationException($"A Floating {GetType().Name} can't be in a {(Toolbar is not null ? "Toolbar" : "ButtonGroup")}: it leaves the page's flow. Put it outside.");
+        }
+
         return task;
     }
 
@@ -143,6 +159,9 @@ public abstract class ButtonBase : LayoutItemBase
         classes.Add("ib-btn-full", FullWidth);
         classes.Add("ib-btn-loading", Loading);
         classes.Add("ib-btn-toggle", Pressed is not null);
+        classes.Add("ib-btn-float", Floating);
+        classes.Add("ib-btn-float-start", Floating && FloatPosition == FloatPosition.BottomStart);
+        classes.Add("ib-btn-float-center", Floating && FloatPosition == FloatPosition.BottomCenter);
         if (accent.Custom is { } custom)
         {
             ColorOverride.Apply(styles, custom);
