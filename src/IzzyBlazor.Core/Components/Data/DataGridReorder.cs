@@ -112,7 +112,7 @@ public partial class DataGrid<TItem>
             throw new InvalidOperationException($"A DataGrid with {nameof(ReorderableRows)} starts in its own order, so it can't take an {(InitialSort is not null ? nameof(InitialSort) : nameof(InitialGroup))}.");
         }
 
-        if (!MovesLive && (CanEdit || CanDelete))
+        if (PostsOrder && (CanEdit || CanDelete))
         {
             throw new InvalidOperationException($"On a static page, a DataGrid with {nameof(ReorderableRows)} posts its order with a form around it, and one that edits or deletes rows can't be inside a form, as forms don't nest. Make the page interactive, or move rows and edit them in separate grids.");
         }
