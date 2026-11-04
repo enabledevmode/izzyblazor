@@ -1,6 +1,6 @@
 @* Checkboxes in a form: checking a parent checks its branch, and Save posts every checked key,
    parents included, so it works on a static page. *@
-<form method="post" @onsubmit="Save" @formname="tree-view-permissions" style="width: 100%; max-width: 22rem">
+<form method="post" @onsubmit="Save" @formname="tree-view-permissions" data-enhance style="width: 100%; max-width: 22rem">
     <AntiforgeryToken />
     <Stack Gap="3">
         <TreeView Items="_areas" ItemChildren="a => a.Children" ItemKey="a => a.Code" ItemText="a => a.Name"

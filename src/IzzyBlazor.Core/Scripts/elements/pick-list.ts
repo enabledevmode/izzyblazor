@@ -31,6 +31,18 @@ class PickList extends IzzyElement {
     this.dataset.ready = "";
     signal.addEventListener("abort", () => delete this.dataset.ready);
     select.tabIndex = -1;
+    // The select only posts now: out of the accessibility tree, and its label and a failed
+    // check send focus to the lists.
+    select.setAttribute("aria-hidden", "true");
+    signal.addEventListener("abort", () => select.removeAttribute("aria-hidden"));
+    const toLists = (event: Event) => {
+      event.preventDefault();
+      const stop = [...this.#options("chosen", true), ...this.#options("available", true)].find((o) => o.tabIndex === 0);
+      (stop ?? this.#list("chosen"))?.focus();
+    };
+    for (const label of select.labels) label.addEventListener("click", toLists, { signal });
+    select.addEventListener("invalid", toLists, { signal });
+    select.addEventListener("focus", toLists, { signal });
     const on = <K extends keyof HTMLElementEventMap>(type: K, handler: (event: HTMLElementEventMap[K]) => void) => this.addEventListener(type, handler, { signal });
 
     on("click", (event) => {
@@ -47,7 +59,7 @@ class PickList extends IzzyElement {
       const option = this.#optionAt(event.target as Element);
       if (!option || this.#locked(option)) return;
       for (const o of this.#options(this.#paneOf(option))) this.#mark(o, o === option);
-      this.#press(this.#paneOf(option) === "available" ? "chosen" : "available");
+      this.#press(this.#paneOf(option) === "available" ? "chosen" : "available", option);
     });
     on("keydown", (event) => this.#onKey(event));
     on("focusin", (event) => {
@@ -62,6 +74,7 @@ class PickList extends IzzyElement {
 
     // Blazor redraws the lists on interactive pages.
     const observer = new MutationObserver(() => {
+      for (const box of this.querySelectorAll<HTMLInputElement>("[data-ib-pick-search]")) this.#filter(box, false);
       this.#prepare();
       const then = this.#pending;
       this.#pending = null;
@@ -110,11 +123,11 @@ class PickList extends IzzyElement {
         if (!o.hasAttribute("aria-selected")) this.#mark(o, false);
         if (!o.hasAttribute("tabindex")) o.tabIndex = -1;
       }
+      // One Tab stop per list: an item moved in brings its own.
       const shown = options.filter((o) => !o.hidden);
-      if (!shown.some((o) => o.tabIndex === 0)) {
-        for (const o of options) o.tabIndex = -1;
-        if (shown[0]) shown[0].tabIndex = 0;
-      }
+      const stop = shown.find((o) => o === document.activeElement) ?? shown.find((o) => o.tabIndex === 0) ?? shown[0];
+      for (const o of options) if (o !== stop && o.tabIndex !== -1) o.tabIndex = -1;
+      if (stop) stop.tabIndex = 0;
       // An empty list takes focus itself, so a move that empties it has somewhere to land.
       this.#list(pane)!.tabIndex = shown.length ? -1 : 0;
     }
@@ -202,7 +215,7 @@ class PickList extends IzzyElement {
         break;
       case "Enter":
         if (!this.#selected(pane).length && !this.#locked(option)) this.#mark(option, true);
-        this.#press(pane === "available" ? "chosen" : "available");
+        this.#press(pane === "available" ? "chosen" : "available", option);
         break;
       case "a":
       case "A":
@@ -258,6 +271,8 @@ class PickList extends IzzyElement {
       message = (this.dataset.ibMoved ?? "").replace("{1}", String(i + 1)).replace("{2}", String(values.length));
     }
     if (!moved.length) return;
+    // Where focus goes in its list after: the item now at the first moved one's place.
+    const place = Math.max(0, this.#options(move.endsWith("available") || move === "up" || move === "down" ? "chosen" : "available", true).indexOf(moved[0]));
     const keep = move === "up" || move === "down";
     this.#commit(values, keep ? moved.map((o) => o.dataset.value!) : []);
     if (message) this.#say(message.replace("{0}", this.#names(moved)));
@@ -272,7 +287,8 @@ class PickList extends IzzyElement {
         return;
       }
       if (from?.matches("[role=option]") || !this.#options(source, true).length) {
-        const next = this.#options(source, true)[0] ?? this.#options(other, true)[0];
+        const left = this.#options(source, true);
+        const next = left[Math.min(place, left.length - 1)] ?? this.#options(other, true)[0];
         if (next) this.#focus(next);
         else this.#list(other)?.focus();
       }
@@ -342,14 +358,16 @@ class PickList extends IzzyElement {
   }
 
   /** A search box narrows its list to the items whose text holds what's typed. */
-  #filter(box: HTMLInputElement): void {
+  #filter(box: HTMLInputElement, prepare = true): void {
     const pane = (box.closest("[data-ib-pane]") as HTMLElement).dataset.ibPane as Pane;
     const query = box.value.trim().toLowerCase();
     for (const o of this.#options(pane)) {
       o.hidden = !!query && !(o.dataset.text ?? o.textContent ?? "").toLowerCase().includes(query);
       if (o.hidden) this.#mark(o, false);
     }
-    this.#prepare();
+    const none = box.closest("[data-ib-pane]")!.querySelector<HTMLElement>(".ib-pick-list-none");
+    if (none) none.hidden = !query || this.#options(pane, true).length > 0;
+    if (prepare) this.#prepare();
   }
 
   /** Dragging an item to the other list, or within Chosen when it can be reordered. */
@@ -371,6 +389,10 @@ class PickList extends IzzyElement {
       home: list.parentElement as HTMLElement,
       onDrop: (from, to, settle, into) => {
         settle();
+        this.#after(() => {
+          const landed = [...this.#options("available"), ...this.#options("chosen")].find((o) => o.dataset.value === item.dataset.value);
+          if (landed) this.#focus(landed);
+        });
         const value = item.dataset.value!;
         const values = this.#values().filter((v) => v !== value);
         if (into) {

@@ -53,7 +53,7 @@ public class TreeViewRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_checked_parent_checks_its_branch_which_posts_and_opens_the_branches_holding_it()
+    public void A_static_render_checks_the_posted_keys_and_opens_and_mixes_the_branches_holding_them()
     {
         var cut = Render<TreeView<Folder>>(p => p
             .Add(t => t.Items, Folders).Add(t => t.ItemChildren, f => f.Folders).Add(t => t.ItemText, f => f.Id)
@@ -61,7 +61,9 @@ public class TreeViewRenderTests : BunitContext
             .Add(t => t.SelectionName, "granted").Add(t => t.Selection, Selection.Of("finance")));
 
         var boxes = cut.FindAll("input[type=checkbox][name='granted.Keys']");
-        Assert.Equal(["finance", "invoices"], boxes.Where(b => b.HasAttribute("checked")).Select(b => b.GetAttribute("value")));
+        // What was posted: with no script, a parent's box alone. The script checks its branch.
+        Assert.Equal(["finance"], boxes.Where(b => b.HasAttribute("checked")).Select(b => b.GetAttribute("value")));
+        Assert.Equal("mixed", cut.Find("li[data-ib-key='docs']").GetAttribute("data-ib-checked"));
         Assert.Equal(["docs"], cut.FindAll("details[open]").Select(d => d.ParentElement!.GetAttribute("data-ib-key")));
         Assert.Equal("multiple", cut.Find("ib-tree").GetAttribute("data-ib-select"));
     }
