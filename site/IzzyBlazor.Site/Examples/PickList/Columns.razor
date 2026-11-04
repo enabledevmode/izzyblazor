@@ -1,0 +1,40 @@
+@using Microsoft.AspNetCore.Http
+
+@* A report's columns, in the order chosen: Save posts them in that order, on a static page too. *@
+<Form Model="Model" FormName="pick-list-columns" OnValidSubmit="Save" MaxWidth="36.Rem" Grow>
+    <PickList Label="Columns" @bind-Value="Model!.Columns" Items="AllColumns" Reorderable />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Button Submit>Save</Button>
+        @if (_saved)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">Columns: @(Model!.Columns is { Count: > 0 } columns ? string.Join(", ", columns) : "none")</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "pick-list-columns")]
+    private Report? Model { get; set; }
+
+    private bool _saved;
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // A post with nothing chosen sends nothing for the field: the defaults only when this form didn't post.
+    protected override void OnInitialized()
+    {
+        var posted = HttpContext?.Request.HasFormContentType == true && HttpContext.Request.Form["_handler"] == "pick-list-columns";
+        Model ??= posted ? new() : new() { Columns = ["Order", "Customer", "Total"] };
+    }
+
+    private void Save() => _saved = true;
+
+    public sealed class Report
+    {
+        public List<string> Columns { get; set; } = [];
+    }
+
+    @* hide *@
+    private static readonly string[] AllColumns = ["Order", "Date", "Customer", "Email", "Status", "Items", "Total", "Paid", "Shipped"];
+    @* /hide *@
+}

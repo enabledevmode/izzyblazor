@@ -3383,3 +3383,165 @@
     display: block;
   }
 }
+
+/* PickList: a select multiple that, with script, becomes two lists side by side with the move
+   buttons between them (and Move up and Move down after Chosen); stacked, with the buttons turned,
+   in a box narrower than 28rem. The select stays, out of sight, to post. */
+@layer izzy.components {
+  .ib-pick-list {
+    position: relative;
+    display: block;
+    container-type: inline-size;
+  }
+
+  .ib-pick-list[data-ready] > .ib-pick-list-select {
+    position: absolute;
+    inset-block-start: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ib-pick-list:not([data-ready]) > .ib-pick-list-panes {
+    display: none;
+  }
+
+  .ib-pick-list-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--ib-space-3);
+  }
+
+  .ib-pick-list[data-ib-reorder] > .ib-pick-list-panes {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  }
+
+  .ib-pick-list-pane {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    min-width: 0;
+  }
+
+  .ib-pick-list-heading {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-pick-list-list {
+    flex: 1;
+    min-height: 12rem;
+    max-height: 18rem;
+    margin: 0;
+    padding: var(--ib-space-1);
+    overflow-y: auto;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface);
+    list-style: none;
+  }
+
+  .ib-pick-list-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-height: var(--ib-control-h-sm);
+    padding: var(--ib-space-1) var(--ib-space-2);
+    border-radius: var(--ib-radius-sm);
+    font-size: var(--ib-text-sm);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .ib-pick-list-option[hidden] {
+    display: none;
+  }
+
+  .ib-pick-list-option:hover {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-pick-list-option[aria-selected="true"] {
+    background-color: var(--ib-color-primary-soft);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-pick-list-option[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .ib-pick-list-option:focus-visible,
+  .ib-pick-list-list:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  /* While dragging: the dragged item lifts, the other list's box is outlined as it's over it. */
+  .ib-pick-list-option.ib-sortable-dragging {
+    position: relative;
+    z-index: 1;
+    background-color: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-md);
+    cursor: grabbing;
+  }
+
+  .ib-sortable-sorting > .ib-pick-list-option,
+  .ib-sortable-receiving > .ib-pick-list-option {
+    transition: transform 150ms ease;
+  }
+
+  .ib-pick-list-pane[data-ib-drop] > .ib-pick-list-list {
+    outline: 2px dashed var(--ib-color-primary);
+    outline-offset: -2px;
+  }
+
+  .ib-pick-list-moves {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-pick-list-moves:not(.ib-pick-list-order-moves) .ib-icon:dir(rtl) {
+    scale: -1 1;
+  }
+
+  @container (max-width: 28rem) {
+    .ib-pick-list-panes,
+    .ib-pick-list[data-ib-reorder] > .ib-pick-list-panes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ib-pick-list-moves {
+      flex-direction: row;
+    }
+
+    .ib-pick-list-moves:not(.ib-pick-list-order-moves) .ib-icon {
+      rotate: 90deg;
+      scale: none;
+    }
+
+    .ib-pick-list-list {
+      min-height: 8rem;
+      max-height: 12rem;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-pick-list-option[aria-selected="true"] {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-sortable-sorting > .ib-pick-list-option,
+    .ib-sortable-receiving > .ib-pick-list-option {
+      transition: none;
+    }
+  }
+}

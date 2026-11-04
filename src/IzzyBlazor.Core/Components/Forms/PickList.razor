@@ -1,0 +1,255 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@inherits FieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain multi-select list, without the two lists, moving, ordering or search.")]
+
+@*
+    Choose items by moving them from one list to another, in the order you want: report columns, a
+    team's members, the steps of a process. Bound to a collection, as MultiSelect is: an array,
+    List<T> or an interface they implement, in the order chosen.
+
+    <PickList Label="Columns" Items="allColumns" @bind-Value="Model.Columns" Reorderable Searchable />
+
+    Select items in a list (click; Ctrl or Cmd adds, Shift extends) and move them with the buttons
+    between the lists, double-click, Enter, or by dragging. Reorderable adds Move up and Move down
+    beside the chosen list, and dragging within it; Searchable puts a search box over each list,
+    and Move all then moves only the matches.
+
+    How it works three ways:
+    - No script: a native <select multiple> holds and posts the values, chosen ones first in their
+      order.
+    - With script (<ib-pick-list>): the two lists, drawn from the same items; each move changes
+      which options are selected and their order, so the form posts the select.
+    - Interactive: the same, and @bind-Value follows every move.
+    For a short list where order doesn't matter, CheckboxGroup or MultiSelect take less room.
+
+    Accessibility:
+    - Each list is a multi-select `listbox` named by the label and its own heading ("Columns,
+      Available"). One Tab stop each; the arrow keys move between items, Space selects.
+    - The buttons between the lists are named for what they do ("Move to chosen"), and say when
+      there's nothing to move (`aria-disabled`) rather than leaving the Tab order.
+    - After a move, focus stays on the button, or goes to the other list if its own is empty. Each
+      move is announced: "Moved Status and Owner to chosen".
+    - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
+
+    Keyboard:
+    - Up, Down, Home, End | Move through a list
+    - Space | Select or unselect the item
+    - Shift+Up, Shift+Down | Extend the selection
+    - Ctrl+A | Select every item in the list
+    - Enter | Move the selected items to the other list
+    - Alt+Up, Alt+Down | With Reorderable, move the selected chosen items up or down
+    See also: MultiSelect, CheckboxGroup.
+*@
+
+<FieldFrame Class="@WrapperClass("pick-list")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        @(ReadOnlyControl(string.Join(", ", Chosen.Select(TextOf))))
+    }
+    else
+    {
+    <ib-pick-list class="ib-pick-list"
+                  data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
+                  data-ib-reorder="@(Reorderable ? "" : null)"
+                  data-ib-to-chosen="@TextDefaults.PickMovedToChosen"
+                  data-ib-to-available="@TextDefaults.PickMovedToAvailable"
+                  data-ib-moved="@TextDefaults.MovedTo">
+        <select @attributes="ControlAttributes"
+                id="@FieldId"
+                class="ib-field-input ib-pick-list-select"
+                name="@NameAttributeValue"
+                multiple
+                size="@Math.Clamp(ItemList.Count, 2, 8)"
+                required="@IsRequired"
+                disabled="@IsDisabled"
+                aria-invalid="@(Invalid ? "true" : null)"
+                aria-describedby="@DescribedBy"
+                @onchange="OnSelectChanged">
+            @* The chosen first, in their order, so the form posts them in it. *@
+            @foreach (var item in Chosen.Concat(Available))
+            {
+                <option @key="ChoiceOptions.Value(item)" value="@ChoiceOptions.Value(item)" selected="@IsChosen(item)" disabled="@(IsItemDisabled(item) && !IsChosen(item))">@TextOf(item)</option>
+            }
+        </select>
+        @if (RendererInfo.IsInteractive)
+        {
+            @* The script reports a move here, as the chosen values in order. *@
+            <input type="hidden" class="ib-pick-list-order" @onchange="OnOrderChanged" />
+        }
+        <div class="ib-pick-list-panes">
+            @Pane("available", TextDefaults.PickAvailable, Available)
+            <div class="ib-pick-list-moves" role="group" aria-label="@ResolvedLabel">
+                <IconButton Icon="Lucide.ChevronRight" Label="@TextDefaults.PickMoveToChosen" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="chosen" />
+                @if (AllowMoveAll)
+                {
+                    <IconButton Icon="Lucide.ChevronsRight" Label="@TextDefaults.PickMoveAllToChosen" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="all-chosen" />
+                }
+                <IconButton Icon="Lucide.ChevronLeft" Label="@TextDefaults.PickMoveToAvailable" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="available" />
+                @if (AllowMoveAll)
+                {
+                    <IconButton Icon="Lucide.ChevronsLeft" Label="@TextDefaults.PickMoveAllToAvailable" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="all-available" />
+                }
+            </div>
+            @Pane("chosen", TextDefaults.PickChosen, Chosen)
+            @if (Reorderable)
+            {
+                <div class="ib-pick-list-moves ib-pick-list-order-moves" role="group" aria-label="@TextDefaults.PickChosen">
+                    <IconButton Icon="Lucide.ChevronUp" Label="@TextDefaults.MoveUp" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="up" />
+                    <IconButton Icon="Lucide.ChevronDown" Label="@TextDefaults.MoveDown" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="down" />
+                </div>
+            }
+        </div>
+        <div class="ib-visually-hidden" role="status" data-ib-say></div>
+    </ib-pick-list>
+    }
+    @if (PostsReadOnlyValue)
+    {
+        @foreach (var item in Chosen)
+        {
+            <input type="hidden" name="@NameAttributeValue" value="@ChoiceOptions.Value(item)" />
+        }
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>The items to choose from. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Column&gt;()"</c>.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each item's text, also what search matches. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    /// <summary>Markup for each item in the lists, such as an icon.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>Items that can't move, shown dimmed in their list.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>Move up and Move down beside the chosen list, and dragging within it, to set the order.</summary>
+    [Parameter] public bool Reorderable { get; set; }
+
+    /// <summary>A search box over each list. Move all then moves only the matches.</summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The buttons that move every item, or every match. On by default.</summary>
+    [Parameter] public bool AllowMoveAll { get; set; } = true;
+
+    /// <summary>The search boxes' name and placeholder. Defaults to "Search" (<see cref="IzzyText.Search"/>).</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    /// <summary>Makes the field read-only: the chosen items show in a read-only text field, and the values still post.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <inheritdoc />
+    private protected override bool HoldsValue => CurrentValue is System.Collections.IEnumerable values && values.Cast<object>().Any();
+
+    private string LabelId => FieldId + "-label";
+
+    private IEnumerable<TItem>? _itemsOf;
+    private List<TItem> _items = [];
+
+    // Read once per Items, as every item's place and state is looked up in it.
+    private List<TItem> ItemList
+    {
+        get
+        {
+            if (!ReferenceEquals(_itemsOf, Items) || (_itemsOf is null && _items.Count > 0))
+            {
+                _itemsOf = Items;
+                _items = ChoiceOptions.Of(Items).ToList();
+            }
+
+            return _items;
+        }
+    }
+
+    // The chosen, in the value's order; the rest, in the items' order.
+    private IEnumerable<TItem> Chosen => ChoiceCollection<TValue, TItem>.Items(CurrentValue).Where(ItemList.Contains);
+
+    private IEnumerable<TItem> Available => ItemList.Where(item => !IsChosen(item));
+
+    private bool IsChosen(TItem item) => ChoiceCollection<TValue, TItem>.Items(CurrentValue).Contains(item);
+
+    private int IndexOf(TItem item) => ItemList.IndexOf(item);
+
+    private bool IsItemDisabled(TItem item) => ItemDisabled?.Invoke(item) == true;
+
+    private string TextOf(TItem item) => ChoiceOptions.Text(item, ItemText);
+
+    private RenderFragment Pane(string name, string heading, IEnumerable<TItem> items) => __builder =>
+    {
+        var headingId = $"{FieldId}-{name}";
+        <div class="ib-pick-list-pane" data-ib-pane="@name">
+            <div class="ib-pick-list-heading" id="@headingId">@heading</div>
+            @if (Searchable)
+            {
+                <div class="ib-field ib-field-sm ib-pick-list-search">
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@($"{SearchLabel ?? TextDefaults.Search}, {heading}")" placeholder="@(SearchLabel ?? TextDefaults.Search)" autocomplete="off" disabled="@IsDisabled" data-ib-pick-search />
+                    </div>
+                </div>
+            }
+            <ul class="ib-pick-list-list" role="listbox" aria-multiselectable="true" aria-labelledby="@($"{LabelId} {headingId}")" tabindex="-1">
+                @foreach (var item in items)
+                {
+                    var value = ChoiceOptions.Value(item);
+                    <li @key="value" role="option" class="ib-pick-list-option" data-value="@value" data-index="@IndexOf(item)" data-text="@TextOf(item)"
+                        aria-disabled="@(IsItemDisabled(item) ? "true" : null)">
+                        @if (ItemTemplate is null)
+                        {
+                            @TextOf(item)
+                        }
+                        else
+                        {
+                            @ItemTemplate(item)
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    };
+
+    // No script: the browser reports a multiple select's change as the chosen values, in list order.
+    private void OnSelectChanged(ChangeEventArgs e)
+    {
+        string[] values = e.Value switch
+        {
+            string[] many => many,
+            string one => [one],
+            System.Collections.IEnumerable many => many.Cast<object?>().Select(v => v?.ToString() ?? "").ToArray(),
+            _ => [],
+        };
+
+        Choose(values);
+    }
+
+    // The script's move: the chosen values in order, as a JSON list.
+    private void OnOrderChanged(ChangeEventArgs e)
+    {
+        if (e.Value is not string { Length: > 0 } json)
+        {
+            return;
+        }
+
+        try
+        {
+            Choose(System.Text.Json.JsonSerializer.Deserialize(json, PersistedStateJson.Default.StringArray) ?? []);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Not the script's: nothing to do.
+        }
+    }
+
+    private void Choose(IEnumerable<string> values)
+    {
+        var byValue = ItemList.GroupBy(ChoiceOptions.Value).ToDictionary(g => g.Key, g => g.First());
+        var chosen = values.Distinct().Where(byValue.ContainsKey).Select(v => byValue[v]);
+        CurrentValue = ChoiceCollection<TValue, TItem>.Create(chosen);
+    }
+}

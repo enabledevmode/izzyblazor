@@ -1096,6 +1096,19 @@
       ]
     },
     {
+      "id": "pick-list", "icon": "ArrowLeftRight", "name": "PickList", "category": "Selection", "summary": "Lets the user choose items by moving them from one list to another, in the order they want.", "keywords": ["transfer list", "dual list box", "list builder", "shuttle", "columns picker"],
+      "features": [
+        { "feature": "Two lists, the move buttons, double-click and Enter", "noscript": "none" },
+        { "feature": "Dragging between the lists and within Chosen", "noscript": "none" },
+        { "feature": "Search over each list", "noscript": "none" },
+        { "feature": "The chosen items post in their order" }
+      ],
+      "examples": [
+        { "id": "pick-list-columns", "title": "Columns, in order", "lead": "Bind `Value` to a collection and set `Items`. To let people set the order, set `Reorderable`: Move up and Move down sit beside the chosen list, and items drag within it. The chosen items post in their order." },
+        { "id": "pick-list-team", "title": "Search and a template", "lead": "For a longer list, set `Searchable`: a search box goes over each list, and Move all moves only the matches. To draw each item, set `ItemTemplate`; `ItemText` is what search matches." }
+      ]
+    },
+    {
       "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Lets the user choose several options, shown as chips, and type to filter them.", "keywords": ["tags input", "chips input"],
       "features": [
         { "feature": "Choose several options, posted with the form" },
