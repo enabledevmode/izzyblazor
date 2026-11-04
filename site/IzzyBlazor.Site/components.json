@@ -1988,7 +1988,8 @@
         { "feature": "The slide in view bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "carousel-usage", "title": "Usage", "lead": "Put a `CarouselItem` for each slide in a `Carousel`, and name it with `Label`. The slides swipe and scroll a slide at a time, and the arrow keys move them once the track has focus. With one slide in view, the dots sit on it; to put them below, set `Dots` to `Below`, or `None` for none. The previous and next buttons and the dots need script; without it, the track scrolls on its own." },
+        { "id": "carousel-usage", "title": "Slides", "lead": "Put a `CarouselItem` for each slide in a `Carousel`, and name it with `Label`. The slides swipe and scroll a slide at a time, and the arrow keys move them once the track has focus. With one slide in view, the dots sit on it; to put them below, set `Dots` to `Below`, or `None` for none. The previous and next buttons and the dots need script; without it, the track scrolls on its own.",
+          "info": { "title": "Reduced motion", "text": "When the browser asks for reduced motion, the buttons and dots move straight to the slide rather than sliding there; a swipe still slides, since the browser runs it. Windows asks for it when Animation effects is off, and macOS when Reduce motion is on." } },
         { "id": "carousel-per-view", "title": "Several at once", "lead": "To show several slides at once, set `ItemsPerView`, per breakpoint; `Gap` sets the space between them. The buttons then move a page, and the dots count pages. To wrap from the last slide to the first, set `Loop`." },
         { "id": "carousel-bound", "title": "Binding the slide", "lead": "To know in C# which slide is in view, and to move to one from C#, bind `@bind-Index`. A starting `Index` other than 0 is scrolled to when the script runs.",
           "notes": {

@@ -215,6 +215,13 @@ public sealed record RegistryFeature
     public ModeLevel Interactive { get; init; } = ModeLevel.Full;
 }
 
+/// <summary>An info Alert under an example's lead: <see cref="Title"/> in bold, then <see cref="Text"/>.</summary>
+public sealed record RegistryInfo
+{
+    public required string Title { get; init; }
+    public required string Text { get; init; }
+}
+
 public sealed record RegistryExample
 {
     /// <summary><c>button-variants</c>: the example in <c>Examples/Button/Variants.razor</c>.</summary>
@@ -226,6 +233,12 @@ public sealed record RegistryExample
     /// `Status` for the meaning."). Backticks mark code. Hand-written Overviews write their own.
     /// </summary>
     public string? Lead { get; init; }
+
+    /// <summary>
+    /// A caveat a generated Overview shows under the lead, as an info Alert: a title and a
+    /// sentence or two. Backticks mark code. Only for what readers would otherwise trip on.
+    /// </summary>
+    public RegistryInfo? Info { get; init; }
 
     /// <summary>A demo's (<see cref="Page"/>) window height in pixels; it scrolls inside past that.</summary>
     public int Height { get; init; } = 600;
