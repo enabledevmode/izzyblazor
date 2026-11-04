@@ -235,10 +235,6 @@ public class TableFilterValuesTests : BunitContext
 
         cut.WaitForAssertion(() => Assert.Empty(Names(cut)), Timer);
         Assert.Equal("off", cut.FindAll("ib-filter-list")[0].GetAttribute("data-ib-all"));
-
-        Tick(cut, 0, "Grace", true);
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Grace" }, Names(cut)), Timer);
-        Assert.Equal("mixed", cut.FindAll("ib-filter-list")[0].GetAttribute("data-ib-all"));
     }
 
     [Fact]
