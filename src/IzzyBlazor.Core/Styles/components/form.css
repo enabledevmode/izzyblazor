@@ -1104,6 +1104,17 @@
       white-space: normal;
     }
 
+    /* Groups: a line above each that follows a choice or a group, and their options set in under the heading. */
+    select.ib-field-select :is(optgroup, option:not([value=""])) ~ optgroup {
+      margin-block-start: var(--ib-space-1);
+      padding-block-start: var(--ib-space-1);
+      border-block-start: 1px solid var(--ib-color-border);
+    }
+
+    select.ib-field-select optgroup > option {
+      padding-inline-start: var(--ib-space-5);
+    }
+
     /* ItemTemplate: the closed field shows a copy of the chosen option. */
     .ib-select-button {
       display: flex;
@@ -1278,6 +1289,18 @@
   .ib-combobox-option[aria-disabled="true"] {
     color: var(--ib-color-disabled);
     cursor: default;
+  }
+
+  /* Groups, as the select's: a line above each that follows something shown, options set in under
+     the heading. A group with nothing showing is hidden, so the line goes with it. */
+  .ib-combobox-list > :is([role="option"], [role="group"]):not([hidden]) ~ .ib-combobox-group {
+    margin-block-start: var(--ib-space-1);
+    padding-block-start: var(--ib-space-1);
+    border-block-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-combobox-group > .ib-combobox-option {
+    padding-inline-start: var(--ib-space-5);
   }
 
   /* A group's label, as a menu's heading: not an option, so the arrow keys pass it. */
