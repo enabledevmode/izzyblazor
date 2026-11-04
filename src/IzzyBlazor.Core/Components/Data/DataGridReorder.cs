@@ -11,7 +11,7 @@ public partial class DataGrid<TItem>
     /// Lets people put the rows in their own order: each row starts with a handle to drag, which also
     /// opens a menu (Move up, Move down, Move to top, Move to bottom) for moving without dragging. The
     /// handles work while the rows are in the grid's own order, and are disabled while it's sorted,
-    /// filtered, searched or grouped. Needs an <c>ItemKey</c> and every row shown: <c>Items</c>, with no
+    /// filtered, searched or grouped, so leave those off: the order is the data. Needs an <c>ItemKey</c> and every row shown: <c>Items</c>, with no
     /// paging, <c>ItemsProvider</c> or <c>Virtualize</c>. On interactive pages bind the order with
     /// <c>@bind-Items</c>; on static pages give it an <see cref="OrderName"/> inside a form and pass the
     /// posted <see cref="ListOrder"/> back as <see cref="Order"/>.
