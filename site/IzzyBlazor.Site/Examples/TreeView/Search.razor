@@ -1,0 +1,25 @@
+@* Typing narrows the tree to matches and the branches that hold them, with the matched text
+   marked. Clearing the box puts the branches back as they were. *@
+<TreeView Items="_regions" ItemChildren="r => r.Places" ItemKey="r => r.Name" ItemText="r => r.Name"
+          Searchable SearchLabel="Search places" MaxWidth="20.Rem" Grow />
+
+@code {
+    private readonly Place[] _regions =
+    [
+        new("Europe",
+        [
+            new("France", [new("Paris", []), new("Lyon", []), new("Marseille", [])]),
+            new("Germany", [new("Berlin", []), new("Hamburg", []), new("Munich", [])]),
+            new("Portugal", [new("Lisbon", []), new("Porto", [])]),
+        ]),
+        new("Americas",
+        [
+            new("Canada", [new("Toronto", []), new("Montréal", []), new("Vancouver", [])]),
+            new("Brazil", [new("São Paulo", []), new("Rio de Janeiro", [])]),
+        ]),
+        new("Asia", [new("Japan", [new("Tokyo", []), new("Osaka", [])]), new("India", [new("Mumbai", []), new("Delhi", [])])]),
+    ];
+    @* hide *@
+    private sealed record Place(string Name, Place[] Places);
+    @* /hide *@
+}

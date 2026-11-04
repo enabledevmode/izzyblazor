@@ -25,8 +25,9 @@ public static class IzzyRequest
     }
 
     /// <summary>
-    /// Whether this render answers a Combobox or Autocomplete asking the server for suggestions on a
-    /// static page. Only that field's options are kept from the response; the rest is thrown away,
+    /// Whether this render answers a Combobox or Autocomplete asking the server for suggestions, or a
+    /// TreeView asking for a branch's children, on a static page. Only that part is kept from the
+    /// response; the rest is thrown away,
     /// so a page with costly loads of its own can skip them. IzzyBlazor's other fields and data
     /// views skip theirs.
     /// </summary>
