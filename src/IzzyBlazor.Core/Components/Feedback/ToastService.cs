@@ -9,11 +9,12 @@ namespace IzzyBlazor;
 /// <param name="Status">What it means; sets the color and icon.</param>
 /// <param name="Title">An optional bold line above the text.</param>
 /// <param name="Duration">
-/// Milliseconds before it closes itself (with JavaScript); 0 keeps it open. Null uses the
-/// region's, doubled for a toast with an <paramref name="Action"/>; errors stay until closed.
+/// How long before it closes itself (with JavaScript); <see cref="TimeSpan.Zero"/> keeps it open.
+/// Null uses the region's, doubled for a toast with an <paramref name="Action"/>; errors stay until
+/// closed.
 /// </param>
 /// <param name="Action">An optional button on the toast, such as "View" or "Undo".</param>
-public sealed record ToastMessage(string Message, Status Status = Status.Info, string? Title = null, int? Duration = null, ToastAction? Action = null);
+public sealed record ToastMessage(string Message, Status Status = Status.Info, string? Title = null, TimeSpan? Duration = null, ToastAction? Action = null);
 
 /// <summary>
 /// A button on a toast. Choosing it closes the toast.
@@ -134,7 +135,7 @@ public sealed class ToastService : IDisposable
     }
 
     /// <summary>Shows a toast.</summary>
-    public void Show(string message, Status status = Status.Info, string? title = null, int? duration = null, ToastAction? action = null) =>
+    public void Show(string message, Status status = Status.Info, string? title = null, TimeSpan? duration = null, ToastAction? action = null) =>
         Show(new ToastMessage(message, status, title, duration, action));
 
     /// <summary>Shows a success toast.</summary>
@@ -166,7 +167,7 @@ public sealed class ToastService : IDisposable
                 message = toast.Message,
                 status = toast.Status.ToString().ToLowerInvariant(),
                 title = toast.Title,
-                duration = toast.Duration,
+                duration = toast.Duration is { } duration ? (long?)duration.TotalMilliseconds : null,
                 action = toast.Action is { } action
                     ? new
                     {

@@ -54,7 +54,7 @@
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
                  data-server="@(ServerFiltered ? "" : null)"
                  data-ib-suggest-key="@(PageFetches ? SuggestionKey : null)"
-                 data-ib-debounce="@(PageFetches ? Debounce : null)">
+                 data-ib-debounce="@(PageFetches ? Durations.Ms(Debounce) : null)">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-field-select ib-combobox-select"
@@ -220,8 +220,8 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Notes = "On static pages, each pause in typing fetches the page with the typed text in its address, and Search runs in that render; it sees the address, not the form's current values. The field needs a name (inside a Form it has one) or an id; without either, the browser narrows the first results.")]
     public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
 
-    /// <summary>Milliseconds to wait after the last keystroke before calling <see cref="Search"/>.</summary>
-    [Parameter] public int Debounce { get; set; } = 250;
+    /// <summary>How long to wait after the last keystroke before calling <see cref="Search"/>. Defaults to 250 milliseconds.</summary>
+    [Parameter] public TimeSpan Debounce { get; set; } = TimeSpan.FromMilliseconds(250);
 
     /// <summary>
     /// The text for each option, also what's typed to find it and what the field shows once chosen.

@@ -62,7 +62,7 @@ public class FeedbackRenderTests : BunitContext
     {
         _toasts.Success("Saved it.", "Saved");
 
-        var cut = Render<ToastRegion>(p => p.Add(r => r.Duration, 3000));
+        var cut = Render<ToastRegion>(p => p.Add(r => r.Duration, TimeSpan.FromSeconds(3)));
 
         var region = cut.Find("ib-toasts");
         Assert.Equal("region", region.GetAttribute("role"));

@@ -20,7 +20,7 @@
     - It's a `region` landmark named "Notifications" (`Label`); every toast, errors included, is
       read politely through one `aria-live="polite"` container.
     - By default error toasts stay until closed (a toast's own `Duration` overrides it), a toast
-      with an action stays twice `Duration`, and `Duration="0"` keeps every toast open.
+      with an action stays twice `Duration`, and `Duration="TimeSpan.Zero"` keeps every toast open.
     - With script, the timers pause while the mouse is over the region, while focus is in it, and
       while the browser tab is hidden.
     - With script, the close control is a `button` named "Dismiss" (`DismissLabel`); when a
@@ -34,7 +34,7 @@
            class="@($"ib-toast-region ib-toast-{Placement.Name()}")"
            role="region"
            aria-label="@(Label ?? TextDefaults.Notifications)"
-           data-duration="@Duration">
+           data-duration="@Durations.Ms(Duration)">
     @* One live region for every toast: those in a response (an enhanced post inserts them, so
        they're announced) and those the script adds. *@
     <div class="ib-toast-live" aria-live="polite">
@@ -47,7 +47,7 @@
                    Announce="false"
                    DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)"
                    Class="ib-toast"
-                   data-duration="@(toast.Duration ?? DefaultDuration(toast))">
+                   data-duration="@DurationOf(toast)">
                 @toast.Message
                 @if (ActionLink(toast.Action) is { } action)
                 {
@@ -68,8 +68,11 @@
     /// <summary>Where toasts stack. Defaults to <see cref="ToastPlacement.BottomEnd"/>.</summary>
     [Parameter] public ToastPlacement Placement { get; set; } = ToastPlacement.BottomEnd;
 
-    /// <summary>Milliseconds before a toast closes itself (with JavaScript). Defaults to 5000; 0 keeps toasts open.</summary>
-    [Parameter] public int Duration { get; set; } = 5000;
+    /// <summary>
+    /// How long before a toast closes itself (with JavaScript). Defaults to 5 seconds;
+    /// <see cref="TimeSpan.Zero"/> keeps toasts open.
+    /// </summary>
+    [Parameter] public TimeSpan Duration { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>How toasts are drawn. Defaults to <see cref="AlertVariant.Outline"/>, a raised card with a colored icon.</summary>
     [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Outline;
@@ -119,8 +122,11 @@
 
     // Errors stay until closed: someone may need time to read or act on them. A toast with an
     // action stays twice as long, so there's time to reach it.
-    private int? DefaultDuration(ToastMessage toast) =>
-        toast.Status == Status.Danger ? 0 : toast.Action is not null && Duration > 0 ? Duration * 2 : null;
+    private string? DurationOf(ToastMessage toast) =>
+        (toast.Duration ?? DefaultDuration(toast)) is { } duration ? Durations.Ms(duration) : null;
+
+    private TimeSpan? DefaultDuration(ToastMessage toast) =>
+        toast.Status == Status.Danger ? TimeSpan.Zero : toast.Action is not null && Duration > TimeSpan.Zero ? Duration * 2 : null;
 
     // A static toast's action is always a link: there's no connection to run C# over.
     private static RenderFragment? ActionLink(ToastAction? action) => action?.Href is not { } href ? null : builder =>

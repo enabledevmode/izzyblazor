@@ -108,7 +108,7 @@ public class OverlayRenderTests : BunitContext
         var cut = Render<Tooltip>(p => p
             .Add(t => t.Text, "Copy")
             .Add(t => t.Placement, Placement.Bottom)
-            .Add(t => t.Delay, 150)
+            .Add(t => t.Delay, TimeSpan.FromMilliseconds(150))
             .AddChildContent("<button>Copy</button>"));
 
         var tip = cut.Find("[role=tooltip]");

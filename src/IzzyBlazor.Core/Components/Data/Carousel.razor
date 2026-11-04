@@ -65,7 +65,7 @@
     }
     @* Dots after the slides, so they render once every slide has registered. *@
     <CascadingValue Value="_context" IsFixed="true">
-        <div class="ib-carousel-track" id="@TrackId" tabindex="0">
+        <div class="ib-carousel-track" id="@TrackId" tabindex="0" role="group" aria-label="@TextDefaults.CarouselSlides">
             @ChildContent
         </div>
         @if (Dots != CarouselDots.None)
@@ -153,7 +153,7 @@
     internal bool ShownAtStart(int index) => Fade && index == _startIndex;
 
     internal static string Milliseconds(TimeSpan interval) => interval > TimeSpan.Zero
-        ? ((long)interval.TotalMilliseconds).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        ? Durations.Ms(interval)
         : throw new ArgumentOutOfRangeException(nameof(Interval), interval, "A Carousel's Interval must be longer than zero.");
 
     // CarouselDotList is internal, which markup can't name.

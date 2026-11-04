@@ -27,7 +27,7 @@
 <ExampleViewer Example="toast-region-inbox" WidthSwitch />
 
 <Heading Level="2">How long it stays</Heading>
-<TextBlock>Toasts stay for 5000 milliseconds by default. To change that for every toast, set <Code>Duration</Code> on the region; <Code>0</Code> keeps toasts open. To change it for one toast, set that toast's own <Code>Duration</Code>.</TextBlock>
+<TextBlock>Toasts stay for 5 seconds by default. To change that for every toast, set <Code>Duration</Code> on the region; <Code>TimeSpan.Zero</Code> keeps toasts open. To change it for one toast, set that toast's own <Code>Duration</Code>.</TextBlock>
 <Code Block Language="razor">@Durations</Code>
 <List Gap="2">
     <ListItem>By default, an error stays until the user closes it.</ListItem>
@@ -90,10 +90,10 @@
 
     private const string Durations = """
         @* Toasts stay 8 seconds, 16 with an action; errors stay until closed. *@
-        <ToastRegion Duration="8000" />
+        <ToastRegion Duration="TimeSpan.FromSeconds(8)" />
 
         @* This one stays until it's closed. *@
-        Toasts.Show(new ToastMessage("Export ready.", Status.Success, Duration: 0,
+        Toasts.Show(new ToastMessage("Export ready.", Status.Success, Duration: TimeSpan.Zero,
             Action: new("Download", Href: "/exports/42")));
         """;
 }
