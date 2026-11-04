@@ -1,0 +1,256 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits StyledComponentBase
+@attribute [ModeSupport]
+
+@*
+    Items nested in items, from data: folders, categories, a company's teams. Items are the top
+    level, and ItemChildren gives each item's own.
+
+    <TreeView Items="roots" ItemChildren="f => f.Folders" ItemKey="f => f.Id" ItemText="f => f.Name"
+              ItemHref="@(f => $"files?folder={f.Id}")" ItemCurrent="f => f.Id == folder" />
+
+    Each item with children opens and closes, with no script. A branch starts open when it holds
+    the current item (ItemCurrent) or ItemExpanded says so, so a page arrives with its own place
+    in the tree showing.
+
+    With no template, ItemText, ItemDescription and ItemIcon draw an icon, the text and a muted
+    second line; ChildContent draws each item instead. ItemHref makes items links. In a tree of
+    links each item's arrow sits at its end, as in NavGroup, and an item that is a link and has
+    children gets its own button to open them; other trees put the arrow first.
+
+    Accessibility:
+    - It's nested lists (`ul` with `role="list"`), so screen readers say how many items each level
+      has and how deep an item is. Put a tree of links for moving around the site in a `nav`, or
+      name it with `AriaLabel`.
+    - An item with children opens and closes with a `details` element: its summary is a button
+      that says whether it's open. A link with children has a separate button after it, named by
+      the item, so Tab reaches the link, then its button.
+    - The current item (`ItemCurrent`) is marked `aria-current` ("page" on a link).
+    - A disabled item (`ItemDisabled`) has no link, and is dimmed; its children still open.
+    - Tab goes through the links and buttons in order. Arrow keys don't move through a tree of
+      links: a list of links is read and reached as one.
+    See also: NavGroup, ListView.
+*@
+
+<ib-tree @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (_roots.Count == 0)
+    {
+        <div class="ib-tree-empty">
+            @if (EmptyContent is not null)
+            {
+                @EmptyContent
+            }
+            else
+            {
+                @(EmptyText ?? TextDefaults.NoItems)
+            }
+        </div>
+    }
+    else
+    {
+        <ul class="ib-tree-list" role="list" aria-label="@AriaLabel">
+            @foreach (var node in _roots)
+            {
+                @NodeItem(node)
+            }
+        </ul>
+    }
+</ib-tree>
+
+@code {
+    private const int MaxDepth = 64;
+
+    /// <summary>The items at the top of the tree.</summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>An item's children, or <see langword="null"/> or empty when it has none.</summary>
+    [Parameter] public Func<TItem, IEnumerable<TItem>?>? ItemChildren { get; set; }
+
+    /// <summary>
+    /// A key that tells items apart, such as an id. Defaults to the item itself, for keeping each
+    /// item's place as the tree changes.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemKey { get; set; }
+
+    /// <summary>An item's content. Without it, <see cref="ItemText"/>, <see cref="ItemDescription"/> and <see cref="ItemIcon"/> draw it.</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>An item's text, with no template. Defaults to the item's <c>ToString()</c>.</summary>
+    [Parameter] public Func<TItem, string?>? ItemText { get; set; }
+
+    /// <summary>A muted second line under an item's text, with no template.</summary>
+    [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
+
+    /// <summary>An icon before an item's text, with no template.</summary>
+    [Parameter] public Func<TItem, IconData?>? ItemIcon { get; set; }
+
+    /// <summary>
+    /// Names the button that opens a linked item's children. Defaults to <see cref="ItemText"/>.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemLabel { get; set; }
+
+    /// <summary>Makes an item a link to this address; <see langword="null"/> leaves it plain.</summary>
+    [Parameter] public Func<TItem, string?>? ItemHref { get; set; }
+
+    /// <summary>Marks the item the page is showing. Its branch starts open.</summary>
+    [Parameter] public Func<TItem, bool>? ItemCurrent { get; set; }
+
+    /// <summary>Starts an item's children open.</summary>
+    [Parameter] public Func<TItem, bool>? ItemExpanded { get; set; }
+
+    /// <summary>Dims an item and takes away its link. Its children still open.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>Names the tree for screen readers, when nothing around it does.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Shown when there are no items. Defaults to "No items" (<see cref="IzzyText.NoItems"/>).</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>Content shown when there are no items, in place of <see cref="EmptyText"/>.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private List<Node> _roots = [];
+
+    private bool Links => ItemHref is not null;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-tree");
+        classes.Add("ib-tree-links", Links);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        _roots = Build(Items, 1);
+    }
+
+    // The tree as it renders: each item's children read once, and which branches start open.
+    private List<Node> Build(IEnumerable<TItem>? items, int depth)
+    {
+        var nodes = new List<Node>();
+        if (items is null)
+        {
+            return nodes;
+        }
+
+        if (depth > MaxDepth)
+        {
+            throw new InvalidOperationException(
+                $"TreeView's items nest more than {MaxDepth} deep. Does ItemChildren return one of an item's ancestors?");
+        }
+
+        foreach (var item in items)
+        {
+            var children = ItemChildren is null ? [] : Build(ItemChildren(item), depth + 1);
+            var holdsCurrent = children.Exists(c => c.Current || c.HoldsCurrent);
+            var open = holdsCurrent || (children.Count > 0 && ItemExpanded?.Invoke(item) == true);
+            nodes.Add(new Node(item, children, ItemCurrent?.Invoke(item) == true, holdsCurrent, open));
+        }
+
+        return nodes;
+    }
+
+    private string TextOf(TItem item) => ItemText?.Invoke(item) ?? item?.ToString() ?? "";
+
+    private object? KeyOf(TItem item) => ItemKey is null ? item : ItemKey(item);
+
+    private RenderFragment NodeItem(Node node) => __builder =>
+    {
+        var item = node.Item;
+        var disabled = ItemDisabled?.Invoke(item) == true;
+        var href = disabled ? null : ItemHref?.Invoke(item);
+        <li class="ib-tree-li" @key="KeyOf(item)" data-ib-key="@ItemKey?.Invoke(item)">
+            @if (node.Children.Count == 0)
+            {
+                @Row(node, href, disabled, toggle: false)
+            }
+            else if (href is not null)
+            {
+                @* A link with children: the link, then its own button to open them, placed on the
+                   link's line at its end. *@
+                @Row(node, href, disabled, toggle: false)
+                <details class="ib-tree-branch" open="@node.Open">
+                    <summary class="ib-tree-toggle">
+                        <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
+                        <span class="ib-visually-hidden">@(ItemLabel?.Invoke(item) ?? TextOf(item))</span>
+                    </summary>
+                    @Group(node)
+                </details>
+            }
+            else
+            {
+                <details class="ib-tree-branch" open="@node.Open">
+                    @Row(node, null, disabled, toggle: true)
+                    @Group(node)
+                </details>
+            }
+        </li>
+    };
+
+    private RenderFragment Group(Node node) => __builder =>
+    {
+        <ul class="ib-tree-list ib-tree-group" role="list">
+            @foreach (var child in node.Children)
+            {
+                @NodeItem(child)
+            }
+        </ul>
+    };
+
+    // An item's line: a link, the summary that opens its children, or plain text.
+    private RenderFragment Row(Node node, string? href, bool disabled, bool toggle) => __builder =>
+    {
+        var css = "ib-tree-item"
+                  + (node.Current ? " ib-tree-current" : "")
+                  + (disabled ? " ib-tree-disabled" : "")
+                  + (node.Children.Count > 0 && href is not null ? " ib-tree-has-toggle" : "")
+                  + (node.Children.Count == 0 ? " ib-tree-leaf" : "");
+        if (toggle)
+        {
+            <summary class="@css" aria-current="@(node.Current ? "true" : null)">
+                <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
+                @Content(node.Item)
+            </summary>
+        }
+        else if (href is not null)
+        {
+            <a class="@css" href="@href" aria-current="@(node.Current ? "page" : null)">@Content(node.Item)</a>
+        }
+        else
+        {
+            <span class="@css" aria-current="@(node.Current ? "true" : null)">@Content(node.Item)</span>
+        }
+    };
+
+    private RenderFragment Content(TItem item) => __builder =>
+    {
+        if (ChildContent is not null)
+        {
+            <span class="ib-tree-content">@ChildContent(item)</span>
+            return;
+        }
+
+        var description = ItemDescription?.Invoke(item);
+        @if (ItemIcon?.Invoke(item) is { } icon)
+        {
+            <Icon Name="icon" Class="ib-tree-icon" />
+        }
+        <span class="ib-tree-text">
+            <span class="ib-tree-title">@TextOf(item)</span>
+            @if (!string.IsNullOrEmpty(description))
+            {
+                <span class="ib-tree-description">@description</span>
+            }
+        </span>
+    };
+
+    private sealed record Node(TItem Item, List<Node> Children, bool Current, bool HoldsCurrent, bool Open);
+}

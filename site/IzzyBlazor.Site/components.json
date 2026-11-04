@@ -1876,6 +1876,13 @@
       ]
     },
     {
+      "id": "tree-view", "icon": "ListTree", "name": "TreeView", "category": "Data display", "summary": "Shows items nested in items, such as folders, as branches that open and close.", "keywords": ["tree", "treeview", "hierarchy", "folders", "nested list", "file browser"],
+      "examples": [
+        { "id": "tree-view-folders", "title": "A tree of links", "lead": "To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`. Its branch arrives open. A link with children gets its own button at its end that opens them." },
+        { "id": "tree-view-teams", "title": "Text and descriptions", "lead": "Set `ItemChildren` to each item's children. With no template, `ItemText`, `ItemDescription` and `ItemIcon` draw each item; to start branches open, set `ItemExpanded`." }
+      ]
+    },
+    {
       "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Data display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
       "examples": [
         { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
