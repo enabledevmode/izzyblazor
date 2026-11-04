@@ -1,0 +1,47 @@
+@* Barcode's Overview, written by hand after QrCode's: a shipping number (Code 128), products (EAN
+   and UPC), size and print, and the name. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A barcode shows a value as bars for a scanner, with the value printed under them. It's drawn on the server as an SVG, so it needs no script, scales without blurring, and prints. For a link or longer text, see <Anchor Href="docs/components/qr-code">QrCode</Anchor>.</TextBlock>
+
+<Heading Level="2">A shipping or order number</Heading>
+<TextBlock>The default type, Code 128, holds any ASCII text: letters, digits, dashes and spaces. It packs runs of digits two to a bar pattern, so number-heavy values stay short. Set <Code>Value</Code>.</TextBlock>
+<ExampleViewer Example="barcode-shipping" />
+
+<Heading Level="2">Products</Heading>
+<TextBlock>For a retail product, set <Code>Type</Code> to <Code>Ean13</Code>, <Code>UpcA</Code> or <Code>Ean8</Code>. Give the digits without the check digit and it's added, or with it and it's checked: a wrong one is an error, as a mistyped code would scan as another product. The digits print in the standard layout, between the guard bars.</TextBlock>
+<ExampleViewer Example="barcode-product" />
+
+<Heading Level="2">Size and print</Heading>
+<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need; in a narrower box it shrinks, keeping its shape, but below about 1.5px a bar a phone's camera may not read it, so give it the room or a shorter value. For print, set it in millimetres: EAN's standard is 0.33mm, and 0.264mm is the smallest that scans reliably. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins either side are part of the barcode: scanners need them, so keep other things out of them.</TextBlock>
+<TextBlock>Screen readers hear "Barcode" and the value. For a name that says what it's for, set <Code>Label</Code>; when the value is written beside it, set <Code>Decorative</Code>. The name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}").</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Barcode Value="SHIP-2026-0417" />
+
+        @* A product: the check digit is added. *@
+        <Barcode Value="400638133393" Type="BarcodeType.Ean13" />
+        """;
+}

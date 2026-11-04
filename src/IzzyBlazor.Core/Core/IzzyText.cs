@@ -589,6 +589,9 @@ public class IzzyText
     /// <summary>A password field's reveal button (a toggle, pressed while the password shows).</summary>
     public virtual string ShowPassword { get; set; } = "Show password";
 
+    /// <summary>A barcode's accessible name. {0} is its value.</summary>
+    public virtual string BarcodeLabel { get; set; } = "Barcode {0}";
+
     /// <summary>Under a password field while Caps Lock is on.</summary>
     public virtual string CapsLockOn { get; set; } = "Caps Lock is on.";
 
