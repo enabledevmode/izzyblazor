@@ -59,8 +59,11 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
             await Assertions.Expect(table.Locator("tbody .ib-table-select").First).ToBeCheckedAsync();
 
             // The next page's rows come selected.
+            var first = table.Locator("tbody .ib-table-select").First;
+            var firstOnPageOne = await first.InputValueAsync();
             await table.Locator(".ib-pagination a, .ib-pagination button").Filter(new() { HasText = "2" }).First.ClickAsync();
-            await Assertions.Expect(table.Locator("tbody .ib-table-select").First).ToBeCheckedAsync();
+            await Assertions.Expect(first).Not.ToHaveValueAsync(firstOnPageOne);
+            await Assertions.Expect(first).ToBeCheckedAsync();
 
             // A row left out shows on the header, and clicking it there selects them all again.
             await table.Locator("tbody .ib-table-select").First.UncheckAsync();
