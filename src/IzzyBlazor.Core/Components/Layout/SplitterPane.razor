@@ -11,13 +11,17 @@
 {
     var movable = !Context.Owner.Disabled && before.Resizable && Resizable;
     var target = before.Collapsible ? before : Collapsible ? this : null;
+    // The bar is about one pane: named after it, controlling it, its value that pane's share. That's
+    // the pane Enter collapses, so the name says what Enter acts on; else the pane before.
+    var primary = target ?? before;
     <div class="ib-split-gutter">
         @if (movable)
         {
             <div class="ib-split-bar" role="separator" tabindex="0"
                  aria-orientation="@(Context.Vertical ? "horizontal" : "vertical")"
-                 aria-controls="@before.PaneId"
-                 aria-label="@(before.Label is { Length: > 0 } label ? string.Format(TextDefaults.ResizePane, label) : TextDefaults.Resize)"></div>
+                 aria-controls="@primary.PaneId"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="@primary.Percent"
+                 aria-label="@(primary.Label is { Length: > 0 } label ? string.Format(TextDefaults.ResizePane, label) : TextDefaults.Resize)"></div>
         }
         else
         {
@@ -67,7 +71,7 @@
     /// </summary>
     [Parameter] public bool Collapsible { get; set; }
 
-    /// <summary>Collapses the pane. The bar stays, so it can be restored.</summary>
+    /// <summary>Collapses the pane, which must be <see cref="Collapsible"/>. The bar stays, so it can be restored.</summary>
     [Parameter] public bool Collapsed { get; set; }
 
     /// <summary>Called when a person collapses or restores the pane, on an interactive page.</summary>
@@ -98,6 +102,14 @@
     private string? _size;
 
     internal string PaneId => Id ?? _generatedId;
+
+    /// <summary>
+    /// The pane's share of the splitter when its size is a percentage, for its bar's value on the
+    /// first paint; the script measures the rest.
+    /// </summary>
+    internal string? Percent => _size is { } size && size.EndsWith('%') && double.TryParse(size[..^1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var p)
+        ? Math.Round(p).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : null;
 
     // What the cookie or a person's move said, until the page sets Collapsed itself.
     private bool? _keptCollapsed;
@@ -147,6 +159,12 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (Collapsed && !Collapsible)
+        {
+            throw new InvalidOperationException("A SplitterPane can only be Collapsed when it's Collapsible.");
+        }
+
+        Context!.Seen(this);
         if (Collapsed != _lastCollapsed)
         {
             _lastCollapsed = Collapsed;

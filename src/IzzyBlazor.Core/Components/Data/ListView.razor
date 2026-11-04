@@ -130,7 +130,7 @@
                 <ib-sortable @key="DragWholeItem" class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
                              data-ib-interactive="@(Live ? "" : null)"
                              data-ib-seq="@(RendererInfo.IsInteractive ? (InGroup ? Group!.MoveSeq : _moveSeq).ToString(CultureInfo.InvariantCulture) : null)"
-                             @onibmove="DropAsync" @onibmove:stopPropagation="true"
+                             @onibmove="DropAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"
                              data-ib-submit="@(Posts && (InGroup ? Group!.SubmitOnMove : SubmitOnMove) ? "" : null)"
                              data-ib-group="@(InGroup ? Group!.GroupId : null)" data-ib-zone="@(InGroup ? Zone : null)"
                              data-ib-zone-label="@(InGroup ? ZoneLabel : null)"

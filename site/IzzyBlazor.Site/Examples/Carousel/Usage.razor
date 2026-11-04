@@ -2,7 +2,7 @@
 <Carousel Label="Getting started" Grow>
     @foreach (var (title, text, color) in _slides)
     {
-        <CarouselItem>
+        <CarouselItem Label="@title">
             <Stack Gap="2" PaddingY="8" PaddingX="16" Bg="color" Radius="Radius.Md" MinHeight="Length.Rem(12)" Justify="Justify.Center">
                 <Heading Level="3" Size="TextSize.Lg">@title</Heading>
                 <TextBlock Color="Color.Muted">@text</TextBlock>

@@ -67,11 +67,12 @@ class Splitter extends IzzyElement {
     return this.#vertical ? r.height : r.width;
   }
 
-  // A pane's min and max in pixels, from its computed style.
+  // A pane's min and max in pixels, from its computed style (a percentage is of the splitter).
   #limits(pane: HTMLElement): [number, number] {
     const style = getComputedStyle(pane);
-    const min = parseFloat(this.#vertical ? style.minHeight : style.minWidth) || 0;
-    const max = parseFloat(this.#vertical ? style.maxHeight : style.maxWidth);
+    const px = (value: string): number => (value.endsWith("%") ? (parseFloat(value) / 100) * this.#extent() : parseFloat(value));
+    const min = px(this.#vertical ? style.minHeight : style.minWidth) || 0;
+    const max = px(this.#vertical ? style.maxHeight : style.maxWidth);
     return [min, Number.isFinite(max) ? max : Infinity];
   }
 
@@ -216,7 +217,8 @@ class Splitter extends IzzyElement {
     this.emit("iblayout", { layout });
   }
 
-  // Each bar's value (the pane before's share of the splitter, as APG has it) and collapse button.
+  // Each bar's value (its pane's share of the splitter, as APG has it: the pane it's named after
+  // and controls, which is the one Enter collapses) and collapse button.
   #describe(): void {
     const extent = this.#extent();
     if (!extent) return;
@@ -226,10 +228,12 @@ class Splitter extends IzzyElement {
       if (bar) {
         const a = this.#size(before);
         const total = a + this.#size(after);
-        const [low, high] = before.hidden || after.hidden ? [0, total] : this.#range(before, after, total);
-        bar.setAttribute("aria-valuenow", String(Math.round((a / extent) * 100)));
-        bar.setAttribute("aria-valuemin", String(Math.round((Math.min(low, a) / extent) * 100)));
-        bar.setAttribute("aria-valuemax", String(Math.round((Math.max(high, a) / extent) * 100)));
+        let [low, high] = before.hidden || after.hidden ? [0, total] : this.#range(before, after, total);
+        let value = a;
+        if (bar.getAttribute("aria-controls") === after.id) [value, low, high] = [total - a, total - high, total - low];
+        bar.setAttribute("aria-valuenow", String(Math.round((value / extent) * 100)));
+        bar.setAttribute("aria-valuemin", String(Math.round((Math.min(low, value) / extent) * 100)));
+        bar.setAttribute("aria-valuemax", String(Math.round((Math.max(high, value) / extent) * 100)));
       }
       const button = gutter.querySelector<HTMLElement>(".ib-split-collapse");
       if (button) {

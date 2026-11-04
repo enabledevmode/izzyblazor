@@ -72,6 +72,13 @@ public sealed class IzzyLayoutEventArgs : EventArgs
 }
 
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
+/// <remarks>
+/// Within this assembly, Razor compiles <c>@onibmove:stopPropagation</c> on these events as a plain
+/// HTML attribute named <c>@onibmove:stopPropagation</c>, not as Blazor's flag, so the event goes
+/// on bubbling to outer components. Components write the flag by its name instead:
+/// <c>__internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"</c> (only on interactive
+/// renders, where there are handlers; static HTML would print it).
+/// </remarks>
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("oniblayout", typeof(IzzyLayoutEventArgs), enableStopPropagation: true, enablePreventDefault: false)]

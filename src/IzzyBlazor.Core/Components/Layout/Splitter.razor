@@ -34,7 +34,7 @@
 <ib-splitter @attributes="AdditionalAttributes" class="@_class" style="@_style"
              data-ib-layout-key="@LayoutKey"
              data-ib-disabled="@(Disabled ? "" : null)"
-             @oniblayout="OnLayout" @oniblayout:stopPropagation>
+             @oniblayout="OnLayout" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive">
     <CascadingValue Value="_context" IsFixed="true">
         @ChildContent
     </CascadingValue>
@@ -126,6 +126,7 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        _context.BeginPass();
         (_class, _style) = BuildRootAttributes();
     }
 

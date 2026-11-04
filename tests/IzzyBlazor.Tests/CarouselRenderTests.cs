@@ -2,6 +2,8 @@ namespace IzzyBlazor.Tests;
 
 public class CarouselRenderTests : BunitContext
 {
+    public CarouselRenderTests() => SetRendererInfo(new Microsoft.AspNetCore.Components.RendererInfo("Static", isInteractive: false));
+
     private IRenderedComponent<Carousel> Trips(int index = 0, bool loop = false) => Render<Carousel>(p => p
         .Add(c => c.Label, "Featured trips")
         .Add(c => c.Index, index)
