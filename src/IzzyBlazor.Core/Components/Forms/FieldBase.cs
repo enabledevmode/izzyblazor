@@ -322,6 +322,18 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             ? s
             : _generatedId ??= IdGenerator.Next("ib-field");
 
+    /// <summary>Whether this render is interactive or the prerender of one that will be (as <c>IzzyComponentBase</c>'s).</summary>
+    internal bool WillBeInteractive => RendererInfo.IsInteractive || AssignedRenderMode is not null;
+
+    /// <summary>
+    /// What names the field when the script fetches the page for its suggestions: the id it was
+    /// given, else the name it posts under (a generated id changes every render). Null for neither.
+    /// </summary>
+    internal string? SuggestionKey =>
+        AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string { Length: > 0 } s ? s
+        : NameAttributeValue is { Length: > 0 } name ? name
+        : null;
+
     /// <summary>The hint element's id.</summary>
     protected string HintId => FieldId + "-hint";
 

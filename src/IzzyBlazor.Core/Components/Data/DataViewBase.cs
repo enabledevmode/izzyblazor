@@ -660,6 +660,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
             throw new InvalidOperationException(problem);
         }
 
+        // A field fetching the page for its suggestions keeps only its own options: no rows needed.
+        if (!WillBeInteractive && IzzyRequest.IsSuggestion(Navigation))
+        {
+            return;
+        }
+
         var (sortRaw, pageRaw, cursorRaw) = CurrentState();
         var pageSize = EffectivePageSize;
         // Always reload: the same list may have changed since the last render.
