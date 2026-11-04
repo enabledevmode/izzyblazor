@@ -43,6 +43,11 @@
     }
   }
 
+  /* Nor where its code couldn't load. */
+  .ib-scheme-switch[data-ib-failed] {
+    display: none;
+  }
+
   /* Menu: every item has a dot; only the chosen one's shows, so the script moves the choice by
      changing aria-checked. */
   .ib-scheme-switch .ib-menu-item .ib-scheme-check {
