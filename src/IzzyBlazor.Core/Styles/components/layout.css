@@ -390,18 +390,33 @@
   }
 
   @media (scripting: none) {
-    .ib-carousel > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+    .ib-carousel > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots, .ib-carousel-rotate) {
       display: none;
     }
   }
 
-  ib-carousel[data-ib-failed] > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+  ib-carousel[data-ib-failed] > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots, .ib-carousel-rotate) {
     display: none;
   }
 
+  /* With script, a fade stacks its slides and shows one (data-ib-shown); without, it scrolls. */
   @media (scripting: enabled) {
     ib-carousel:not([data-ib-failed]) > .ib-carousel-track {
       scrollbar-width: none;
+    }
+
+    ib-carousel.ib-carousel-fade:not([data-ib-failed]) > .ib-carousel-track {
+      grid-template-columns: 100%;
+      overflow: hidden;
+    }
+
+    ib-carousel.ib-carousel-fade:not([data-ib-failed]) > .ib-carousel-track > .ib-carousel-item {
+      grid-area: 1 / 1;
+    }
+
+    ib-carousel.ib-carousel-fade:not([data-ib-failed]) > .ib-carousel-track > :not([data-ib-shown]) {
+      visibility: hidden;
+      opacity: 0;
     }
   }
 }

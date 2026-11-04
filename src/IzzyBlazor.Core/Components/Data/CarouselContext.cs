@@ -19,6 +19,16 @@ public enum CarouselDots
     None,
 }
 
+/// <summary>How a <see cref="Carousel"/>'s slides give way to each other.</summary>
+public enum CarouselTransition
+{
+    /// <summary>The slides sit in a row that scrolls; several can show at once.</summary>
+    Slide,
+
+    /// <summary>One slide shows at a time, and the next fades in over it.</summary>
+    Fade,
+}
+
 /// <summary>What a <see cref="Carousel"/> shares with its slides and dots: the slides, in order.</summary>
 internal sealed class CarouselContext(Carousel owner)
 {

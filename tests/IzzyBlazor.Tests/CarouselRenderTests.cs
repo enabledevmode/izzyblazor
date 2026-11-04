@@ -56,6 +56,34 @@ public class CarouselRenderTests : BunitContext
     }
 
     [Fact]
+    public void Autoplay_puts_its_button_first_and_a_fade_shows_the_starting_slide()
+    {
+        var cut = Render<Carousel>(p => p
+            .Add(c => c.Label, "Quotes")
+            .Add(c => c.Autoplay, true)
+            .Add(c => c.Interval, TimeSpan.FromSeconds(6))
+            .Add(c => c.Transition, CarouselTransition.Fade)
+            .Add(c => c.Index, 1)
+            .AddChildContent<CarouselItem>()
+            .AddChildContent<CarouselItem>(item => item.Add(x => x.Interval, TimeSpan.FromSeconds(10))));
+
+        var root = cut.Find("ib-carousel");
+        Assert.Equal("6000", root.GetAttribute("data-ib-interval"));
+        Assert.Contains("ib-carousel-fade", root.ClassName);
+
+        // The rotation button comes before the other buttons, stopped until the script starts it.
+        var buttons = cut.FindAll("ib-carousel > button");
+        Assert.Contains("ib-carousel-rotate", buttons[0].ClassName);
+        Assert.Equal("Start slide rotation", buttons[0].GetAttribute("aria-label"));
+        Assert.Equal("Stop slide rotation", buttons[0].GetAttribute("data-ib-stop-label"));
+
+        var slides = cut.FindAll(".ib-carousel-item");
+        Assert.Equal([false, true], slides.Select(s => s.HasAttribute("data-ib-shown")));
+        Assert.Equal("10000", slides[1].GetAttribute("data-ib-interval"));
+        Assert.Equal("polite", cut.Find("[data-ib-live]").GetAttribute("aria-live"));
+    }
+
+    [Fact]
     public void Needs_a_label() =>
         Assert.Throws<InvalidOperationException>(() => Render<Carousel>(p => p.AddChildContent<CarouselItem>()));
 }

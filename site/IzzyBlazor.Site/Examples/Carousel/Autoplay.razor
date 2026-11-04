@@ -1,0 +1,21 @@
+@* Quotes that fade from one to the next every 6 seconds; the last shows for 10. *@
+<Carousel Label="What customers say" Autoplay Interval="TimeSpan.FromSeconds(6)" Transition="CarouselTransition.Fade" Loop Grow>
+    @foreach (var (quote, name, last) in _quotes)
+    {
+        <CarouselItem Label="@name" Interval="@(last ? TimeSpan.FromSeconds(10) : null)">
+            <Stack Gap="3" PaddingY="10" PaddingX="16" Bg="Color.FillSubtle" Radius="Radius.Md" MinHeight="Length.Rem(13)" Justify="Justify.Center">
+                <TextBlock Size="TextSize.Lg">“@quote”</TextBlock>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@name</TextBlock>
+            </Stack>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    private readonly (string Quote, string Name, bool Last)[] _quotes =
+    [
+        ("The forms worked before the page had finished loading.", "Priya, operations lead", false),
+        ("We moved our admin screens over in a week.", "Tomás, developer", false),
+        ("Our audit found nothing to fix in the components.", "Grace, accessibility consultant", true),
+    ];
+}

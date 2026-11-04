@@ -903,6 +903,12 @@ public class IzzyText
     /// <summary>A Carousel's dot when several slides show at once: "Slides 4 to 6".</summary>
     public virtual string SlidesRange { get; set; } = "Slides {0} to {1}";
 
+    /// <summary>A Carousel's button that stops its slides rotating.</summary>
+    public virtual string StopRotation { get; set; } = "Stop slide rotation";
+
+    /// <summary>A Carousel's button that starts its slides rotating.</summary>
+    public virtual string StartRotation { get; set; } = "Start slide rotation";
+
     /// <summary>A TreeView branch whose children load with script, when JavaScript is off.</summary>
     public virtual string TreeNeedsScript { get; set; } = "Turn on JavaScript to see these items.";
 
