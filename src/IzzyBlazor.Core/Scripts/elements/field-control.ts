@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { load } from "../lazy";
 
 /**
  * <ib-field-control> wraps a field's native input. It only adds conveniences that need
@@ -27,6 +28,13 @@ class FieldControl extends IzzyElement {
         },
         { signal }
       );
+    }
+
+    // A password's Caps Lock warning and requirements load only where there's a password.
+    if (input instanceof HTMLInputElement && (input.type === "password" || reveal)) {
+      void load<typeof import("./password")>("ib-password").then((module) => {
+        if (!signal.aborted) module.setupPassword(this, input, signal);
+      }, () => {});
     }
 
     if (input instanceof HTMLInputElement && input.type === "range") {

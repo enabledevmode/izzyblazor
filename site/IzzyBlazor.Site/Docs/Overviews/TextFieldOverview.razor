@@ -15,8 +15,13 @@
 <Code Block Language="razor">@Types</Code>
 
 <Heading Level="2">Passwords</Heading>
-<TextBlock>Once IzzyBlazor's script runs, a password field gets a button that shows and hides the password. To leave the button out, set <Code>Reveal="false"</Code>.</TextBlock>
+<TextBlock>Once IzzyBlazor's script runs, a password field gets a button that shows and hides the password. To leave the button out, set <Code>Reveal="false"</Code>. While someone types with Caps Lock on, "Caps Lock is on." shows under the field.</TextBlock>
 <ExampleViewer Example="text-field-password" />
+
+<Heading Level="2">A new password's requirements</Heading>
+<TextBlock>For a new password, set <Code>Requirements</Code> to the rules your server checks. They're listed under the field, and each one ticks as the password meets it. The form doesn't validate until all of them hold, on the server too, so a post without script gets the same check. <Code>AutoComplete</Code> becomes <Code>new-password</Code>, and Safari's suggested passwords follow the rules.</TextBlock>
+<ExampleViewer Example="text-field-new-password" />
+<TextBlock><Code>PasswordRules</Code> has the names of ASP.NET Core Identity's <Code>PasswordOptions</Code>: <Code>RequiredLength</Code>, <Code>RequireDigit</Code>, <Code>RequireLowercase</Code>, <Code>RequireUppercase</Code>, <Code>RequireNonAlphanumeric</Code> and <Code>RequiredUniqueChars</Code>. Pass Identity's values across, so the list and the server agree. <Anchor Href="https://pages.nist.gov/800-63-4/sp800-63b.html">NIST SP 800-63B</Anchor> asks for length (15 characters, or 8 with a second factor) and a check against known breached passwords, rather than rules like "a number"; that check is a call your server makes when it saves.</TextBlock>
 
 <Heading Level="2">Icons</Heading>
 <TextBlock>A field can show an icon inside it, such as a search icon. Set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
@@ -47,6 +52,20 @@
         <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
         <tbody>
             <tr><td><Code>ShowPasswordLabel</Code></td><td>The name of the button that shows and hides a password</td><td>"Show password"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+<TextBlock>The Caps Lock warning and the requirements come from the app's text:</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>CapsLockOn</Code></td><td>The warning under a password field</td><td>"Caps Lock is on."</td></tr>
+            <tr><td><Code>PasswordLength</Code>, <Code>PasswordUnique</Code></td><td>The length and different-characters rules; <Code>{0}</Code> is the number</td><td>"At least {0} characters", "At least {0} different characters"</td></tr>
+            <tr><td><Code>PasswordLowercase</Code>, <Code>PasswordUppercase</Code>, <Code>PasswordDigit</Code>, <Code>PasswordSymbol</Code></td><td>The other rules</td><td>"A lowercase letter", "An uppercase letter", "A number", "A symbol, such as ! or #"</td></tr>
+            <tr><td><Code>RuleMet</Code>, <Code>RuleNotMet</Code></td><td>What screen readers hear after each rule</td><td>"met", "not yet"</td></tr>
+            <tr><td><Code>PasswordRulesMet</Code></td><td>Announced once all the rules are met</td><td>"All requirements met."</td></tr>
+            <tr><td><Code>PasswordRulesUnmet</Code></td><td>The error for a password that misses one; <Code>{0}</Code> is the label</td><td>"The {0} field doesn't meet every requirement."</td></tr>
         </tbody>
     </table>
 </Prose>

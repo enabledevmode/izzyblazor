@@ -589,6 +589,39 @@ public class IzzyText
     /// <summary>A password field's reveal button (a toggle, pressed while the password shows).</summary>
     public virtual string ShowPassword { get; set; } = "Show password";
 
+    /// <summary>Under a password field while Caps Lock is on.</summary>
+    public virtual string CapsLockOn { get; set; } = "Caps Lock is on.";
+
+    /// <summary>A password requirement: the fewest characters. {0} is the number.</summary>
+    public virtual string PasswordLength { get; set; } = "At least {0} characters";
+
+    /// <summary>A password requirement: a lowercase letter.</summary>
+    public virtual string PasswordLowercase { get; set; } = "A lowercase letter";
+
+    /// <summary>A password requirement: an uppercase letter.</summary>
+    public virtual string PasswordUppercase { get; set; } = "An uppercase letter";
+
+    /// <summary>A password requirement: a digit.</summary>
+    public virtual string PasswordDigit { get; set; } = "A number";
+
+    /// <summary>A password requirement: a character that's neither a letter nor a digit.</summary>
+    public virtual string PasswordSymbol { get; set; } = "A symbol, such as ! or #";
+
+    /// <summary>A password requirement: the fewest different characters. {0} is the number.</summary>
+    public virtual string PasswordUnique { get; set; } = "At least {0} different characters";
+
+    /// <summary>For screen readers, after a password requirement the text meets.</summary>
+    public virtual string RuleMet { get; set; } = "met";
+
+    /// <summary>For screen readers, after a password requirement the text doesn't meet yet.</summary>
+    public virtual string RuleNotMet { get; set; } = "not yet";
+
+    /// <summary>Announced once, when a password meets the last of its requirements.</summary>
+    public virtual string PasswordRulesMet { get; set; } = "All requirements met.";
+
+    /// <summary>The message for a password that misses a requirement. {0} is the field's label.</summary>
+    public virtual string PasswordRulesUnmet { get; set; } = "The {0} field doesn't meet every requirement.";
+
     /// <summary>FileUpload's link that opens the picker, for one file.</summary>
     public virtual string ChooseFile { get; set; } = "Choose a file";
 

@@ -89,6 +89,55 @@
     margin: 0;
   }
 
+  /* A password's Caps Lock warning: an empty status until the script fills it; the icon shows with it. */
+  .ib-field-capslock {
+    display: flex;
+    align-items: center;
+    gap: 0.375em;
+    margin: 0;
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-warning-text);
+  }
+
+  /* Out of the field's column while empty, so it adds no gap; still there to be announced. */
+  .ib-field-capslock:has(> [role="status"]:empty) {
+    position: absolute;
+  }
+
+  .ib-field-capslock:has(> [role="status"]:empty) > svg {
+    display: none;
+  }
+
+  /* A new password's requirements: a minus until met, then a check, as the script ticks them. */
+  .ib-password-rules {
+    display: grid;
+    gap: var(--ib-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-password-rules > li {
+    display: flex;
+    align-items: center;
+    gap: 0.375em;
+  }
+
+  .ib-password-rules > [data-met] {
+    color: var(--ib-color-success-text);
+  }
+
+  .ib-rule-met,
+  [data-met] > .ib-rule-unmet {
+    display: none;
+  }
+
+  [data-met] > .ib-rule-met {
+    display: inline;
+  }
+
   /* The control box: input plus optional icons */
   .ib-field-control {
     position: relative;
