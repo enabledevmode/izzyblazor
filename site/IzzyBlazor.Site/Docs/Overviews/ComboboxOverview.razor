@@ -12,7 +12,7 @@
 <TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. When you bind an enum, its values are the options, named by their <Code>[Display(Name)]</Code>, and <Code>Items</Code> isn't needed.</TextBlock>
 
 <Heading Level="2">Searching a long list</Heading>
-<TextBlock>For a list too long to send to the browser whole, the combobox can search for options as the user types. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>
+<TextBlock>For a list too long to send to the browser whole, the combobox can ask your code for the options that match what's typed. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>
 <ExampleViewer Example="combobox-server-search" />
 <List>
     <ListItem><Code>Search</Code> is called with "" to fill the list on every page. On <Anchor Href="docs/common/render-modes">interactive pages</Anchor> it's called again as the user types, <Code>Debounce</Code> milliseconds after the last key (250 by default).</ListItem>

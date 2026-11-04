@@ -11,8 +11,9 @@
     <Autocomplete @bind-Value="Model.Product" ItemsProvider="FindProducts" />
 
     Suggestions come from Items, from Search (called with the typed text), or from ItemsProvider
-    (a DataRequest whose Search is the typed text and whose Take is MaxSuggestions). Interactive
-    pages search as you type; static pages ask once with "" and filter in the browser.
+    (a DataRequest whose Search is the typed text and whose Take is MaxSuggestions). On
+    interactive pages each pause in typing asks again for new suggestions; static pages ask once,
+    with "", and typing narrows those in the browser.
 
     Accessibility:
     - The input is a `combobox` with a `listbox` of suggestions: focus stays in the input, and the
@@ -102,7 +103,7 @@
 </FieldFrame>
 
 @code {
-    /// <summary>Suggestions, filtered in the browser as the user types.</summary>
+    /// <summary>Suggestions, narrowed in the browser as the user types.</summary>
     [Parameter] public IEnumerable<string>? Items { get; set; }
 
     /// <summary>
@@ -110,7 +111,7 @@
     /// fill the list at first (on every page), and as the user types on interactive pages. Return a
     /// short list, such as the first 10 matches.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once; searching as you type needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once, when the page loads, and typing narrows those in the browser; asking Search again for each pause in typing needs an interactive page.")]
     public Func<string, CancellationToken, Task<IEnumerable<string>>>? Search { get; set; }
 
     /// <summary>
@@ -120,7 +121,7 @@
     /// query of strings. Called with an empty search to fill the list at first, and as the user types
     /// on interactive pages.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, ItemsProvider fills the list once; searching as you type needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, ItemsProvider fills the list once, when the page loads, and typing narrows those in the browser; asking it again for each pause in typing needs an interactive page.")]
     public Func<DataRequest<string>, ValueTask<DataResult<string>>>? ItemsProvider { get; set; }
 
     /// <summary>The most suggestions <see cref="ItemsProvider"/> is asked for (its request's <c>Take</c>). Defaults to 50.</summary>
