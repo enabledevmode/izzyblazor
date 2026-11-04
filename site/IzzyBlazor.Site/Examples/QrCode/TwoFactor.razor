@@ -34,8 +34,9 @@
 
     private bool? _verified;
 
-    // A real app makes a key for each user (with ASP.NET Core Identity, UserManager makes it and
-    // checks the code) and keeps it secret. This one is the same for everyone, to try.
+    // A real app makes a key for each user (with ASP.NET Core Identity, UserManager's
+    // ResetAuthenticatorKeyAsync) and keeps it secret, and turns down a code used once already.
+    // This key is the same for everyone, to try.
     private const string Key = "JBSWY3DPEHPK3PXP";
 
     // Google's Key Uri Format: the issuer before the account and again as a parameter.
@@ -55,7 +56,8 @@
     }
 
     @* hide *@
-    // TOTP (RFC 6238): the code for this 30-second step, or the one either side, for a slow typist.
+    // TOTP (RFC 6238): the code for this 30-second step, the one before for a slow typist, or the
+    // one after for a clock a little ahead.
     private static bool Matches(string code)
     {
         var key = FromBase32(Key);

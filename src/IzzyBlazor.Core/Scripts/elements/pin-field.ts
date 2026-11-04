@@ -11,11 +11,12 @@ import { IzzyElement, defineElement } from "../izzy-element";
 class PinField extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-pin-input");
-    const boxes = [...this.querySelectorAll<HTMLElement>(":scope > .ib-pin-boxes > .ib-pin-box")];
-    if (!input || boxes.length === 0) return;
-    const letters = input.inputMode === "text";
+    if (!input) return;
+    // Read each time: an interactive page can change Length or Letters in place.
+    const all = () => [...this.querySelectorAll<HTMLElement>(":scope > .ib-pin-boxes > .ib-pin-box")];
 
     const paint = () => {
+      const boxes = all();
       const value = input.value;
       const at = document.activeElement === input ? Math.min(input.selectionStart ?? value.length, boxes.length - 1) : -1;
       boxes.forEach((box, i) => {
@@ -30,7 +31,7 @@ class PinField extends IzzyElement {
 
     const clean = () => {
       let text = input.value.replace(/[\s-]/g, "");
-      text = (letters ? text.toUpperCase().replace(/[^0-9A-Z]/g, "") : text.replace(/\D/g, "")).slice(0, boxes.length);
+      text = (input.inputMode === "text" ? text.toUpperCase().replace(/[^0-9A-Z]/g, "") : text.replace(/\D/g, "")).slice(0, all().length);
       if (text !== input.value) {
         input.value = text;
         input.setSelectionRange(text.length, text.length);
@@ -42,6 +43,13 @@ class PinField extends IzzyElement {
       if (!(event as InputEvent).isComposing) clean();
     }, { signal });
     input.addEventListener("compositionend", clean, { signal });
+    // In a full code, a character typed in the middle replaces the one after the caret.
+    input.addEventListener("beforeinput", (event) => {
+      const at = input.selectionStart ?? 0;
+      if (event.inputType === "insertText" && at === input.selectionEnd && at < input.value.length && input.value.length >= all().length) {
+        input.setSelectionRange(at, at + 1);
+      }
+    }, { signal });
     // The caret goes after the last character, so the box with the ring is where typing goes.
     const toEnd = () => requestAnimationFrame(() => {
       if (document.activeElement === input) input.setSelectionRange(input.value.length, input.value.length);

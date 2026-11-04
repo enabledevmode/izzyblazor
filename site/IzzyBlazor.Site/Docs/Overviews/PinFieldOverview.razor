@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A pin field takes a short code, a box for each character: a one-time code from an authenticator app, a text message or an email, or a PIN. It's one text input under the boxes, so pasting a whole code, a phone's autofill, undo and screen readers work as in any field. To show the setup code for an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
+<TextBlock>A pin field takes a short code, a box for each character: a one-time code from an authenticator app, a text message or an email, or a PIN. It's one text input, clear, over the boxes, so pasting a whole code, a phone's autofill and screen readers work as in any field. To show the setup code for an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
 
 <Heading Level="2">A one-time code</Heading>
 <TextBlock>A pin field binds to a string, six digits by default. Its <Code>autocomplete="one-time-code"</Code> lets phones offer a code that just arrived by text message or email, and digits open the number keyboard.</TextBlock>
@@ -13,7 +13,7 @@
 <TextBlock>The form doesn't submit itself when the last digit goes in: someone pasting a code, or fixing a digit, would be sent on before they're done. A Verify button sends it.</TextBlock>
 
 <Heading Level="2">A PIN, and letters</Heading>
-<TextBlock>For a PIN, set <Code>Masked</Code>: the boxes show dots, and the input is a password input, so screen readers don't read it out and a static page doesn't write it back after a post. Set <Code>AutoComplete</Code> to <Code>current-password</Code> or <Code>new-password</Code>, so password managers keep it and phones don't offer a texted code. <Code>Length</Code> sets how many boxes there are.</TextBlock>
+<TextBlock>For a PIN, set <Code>Masked</Code>: the boxes show dots, and the input is a password input, so screen readers don't read it out and a static page doesn't write it back after a post. Set <Code>AutoComplete</Code> to <Code>current-password</Code> or <Code>new-password</Code>, so password managers keep it and phones don't offer a texted code. <Code>Length</Code> sets how many boxes there are, from 2 to 32; on a narrow screen they shrink to fit.</TextBlock>
 <TextBlock>For a code with letters, such as a pairing code, set <Code>Letters</Code>. Letters are upper-cased as they're typed, and the keyboard is the full one.</TextBlock>
 <ExampleViewer Example="pin-field-pin" />
 

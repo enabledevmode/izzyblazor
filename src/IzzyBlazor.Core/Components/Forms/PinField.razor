@@ -4,8 +4,8 @@
 
 @*
     A short code typed into boxes: a one-time code from an authenticator app, a text message or an
-    email, or a PIN. One real input holds the whole code, so paste, autofill, undo, screen readers
-    and posting are the browser's own; the boxes are drawn over it.
+    email, or a PIN. One real input holds the whole code, so paste, autofill, screen readers and
+    posting are the browser's own; it sits, clear, over the boxes.
 
     <PinField @bind-Value="Model.Code" Label="Code from the app" />
     <PinField @bind-Value="Model.Pin" Length="4" Masked AutoComplete="current-password" Label="PIN" />
@@ -29,7 +29,7 @@
 
 <FieldFrame Class="@WrapperClass("pin")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-pin-field class="ib-field-control ib-pin" style="@($"--ib-pin-length:{Length}")">
+    <ib-pin-field class="ib-field-control ib-pin" style="@($"--ib-pin-length:{Length}{(Letters ? ";--ib-pin-ch:2.2ch" : "")}")">
         <input @attributes="ControlAttributes"
                id="@FieldId"
                class="ib-field-input ib-pin-input"
@@ -53,7 +53,7 @@
             {
                 @* The character is an attribute, drawn by CSS: the script sets it as you type, and Blazor's own
                    text nodes would go stale. *@
-                <span class="ib-pin-box" data-c="@BoxText(i)"></span>
+                <span class="ib-pin-box" data-c="@BoxText(i)" data-active="@(i == NextBox ? "" : null)"></span>
             }
         </span>
     </ib-pin-field>
@@ -90,6 +90,9 @@
     // Spaces and dashes anywhere, and Length allowed characters.
     private string Pattern => $"[\\s\\-]*(?:{(Letters ? "[0-9A-Za-z]" : "[0-9]")}[\\s\\-]*){{{Length}}}";
 
+    // Where typing goes, so the focus ring is right before the script arrives; it follows the caret after.
+    private int NextBox => Math.Min((EchoesValue ? CurrentValueAsString?.Length : null) ?? 0, Length - 1);
+
     private string? BoxText(int i)
     {
         var value = EchoesValue ? CurrentValueAsString : null;
@@ -111,9 +114,9 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Length is < 1 or > 32)
+        if (Length is < 2 or > 32)
         {
-            throw new ArgumentOutOfRangeException(nameof(Length), Length, "PinField's Length must be from 1 to 32.");
+            throw new ArgumentOutOfRangeException(nameof(Length), Length, "PinField's Length must be from 2 to 32.");
         }
 
         // A static post binds the text as typed: drop its spaces and dashes before the form validates.
