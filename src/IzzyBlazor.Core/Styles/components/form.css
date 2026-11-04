@@ -3446,7 +3446,8 @@
     max-height: 18rem;
     margin: 0;
     padding: var(--ib-space-1);
-    overflow-y: auto;
+    /* Across, the dragged item (moved by a transform) mustn't make it scroll: its copy shows instead. */
+    overflow: hidden auto;
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-md);
     background-color: var(--ib-color-surface);
@@ -3490,18 +3491,31 @@
     outline-offset: -2px;
   }
 
-  /* While dragging: the dragged item lifts, the other list's box is outlined as it's over it. */
+  /* While dragging: a copy follows the pointer over both lists (they scroll, so they'd clip the
+     item); the item stays faded in its place, and the other list's box is outlined under it. */
   .ib-pick-list-option.ib-sortable-dragging {
-    position: relative;
-    z-index: 1;
+    opacity: 0.35;
+  }
+
+  .ib-pick-list-ghost {
+    position: fixed;
+    inset: 0 auto auto 0;
+    z-index: 1000;
     background-color: var(--ib-color-surface-overlay);
+    color: var(--ib-color-on-surface);
     box-shadow: var(--ib-shadow-md);
+    pointer-events: none;
     cursor: grabbing;
   }
 
   .ib-sortable-sorting > .ib-pick-list-option,
   .ib-sortable-receiving > .ib-pick-list-option {
     transition: transform 150ms ease;
+  }
+
+  /* The dragged item follows the pointer at once: it's where the drop is measured from. */
+  .ib-sortable-sorting > .ib-pick-list-option.ib-sortable-dragging {
+    transition: none;
   }
 
   .ib-pick-list-pane[data-ib-drop] > .ib-pick-list-list {

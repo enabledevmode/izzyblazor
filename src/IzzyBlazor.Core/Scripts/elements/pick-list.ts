@@ -379,6 +379,38 @@ class PickList extends IzzyElement {
     const other: Pane = pane === "available" ? "chosen" : "available";
     const list = this.#list(pane)!;
     const target = { area: this.#list(other)!.parentElement as HTMLElement, list: this.#list(other)! };
+    // The lists scroll, so they clip the item itself as it leaves: a copy follows the pointer over
+    // both, from when the drag begins, and the item stays faded where it was.
+    const follow = new AbortController();
+    let ghost: HTMLElement | null = null;
+    let dx = 0;
+    let dy = 0;
+    document.addEventListener(
+      "pointermove",
+      (move) => {
+        if (move.pointerId !== event.pointerId || !item.classList.contains("ib-sortable-dragging")) return;
+        if (!ghost) {
+          const box = item.getBoundingClientRect();
+          dx = event.clientX - box.left;
+          dy = event.clientY - box.top;
+          ghost = item.cloneNode(true) as HTMLElement;
+          ghost.className = "ib-pick-list-option ib-pick-list-ghost";
+          ghost.removeAttribute("role");
+          ghost.removeAttribute("tabindex");
+          ghost.setAttribute("aria-hidden", "true");
+          ghost.style.width = `${box.width}px`;
+          document.body.append(ghost);
+        }
+        ghost.style.translate = `${move.clientX - dx}px ${move.clientY - dy}px`;
+      },
+      { signal: follow.signal }
+    );
+    const drop = () => {
+      follow.abort();
+      ghost?.remove();
+    };
+    // A press that never becomes a drag (a click) ends without onEnd.
+    document.addEventListener("pointerup", () => !ghost && follow.abort(), { once: true, signal: follow.signal });
     trackDrag({
       list,
       item,
@@ -387,6 +419,7 @@ class PickList extends IzzyElement {
       wrap: false,
       targets: () => [target],
       home: list.parentElement as HTMLElement,
+      onEnd: drop,
       onDrop: (from, to, settle, into) => {
         settle();
         this.#after(() => {
