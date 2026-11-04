@@ -3,6 +3,22 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
+/// <summary>Where a <see cref="Carousel"/>'s dots go.</summary>
+public enum CarouselDots
+{
+    /// <summary>On the slide when one shows at a time; below when several do.</summary>
+    Auto,
+
+    /// <summary>On the slide, at the bottom.</summary>
+    Over,
+
+    /// <summary>Below the slides, across the carousel's width.</summary>
+    Below,
+
+    /// <summary>No dots.</summary>
+    None,
+}
+
 /// <summary>What a <see cref="Carousel"/> shares with its slides and dots: the slides, in order.</summary>
 internal sealed class CarouselContext(Carousel owner)
 {
@@ -10,7 +26,7 @@ internal sealed class CarouselContext(Carousel owner)
 
     public Carousel Owner { get; } = owner;
 
-    public CarouselDots? Dots { get; set; }
+    public CarouselDotList? Dots { get; set; }
 
     public int Count => _items.Count;
 
@@ -53,7 +69,7 @@ internal sealed class CarouselContext(Carousel owner)
 /// A <see cref="Carousel"/>'s dots: a button per slide, rendered after the slides so it knows how
 /// many there are. With several slides in view, the script hides the dots past the last page.
 /// </summary>
-internal sealed class CarouselDots : ComponentBase, IDisposable
+internal sealed class CarouselDotList : ComponentBase, IDisposable
 {
     [CascadingParameter] private CarouselContext Context { get; set; } = null!;
 
