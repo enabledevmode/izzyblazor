@@ -3448,6 +3448,7 @@
     padding: var(--ib-space-1);
     /* Across, the dragged item (moved by a transform) mustn't make it scroll: its copy shows instead. */
     overflow: hidden auto;
+    overscroll-behavior: contain;
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-md);
     background-color: var(--ib-color-surface);
