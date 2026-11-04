@@ -1,0 +1,153 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's one text field with wide letter spacing, not boxes; paste and autofill work the same.")]
+
+@*
+    A short code typed into boxes: a one-time code from an authenticator app, a text message or an
+    email, or a PIN. One real input holds the whole code, so paste, autofill, undo, screen readers
+    and posting are the browser's own; the boxes are drawn over it.
+
+    <PinField @bind-Value="Model.Code" Label="Code from the app" />
+    <PinField @bind-Value="Model.Pin" Length="4" Masked AutoComplete="current-password" Label="PIN" />
+
+    Spaces and dashes are dropped from the value ("123 456" is "123456"), and letters are
+    upper-cased with Letters. The form doesn't validate until the code has Length characters.
+
+    Accessibility:
+    - It's one text input named by its label, so screen readers hear one field, "Code from the app,
+      edit text", not a box per digit; the boxes are hidden from them.
+    - `autocomplete="one-time-code"` (`AutoComplete`) lets phones offer a code from a text message
+      or email; digits open the number keyboard.
+    - Masked, it's a password input: screen readers don't read the characters, and the browser
+      doesn't keep them in its form history.
+    - The focus ring is drawn on the box the next character goes into.
+    - An incomplete code gets "The Code field must be 6 digits." (`IzzyText.PinDigits`, or
+      `PinCharacters` with Letters), on the server too.
+    - With JavaScript off, it's the same input without boxes, with wide letter spacing.
+    See also: TextField, QrCode.
+*@
+
+<FieldFrame Class="@WrapperClass("pin")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-pin-field class="ib-field-control ib-pin" style="@($"--ib-pin-length:{Length}")">
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input ib-pin-input"
+               type="@(Masked ? "password" : "text")"
+               name="@NameAttributeValue"
+               value="@(EchoesValue ? CurrentValueAsString : null)"
+               @onchange="EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString)"
+               autocomplete="@(AutoComplete ?? "one-time-code")"
+               inputmode="@(Letters ? "text" : "numeric")"
+               autocapitalize="@(Letters ? "characters" : "off")"
+               autocorrect="off"
+               spellcheck="false"
+               pattern="@Pattern"
+               required="@IsRequired"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+        <span class="ib-pin-boxes" aria-hidden="true">
+            @for (var i = 0; i < Length; i++)
+            {
+                @* The character is an attribute, drawn by CSS: the script sets it as you type, and Blazor's own
+                   text nodes would go stale. *@
+                <span class="ib-pin-box" data-c="@BoxText(i)"></span>
+            }
+        </span>
+    </ib-pin-field>
+</FieldFrame>
+
+@code {
+    /// <summary>How many characters the code has. Defaults to 6.</summary>
+    [Parameter] public int Length { get; set; } = 6;
+
+    /// <summary>Letters as well as digits, upper-cased. Off by default: digits only, with the number keyboard.</summary>
+    [Parameter] public bool Letters { get; set; }
+
+    /// <summary>
+    /// Hides the characters, for a PIN: it's a password input, so screen readers don't read it, and a
+    /// static page doesn't write it back after a post. Phones may not offer a texted code for it.
+    /// </summary>
+    [Parameter] public bool Masked { get; set; }
+
+    /// <summary>
+    /// The browser autofill hint. Defaults to <c>one-time-code</c>, which lets phones offer a code from a
+    /// text message or email; for a PIN, use <c>current-password</c> or <c>new-password</c>.
+    /// </summary>
+    [Parameter] public string? AutoComplete { get; set; }
+
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    // As TextField's password: a static page doesn't write a masked value back into its HTML.
+    private bool EchoesValue => !Masked || RendererInfo.IsInteractive;
+
+    // Spaces and dashes anywhere, and Length allowed characters.
+    private string Pattern => $"[\\s\\-]*(?:{(Letters ? "[0-9A-Za-z]" : "[0-9]")}[\\s\\-]*){{{Length}}}";
+
+    private string? BoxText(int i)
+    {
+        var value = EchoesValue ? CurrentValueAsString : null;
+        return value is null || i >= value.Length ? null : Masked ? "•" : value[i].ToString();
+    }
+
+    /// <summary>The code without spaces or dashes, upper-cased with <paramref name="letters"/>.</summary>
+    internal static string? Normalize(string? value, bool letters)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var kept = new string(value.Where(c => !char.IsWhiteSpace(c) && c != '-').ToArray());
+        return letters ? kept.ToUpperInvariant() : kept;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Length is < 1 or > 32)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Length), Length, "PinField's Length must be from 1 to 32.");
+        }
+
+        // A static post binds the text as typed: drop its spaces and dashes before the form validates.
+        var normalized = Normalize(CurrentValue, Letters);
+        if (normalized != CurrentValue && !RendererInfo.IsInteractive)
+        {
+            CurrentValue = string.IsNullOrEmpty(normalized) ? null : normalized;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, out string? result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        var normalized = Normalize(value, Letters);
+        result = string.IsNullOrEmpty(normalized) ? null : normalized;
+        validationErrorMessage = null;
+        return true;
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(string? value)
+    {
+        var code = Normalize(value, Letters) ?? "";
+        if (code.Length == 0)
+        {
+            return null;
+        }
+
+        var allowed = code.All(c => char.IsAsciiDigit(c) || (Letters && char.IsAsciiLetter(c)));
+        return allowed && code.Length == Length
+            ? null
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, Letters ? TextDefaults.PinCharacters : TextDefaults.PinDigits, ResolvedLabel ?? FieldIdentifier.FieldName, Length);
+    }
+}

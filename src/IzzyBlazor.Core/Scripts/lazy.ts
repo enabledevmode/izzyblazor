@@ -29,6 +29,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-time-slots": () => import("./elements/time-slots.js"),
   "ib-field-clear": () => import("./elements/field-clear.js"),
   "ib-rating": () => import("./elements/rating.js"),
+  "ib-pin-field": () => import("./elements/pin-field.js"),
   "ib-video": () => import("./elements/video.js"),
   "ib-code": () => import("./elements/code.js"),
   "ib-copy": () => import("./elements/copy.js"),

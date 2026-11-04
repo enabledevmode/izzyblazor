@@ -1,0 +1,10 @@
+@* A PIN: four digits, masked, saved by password managers rather than offered from a text message. *@
+<Stack Gap="4">
+    <PinField @bind-Value="_pin" Label="PIN" Length="4" Masked AutoComplete="current-password" />
+    <PinField @bind-Value="_letters" Label="Pairing code" Length="5" Letters Hint="Letters and digits, as shown on the device." />
+</Stack>
+
+@code {
+    private string? _pin;
+    private string? _letters;
+}

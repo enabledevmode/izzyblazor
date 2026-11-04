@@ -1,0 +1,28 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="pin-field-verify" OnValidSubmit="Check" MaxWidth="24.Rem" Grow>
+    <PinField @bind-Value="Model!.Code" Hint="We sent a code to ada@example.com. This example takes 123456." />
+    <Row><Button Submit>Verify</Button></Row>
+    @if (_verified is { } verified)
+    {
+        <Alert Status="@(verified ? Status.Success : Status.Danger)">@(verified ? "Verified." : "That code didn't work. Check the latest email.")</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "pin-field-verify")]
+    private EmailCheck? Model { get; set; }
+
+    private bool? _verified;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Spaces and dashes are gone by now: "123 456" arrives as "123456".
+    private void Check() => _verified = Model!.Code == "123456";
+
+    public sealed class EmailCheck
+    {
+        [Required, Display(Name = "Verification code")]
+        public string? Code { get; set; }
+    }
+}
