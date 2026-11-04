@@ -1280,6 +1280,14 @@
     cursor: default;
   }
 
+  /* A group's label, as a menu's heading: not an option, so the arrow keys pass it. */
+  .ib-combobox-group-label {
+    padding: var(--ib-space-2) var(--ib-space-2) var(--ib-space-1);
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-semibold);
+  }
+
   .ib-combobox-empty {
     display: none;
     padding: var(--ib-space-2);

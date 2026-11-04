@@ -31,6 +31,9 @@
 <ExampleViewer Example="multi-select-enum-icons" />
 <TextBlock>The chips, typing, and the plain list with JavaScript off use the option's text, not the template. The text is <Code>ItemText</Code>, or else the enum's <Code>[Display(Name)]</Code> or its name. The template writes its own text, so show the same text there.</TextBlock>
 
+<Heading Level="2">Groups</Heading>
+<TextBlock>To list the options under headings, set <Code>ItemGroup</Code>, as on <Anchor Href="docs/components/combobox#groups">Combobox</Anchor>: groups in the order they first appear, and a group with no match hidden as the user types. An enum's options group by their <Code>[Display(GroupName)]</Code>.</TextBlock>
+
 <Heading Level="2">Sizes, read-only and disabled</Heading>
 <TextBlock>The size lines the field up with buttons and other fields; set <Code>Size</Code> to choose one. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="multi-select-states" />

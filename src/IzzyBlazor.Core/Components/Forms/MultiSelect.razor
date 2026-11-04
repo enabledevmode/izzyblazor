@@ -56,9 +56,16 @@
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy"
                 @onchange="OnSelectChanged">
-            @foreach (var item in ItemList)
+            @foreach (var (group, items) in ChoiceOptions.Grouped(ItemList, ItemGroup))
             {
-                <option value="@ChoiceOptions.Value(item)" selected="@IsChosen(item)">@ChoiceOptions.Text(item, ItemText)</option>
+                if (group is null)
+                {
+                    @SelectOptions(items)
+                }
+                else
+                {
+                    <optgroup label="@group">@SelectOptions(items)</optgroup>
+                }
             }
         </select>
         <div class="ib-field-input ib-multiselect-box">
@@ -107,25 +114,27 @@
              role="listbox"
              aria-multiselectable="true"
              aria-labelledby="@LabelId">
-            @{ var index = 0; }
-            @foreach (var item in ItemList)
+            @{ var index = 0; var groupIndex = 0; }
+            @foreach (var (group, items) in ChoiceOptions.Grouped(ItemList, ItemGroup))
             {
-                <div role="option"
-                     id="@($"{ListId}-{index++}")"
-                     class="ib-combobox-option ib-multiselect-option"
-                     data-value="@ChoiceOptions.Value(item)"
-                     data-text="@ChoiceOptions.Text(item, ItemText)"
-                     aria-selected="@(IsChosen(item) ? "true" : "false")">
-                    <span class="ib-multiselect-check" aria-hidden="true"></span>
-                    @if (ItemTemplate is null)
+                if (group is null)
+                {
+                    foreach (var item in items)
                     {
-                        @ChoiceOptions.Text(item, ItemText)
+                        @OptionRow((item, index++))
                     }
-                    else
-                    {
-                        @ItemTemplate(item)
-                    }
-                </div>
+                }
+                else
+                {
+                    var labelId = $"{ListId}-g{groupIndex++}";
+                    <div role="group" class="ib-combobox-group" aria-labelledby="@labelId">
+                        <div id="@labelId" class="ib-combobox-group-label">@group</div>
+                        @foreach (var item in items)
+                        {
+                            @OptionRow((item, index++))
+                        }
+                    </div>
+                }
             }
             @* Shown in the list, but read through the status below: a listbox holds only options. *@
             <div class="ib-combobox-empty" aria-hidden="true">@(EmptyText ?? TextDefaults.NoMatches)</div>
@@ -159,6 +168,37 @@
 
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
+
+    private RenderFragment SelectOptions(IEnumerable<TItem> items) => @<text>
+        @foreach (var item in items)
+        {
+            <option value="@ChoiceOptions.Value(item)" selected="@IsChosen(item)">@ChoiceOptions.Text(item, ItemText)</option>
+        }
+    </text>;
+
+    private RenderFragment OptionRow((TItem Item, int Index) row) => @<div role="option"
+         id="@($"{ListId}-{row.Index}")"
+         class="ib-combobox-option ib-multiselect-option"
+         data-value="@ChoiceOptions.Value(row.Item)"
+         data-text="@ChoiceOptions.Text(row.Item, ItemText)"
+         aria-selected="@(IsChosen(row.Item) ? "true" : "false")">
+        <span class="ib-multiselect-check" aria-hidden="true"></span>
+        @if (ItemTemplate is null)
+        {
+            @ChoiceOptions.Text(row.Item, ItemText)
+        }
+        else
+        {
+            @ItemTemplate(row.Item)
+        }
+    </div>;
+
+    /// <summary>
+    /// The group each option is listed under, such as a team for a person; null is none. Groups show
+    /// in the order they first appear, options with no group first, and a group with no match is
+    /// hidden while filtering. Defaults to an enum value's <c>[Display(GroupName)]</c>.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? ItemGroup { get; set; }
 
     /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Skill&gt;()"</c>.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
