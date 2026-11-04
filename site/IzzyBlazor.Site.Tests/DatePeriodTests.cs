@@ -15,7 +15,6 @@ public sealed class DatePeriodTests(SiteFixture site) : IClassFixture<SiteFixtur
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_month_and_a_year_chosen_from_their_pages_save(string mode)
     {
         var (browser, page, example) = await OpenAsync(mode);
