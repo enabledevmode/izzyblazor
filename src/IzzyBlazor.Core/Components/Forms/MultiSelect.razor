@@ -50,7 +50,7 @@
                 class="ib-field-input ib-combobox-select ib-multiselect-select"
                 name="@NameAttributeValue"
                 multiple
-                size="@Math.Clamp(ItemList.Count, 2, 6)"
+                size="@Math.Clamp(ItemList.Count + ChoiceOptions.Grouped(ItemList, ItemGroup).Count(g => g.Group is not null), 2, 6)"
                 required="@IsRequired"
                 disabled="@IsDisabled"
                 aria-invalid="@(Invalid ? "true" : null)"
@@ -64,7 +64,7 @@
                 }
                 else
                 {
-                    <optgroup label="@group">@SelectOptions(items)</optgroup>
+                    <optgroup @key="@(("group", group))" label="@group">@SelectOptions(items)</optgroup>
                 }
             }
         </select>
@@ -115,24 +115,21 @@
              aria-multiselectable="true"
              aria-labelledby="@LabelId">
             @{ var index = 0; var groupIndex = 0; }
+            @* Each run of options is one region, so its options' keys meet as siblings; groups are keyed
+               by name, so a group that moves keeps its elements. *@
             @foreach (var (group, items) in ChoiceOptions.Grouped(ItemList, ItemGroup))
             {
+                var run = items.Select(item => (item, index++)).ToList();
                 if (group is null)
                 {
-                    foreach (var item in items)
-                    {
-                        @OptionRow((item, index++))
-                    }
+                    @OptionRows(run)
                 }
                 else
                 {
                     var labelId = $"{ListId}-g{groupIndex++}";
-                    <div role="group" class="ib-combobox-group" aria-labelledby="@labelId">
+                    <div @key="@(("group", group))" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
                         <div id="@labelId" class="ib-combobox-group-label">@group</div>
-                        @foreach (var item in items)
-                        {
-                            @OptionRow((item, index++))
-                        }
+                        @OptionRows(run)
                     </div>
                 }
             }
@@ -176,22 +173,27 @@
         }
     </text>;
 
-    private RenderFragment OptionRow((TItem Item, int Index) row) => @<div role="option"
-         id="@($"{ListId}-{row.Index}")"
-         class="ib-combobox-option ib-multiselect-option"
-         data-value="@ChoiceOptions.Value(row.Item)"
-         data-text="@ChoiceOptions.Text(row.Item, ItemText)"
-         aria-selected="@(IsChosen(row.Item) ? "true" : "false")">
-        <span class="ib-multiselect-check" aria-hidden="true"></span>
-        @if (ItemTemplate is null)
+    private RenderFragment OptionRows(IEnumerable<(TItem Item, int Index)> rows) => @<text>
+        @foreach (var (item, index) in rows)
         {
-            @ChoiceOptions.Text(row.Item, ItemText)
+            <div role="option"
+                 id="@($"{ListId}-{index}")"
+                 class="ib-combobox-option ib-multiselect-option"
+                 data-value="@ChoiceOptions.Value(item)"
+                 data-text="@ChoiceOptions.Text(item, ItemText)"
+                 aria-selected="@(IsChosen(item) ? "true" : "false")">
+                <span class="ib-multiselect-check" aria-hidden="true"></span>
+                @if (ItemTemplate is null)
+                {
+                    @ChoiceOptions.Text(item, ItemText)
+                }
+                else
+                {
+                    @ItemTemplate(item)
+                }
+            </div>
         }
-        else
-        {
-            @ItemTemplate(row.Item)
-        }
-    </div>;
+    </text>;
 
     /// <summary>
     /// The group each option is listed under, such as a team for a person; null is none. Groups show

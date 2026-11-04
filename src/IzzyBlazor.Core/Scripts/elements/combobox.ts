@@ -57,6 +57,7 @@ class Combobox extends IzzyElement {
   #request: AbortController | null = null;
   // Page fetch: the chosen option, kept for the first results when they leave it out.
   #chosen: HTMLElement | null = null;
+  #chosenGroup: string | null = null;
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
@@ -336,7 +337,27 @@ class Combobox extends IzzyElement {
     // As on the server, the first results lead with the choice when they leave it out.
     const chosen = this.#chosen;
     const listed = (n: Node) => n instanceof Element && (n.getAttribute("data-value") === chosen?.dataset.value || !!n.querySelector(`[data-value="${CSS.escape(chosen?.dataset.value ?? "")}"]`));
-    const first = chosen && !this.#first.some(listed) ? [chosen, ...this.#first] : this.#first;
+    let first = this.#first;
+    if (chosen && !first.some(listed)) {
+      // First in its own group, as the server puts it, or first of all.
+      const label = (n: Node) => n instanceof Element ? n.querySelector(":scope > .ib-combobox-group-label")?.textContent : null;
+      const home = this.#chosenGroup === null ? undefined : first.find((n) => label(n) === this.#chosenGroup);
+      if (home) {
+        const copy = home.cloneNode(true) as Element;
+        copy.querySelector(":scope > .ib-combobox-group-label")!.after(chosen.cloneNode(true));
+        first = first.map((n) => (n === home ? copy : n));
+      } else if (this.#chosenGroup !== null) {
+        // Its group isn't among the first results: a group of its own, first (take numbers it).
+        const group = document.createElement("div");
+        group.setAttribute("role", "group");
+        group.className = "ib-combobox-group";
+        const heading = document.createElement("div");
+        heading.className = "ib-combobox-group-label";
+        heading.textContent = this.#chosenGroup;
+        group.append(heading, chosen.cloneNode(true));
+        first = [group, ...first];
+      } else first = [chosen, ...first];
+    }
     this.take(this.#answered.trim() || chosen ? first : null, text);
   }
 
@@ -476,7 +497,12 @@ class Combobox extends IzzyElement {
     if (option) {
       option.setAttribute("data-active", "");
       this.#input?.setAttribute("aria-activedescendant", option.id);
-      if (scroll) option.scrollIntoView({ block: "nearest" });
+      if (scroll) {
+        option.scrollIntoView({ block: "nearest" });
+        // A group's first option brings its label into view too.
+        const label = option.previousElementSibling;
+        if (label?.matches(".ib-combobox-group-label")) label.scrollIntoView({ block: "nearest" });
+      }
     } else {
       this.#input?.removeAttribute("aria-activedescendant");
     }
@@ -565,6 +591,7 @@ class Combobox extends IzzyElement {
     const changed = this.#input.value !== text;
     if (this.#fetchKey && !this.#free) {
       const option = this.options.find((o) => o.dataset.value === value);
+      if (option) this.#chosenGroup = option.parentElement?.querySelector(":scope > .ib-combobox-group-label")?.textContent ?? null;
       this.#chosen = value === "" ? null : ((option?.cloneNode(true) as HTMLElement | undefined) ?? this.#chosen);
     }
     this.#input.value = text;

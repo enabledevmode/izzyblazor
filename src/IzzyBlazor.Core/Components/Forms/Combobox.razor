@@ -74,7 +74,8 @@
                 }
                 else
                 {
-                    <optgroup label="@group">@NativeOptions(items)</optgroup>
+                    @* Keyed by name: a group that moves keeps the chosen option, which the select would drop. *@
+                    <optgroup @key="@(("group", group))" label="@group">@NativeOptions(items)</optgroup>
                 }
             }
         </select>
@@ -111,24 +112,21 @@
              data-query="@(ServerFiltered ? _resultsQuery : null)"
              data-ib-answered="@(_answered ? "" : null)">
             @{ var index = 0; var groupIndex = 0; }
+            @* Each run of options is one region, so its options' keys meet as siblings; groups are keyed
+               by name, so a group that moves keeps its elements. *@
             @foreach (var (group, items) in ChoiceOptions.Grouped(ListOptions.DistinctBy(FormatValueAsString), ItemGroup))
             {
+                var run = items.Select(item => (item, index++)).ToList();
                 if (group is null)
                 {
-                    foreach (var item in items)
-                    {
-                        @OptionRow((item, index++))
-                    }
+                    @OptionRows(run)
                 }
                 else
                 {
                     var labelId = $"{ListId}-g{groupIndex++}";
-                    <div @key="@($"group:{group}")" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
+                    <div @key="@(("group", group))" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
                         <div id="@labelId" class="ib-combobox-group-label">@group</div>
-                        @foreach (var item in items)
-                        {
-                            @OptionRow((item, index++))
-                        }
+                        @OptionRows(run)
                     </div>
                 }
             }
@@ -181,26 +179,28 @@
         }
     </text>;
 
-    private RenderFragment OptionRow((TValue Item, int Index) row)
-    {
-        var value = FormatValueAsString(row.Item);
-        return @<div @key="value"
-             role="option"
-             id="@($"{ListId}-{row.Index}")"
-             class="ib-combobox-option"
-             data-value="@value"
-             data-text="@TextFor(row.Item)"
-             aria-selected="@(value == CurrentValueAsString ? "true" : "false")">
-            @if (ItemTemplate is null)
-            {
-                @TextFor(row.Item)
-            }
-            else
-            {
-                @ItemTemplate(row.Item)
-            }
-        </div>;
-    }
+    private RenderFragment OptionRows(IEnumerable<(TValue Item, int Index)> rows) => @<text>
+        @foreach (var (item, index) in rows)
+        {
+            var value = FormatValueAsString(item);
+            <div @key="value"
+                 role="option"
+                 id="@($"{ListId}-{index}")"
+                 class="ib-combobox-option"
+                 data-value="@value"
+                 data-text="@TextFor(item)"
+                 aria-selected="@(value == CurrentValueAsString ? "true" : "false")">
+                @if (ItemTemplate is null)
+                {
+                    @TextFor(item)
+                }
+                else
+                {
+                    @ItemTemplate(item)
+                }
+            </div>
+        }
+    </text>;
 
     /// <summary>
     /// The group each option is listed under, such as a team for a person; null is none. Groups show
