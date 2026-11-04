@@ -258,6 +258,9 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Contains(".ib-calendar", date);
         Assert.DoesNotContain(":defined", date);
         Assert.DoesNotContain("scripting:", date);
+        var carousel = await site.Client.GetStringAsync("_content/IzzyBlazor.Core/carousel.css");
+        Assert.Contains(".ib-carousel", carousel);
+        Assert.DoesNotContain("scripting:", carousel);
     }
 
     [Fact]

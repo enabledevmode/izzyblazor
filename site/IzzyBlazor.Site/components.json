@@ -1980,6 +1980,26 @@
       ]
     },
     {
+      "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Data display", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
+      "parts": ["CarouselItem"],
+      "features": [
+        { "feature": "Slides that swipe and scroll a slide at a time, several at once per breakpoint" },
+        { "feature": "Previous and next buttons, and a dot for each slide", "noscript": "none" },
+        { "feature": "The slide in view bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "carousel-usage", "title": "Usage", "lead": "Put a `CarouselItem` for each slide in a `Carousel`, and name it with `Label`. The slides swipe and scroll a slide at a time, and the arrow keys move them once the track has focus. The previous and next buttons and the dots need script; without it, the track scrolls on its own." },
+        { "id": "carousel-per-view", "title": "Several at once", "lead": "To show several slides at once, set `ItemsPerView`, per breakpoint; `Gap` sets the space between them. The buttons then move a page, and the dots count pages. To wrap from the last slide to the first, set `Loop`." },
+        { "id": "carousel-bound", "title": "Binding the slide", "lead": "To know in C# which slide is in view, and to move to one from C#, bind `@bind-Index`. A starting `Index` other than 0 is scrolled to when the script runs.",
+          "notes": {
+            "noscript": "The slides scroll; C# isn't told, and the starting slide is the first.",
+            "static": "The carousel starts on the bound slide and moves, but there's no circuit, so C# isn't told.",
+            "interactive": "@bind-Index tells C# each time a move settles on another slide, and setting it moves the carousel."
+          }
+        }
+      ]
+    },
+    {
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Shows sections that open and close, even with JavaScript off.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
         { "feature": "Items open and close, one at a time with Exclusive" },

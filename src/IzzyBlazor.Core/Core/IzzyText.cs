@@ -882,6 +882,27 @@ public class IzzyText
     /// <summary>A Splitter bar's button that restores a collapsed pane: "Expand Folders". {0} is the pane's label, or empty.</summary>
     public virtual string ExpandPane { get; set; } = "Expand {0}";
 
+    /// <summary>A Carousel's role description, read after its label: "Featured trips, carousel".</summary>
+    public virtual string CarouselRole { get; set; } = "carousel";
+
+    /// <summary>A Carousel slide's role description.</summary>
+    public virtual string SlideRole { get; set; } = "slide";
+
+    /// <summary>A Carousel slide with no label: "3 of 5". {0} is its place, {1} the number of slides.</summary>
+    public virtual string SlideOf { get; set; } = "{0} of {1}";
+
+    /// <summary>A Carousel's button that moves back a slide, or a page of them.</summary>
+    public virtual string PreviousSlide { get; set; } = "Previous slide";
+
+    /// <summary>A Carousel's button that moves on a slide, or a page of them.</summary>
+    public virtual string NextSlide { get; set; } = "Next slide";
+
+    /// <summary>A Carousel's dot: "Slide 3". {0} is the slide's place.</summary>
+    public virtual string GoToSlide { get; set; } = "Slide {0}";
+
+    /// <summary>A Carousel's dot when several slides show at once: "Slides 4 to 6".</summary>
+    public virtual string SlidesRange { get; set; } = "Slides {0} to {1}";
+
     /// <summary>A TreeView branch whose children load with script, when JavaScript is off.</summary>
     public virtual string TreeNeedsScript { get; set; } = "Turn on JavaScript to see these items.";
 

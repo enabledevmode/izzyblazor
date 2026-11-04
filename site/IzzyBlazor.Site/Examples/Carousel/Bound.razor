@@ -1,0 +1,22 @@
+@* The slide moves in every mode; on an interactive page C# follows it, and can move it. *@
+<Stack Gap="3" Grow>
+    <Carousel Label="Seasons" @bind-Index="_index">
+        @foreach (var season in _seasons)
+        {
+            <CarouselItem Label="@season">
+                <Center Padding="8" Bg="Color.FillSubtle" Radius="Radius.Md" MinHeight="Length.Rem(9)">
+                    <Heading Level="3" Size="TextSize.Lg">@season</Heading>
+                </Center>
+            </CarouselItem>
+        }
+    </Carousel>
+    <Row Gap="3" Align="Align.Center">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">C# has slide <Code>@_index</Code></TextBlock>
+        <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _index = 0">Back to the first</Button>
+    </Row>
+</Stack>
+
+@code {
+    private readonly string[] _seasons = ["Spring", "Summer", "Autumn", "Winter"];
+    private int _index = 1;
+}

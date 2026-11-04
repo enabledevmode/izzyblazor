@@ -1,0 +1,144 @@
+/*
+ * The carousel's styles, built to wwwroot/carousel.css and linked by Carousel, so pages without
+ * one don't pay for them. The main sheet holds the carousel back until this arrives. No
+ * @media (scripting: ...) here: the docs' Off pages rewrite only the main sheet, so those rules
+ * go there (layout.css).
+ */
+@layer izzy.components {
+  .ib-carousel {
+    --ib-per: 1;
+    --ib-cgap: var(--ib-space-4);
+    position: relative;
+    display: grid;
+    min-width: 0;
+    visibility: visible;
+  }
+
+  .ib-carousel-per { --ib-per: var(--ib-carousel-per); }
+  .ib-carousel-gap { --ib-cgap: var(--ib-carousel-gap); }
+
+  @media (min-width: 640px) {
+    .ib-carousel-per-sm { --ib-per: var(--ib-carousel-per-sm); }
+    .ib-carousel-gap-sm { --ib-cgap: var(--ib-carousel-gap-sm); }
+  }
+
+  @media (min-width: 768px) {
+    .ib-carousel-per-md { --ib-per: var(--ib-carousel-per-md); }
+    .ib-carousel-gap-md { --ib-cgap: var(--ib-carousel-gap-md); }
+  }
+
+  @media (min-width: 1024px) {
+    .ib-carousel-per-lg { --ib-per: var(--ib-carousel-per-lg); }
+    .ib-carousel-gap-lg { --ib-cgap: var(--ib-carousel-gap-lg); }
+  }
+
+  @media (min-width: 1280px) {
+    .ib-carousel-per-xl { --ib-per: var(--ib-carousel-per-xl); }
+    .ib-carousel-gap-xl { --ib-cgap: var(--ib-carousel-gap-xl); }
+  }
+
+  .ib-carousel-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (var(--ib-per) - 1) * var(--ib-cgap)) / var(--ib-per));
+    gap: var(--ib-cgap);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    border-radius: var(--ib-radius-md);
+  }
+
+  .ib-carousel-track:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-carousel-item {
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  /* Over the track's edges, centered on it. */
+  .ib-carousel-prev,
+  .ib-carousel-next {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% - var(--ib-carousel-dots-h, 0px) / 2);
+    translate: 0 -50%;
+    border-radius: var(--ib-radius-full);
+    background: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-sm);
+  }
+
+  .ib-carousel-prev { inset-inline-start: var(--ib-space-2); }
+  .ib-carousel-next { inset-inline-end: var(--ib-space-2); }
+
+  .ib-carousel-prev[aria-disabled="true"],
+  .ib-carousel-next[aria-disabled="true"] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ib-carousel :is(.ib-carousel-prev, .ib-carousel-next):dir(rtl) .ib-icon {
+    scale: -1 1;
+  }
+
+  .ib-carousel:has(> .ib-carousel-dots:not([hidden])) {
+    --ib-carousel-dots-h: 2rem;
+  }
+
+  .ib-carousel-dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 2rem;
+    padding-top: var(--ib-space-1);
+  }
+
+  .ib-carousel-dots[hidden],
+  .ib-carousel-dot[hidden] {
+    display: none;
+  }
+
+  /* A 1.5rem target around a small dot; the current one is wider and in the accent color. */
+  .ib-carousel-dot {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ib-radius-full);
+    background: none;
+    cursor: pointer;
+  }
+
+  .ib-carousel-dot::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--ib-radius-full);
+    background: var(--ib-color-muted);
+    transition: width var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-carousel-dot:hover::before {
+    background: var(--ib-color-on-surface);
+  }
+
+  .ib-carousel-dot[aria-current="true"]::before {
+    width: 1rem;
+    background: var(--ib-color-primary);
+  }
+
+  .ib-carousel-dot:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-carousel-dot::before {
+      transition: none;
+    }
+  }
+}
