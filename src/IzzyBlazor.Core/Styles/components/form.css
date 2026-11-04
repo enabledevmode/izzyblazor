@@ -1945,6 +1945,94 @@
     outline-offset: 2px;
   }
 
+  /* Rating: a radio covers each star, unseen. The stars fill up to the checked one, and up to the
+     pointer while it's over them. A display fills a copy of the stars to --ib-rating-fill. */
+  /* Gold by default: in light, a yellow fill inside an amber edge, which gives the 3:1 against
+     white; Accent sets both inline. */
+  .ib-rating {
+    --ib-rating-color: light-dark(#fbbf24, #f5b400);
+    --ib-rating-edge: light-dark(#b47c00, #f5b400);
+    --ib-icon-size: calc(var(--ib-field-h) * 0.6);
+    position: relative;
+    display: inline-flex;
+    width: fit-content;
+    color: var(--ib-color-outline);
+  }
+
+  .ib-rating .ib-icon {
+    flex: none;
+    fill: var(--ib-star, currentColor);
+  }
+
+  .ib-rating-star {
+    position: relative;
+    display: grid;
+    padding: 2px;
+    border-radius: var(--ib-radius-sm);
+    cursor: pointer;
+  }
+
+  .ib-rating-star > input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+
+  .ib-rating-none {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Equal weights, so order decides: the checked star and those before it, then the pointer's. */
+  .ib-rating:has(.ib-rating-star :checked) .ib-rating-star,
+  .ib-rating-fill {
+    --ib-star: var(--ib-rating-color);
+    color: var(--ib-rating-edge);
+  }
+
+  .ib-rating .ib-rating-star:has(:checked) ~ .ib-rating-star {
+    --ib-star: currentColor;
+    color: var(--ib-color-outline);
+  }
+
+  .ib-rating:has(.ib-rating-star:hover) .ib-rating-star {
+    --ib-star: var(--ib-rating-color);
+    color: var(--ib-rating-edge);
+  }
+
+  .ib-rating .ib-rating-star:hover ~ .ib-rating-star {
+    --ib-star: currentColor;
+    color: var(--ib-color-outline);
+  }
+
+  .ib-rating-star:has(:focus-visible),
+  .ib-rating:has(.ib-rating-none:focus-visible) {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 1px;
+  }
+
+  .ib-rating:has(:disabled) {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Each star in a cell of the same width as an input's, so the fill's width is the value. */
+  .ib-rating-display .ib-icon {
+    margin: 2px;
+  }
+
+  .ib-rating-fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    display: inline-flex;
+    width: var(--ib-rating-fill);
+    overflow: hidden;
+  }
+
   .ib-chips > .ib-check:has(:disabled) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 60%, transparent);
     color: var(--ib-color-disabled);

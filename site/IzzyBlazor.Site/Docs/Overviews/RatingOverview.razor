@@ -1,0 +1,67 @@
+@* Rating's Overview, written by hand after Slider's: saving a rating (previewed in each mode),
+   clearing it, showing one read-only, and states. Accessibility and See also come from the doc
+   comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A rating is a radio button for each star in a fieldset. It posts with the form, the arrow keys move it, and screen readers hear "3 stars, radio button, 3 of 5". Hovering fills the stars up to the pointer. For a score on a longer scale, use a <Anchor Href="docs/components/slider">Slider</Anchor> or a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
+
+<Heading Level="2">Saving a rating</Heading>
+<TextBlock>A rating binds to <Code>int</Code> or <Code>int?</Code>, from 1 to <Code>Max</Code> (5 by default). The value posts as a number with the form.</TextBlock>
+<ExampleViewer Example="rating-review" />
+<TextBlock>A form post can send any number, so check the range on the server, with <Code>[Range(1, 5)]</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+
+<Heading Level="2">Clearing a rating</Heading>
+<TextBlock>Bound to <Code>int?</Code>, a rating can be empty. Clicking the chosen star clears it, and the arrow keys reach "No rating" before the first star, which screen readers announce. A required rating has no empty choice, as a checked radio would count as an answer.</TextBlock>
+<TextBlock>Bound to <Code>int</Code>, a rating starts with no star chosen when the value is 0, and can't be cleared once one is.</TextBlock>
+
+<Heading Level="2">Showing a rating</Heading>
+<TextBlock>To show a rating someone can't change, such as an average, set <Code>ReadOnly</Code>. It takes any number, <Code>double</Code> too, and fills the stars to the exact fraction: 4.3 fills 86%. Screen readers hear one image, "4.3 out of 5 stars". In a <Anchor Href="docs/components/form">Form</Anchor>, it posts its value.</TextBlock>
+<TextBlock><Code>Icon</Code> changes the star, <Code>Accent</Code> its color, and <Code>Max</Code> how many there are.</TextBlock>
+<ExampleViewer Example="rating-display" />
+
+<Heading Level="2">Sizes and disabled</Heading>
+<TextBlock>To line a rating up with other fields, set <Code>Size</Code>. A <Code>Disabled</Code> rating can't be changed and doesn't post. In a read-only Form, a rating shows as a display.</TextBlock>
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The names screen readers hear for the stars come from the app's text. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>RatingOneStar</Code></td><td>The first star's name</td><td>"1 star"</td></tr>
+            <tr><td><Code>RatingStars</Code></td><td>The other stars' names; <Code>{0}</Code> is the number</td><td>"{0} stars"</td></tr>
+            <tr><td><Code>RatingNone</Code></td><td>The empty choice's name</td><td>"No rating"</td></tr>
+            <tr><td><Code>RatingOutOf</Code></td><td>A read-only rating's name; <Code>{0}</Code> is the value, <Code>{1}</Code> the number of stars</td><td>"{0} out of {1} stars"</td></tr>
+        </tbody>
+    </table>
+</Prose>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Rating @bind-Value="Model.Stars" Label="Your rating" />
+
+        @* Read-only: any value, filled to the fraction. *@
+        <Rating Value="4.3" ReadOnly Label="Average" />
+        """;
+}

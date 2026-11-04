@@ -495,4 +495,16 @@ public class FormRenderTests : BunitContext
             .Add(c => c.Required, true));
         Assert.True(box.Find("input[type=checkbox]").HasAttribute("disabled"));
     }
+
+    [Fact]
+    public void A_read_only_rating_outside_a_form_is_one_image_filled_to_its_value()
+    {
+        var cut = Render<Rating<double>>(p => p.Add(r => r.Value, 4.3).Add(r => r.ReadOnly, true).Add(r => r.Label, "Average"));
+        var display = cut.Find(".ib-rating-display");
+
+        Assert.Equal("img", display.GetAttribute("role"));
+        Assert.Equal("4.3 out of 5 stars", display.GetAttribute("aria-label"));
+        Assert.Contains("--ib-rating-fill:86%", display.GetAttribute("style"));
+        Assert.Empty(cut.FindAll("input[type=radio]"));
+    }
 }

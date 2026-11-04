@@ -1,0 +1,187 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, clicking the chosen star doesn't clear it; the arrow keys reach \"No rating\".")]
+
+@*
+    A star rating: a native radio button for each star in a fieldset, so it posts with the form
+    and the arrow keys move it. Binds to int or int?; a read-only one shows any value, double too.
+
+    <Rating @bind-Value="Model.Stars" />
+    <Rating Value="4.3" ReadOnly Label="Average" />
+
+    A field that can be empty (int?) and isn't required has a "No rating" choice first, unseen:
+    the arrow keys reach it, and clicking the chosen star clears it.
+
+    Accessibility:
+    - Screen readers hear a radio group named by its label, each star a radio named "1 star",
+      "2 stars" and so on (`IzzyText.RatingOneStar`, `RatingStars`); Tab reaches the group and the
+      arrow keys move the choice.
+    - The focus ring is drawn around the focused star, or around them all on "No rating"
+      (`IzzyText.RatingNone`).
+    - A read-only rating is an image named "4.3 out of 5 stars" (`IzzyText.RatingOutOf`).
+    - After a post that fails with an error here, the chosen star (or the first) takes focus, as
+      in RadioGroup.
+    See also: RadioGroup, Slider, SegmentedControl.
+*@
+
+<FieldFrame Class="@WrapperClass("rating")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        <span class="ib-rating ib-rating-display" style="@StarsStyle($"--ib-rating-fill:{FillPercent}%")" role="img" aria-label="@DisplayText">
+            @Stars
+            <span class="ib-rating-fill">@Stars</span>
+        </span>
+        @if (PostsReadOnlyValue)
+        {
+            <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+        }
+    }
+    else
+    {
+        <ib-rating class="ib-rating" style="@StarsStyle(null)">
+            @if (HasNone)
+            {
+                var focusNone = FocusesGroup && Chosen is null;
+                <input @attributes="RadioMessageAttributes"
+                       id="@($"{FieldId}-0")"
+                       class="ib-rating-none"
+                       type="radio"
+                       name="@GroupName"
+                       value=""
+                       checked="@(Chosen is null)"
+                       @onchange="() => CurrentValue = default"
+                       disabled="@IsDisabled"
+                       aria-label="@TextDefaults.RatingNone"
+                       aria-invalid="@(Invalid ? "true" : null)"
+                       autofocus="@focusNone"
+                       data-ib-autofocus="@(focusNone ? "" : null)" />
+            }
+            @for (var n = 1; n <= Max; n++)
+            {
+                var star = n;
+                var id = $"{FieldId}-{star}";
+                var focus = FocusesGroup && star == (Chosen ?? (HasNone ? -1 : 1));
+                <label class="ib-rating-star" for="@id">
+                    <input @attributes="RadioMessageAttributes"
+                           id="@id"
+                           type="radio"
+                           name="@GroupName"
+                           value="@star.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                           checked="@(Chosen == star)"
+                           @onchange="() => CurrentValue = ValueOf(star)"
+                           required="@IsRequired"
+                           disabled="@IsDisabled"
+                           aria-label="@StarName(star)"
+                           aria-invalid="@(Invalid ? "true" : null)"
+                           autofocus="@focus"
+                           data-ib-autofocus="@(focus ? "" : null)" />
+                    <Icon Name="StarIcon" />
+                </label>
+            }
+        </ib-rating>
+        @if (PostsReadOnlyValue)
+        {
+            @* In a read-only Form the radios are disabled, so this posts the value. *@
+            <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+        }
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>The number of stars. Defaults to 5.</summary>
+    [Parameter] public int Max { get; set; } = 5;
+
+    /// <summary>The icon for each star. Defaults to a star.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>The filled stars' color. Defaults to a gold.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>
+    /// Shows the value as stars filled to the exact fraction (4.3 fills 86%), an image to screen
+    /// readers, and posts it. Any number type works here, <c>double</c> too.
+    /// </summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    private static bool IsNullable => Nullable.GetUnderlyingType(typeof(TValue)) is not null;
+
+    private IconData StarIcon => Icon ?? IzzyBlazor.Lucide.Star;
+
+    // The "No rating" radio: only where the value can be empty and isn't required, since a checked
+    // radio satisfies the group's required.
+    private bool HasNone => IsNullable && !IsRequired;
+
+    private double? Number => CurrentValue is null ? null : Convert.ToDouble(CurrentValue, System.Globalization.CultureInfo.InvariantCulture);
+
+    // The star a value checks: the nearest whole one, or none for an empty value or zero.
+    private int? Chosen => Number is { } v && Math.Round(v) is var r && r >= 1 ? (int)Math.Min(r, Max) : null;
+
+    private string FillPercent => (Math.Clamp((Number ?? 0) / Max, 0, 1) * 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    private string DisplayText => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RatingOutOf,
+        (Number ?? 0).ToString("0.#", System.Globalization.CultureInfo.CurrentCulture), Max);
+
+    private string StarName(int star) => star == 1
+        ? TextDefaults.RatingOneStar
+        : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RatingStars, star);
+
+    private static TValue ValueOf(int star) => (TValue)Convert.ChangeType(star, Underlying, System.Globalization.CultureInfo.InvariantCulture);
+
+    private string? StarsStyle(string? extra)
+    {
+        var color = Accent is null ? null : Accent.Custom is { } custom ? custom.Css : $"var(--ib-color-{Accent.Role})";
+        return new StyleBuilder()
+            .AddRaw(color is null ? null : $"--ib-rating-color:{color};--ib-rating-edge:{color}")
+            .AddRaw(extra)
+            .Build();
+    }
+
+    private RenderFragment Stars => builder =>
+    {
+        for (var n = 0; n < Max; n++)
+        {
+            builder.OpenComponent<IzzyBlazor.Icon>(0);
+            builder.AddComponentParameter(1, nameof(IzzyBlazor.Icon.Name), (IconData?)StarIcon);
+            builder.CloseComponent();
+        }
+    };
+
+    // What an unbound rating's ValueExpression points at: a display (Value="4.3" ReadOnly) has no
+    // property of its own, and InputBase needs one.
+    private readonly TValue? _unbound = default;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        if (!parameters.TryGetValue<object>(nameof(ValueExpression), out _))
+        {
+            var values = new Dictionary<string, object?>(parameters.ToDictionary());
+            values[nameof(ValueExpression)] = (System.Linq.Expressions.Expression<Func<TValue>>)(() => _unbound!);
+            parameters = ParameterView.FromDictionary(values);
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Underlying != typeof(int) && Underlying != typeof(long) && Underlying != typeof(short) && !ReadOnly && FormOptions?.ReadOnly != true)
+        {
+            throw new InvalidOperationException($"Rating binds to int or int?; {typeof(TValue).Name} works only when it's ReadOnly, as a display.");
+        }
+
+        if (Max < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Max), Max, "Rating needs at least one star.");
+        }
+    }
+}

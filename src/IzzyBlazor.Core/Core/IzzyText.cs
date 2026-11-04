@@ -349,6 +349,18 @@ public class IzzyText
     /// <summary>The box above a CheckboxGroup's options that checks or clears them all (<c>SelectAll</c>).</summary>
     public virtual string SelectAll { get; set; } = "Select all";
 
+    /// <summary>A Rating's first star, for screen readers.</summary>
+    public virtual string RatingOneStar { get; set; } = "1 star";
+
+    /// <summary>A Rating's other stars, for screen readers: "3 stars". {0} is the number.</summary>
+    public virtual string RatingStars { get; set; } = "{0} stars";
+
+    /// <summary>A Rating's empty choice, for screen readers, on a field that can be empty.</summary>
+    public virtual string RatingNone { get; set; } = "No rating";
+
+    /// <summary>A read-only Rating, for screen readers: "4.5 out of 5 stars". {0} is the value, {1} the number of stars.</summary>
+    public virtual string RatingOutOf { get; set; } = "{0} out of {1} stars";
+
     /// <summary>Combobox while searching on the server.</summary>
     public virtual string Searching { get; set; } = "Searching…";
 
