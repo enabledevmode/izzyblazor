@@ -75,7 +75,7 @@
                 else
                 {
                     @* Keyed by name: a group that moves keeps the chosen option, which the select would drop. *@
-                    <optgroup @key="@(("group", group))" label="@group">@NativeOptions(items)</optgroup>
+                    <optgroup @key="@(("group", group))" label="@group"><legend>@group</legend>@NativeOptions(items)</optgroup>
                 }
             }
         </select>

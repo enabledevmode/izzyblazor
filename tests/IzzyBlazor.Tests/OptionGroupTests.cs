@@ -42,7 +42,7 @@ public class OptionGroupTests : BunitContext
 
         Assert.Equal("Utc", select.Children[0].TextContent);
         Assert.Equal(["Europe", "Asia"], select.QuerySelectorAll("optgroup").Select(g => g.GetAttribute("label")));
-        Assert.Equal(["Paris", "Berlin"], select.QuerySelectorAll("optgroup")[0].Children.Select(o => o.TextContent));
+        Assert.Equal(["Paris", "Berlin"], select.QuerySelectorAll("optgroup")[0].QuerySelectorAll("option").Select(o => o.TextContent));
     }
 
     [Fact]

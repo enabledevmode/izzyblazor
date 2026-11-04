@@ -64,7 +64,7 @@
                 }
                 else
                 {
-                    <optgroup @key="@(("group", group))" label="@group">@SelectOptions(items)</optgroup>
+                    <optgroup @key="@(("group", group))" label="@group"><legend>@group</legend>@SelectOptions(items)</optgroup>
                 }
             }
         </select>

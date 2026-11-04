@@ -68,7 +68,8 @@
                 }
                 else
                 {
-                    <optgroup label="@group">@OptionList(items)</optgroup>
+                    @* The customizable select draws the legend as the heading; other browsers use the label. *@
+                    <optgroup label="@group"><legend>@group</legend>@OptionList(items)</optgroup>
                 }
             }
         </select>
