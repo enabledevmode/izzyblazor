@@ -1,0 +1,32 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="autocomplete-provider" MaxWidth="24.Rem" Grow>
+    <Autocomplete @bind-Value="Model!.Product" ItemsProvider="FindProducts" MaxSuggestions="8"
+                  Placeholder="Search 400 products" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "autocomplete-provider")]
+    private Order? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // The same signature as a Table's or DataGrid's ItemsProvider. request.Search is the typed
+    // text and request.Take is MaxSuggestions; ToResult applies both to a query of strings. Against
+    // a database: request.ToResultAsync(db.Products.Select(p => p.Name).OrderBy(n => n), ...).
+    private ValueTask<DataResult<string>> FindProducts(DataRequest<string> request) =>
+        ValueTask.FromResult(request.ToResult(Products.AsQueryable().OrderBy(name => name)));
+
+    public sealed class Order
+    {
+        [Display(Name = "Product")]
+        public string? Product { get; set; }
+    }
+
+    private static readonly string[] Kinds = ["Chair", "Desk", "Lamp", "Shelf", "Sofa", "Rug", "Table", "Stool", "Cabinet", "Mirror"];
+    private static readonly string[] Finishes = ["oak", "walnut", "ash", "pine", "steel", "brass", "linen", "velvet", "marble", "rattan"];
+    private static readonly string[] Lines = ["Fjord", "Mesa", "Alto", "Nova"];
+
+    private static readonly string[] Products =
+        [.. from line in Lines from kind in Kinds from finish in Finishes select $"{line} {kind}, {finish}"];
+}

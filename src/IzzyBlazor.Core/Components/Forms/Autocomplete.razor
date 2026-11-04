@@ -1,0 +1,261 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own suggestions show (a datalist), styled and announced as the browser does.")]
+
+@*
+    A text field that suggests as you type. Whatever is typed is the value; a suggestion only
+    fills it in. (A Combobox's value must be one of its options.)
+
+    <Autocomplete @bind-Value="Model.City" Items="Cities" />
+    <Autocomplete @bind-Value="Model.Tag" Search="FindTags" />
+    <Autocomplete @bind-Value="Model.Product" ItemsProvider="FindProducts" />
+
+    Suggestions come from Items, from Search (called with the typed text), or from ItemsProvider
+    (a DataRequest whose Search is the typed text and whose Take is MaxSuggestions). Interactive
+    pages search as you type; static pages ask once with "" and filter in the browser.
+
+    Accessibility:
+    - The input is a `combobox` with a `listbox` of suggestions: focus stays in the input, and the
+      highlighted suggestion is its `aria-activedescendant`.
+    - Typing doesn't highlight a suggestion, so Enter keeps what was typed (and submits the form).
+      Down and Up move through the suggestions, Enter takes one, and Escape closes the list
+      without changing the text.
+    - The list opens only when something matches.
+    - With JavaScript off, the browser shows its own suggestions (a `datalist`); not every screen
+      reader announces them.
+    See also: Combobox, TextField.
+*@
+
+<FieldFrame Class="@WrapperClass("autocomplete")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        @ReadOnlyControl(CurrentValue)
+        @if (PostsReadOnlyValue)
+        {
+            @* The read-only text field doesn't post; this does. *@
+            <input type="hidden" name="@NameAttributeValue" value="@CurrentValue" />
+        }
+    }
+    else
+    {
+    <ib-combobox class="ib-field-control ib-combobox ib-autocomplete"
+                 style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
+                 data-free
+                 data-server="@(ServerFiltered ? "" : null)">
+        <input @attributes="InputAttributes"
+               id="@FieldId"
+               type="text"
+               class="ib-field-input ib-combobox-input"
+               name="@NameAttributeValue"
+               @bind="CurrentValueAsString"
+               list="@NativeListId"
+               placeholder="@Placeholder"
+               role="combobox"
+               aria-autocomplete="list"
+               aria-expanded="false"
+               aria-controls="@ListId"
+               aria-required="@(IsRequired ? "true" : null)"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy"
+               autocomplete="off"
+               maxlength="@AnnotatedMaxLength"
+               required="@IsRequired"
+               disabled="@IsDisabled" />
+        <datalist id="@NativeListId">
+            @foreach (var text in Suggestions)
+            {
+                <option value="@text"></option>
+            }
+        </datalist>
+        <div id="@ListId"
+             class="ib-pop ib-place-bottom-start ib-combobox-list"
+             style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+             popover="manual"
+             role="listbox"
+             aria-labelledby="@LabelId"
+             aria-busy="@(_searching ? "true" : null)"
+             data-query="@(ServerFiltered ? _resultsQuery : null)">
+            @{ var index = 0; }
+            @foreach (var text in Suggestions)
+            {
+                <div @key="text"
+                     role="option"
+                     id="@($"{ListId}-{index++}")"
+                     class="ib-combobox-option"
+                     data-value="@text"
+                     data-text="@text"
+                     aria-selected="false">@text</div>
+            }
+        </div>
+        <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
+        @if (ServerFiltered)
+        {
+            <input type="hidden" class="ib-combobox-reset" value="" @attributes="SearchAttributes" />
+        }
+        @if (Clearable && !IsDisabled)
+        {
+            @ClearButton
+        }
+    </ib-combobox>
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>Suggestions, filtered in the browser as the user types.</summary>
+    [Parameter] public IEnumerable<string>? Items { get; set; }
+
+    /// <summary>
+    /// Finds suggestions for the typed text, for lists too long to send whole. Called with "" to
+    /// fill the list at first (on every page), and as the user types on interactive pages. Return a
+    /// short list, such as the first 10 matches.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once; searching as you type needs an interactive page.")]
+    public Func<string, CancellationToken, Task<IEnumerable<string>>>? Search { get; set; }
+
+    /// <summary>
+    /// Finds suggestions with the provider signature Table and DataGrid use: the request's
+    /// <c>Search</c> is the typed text and its <c>Take</c> is <see cref="MaxSuggestions"/>, and
+    /// <c>request.ToResult(query)</c> (or <c>ToResultAsync</c>, through EF Core) applies both to a
+    /// query of strings. Called with an empty search to fill the list at first, and as the user types
+    /// on interactive pages.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, ItemsProvider fills the list once; searching as you type needs an interactive page.")]
+    public Func<DataRequest<string>, ValueTask<DataResult<string>>>? ItemsProvider { get; set; }
+
+    /// <summary>The most suggestions <see cref="ItemsProvider"/> is asked for (its request's <c>Take</c>). Defaults to 50.</summary>
+    [Parameter] public int MaxSuggestions { get; set; } = 50;
+
+    /// <summary>Milliseconds to wait after the last keystroke before searching.</summary>
+    [Parameter] public int Debounce { get; set; } = 250;
+
+    /// <summary>Text in the empty field, such as "Start typing a city".</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>A button in the field that empties it, there while it holds text. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>Makes the field read-only: the text shows in a read-only text field, and the value still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private CancellationTokenSource? _searchCts;
+    private IReadOnlyList<string>? _results;
+    private string _resultsQuery = "";
+    private bool _searching;
+
+    private string ListId => FieldId + "-list";
+    private string NativeListId => FieldId + "-suggestions";
+    private string LabelId => FieldId + "-label";
+
+    private bool Searches => Search is not null || ItemsProvider is not null;
+
+    // Server filtering needs a circuit; without one the browser filters the first results.
+    private bool ServerFiltered => Searches && RendererInfo.IsInteractive;
+
+    private Dictionary<string, object>? SearchAttributes => ServerFiltered
+        ? new() { ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, OnSearchInput) }
+        : null;
+
+    // One splat: the field's attributes, then the search's oninput.
+    private IEnumerable<KeyValuePair<string, object>> InputAttributes =>
+        SearchAttributes is { } search ? ControlAttributes.Concat(search) : ControlAttributes;
+
+    private IEnumerable<string> Suggestions => (Searches ? _results ?? [] : Items ?? [])
+        .Where(text => !string.IsNullOrEmpty(text))
+        .Distinct();
+
+    // The one field a suggestion has, its text, so request.ToResult(query) searches it.
+    private static readonly IReadOnlyList<DataField<string>> TextFields =
+    [
+        new DataField<string> { Key = "text", Value = (System.Linq.Expressions.Expression<Func<string, string>>)(text => text), Searchable = true, Sortable = true },
+    ];
+
+    private async Task<IReadOnlyList<string>> FindAsync(string query, CancellationToken token)
+    {
+        if (ItemsProvider is not null)
+        {
+            var result = await ItemsProvider(new DataRequest<string>
+            {
+                Search = query,
+                Take = MaxSuggestions,
+                NeedsTotal = false,
+                CancellationToken = token,
+                Fields = TextFields,
+            });
+            return result.Items;
+        }
+
+        return (await Search!(query, token)).ToList();
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Search is not null && ItemsProvider is not null)
+        {
+            throw new InvalidOperationException("Autocomplete takes Search or ItemsProvider, not both.");
+        }
+
+        if (Searches && _results is null)
+        {
+            _results = await FindAsync("", CancellationToken.None);
+        }
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        if (!Searches || !RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        // Cancel the last search but leave disposing it to its own call, which may still be
+        // about to read its token.
+        _searchCts?.Cancel();
+        var cts = _searchCts = new CancellationTokenSource();
+        var token = cts.Token;
+        var query = e.Value?.ToString() ?? "";
+
+        try
+        {
+            await Task.Delay(Debounce, token);
+            _searching = true;
+            StateHasChanged();
+            var results = await FindAsync(query, token);
+            if (!token.IsCancellationRequested)
+            {
+                _results = results;
+                _resultsQuery = query;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            if (ReferenceEquals(_searchCts, cts))
+            {
+                _searching = false;
+                _searchCts = null;
+            }
+
+            cts.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+}

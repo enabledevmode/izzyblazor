@@ -1,0 +1,61 @@
+@* Autocomplete's Overview, written by hand after Combobox's: suggestions from a list and from a
+   provider (each previewed in each mode), keys, and without script. Accessibility and See also
+   come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>An autocomplete is a text field that suggests as the user types. Whatever is typed is the value; a suggestion only fills it in. When the value must be one of the options, use a <Anchor Href="docs/components/combobox">Combobox</Anchor>.</TextBlock>
+
+<Heading Level="2">Suggestions from a list</Heading>
+<TextBlock>An autocomplete binds to a string. Set <Code>Items</Code> to the suggestions. Typing shows the ones that contain the text, ignoring case and accents, and the list opens only when something matches.</TextBlock>
+<ExampleViewer Example="autocomplete-cities" />
+<TextBlock>The value is free text, so validate it like any text field, such as with <Code>[StringLength]</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+
+<Heading Level="2">Suggestions from a provider</Heading>
+<TextBlock>For suggestions too many to send whole, set <Code>ItemsProvider</Code>. It has the signature a <Anchor Href="docs/components/table">Table</Anchor>'s or <Anchor Href="docs/components/data-grid">DataGrid</Anchor>'s takes: the request's <Code>Search</Code> is the typed text, and its <Code>Take</Code> is <Code>MaxSuggestions</Code> (50 by default). <Code>request.ToResult</Code> applies both to a query of strings, and <Code>ToResultAsync</Code> does it through EF Core.</TextBlock>
+<ExampleViewer Example="autocomplete-provider" />
+<TextBlock>Against a database:</TextBlock>
+<Code Block Language="csharp">@Provider</Code>
+<TextBlock>For a plain method instead, set <Code>Search</Code>, as on Combobox: it receives the typed text and returns the suggestions. Either way, on interactive pages the field asks after each pause in typing (<Code>Debounce</Code>, 250 ms by default). On static pages it asks once, for an empty search, and filters those in the browser.</TextBlock>
+
+<Heading Level="2">Keys</Heading>
+<TextBlock>Typing doesn't highlight a suggestion, so Enter keeps what was typed and submits the form. Down and Up move through the suggestions, Enter takes the highlighted one, and Escape closes the list without changing the text.</TextBlock>
+
+<Heading Level="2">Without JavaScript</Heading>
+<TextBlock>With JavaScript off, the field is a text input with the browser's own suggestions (a <Code>datalist</Code>). It posts whatever is typed. The browser styles that list, and not every screen reader announces it.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Autocomplete @bind-Value="Model.City" Items="Cities" />
+
+        @* From a database, with the provider signature a Table takes. *@
+        <Autocomplete @bind-Value="Model.Product" ItemsProvider="FindProducts" />
+        """;
+
+    private const string Provider = """
+        private async ValueTask<DataResult<string>> FindProducts(DataRequest<string> request) =>
+            await request.ToResultAsync(db.Products.Select(p => p.Name).OrderBy(n => n),
+                count: (q, ct) => q.CountAsync(ct),
+                list: (q, ct) => q.ToListAsync(ct));
+        """;
+}
