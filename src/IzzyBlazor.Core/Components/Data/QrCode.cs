@@ -135,12 +135,12 @@ public class QrCode : LayoutItemBase
         }
 
         builder.OpenElement(9, "rect");
-        builder.AddAttribute(10, "class", "ib-qr-light");
+        builder.AddAttribute(10, "class", "ib-scan-light");
         builder.AddAttribute(11, "width", side);
         builder.AddAttribute(12, "height", side);
         builder.CloseElement();
         builder.OpenElement(13, "path");
-        builder.AddAttribute(14, "class", "ib-qr-dark");
+        builder.AddAttribute(14, "class", "ib-scan-dark");
         builder.AddAttribute(15, "d", PathOf(matrix, QuietZone));
         builder.CloseElement();
         builder.CloseElement();

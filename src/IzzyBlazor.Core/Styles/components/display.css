@@ -335,12 +335,26 @@
     aspect-ratio: 1;
   }
 
-  .ib-qr-light {
-    fill: var(--ib-qr-light, #fff);
+  /* A barcode: as wide as its modules need at --ib-barcode-module each, and no wider than its box. */
+  .ib-barcode {
+    display: block;
+    inline-size: calc(var(--ib-barcode-modules) * var(--ib-barcode-module, 2px));
+    max-inline-size: 100%;
+    block-size: auto;
   }
 
-  .ib-qr-dark {
-    fill: var(--ib-qr-dark, #000);
+  .ib-barcode-text {
+    font-family: var(--ib-font-body);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* QR codes and barcodes: dark on light in both schemes. */
+  .ib-scan-light {
+    fill: var(--ib-scan-light, #fff);
+  }
+
+  .ib-scan-dark {
+    fill: var(--ib-scan-dark, #000);
   }
 
   .ib-image-ratio {

@@ -1876,6 +1876,13 @@
       ]
     },
     {
+      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Data display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "upc", "scan", "label"],
+      "examples": [
+        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, holds any ASCII text. Set `Value`; the value prints under the bars." },
+        { "id": "barcode-product", "title": "Products", "lead": "Set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit it's added; with it, it's checked." }
+      ]
+    },
+    {
       "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "barcode", "scan", "two-factor", "authenticator"],
       "examples": [
         { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code is drawn on the server as an SVG, with no script. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for anyone without a camera." },
