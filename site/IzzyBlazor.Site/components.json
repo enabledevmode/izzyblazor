@@ -1086,6 +1086,7 @@
       "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Selection", "summary": "Lets the user pick one choice from a list of radio buttons.",
       "examples": [
         { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default. To put a few short ones in a row, set `Orientation` to `Orientation.Horizontal`; they wrap when space runs out." },
+        { "id": "radio-group-chips", "title": "Chips", "lead": "To show the options as chips in a wrapping row, set `Chips`. They're still radio buttons: posting, keys and what screen readers hear don't change." },
         { "id": "radio-group-shipping", "title": "Options from a list", "lead": "For options that aren't an enum, set `Items`. `ItemText` sets how each option reads." },
         { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "To start with nothing chosen and require a choice, bind a nullable property with `[Required]`.",
           "notes": {
@@ -1100,6 +1101,7 @@
       "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Lets the user pick several choices from a list of checkboxes.",
       "examples": [
         { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "A `CheckboxGroup` binds to a collection: an array, `List` or `HashSet`. Pass the options to `Items`. Each checked box posts its value, so the group works with JavaScript off." },
+        { "id": "checkbox-group-chips", "title": "Filter chips", "lead": "To show the options as filter chips in a wrapping row, set `Chips`. They're still checkboxes: posting, keys and what screen readers hear don't change." },
         { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "To add a line under each option's name, set `ItemDescription`. Screen readers read it as the box's description." },
         { "id": "checkbox-group-everything", "title": "Select all", "lead": "To add a box above the options that checks or clears them all, set `SelectAll`. `SelectAllText` sets its text.",
           "notes": {

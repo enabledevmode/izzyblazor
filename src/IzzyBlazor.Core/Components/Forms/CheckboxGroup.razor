@@ -12,6 +12,7 @@
     <CheckboxGroup @bind-Value="Model.Toppings" Items="Toppings" />
     <CheckboxGroup @bind-Value="Model.Days" Items="Enum.GetValues<DayOfWeek>()" Orientation="Orientation.Horizontal" />
     <CheckboxGroup @bind-Value="Model.Notify" Items="Topics" SelectAll SelectAllText="Everything" />
+    <CheckboxGroup @bind-Value="Model.Cuisines" Items="Cuisines" Chips />
 
     Posting: each checked box posts the field's name with its value, and Blazor binds the
     repeated values to the collection, so it works on static pages with no script.
@@ -38,6 +39,7 @@
     - A `SelectAll` box is named by its text, and the options under it are a group with the same
       name, so screen readers hear them as its part. It's announced as "mixed" when only some are
       checked. Its text should say it stands for all of them ("Select all", "All channels").
+    - With `Chips`, the options look like chips and are still checkboxes, heard as such.
     See also: MultiSelect, Checkbox, RadioGroup.
 *@
 
@@ -80,6 +82,10 @@
                        data-ib-autofocus="@(focus ? "" : null)"
                        aria-labelledby="@(description is null ? null : $"{id}-text")"
                        aria-describedby="@(description is null ? null : $"{id}-description")" />
+                @if (Chips)
+                {
+                    <Icon Role="IconRole.Check" />
+                }
                 <span class="ib-check-label">
                     @if (description is null)
                     {
@@ -90,7 +96,7 @@
                         @* The name is only the text before the description: the label's whole
                            content would name the box with the description too. *@
                         <span class="ib-check-text" id="@($"{id}-text")">@OptionName(item)</span>
-                        <span class="ib-check-description" id="@($"{id}-description")">@description</span>
+                        <span class="@(Chips ? "ib-visually-hidden" : "ib-check-description")" id="@($"{id}-description")">@description</span>
                     }
                 </span>
             </label>
@@ -131,8 +137,15 @@
     /// <summary>A line under each option's name, such as what choosing it does. Screen readers hear it as the box's description, after its name.</summary>
     [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
 
-    /// <summary>Stack options vertically (the default) or in a row.</summary>
+    /// <summary>Stack options vertically (the default) or in a row. Not used with <see cref="Chips"/>, which wrap in a row.</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>
+    /// Shows the options as filter chips in a wrapping row, the checked ones filled with a check.
+    /// They stay checkboxes, so posting, keys and what screen readers hear don't change. An
+    /// <see cref="ItemDescription"/> isn't shown on a chip; screen readers still hear it.
+    /// </summary>
+    [Parameter] public bool Chips { get; set; }
 
     /// <summary>
     /// Adds a box above the options that checks or clears them all at once and shows a dash when
@@ -148,7 +161,8 @@
 
     private string OptionsClass => new ClassBuilder()
         .Add("ib-radio-options")
-        .Add("ib-radio-horizontal", Orientation == Orientation.Horizontal)
+        .Add("ib-radio-horizontal", Orientation == Orientation.Horizontal && !Chips)
+        .Add("ib-chips", Chips)
         .Add("ib-checks-under-all", ShowsSelectAll)
         .Build()!;
 

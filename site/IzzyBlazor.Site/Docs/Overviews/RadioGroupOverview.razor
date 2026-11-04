@@ -10,6 +10,10 @@
 <TextBlock>Options stack by default. To put a few short options in a row, set <Code>Orientation.Horizontal</Code>; the row wraps when there isn't room. Bound to an enum, the group shows each value as an option, named by its <Code>[Display(Name)]</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-horizontal" />
 
+<Heading Level="2">Chips</Heading>
+<TextBlock><Code>Chips</Code> shows the options as chips in a wrapping row, the chosen one filled with a check. They're still radio buttons, so the group posts, takes the arrow keys and reads to screen readers as before. For a few options joined in one row, use a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor>.</TextBlock>
+<ExampleViewer Example="radio-group-chips" />
+
 <Heading Level="2">Options from a list</Heading>
 <TextBlock>A group's options can come from a list rather than an enum. Set <Code>Items</Code> to the list. To set how each option reads, set <Code>ItemText</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-shipping" />

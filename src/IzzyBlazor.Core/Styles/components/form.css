@@ -1898,6 +1898,59 @@
     column-gap: var(--ib-space-5);
   }
 
+  /* Chips: each option a pill; the native input covers it, unseen, so a click anywhere toggles
+     it and the ring and fill follow the input's state. The check shows once chosen. */
+  .ib-chips {
+    flex-flow: row wrap;
+  }
+
+  .ib-chips > .ib-check {
+    position: relative;
+    align-items: center;
+    gap: 6px;
+    min-height: calc(var(--ib-field-h) - 4px);
+    padding-inline: var(--ib-space-3);
+    border: 1px solid var(--ib-color-outline);
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-surface);
+    font-weight: var(--ib-weight-medium);
+    transition: background-color var(--ib-duration-fast) var(--ib-ease), border-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-chips .ib-check-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: inherit;
+    opacity: 0;
+  }
+
+  .ib-chips .ib-check-input:not(:checked) + .ib-icon {
+    display: none;
+  }
+
+  .ib-chips > .ib-check:hover:not(:has(:disabled, :checked)) {
+    background-color: var(--ib-color-fill);
+  }
+
+  .ib-chips > .ib-check:has(:checked) {
+    border-color: var(--ib-color-primary);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 14%, var(--ib-color-surface));
+  }
+
+  .ib-chips > .ib-check:has(:focus-visible) {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-chips > .ib-check:has(:disabled) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 60%, transparent);
+    color: var(--ib-color-disabled);
+    cursor: not-allowed;
+  }
+
   /* CheckboxGroup's SelectAll: a box above the options, which sit indented under it. It needs the
      script, so with JavaScript off it isn't shown and the options aren't indented. */
   .ib-check-all {
