@@ -148,8 +148,8 @@
     [Parameter] public string? ShowPasswordLabel { get; set; }
 
     /// <summary>
-    /// What a new password must have, listed under the field and ticked as it's typed; the form doesn't
-    /// validate until they hold, on the server too. Password fields only. Sets <see cref="AutoComplete"/>
+    /// What a new password must have, listed under the field and checked off as it's typed; the form
+    /// doesn't validate until the password meets them, on the server too. Password fields only. Sets <see cref="AutoComplete"/>
     /// to <c>new-password</c> unless it's set, and tells Safari the rules for the passwords it suggests.
     /// </summary>
     [Parameter] public PasswordRules? Requirements { get; set; }

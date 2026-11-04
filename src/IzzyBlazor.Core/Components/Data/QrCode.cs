@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A QR code of <see cref="Value"/>, drawn on the server as an SVG: a link, an authenticator app's
-/// setup key, a ticket number. It needs no script and scales without blurring.
+/// A QR code of <see cref="Value"/>, rendered on the server as an SVG, such as a link, an
+/// authenticator app's setup key or a ticket number. It works with JavaScript off and scales without
+/// blurring.
 /// </summary>
 /// <example>
 /// <code>
@@ -18,7 +19,7 @@ namespace IzzyBlazor;
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It's an image (<c>role="img"</c>) named by <see cref="Label"/>, which is required; say what scanning it does, not what it holds.</item>
-/// <item>The value is never read out: a link read letter by letter helps no one, and an authenticator's holds its secret. Put what someone without a camera needs, such as the link or the setup key, in text beside it.</item>
+/// <item>The value is never read out: a link read letter by letter helps no one, and an authenticator's contains its secret. Put what a user without a camera needs, such as the link or the setup key, in text beside it.</item>
 /// <item>Set <see cref="Decorative"/> when the text beside it already says what it is, so it's skipped.</item>
 /// <item>It's dark on light in both color schemes, since not every scanner reads light on dark.</item>
 /// </list>

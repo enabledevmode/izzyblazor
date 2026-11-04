@@ -16,7 +16,7 @@
 <ExampleViewer Example="autocomplete-provider" />
 <TextBlock>Against a database:</TextBlock>
 <Code Block Language="csharp">@Provider</Code>
-<TextBlock>For a plain method instead, set <Code>Search</Code>, as on Combobox: it receives the typed text and returns the suggestions. Either way, the field asks after each pause in typing (<Code>Debounce</Code>, 250 ms by default). On a static page, each pause fetches the page with the typed text in its address; see <Anchor Href="docs/components/combobox#searching-a-long-list">Searching a long list</Anchor> on Combobox for what that render sees.</TextBlock>
+<TextBlock>For a plain method instead, set <Code>Search</Code>, as on Combobox: it receives the typed text and returns the suggestions. Either way, the field asks after each pause in typing (<Code>Debounce</Code>, 250 ms by default). On a static page, each pause fetches the page with the typed text in its URL; see <Anchor Href="docs/components/combobox#searching-a-long-list">Searching a long list</Anchor> on Combobox for what that render sees.</TextBlock>
 
 <Heading Level="2">Keys</Heading>
 <TextBlock>Typing doesn't highlight a suggestion, so Enter keeps what was typed and submits the form. Down and Up move through the suggestions, Enter takes the highlighted one, and Escape closes the list without changing the text.</TextBlock>

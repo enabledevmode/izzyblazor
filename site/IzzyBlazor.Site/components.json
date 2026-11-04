@@ -634,7 +634,7 @@
         { "feature": "Checks before posting, server messages under the field" },
         { "feature": "Show/hide button on passwords", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Caps Lock warning on passwords", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "A new password's requirements, ticked as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" }
+        { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "text-field-labels", "title": "Labels and hints" },
@@ -643,11 +643,11 @@
             "noscript": "A plain password input, with no show/hide button.",
             "static": "IzzyBlazor's script adds the show/hide button."
           } },
-        { "id": "text-field-new-password", "title": "A new password's requirements", "lead": "Set `Requirements` to the rules the server checks: they're listed under the field and tick as they're met.",
+        { "id": "text-field-new-password", "title": "A new password's requirements", "lead": "To list a new password's rules under the field, set `Requirements` to the rules the server checks. Each one is checked off as the password meets it.",
           "notes": {
-            "noscript": "The rules are listed but don't tick; the server checks them when the form posts.",
-            "static": "The rules tick as you type; Create account posts without a full reload.",
-            "interactive": "The rules tick as you type; Create account runs C# without a full reload."
+            "noscript": "The rules are listed but aren't checked off as you type; the server checks them when the form posts.",
+            "static": "The rules are checked off as you type; Create account posts without a full reload.",
+            "interactive": "The rules are checked off as you type; Create account runs C# without a full reload."
           } },
         { "id": "text-field-clearable", "title": "A clear button", "lead": "A clear button empties the field, and shows while the field has a value. To add it, set `Clearable`. Every field whose value can be empty has it, and a `Select` goes back to its `Placeholder`.",
           "notes": {
@@ -889,20 +889,20 @@
       ]
     },
     {
-      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Forms", "summary": "Takes a short code in boxes: a one-time code or a PIN.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code"],
+      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Forms", "summary": "Accepts a one-time code or a PIN, with a box for each character.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code", "pin input", "code input", "authenticator"],
       "features": [
-        { "feature": "One input: paste, autofill and screen readers are the browser's" },
+        { "feature": "Pasting, autofill and screen readers work as in a text field" },
         { "feature": "A box per character", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Spaces and dashes dropped, the length checked on the server" }
       ],
       "examples": [
-        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It takes six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
+        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It accepts six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
           "notes": {
             "noscript": "Verify posts the code; the field is one wide text box, not boxes.",
             "static": "Verify posts the code without a full reload.",
             "interactive": "Verify runs C# without a full reload."
           } },
-        { "id": "pin-field-pin", "title": "A PIN, and letters", "lead": "For a PIN, set `Masked` and an `AutoComplete` of `current-password`, so password managers keep it and screen readers don't read it out. `Length` sets the boxes, and `Letters` takes letters too, upper-cased." }
+        { "id": "pin-field-pin", "title": "PINs and codes with letters", "lead": "To hide a PIN, set `Masked` and an `AutoComplete` of `current-password`, so password managers save it and screen readers don't read it out. `Length` sets the number of boxes, and `Letters` accepts letters too, upper-cased." }
       ]
     },
     {
@@ -1026,7 +1026,7 @@
           "notes": {
             "noscript": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"). With IzzyBlazor's script, ItemText shows in its place."
           } },
-        { "id": "select-groups", "title": "Groups", "lead": "Set `ItemGroup` to list the options under headings, in the order the groups first appear." },
+        { "id": "select-groups", "title": "Groups", "lead": "To list the options under headings, set `ItemGroup`. The groups show in the order they first appear." },
         { "id": "select-required", "title": "Required, with a placeholder",
           "notes": {
             "noscript": "The browser stops the post until a plan is chosen, with its default message.",
@@ -1051,7 +1051,7 @@
             "noscript": "A plain dropdown of every country, with no typing to filter.",
             "static": "IzzyBlazor's script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
           } },
-        { "id": "combobox-groups", "title": "Groups", "lead": "Set `ItemGroup` to list the options under headings. Typing hides a group with no match.",
+        { "id": "combobox-groups", "title": "Groups", "lead": "To list the options under headings, set `ItemGroup`. Typing hides a group with no match.",
           "notes": {
             "noscript": "A native select with the same groups; Save posts the choice.",
             "static": "Save posts the choice without a full reload.",
@@ -1876,19 +1876,19 @@
       ]
     },
     {
-      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Data display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "upc", "scan", "label"],
+      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Data display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
       "examples": [
-        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, holds any ASCII text. Set `Value`; the value prints under the bars." },
-        { "id": "barcode-product", "title": "Products", "lead": "Set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit it's added; with it, it's checked." }
+        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
+        { "id": "barcode-product", "title": "Products", "lead": "For a retail product, set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit, the barcode adds it; with it, the barcode checks it." }
       ]
     },
     {
-      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "barcode", "scan", "two-factor", "authenticator"],
+      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
       "examples": [
-        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code is drawn on the server as an SVG, with no script. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for anyone without a camera." },
+        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code renders on the server as an SVG and works with JavaScript off. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for a user without a camera." },
         { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
           "notes": {
-            "noscript": "Verify posts the code; the field is one wide text box, not boxes. Copying the key needs script.",
+            "noscript": "Verify posts the code; the field is one wide text box, not boxes. The key's copy button needs IzzyBlazor's script.",
             "static": "Verify posts the code without a full reload.",
             "interactive": "Verify runs C# without a full reload."
           } }

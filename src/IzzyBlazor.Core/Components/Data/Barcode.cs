@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A barcode of <see cref="Value"/>, drawn on the server as an SVG with its text under the bars: Code
-/// 128 for any ASCII text, such as a shipping number, or EAN-13, EAN-8 and UPC-A for products. It
-/// needs no script and scales without blurring. With no value yet, such as while a page loads it, it
-/// draws nothing.
+/// A barcode of <see cref="Value"/>, rendered on the server as an SVG with its text under the bars:
+/// Code 128 for any ASCII text, such as a shipping number, or EAN-13, EAN-8 and UPC-A for products.
+/// It works with JavaScript off and scales without blurring. With no value yet, such as while a page
+/// loads it, nothing renders.
 /// </summary>
 /// <example>
 /// <code>
@@ -19,7 +19,7 @@ namespace IzzyBlazor;
 /// </example>
 /// <accessibility>
 /// <list type="bullet">
-/// <item>It's an image (<c>role="img"</c>) named "Barcode" and its value (<c>IzzyText.BarcodeLabel</c>), as the value is printed under it anyway; <see cref="Label"/> takes the place of "Barcode", and the value still follows.</item>
+/// <item>It's an image (<c>role="img"</c>) named "Barcode" and its value (<c>IzzyText.BarcodeLabel</c>), as the value is printed under it anyway; <see cref="Label"/> replaces "Barcode", and the value still follows.</item>
 /// <item>The text under the bars is hidden from screen readers, as the name says it.</item>
 /// <item>Set <see cref="Decorative"/> when the value is written beside it, so it's skipped.</item>
 /// <item>It's dark on light in both color schemes, as scanners need.</item>
@@ -31,8 +31,8 @@ public class Barcode : LayoutItemBase
 {
     /// <summary>
     /// What to encode: any ASCII text for <see cref="BarcodeType.Code128"/>; the digits for EAN and UPC,
-    /// with or without the check digit (added when it's left off, checked when it's there). Empty draws
-    /// nothing; a value the type can't hold is an <see cref="ArgumentException"/>.
+    /// with or without the check digit (added when it's left off, checked when it's there). Empty renders
+    /// nothing; a value the type can't encode throws an <see cref="ArgumentException"/>.
     /// </summary>
     [Parameter, EditorRequired] public string Value { get; set; } = "";
 

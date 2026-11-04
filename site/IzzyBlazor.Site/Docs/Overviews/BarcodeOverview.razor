@@ -3,20 +3,23 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A barcode shows a value as bars for a scanner, with the value printed under them. It's drawn on the server as an SVG, so it needs no script, scales without blurring, and prints. For a link or longer text, see <Anchor Href="docs/components/qr-code">QrCode</Anchor>.</TextBlock>
+<TextBlock>A barcode shows a value as bars for a scanner, with the value printed under them. It renders on the server as an SVG, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, scales without blurring, and prints. For a link or longer text, see <Anchor Href="docs/components/qr-code">QrCode</Anchor>.</TextBlock>
 
 <Heading Level="2">A shipping or order number</Heading>
-<TextBlock>The default type, Code 128, holds any ASCII text: letters, digits, dashes and spaces. It packs runs of digits two to a bar pattern, so number-heavy values stay short. Set <Code>Value</Code>.</TextBlock>
+<TextBlock>The default type, Code 128, accepts any ASCII text, such as letters, digits, dashes and spaces. Set <Code>Value</Code> to the text. Digits take half the room of letters, so a mostly numeric value makes a shorter barcode. With no value yet, such as while the page loads it, nothing renders.</TextBlock>
 <ExampleViewer Example="barcode-shipping" />
 
 <Heading Level="2">Products</Heading>
-<TextBlock>For a retail product, set <Code>Type</Code> to <Code>Ean13</Code>, <Code>UpcA</Code> or <Code>Ean8</Code>. Give the digits without the check digit and it's added, or with it and it's checked: a wrong one is an error, as a mistyped code would scan as another product. The digits print in the standard layout, between the guard bars.</TextBlock>
+<TextBlock>For a retail product, set <Code>Type</Code> to <Code>Ean13</Code>, <Code>UpcA</Code> or <Code>Ean8</Code>. Without the check digit, the barcode adds it. With it, the barcode checks it and throws if it's wrong, since a mistyped code would scan as another product. The digits print in the standard layout, between the guard bars.</TextBlock>
 <ExampleViewer Example="barcode-product" />
 
 <Heading Level="2">Size and print</Heading>
-<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. In a narrower box it shrinks, keeping its shape, but below about 1.5px per bar a phone's camera may not read it, so give it the room or a shorter value. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins either side are part of the barcode: scanners need them, so keep other things out of them.</TextBlock>
+<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins on either side are part of the barcode: scanners need them, so keep other content out of them.</TextBlock>
+<TextBlock>In a narrower box the barcode shrinks and keeps its shape. Below about 1.5px per bar, a phone's camera may not read it, so give it the room or use a shorter value.</TextBlock>
 <TextBlock>For print, set <Code>ModuleWidth</Code> in millimetres, <Code>Length.Of("0.33mm")</Code>: that's EAN's standard size, and GS1 permits down to 0.264mm. A full-height EAN-13 at that size has a <Code>BarHeight</Code> of about 69; shorter bars are harder for retail scanners.</TextBlock>
-<TextBlock>Screen readers hear "Barcode" and the value. To say what it's for, set <Code>Label</Code>, such as "Tracking number": the name becomes "Tracking number, SHIP-2026-0417". When the value is written beside it, set <Code>Decorative</Code>. With no value yet, such as while the page loads it, nothing is drawn; a value the type can't hold, such as an EAN with the wrong check digit, is an error. The name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}").</TextBlock>
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>Screen readers hear "Barcode" and the value. To say what the barcode is for, set <Code>Label</Code>, such as "Tracking number": the name becomes "Tracking number, SHIP-2026-0417". When the value is written beside it, set <Code>Decorative</Code> so screen readers skip it.</TextBlock>
+<TextBlock>The default name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}", where <Code>{0}</Code> is the value). To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
