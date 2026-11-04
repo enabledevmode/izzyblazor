@@ -55,6 +55,8 @@ class Combobox extends IzzyElement {
   #answered = "";
   #timer = 0;
   #request: AbortController | null = null;
+  // Page fetch: the chosen option, kept for the first results when they leave it out.
+  #chosen: HTMLElement | null = null;
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
@@ -290,7 +292,7 @@ class Combobox extends IzzyElement {
     clearTimeout(this.#timer);
     this.#request?.abort();
     const text = this.#input.value;
-    if (!text.trim()) this.restore();
+    if (!text.trim()) this.restore(text);
     else if (text === this.#answered) this.take(null, text);
     else this.#timer = window.setTimeout(() => this.fetchFor(text), Number(this.dataset.ibDebounce ?? 250));
   }
@@ -302,6 +304,8 @@ class Combobox extends IzzyElement {
     url.hash = "";
     url.searchParams.set("ib-suggest", key);
     url.searchParams.set("ib-suggest-q", text);
+    // In a data view's rows: the view loads them, so the field is drawn.
+    if (this.closest("ib-table, ib-grid, ib-listview")) url.searchParams.set("ib-suggest-in", "1");
     this.busy(true);
     let answer: Element | null = null;
     try {
@@ -315,12 +319,15 @@ class Combobox extends IzzyElement {
     this.take(answer ? [...answer.querySelectorAll(":scope > [role=option]")] : null, text);
   }
 
-  /** Page fetch: the first results again, with nothing on its way. */
-  private restore(): void {
+  /** Page fetch: the first results again, with nothing on its way; `text` is the blank text they answer. */
+  private restore(text = ""): void {
     clearTimeout(this.#timer);
     this.#request?.abort();
     this.#request = null;
-    this.take(this.#answered ? this.#first : null, "");
+    // As on the server, the first results lead with the choice when they leave it out.
+    const chosen = this.#chosen;
+    const first = chosen && !this.#first.some((o) => (o as HTMLElement).dataset.value === chosen.dataset.value) ? [chosen, ...this.#first] : this.#first;
+    this.take(this.#answered.trim() || chosen ? first : null, text);
   }
 
   /**
@@ -536,6 +543,10 @@ class Combobox extends IzzyElement {
     const select = this.#select;
     this.#typed = false;
     const changed = this.#input.value !== text;
+    if (this.#fetchKey && !this.#free) {
+      const option = this.options.find((o) => o.dataset.value === value);
+      this.#chosen = value === "" ? null : ((option?.cloneNode(true) as HTMLElement | undefined) ?? this.#chosen);
+    }
     this.#input.value = text;
     this.#input.setCustomValidity("");
     this.searchAll();

@@ -660,8 +660,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
             throw new InvalidOperationException(problem);
         }
 
-        // A field fetching the page for its suggestions keeps only its own options: no rows needed.
-        if (!WillBeInteractive && IzzyRequest.IsSuggestion(Navigation))
+        // A field fetching the page for its suggestions keeps only its own options: no rows needed,
+        // unless the field is in the rows.
+        if (!WillBeInteractive && IzzyRequest.SkipsRows(Navigation))
         {
             return;
         }
