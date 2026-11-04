@@ -66,10 +66,16 @@
                 aria-describedby="@DescribedBy">
             @* Always present: clearing the text clears the value. *@
             <option value="" disabled="@IsRequired" selected="@string.IsNullOrEmpty(CurrentValueAsString)">@Placeholder</option>
-            @foreach (var item in SelectOptions)
+            @foreach (var (group, items) in ChoiceOptions.Grouped(SelectOptions, ItemGroup))
             {
-                @* Keyed: when the choice changes, the option for the old one goes, not the chosen one. *@
-                <option @key="FormatValueAsString(item)" value="@FormatValueAsString(item)">@TextFor(item)</option>
+                if (group is null)
+                {
+                    @NativeOptions(items)
+                }
+                else
+                {
+                    <optgroup label="@group">@NativeOptions(items)</optgroup>
+                }
             }
         </select>
         <input type="text"
@@ -104,26 +110,27 @@
              aria-busy="@(_searching ? "true" : null)"
              data-query="@(ServerFiltered ? _resultsQuery : null)"
              data-ib-answered="@(_answered ? "" : null)">
-            @{ var index = 0; }
-            @foreach (var item in ListOptions.DistinctBy(FormatValueAsString))
+            @{ var index = 0; var groupIndex = 0; }
+            @foreach (var (group, items) in ChoiceOptions.Grouped(ListOptions.DistinctBy(FormatValueAsString), ItemGroup))
             {
-                var value = FormatValueAsString(item);
-                <div @key="value"
-                     role="option"
-                     id="@($"{ListId}-{index++}")"
-                     class="ib-combobox-option"
-                     data-value="@value"
-                     data-text="@TextFor(item)"
-                     aria-selected="@(value == CurrentValueAsString ? "true" : "false")">
-                    @if (ItemTemplate is null)
+                if (group is null)
+                {
+                    foreach (var item in items)
                     {
-                        @TextFor(item)
+                        @OptionRow((item, index++))
                     }
-                    else
-                    {
-                        @ItemTemplate(item)
-                    }
-                </div>
+                }
+                else
+                {
+                    var labelId = $"{ListId}-g{groupIndex++}";
+                    <div @key="@($"group:{group}")" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
+                        <div id="@labelId" class="ib-combobox-group-label">@group</div>
+                        @foreach (var item in items)
+                        {
+                            @OptionRow((item, index++))
+                        }
+                    </div>
+                }
             }
             @* Shown in the list, but read through the status below: a listbox holds only options. *@
             <div class="ib-combobox-empty" aria-hidden="true" data-ib-searching="@(PageFetches ? SearchingText ?? TextDefaults.Searching : null)">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
@@ -165,6 +172,42 @@
     private bool _searching;
     // This render answers the script's fetch for this field's options.
     private bool _answered;
+
+    private RenderFragment NativeOptions(IEnumerable<TValue> items) => @<text>
+        @foreach (var item in items)
+        {
+            @* Keyed: when the choice changes, the option for the old one goes, not the chosen one. *@
+            <option @key="FormatValueAsString(item)" value="@FormatValueAsString(item)">@TextFor(item)</option>
+        }
+    </text>;
+
+    private RenderFragment OptionRow((TValue Item, int Index) row)
+    {
+        var value = FormatValueAsString(row.Item);
+        return @<div @key="value"
+             role="option"
+             id="@($"{ListId}-{row.Index}")"
+             class="ib-combobox-option"
+             data-value="@value"
+             data-text="@TextFor(row.Item)"
+             aria-selected="@(value == CurrentValueAsString ? "true" : "false")">
+            @if (ItemTemplate is null)
+            {
+                @TextFor(row.Item)
+            }
+            else
+            {
+                @ItemTemplate(row.Item)
+            }
+        </div>;
+    }
+
+    /// <summary>
+    /// The group each option is listed under, such as a team for a person; null is none. Groups show
+    /// in the order they first appear, options with no group first, and a group with no match is
+    /// hidden while filtering. Defaults to an enum value's <c>[Display(GroupName)]</c>.
+    /// </summary>
+    [Parameter] public Func<TValue, string?>? ItemGroup { get; set; }
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically, or with <see cref="Search"/>.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }

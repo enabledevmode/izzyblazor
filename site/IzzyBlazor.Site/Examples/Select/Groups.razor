@@ -1,0 +1,23 @@
+<Form Model="Model" FormName="select-groups" MaxWidth="24.Rem" Grow>
+    <Select @bind-Value="Model!.TimeZone" Items="Zones.Keys" ItemGroup="zone => Zones[zone!]" Placeholder="Choose a time zone" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "select-groups")]
+    private Settings? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Settings
+    {
+        public string? TimeZone { get; set; }
+    }
+
+    // Each city's region: the groups show in the order they first appear.
+    private static readonly Dictionary<string, string> Zones = new()
+    {
+        ["New York"] = "Americas", ["Chicago"] = "Americas", ["Los Angeles"] = "Americas", ["São Paulo"] = "Americas",
+        ["London"] = "Europe", ["Paris"] = "Europe", ["Berlin"] = "Europe",
+        ["Dubai"] = "Asia", ["Singapore"] = "Asia", ["Tokyo"] = "Asia",
+    };
+}

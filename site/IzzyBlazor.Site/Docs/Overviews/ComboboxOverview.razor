@@ -11,6 +11,10 @@
 <ExampleViewer Example="combobox-filtering" />
 <TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. When you bind an enum, its values are the options, named by their <Code>[Display(Name)]</Code>, and <Code>Items</Code> isn't needed.</TextBlock>
 
+<Heading Level="2">Groups</Heading>
+<TextBlock>To list the options under headings, set <Code>ItemGroup</Code> to each option's group, such as a person's team. The groups show in the order they first appear, with options that have no group first. As the user types, a group with no match is hidden, heading and all; the arrow keys move between options and pass the headings. An enum's options group by their <Code>[Display(GroupName)]</Code>, and <Code>Search</Code> results are grouped the same way.</TextBlock>
+<ExampleViewer Example="combobox-groups" />
+
 <Heading Level="2">Searching a long list</Heading>
 <TextBlock>For a list too long to send to the browser whole, the combobox can ask your code for the options that match what's typed. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>
 <ExampleViewer Example="combobox-server-search" />

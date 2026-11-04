@@ -60,17 +60,15 @@
                 @* Browsers skip a disabled first option unless it is marked selected. *@
                 <option value="" disabled="@IsRequired" selected="@string.IsNullOrEmpty(CurrentValueAsString)">@Placeholder</option>
             }
-            @foreach (var item in Options)
+            @foreach (var (group, items) in ChoiceOptions.Grouped(Options, ItemGroup))
             {
-                var value = FormatValueAsString(item);
-                if (ItemTemplate is null)
+                if (group is null)
                 {
-                    <option value="@value">@TextFor(item)</option>
+                    @OptionList(items)
                 }
                 else
                 {
-                    @* data-ib-label becomes the label where rich options aren't supported (see select.ts). *@
-                    <option value="@value" class="ib-option" data-ib-label="@TextFor(item)">@ItemTemplate(item)</option>
+                    <optgroup label="@group">@OptionList(items)</optgroup>
                 }
             }
         </select>
@@ -111,6 +109,29 @@
 
         base.OnParametersSet();
     }
+
+    private RenderFragment OptionList(IEnumerable<TValue> items) => @<text>
+        @foreach (var item in items)
+        {
+            var value = FormatValueAsString(item);
+            if (ItemTemplate is null)
+            {
+                <option value="@value">@TextFor(item)</option>
+            }
+            else
+            {
+                @* data-ib-label becomes the label where rich options aren't supported (see select.ts). *@
+                <option value="@value" class="ib-option" data-ib-label="@TextFor(item)">@ItemTemplate(item)</option>
+            }
+        }
+    </text>;
+
+    /// <summary>
+    /// The group each option is listed under, such as a region for a time zone; null is none. Groups
+    /// show in the order they first appear, options with no group first. Defaults to an enum value's
+    /// <c>[Display(GroupName)]</c>.
+    /// </summary>
+    [Parameter] public Func<TValue, string?>? ItemGroup { get; set; }
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }

@@ -17,6 +17,10 @@
 <ExampleViewer Example="select-rich" />
 <TextBlock>The markup shows in browsers that support the customizable select. In other browsers, IzzyBlazor's script shows <Code>ItemText</Code> in the browser's own list, so set both. With JavaScript off, those browsers show the markup's text run together.</TextBlock>
 
+<Heading Level="2">Groups</Heading>
+<TextBlock>To list the options under headings, set <Code>ItemGroup</Code> to each option's group, such as a time zone's region. The groups show in the order they first appear, with options that have no group first. They're the browser's own option groups, with JavaScript off too. An enum's options group by their <Code>[Display(GroupName)]</Code>.</TextBlock>
+<ExampleViewer Example="select-groups" />
+
 <Heading Level="2">Required, with a placeholder</Heading>
 <TextBlock>A select can start with nothing chosen and require a choice. Bind a nullable property with <Code>[Required]</Code>, and set a <Code>Placeholder</Code>. Nothing is chosen until the user picks an option, and the placeholder can't be picked again.</TextBlock>
 <ExampleViewer Example="select-required" />

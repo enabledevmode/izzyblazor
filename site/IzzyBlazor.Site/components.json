@@ -1026,6 +1026,7 @@
           "notes": {
             "noscript": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"). With IzzyBlazor's script, ItemText shows in its place."
           } },
+        { "id": "select-groups", "title": "Groups", "lead": "Set `ItemGroup` to list the options under headings, in the order the groups first appear." },
         { "id": "select-required", "title": "Required, with a placeholder",
           "notes": {
             "noscript": "The browser stops the post until a plan is chosen, with its default message.",
@@ -1049,6 +1050,12 @@
           "notes": {
             "noscript": "A plain dropdown of every country, with no typing to filter.",
             "static": "IzzyBlazor's script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
+          } },
+        { "id": "combobox-groups", "title": "Groups", "lead": "Set `ItemGroup` to list the options under headings. Typing hides a group with no match.",
+          "notes": {
+            "noscript": "A native select with the same groups; Save posts the choice.",
+            "static": "Save posts the choice without a full reload.",
+            "interactive": "Save runs C# without a full reload."
           } },
         { "id": "combobox-server-search", "title": "Searching on the server", "lead": "For a list too long to send whole, set `Search`. It receives what's typed and returns the first matches. To add markup to each option, such as an avatar, set `ItemTemplate`.",
           "notes": {

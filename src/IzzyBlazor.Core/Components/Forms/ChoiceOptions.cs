@@ -40,6 +40,53 @@ internal static class ChoiceOptions
         return display?.GetName() ?? e.ToString();
     }
 
+    /// <summary>An option's group: <paramref name="itemGroup"/>, or an enum value's <c>[Display(GroupName)]</c>. Null for none.</summary>
+    public static string? Group<T>(T item, Func<T, string?>? itemGroup) =>
+        itemGroup is not null ? itemGroup(item) : item is Enum e ? EnumGroup(e) : null;
+
+    /// <summary>An enum value's <c>[Display(GroupName)]</c>, or null.</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "As EnumText: the enum's fields and their [Display] attributes are kept.")]
+    public static string? EnumGroup(Enum e) =>
+        e.GetType().GetMember(e.ToString()).FirstOrDefault()?.GetCustomAttributes(typeof(DisplayAttribute), false).OfType<DisplayAttribute>().FirstOrDefault()?.GetGroupName();
+
+    /// <summary>
+    /// The options in groups: those with no group first (under no header), then each group in the order
+    /// it first appears, its options in their order. One run of everything when nothing has a group.
+    /// </summary>
+    public static IReadOnlyList<(string? Group, IReadOnlyList<T> Items)> Grouped<T>(IEnumerable<T> items, Func<T, string?>? itemGroup)
+    {
+        var groups = new List<(string? Group, List<T> Items)>();
+        var ungrouped = new List<T>();
+        foreach (var item in items)
+        {
+            var group = Group(item, itemGroup);
+            if (string.IsNullOrEmpty(group))
+            {
+                ungrouped.Add(item);
+                continue;
+            }
+
+            var at = groups.FindIndex(g => g.Group == group);
+            if (at < 0)
+            {
+                groups.Add((group, [item]));
+            }
+            else
+            {
+                groups[at].Items.Add(item);
+            }
+        }
+
+        var result = new List<(string?, IReadOnlyList<T>)>();
+        if (ungrouped.Count > 0 || groups.Count == 0)
+        {
+            result.Add((null, ungrouped));
+        }
+
+        result.AddRange(groups.Select(g => ((string?)g.Group, (IReadOnlyList<T>)g.Items)));
+        return result;
+    }
+
     /// <summary>An option's form value, the way Blazor binds it back (an enum's name, a number in the current culture).</summary>
     public static string Value<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(T item) => BindConverter.FormatValue(item, CultureInfo.CurrentCulture)?.ToString() ?? "";
 }

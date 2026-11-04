@@ -49,7 +49,7 @@ class Combobox extends IzzyElement {
   // Server search: the text the list's results are for ("" for the first results).
   #searched = "";
   #free = false;
-  // Page fetch: the key naming this field, the first results, the text the options answer.
+  // Page fetch: the key naming this field, the first results (options and groups), the text the options answer.
   #fetchKey: string | null = null;
   #first: Node[] = [];
   #answered = "";
@@ -68,7 +68,7 @@ class Combobox extends IzzyElement {
     this.#list = list;
     this.dataset.ready = "";
     this.#fetchKey = this.hasAttribute("data-server") ? null : (this.dataset.ibSuggestKey ?? null);
-    this.#first = this.options.map((o) => o.cloneNode(true));
+    this.#first = this.entries.map((o) => o.cloneNode(true));
     this.#answered = this.#searched = "";
     input.form?.addEventListener("reset", () => setTimeout(() => this.syncText(), 0), { signal });
     if (this.#free) {
@@ -206,7 +206,12 @@ class Combobox extends IzzyElement {
   }
 
   private get options(): HTMLElement[] {
-    return [...this.#list.querySelectorAll<HTMLElement>(":scope > [role=option]")];
+    return [...this.#list.querySelectorAll<HTMLElement>(":scope > [role=option], :scope > [role=group] > [role=option]")];
+  }
+
+  /** What the list holds besides its empty row: options and groups of them. */
+  private get entries(): HTMLElement[] {
+    return [...this.#list.querySelectorAll<HTMLElement>(":scope > [role=option], :scope > [role=group]")];
   }
 
   private get visible(): HTMLElement[] {
@@ -262,6 +267,10 @@ class Combobox extends IzzyElement {
       option.hidden = !match;
       if (match) shown++;
     }
+    // A group with nothing showing goes, label and all.
+    for (const group of this.#list.querySelectorAll<HTMLElement>(":scope > [role=group]")) {
+      group.hidden = !group.querySelector("[role=option]:not([hidden])");
+    }
     this.#list.toggleAttribute("data-empty", shown === 0);
     this.announceEmpty(shown === 0);
   }
@@ -316,7 +325,7 @@ class Combobox extends IzzyElement {
     if (request !== this.#request) return;
     this.#request = null;
     // No answer: the options stay, narrowed here.
-    this.take(answer ? [...answer.querySelectorAll(":scope > [role=option]")] : null, text);
+    this.take(answer ? [...answer.querySelectorAll(":scope > [role=option], :scope > [role=group]")] : null, text);
   }
 
   /** Page fetch: the first results again, with nothing on its way; `text` is the blank text they answer. */
@@ -326,7 +335,8 @@ class Combobox extends IzzyElement {
     this.#request = null;
     // As on the server, the first results lead with the choice when they leave it out.
     const chosen = this.#chosen;
-    const first = chosen && !this.#first.some((o) => (o as HTMLElement).dataset.value === chosen.dataset.value) ? [chosen, ...this.#first] : this.#first;
+    const listed = (n: Node) => n instanceof Element && (n.getAttribute("data-value") === chosen?.dataset.value || !!n.querySelector(`[data-value="${CSS.escape(chosen?.dataset.value ?? "")}"]`));
+    const first = chosen && !this.#first.some(listed) ? [chosen, ...this.#first] : this.#first;
     this.take(this.#answered.trim() || chosen ? first : null, text);
   }
 
@@ -338,16 +348,26 @@ class Combobox extends IzzyElement {
     const list = this.#list;
     if (options) {
       const value = this.#free ? null : this.#select.value;
-      for (const o of this.options) o.remove();
+      for (const o of this.entries) o.remove();
       const empty = list.querySelector(".ib-combobox-empty");
-      options.forEach((node, i) => {
-        const option = document.importNode(node, true) as HTMLElement;
-        option.id = `${list.id}-${i}`;
-        option.hidden = false;
-        option.removeAttribute("data-active");
-        if (value !== null) option.setAttribute("aria-selected", String(option.dataset.value === value));
-        list.insertBefore(option, empty);
-      });
+      // Options and groups, their ids renumbered to this list's.
+      let i = 0;
+      let g = 0;
+      for (const node of options) {
+        const entry = document.importNode(node, true) as HTMLElement;
+        entry.hidden = false;
+        if (entry.matches("[role=group]")) {
+          const label = entry.querySelector<HTMLElement>(".ib-combobox-group-label");
+          if (label) entry.setAttribute("aria-labelledby", (label.id = `${list.id}-g${g++}`));
+        }
+        for (const option of entry.matches("[role=option]") ? [entry] : [...entry.querySelectorAll<HTMLElement>("[role=option]")]) {
+          option.id = `${list.id}-${i++}`;
+          option.hidden = false;
+          option.removeAttribute("data-active");
+          if (value !== null) option.setAttribute("aria-selected", String(option.dataset.value === value));
+        }
+        list.insertBefore(entry, empty);
+      }
       this.#answered = text;
     }
     this.busy(false);
