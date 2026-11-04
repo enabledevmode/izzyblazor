@@ -2293,7 +2293,8 @@
     cursor: grabbing;
   }
 
-  .ib-sortable-sorting .ib-sortable-handle {
+  /* :enabled, to outweigh the open hand's rule. */
+  .ib-sortable-sorting .ib-sortable-handle:enabled {
     cursor: grabbing;
   }
 
