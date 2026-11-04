@@ -136,7 +136,9 @@ parameter tables and defaults are never written by hand.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its
-  title and `lead` (one sentence leading with the prop; backticks mark code), the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
+  title and `lead` (one sentence leading with the prop; backticks mark code), with an
+  optional `info` (`title` and `text`) shown as an info Alert under the lead, only for a caveat readers
+  would otherwise trip on, the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
   The API page is always generated.
 - A complex component isn't explained on a single page: it gets topic pages under it
   (`components.json` "topics", as DataGrid's, Table's and ListView's). A component needs them

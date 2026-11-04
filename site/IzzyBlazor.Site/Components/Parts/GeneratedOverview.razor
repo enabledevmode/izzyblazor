@@ -33,6 +33,10 @@
     {
         <TextBlock><InlineCode Text="@lead" /></TextBlock>
     }
+    @if (example.Info is { } info)
+    {
+        <Alert Status="Status.Info" Title="@info.Title"><InlineCode Text="@info.Text" /></Alert>
+    }
     <ExampleViewer Example="@example.Id" />
 }
 
