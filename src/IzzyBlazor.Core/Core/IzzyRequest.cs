@@ -14,6 +14,16 @@ public static class IzzyRequest
     /// <summary>The query key holding the typed text a fetch asks suggestions for.</summary>
     internal const string SuggestTextKey = "ib-suggest-q";
 
+    /// <summary>The query key saying the asking field is in a data view's rows, so views still load them.</summary>
+    internal const string SuggestInViewKey = "ib-suggest-in";
+
+    /// <summary>Whether data views skip loading rows: a suggestion fetch for a field outside them.</summary>
+    internal static bool SkipsRows(NavigationManager navigation)
+    {
+        var query = QueryString.Of(navigation.Uri);
+        return query.ContainsKey(SuggestKey) && !query.ContainsKey(SuggestInViewKey);
+    }
+
     /// <summary>
     /// Whether this render answers a Combobox or Autocomplete asking the server for suggestions on a
     /// static page. Only that field's options are kept from the response; the rest is thrown away,
@@ -24,11 +34,11 @@ public static class IzzyRequest
         QueryString.Of(navigation.Uri).ContainsKey(SuggestKey);
 
     /// <summary>
-    /// For a field that fetches suggestions under <paramref name="key"/>: <c>null</c> when this isn't
-    /// a suggestion request, "" kept out (<paramref name="asked"/> false) when it's another field's,
-    /// else the typed text.
+    /// For a field that fetches suggestions under <paramref name="key"/> (null: one that can't): <c>null</c>
+    /// when this isn't a suggestion request, "" kept out (<paramref name="asked"/> false) when it's
+    /// another field's, else the typed text.
     /// </summary>
-    internal static string? SuggestionFor(NavigationManager navigation, string key, out bool asked)
+    internal static string? SuggestionFor(NavigationManager navigation, string? key, out bool asked)
     {
         var query = QueryString.Of(navigation.Uri);
         asked = false;
@@ -37,7 +47,7 @@ public static class IzzyRequest
             return null;
         }
 
-        asked = string.Equals(field.ToString(), key, StringComparison.Ordinal);
+        asked = key is not null && string.Equals(field.ToString(), key, StringComparison.Ordinal);
         return asked && query.TryGetValue(SuggestTextKey, out var text) ? text.ToString() : "";
     }
 }
