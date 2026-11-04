@@ -1,0 +1,20 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="radio-group-chips" MaxWidth="28.Rem" Grow>
+    <RadioGroup @bind-Value="Model!.Size" Chips />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "radio-group-chips")]
+    private Order? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Order
+    {
+        [Display(Name = "Size")]
+        public ShirtSize Size { get; set; } = ShirtSize.M;
+    }
+
+    public enum ShirtSize { XS, S, M, L, XL }
+}

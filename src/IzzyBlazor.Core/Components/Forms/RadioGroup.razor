@@ -6,6 +6,7 @@
 @*
     A group of radio buttons in a fieldset. Options come from Items, or automatically from an enum.
     <RadioGroup @bind-Value="Model.Contact" Orientation="Orientation.Horizontal" />
+    <RadioGroup @bind-Value="Model.Size" Chips />
 
     Accessibility:
     - It renders native radio buttons in a `fieldset` whose `legend` is the label, so Tab
@@ -16,6 +17,7 @@
       takes focus, so screen readers read the group's name and error (its description); a
       `FormErrors` earlier in the page takes it first. Not on interactive pages: there, use a
       `FormErrors`.
+    - With `Chips`, the options look like chips and are still radio buttons, heard as such.
     See also: SegmentedControl, Select, CheckboxGroup.
 *@
 
@@ -41,6 +43,10 @@
                        aria-invalid="@(Invalid ? "true" : null)"
                        autofocus="@focus"
                        data-ib-autofocus="@(focus ? "" : null)" />
+                @if (Chips)
+                {
+                    <Icon Role="IconRole.Check" />
+                }
                 <span class="ib-check-label">@TextFor(item)</span>
             </label>
         }
@@ -72,11 +78,17 @@
     /// <summary>The text for each option. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
     [Parameter] public Func<TValue, string>? ItemText { get; set; }
 
-    /// <summary>Stack options vertically (the default) or in a row.</summary>
+    /// <summary>Stack options vertically (the default) or in a row. Not used with <see cref="Chips"/>, which wrap in a row.</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
-    private string OptionsClass => Orientation == Orientation.Horizontal
-        ? "ib-radio-options ib-radio-horizontal"
+    /// <summary>
+    /// Shows the options as chips in a wrapping row, the chosen one filled with a check. They stay
+    /// radio buttons, so posting, keys and what screen readers hear don't change.
+    /// </summary>
+    [Parameter] public bool Chips { get; set; }
+
+    private string OptionsClass => Chips ? "ib-radio-options ib-chips"
+        : Orientation == Orientation.Horizontal ? "ib-radio-options ib-radio-horizontal"
         : "ib-radio-options";
 
     private IEnumerable<TValue> Options

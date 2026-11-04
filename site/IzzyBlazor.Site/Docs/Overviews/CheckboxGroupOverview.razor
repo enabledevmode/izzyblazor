@@ -16,6 +16,10 @@
     <ListItem>With no box checked, the group posts nothing. On static pages the property is then null, or the model isn't bound at all. So set defaults only when the request isn't this form's post, as this example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>).</ListItem>
 </List>
 
+<Heading Level="2">Filter chips</Heading>
+<TextBlock><Code>Chips</Code> shows the options as filter chips in a wrapping row, the checked ones filled with a check. They're still checkboxes, so the group posts, toggles with Space and reads to screen readers as before. An <Code>ItemDescription</Code> isn't shown on a chip; screen readers still hear it. For removable chips, such as applied filters, use <Anchor Href="docs/components/tag">Tag</Anchor>.</TextBlock>
+<ExampleViewer Example="checkbox-group-chips" />
+
 <Heading Level="2">Descriptions</Heading>
 <TextBlock>A description is a line of text under an option's name. Screen readers hear it after the name, as the box's description. Set <Code>ItemDescription</Code> to add one to each option. For markup in the name itself, such as a badge beside it, set <Code>ItemTemplate</Code>; all of it names the box.</TextBlock>
 <ExampleViewer Example="checkbox-group-descriptions" />
