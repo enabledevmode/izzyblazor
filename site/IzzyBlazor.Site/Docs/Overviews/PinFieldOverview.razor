@@ -1,0 +1,59 @@
+@* PinField's Overview, written by hand after TextField's: a one-time code (previewed in each mode),
+   a PIN and letters, what posts, and its own words. Accessibility and See also come from the doc
+   comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A pin field takes a short code, a box for each character: a one-time code from an authenticator app, a text message or an email, or a PIN. It's one text input under the boxes, so pasting a whole code, a phone's autofill, undo and screen readers work as in any field. To show the setup code for an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
+
+<Heading Level="2">A one-time code</Heading>
+<TextBlock>A pin field binds to a string, six digits by default. Its <Code>autocomplete="one-time-code"</Code> lets phones offer a code that just arrived by text message or email, and digits open the number keyboard.</TextBlock>
+<ExampleViewer Example="pin-field-verify" />
+<TextBlock>Spaces and dashes are dropped, so a code pasted as "123 456" or "123-456" is 123456. The form doesn't validate until the code has every digit, on the server too, and the message says how many: "The Verification code field must be 6 digits." Whether the code is right is your check, in <Code>OnValidSubmit</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>The form doesn't submit itself when the last digit goes in: someone pasting a code, or fixing a digit, would be sent on before they're done. A Verify button sends it.</TextBlock>
+
+<Heading Level="2">A PIN, and letters</Heading>
+<TextBlock>For a PIN, set <Code>Masked</Code>: the boxes show dots, and the input is a password input, so screen readers don't read it out and a static page doesn't write it back after a post. Set <Code>AutoComplete</Code> to <Code>current-password</Code> or <Code>new-password</Code>, so password managers keep it and phones don't offer a texted code. <Code>Length</Code> sets how many boxes there are.</TextBlock>
+<TextBlock>For a code with letters, such as a pairing code, set <Code>Letters</Code>. Letters are upper-cased as they're typed, and the keyboard is the full one.</TextBlock>
+<ExampleViewer Example="pin-field-pin" />
+
+<Heading Level="2">Labels and localization</Heading>
+<TextBlock>The message for a code that's too short comes from the app's text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><Code>PinDigits</Code></td><td>The message for a code that isn't all its digits; <Code>{0}</Code> is the label, <Code>{1}</Code> the length</td><td>"The {0} field must be {1} digits."</td></tr>
+            <tr><td><Code>PinCharacters</Code></td><td>The same with <Code>Letters</Code></td><td>"The {0} field must be {1} letters or digits."</td></tr>
+        </tbody>
+    </table>
+</Prose>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <PinField @bind-Value="Model.Code" Label="Code from the app" />
+
+        @* A PIN: masked, kept by password managers. *@
+        <PinField @bind-Value="Model.Pin" Label="PIN" Length="4" Masked AutoComplete="current-password" />
+        """;
+}

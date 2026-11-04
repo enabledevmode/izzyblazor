@@ -881,6 +881,23 @@
       ]
     },
     {
+      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Forms", "summary": "Takes a short code in boxes: a one-time code or a PIN.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code"],
+      "features": [
+        { "feature": "One input: paste, autofill and screen readers are the browser's" },
+        { "feature": "A box per character", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Spaces and dashes dropped, the length checked on the server" }
+      ],
+      "examples": [
+        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It takes six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
+          "notes": {
+            "noscript": "Verify posts the code; the field is one wide text box, not boxes.",
+            "static": "Verify posts the code without a full reload.",
+            "interactive": "Verify runs C# without a full reload."
+          } },
+        { "id": "pin-field-pin", "title": "A PIN, and letters", "lead": "For a PIN, set `Masked` and an `AutoComplete` of `current-password`, so password managers keep it and screen readers don't read it out. `Length` sets the boxes, and `Letters` takes letters too, upper-cased." }
+      ]
+    },
+    {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "Lets the user pick a color, with a hex box and presets.",
       "features": [
         { "feature": "Pick in the browser's color panel; posted with the form" },
@@ -1846,7 +1863,13 @@
     {
       "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "barcode", "scan", "two-factor", "authenticator"],
       "examples": [
-        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code is drawn on the server as an SVG, with no script. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for anyone without a camera." }
+        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code is drawn on the server as an SVG, with no script. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for anyone without a camera." },
+        { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
+          "notes": {
+            "noscript": "Verify posts the code; the field is one wide text box, not boxes. Copying the key needs script.",
+            "static": "Verify posts the code without a full reload.",
+            "interactive": "Verify runs C# without a full reload."
+          } }
       ]
     },
     {

@@ -1,0 +1,45 @@
+@* QrCode's Overview, written by hand: a link, two-factor setup (previewed in each mode), size and
+   error correction. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A QR code shows text, such as a link, for a phone's camera to read. It's drawn on the server as an SVG, so it needs no script, scales without blurring, and prints. It's dark on light in both color schemes, since not every scanner reads light on dark.</TextBlock>
+
+<Heading Level="2">A link to scan</Heading>
+<TextBlock>Set <Code>Value</Code> to the text, and <Code>Label</Code> to what scanning it does, such as "QR code for this page". Screen readers hear the label, never the value. Write what someone without a camera needs, such as the link, beside the code.</TextBlock>
+<ExampleViewer Example="qr-code-link" />
+
+<Heading Level="2">Setting up two-factor sign-in</Heading>
+<TextBlock>An authenticator app scans an <Code>otpauth://totp/</Code> link holding a secret key, then shows a new six-digit code every 30 seconds. Show the key beside the QR code, in groups of four, for someone typing it in, and a <Anchor Href="docs/components/pin-field">PinField</Anchor> for the first code, to check the app has it.</TextBlock>
+<ExampleViewer Example="qr-code-two-factor" />
+<TextBlock>The link holds the secret, so don't log it or put it in an address. With ASP.NET Core Identity, <Code>UserManager</Code> makes the key (<Code>GetAuthenticatorKeyAsync</Code>) and checks the code (<Code>VerifyTwoFactorTokenAsync</Code>). The link is <Code>otpauth://totp/Issuer:account?secret=KEY&amp;issuer=Issuer</Code>, with your site's name as the issuer in both places.</TextBlock>
+
+<Heading Level="2">Size and error correction</Heading>
+<TextBlock>Set <Code>Size</Code> for the width and height, 10rem by default; the code scales to fit. Keep the 4-module light border (<Code>QuietZone</Code>) that scanners look for. Longer text makes a denser code with smaller modules, so keep links short.</TextBlock>
+<TextBlock><Code>ErrorCorrection</Code> sets how much of the code can be damaged and still scan: <Code>Medium</Code> by default, about 15%. A higher level makes the code denser; a higher one is used anyway when it fits the same size.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <QrCode Value="https://example.com/tickets/4417" Label="QR code for ticket 4417" />
+        """;
+}

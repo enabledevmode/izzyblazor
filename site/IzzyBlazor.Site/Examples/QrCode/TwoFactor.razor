@@ -1,0 +1,93 @@
+@using System.Buffers.Binary
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Cryptography
+
+<Stack Gap="4" MaxWidth="32.Rem">
+    <Row Gap="4" Align="Align.Center" Wrap>
+        <QrCode Value="@AuthenticatorUri" Label="QR code for your authenticator app" Size="9.Rem" />
+        <Stack Gap="2">
+            <TextBlock Weight="FontWeight.Medium">Scan the code with your authenticator app</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Or enter this key. Spaces and case don't matter.</TextBlock>
+            <Row Gap="2" Align="Align.Center">
+                <Code>@GroupedKey</Code>
+                <CopyButton Text="@Key" Label="Copy the key" Size="ControlSize.Sm" />
+            </Row>
+        </Stack>
+    </Row>
+    <Form Model="Model" FormName="qr-code-two-factor" OnValidSubmit="Verify">
+        <PinField @bind-Value="Model!.Code" />
+        <Row><Button Submit>Verify</Button></Row>
+        @if (_verified is true)
+        {
+            <Alert Status="Status.Success">Verified. Two-factor sign-in is on.</Alert>
+        }
+        else if (_verified is false)
+        {
+            <Alert Status="Status.Danger">That code didn't work. Codes change every 30 seconds; enter the one the app shows now.</Alert>
+        }
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "qr-code-two-factor")]
+    private Setup? Model { get; set; }
+
+    private bool? _verified;
+
+    // A real app makes a key for each user (with ASP.NET Core Identity, UserManager makes it and
+    // checks the code) and keeps it secret. This one is the same for everyone, to try.
+    private const string Key = "JBSWY3DPEHPK3PXP";
+
+    // Google's Key Uri Format: the issuer before the account and again as a parameter.
+    private static readonly string AuthenticatorUri =
+        $"otpauth://totp/IzzyBlazor:{Uri.EscapeDataString("ada@example.com")}?secret={Key}&issuer=IzzyBlazor";
+
+    private static readonly string GroupedKey = string.Join(' ', Key.Chunk(4).Select(c => new string(c))).ToLowerInvariant();
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Verify() => _verified = Matches(Model!.Code!);
+
+    public sealed class Setup
+    {
+        [Required, Display(Name = "Code from the app")]
+        public string? Code { get; set; }
+    }
+
+    @* hide *@
+    // TOTP (RFC 6238): the code for this 30-second step, or the one either side, for a slow typist.
+    private static bool Matches(string code)
+    {
+        var key = FromBase32(Key);
+        var step = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30;
+        return Enumerable.Range(-1, 3).Any(drift => CodeFor(key, step + drift) == code);
+    }
+
+    private static string CodeFor(byte[] key, long step)
+    {
+        Span<byte> counter = stackalloc byte[8];
+        BinaryPrimitives.WriteInt64BigEndian(counter, step);
+        var hash = HMACSHA1.HashData(key, counter);
+        var value = BinaryPrimitives.ReadInt32BigEndian(hash.AsSpan(hash[^1] & 0x0F)) & 0x7FFFFFFF;
+        return (value % 1_000_000).ToString("D6", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static byte[] FromBase32(string text)
+    {
+        var bytes = new List<byte>();
+        int buffer = 0, bits = 0;
+        foreach (var c in text)
+        {
+            buffer = (buffer << 5) | "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567".IndexOf(c);
+            bits += 5;
+            if (bits >= 8)
+            {
+                bytes.Add((byte)(buffer >> (bits - 8)));
+                bits -= 8;
+            }
+        }
+
+        return [.. bytes];
+    }
+    @* /hide *@
+}

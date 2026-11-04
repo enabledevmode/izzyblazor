@@ -388,6 +388,12 @@ public class IzzyText
     /// <summary>DateField's message for a value that isn't a date. {0} is the field's label.</summary>
     public virtual string DateInvalid { get; set; } = "The {0} field must be a date.";
 
+    /// <summary>PinField's message for a code that isn't all digits or isn't the right length. {0} is the field's label, {1} the length.</summary>
+    public virtual string PinDigits { get; set; } = "The {0} field must be {1} digits.";
+
+    /// <summary>PinField's message, with Letters, for a code that isn't letters and digits or isn't the right length. {0} is the field's label, {1} the length.</summary>
+    public virtual string PinCharacters { get; set; } = "The {0} field must be {1} letters or digits.";
+
     /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
     public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 

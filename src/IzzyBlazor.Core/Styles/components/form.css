@@ -2161,6 +2161,84 @@
     inline-size: 100%;
   }
 
+  /* PinField: one input, with a box per character drawn under it (CSS draws data-c). Without
+     script it's that input, wide-spaced; with it the input goes clear over the boxes. */
+  .ib-pin {
+    width: fit-content;
+  }
+
+  .ib-pin-input {
+    width: calc(var(--ib-pin-length) * 1.6ch + 2 * var(--ib-field-px));
+    letter-spacing: 0.6ch;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-pin-boxes {
+    display: none;
+    gap: var(--ib-space-2);
+  }
+
+  @media (scripting: enabled) {
+    ib-pin-field:not([data-ib-failed]) > .ib-pin-boxes {
+      display: flex;
+    }
+
+    ib-pin-field.ib-pin:not([data-ib-failed]) > .ib-field-input.ib-pin-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-color: transparent;
+      background: none;
+      box-shadow: none;
+      color: transparent;
+      caret-color: transparent;
+    }
+
+    ib-pin-field:not([data-ib-failed]) > .ib-pin-input::selection {
+      background: none;
+    }
+  }
+
+  .ib-pin-box {
+    display: grid;
+    place-items: center;
+    width: calc(var(--ib-field-h) * 1.05);
+    height: calc(var(--ib-field-h) * 1.25);
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background-color: var(--ib-field-bg);
+    font-size: calc(var(--ib-field-font) * 1.25);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-pin-box::before {
+    content: attr(data-c);
+  }
+
+  .ib-pin:has(> :focus-visible) > .ib-pin-boxes > [data-active] {
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 28%, transparent));
+  }
+
+  .ib-pin:has(> :focus-visible) > .ib-pin-boxes > [data-active]:not([data-c])::before {
+    content: "";
+    width: 1px;
+    height: 1.2em;
+    background: currentColor;
+  }
+
+  .ib-field-invalid > .ib-pin > .ib-pin-boxes > .ib-pin-box,
+  .ib-pin:has(> :user-invalid) > .ib-pin-boxes > .ib-pin-box {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-pin:has(> :disabled) > .ib-pin-boxes > .ib-pin-box {
+    border-color: transparent;
+    color: var(--ib-color-disabled);
+    background-color: var(--ib-color-fill);
+  }
+
   /* FormActions: the buttons at the end of a form, across the whole row. */
   .ib-form-actions {
     display: flex;
