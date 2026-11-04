@@ -8,6 +8,8 @@
 
 <div @attributes="AdditionalAttributes" id="@Id" class="@_class" style="@_style"
      role="group" aria-roledescription="@TextDefaults.SlideRole"
+     data-ib-interval="@(Interval is { } interval ? Carousel.Milliseconds(interval) : null)"
+     data-ib-shown="@(Context!.Owner.ShownAtStart(Context.IndexOf(this)) ? "" : null)"
      aria-label="@(Label is { Length: > 0 } label ? label : string.Format(TextDefaults.SlideOf, Context!.IndexOf(this) + 1, Context.Count))">
     @ChildContent
 </div>
@@ -17,6 +19,9 @@
     /// Names the slide, such as "Lisbon". Without one, it's named by its place: "3 of 5".
     /// </summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>How long this slide shows with the carousel's Autoplay, in place of its Interval.</summary>
+    [Parameter] public TimeSpan? Interval { get; set; }
 
     /// <summary>The slide's id.</summary>
     [Parameter] public string? Id { get; set; }

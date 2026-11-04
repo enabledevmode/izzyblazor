@@ -93,6 +93,44 @@
     filter: none;
   }
 
+  /* Autoplay's button, at the slide's bottom corner; it shows pause while the slides rotate. */
+  .ib-carousel-rotate {
+    position: absolute;
+    z-index: 1;
+    inset-inline-start: var(--ib-space-2);
+    bottom: calc(var(--ib-carousel-dots-h, 0px) + var(--ib-space-2));
+    border-radius: var(--ib-radius-full);
+    background: transparent;
+    color: #fff;
+  }
+
+  .ib-carousel-rotate .ib-icon {
+    filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8)) drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
+  }
+
+  .ib-carousel-rotate:is(:hover, :focus-visible) {
+    background: color-mix(in oklab, var(--ib-color-surface-overlay) 80%, transparent);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-carousel-rotate:is(:hover, :focus-visible) .ib-icon {
+    filter: none;
+  }
+
+  .ib-carousel-pause,
+  .ib-carousel[data-ib-rotating] .ib-carousel-play {
+    display: none;
+  }
+
+  .ib-carousel[data-ib-rotating] .ib-carousel-pause {
+    display: inline-block;
+  }
+
+  /* A fade: the shown slide comes in over the last (the main sheet stacks them). */
+  .ib-carousel-fade .ib-carousel-item {
+    transition: opacity 0.5s var(--ib-ease), visibility 0.5s;
+  }
+
   .ib-carousel-prev { inset-inline-start: var(--ib-space-2); }
   .ib-carousel-next { inset-inline-end: var(--ib-space-2); }
 
@@ -189,7 +227,8 @@
   @media (prefers-reduced-motion: reduce) {
     .ib-carousel-dot::before,
     .ib-carousel-prev,
-    .ib-carousel-next {
+    .ib-carousel-next,
+    .ib-carousel-fade .ib-carousel-item {
       transition: none;
     }
   }

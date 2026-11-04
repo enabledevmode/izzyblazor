@@ -5,6 +5,8 @@ const SETTLE_MS = 150;
 // A button's or dot's move. The script animates it rather than asking for a smooth scroll, which
 // Chrome on Windows turns into a jump when the system's animation effects are off.
 const SLIDE_MS = 400;
+// A fading carousel's swipe: how far the pointer must travel to move a slide.
+const SWIPE_PX = 40;
 
 /**
  * <ib-carousel> is a thin layer over a Carousel's track, which the server renders as a scroller
@@ -12,7 +14,16 @@ const SLIDE_MS = 400;
  * follows the scroll to mark the current dot, hide the dots past the last page, turn off the
  * buttons at the ends (unless it loops), and make the slides out of view inert. The buttons and
  * dots scroll the track; a new data-ib-index from the server scrolls to that slide. When a move
- * settles on another slide it reports the index as `iblayout` for @bind-Index.
+ * settles on another slide it reports the index as `iblayout` for @bind-Index, and when a person
+ * made it, says which slide in the live region.
+ *
+ * Transition.Fade (.ib-carousel-fade) stacks the slides (main sheet) and shows the one with
+ * data-ib-shown; this moves that attribute, and gives the track arrow keys and a swipe.
+ *
+ * Autoplay (data-ib-autoplay) moves on a slide each interval (the slide's data-ib-interval, else
+ * the carousel's), wrapping at the end. Its button stops and starts it (data-ib-rotating); it
+ * pauses while a mouse is over the carousel and while the page is hidden, stops when keyboard
+ * focus moves into the carousel, and starts stopped under reduced motion.
  */
 class Carousel extends IzzyElement {
   #track: HTMLElement | null = null;
@@ -21,6 +32,10 @@ class Carousel extends IzzyElement {
   #frame = 0;
   #timer = 0;
   #slide = 0;
+  #tick = 0;
+  #rotating = false;
+  #hover = false;
+  #auto = false;
 
   protected setup(signal: AbortSignal): void {
     const track = this.querySelector<HTMLElement>(":scope > .ib-carousel-track");
@@ -37,6 +52,18 @@ class Carousel extends IzzyElement {
     track.addEventListener("scrollend", () => this.#settle(), { signal });
     // A touch, wheel or key during a move hands the track back to the person.
     for (const type of ["pointerdown", "wheel", "keydown"]) track.addEventListener(type, () => this.#stop(), { signal, passive: true });
+    if (this.#fade) this.#fadeInput(track, signal);
+
+    if (this.hasAttribute("data-ib-autoplay")) {
+      this.addEventListener("pointerenter", (e) => this.#hovering(e, true), { signal });
+      this.addEventListener("pointerleave", (e) => this.#hovering(e, false), { signal });
+      // Keyboard focus coming in stops the rotation until the button starts it again.
+      this.addEventListener("focusin", (e) => {
+        if ((e.target as Element).matches(":focus-visible")) this.#rotate(false);
+      }, { signal });
+      document.addEventListener("visibilitychange", () => this.#schedule(), { signal });
+      this.#rotate(!matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
 
     const sizes = new ResizeObserver(() => this.#update());
     sizes.observe(track);
@@ -54,6 +81,7 @@ class Carousel extends IzzyElement {
       index.disconnect();
       cancelAnimationFrame(this.#frame);
       clearTimeout(this.#timer);
+      clearTimeout(this.#tick);
       this.#stop();
     });
 
@@ -65,6 +93,10 @@ class Carousel extends IzzyElement {
 
   #wanted(): number {
     return Math.max(0, parseInt(this.dataset.ibIndex ?? "0", 10) || 0);
+  }
+
+  get #fade(): boolean {
+    return this.classList.contains("ib-carousel-fade");
   }
 
   get #loop(): boolean {
@@ -81,6 +113,7 @@ class Carousel extends IzzyElement {
 
   // Slides in view at once, from the CSS (ItemsPerView per breakpoint).
   #per(count: number): number {
+    if (this.#fade) return 1;
     const per = parseInt(getComputedStyle(this).getPropertyValue("--ib-per"), 10) || 1;
     return Math.max(1, Math.min(per, count));
   }
@@ -91,6 +124,7 @@ class Carousel extends IzzyElement {
 
   // Where the track is: at its start, at its end (both when nothing scrolls).
   #ends(): [boolean, boolean] {
+    if (this.#fade) return [this.#index <= 0, this.#index >= this.#slides().length - 1];
     const t = this.#track!;
     const position = Math.abs(t.scrollLeft);
     return [position <= 1, position >= t.scrollWidth - t.clientWidth - 1];
@@ -98,6 +132,7 @@ class Carousel extends IzzyElement {
 
   // The slide whose start edge is nearest the track's.
   #current(slides: HTMLElement[]): number {
+    if (this.#fade) return Math.max(0, slides.findIndex((slide) => slide.hasAttribute("data-ib-shown")));
     const t = this.#track!.getBoundingClientRect();
     const rtl = this.#rtl();
     let best = 0;
@@ -115,6 +150,11 @@ class Carousel extends IzzyElement {
 
   #onClick(e: MouseEvent): void {
     const target = e.target as Element;
+    const rotation = target.closest<HTMLElement>(".ib-carousel-rotate");
+    if (rotation?.parentElement === this) {
+      this.#rotate(!this.#rotating);
+      return;
+    }
     const button = target.closest<HTMLElement>(".ib-carousel-prev, .ib-carousel-next");
     if (button?.parentElement === this) {
       if (button.getAttribute("aria-disabled") !== "true") this.#step(button.classList.contains("ib-carousel-next") ? 1 : -1);
@@ -142,6 +182,12 @@ class Carousel extends IzzyElement {
     const slides = this.#slides();
     if (!slides.length || !this.#track) return;
     const i = Math.max(0, Math.min(index, slides.length - this.#per(slides.length)));
+    if (this.#fade) {
+      // The main sheet stacks the slides and carousel.css fades in the shown one.
+      slides.forEach((slide, n) => slide.toggleAttribute("data-ib-shown", n === i));
+      this.#settle();
+      return;
+    }
     const t = this.#track.getBoundingClientRect();
     const r = slides[i].getBoundingClientRect();
     const delta = this.#rtl() ? r.right - t.right : r.left - t.left;
@@ -160,7 +206,10 @@ class Carousel extends IzzyElement {
     const from = track.scrollLeft;
     const max = track.scrollWidth - track.clientWidth;
     const to = this.#rtl() ? Math.max(-max, Math.min(0, from + delta)) : Math.max(0, Math.min(max, from + delta));
-    if (Math.abs(to - from) < 1) return;
+    if (Math.abs(to - from) < 1) {
+      this.#settle();
+      return;
+    }
     track.setAttribute("data-ib-sliding", "");
     const start = performance.now();
     const frame = (now: number): void => {
@@ -217,6 +266,10 @@ class Carousel extends IzzyElement {
     }
 
     // A slide counts as in view when more than half of it shows.
+    if (this.#fade) {
+      slides.forEach((slide, n) => (slide.inert = n !== index));
+      return;
+    }
     const t = this.#track.getBoundingClientRect();
     for (const slide of slides) {
       const r = slide.getBoundingClientRect();
@@ -232,8 +285,70 @@ class Carousel extends IzzyElement {
     this.#update();
     if (this.#index !== this.#reported) {
       this.#reported = this.#index;
+      if (!this.#auto) this.#announce();
       this.emit("iblayout", { layout: String(this.#index) });
     }
+    this.#auto = false;
+    this.#schedule();
+  }
+
+  // Says which slide a person moved to: its label, or "3 of 5".
+  #announce(): void {
+    const live = this.querySelector<HTMLElement>(":scope > [data-ib-live]");
+    const slide = this.#slides()[this.#index];
+    if (live && slide && !this.#rotating) live.textContent = slide.getAttribute("aria-label") ?? "";
+  }
+
+  // A fading carousel doesn't scroll: arrow keys, Home and End on the track, and a swipe, move it.
+  #fadeInput(track: HTMLElement, signal: AbortSignal): void {
+    track.addEventListener("keydown", (e) => {
+      const back = this.#rtl() ? "ArrowRight" : "ArrowLeft";
+      const on = this.#rtl() ? "ArrowLeft" : "ArrowRight";
+      if (e.key === on) this.#step(1);
+      else if (e.key === back) this.#step(-1);
+      else if (e.key === "Home") this.#go(0);
+      else if (e.key === "End") this.#go(this.#slides().length - 1);
+      else return;
+      e.preventDefault();
+    }, { signal });
+    let x: number | null = null;
+    track.addEventListener("pointerdown", (e) => (x = e.clientX), { signal });
+    track.addEventListener("pointerup", (e) => {
+      if (x === null) return;
+      const dx = e.clientX - x;
+      x = null;
+      if (Math.abs(dx) >= SWIPE_PX) this.#step((dx < 0) !== this.#rtl() ? 1 : -1);
+    }, { signal });
+  }
+
+  // Starts or stops the rotation, as its button shows.
+  #rotate(on: boolean): void {
+    this.#rotating = on;
+    this.toggleAttribute("data-ib-rotating", on);
+    const button = this.querySelector<HTMLElement>(":scope > .ib-carousel-rotate");
+    if (button) button.setAttribute("aria-label", (on ? button.dataset.ibStopLabel : button.dataset.ibStartLabel) ?? "");
+    // Moves the rotation makes aren't announced.
+    this.querySelector(":scope > [data-ib-live]")?.setAttribute("aria-live", on ? "off" : "polite");
+    this.#schedule();
+  }
+
+  #hovering(e: PointerEvent, over: boolean): void {
+    if (e.pointerType !== "mouse") return;
+    this.#hover = over;
+    this.#schedule();
+  }
+
+  // The next turn of the rotation, from now: none while stopped, hovered or hidden.
+  #schedule(): void {
+    clearTimeout(this.#tick);
+    if (!this.#rotating || this.#hover || document.hidden) return;
+    const slide = this.#slides()[this.#index];
+    const delay = parseInt(slide?.dataset.ibInterval ?? this.dataset.ibInterval ?? "", 10) || 5000;
+    this.#tick = window.setTimeout(() => {
+      const [, atEnd] = this.#ends();
+      this.#auto = true;
+      this.#go(atEnd ? 0 : this.#index + this.#per(this.#slides().length));
+    }, delay);
   }
 }
 

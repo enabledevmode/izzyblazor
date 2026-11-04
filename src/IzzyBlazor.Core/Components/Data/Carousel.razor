@@ -15,7 +15,8 @@
     the arrow keys move it even with no script. ItemsPerView shows several slides at once, per
     breakpoint; the buttons then move a page and the dots count pages. Loop wraps from the last
     slide to the first. @bind-Index follows the slide in view on an interactive page; a starting
-    Index other than 0 is scrolled to when the script runs.
+    Index other than 0 is scrolled to when the script runs. Autoplay moves on a slide every
+    Interval, with a button to stop it. Transition.Fade cross-fades one slide at a time.
 
     Accessibility:
     - A region named by Label, which is required, with "carousel" as its role description. Each
@@ -23,6 +24,11 @@
     - The previous and next buttons, then the slides, then the dots are in the Tab order. Slides
       out of view are inert, so Tab doesn't land on what can't be seen.
     - The dots are buttons named "Slide 3", the one in view marked as current.
+    - When a person moves the carousel, the slide they move to is announced.
+    - Autoplay adds a button that stops and starts the rotation, first in the Tab order. Rotation
+      pauses while the pointer is over the carousel, stops when focus moves into it (until the
+      button starts it again) and while the page is hidden, and doesn't start when the browser
+      asks for reduced motion.
     See also: CarouselItem, Image, Card.
 *@
 
@@ -30,8 +36,21 @@
              role="region" aria-roledescription="@TextDefaults.CarouselRole" aria-label="@Label"
              data-ib-index="@Index"
              data-ib-loop="@(Loop ? "" : null)"
+             data-ib-autoplay="@(Autoplay ? "" : null)"
+             data-ib-interval="@(Autoplay ? Milliseconds(Interval) : null)"
              @oniblayout="OnIndex" @oniblayout:stopPropagation>
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/carousel.css"]" />
+    @if (Autoplay)
+    {
+        @* Stopped as the page arrives; the script starts it. *@
+        <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-rotate"
+                aria-label="@TextDefaults.StartRotation"
+                data-ib-start-label="@TextDefaults.StartRotation"
+                data-ib-stop-label="@TextDefaults.StopRotation">
+            <Icon Role="IconRole.Play" Class="ib-carousel-play" />
+            <Icon Role="IconRole.Pause" Class="ib-carousel-pause" />
+        </button>
+    }
     @if (Arrows)
     {
         <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-prev"
@@ -54,6 +73,8 @@
             @DotsFragment
         }
     </CascadingValue>
+    @* The script says here which slide a person moved to. *@
+    <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
 </ib-carousel>
 
 @code {
@@ -88,6 +109,24 @@
     /// </summary>
     [Parameter] public CarouselDots Dots { get; set; }
 
+    /// <summary>
+    /// Moves on a slide every <see cref="Interval"/>, from the last back to the first, with a button
+    /// that stops and starts it. Needs script.
+    /// </summary>
+    [Parameter] public bool Autoplay { get; set; }
+
+    /// <summary>
+    /// How long each slide shows with <see cref="Autoplay"/>. Defaults to 5 seconds. A
+    /// <see cref="CarouselItem"/> can set its own.
+    /// </summary>
+    [Parameter] public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// How one slide gives way to the next: <see cref="CarouselTransition.Slide"/>, the default, or
+    /// <see cref="CarouselTransition.Fade"/>, which shows one slide at a time and cross-fades.
+    /// </summary>
+    [Parameter] public CarouselTransition Transition { get; set; }
+
     /// <summary>The <see cref="CarouselItem"/>s.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -103,7 +142,16 @@
     private int _startIndex;
 
     /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
-    internal int StartDot => _startIndex / Math.Max(1, ItemsPerView.Base);
+    internal int StartDot => Fade ? _startIndex : _startIndex / Math.Max(1, ItemsPerView.Base);
+
+    internal bool Fade => Transition == CarouselTransition.Fade;
+
+    /// <summary>Whether a slide is the one a fading carousel shows as the page arrives.</summary>
+    internal bool ShownAtStart(int index) => Fade && index == _startIndex;
+
+    internal static string Milliseconds(TimeSpan interval) => interval > TimeSpan.Zero
+        ? ((long)interval.TotalMilliseconds).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : throw new ArgumentOutOfRangeException(nameof(Interval), interval, "A Carousel's Interval must be longer than zero.");
 
     // CarouselDotList is internal, which markup can't name.
     private static readonly RenderFragment DotsFragment = builder =>
@@ -123,9 +171,15 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-carousel");
-        // The dots sit on the slide: asked for, or by default when one slide shows at every width.
-        classes.Add("ib-carousel-single", Dots == CarouselDots.Over || (Dots == CarouselDots.Auto && ItemsPerView.Entries.All(e => e.Value == 1)));
-        ApplyResponsive(classes, styles, ItemsPerView, "ib-carousel-per", "carousel-per", PerView);
+        classes.Add("ib-carousel-fade", Fade);
+        // The dots sit on the slide: asked for, or by default when one slide shows at every width
+        // (a fade always shows one).
+        classes.Add("ib-carousel-single", Dots == CarouselDots.Over || (Dots == CarouselDots.Auto && (Fade || ItemsPerView.Entries.All(e => e.Value == 1))));
+        if (!Fade)
+        {
+            ApplyResponsive(classes, styles, ItemsPerView, "ib-carousel-per", "carousel-per", PerView);
+        }
+
         ApplyResponsive(classes, styles, Gap, "ib-carousel-gap", "carousel-gap", StyleValues.Spacing);
         base.BuildAttributes(classes, styles);
     }

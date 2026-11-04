@@ -117,8 +117,11 @@ public enum IconRole
     /// <summary>A person with no photo or name, such as an empty avatar.</summary>
     Person,
 
-    /// <summary>Play a video.</summary>
+    /// <summary>Play a video, or start a carousel's rotation.</summary>
     Play,
+
+    /// <summary>Stop a carousel's rotation.</summary>
+    Pause,
 
     /// <summary>Upload a file.</summary>
     Upload,
@@ -180,6 +183,7 @@ public class IconSet
         IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,
         IconRole.Person => IzzyBlazor.Lucide.User,
         IconRole.Play => IzzyBlazor.Lucide.Play,
+        IconRole.Pause => IzzyBlazor.Lucide.Pause,
         IconRole.Upload => IzzyBlazor.Lucide.Upload,
         IconRole.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
         IconRole.Panel => IzzyBlazor.Lucide.PanelRight,
