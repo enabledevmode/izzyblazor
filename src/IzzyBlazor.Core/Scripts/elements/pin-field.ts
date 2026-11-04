@@ -50,13 +50,31 @@ class PinField extends IzzyElement {
         input.setSelectionRange(at, at + 1);
       }
     }, { signal });
-    // The caret goes after the last character, so the box with the ring is where typing goes.
-    const toEnd = () => requestAnimationFrame(() => {
-      if (document.activeElement === input) input.setSelectionRange(input.value.length, input.value.length);
+    // Tabbing in puts the caret after the last character, so the box with the ring is where typing
+    // goes. A click on a filled box selects its character, so the next key replaces it; a click on
+    // an empty one goes to the end, as typing can't skip a box.
+    let pointing = false;
+    const place = (x: number | null) => requestAnimationFrame(() => {
+      if (document.activeElement === input) {
+        const end = input.value.length;
+        // The box under the pointer, whichever way the boxes run; a gap between boxes is none.
+        const at = x === null ? -1 : all().findIndex((box) => {
+          const rect = box.getBoundingClientRect();
+          return x >= rect.left && x <= rect.right;
+        });
+        if (at >= 0 && at < end) input.setSelectionRange(at, at + 1);
+        else input.setSelectionRange(end, end);
+      }
       paint();
     });
-    input.addEventListener("focus", toEnd, { signal });
-    input.addEventListener("pointerup", toEnd, { signal });
+    input.addEventListener("pointerdown", () => (pointing = true), { signal });
+    input.addEventListener("focus", () => {
+      if (!pointing) place(null);
+    }, { signal });
+    input.addEventListener("pointerup", (event) => {
+      pointing = false;
+      place(event.clientX);
+    }, { signal });
     input.addEventListener("blur", paint, { signal });
     document.addEventListener("selectionchange", () => {
       if (document.activeElement === input) paint();
