@@ -1,0 +1,58 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@*
+    One slide of a Carousel. A group named "3 of 5", or by its Label.
+*@
+
+<div @attributes="AdditionalAttributes" id="@Id" class="@_class" style="@_style"
+     role="group" aria-roledescription="@TextDefaults.SlideRole"
+     aria-label="@(Label is { Length: > 0 } label ? label : string.Format(TextDefaults.SlideOf, Context!.IndexOf(this) + 1, Context.Count))">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Names the slide, such as "Lisbon". Without one, it's named by its place: "3 of 5".
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The slide's id.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>The slide's content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private CarouselContext? Context { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("CarouselItem must be inside a Carousel.");
+        }
+
+        Context.Register(this);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-carousel-item");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    // Slides came or went: the count in the name changed.
+    internal void Refresh() => StateHasChanged();
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

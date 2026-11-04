@@ -1,0 +1,21 @@
+@* Three slides that swipe, scroll with the arrow keys, and move with the buttons and dots. *@
+<Carousel Label="Getting started" Grow>
+    @foreach (var (title, text, color) in _slides)
+    {
+        <CarouselItem>
+            <Stack Gap="2" Padding="8" Bg="color" Radius="Radius.Md" MinHeight="Length.Rem(12)" Justify="Justify.Center">
+                <Heading Level="3" Size="TextSize.Lg">@title</Heading>
+                <TextBlock Color="Color.Muted">@text</TextBlock>
+            </Stack>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    private readonly (string Title, string Text, Color Color)[] _slides =
+    [
+        ("Install the package", "Add IzzyBlazor from NuGet and register it in Program.cs.", Color.PrimarySoft),
+        ("Add the stylesheet", "One link in App.razor brings the theme and every component's styles.", Color.SuccessSoft),
+        ("Build a page", "Components render on the server, so the page works before any script runs.", Color.WarningSoft),
+    ];
+}

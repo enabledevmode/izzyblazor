@@ -382,4 +382,26 @@
       display: none;
     }
   }
+
+  /* Carousel: the rest is in carousel.css, which shows it. With no script, or where its code
+     can't load, the track scrolls with its scrollbar and the buttons and dots don't show. */
+  .ib-carousel {
+    visibility: hidden;
+  }
+
+  @media (scripting: none) {
+    .ib-carousel > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+      display: none;
+    }
+  }
+
+  ib-carousel[data-ib-failed] > :is(.ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+    display: none;
+  }
+
+  @media (scripting: enabled) {
+    ib-carousel:not([data-ib-failed]) > .ib-carousel-track {
+      scrollbar-width: none;
+    }
+  }
 }

@@ -1,0 +1,152 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the slides scroll and swipe, and the previous and next buttons and dots don't show.")]
+
+@*
+    Slides in a row that scrolls a slide at a time, with previous and next buttons and a dot for
+    each slide.
+
+    <Carousel Label="Featured trips">
+        <CarouselItem><Image Src="lisbon.jpg" Alt="Lisbon's yellow trams" /></CarouselItem>
+        <CarouselItem><Image Src="kyoto.jpg" Alt="Kyoto at dusk" /></CarouselItem>
+    </Carousel>
+
+    The track is the browser's own scroller, snapping to each slide, so swiping, a trackpad and
+    the arrow keys move it even with no script. ItemsPerView shows several slides at once, per
+    breakpoint; the buttons then move a page and the dots count pages. Loop wraps from the last
+    slide to the first. @bind-Index follows the slide in view on an interactive page; a starting
+    Index other than 0 is scrolled to when the script runs.
+
+    Accessibility:
+    - A region named by Label, which is required, with "carousel" as its role description. Each
+      slide is a group named "3 of 5", or by its own Label.
+    - The previous and next buttons, then the slides, then the dots are in the Tab order. Slides
+      out of view are inert, so Tab doesn't land on what can't be seen.
+    - The dots are buttons named "Slide 3", the one in view marked as current.
+    See also: CarouselItem, Image, Card.
+*@
+
+<ib-carousel @attributes="AdditionalAttributes" class="@_class" style="@_style"
+             role="region" aria-roledescription="@TextDefaults.CarouselRole" aria-label="@Label"
+             data-ib-index="@Index"
+             data-ib-loop="@(Loop ? "" : null)"
+             @oniblayout="OnIndex" @oniblayout:stopPropagation>
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/carousel.css"]" />
+    @if (Arrows)
+    {
+        <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-prev"
+                aria-label="@TextDefaults.PreviousSlide" aria-controls="@TrackId"
+                aria-disabled="@(_startIndex == 0 && !Loop ? "true" : null)">
+            <Icon Role="IconRole.ChevronLeft" />
+        </button>
+        <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-next"
+                aria-label="@TextDefaults.NextSlide" aria-controls="@TrackId">
+            <Icon Role="IconRole.ChevronRight" />
+        </button>
+    }
+    @* Dots after the slides, so they render once every slide has registered. *@
+    <CascadingValue Value="_context" IsFixed="true">
+        <div class="ib-carousel-track" id="@TrackId" tabindex="0">
+            @ChildContent
+        </div>
+        @if (Dots)
+        {
+            @DotsFragment
+        }
+    </CascadingValue>
+</ib-carousel>
+
+@code {
+    /// <summary>
+    /// What the carousel shows, such as "Featured trips": its accessible name. Required.
+    /// </summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The slide in view (the first, when several show), from 0.</summary>
+    [Parameter] public int Index { get; set; }
+
+    /// <summary>Called with the slide in view when a person moves the carousel, on an interactive page.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<int> IndexChanged { get; set; }
+
+    /// <summary>How many slides show at once, per breakpoint. Defaults to 1.</summary>
+    [Parameter] public Responsive<int> ItemsPerView { get; set; }
+
+    /// <summary>Space between slides, in spacing steps (0 to 16), per breakpoint. Defaults to 4.</summary>
+    [Parameter] public Responsive<int> Gap { get; set; }
+
+    /// <summary>Wraps from the last slide to the first, and back.</summary>
+    [Parameter] public bool Loop { get; set; }
+
+    /// <summary>Shows the previous and next buttons. Defaults to true.</summary>
+    [Parameter] public bool Arrows { get; set; } = true;
+
+    /// <summary>Shows a dot for each slide (each page, with several in view). Defaults to true.</summary>
+    [Parameter] public bool Dots { get; set; } = true;
+
+    /// <summary>The <see cref="CarouselItem"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _trackId = IdGenerator.Next("ib-carousel");
+    private CarouselContext _context = null!;
+    private string? _class;
+    private string? _style;
+
+    internal string TrackId => _trackId;
+
+    // The buttons' and dots' state as the page arrives. The script keeps it after that, so later
+    // renders draw the same and Blazor's diff never undoes it.
+    private int _startIndex;
+
+    /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
+    internal int StartDot => _startIndex / Math.Max(1, ItemsPerView.Base);
+
+    // CarouselDots is internal, which markup can't name.
+    private static readonly RenderFragment DotsFragment = builder =>
+    {
+        builder.OpenComponent<CarouselDots>(0);
+        builder.CloseComponent();
+    };
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _context = new CarouselContext(this);
+        _startIndex = Math.Max(0, Index);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-carousel");
+        ApplyResponsive(classes, styles, ItemsPerView, "ib-carousel-per", "carousel-per", PerView);
+        ApplyResponsive(classes, styles, Gap, "ib-carousel-gap", "carousel-gap", StyleValues.Spacing);
+        base.BuildAttributes(classes, styles);
+    }
+
+    private static string PerView(int count) => count is >= 1 and <= 12
+        ? count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : throw new ArgumentOutOfRangeException(nameof(ItemsPerView), count, "Carousel's ItemsPerView goes from 1 to 12.");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Carousel needs a Label, its accessible name, such as \"Featured trips\".");
+        }
+
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // The script reports the slide in view when a move settles, on an interactive page.
+    private async Task OnIndex(IzzyLayoutEventArgs e)
+    {
+        if (int.TryParse(e.Layout, System.Globalization.CultureInfo.InvariantCulture, out var index) && index != Index)
+        {
+            Index = index;
+            await IndexChanged.InvokeAsync(index);
+        }
+    }
+}

@@ -1,0 +1,26 @@
+@* One card on a phone, two from Sm and three from Lg; the buttons move a page, and it loops. *@
+<Carousel Label="Plans" ItemsPerView="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="4" Loop Grow>
+    @foreach (var (name, price, text) in _plans)
+    {
+        <CarouselItem Label="@name">
+            <Card Height="Length.Full">
+                <CardBody>
+                    <TextBlock Weight="FontWeight.Semibold">@name</TextBlock>
+                    <TextBlock Size="TextSize.Xl2" Weight="FontWeight.Bold">@price</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@text</TextBlock>
+                </CardBody>
+            </Card>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    private readonly (string Name, string Price, string Text)[] _plans =
+    [
+        ("Hobby", "$0", "One project and community support."),
+        ("Starter", "$9", "Five projects and email support."),
+        ("Team", "$29", "Unlimited projects for up to ten people."),
+        ("Business", "$79", "Single sign-on and audit logs."),
+        ("Enterprise", "Custom", "A contract, an agreed uptime and a named contact."),
+    ];
+}
