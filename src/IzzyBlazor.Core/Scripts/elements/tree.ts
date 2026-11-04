@@ -49,6 +49,10 @@ class Tree extends IzzyElement {
         const details = this.#detailsOf(this.#byKey(key));
         if (details) details.open = open;
       }
+      // Open as the page came (the current item's branch): kept open as you move on.
+      for (const li of this.#items) {
+        if (li.dataset.ibKey && this.#detailsOf(li)?.open && !remembered.has(li.dataset.ibKey)) remembered.set(li.dataset.ibKey, true);
+      }
     }
 
     // By hand: a summary's click (mouse, or Enter and Space on it) and the tree's keys.
@@ -89,20 +93,48 @@ class Tree extends IzzyElement {
       },
       { signal }
     );
+    // Branches that arrived open, before this script was here to hear them open.
+    for (const item of this.querySelectorAll<HTMLElement>("li[data-ib-lazy]")) {
+      const details = this.#detailsOf(item);
+      if (!details?.open || item.closest("ib-tree") !== this) continue;
+      if (interactive) {
+        if (item.dataset.ibKey) this.emit("ibtoggle", { id: item.dataset.ibKey, open: true, seq: 0 });
+      } else this.#load(item, signal);
+    }
     this.querySelector<HTMLInputElement>(":scope > .ib-tree-search [data-ib-tree-search]")?.addEventListener("input", (event) => this.#search((event.target as HTMLInputElement).value), { signal });
     signal.addEventListener("abort", () => CSS.highlights?.delete("ib-tree-match"));
 
     this.#selects = this.hasAttribute("data-ib-select");
     if (!this.#selects) return;
     this.#prepare();
-    if (this.hasAttribute("data-ib-cascade")) this.#mixAll();
+    if (this.hasAttribute("data-ib-cascade")) {
+      if (!interactive) {
+        this.#syncing = true;
+        for (const li of this.#items) {
+          if (!this.#boxOf(li)?.checked) continue;
+          for (const below of li.querySelectorAll<HTMLElement>(":scope > details li")) {
+            const own = this.#boxOf(below);
+            if (own) this.#set(own, true);
+          }
+        }
+        this.#syncing = false;
+      }
+      this.#mixAll();
+    }
     this.#syncAll();
-    // Blazor adds and changes items on interactive pages.
-    const observer = new MutationObserver(() => {
+    // Blazor adds and changes items on interactive pages, and redraws their state when the
+    // selection changes from code (it sets the boxes' checked, which fires nothing).
+    const observer = new MutationObserver((records) => {
+      if (records.some((r) => r.type === "attributes")) {
+        for (const li of this.#items) {
+          const box = this.#boxOf(li);
+          if (box) box.indeterminate = li.dataset.ibChecked === "mixed";
+        }
+      }
       this.#prepare();
       this.#syncAll();
     });
-    observer.observe(list, { childList: true, subtree: true });
+    observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-checked"] });
     signal.addEventListener("abort", () => observer.disconnect());
 
     list.addEventListener("keydown", (event) => this.#onKey(event), { signal });
@@ -408,6 +440,8 @@ class Tree extends IzzyElement {
       if (ranges.length) CSS.highlights.set("ib-tree-match", new Highlight(...ranges));
       else CSS.highlights.delete("ib-tree-match");
     }
+    // The Tab stop may have been hidden.
+    if (this.#selects) this.#prepare();
     const found = this.querySelector<HTMLElement>(":scope > [data-ib-tree-found]");
     if (found) found.textContent = query && !items.some((li) => !li.hidden) ? this.dataset.ibNoMatches ?? "" : "";
   }

@@ -129,7 +129,7 @@ export function trackDrag(options: SortOptions): void {
     refusing = options.refusing?.() ?? [];
     for (const t of targets) {
       const tb = t.list.getBoundingClientRect();
-      const els = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement);
+      const els = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement && !el.hidden);
       const style = getComputedStyle(t.list);
       columns.set(t.list, {
         els,
@@ -369,7 +369,7 @@ export function trackDrag(options: SortOptions): void {
 export function unitsOf(list: Element): HTMLElement[][] {
   const units: HTMLElement[][] = [];
   for (const el of list.children) {
-    if (!(el instanceof HTMLElement)) continue;
+    if (!(el instanceof HTMLElement) || el.hidden) continue;
     if (el.hasAttribute("data-ib-follows") && units.length) units[units.length - 1].push(el);
     else units.push([el]);
   }

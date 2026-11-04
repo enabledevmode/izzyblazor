@@ -82,14 +82,12 @@
         <div class="ib-pick-list-panes">
             @Pane("available", TextDefaults.PickAvailable, Available)
             <div class="ib-pick-list-moves" role="group" aria-label="@ResolvedLabel">
+                @* The selected first, each way, then everything, each way (as Radzen). *@
                 <IconButton Icon="Lucide.ChevronRight" Label="@TextDefaults.PickMoveToChosen" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="chosen" />
-                @if (AllowMoveAll)
-                {
-                    <IconButton Icon="Lucide.ChevronsRight" Label="@TextDefaults.PickMoveAllToChosen" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="all-chosen" />
-                }
                 <IconButton Icon="Lucide.ChevronLeft" Label="@TextDefaults.PickMoveToAvailable" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="available" />
                 @if (AllowMoveAll)
                 {
+                    <IconButton Icon="Lucide.ChevronsRight" Label="@TextDefaults.PickMoveAllToChosen" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="all-chosen" />
                     <IconButton Icon="Lucide.ChevronsLeft" Label="@TextDefaults.PickMoveAllToAvailable" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Disabled="IsDisabled" data-ib-move="all-available" />
                 }
             </div>
@@ -193,6 +191,11 @@
                         <input type="search" class="ib-field-input" aria-label="@($"{SearchLabel ?? TextDefaults.Search}, {heading}")" placeholder="@(SearchLabel ?? TextDefaults.Search)" autocomplete="off" disabled="@IsDisabled" data-ib-pick-search />
                     </div>
                 </div>
+            }
+            @if (Searchable)
+            {
+                @* Shown by the script when a search matches nothing; read from the status. *@
+                <div class="ib-pick-list-none" role="status" hidden>@TextDefaults.NoMatches</div>
             }
             <ul class="ib-pick-list-list" role="listbox" aria-multiselectable="true" aria-labelledby="@($"{LabelId} {headingId}")" tabindex="-1">
                 @foreach (var item in items)

@@ -45,7 +45,8 @@
       that says whether it's open. A link with children has a separate button after it, named by
       the item, so Tab reaches the link, then its button.
     - The current item (`ItemCurrent`) is marked `aria-current` ("page" on a link).
-    - A disabled item (`ItemDisabled`) has no link or box, and is dimmed; its children still open.
+    - A disabled item (`ItemDisabled`) has no link, or its box is disabled, and it's dimmed; its
+      children still open.
     - In a tree of links, Tab goes through the links and buttons in order. Arrow keys don't move
       through it: a list of links is read and reached as one.
     - With `SelectionMode` and script, it's an ARIA `tree` (give it an `AriaLabel`): one Tab stop,
@@ -72,7 +73,7 @@
          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
          data-ib-tree-key="@(FetchesChildren ? TreeKey : null)"
          data-ib-no-matches="@(Searchable ? TextDefaults.NoMatches : null)"
-         @onibtoggle="OnToggle" @onibtoggle:stopPropagation="true">
+         @onibtoggle="OnToggle">
     @if (_answer is not null)
     {
         @* A page-fetch for one branch's children: the script takes this list into the branch. *@
@@ -184,7 +185,7 @@
     /// <summary>Starts an item's children open.</summary>
     [Parameter] public Func<TItem, bool>? ItemExpanded { get; set; }
 
-    /// <summary>Dims an item and takes away its link or box. Its children still open.</summary>
+    /// <summary>Dims an item and takes away its link, or disables its box. Its children still open.</summary>
     [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
 
     /// <summary>
@@ -294,7 +295,16 @@
         }
 
         _roots = Build(Items, 1, false);
+
+        // The boxes a checked parent checks are part of the selection, so a change starts from them.
+        if (Multiple && Cascade)
+        {
+            _selected = [.. Checked(_roots)];
+        }
     }
+
+    private static IEnumerable<string> Checked(List<Node> nodes) =>
+        nodes.SelectMany(n => (n.Selected && n.Key is not null ? [n.Key] : Array.Empty<string>()).Concat(Checked(n.Children)));
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -326,7 +336,8 @@
         foreach (var item in items)
         {
             var key = ItemKey?.Invoke(item);
-            var selected = key is not null && Selects && (_selected.Contains(key) || (parentChecked && Multiple && Cascade));
+            var selected = key is not null && Selects
+                           && (_selected.Contains(key) || (parentChecked && Multiple && Cascade && RendererInfo.IsInteractive));
             var children = ItemChildren is null ? [] : Build(ItemChildren(item), depth + 1, selected);
             var lazy = false;
             if (children.Count == 0 && key is not null && Lazy && ItemHasChildren!(item))
@@ -343,9 +354,10 @@
 
             // A checked parent says its branch is checked: it doesn't open to show it.
             var holds = children.Exists(c => c.Current || c.Holds || (c.Selected && !(selected && Cascade)));
+            var mixed = Multiple && Cascade && !selected && children.Exists(c => c.Selected || c.Mixed);
             var open = (children.Count > 0 || lazy)
                        && (holds || ItemExpanded?.Invoke(item) == true || (key is not null && _expanded?.Contains(key) == true));
-            nodes.Add(new Node(item, key, children, ItemCurrent?.Invoke(item) == true, selected, holds, open, lazy));
+            nodes.Add(new Node(item, key, children, ItemCurrent?.Invoke(item) == true, selected, holds, open, lazy) { Mixed = mixed });
         }
 
         return nodes;
@@ -362,7 +374,10 @@
         var item = node.Item;
         var disabled = ItemDisabled?.Invoke(item) == true;
         var href = disabled ? null : ItemHref?.Invoke(item);
-        <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key" data-ib-lazy="@(node.Lazy ? "" : null)">
+        @* data-ib-checked: the box's state as C# has it, so the script can redraw a parent's mixed
+           box and the item's ARIA state when the selection changes from code. *@
+        <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key" data-ib-lazy="@(node.Lazy ? "" : null)"
+            data-ib-checked="@(Selects ? (node.Selected ? "on" : node.Mixed ? "mixed" : "off") : null)">
             @if (!node.HasChildren)
             {
                 @Row(node, href, disabled, toggle: false)
@@ -506,7 +521,8 @@
 
     private async Task OnToggle(IzzyToggleEventArgs e)
     {
-        if (e.Id is null)
+        // Only this tree's items: a Collapsible or Menu in a template reports its own.
+        if (e.Id is null || Find(_roots, e.Id) is null)
         {
             return;
         }
@@ -574,5 +590,7 @@
     private sealed record Node(TItem Item, string? Key, List<Node> Children, bool Current, bool Selected, bool Holds, bool Open, bool Lazy)
     {
         public bool HasChildren => Children.Count > 0 || Lazy;
+
+        public bool Mixed { get; init; }
     }
 }

@@ -3407,6 +3407,16 @@
     display: none;
   }
 
+  .ib-pick-list-select {
+    height: auto;
+    padding-block: var(--ib-space-1);
+  }
+
+  .ib-pick-list-none {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
   .ib-pick-list-panes {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
