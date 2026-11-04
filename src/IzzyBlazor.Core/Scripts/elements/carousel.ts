@@ -2,6 +2,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
 
 // How long the track must be still before a move counts as settled, where scrollend isn't fired.
 const SETTLE_MS = 150;
+// A button's or dot's move. The script animates it rather than asking for a smooth scroll, which
+// Chrome on Windows turns into a jump when the system's animation effects are off.
+const SLIDE_MS = 400;
 
 /**
  * <ib-carousel> is a thin layer over a Carousel's track, which the server renders as a scroller
@@ -17,6 +20,7 @@ class Carousel extends IzzyElement {
   #reported = 0;
   #frame = 0;
   #timer = 0;
+  #slide = 0;
 
   protected setup(signal: AbortSignal): void {
     const track = this.querySelector<HTMLElement>(":scope > .ib-carousel-track");
@@ -31,6 +35,8 @@ class Carousel extends IzzyElement {
       this.#timer = window.setTimeout(() => this.#settle(), SETTLE_MS);
     }, { signal, passive: true });
     track.addEventListener("scrollend", () => this.#settle(), { signal });
+    // A touch, wheel or key during a move hands the track back to the person.
+    for (const type of ["pointerdown", "wheel", "keydown"]) track.addEventListener(type, () => this.#stop(), { signal, passive: true });
 
     const sizes = new ResizeObserver(() => this.#update());
     sizes.observe(track);
@@ -48,11 +54,12 @@ class Carousel extends IzzyElement {
       index.disconnect();
       cancelAnimationFrame(this.#frame);
       clearTimeout(this.#timer);
+      this.#stop();
     });
 
     const start = this.#wanted();
     this.#reported = start;
-    if (start > 0) this.#go(start, "instant");
+    if (start > 0) this.#go(start, true);
     this.#update();
   }
 
@@ -131,18 +138,47 @@ class Carousel extends IzzyElement {
     else this.#go(this.#index + direction * per);
   }
 
-  #go(index: number, behavior?: ScrollBehavior): void {
+  #go(index: number, instant?: boolean): void {
     const slides = this.#slides();
     if (!slides.length || !this.#track) return;
     const i = Math.max(0, Math.min(index, slides.length - this.#per(slides.length)));
     const t = this.#track.getBoundingClientRect();
     const r = slides[i].getBoundingClientRect();
     const delta = this.#rtl() ? r.right - t.right : r.left - t.left;
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const how = behavior ?? (reduce ? "instant" : "smooth");
-    this.#track.scrollBy({ left: delta, behavior: how });
-    // An instant jump has landed already: draw it now rather than on the next scroll event.
-    if (how === "instant") this.#settle();
+    this.#stop();
+    if (instant || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      this.#track.scrollBy({ left: delta, behavior: "instant" });
+      // It has landed already: draw it now rather than on the next scroll event.
+      this.#settle();
+      return;
+    }
+    this.#animate(this.#track, delta);
+  }
+
+  // Eases the track by delta, with snapping off until it lands (snapping would pull each frame back).
+  #animate(track: HTMLElement, delta: number): void {
+    const from = track.scrollLeft;
+    const max = track.scrollWidth - track.clientWidth;
+    const to = this.#rtl() ? Math.max(-max, Math.min(0, from + delta)) : Math.max(0, Math.min(max, from + delta));
+    if (Math.abs(to - from) < 1) return;
+    track.setAttribute("data-ib-sliding", "");
+    const start = performance.now();
+    const frame = (now: number): void => {
+      const p = Math.min(1, (now - start) / SLIDE_MS);
+      track.scrollLeft = from + (to - from) * (1 - (1 - p) ** 3);
+      if (p < 1) this.#slide = requestAnimationFrame(frame);
+      else {
+        this.#stop();
+        this.#settle();
+      }
+    };
+    this.#slide = requestAnimationFrame(frame);
+  }
+
+  #stop(): void {
+    cancelAnimationFrame(this.#slide);
+    this.#slide = 0;
+    this.#track?.removeAttribute("data-ib-sliding");
   }
 
   // Marks the current dot, hides the dots past the last page, turns off the buttons at the ends,
@@ -191,6 +227,8 @@ class Carousel extends IzzyElement {
 
   #settle(): void {
     clearTimeout(this.#timer);
+    // Mid-move, each frame's scroll ends; report once it lands.
+    if (this.#slide) return;
     this.#update();
     if (this.#index !== this.#reported) {
       this.#reported = this.#index;
