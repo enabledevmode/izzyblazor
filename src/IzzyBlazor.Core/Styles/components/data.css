@@ -2293,8 +2293,9 @@
     cursor: grabbing;
   }
 
-  /* :enabled, to outweigh the open hand's rule. */
-  .ib-sortable-sorting .ib-sortable-handle:enabled {
+  /* Closed from the press, before the drag begins; :enabled, to outweigh the open hand's rule. */
+  .ib-sortable-sorting .ib-sortable-handle:enabled,
+  .ib-sortable-handle:enabled:active {
     cursor: grabbing;
   }
 
