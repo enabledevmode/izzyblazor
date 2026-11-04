@@ -1,0 +1,170 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@*
+    One pane of a Splitter. Every pane after the first draws the bar before it, which resizes it
+    and the pane before.
+*@
+
+@if (Context?.Before(this) is { } before)
+{
+    var movable = !Context.Owner.Disabled && before.Resizable && Resizable;
+    var target = before.Collapsible ? before : Collapsible ? this : null;
+    <div class="ib-split-gutter">
+        @if (movable)
+        {
+            <div class="ib-split-bar" role="separator" tabindex="0"
+                 aria-orientation="@(Context.Vertical ? "horizontal" : "vertical")"
+                 aria-controls="@before.PaneId"
+                 aria-label="@(before.Label is { Length: > 0 } label ? string.Format(TextDefaults.ResizePane, label) : TextDefaults.Resize)"></div>
+        }
+        else
+        {
+            <div class="ib-split-bar" data-ib-fixed></div>
+        }
+        @if (target is not null && !Context.Owner.Disabled)
+        {
+            var collapsed = target.IsCollapsed;
+            var name = target.Label ?? "";
+            <button type="button" class="ib-split-collapse" tabindex="-1"
+                    aria-controls="@target.PaneId"
+                    aria-label="@string.Format(collapsed ? TextDefaults.ExpandPane : TextDefaults.CollapsePane, name).Trim()"
+                    data-ib-collapse-label="@string.Format(TextDefaults.CollapsePane, name).Trim()"
+                    data-ib-expand-label="@string.Format(TextDefaults.ExpandPane, name).Trim()"
+                    data-ib-target="@(target == this ? "after" : "before")"
+                    data-ib-collapsed="@(collapsed ? "" : null)">
+                <Icon Role="@(Context.Vertical ? (target == this ? IconRole.ChevronDown : IconRole.ChevronUp) : (target == this ? IconRole.ChevronRight : IconRole.ChevronLeft))" />
+            </button>
+        }
+    </div>
+}
+<div @attributes="AdditionalAttributes" id="@PaneId" class="@_class" style="@_style"
+     hidden="@IsCollapsed"
+     data-ib-unit="@_unit"
+     data-ib-collapsible="@(Collapsible ? "" : null)">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// The size the pane starts at: <c>Length.Rem(16)</c>, <c>Length.Px(240)</c>,
+    /// <c>Length.Percent(35)</c>. A pane with none fills what's left. When dragged, a percentage
+    /// stays a percentage, so the pane keeps its share as the window resizes; other lengths are held
+    /// in pixels.
+    /// </summary>
+    [Parameter] public Length? Size { get; set; }
+
+    /// <summary>The smallest the pane can be made.</summary>
+    [Parameter] public Length? Min { get; set; }
+
+    /// <summary>The largest the pane can be made.</summary>
+    [Parameter] public Length? Max { get; set; }
+
+    /// <summary>
+    /// Lets the pane collapse: Enter on the bar beside it, a double-click on the bar, its button on
+    /// the bar, or dragging the bar past its <see cref="Min"/>.
+    /// </summary>
+    [Parameter] public bool Collapsible { get; set; }
+
+    /// <summary>Collapses the pane. The bar stays, so it can be restored.</summary>
+    [Parameter] public bool Collapsed { get; set; }
+
+    /// <summary>Called when a person collapses or restores the pane, on an interactive page.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<bool> CollapsedChanged { get; set; }
+
+    /// <summary>Lets the bars beside the pane move it. Defaults to true.</summary>
+    [Parameter] public bool Resizable { get; set; } = true;
+
+    /// <summary>
+    /// What the pane holds, such as "Folders". It names the bar after the pane ("Resize Folders")
+    /// and its collapse button.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The pane's id. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>The content. It scrolls inside the pane when it doesn't fit.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private SplitterContext? Context { get; set; }
+
+    private readonly string _generatedId = IdGenerator.Next("ib-pane");
+    private string? _class;
+    private string? _style;
+    private string? _unit;
+    private string? _size;
+
+    internal string PaneId => Id ?? _generatedId;
+
+    // What the cookie or a person's move said, until the page sets Collapsed itself.
+    private bool? _keptCollapsed;
+    private bool _lastCollapsed;
+
+    internal bool IsCollapsed => Collapsible && (_keptCollapsed ?? Collapsed);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("SplitterPane must be inside a Splitter.");
+        }
+
+        Context.Register(this);
+        _keptCollapsed = Context.KeptCollapsed(this);
+        _lastCollapsed = Collapsed;
+    }
+
+    // The splitter took a new layout from the script: draw it, and tell a bound Collapsed.
+    internal void Refresh()
+    {
+        var was = IsCollapsed;
+        _keptCollapsed = Context!.KeptCollapsed(this);
+        Compute();
+        if (IsCollapsed != was && CollapsedChanged.HasDelegate)
+        {
+            _ = CollapsedChanged.InvokeAsync(IsCollapsed);
+        }
+
+        StateHasChanged();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        var size = _size;
+        classes.Add("ib-split-pane");
+        classes.Add("ib-split-fill", size is null);
+        if (size is not null) styles.AddVar("pane-size", size);
+        if (Min is { } min) styles.AddVar("pane-min", min.Css);
+        if (Max is { } max) styles.AddVar("pane-max", max.Css);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Collapsed != _lastCollapsed)
+        {
+            _lastCollapsed = Collapsed;
+            _keptCollapsed = null;
+        }
+
+        Compute();
+    }
+
+    private void Compute()
+    {
+        // A kept size wins, also on a pane that fills by default (a bar between two that fill
+        // gives the first a share).
+        _size = Context?.KeptSize(this) ?? Size?.Css;
+        _unit = _size is null ? null : _size.EndsWith('%') ? "%" : "px";
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

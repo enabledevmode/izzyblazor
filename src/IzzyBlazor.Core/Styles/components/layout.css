@@ -210,4 +210,176 @@
     margin-inline-start: calc(-1 * var(--ib-bleed-pad, 0px));
     padding-inline: var(--ib-bleed-pad, 0px);
   }
+
+  /* Splitter: panes in a flex row (or column), sized on the server. A pane's size is its basis,
+     held between its min and max; a pane with none fills. The bar's line is 1px; its hit area is
+     wider and lies over the panes' edges. */
+  .ib-splitter {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ib-splitter-v {
+    flex-direction: column;
+  }
+
+  .ib-split-pane {
+    flex: 0 1 var(--ib-pane-size);
+    min-inline-size: var(--ib-pane-min, 0);
+    max-inline-size: var(--ib-pane-max, none);
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ib-splitter-v > .ib-split-pane {
+    min-inline-size: 0;
+    max-inline-size: none;
+    min-block-size: var(--ib-pane-min, 0);
+    max-block-size: var(--ib-pane-max, none);
+  }
+
+  .ib-split-fill,
+  .ib-splitter:not(:has(> .ib-split-fill)) > .ib-split-pane:last-child {
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+
+  /* A filling pane the script has given a size (a bar between two that fill). */
+  .ib-split-fill[data-ib-unit] {
+    flex: 0 1 var(--ib-pane-size);
+  }
+
+  .ib-split-pane[hidden] {
+    display: none;
+  }
+
+  .ib-split-gutter {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    inline-size: var(--ib-splitter-bar, 1px);
+    background: var(--ib-color-border);
+  }
+
+  .ib-splitter-v > .ib-split-gutter {
+    inline-size: auto;
+    block-size: var(--ib-splitter-bar, 1px);
+  }
+
+  .ib-split-bar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline: -0.25rem;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .ib-splitter-v > .ib-split-gutter > .ib-split-bar {
+    inset-block: -0.25rem;
+    inset-inline: 0;
+    cursor: row-resize;
+  }
+
+  .ib-split-bar[data-ib-fixed],
+  .ib-splitter[data-ib-disabled] .ib-split-bar {
+    cursor: auto;
+  }
+
+  /* The line thickens on hover, while dragging and with focus. */
+  .ib-split-bar:not([data-ib-fixed]):is(:hover, :focus-visible, [data-ib-dragging])::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline: calc(0.25rem - 1px);
+    background: var(--ib-color-focus, var(--ib-color-primary));
+  }
+
+  .ib-splitter-v > .ib-split-gutter > .ib-split-bar:not([data-ib-fixed]):is(:hover, :focus-visible, [data-ib-dragging])::after {
+    inset-block: calc(0.25rem - 1px);
+    inset-inline: 0;
+  }
+
+  .ib-split-bar:focus-visible {
+    outline: none;
+  }
+
+  .ib-splitter[data-ib-resizing] {
+    user-select: none;
+  }
+
+  .ib-splitter[data-ib-resizing] > .ib-split-pane {
+    pointer-events: none;
+  }
+
+  /* A collapsible pane's button, in the middle of the bar. */
+  .ib-split-collapse {
+    position: absolute;
+    inset-block-start: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+    inline-size: 1rem;
+    block-size: 2rem;
+    padding: 0;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-sm);
+    background: var(--ib-color-surface);
+    color: var(--ib-color-muted);
+    cursor: pointer;
+    --ib-icon-size: 0.75rem;
+  }
+
+  .ib-splitter-v > .ib-split-gutter > .ib-split-collapse {
+    inline-size: 2rem;
+    block-size: 1rem;
+  }
+
+  /* Beside a collapsed pane at an edge, the button sits inside the splitter, not half outside. */
+  .ib-split-pane[hidden] + .ib-split-gutter > .ib-split-collapse {
+    left: auto;
+    inset-inline-start: 0;
+    translate: 0 -50%;
+  }
+
+  .ib-split-gutter:has(+ .ib-split-pane[hidden]) > .ib-split-collapse {
+    left: auto;
+    inset-inline-end: 0;
+    translate: 0 -50%;
+  }
+
+  .ib-splitter-v > .ib-split-pane[hidden] + .ib-split-gutter > .ib-split-collapse {
+    left: 50%;
+    inset-inline-end: auto;
+    inset-block-start: 0;
+    translate: -50% 0;
+  }
+
+  .ib-splitter-v > .ib-split-gutter:has(+ .ib-split-pane[hidden]) > .ib-split-collapse {
+    left: 50%;
+    inset-inline-end: auto;
+    inset-block: auto 0;
+    translate: -50% 0;
+  }
+
+  .ib-split-collapse:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-split-collapse[data-ib-collapsed] > svg {
+    rotate: 180deg;
+  }
+
+  :dir(rtl) .ib-split-collapse > svg {
+    scale: -1 1;
+  }
+
+  @media (scripting: none) {
+    .ib-split-collapse {
+      display: none;
+    }
+  }
 }
