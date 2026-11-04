@@ -14,8 +14,9 @@
 <ExampleViewer Example="barcode-product" />
 
 <Heading Level="2">Size and print</Heading>
-<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need; in a narrower box it shrinks, keeping its shape, but below about 1.5px a bar a phone's camera may not read it, so give it the room or a shorter value. For print, set it in millimetres: EAN's standard is 0.33mm, and 0.264mm is the smallest that scans reliably. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins either side are part of the barcode: scanners need them, so keep other things out of them.</TextBlock>
-<TextBlock>Screen readers hear "Barcode" and the value. For a name that says what it's for, set <Code>Label</Code>; when the value is written beside it, set <Code>Decorative</Code>. The name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}").</TextBlock>
+<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. In a narrower box it shrinks, keeping its shape, but below about 1.5px per bar a phone's camera may not read it, so give it the room or a shorter value. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins either side are part of the barcode: scanners need them, so keep other things out of them.</TextBlock>
+<TextBlock>For print, set <Code>ModuleWidth</Code> in millimetres, <Code>Length.Of("0.33mm")</Code>: that's EAN's standard size, and GS1 permits down to 0.264mm. A full-height EAN-13 at that size has a <Code>BarHeight</Code> of about 69; shorter bars are harder for retail scanners.</TextBlock>
+<TextBlock>Screen readers hear "Barcode" and the value. To say what it's for, set <Code>Label</Code>, such as "Tracking number": the name becomes "Tracking number, SHIP-2026-0417". When the value is written beside it, set <Code>Decorative</Code>. With no value yet, such as while the page loads it, nothing is drawn; a value the type can't hold, such as an EAN with the wrong check digit, is an error. The name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}").</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

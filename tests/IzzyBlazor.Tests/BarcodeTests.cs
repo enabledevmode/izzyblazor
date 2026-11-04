@@ -39,4 +39,12 @@ public class BarcodeTests : BunitContext
         Assert.Equal("true", svg.QuerySelector(".ib-barcode-text")!.GetAttribute("aria-hidden"));
         Assert.Equal(13, svg.QuerySelectorAll("text").Length);
     }
+
+    // A value still loading draws nothing rather than failing the page; a label keeps the value in the name.
+    [Fact]
+    public void Draws_nothing_without_a_value_and_a_label_keeps_the_value()
+    {
+        Assert.Empty(Render<Barcode>(p => p.Add(b => b.Value, null!)).Markup.Trim());
+        Assert.Equal("Tracking number, SHIP-1", Render<Barcode>(p => p.Add(b => b.Value, "SHIP-1").Add(b => b.Label, "Tracking number")).Find("svg").GetAttribute("aria-label"));
+    }
 }
