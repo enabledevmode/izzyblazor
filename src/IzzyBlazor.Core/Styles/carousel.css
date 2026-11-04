@@ -48,6 +48,11 @@
     border-radius: var(--ib-radius-md);
   }
 
+  /* The script's move: snapping would pull each frame back. */
+  .ib-carousel-track[data-ib-sliding] {
+    scroll-snap-type: none;
+  }
+
   .ib-carousel-track:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
@@ -66,8 +71,14 @@
     top: calc(50% - var(--ib-carousel-dots-h, 0px) / 2);
     translate: 0 -50%;
     border-radius: var(--ib-radius-full);
-    background: var(--ib-color-surface-overlay);
+    background: color-mix(in oklab, var(--ib-color-surface-overlay) 60%, transparent);
+    backdrop-filter: blur(6px);
     box-shadow: var(--ib-shadow-sm);
+  }
+
+  .ib-carousel-prev:hover,
+  .ib-carousel-next:hover {
+    background: var(--ib-color-surface-overlay);
   }
 
   .ib-carousel-prev { inset-inline-start: var(--ib-space-2); }
