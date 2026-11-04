@@ -1844,6 +1844,12 @@
       ]
     },
     {
+      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "barcode", "scan", "two-factor", "authenticator"],
+      "examples": [
+        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code is drawn on the server as an SVG, with no script. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for anyone without a camera." }
+      ]
+    },
+    {
       "id": "image", "icon": "Image", "name": "Image", "category": "Data display", "summary": "Loads an image lazily and keeps its space.",
       "examples": [
         { "id": "image-fit", "title": "Ratio and fit", "lead": "A ratio gives the image a fixed shape, whatever the picture's own. Set `Ratio`. To choose whether the image fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
