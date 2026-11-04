@@ -1,0 +1,10 @@
+@* An editor over its output, stacked; the output pane collapses. *@
+<Splitter Orientation="Orientation.Vertical" Height="Length.Rem(20)" Border="1" Radius="Radius.Md" Grow>
+    <SplitterPane Label="Editor" Min="Length.Rem(5)">
+        <Code Block Language="csharp">var total = orders.Sum(o => o.Amount);
+Console.WriteLine($"Total: {total:C}");</Code>
+    </SplitterPane>
+    <SplitterPane Label="Output" Size="Length.Percent(35)" Min="Length.Rem(4)" Collapsible>
+        <Box Padding="4"><TextBlock Family="FontFamily.Mono">Total: $12,480.00</TextBlock></Box>
+    </SplitterPane>
+</Splitter>

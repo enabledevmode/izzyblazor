@@ -1,0 +1,37 @@
+@* A mail layout: folders, the list, and the message. Folders collapses; the sizes are kept. *@
+<Splitter LayoutKey="example-mail" Height="Length.Rem(22)" Border="1" Radius="Radius.Md" Grow>
+    <SplitterPane Label="Folders" Size="Length.Rem(11)" Min="Length.Rem(8)" Max="Length.Rem(16)" Collapsible>
+        <NavMenu Padding="2">
+            <NavItem Href="#" Icon="Lucide.Inbox" Badge="4">Inbox</NavItem>
+            <NavItem Href="#" Icon="Lucide.Send">Sent</NavItem>
+            <NavItem Href="#" Icon="Lucide.Archive">Archive</NavItem>
+        </NavMenu>
+    </SplitterPane>
+    <SplitterPane Label="Messages" Size="Length.Percent(40)" Min="Length.Rem(12)">
+        <Stack Gap="0">
+            @foreach (var (from, subject) in _messages)
+            {
+                <Box PaddingX="4" PaddingY="3" BorderBottom="1">
+                    <TextBlock Weight="FontWeight.Semibold">@from</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@subject</TextBlock>
+                </Box>
+            }
+        </Stack>
+    </SplitterPane>
+    <SplitterPane Label="Message" Min="Length.Rem(14)">
+        <Stack Padding="4" Gap="2">
+            <Heading Level="3">Quarterly numbers</Heading>
+            <TextBlock>The figures are in. Revenue is up on last quarter, and the new plan's sign-ups are ahead of what we set.</TextBlock>
+        </Stack>
+    </SplitterPane>
+</Splitter>
+
+@code {
+    private readonly (string From, string Subject)[] _messages =
+    [
+        ("Ada Lovelace", "Quarterly numbers"),
+        ("Grace Hopper", "Release checklist"),
+        ("Alan Turing", "Lunch on Friday?"),
+        ("Radia Perlman", "Network change tonight"),
+    ];
+}

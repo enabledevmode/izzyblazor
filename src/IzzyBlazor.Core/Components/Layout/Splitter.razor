@@ -1,0 +1,144 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, panes keep the sizes they arrive with: the bars don't move and panes don't collapse.")]
+
+@*
+    Panes side by side, or stacked, with a bar between each two that resizes them.
+
+    <Splitter LayoutKey="mail" Height="Length.Full">
+        <SplitterPane Label="Folders" Size="Length.Rem(16)" Min="Length.Rem(12)" Collapsible>...</SplitterPane>
+        <SplitterPane Label="Messages" Size="Length.Percent(35)">...</SplitterPane>
+        <SplitterPane Label="Message">...</SplitterPane>
+    </Splitter>
+
+    A pane with a Size starts at it; a pane with none fills what's left (if every pane has a size,
+    the last fills). Min and Max hold a pane between them. Each pane scrolls its own content. The
+    page gives the splitter its height, as Height="Length.Full" in an app shell's main area. For a
+    layout that splits both ways, put a Splitter in a pane.
+
+    The sizes are on the server's first paint. With LayoutKey, the sizes and collapsed panes each
+    person leaves are kept in a cookie under that name, and the server draws them, so a reload or
+    another page shows the layout as it was left.
+
+    Accessibility:
+    - Each bar is a focusable separator named after the pane before it ("Resize Folders"), which
+      it controls. Arrow keys move it, Home and End go to the limits, and Enter collapses or
+      restores a collapsible pane.
+    - Give each pane a Label, or the bars are all named "Resize".
+    See also: AppShell.
+*@
+
+<ib-splitter @attributes="AdditionalAttributes" class="@_class" style="@_style"
+             data-ib-layout-key="@LayoutKey"
+             data-ib-disabled="@(Disabled ? "" : null)"
+             @oniblayout="OnLayout" @oniblayout:stopPropagation>
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</ib-splitter>
+
+@code {
+    /// <summary>
+    /// <see cref="Orientation.Horizontal"/> puts the panes side by side, the default;
+    /// <see cref="Orientation.Vertical"/> stacks them.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>
+    /// Keeps the sizes each person leaves, in a cookie under this name, so the server draws them on
+    /// the first paint. Letters, digits, <c>-</c> and <c>_</c>. Without it, sizes last until the
+    /// page is left.
+    /// </summary>
+    [Parameter] public string? LayoutKey { get; set; }
+
+    /// <summary>Stops the bars from moving and the panes from collapsing.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>The <see cref="SplitterPane"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private SplitterContext _context = null!;
+    private string? _class;
+    private string? _style;
+    private PersistingComponentStateSubscription? _persisting;
+
+    internal string CookieName => $"ib-split-{LayoutKey}";
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _context = new SplitterContext(this);
+        if (string.IsNullOrEmpty(LayoutKey))
+        {
+            return;
+        }
+
+        if (!LayoutKey.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
+        {
+            throw new InvalidOperationException($"Splitter's LayoutKey \"{LayoutKey}\" can only have letters, digits, '-' and '_'.");
+        }
+
+        // The cookie is there on the server's first render; an interactive render that follows a
+        // prerender gets it handed over.
+        var state = Services.GetService<PersistentComponentState>();
+        var key = $"ib-split:{LayoutKey}";
+        string? kept = null;
+        if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.String, out var handedOver))
+        {
+            kept = handedOver;
+        }
+        else if (!RendererInfo.IsInteractive)
+        {
+            kept = Services.GetService<IRequestCookies>()?.Get(CookieName);
+        }
+
+        _context.Kept = SplitterLayout.Parse(kept);
+        if (state is not null && _context.Kept is not null)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                try
+                {
+                    PersistedState.Persist(state, key, kept!, PersistedStateJson.Default.String);
+                }
+                catch (ArgumentException)
+                {
+                    // Another splitter with the same key already handed it over.
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-splitter");
+        classes.Add("ib-splitter-v", Orientation == Orientation.Vertical);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // A bar moved or a pane collapsed on an interactive page. A DataGrid in a pane reports its own
+    // layout under the same event; that doesn't parse, and is left alone.
+    private void OnLayout(IzzyLayoutEventArgs e)
+    {
+        if (SplitterLayout.Parse(e.Layout) is { } layout)
+        {
+            _context.Apply(layout);
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _persisting?.Dispose();
+}

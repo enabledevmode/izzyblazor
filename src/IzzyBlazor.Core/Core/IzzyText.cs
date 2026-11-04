@@ -870,6 +870,18 @@ public class IzzyText
     /// <summary>Announced when PickList moves items back; {0} is their names.</summary>
     public virtual string PickMovedToAvailable { get; set; } = "Moved {0} to available";
 
+    /// <summary>A Splitter bar, named after the pane before it: "Resize Folders". {0} is the pane's label.</summary>
+    public virtual string ResizePane { get; set; } = "Resize {0}";
+
+    /// <summary>A Splitter bar whose pane has no label.</summary>
+    public virtual string Resize { get; set; } = "Resize";
+
+    /// <summary>A Splitter bar's button that collapses a pane: "Collapse Folders". {0} is the pane's label, or empty.</summary>
+    public virtual string CollapsePane { get; set; } = "Collapse {0}";
+
+    /// <summary>A Splitter bar's button that restores a collapsed pane: "Expand Folders". {0} is the pane's label, or empty.</summary>
+    public virtual string ExpandPane { get; set; } = "Expand {0}";
+
     /// <summary>A TreeView branch whose children load with script, when JavaScript is off.</summary>
     public virtual string TreeNeedsScript { get; set; } = "Turn on JavaScript to see these items.";
 

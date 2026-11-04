@@ -94,6 +94,20 @@
         { "id": "divider-vertical", "title": "Vertical", "lead": "To separate items in a `Row`, set `Orientation=\"Orientation.Vertical\"`. The line is as tall as the row." }
       ]
     },
+    {
+      "id": "splitter", "icon": "Columns2", "name": "Splitter", "category": "Layout", "summary": "Lays out panes side by side or stacked, with bars that resize them.", "keywords": ["split pane", "split view", "resizable panes", "panels", "divider", "resize"],
+      "parts": ["SplitterPane"],
+      "features": [
+        { "feature": "Pane sizes, limits and a pane that fills, on the first paint" },
+        { "feature": "Sizes each person leaves, kept and drawn by the server" },
+        { "feature": "Dragging a bar, and arrow keys on it", "noscript": "none" },
+        { "feature": "Panes that collapse and restore", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "splitter-mail", "title": "Three panes", "lead": "Put a `SplitterPane` for each pane in a `Splitter`, which needs a height. A pane with a `Size` starts at it, and a pane with none fills the rest; `Min` and `Max` hold a pane between them. `Collapsible` lets a pane collapse from its button on the bar or Enter on the bar. To keep the sizes each person leaves, set `LayoutKey`: the server draws them on the next visit. Give each pane a `Label`, which names the bar after it." },
+        { "id": "splitter-stacked", "title": "Stacked", "lead": "To stack the panes, set `Orientation` to `Vertical`. A `Size` in percent keeps the pane's share as the splitter resizes." }
+      ]
+    },
 
     {
       "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Arranges a header, sidebar, main area, aside and footer with CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AsideToggle", "AppFooter"],
