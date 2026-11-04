@@ -13,6 +13,12 @@ import { track } from "../position";
  * MultiSelect uses the same element over a <select multiple>: choosing toggles an option and the
  * list stays open, the chosen options show as chips (drawn here from the select, so they're right
  * whatever changed it), and Backspace in the empty input removes the last one.
+ *
+ * Autocomplete uses it with data-free and no select: the input is the field and posts what's
+ * typed; the list only suggests. Typing doesn't make an option active, so Enter keeps the text;
+ * choosing writes the option's text into the input and fires `change`; leaving keeps whatever was
+ * typed; and the list closes when nothing matches. The input's datalist, there for no script, is
+ * detached so the browser's popup doesn't open over this one.
  */
 const supported = typeof HTMLElement !== "undefined" && "showPopover" in HTMLElement.prototype;
 
@@ -37,18 +43,31 @@ class Combobox extends IzzyElement {
   #after: "choose" | "commit" | null = null;
   // Server search: the text the list's results are for ("" for the first results).
   #searched = "";
+  #free = false;
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
     const select = this.querySelector<HTMLSelectElement>(":scope > select");
     const list = this.querySelector<HTMLElement>(":scope > [role=listbox]");
-    if (!supported || !input || !select || !list) return;
+    this.#free = this.hasAttribute("data-free");
+    if (!supported || !input || !list || (!select && !this.#free)) return;
     this.#input = input;
-    this.#select = select;
     this.#list = list;
-    this.#multiple = select.multiple;
-    this.#chips = this.querySelector(".ib-multiselect-chips");
     this.dataset.ready = "";
+    input.form?.addEventListener("reset", () => setTimeout(() => this.syncText(), 0), { signal });
+    if (this.#free) {
+      input.removeAttribute("list");
+      this.listen(input, list, signal);
+      return;
+    }
+    this.#select = select!;
+    this.#multiple = select!.multiple;
+    this.#chips = this.querySelector(".ib-multiselect-chips");
+    this.setupSelect(input, select!, list, signal);
+  }
+
+  /** The select's part: focus and validation pass to the input, chips follow it. */
+  private setupSelect(input: HTMLInputElement, select: HTMLSelectElement, list: HTMLElement, signal: AbortSignal): void {
 
     // The select is still focusable for the label, error links and validation; send focus on.
     select.tabIndex = -1;
@@ -64,6 +83,51 @@ class Combobox extends IzzyElement {
       { signal }
     );
 
+    this.listen(input, list, signal);
+    const keepFocus = (event: Event) => event.preventDefault();
+
+    let selectObserver: MutationObserver | null = null;
+    if (this.#multiple) {
+      // Chips follow the select, whoever changes it (this element, Blazor, a form reset).
+      selectObserver = new MutationObserver((records) => {
+        // Once an option's selected property has been set, the browser ignores changes to its
+        // selected attribute; apply Blazor's (C# changing the value) to the property.
+        for (const r of records) {
+          if (r.type === "attributes" && r.target instanceof HTMLOptionElement) r.target.selected = r.target.hasAttribute("selected");
+        }
+        this.renderChips();
+      });
+      selectObserver.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ["selected"] });
+      select.addEventListener("change", () => this.renderChips(), { signal });
+      this.#chips?.addEventListener(
+        "click",
+        (event) => {
+          const chip = (event.target as Element).closest<HTMLElement>(".ib-chip-remove")?.closest<HTMLElement>(".ib-chip");
+          if (chip) this.toggle(chip.dataset.value ?? "", false);
+          input.focus();
+        },
+        { signal }
+      );
+      this.#chips?.addEventListener("pointerdown", keepFocus, { signal });
+      // A click anywhere in the box (between chips) goes to the input.
+      input.parentElement?.addEventListener(
+        "click",
+        (event) => {
+          if (event.target === input.parentElement) {
+            input.focus();
+            this.open();
+          }
+        },
+        { signal }
+      );
+      this.renderChips();
+    }
+
+    signal.addEventListener("abort", () => selectObserver?.disconnect());
+  }
+
+  /** The input's and list's listeners, for both kinds. */
+  private listen(input: HTMLInputElement, list: HTMLElement, signal: AbortSignal): void {
     input.addEventListener("input", () => this.onInput(), { signal });
     input.addEventListener("keydown", (event) => this.onKey(event), { signal });
     input.addEventListener("click", () => this.open(), { signal });
@@ -112,50 +176,8 @@ class Combobox extends IzzyElement {
       if (this.#pending && list.getAttribute("aria-busy") !== "true" && list.dataset.query === this.#searched) this.onResults();
     });
     observer.observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-busy", "data-query"] });
-
-    let selectObserver: MutationObserver | null = null;
-    if (this.#multiple) {
-      // Chips follow the select, whoever changes it (this element, Blazor, a form reset).
-      selectObserver = new MutationObserver((records) => {
-        // Once an option's selected property has been set, the browser ignores changes to its
-        // selected attribute; apply Blazor's (C# changing the value) to the property.
-        for (const r of records) {
-          if (r.type === "attributes" && r.target instanceof HTMLOptionElement) r.target.selected = r.target.hasAttribute("selected");
-        }
-        this.renderChips();
-      });
-      selectObserver.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ["selected"] });
-      select.addEventListener("change", () => this.renderChips(), { signal });
-      this.#chips?.addEventListener(
-        "click",
-        (event) => {
-          const chip = (event.target as Element).closest<HTMLElement>(".ib-chip-remove")?.closest<HTMLElement>(".ib-chip");
-          if (chip) this.toggle(chip.dataset.value ?? "", false);
-          input.focus();
-        },
-        { signal }
-      );
-      this.#chips?.addEventListener("pointerdown", keepFocus, { signal });
-      // A click anywhere in the box (between chips) goes to the input.
-      input.parentElement?.addEventListener(
-        "click",
-        (event) => {
-          if (event.target === input.parentElement) {
-            input.focus();
-            this.open();
-          }
-        },
-        { signal }
-      );
-      this.renderChips();
-    }
-
-    // A form reset puts the select and the input's default text back; drop any custom error.
-    select.form?.addEventListener("reset", () => setTimeout(() => this.syncText(), 0), { signal });
-
     signal.addEventListener("abort", () => {
       observer.disconnect();
-      selectObserver?.disconnect();
       this.close();
       delete this.dataset.ready;
     });
@@ -188,9 +210,11 @@ class Combobox extends IzzyElement {
     }
     this.filter(showAll ? "" : this.#input.value);
     const selected = this.#multiple ? undefined : this.visible.find((o) => o.getAttribute("aria-selected") === "true");
-    const active = selected ?? (showAll ? null : this.visible[0] ?? null);
+    const active = selected ?? (showAll || this.#free ? null : this.visible[0] ?? null);
     if (!active) this.#list.scrollTop = 0;
     this.activate(active);
+    // Autocomplete: nothing to suggest, so no list (any text is a value).
+    if (this.#free && !this.visible.length) this.close();
   }
 
   private close(): void {
@@ -206,7 +230,8 @@ class Combobox extends IzzyElement {
   private refresh(): void {
     this.filter(this.#typed ? this.#input.value : "");
     const keep = this.#active && this.#active.isConnected && !this.#active.hidden ? this.#active : null;
-    this.activate(keep ?? (this.#typed ? this.visible[0] ?? null : null));
+    this.activate(keep ?? (this.#typed && !this.#free ? this.visible[0] ?? null : null));
+    if (this.#free && !this.visible.length) this.close();
   }
 
   private filter(query: string): void {
@@ -292,8 +317,13 @@ class Combobox extends IzzyElement {
       case "Enter":
         // With the list open, Enter chooses, never submits the form.
         if (!this.isOpen) break;
+        // Autocomplete with no option active: the typed text stands, and Enter goes to the form.
+        if (this.#free && !this.#active) {
+          this.close();
+          break;
+        }
         event.preventDefault();
-        if (this.#pending) this.#after = "choose";
+        if (this.#pending && !this.#free) this.#after = "choose";
         else if (this.#active) this.choose(this.#active);
         break;
       case "Backspace":
@@ -412,9 +442,15 @@ class Combobox extends IzzyElement {
   private setValue(value: string, text: string): void {
     const select = this.#select;
     this.#typed = false;
+    const changed = this.#input.value !== text;
     this.#input.value = text;
     this.#input.setCustomValidity("");
     this.searchAll();
+    if (this.#free) {
+      // Only change: an input event would search and open the list again.
+      if (changed) this.#input.dispatchEvent(new Event("change", { bubbles: true }));
+      return;
+    }
     if (select.value === value) return;
     select.value = value;
     for (const o of this.options) o.setAttribute("aria-selected", String(o.dataset.value === value));
@@ -428,6 +464,11 @@ class Combobox extends IzzyElement {
     // The typed text's results are still coming: decide once they're in.
     if (this.#pending && this.#typed) {
       this.#after = "commit";
+      return;
+    }
+    if (this.#free) {
+      // The typed text is the value; the input's own change event reports it.
+      this.#typed = false;
       return;
     }
     if (this.#multiple) {
@@ -450,6 +491,7 @@ class Combobox extends IzzyElement {
   /** Shows the chosen option's text. */
   private syncText(): void {
     this.#typed = false;
+    if (this.#free) return;
     if (this.#multiple) {
       this.#input.value = "";
       this.renderChips();

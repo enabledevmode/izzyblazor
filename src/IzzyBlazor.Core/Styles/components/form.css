@@ -1098,7 +1098,8 @@
     display: none;
   }
 
-  .ib-combobox[data-ready] > .ib-combobox-input {
+  .ib-combobox[data-ready] > .ib-combobox-input,
+  .ib-autocomplete > .ib-combobox-input {
     display: block;
   }
 
@@ -2999,6 +3000,11 @@
   .ib-combobox,
   .ib-date-control {
     --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + 0.5rem);
+  }
+
+  /* No chevron: the clear button sits at the end, as in a text field. */
+  .ib-autocomplete {
+    --ib-clear-end: var(--ib-space-1);
   }
 
   /* A phone keeps the browser's input and has no button to clear past. */

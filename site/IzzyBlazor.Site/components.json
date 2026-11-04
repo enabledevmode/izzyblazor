@@ -1011,7 +1011,7 @@
       ]
     },
     {
-      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Lets the user type to filter a list of options, with server search on interactive pages.", "keywords": ["autocomplete", "typeahead"],
+      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Lets the user type to filter a list of options, with server search on interactive pages.", "keywords": ["typeahead"],
       "features": [
         { "feature": "Choose an option, posted with the form" },
         { "feature": "Type to filter, ignoring case and accents", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1038,6 +1038,29 @@
             "interactive": "The browser stops the post with your `[Required]` message, as on static pages, and Continue runs C# without a full reload."
           } },
         { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "To line up with other controls, set `Size`. A `ReadOnly` value posts but can't change; a `Disabled` one doesn't post." }
+      ]
+    },
+    {
+      "id": "autocomplete", "icon": "TextCursorInput", "name": "Autocomplete", "category": "Selection", "summary": "Suggests as the user types, and takes any text.", "keywords": ["typeahead", "suggestions", "datalist"],
+      "features": [
+        { "feature": "Any typed text is the value, posted with the form" },
+        { "feature": "Suggestions as you type, ignoring case and accents", "noscript": "partial", "static": "full", "interactive": "full" },
+        { "feature": "Search or ItemsProvider fills the suggestions" },
+        { "feature": "Search as you type", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "autocomplete-cities", "title": "Suggestions from a list", "lead": "An `Autocomplete` binds to a string. Set `Items` to suggest from a list; the user can pick one or type anything else.",
+          "notes": {
+            "noscript": "The browser's own suggestions (a datalist). Save posts whatever was typed.",
+            "static": "IzzyBlazor's script shows the suggestions as you type, ignoring case and accents: \"krak\" finds Kraków.",
+            "interactive": "The same suggestions, and Save runs C# without a full reload."
+          } },
+        { "id": "autocomplete-provider", "title": "Suggestions from a provider", "lead": "For suggestions from a database, set `ItemsProvider`, with the signature a Table's or DataGrid's takes. The request's `Search` is the typed text and its `Take` is `MaxSuggestions`; `request.ToResult` applies both. `Search`, as on Combobox, works too.",
+          "notes": {
+            "noscript": "The browser's own suggestions: the first eight products.",
+            "static": "The provider fills the list once with the first eight, and typing filters those in the browser.",
+            "interactive": "Typing asks the provider after a short pause, so any of the 400 products can be found."
+          } }
       ]
     },
     {
