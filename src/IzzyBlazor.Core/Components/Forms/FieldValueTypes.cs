@@ -27,6 +27,9 @@ public partial class NumberField<[DynamicallyAccessedMembers(DynamicallyAccessed
 /// <summary>A range slider.</summary>
 public partial class Slider<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
+/// <summary>A star rating: a radio for each star, or a read-only display of any value.</summary>
+public partial class Rating<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
 /// <summary>A select for several choices, bound to a collection.</summary>
 public partial class MultiSelect<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
 

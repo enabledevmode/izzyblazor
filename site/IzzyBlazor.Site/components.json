@@ -864,6 +864,23 @@
       ]
     },
     {
+      "id": "rating", "icon": "Star", "name": "Rating", "category": "Forms", "summary": "Lets the user rate with stars, and shows a rating.", "keywords": ["stars", "review", "score"],
+      "features": [
+        { "feature": "A radio for each star: arrow keys, posted with the form" },
+        { "feature": "Clicking the chosen star clears it", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A read-only display filled to any value" }
+      ],
+      "examples": [
+        { "id": "rating-review", "title": "Saving a rating", "lead": "A `Rating` binds to `int` or `int?`. Bound to `int?` and not required, it can be empty: clicking the chosen star clears it, and the arrow keys reach \"No rating\".",
+          "notes": {
+            "noscript": "Save posts the chosen star. Clicking it again doesn't clear it; the arrow keys reach \"No rating\".",
+            "static": "Save posts the chosen star without a full reload.",
+            "interactive": "Save runs C# without a full reload; the saved line keeps what was saved."
+          } },
+        { "id": "rating-display", "title": "Showing a rating", "lead": "With `ReadOnly`, a rating shows any value, `double` too, filled to the exact fraction. `Icon`, `Accent` and `Max` change the stars." }
+      ]
+    },
+    {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "Lets the user pick a color, with a hex box and presets.",
       "features": [
         { "feature": "Pick in the browser's color panel; posted with the form" },
