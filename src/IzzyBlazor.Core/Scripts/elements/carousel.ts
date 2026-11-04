@@ -57,9 +57,13 @@ class Carousel extends IzzyElement {
     if (this.hasAttribute("data-ib-autoplay")) {
       this.addEventListener("pointerenter", (e) => this.#hovering(e, true), { signal });
       this.addEventListener("pointerleave", (e) => this.#hovering(e, false), { signal });
-      // Keyboard focus coming in stops the rotation until the button starts it again.
+      // Keyboard focus coming in, or a touch, pen or click (but on its button), stops the rotation
+      // until the button starts it again.
       this.addEventListener("focusin", (e) => {
         if ((e.target as Element).matches(":focus-visible")) this.#rotate(false);
+      }, { signal });
+      this.addEventListener("pointerdown", (e) => {
+        if (!(e.target as Element).closest(".ib-carousel-rotate")) this.#rotate(false);
       }, { signal });
       document.addEventListener("visibilitychange", () => this.#schedule(), { signal });
       this.#rotate(!matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -71,6 +75,8 @@ class Carousel extends IzzyElement {
     slides.observe(track, { childList: true });
     const index = new MutationObserver(() => {
       const wanted = this.#wanted();
+      // The server echoing a move the carousel reported, perhaps after it has moved on: not a move.
+      if (wanted === this.#reported) return;
       this.#reported = wanted;
       if (wanted !== this.#index) this.#go(wanted);
     });
@@ -302,6 +308,8 @@ class Carousel extends IzzyElement {
   // A fading carousel doesn't scroll: arrow keys, Home and End on the track, and a swipe, move it.
   #fadeInput(track: HTMLElement, signal: AbortSignal): void {
     track.addEventListener("keydown", (e) => {
+      // A field or link in the slide keeps its own keys.
+      if (e.target !== track) return;
       const back = this.#rtl() ? "ArrowRight" : "ArrowLeft";
       const on = this.#rtl() ? "ArrowLeft" : "ArrowRight";
       if (e.key === on) this.#step(1);
@@ -312,7 +320,7 @@ class Carousel extends IzzyElement {
       e.preventDefault();
     }, { signal });
     let x: number | null = null;
-    track.addEventListener("pointerdown", (e) => (x = e.clientX), { signal });
+    track.addEventListener("pointerdown", (e) => (x = e.pointerType === "mouse" ? null : e.clientX), { signal });
     track.addEventListener("pointerup", (e) => {
       if (x === null) return;
       const dx = e.clientX - x;
@@ -345,6 +353,10 @@ class Carousel extends IzzyElement {
     const slide = this.#slides()[this.#index];
     const delay = parseInt(slide?.dataset.ibInterval ?? this.dataset.ibInterval ?? "", 10) || 5000;
     this.#tick = window.setTimeout(() => {
+      if (this.#slide) {
+        this.#schedule();
+        return;
+      }
       const [, atEnd] = this.#ends();
       this.#auto = true;
       this.#go(atEnd ? 0 : this.#index + this.#per(this.#slides().length));

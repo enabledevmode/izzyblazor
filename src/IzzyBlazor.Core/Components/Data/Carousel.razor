@@ -26,9 +26,9 @@
     - The dots are buttons named "Slide 3", the one in view marked as current.
     - When a person moves the carousel, the slide they move to is announced.
     - Autoplay adds a button that stops and starts the rotation, first in the Tab order. Rotation
-      pauses while the pointer is over the carousel, stops when focus moves into it (until the
-      button starts it again) and while the page is hidden, and doesn't start when the browser
-      asks for reduced motion.
+      pauses while the pointer is over the carousel and while the page is hidden, stops when
+      keyboard focus moves into it or a person touches or clicks in it (until the button starts it
+      again), and doesn't start when the browser asks for reduced motion.
     See also: CarouselItem, Image, Card.
 *@
 
@@ -38,7 +38,7 @@
              data-ib-loop="@(Loop ? "" : null)"
              data-ib-autoplay="@(Autoplay ? "" : null)"
              data-ib-interval="@(Autoplay ? Milliseconds(Interval) : null)"
-             @oniblayout="OnIndex" @oniblayout:stopPropagation>
+             @oniblayout="OnIndex" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/carousel.css"]" />
     @if (Autoplay)
     {
@@ -83,7 +83,10 @@
     /// </summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
-    /// <summary>The slide in view (the first, when several show), from 0.</summary>
+    /// <summary>
+    /// The slide in view (the first, when several show), from 0. Without <c>@bind-Index</c>, it's
+    /// the slide the carousel starts on.
+    /// </summary>
     [Parameter] public int Index { get; set; }
 
     /// <summary>Called with the slide in view when a person moves the carousel, on an interactive page.</summary>
@@ -197,13 +200,17 @@
         }
 
         base.OnParametersSet();
+        _context.BeginPass();
         (_class, _style) = BuildRootAttributes();
     }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender) => _context.Rendered = true;
 
     // The script reports the slide in view when a move settles, on an interactive page.
     private async Task OnIndex(IzzyLayoutEventArgs e)
     {
-        if (int.TryParse(e.Layout, System.Globalization.CultureInfo.InvariantCulture, out var index) && index != Index)
+        if (IndexChanged.HasDelegate && int.TryParse(e.Layout, System.Globalization.CultureInfo.InvariantCulture, out var index) && index != Index)
         {
             Index = index;
             await IndexChanged.InvokeAsync(index);

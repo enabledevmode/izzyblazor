@@ -9,7 +9,7 @@
 <div @attributes="AdditionalAttributes" id="@Id" class="@_class" style="@_style"
      role="group" aria-roledescription="@TextDefaults.SlideRole"
      data-ib-interval="@(Interval is { } interval ? Carousel.Milliseconds(interval) : null)"
-     data-ib-shown="@(Context!.Owner.ShownAtStart(Context.IndexOf(this)) ? "" : null)"
+     data-ib-shown="@(_shownAtStart ? "" : null)"
      aria-label="@(Label is { Length: > 0 } label ? label : string.Format(TextDefaults.SlideOf, Context!.IndexOf(this) + 1, Context.Count))">
     @ChildContent
 </div>
@@ -32,6 +32,7 @@
     [CascadingParameter] private CarouselContext? Context { get; set; }
 
     private string? _class;
+    private bool _shownAtStart;
     private string? _style;
 
     /// <inheritdoc />
@@ -43,6 +44,7 @@
         }
 
         Context.Register(this);
+        _shownAtStart = Context.Owner.ShownAtStart(Context.Count - 1);
     }
 
     /// <inheritdoc />
@@ -53,7 +55,11 @@
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        Context!.Seen(this);
+        (_class, _style) = BuildRootAttributes();
+    }
 
     // Slides came or went: the count in the name changed.
     internal void Refresh() => StateHasChanged();

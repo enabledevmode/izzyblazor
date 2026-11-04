@@ -322,7 +322,7 @@
     translate: -50% -50%;
     display: grid;
     place-items: center;
-    inline-size: 1rem;
+    inline-size: 1.5rem;
     block-size: 2rem;
     padding: 0;
     border: 1px solid var(--ib-color-border);
@@ -335,7 +335,7 @@
 
   .ib-splitter-v > .ib-split-gutter > .ib-split-collapse {
     inline-size: 2rem;
-    block-size: 1rem;
+    block-size: 1.5rem;
   }
 
   /* Beside a collapsed pane at an edge, the button sits inside the splitter, not half outside. */

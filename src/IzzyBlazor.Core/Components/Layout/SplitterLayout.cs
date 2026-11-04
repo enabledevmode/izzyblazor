@@ -9,7 +9,7 @@ namespace IzzyBlazor;
 /// </summary>
 internal sealed partial class SplitterContext(Splitter owner)
 {
-    private readonly List<SplitterPane> _panes = [];
+    private readonly ChildOrder<SplitterPane> _panes = new();
 
     public Splitter Owner { get; } = owner;
 
@@ -18,24 +18,25 @@ internal sealed partial class SplitterContext(Splitter owner)
     /// <summary>Each pane's kept size and whether it's collapsed, by position; null when none.</summary>
     public SplitterLayout? Kept { get; set; }
 
-    public int Register(SplitterPane pane)
-    {
-        _panes.Add(pane);
-        return _panes.Count - 1;
-    }
+    public void Register(SplitterPane pane) => _panes.Add(pane);
 
     public void Unregister(SplitterPane pane) => _panes.Remove(pane);
+
+    /// <summary>The splitter is rendering: its panes say they're there, in page order.</summary>
+    public void BeginPass() => _panes.BeginPass();
+
+    public void Seen(SplitterPane pane) => _panes.Seen(pane);
 
     public int IndexOf(SplitterPane pane) => _panes.IndexOf(pane);
 
     /// <summary>The pane before this one, which the bar before it resizes; null for the first.</summary>
-    public SplitterPane? Before(SplitterPane pane) => IndexOf(pane) is > 0 and var i ? _panes[i - 1] : null;
+    public SplitterPane? Before(SplitterPane pane) => IndexOf(pane) is > 0 and var i ? _panes.Items[i - 1] : null;
 
     /// <summary>A layout the script reported on an interactive page: each pane draws it.</summary>
     public void Apply(SplitterLayout layout)
     {
         Kept = layout;
-        foreach (var pane in _panes.ToArray())
+        foreach (var pane in _panes.Items.ToArray())
         {
             pane.Refresh();
         }

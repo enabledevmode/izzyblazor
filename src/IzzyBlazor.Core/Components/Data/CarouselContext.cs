@@ -32,7 +32,7 @@ public enum CarouselTransition
 /// <summary>What a <see cref="Carousel"/> shares with its slides and dots: the slides, in order.</summary>
 internal sealed class CarouselContext(Carousel owner)
 {
-    private readonly List<CarouselItem> _items = [];
+    private readonly ChildOrder<CarouselItem> _items = new();
 
     public Carousel Owner { get; } = owner;
 
@@ -42,14 +42,21 @@ internal sealed class CarouselContext(Carousel owner)
 
     public int IndexOf(CarouselItem item) => _items.IndexOf(item);
 
-    public IReadOnlyList<CarouselItem> Items => _items;
+    public IReadOnlyList<CarouselItem> Items => _items.Items;
+
+    /// <summary>Set once the carousel has rendered on an interactive page.</summary>
+    public bool Rendered { get; set; }
+
+    public void BeginPass() => _items.BeginPass();
+
+    public void Seen(CarouselItem item) => _items.Seen(item);
 
     public void Register(CarouselItem item)
     {
         _items.Add(item);
 
         // A slide added after the first render renumbers the others and adds a dot.
-        if (Dots is { Rendered: true })
+        if (Rendered)
         {
             Refresh();
         }
@@ -66,7 +73,7 @@ internal sealed class CarouselContext(Carousel owner)
     /// <summary>Draws the slides' names and the dots again.</summary>
     public void Refresh()
     {
-        foreach (var item in _items.ToArray())
+        foreach (var item in _items.Items.ToArray())
         {
             item.Refresh();
         }
@@ -89,13 +96,8 @@ internal sealed class CarouselDotList : ComponentBase, IDisposable
 
     private IzzyText? _text;
 
-    public bool Rendered { get; private set; }
-
     /// <inheritdoc />
     protected override void OnInitialized() => Context.Dots = this;
-
-    /// <inheritdoc />
-    protected override void OnAfterRender(bool firstRender) => Rendered = true;
 
     internal void Refresh() => StateHasChanged();
 

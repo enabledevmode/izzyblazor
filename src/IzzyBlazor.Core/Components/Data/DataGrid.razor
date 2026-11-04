@@ -1613,7 +1613,7 @@
         <ib-sortable class="ib-visually-hidden" data-ib-rows=""
                      data-ib-interactive="@(MovesLive ? "" : null)"
                      data-ib-seq="@(RendererInfo.IsInteractive ? _rowMoveSeq.ToString(System.Globalization.CultureInfo.InvariantCulture) : null)"
-                     @onibmove="DropRowAsync" @onibmove:stopPropagation="true"
+                     @onibmove="DropRowAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"
                      data-ib-submit="@(PostsOrder && SubmitOnMove ? "" : null)"
                      data-ib-moved="@TextDefaults.MovedTo"
                      data-ib-cancelled="@(MovesLive ? TextDefaults.MoveCancelled : null)">

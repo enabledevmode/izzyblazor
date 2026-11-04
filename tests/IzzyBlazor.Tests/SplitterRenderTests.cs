@@ -68,4 +68,60 @@ public class SplitterRenderTests : BunitContext
         Assert.False(panes[0].HasAttribute("hidden"));
         Assert.StartsWith("--ib-pane-size:16rem;", panes[0].GetAttribute("style"));
     }
+
+    [Fact]
+    public void A_pane_shown_later_between_two_takes_its_place_in_the_page()
+    {
+        var cut = Render<EditorWithPreview>();
+        cut.Render(p => p.Add(x => x.ShowPreview, true));
+
+        // Preview is created last, but sits between Editor and Output: the bars follow the page.
+        var bars = cut.FindAll(".ib-split-bar");
+        Assert.Equal(["Resize Editor", "Resize Preview"], bars.Select(b => b.GetAttribute("aria-label")));
+    }
+
+    [Fact]
+    public void A_bar_beside_a_collapsible_pane_after_it_is_named_after_that_pane()
+    {
+        // Enter on the bar collapses Output, so the bar is about Output, and its value is Output's share.
+        var cut = Render<Splitter>(p => p
+            .Add(s => s.Orientation, Orientation.Vertical)
+            .AddChildContent<SplitterPane>(pane => pane.Add(x => x.Label, "Editor"))
+            .AddChildContent<SplitterPane>(pane => pane.Add(x => x.Id, "output").Add(x => x.Label, "Output")
+                .Add(x => x.Size, Length.Percent(35)).Add(x => x.Collapsible, true)));
+
+        var bar = cut.Find(".ib-split-bar");
+        Assert.Equal("Resize Output", bar.GetAttribute("aria-label"));
+        Assert.Equal("output", bar.GetAttribute("aria-controls"));
+        Assert.Equal("35", bar.GetAttribute("aria-valuenow"));
+    }
+
+    private sealed class EditorWithPreview : ComponentBase
+    {
+        [Parameter] public bool ShowPreview { get; set; }
+
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+        {
+            builder.OpenComponent<Splitter>(0);
+            builder.AddComponentParameter(1, nameof(Splitter.ChildContent), (RenderFragment)(b =>
+            {
+                b.AddContent(0, Pane("Editor"));
+                if (ShowPreview)
+                {
+                    b.AddContent(1, Pane("Preview"));
+                }
+
+                b.AddContent(2, Pane("Output"));
+            }));
+            builder.CloseComponent();
+        }
+
+        private static RenderFragment Pane(string label) => b =>
+        {
+            b.OpenComponent<SplitterPane>(0);
+            b.AddComponentParameter(1, nameof(SplitterPane.Label), label);
+            b.AddComponentParameter(2, nameof(SplitterPane.ChildContent), (RenderFragment)(c => c.AddContent(0, label)));
+            b.CloseComponent();
+        };
+    }
 }
