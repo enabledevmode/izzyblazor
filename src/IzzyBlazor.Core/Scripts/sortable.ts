@@ -13,6 +13,9 @@
  * items stay where they were dropped until their nodes move.
  * Escape, a cancelled pointer or a lost capture put everything back.
  *
+ * An element with data-ib-follows belongs to the item before it (a grid row's open detail row):
+ * the two move as one item, and indexes count items, not elements.
+ *
  * With a delay (a touch on the item rather than its handle), the press is a long press: the page
  * scrolls as usual if the finger moves first, and the drag begins once it has been held still.
  */
@@ -77,6 +80,8 @@ export function trackDrag(options: SortOptions): void {
   let y = startY;
   let dragging = false;
   let items: HTMLElement[] = [];
+  // Each item's elements: itself and the elements that follow it.
+  let units: HTMLElement[][] = [];
   let from = 0;
   let to = 0;
   // Positions within the list at the start, so scrolling during the drag doesn't skew them.
@@ -109,15 +114,16 @@ export function trackDrag(options: SortOptions): void {
 
   const begin = () => {
     dragging = true;
-    items = [...list.children].filter((el): el is HTMLElement => el instanceof HTMLElement);
+    units = unitsOf(list);
+    items = units.map((unit) => unit[0]);
     from = to = items.indexOf(item);
     const box = list.getBoundingClientRect();
     tops = items.map((el) => el.getBoundingClientRect().top - box.top);
-    heights = items.map((el) => el.getBoundingClientRect().height);
+    heights = units.map(unitHeight);
     lefts = items.map((el) => el.getBoundingClientRect().left - box.left);
-    const own = item.getBoundingClientRect();
-    itemTop = own.top - box.top;
-    step = own.height + (parseFloat(getComputedStyle(list).rowGap) || 0);
+    itemTop = tops[from];
+    step = heights[from] + (parseFloat(getComputedStyle(list).rowGap) || 0);
+    for (const el of units[from]) el.classList.add("ib-sortable-dragging");
     scroller = scrollParent(list);
     targets = options.targets?.() ?? [];
     refusing = options.refusing?.() ?? [];
@@ -140,7 +146,6 @@ export function trackDrag(options: SortOptions): void {
     }
     if (options.targets) lifted = unclip(list);
     list.classList.add("ib-sortable-sorting");
-    item.classList.add("ib-sortable-dragging");
     frame = requestAnimationFrame(autoScroll);
   };
 
@@ -155,11 +160,16 @@ export function trackDrag(options: SortOptions): void {
     }, delay);
   }
 
+  // Moves an item and the elements that follow it.
+  const move = (i: number, transform: string) => {
+    for (const el of units[i]) el.style.transform = transform;
+  };
+
   const update = () => {
     const box = list.getBoundingClientRect();
     const dx = free ? x - startX + (startBox.left - box.left) : 0;
     const dy = y - startY + (startBox.top - box.top);
-    item.style.transform = `translate(${dx}px, ${dy}px)`;
+    move(from, `translate(${dx}px, ${dy}px)`);
     zoneMarked?.removeAttribute("data-ib-drop");
     zoneMarked = null;
     target = targets.find((t) => within(t.area, x, y));
@@ -168,16 +178,15 @@ export function trackDrag(options: SortOptions): void {
     item.toggleAttribute("data-ib-refused", refused);
     if (refused) {
       // Over a zone that won't take it, or over no zone: everything stays put, and the drop does nothing.
-      for (const el of items) if (el !== item) el.style.transform = "";
+      items.forEach((_, i) => i !== from && move(i, ""));
       to = from;
       return;
     }
     if (target) {
       // Over another zone: its own list closes up behind it, and the other opens a space where it lands.
-      items.forEach((el, i) => {
-        if (el === item) return;
-        if (i <= from) el.style.transform = "";
-        else el.style.transform = wrap ? `translate(${lefts[i - 1] - lefts[i]}px, ${tops[i - 1] - tops[i]}px)` : `translateY(${-step}px)`;
+      items.forEach((_, i) => {
+        if (i === from) return;
+        move(i, i < from ? "" : wrap ? `translate(${lefts[i - 1] - lefts[i]}px, ${tops[i - 1] - tops[i]}px)` : `translateY(${-step}px)`);
       });
       if (!openSpace(target)) markTarget(target);
       return;
@@ -193,10 +202,10 @@ export function trackDrag(options: SortOptions): void {
     items.forEach((el, i) => {
       if (i !== from && tops[i] + heights[i] / 2 < middle) to++;
     });
-    items.forEach((el, i) => {
+    items.forEach((_, i) => {
       if (i === from) return;
       const shift = from < to && i > from && i <= to ? -step : to < from && i >= to && i < from ? step : 0;
-      el.style.transform = shift ? `translateY(${shift}px)` : "";
+      move(i, shift ? `translateY(${shift}px)` : "");
     });
   };
 
@@ -207,10 +216,10 @@ export function trackDrag(options: SortOptions): void {
     const own = item.getBoundingClientRect();
     const widths = items.map((el) => el.offsetWidth);
     to = nearest(lefts, tops, widths, heights, own.left + own.width / 2 - box.left, own.top + own.height / 2 - box.top);
-    items.forEach((el, i) => {
+    items.forEach((_, i) => {
       if (i === from) return;
       const j = from < to && i > from && i <= to ? i - 1 : to < from && i >= to && i < from ? i + 1 : i;
-      el.style.transform = j === i ? "" : `translate(${lefts[j] - lefts[i]}px, ${tops[j] - tops[i]}px)`;
+      move(i, j === i ? "" : `translate(${lefts[j] - lefts[i]}px, ${tops[j] - tops[i]}px)`);
     });
   };
 
@@ -294,10 +303,10 @@ export function trackDrag(options: SortOptions): void {
     // The lifted item and an empty zone's outline stay until it settles.
     const settle = () => {
       zoneMarked?.removeAttribute("data-ib-drop");
-      item.classList.remove("ib-sortable-dragging");
       item.removeAttribute("data-ib-refused");
       for (const el of lifted) el.removeAttribute("data-ib-unclip");
-      for (const el of items) el.style.transform = "";
+      for (const unit of units) for (const el of unit) el.style.transform = "";
+      for (const el of units[from]) el.classList.remove("ib-sortable-dragging");
       // A column that opened a space keeps it until then, as this list keeps its order.
       for (const column of columns.values()) for (const el of column.els) el.style.transform = "";
     };
@@ -348,6 +357,21 @@ export function trackDrag(options: SortOptions): void {
     },
     { signal, capture: true }
   );
+}
+
+/** A list's items, each with the elements that follow it (data-ib-follows). */
+export function unitsOf(list: Element): HTMLElement[][] {
+  const units: HTMLElement[][] = [];
+  for (const el of list.children) {
+    if (!(el instanceof HTMLElement)) continue;
+    if (el.hasAttribute("data-ib-follows") && units.length) units[units.length - 1].push(el);
+    else units.push([el]);
+  }
+  return units;
+}
+
+function unitHeight(unit: HTMLElement[]): number {
+  return unit[unit.length - 1].getBoundingClientRect().bottom - unit[0].getBoundingClientRect().top;
 }
 
 function swallow(event: Event): void {

@@ -595,7 +595,8 @@ class Grid extends IzzyElement {
   /** Keys that do something rather than move. Whether this was one. */
   #onAction(event: KeyboardEvent, target: HTMLElement, cell: HTMLTableCellElement): boolean {
     const modifier = event.ctrlKey || event.metaKey;
-    if (event.altKey) return this.#openMenu(event, cell);
+    // Alt+arrows on a row's handle move the row (<ib-sortable>).
+    if (event.altKey) return !target.matches(".ib-sortable-handle") && this.#openMenu(event, cell);
     // The menu key is the browser's event, which setupContextMenu answers. Shift+F10 has none everywhere.
     if (event.shiftKey && event.key === "F10") {
       const menu = ownTrigger(cell.parentElement as Element, "tr", "[data-ib-row-menu]") ?? ownTrigger(cell, "th, td", "[data-ib-menu]");

@@ -1,0 +1,53 @@
+@* Drag a handle, or open its menu, to put the backlog in priority order. On a static page the grid
+   posts with its form: Order holds the posted keys and any menu move, and the grid shows them.
+   Sorting by Title turns the handles off until the sort is cleared. *@
+<Form Model="this" FormName="data-grid-backlog" OnValidSubmit="Save">
+    <Stack Gap="3" Grow>
+        <DataGrid @bind-Items="_tasks" ItemKey="t => t.Id" RowLabel="t => t.Title" Caption="Backlog"
+                  ReorderableRows OrderName="order" Order="Order">
+            <PropertyColumn Property="t => t.Title" Sortable />
+            <PropertyColumn Property="t => t.Owner" Width="10.Rem" />
+            <PropertyColumn Property="t => t.Points" Title="Points" Width="6.Rem" />
+        </DataGrid>
+        <FormActions><Button Submit>Save order</Button></FormActions>
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+        }
+    </Stack>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "data-grid-backlog", Name = "order")]
+    private ListOrder? Order { get; set; }
+
+    private IReadOnlyList<BacklogTask> _tasks =
+    [
+        new("1", "Sign-in with passkeys", "Ada", 5),
+        new("2", "Export to PDF", "Grace", 3),
+        new("3", "Dark mode for email", "Alan", 2),
+        new("4", "Audit log", "Katherine", 8),
+        new("5", "Faster search", "Ada", 5),
+    ];
+
+    private string? _saved;
+
+    private void Save()
+    {
+        // A menu move posts too; only the Save button saves.
+        if (Order?.Move is not null)
+        {
+            return;
+        }
+
+        if (Order is not null)
+        {
+            _tasks = Order.Arrange(_tasks, t => t.Id);
+        }
+
+        _saved = $"Saved: {string.Join(", ", _tasks.Select(t => t.Title))}.";
+    }
+    @* hide *@
+    private sealed record BacklogTask(string Id, string Title, string Owner, int Points);
+    @* /hide *@
+}

@@ -1218,6 +1218,38 @@
     width: var(--ib-datagrid-select);
   }
 
+  /* Row handles (ReorderableRows): a column before the selection. */
+  .ib-datagrid-grip {
+    --ib-datagrid-grip: 2.5rem;
+  }
+
+  .ib-datagrid-grip-col {
+    width: var(--ib-datagrid-grip);
+  }
+
+  .ib-table-grid > * > * > :is(th, td).ib-grid-grip-cell {
+    padding-inline: var(--ib-space-1) 0;
+    text-align: center;
+  }
+
+  .ib-datagrid-grip .ib-table-select-cell.ib-frozen-start {
+    --ib-frozen-at: var(--ib-datagrid-grip);
+  }
+
+  /* A dragged row lifts above the frozen cells of the others. Chromium and WebKit draw no
+     box-shadow on a row, so it's a filter. */
+  .ib-sortable-list > tr.ib-sortable-dragging {
+    position: relative;
+    z-index: 3;
+    box-shadow: none;
+    border-radius: 0;
+    filter: drop-shadow(0 4px 6px rgb(0 0 0 / 0.2));
+  }
+
+  .ib-sortable-list > tr.ib-sortable-dragging > td {
+    background-color: var(--ib-color-surface-overlay);
+  }
+
   /* What can't fit stays in its cell (its padding leaves room for a focus ring). Text wraps;
      numbers stay on one line, as a split one misreads. */
   .ib-datagrid .ib-table-grid > * > * > :is(th, td):not(.ib-table-select-cell) {
@@ -2241,8 +2273,8 @@
     user-select: none;
   }
 
-  /* Its own list, and another zone's column opening a space for it. */
-  .ib-sortable-sorting > .ib-sortable-item,
+  /* Its own list, and another zone's column opening a space for it; a grid row's detail goes with it. */
+  .ib-sortable-sorting > :is(.ib-sortable-item, [data-ib-follows]),
   .ib-sortable-receiving > .ib-sortable-item {
     transition: transform 150ms ease;
   }
@@ -2299,7 +2331,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ib-sortable-sorting > .ib-sortable-item,
+    .ib-sortable-sorting > :is(.ib-sortable-item, [data-ib-follows]),
     .ib-sortable-receiving > .ib-sortable-item {
       transition: none;
     }

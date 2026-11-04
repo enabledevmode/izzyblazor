@@ -825,6 +825,15 @@ public class IzzyText
     /// <summary>Announced when a move is cancelled: "Ada wasn't moved".</summary>
     public virtual string MoveCancelled { get; set; } = "{0} wasn't moved";
 
+    /// <summary>The column of a DataGrid's row handles, named for screen readers.</summary>
+    public virtual string MoveColumn { get; set; } = "Move";
+
+    /// <summary>A DataGrid row handle's tooltip while the rows aren't in the grid's own order.</summary>
+    public virtual string MoveRowsUnavailable { get; set; } = "Clear the sort, filters and grouping to move rows";
+
+    /// <summary>A DataGrid row handle's tooltip while a row is being edited in place.</summary>
+    public virtual string MoveRowsEditing { get; set; } = "Finish editing to move rows";
+
     /// <summary>An empty drop zone.</summary>
     public virtual string DropHere { get; set; } = "Drop items here";
 
