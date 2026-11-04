@@ -1,0 +1,26 @@
+@* Revenue and costs as columns, with the target as a line over them. *@
+<Chart Items="_months" Argument="m => m.Month" Label="Revenue and costs, 2026" ValueFormat="C0">
+    <ChartSeries Value="m => m.Revenue" />
+    <ChartSeries Value="m => m.Costs" />
+    <ChartSeries Value="m => m.Target" Type="ChartType.Line" />
+</Chart>
+
+@code {
+    private record MonthTotals(string Month, decimal Revenue, decimal Costs, decimal Target);
+
+    private readonly MonthTotals[] _months =
+    [
+        new("January", 42_100, 30_400, 40_000),
+        new("February", 45_800, 31_200, 41_000),
+        new("March", 51_300, 33_900, 43_000),
+        new("April", 48_700, 32_500, 45_000),
+        new("May", 55_200, 35_100, 47_000),
+        new("June", 58_900, 36_800, 49_000),
+        new("July", 54_400, 35_600, 51_000),
+        new("August", 61_700, 38_200, 53_000),
+        new("September", 66_300, 40_100, 55_000),
+        new("October", 63_800, 39_400, 57_000),
+        new("November", 70_200, 42_700, 59_000),
+        new("December", 78_600, 45_900, 61_000),
+    ];
+}

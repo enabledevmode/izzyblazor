@@ -261,6 +261,9 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var carousel = await site.Client.GetStringAsync("_content/IzzyBlazor.Core/carousel.css");
         Assert.Contains(".ib-carousel", carousel);
         Assert.DoesNotContain("scripting:", carousel);
+        var chart = await site.Client.GetStringAsync("_content/IzzyBlazor.Core/chart.css");
+        Assert.Contains(".ib-chart", chart);
+        Assert.DoesNotContain("scripting:", chart);
     }
 
     [Fact]

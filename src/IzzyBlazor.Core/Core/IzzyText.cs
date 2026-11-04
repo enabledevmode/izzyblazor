@@ -1092,6 +1092,12 @@ public class IzzyText
     /// <summary>VideoEmbed with no video yet.</summary>
     public virtual string VideoComingSoon { get; set; } = "Coming soon";
 
+    /// <summary>A Chart's disclosure that shows its values as a table.</summary>
+    public virtual string ChartShowData { get; set; } = "Show data";
+
+    /// <summary>The first column's header in a Chart's data table, when its Argument isn't a property.</summary>
+    public virtual string ChartItem { get; set; } = "Item";
+
     /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
     public virtual string ColorHex { get; set; } = "hex";
 

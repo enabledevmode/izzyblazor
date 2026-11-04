@@ -17,6 +17,17 @@ internal static partial class TextWidths
             _ => (Medium, 14.0),
         };
 
+        return Measure(text, table, em);
+    }
+
+    /// <summary>
+    /// The width in pixels of <paramref name="text"/> at <paramref name="px"/> pixels, scaled from
+    /// the small button table (medium weight, so a little over regular text: a safe estimate).
+    /// </summary>
+    public static double AtSize(string text, double px) => Measure(text, Small, 13.0) * px / 13.0;
+
+    private static double Measure(string text, ushort[] table, double em)
+    {
         var width = 0.0;
         var space = false;
         foreach (var c in text.Trim())

@@ -1,0 +1,18 @@
+@* The most visited pages, as bars across so their paths have room. *@
+<Chart Items="_pages" Argument="p => p.Path" Label="Most visited pages, October" Orientation="Orientation.Horizontal" ValueFormat="N0">
+    <ChartSeries Value="p => p.Views" />
+</Chart>
+
+@code {
+    private record PageViews(string Path, int Views);
+
+    private readonly PageViews[] _pages =
+    [
+        new("/docs/get-started/install", 48_210),
+        new("/docs/components/data-grid", 31_904),
+        new("/docs/components/table", 22_470),
+        new("/docs/get-started/from-radzen", 17_366),
+        new("/docs/components/chart", 12_085),
+        new("/pricing", 9_412),
+    ];
+}

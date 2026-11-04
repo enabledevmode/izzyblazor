@@ -1,0 +1,17 @@
+@* Daily signups and trials on a date scale, the signups as an area. *@
+<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Label="Signups and trials, last 90 days">
+    <ChartSeries Value="d => d.Signups" Type="ChartType.Area" Curve="ChartCurve.Smooth" />
+    <ChartSeries Value="d => d.Trials" Curve="ChartCurve.Smooth" />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, int Signups, int Trials);
+
+    private readonly Day[] _days = Enumerable.Range(0, 90).Select(i =>
+    {
+        var date = new DateOnly(2026, 8, 6).AddDays(i);
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+        var signups = 120 + i * 2 + (int)(25 * Math.Sin(i / 4.0)) - (weekend ? 40 : 0);
+        return new Day(date, signups, signups / 3 + (int)(10 * Math.Cos(i / 6.0)));
+    }).ToArray();
+}

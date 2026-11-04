@@ -1,0 +1,250 @@
+/*
+ * Charts' styles, built to wwwroot/chart.css and linked by Chart, so pages without one don't pay
+ * for them. The main sheet holds a chart back until this arrives.
+ *
+ * The plot is an SVG that stretches to the chart's width: bars, grid lines and markers are placed
+ * in percent, and lines and areas sit in a nested SVG that stretches with strokes that don't.
+ * The text is HTML beside it, so it keeps its size. Labels that would crowd at a narrow width
+ * carry ib-chart-fromN, which hides them below the Nth width the server fitted them at
+ * (ChartLayout.Widths: 320, 400, 480, 560, 640, 800, 960).
+ */
+
+/* The palette, chosen and checked with a color-vision validator: neighbors stay apart under the
+   common deficiencies, and every color is 3:1 against the dark surface (the 3rd, 4th and 5th are
+   lighter than that in light mode; the legend and the data table make up for it). Zero
+   specificity, so a theme's own values win wherever they're set. */
+:where(:root) {
+  --ib-chart-1: light-dark(#2a78d6, #3987e5);
+  --ib-chart-2: light-dark(#eb6834, #d95926);
+  --ib-chart-3: light-dark(#1baf7a, #199e70);
+  --ib-chart-4: light-dark(#eda100, #c98500);
+  --ib-chart-5: light-dark(#e87ba4, #d55181);
+  --ib-chart-6: light-dark(#008300, #008300);
+  --ib-chart-7: light-dark(#6250d6, #9085e9);
+  --ib-chart-8: light-dark(#e34948, #e66767);
+}
+
+@layer izzy.components {
+  .ib-chart {
+    /* A size container has no width of its own, so the chart takes its container's, even in a
+       flex row or a centered box. */
+    container: ib-chart / inline-size;
+    visibility: visible;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    min-width: 0;
+  }
+
+  .ib-chart-label {
+    margin-block-end: var(--ib-space-3);
+    font-weight: var(--ib-weight-semibold);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-chart-s1 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-1)); }
+  .ib-chart-s2 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-2)); }
+  .ib-chart-s3 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-3)); }
+  .ib-chart-s4 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-4)); }
+  .ib-chart-s5 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-5)); }
+  .ib-chart-s6 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-6)); }
+  .ib-chart-s7 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-7)); }
+  .ib-chart-s8 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-8)); }
+
+  .ib-chart-frame {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: var(--ib-chart-height, 18rem) auto;
+    column-gap: var(--ib-space-2);
+    padding-block-start: 0.5lh;
+    font-size: var(--ib-text-xs);
+    line-height: 1.3;
+    color: var(--ib-color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Values up the side (or names, for bars across): all in one cell, so the column is as wide as
+     the longest; each moved down by percent of the plot's height. */
+  .ib-chart-side {
+    display: grid;
+    min-width: 0;
+  }
+
+  .ib-chart-side > span {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: relative;
+    translate: 0 -50%;
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .ib-chart-names > span {
+    max-width: 33cqi;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ib-chart-plot {
+    position: relative;
+    min-width: 0;
+  }
+
+  .ib-chart-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .ib-chart-paths {
+    overflow: visible;
+  }
+
+  .ib-chart-grid {
+    stroke: var(--ib-color-border);
+    shape-rendering: crispEdges;
+  }
+
+  .ib-chart-zero { stroke: var(--ib-color-outline); }
+
+  .ib-chart-bars {
+    fill: var(--ib-chart-c);
+    /* The surface's color around each bar parts neighbors and stacked segments. */
+    stroke: var(--ib-color-surface);
+    stroke-width: 1px;
+  }
+
+  .ib-chart-line,
+  .ib-chart-key line {
+    fill: none;
+    stroke: var(--ib-chart-c);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ib-chart-dash1 { stroke-dasharray: 6 4; }
+  .ib-chart-dash2 { stroke-dasharray: 1 4; }
+  .ib-chart-dash3 { stroke-dasharray: 10 4 2 4; }
+
+  .ib-chart-area {
+    fill: var(--ib-chart-c);
+    fill-opacity: 0.2;
+  }
+
+  .ib-chart-marks,
+  .ib-chart-key use {
+    fill: var(--ib-chart-c);
+    stroke: var(--ib-color-surface);
+    stroke-width: 1.5px;
+  }
+
+  .ib-chart-off { display: none; }
+
+  /* Arguments (or values, for bars across) along the bottom, centered on their place. */
+  .ib-chart-bottom {
+    grid-column: 2;
+    position: relative;
+    height: 1lh;
+    margin-block-start: var(--ib-space-1);
+  }
+
+  .ib-chart-two-line { height: 2lh; }
+
+  .ib-chart-bottom > span {
+    position: absolute;
+    top: 0;
+    translate: -50% 0;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .ib-chart-context {
+    display: block;
+    color: var(--ib-color-subtle);
+  }
+
+  /* Names in bands get the room the server worked out for each width, and an ellipsis past it. */
+  .ib-chart-bands > span {
+    max-width: var(--ib-chart-w, var(--ib-chart-w0));
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @container ib-chart (width >= 320px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w1); } }
+  @container ib-chart (width >= 400px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w2); } }
+  @container ib-chart (width >= 480px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w3); } }
+  @container ib-chart (width >= 560px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w4); } }
+  @container ib-chart (width >= 640px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w5); } }
+  @container ib-chart (width >= 800px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w6); } }
+  @container ib-chart (width >= 960px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w7); } }
+
+  @container ib-chart (width < 320px) { .ib-chart-from1 { display: none; } }
+  @container ib-chart (width < 400px) { .ib-chart-from2 { display: none; } }
+  @container ib-chart (width < 480px) { .ib-chart-from3 { display: none; } }
+  @container ib-chart (width < 560px) { .ib-chart-from4 { display: none; } }
+  @container ib-chart (width < 640px) { .ib-chart-from5 { display: none; } }
+  @container ib-chart (width < 800px) { .ib-chart-from6 { display: none; } }
+  @container ib-chart (width < 960px) { .ib-chart-from7 { display: none; } }
+
+  .ib-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-1) var(--ib-space-4);
+    margin: var(--ib-space-3) 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-chart-legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-chart-key {
+    flex: none;
+    overflow: visible;
+  }
+
+  .ib-chart-key rect { fill: var(--ib-chart-c); }
+
+  .ib-chart-data {
+    margin-block-start: var(--ib-space-3);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-chart-data > summary {
+    width: fit-content;
+    color: var(--ib-color-primary-text);
+    cursor: pointer;
+  }
+
+  .ib-chart-table-scroll {
+    overflow-x: auto;
+    margin-block-start: var(--ib-space-2);
+  }
+
+  .ib-chart-table {
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-chart-table :is(th, td) {
+    padding: var(--ib-space-1) var(--ib-space-3);
+    border-block-end: 1px solid var(--ib-color-border);
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  .ib-chart-table :is(thead th, tbody th) { font-weight: var(--ib-weight-medium); }
+  .ib-chart-table :is(th:first-child) { text-align: start; }
+
+  @media print {
+    .ib-chart { print-color-adjust: exact; }
+  }
+}
