@@ -1,15 +1,28 @@
-@* Toggle buttons: @bind-Pressed turns them on and off, and screen readers hear "pressed". *@
+@* Toggle buttons: @bind-Pressed turns each on and off, and screen readers hear "pressed". *@
 <Stack Gap="3" Align="Align.Center">
-    <ButtonGroup Label="Text style" Attached Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
-        <IconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="_bold" />
-        <IconButton Icon="Lucide.Italic" Label="Italic" @bind-Pressed="_italic" />
-        <IconButton Icon="Lucide.Underline" Label="Underline" @bind-Pressed="_underline" />
-    </ButtonGroup>
-    <TextBlock Weight="@(_bold ? FontWeight.Bold : FontWeight.Normal)" Italic="_italic" Decoration="@(_underline ? TextDecoration.Underline : null)">The quick brown fox</TextBlock>
+    <Row Gap="2" Wrap Justify="Justify.Center">
+        <Button StartIcon="Lucide.Star" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_starred">Starred</Button>
+        <Button StartIcon="Lucide.Paperclip" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_attachments">Has attachments</Button>
+        <Button StartIcon="Lucide.Mail" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_unread">Unread</Button>
+    </Row>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Shown.Count() of @Messages.Length messages</TextBlock>
 </Stack>
 
 @code {
-    private bool _bold = true;
-    private bool _italic;
-    private bool _underline;
+    private bool _starred;
+    private bool _attachments;
+    private bool _unread = true;
+
+    private IEnumerable<Message> Shown => Messages.Where(m => (!_starred || m.Starred) && (!_attachments || m.Attachments) && (!_unread || m.Unread));
+
+    @* hide *@
+    private sealed record Message(bool Starred, bool Attachments, bool Unread);
+
+    private static readonly Message[] Messages =
+    [
+        new(true, true, true), new(false, true, false), new(false, false, true), new(true, false, false),
+        new(false, false, false), new(false, true, true), new(true, true, false), new(false, false, true),
+        new(false, false, false), new(true, false, true), new(false, true, false), new(false, false, false),
+    ];
+    @* /hide *@
 }

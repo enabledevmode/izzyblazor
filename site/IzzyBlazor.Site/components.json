@@ -445,6 +445,7 @@
       "examples": [
         { "id": "icon-button-variants", "title": "Labels and variants", "lead": "An icon button's label is its name for screen readers and its tooltip. Set `Label`; it's required. Like Button, an icon button accepts `Variant`, `Accent` and `Href`." },
         { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Icon buttons have the same sizes and states as Button. `Size`, `Loading` and `Disabled` work as they do there." },
+        { "id": "icon-button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "A button on a row can act on that row. For a link, set `Href`. To post which row the button is on, set `Submit` with `Name` and `Value`; on interactive pages, `OnClick` does the same in C#.",
           "notes": {
             "noscript": "Delete posts the file's name, and the page reloads without the file. Restore is a link back.",
@@ -460,7 +461,8 @@
         { "id": "button-group-joined", "title": "Joined buttons", "lead": "Buttons and icon buttons in a group are joined into one control. To name the group for screen readers, set `Label`." },
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "A group can set its buttons' defaults, so you set a look once. Set `Variant`, `Accent` and `Size` on the group. A button's own setting overrides them." },
         { "id": "button-group-spaced", "title": "Spaced apart", "lead": "To space the buttons apart instead of joining them, set `Attached=\"false\"`." },
-        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." }
+        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." },
+        { "id": "button-group-toggles", "title": "Toggles in a group", "lead": "Toggle buttons that belong together, such as text styles, read as one control in a group. Each still turns on and off on its own with `@bind-Pressed`; for one choice of several, use a SegmentedControl.", "modes": ["interactive"] }
       ]
     },
     {
