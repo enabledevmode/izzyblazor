@@ -271,7 +271,7 @@
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
-                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Style % 4}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Dash}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Marks.Count > 0))
@@ -313,7 +313,7 @@
                             }
                             else
                             {
-                                <line class="@($"ib-chart-dash{s.Style % 4}")" x1="0" x2="24" y1="6" y2="6" />
+                                <line class="@($"ib-chart-dash{s.Dash}")" x1="0" x2="24" y1="6" y2="6" />
                                 @if (s.Marks.Count > 0)
                                 {
                                     <use href="@($"#{marks}{s.Style % 4}")" x="12" y="6" />
