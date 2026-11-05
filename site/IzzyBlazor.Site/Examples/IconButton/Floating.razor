@@ -1,11 +1,7 @@
-@* A floating action button: Floating fixes it to the window's bottom corner, raised, and stays
-   there as the list scrolls. It's a link to this page with ?new=. *@
+@* A floating action button: Floating fixes it to the window's bottom corner, raised, and it stays
+   there as the list scrolls. *@
 <Stack Gap="4" Padding="4">
     <Heading Level="1" Size="TextSize.Xl">Invoices</Heading>
-    @if (New)
-    {
-        <Alert Status="Status.Info">A new invoice opens here.</Alert>
-    }
     <Stack Gap="2">
         @foreach (var i in Enumerable.Range(1, 12))
         {
@@ -13,10 +9,4 @@
         }
     </Stack>
 </Stack>
-<IconButton Icon="Lucide.Plus" Label="New invoice" Floating Href="?new=1" />
-
-@code {
-    [SupplyParameterFromQuery(Name = "new")] private string? NewQuery { get; set; }
-
-    private bool New => NewQuery is not null;
-}
+<IconButton Icon="Lucide.Plus" Label="New invoice" Floating />
