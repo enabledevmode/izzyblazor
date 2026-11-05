@@ -2,7 +2,7 @@
 @typeparam TValue
 @typeparam TItem
 @inherits FieldBase<TValue>
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain multi-select list, without chips or typing to filter.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain multi-select list, without chips or typing to filter, and AllowCustom can't take new values.")]
 
 @*
     Pick several options from a longer list, bound to a collection: an array, List<T>,
@@ -19,6 +19,16 @@
     - Interactive: the same, and @bind-Value follows every change.
     For a short list, CheckboxGroup shows every option at once.
 
+    AllowCustom takes typed values too, for string collections (labels, email recipients), with
+    or without Items as suggestions:
+
+    <MultiSelect @bind-Value="Model.Labels" Items="KnownLabels" AllowCustom Label="Labels" />
+
+    Enter, a comma or a semicolon adds the typed text, as does leaving the field; a paste splits
+    on commas, semicolons and line breaks. Text matching an option (ignoring case) chooses it, and
+    a value already chosen isn't added twice. A new value becomes a chosen option of the native
+    select, so it posts and binds like the others.
+
     Accessibility:
     - With script, the input is a `combobox` with a multi-select `listbox`: chosen options have
       `aria-selected`, and focus stays in the input as Down and Up move through them.
@@ -26,7 +36,8 @@
     - Backspace in the empty input removes the last chosen option. The chips' remove buttons,
       named "Remove" and the option ("Remove Design", `RemoveLabel`), are left out of the Tab
       order.
-    - When nothing matches, "No matches" (`EmptyText`) is announced politely.
+    - When nothing matches, "No matches" (`EmptyText`) is announced politely; with AllowCustom,
+      a typed value is announced as it's added ("Added Design.", `IzzyText.Added`).
     - The label names the input and the list. The chosen options are the input's description,
       before the hint and errors ("Chosen: Design, Writing.", `IzzyText.Chosen`), so they're heard on focus.
     - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
@@ -37,14 +48,16 @@
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     @if (ShowsReadOnly)
     {
-        @(ReadOnlyControl(string.Join(", ", ItemList.Where(IsChosen).Select(item => ChoiceOptions.Text(item, ItemText)))))
+        @(ReadOnlyControl(string.Join(", ", ChosenItems.Select(item => ChoiceOptions.Text(item, ItemText)))))
     }
     else
     {
     <ib-combobox class="ib-field-control ib-has-end ib-combobox ib-multiselect"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
                  data-remove-label="@(RemoveLabel ?? TextDefaults.Remove)"
-                 data-chosen-label="@TextDefaults.Chosen">
+                 data-chosen-label="@TextDefaults.Chosen"
+                 data-custom="@AllowCustom"
+                 data-added-label="@(AllowCustom ? TextDefaults.Added : null)">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-combobox-select ib-multiselect-select"
@@ -67,6 +80,12 @@
                     <optgroup @key="@(("group", group))" label="@group"><legend>@group</legend>@SelectOptions(items)</optgroup>
                 }
             }
+            @* Typed values (AllowCustom): after the options, where the script adds new ones. Keyed,
+               so removing one doesn't hand its element (and its selected state) to the next. *@
+            @foreach (var item in CustomChosen)
+            {
+                <option @key="item" value="@ChoiceOptions.Value(item)" selected>@ChoiceOptions.Text(item, ItemText)</option>
+            }
         </select>
         <div class="ib-field-input ib-multiselect-box">
             @* The chips: drawn here on a static page and in a prerender (which the interactive render
@@ -76,7 +95,7 @@
             <span class="ib-multiselect-chips">
                 @if (!RendererInfo.IsInteractive)
                 {
-                    @foreach (var item in ItemList.Where(IsChosen))
+                    @foreach (var item in ChosenItems)
                     {
                         var text = ChoiceOptions.Text(item, ItemText);
                         <span class="ib-chip" data-value="@ChoiceOptions.Value(item)"><span class="ib-chip-text">@text</span><button type="button" class="ib-chip-remove" tabindex="-1" aria-label="@($"{RemoveLabel ?? TextDefaults.Remove} {text}")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></button></span>
@@ -146,7 +165,7 @@
     @if (PostsReadOnlyValue)
     {
         @* Read-only: the values show in a read-only text field, which doesn't post them; these do. *@
-        @foreach (var item in ItemList.Where(IsChosen))
+        @foreach (var item in ChosenItems)
         {
             <input type="hidden" name="@NameAttributeValue" value="@ChoiceOptions.Value(item)" />
         }
@@ -202,8 +221,19 @@
     /// </summary>
     [Parameter] public Func<TItem, string?>? ItemGroup { get; set; }
 
-    /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Skill&gt;()"</c>.</summary>
-    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+    /// <summary>
+    /// The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Skill&gt;()"</c>. With
+    /// <see cref="AllowCustom"/>, suggestions, and optional.
+    /// </summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Takes typed values as well as the options, such as new labels or email recipients: Enter, a
+    /// comma or a semicolon adds the text, as does leaving the field, and a paste splits on commas,
+    /// semicolons and line breaks. For string collections only. Check the values with the model's
+    /// validation. Needs JavaScript.
+    /// </summary>
+    [Parameter] public bool AllowCustom { get; set; }
 
     /// <summary>The text for each option, also what's typed to find it and the chip's text. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
     [Parameter] public Func<TItem, string>? ItemText { get; set; }
@@ -228,13 +258,31 @@
     private string LabelId => FieldId + "-label";
     private string ChosenId => FieldId + "-chosen";
 
-    private string? ChosenText => ItemList.Where(IsChosen).Select(item => ChoiceOptions.Text(item, ItemText)).ToList() is { Count: > 0 } chosen
+    private string? ChosenText => ChosenItems.Select(item => ChoiceOptions.Text(item, ItemText)).ToList() is { Count: > 0 } chosen
         ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.Chosen, string.Join(", ", chosen))
         : null;
 
     private IReadOnlyList<TItem> ItemList => ChoiceOptions.Of(Items).ToList();
 
     private bool IsChosen(TItem item) => ChoiceCollection<TValue, TItem>.Items(CurrentValue).Contains(item);
+
+    // Chosen values that aren't options: typed ones (AllowCustom).
+    private IEnumerable<TItem> CustomChosen => AllowCustom
+        ? ChoiceCollection<TValue, TItem>.Items(CurrentValue).Where(v => !ItemList.Contains(v)).Distinct()
+        : [];
+
+    // In the select's order: the options, then typed values.
+    private IEnumerable<TItem> ChosenItems => ItemList.Where(IsChosen).Concat(CustomChosen);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (AllowCustom && typeof(TItem) != typeof(string))
+        {
+            throw new InvalidOperationException($"MultiSelect's AllowCustom takes typed text, so it needs string items; this one's items are {typeof(TItem).Name}. Bind it to a string collection.");
+        }
+    }
 
     // The browser reports a multiple select's change as the chosen values, in list order.
     private void OnSelectChanged(ChangeEventArgs e)
@@ -247,7 +295,14 @@
             _ => [],
         };
 
-        var chosen = ItemList.Where(i => values.Contains(ChoiceOptions.Value(i)));
+        IEnumerable<TItem> chosen = ItemList.Where(i => values.Contains(ChoiceOptions.Value(i))).ToList();
+        if (AllowCustom)
+        {
+            // Typed values: strings, checked in OnParametersSet.
+            var known = chosen.Select(ChoiceOptions.Value).ToHashSet();
+            chosen = chosen.Concat(values.Where(v => !known.Contains(v)).Distinct().Select(v => (TItem)(object)v));
+        }
+
         CurrentValue = ChoiceCollection<TValue, TItem>.Create(chosen);
     }
 }

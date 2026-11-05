@@ -1,0 +1,54 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+
+<Form Model="Model" FormName="multi-select-recipients" OnValidSubmit="Share" MaxWidth="28.Rem" Grow>
+    <MultiSelect @bind-Value="Model!.Recipients" Items="Teammates" AllowCustom
+                 Placeholder="name@example.com" Hint="Teammates, or any email address." />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Button Submit>Share</Button>
+        @if (_shared is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Shared with @string.Join(", ", _shared).</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-select-recipients")]
+    private ShareRequest? Model { get; set; }
+
+    private List<string>? _shared;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Share() => _shared = Model!.Recipients!;
+
+    public sealed class ShareRequest
+    {
+        [Required(ErrorMessage = "Add at least one person")]
+        [MinLength(1, ErrorMessage = "Add at least one person")]
+        [Emails]
+        [Display(Name = "Share with")]
+        public List<string>? Recipients { get; set; }
+    }
+
+    // Each typed value is checked here, on the server and on interactive pages alike.
+    private sealed class EmailsAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext context)
+        {
+            var bad = (value as IEnumerable<string>)?.FirstOrDefault(e => !MailAddress.TryCreate(e, out _));
+            return bad is null
+                ? ValidationResult.Success
+                : new ValidationResult($"\"{bad}\" isn't an email address.", context.MemberName is { } name ? [name] : null);
+        }
+    }
+
+    @* hide *@
+    private static readonly string[] Teammates =
+    [
+        "ada@contoso.com", "alan@contoso.com", "barbara@contoso.com", "grace@contoso.com",
+        "katherine@contoso.com", "margaret@contoso.com",
+    ];
+    @* /hide *@
+}

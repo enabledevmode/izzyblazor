@@ -26,6 +26,17 @@
     <ListItem>A form post can contain values that aren't among the options, and they reach the model. This example checks them on the server. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</ListItem>
 </List>
 
+<Heading Level="2">Typed values</Heading>
+<TextBlock>To take values that aren't among the options, such as new labels or email addresses, set <Code>AllowCustom</Code>. <Code>Items</Code> become suggestions, and can be left out. It needs a collection of strings.</TextBlock>
+<ExampleViewer Example="multi-select-recipients" />
+<List>
+    <ListItem>Enter adds the typed text, unless the user moved to an option with the arrow keys. A comma or semicolon adds the text before it, and so does leaving the field.</ListItem>
+    <ListItem>Pasting splits the text on commas, semicolons and line breaks, and adds each piece.</ListItem>
+    <ListItem>Text that matches an option, ignoring case, chooses that option. A value already chosen isn't added again.</ListItem>
+    <ListItem>Check the values with the model's validation, as this example's <Code>[Emails]</Code> attribute does. It runs on the server for static pages and on interactive ones as the form submits.</ListItem>
+    <ListItem>New values need JavaScript. With it off, the field is a plain list of the options.</ListItem>
+</List>
+
 <Heading Level="2">Enum options with icons</Heading>
 <TextBlock>Each option in the list can show markup, such as an icon beside an enum value's name. Set <Code>ItemTemplate</Code> to the markup, and pass the enum's values to <Code>Items</Code>: <Code>Enum.GetValues&lt;IssueLabel&gt;()</Code>.</TextBlock>
 <ExampleViewer Example="multi-select-enum-icons" />
