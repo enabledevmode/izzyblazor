@@ -1,8 +1,8 @@
 @using System.ComponentModel.DataAnnotations
 
 <Form Model="Model" FormName="text-field-masks" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
-    <TextField @bind-Value="Model!.Phone" Mask="(000) 000-0000" Hint="10 digits, such as (416) 555-0199" AutoComplete="tel-national" />
-    <TextField @bind-Value="Model!.PostalCode" Mask=">L0L 0L0" Hint="Such as M5V 2T6" AutoComplete="postal-code" />
+    <TextField @bind-Value="Model!.Phone" Mask="(000) 000-0000" Placeholder="(000) 000-0000" Hint="10 digits" AutoComplete="tel-national" />
+    <TextField @bind-Value="Model!.PostalCode" Mask=">L0L 0L0" Placeholder="A1A 1A1" Hint="Letters and digits, such as M5V 2T6" AutoComplete="postal-code" />
     <Row><Button Submit>Save address</Button></Row>
     @if (_saved)
     {

@@ -30,9 +30,10 @@
       the password shows.
     - With script, a password field says "Caps Lock is on." (`IzzyText.CapsLockOn`) under it while
       typing with Caps Lock on, announced once through a polite status.
-    - Screen readers don't hear a `Mask`, and the field shows no placeholder characters for it: say
-      the format in `Hint`, as in "10 digits". The server puts a posted value in the mask's form, so
-      text typed with spaces or dots, or with no script, is taken too.
+    - Screen readers don't hear a `Mask`, and the field shows no prompt characters for it. Show the
+      format in `Placeholder`, as in "(000) 000-0000", and say it in `Hint`, as in "10 digits". The
+      server puts a posted value in the mask's form, so text typed with spaces or dots, or with no
+      script, is taken too.
     - `Requirements` lists what a new password needs under the field, linked as its description;
       with script each item says "met" or "not yet" in its text, not by its icon alone, and "All
       requirements met." (`IzzyText.PasswordRulesMet`) is announced once when the last one is.
@@ -186,7 +187,8 @@
     /// but a space; <c>9</c>, <c>?</c>, <c>a</c> and <c>C</c> are the same, optional. <c>&gt;</c> makes
     /// the letters after it upper case, <c>&lt;</c> lower case, and <c>|</c> stops either. <c>\</c>
     /// makes the next character a literal; anything else is one already. A value with an empty slot
-    /// that isn't optional is invalid. Say the format in <see cref="FieldBase{TValue}.Hint"/>.
+    /// that isn't optional is invalid. Show the format in <see cref="Placeholder"/> and say it in
+    /// <see cref="FieldBase{TValue}.Hint"/>.
     /// </summary>
     /// <example><c>Mask="(000) 000-0000"</c>, <c>Mask="&gt;L0L 0L0"</c></example>
     [Parameter] public string? Mask { get; set; }
