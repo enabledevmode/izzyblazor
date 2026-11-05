@@ -1,0 +1,36 @@
+@* A tooltip template that adds the margin to each month's revenue and costs. *@
+<Chart Items="_months" Argument="m => m.Month" Label="Revenue and costs, first half" ValueFormat="C0">
+    <TooltipTemplate>
+        <div class="ib-chart-tooltip-title">@context.Argument</div>
+        @foreach (var point in context.Points)
+        {
+            <div class="ib-chart-tooltip-row">
+                <span class="ib-chart-tooltip-key" style="background:@point.Color"></span>
+                <span>@point.Series</span>
+                <span class="ib-chart-tooltip-value">@point.Text</span>
+            </div>
+        }
+        <Divider MarginY="1" />
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Margin @(((context.Item.Revenue - context.Item.Costs) / context.Item.Revenue).ToString("P1"))
+        </TextBlock>
+    </TooltipTemplate>
+    <ChildContent>
+        <ChartSeries Value="m => m.Revenue" />
+        <ChartSeries Value="m => m.Costs" />
+    </ChildContent>
+</Chart>
+
+@code {
+    private record MonthTotals(string Month, decimal Revenue, decimal Costs);
+
+    private readonly MonthTotals[] _months =
+    [
+        new("January", 42_100, 30_400),
+        new("February", 45_800, 31_200),
+        new("March", 51_300, 33_900),
+        new("April", 48_700, 32_500),
+        new("May", 55_200, 35_100),
+        new("June", 58_900, 36_800),
+    ];
+}

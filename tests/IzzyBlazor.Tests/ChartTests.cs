@@ -175,6 +175,21 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void Draws_each_items_tooltip_from_the_template_for_the_script_to_show()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Label, "Revenue")
+            .Add(c => c.TooltipTemplate, tip => builder => builder.AddContent(0, $"{tip.Argument}: {tip.Item.Revenue - tip.Item.Costs} margin, {tip.Points[0].Series}"))
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+
+        var tips = cut.FindAll("ib-chart .ib-chart-tips[hidden] > [data-ib-tip]");
+        Assert.Equal(["Jan: 40 margin, Revenue", "Feb: 49.5 margin, Revenue"], tips.Select(t => t.TextContent.Trim()));
+        Assert.NotNull(cut.Find("ib-chart [data-ib-live][aria-live=polite]"));
+    }
+
+    [Fact]
     public void Needs_a_label()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p

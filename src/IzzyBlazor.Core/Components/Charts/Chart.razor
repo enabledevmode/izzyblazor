@@ -94,6 +94,19 @@
     /// <summary>Where the value axis ends. Defaults to a round number at or above the highest value.</summary>
     [Parameter] public double? ValueMax { get; set; }
 
+    /// <summary>
+    /// Shows a tooltip with every series' value for the item under the pointer, or under keyboard
+    /// focus on the chart, with script. Defaults to true; turning it off leaves the tooltips out of
+    /// the page.
+    /// </summary>
+    [Parameter] public bool Tooltip { get; set; } = true;
+
+    /// <summary>
+    /// The tooltip's content in place of the item's argument and each series' value. It's drawn on
+    /// the server for each item, so keep it to text and inline content (no buttons or links).
+    /// </summary>
+    [Parameter] public RenderFragment<ChartTooltip<TItem>>? TooltipTemplate { get; set; }
+
     /// <summary>The legend: below the chart when there are two series or more, by default.</summary>
     [Parameter] public ChartLegend Legend { get; set; }
 
@@ -204,6 +217,10 @@
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
 
+        <ib-chart data-ib-count="@model.ArgumentTexts.Length"
+                  data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
+                  data-ib-horizontal="@(horizontal ? "" : null)"
+                  data-ib-pos="@Positions(model)">
         <div class="ib-chart-frame" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
             <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
                 @foreach (var label in side)
@@ -212,6 +229,11 @@
                 }
             </div>
             <div class="ib-chart-plot">
+                @if (Tooltip)
+                {
+                    @* The band or line under the pointer: the script places it. *@
+                    <div class="ib-chart-hover" hidden></div>
+                }
                 <svg class="ib-chart-svg">
                     <defs>
                         <path id="@(marks)0" d="M-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
@@ -228,12 +250,12 @@
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Area is not null))
                         {
-                            <path class="@SeriesClass(s, "ib-chart-area")" style="@ColorStyle(s)" d="@s.Area" />
+                            <path class="@SeriesClass(s, "ib-chart-area")" style="@ColorStyle(s)" d="@s.Area" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
-                        <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)">
+                        <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars)
                             {
                                 <rect class="@(bar.Base is null ? null : "ib-chart-tip")" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
@@ -247,12 +269,12 @@
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
-                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Style % 4}")" style="@ColorStyle(s)" d="@s.Line" />
+                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Style % 4}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Marks.Count > 0))
                     {
-                        <g class="@SeriesClass(s, "ib-chart-marks")" style="@ColorStyle(s)">
+                        <g class="@SeriesClass(s, "ib-chart-marks")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var mark in s.Marks)
                             {
                                 <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%"><title>@mark.Title</title></use>
@@ -260,6 +282,10 @@
                         </g>
                     }
                 </svg>
+                @if (Tooltip)
+                {
+                    <div class="ib-chart-tooltip" hidden></div>
+                }
             </div>
             <div class="@BottomClass(model, horizontal)" style="@room">
                 @foreach (var label in bottom)
@@ -276,6 +302,8 @@
                 @foreach (var s in model.Series)
                 {
                     <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">
+                        @* The script makes this a toggle button that hides and shows the series. *@
+                        <span class="ib-chart-toggle" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                         <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
                             @if (s.Data.Type == ChartType.Bar)
                             {
@@ -291,10 +319,44 @@
                             }
                         </svg>
                         @s.Data.Name
+                        </span>
                     </li>
                 }
             </ul>
         }
+
+        @if (Tooltip)
+        {
+            @* Each item's tooltip, drawn here so a template is real Razor; the script shows the one
+               under the pointer or keyboard focus, and says it in the live region. *@
+            <div class="ib-chart-tips" hidden>
+                @for (var i = 0; i < items.Count; i++)
+                {
+                    var tip = TooltipFor(items, model, i);
+                    <div data-ib-tip>
+                        @if (TooltipTemplate is not null)
+                        {
+                            @TooltipTemplate(tip)
+                        }
+                        else
+                        {
+                            <div class="ib-chart-tooltip-title">@tip.Argument</div>
+                            @for (var p = 0; p < tip.Points.Count; p++)
+                            {
+                                var point = tip.Points[p];
+                                <div class="ib-chart-tooltip-row" data-ib-series="@p">
+                                    <span class="ib-chart-tooltip-key" style="@KeyStyle(point)"></span>
+                                    <span>@point.Series</span>
+                                    <span class="ib-chart-tooltip-value">@(point.Text ?? "-")</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+            <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+        }
+        </ib-chart>
 
         @if (DataTable != ChartDataTable.None)
         {
@@ -347,7 +409,23 @@
         "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "") + (!horizontal && model.Kind == ArgumentKind.Category ? " ib-chart-bands" : "");
 
     private static string SeriesClass(SeriesShape s, string? kind) =>
-        $"{kind} ib-chart-s{s.Slot}{(s.Data.Hidden ? " ib-chart-off" : "")}".TrimStart();
+        $"{kind} ib-chart-s{s.Slot}".TrimStart();
+
+    private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
+
+    private static string SeriesColor(SeriesShape s) => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-chart-" + s.Slot + ")";
+
+    private static string KeyStyle(ChartTooltipPoint point) => "background:" + point.Color;
+
+    private static string? Positions(ChartModel model) => model.Kind == ArgumentKind.Category
+        ? null
+        : string.Join(",", model.ArgumentPositions.Select(p => double.IsNaN(p) ? "" : Num(p)));
+
+    private static ChartTooltip<TItem> TooltipFor(IReadOnlyList<TItem> items, ChartModel model, int index) => new(
+        items[index],
+        index,
+        model.ArgumentTexts[index],
+        model.Series.Select(s => new ChartTooltipPoint(s.Data.Name, s.Data.Values[index], model.ValueTexts[s.Index][index], SeriesColor(s))).ToList());
 
     private static string? ColorStyle(SeriesShape s) => s.Data.Color is { } color ? $"--ib-chart-color:{StyleValues.Raw(color, "color")}" : null;
 }
