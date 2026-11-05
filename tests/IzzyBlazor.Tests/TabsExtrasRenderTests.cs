@@ -87,4 +87,31 @@ public class TabsExtrasRenderTests : BunitContext
             builder.CloseComponent();
         }
     };
+
+    [Fact]
+    public void Removing_the_selected_tab_selects_the_one_after_it_and_tells_the_binding()
+    {
+        string? told = null;
+        RenderFragment Invoices(params string[] numbers) => builder =>
+        {
+            foreach (var number in numbers)
+            {
+                builder.OpenComponent<Tab>(0);
+                builder.SetKey(number);
+                builder.AddComponentParameter(1, nameof(Tab.Label), number);
+                builder.CloseComponent();
+            }
+        };
+
+        var cut = Render<Tabs>(p => p
+            .Add(t => t.Label, "Open invoices")
+            .Add(t => t.Selected, "inv-1043")
+            .Add(t => t.SelectedChanged, value => told = value)
+            .Add(t => t.ChildContent, Invoices("INV-1042", "INV-1043", "INV-1045")));
+
+        cut.Render(p => p.Add(t => t.ChildContent, Invoices("INV-1042", "INV-1045")));
+
+        Assert.Equal("inv-1045", cut.Find(".ib-tab-input[checked]").GetAttribute("value"));
+        cut.WaitForAssertion(() => Assert.Equal("inv-1045", told));
+    }
 }

@@ -215,6 +215,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "carousel.css"),
   },
   {
+    // A sheet of its own, linked by Tabs with close or add controls.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "tabs-edit.css")],
+    outfile: join(lib, "wwwroot", "tabs-edit.css"),
+  },
+  {
     // A sheet of its own, linked by the charts.
     ...common,
     sourcemap: false,

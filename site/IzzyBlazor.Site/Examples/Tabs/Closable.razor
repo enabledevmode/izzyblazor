@@ -1,0 +1,39 @@
+<Tabs @bind-Selected="_selected" OnClose="Close" OnAdd="Add" AddLabel="New invoice" Label="Open invoices" Grow>
+    <Tab Label="All invoices" Value="all" Icon="Lucide.List" Closable="false">
+        <TextBlock Color="Color.Muted">@_open.Count invoices open. Close one with its button, or with Delete on its tab.</TextBlock>
+    </Tab>
+    @foreach (var invoice in _open)
+    {
+        <Tab @key="invoice.Number" Label="@invoice.Number" Value="@invoice.Number">
+            <TextBlock>@invoice.Customer: @invoice.Amount.ToString("C", Usd)</TextBlock>
+        </Tab>
+    }
+</Tabs>
+
+@code {
+    private string? _selected = "INV-1043";
+    private int _next = 1046;
+
+    private readonly List<Invoice> _open =
+    [
+        new("INV-1042", "Northwind Traders", 1_280.00m),
+        new("INV-1043", "Contoso Pharmacy", 642.50m),
+        new("INV-1045", "Fabrikam Garden Supply", 3_915.75m),
+    ];
+
+    // The tab goes when it leaves the list. To keep one open (unsaved changes), don't remove it.
+    private void Close(string number) => _open.RemoveAll(i => i.Number == number);
+
+    private void Add()
+    {
+        var draft = new Invoice($"INV-{_next++}", "New customer", 0m);
+        _open.Add(draft);
+        _selected = draft.Number;
+    }
+
+    private sealed record Invoice(string Number, string Customer, decimal Amount);
+
+    @* hide *@
+    private static readonly System.Globalization.CultureInfo Usd = new("en-US");
+    @* /hide *@
+}

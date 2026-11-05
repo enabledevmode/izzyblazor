@@ -39,6 +39,13 @@
       before them, and give each `nav` of TabLinks its own when a page has more than one.
     - In a form, with script, a tab whose fields have errors shows a count, read as part of its
       name ("Billing (1 error)").
+    - With script, Delete or Backspace on a closable tab closes it, announced as the tab's shortcut
+      (`aria-keyshortcuts`). Its close button is for the pointer, hidden from screen readers and
+      the tab order, since a tab list holds only tabs. Closing the selected tab selects and focuses
+      the one after it, or the one before when it was last.
+    - With JavaScript off, each close link follows its tab in the tab order, named "Close" and the
+      label ("Close Billing").
+    - The add button follows the list, named "Add tab" (`AddLabel`).
     - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
       page's link has `aria-current`, and a disabled one is a link with no `href`, announced as
       disabled (`aria-disabled`).
@@ -96,7 +103,7 @@ else
             var key = _context.KeyOf(tab);
             @* A span, not the label, takes role="tab" with script (a label can't have a role); the
                label inside is stretched over it (CSS), so the whole tab checks the radio. *@
-            <span class="@(tab.Disabled ? "ib-tab ib-tab-disabled" : "ib-tab")" id="@_context.TabId(tab)" data-value="@key">
+            <span @key="tab" class="@(tab.Disabled ? "ib-tab ib-tab-disabled" : "ib-tab")" id="@_context.TabId(tab)" data-value="@key">
                 <input type="radio"
                        class="ib-tab-input ib-visually-hidden"
                        name="@RootId"
@@ -108,8 +115,36 @@ else
                        @onchange="() => SelectAsync(key)" />
                 <label class="ib-tab-label" for="@_context.InputId(tab)">@TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))</label>
             </span>
+            @* Beside the tab, drawn inside its box (tabs-edit.css): a tab's content is presentational.
+               With script the list is a tablist, which holds only tabs, so the script hides these
+               from screen readers and the Tab order, and Delete on the tab closes it. With no
+               script the list is a radio group and these are ordinary links. *@
+            @if (!tab.Disabled && tab.Closable)
+            {
+                if (OnClose.HasDelegate && (IsInteractive || (tab.CloseHref is null && WillBeInteractive)))
+                {
+                    <button @key="(tab, 1)" type="button" class="ib-tab-close" aria-label="@CloseName(tab)" @onclick="() => OnClose.InvokeAsync(key)"><Icon Role="IconRole.Close" /></button>
+                }
+                else if (tab.CloseHref is not null)
+                {
+                    <a @key="(tab, 1)" class="ib-tab-close" href="@tab.CloseHref" aria-label="@CloseName(tab)"><Icon Role="IconRole.Close" /></a>
+                }
+            }
         }
     </div>
+    @* After the list, outside it: it ends the row and stays in view while the tabs scroll. *@
+    @if (OnAdd.HasDelegate && (IsInteractive || (AddHref is null && WillBeInteractive)))
+    {
+        <button type="button" class="ib-tab-add" aria-label="@AddName" @onclick="() => OnAdd.InvokeAsync()"><Icon Role="IconRole.Plus" /></button>
+    }
+    else if (AddHref is not null)
+    {
+        <a class="ib-tab-add" href="@AddHref" aria-label="@AddName"><Icon Role="IconRole.Plus" /></a>
+    }
+    @if (Editable)
+    {
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/tabs-edit.css"]" />
+    }
     <CascadingValue Value="_context" IsFixed="true">
         @ChildContent
     </CascadingValue>
@@ -154,6 +189,32 @@ else
     /// stay a scrolling row on phones, where a column would crowd the content.
     /// </summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>
+    /// Puts a close button on each tab that runs this with the tab's <see cref="Tab.Value"/>
+    /// (interactive pages). Remove the tab from your data to close it; leave it to keep it open, as
+    /// after asking about unsaved changes. When the selected tab goes, the one after it is selected.
+    /// A <see cref="Tab"/> can opt out with <c>Closable="false"</c>; static pages use
+    /// <see cref="Tab.CloseHref"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string> OnClose { get; set; }
+
+    /// <summary>
+    /// Shows an add button after the tabs that runs this (interactive pages). Add a
+    /// <see cref="Tab"/> to your data and, usually, select it. Static pages use <see cref="AddHref"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback OnAdd { get; set; }
+
+    /// <summary>
+    /// Shows an add link after the tabs, to this address. Used on static pages, and on interactive
+    /// ones when there's no <see cref="OnAdd"/>.
+    /// </summary>
+    [Parameter] public string? AddHref { get; set; }
+
+    /// <summary>The add button's name, such as "New invoice". Defaults to "Add tab".</summary>
+    [Parameter] public string? AddLabel { get; set; }
 
     /// <summary>The element id; tab and panel ids build on it. Generated when not set.</summary>
     [Parameter] public string? Id { get; set; }
@@ -215,9 +276,63 @@ else
         }
     }
 
+    // Close and add controls, which need tabs-edit.css.
+    private bool Editable =>
+        OnAdd.HasDelegate || AddHref is not null
+        || _context.Items.Any(t => !t.Disabled && t.Closable && (OnClose.HasDelegate || t.CloseHref is not null));
+
+    private string CloseName(Tab tab) => $"{IzzyText.From(Services).Close} {tab.Label}";
+
+    private string AddName => AddLabel ?? IzzyText.From(Services).AddTab;
+
+    private bool _disposed;
+
+    // The selected tab went (closed, or no longer rendered): select the one that followed it, or the
+    // one before when it was last, as the ARIA tabs pattern does, and tell a bound parent once the
+    // render that removed it is done. The script selects the neighbor itself when a person closes
+    // the selected tab, so this is for tabs removed by the app.
+    internal void SelectedRemoved(int index)
+    {
+        var tabs = _context.Items;
+        var next = tabs.Skip(index).FirstOrDefault(t => !t.Disabled) ?? tabs.Take(index).LastOrDefault(t => !t.Disabled);
+        if (next is null)
+        {
+            return;
+        }
+
+        var key = _context.KeyOf(next);
+        _selected = key;
+        if (SelectedChanged.HasDelegate)
+        {
+            _ = NotifySelectedAsync(key);
+        }
+    }
+
+    private async Task NotifySelectedAsync(string key)
+    {
+        await Task.Yield();
+        if (_disposed || _selected != key)
+        {
+            return;
+        }
+
+        await InvokeAsync(async () =>
+        {
+            try
+            {
+                await SelectedChanged.InvokeAsync(key);
+            }
+            catch (Exception ex)
+            {
+                await DispatchExceptionAsync(ex);
+            }
+        });
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposed = true;
         Navigation.LocationChanged -= OnLocationChanged;
         Unsubscribe();
     }

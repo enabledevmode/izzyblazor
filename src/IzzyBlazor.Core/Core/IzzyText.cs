@@ -36,7 +36,7 @@ public class IzzyText
 
     // Shared
 
-    /// <summary>A close button. Dialog, Popover.</summary>
+    /// <summary>A close button. Dialog, Popover; before a tab's label on its close button ("Close Billing").</summary>
     public virtual string Close { get; set; } = "Close";
 
     /// <summary>A dismiss button. Alert, toasts.</summary>
@@ -381,6 +381,9 @@ public class IzzyText
 
     /// <summary>For screen readers, after a tab's label when fields in it have errors: "{0} errors".</summary>
     public virtual string ErrorCount { get; set; } = "{0} errors";
+
+    /// <summary>The add button after a Tabs' tabs.</summary>
+    public virtual string AddTab { get; set; } = "Add tab";
 
     /// <summary>A field's message for a value it can't read as its type. {0} is the field's label.</summary>
     public virtual string ValueInvalid { get; set; } = "The {0} field is not valid.";
