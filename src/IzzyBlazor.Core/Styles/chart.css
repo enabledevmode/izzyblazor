@@ -10,11 +10,11 @@
  */
 
 /* The palette, checked with a color-vision validator: neighbors stay apart under the common
-   deficiencies, and every color is 3:1 against the dark surface (the 3rd, 4th and 5th are
-   lighter than that in light mode; the legend and the data table make up for it). The dark
-   steps are the light hues brighter (OKLCH L 0.68 to 0.80), so they stay clear on a near-black
-   surface instead of going muddy. Zero specificity, so a theme's own values win wherever
-   they're set. */
+   deficiencies, and every color is 3:1 against the dark surface. In light mode the 2nd to 5th
+   (orange, aqua, yellow, pink) are under 3:1 against white, the 3rd to 5th even solid; the
+   legend, the tooltips and the data table carry their values. The dark steps are the light hues
+   brighter (OKLCH L 0.68 to 0.80), so they stay clear on a near-black surface. Zero specificity,
+   so a theme's own values win wherever they're set. */
 :where(:root) {
   --ib-chart-1: light-dark(#2a78d6, #5fa0f5);
   --ib-chart-2: light-dark(#eb6834, #f77c4e);
@@ -55,17 +55,17 @@
   /* A pie's ninth slice and on. */
   .ib-chart-s9 { --ib-chart-c: var(--ib-color-neutral); }
 
-  /* Fills (bars, slices, keys) are lighter than the series color: mixed with the surface, 0.65 of
-     the color in light mode and 0.9 in dark, where a weaker mix goes dull against the dark
-     surface. --ib-chart-fill-opacity (a chart's BarOpacity) sets one strength for both. Opaque, so
-     a bar's rounded end and square base can overlap without a darker band. A scatter's points
-     (--ib-chart-see) are see-through instead, so where they crowd shows darker. */
+  /* Fills (bars, slices, keys) are a little lighter than the series color: mixed with the
+     surface, 0.85 of the color in light mode and 0.9 in dark. --ib-chart-fill-opacity (a chart's
+     BarOpacity) sets one strength for both. Opaque, so a bar's rounded end and square base can
+     overlap without a darker band. A scatter's points (--ib-chart-see) are see-through instead,
+     so where they crowd shows darker. */
   :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9) {
     --ib-chart-fill: light-dark(
-      color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), var(--ib-color-surface)),
+      color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.85) * 100%), var(--ib-color-surface)),
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), var(--ib-color-surface)));
     --ib-chart-see: light-dark(
-      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.85) * 100%), transparent),
       color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), transparent));
   }
 
@@ -514,7 +514,7 @@
 
   .ib-sparkline-bars rect {
     fill: light-dark(
-      color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.65) * 100%), transparent),
+      color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.85) * 100%), transparent),
       color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.9) * 100%), transparent));
   }
 
