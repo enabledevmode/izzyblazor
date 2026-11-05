@@ -225,6 +225,10 @@
                         </g>
                     }
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        @foreach (var s in model.Series.Where(s => s.Outline is not null))
+                        {
+                            <path class="@SeriesClass(s, "ib-chart-edge")" style="@ColorStyle(s)" d="@s.Outline" />
+                        }
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
                             <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Style % 4}")" style="@ColorStyle(s)" d="@s.Line" />
@@ -259,7 +263,7 @@
                         <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
                             @if (s.Data.Type == ChartType.Bar)
                             {
-                                <rect x="6" y="0" width="12" height="12" rx="2" />
+                                <rect x="6" y="1" width="12" height="10" />
                             }
                             else
                             {

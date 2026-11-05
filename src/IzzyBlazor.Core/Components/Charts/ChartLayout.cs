@@ -52,6 +52,9 @@ internal sealed class SeriesShape
     public required int Slot { get; init; }
     public int Style { get; init; }
     public List<BarRect> Bars { get; } = [];
+
+    /// <summary>The bars' edges in the stretching box, every side but the one on the baseline (as Chart.js draws them).</summary>
+    public string? Outline { get; set; }
     public string? Line { get; set; }
     public string? Area { get; set; }
     public List<PointMark> Marks { get; } = [];
@@ -232,12 +235,15 @@ internal static class ChartLayout
 
             if (data.Type == ChartType.Bar)
             {
+                // Chart.js's proportions: the group takes 80% of its band, each bar 90% of its share.
                 var j = bars.IndexOf(data);
-                var width = stacked ? band * 0.6 : band * 0.7 / bars.Count;
+                var slot = stacked ? band * 0.8 : band * 0.8 / bars.Count;
+                var width = slot * 0.9;
+                var outline = new StringBuilder();
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
-                    var a0 = stacked ? i * band + band * 0.2 : i * band + band * 0.15 + j * width;
+                    var a0 = i * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
                     var v0 = Scale(lows[s][i] ?? 0);
                     var v1 = Scale(top);
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
@@ -245,8 +251,10 @@ internal static class ChartLayout
                     shape.Bars.Add(input.Horizontal
                         ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title)
                         : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title));
+                    AppendPath(outline, ((a0, v0), [new Segment(null, null, (a0, v1)), new Segment(null, null, (a0 + width, v1)), new Segment(null, null, (a0 + width, v0))]), input.Horizontal, move: true);
                 }
 
+                shape.Outline = outline.Length > 0 ? outline.ToString() : null;
                 continue;
             }
 

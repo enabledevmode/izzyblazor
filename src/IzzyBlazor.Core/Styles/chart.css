@@ -109,13 +109,21 @@
 
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
-  .ib-chart-bars {
+  /* Bars as Chart.js draws them: a see-through fill with a solid edge in the same color on every
+     side but the baseline's, so stacked segments part with a line of their own color, in light
+     and dark alike. --ib-chart-fill-opacity sets how solid the fill is. */
+  .ib-chart-bars,
+  .ib-chart-key rect {
     fill: var(--ib-chart-c);
-    /* The surface's color around each bar parts neighbors and stacked segments. */
-    stroke: var(--ib-color-surface);
-    stroke-width: 1px;
+    fill-opacity: var(--ib-chart-fill-opacity, 0.5);
   }
 
+  .ib-chart-key rect {
+    stroke: var(--ib-chart-c);
+    stroke-width: 2px;
+  }
+
+  .ib-chart-edge,
   .ib-chart-line,
   .ib-chart-key line {
     fill: none;
@@ -124,6 +132,11 @@
     stroke-linejoin: round;
     stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+  }
+
+  .ib-chart-edge {
+    stroke-linejoin: miter;
+    stroke-linecap: butt;
   }
 
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
@@ -211,7 +224,6 @@
     overflow: visible;
   }
 
-  .ib-chart-key rect { fill: var(--ib-chart-c); }
 
   .ib-chart-data {
     margin-block-start: var(--ib-space-3);
