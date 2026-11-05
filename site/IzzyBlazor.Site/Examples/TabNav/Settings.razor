@@ -4,12 +4,12 @@
    the one for the current address is marked on the server. Profile's link has no view: it's
    current until a link with one matches. *@
 <Stack Gap="2" Grow>
-    <Tabs Label="Settings">
+    <TabNav Label="Settings">
         <TabLink Href="@To(null)" Label="Profile" Icon="Lucide.User" />
         <TabLink Href="@To("billing")" Label="Billing" Icon="Lucide.CreditCard" />
         <TabLink Href="@To("audit")" Label="Audit" Disabled />
         <TabLink Href="@To("team")" Label="Team" Icon="Lucide.UsersRound" Badge="4" />
-    </Tabs>
+    </TabNav>
     <TextBlock Color="Color.Muted">
         @(View switch
         {

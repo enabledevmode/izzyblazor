@@ -5,7 +5,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// Whether a link points at the current page, shared by <see cref="NavItem"/> and
-/// <see cref="TabLink"/>. Worked out on the server, so it's right on static pages and after
+/// <see cref="TabLink"/> (in a <see cref="TabNav"/>). Worked out on the server, so it's right on static pages and after
 /// enhanced navigation.
 /// </summary>
 internal static class LinkMatch

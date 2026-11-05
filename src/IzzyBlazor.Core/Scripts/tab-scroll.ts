@@ -1,10 +1,10 @@
 /**
  * Tabs that don't fit scroll sideways (tabs.css). The strip hides its scrollbar, so with a mouse
  * a wheel turned over it scrolls it, and the selected tab is scrolled into view when the page
- * loads. Tabs (radios) and TabLinks (a nav of links) both: the links have no element of their own.
+ * loads. Tabs (radios) and TabNav (a nav of links) both: the links have no element of their own.
  * Without script the strip still scrolls by touch, trackpad and Shift+wheel.
  *
- * A TabLinks strip hidden when the page loads (in a closed dialog, say) shows from its start;
+ * A TabNav strip hidden when the page loads (in a closed dialog, say) shows from its start;
  * Tabs' own element reveals its selected tab once the strip has a size.
  */
 

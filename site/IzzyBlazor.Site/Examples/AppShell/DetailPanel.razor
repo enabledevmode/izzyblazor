@@ -27,10 +27,10 @@
                     <Heading Level="2" Size="TextSize.Lg">@Shown.Name</Heading>
                     <Badge Status="StatusOf(Shown.Status)" Dot>@Shown.Status</Badge>
                 </Stack>
-                <Tabs Label="Rule" Size="ControlSize.Sm">
+                <TabNav Label="Rule" Size="ControlSize.Sm">
                     <TabLink Href="@To(ShownKey, null)" Label="Details" />
                     <TabLink Href='@To(ShownKey, "activity")' Label="Activity" />
-                </Tabs>
+                </TabNav>
                 @if (Tab == "activity")
                 {
                     <Stack Gap="3">
