@@ -1,0 +1,101 @@
+/*
+ * TreeSelect, built to wwwroot/treeselect.css and linked by the component, so other pages don't
+ * pay for it. The field is a button the width of the field, showing the choice and a chevron; its
+ * panel is a popover holding a TreeView, at least as wide as the field.
+ */
+@layer izzy.components {
+  /* Where the clear button sits: before the chevron, measured where the icon size is the field's. */
+  .ib-treeselect {
+    --ib-ts-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-1));
+  }
+
+  .ib-treeselect-root {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ib-treeselect-button {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .ib-treeselect-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-treeselect-text[data-ib-empty] {
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-treeselect-chevron {
+    flex: none;
+    color: var(--ib-color-subtle);
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-treeselect-button:disabled .ib-treeselect-chevron {
+    color: var(--ib-color-disabled);
+  }
+
+  .ib-treeselect-root:has(> :popover-open) .ib-treeselect-chevron {
+    rotate: 180deg;
+  }
+
+  .ib-treeselect-panel {
+    width: max-content;
+    min-width: 12rem;
+  }
+
+  @supports (width: anchor-size(width)) {
+    .ib-treeselect-panel {
+      min-width: anchor-size(width);
+    }
+  }
+
+  .ib-treeselect-panel:focus {
+    outline: none;
+  }
+
+  /* The search box sits above the tree, apart from it. */
+  .ib-treeselect-panel .ib-tree-search {
+    margin-block-end: var(--ib-space-1);
+  }
+
+  /* The clear button sits before the chevron, with the script. */
+  .ib-treeselect-clear {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: var(--ib-ts-clear-end);
+    translate: 0 -50%;
+    display: inline-flex;
+    padding: 0.25rem;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: none;
+    color: var(--ib-color-subtle);
+    cursor: pointer;
+    --ib-icon-size: 0.875rem;
+  }
+
+  .ib-treeselect-clear:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  ib-treeselect:not([data-ib-ready]) .ib-treeselect-clear,
+  .ib-treeselect-clear[hidden] {
+    display: none;
+  }
+
+  /* The text stops short of the clear button. */
+  ib-treeselect[data-ib-ready]:has(> .ib-treeselect-clear:not([hidden])) .ib-treeselect-chevron {
+    margin-inline-start: calc(var(--ib-space-1) + 1.375rem);
+  }
+}

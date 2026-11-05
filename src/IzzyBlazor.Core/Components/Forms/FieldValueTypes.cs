@@ -71,3 +71,6 @@ public partial class Calendar<[DynamicallyAccessedMembers(DynamicallyAccessedMem
 /// to <c>TimeSpan</c> or <c>TimeSpan?</c>.
 /// </summary>
 public partial class DurationField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
+/// <summary>Choose one item from a tree, such as a category, a team or a folder.</summary>
+public partial class TreeSelect<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, TItem>;

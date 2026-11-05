@@ -47,12 +47,14 @@ jobs:
           chart=$(gzip -c src/IzzyBlazor.Core/wwwroot/chart.css | wc -c)
           tabsedit=$(gzip -c src/IzzyBlazor.Core/wwwroot/tabs-edit.css | wc -c)
           speeddial=$(gzip -c src/IzzyBlazor.Core/wwwroot/speed-dial.css | wc -c)
+          treeselect=$(gzip -c src/IzzyBlazor.Core/wwwroot/treeselect.css | wc -c)
           echo "CSS gzip: $css bytes (budget 51200)"
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
           echo "carousel.css gzip: $carousel bytes (budget 2048; only pages with a carousel load it)"
           echo "chart.css gzip: $chart bytes (budget 3072; only pages with a chart load it)"
           echo "tabs-edit.css gzip: $tabsedit bytes (budget 1024; only tabs with close or add controls load it)"
           echo "speed-dial.css gzip: $speeddial bytes (budget 1024; only pages with a SpeedDial load it)"
+          echo "treeselect.css gzip: $treeselect bytes (budget 1024; only pages with a TreeSelect load it)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
           # The built files must be exactly the ones lazy.ts loads.
@@ -74,7 +76,7 @@ jobs:
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
           echo "Largest on-demand element: $big bytes (budget 6144)"
-          test "$css" -le 51200 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 3072 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
+          test "$css" -le 51200 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 3072 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$treeselect" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
 
       - name: Pack
         # Both packages: IzzyBlazor (server apps) and IzzyBlazor.Core (any render mode).

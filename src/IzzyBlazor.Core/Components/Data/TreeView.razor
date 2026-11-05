@@ -258,11 +258,14 @@
 
     private bool Links => ItemHref is not null;
 
+    // A field around the tree (TreeSelect): its boxes post under the field's name.
+    [CascadingParameter] private TreeField? Field { get; set; }
+
     private bool Selects => SelectionMode != SelectionMode.None;
 
     private bool Multiple => SelectionMode == SelectionMode.Multiple;
 
-    private string KeysName => $"{SelectionName ?? "selected"}.Keys";
+    private string KeysName => Field?.Name ?? $"{SelectionName ?? "selected"}.Keys";
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

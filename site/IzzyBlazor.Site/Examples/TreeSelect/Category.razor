@@ -1,0 +1,43 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="tree-select-category" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TreeSelect @bind-Value="Model!.CategoryId" Items="Categories" ItemChildren="c => c.Children"
+                ItemValue="c => c.Id" ItemText="c => c.Name" Placeholder="Choose a category" Searchable Clearable />
+    <Row><Button Submit>Save product</Button></Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Filed under @_saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "tree-select-category")]
+    private Product? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new() { CategoryId = 12 };
+
+    private void Save() => _saved = Find(Categories, Model!.CategoryId)?.Name ?? "no category";
+
+    public sealed class Product
+    {
+        [Display(Name = "Category")]
+        public int? CategoryId { get; set; }
+    }
+
+    @* hide *@
+    private static Kind? Find(IEnumerable<Kind> items, int? id) =>
+        items.Select(c => c.Id == id ? c : Find(c.Children, id)).FirstOrDefault(c => c is not null);
+
+    private static readonly Kind[] Categories =
+    [
+        new(1, "Computers", [new(11, "Laptops", []), new(12, "Desktops", []), new(13, "Monitors", []), new(14, "Keyboards and mice", [])]),
+        new(2, "Phones", [new(21, "Smartphones", []), new(22, "Cases", []), new(23, "Chargers and cables", [])]),
+        new(3, "Audio", [new(31, "Headphones", [new(311, "Over-ear", []), new(312, "Earbuds", [])]), new(32, "Speakers", [])]),
+        new(4, "Cameras", [new(41, "Mirrorless", []), new(42, "Lenses", []), new(43, "Tripods", [])]),
+    ];
+
+    private sealed record Kind(int Id, string Name, Kind[] Children);
+    @* /hide *@
+}
