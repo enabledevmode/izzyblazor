@@ -298,8 +298,11 @@
 
         @if (DataTable != ChartDataTable.None)
         {
-            <details class="ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-                <summary>@TextDefaults.ChartShowData</summary>
+            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary class="ib-collapsible-trigger">
+                    <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
+                    <span>@TextDefaults.ChartShowData</span>
+                </summary>
                 <div class="ib-chart-table-scroll">
                     <table class="ib-chart-table">
                         <thead>
