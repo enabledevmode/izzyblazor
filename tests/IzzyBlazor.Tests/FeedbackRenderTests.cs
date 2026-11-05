@@ -106,7 +106,7 @@ public class FeedbackRenderTests : BunitContext
     [Fact]
     public void Progress_circle_fills_to_the_value_with_the_value_inside()
     {
-        var cut = Render<Progress>(p => p.Add(x => x.Shape, ProgressShape.Circle).Add(x => x.Value, 72).Add(x => x.Label, "Profile").Add(x => x.ShowValue, true));
+        var cut = Render<ProgressCircle>(p => p.Add(x => x.Value, 72).Add(x => x.Label, "Profile").Add(x => x.ShowValue, true));
         var ring = cut.Find("[role=progressbar]");
 
         Assert.Equal("72", ring.GetAttribute("aria-valuenow"));

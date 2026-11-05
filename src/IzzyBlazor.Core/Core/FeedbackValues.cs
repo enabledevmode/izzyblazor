@@ -49,12 +49,3 @@ internal static class FeedbackNames
     };
 }
 
-/// <summary>How a <see cref="Progress"/> is drawn.</summary>
-public enum ProgressShape
-{
-    /// <summary>A bar that fills from the start (the default).</summary>
-    Bar,
-
-    /// <summary>A circle that fills clockwise from the top, with the value in the middle.</summary>
-    Circle,
-}
