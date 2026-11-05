@@ -44,7 +44,7 @@
     <EditForm EditContext="EditContext"
               FormName="@FormName"
               Enhance="Enhance"
-              OnValidSubmit="OnValidSubmit"
+              OnValidSubmit="ValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
               novalidate="@(NativeValidation ? null : "novalidate")"
@@ -53,6 +53,10 @@
               class="@_class"
               style="@_style">
         @Body
+        @if (ConfirmLeave)
+        {
+            @LeaveGuard(context)
+        }
     </EditForm>
 }
 else
@@ -60,7 +64,7 @@ else
     <EditForm Model="Model"
               FormName="@FormName"
               Enhance="Enhance"
-              OnValidSubmit="OnValidSubmit"
+              OnValidSubmit="ValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
               novalidate="@(NativeValidation ? null : "novalidate")"
@@ -69,6 +73,10 @@ else
               class="@_class"
               style="@_style">
         @Body
+        @if (ConfirmLeave)
+        {
+            @LeaveGuard(context)
+        }
     </EditForm>
 }
 
@@ -147,6 +155,24 @@ else
     /// </summary>
     [Parameter] public RequiredMark RequiredMark { get; set; } = RequiredMark.Required;
 
+    /// <summary>
+    /// Asks before the user leaves the page with unsaved changes: following a link, posting another
+    /// form, reloading or closing the tab. Links and forms open a dialog ("Leave this page?");
+    /// reload and close show the browser's own prompt, whose text can't be changed. On interactive
+    /// pages <c>NavigationManager.NavigateTo</c> asks too, and so do the back and forward buttons when
+    /// the whole app is interactive. Needs JavaScript. Back and forward can't be stopped under
+    /// enhanced navigation, so they don't ask on static pages or interactive parts of them.
+    /// </summary>
+    /// <remarks>
+    /// On a static page the form's values are compared with those it had when the user first
+    /// touched it, so typing a value back makes it saved again; a post that fails validation comes
+    /// back unsaved. On an interactive page it's <c>EditContext.IsModified()</c>, cleared after
+    /// <see cref="OnValidSubmit"/> finishes; with <see cref="OnSubmit"/>, call
+    /// <c>EditContext.MarkAsUnmodified()</c> once you've saved. The text comes from
+    /// <see cref="IzzyText"/>: <c>LeaveTitle</c>, <c>LeaveMessage</c>, <c>Leave</c> and <c>Stay</c>.
+    /// </remarks>
+    [Parameter] public bool ConfirmLeave { get; set; }
+
     /// <summary>The fields and buttons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -158,6 +184,21 @@ else
 
     private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
+    // OnValidSubmit, then (with ConfirmLeave, on an interactive page) the form counts as saved.
+    private EventCallback<EditContext> ValidSubmit =>
+        ConfirmLeave && OnValidSubmit.HasDelegate ? _validSubmit ??= EventCallback.Factory.Create<EditContext>(this, SubmitValid) : OnValidSubmit;
+
+    private EventCallback<EditContext>? _validSubmit;
+
+    private async Task SubmitValid(EditContext context)
+    {
+        await OnValidSubmit.InvokeAsync(context);
+        if (RendererInfo.IsInteractive)
+        {
+            context.MarkAsUnmodified();
+        }
+    }
+
     private RenderFragment Body => builder =>
     {
         if (!string.IsNullOrEmpty(FormName))
@@ -168,6 +209,13 @@ else
         }
 
         builder.AddContent(2, Fields);
+    };
+
+    private static RenderFragment LeaveGuard(EditContext context) => builder =>
+    {
+        builder.OpenComponent<FormLeaveGuard>(0);
+        builder.AddComponentParameter(1, nameof(FormLeaveGuard.EditContext), context);
+        builder.CloseComponent();
     };
 
     private RenderFragment Fields => __builder =>

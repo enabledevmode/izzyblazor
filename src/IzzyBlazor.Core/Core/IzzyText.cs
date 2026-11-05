@@ -293,6 +293,18 @@ public class IzzyText
     /// <summary>Cancel in ConfirmButton's dialog and DialogService.ConfirmAsync.</summary>
     public virtual string Cancel { get; set; } = "Cancel";
 
+    /// <summary>The question a Form with ConfirmLeave asks before leaving with unsaved changes.</summary>
+    public virtual string LeaveTitle { get; set; } = "Leave this page?";
+
+    /// <summary>The line under <see cref="LeaveTitle"/>.</summary>
+    public virtual string LeaveMessage { get; set; } = "Your changes haven't been saved.";
+
+    /// <summary>The button that leaves anyway, in a Form's ConfirmLeave dialog.</summary>
+    public virtual string Leave { get; set; } = "Leave";
+
+    /// <summary>The button that stays on the page, in a Form's ConfirmLeave dialog.</summary>
+    public virtual string Stay { get; set; } = "Stay";
+
     /// <summary>A DataGrid editor's title, before it knows its row.</summary>
     public virtual string Edit { get; set; } = "Edit";
 

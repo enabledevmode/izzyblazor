@@ -1,0 +1,64 @@
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+@* The Projects links lead to ?view=projects in this example's address. Change a field and follow
+   one: the form asks first. After Save, it doesn't. *@
+<Stack Gap="5" MaxWidth="32.Rem" Padding="6">
+    @if (View == "projects")
+    {
+        <Heading Level="2" Size="TextSize.Lg">Projects</Heading>
+        <List>
+            <ListItem><Anchor Href="@To(null)">Website refresh</Anchor></ListItem>
+            <ListItem>Mobile app</ListItem>
+            <ListItem>Brand guide</ListItem>
+        </List>
+    }
+    else
+    {
+        <Breadcrumb>
+            <BreadcrumbItem Href='@To("projects")'>Projects</BreadcrumbItem>
+            <BreadcrumbItem>Website refresh</BreadcrumbItem>
+        </Breadcrumb>
+        <Form Model="Model" FormName="project-settings" OnValidSubmit="Save" ConfirmLeave>
+            <TextField @bind-Value="Model!.Name" />
+            <TextArea @bind-Value="Model!.Description" Rows="3" />
+            <FormActions Justify="Justify.Start">
+                <Button Submit>Save</Button>
+                <Button Href='@To("projects")' Variant="ButtonVariant.Ghost">Cancel</Button>
+            </FormActions>
+            @if (_saved)
+            {
+                <Alert Status="Status.Success">Saved.</Alert>
+            }
+        </Form>
+    }
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "project-settings")]
+    private Project? Model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "view")]
+    private string? View { get; set; }
+
+    private bool _saved;
+
+    protected override void OnInitialized() => Model ??= new()
+    {
+        Name = "Website refresh",
+        Description = "New home page, pricing and docs, live before the spring launch.",
+    };
+
+    private string To(string? view) => Navigation.GetUriWithQueryParameter("view", view);
+
+    private void Save() => _saved = true;
+
+    public sealed class Project
+    {
+        [Required, StringLength(40), Display(Name = "Project name")]
+        public string? Name { get; set; }
+
+        [StringLength(200)]
+        public string? Description { get; set; }
+    }
+}

@@ -18,7 +18,7 @@
 // requirements) and mask (a TextField's Mask), by field-control.ts; reconnect (ReconnectDialog's
 // code), with the first reconnection state (reconnect.ts).
 const lazyNames =
-  "combobox table grid grid-columns grid-edit filter-form filter-list filter-builder file-upload color-picker duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial sortable listview tree pick-list splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect".split(" ");
+  "combobox table grid grid-columns grid-edit filter-form filter-list filter-builder file-upload color-picker duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tree pick-list splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect".split(" ");
 
 const loading = new Map<string, Promise<unknown>>();
 const failures = new Map<string, number>();
