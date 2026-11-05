@@ -287,12 +287,13 @@ class Calendar extends IzzyElement {
         // What the input holds, not a choice still waiting for OK.
         const written = parse(text.value);
         const named = end && ended !== null && written !== null ? `${dayName.format(date(written))} – ${dayName.format(date(ended))}` : written !== null && !end ? dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "") : null;
-        const list = picks.map((n) => fullShort.format(date(n))).join(", ");
+        // Semicolons between dates, as a date has commas of its own ("Mar 1, 2027; Mar 5, 2027").
+        const list = picks.map((n) => fullShort.format(date(n))).join("; ");
         if (toggle) put(toggle, "aria-label", many ? (list && data.ibChange ? data.ibChange.replace("{0}", list) : data.ibChoose ?? null) : named !== null && data.ibChange ? data.ibChange.replace("{0}", named) : data.ibChoose ?? null);
         if (shownText) {
           // The button has little room, so no year while they're all this one.
           const shown = picks.every((n) => date(n).getUTCFullYear() === date(today).getUTCFullYear()) ? shortName : fullShort;
-          setText(shownText, picks.map((n) => shown.format(date(n))).join(", ") || (data.ibChoose ?? ""));
+          setText(shownText, picks.map((n) => shown.format(date(n))).join("; ") || (data.ibChoose ?? ""));
           put(shownText, "data-ib-empty", list ? null : "");
         }
         if (okButton) set(okButton, "disabled", chosen === null);
