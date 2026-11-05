@@ -1715,10 +1715,10 @@
       ],
       "topics": [
         {
-          "id": "bars", "title": "Bars", "summary": "Bars sit side by side or stack, upright or across, with the arguments down the side for long names.", "members": ["Stacked", "Orientation"],
+          "id": "bars", "title": "Bars", "summary": "Bars sit side by side or stack, upright or across, with the arguments down the side for long names.", "members": ["Stacked", "Orientation", "BarOpacity"],
           "examples": [
             { "id": "chart-stacked", "title": "Stacked", "lead": "To stack bars and areas, set `Stacked`: `Stacked` shows the totals, and `Full` draws each stack to 100% to compare shares." },
-            { "id": "chart-horizontal", "title": "Bars across", "lead": "To draw bars across, with the arguments down the side, set `Orientation` to `Horizontal`. Long names have room there, and past a third of the chart's width they end in an ellipsis." }
+            { "id": "chart-horizontal", "title": "Bars across", "lead": "To draw bars across, with the arguments down the side, set `Orientation` to `Horizontal`. Long names have room there, and past a third of the chart's width they end in an ellipsis. Bars are a little see-through; `BarOpacity` sets how solid, from 0 to 1, and a theme can set `--ib-chart-fill-opacity` for every chart." }
           ]
         },
         {
