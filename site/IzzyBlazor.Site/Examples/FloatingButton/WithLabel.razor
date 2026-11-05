@@ -1,0 +1,11 @@
+@* A floating button with its label beside the icon (ShowLabel), centered at the bottom with Position. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Inbox</Heading>
+    <Stack Gap="2">
+        @foreach (var i in Enumerable.Range(1, 12))
+        {
+            <Card Padding="3">Message @i</Card>
+        }
+    </Stack>
+</Stack>
+<FloatingButton Icon="Lucide.Pencil" Label="Compose" ShowLabel Position="FloatPosition.BottomCenter" />

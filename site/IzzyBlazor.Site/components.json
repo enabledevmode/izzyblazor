@@ -417,7 +417,6 @@
         { "id": "button-states", "title": "Loading and disabled" },
         { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
         { "id": "button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
-        { "id": "button-floating", "title": "A floating button with a label", "height": 360, "page": true, "lead": "`Floating` on a Button keeps its text: an extended floating action button. `FloatPosition` puts this one at the bottom center." },
         { "id": "button-state-in-address", "title": "A count in the URL",
           "notes": {
             "noscript": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -435,7 +434,20 @@
       ]
     },
     {
-      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed", "fab", "fab menu", "speed dial"],
+      "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Actions", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "fab menu", "speed dial", "extended fab"],
+      "features": [
+        { "feature": "Stays in its corner as the page scrolls, above a sticky footer" },
+        { "feature": "A link, a form post or C#" },
+        { "feature": "OnClick runs C#", "member": "OnClick" }
+      ],
+      "examples": [
+        { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and `Label` to name it; it's required. Keep one per page." },
+        { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Position` puts this one at the bottom center." },
+        { "id": "floating-button-menu", "title": "With a menu", "height": 360, "page": true, "lead": "To offer several things to create from one floating button, put it in a `Menu`'s `Trigger`, with `Placement=\"Placement.TopEnd\"` so the menu opens above it." }
+      ]
+    },
+    {
+      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed"],
       "features": [
         { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
@@ -451,9 +463,7 @@
             "noscript": "Delete posts the file's name, and the page reloads without the file. Restore is a link back.",
             "static": "Delete posts without a full reload, and the response redirects to a URL listing what's deleted.",
             "interactive": "Delete runs OnClick in C#, and nothing is posted."
-          } },
-        { "id": "icon-button-floating", "title": "A floating action button", "height": 360, "page": true, "lead": "`Floating` fixes the button to the window's bottom corner, raised and large, for the page's main action. `FloatPosition` picks the corner." },
-        { "id": "icon-button-floating-menu", "title": "A floating button with a menu", "height": 360, "page": true, "lead": "To offer several things to create from one floating button, put it in a `Menu`'s `Trigger`." }
+          } }
       ]
     },
     {
