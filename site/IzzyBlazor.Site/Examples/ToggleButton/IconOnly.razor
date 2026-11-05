@@ -1,9 +1,10 @@
-@* Call controls: icons alone, each named by its Label, which stays the same as it toggles. *@
+@* Call controls: icons alone, each named by its Label, which stays the same as it toggles; OnIcon
+   shows its state. *@
 <Stack Gap="3" Align="Align.Center">
     <Row Gap="2">
-        <ToggleButton Icon="Lucide.MicOff" Label="Mute" IconOnly @bind-Value="_muted" />
-        <ToggleButton Icon="Lucide.VideoOff" Label="Turn off camera" IconOnly @bind-Value="_cameraOff" />
-        <ToggleButton Icon="Lucide.Captions" Label="Captions" IconOnly @bind-Value="_captions" />
+        <ToggleButton Icon="Lucide.Mic" OnIcon="Lucide.MicOff" Label="Mute" IconOnly @bind-Value="_muted" />
+        <ToggleButton Icon="Lucide.Video" OnIcon="Lucide.VideoOff" Label="Turn off camera" IconOnly @bind-Value="_cameraOff" />
+        <ToggleButton Icon="Lucide.CaptionsOff" OnIcon="Lucide.Captions" Label="Captions" IconOnly @bind-Value="_captions" />
     </Row>
     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Status</TextBlock>
 </Stack>
