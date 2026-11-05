@@ -277,7 +277,7 @@
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Marks.Count > 0))
                     {
-                        <g class="@SeriesClass(s, "ib-chart-marks")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                        <g class="@SeriesClass(s, s.Data.Type == ChartType.Scatter ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var mark in s.Marks)
                             {
                                 <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%" data-ib-i="@mark.Index"><title>@mark.Title</title></use>
