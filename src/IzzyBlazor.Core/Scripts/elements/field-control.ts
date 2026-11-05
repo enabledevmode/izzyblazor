@@ -8,6 +8,7 @@ import { load } from "../lazy";
  * - a live character count for text areas
  * - increase and decrease buttons for number inputs (hold to repeat)
  * - a slider's track fill and shown value, kept current while dragging
+ * - a range slider's thumbs kept apart, its fill and shown values, and clicks on its track
  * - a text field's Mask, loaded with the first field that has one
  */
 class FieldControl extends IzzyElement {
@@ -43,6 +44,12 @@ class FieldControl extends IzzyElement {
       void load<typeof import("./mask")>("ib-mask").then((module) => {
         if (!signal.aborted) module.setupMask(input, signal);
       }, () => {});
+    }
+
+    const end = this.querySelector<HTMLInputElement>("input[type=range][data-ib-end]");
+    if (input instanceof HTMLInputElement && input.type === "range" && end) {
+      setupRangeSlider(this, input, end, signal);
+      return;
     }
 
     if (input instanceof HTMLInputElement && input.type === "range") {
@@ -109,6 +116,87 @@ function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: Abor
   update();
 
   // When Blazor re-renders the value, the server's text and fill are current again.
+  if (output) {
+    const observer = new MutationObserver(() => delete output.dataset.current);
+    observer.observe(output, { childList: true, characterData: true, subtree: true });
+    signal.addEventListener("abort", () => observer.disconnect());
+  }
+}
+
+/**
+ * A range slider: two range inputs on one track. Each thumb stops at the other, the track fills
+ * between them (--ib-slider-from and --ib-slider-fill), the shown values and aria-valuetext follow,
+ * and a press on the track moves the nearer thumb there.
+ */
+function setupRangeSlider(control: HTMLElement, start: HTMLInputElement, end: HTMLInputElement, signal: AbortSignal): void {
+  const output = control.querySelector<HTMLElement>(".ib-slider-value");
+  const track = start.parentElement!;
+  const format = (input: HTMLInputElement) => (input.dataset.ibFormat ?? "{0}").replace("{0}", input.value);
+  const scale = () => {
+    const min = start.min === "" ? 0 : Number(start.min);
+    const max = start.max === "" ? 100 : Number(start.max);
+    return { min, max };
+  };
+  const percent = (input: HTMLInputElement) => {
+    const { min, max } = scale();
+    return max > min ? Math.min(100, Math.max(0, ((input.valueAsNumber - min) / (max - min)) * 100)) : 0;
+  };
+  const update = () => {
+    control.style.setProperty("--ib-slider-from", String(percent(start)));
+    control.style.setProperty("--ib-slider-fill", String(percent(end)));
+    start.setAttribute("aria-valuetext", format(start));
+    end.setAttribute("aria-valuetext", format(end));
+    if (output) output.dataset.current = `${format(start)} – ${format(end)}`;
+    // Where the thumbs meet, the one with room to move is on top: the lower thumb near the top of
+    // the scale, the upper one elsewhere.
+    const { min, max } = scale();
+    start.toggleAttribute("data-ib-top", start.valueAsNumber > (min + max) / 2);
+  };
+
+  // Runs before Blazor's handlers (they listen at the document), so they read the stopped value.
+  const keepApart = (moved: HTMLInputElement) => () => {
+    if (start.valueAsNumber > end.valueAsNumber) {
+      moved.value = moved === start ? end.value : start.value;
+    }
+    update();
+  };
+  for (const input of [start, end]) {
+    input.addEventListener("input", keepApart(input), { signal });
+    input.addEventListener("change", keepApart(input), { signal });
+  }
+
+  // A press on the track (the inputs let it through, all but their thumbs) moves the nearer thumb.
+  track.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (event.target !== track || start.disabled || event.button !== 0) return;
+      const box = track.getBoundingClientRect();
+      const vertical = control.classList.contains("ib-slider-vertical");
+      const rtl = getComputedStyle(track).direction === "rtl";
+      const thumb = vertical ? box.width : box.height;
+      const length = (vertical ? box.height : box.width) - thumb;
+      let along = vertical ? box.bottom - event.clientY : rtl ? box.right - event.clientX : event.clientX - box.left;
+      along = Math.min(length, Math.max(0, along - thumb / 2));
+      const { min, max } = scale();
+      const wanted = min + (length > 0 ? along / length : 0) * (max - min);
+      const [low, high] = [start.valueAsNumber, end.valueAsNumber];
+      const nearer = wanted <= low ? start : wanted >= high ? end : wanted - low <= high - wanted ? start : end;
+      const before = nearer.value;
+      nearer.value = String(wanted); // the browser snaps it to the step and the scale
+      nearer.focus();
+      event.preventDefault();
+      if (nearer.value !== before) {
+        nearer.dispatchEvent(new Event("input", { bubbles: true }));
+        nearer.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    },
+    { signal }
+  );
+
+  // The browser may hold different values than the server rendered: snapped, or restored on reload.
+  update();
+
+  // When Blazor re-renders the values, the server's text and fill are current again.
   if (output) {
     const observer = new MutationObserver(() => delete output.dataset.current);
     observer.observe(output, { childList: true, characterData: true, subtree: true });

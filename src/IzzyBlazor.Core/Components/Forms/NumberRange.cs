@@ -4,7 +4,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// Two numbers, both included, such as a price filter's lowest and highest. A
-/// <c>RangeSlider</c> binds to one. The properties are settable for form binding on a static post.
+/// <see cref="RangeSlider{TNumber}"/> binds to one. The properties are settable for form binding on a static post.
 /// </summary>
 /// <typeparam name="T">The number type, such as <c>int</c>, <c>decimal</c> or <c>double</c>.</typeparam>
 public sealed record NumberRange<T> where T : struct, INumber<T>

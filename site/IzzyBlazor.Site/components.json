@@ -897,6 +897,29 @@
       ]
     },
     {
+      "id": "range-slider", "icon": "SlidersHorizontal", "name": "RangeSlider", "category": "Forms", "summary": "Lets the user pick a span of numbers with two thumbs on one track.", "keywords": ["range", "two thumbs", "dual slider", "price filter", "min max"],
+      "features": [
+        { "feature": "Two native range inputs on one track: drag, arrow keys, Page Up/Down and Home/End; both ends posted with the form" },
+        { "feature": "The thumbs stop at each other", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The track fills between the thumbs, and the shown values follow", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A click on the track moves the nearer thumb", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Screen readers hear each value as ValueFormat writes it", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "range-slider-price", "title": "Filtering by price",
+          "notes": {
+            "noscript": "Show headphones posts both ends; the thumbs can pass each other, and the server puts the ends in order.",
+            "static": "The thumbs stop at each other, and Show headphones posts both ends without a full reload.",
+            "interactive": "Show headphones runs C# without a full reload."
+          } },
+        { "id": "range-slider-window", "title": "Naming the thumbs",
+          "notes": {
+            "noscript": "Plain range inputs with no values beside them."
+          } }
+      ]
+    },
+    {
       "id": "rating", "icon": "Star", "name": "Rating", "category": "Forms", "summary": "Lets the user rate with stars, and shows a rating.", "keywords": ["stars", "review", "score"],
       "features": [
         { "feature": "A radio for each star: arrow keys, posted with the form" },

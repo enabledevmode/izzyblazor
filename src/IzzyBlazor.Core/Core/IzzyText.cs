@@ -397,6 +397,15 @@ public class IzzyText
     /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
     public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 
+    /// <summary>RangeSlider's name for its lower thumb, which screen readers hear after the label.</summary>
+    public virtual string RangeSliderStart { get; set; } = "Minimum";
+
+    /// <summary>RangeSlider's name for its upper thumb, which screen readers hear after the label.</summary>
+    public virtual string RangeSliderEnd { get; set; } = "Maximum";
+
+    /// <summary>A RangeSlider with an end outside its Min and Max; {0} is its label, {1} and {2} the ends.</summary>
+    public virtual string RangeOutside { get; set; } = "{0} must be between {1} and {2}.";
+
     /// <summary>DateRangeField's caption for its first date.</summary>
     public virtual string DateRangeStart { get; set; } = "Start";
 

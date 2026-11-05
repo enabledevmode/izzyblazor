@@ -1,0 +1,255 @@
+@namespace IzzyBlazor
+@typeparam TNumber where TNumber : struct, System.Numerics.INumber<TNumber>
+@inherits FieldBase<NumberRange<TNumber>?>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the thumbs can pass each other (the server puts the ends in order when the form posts), the track doesn't fill between them, and a click on the track doesn't move a thumb.")]
+
+@*
+    Two thumbs on one track, for a span such as a price filter: two native range inputs, so each
+    end posts with the form, as {name}.Start and {name}.End, and moves with the arrow keys, Page
+    Up/Down and Home/End, with no script. Bind it to a NumberRange.
+    <RangeSlider @bind-Value="Model.Price" Max="500" Step="10" ShowValue ValueFormat="${0}" />
+    <RangeSlider @bind-Value="Model.Hours" Min="0" Max="24" Orientation="Orientation.Vertical" />
+
+    With script the thumbs stop at each other, so the ends can be equal but never cross, the track
+    fills between them, and a click on the track moves the nearer thumb. Without it they can pass
+    each other, and the server binds the lower value as Start. The server also turns away an end
+    outside Min and Max, so a crafted post can't widen the range.
+
+    Accessibility:
+    - It renders a `fieldset` named by the label, with two native range inputs (sliders to screen
+      readers) named "Minimum" and "Maximum" (`StartText`, `EndText`).
+    - Each thumb is its own tab stop, lower first; arrow keys, Page Up/Down and Home/End move it, and
+      with script it stops at the other thumb.
+    - Screen readers hear each value as `ValueFormat` writes it ("$20") once scripts run or on
+      interactive pages; on a static page without script, the bare number.
+    - Each slider reports the whole scale as its minimum and maximum, not the other thumb's value:
+      the native input's scale is what places its thumb.
+    - The values `ShowValue` shows are hidden from screen readers, which hear each slider's own.
+    - Hint and errors are linked to the group.
+    See also: Slider, NumberField, DateRangeField, FilterForm.
+*@
+
+<FieldFrame Class="@WrapperClass("range-slider", Vertical ? "ib-field-slider-vertical" : null)" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="false" Group
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-field-control class="@ControlClass" style="@ControlStyle">
+        <div class="ib-range-slider-track">
+            <input @attributes="StartAttributes"
+                   id="@FieldId"
+                   class="ib-slider-input"
+                   type="range"
+                   name="@PartName("Start")"
+                   min="@Format(ResolvedMin)"
+                   max="@Format(ResolvedMax)"
+                   step="@ResolvedStep"
+                   value="@Format(Start)"
+                   @onchange="e => ChangeAsync(e, end: false)"
+                   disabled="@IsDisabled"
+                   aria-label="@(StartText ?? TextDefaults.RangeSliderStart)"
+                   aria-valuetext="@(RendererInfo.IsInteractive ? Said(Start) : null)"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   data-ib-format="@ValueFormat" />
+            <input @attributes="EndAttributes"
+                   id="@EndId"
+                   class="ib-slider-input"
+                   type="range"
+                   name="@PartName("End")"
+                   min="@Format(ResolvedMin)"
+                   max="@Format(ResolvedMax)"
+                   step="@ResolvedStep"
+                   value="@Format(End)"
+                   @onchange="e => ChangeAsync(e, end: true)"
+                   disabled="@IsDisabled"
+                   aria-label="@(EndText ?? TextDefaults.RangeSliderEnd)"
+                   aria-valuetext="@(RendererInfo.IsInteractive ? Said(End) : null)"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   data-ib-end
+                   data-ib-format="@ValueFormat" />
+        </div>
+        @if (ShowValue)
+        {
+            @* The script shows the live values through data-current; this text stays Blazor's. *@
+            <output class="ib-slider-value" for="@($"{FieldId} {EndId}")" aria-hidden="true">@ValueText</output>
+        }
+    </ib-field-control>
+    @if (PostsReadOnlyValue)
+    {
+        @* In a read-only Form the slider is disabled, so these post its value. *@
+        <input type="hidden" name="@PartName("Start")" value="@Format(Start)" />
+        <input type="hidden" name="@PartName("End")" value="@Format(End)" />
+    }
+</FieldFrame>
+
+@code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>Not available: HTML has no read-only range. Use <c>Disabled</c>; in a read-only <see cref="Form"/> it's disabled and its value still posts.</summary>
+    /// <remarks>Declared only to turn a mistake into a build error; set any other way, it throws.</remarks>
+    [Parameter]
+    [Obsolete("HTML has no read-only range. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public bool ReadOnly { get; set; }
+
+    /// <summary>The lowest value either end can take. Defaults to 0.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>The highest value either end can take. Defaults to 100.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>The step between values. Defaults to 1.</summary>
+    [Parameter] public double? Step { get; set; }
+
+    /// <summary>Shows both ends beside the slider, as "20 – 80".</summary>
+    [Parameter] public bool ShowValue { get; set; }
+
+    /// <summary>
+    /// How each end reads, with <c>{0}</c> for the number: <c>"{0}%"</c>, <c>"${0}"</c>. Used for the
+    /// shown values and for what screen readers announce. Defaults to the number alone.
+    /// </summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0}";
+
+    /// <summary>The lower thumb's name, in place of "Minimum".</summary>
+    [Parameter] public string? StartText { get; set; }
+
+    /// <summary>The upper thumb's name, in place of "Maximum".</summary>
+    [Parameter] public string? EndText { get; set; }
+
+    /// <summary>
+    /// <see cref="Orientation.Horizontal"/>, the default, runs from the lowest value at the start to the
+    /// highest at the end; <see cref="Orientation.Vertical"/> stands upright, the lowest at the bottom,
+    /// with the values shown under it.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>The track's length when <see cref="Orientation"/> is vertical. Defaults to 10rem.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>
+    /// On interactive pages, update the bound value while dragging rather than on release. Each move
+    /// is a round trip, so use it only when something on the page follows the value live.
+    /// </summary>
+    [Parameter] public bool Live { get; set; }
+
+    private string EndId => FieldId + "-end";
+
+    private bool Vertical => Orientation == Orientation.Vertical;
+
+    private double ResolvedMin => Min ?? 0;
+
+    private double ResolvedMax => Max ?? 100;
+
+    private string? ResolvedStep => Step is { } step ? Format(step) : null;
+
+    // With no value the thumbs sit at the ends, the whole scale, as a filter that hasn't narrowed.
+    private double Start => CurrentValue is { } range ? double.CreateTruncating(range.Start) : ResolvedMin;
+
+    private double End => CurrentValue is { } range ? double.CreateTruncating(range.End) : ResolvedMax;
+
+    private string Said(double value) => ValueFormat.Replace("{0}", Format(value), StringComparison.Ordinal);
+
+    private string ValueText => $"{Said(Start)} – {Said(End)}";
+
+    private string ControlClass => Vertical
+        ? "ib-field-control ib-slider ib-range-slider ib-slider-vertical"
+        : "ib-field-control ib-slider ib-range-slider";
+
+    private string ControlStyle
+    {
+        get
+        {
+            var style = $"--ib-slider-from: {Percent(Start)}; --ib-slider-fill: {Percent(End)}";
+            return Vertical && Height is { } height ? style + "; --ib-slider-length: " + height : style;
+        }
+    }
+
+    private string Percent(double value)
+    {
+        var span = ResolvedMax - ResolvedMin;
+        var percent = span <= 0 ? 0 : Math.Clamp((value - ResolvedMin) / span * 100, 0, 100);
+        return Format(Math.Round(percent, 3));
+    }
+
+    // One splat per input (a second is ignored): the app's attributes on the first, and with Live
+    // the input event on both.
+    private Dictionary<string, object> StartAttributes => Attributes(end: false, ControlAttributes);
+
+    private Dictionary<string, object> EndAttributes => Attributes(end: true, null);
+
+    private Dictionary<string, object> Attributes(bool end, IEnumerable<KeyValuePair<string, object>>? more)
+    {
+        var attributes = more is null ? new Dictionary<string, object>() : new Dictionary<string, object>(more);
+        if (Live)
+        {
+            attributes["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => ChangeAsync(e, end));
+        }
+
+        return attributes;
+    }
+
+    private string? PartName(string part) => string.IsNullOrEmpty(NameAttributeValue) ? null : $"{NameAttributeValue}.{part}";
+
+    private Task ChangeAsync(ChangeEventArgs e, bool end)
+    {
+        if (!NumberTypes.TryParse<TNumber>(e.Value?.ToString(), out var number))
+        {
+            return Task.CompletedTask;
+        }
+
+        var start = CurrentValue?.Start ?? TNumber.CreateTruncating(ResolvedMin);
+        var last = CurrentValue?.End ?? TNumber.CreateTruncating(ResolvedMax);
+        CurrentValue = FitValue(end ? new NumberRange<TNumber>(start, number) : new NumberRange<TNumber>(number, last));
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    private protected override bool FitsValue => true;
+
+    // A crossed pair, from a post with no script, still means the span between its ends.
+    /// <inheritdoc />
+    private protected override NumberRange<TNumber>? FitValue(NumberRange<TNumber>? value) =>
+        value is { } range && range.Start > range.End ? new NumberRange<TNumber>(range.End, range.Start) : value;
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(NumberRange<TNumber>? value)
+    {
+        if (value is not { } range)
+        {
+            return null;
+        }
+
+        var (low, high) = (double.CreateTruncating(range.Start), double.CreateTruncating(range.End));
+        return low < ResolvedMin || high > ResolvedMax || low > high
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RangeOutside, ResolvedLabel ?? FieldIdentifier.FieldName, Said(ResolvedMin), Said(ResolvedMax))
+            : null;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!NumberTypes.IsNumber(typeof(TNumber)))
+        {
+            throw new InvalidOperationException($"RangeSlider doesn't support {typeof(TNumber)}. Bind it to a NumberRange of a number type, such as int, decimal or double.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(NumberRange<TNumber>? value) =>
+        value is { } range ? $"{Format(double.CreateTruncating(range.Start))}/{Format(double.CreateTruncating(range.End))}" : null;
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out NumberRange<TNumber> result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        // Each input is read on its own, above: nothing goes through one string.
+        result = CurrentValue!;
+        validationErrorMessage = null;
+        return true;
+    }
+
+    private static string Format(double value) =>
+        value.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+}

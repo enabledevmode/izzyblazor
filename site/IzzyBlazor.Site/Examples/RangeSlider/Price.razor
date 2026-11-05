@@ -1,0 +1,39 @@
+<Form Model="Model" FormName="range-slider-price" OnValidSubmit="Apply" MaxWidth="28.Rem" Grow>
+    <RangeSlider @bind-Value="Model!.Price" Label="Price" Max="400" Step="10" ShowValue ValueFormat="${0}" />
+    <Row><Button Submit>Show headphones</Button></Row>
+    <List>
+        @foreach (var item in _shown)
+        {
+            <ListItem>@item.Name · $@item.Price</ListItem>
+        }
+    </List>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "range-slider-price")]
+    private Filter? Model { get; set; }
+
+    private IReadOnlyList<Headphones> _shown = [];
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        Apply();
+    }
+
+    private void Apply() => _shown = Catalog.Where(h => Model!.Price.Contains(h.Price)).ToList();
+    @* hide *@
+    public sealed class Filter
+    {
+        public NumberRange<int> Price { get; set; } = new(100, 300);
+    }
+
+    public sealed record Headphones(string Name, int Price);
+
+    private static readonly Headphones[] Catalog =
+    [
+        new("Everyday on-ear", 60), new("Commuter wireless", 90), new("Travel noise-cancelling", 140),
+        new("Open-back studio", 210), new("Premium noise-cancelling", 330), new("Reference planar", 400),
+    ];
+    @* /hide *@
+}
