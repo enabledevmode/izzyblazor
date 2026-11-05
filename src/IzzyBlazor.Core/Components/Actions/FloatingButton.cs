@@ -67,12 +67,25 @@ public class FloatingButton : IzzyComponentBase
 
     private FloatSpot _spot = new(FloatPosition.BottomEnd);
 
+    // Every parameter of the buttons it renders, which an unmatched attribute of the same name would set.
+    private static readonly HashSet<string> ButtonParameters = new(
+        typeof(Button).GetProperties().Concat(typeof(IconButton).GetProperties())
+            .Where(p => p.IsDefined(typeof(ParameterAttribute), true) && p.GetCustomAttributes(typeof(ParameterAttribute), true).Cast<ParameterAttribute>().All(a => !a.CaptureUnmatchedValues))
+            .Select(p => p.Name),
+        StringComparer.OrdinalIgnoreCase);
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (string.IsNullOrWhiteSpace(Label))
         {
             throw new InvalidOperationException("FloatingButton needs a Label: it names the button, such as \"New invoice\".");
+        }
+
+        // The inner button would take these as its own parameters: say they aren't this one's.
+        if (AdditionalAttributes?.Keys.FirstOrDefault(key => ButtonParameters.Contains(key)) is { } refused)
+        {
+            throw new InvalidOperationException($"FloatingButton doesn't take {refused}.");
         }
 
         if (_spot.Position != Position)

@@ -9,10 +9,10 @@
     <Calendar @bind-Value="Model.Day" />
     <Calendar @bind-Value="Model.Day" Min="@today" Max="@lastDay" ShowWeekNumbers />
 
-    Type="DateFieldType.Month" is a page of months, holding the 1st of one, and
-    Type="DateFieldType.Year" a page of years, holding an int. DateDisabled, DayClass, ShowWeekNumbers
+    Type="CalendarType.Month" is a page of months, holding the 1st of one, and
+    Type="CalendarType.Year" a page of years, holding an int. DateDisabled, DayClass, ShowWeekNumbers
     and FirstDayOfWeek throw with these, as they're about days.
-    <Calendar @bind-Value="Model.Starts" Type="DateFieldType.Month" />
+    <Calendar @bind-Value="Model.Starts" Type="CalendarType.Month" />
 
     Names and the first day of the week follow the page's culture, or Culture. It's always the
     Gregorian calendar, which is what a date input posts. A browser's date input carries the value,
@@ -114,7 +114,7 @@
     /// A date, a month or a year. Defaults to a date. A month is the 1st of it in a <c>DateOnly</c>, and
     /// a year is an <c>int</c>.
     /// </summary>
-    [Parameter] public DateFieldType? Type { get; set; }
+    [Parameter] public CalendarType? Type { get; set; }
 
     /// <summary>The earliest value. Defaults to <c>[Range]</c>'s minimum; the type's default value means none.</summary>
     [Parameter] public TValue? Min { get; set; }
@@ -126,9 +126,9 @@
 
     private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
 
-    private bool IsMonth => Type == DateFieldType.Month;
+    private bool IsMonth => Type == CalendarType.Month;
 
-    private bool IsYear => Type == DateFieldType.Year;
+    private bool IsYear => Type == CalendarType.Year;
 
     private bool IsPeriod => IsMonth || IsYear;
 
@@ -192,16 +192,11 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Type == DateFieldType.DateTime)
-        {
-            throw new InvalidOperationException("A Calendar can't take a time. Use a DateField for a date and time.");
-        }
-
         if (IsYear != (Underlying == typeof(int)))
         {
             throw new InvalidOperationException(IsYear
                 ? $"A Calendar with a Type of Year holds a year, so bind it to int or int?, not {typeof(TValue)}."
-                : "A Calendar bound to an int holds a year, so it needs Type=\"DateFieldType.Year\".");
+                : "A Calendar bound to an int holds a year, so it needs Type=\"CalendarType.Year\".");
         }
 
         if (!IsYear && Underlying != typeof(DateOnly))

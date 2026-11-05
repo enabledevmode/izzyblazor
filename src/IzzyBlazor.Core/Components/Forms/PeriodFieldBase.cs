@@ -18,7 +18,7 @@ public abstract class PeriodFieldBase<[DynamicallyAccessedMembers(DynamicallyAcc
     {
     }
 
-    /// <summary>The culture for the month and day names, the first day and the week numbers. Defaults to the current culture.</summary>
+    /// <summary>The culture for the names of months and days, and for the week. Defaults to the current culture.</summary>
     [Parameter] public CultureInfo? Culture { get; set; }
 
     /// <summary>Whether the field's label is part of the month's name. In a panel, the panel has its own name.</summary>
