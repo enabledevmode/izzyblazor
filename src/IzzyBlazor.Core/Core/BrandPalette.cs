@@ -5,7 +5,7 @@ using static IzzyBlazor.ColorMath;
 namespace IzzyBlazor;
 
 /// <summary>
-/// The accent derived from a brand color (<see cref="IzzyTheme.Brand"/>): the fill, text on the fill, the accent as text and its
+/// The accent derived from a brand color (<see cref="ThemeBase.Brand"/>): the fill, text on the fill, the accent as text and its
 /// soft tint, for light and dark mode. Every pair meets WCAG AA: text on the fill holds 4.5:1, the
 /// accent as text holds 4.5:1 on the surface, the gray fills and its own soft tint, and the dark
 /// fill holds 3:1 against the dark surface so controls stay visible.

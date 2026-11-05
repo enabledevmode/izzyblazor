@@ -61,7 +61,7 @@ public sealed class DialogOptions
 
     /// <summary>
     /// The dialog's brand color, to match a part of the page with its own: a built-in name or a hex
-    /// color, as <see cref="IzzyTheme.Brand"/> takes. Unset: the page's.
+    /// color, as <see cref="ThemeBase.Brand"/> takes. Unset: the page's.
     /// </summary>
     public string? Brand { get; init; }
 }

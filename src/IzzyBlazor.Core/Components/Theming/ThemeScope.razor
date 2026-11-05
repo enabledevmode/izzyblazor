@@ -1,0 +1,78 @@
+@namespace IzzyBlazor
+@inherits ThemeBase
+@attribute [ModeSupport]
+
+@*
+    Themes part of a page, in a div: a section in another brand, a denser panel, an inverse band.
+
+    <ThemeScope Brand="rose" Density="ThemeDensity.Compact">
+        ...
+    </ThemeScope>
+
+    It takes `Brand`, a built-in Gray, Radius, Density, Preset (shape, density and depth only) and
+    ColorScheme; what it doesn't set comes from around it. Fonts, HeadingWeight and a hex Gray are
+    the app's, on IzzyTheme. For one exact value, use CSS: its variable in your stylesheet, or Style
+    and Class here (izzyblazor.com/docs/theming/tokens).
+
+    Accessibility:
+    - It renders a `div` around its content, with nothing people interact with.
+    - A hex `Brand` is adjusted until text on it, and the accent as text, reach 4.5:1 contrast.
+    See also: IzzyTheme, ColorSchemeSwitch.
+*@
+
+<div @attributes="AdditionalAttributes"
+     class="@_class"
+     style="@_style"
+     data-ib-preset="@NameOrNull(Preset)"
+     data-ib-brand="@BrandColor.Name"
+     data-ib-gray="@GrayColor.Name"
+     data-ib-radius="@NameOrNull(Radius)"
+     data-ib-density="@NameOrNull(Density)">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// The color scheme here: <see cref="ColorScheme.Light"/>, <see cref="ColorScheme.Dark"/>, or
+    /// <see cref="ColorScheme.Inverse"/> for the opposite of the page's. Unset: the page's.
+    /// </summary>
+    [Parameter] public ColorScheme? ColorScheme { get; set; }
+
+    /// <summary>The part of the page to theme.</summary>
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Classes for the div, such as one that sets CSS variables in your stylesheet.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline style for the div, such as <c>"--ib-card-padding: 1rem"</c>.</summary>
+    [Parameter] public string? Style { get; set; }
+
+    /// <summary>Other attributes for the div.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    // The same choices as attributes on the div, and a brand color as inline variables. The colors
+    // derived from them (focus, halo, hover) follow, as they're worked out where they're used.
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (GrayColor.Hex is not null)
+        {
+            throw new ArgumentException("A hex Gray is the app's: set it on the IzzyTheme in <head>. A ThemeScope takes a built-in gray (neutral, slate, stone).", nameof(Gray));
+        }
+
+        var classes = new ClassBuilder().Add("ib-theme").Add(ColorScheme?.ClassName()).Add(Class);
+        var styles = new StyleBuilder();
+        if (BrandColor.Hex is { } brandHex)
+        {
+            styles.AddRaw(BrandPalette.From(brandHex).ToCss());
+        }
+
+        styles.AddRaw(Style);
+        _class = classes.Build();
+        _style = styles.Build();
+    }
+}

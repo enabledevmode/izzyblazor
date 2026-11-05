@@ -23,7 +23,7 @@
     (demos) there are no tabs: the code shows under the preview, with a Hide code toggle.
 
     The preview is a CodeExample with no source: it keeps the example's headings out of the page's
-    "On this page". A nested IzzyTheme gives it the library's default accent inside the site's
+    "On this page". A ThemeScope gives it the library's default accent inside the site's
     monochrome chrome.
 *@
 
@@ -220,7 +220,7 @@
         else
         {
             @* The library's own grays (Neutral, its default), not the site's: an example shows what an app gets. *@
-            <IzzyTheme Brand="blue" Gray="neutral" ColorScheme="FixedScheme" Class="ex-theme">
+            <ThemeScope Brand="blue" Gray="neutral" ColorScheme="FixedScheme" Class="ex-theme">
                 <CodeExample Center Class="ex-box ex-stage">
                     @if (_mode == "interactive")
                     {
@@ -233,7 +233,7 @@
                         <DynamicComponent Type="_type" />
                     }
                 </CodeExample>
-            </IzzyTheme>
+            </ThemeScope>
         }
     };
 

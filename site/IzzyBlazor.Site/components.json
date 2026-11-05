@@ -242,8 +242,13 @@
       "examples": [
         { "id": "izzy-theme-presets", "title": "The four presets" },
         { "id": "izzy-theme-brands", "title": "Built-in brand colors" },
-        { "id": "izzy-theme-part", "title": "Theming part of a page" },
         { "id": "izzy-theme-hex-brand", "title": "Your own brand color", "lead": "To use your own brand color, set `Brand` to a hex value. The server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, and keeps text at 4.5:1 contrast." }
+      ]
+    },
+    {
+      "id": "theme-scope", "icon": "PaintBucket", "name": "ThemeScope", "category": "App shell", "summary": "Themes part of a page: its brand color, density, shape or color scheme.", "keywords": ["nested theme", "theme provider", "inverse", "dark panel"],
+      "examples": [
+        { "id": "theme-scope-panel", "title": "A panel in another theme", "lead": "Put the content inside a ThemeScope, and set any of `Brand`, a built-in `Gray`, `Radius`, `Density`, `Preset` (shape, density and depth) and `ColorScheme`, which here can also be `Inverse`. What it doesn't set comes from the theme around it." }
       ]
     },
     {
