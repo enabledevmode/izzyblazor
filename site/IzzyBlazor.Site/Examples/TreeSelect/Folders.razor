@@ -1,0 +1,67 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="tree-select-folders" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TreeSelect @bind-Value="Model!.FolderId" Items="Drive.Top" ItemValue="f => f.Id" ItemText="f => f.Name"
+                ItemIcon="_ => Lucide.Folder" ItemHasChildren="f => f.HasFolders" ChildrenProvider="LoadFolders"
+                ValueText="id => Drive.PathOf(id)" />
+    <Row><Button Submit>Save file</Button></Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Saved to @_saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "tree-select-folders")]
+    private Upload? Model { get; set; }
+
+    private string? _saved;
+
+    // A folder two levels down: its branch hasn't loaded, so ValueText names it.
+    protected override void OnInitialized() => Model ??= new() { FolderId = 211 };
+
+    // Each branch's folders, the first time it opens: a query in a real app.
+    private ValueTask<IEnumerable<Folder>> LoadFolders(string id, CancellationToken token) =>
+        ValueTask.FromResult(Drive.In(int.Parse(id)));
+
+    private void Save() => _saved = Drive.PathOf(Model!.FolderId);
+
+    public sealed class Upload
+    {
+        [Required(ErrorMessage = "Choose a folder")]
+        [Display(Name = "Folder")]
+        public int? FolderId { get; set; }
+    }
+
+    @* hide *@
+    public sealed record Folder(int Id, string Name, int? Parent)
+    {
+        public bool HasFolders => Drive.All.Any(f => f.Parent == Id);
+    }
+
+    private static class Drive
+    {
+        public static readonly Folder[] All =
+        [
+            new(1, "Clients", null), new(11, "Acme", 1), new(12, "Globex", 1), new(111, "Contracts", 11), new(112, "Invoices", 11),
+            new(2, "Finance", null), new(21, "2026", 2), new(211, "Q3 reports", 21), new(212, "Q4 reports", 21), new(22, "Budgets", 2),
+            new(3, "Marketing", null), new(31, "Brand", 3), new(32, "Campaigns", 3),
+        ];
+
+        public static IEnumerable<Folder> Top => All.Where(f => f.Parent is null);
+
+        public static IEnumerable<Folder> In(int id) => All.Where(f => f.Parent == id);
+
+        public static string PathOf(int? id)
+        {
+            var names = new List<string>();
+            for (var folder = All.FirstOrDefault(f => f.Id == id); folder is not null; folder = All.FirstOrDefault(f => f.Id == folder.Parent))
+            {
+                names.Insert(0, folder.Name);
+            }
+
+            return string.Join(" / ", names);
+        }
+    }
+    @* /hide *@
+}

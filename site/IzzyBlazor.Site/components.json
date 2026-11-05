@@ -1304,6 +1304,11 @@
         { "id": "tree-select-team", "title": "Only the ends of branches", "lead": "To make parents labels for their branches, return `false` from `ItemSelectable` for them. A click on one opens or closes its branch. Here departments group the teams, and a ticket goes to a team.",
           "notes": {
             "noscript": "Departments can't be chosen; their radio buttons are disabled, and only the arrow beside each opens its teams."
+          } },
+        { "id": "tree-select-folders", "title": "Folders that load", "lead": "For a tree too large to send at once, set `ItemHasChildren` and `ChildrenProvider`: the first time a branch opens, the provider gets the item's key and returns its children. A chosen folder in a branch still to load has no item to name it, so `ValueText` does, here with its path.",
+          "notes": {
+            "noscript": "Branches still to load say to turn JavaScript on. The chosen folder still posts.",
+            "static": "Opening a branch fetches its folders from the page, so there's no endpoint to write."
           } }
       ]
     },
