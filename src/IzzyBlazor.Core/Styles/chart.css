@@ -153,6 +153,9 @@
     fill: var(--ib-chart-c);
   }
 
+  /* A scatter's points are see-through as bars are, so where they crowd shows darker. */
+  .ib-chart-scatter { fill-opacity: var(--ib-chart-fill-opacity, 0.65); }
+
   /* The point the tooltip is for, on a scatter chart. */
   .ib-chart-marks > [data-ib-active] {
     stroke: var(--ib-color-on-surface);

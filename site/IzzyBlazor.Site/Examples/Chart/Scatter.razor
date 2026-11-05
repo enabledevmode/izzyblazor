@@ -1,35 +1,32 @@
-@* Each campaign's spend against the revenue it brought in; the tooltip names the campaign. *@
-<Chart Items="_campaigns" Argument="c => c.Spend" SeriesType="ChartType.Scatter"
-       Label="Campaigns: spend against revenue, Q3" ArgumentFormat="C0" ValueFormat="C0">
+@* Each page's load time against its bounce rate: the slower pages lose more visitors. *@
+<Chart Items="_pages" Argument="p => p.LoadSeconds" SeriesType="ChartType.Scatter"
+       Label="Load time against bounce rate, by page" ArgumentFormat="0.0' s'" ValueFormat="P0">
     <TooltipTemplate>
-        <div class="ib-chart-tooltip-title">@context.Item.Name</div>
-        <div>Spend @context.Argument</div>
-        <div>Revenue @context.Points[0].Text</div>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            Return @((context.Item.Revenue / context.Item.Spend).ToString("0.0"))×
-        </TextBlock>
+        <div class="ib-chart-tooltip-title">@context.Item.Path</div>
+        <div>Loads in @context.Argument</div>
+        <div>@context.Points[0].Text bounce</div>
     </TooltipTemplate>
     <ChildContent>
-        <ChartSeries Value="c => c.Revenue" />
+        <ChartSeries Value="p => p.BounceRate" Name="Bounce rate" />
     </ChildContent>
 </Chart>
 
 @code {
-    private record Campaign(string Name, decimal Spend, decimal Revenue);
+    private record PageStats(string Path, double LoadSeconds, double BounceRate);
 
-    private readonly Campaign[] _campaigns =
-    [
-        new("Spring sale search", 4_200, 19_800),
-        new("Brand video", 12_500, 21_400),
-        new("Retargeting", 2_100, 14_900),
-        new("Newsletter promo", 800, 6_300),
-        new("Podcast sponsorship", 9_000, 15_200),
-        new("Partner webinar", 3_600, 12_100),
-        new("Social carousel", 5_400, 13_700),
-        new("Display network", 7_800, 9_900),
-        new("Search: competitors", 6_100, 22_600),
-        new("Back to school", 10_400, 31_800),
-        new("Influencer kit", 8_300, 11_400),
-        new("Holiday preview", 11_200, 26_900),
-    ];
+    private static readonly string[] Sections = ["docs", "blog", "products", "pricing", "guides", "changelog", "help", "customers"];
+
+    private readonly PageStats[] _pages = Pages();
+
+    // 80 pages: bounce rate rises with load time, with some spread and a few outliers.
+    private static PageStats[] Pages()
+    {
+        var random = new Random(42);
+        return Enumerable.Range(0, 80).Select(i =>
+        {
+            var load = Math.Round(0.6 + random.NextDouble() * random.NextDouble() * 5.4, 1);
+            var bounce = Math.Clamp(0.18 + load * 0.075 + (random.NextDouble() - 0.5) * 0.18, 0.08, 0.92);
+            return new PageStats($"/{Sections[i % Sections.Length]}/page-{i / Sections.Length + 1}", load, Math.Round(bounce, 3));
+        }).ToArray();
+    }
 }
