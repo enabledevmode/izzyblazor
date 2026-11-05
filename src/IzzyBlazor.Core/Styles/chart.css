@@ -51,6 +51,20 @@
   .ib-chart-s7 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-7)); }
   .ib-chart-s8 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-8)); }
 
+  /* Fills (bars, slices, keys) are lighter than the series color: mixed with the surface, 0.65 of
+     the color in light mode and 0.9 in dark, where a weaker mix goes dull against the dark
+     surface. --ib-chart-fill-opacity (a chart's BarOpacity) sets one strength for both. Opaque, so
+     a bar's rounded end and square base can overlap without a darker band. A scatter's points
+     (--ib-chart-see) are see-through instead, so where they crowd shows darker. */
+  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8) {
+    --ib-chart-fill: light-dark(
+      color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), var(--ib-color-surface)),
+      color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), var(--ib-color-surface)));
+    --ib-chart-see: light-dark(
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), transparent));
+  }
+
   .ib-chart-frame {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -109,14 +123,10 @@
 
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
-  /* Bars in the series color, a little see-through (--ib-chart-fill-opacity), with no edge. The
-     value end is rounded by the theme's small radius (--ib-chart-bar-radius to set it apart): a
-     rounded rectangle with a square one over its baseline half. The group, not each rectangle,
-     is see-through, so where they overlap is no darker. */
-  .ib-chart-bars {
-    fill: var(--ib-chart-c);
-    opacity: var(--ib-chart-fill-opacity, 0.65);
-  }
+  /* Bars in the series' fill, with no edge. The value end is rounded by the theme's small radius
+     (--ib-chart-bar-radius to set it apart): a rounded rectangle with a square one over its
+     baseline half. */
+  .ib-chart-bars { fill: var(--ib-chart-fill); }
 
   .ib-chart-bars > .ib-chart-tip,
   .ib-chart-key rect {
@@ -124,8 +134,7 @@
   }
 
   .ib-chart-key rect {
-    fill: var(--ib-chart-c);
-    fill-opacity: var(--ib-chart-fill-opacity, 0.65);
+    fill: var(--ib-chart-fill);
   }
 
   .ib-chart-line,
@@ -154,7 +163,7 @@
   }
 
   /* A scatter's points are see-through as bars are, so where they crowd shows darker. */
-  .ib-chart-scatter { fill-opacity: var(--ib-chart-fill-opacity, 0.65); }
+  .ib-chart-scatter { fill: var(--ib-chart-see); }
 
   /* The point the tooltip is for, on a scatter chart. */
   .ib-chart-marks > [data-ib-active] {
@@ -393,8 +402,7 @@
 
   /* Slices see-through as bars are, with a gap of the surface's color between them. */
   .ib-pie-slice {
-    fill: var(--ib-chart-c);
-    fill-opacity: var(--ib-chart-fill-opacity, 0.65);
+    fill: var(--ib-chart-fill);
     stroke: var(--ib-color-surface);
     stroke-width: 2px;
     stroke-linejoin: round;
@@ -402,7 +410,7 @@
   }
 
   /* The slice the tooltip is for. */
-  .ib-pie-slice[data-ib-active] { fill-opacity: 1; }
+  .ib-pie-slice[data-ib-active] { fill: var(--ib-chart-c); }
 
   .ib-pie-empty { fill: var(--ib-color-fill-strong); }
 
@@ -441,7 +449,7 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 2px;
-    background-color: color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), transparent);
+    background-color: var(--ib-chart-fill);
   }
 
   .ib-pie-name {
@@ -490,8 +498,9 @@
   }
 
   .ib-sparkline-bars rect {
-    fill: currentColor;
-    fill-opacity: var(--ib-chart-fill-opacity, 0.65);
+    fill: light-dark(
+      color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.65) * 100%), transparent),
+      color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.9) * 100%), transparent));
   }
 
   /* In a Stat, under the figure. */

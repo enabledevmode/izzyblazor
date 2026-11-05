@@ -77,8 +77,8 @@
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>
-    /// How solid the bars are, from 0 (clear) to 1 (solid). Defaults to 0.65, or the theme's
-    /// <c>--ib-chart-fill-opacity</c>.
+    /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
+    /// 0.65 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
     /// </summary>
     [Parameter] public double? BarOpacity { get; set; }
 
