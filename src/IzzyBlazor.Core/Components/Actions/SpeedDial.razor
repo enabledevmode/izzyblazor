@@ -1,0 +1,152 @@
+@namespace IzzyBlazor
+@inherits MenuBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the button opens and closes the actions, but arrow keys don't move between them, and OpenOn=\"Hover\" opens on click.")]
+
+@*
+    A floating button that opens a line of actions, such as the things a page can create: a speed
+    dial (Material's name; a FAB menu in other libraries). The button sits in a corner of the window
+    like FloatingButton and turns into a close button while the actions show.
+
+    <SpeedDial Label="Create">
+        <SpeedDialAction Icon="Lucide.FileText" Label="Invoice" Href="invoices/new" />
+        <SpeedDialAction Icon="Lucide.UserPlus" Label="Customer" Href="customers/new" />
+    </SpeedDial>
+
+    It's built on the Popover API, as Menu is: the button opens the actions with no script, and
+    Escape or a click outside closes them. The labels show beside the actions (ShowLabels); with
+    ShowLabels="false", or opening toward the start or end, the actions are icons and the labels
+    their tooltips. OpenOn="Hover" opens it as the pointer comes over the button, with script.
+
+    Accessibility:
+    - The button is named by `Label`, and says whether the actions show (`aria-expanded`).
+    - With script, the actions are a `menu` of `menuitem`s named by the button; with JavaScript
+      off, they're plain links and buttons.
+    - Each action is named by its `Label`, shown or as its tooltip.
+    - Opening it focuses the first action, nearest the button; Escape or a choice brings focus back.
+
+    Keyboard:
+    On the button
+    - Enter, Space | Open the actions at the first
+    In the actions
+    - Up, Down | Move through them, wrapping
+    - Home, End | Go to the first or last
+    - Enter, Space | Choose one
+    - Escape | Close and go back to the button
+    See also: FloatingButton, Menu.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <summary>The button's name, such as "Create": what the actions have in common.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The button's icon. Defaults to a plus.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>The button's icon while the actions show. Defaults to a close icon.</summary>
+    [Parameter] public IconData? OpenIcon { get; set; }
+
+    /// <summary>Where the button sits. Defaults to <see cref="FloatPosition.BottomEnd"/>.</summary>
+    [Parameter] public FloatPosition Position { get; set; } = FloatPosition.BottomEnd;
+
+    /// <summary>The button's color. Defaults to <see cref="Accent.Primary"/>.</summary>
+    [Parameter] public Accent Accent { get; set; } = Accent.Primary;
+
+    /// <summary>Which way the actions open from the button. Defaults to <see cref="SpeedDialDirection.Up"/>.</summary>
+    [Parameter] public SpeedDialDirection Direction { get; set; } = SpeedDialDirection.Up;
+
+    /// <summary>
+    /// What opens it: a click (the default), or the pointer coming over the button. Hover needs
+    /// script; with JavaScript off and on touch screens, a click opens it either way.
+    /// </summary>
+    [Parameter] public SpeedDialTrigger OpenOn { get; set; }
+
+    /// <summary>
+    /// Shows each action's label beside it (the default), clear on touch screens and with JavaScript
+    /// off. False shows only the icons, with the labels as tooltips. Opening toward the start or
+    /// end shows only the icons.
+    /// </summary>
+    [Parameter] public bool ShowLabels { get; set; } = true;
+
+    /// <summary>Whether the actions show only their icons, with the labels as tooltips.</summary>
+    internal bool IconsOnly => !ShowLabels || Horizontal;
+
+    private bool Horizontal => Direction is SpeedDialDirection.Start or SpeedDialDirection.End;
+
+    // The actions line up with the button's edge on its side of the window; labels reach inward.
+    private bool AtStart => Position == FloatPosition.BottomStart;
+
+    /// <inheritdoc />
+    private protected override Placement PanelPlacement => Direction switch
+    {
+        SpeedDialDirection.Down => AtStart ? Placement.BottomStart : Placement.BottomEnd,
+        SpeedDialDirection.Start => Placement.Start,
+        SpeedDialDirection.End => Placement.End,
+        _ => AtStart ? Placement.TopStart : Placement.TopEnd,
+    };
+
+    /// <inheritdoc />
+    private protected override RenderFragment TriggerContent => __builder =>
+    {
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/speed-dial.css"]" />
+        <button @attributes="TriggerAttributes" type="button" class="@ButtonClass" style="@ButtonStyle" aria-label="@Label">
+            <Icon Name="@(Icon ?? IconSet.Current.Get(IconRole.Plus))" Class="ib-sd-closed" />
+            <Icon Name="@(OpenIcon ?? IconSet.Current.Get(IconRole.Close))" Class="ib-sd-open" />
+        </button>
+        @if (OpenOn == SpeedDialTrigger.Hover)
+        {
+            <ib-speed-dial hidden></ib-speed-dial>
+        }
+    };
+
+    private string ButtonClass => new ClassBuilder()
+        .Add($"ib-btn ib-btn-{Accent.Role ?? "primary"} ib-btn-solid ib-btn-lg ib-btn-icon-only ib-btn-float ib-sd-button")
+        .Add("ib-btn-float-start", Position == FloatPosition.BottomStart)
+        .Add("ib-btn-float-center", Position == FloatPosition.BottomCenter)
+        .Build()!;
+
+    private string? ButtonStyle
+    {
+        get
+        {
+            var styles = new StyleBuilder();
+            if (Accent.Custom is { } custom)
+            {
+                ColorOverride.Apply(styles, custom);
+            }
+
+            return styles.Build();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        classes.Add($"ib-sd-panel ib-sd-{Direction.ToString().ToLowerInvariant()}");
+        classes.Add("ib-sd-at-start", AtStart);
+        classes.Add("ib-sd-icons", IconsOnly);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("SpeedDial needs a Label: it names the button, such as \"Create\".");
+        }
+
+        // The actions learn whether their labels show, for their tooltips.
+        var actions = ChildContent;
+        ChildContent = builder =>
+        {
+            builder.OpenComponent<CascadingValue<SpeedDial>>(0);
+            builder.AddComponentParameter(1, "Value", this);
+            builder.AddComponentParameter(2, "IsFixed", true);
+            builder.AddComponentParameter(3, "ChildContent", actions);
+            builder.CloseComponent();
+        };
+        base.OnParametersSet();
+    }
+}

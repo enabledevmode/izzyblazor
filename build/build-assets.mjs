@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tabs-edit.css"),
   },
   {
+    // A sheet of its own, linked by SpeedDial.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "speed-dial.css")],
+    outfile: join(lib, "wwwroot", "speed-dial.css"),
+  },
+  {
     // A sheet of its own, linked by the charts.
     ...common,
     sourcemap: false,

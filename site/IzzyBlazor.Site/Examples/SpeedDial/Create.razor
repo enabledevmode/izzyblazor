@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+
+@* The things an invoices page can create, from one button in the corner. Each action is a link,
+   so it works on static pages too; here it stays on this page. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Invoices</Heading>
+    @if (Created is not null)
+    {
+        <Alert Status="Status.Info">New @Created.</Alert>
+    }
+    <Stack Gap="2">
+        @foreach (var i in Enumerable.Range(1, 12))
+        {
+            <Card Padding="3">Invoice @(1040 + i)</Card>
+        }
+    </Stack>
+</Stack>
+<SpeedDial Label="Create">
+    <SpeedDialAction Icon="Lucide.FileText" Label="Invoice" Href="@To("invoice")" />
+    <SpeedDialAction Icon="Lucide.UserPlus" Label="Customer" Href="@To("customer")" />
+    <SpeedDialAction Icon="Lucide.Package" Label="Product" Href="@To("product")" />
+</SpeedDial>
+
+@code {
+    [SupplyParameterFromQuery(Name = "create")] private string? Created { get; set; }
+
+    private string To(string what) => Navigation.GetUriWithQueryParameter("create", what);
+}
