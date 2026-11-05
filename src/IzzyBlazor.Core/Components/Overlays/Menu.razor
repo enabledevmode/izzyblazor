@@ -28,6 +28,10 @@
       are skipped.
     - With JavaScript off, items are plain links and buttons with no menu roles; a checked one
       has `aria-pressed` (buttons) or `aria-current` (links).
+    - With `ContextFor`, right-click, a long press, the menu key or Shift+F10 in that element opens
+      the menu at the pointer (or under the focused element), and Escape or a choice puts focus back
+      where it was. Right-click can't be seen, so give the actions another way in too, such as the
+      menu's own button. With no `Trigger`, `Label` names the menu.
     - A custom `Trigger` needs a name of its own, such as an IconButton's `Label`. A `Shortcut`
       is display only: the app handles the keys.
 
@@ -35,6 +39,8 @@
     On the trigger
     - Enter, Space, Down | Open the menu at its first item
     - Up | Open the menu at its last item
+    In the ContextFor element
+    - Shift+F10, Menu key | Open the menu under the focused element
     In the menu
     - Up, Down | Move through the items, wrapping
     - Home, End | Go to the first or last item
@@ -57,7 +63,7 @@
     {
         @Trigger(_triggerAttributes)
     }
-    else
+    else if (ContextFor is null)
     {
         <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconRole.ChevronDown)" Class="@TriggerClass" @attributes="_triggerAttributes">@Label</Button>
     }
@@ -66,7 +72,8 @@
          popover="auto"
          role="@(RendererInfo.IsInteractive ? "menu" : null)"
          data-ib-role="@(RendererInfo.IsInteractive ? null : "menu")"
-         aria-labelledby="@TriggerId"
+         aria-labelledby="@(HasTrigger ? TriggerId : null)"
+         aria-label="@(HasTrigger ? null : Label)"
          class="@_class"
          style="@_style"
          @onibtoggle="HandleToggle">
@@ -76,11 +83,24 @@
             </CascadingValue>
         </CascadingValue>
     </div>
+    @if (ContextFor is not null)
+    {
+        <ib-context-menu data-for="@ContextFor" hidden></ib-context-menu>
+    }
 </ib-popover>
 
 @code {
-    /// <summary>The default trigger's text.</summary>
+    /// <summary>The default trigger's text, and with <see cref="ContextFor"/> and no trigger, the menu's name.</summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// The id of an element whose right-click, long press, menu key or Shift+F10 opens this menu at
+    /// the pointer, such as the card it acts on. With a <see cref="Trigger"/> the menu opens both
+    /// ways; without one, no button renders, so make its actions reachable some other way too.
+    /// Needs script; with JavaScript off the browser's own menu shows.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? ContextFor { get; set; }
 
     /// <summary>The default trigger's color. Defaults to <see cref="Accent.Neutral"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
@@ -141,6 +161,8 @@
 
     private string TriggerId => $"{ElementId}-trigger";
 
+    private bool HasTrigger => Trigger is not null || ContextFor is null;
+
     /// <inheritdoc />
     protected override string IdPrefix => "ib-menu";
 
@@ -171,7 +193,9 @@
         ToolbarControl.Refuse(this, Toolbar, Group);
         if (Trigger is null && string.IsNullOrWhiteSpace(Label))
         {
-            throw new InvalidOperationException("Menu needs a Label for its button, or a Trigger.");
+            throw new InvalidOperationException(ContextFor is null
+                ? "Menu needs a Label for its button, or a Trigger."
+                : "A Menu with ContextFor and no Trigger needs a Label: it names the menu.");
         }
 
         _context ??= new MenuContext(ElementId);

@@ -1317,7 +1317,7 @@
       ]
     },
     {
-      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "context menu"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
+      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "context menu", "right-click menu", "long press"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
         { "id": "menu-actions", "title": "Links, posts and actions",
           "notes": {
@@ -1328,6 +1328,11 @@
         { "id": "menu-groups", "title": "Groups, shortcuts and colors" },
         { "id": "menu-trigger", "title": "Custom trigger" },
         { "id": "menu-checked", "title": "Checked items" },
+        { "id": "menu-context", "title": "Right-click menus", "lead": "To open a menu by right-click, long press or Shift+F10 on an element, set `ContextFor` to its id. Here each file's ⋮ menu also opens anywhere on its card.",
+          "notes": {
+            "noscript": "Right-click shows the browser's own menu; the ⋮ buttons open the menus.",
+            "static": "IzzyBlazor's script opens each card's menu at the pointer. Open is a link; Duplicate and Delete post the form."
+          } },
         { "id": "menu-sub", "title": "Submenus",
           "notes": {
             "noscript": "A click opens a submenu. Opening one on hover or with the arrow keys needs IzzyBlazor's script.",
