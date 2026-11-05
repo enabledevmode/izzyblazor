@@ -442,7 +442,7 @@
       "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Actions", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "fab menu", "speed dial", "extended fab"],
       "features": [
         { "feature": "Stays in its corner as the page scrolls, above a sticky footer" },
-        { "feature": "A link, a form post or C#" },
+        { "feature": "Follows a link, posts a form or runs C#" },
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
@@ -791,7 +791,7 @@
         { "feature": "Binds an int" }
       ],
       "examples": [
-        { "id": "year-field-model-year", "title": "A year", "lead": "A year field is a number input held in an `int`, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
+        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
           "notes": {
             "noscript": "A number input, with no page of years."
           } }
@@ -1501,7 +1501,7 @@
         { "feature": "A tab marked current from C# (TabLink Current)" }
       ],
       "examples": [
-        { "id": "tab-nav-settings", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL, so the right tab shows as current with JavaScript off too. `Variant`, `Size` and `FullWidth` work as on Tabs." }
+        { "id": "tab-nav-settings", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL, so the right tab shows as current with JavaScript off too. `Variant`, `Size` and `FullWidth` work as on Tabs. A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too; to stop that, set `Match=\"NavLinkMatch.All\"`." }
       ]
     },
     {

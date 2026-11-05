@@ -792,9 +792,14 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     {
         if (Underlying == typeof(string))
         {
-            if (EditProperty?.GetCustomAttribute<DataTypeAttribute>()?.DataType == DataType.MultilineText)
+            var dataType = EditProperty?.GetCustomAttribute<DataTypeAttribute>()?.DataType;
+            if (dataType == DataType.MultilineText)
             {
                 builder.OpenComponent<TextArea>(0);
+            }
+            else if (dataType == DataType.Password)
+            {
+                builder.OpenComponent<PasswordField>(0);
             }
             else
             {

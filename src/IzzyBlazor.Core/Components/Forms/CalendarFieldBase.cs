@@ -174,7 +174,7 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
 
     /// <summary>Throws for what a day has and a month or year doesn't.</summary>
     /// <param name="type">The field's type, for the message.</param>
-    private protected void RefuseDayOptions(DateFieldType type)
+    private protected void RefuseDayOptions(CalendarType type)
     {
         var refused = DateDisabled is not null ? nameof(DateDisabled)
             : DayClass is not null ? nameof(DayClass)

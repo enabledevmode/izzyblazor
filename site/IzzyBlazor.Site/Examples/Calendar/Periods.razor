@@ -1,5 +1,5 @@
 <Form Model="Model" FormName="calendar-periods" OnValidSubmit="Save" Grow>
-    <Calendar @bind-Value="Model!.Starts" Type="DateFieldType.Month" />
+    <Calendar @bind-Value="Model!.Starts" Type="CalendarType.Month" />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved is { } saved)
     {

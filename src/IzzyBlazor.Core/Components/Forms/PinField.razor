@@ -84,7 +84,7 @@
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
 
-    // As TextField's password: a static page doesn't write a masked value back into its HTML.
+    // As PasswordField: a static page doesn't write a masked value back into its HTML.
     private bool EchoesValue => !Masked || RendererInfo.IsInteractive;
 
     // Spaces and dashes anywhere, and Length allowed characters.

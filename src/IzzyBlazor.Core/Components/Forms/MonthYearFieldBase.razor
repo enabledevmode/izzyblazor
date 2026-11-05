@@ -237,6 +237,6 @@
         return true;
     }
 
-    // What a month input posts, and a whole date, as [Range] may give one.
-    private static readonly string[] MonthFormats = ["yyyy-MM", "yyyy-MM-dd"];
+    // What a month input posts, and a date or date and time, as [Range] may give one.
+    private static readonly string[] MonthFormats = ["yyyy-MM", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss"];
 }
