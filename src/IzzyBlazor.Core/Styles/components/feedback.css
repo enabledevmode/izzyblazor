@@ -1,5 +1,5 @@
 /*
- * Loading feedback: Spinner, Progress and Skeleton. All pure CSS, so they animate on
+ * Loading feedback: Spinner, Progress (a bar or a circle) and Skeleton. All pure CSS, so they animate on
  * static pages too. With reduced motion they slow down but don't stop, since the motion
  * is what says "still working".
  */
@@ -92,6 +92,81 @@
     to { inset-inline-start: 100%; }
   }
 
+  /* A circle: the ring as wide as Size's diameter, or the root's Width; the value in its
+     middle, in type that scales with it; the label under it. The fill starts at the top
+     (the svg turned back a quarter) and runs clockwise in either direction, as a clock does.
+     Circumference 100 (r = 15.9155), so the offset is 100 minus the percentage. */
+  .ib-progress-circle {
+    --ib-progress-d: 3rem;
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    text-align: center;
+  }
+
+  .ib-progress-circle.ib-progress-sm { --ib-progress-d: 2rem; }
+  .ib-progress-circle.ib-progress-lg { --ib-progress-d: 5rem; }
+
+  .ib-progress-ring {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--ib-progress-d);
+    aspect-ratio: 1;
+    container-type: inline-size;
+  }
+
+  .ib-progress-circle:is(.ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl) .ib-progress-ring {
+    width: 100%;
+  }
+
+  .ib-progress-svg {
+    position: absolute;
+    inset: 0;
+    rotate: -90deg;
+  }
+
+  .ib-progress-ring-track,
+  .ib-progress-ring-fill {
+    fill: none;
+    stroke-width: 3.6;
+  }
+
+  .ib-progress-ring-track {
+    stroke: var(--ib-color-fill-strong);
+  }
+
+  .ib-progress-ring-fill {
+    stroke: var(--ib-progress-color, var(--ib-color-primary));
+    stroke-linecap: round;
+    stroke-dasharray: 100 100;
+    transition: stroke-dashoffset var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-progress-ring-value {
+    position: relative;
+    font-size: 24cqi;
+    font-weight: var(--ib-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .ib-progress-circle .ib-progress-head {
+    justify-content: center;
+  }
+
+  .ib-progress-circle .ib-progress-value {
+    margin-inline-start: 0;
+  }
+
+  .ib-progress-circle.ib-progress-indeterminate .ib-progress-svg {
+    animation: ib-spin 1s linear infinite;
+  }
+
+  .ib-progress-circle.ib-progress-indeterminate .ib-progress-ring-fill {
+    stroke-dasharray: 25 100;
+  }
+
   /* Skeleton: shimmering shapes in place of content still loading. */
   .ib-skeleton {
     display: block;
@@ -146,6 +221,7 @@
   @media (prefers-reduced-motion: reduce) {
     .ib-spinner-svg { animation-duration: var(--ib-spin-duration-reduced, 2s); }
     .ib-progress-indeterminate .ib-progress-bar { animation-duration: 3s; }
+    .ib-progress-circle.ib-progress-indeterminate .ib-progress-svg { animation-duration: 2s; }
     .ib-skeleton { animation-duration: 3s; }
   }
 }

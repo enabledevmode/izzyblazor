@@ -21,6 +21,11 @@
 <ExampleViewer Example="progress-indeterminate" />
 <TextBlock>With reduced motion, the sweep is slower. Once you know how much work there is, set <Code>Value</Code>, and the bar starts to fill.</TextBlock>
 
+<Heading Level="2">Circle</Heading>
+<TextBlock>Set <Code>Shape</Code> to <Code>ProgressShape.Circle</Code> to show the progress as a circle, for a dashboard or a card. It fills clockwise from the top. <Code>ShowValue</Code> and <Code>ValueText</Code> put the value in the middle, and the <Code>Label</Code> goes under the circle. <Code>Size</Code> sets the diameter: 2rem, 3rem or 5rem. At Sm, the value goes beside the label. For any other diameter, set <Code>Width</Code>.</TextBlock>
+<ExampleViewer Example="progress-circle" />
+<TextBlock>Without a <Code>Value</Code>, an arc turns around the circle. Every other parameter works as it does on the bar, and screen readers hear the same name and value.</TextBlock>
+
 <Heading Level="2">Updating from C#</Heading>
 <TextBlock>The bar renders on the server, so on <Anchor Href="docs/common/render-modes">static pages</Anchor> it shows the value from when the page rendered. On interactive pages, change <Code>Value</Code> from C#, and the bar follows.</TextBlock>
 <ExampleViewer Example="progress-from-code" />
@@ -52,5 +57,7 @@
 
         @* No value: a bar that sweeps until the work is done. *@
         <Progress Label="Preparing export" />
+
+        <Progress Shape="ProgressShape.Circle" Value="72" Label="Profile" ShowValue />
         """;
 }

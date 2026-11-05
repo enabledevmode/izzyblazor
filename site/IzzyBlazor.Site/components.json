@@ -1594,11 +1594,12 @@
       ]
     },
     {
-      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar, with or without a known value.", "keywords": ["progress bar"],
+      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar or circle, with or without a known value.", "keywords": ["progress bar", "circular progress", "progress ring"],
       "examples": [
         { "id": "progress-values", "title": "Value and label", "lead": "The value is how far along the work is, out of a maximum. Set `Value` and `Max`, and name the bar with `Label`. To show the amount, set `ShowValue` or `ValueText`." },
         { "id": "progress-sizes", "title": "Sizes and colors", "lead": "To change the bar's thickness, set `Size`. To change its color, set `Accent`." },
         { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "When the work has no known length, leave out `Value`. The bar sweeps instead." },
+        { "id": "progress-circle", "title": "Circle", "lead": "To show the progress as a circle, set `Shape` to `ProgressShape.Circle`. The value goes in the middle and the label under it." },
         { "id": "progress-from-code", "title": "Updating from C#", "lead": "On interactive pages, changing `Value` from C# moves the bar.", "modes": ["interactive"] }
       ]
     },
