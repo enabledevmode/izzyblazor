@@ -1730,6 +1730,12 @@
           ]
         },
         {
+          "id": "scatter", "title": "Scatter", "summary": "A marker for each item at two measures, such as spend and revenue, to show how they relate.", "members": ["ChartSeries.Type"],
+          "examples": [
+            { "id": "chart-scatter", "title": "Spend against revenue", "lead": "To show how two measures relate, set `SeriesType` (or a series' `Type`) to `Scatter`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `TooltipTemplate` names the campaign and works out its return." }
+          ]
+        },
+        {
           "id": "tooltips", "title": "Tooltips and the legend", "summary": "A tooltip shows every series' value for the item under the pointer or keyboard focus, from a template if you give one; the legend hides and shows series.", "members": ["Tooltip", "TooltipTemplate", "Legend", "ChartSeries.Hidden"],
           "examples": [
             { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month; the keys also say it to a screen reader. To draw the tooltip yourself, give the chart a `TooltipTemplate`: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it; `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out.",

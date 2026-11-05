@@ -1,0 +1,35 @@
+@* Each campaign's spend against the revenue it brought in; the tooltip names the campaign. *@
+<Chart Items="_campaigns" Argument="c => c.Spend" SeriesType="ChartType.Scatter"
+       Label="Campaigns: spend against revenue, Q3" ArgumentFormat="C0" ValueFormat="C0">
+    <TooltipTemplate>
+        <div class="ib-chart-tooltip-title">@context.Item.Name</div>
+        <div>Spend @context.Argument</div>
+        <div>Revenue @context.Points[0].Text</div>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Return @((context.Item.Revenue / context.Item.Spend).ToString("0.0"))×
+        </TextBlock>
+    </TooltipTemplate>
+    <ChildContent>
+        <ChartSeries Value="c => c.Revenue" />
+    </ChildContent>
+</Chart>
+
+@code {
+    private record Campaign(string Name, decimal Spend, decimal Revenue);
+
+    private readonly Campaign[] _campaigns =
+    [
+        new("Spring sale search", 4_200, 19_800),
+        new("Brand video", 12_500, 21_400),
+        new("Retargeting", 2_100, 14_900),
+        new("Newsletter promo", 800, 6_300),
+        new("Podcast sponsorship", 9_000, 15_200),
+        new("Partner webinar", 3_600, 12_100),
+        new("Social carousel", 5_400, 13_700),
+        new("Display network", 7_800, 9_900),
+        new("Search: competitors", 6_100, 22_600),
+        new("Back to school", 10_400, 31_800),
+        new("Influencer kit", 8_300, 11_400),
+        new("Holiday preview", 11_200, 26_900),
+    ];
+}

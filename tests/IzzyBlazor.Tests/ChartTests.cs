@@ -123,6 +123,22 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Scatter_draws_a_marker_per_item_on_round_scales_that_needn_t_start_at_zero()
+    {
+        var model = ChartLayout.Build(new ChartInput(
+            [800, 4_200, 12_500],
+            [new ChartSeriesData("Revenue", ChartType.Scatter, [6_300, 19_800, 21_400])])
+        { Culture = CultureInfo.InvariantCulture });
+
+        var series = model.Series[0];
+        Assert.Null(series.Line);
+        Assert.Equal([0, 1, 2], series.Marks.Select(m => m.Index));
+        Assert.Equal(ArgumentKind.Number, model.Kind);
+        Assert.True(model.ArgumentPositions[0] > 0 && model.ArgumentPositions[2] < 1);
+        Assert.DoesNotContain(model.ValueLabels, l => l.Text == "0");
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();

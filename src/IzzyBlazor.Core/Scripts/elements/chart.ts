@@ -92,6 +92,21 @@ class Chart extends IzzyElement {
     const positions = scale
       ? (this.dataset.ibPos ?? "").split(",").map((p) => (p === "" ? NaN : Number(p)))
       : Array.from({ length: count }, (_, i) => (i + 0.5) / count);
+    // A scatter chart's tooltip is for the point nearest the pointer, not the band under it.
+    const pointsMode = this.hasAttribute("data-ib-points");
+    const marks = [...plot.querySelectorAll<SVGUseElement>("use[data-ib-i]")];
+    const visible = (m: Element) => !m.closest("[data-ib-hidden]");
+    const markFor = (index: number) => marks.find((m) => m.dataset.ibI === String(index) && visible(m));
+    const at = (m: SVGUseElement) => [
+      (parseFloat(m.getAttribute("x") ?? "0") / 100) * plot.clientWidth,
+      (parseFloat(m.getAttribute("y") ?? "0") / 100) * plot.clientHeight,
+    ];
+    let active: SVGUseElement | undefined;
+
+    // The keyboard's order: the items, or on a scatter chart its points from left to right.
+    const order = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
+    if (pointsMode) order.sort((a, b) => positions[a] - positions[b]);
+
     let current = -1;
     let lastY: number | null = null;
 
@@ -118,6 +133,10 @@ class Chart extends IzzyElement {
         if (hidden.has(Number(row.dataset.ibSeries))) row.remove();
       }
 
+      active?.removeAttribute("data-ib-active");
+      active = pointsMode ? markFor(index) : undefined;
+      active?.setAttribute("data-ib-active", "");
+
       // The band (or, on a scale, a line) under the item.
       const pos = positions[index];
       const size = scale ? 0 : 1 / count;
@@ -126,7 +145,7 @@ class Chart extends IzzyElement {
       hover.style.cssText = horizontal
         ? `top:${start * 100}%;height:${size * 100}%;left:0;width:100%`
         : `left:${start * 100}%;width:${size * 100}%;top:0;height:100%`;
-      hover.hidden = false;
+      hover.hidden = pointsMode;
       tooltip.hidden = false;
 
       // Beside the item, flipped to the other side when there's no room; kept inside the chart.
@@ -141,7 +160,11 @@ class Chart extends IzzyElement {
       const maxX = frame.clientWidth - offset - tw;
       let x: number;
       let y: number;
-      if (!horizontal) {
+      if (active) {
+        const [ax, ay] = at(active);
+        x = ax + gap + tw <= frame.clientWidth - offset ? ax + gap : ax - gap - tw;
+        y = ay - th / 2;
+      } else if (!horizontal) {
         const ax = pos * pw;
         const half = (size * pw) / 2;
         x = ax + half + gap + tw <= frame.clientWidth - offset ? ax + half + gap : ax - half - gap - tw;
@@ -163,6 +186,8 @@ class Chart extends IzzyElement {
     const hide = () => {
       tooltip.hidden = true;
       hover.hidden = true;
+      active?.removeAttribute("data-ib-active");
+      active = undefined;
     };
 
     // The plot's shapes stop taking the pointer (chart.css), so their native <title> tips, there
@@ -174,6 +199,20 @@ class Chart extends IzzyElement {
       "pointermove",
       (event) => {
         const r = plot.getBoundingClientRect();
+        if (pointsMode) {
+          const px = event.clientX - r.left;
+          const py = event.clientY - r.top;
+          let best: SVGUseElement | undefined;
+          let distance = Infinity;
+          for (const m of marks) {
+            if (!visible(m)) continue;
+            const [mx, my] = at(m);
+            const d = (mx - px) ** 2 + (my - py) ** 2;
+            if (d < distance) [best, distance] = [m, d];
+          }
+          if (best) show(Number(best.dataset.ibI), null);
+          return;
+        }
         show(nearest(along(event)), horizontal ? event.clientX - r.left : event.clientY - r.top);
       },
       { signal }
@@ -195,16 +234,14 @@ class Chart extends IzzyElement {
         .filter(Boolean)
         .join(", ");
     };
-    const step = (from: number, by: number) => {
-      for (let i = from + by; i >= 0 && i < count; i += by) {
-        if (!Number.isNaN(positions[i])) return i;
-      }
-      return from;
+    const step = (by: number) => {
+      const k = order.indexOf(current);
+      return order[k < 0 ? (by > 0 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, k + by))];
     };
     frame.addEventListener(
       "focus",
       () => {
-        show(current >= 0 ? current : step(-1, 1), null);
+        show(current >= 0 ? current : order[0], null);
         announce();
       },
       { signal }
@@ -217,17 +254,17 @@ class Chart extends IzzyElement {
         switch (event.key) {
           case "ArrowRight":
           case "ArrowDown":
-            next = step(current, 1);
+            next = step(1);
             break;
           case "ArrowLeft":
           case "ArrowUp":
-            next = step(current, -1);
+            next = step(-1);
             break;
           case "Home":
-            next = step(-1, 1);
+            next = order[0];
             break;
           case "End":
-            next = step(count, -1);
+            next = order[order.length - 1];
             break;
           case "Escape":
             hide();

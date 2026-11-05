@@ -220,6 +220,7 @@
         <ib-chart data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
+                  data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
                   data-ib-pos="@Positions(model)">
         <div class="ib-chart-frame" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
             <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
@@ -279,7 +280,7 @@
                         <g class="@SeriesClass(s, "ib-chart-marks")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var mark in s.Marks)
                             {
-                                <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%"><title>@mark.Title</title></use>
+                                <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%" data-ib-i="@mark.Index"><title>@mark.Title</title></use>
                             }
                         </g>
                     }
@@ -313,7 +314,10 @@
                             }
                             else
                             {
-                                <line class="@($"ib-chart-dash{s.Dash}")" x1="0" x2="24" y1="6" y2="6" />
+                                @if (s.Data.Type != ChartType.Scatter)
+                                {
+                                    <line class="@($"ib-chart-dash{s.Dash}")" x1="0" x2="24" y1="6" y2="6" />
+                                }
                                 @if (s.Marks.Count > 0)
                                 {
                                     <use href="@($"#{marks}{s.Style % 4}")" x="12" y="6" />
@@ -346,10 +350,11 @@
                             @for (var p = 0; p < tip.Points.Count; p++)
                             {
                                 var point = tip.Points[p];
+                                if (point.Text is null) continue;
                                 <div class="ib-chart-tooltip-row" data-ib-series="@p">
                                     <span class="ib-chart-tooltip-key" style="@KeyStyle(point)"></span>
                                     <span>@point.Series</span>
-                                    <span class="ib-chart-tooltip-value">@(point.Text ?? "-")</span>
+                                    <span class="ib-chart-tooltip-value">@point.Text</span>
                                 </div>
                             }
                         }
