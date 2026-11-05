@@ -396,12 +396,13 @@
     },
 
     {
-      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Actions", "summary": "Submits or resets a form, follows a link or runs C#.",
+      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Actions", "summary": "Submits or resets a form, follows a link or runs C#.", "keywords": ["toggle button", "toggle", "pressed"],
       "features": [
         { "feature": "Submit or reset a form, follow a link" },
         { "feature": "Several submit buttons told apart by Name and Value" },
         { "feature": "Loading and disabled states" },
-        { "feature": "OnClick runs C#", "member": "OnClick" }
+        { "feature": "OnClick runs C#", "member": "OnClick" },
+        { "feature": "Toggle buttons: @bind-Pressed turns them on and off", "member": "PressedChanged" }
       ],
       "examples": [
         { "id": "button-variants", "title": "Accents and variants" },
@@ -434,11 +435,12 @@
       ]
     },
     {
-      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.",
+      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed"],
       "features": [
         { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
-        { "feature": "OnClick runs C#", "member": "OnClick" }
+        { "feature": "OnClick runs C#", "member": "OnClick" },
+        { "feature": "Toggle buttons: @bind-Pressed turns them on and off", "member": "PressedChanged" }
       ],
       "examples": [
         { "id": "icon-button-variants", "title": "Labels and variants", "lead": "An icon button's label is its name for screen readers and its tooltip. Set `Label`; it's required. Like Button, an icon button accepts `Variant`, `Accent` and `Href`." },
