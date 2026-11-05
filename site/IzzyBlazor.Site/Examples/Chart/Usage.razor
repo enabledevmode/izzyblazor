@@ -1,26 +1,25 @@
-@* Revenue and costs as columns, with the target as a line over them. *@
-<Chart Items="_months" Argument="m => m.Month" Label="Revenue and costs, 2026" ValueFormat="C0">
+@* Revenue each month as columns, against the revenue plan as a line. *@
+<Chart Items="_months" Argument="m => m.Month" Label="Revenue against plan, 2026" ValueFormat="C0">
     <ChartSeries Value="m => m.Revenue" />
-    <ChartSeries Value="m => m.Costs" />
-    <ChartSeries Value="m => m.Target" Type="ChartType.Line" />
+    <ChartSeries Value="m => m.Plan" Type="ChartType.Line" />
 </Chart>
 
 @code {
-    private record MonthTotals(string Month, decimal Revenue, decimal Costs, decimal Target);
+    private record MonthRevenue(string Month, decimal Revenue, decimal Plan);
 
-    private readonly MonthTotals[] _months =
+    private readonly MonthRevenue[] _months =
     [
-        new("January", 42_100, 30_400, 40_000),
-        new("February", 45_800, 31_200, 41_000),
-        new("March", 51_300, 33_900, 43_000),
-        new("April", 48_700, 32_500, 45_000),
-        new("May", 55_200, 35_100, 47_000),
-        new("June", 58_900, 36_800, 49_000),
-        new("July", 54_400, 35_600, 51_000),
-        new("August", 61_700, 38_200, 53_000),
-        new("September", 66_300, 40_100, 55_000),
-        new("October", 63_800, 39_400, 57_000),
-        new("November", 70_200, 42_700, 59_000),
-        new("December", 78_600, 45_900, 61_000),
+        new("January", 42_100, 45_000),
+        new("February", 45_800, 46_000),
+        new("March", 51_300, 48_000),
+        new("April", 48_700, 50_000),
+        new("May", 55_200, 52_000),
+        new("June", 58_900, 54_000),
+        new("July", 54_400, 56_000),
+        new("August", 61_700, 58_000),
+        new("September", 66_300, 60_000),
+        new("October", 63_800, 62_000),
+        new("November", 70_200, 65_000),
+        new("December", 78_600, 70_000),
     ];
 }

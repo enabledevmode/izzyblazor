@@ -1713,7 +1713,7 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Label`, which captions the chart and names it for screen readers. Each `ChartSeries` draws one `Value` per item, as bars by default; set `Type` on a series to draw it as a line or area instead. `ValueFormat` formats the values on the axis and in the table. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." }
+        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Label`, which captions the chart and names it for screen readers. Each `ChartSeries` draws one `Value` per item, as bars by default; set `Type` on a series to draw it as a line or area instead, here the plan each month's revenue is measured against. `ValueFormat` formats the values on the axis and in the table. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." }
       ],
       "topics": [
         {
