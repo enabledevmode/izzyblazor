@@ -1412,7 +1412,7 @@
             "static": "Picking a tab also updates the URL, so the user can copy and share it."
           } },
         { "id": "tabs-links", "title": "Tabs as links", "lead": "For tabs that link to pages of their own, use `TabLink` in place of `Tab`. The tabs are a `nav` of plain links, and the server marks the tab for the current URL." },
-        { "id": "tabs-closable", "title": "Closing and adding tabs", "lead": "To put a close button on each tab, handle `OnClose`, and remove the tab from your list there. To show an add button after the tabs, handle `OnAdd`. `Closable=\"false\"` keeps a tab open.", "modes": ["interactive"] },
+        { "id": "tabs-closable", "title": "Closing and adding tabs", "lead": "To put a close button on each tab, handle `OnClose`, and remove the tab from your list there; to keep it, such as after asking about unsaved changes, don't. To show an add button after the tabs, handle `OnAdd`. `Closable=\"false\"` keeps a tab open.", "modes": ["interactive"] },
         { "id": "tabs-closable-links", "title": "Closing and adding with links", "lead": "On static pages, set each `Tab`'s `CloseHref` and the tabs' `AddHref` to links that drop or add the tab, here by keeping the open invoices in the URL." },
         { "id": "tabs-padding", "title": "Panel padding", "lead": "To pad every panel on all sides, set `ContentPadding`. To run a table edge to edge in one panel, set that `Tab`'s `ContentPadding=\"0\"`." }
       ],

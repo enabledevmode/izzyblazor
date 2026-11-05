@@ -90,8 +90,8 @@ export function installFocusRescue(): void {
     if ((active && active !== document.body) || location.pathname !== page) return;
     const record = records.find((r) => [...r.removedNodes].some((n) => n === lost || n.contains(lost)));
     // Toasts move focus themselves, and the region puts its own toasts back.
-    // A grid puts focus back in the same row and column itself.
-    if (!record || (record.target instanceof Element && record.target.closest("ib-toasts, table:is([role=grid], [role=treegrid])"))) return;
+    // A grid puts focus back in the same row and column itself, and tabs on the selected tab.
+    if (!record || (record.target instanceof Element && record.target.closest("ib-toasts, table:is([role=grid], [role=treegrid]), [role=tablist]"))) return;
     rescue(record);
   }).observe(document.documentElement, { childList: true, subtree: true });
 }

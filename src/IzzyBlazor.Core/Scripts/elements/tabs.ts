@@ -13,8 +13,9 @@ import { revealSelectedTab } from "../tab-scroll";
 class Tabs extends IzzyElement {
   // The tab last scrolled into view, so a re-sync for anything else leaves the strip where it is.
   private revealed: HTMLElement | null = null;
-  // Until when a close may still replace the page (a link), and focus should come back to a tab.
-  private refocus = 0;
+  // The tab whose close control was used, and its value: once it's gone (removed, or another tab
+  // patched in over it by a close link's page), focus comes back to the selected tab.
+  private closed: [HTMLElement, string?] | null = null;
 
   private get list(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > .ib-tabs-list");
@@ -58,24 +59,22 @@ class Tabs extends IzzyElement {
       { signal }
     );
 
-    // A close control (tabs-edit.css) follows its tab. Before the tab goes, move focus to a tab
-    // that stays: closing the selected one selects the one after it (or before, when it's last),
-    // as the ARIA tabs pattern does, and C# hears that before it hears the close.
+    // A close control (tabs-edit.css) follows its tab. Nothing changes until the tab goes: the app
+    // may ask first and keep it. C# selects the next tab when the selected one is removed.
     this.addEventListener(
       "click",
       (event) => {
         const close = (event.target as Element).closest?.(".ib-tab-close");
         const tab = close?.previousElementSibling as HTMLElement | null;
         if (close?.parentElement !== this.list || !tab) return;
-        this.closing(tab);
-        this.refocus = performance.now() + 5000;
-        // A close link was written with the tab selected when the page was rendered; carry the
-        // one selected now, so the page that comes back shows it.
+        this.closed = [tab, tab.dataset.value];
+        // A close link was written with the tab selected when the page was rendered: carry the one
+        // to open after it, the one after the closed tab (or before, when it's last) if it was open.
         const key = this.dataset.queryKey;
-        const value = this.tabs.map((t) => this.radio(t)).find((r) => r?.checked)?.value;
-        if (close instanceof HTMLAnchorElement && key && value) {
+        const next = this.after(tab);
+        if (close instanceof HTMLAnchorElement && key && next) {
           const url = new URL(close.href);
-          url.searchParams.set(key, value);
+          url.searchParams.set(key, next);
           close.href = url.href;
         }
       },
@@ -178,10 +177,11 @@ class Tabs extends IzzyElement {
       if (selected) focusable = tab;
     }
 
-    // A close link brought a new page, patched in over this one: the focused tab may have gone.
-    if (this.refocus > performance.now() && focusable && (document.activeElement === document.body || !document.activeElement)) {
-      this.refocus = 0;
-      focusable.focus();
+    // A closed tab has gone: if focus went with it, it comes to the selected tab.
+    const [gone, value] = this.closed ?? [];
+    if (gone && focusable && !(gone.isConnected && gone.dataset.value === value)) {
+      this.closed = null;
+      if (document.activeElement === document.body || !document.activeElement) focusable.focus();
     }
 
     // Nothing selected (every tab disabled): keep the list reachable.
@@ -261,15 +261,12 @@ class Tabs extends IzzyElement {
   }
 
   /** A tab is about to close: select its neighbor if it's the selected one, and focus a tab that stays. */
-  private closing(tab: HTMLElement): void {
-    const enabled = this.tabs.filter((t) => t === tab || !this.radio(t)?.disabled);
-    if (this.radio(tab)?.checked) {
-      const i = enabled.indexOf(tab);
-      const next = enabled[i + 1] ?? enabled[i - 1];
-      if (next) this.select(next);
-    } else {
-      this.tabs.find((t) => this.radio(t)?.checked)?.focus();
-    }
+  /** The value of the tab that's open once this one closes. */
+  private after(tab: HTMLElement): string | undefined {
+    const radios = this.tabs.map((t) => this.radio(t)!).filter((r) => r && (!r.disabled || r.parentElement === tab));
+    let i = radios.findIndex((r) => r.parentElement === tab);
+    i = radios[i]?.checked ? (radios[i + 1] ? i + 1 : i - 1) : radios.findIndex((r) => r.checked);
+    return radios[i]?.value;
   }
 
   private select(tab: HTMLElement): void {

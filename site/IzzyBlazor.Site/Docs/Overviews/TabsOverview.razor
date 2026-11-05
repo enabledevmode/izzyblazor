@@ -29,7 +29,7 @@
 <ExampleViewer Example="tabs-url" />
 
 <Heading Level="2">Closing and adding tabs</Heading>
-<TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. To keep a tab open, such as one with unsaved changes, leave it in the list. Handle <Code>OnAdd</Code> to show an add button after the tabs. <Code>Closable="false"</Code> keeps one tab without a close button.</TextBlock>
+<TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. The tab stays until it leaves the list, so to ask first, as here for an unsaved draft, await a confirmation and remove it only on yes. Handle <Code>OnAdd</Code> to show an add button after the tabs. <Code>Closable="false"</Code> keeps one tab without a close button.</TextBlock>
 <ExampleViewer Example="tabs-closable" />
 <List Gap="2">
     <ListItem>When the selected tab closes, the tab after it opens, or the one before when it was last.</ListItem>

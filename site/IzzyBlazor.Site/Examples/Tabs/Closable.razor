@@ -1,10 +1,14 @@
-<Tabs @bind-Selected="_selected" OnClose="Close" OnAdd="Add" AddLabel="New invoice" Label="Open invoices" Grow>
+@inject DialogService Dialogs
+
+<DialogHost />
+
+<Tabs @bind-Selected="_selected" OnClose="CloseAsync" OnAdd="Add" AddLabel="New invoice" Label="Open invoices" Grow>
     <Tab Label="All invoices" Value="all" Icon="Lucide.List" Closable="false">
         <TextBlock Color="Color.Muted">@_open.Count invoices open. Close one with its button, or with Delete on its tab.</TextBlock>
     </Tab>
     @foreach (var invoice in _open)
     {
-        <Tab @key="invoice.Number" Label="@invoice.Number" Value="@invoice.Number">
+        <Tab @key="invoice.Number" Label="@invoice.Number" Value="@invoice.Number" Badge="@(invoice.Draft ? "Draft" : null)">
             <TextBlock>@invoice.Customer: @invoice.Amount.ToString("C", Usd)</TextBlock>
         </Tab>
     }
@@ -21,17 +25,27 @@
         new("INV-1045", "Fabrikam Garden Supply", 3_915.75m),
     ];
 
-    // The tab goes when it leaves the list. To keep one open (unsaved changes), don't remove it.
-    private void Close(string number) => _open.RemoveAll(i => i.Number == number);
+    // The tab goes when it leaves the list; a draft asks first, and stays open on Cancel.
+    private async Task CloseAsync(string number)
+    {
+        var invoice = _open.First(i => i.Number == number);
+        if (invoice.Draft && !await Dialogs.ConfirmAsync($"{number} hasn't been saved.", "Discard draft?",
+                new() { ConfirmText = "Discard", Accent = Accent.Danger }))
+        {
+            return;
+        }
+
+        _open.Remove(invoice);
+    }
 
     private void Add()
     {
-        var draft = new Invoice($"INV-{_next++}", "New customer", 0m);
+        var draft = new Invoice($"INV-{_next++}", "New customer", 0m, Draft: true);
         _open.Add(draft);
         _selected = draft.Number;
     }
 
-    private sealed record Invoice(string Number, string Customer, decimal Amount);
+    private sealed record Invoice(string Number, string Customer, decimal Amount, bool Draft = false);
 
     @* hide *@
     private static readonly System.Globalization.CultureInfo Usd = new("en-US");
