@@ -582,12 +582,63 @@
     font-size: var(--ib-field-font);
   }
 
+  /*
+   * Vertical: the same native input, upright through writing-mode, so the browser handles the
+   * keys, the pointer and what screen readers hear. direction: rtl puts the lowest value at the
+   * bottom. The field is a column with the label, track and value centered on one line.
+   */
+  .ib-field-slider-vertical {
+    align-items: center;
+    text-align: center;
+  }
+
+  .ib-slider-vertical {
+    flex-direction: column;
+    min-height: 0;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-slider-vertical .ib-slider-input {
+    flex: none;
+    width: var(--ib-slider-thumb);
+    height: var(--ib-slider-length, 10rem);
+    writing-mode: vertical-lr;
+    direction: rtl;
+  }
+
+  .ib-slider-vertical .ib-slider-input::-webkit-slider-runnable-track,
+  .ib-slider-vertical .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
+    width: var(--ib-slider-track);
+    height: 100%;
+    /* Chrome and Safari put an upright track at the left of the input: center it. */
+    margin-left: calc((var(--ib-slider-thumb) - var(--ib-slider-track)) / 2);
+    background: linear-gradient(to top, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-fill-strong, var(--ib-color-outline)) 0);
+  }
+
+  .ib-slider-vertical .ib-slider-input::-webkit-slider-thumb {
+    margin-top: 0;
+    margin-left: calc((var(--ib-slider-track) - var(--ib-slider-thumb)) / 2);
+  }
+
+  .ib-slider-vertical .ib-slider-input::-moz-range-track,
+  .ib-slider-vertical .ib-slider-input::-moz-range-progress {
+    width: var(--ib-slider-track);
+    height: auto;
+  }
+
+  .ib-slider-vertical .ib-slider-value {
+    min-width: 0;
+    text-align: center;
+  }
+
   /* Without script nothing follows the thumb while it's dragged: the fill (a gradient from the
      server's value in Chrome and Safari) and the value text would stay where the page loaded.
      Show the plain track and no value instead; Firefox keeps its own fill, which does follow. */
   @media (scripting: none) {
     .ib-slider-input::-webkit-slider-runnable-track,
-    .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
+    .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track,
+    .ib-slider-vertical .ib-slider-input::-webkit-slider-runnable-track,
+    .ib-slider-vertical .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
       background: var(--ib-color-fill-strong, var(--ib-color-outline));
     }
 

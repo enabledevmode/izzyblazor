@@ -9,20 +9,23 @@
     value beside it follows as you drag.
     <Slider @bind-Value="Model.Volume" ShowValue />
     <Slider @bind-Value="Model.Discount" Min="0" Max="50" Step="5" ShowValue ValueFormat="{0}%" />
+    <Slider @bind-Value="Model.Microphone" Orientation="Orientation.Vertical" ShowValue />
 
     Accessibility:
     - It renders a native range `input` (a slider to screen readers): arrow keys, Page Up/Down and
       Home/End move it with no script.
     - Screen readers hear the value as `ValueFormat` writes it ("20%", through `aria-valuetext`)
       once scripts run or on interactive pages; on a static page without script, the bare number.
+    - Vertical, it's still a native range input, upright through CSS: the lowest value is at the
+      bottom, and Up and Right raise it.
     - The value `ShowValue` shows is hidden from screen readers, which hear the slider's own value.
     - Label, hint and errors work as in `TextField`.
     See also: NumberField, SegmentedControl, Progress.
 *@
 
-<FieldFrame Class="@WrapperClass("slider")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("slider", Vertical ? "ib-field-slider-vertical" : null)" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-field-control class="ib-field-control ib-slider" style="@FillStyle">
+    <ib-field-control class="@ControlClass" style="@ControlStyle">
         @* @bind (not a plain value) so a render that answers an earlier key press doesn't move the
            thumb back while later ones are on their way. *@
         @if (Live)
@@ -76,6 +79,16 @@
     [Parameter] public string ValueFormat { get; set; } = "{0}";
 
     /// <summary>
+    /// <see cref="Orientation.Horizontal"/>, the default, runs from the lowest value at the start to the
+    /// highest at the end; <see cref="Orientation.Vertical"/> stands upright, the lowest at the bottom,
+    /// with the value shown under it.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>The track's length when <see cref="Orientation"/> is vertical. Defaults to 10rem.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>
     /// On interactive pages, update the bound value while dragging rather than on release. Each move
     /// is a round trip, so use it only when something on the page follows the value live.
     /// </summary>
@@ -106,13 +119,18 @@
 
     private string ValueText => ValueFormat.Replace("{0}", Format(Shown), StringComparison.Ordinal);
 
-    private string FillStyle
+    private bool Vertical => Orientation == Orientation.Vertical;
+
+    private string ControlClass => Vertical ? "ib-field-control ib-slider ib-slider-vertical" : "ib-field-control ib-slider";
+
+    private string ControlStyle
     {
         get
         {
             var span = ResolvedMax - ResolvedMin;
             var percent = span <= 0 ? 0 : Math.Clamp((Shown - ResolvedMin) / span * 100, 0, 100);
-            return "--ib-slider-fill: " + Format(Math.Round(percent, 3));
+            var style = "--ib-slider-fill: " + Format(Math.Round(percent, 3));
+            return Vertical && Height is { } height ? style + "; --ib-slider-length: " + height : style;
         }
     }
 
