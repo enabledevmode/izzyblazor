@@ -17,6 +17,8 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     private Expression<Func<TItem, object?>>? _lastValue;
     private Func<TItem, object?>? _compiled;
     private string? _memberName;
+    private Expression<Func<TItem, object?>>? _lastSeriesBy;
+    private Func<TItem, object?>? _seriesBy;
 
     /// <summary>The value to draw, such as <c>m =&gt; m.Revenue</c>: any number, or null for none.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
@@ -26,6 +28,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     /// the property's <c>[Display]</c> name, or its name in words.
     /// </summary>
     [Parameter] public string? Name { get; set; }
+
+    /// <summary>
+    /// Splits the series into one per value of this, such as <c>p =&gt; p.Device</c>: each draws
+    /// only its own items' values, is named by its value, and takes the next color and marker, in
+    /// the order the values first appear. <see cref="Color"/> doesn't apply to a split series.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? SeriesBy { get; set; }
 
     /// <summary>How it's drawn, when that differs from the chart's <see cref="Chart{TItem}.SeriesType"/>.</summary>
     [Parameter] public ChartType? Type { get; set; }
@@ -88,6 +97,12 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             _memberName = ChartMembers.Name(Value);
         }
 
+        if (!ReferenceEquals(SeriesBy, _lastSeriesBy))
+        {
+            _lastSeriesBy = SeriesBy;
+            _seriesBy = SeriesBy?.Compile();
+        }
+
         Context!.Seen(this);
     }
 
@@ -96,10 +111,28 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     {
     }
 
-    internal ChartSeriesData Read(IReadOnlyList<TItem> items, ChartType chartType) =>
-        new(DisplayName, Type ?? chartType, items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray())
+    internal IEnumerable<ChartSeriesData> Read(IReadOnlyList<TItem> items, ChartType chartType)
+    {
+        var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        if (_seriesBy is null)
         {
-            Color = Color,
+            yield return Data(DisplayName, values, Color, chartType);
+            yield break;
+        }
+
+        // One series per key, in the order the keys first appear; each keeps only its own items.
+        var keys = items.Select(_seriesBy).ToArray();
+        foreach (var key in keys.Distinct())
+        {
+            var own = values.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null, chartType);
+        }
+    }
+
+    private ChartSeriesData Data(string name, double?[] values, string? color, ChartType chartType) =>
+        new(name, Type ?? chartType, values)
+        {
+            Color = color,
             Curve = Curve,
             LineStyle = LineStyle,
             Markers = Markers,

@@ -1,32 +1,39 @@
-@* Each page's load time against its bounce rate: the slower pages lose more visitors. *@
+@* Each page's load time against its bounce rate, on desktop and on mobile: the slower pages lose
+   more visitors, and pages are slower on mobile. *@
 <Chart Items="_pages" Argument="p => p.LoadSeconds" SeriesType="ChartType.Scatter"
-       Label="Load time against bounce rate, by page" ArgumentFormat="0.0' s'" ValueFormat="P0">
+       Label="Load time against bounce rate, by page and device" ArgumentFormat="0.0' s'" ValueFormat="P0">
     <TooltipTemplate>
         <div class="ib-chart-tooltip-title">@context.Item.Path</div>
-        <div>Loads in @context.Argument</div>
-        <div>@context.Points[0].Text bounce</div>
+        <div>@context.Item.Device, loads in @context.Argument</div>
+        <div>@context.Points.First(p => p.Text is not null).Text bounce</div>
     </TooltipTemplate>
     <ChildContent>
-        <ChartSeries Value="p => p.BounceRate" Name="Bounce rate" />
+        <ChartSeries Value="p => p.BounceRate" SeriesBy="p => p.Device" />
     </ChildContent>
 </Chart>
 
 @code {
-    private record PageStats(string Path, double LoadSeconds, double BounceRate);
+    private record PageStats(string Path, string Device, double LoadSeconds, double BounceRate);
 
     private static readonly string[] Sections = ["docs", "blog", "products", "pricing", "guides", "changelog", "help", "customers"];
 
     private readonly PageStats[] _pages = Pages();
 
-    // 80 pages: bounce rate rises with load time, with some spread and a few outliers.
+    // 50 pages, each on desktop and on mobile: bounce rate rises with load time, with some spread;
+    // on mobile pages load slower and bounce a little more.
     private static PageStats[] Pages()
     {
         var random = new Random(42);
-        return Enumerable.Range(0, 80).Select(i =>
+        return Enumerable.Range(0, 50).SelectMany(i =>
         {
-            var load = Math.Round(0.6 + random.NextDouble() * random.NextDouble() * 5.4, 1);
-            var bounce = Math.Clamp(0.18 + load * 0.075 + (random.NextDouble() - 0.5) * 0.18, 0.08, 0.92);
-            return new PageStats($"/{Sections[i % Sections.Length]}/page-{i / Sections.Length + 1}", load, Math.Round(bounce, 3));
+            var path = $"/{Sections[i % Sections.Length]}/page-{i / Sections.Length + 1}";
+            var weight = random.NextDouble() * random.NextDouble();
+            return new[] { ("Desktop", 0.5 + weight * 3.0, 0.0), ("Mobile", 1.2 + weight * 4.6, 0.06) }.Select(d =>
+            {
+                var load = Math.Round(d.Item2 + (random.NextDouble() - 0.5) * 0.4, 1);
+                var bounce = Math.Clamp(0.16 + d.Item3 + load * 0.07 + (random.NextDouble() - 0.5) * 0.16, 0.08, 0.92);
+                return new PageStats(path, d.Item1, load, Math.Round(bounce, 3));
+            });
         }).ToArray();
     }
 }

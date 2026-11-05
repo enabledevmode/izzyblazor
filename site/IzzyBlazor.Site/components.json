@@ -1730,9 +1730,9 @@
           ]
         },
         {
-          "id": "scatter", "title": "Scatter", "summary": "A marker for each item at two measures, such as a page's load time and bounce rate, to show how they relate.", "members": ["ChartSeries.Type"],
+          "id": "scatter", "title": "Scatter", "summary": "A marker for each item at two measures, such as a page's load time and bounce rate, to show how they relate.", "members": ["ChartSeries.Type", "ChartSeries.SeriesBy"],
           "examples": [
-            { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, set `SeriesType` (or a series' `Type`) to `Scatter`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `TooltipTemplate` names the page." }
+            { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, set `SeriesType` (or a series' `Type`) to `Scatter`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `TooltipTemplate` names the page." }
           ]
         },
         {
