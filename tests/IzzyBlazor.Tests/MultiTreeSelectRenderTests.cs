@@ -89,4 +89,30 @@ public class MultiTreeSelectRenderTests : BunitContext
         cut.Find("li[data-ib-key='support'] input").Change(true);
         Assert.Equal(["support", "web"], _model.TeamIds);
     }
+
+    [Fact]
+    public void On_an_interactive_page_a_value_still_to_load_can_be_dropped_and_a_checked_parent_takes_in_the_children_it_loads()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        Unit[] tops = [new("eng", "Engineering", []), new("support", "Support", [])];
+        _model.TeamIds = ["eng", "billing"];
+        var cut = Render<MultiTreeSelect<List<string>?, Unit, string>>(p => p
+            .AddCascadingValue(new EditContext(_model))
+            .Add(t => t.Value, _model.TeamIds)
+            .Add(t => t.ValueExpression, () => _model.TeamIds)
+            .Add(t => t.ValueChanged, (List<string>? v) => _model.TeamIds = v)
+            .Add(t => t.Items, tops)
+            .Add(t => t.ItemValue, d => d.Id)
+            .Add(t => t.ItemText, d => d.Name)
+            .Add(t => t.ItemHasChildren, _ => true)
+            .Add(t => t.ChildrenProvider, (key, _) => ValueTask.FromResult<IEnumerable<Unit>>(Departments.First(d => d.Id == key).Teams)));
+
+        // Billing hasn't loaded: its chip's × unchecks its kept box, which drops it.
+        cut.Find(".ib-treeselect-kept[value='billing']").Change(false);
+        Assert.Equal(["eng"], _model.TeamIds);
+
+        // Engineering is checked: the teams it loads join the value.
+        cut.Find("ib-tree").TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = "eng", Open = true });
+        Assert.Equal(["eng", "web", "mobile"], _model.TeamIds);
+    }
 }

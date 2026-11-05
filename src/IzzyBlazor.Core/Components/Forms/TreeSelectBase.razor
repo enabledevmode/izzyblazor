@@ -12,7 +12,7 @@
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     @if (ShowsReadOnly)
     {
-        @ReadOnlyControl(string.Join(", ", ChosenItems.Select(TextOf)))
+        @ReadOnlyControl(string.Join(", ", ChosenTexts))
     }
     else
     {
@@ -29,7 +29,7 @@
                         popovertarget="@(IsDisabled ? null : PanelId)"
                         aria-haspopup="dialog"
                         aria-controls="@(IsDisabled ? null : PanelId)"
-                        aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {TextId}")"
+                        aria-labelledby="@ButtonLabelledBy"
                         aria-describedby="@DescribedBy"
                         disabled="@IsDisabled">
                     @Shown
@@ -40,7 +40,8 @@
                     <div id="@PanelId"
                          popover="auto"
                          role="dialog"
-                         aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? FieldId : LabelId)"
+                         aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : LabelId)"
+                         aria-label="@(string.IsNullOrEmpty(ResolvedLabel) ? OwnAriaLabel : null)"
                          class="ib-pop ib-popover ib-place-bottom-start ib-treeselect-panel"
                          style="@($"position-anchor:{Anchor}")">
                         <CascadingValue Value="_field" IsFixed="true">
@@ -65,18 +66,20 @@
                                       Searchable="Searchable"
                                       SearchLabel="@SearchLabel"
                                       EmptyText="@EmptyText"
-                                      AriaLabel="@ResolvedLabel" />
+                                      AriaLabel="@(string.IsNullOrEmpty(ResolvedLabel) ? OwnAriaLabel : ResolvedLabel)" />
                         </CascadingValue>
                     </div>
                 }
             </ib-popover>
-            @if (!RendererInfo.IsInteractive && !IsDisabled)
+            @if (!IsDisabled && (Multiple || !RendererInfo.IsInteractive))
             {
-                @* Chosen values whose items haven't loaded: they post from here until their branch
-                   loads, which the script then checks. *@
+                @* Chosen values whose items haven't loaded: on static pages they post from here until
+                   their branch loads, which the script then checks. Unchecking one (a chip's ×)
+                   drops it, also on an interactive page. *@
                 @foreach (var key in UnloadedKeys)
                 {
-                    <input type="@(Multiple ? "checkbox" : "radio")" class="ib-treeselect-kept" name="@GroupName" value="@key" checked hidden />
+                    <input @key="key" type="@(Multiple ? "checkbox" : "radio")" class="ib-treeselect-kept" name="@GroupName" value="@key" checked hidden
+                           @onchange="() => Drop(key)" />
                 }
             }
             @if (Clearable && !IsDisabled && default(TValue) is null)
@@ -125,15 +128,15 @@
     [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
 
     /// <summary>
-    /// Whether an item can be chosen; one that can't is a label for its branch, and with script a
-    /// click on it opens or closes the branch. Every item can be
-    /// by default; <c>c => c.Children.Count == 0</c> allows only the ends of branches.
+    /// Whether an item can be chosen; one that can't is a label for its branch, and with IzzyBlazor's
+    /// script a click on it opens or closes the branch. Every item can be chosen by default;
+    /// <c>c => c.Children.Count == 0</c> allows only the ends of branches.
     /// </summary>
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
     /// <summary>
     /// A search box at the top of the panel that narrows the tree as you type: matches and their
-    /// parents stay, their branches open. In the browser, with script.
+    /// parents stay, their branches open. In the browser, with IzzyBlazor's script.
     /// </summary>
     [Parameter] public bool Searchable { get; set; }
 
@@ -148,7 +151,7 @@
 
     /// <summary>
     /// Loads an item's children, given its key (its value's string form), the first time its branch
-    /// opens: in the component on an interactive page, and on a static page by the script fetching
+    /// opens: in the component on interactive pages, and on static pages by the script fetching
     /// the page with the key. Needs <see cref="ItemHasChildren"/>. A chosen value whose item hasn't
     /// loaded is named by <c>ValueText</c>.
     /// </summary>
@@ -179,7 +182,7 @@
 
     // Stable across renders, so a static page's fetch for a branch's children finds this tree: the
     // field's id or form name (a generated id changes every render).
-    private string? TreeId => SuggestionKey is { } key ? key + "-tree" : null;
+    private string? TreeId => SuggestionKey is { } key ? key + "-tree-items" : null;
 
     /// <summary>The chosen keys whose items aren't in <see cref="Items"/> and its children yet: in branches still to load.</summary>
     private protected IReadOnlyCollection<string> UnloadedKeys
@@ -217,7 +220,24 @@
     /// <summary>What the button shows: the chosen text, or chips.</summary>
     private protected abstract RenderFragment Shown { get; }
 
-    /// <summary>The button that empties the field, with the script.</summary>
+    /// <summary>The texts of the chosen values, as the field shows them.</summary>
+    private protected abstract IEnumerable<string> ChosenTexts { get; }
+
+    /// <summary>Drops a chosen value whose item hasn't loaded, on an interactive page.</summary>
+    private protected virtual void Drop(string key)
+    {
+    }
+
+    // The field's own name when it has no label: an aria-label given to it.
+    private string? OwnAriaLabel => AdditionalAttributes?.TryGetValue("aria-label", out var label) == true ? label as string : null;
+
+    // Named by the label, or its own aria-label, then the choice; with neither, by the choice.
+    private string ButtonLabelledBy =>
+        !string.IsNullOrEmpty(ResolvedLabel) ? $"{LabelId} {TextId}"
+        : !string.IsNullOrEmpty(OwnAriaLabel) ? $"{FieldId} {TextId}"
+        : TextId;
+
+    /// <summary>The button that empties the field, with IzzyBlazor's script.</summary>
     private protected abstract RenderFragment Clear { get; }
 
     /// <summary>An item's text.</summary>

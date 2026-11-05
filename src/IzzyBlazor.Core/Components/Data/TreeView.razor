@@ -61,7 +61,7 @@
     - Home, End | Move to the first or last item
     - * | Open every branch beside the focused item
     - Space | Check or uncheck the item, or select it; one that can't be, open or close its branch
-    - Enter | Select the item; with checkboxes, check or uncheck it
+    - Enter | Select the item; with checkboxes, check or uncheck it; one that can't be, open or close its branch
     - A letter | Move to the next item starting with it
     See also: NavGroup, ListView.
 *@
@@ -73,6 +73,7 @@
          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
          data-ib-tree-key="@(FetchesChildren ? TreeKey : null)"
          data-ib-no-matches="@(Searchable ? TextDefaults.NoMatches : null)"
+         data-ib-field="@(Field is not null ? "" : null)"
          @onibtoggle="OnToggle">
     @if (_answer is not null)
     {
@@ -307,7 +308,7 @@
         if (Multiple && Cascade)
         {
             var shown = Keys(_roots).ToHashSet();
-            _selected = [.. Checked(_roots), .. _selected.Where(k => !shown.Contains(k))];
+            _selected = [.. Checked(_roots), .. Lazy ? _selected.Where(k => !shown.Contains(k)) : []];
         }
     }
 
@@ -385,10 +386,13 @@
         var item = node.Item;
         var disabled = ItemDisabled?.Invoke(item) == true;
         var href = disabled ? null : ItemHref?.Invoke(item);
-        @* data-ib-checked: the box's state as C# has it, so the script can redraw a parent's mixed
-           box and the item's ARIA state when the selection changes from code. *@
+        @* data-ib-state: the box's state as C# has it, so the script can redraw a parent's mixed
+           box and the item's ARIA state when the selection changes from code. (Not data-ib-checked,
+           which a Menu's script turns into aria-checked inside a popover.) data-ib-label-only: an
+           item that can't be chosen, a label for its branch. *@
         <li class="ib-tree-li" @key="KeyOf(node)" data-ib-key="@node.Key" data-ib-lazy="@(node.Lazy ? "" : null)"
-            data-ib-checked="@(Selects ? (node.Selected ? "on" : node.Mixed ? "mixed" : "off") : null)">
+            data-ib-state="@(Selects ? (node.Selected ? "on" : node.Mixed ? "mixed" : "off") : null)"
+            data-ib-label-only="@(Selects && ItemSelectable?.Invoke(node.Item) == false ? "" : null)">
             @if (!node.HasChildren)
             {
                 @Row(node, href, disabled, toggle: false)
@@ -467,7 +471,9 @@
             </label>
             @if (locked && node.Selected && !RendererInfo.IsInteractive)
             {
-                <input type="hidden" name="@KeysName" value="@key" />
+                @* A disabled box doesn't post. In a field's single choice it's a radio of the group, so
+                   choosing another item or clearing replaces it. *@
+                <input type="@(Field is not null && !Multiple ? "radio" : "hidden")" name="@KeysName" value="@key" checked="@(Field is not null && !Multiple)" hidden="@(Field is not null && !Multiple)" />
             }
         }
         else if (toggle)
@@ -582,6 +588,19 @@
         }
 
         _roots = Build(Items, 1, false);
+
+        // A checked parent checks the children it loaded: they join the selection, as the script's
+        // boxes do on a static page.
+        if (Multiple && Cascade && _selected.Contains(key) && Find(_roots, key) is { } parent)
+        {
+            // Every one added, not just the first (Any would stop there).
+            var added = Keys(parent.Children).Where(_selected.Add).ToList();
+            if (added.Count > 0)
+            {
+                _selection = IzzyBlazor.Selection.Of(_selected);
+                await SelectionChanged.InvokeAsync(_selection);
+            }
+        }
     }
 
     private static Node? Find(List<Node> nodes, string key)

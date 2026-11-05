@@ -130,13 +130,13 @@ class Tree extends IzzyElement {
       if (records.some((r) => r.type === "attributes")) {
         for (const li of this.#items) {
           const box = this.#boxOf(li);
-          if (box) box.indeterminate = li.dataset.ibChecked === "mixed";
+          if (box) box.indeterminate = li.dataset.ibState === "mixed";
         }
       }
       this.#prepare();
       this.#syncAll();
     });
-    observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-checked"] });
+    observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-state"] });
     signal.addEventListener("abort", () => observer.disconnect());
 
     list.addEventListener("keydown", (event) => this.#onKey(event), { signal });
@@ -251,7 +251,9 @@ class Tree extends IzzyElement {
       if (box) {
         box.tabIndex = -1;
         box.setAttribute("aria-hidden", "true");
-        if (box.disabled) li.setAttribute("aria-disabled", "true");
+        // aria-disabled carries down to a branch's items, so only an item without one says it; an
+        // item that can't be chosen (data-ib-label-only) is a label for its branch.
+        if (box.disabled && !details && li.dataset.ibLabelOnly === undefined) li.setAttribute("aria-disabled", "true");
         else li.removeAttribute("aria-disabled");
       }
       if (li.tabIndex === 0) stop = li;
@@ -280,7 +282,11 @@ class Tree extends IzzyElement {
     for (const li of this.#items) {
       const box = this.#boxOf(li);
       if (!box) continue;
-      if (multiple) li.setAttribute("aria-checked", box.indeterminate ? "mixed" : String(box.checked));
+      // A label for its branch has no state to say.
+      if (li.dataset.ibLabelOnly !== undefined) {
+        li.removeAttribute("aria-checked");
+        li.removeAttribute("aria-selected");
+      } else if (multiple) li.setAttribute("aria-checked", box.indeterminate ? "mixed" : String(box.checked));
       else li.setAttribute("aria-selected", String(box.checked));
     }
   }
@@ -418,6 +424,15 @@ class Tree extends IzzyElement {
     }
     const group = document.importNode(list, true) as HTMLElement;
     group.removeAttribute("data-ib-answered");
+    // In a field (TreeSelect) the boxes arrive as the page's first render had them, not as they are
+    // now; and a checked radio put in the page unchecks the field's own choice (Firefox). The field
+    // checks the ones it holds again as they arrive, and a checked parent its branch, below.
+    if (this.hasAttribute("data-ib-field")) {
+      for (const box of group.querySelectorAll<HTMLInputElement>("input:is([type=radio], [type=checkbox])")) {
+        box.checked = false;
+        box.removeAttribute("checked");
+      }
+    }
     status.replaceWith(group);
     item.removeAttribute("data-ib-lazy");
     // A checked parent's children arrive checked.

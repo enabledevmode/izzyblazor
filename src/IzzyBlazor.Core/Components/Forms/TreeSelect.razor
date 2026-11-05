@@ -30,22 +30,25 @@
     How it works three ways:
     - No script: the button opens the panel (the Popover API), whose radio buttons post with the
       form. The field's text changes once the form posts.
-    - With script: the tree takes the arrow keys, choosing closes the panel and the field shows
-      the choice at once; Searchable narrows the tree.
+    - With IzzyBlazor's script: the tree takes the arrow keys, choosing closes the panel and the
+      field shows the choice at once; Searchable narrows the tree.
     - Interactive: the same, and @bind-Value follows the choice.
 
     Accessibility:
-    - The field is a `button` named by its label and the chosen text ("Category, Phones"), with
-      `aria-haspopup="dialog"`, the hint and errors as its description.
-    - The panel is a non-modal `dialog` named by the label. With script the tree in it is an ARIA
+    - The field is a `button` named by its label and the chosen text ("Category Phones"), with
+      `aria-haspopup="dialog"`, the hint and errors as its description. Without a label, give it an
+      `aria-label`. The placeholder isn't part of its name.
+    - The panel is a non-modal `dialog` named by the label. With IzzyBlazor's script the tree in it is an ARIA
       `tree` (one Tab stop, the arrow keys between items, each `treeitem` saying whether it's
-      selected); with JavaScript off it's radio buttons in branches that open.
-    - Opening it moves focus to the chosen item, or the first, or to the search box with
-      `Searchable`; choosing or Escape closes it and puts focus back on the field.
+      selected, and an item that can't be chosen saying nothing); with JavaScript off it's radio
+      buttons in branches that open.
+    - With IzzyBlazor's script, opening it moves focus to the search box with `Searchable`, else
+      the chosen item, else the first; choosing or Escape closes it and puts focus back on the
+      field, and Tab out of it closes it. With JavaScript off, focus stays on the field.
     - The clear button is named "Clear" (`IzzyText.Clear`).
 
     Keyboard:
-    - Enter, Space, Down | Open the tree (on the field)
+    - Enter, Space, Down, Up | Open the tree (on the field)
     - Down | Move from the search box to the first match
     - Up, Down | Move to the item above or below
     - Right | Open an item's branch, or move to its first child
@@ -54,6 +57,7 @@
     - Enter, Space | Choose the item and close; on one that can't be chosen, open or close its branch
     - A letter | Move to the next item starting with it
     - Escape | Close without changing the choice
+    - Tab | Close and move on
     See also: MultiTreeSelect, TreeView, Combobox, Select.
 *@
 
@@ -72,7 +76,11 @@
     /// <inheritdoc />
     private protected override bool Multiple => false;
 
-    private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString);
+    // A value that isn't nullable holds its default when nothing is chosen: chosen only if an item has it.
+    private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString)
+                             && (default(TValue) is null
+                                 || !EqualityComparer<TValue>.Default.Equals(CurrentValue, default)
+                                 || AllItems.Any(item => KeyOf(item) == CurrentValueAsString));
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -92,20 +100,34 @@
     private protected override IReadOnlyCollection<string> ChosenKeys => HasValue ? [CurrentValueAsString!] : [];
 
     /// <inheritdoc />
+    private protected override IEnumerable<string> ChosenTexts => ChosenText is { } text ? [text] : [];
+
+    private string? ChosenText => HasValue
+        ? ChosenItems.FirstOrDefault() is { } chosen ? TextOf(chosen) : ValueText?.Invoke(CurrentValue!) ?? CurrentValueAsString
+        : null;
+
+    /// <inheritdoc />
     private protected override void Choose(Selection selection) => CurrentValueAsString = selection.Keys?.FirstOrDefault() ?? "";
 
     /// <inheritdoc />
     private protected override RenderFragment Shown => __builder =>
     {
-        var chosen = ChosenItems.FirstOrDefault();
-        var text = HasValue ? (chosen is null ? ValueText?.Invoke(CurrentValue!) ?? CurrentValueAsString : TextOf(chosen)) : null;
-        <span id="@TextId" class="ib-treeselect-text" data-ib-empty="@(text is null ? "" : null)">@(text ?? Placeholder)</span>
+        var text = ChosenText;
+        @* The placeholder shows but isn't read as the choice. *@
+        <span id="@TextId" class="ib-treeselect-text" data-ib-empty="@(text is null ? "" : null)">@if (text is null)
+        {
+            <span aria-hidden="true">@Placeholder</span>
+        }
+        else
+        {
+            @text
+        }</span>
     };
 
     /// <inheritdoc />
     private protected override RenderFragment Clear => __builder =>
     {
-        @* Checked to empty the field: it posts nothing, and on an interactive page clears the value. *@
+        @* Checked to empty the field: it posts nothing, and on interactive pages clears the value. *@
         <input type="radio" class="ib-treeselect-none" name="@GroupName" value="" checked="@(!HasValue)" hidden
                @onchange="() => CurrentValueAsString = string.Empty" />
         <button type="button" class="ib-treeselect-clear" hidden="@(!HasValue)" aria-label="@TextDefaults.Clear" title="@TextDefaults.Clear">

@@ -63,7 +63,7 @@ public class TreeViewRenderTests : BunitContext
         var boxes = cut.FindAll("input[type=checkbox][name='granted.Keys']");
         // What was posted: with no script, a parent's box alone. The script checks its branch.
         Assert.Equal(["finance"], boxes.Where(b => b.HasAttribute("checked")).Select(b => b.GetAttribute("value")));
-        Assert.Equal("mixed", cut.Find("li[data-ib-key='docs']").GetAttribute("data-ib-checked"));
+        Assert.Equal("mixed", cut.Find("li[data-ib-key='docs']").GetAttribute("data-ib-state"));
         Assert.Equal(["docs"], cut.FindAll("details[open]").Select(d => d.ParentElement!.GetAttribute("data-ib-key")));
         Assert.Equal("multiple", cut.Find("ib-tree").GetAttribute("data-ib-select"));
     }
