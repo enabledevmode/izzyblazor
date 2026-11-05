@@ -9,54 +9,16 @@
  * Everything else (fields, popovers, menus, dialogs, tabs, the shell) is in the main module,
  * since nearly every page has one. What every page needs from an element that loads here stays
  * in the main module: the saved color scheme (scheme.ts) and keeping dismissed messages closed
- * (dismiss.ts). Each import() below is a file of its own in wwwroot/elements,
- * built separately (build/build-assets.mjs, lazyElements) and loaded relative to this module.
+ * (dismiss.ts). Each name below is a file of its own in wwwroot/elements, built separately
+ * (build/build-assets.mjs, lazyElements) and loaded relative to this module.
  */
-const loaders: Record<string, () => Promise<unknown>> = {
-  "ib-combobox": () => import("./elements/combobox.js"),
-  "ib-table": () => import("./elements/table.js"),
-  "ib-grid": () => import("./elements/grid.js"),
-  "ib-grid-columns": () => import("./elements/grid-columns.js"),
-  "ib-grid-edit": () => import("./elements/grid-edit.js"),
-  "ib-filter-form": () => import("./elements/filter-form.js"),
-  "ib-filter-list": () => import("./elements/filter-list.js"),
-  "ib-filter-builder": () => import("./elements/filter-builder.js"),
-  "ib-file-upload": () => import("./elements/file-upload.js"),
-  "ib-color-picker": () => import("./elements/color-picker.js"),
-  "ib-duration-field": () => import("./elements/duration-field.js"),
-  "ib-calendar": () => import("./elements/calendar.js"),
-  "ib-period-grid": () => import("./elements/period-grid.js"),
-  "ib-time-slots": () => import("./elements/time-slots.js"),
-  "ib-field-clear": () => import("./elements/field-clear.js"),
-  "ib-rating": () => import("./elements/rating.js"),
-  "ib-pin-field": () => import("./elements/pin-field.js"),
-  "ib-video": () => import("./elements/video.js"),
-  "ib-code": () => import("./elements/code.js"),
-  "ib-copy": () => import("./elements/copy.js"),
-  "ib-on-this-page": () => import("./elements/on-this-page.js"),
-  "ib-toasts": () => import("./elements/toasts.js"),
-  "ib-toolbar": () => import("./elements/toolbar.js"),
-  "ib-context-menu": () => import("./elements/context-menu.js"),
-  "ib-speed-dial": () => import("./elements/speed-dial.js"),
-  "ib-sortable": () => import("./elements/sortable.js"),
-  "ib-listview": () => import("./elements/listview.js"),
-  "ib-tree": () => import("./elements/tree.js"),
-  "ib-pick-list": () => import("./elements/pick-list.js"),
-  "ib-splitter": () => import("./elements/splitter.js"),
-  "ib-carousel": () => import("./elements/carousel.js"),
-  "ib-chart": () => import("./elements/chart.js"),
-  "ib-tooltip": () => import("./elements/tooltip.js"),
-  "ib-dismiss": () => import("./elements/dismiss.js"),
-  "ib-banner": () => import("./elements/banner.js"),
-  "ib-site-nav": () => import("./elements/site-nav.js"),
-  "ib-scheme-switch": () => import("./elements/scheme-switch.js"),
-  // Not an element: a password TextField's Caps Lock warning and requirements, loaded by field-control.ts.
-  "ib-password": () => import("./elements/password.js"),
-  // Not an element: a TextField's Mask, loaded by field-control.ts.
-  "ib-mask": () => import("./elements/mask.js"),
-  // Not an element: ReconnectDialog's code, loaded with the first reconnection state (reconnect.ts).
-  "ib-reconnect": () => import("./elements/reconnect.js"),
-};
+// Each name is ib-<name> and the file elements/<name>.js beside this module (CI checks that the
+// built files are exactly these). A list, not an import() each: every page downloads this one.
+// Not elements, loaded by other code: password (a password TextField's Caps Lock warning and
+// requirements) and mask (a TextField's Mask), by field-control.ts; reconnect (ReconnectDialog's
+// code), with the first reconnection state (reconnect.ts).
+const lazyNames =
+  "combobox table grid grid-columns grid-edit filter-form filter-list filter-builder file-upload color-picker duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial sortable listview tree pick-list splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect".split(" ");
 
 const loading = new Map<string, Promise<unknown>>();
 const failures = new Map<string, number>();
@@ -71,7 +33,7 @@ export function load<T = unknown>(tag: string): Promise<T> {
   let module = loading.get(tag);
   if (!module) {
     const retry = failures.get(tag) ?? 0;
-    module = (retry ? import(new URL(`elements/${tag.slice(3)}.js?retry=${retry}`, import.meta.url).href) : loaders[tag]()).catch(
+    module = import(new URL(`elements/${tag.slice(3)}.js${retry ? `?retry=${retry}` : ""}`, import.meta.url).href).catch(
       (error: unknown) => {
         loading.delete(tag);
         failures.set(tag, retry + 1);
@@ -92,7 +54,8 @@ function mark(tag: string, failed: boolean): void {
 
 /** Loads the code for the elements in a part of the page (the whole page by default). */
 export function loadElementsIn(root: Element | Document = document): void {
-  for (const tag in loaders) {
+  for (const name of lazyNames) {
+    const tag = `ib-${name}`;
     if (loading.has(tag)) continue;
     if (root instanceof Element ? root.localName === tag || root.querySelector(tag) : root.querySelector(tag)) {
       load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works as without script until it loads.`, error));

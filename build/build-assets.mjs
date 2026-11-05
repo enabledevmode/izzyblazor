@@ -184,9 +184,9 @@ const common = {
   legalComments: "none",
 };
 
-// The elements that load on demand, read from the loaders in Scripts/lazy.ts so the two can't
-// drift apart: each `import("./elements/<name>.js")` there is built to wwwroot/elements/<name>.js.
-const lazyElements = [...readFileSync(join(lib, "Scripts", "lazy.ts"), "utf8").matchAll(/import\("\.\/elements\/([a-z-]+)\.js"\)/g)].map((m) => m[1]);
+// The elements that load on demand, read from lazyNames in Scripts/lazy.ts so the two can't
+// drift apart: each name there is built to wwwroot/elements/<name>.js.
+const lazyElements = readFileSync(join(lib, "Scripts", "lazy.ts"), "utf8").match(/const lazyNames =\s*"([a-z -]+)"/)?.[1].split(" ") ?? [];
 if (lazyElements.length === 0) throw new Error("No on-demand elements found in Scripts/lazy.ts.");
 
 const builds = [
@@ -241,18 +241,6 @@ const builds = [
     outfile: join(lib, "wwwroot", "IzzyBlazor.Core.lib.module.js"),
     format: "esm",
     target: "es2022",
-    plugins: [
-      {
-        // Scripts/lazy.ts imports the on-demand elements by their built file name; leave those
-        // imports for the browser, which loads them relative to this module.
-        name: "lazy-elements",
-        setup(build) {
-          build.onResolve({ filter: /^\.\/elements\/[a-z-]+\.js$/ }, (args) =>
-            args.kind === "dynamic-import" ? { path: args.path, external: true } : undefined
-          );
-        },
-      },
-    ],
   },
   {
     // Elements most pages don't have, one file each in wwwroot/elements, loaded on demand by
