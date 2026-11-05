@@ -435,7 +435,7 @@
       ]
     },
     {
-      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed"],
+      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed", "fab", "fab menu", "speed dial"],
       "features": [
         { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
@@ -452,7 +452,8 @@
             "static": "Delete posts without a full reload, and the response redirects to a URL listing what's deleted.",
             "interactive": "Delete runs OnClick in C#, and nothing is posted."
           } },
-        { "id": "icon-button-floating", "title": "A floating action button", "height": 360, "page": true, "lead": "`Floating` fixes the button to the window's bottom corner, raised and large, for the page's main action. `FloatPosition` picks the corner." }
+        { "id": "icon-button-floating", "title": "A floating action button", "height": 360, "page": true, "lead": "`Floating` fixes the button to the window's bottom corner, raised and large, for the page's main action. `FloatPosition` picks the corner." },
+        { "id": "icon-button-floating-menu", "title": "A floating button with a menu", "height": 360, "page": true, "lead": "To offer several things to create from one floating button, put it in a `Menu`'s `Trigger`." }
       ]
     },
     {

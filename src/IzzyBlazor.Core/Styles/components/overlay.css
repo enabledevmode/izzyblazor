@@ -72,6 +72,12 @@
     min-width: min(10rem, calc(100vw - 1rem));
   }
 
+  /* A floating trigger (a FAB with a menu) is fixed to the window, away from its root: it takes the
+     root's anchor name, and the last element with a name is the anchor. */
+  .ib-pop-root > .ib-btn-float {
+    anchor-name: inherit;
+  }
+
   @supports (anchor-name: --a) {
     .ib-pop,
     .ib-tooltip[popover] {

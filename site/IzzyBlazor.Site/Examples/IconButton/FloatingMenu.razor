@@ -1,0 +1,18 @@
+@* A floating button that opens a menu of things to create. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Invoices</Heading>
+    <Stack Gap="2">
+        @foreach (var i in Enumerable.Range(1, 12))
+        {
+            <Card Padding="3">Invoice @(1040 + i)</Card>
+        }
+    </Stack>
+</Stack>
+<Menu Placement="Placement.TopEnd">
+    <Trigger><IconButton Icon="Lucide.Plus" Label="Create" Floating @attributes="context" /></Trigger>
+    <ChildContent>
+        <MenuItem Icon="Lucide.FileText">Invoice</MenuItem>
+        <MenuItem Icon="Lucide.UserPlus">Customer</MenuItem>
+        <MenuItem Icon="Lucide.Package">Product</MenuItem>
+    </ChildContent>
+</Menu>
