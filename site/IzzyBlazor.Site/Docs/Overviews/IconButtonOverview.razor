@@ -25,13 +25,6 @@
 <ExampleViewer Example="icon-button-row-actions" />
 <TextBlock>Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip name which one. <Code>OnClick</Code> runs only on interactive pages. On static pages, the form post is what happens, as with Button.</TextBlock>
 
-<Heading Level="2">A floating action button</Heading>
-<TextBlock><Code>Floating</Code> fixes the button to the window's bottom corner, raised and large, where it stays as the page scrolls. Use it for the page's main action, such as adding an item, and keep one per page. <Code>FloatPosition</Code> picks the bottom start or end corner or the center. In an <Anchor Href="docs/components/app-shell">AppShell</Anchor> it sits above a sticky footer.</TextBlock>
-<ExampleViewer Example="icon-button-floating" />
-<TextBlock>For a floating button with text, set <Code>Floating</Code> on a <Anchor Href="docs/components/button">Button</Anchor>.</TextBlock>
-<TextBlock>When the main action is one of several things to create, a floating button can open a menu of them. Put it in a <Anchor Href="docs/components/menu">Menu</Anchor>'s <Code>Trigger</Code>, and set <Code>Placement="Placement.TopEnd"</Code> so the menu opens above it.</TextBlock>
-<ExampleViewer Example="icon-button-floating-menu" />
-
 <Heading Level="2">A tooltip on focus</Heading>
 <TextBlock>The label's tooltip shows on hover. For a hint that also shows on keyboard focus, or for more than the label, such as a shortcut, wrap the button in a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 <Code Block Language="razor">@WithTooltip</Code>
