@@ -109,21 +109,14 @@
 
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
-  /* Bars as Chart.js draws them: a see-through fill with a solid edge in the same color on every
-     side but the baseline's, so stacked segments part with a line of their own color, in light
-     and dark alike. --ib-chart-fill-opacity sets how solid the fill is. */
-  .ib-chart-bars,
+  /* Bars fade from the series color at the value (--ib-chart-tip-opacity, 0.85) to faint at the
+     baseline (--ib-chart-base-opacity, 0.4), as Radzen's do; the gradients are in the chart's
+     own defs. The legend's key shows the color at the tip. */
   .ib-chart-key rect {
     fill: var(--ib-chart-c);
-    fill-opacity: var(--ib-chart-fill-opacity, 0.5);
+    fill-opacity: var(--ib-chart-tip-opacity, 0.85);
   }
 
-  .ib-chart-key rect {
-    stroke: var(--ib-chart-c);
-    stroke-width: 2px;
-  }
-
-  .ib-chart-edge,
   .ib-chart-line,
   .ib-chart-key line {
     fill: none;
@@ -134,10 +127,6 @@
     vector-effect: non-scaling-stroke;
   }
 
-  .ib-chart-edge {
-    stroke-linejoin: miter;
-    stroke-linecap: butt;
-  }
 
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
   .ib-chart-dash2 { stroke-dasharray: 1 4; }

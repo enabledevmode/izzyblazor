@@ -40,7 +40,7 @@ internal sealed record AxisLabel(double Pos, string Text, string? Context = null
 internal sealed record GridLine(double Pos, int From, bool Zero);
 
 /// <summary>A bar, in percent of the plot.</summary>
-internal sealed record BarRect(double X, double Y, double Width, double Height, string Title);
+internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, bool Negative = false);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title);
@@ -50,11 +50,11 @@ internal sealed class SeriesShape
 {
     public required ChartSeriesData Data { get; init; }
     public required int Slot { get; init; }
+    public required int Index { get; init; }
     public int Style { get; init; }
     public List<BarRect> Bars { get; } = [];
 
-    /// <summary>The bars' edges in the stretching box, every side but the one on the baseline (as Chart.js draws them).</summary>
-    public string? Outline { get; set; }
+
     public string? Line { get; set; }
     public string? Area { get; set; }
     public List<PointMark> Marks { get; } = [];
@@ -229,6 +229,7 @@ internal static class ChartLayout
             {
                 Data = data,
                 Slot = s % 8 + 1,
+                Index = s,
                 Style = data.Type == ChartType.Bar ? 0 : lineStyle++ + s / 8,
             };
             model.Series.Add(shape);
@@ -239,7 +240,6 @@ internal static class ChartLayout
                 var j = bars.IndexOf(data);
                 var slot = stacked ? band * 0.8 : band * 0.8 / bars.Count;
                 var width = slot * 0.9;
-                var outline = new StringBuilder();
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
@@ -249,12 +249,10 @@ internal static class ChartLayout
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
                     var (lo, hi) = (Math.Min(v0, v1), Math.Max(v0, v1));
                     shape.Bars.Add(input.Horizontal
-                        ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title)
-                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title));
-                    AppendPath(outline, ((a0, v0), [new Segment(null, null, (a0, v1)), new Segment(null, null, (a0 + width, v1)), new Segment(null, null, (a0 + width, v0))]), input.Horizontal, move: true);
+                        ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title, v1 < v0)
+                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title, v1 < v0));
                 }
 
-                shape.Outline = outline.Length > 0 ? outline.ToString() : null;
                 continue;
             }
 
