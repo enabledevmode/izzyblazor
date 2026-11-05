@@ -1301,9 +1301,9 @@
             "noscript": "The field opens the tree as radio buttons in branches. The field's text changes once the form posts, and there's no search box or clear button.",
             "static": "Choosing closes the tree and shows the category in the field at once; Save posts it."
           } },
-        { "id": "tree-select-team", "title": "Only the ends of branches", "lead": "To make parents labels for their branches, return `false` from `ItemSelectable` for them. Here departments group the teams, and a ticket goes to a team.",
+        { "id": "tree-select-team", "title": "Only the ends of branches", "lead": "To make parents labels for their branches, return `false` from `ItemSelectable` for them. A click on one opens or closes its branch. Here departments group the teams, and a ticket goes to a team.",
           "notes": {
-            "noscript": "Departments can't be chosen; their radio buttons are disabled."
+            "noscript": "Departments can't be chosen; their radio buttons are disabled, and only the arrow beside each opens its teams."
           } }
       ]
     },
