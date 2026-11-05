@@ -1694,7 +1694,8 @@
       "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Data display", "summary": "Shows a figure with its trend, read as words.",
       "examples": [
         { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
-        { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." }
+        { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
+        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Spark` the values, such as the last twelve weeks. `SparkType` draws them as a line, an area or bars. The sparkline is an image named by the stat's `Label`, with its first, last, lowest and highest values, formatted with `SparkFormat`." }
       ],
       "scenarios": [
         { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
@@ -1742,6 +1743,43 @@
           "notes": { "noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and point still shows its value on hover, and Show data lists every value." } }
           ]
         }
+      ]
+    },
+    {
+      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
+      "features": [
+        { "feature": "A pie, or a donut with content in its middle" },
+        { "feature": "A legend with each slice's value and share, beside the circle or under it" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "pie-chart-usage", "title": "A donut with the total", "lead": "Give `PieChart` the `Items`, each slice's name as `Argument`, its size as `Value`, and a `Label`, which captions the chart and names it for screen readers. `Donut` cuts a hole in the middle, and `Center` fills it, here with the total. The legend names each slice with its value and share, beside the ring when there's room and under it when there isn't. Point at a slice, or Tab to the chart and use the arrow keys, for its tooltip.",
+          "notes": { "noscript": "There are no tooltips. Each slice still shows its value on hover, and the legend lists them all." } },
+        { "id": "pie-chart-pie", "title": "A pie", "lead": "Without `Donut`, the slices meet in the middle. They run clockwise from the top in item order, so sort the items largest first. Past about six slices they're hard to tell apart: group the smallest as \"Other\", or use a `Chart` with bars across. `ValueFormat` formats the values in the legend and the table." }
+      ]
+    },
+    {
+      "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Draws a run of values as a small line, area or bars, with no axes, to show a trend at a glance.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
+      "features": [
+        { "feature": "A line, an area or bars, as wide as its container" },
+        { "feature": "A name that says the first, last, lowest and highest values" }
+      ],
+      "examples": [
+        { "id": "sparkline-usage", "title": "A trend beside each row", "lead": "Give `Sparkline` the `Values` and a `Label`. It has no axes or tooltip, so screen readers hear the label with the first, last, lowest and highest values, formatted with `ValueFormat`. It fills its container's width. A missing value, null, breaks the line, as the image resizer's outage does here." },
+        { "id": "sparkline-types", "title": "Line, area and bars", "lead": "`Type` draws the values as a `Line` (the default), an `Area` or `Bar`s. `Height` sets how tall it is, 2rem by default, and `Color` sets its color in place of the theme's primary color. To put a sparkline in a `Stat`, set the stat's `Spark`." }
+      ]
+    },
+    {
+      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "keywords": ["meter", "dial", "speedometer", "radial progress"],
+      "features": [
+        { "feature": "A 240° dial with the value in the middle and the ends under it" },
+        { "feature": "A status color for the fill" },
+        { "feature": "Read as a meter, with its value in words" }
+      ],
+      "examples": [
+        { "id": "gauge-usage", "title": "Server load", "lead": "Give `Gauge` a `Value` and a `Label`. The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. `Status` colors the fill, here as memory and disk fill up; the color isn't read, so say what matters in words too. A gauge is 12rem wide; `Width` sets another." },
+        { "id": "gauge-range", "title": "Another range", "lead": "To measure on another scale, set `Min` and `Max`. A value past either end fills none or all of the dial, and still shows as it is." }
       ]
     },
     {

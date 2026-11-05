@@ -1,0 +1,15 @@
+@* Each figure with its last twelve weeks under it. *@
+<Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4" Grow>
+    <Card><Stat Label="Weekly revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last week"
+                Spark="_revenue" SparkFormat="C0" /></Card>
+    <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week"
+                Spark="_users" SparkType="SparklineType.Area" SparkFormat="N0" /></Card>
+    <Card><Stat Label="Orders" Value="1,126" Change="4.6%" Trend="StatTrend.Up" Description="vs last week"
+                Spark="_orders" SparkType="SparklineType.Bar" SparkFormat="N0" /></Card>
+</Grid>
+
+@code {
+    private readonly double?[] _revenue = [36_400, 38_100, 37_200, 39_800, 41_300, 40_100, 42_700, 41_900, 44_600, 43_200, 43_050, 48_210];
+    private readonly double?[] _users = [2_210, 2_260, 2_310, 2_290, 2_350, 2_400, 2_380, 2_430, 2_460, 2_440, 2_415, 2_340];
+    private readonly double?[] _orders = [902, 948, 921, 987, 1_012, 995, 1_043, 1_021, 1_068, 1_049, 1_076, 1_126];
+}

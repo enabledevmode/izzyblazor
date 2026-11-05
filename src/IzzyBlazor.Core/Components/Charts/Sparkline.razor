@@ -1,0 +1,101 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+@using System.Globalization
+
+@*
+    A small line, area or bars that shows a run of values at a glance, with no axes, legend or
+    tooltip. As wide as its container; Height sets how tall.
+
+    <Sparkline Values="weeklySignups" Label="Signups, last 12 weeks" />
+
+    Accessibility:
+    - One image, named by Label, which is required, and a summary of what it shows: "Signups,
+      last 12 weeks: from 410 to 482, low 390, high 520" (IzzyText.SparklineSummary).
+    - It's a glance, not the data: when the values matter, show them too, as a Chart or a Table.
+    See also: Chart, Stat.
+*@
+
+<span @attributes="AdditionalAttributes" class="@_class" style="@_style" role="img" aria-label="@_name">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <svg class="ib-sparkline-svg" aria-hidden="true">
+        @if (Type == SparklineType.Bar)
+        {
+            @foreach (var bar in ChartShapes.SparkBars(_values))
+            {
+                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(Math.Max(bar.Height, 0.5))%" />
+            }
+        }
+        else
+        {
+            var (line, area) = ChartShapes.Spark(_values, Type == SparklineType.Area);
+            <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                @if (area is not null)
+                {
+                    <path class="ib-sparkline-area" d="@area" />
+                }
+                <path class="ib-sparkline-line" d="@line" />
+            </svg>
+        }
+    </svg>
+</span>
+
+@code {
+    /// <summary>The values, in order; null for one that's missing, which breaks the line.</summary>
+    [Parameter, EditorRequired] public IEnumerable<double?>? Values { get; set; }
+
+    /// <summary>What it shows, such as "Signups, last 12 weeks": its accessible name, with a summary of the values. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>A line (the default), an area or bars.</summary>
+    [Parameter] public SparklineType Type { get; set; }
+
+    /// <summary>How tall it is. Defaults to 2rem. It's as wide as its container.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>A CSS color, such as <c>var(--ib-color-success)</c>. Defaults to the theme's primary color.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>A .NET format string for the values in the summary, such as <c>C0</c> or <c>N1</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    private IReadOnlyList<double?> _values = [];
+    private string? _name;
+    private string? _class;
+    private string? _style;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-sparkline");
+        classes.Add("ib-sparkline-bars", Type == SparklineType.Bar);
+        if (Height is { } height) styles.AddVar("sparkline-height", height.Css);
+        if (Color is { } color) styles.AddVar("sparkline-color", StyleValues.Raw(color, "color"));
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Sparkline needs a Label, its accessible name, such as \"Signups, last 12 weeks\".");
+        }
+
+        _values = (Values ?? []).Select(v => v is { } x && double.IsFinite(x) ? v : null).ToList();
+        _name = Summary(Label, _values, ValueFormat, TextDefaults.SparklineSummary);
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    internal static string Summary(string label, IReadOnlyList<double?> values, string? format, string template)
+    {
+        var present = values.Where(v => v is not null).Select(v => v!.Value).ToList();
+        if (present.Count == 0) return label;
+        var culture = CultureInfo.CurrentCulture;
+        string F(double v) => v.ToString(format ?? "#,##0.##", culture);
+        return string.Format(culture, template, label, F(present[0]), F(present[^1]), F(present.Min()), F(present.Max()));
+    }
+}

@@ -1,0 +1,15 @@
+@* Last month's visits by where they came from. *@
+<PieChart Items="_sources" Argument="s => s.Source" Value="s => s.Visits" Label="Visits by source, October" ValueFormat="N0" />
+
+@code {
+    private record TrafficSource(string Source, int Visits);
+
+    private readonly TrafficSource[] _sources =
+    [
+        new("Organic search", 48_210),
+        new("Direct", 21_940),
+        new("Referral", 9_315),
+        new("Social", 6_870),
+        new("Email", 4_122),
+    ];
+}

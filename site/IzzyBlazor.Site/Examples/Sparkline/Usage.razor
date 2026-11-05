@@ -1,0 +1,21 @@
+@* Each service's requests per minute over the last 24 hours, one value an hour. *@
+<Stack Gap="3" Grow>
+    @foreach (var service in _services)
+    {
+        <Grid Template='"8rem minmax(0, 1fr)"' Gap="4" Align="Align.Center">
+            <TextBlock Size="TextSize.Sm">@service.Name</TextBlock>
+            <Sparkline Values="service.PerHour" Label="@($"{service.Name}, requests per minute, last 24 hours")" ValueFormat="N0" />
+        </Grid>
+    }
+</Stack>
+
+@code {
+    private record Service(string Name, double?[] PerHour);
+
+    private readonly Service[] _services =
+    [
+        new("Checkout API", [210, 190, 160, 140, 130, 135, 170, 260, 410, 520, 580, 600, 640, 610, 590, 570, 560, 540, 500, 470, 420, 360, 300, 240]),
+        new("Search", [820, 760, 690, 640, 620, 650, 780, 1_040, 1_380, 1_520, 1_610, 1_590, 1_660, 1_640, 1_580, 1_550, 1_500, 1_470, 1_410, 1_330, 1_240, 1_120, 990, 880]),
+        new("Image resizer", [95, 90, 88, 84, 80, 82, 96, 130, 180, 210, null, null, 205, 230, 220, 214, 208, 196, 180, 170, 150, 130, 118, 104]),
+    ];
+}

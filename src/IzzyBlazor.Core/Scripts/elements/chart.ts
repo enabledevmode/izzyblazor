@@ -13,6 +13,11 @@ import { IzzyElement, defineElement } from "../izzy-element";
  */
 class Chart extends IzzyElement {
   protected setup(signal: AbortSignal): void {
+    if (this.hasAttribute("data-ib-pie")) {
+      this.pie(signal);
+      return;
+    }
+
     const frame = this.querySelector<HTMLElement>(".ib-chart-frame");
     const plot = this.querySelector<HTMLElement>(".ib-chart-plot");
     const bottom = this.querySelector<HTMLElement>(".ib-chart-bottom");
@@ -274,6 +279,139 @@ class Chart extends IzzyElement {
         }
         event.preventDefault();
         show(next, null);
+        announce();
+      },
+      { signal }
+    );
+  }
+
+  /**
+   * A PieChart: the tooltip is for the slice under the pointer, found from its angle and distance
+   * from the middle (data-ib-pos holds each slice's start and end as shares of the turn); the arrow
+   * keys move between slices.
+   */
+  private pie(signal: AbortSignal): void {
+    const plot = this.querySelector<HTMLElement>(".ib-pie-plot");
+    const frame = this.querySelector<HTMLElement>(".ib-pie-frame");
+    const tooltip = this.querySelector<HTMLElement>(".ib-chart-tooltip");
+    const tips = this.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]");
+    const live = this.querySelector<HTMLElement>("[data-ib-live]");
+    if (!plot || !frame || !tooltip || tips.length === 0) return;
+
+    const hole = Number(this.dataset.ibPie) || 0;
+    const spans = (this.dataset.ibPos ?? "").split(",").map((p) => (p ? p.split(" ").map(Number) : null));
+    const order = spans.flatMap((s, i) => (s ? [i] : []));
+    const slices = plot.querySelectorAll<SVGPathElement>("path[data-ib-i]");
+    let current = -1;
+
+    this.setAttribute("data-ib-tooltips", "");
+    signal.addEventListener("abort", () => this.removeAttribute("data-ib-tooltips"));
+
+    const show = (index: number, x?: number, y?: number) => {
+      const span = spans[index];
+      if (!span) return;
+      current = index;
+      tooltip.innerHTML = tips[index].innerHTML;
+      tooltip.hidden = false;
+      for (const s of slices) s.toggleAttribute("data-ib-active", s.dataset.ibI === String(index));
+
+      // Beside the pointer, or for the keyboard beside the slice's middle; kept inside the chart.
+      const size = plot.clientWidth;
+      if (x === undefined || y === undefined) {
+        const turn = ((span[0] + span[1]) / 2) * 2 * Math.PI;
+        const r = (size / 2) * (hole ? (1 + hole) / 2 : 0.6);
+        x = size / 2 + r * Math.sin(turn);
+        y = size / 2 - r * Math.cos(turn);
+      }
+      const gap = 12;
+      const tw = tooltip.offsetWidth;
+      const th = tooltip.offsetHeight;
+      const box = this.getBoundingClientRect();
+      const offset = plot.getBoundingClientRect().left - box.left;
+      const left = x + gap + tw <= box.width - offset ? x + gap : x - gap - tw;
+      tooltip.style.left = `${Math.min(Math.max(left, -offset), box.width - offset - tw)}px`;
+      tooltip.style.top = `${Math.min(Math.max(y - th / 2, 0), Math.max(0, size - th))}px`;
+    };
+
+    const hide = () => {
+      tooltip.hidden = true;
+      for (const s of slices) s.removeAttribute("data-ib-active");
+    };
+
+    plot.addEventListener(
+      "pointermove",
+      (event) => {
+        const r = plot.getBoundingClientRect();
+        const x = event.clientX - r.left;
+        const y = event.clientY - r.top;
+        const dx = x - r.width / 2;
+        const dy = y - r.height / 2;
+        const d = Math.hypot(dx, dy) / (r.width / 2);
+        if (d > 1 || d < hole) {
+          if (document.activeElement !== frame) hide();
+          return;
+        }
+        const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+        const index = spans.findIndex((s) => s !== null && turn >= s[0] && turn < s[1]);
+        if (index >= 0) show(index, x, y);
+      },
+      { signal }
+    );
+    plot.addEventListener(
+      "pointerleave",
+      () => {
+        if (document.activeElement !== frame) hide();
+      },
+      { signal }
+    );
+
+    frame.tabIndex = 0;
+    const announce = () => {
+      if (!live) return;
+      // "Pro, 412, 33%": the name, the value and the share.
+      live.textContent = [...tooltip.querySelectorAll("*")]
+        .filter((e) => e.children.length === 0)
+        .map((e) => (e.textContent ?? "").trim())
+        .filter(Boolean)
+        .join(", ");
+    };
+    frame.addEventListener(
+      "focus",
+      () => {
+        show(current >= 0 ? current : order[0]);
+        announce();
+      },
+      { signal }
+    );
+    frame.addEventListener("blur", hide, { signal });
+    frame.addEventListener(
+      "keydown",
+      (event) => {
+        const k = order.indexOf(current);
+        let next: number;
+        switch (event.key) {
+          case "ArrowRight":
+          case "ArrowDown":
+            next = order[Math.min(order.length - 1, k + 1)];
+            break;
+          case "ArrowLeft":
+          case "ArrowUp":
+            next = order[Math.max(0, k - 1)];
+            break;
+          case "Home":
+            next = order[0];
+            break;
+          case "End":
+            next = order[order.length - 1];
+            break;
+          case "Escape":
+            hide();
+            return;
+          default:
+            return;
+        }
+        event.preventDefault();
+        show(next);
         announce();
       },
       { signal }

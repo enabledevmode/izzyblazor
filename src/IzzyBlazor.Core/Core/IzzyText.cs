@@ -1098,6 +1098,16 @@ public class IzzyText
     /// <summary>The first column's header in a Chart's data table, when its Argument isn't a property.</summary>
     public virtual string ChartItem { get; set; } = "Item";
 
+    /// <summary>A PieChart's data table and tooltip: each slice's share of the whole.</summary>
+    public virtual string ChartShare { get; set; } = "Share";
+
+    /// <summary>
+    /// A Sparkline's accessible name, which says what a glance at it shows: "Revenue, last 12 weeks:
+    /// from 41 to 48, low 39, high 52". {0} is the label; {1} and {2} the first and last values;
+    /// {3} and {4} the lowest and highest.
+    /// </summary>
+    public virtual string SparklineSummary { get; set; } = "{0}: from {1} to {2}, low {3}, high {4}";
+
     /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
     public virtual string ColorHex { get; set; } = "hex";
 

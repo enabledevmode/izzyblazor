@@ -83,3 +83,16 @@ public enum ChartLineStyle
     /// <summary>Dots.</summary>
     Dotted,
 }
+
+/// <summary>How a <see cref="Sparkline"/> draws its values.</summary>
+public enum SparklineType
+{
+    /// <summary>A line through the values.</summary>
+    Line,
+
+    /// <summary>A line with the space under it filled.</summary>
+    Area,
+
+    /// <summary>A bar for each value, up from zero (down, for a value under it).</summary>
+    Bar,
+}

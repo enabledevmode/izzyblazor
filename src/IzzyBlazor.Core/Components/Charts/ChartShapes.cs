@@ -1,0 +1,171 @@
+using System.Globalization;
+using System.Text;
+
+namespace IzzyBlazor;
+
+/// <summary>A pie or donut slice: where it starts and ends as shares of the turn, and its path.</summary>
+internal sealed record PieSlice(int Index, double Start, double End, string Path)
+{
+    /// <summary>The slice's middle, as a share of the turn.</summary>
+    public double Middle => (Start + End) / 2;
+}
+
+/// <summary>The geometry of the round charts and sparklines, as SVG paths. Pure, so tested alone.</summary>
+internal static class ChartShapes
+{
+    /// <summary>A donut's hole, as a share of its radius.</summary>
+    public const double DonutHole = 0.62;
+
+    // + 0.0 turns -0 into 0.
+    private static string N(double value) => (Math.Round(value, 4) + 0.0).ToString("0.####", CultureInfo.InvariantCulture);
+
+    // A point on a circle of radius r centered on 0,0 at a share of the turn, clockwise from the top.
+    private static (double X, double Y) At(double turn, double r) =>
+        (r * Math.Sin(turn * 2 * Math.PI), -r * Math.Cos(turn * 2 * Math.PI));
+
+    /// <summary>
+    /// The slices for the values, clockwise from the top, in a viewBox of -1 -1 2 2. Missing, zero
+    /// and negative values get no slice; a single slice is a whole circle (or ring).
+    /// </summary>
+    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole)
+    {
+        var total = values.Sum(v => v is > 0 ? v.Value : 0);
+        var slices = new List<PieSlice>();
+        if (total <= 0) return slices;
+
+        var start = 0.0;
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (values[i] is not > 0) continue;
+            var end = Math.Min(1, start + values[i]!.Value / total);
+            slices.Add(new PieSlice(i, start, end, Slice(start, end, hole)));
+            start = end;
+        }
+
+        return slices;
+    }
+
+    private static string Slice(double start, double end, double hole)
+    {
+        var sb = new StringBuilder();
+        if (end - start >= 0.99999)
+        {
+            // A whole circle: two half arcs, and the hole the other way round so it stays empty.
+            sb.Append("M0,-1A1,1 0 1,1 0,1A1,1 0 1,1 0,-1Z");
+            if (hole > 0)
+            {
+                sb.Append($"M0,{N(-hole)}A{N(hole)},{N(hole)} 0 1,0 0,{N(hole)}A{N(hole)},{N(hole)} 0 1,0 0,{N(-hole)}Z");
+            }
+
+            return sb.ToString();
+        }
+
+        var large = end - start > 0.5 ? 1 : 0;
+        var (x0, y0) = At(start, 1);
+        var (x1, y1) = At(end, 1);
+        sb.Append($"M{N(x0)},{N(y0)}A1,1 0 {large},1 {N(x1)},{N(y1)}");
+        if (hole > 0)
+        {
+            var (ix1, iy1) = At(end, hole);
+            var (ix0, iy0) = At(start, hole);
+            sb.Append($"L{N(ix1)},{N(iy1)}A{N(hole)},{N(hole)} 0 {large},0 {N(ix0)},{N(iy0)}Z");
+        }
+        else
+        {
+            sb.Append("L0,0Z");
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>A gauge's sweep, in turns: 240°, with the gap at the bottom.</summary>
+    public const double GaugeSweep = 2.0 / 3;
+
+    /// <summary>
+    /// An arc along a gauge's track from <paramref name="from"/> to <paramref name="to"/> (shares of
+    /// the track, 0 to 1), centered on 0,0 with radius <paramref name="r"/>, as a stroke's path.
+    /// </summary>
+    public static string GaugeArc(double from, double to, double r)
+    {
+        from = Math.Clamp(from, 0, 1);
+        to = Math.Clamp(to, 0, 1);
+        var a0 = -GaugeSweep / 2 + from * GaugeSweep;
+        var a1 = -GaugeSweep / 2 + to * GaugeSweep;
+        var (x0, y0) = At(a0, r);
+        var (x1, y1) = At(a1, r);
+        var large = a1 - a0 > 0.5 ? 1 : 0;
+        return $"M{N(x0)},{N(y0)}A{N(r)},{N(r)} 0 {large},1 {N(x1)},{N(y1)}";
+    }
+
+    /// <summary>
+    /// A sparkline's line (and, for an area, its fill down to the bottom), in a 1000 by 1000 box
+    /// that stretches. Missing values break the line. The values span the box's height.
+    /// </summary>
+    public static (string Line, string? Area) Spark(IReadOnlyList<double?> values, bool area)
+    {
+        var (min, max) = Range(values, includeZero: false);
+        var n = values.Count;
+        var line = new StringBuilder();
+        var fill = new StringBuilder();
+        var run = new List<(double X, double Y)>();
+
+        void Flush()
+        {
+            if (run.Count == 0) return;
+            line.Append($"M{N(run[0].X)},{N(run[0].Y)}");
+            foreach (var p in run.Skip(1)) line.Append($"L{N(p.X)},{N(p.Y)}");
+            if (run.Count == 1) line.Append("h0");
+            if (area)
+            {
+                fill.Append($"M{N(run[0].X)},1000");
+                foreach (var p in run) fill.Append($"L{N(p.X)},{N(p.Y)}");
+                fill.Append($"L{N(run[^1].X)},1000Z");
+            }
+
+            run.Clear();
+        }
+
+        for (var i = 0; i < n; i++)
+        {
+            if (values[i] is not { } v)
+            {
+                Flush();
+                continue;
+            }
+
+            var x = n == 1 ? 500 : i * 1000.0 / (n - 1);
+            run.Add((x, 1000 - (v - min) / (max - min) * 1000));
+        }
+
+        Flush();
+        return (line.ToString(), area ? fill.ToString() : null);
+    }
+
+    /// <summary>A sparkline's bars, in percent of its box: x, y, width and height, with 0 as the base.</summary>
+    public static List<(int Index, double X, double Y, double Width, double Height)> SparkBars(IReadOnlyList<double?> values)
+    {
+        var (min, max) = Range(values, includeZero: true);
+        var bars = new List<(int, double, double, double, double)>();
+        var n = values.Count;
+        var band = 100.0 / n;
+        var zero = 100 - (0 - min) / (max - min) * 100;
+        for (var i = 0; i < n; i++)
+        {
+            if (values[i] is not { } v) continue;
+            var y = 100 - (v - min) / (max - min) * 100;
+            bars.Add((i, i * band + band * 0.15, Math.Min(y, zero), band * 0.7, Math.Abs(zero - y)));
+        }
+
+        return bars;
+    }
+
+    private static (double Min, double Max) Range(IReadOnlyList<double?> values, bool includeZero)
+    {
+        var present = values.Where(v => v is not null).Select(v => v!.Value).ToList();
+        if (includeZero) present.Add(0);
+        if (present.Count == 0) return (0, 1);
+        var (min, max) = (present.Min(), present.Max());
+        // All equal: a flat line through the middle.
+        return min == max ? (min - 1, max + 1) : (min, max);
+    }
+}
