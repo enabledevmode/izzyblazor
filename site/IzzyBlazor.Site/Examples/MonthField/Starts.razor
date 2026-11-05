@@ -1,0 +1,28 @@
+<Form Model="Model" FormName="month-field-starts" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <MonthField @bind-Value="Model!.Starts" Min="@First" Clearable />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Starts @(_starts?.ToString("MMMM yyyy") ?? "unset").</Alert>
+    }
+</Form>
+
+@code {
+    private static readonly DateOnly First = new(2027, 1, 1);
+
+    [SupplyParameterFromForm(FormName = "month-field-starts")]
+    private Plan? Model { get; set; }
+
+    // What was saved, not the field: on an interactive page it follows what's chosen.
+    private bool _saved;
+    private DateOnly? _starts;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => (_saved, _starts) = (true, Model!.Starts);
+
+    public sealed class Plan
+    {
+        public DateOnly? Starts { get; set; } = new DateOnly(2027, 3, 1);
+    }
+}

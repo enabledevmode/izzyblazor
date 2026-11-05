@@ -1,0 +1,26 @@
+<Form Model="Model" FormName="year-field-model-year" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <YearField @bind-Value="Model!.Year" Label="Model year" Min="2000" Max="2030" />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Model year @(_year?.ToString() ?? "unset").</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "year-field-model-year")]
+    private Vehicle? Model { get; set; }
+
+    // What was saved, not the field: on an interactive page it follows what's chosen.
+    private bool _saved;
+    private int? _year;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => (_saved, _year) = (true, Model!.Year);
+
+    public sealed class Vehicle
+    {
+        public int? Year { get; set; }
+    }
+}

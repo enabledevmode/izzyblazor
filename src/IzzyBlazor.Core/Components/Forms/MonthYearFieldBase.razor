@@ -1,0 +1,242 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits PeriodFieldBase<TValue>
+
+@*
+    What MonthField and YearField share: the browser's input, and a page of twelve months or years to
+    choose from. Not a component of its own.
+*@
+
+<FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
+        <ib-field-control class="@ControlClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}" : null)">
+            <input @attributes="ControlAttributes"
+                   id="@FieldId"
+                   class="@(IsYear ? "ib-field-input ib-field-number" : "ib-field-input")"
+                   type="@(IsYear ? "number" : "month")"
+                   name="@NameAttributeValue"
+                   @bind="CurrentValueAsString"
+                   min="@FormatLimit(Min, Range?.Minimum)"
+                   max="@FormatLimit(Max, Range?.Maximum)"
+                   pattern="@(IsYear ? null : "[0-9]{4}-[0-9]{2}")"
+                   placeholder="@(IsYear ? null : "YYYY-MM")"
+                   inputmode="@(IsYear ? "numeric" : null)"
+                   required="@IsRequired"
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@DescribedBy" />
+            @if (Clearable && !IsDisabled && !IsReadOnly && Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                @ClearButton
+            }
+            @if (HasPanel)
+            {
+                <Popover Placement="Placement.BottomStart">
+                    <Trigger Context="trigger">
+                        @if (!IsYear)
+                        {
+                            @* The input is out of sight under this, so it's named with the field's label, and takes the hint and errors. *@
+                            <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                                    aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")"
+                                    aria-describedby="@DescribedBy">
+                                <span class="ib-date-text" data-ib-empty="@(FormatValueAsString(CurrentValue) is null ? "" : null)">@MonthText</span>
+                                <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                            </button>
+                        }
+                        else
+                        {
+                            <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                                <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                            </button>
+                        }
+                    </Trigger>
+                    <ChildContent>
+                        <ib-period-grid class="ib-calendar"
+                                        @attributes="@PeriodAttributes(IsYear, Format(CurrentValue), FormatLimit(Min, Range?.Minimum), FormatLimit(Max, Range?.Maximum))"
+                                        data-ib-change="@(ChooseLabel is null ? (IsYear ? TextDefaults.CalendarChangeYear : TextDefaults.CalendarChangeMonth) : null)"
+                                        data-ib-choose="@ChooseText">
+                            <div class="ib-calendar-view">
+                                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                                @CalendarGrid.Period(DrawnPeriod(IsYear, Number(Format(CurrentValue)), Number(FormatLimit(Min, Range?.Minimum)), Number(FormatLimit(Max, Range?.Maximum))), null)
+                            </div>
+                        </ib-period-grid>
+                    </ChildContent>
+                </Popover>
+            }
+        </ib-field-control>
+    </FieldAddons>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The earliest value. Defaults to <c>[Range]</c>'s minimum; the type's default value means none.</summary>
+    [Parameter] public TValue? Min { get; set; }
+
+    /// <summary>The latest value. Defaults to <c>[Range]</c>'s maximum; the type's default value means none.</summary>
+    [Parameter] public TValue? Max { get; set; }
+
+    /// <summary>Content attached before the control, outside its border. See <see cref="TextFieldBase.StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    /// <summary>Keeps the browser's input in place of the library's page to choose from.</summary>
+    [Parameter] public bool UseNative { get; set; }
+
+    /// <summary>A button in the field that empties it, for a nullable value, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>The name of the button that opens the page, in place of "Choose month" or "Choose year".</summary>
+    [Parameter] public string? ChooseLabel { get; set; }
+
+    /// <summary>Whether it holds a year, or else a month.</summary>
+    private protected abstract bool IsYear { get; }
+
+    private protected static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    // Nothing to choose from on a field that can't change.
+    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
+
+    private string ChooseText => ChooseLabel ?? (IsYear ? TextDefaults.CalendarChooseYear : TextDefaults.CalendarChooseMonth);
+
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-date-control", HasPanel)
+        .Build()!;
+
+    // The month the button shows until the script writes the same from the input.
+    private string MonthText => Number(Format(CurrentValue)) is { } month
+        ? new DateOnly(month / 12, (month % 12) + 1, 1).ToString("Y", ResolvedCulture)
+        : ChooseText;
+
+    // The number the script counts in: a year, or a month as year * 12 + month.
+    private int? Number(string? text)
+    {
+        if (text is null)
+        {
+            return null;
+        }
+
+        var parts = text.Split('-');
+        var year = int.Parse(parts[0], System.Globalization.CultureInfo.InvariantCulture);
+        return IsYear ? year : (year * 12) + int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture) - 1;
+    }
+
+    /// <inheritdoc />
+    private protected override bool LabelNamesMonth => false;
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null || (!IsYear && IsRequired);
+
+    // A month's input is read-only under script, so the browser doesn't check that it's there.
+    /// <inheritdoc />
+    private protected override bool RulesCoverEmpty => !IsYear;
+
+    // As the input shows them: fixed-width text sorts as the months and years do.
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var (shown, min, max) = (Format(value), FormatLimit(Min, null), FormatLimit(Max, null));
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        string Said(string limit) => !IsYear && DateTime.TryParse(limit, System.Globalization.CultureInfo.InvariantCulture, out var at)
+            ? at.ToString("Y", culture)
+            : limit;
+        if (shown is null)
+        {
+            // [Required] turns away null, and not a default that shows as empty.
+            return !IsYear && IsRequired && (value is not null || Attribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() is null)
+                ? string.Format(culture, TextDefaults.ChoiceRequired, ResolvedLabel)
+                : null;
+        }
+
+        return min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
+            : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max))
+            : null;
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => Format(value);
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (TryParse(value, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DateInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+
+    // The input's text: the year, or the month as the browser writes it. The default of a value
+    // that can't be empty is no choice.
+    private static string? Format(object? value) => value switch
+    {
+        int year => year == 0 ? null : year.ToString("D4", System.Globalization.CultureInfo.InvariantCulture),
+        DateOnly { Year: 1, Month: 1 } or DateTime { Year: 1, Month: 1 } => null,
+        DateOnly date => date.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture),
+        DateTime month => month.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture),
+        _ => null,
+    };
+
+    // Min and Max, or [Range]'s ends: a value of the bound type, or text the browser would post.
+    private string? FormatLimit(TValue? limit, object? annotated)
+    {
+        if (limit is not null && !EqualityComparer<TValue>.Default.Equals(limit, default))
+        {
+            return Format(limit);
+        }
+
+        return annotated switch
+        {
+            string text => TryParse(text, out var parsed) ? Format(parsed) : null,
+            null => null,
+            _ => Format(annotated),
+        };
+    }
+
+    private bool TryParse(string? text, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result)
+    {
+        result = default!;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Nullable.GetUnderlyingType(typeof(TValue)) is not null;
+        }
+
+        if (IsYear)
+        {
+            if (!int.TryParse(text.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var year) || year is < 1 or > 9999)
+            {
+                return false;
+            }
+
+            result = (TValue)(object)year;
+            return true;
+        }
+
+        if (!DateTime.TryParseExact(text.Trim(), MonthFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var wall))
+        {
+            return false;
+        }
+
+        var first = new DateTime(wall.Year, wall.Month, 1);
+        result = (TValue)(Underlying == typeof(DateOnly) ? (object)DateOnly.FromDateTime(first) : DateTime.SpecifyKind(first, DateTimeKind.Utc));
+        return true;
+    }
+
+    // What a month input posts, and a whole date, as [Range] may give one.
+    private static readonly string[] MonthFormats = ["yyyy-MM", "yyyy-MM-dd"];
+}

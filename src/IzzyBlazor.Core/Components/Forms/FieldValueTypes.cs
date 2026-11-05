@@ -45,6 +45,12 @@ public partial class CheckboxGroup<[DynamicallyAccessedMembers(DynamicallyAccess
 /// </summary>
 public partial class DateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
+/// <summary>A month field, held as the 1st of the month.</summary>
+public partial class MonthField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
+/// <summary>A year field, held in an int.</summary>
+public partial class YearField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
 /// <inheritdoc cref="DateField{TValue}"/>
 public partial class MultiDateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 

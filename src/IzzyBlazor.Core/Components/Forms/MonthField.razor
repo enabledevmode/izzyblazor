@@ -1,0 +1,53 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits MonthYearFieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's the browser's own month input, a text box taking YYYY-MM where the browser has none.")]
+
+@*
+    A month field, such as a card's expiry: the month is held as the 1st of it, in a DateOnly or
+    DateTime, or a nullable one. A page of twelve months opens to choose from.
+    <MonthField @bind-Value="Model.Expires" />
+    <MonthField @bind-Value="Model.Starts" Min="@(new DateOnly(2026, 1, 1))" />
+
+    On a desktop a month is chosen, not typed, and its button shows it, since browsers other than
+    Chromium's have no month input. A phone and UseNative keep the browser's input, and with no script
+    it's the browser's too, a text box with a pattern where it has none. Min and Max compare whole
+    months, so a Min of March 15 allows March. [Range] compares the 1st of the month, so give it a
+    1st, as a Range starting on March 15 would turn away March.
+
+    Accessibility:
+    - The month's button stands in for the input on a desktop, so it's named by the field's label and
+      the month, and takes the hint and errors.
+    - The page of months is a `grid`, named by its year, with the chosen month's `aria-selected` and
+      this month's `aria-current`. Focus goes to the chosen month or this one, and on closing back to
+      the button.
+    - Label, hint and errors work as in `TextField`.
+
+    Keyboard:
+    In the page of months
+    - Left, Right | Move a month (reversed in right-to-left)
+    - Up, Down | Move a row
+    - Home, End | Go to the start or end of the row
+    - Page Up, Page Down | Move a year
+    - Enter, Space | Choose it and close
+    - Escape | Close without changing the value
+    See also: YearField, DateField, Calendar.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <inheritdoc />
+    private protected override bool IsYear => false;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Underlying != typeof(DateOnly) && Underlying != typeof(DateTime))
+        {
+            throw new InvalidOperationException($"MonthField holds the 1st of a month, so bind it to DateOnly or DateTime, or a nullable one, not {typeof(TValue)}.");
+        }
+
+        base.OnParametersSet();
+    }
+}

@@ -1,0 +1,44 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits MonthYearFieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a number input, with no page of years to choose from.")]
+
+@*
+    A year field, such as a model year: a number input held in an int, or an int?, with a page of
+    twelve years beside it on a desktop.
+    <YearField @bind-Value="Model.Year" Min="2000" Max="2030" />
+
+    Accessibility:
+    - It renders the browser's number `input` with a `label` linked to it.
+    - The page of years is a `grid`, named by its span, with the chosen year's `aria-selected` and
+      this year's `aria-current`. Its button is named "Choose year" (`ChooseLabel`).
+    - Label, hint and errors work as in `TextField`.
+
+    Keyboard:
+    In the page of years
+    - Left, Right | Move a year (reversed in right-to-left)
+    - Up, Down | Move a row
+    - Home, End | Go to the start or end of the row
+    - Page Up, Page Down | Move twelve years
+    - Enter, Space | Choose it and close
+    - Escape | Close without changing the value
+    See also: MonthField, NumberField, DateField.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <inheritdoc />
+    private protected override bool IsYear => true;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Underlying != typeof(int))
+        {
+            throw new InvalidOperationException($"YearField holds a year, so bind it to int or int?, not {typeof(TValue)}.");
+        }
+
+        base.OnParametersSet();
+    }
+}
