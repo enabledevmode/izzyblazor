@@ -343,6 +343,9 @@ public class IzzyText
     /// <summary>For screen readers, MultiSelect's chosen options, read after its name: "Chosen: {0}." {0} is the options' text, joined with commas.</summary>
     public virtual string Chosen { get; set; } = "Chosen: {0}.";
 
+    /// <summary>For screen readers, when a MultiSelect with <c>AllowCustom</c> takes a typed value: "Added {0}." {0} is the value.</summary>
+    public virtual string Added { get; set; } = "Added {0}.";
+
     /// <summary>Combobox and MultiSelect when nothing matches.</summary>
     public virtual string NoMatches { get; set; } = "No matches";
 

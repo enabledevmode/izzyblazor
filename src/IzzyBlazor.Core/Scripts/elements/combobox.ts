@@ -17,7 +17,10 @@ import { fetchPart } from "../fetch-part";
  *
  * MultiSelect uses the same element over a <select multiple>: choosing toggles an option and the
  * list stays open, the chosen options show as chips (drawn here from the select, so they're right
- * whatever changed it), and Backspace in the empty input removes the last one.
+ * whatever changed it), and Backspace in the empty input removes the last one. With data-custom
+ * (AllowCustom), typed text is a value too: Enter (with no option moved to), a comma or semicolon,
+ * leaving, or a paste adds it as a chosen option of the select, or chooses the option it matches.
+ * Typing then doesn't make an option active, and the list closes when nothing matches.
  *
  * Autocomplete uses it with data-free and no select: the input is the field and posts what's
  * typed; the list only suggests. Typing doesn't make an option active, so Enter keeps the text;
@@ -43,6 +46,9 @@ class Combobox extends IzzyElement {
   #typed = false;
   #multiple = false;
   #chips: HTMLElement | null = null;
+  #custom = false;
+  // AllowCustom: the status says "Added …", which closing the list mustn't clear.
+  #added = false;
   // Server search: typed text whose results haven't come yet, and what to do once they have.
   #pending = false;
   #after: "choose" | "commit" | null = null;
@@ -80,6 +86,22 @@ class Combobox extends IzzyElement {
     this.#select = select!;
     this.#multiple = select!.multiple;
     this.#chips = this.querySelector(".ib-multiselect-chips");
+    this.#custom = this.#multiple && this.hasAttribute("data-custom");
+    if (this.#custom) {
+      input.addEventListener(
+        "paste",
+        (event) => {
+          const text = event.clipboardData?.getData("text") ?? "";
+          if (!/[,;\r\n]/.test(text)) return;
+          event.preventDefault();
+          for (const piece of (this.#input.value + text).split(/[,;\r\n]/)) this.add(piece);
+          this.#input.value = "";
+          this.#typed = false;
+          this.close();
+        },
+        { signal }
+      );
+    }
     this.setupSelect(input, select!, list, signal);
   }
 
@@ -105,6 +127,9 @@ class Combobox extends IzzyElement {
 
     let selectObserver: MutationObserver | null = null;
     if (this.#multiple) {
+      // Just rendered (first load, or an enhanced one that kept the select and moved its options
+      // about): the server's selected attributes are right, whatever was chosen before.
+      for (const o of select.options) o.selected = o.hasAttribute("selected");
       // Chips follow the select, whoever changes it (this element, Blazor, a form reset).
       selectObserver = new MutationObserver((records) => {
         // Once an option's selected property has been set, the browser ignores changes to its
@@ -234,11 +259,11 @@ class Combobox extends IzzyElement {
     }
     this.filter(showAll ? "" : this.#input.value);
     const selected = this.#multiple ? undefined : this.visible.find((o) => o.getAttribute("aria-selected") === "true");
-    const active = selected ?? (showAll || this.#free ? null : this.visible[0] ?? null);
+    const active = selected ?? (showAll || this.#free || this.#custom ? null : this.visible[0] ?? null);
     if (!active) this.#list.scrollTop = 0;
     this.activate(active);
-    // Autocomplete: nothing to suggest, so no list (any text is a value).
-    if (this.#free && !this.visible.length) this.close();
+    // Autocomplete, AllowCustom: nothing to suggest, so no list (any text is a value).
+    if ((this.#free || this.#custom) && !this.visible.length) this.close();
   }
 
   private close(): void {
@@ -254,8 +279,8 @@ class Combobox extends IzzyElement {
   private refresh(): void {
     this.filter(this.#typed ? this.#input.value : "");
     const keep = this.#active && this.#active.isConnected && !this.#active.hidden ? this.#active : null;
-    this.activate(keep ?? (this.#typed && !this.#free ? this.visible[0] ?? null : null));
-    if (this.#free && !this.visible.length) this.close();
+    this.activate(keep ?? (this.#typed && !this.#free && !this.#custom ? this.visible[0] ?? null : null));
+    if ((this.#free || this.#custom) && !this.visible.length) this.close();
   }
 
   private filter(query: string): void {
@@ -273,7 +298,7 @@ class Combobox extends IzzyElement {
       group.hidden = !group.querySelector("[role=option]:not([hidden])");
     }
     this.#list.toggleAttribute("data-empty", shown === 0);
-    this.announceEmpty(shown === 0);
+    this.announceEmpty(shown === 0 && !this.#custom);
   }
 
   /** Says "No matches" (or "Searching…") through the status beside the list, once per change. */
@@ -282,10 +307,18 @@ class Combobox extends IzzyElement {
     if (!status) return;
     const busy = this.#list.getAttribute("aria-busy") === "true";
     const text = empty || busy ? (this.#list.querySelector(".ib-combobox-empty")?.textContent ?? "").trim() : "";
+    if (!text && this.#added) return;
+    this.#added = false;
     if (status.textContent !== text) status.textContent = text;
   }
 
   private onInput(): void {
+    // AllowCustom: a comma or semicolon ends a value.
+    if (this.#custom && /[,;]/.test(this.#input.value)) {
+      const pieces = this.#input.value.split(/[,;]/);
+      this.#input.value = pieces.pop()!.trimStart();
+      for (const piece of pieces) this.add(piece);
+    }
     this.#typed = true;
     this.#input.setCustomValidity("");
     this.#after = null;
@@ -455,6 +488,12 @@ class Combobox extends IzzyElement {
         this.activate(options[Math.max(0, Math.min(index + (event.key === "PageDown" ? 10 : -10), options.length - 1))] ?? null);
         break;
       case "Enter":
+        // AllowCustom: the typed text, unless an option was moved to.
+        if (this.#custom && !this.#active && this.#input.value.trim()) {
+          event.preventDefault();
+          this.addTyped();
+          break;
+        }
         // With the list open, Enter chooses, never submits the form.
         if (!this.isOpen) break;
         // Autocomplete with no option active: the typed text stands, and Enter goes to the form.
@@ -522,6 +561,36 @@ class Combobox extends IzzyElement {
     this.close();
   }
 
+  /**
+   * AllowCustom: chooses the option whose text this is (ignoring case), or adds it to the select as
+   * a chosen option, and says so. A value already chosen isn't added again.
+   */
+  private add(text: string): void {
+    const value = text.trim();
+    if (!value) return;
+    const key = value.toLocaleLowerCase();
+    let option = [...this.#select.options].find((o) => o.text.trim().toLocaleLowerCase() === key);
+    if (option?.selected) return;
+    if (!option) {
+      option = new Option(value, value);
+      option.dataset.added = "";
+      this.#select.add(option);
+    }
+    this.toggle(option.value, true);
+    const status = this.querySelector<HTMLElement>(":scope > .ib-combobox-status");
+    this.#added = true;
+    if (status) status.textContent = (this.dataset.addedLabel ?? "Added {0}.").replace("{0}", () => option.text);
+  }
+
+  /** AllowCustom: adds what's typed and starts the next value. */
+  private addTyped(): void {
+    this.add(this.#input.value);
+    this.#input.value = "";
+    this.#typed = false;
+    this.filter("");
+    if (!this.visible.length) this.close();
+  }
+
   /** MultiSelect: selects or clears one option (flips it when `on` is left out). */
   private toggle(value: string, on?: boolean): void {
     // A read-only MultiSelect's select is disabled: its chips can't be removed.
@@ -541,6 +610,10 @@ class Combobox extends IzzyElement {
   private renderChips(): void {
     if (!this.#chips) return;
     const remove = this.dataset.removeLabel ?? "Remove";
+    // AllowCustom: once Blazor renders an option for a value added here, drop the added one.
+    for (const added of this.#select.querySelectorAll<HTMLOptionElement>("option[data-added]")) {
+      if ([...this.#select.options].some((o) => o !== added && o.value === added.value)) added.remove();
+    }
     const chosen = [...this.#select.selectedOptions];
     // The input's description: the chips' text without their remove buttons.
     const summary = this.querySelector<HTMLElement>(".ib-multiselect-chosen");
@@ -625,7 +698,8 @@ class Combobox extends IzzyElement {
       return;
     }
     if (this.#multiple) {
-      // Typing only searches; leaving drops the search text.
+      // Typing only searches (AllowCustom: adds what's typed); leaving drops the search text.
+      if (this.#custom) this.add(this.#input.value);
       this.#input.value = "";
       this.#typed = false;
       return;
