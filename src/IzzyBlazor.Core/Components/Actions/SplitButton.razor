@@ -162,7 +162,7 @@
 
     // Button's parameters that make no sense here. Without this they'd reach the main button as
     // other attributes do.
-    private static readonly string[] Refused = [nameof(Button.EndIcon), nameof(Button.Pressed), nameof(Button.PressedChanged), nameof(Button.Reset), nameof(Button.HideExternalIcon), nameof(SplitButtonMain.IconOnlyName)];
+    private static readonly string[] Refused = [nameof(Button.EndIcon), nameof(Button.Reset), nameof(Button.HideExternalIcon), nameof(SplitButtonMain.IconOnlyName)];
 
     // The main button. Other attributes go on it, before the parameters so they can't override them.
     private RenderFragment Main => builder =>

@@ -95,10 +95,10 @@
     case "toggles":
         <Toolbar Label="Format">
             <ToolbarButtonGroup Label="Text style">
-                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="Bold" />
-                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" Pressed="false" />
+                <ToolbarToggleButton Icon="Lucide.Bold" Label="Bold" IconOnly @bind-Value="Bold" />
+                <ToolbarToggleButton Icon="Lucide.Italic" Label="Italic" IconOnly Value="false" ValueExpression="() => Italic" />
             </ToolbarButtonGroup>
-            <ToolbarButton StartIcon="Lucide.Eye" @bind-Pressed="Preview">Preview</ToolbarButton>
+            <ToolbarToggleButton Icon="Lucide.Eye" @bind-Value="Preview">Preview</ToolbarToggleButton>
         </Toolbar>
         break;
     case "collapse":
@@ -132,4 +132,6 @@
     public bool Bold { get; set; } = true;
 
     public bool Preview { get; set; }
+
+    public bool Italic { get; set; }
 }

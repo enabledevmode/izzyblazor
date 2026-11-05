@@ -1,0 +1,22 @@
+@* Call controls: icons alone, each named by its Label, which stays the same as it toggles. *@
+<Stack Gap="3" Align="Align.Center">
+    <Row Gap="2">
+        <ToggleButton Icon="Lucide.MicOff" Label="Mute" IconOnly @bind-Value="_muted" />
+        <ToggleButton Icon="Lucide.VideoOff" Label="Turn off camera" IconOnly @bind-Value="_cameraOff" />
+        <ToggleButton Icon="Lucide.Captions" Label="Captions" IconOnly @bind-Value="_captions" />
+    </Row>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Status</TextBlock>
+</Stack>
+
+@code {
+    private bool _muted = true;
+    private bool _cameraOff;
+    private bool _captions;
+
+    private string Status => string.Join(" · ", new[]
+    {
+        _muted ? "Muted" : "Mic on",
+        _cameraOff ? "Camera off" : "Camera on",
+        _captions ? "Captions on" : "Captions off",
+    });
+}

@@ -219,10 +219,9 @@ public class SplitButtonTests : BunitContext
         Assert.Empty(renderer.OutOfOrder);
     }
 
-    private Dictionary<string, object?> ButtonState(string? href, bool? pressed, bool disabled, bool loading) => new()
+    private Dictionary<string, object?> ButtonState(string? href, bool disabled, bool loading) => new()
     {
         [nameof(Button.Href)] = href,
-        [nameof(Button.Pressed)] = href is null ? pressed : null,
         [nameof(Button.Disabled)] = disabled,
         [nameof(Button.Loading)] = loading,
         [nameof(Button.OnClick)] = EventCallback.Factory.Create<MouseEventArgs>(this, () => { }),
@@ -233,11 +232,10 @@ public class SplitButtonTests : BunitContext
     [InlineData(null)]
     [InlineData("/report.pdf")]
     public Task A_buttons_sequence_numbers_ascend_in_every_state(string? href) => AscendsAsync<Button>(
-        ButtonState(href, true, false, false),
-        ButtonState(href, null, false, false),
-        ButtonState(href, false, true, false),
-        ButtonState(href, true, false, true),
-        ButtonState(href, null, false, false));
+        ButtonState(href, false, false),
+        ButtonState(href, true, false),
+        ButtonState(href, false, true),
+        ButtonState(href, false, false));
 
     private IRenderedComponent<SplitButtonProbe> RenderProbe(string kind, bool interactive = false)
     {

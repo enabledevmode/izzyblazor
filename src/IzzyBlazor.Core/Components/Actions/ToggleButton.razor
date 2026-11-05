@@ -1,0 +1,141 @@
+@namespace IzzyBlazor
+@inherits FieldBase<bool>
+@attribute [ModeSupport]
+
+@*
+    A button that stays on or off: a real checkbox drawn as a button, so it toggles with JavaScript
+    off, shows its state from :checked and posts with a form like any checkbox.
+    <ToggleButton @bind-Value="_starred" Icon="Lucide.Star">Starred</ToggleButton>
+    <ToggleButton @bind-Value="_muted" Icon="Lucide.MicOff" Label="Mute" IconOnly />
+    <ToggleButton @bind-Value="Model.Unread">Unread</ToggleButton>      (in a Form: posts "true" or "false")
+
+    Bound to a model property in a Form it posts like a Checkbox: a hidden "false" follows it, so an
+    off toggle posts "false". On interactive pages ValueChanged runs C# at once; on static pages it
+    changes nothing until the form posts, unless SubmitOnChange posts it as the toggle changes. Several toggles that belong together go in a ToggleGroup;
+    in a Toolbar, use ToolbarToggleButton.
+
+    Accessibility:
+    - It renders a native checkbox inside a `label` drawn as the button: Space toggles it, clicking
+      anywhere on it does too, and screen readers hear "checkbox, checked" or "not checked".
+    - Its text names it. With `IconOnly`, `Label` names it, hidden from sight, and is its tooltip.
+    - The icon is hidden from screen readers.
+    See also: ToggleGroup, Checkbox, Switch, SegmentedControl.
+*@
+
+<label class="@_class" style="@_style" title="@(IconOnly ? Name : null)">
+    <input @attributes="ControlAttributes"
+           id="@FieldId"
+           class="ib-visually-hidden"
+           type="checkbox"
+           name="@NameAttributeValue"
+           value="true"
+           @bind="CurrentValue"
+           disabled="@IsDisabled"
+           data-ib-submit="@(SubmitOnChange ? "" : null)"
+           aria-describedby="@DescribedBy" />
+    @if (Icon is { } icon)
+    {
+        <Icon Name="icon" />
+    }
+    @if (IconOnly)
+    {
+        <span class="ib-visually-hidden">@Name</span>
+    }
+    else
+    {
+        <span class="ib-btn-label">@(ChildContent ?? (RenderFragment)(b => b.AddContent(0, ResolvedLabel)))</span>
+    }
+</label>
+@if ((!IsDisabled || PostsReadOnlyValue) && !string.IsNullOrEmpty(NameAttributeValue))
+{
+    @* An unchecked box doesn't post, so this "false" does, as a Checkbox's. *@
+    <input type="hidden" name="@NameAttributeValue" value="@(PostsReadOnlyValue && CurrentValue ? "true" : "false")" />
+}
+
+@code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>The text, such as "Starred". Without it, <see cref="FieldBase{TValue}.Label"/> (or the model property's name) is the text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>An icon before the text, such as <c>Lucide.Star</c>.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Shows only the <see cref="Icon"/>; <see cref="FieldBase{TValue}.Label"/> stays as its name for screen readers and its tooltip.</summary>
+    [Parameter] public bool IconOnly { get; set; }
+
+    /// <summary>
+    /// Posts the form around it as it changes, such as a filter in a GET form on a static page. With
+    /// JavaScript off, the form's own submit button posts it.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool SubmitOnChange { get; set; }
+
+    /// <summary>Its color. Defaults to <see cref="Accent.Neutral"/>, or its group's.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>Its look. Defaults to <see cref="ButtonVariant.Outline"/>, or its group's.</summary>
+    [Parameter] public ButtonVariant? Variant { get; set; }
+
+    /// <summary>The <see cref="ToggleGroup"/> (or other button group) it's in, whose settings are its defaults.</summary>
+    [CascadingParameter] internal ButtonGroup? Group { get; set; }
+
+    /// <summary>The <see cref="Toolbar"/> it's directly in, where only toolbar items go.</summary>
+    [CascadingParameter] internal ToolbarContext? Toolbar { get; set; }
+
+    private bool _sizeSet;
+    private string? _class;
+    private string? _style;
+
+    private string? Name => ResolvedLabel;
+
+    /// <summary>The accent in effect: its own, else its group's, else neutral.</summary>
+    private protected Accent EffectiveAccent => Accent ?? Group?.DefaultAccent ?? IzzyBlazor.Accent.Neutral;
+
+    /// <summary>The look in effect: its own, else its group's, else outline.</summary>
+    private protected ButtonVariant EffectiveVariant => Variant ?? Group?.DefaultVariant ?? ButtonVariant.Outline;
+
+    /// <summary>The size in effect: its own, else its group's, else Md.</summary>
+    private protected ControlSize EffectiveSize => _sizeSet ? Size : Group?.DefaultSize ?? Size;
+
+    /// <summary>A class of a toolbar's, when its label collapses.</summary>
+    private protected virtual string? ExtraClass => null;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        _sizeSet = parameters.TryGetValue<ControlSize>(nameof(Size), out _);
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        ToolbarControl.Refuse(this, Toolbar, Group);
+        if (IconOnly && (Icon is null || string.IsNullOrWhiteSpace(Name)))
+        {
+            throw new InvalidOperationException("A ToggleButton with IconOnly needs an Icon and a Label: the label is its name.");
+        }
+
+        var accent = EffectiveAccent;
+        var classes = new ClassBuilder()
+            .Add("ib-btn ib-btn-toggle")
+            .Add($"ib-btn-{accent.Role ?? "primary"}")
+            .Add($"ib-btn-{EffectiveVariant.ToString().ToLowerInvariant()}")
+            .Add("ib-btn-sm", EffectiveSize == ControlSize.Sm)
+            .Add("ib-btn-lg", EffectiveSize == ControlSize.Lg)
+            .Add("ib-btn-icon-only", IconOnly)
+            .Add(ExtraClass);
+        var styles = new StyleBuilder();
+        LayoutItemProps.Apply(classes, styles, this);
+        if (accent.Custom is { } custom)
+        {
+            ColorOverride.Apply(styles, custom);
+        }
+
+        _class = classes.Add(LayoutItemProps.VisibilityClasses(HiddenFrom, VisibleFrom)).Add(Class).Build();
+        _style = styles.AddRaw(Style).Build();
+    }
+}

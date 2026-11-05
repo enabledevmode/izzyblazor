@@ -1,9 +1,9 @@
-@* Toggle buttons: @bind-Pressed turns each on and off, and screen readers hear "pressed". *@
+@* Filters that stay on or off: @bind-Value on each, and screen readers hear "checked". *@
 <Stack Gap="3" Align="Align.Center">
     <Row Gap="2" Wrap Justify="Justify.Center">
-        <Button StartIcon="Lucide.Star" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_starred">Starred</Button>
-        <Button StartIcon="Lucide.Paperclip" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_attachments">Has attachments</Button>
-        <Button StartIcon="Lucide.Mail" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @bind-Pressed="_unread">Unread</Button>
+        <ToggleButton Icon="Lucide.Star" Size="ControlSize.Sm" @bind-Value="_starred">Starred</ToggleButton>
+        <ToggleButton Icon="Lucide.Paperclip" Size="ControlSize.Sm" @bind-Value="_attachments">Has attachments</ToggleButton>
+        <ToggleButton Icon="Lucide.Mail" Size="ControlSize.Sm" @bind-Value="_unread">Unread</ToggleButton>
     </Row>
     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Shown.Count() of @Messages.Length messages</TextBlock>
 </Stack>

@@ -1,0 +1,39 @@
+@* A filter that applies as it's toggled, on static pages too: SubmitOnChange posts the form. With
+   JavaScript off, Apply posts it. *@
+<Form Model="Model" FormName="toggle-button-submit-on-change" Grow>
+    <Row Gap="2" Align="Align.Center">
+        <ToggleButton @bind-Value="Model!.ShowArchived" Icon="Lucide.Archive" Size="ControlSize.Sm" SubmitOnChange>Show archived</ToggleButton>
+        <noscript><Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Ghost">Apply</Button></noscript>
+    </Row>
+    <List>
+        @foreach (var project in Projects.Where(p => Model!.ShowArchived || !p.Archived))
+        {
+            <ListItem>@project.Name@(project.Archived ? " (archived)" : "")</ListItem>
+        }
+    </List>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "toggle-button-submit-on-change")]
+    private Filter? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Filter
+    {
+        public bool ShowArchived { get; set; }
+    }
+
+    @* hide *@
+    private sealed record Project(string Name, bool Archived);
+
+    private static readonly Project[] Projects =
+    [
+        new("Website redesign", false),
+        new("Q3 launch", false),
+        new("Office move", true),
+        new("Brand refresh", true),
+        new("Mobile app", false),
+    ];
+    @* /hide *@
+}

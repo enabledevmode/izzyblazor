@@ -401,13 +401,12 @@
     },
 
     {
-      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Actions", "summary": "Submits or resets a form, follows a link or runs C#.", "keywords": ["toggle button", "toggle", "pressed"],
+      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Actions", "summary": "Submits or resets a form, follows a link or runs C#.",
       "features": [
         { "feature": "Submit or reset a form, follow a link" },
         { "feature": "Several submit buttons told apart by Name and Value" },
         { "feature": "Loading and disabled states" },
-        { "feature": "OnClick runs C#", "member": "OnClick" },
-        { "feature": "Toggle buttons: @bind-Pressed turns them on and off", "member": "PressedChanged" }
+        { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
         { "id": "button-variants", "title": "Accents and variants" },
@@ -421,7 +420,6 @@
         { "id": "button-sizes-icons", "title": "Sizes and icons" },
         { "id": "button-states", "title": "Loading and disabled" },
         { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
-        { "id": "button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "button-state-in-address", "title": "A count in the URL",
           "notes": {
             "noscript": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -452,17 +450,15 @@
       ]
     },
     {
-      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.", "keywords": ["toggle button", "toggle icon button", "pressed"],
+      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.",
       "features": [
         { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
-        { "feature": "OnClick runs C#", "member": "OnClick" },
-        { "feature": "Toggle buttons: @bind-Pressed turns them on and off", "member": "PressedChanged" }
+        { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
         { "id": "icon-button-variants", "title": "Labels and variants", "lead": "An icon button's label is its name for screen readers and its tooltip. Set `Label`; it's required. Like Button, an icon button accepts `Variant`, `Accent` and `Href`." },
         { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Icon buttons have the same sizes and states as Button. `Size`, `Loading` and `Disabled` work as they do there." },
-        { "id": "icon-button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "A button on a row can act on that row. For a link, set `Href`. To post which row the button is on, set `Submit` with `Name` and `Value`; on interactive pages, `OnClick` does the same in C#.",
           "notes": {
             "noscript": "Delete posts the file's name, and the page reloads without the file. Restore is a link back.",
@@ -477,8 +473,31 @@
         { "id": "button-group-joined", "title": "Joined buttons", "lead": "Buttons and icon buttons in a group are joined into one control. To name the group for screen readers, set `Label`." },
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "A group can set its buttons' defaults, so you set a look once. Set `Variant`, `Accent` and `Size` on the group. A button's own setting overrides them." },
         { "id": "button-group-spaced", "title": "Spaced apart", "lead": "To space the buttons apart instead of joining them, set `Attached=\"false\"`." },
-        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." },
-        { "id": "button-group-toggles", "title": "Toggles in a group", "lead": "Toggle buttons that belong together, such as text styles, read as one control in a group. Each still turns on and off on its own with `@bind-Pressed`; for one choice of several, use a SegmentedControl.", "modes": ["interactive"] }
+        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." }
+      ]
+    },
+    {
+      "id": "toggle-button", "icon": "ToggleLeft", "name": "ToggleButton", "category": "Actions", "summary": "A button that stays on or off: a checkbox drawn as a button.", "keywords": ["toggle button", "toggle", "pressed", "on off button"],
+      "features": [
+        { "feature": "Toggles, shows its state and posts with JavaScript off" },
+        { "feature": "Binds a bool, in a Form or on its own" },
+        { "feature": "Posts its form as it changes (SubmitOnChange)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "ValueChanged runs C# at once", "member": "ValueChanged" }
+      ],
+      "examples": [
+        { "id": "toggle-button-filters", "title": "Toggle buttons", "lead": "A toggle button turns something on and off, such as a filter. Bind it with `@bind-Value`, and keep its text the same whether it's on or off. It's a checkbox drawn as a button, so screen readers hear \"checked\" or \"not checked\".", "modes": ["interactive"] },
+        { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip.", "modes": ["interactive"] },
+        { "id": "toggle-button-submit-on-change", "title": "Applying at once", "lead": "On static pages a toggle changes nothing until its form posts. To post the form as it changes, set `SubmitOnChange`. With JavaScript off, give the form a submit button, here in a `noscript`.",
+          "notes": {
+            "noscript": "Toggling changes only the button; Apply posts the form.",
+            "static": "Toggling posts the form, and the list comes back filtered."
+          } }
+      ]
+    },
+    {
+      "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Actions", "summary": "Joins toggle buttons that belong together, such as text styles.", "keywords": ["toggle group", "toggle button group", "formatting buttons"],
+      "examples": [
+        { "id": "toggle-group-text-style", "title": "Text styles", "lead": "Toggles that belong together, such as bold, italic and underline, read as one control in a group. Name it with `Label`. Each toggle keeps its own value, and any of them can be on. For one choice of several, such as text alignment, use a SegmentedControl.", "modes": ["interactive"] }
       ]
     },
     {
@@ -511,7 +530,7 @@
     },
     {
       "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "Lays out one row of controls and moves what doesn't fit into a … menu.", "keywords": ["action bar"],
-      "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarSplitButton", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
+      "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarToggleButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarSplitButton", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
         { "feature": "What doesn't fit moves into the … menu, which opens and posts with JavaScript off", "noscript": "full", "static": "full", "interactive": "full" },
         { "feature": "Widths measured in the browser (with JavaScript off, worked out on the server)", "noscript": "none", "static": "full", "interactive": "full" },
@@ -537,7 +556,7 @@
           ]
         },
         {
-          "id": "actions", "title": "Actions", "summary": "Toolbar buttons post a form or run C#, and work the same on the bar and in its … menu, including toggle and split buttons.", "members": ["ToolbarSplitButton", "ToolbarButton.Submit", "ToolbarButton.Name", "ToolbarButton.Value", "ToolbarButton.FormAction", "ToolbarButton.Form", "ToolbarButton.Pressed", "ToolbarButton.OnClick", "ToolbarIconButton.Submit", "ToolbarIconButton.Name", "ToolbarIconButton.Value", "ToolbarIconButton.FormAction", "ToolbarIconButton.Form", "ToolbarIconButton.Pressed", "ToolbarIconButton.OnClick"],
+          "id": "actions", "title": "Actions", "summary": "Toolbar buttons post a form or run C#, and work the same on the bar and in its … menu, including toggle and split buttons.", "members": ["ToolbarSplitButton", "ToolbarToggleButton", "ToolbarButton.Submit", "ToolbarButton.Name", "ToolbarButton.Value", "ToolbarButton.FormAction", "ToolbarButton.Form", "ToolbarButton.OnClick", "ToolbarIconButton.Submit", "ToolbarIconButton.Name", "ToolbarIconButton.Value", "ToolbarIconButton.FormAction", "ToolbarIconButton.Form", "ToolbarIconButton.OnClick"],
           "examples": [
             { "id": "toolbar-bulk-actions", "title": "Posting a form",
           "notes": {

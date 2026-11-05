@@ -16,9 +16,7 @@
 <ExampleViewer Example="icon-button-sizes-states" />
 
 <Heading Level="2">Toggle buttons</Heading>
-<TextBlock>A toggle button turns something on and off, such as a call's microphone. A click toggles it, and screen readers hear whether it's pressed. On interactive pages, set <Code>@@bind-Pressed</Code>. Keep the label the same whether it's pressed or not.</TextBlock>
-<ExampleViewer Example="icon-button-toggle" />
-<TextBlock>On static pages, set <Code>Pressed</Code> from the server's state, and post the change with <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. A link can't be pressed. In a <Anchor Href="docs/components/toolbar">Toolbar</Anchor>, a toggle that overflows becomes a checkbox item in the menu.</TextBlock>
+<TextBlock>For an icon button that stays on or off, such as a call's microphone, use a <Anchor Href="docs/components/toggle-button#ex-toggle-button-icon-only">ToggleButton</Anchor> with <Code>IconOnly</Code>.</TextBlock>
 
 <Heading Level="2">Actions on a row</Heading>
 <TextBlock>Icon buttons often act on one row of a list, such as deleting a file. For a link, set <Code>Href</Code>. To post which row a button is on, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. On <Anchor Href="docs/common/render-modes">interactive pages</Anchor>, set <Code>OnClick</Code> to do the same in C#.</TextBlock>

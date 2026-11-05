@@ -107,6 +107,8 @@ export function installSelectAll(): void {
   document.addEventListener("change", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+    // A ToggleButton with SubmitOnChange posts its form at once.
+    if (target.hasAttribute("data-ib-submit")) target.form?.requestSubmit();
     if (target.matches(SELECT_ALL)) {
       const on = target.checked;
       const flipped = optionsOf(target).filter((box) => box.checked !== on && !box.disabled);
