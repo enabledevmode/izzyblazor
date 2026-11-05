@@ -1,0 +1,22 @@
+@* Paying subscribers each month by plan, tiers in order: shades of the primary color. *@
+<Chart Items="_months" Argument="m => m.Month" Label="Subscribers by plan, 2026" Stacked="ChartStack.Stacked"
+       Palette="ChartPalette.Shades(Color.Primary)">
+    <ChartSeries Value="m => m.Starter" />
+    <ChartSeries Value="m => m.Pro" />
+    <ChartSeries Value="m => m.Team" />
+    <ChartSeries Value="m => m.Enterprise" />
+</Chart>
+
+@code {
+    private record MonthPlans(string Month, int Starter, int Pro, int Team, int Enterprise);
+
+    private readonly MonthPlans[] _months =
+    [
+        new("Jan", 1_020, 610, 220, 38),
+        new("Feb", 1_065, 642, 231, 40),
+        new("Mar", 1_110, 688, 249, 43),
+        new("Apr", 1_142, 715, 262, 45),
+        new("May", 1_198, 760, 280, 49),
+        new("Jun", 1_236, 798, 301, 52),
+    ];
+}
