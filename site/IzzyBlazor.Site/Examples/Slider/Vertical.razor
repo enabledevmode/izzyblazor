@@ -1,0 +1,25 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="slider-vertical">
+    <Row Gap="6">
+        <Slider @bind-Value="Model!.Microphone" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
+        <Slider @bind-Value="Model!.Speaker" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
+        <Slider @bind-Value="Model!.Alerts" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "slider-vertical")]
+    private Levels? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Levels
+    {
+        public int Microphone { get; set; } = 70;
+
+        public int Speaker { get; set; } = 45;
+
+        public int Alerts { get; set; } = 20;
+    }
+}

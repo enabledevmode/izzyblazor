@@ -21,6 +21,10 @@
 <ExampleViewer Example="slider-live" />
 <TextBlock>Each move is a round trip to the server, so set <Code>Live</Code> only when something follows the value. On static pages, the value posts with the form either way.</TextBlock>
 
+<Heading Level="2">Vertical</Heading>
+<TextBlock>A slider can stand upright, as in a mixer or a levels panel. Set <Code>Orientation</Code> to <Code>Orientation.Vertical</Code>. The lowest value is at the bottom, and Up raises it. The value shows under the track. To change the track's length from 10rem, set <Code>Height</Code>.</TextBlock>
+<ExampleViewer Example="slider-vertical" />
+
 <Heading Level="2">Empty values</Heading>
 <TextBlock>A range input always has a value. Bound to a nullable property that's null, the slider shows the thumb at the midpoint, snapped to the step, and posts that value. When "not set" must stay possible, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
 
@@ -58,5 +62,8 @@
         @* Its own ends and steps, read as a percentage. *@
         <Slider @bind-Value="Model!.Discount" Min="0" Max="50" Step="5"
                 ShowValue ValueFormat="{0}%" />
+
+        @* Upright, the lowest value at the bottom. *@
+        <Slider @bind-Value="Model!.Microphone" Orientation="Orientation.Vertical" ShowValue />
         """;
 }
