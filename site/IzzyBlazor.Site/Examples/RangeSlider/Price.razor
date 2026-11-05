@@ -1,5 +1,5 @@
 <Form Model="Model" FormName="range-slider-price" OnValidSubmit="Apply" MaxWidth="28.Rem" Grow>
-    <RangeSlider @bind-Value="Model!.Price" Label="Price" Max="400" Step="10" ShowValue ValueFormat="${0}" />
+    <RangeSlider @bind-Value="Model!.Price" Label="Price" Max="400" Step="10" ValueFormat="${0}" ValueTooltip="SliderTooltip.Always" ShowEnds />
     <Row><Button Submit>Show headphones</Button></Row>
     <List>
         @foreach (var item in _shown)

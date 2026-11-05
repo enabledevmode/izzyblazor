@@ -7,7 +7,7 @@
         <Select @bind-Value="Model!.Region" Grow />
         <SegmentedControl @bind-Value="Model!.Theme" />
     </Row>
-    <Slider @bind-Value="Model!.Timeout" Min="5" Max="120" Step="5" ShowValue ValueFormat="{0} min" />
+    <Slider @bind-Value="Model!.Timeout" Min="5" Max="120" Step="5" ValueFormat="{0} min" ValueTooltip="SliderTooltip.Active" ShowEnds />
     <Switch @bind-Value="Model!.Alerts" ControlPosition="ControlPosition.End" Hint="An email when a deploy fails." />
     <FormActions><Button Submit>Save</Button></FormActions>
     @if (_saved)

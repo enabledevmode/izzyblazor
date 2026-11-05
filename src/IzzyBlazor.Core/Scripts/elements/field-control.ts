@@ -7,8 +7,8 @@ import { load } from "../lazy";
  * - a show/hide toggle for passwords (rendered hidden, revealed here)
  * - a live character count for text areas
  * - increase and decrease buttons for number inputs (hold to repeat)
- * - a slider's track fill and shown value, kept current while dragging
- * - a range slider's thumbs kept apart, its fill and shown values, and clicks on its track
+ * - a slider's track fill and value tooltip, kept current while dragging
+ * - a range slider's thumbs kept apart, its fill and tooltips, and clicks on its track
  * - a text field's Mask, loaded with the first field that has one
  */
 class FieldControl extends IzzyElement {
@@ -93,12 +93,12 @@ class FieldControl extends IzzyElement {
 }
 
 /**
- * Keeps a slider's fill (--ib-slider-fill on the control) and its shown value current as it
- * moves. The value's text belongs to Blazor, so the live one goes in data-current, which CSS
+ * Keeps a slider's fill (--ib-slider-fill on the control) and its value tooltip current as it
+ * moves. The tooltip's text belongs to Blazor, so the live one goes in data-current, which CSS
  * shows; aria-valuetext gets the same formatted text.
  */
 function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: AbortSignal): void {
-  const output = control.querySelector<HTMLElement>(".ib-slider-value");
+  const tip = control.querySelector<HTMLElement>(".ib-slider-tip");
   const format = input.dataset.ibFormat ?? "{0}";
   const update = () => {
     const min = input.min === "" ? 0 : Number(input.min);
@@ -107,7 +107,7 @@ function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: Abor
     control.style.setProperty("--ib-slider-fill", String(Math.min(100, Math.max(0, percent))));
     const text = format.replace("{0}", input.value);
     input.setAttribute("aria-valuetext", text);
-    if (output) output.dataset.current = text;
+    if (tip) tip.dataset.current = text;
   };
   input.addEventListener("input", update, { signal });
   input.addEventListener("change", update, { signal });
@@ -116,20 +116,26 @@ function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: Abor
   update();
 
   // When Blazor re-renders the value, the server's text and fill are current again.
-  if (output) {
-    const observer = new MutationObserver(() => delete output.dataset.current);
-    observer.observe(output, { childList: true, characterData: true, subtree: true });
+  if (tip) followBlazor([tip], signal);
+}
+
+/** Drops a tooltip's live text when Blazor writes its own, which is current again. */
+function followBlazor(tips: HTMLElement[], signal: AbortSignal): void {
+  for (const tip of tips) {
+    const observer = new MutationObserver(() => delete tip.dataset.current);
+    observer.observe(tip, { childList: true, characterData: true, subtree: true });
     signal.addEventListener("abort", () => observer.disconnect());
   }
 }
 
 /**
  * A range slider: two range inputs on one track. Each thumb stops at the other, the track fills
- * between them (--ib-slider-from and --ib-slider-fill), the shown values and aria-valuetext follow,
+ * between them (--ib-slider-from and --ib-slider-fill), the tooltips and aria-valuetext follow,
  * and a press on the track moves the nearer thumb there.
  */
 function setupRangeSlider(control: HTMLElement, start: HTMLInputElement, end: HTMLInputElement, signal: AbortSignal): void {
-  const output = control.querySelector<HTMLElement>(".ib-slider-value");
+  const startTip = control.querySelector<HTMLElement>(".ib-slider-tip:not([data-ib-end])");
+  const endTip = control.querySelector<HTMLElement>(".ib-slider-tip[data-ib-end]");
   const track = start.parentElement!;
   const format = (input: HTMLInputElement) => (input.dataset.ibFormat ?? "{0}").replace("{0}", input.value);
   const scale = () => {
@@ -146,7 +152,8 @@ function setupRangeSlider(control: HTMLElement, start: HTMLInputElement, end: HT
     control.style.setProperty("--ib-slider-fill", String(percent(end)));
     start.setAttribute("aria-valuetext", format(start));
     end.setAttribute("aria-valuetext", format(end));
-    if (output) output.dataset.current = `${format(start)} – ${format(end)}`;
+    if (startTip) startTip.dataset.current = format(start);
+    if (endTip) endTip.dataset.current = format(end);
     // Where the thumbs meet, the one with room to move is on top: the lower thumb near the top of
     // the scale, the upper one elsewhere.
     const { min, max } = scale();
@@ -197,11 +204,7 @@ function setupRangeSlider(control: HTMLElement, start: HTMLInputElement, end: HT
   update();
 
   // When Blazor re-renders the values, the server's text and fill are current again.
-  if (output) {
-    const observer = new MutationObserver(() => delete output.dataset.current);
-    observer.observe(output, { childList: true, characterData: true, subtree: true });
-    signal.addEventListener("abort", () => observer.disconnect());
-  }
+  followBlazor([startTip, endTip].filter((tip): tip is HTMLElement => tip !== null), signal);
 }
 
 /** Wires a number input's stepper buttons. Stepping fires input and change, so binding sees it. */

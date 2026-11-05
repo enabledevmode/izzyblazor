@@ -869,30 +869,34 @@
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "Lets the user pick a number by dragging along a range.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
-        { "feature": "The track fills to the thumb, and the shown value follows", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The track fills to the thumb, and the value tooltip follows", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Screen readers hear the value as ValueFormat writes it", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "slider-value", "title": "Showing the value", "lead": "To show the value beside the slider, set `ShowValue`. `ValueFormat` sets how the value reads, both shown and announced. `[Range]` sets the ends.",
+        { "id": "slider-value", "title": "Showing the value", "lead": "To show the value in a tooltip over the thumb, set `ValueTooltip`; to label the ends, `ShowEnds`. `ValueFormat` sets how values read, both shown and announced. `[Range]` sets the ends.",
           "notes": {
-            "noscript": "A plain range input: no fill, and no value beside it.",
-            "static": "IzzyBlazor's script fills the track to the thumb, and the value follows as the user drags."
+            "noscript": "A plain range input with its ends labelled: no fill, and no tooltip.",
+            "static": "IzzyBlazor's script fills the track to the thumb, and the tooltip follows as the user drags."
+          } },
+        { "id": "slider-marks", "title": "Marks", "lead": "To point out values on the track, set `Marks`, each with an optional label; `ShowStepMarks` puts a dot at every step.",
+          "notes": {
+            "noscript": "The marks and the ends' labels show; the tooltip doesn't."
           } },
         { "id": "slider-budget", "title": "Saving a value",
           "notes": {
-            "noscript": "Save budget posts the slider's number; the value beside it doesn't follow the thumb.",
+            "noscript": "Save budget posts the slider's number; the tooltip doesn't show.",
             "static": "The value follows the thumb, and Save budget posts it without a full reload.",
             "interactive": "Save budget runs C# without a full reload; the saved line keeps what was saved."
           } },
         { "id": "slider-live", "title": "Following the value live", "lead": "To update the bound value while the user drags, so something on the page can follow it, set `Live`. It works on interactive pages.", "modes": ["interactive"] },
         { "id": "slider-vertical", "title": "Vertical", "lead": "To stand a slider upright, set `Orientation` to `Vertical`. The lowest value is at the bottom. `Height` sets the track's length, 10rem by default.",
           "notes": {
-            "noscript": "Upright range inputs with no fill and no values under them."
+            "noscript": "Upright range inputs with no fill and no tooltips."
           } },
         { "id": "slider-states", "title": "Sizes and disabled", "lead": "To match other fields, set `Size`. A `Disabled` slider can't be moved and doesn't post.",
           "notes": {
-            "noscript": "Plain range inputs with no values beside them."
+            "noscript": "Plain range inputs with no tooltip."
           } }
       ]
     },
@@ -901,7 +905,7 @@
       "features": [
         { "feature": "Two native range inputs on one track: drag, arrow keys, Page Up/Down and Home/End; both ends posted with the form" },
         { "feature": "The thumbs stop at each other", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "The track fills between the thumbs, and the shown values follow", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The track fills between the thumbs, and the value tooltips follow", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "A click on the track moves the nearer thumb", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Screen readers hear each value as ValueFormat writes it", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
@@ -915,7 +919,7 @@
           } },
         { "id": "range-slider-window", "title": "Naming the thumbs",
           "notes": {
-            "noscript": "Plain range inputs with no values beside them."
+            "noscript": "Plain range inputs with marks and labelled ends; no fill, and no tooltips."
           } }
       ]
     },

@@ -1,0 +1,19 @@
+<Form Model="Model" FormName="slider-marks" MaxWidth="24.Rem" Grow>
+    <Slider @bind-Value="Model!.Temperature" Label="Water heater" Min="40" Max="70" ValueFormat="{0}°C"
+            ValueTooltip="SliderTooltip.Active" ShowEnds Marks="@Guides"
+            Hint="49°C saves energy; 60°C and up stops bacteria growing in the tank." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "slider-marks")]
+    private Heater? Model { get; set; }
+
+    private static readonly SliderMark[] Guides = [new(49, "49°C"), new(60, "60°C")];
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Heater
+    {
+        public int Temperature { get; set; } = 55;
+    }
+}
