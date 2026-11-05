@@ -206,6 +206,21 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void SeriesBy_splits_a_series_into_one_per_value_with_only_its_own_items()
+    {
+        Month[] months = [new("Jan", 100, 1), new("Feb", 120, 2), new("Mar", 90, 1)];
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Label, "Revenue by plan")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.SeriesBy, m => m.Costs == 1 ? "Basic" : "Pro")));
+
+        Assert.Equal(["Basic", "Pro"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
+        Assert.Equal(["Jan", "100", ""], cut.FindAll(".ib-chart-table tbody tr")[0].Children.Select(c => c.TextContent));
+        Assert.Equal(2, cut.FindAll(".ib-chart-bars[data-ib-series='0'] rect title").Count);
+    }
+
+    [Fact]
     public void Needs_a_label()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p

@@ -197,7 +197,7 @@
     private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
-        var series = _context.Series.Select(s => s.Read(items, SeriesType)).ToList();
+        var series = _context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
         var model = ChartLayout.Build(new ChartInput(items.Select(_argument!).ToList(), series)
         {
