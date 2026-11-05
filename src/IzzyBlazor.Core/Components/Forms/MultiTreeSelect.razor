@@ -14,7 +14,7 @@
                      ItemValue="d => d.Id" ItemText="d => d.Name" Label="Visible to" />
 
     Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed
-    box; Cascade="false" makes each box its own. The value holds every checked item, parents
+    box; Cascade="false" makes each box its own. The value contains every checked item, parents
     included. The field shows the choice as chips, and a branch checked whole as one chip, its
     parent's.
 
@@ -25,21 +25,27 @@
     - No script: the button opens the panel (the Popover API), whose checkboxes post with the form
       as repeated fields, which Blazor binds to the collection. Checking a parent doesn't check its
       branch, and the chips change once the form posts.
-    - With script: checking a parent checks its branch, the panel stays open while you check, the
-      chips follow at once, and a chip's × or Backspace on the field unchecks it.
+    - With IzzyBlazor's script: checking a parent checks its branch, the panel stays open while you
+      check, the chips follow at once, and a chip's × or Backspace on the field unchecks it.
     - Interactive: the same, and @bind-Value follows each change.
 
     Accessibility:
-    - The field is a `button` named by its label and the chosen items ("Visible to, Web, Billing"),
-      with `aria-haspopup="dialog"`, the hint and errors as its description.
-    - The panel is a non-modal `dialog` named by the label. With script the tree in it is an ARIA
-      `tree` (one Tab stop, the arrow keys between items, each `treeitem` saying whether it's
-      checked, "mixed" for a part-checked parent); with JavaScript off it's checkboxes in branches.
+    - The field is a `button` named by its label and the chosen items ("Visible to Web, Billing"),
+      with `aria-haspopup="dialog"`, the hint and errors as its description. Without a label, give
+      it an `aria-label`. The placeholder isn't part of its name.
+    - The panel is a non-modal `dialog` named by the label. With IzzyBlazor's script the tree in it
+      is an ARIA `tree` (one Tab stop, the arrow keys between items, each `treeitem` saying whether
+      it's checked, "mixed" for a part-checked parent, and an item that can't be chosen saying
+      nothing); with JavaScript off it's checkboxes in branches.
+    - With IzzyBlazor's script, opening it moves focus to the search box with `Searchable`, else
+      the tree's first checked item, else the first; Escape closes it and puts focus back on the
+      field, and Tab out of it closes it. With JavaScript off, focus stays on the field.
     - A chip's × is for the mouse and hidden from screen readers; Backspace on the field, the
       tree's boxes and the clear button ("Clear", `IzzyText.Clear`) do the same from the keyboard.
+      A chip for an item that can't be changed (`ItemDisabled`, `ItemSelectable`) has no ×.
 
     Keyboard:
-    - Enter, Space, Down | Open the tree (on the field)
+    - Enter, Space, Down, Up | Open the tree (on the field)
     - Backspace | Uncheck the last chip (on the field)
     - Down | Move from the search box to the first match
     - Up, Down | Move to the item above or below
@@ -117,6 +123,20 @@
         CurrentValue = ChoiceCollection<TValue, TItemValue>.Create(found);
     }
 
+    /// <inheritdoc />
+    private protected override void Drop(string key) =>
+        CurrentValue = ChoiceCollection<TValue, TItemValue>.Create(ChoiceCollection<TValue, TItemValue>.Items(CurrentValue).Where(v => ChoiceOptions.Value(v) != key));
+
+    /// <inheritdoc />
+    private protected override IEnumerable<string> ChosenTexts => Chips().Select(c => c.Text);
+
+    // A chip each for the chosen items whose parent isn't chosen too, then for values still to load.
+    // Locked: an item that can't be changed, whose chip has no ×.
+    private List<(string Key, string Text, bool Locked)> Chips() =>
+        Tops().Select(item => (KeyOf(item), TextOf(item), ItemDisabled?.Invoke(item) == true || ItemSelectable?.Invoke(item) == false))
+            .Concat(UnloadedChips().Select(c => (c.Key, c.Text, false)))
+            .ToList();
+
     // What the chips show: each chosen item whose parent isn't chosen too, so a branch checked whole
     // is one chip, its parent's.
     private List<TItem> Tops()
@@ -158,7 +178,7 @@
     /// <inheritdoc />
     private protected override RenderFragment Shown => __builder =>
     {
-        var chips = Tops().Select(item => (Key: KeyOf(item), Text: TextOf(item))).Concat(UnloadedChips()).ToList();
+        var chips = Chips();
         @* The button's name after its label: the chips in words, as the chips' text would run together. *@
         <span id="@TextId" class="ib-treeselect-said" hidden>@string.Join(", ", chips.Select(c => c.Text))</span>
         <span class="ib-treeselect-text ib-treeselect-chips" data-ib-empty="@(chips.Count == 0 ? "" : null)" aria-hidden="true">
@@ -166,9 +186,12 @@
             {
                 @Placeholder
             }
-            @foreach (var (key, text) in chips)
+            @foreach (var (key, text, locked) in chips)
             {
-                <span @key="key" class="ib-chip" data-value="@key"><span class="ib-chip-text">@text</span><span class="ib-chip-remove" data-ib-remove><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></span></span>
+                <span @key="key" class="ib-chip" data-value="@key" data-ib-locked="@(locked ? "" : null)"><span class="ib-chip-text">@text</span>@if (!locked)
+                {
+                    <span class="ib-chip-remove" data-ib-remove><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></span>
+                }</span>
             }
         </span>
     };

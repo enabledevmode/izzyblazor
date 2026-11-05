@@ -130,7 +130,14 @@ class TreeSelect extends IzzyElement {
     const show = (box: HTMLInputElement | null) => {
       if (interactive || !text) return;
       const label = box?.closest("li")?.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel;
-      text.textContent = label ?? this.dataset.ibPlaceholder ?? "";
+      // The placeholder shows but isn't read as the choice.
+      if (label !== undefined) text.textContent = label;
+      else {
+        const placeholder = document.createElement("span");
+        placeholder.setAttribute("aria-hidden", "true");
+        placeholder.textContent = this.dataset.ibPlaceholder ?? "";
+        text.replaceChildren(placeholder);
+      }
       text.toggleAttribute("data-ib-empty", label === undefined);
       if (clear) clear.hidden = label === undefined;
     };
@@ -146,7 +153,7 @@ class TreeSelect extends IzzyElement {
     // A chosen value whose item was still to load posts from a hidden box beside the panel; when its
     // branch loads, the item's own box takes over, checked.
     const kept = () => [...this.querySelectorAll<HTMLInputElement>(":scope > .ib-treeselect-kept")];
-    if (kept().length) {
+    if (kept().length && !interactive) {
       const adopt = new MutationObserver(() => {
         for (const input of kept()) {
           const box = panel.querySelector<HTMLInputElement>(`li[data-ib-key="${CSS.escape(input.value)}"] > .ib-tree-item > .ib-tree-select`);
@@ -199,14 +206,20 @@ class TreeSelect extends IzzyElement {
     const uncheck = (key: string) => {
       const box = boxOf(panel.querySelector(`li[data-ib-key="${CSS.escape(key)}"]`));
       if (box?.checked && !box.disabled) box.click();
-      // A value still to load posts from its hidden box: drop it.
+      // A value still to load posts from its hidden box: uncheck it (Blazor drops it on an
+      // interactive page), and on a static page take it out.
       const input = kept().find((k) => k.value === key);
       if (input) {
-        input.remove();
-        redraw();
+        input.checked = false;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        if (!interactive) {
+          input.remove();
+          redraw();
+        }
       }
     };
-    const keys = () => [...(chips?.querySelectorAll<HTMLElement>(".ib-chip") ?? [])].map((chip) => chip.dataset.value ?? "");
+    // The chips a person can remove: not one for an item that can't be changed.
+    const keys = () => [...(chips?.querySelectorAll<HTMLElement>(".ib-chip:not([data-ib-locked])") ?? [])].map((chip) => chip.dataset.value ?? "");
 
     // The ×: the button's click would open the panel too.
     button.addEventListener(
@@ -252,25 +265,26 @@ class TreeSelect extends IzzyElement {
         const parent = li.parentElement?.closest("li");
         return !(cascade && boxOf(parent ?? null)?.checked);
       });
-      const shown: [string, string][] = [
-        ...tops.map((li): [string, string] => [li.dataset.ibKey ?? "", li.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel ?? ""]),
-        ...kept().map((k): [string, string] => [k.value, named.get(k.value) ?? k.value]),
+      const shown: [string, string, boolean][] = [
+        ...tops.map((li): [string, string, boolean] => [li.dataset.ibKey ?? "", li.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel ?? "", !!boxOf(li)?.disabled]),
+        ...kept().map((k): [string, string, boolean] => [k.value, named.get(k.value) ?? k.value, false]),
       ];
       chips.replaceChildren(
         ...(shown.length === 0
           ? [this.dataset.ibPlaceholder ?? ""]
-          : shown.map(([key, name]) => {
+          : shown.map(([key, name, locked]) => {
               const chip = document.createElement("span");
               chip.className = "ib-chip";
               chip.dataset.value = key;
-              chip.innerHTML = `<span class="ib-chip-text"></span><span class="ib-chip-remove" data-ib-remove>${icon}</span>`;
+              chip.toggleAttribute("data-ib-locked", locked);
+              chip.innerHTML = `<span class="ib-chip-text"></span>${locked ? "" : `<span class="ib-chip-remove" data-ib-remove>${icon}</span>`}`;
               chip.firstElementChild!.textContent = name;
               return chip;
             }))
       );
       chips.toggleAttribute("data-ib-empty", shown.length === 0);
       if (said) said.textContent = shown.map(([, name]) => name).join(", ");
-      if (clear) clear.hidden = shown.length === 0;
+      if (clear) clear.hidden = !shown.some(([, , locked]) => !locked);
     };
     redraw = draw;
     // A cascade changes many boxes at once: draw once after them.
