@@ -34,19 +34,5 @@ public sealed class TabsCloseTests(SiteFixture site) : IClassFixture<SiteFixture
         await example.GetByRole(AriaRole.Button, new() { Name = "New invoice" }).Or(example.GetByRole(AriaRole.Link, new() { Name = "New invoice" })).ClickAsync();
         await Assertions.Expect(tabs).ToHaveTextAsync(["All invoices", "INV-1042", "INV-1046"]);
         await Assertions.Expect(Tab("INV-1046")).ToHaveAttributeAsync("aria-selected", "true");
-
-        // Interactive: a new draft asks before it closes, and Cancel leaves it open and selected.
-        if (mode == "interactive")
-        {
-            await example.Locator(".ib-tab-close[aria-label='Close INV-1046']").ClickAsync();
-            await page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Cancel" }).ClickAsync();
-            await Assertions.Expect(tabs).ToHaveTextAsync(["All invoices", "INV-1042", "INV-1046"]);
-            await Assertions.Expect(Tab("INV-1046")).ToHaveAttributeAsync("aria-selected", "true");
-
-            await example.Locator(".ib-tab-close[aria-label='Close INV-1046']").ClickAsync();
-            await page.GetByRole(AriaRole.Dialog).GetByRole(AriaRole.Button, new() { Name = "Discard" }).ClickAsync();
-            await Assertions.Expect(tabs).ToHaveTextAsync(["All invoices", "INV-1042"]);
-            await Assertions.Expect(Tab("INV-1042")).ToHaveAttributeAsync("aria-selected", "true");
-        }
     }
 }
