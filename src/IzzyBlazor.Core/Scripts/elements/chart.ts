@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { type DrawData, draw } from "./chart-draw";
 
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
@@ -13,6 +14,12 @@ import { IzzyElement, defineElement } from "../izzy-element";
  */
 class Chart extends IzzyElement {
   protected setup(signal: AbortSignal): void {
+    // An interactive page can draw the chart again with new data in this same element: set up
+    // again from what the server sent.
+    const changed = new MutationObserver(() => this.connectedCallback());
+    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie"] });
+    signal.addEventListener("abort", () => changed.disconnect());
+
     if (this.hasAttribute("data-ib-pie")) {
       this.pie(signal);
       return;
@@ -22,22 +29,6 @@ class Chart extends IzzyElement {
     const plot = this.querySelector<HTMLElement>(".ib-chart-plot");
     const bottom = this.querySelector<HTMLElement>(".ib-chart-bottom");
     if (!frame || !plot) return;
-
-    // Labels: show as many as fit, measured.
-    if (bottom) {
-      let frameId = 0;
-      const refit = () => {
-        cancelAnimationFrame(frameId);
-        frameId = requestAnimationFrame(() => this.fit(bottom));
-      };
-      const observer = new ResizeObserver(refit);
-      observer.observe(bottom);
-      signal.addEventListener("abort", () => {
-        observer.disconnect();
-        cancelAnimationFrame(frameId);
-      });
-      refit();
-    }
 
     // Legend: each item hides and shows its series.
     const hidden = new Set<number>();
@@ -49,6 +40,39 @@ class Chart extends IzzyElement {
       toggle.setAttribute("aria-pressed", String(!hidden.has(series)));
     }
 
+    // With a series hidden that the server drew shown (or the other way round), the chart is
+    // drawn again here without it: its own plot and value labels stand in for the server's.
+    const data: DrawData | null = this.dataset.ibDraw ? JSON.parse(this.dataset.ibDraw) : null;
+    const drawn = new Set(hidden);
+    const jsSvg = plot.querySelector<SVGSVGElement>("svg.ib-chart-js");
+    const jsLabels = this.querySelector<HTMLElement>(".ib-chart-values.ib-chart-js");
+    const redraw = () => {
+      const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
+      this.toggleAttribute("data-ib-redrawn", !same && !!data);
+      if (same || !data || !jsSvg || !jsLabels) return;
+      const out = draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight });
+      jsSvg.innerHTML = out.svg;
+      jsLabels.innerHTML = out.labels;
+    };
+    signal.addEventListener("abort", () => this.removeAttribute("data-ib-redrawn"));
+
+    // Labels: show as many as fit, measured. Across, the value axis is drawn again for its width.
+    let frameId = 0;
+    const refit = () => {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        if (this.hasAttribute("data-ib-redrawn") && this.hasAttribute("data-ib-horizontal")) redraw();
+        if (bottom) this.fit(bottom);
+      });
+    };
+    const observer = new ResizeObserver(refit);
+    observer.observe(plot);
+    signal.addEventListener("abort", () => {
+      observer.disconnect();
+      cancelAnimationFrame(frameId);
+    });
+    refit();
+
     // Draws the open tooltip again once it's set up below (a chart can have no tooltips).
     let refresh = () => {};
     const setHidden = (series: number, off: boolean) => {
@@ -58,6 +82,8 @@ class Chart extends IzzyElement {
         el.toggleAttribute("data-ib-hidden", off);
       }
       this.querySelector(`.ib-chart-toggle[data-ib-series="${series}"]`)?.setAttribute("aria-pressed", String(!off));
+      redraw();
+      refit();
       refresh();
     };
 
@@ -99,9 +125,11 @@ class Chart extends IzzyElement {
       : Array.from({ length: count }, (_, i) => (i + 0.5) / count);
     // A scatter chart's tooltip is for the point nearest the pointer, not the band under it.
     const pointsMode = this.hasAttribute("data-ib-points");
-    const marks = [...plot.querySelectorAll<SVGUseElement>("use[data-ib-i]")];
+    // The points shown: the server's, or the script's once it has drawn the chart again.
+    const marksNow = () =>
+      [...plot.querySelectorAll<SVGUseElement>(this.hasAttribute("data-ib-redrawn") ? "svg.ib-chart-js use[data-ib-i]" : "svg:not(.ib-chart-js) use[data-ib-i]")];
     const visible = (m: Element) => !m.closest("[data-ib-hidden]");
-    const markFor = (index: number) => marks.find((m) => m.dataset.ibI === String(index) && visible(m));
+    const markFor = (index: number) => marksNow().find((m) => m.dataset.ibI === String(index) && visible(m));
     const at = (m: SVGUseElement) => [
       (parseFloat(m.getAttribute("x") ?? "0") / 100) * plot.clientWidth,
       (parseFloat(m.getAttribute("y") ?? "0") / 100) * plot.clientHeight,
@@ -209,7 +237,7 @@ class Chart extends IzzyElement {
           const py = event.clientY - r.top;
           let best: SVGUseElement | undefined;
           let distance = Infinity;
-          for (const m of marks) {
+          for (const m of marksNow()) {
             if (!visible(m)) continue;
             const [mx, my] = at(m);
             const d = (mx - px) ** 2 + (my - py) ** 2;
@@ -424,7 +452,7 @@ class Chart extends IzzyElement {
    * sets data-ib-fit to the widest set whose labels have room (chart.css shows that set).
    */
   private fit(axis: HTMLElement): void {
-    const labels = [...axis.children] as HTMLElement[];
+    const labels = [...axis.querySelectorAll<HTMLElement>(":scope > .ib-chart-ticks > span")].filter((l) => getComputedStyle(l.parentElement!).display !== "none");
     if (labels.length === 0) return;
     const from = (l: HTMLElement) => Number(/ib-chart-from(\d)/.exec(l.className)?.[1] ?? 0);
     const width = axis.clientWidth;

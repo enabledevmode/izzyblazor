@@ -153,6 +153,39 @@ public class ChartLayoutTests
     }
 }
 
+public class ChartRedrawTests
+{
+    [Fact]
+    public void A_hidden_series_is_left_out_of_the_stacks_and_the_value_range()
+    {
+        var model = ChartLayout.Build(new ChartInput(["A", "B"],
+        [
+            new ChartSeriesData("Shown", ChartType.Bar, [10, 20]),
+            new ChartSeriesData("Hidden", ChartType.Bar, [500, 500]) { Hidden = true },
+        ])
+        { Stacked = ChartStack.Stacked, Culture = CultureInfo.InvariantCulture });
+
+        Assert.Empty(model.Series[1].Bars);
+        Assert.Equal("20", model.ValueLabels[^1].Text);
+        // Still in the table, for the legend to show it again.
+        Assert.Equal("500 500", string.Join(" ", model.ValueTexts[1]));
+    }
+
+    [Theory]
+    [InlineData("C0", "en-US", "$", "", "-$", ",", ".", 0, 1)]
+    [InlineData("P0", "en-US", "", "%", "-", ",", ".", 0, 100)]
+    [InlineData("N1", "de-DE", "", "", "-", ".", ",", 1, 1)]
+    [InlineData("0' ms'", "en-US", "", " ms", "-", "", ".", 0, 1)]
+    public void The_script_reads_how_values_look_from_the_format(string format, string culture, string prefix, string suffix, string negative, string group, string dec, int decimals, double scale)
+    {
+        var shape = NumberShape.Of(format, CultureInfo.GetCultureInfo(culture));
+        Assert.Equal((prefix, suffix, negative, group, dec, decimals, scale),
+            (shape.Prefix, shape.Suffix, shape.NegativePrefix, shape.Group, shape.Decimal, shape.Decimals, shape.Scale));
+        Assert.True(NumberShape.Of("#,##0.##", CultureInfo.InvariantCulture).Trim);
+        Assert.Equal(-1, NumberShape.Of(null, CultureInfo.InvariantCulture).Decimals);
+    }
+}
+
 public class ChartRenderTests : BunitContext
 {
     private record Month(string Name, decimal Revenue, decimal Costs);

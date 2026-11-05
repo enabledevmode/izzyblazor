@@ -141,11 +141,12 @@ internal static class ChartLayout
         var highs = new double?[input.Series.Count][];
         StackValues(input, stacked, full, lows, highs);
 
-        // The value domain.
+        // The value domain, from the series that show: a hidden one is drawn as if it weren't there.
         var min = double.PositiveInfinity;
         var max = double.NegativeInfinity;
         for (var s = 0; s < input.Series.Count; s++)
         {
+            if (input.Series[s].Hidden) continue;
             for (var i = 0; i < n; i++)
             {
                 if (highs[s][i] is { } h) { min = Math.Min(min, h); max = Math.Max(max, h); }
@@ -153,7 +154,7 @@ internal static class ChartLayout
             }
         }
 
-        if (input.Series.Any(s => s.Type is ChartType.Bar or ChartType.Area))
+        if (input.Series.Any(s => !s.Hidden && s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
@@ -248,7 +249,7 @@ internal static class ChartLayout
         // The series.
         double Scale(double v) => Math.Clamp((v - dmin) / (dmax - dmin), 0, 1);
         var zero = Scale(0);
-        var bars = input.Series.Where(s => s.Type == ChartType.Bar).ToList();
+        var bars = input.Series.Where(s => s.Type == ChartType.Bar && !s.Hidden).ToList();
         var band = 1.0 / Math.Max(1, n);
         var lineStyle = 0;
         for (var s = 0; s < input.Series.Count; s++)
@@ -262,6 +263,7 @@ internal static class ChartLayout
                 Style = data.Type == ChartType.Bar ? 0 : lineStyle++ + s / 8,
             };
             model.Series.Add(shape);
+            if (data.Hidden) continue;
 
             if (data.Type == ChartType.Bar)
             {
@@ -376,7 +378,7 @@ internal static class ChartLayout
 
         foreach (var type in new[] { ChartType.Bar, ChartType.Area })
         {
-            var group = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Type == type).ToList();
+            var group = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Type == type && !input.Series[s].Hidden).ToList();
             for (var i = 0; i < n; i++)
             {
                 var total = full ? group.Sum(s => Math.Abs(highs[s][i] ?? 0)) : 1;

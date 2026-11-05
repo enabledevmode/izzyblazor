@@ -86,7 +86,7 @@
     min-width: 0;
   }
 
-  .ib-chart-side > span {
+  .ib-chart-side > * > span {
     grid-area: 1 / 1;
     align-self: start;
     position: relative;
@@ -95,7 +95,7 @@
     white-space: nowrap;
   }
 
-  .ib-chart-names > span {
+  .ib-chart-names > * > span {
     max-width: 33cqi;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -175,6 +175,17 @@
 
   ib-chart { display: block; }
 
+  /* Labels sit in wrappers that don't box them, so they lay out as the axis's own children. */
+  .ib-chart-ticks { display: contents; }
+
+  /* The script's own drawing (chart-draw.ts), for when the legend hides a series: it stands in
+     for the server's plot and value labels, and is empty and out of the way until then. */
+  .ib-chart-js,
+  ib-chart[data-ib-redrawn] .ib-chart-values:not(.ib-chart-js),
+  ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs) { display: none; }
+  ib-chart[data-ib-redrawn] .ib-chart-values.ib-chart-js { display: contents; }
+  ib-chart[data-ib-redrawn] svg.ib-chart-js { display: block; }
+
   /* A series hidden from the legend (or by Hidden). */
   ib-chart .ib-chart-frame [data-ib-hidden] { display: none; }
 
@@ -243,14 +254,14 @@
   }
 
   /* The labels the script measured to fit (data-ib-fit), in place of the container queries. */
-  ib-chart[data-ib-fit] :is(.ib-chart-bottom > span, line.ib-chart-grid) { display: inline; }
-  ib-chart[data-ib-fit="0"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from1, .ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="1"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="2"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="3"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="4"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="5"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from6, .ib-chart-from7) { display: none; }
-  ib-chart[data-ib-fit="6"] :is(.ib-chart-bottom > span, line.ib-chart-grid).ib-chart-from7 { display: none; }
+  ib-chart[data-ib-fit] :is(.ib-chart-bottom > * > span, line.ib-chart-grid) { display: inline; }
+  ib-chart[data-ib-fit="0"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from1, .ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="1"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="2"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="3"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="4"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="5"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid):is(.ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="6"] :is(.ib-chart-bottom > * > span, line.ib-chart-grid).ib-chart-from7 { display: none; }
   ib-chart[data-ib-fit="0"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w0); }
   ib-chart[data-ib-fit="1"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w1); }
   ib-chart[data-ib-fit="2"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w2); }
@@ -270,7 +281,7 @@
 
   .ib-chart-two-line { height: 2lh; }
 
-  .ib-chart-bottom > span {
+  .ib-chart-bottom > * > span {
     position: absolute;
     top: 0;
     translate: -50% 0;
@@ -284,7 +295,7 @@
   }
 
   /* Names in bands get the room the server worked out for each width, and an ellipsis past it. */
-  .ib-chart-bands > span {
+  .ib-chart-bands > * > span {
     max-width: var(--ib-chart-w, var(--ib-chart-w0));
     overflow: hidden;
     text-overflow: ellipsis;
