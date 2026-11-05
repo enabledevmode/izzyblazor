@@ -28,7 +28,7 @@
                         <FormErrors />
                         <TextField @bind-Value="Model!.Name" AutoComplete="name" StartIcon="Lucide.User" />
                         <TextField @bind-Value="Model!.Email" AutoComplete="email" StartIcon="Lucide.Mail" Hint="We'll never share your email." />
-                        <TextField @bind-Value="Model!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
+                        <PasswordField @bind-Value="Model!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
                         <Select @bind-Value="Model!.Plan" Placeholder="Choose a plan" />
                         <RadioGroup @bind-Value="Model!.Contact" Orientation="Orientation.Horizontal" />
                         <TextArea @bind-Value="Model!.Bio" Rows="2" AutoGrow ShowCount Placeholder="Your role, your team, what you're building" />

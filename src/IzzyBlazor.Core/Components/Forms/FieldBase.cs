@@ -600,9 +600,6 @@ public enum TextFieldType
     /// <summary>An email address.</summary>
     Email,
 
-    /// <summary>A password, masked, with a show/hide toggle.</summary>
-    Password,
-
     /// <summary>A search query.</summary>
     Search,
 

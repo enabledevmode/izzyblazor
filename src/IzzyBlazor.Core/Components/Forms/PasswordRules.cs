@@ -3,7 +3,7 @@ using System.Text;
 namespace IzzyBlazor;
 
 /// <summary>
-/// What a new password must have, for <see cref="TextField.Requirements"/>: shown as a list under the
+/// What a new password must have, for <see cref="PasswordField.Requirements"/>: shown as a list under the
 /// field, checked off as it's typed, and checked on the server. The properties are named and checked as
 /// ASP.NET Core Identity's <c>PasswordOptions</c>, so an app passes its own rules across. The defaults
 /// differ: here every rule is off until set, where Identity's are on (a length of 6, a digit, both
@@ -11,7 +11,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;TextField @bind-Value="Model.Password" Type="TextFieldType.Password" Requirements="new PasswordRules { RequiredLength = 12 }" /&gt;
+/// &lt;PasswordField @bind-Value="Model.Password" Requirements="new PasswordRules { RequiredLength = 12 }" /&gt;
 ///
 /// @* From Identity's options: *@
 /// Requirements="new PasswordRules { RequiredLength = o.RequiredLength, RequireDigit = o.RequireDigit, ... }"

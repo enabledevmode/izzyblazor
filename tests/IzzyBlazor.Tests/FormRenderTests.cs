@@ -45,6 +45,14 @@ public class FormRenderTests : BunitContext
         _context.EnableDataAnnotationsValidation(Services);
     }
 
+    private IRenderedComponent<PasswordField> PasswordFieldFor(System.Linq.Expressions.Expression<Func<string?>> field, Action<ComponentParameterCollectionBuilder<PasswordField>>? more = null) =>
+        Render<PasswordField>(p =>
+        {
+            p.AddCascadingValue(_context);
+            p.Add(f => f.ValueExpression, field);
+            more?.Invoke(p);
+        });
+
     private IRenderedComponent<TextField> TextFieldFor(System.Linq.Expressions.Expression<Func<string?>> field, Action<ComponentParameterCollectionBuilder<TextField>>? more = null) =>
         Render<TextField>(p =>
         {
@@ -73,7 +81,7 @@ public class FormRenderTests : BunitContext
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         Assert.Equal("email", TextFieldFor(() => _model.Email).Find("input").GetAttribute("type"));
-        Assert.Equal("password", TextFieldFor(() => _model.Password).Find("input").GetAttribute("type"));
+        Assert.Equal("password", PasswordFieldFor(() => _model.Password).Find("input").GetAttribute("type"));
         Assert.Equal("text", TextFieldFor(() => _model.FavoriteColor).Find("input").GetAttribute("type"));
     }
 
@@ -146,7 +154,7 @@ public class FormRenderTests : BunitContext
         _model.Password = "secret123";
         _model.Name = "Ada";
 
-        Assert.Equal(shown, TextFieldFor(() => _model.Password, p => p.Add(f => f.Value, _model.Password)).Find("input").GetAttribute("value"));
+        Assert.Equal(shown, PasswordFieldFor(() => _model.Password, p => p.Add(f => f.Value, _model.Password)).Find("input").GetAttribute("value"));
         Assert.Equal("Ada", TextFieldFor(() => _model.Name, p => p.Add(f => f.Value, _model.Name)).Find("input").GetAttribute("value"));
     }
 

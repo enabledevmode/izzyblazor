@@ -24,11 +24,10 @@ public class PasswordRulesTests : BunitContext
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var model = new Model { Password = posted };
         var context = new EditContext(model);
-        var cut = Render<TextField>(p => p
+        var cut = Render<PasswordField>(p => p
             .AddCascadingValue(context)
             .Add(f => f.ValueExpression, () => model.Password)
             .Add(f => f.Value, model.Password)
-            .Add(f => f.Type, TextFieldType.Password)
             .Add(f => f.Requirements, Rules));
 
         var input = cut.Find("input");

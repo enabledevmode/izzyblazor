@@ -66,7 +66,7 @@ public static class Articles
                 { Modes = ["static"] },
             new("password-after-post", "The password is empty after a failed post", "KeyRound",
                 "A static page doesn't write a password back into its HTML, so the user types it again.")
-                { Components = ["TextField"], Modes = ["static"] },
+                { Components = ["PasswordField"], Modes = ["static"] },
             new("redirect-after-post", "Code runs after NavigateTo, or the post doesn't redirect", "CornerDownRight",
                 "NavigateTo doesn't always stop your code: make it the last line or return after it, and keep it out of try/catch.")
                 { Components = ["Form"], Modes = ["static", "interactive"] },

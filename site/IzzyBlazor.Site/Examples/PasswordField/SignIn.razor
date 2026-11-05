@@ -6,7 +6,7 @@
         <Alert Status="Status.Danger">That email and password don't match. Enter your password again.</Alert>
     }
     <TextField @bind-Value="Model!.Email" AutoComplete="username" />
-    <TextField @bind-Value="Model!.Password" AutoComplete="current-password" Hint="This example turns every password down." />
+    <PasswordField @bind-Value="Model!.Password" AutoComplete="current-password" Hint="This example turns every password down." />
     <Button Submit>Sign in</Button>
 </Form>
 
