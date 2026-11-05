@@ -1,0 +1,46 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="multi-tree-select-share" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <MultiTreeSelect @bind-Value="Model!.TeamIds" Items="Departments" ItemChildren="d => d.Teams"
+                     ItemValue="d => d.Id" ItemText="d => d.Name" Placeholder="Choose teams" Searchable Clearable />
+    <Row><Button Submit>Share report</Button></Row>
+    @if (_shared is not null)
+    {
+        <Alert Status="Status.Success">Shared with @_shared.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-tree-select-share")]
+    private Report? Model { get; set; }
+
+    private string? _shared;
+
+    // No starting teams: with none checked a static post sends no field, and a default here would
+    // come back.
+    protected override void OnInitialized() => Model ??= new();
+
+    // Checking a department checks its teams, so the teams are what's shared.
+    private void Save() => _shared = string.Join(", ", Departments.SelectMany(d => d.Teams).Where(t => Model!.TeamIds!.Contains(t.Id)).Select(t => t.Name));
+
+    public sealed class Report
+    {
+        // [Required] for a static post with nothing checked (no field arrives); [MinLength] on an
+        // interactive page, where it's an empty list.
+        [Required(ErrorMessage = "Choose at least one team")]
+        [MinLength(1, ErrorMessage = "Choose at least one team")]
+        [Display(Name = "Visible to")]
+        public List<string>? TeamIds { get; set; }
+    }
+
+    @* hide *@
+    private static readonly Unit[] Departments =
+    [
+        new("eng", "Engineering", [new("eng-web", "Web", []), new("eng-mobile", "Mobile", []), new("eng-platform", "Platform", [])]),
+        new("support", "Support", [new("support-billing", "Billing", []), new("support-tech", "Technical", [])]),
+        new("sales", "Sales", [new("sales-west", "West", []), new("sales-east", "East", [])]),
+    ];
+
+    private sealed record Unit(string Id, string Name, Unit[] Teams);
+    @* /hide *@
+}

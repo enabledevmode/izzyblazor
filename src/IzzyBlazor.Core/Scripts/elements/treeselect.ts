@@ -14,6 +14,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * - Closing ends a search, so the tree opens whole again.
  * - The clear button checks the field's empty radio, which posts nothing and, on an interactive
  *   page, clears the value.
+ * - Several items (MultiTreeSelect): see #setupMultiple.
  */
 class TreeSelect extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -142,6 +143,11 @@ class TreeSelect extends IzzyElement {
       { signal }
     );
 
+    if (multiple) {
+      this.#setupMultiple(button, panel, text, clear, interactive, signal);
+      return;
+    }
+
     clear?.addEventListener(
       "click",
       () => {
@@ -156,6 +162,91 @@ class TreeSelect extends IzzyElement {
           was?.dispatchEvent(new Event("change", { bubbles: true }));
         }
         button.focus();
+      },
+      { signal }
+    );
+  }
+
+  /**
+   * Several items: a chip's ×, Backspace on the button and the clear button uncheck items through
+   * their boxes, so the tree's cascade, posting and @bind see a person's changes. On a static page
+   * the chips are drawn again from the checked boxes: each one whose parent isn't checked too.
+   */
+  #setupMultiple(button: HTMLButtonElement, panel: HTMLElement, chips: HTMLElement | null, clear: HTMLButtonElement | null, interactive: boolean, signal: AbortSignal): void {
+    const said = this.querySelector<HTMLElement>(".ib-treeselect-said");
+    const boxOf = (li: Element | null) => li?.querySelector<HTMLInputElement>(":scope > .ib-tree-item > .ib-tree-select") ?? null;
+    const uncheck = (key: string) => {
+      const box = boxOf(panel.querySelector(`li[data-ib-key="${CSS.escape(key)}"]`));
+      if (box?.checked && !box.disabled) box.click();
+    };
+    const keys = () => [...(chips?.querySelectorAll<HTMLElement>(".ib-chip") ?? [])].map((chip) => chip.dataset.value ?? "");
+
+    // The ×: the button's click would open the panel too.
+    button.addEventListener(
+      "click",
+      (event) => {
+        const chip = (event.target as Element).closest("[data-ib-remove]")?.closest<HTMLElement>(".ib-chip");
+        if (!chip) return;
+        event.preventDefault();
+        uncheck(chip.dataset.value ?? "");
+      },
+      { signal }
+    );
+    button.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key !== "Backspace" || event.ctrlKey || event.metaKey || event.altKey) return;
+        const last = keys().pop();
+        if (last === undefined) return;
+        event.preventDefault();
+        uncheck(last);
+      },
+      { signal }
+    );
+    clear?.addEventListener(
+      "click",
+      () => {
+        for (const key of keys()) uncheck(key);
+        button.focus();
+      },
+      { signal }
+    );
+
+    if (interactive || !chips) return;
+    const cascade = panel.querySelector("ib-tree")?.hasAttribute("data-ib-cascade") ?? false;
+    const icon = chips.querySelector(".ib-chip-remove")?.innerHTML ?? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    let queued = false;
+    const draw = () => {
+      queued = false;
+      const tops = [...panel.querySelectorAll<HTMLElement>("li[data-ib-key]")].filter((li) => {
+        if (!boxOf(li)?.checked) return false;
+        const parent = li.parentElement?.closest("li");
+        return !(cascade && boxOf(parent ?? null)?.checked);
+      });
+      const names = tops.map((li) => li.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel ?? "");
+      chips.replaceChildren(
+        ...(tops.length === 0
+          ? [this.dataset.ibPlaceholder ?? ""]
+          : tops.map((li, i) => {
+              const chip = document.createElement("span");
+              chip.className = "ib-chip";
+              chip.dataset.value = li.dataset.ibKey;
+              chip.innerHTML = `<span class="ib-chip-text"></span><span class="ib-chip-remove" data-ib-remove>${icon}</span>`;
+              chip.firstElementChild!.textContent = names[i];
+              return chip;
+            }))
+      );
+      chips.toggleAttribute("data-ib-empty", tops.length === 0);
+      if (said) said.textContent = names.join(", ");
+      if (clear) clear.hidden = tops.length === 0;
+    };
+    // A cascade changes many boxes at once: draw once after them.
+    panel.addEventListener(
+      "change",
+      () => {
+        if (queued) return;
+        queued = true;
+        queueMicrotask(draw);
       },
       { signal }
     );

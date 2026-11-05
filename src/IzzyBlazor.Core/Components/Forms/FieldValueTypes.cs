@@ -74,3 +74,6 @@ public partial class DurationField<[DynamicallyAccessedMembers(DynamicallyAccess
 
 /// <summary>Choose one item from a tree, such as a category, a team or a folder.</summary>
 public partial class TreeSelect<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, TItem>;
+
+/// <summary>Choose several items from a tree, bound to a collection.</summary>
+public partial class MultiTreeSelect<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, TItem, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItemValue>;

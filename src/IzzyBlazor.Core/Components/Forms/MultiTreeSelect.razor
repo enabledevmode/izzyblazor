@@ -1,0 +1,152 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@typeparam TItemValue
+@inherits TreeSelectBase<TValue, TItem>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the panel opens with checkboxes in branches and checking a parent doesn't check its branch; the chips change once the form posts, the search box needs script, and there's no clear button.")]
+
+@*
+    Choose several items from a tree, such as the teams a report goes to: a field that opens a tree
+    with a checkbox on each item. Bind it to a collection (an array, List<T> or HashSet<T>);
+    ItemValue is what each item adds to it, and all three types are inferred.
+
+    <MultiTreeSelect @bind-Value="Model.TeamIds" Items="Departments" ItemChildren="d => d.Teams"
+                     ItemValue="d => d.Id" ItemText="d => d.Name" Label="Visible to" />
+
+    Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed
+    box; Cascade="false" makes each box its own. The value holds every checked item, parents
+    included. The field shows the choice as chips, and a branch checked whole as one chip, its
+    parent's.
+
+    How it works three ways:
+    - No script: the button opens the panel (the Popover API), whose checkboxes post with the form
+      as repeated fields, which Blazor binds to the collection. Checking a parent doesn't check its
+      branch, and the chips change once the form posts.
+    - With script: checking a parent checks its branch, the panel stays open while you check, the
+      chips follow at once, and a chip's × or Backspace on the field unchecks it.
+    - Interactive: the same, and @bind-Value follows each change.
+
+    Accessibility:
+    - The field is a `button` named by its label and the chosen items ("Visible to, Web, Billing"),
+      with `aria-haspopup="dialog"`, the hint and errors as its description.
+    - The panel is a non-modal `dialog` named by the label. With script the tree in it is an ARIA
+      `tree` (one Tab stop, the arrow keys between items, each `treeitem` saying whether it's
+      checked, "mixed" for a part-checked parent); with JavaScript off it's checkboxes in branches.
+    - A chip's × is for the mouse and hidden from screen readers; Backspace on the field, the
+      tree's boxes and the clear button ("Clear", `IzzyText.Clear`) do the same from the keyboard.
+
+    Keyboard:
+    - Enter, Space, Down | Open the tree (on the field)
+    - Backspace | Uncheck the last chip (on the field)
+    - Down | Move from the search box to the first match
+    - Up, Down | Move to the item above or below
+    - Right | Open an item's branch, or move to its first child
+    - Left | Close an item's branch, or move to its parent
+    - Home, End | Move to the first or last item
+    - Space, Enter | Check or uncheck the item; on one that can't be, open or close its branch
+    - A letter | Move to the next item starting with it
+    - Escape, Tab | Close the tree
+    See also: TreeSelect, TreeView, MultiSelect, CheckboxGroup.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <summary>The value an item adds to the collection when checked, such as its id.</summary>
+    [Parameter, EditorRequired] public Func<TItem, TItemValue>? ItemValue { get; set; }
+
+    /// <summary>
+    /// Checking a parent checks its branch, and a parent shows how much of its branch is checked. On
+    /// by default; <see langword="false"/> makes each box its own.
+    /// </summary>
+    [Parameter] public bool Cascade { get; set; } = true;
+
+    /// <inheritdoc />
+    private protected override bool Multiple => true;
+
+    /// <inheritdoc />
+    private protected override bool Cascades => Cascade;
+
+    /// <inheritdoc />
+    private protected override bool HoldsValue => ChosenKeys.Count > 0;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ItemValue is null)
+        {
+            throw new InvalidOperationException("MultiTreeSelect needs an ItemValue: the value each item adds when checked, such as its id.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    private protected override string KeyOf(TItem item) => ChoiceOptions.Value(ItemValue!(item));
+
+    /// <inheritdoc />
+    private protected override IReadOnlyCollection<string> ChosenKeys =>
+        ChoiceCollection<TValue, TItemValue>.Items(CurrentValue).Select(v => ChoiceOptions.Value(v)).ToHashSet();
+
+    /// <inheritdoc />
+    private protected override void Choose(Selection selection)
+    {
+        var keys = selection.Keys ?? [];
+        CurrentValue = ChoiceCollection<TValue, TItemValue>.Create(AllItems.Where(item => keys.Contains(KeyOf(item))).Select(ItemValue!));
+    }
+
+    // What the chips show: each chosen item whose parent isn't chosen too, so a branch checked whole
+    // is one chip, its parent's.
+    private List<TItem> Tops()
+    {
+        var keys = ChosenKeys;
+        var tops = new List<TItem>();
+        void Walk(IEnumerable<TItem>? items, bool parentChosen, int depth)
+        {
+            if (items is null || depth > 64)
+            {
+                return;
+            }
+
+            foreach (var item in items)
+            {
+                var chosen = keys.Contains(KeyOf(item));
+                if (chosen && !(parentChosen && Cascade))
+                {
+                    tops.Add(item);
+                }
+
+                Walk(ItemChildren?.Invoke(item), chosen, depth + 1);
+            }
+        }
+
+        Walk(Items, false, 0);
+        return tops;
+    }
+
+    /// <inheritdoc />
+    private protected override RenderFragment Shown => __builder =>
+    {
+        var tops = Tops();
+        @* The button's name after its label: the chips in words, as the chips' text would run together. *@
+        <span id="@TextId" class="ib-treeselect-said" hidden>@string.Join(", ", tops.Select(TextOf))</span>
+        <span class="ib-treeselect-text ib-treeselect-chips" data-ib-empty="@(tops.Count == 0 ? "" : null)" aria-hidden="true">
+            @if (tops.Count == 0)
+            {
+                @Placeholder
+            }
+            @foreach (var item in tops)
+            {
+                <span @key="KeyOf(item)" class="ib-chip" data-value="@KeyOf(item)"><span class="ib-chip-text">@TextOf(item)</span><span class="ib-chip-remove" data-ib-remove><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></span></span>
+            }
+        </span>
+    };
+
+    /// <inheritdoc />
+    private protected override RenderFragment Clear => __builder =>
+    {
+        <button type="button" class="ib-treeselect-clear" hidden="@(!HoldsValue)" aria-label="@TextDefaults.Clear" title="@TextDefaults.Clear">
+            <Icon Role="IconRole.Close" />
+        </button>
+    };
+}
