@@ -28,7 +28,7 @@
     On the button
     - Enter, Space | Open the actions at the first
     In the actions
-    - Up, Down | Move through them, wrapping
+    - Up, Down | Move away from the button and back toward it, wrapping (Left and Right when they open toward the start or end)
     - Home, End | Go to the first or last
     - Enter, Space | Choose one
     - Escape | Close and go back to the button
@@ -94,10 +94,7 @@
             <Icon Name="@(Icon ?? IconSet.Current.Get(IconRole.Plus))" Class="ib-sd-closed" />
             <Icon Name="@(OpenIcon ?? IconSet.Current.Get(IconRole.Close))" Class="ib-sd-open" />
         </button>
-        @if (OpenOn == SpeedDialTrigger.Hover)
-        {
-            <ib-speed-dial hidden></ib-speed-dial>
-        }
+        <ib-speed-dial hidden data-ib-hover="@(OpenOn == SpeedDialTrigger.Hover ? "" : null)"></ib-speed-dial>
     };
 
     private string ButtonClass => new ClassBuilder()
