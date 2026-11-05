@@ -1,21 +1,17 @@
 @using System.ComponentModel.DataAnnotations
 
-<Card Grow MaxWidth="24.Rem">
-    <CardBody>
-        <Form Model="Model" FormName="text-field-masks" OnValidSubmit="Save">
-            <TextField @bind-Value="Model!.Telephone" Mask="(000) 000-0000" Placeholder="(000) 000-0000" AutoComplete="tel-national" />
-            <TextField @bind-Value="Model!.CardNumber" Mask="0000 0000 0000 0000" Placeholder="0000 0000 0000 0000" AutoComplete="cc-number" />
-            <TextField @bind-Value="Model!.Ssn" Mask="000-00-0000" Placeholder="000-00-0000" AutoComplete="off" />
-            <Row>
-                <Button Submit StartIcon="Lucide.Save">Save</Button>
-            </Row>
-            @if (_saved)
-            {
-                <Alert Status="Status.Success">Saved.</Alert>
-            }
-        </Form>
-    </CardBody>
-</Card>
+<Form Model="Model" FormName="text-field-masks" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model!.Telephone" Mask="(000) 000-0000" Placeholder="(000) 000-0000" AutoComplete="tel-national" />
+    <TextField @bind-Value="Model!.CardNumber" Mask="0000 0000 0000 0000" Placeholder="0000 0000 0000 0000" AutoComplete="cc-number" />
+    <TextField @bind-Value="Model!.Ssn" Mask="000-00-0000" Placeholder="000-00-0000" AutoComplete="off" />
+    <Row>
+        <Button Submit StartIcon="Lucide.Save">Save</Button>
+    </Row>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Saved.</Alert>
+    }
+</Form>
 
 @code {
     [SupplyParameterFromForm(FormName = "text-field-masks")]
