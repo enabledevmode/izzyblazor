@@ -366,6 +366,7 @@ public class FormRenderTests : BunitContext
     [Fact]
     public async Task After_a_failed_submit_the_first_tab_with_errors_opens_and_counts_them()
     {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         RenderFragment Field(System.Linq.Expressions.Expression<Func<string?>> field) => b =>
         {
             b.OpenComponent<TextField>(0);
