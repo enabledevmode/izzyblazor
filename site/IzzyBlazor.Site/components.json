@@ -648,7 +648,8 @@
         { "feature": "Checks before posting, server messages under the field" },
         { "feature": "Show/hide button on passwords", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Caps Lock warning on passwords", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" }
+        { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" },
+        { "feature": "Masks, formatted as typed and on the server", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "text-field-labels", "title": "Labels and hints" },
@@ -666,6 +667,12 @@
         { "id": "text-field-clearable", "title": "A clear button", "lead": "A clear button empties the field, and shows while the field has a value. To add it, set `Clearable`. Every field whose value can be empty has it, and a `Select` goes back to its `Placeholder`.",
           "notes": {
             "noscript": "The button stays hidden, and the user can empty the field by hand."
+          } },
+        { "id": "text-field-masks", "title": "Masks",
+          "notes": {
+            "noscript": "The fields take any text; the server puts it in the mask's form when the form posts.",
+            "static": "The fields take the mask's form as you type; Save address posts without a full reload.",
+            "interactive": "The fields take the mask's form as you type; Save address runs C# without a full reload."
           } },
         { "id": "text-field-icons", "title": "Icons" },
         { "id": "text-field-addons", "title": "Add-ons" },

@@ -625,6 +625,9 @@ public class IzzyText
     /// <summary>The message for a password that misses a requirement. {0} is the field's label.</summary>
     public virtual string PasswordRulesUnmet { get; set; } = "The {0} field doesn't meet every requirement.";
 
+    /// <summary>The message for a masked TextField with a slot left empty. {0} is the field's label.</summary>
+    public virtual string MaskIncomplete { get; set; } = "The {0} field is incomplete.";
+
     /// <summary>FileUpload's link that opens the picker, for one file.</summary>
     public virtual string ChooseFile { get; set; } = "Choose a file";
 
