@@ -1,0 +1,119 @@
+@namespace IzzyBlazor
+@inherits ToggleComponentBase
+
+@*
+    What Menu and ContextMenu share: the [popover] panel of items, built on the Popover API, with
+    menu roles once the script runs. Menu adds its button (or a Trigger); ContextMenu and a Menu's
+    ContextFor add <ib-context-menu>, which opens the panel at the pointer.
+*@
+
+<ib-popover class="@_outerClass"
+            style="@_outerStyle"
+            data-placement="@PanelPlacement.Name()"
+            data-open="@(IsOpen ? "" : null)"
+            data-ib-interactive="@(IsInteractive ? "" : null)"
+            data-ib-seq="@ToggleSeq">
+    @TriggerContent
+    <div @attributes="AdditionalAttributes"
+         id="@ElementId"
+         popover="auto"
+         role="@(RendererInfo.IsInteractive ? "menu" : null)"
+         data-ib-role="@(RendererInfo.IsInteractive ? null : "menu")"
+         aria-labelledby="@(HasTrigger ? TriggerId : null)"
+         aria-label="@(HasTrigger ? null : MenuName)"
+         class="@_class"
+         style="@_style"
+         @onibtoggle="HandleToggle">
+        <CascadingValue Value="_context" IsFixed="true">
+            <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </CascadingValue>
+    </div>
+    @if (ContextTarget is not null)
+    {
+        <ib-context-menu data-for="@ContextTarget" hidden></ib-context-menu>
+    }
+</ib-popover>
+
+@code {
+    /// <summary>
+    /// The width of the menu panel, such as <c>Length.Rem(16)</c> for a column of long labels.
+    /// Defaults to the content's width, at least 10rem and the trigger's width, up to 24rem.
+    /// Never wider than the screen.
+    /// </summary>
+    [Parameter] public Length? PanelWidth { get; set; }
+
+    /// <summary>The <see cref="MenuItem"/>s, <see cref="MenuGroup"/>s and <see cref="MenuDivider"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private protected ButtonGroup? Group { get; set; }
+
+    /// <summary>The <see cref="Toolbar"/> it's directly in, where only a ToolbarMenu goes.</summary>
+    [CascadingParameter] internal ToolbarContext? Toolbar { get; set; }
+
+    private MenuContext _context = null!;
+    private string? _class;
+    private string? _style;
+    private string? _outerClass;
+    private string? _outerStyle;
+
+    /// <summary>The button that opens the menu, wired by <see cref="TriggerAttributes"/>; none for a context menu.</summary>
+    private protected virtual RenderFragment? TriggerContent => null;
+
+    /// <summary>The id of the element whose right-click opens the menu at the pointer, if any.</summary>
+    private protected virtual string? ContextTarget => null;
+
+    /// <summary>The menu's name when no button names it.</summary>
+    private protected virtual string? MenuName => null;
+
+    /// <summary>Where the panel opens from the button.</summary>
+    private protected virtual Placement PanelPlacement => Placement.BottomStart;
+
+    /// <summary>The attributes that wire a button to the menu.</summary>
+    private protected IReadOnlyDictionary<string, object> TriggerAttributes { get; private set; } = new Dictionary<string, object>();
+
+    private protected string TriggerId => $"{ElementId}-trigger";
+
+    private bool HasTrigger => TriggerContent is not null;
+
+    /// <inheritdoc />
+    protected override string IdPrefix => "ib-menu";
+
+    /// <inheritdoc />
+    protected override bool VisibilityOnRoot => false;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-pop");
+        classes.Add("ib-menu");
+        classes.Add($"ib-place-{PanelPlacement.Name()}");
+        styles.AddRaw($"position-anchor:{StyleValues.AnchorName(ElementId)}");
+        if (PanelWidth is { } width)
+        {
+            classes.Add("ib-pop-sized");
+            styles.AddVar("pop-w", StyleValues.Length(width));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        ToolbarControl.Refuse(this, Toolbar, Group);
+        _context ??= new MenuContext(ElementId);
+        TriggerAttributes = new Dictionary<string, object>
+        {
+            ["id"] = TriggerId,
+            ["popovertarget"] = ElementId,
+            ["aria-controls"] = ElementId,
+            // Menu semantics need the script; see MenuItem.
+            [RendererInfo.IsInteractive ? "aria-haspopup" : "data-ib-haspopup"] = "menu",
+        };
+        (_class, _style) = BuildRootAttributes();
+        (_outerClass, _outerStyle) = BuildOuterAttributes("ib-pop-root", $"anchor-name:{StyleValues.AnchorName(ElementId)}");
+    }
+}

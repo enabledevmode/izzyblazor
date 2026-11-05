@@ -1,0 +1,51 @@
+@inject NavigationManager Navigation
+
+@* Right-click, long press or Shift+F10 anywhere in the folder opens its menu. The toolbar has the
+   same actions, the way in that can be seen. *@
+<Stack Gap="3" Grow>
+    <Toolbar Label="Folder">
+        <ToolbarButton Href="@To("new-folder")" StartIcon="Lucide.FolderPlus">New folder</ToolbarButton>
+        <ToolbarButton Href="@To("upload")" StartIcon="Lucide.Upload">Upload</ToolbarButton>
+    </Toolbar>
+    <Card id="project-files" Size="ControlSize.Sm">
+        <Stack Gap="2">
+            @foreach (var (name, icon) in Files)
+            {
+                <Row Gap="2" Align="Align.Center">
+                    <Icon Name="icon" />
+                    <TextBlock>@name</TextBlock>
+                </Row>
+            }
+        </Stack>
+    </Card>
+    <ContextMenu For="project-files" Label="Folder actions">
+        <MenuItem Href="@To("new-folder")" Icon="Lucide.FolderPlus">New folder</MenuItem>
+        <MenuItem Href="@To("upload")" Icon="Lucide.Upload">Upload</MenuItem>
+        <MenuDivider />
+        <MenuItem Href="@To("refresh")" Icon="Lucide.RefreshCw">Refresh</MenuItem>
+    </ContextMenu>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+        @(Action switch
+        {
+            "new-folder" => "Created New folder.",
+            "upload" => "Choose files to upload.",
+            "refresh" => "Refreshed the folder.",
+            _ => "Right-click the folder, or use the toolbar.",
+        })
+    </TextBlock>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "action")] private string? Action { get; set; }
+
+    private string To(string action) => Navigation.GetUriWithQueryParameter("action", action);
+
+    @* hide *@
+    private static readonly (string Name, IconData Icon)[] Files =
+    [
+        ("Designs", Lucide.Folder),
+        ("Brief.docx", Lucide.FileText),
+        ("Timeline.xlsx", Lucide.FileSpreadsheet),
+    ];
+    @* /hide *@
+}
