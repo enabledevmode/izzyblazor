@@ -158,7 +158,8 @@
 
     private string Joined => string.Join(',', Dates.Select(day => FormatDate(day)));
 
-    private string Summary => string.Join(", ", Dates.Select(day => day.ToString("d", ResolvedCulture)));
+    // Semicolons between dates, as the script writes them: a date can have commas of its own.
+    private string Summary => string.Join("; ", Dates.Select(day => day.ToString("d", ResolvedCulture)));
 
     // As the month's cells, these stay as first drawn: what changes reaches the script in data-ib-dates,
     // and a render writing an older list here would lose a press made since.
