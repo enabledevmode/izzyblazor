@@ -64,3 +64,16 @@ public enum ChartDataTable
     /// <summary>No table, for a page that lists the values elsewhere.</summary>
     None,
 }
+
+/// <summary>How a line or area's line is drawn.</summary>
+public enum ChartLineStyle
+{
+    /// <summary>A solid line.</summary>
+    Solid,
+
+    /// <summary>Dashes, as a plan or target line often is.</summary>
+    Dashed,
+
+    /// <summary>Dots.</summary>
+    Dotted,
+}

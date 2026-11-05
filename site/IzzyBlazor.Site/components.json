@@ -1713,7 +1713,7 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Label`, which captions the chart and names it for screen readers. Each `ChartSeries` draws one `Value` per item, as bars by default; set `Type` on a series to draw it as a line or area instead, here the plan each month's revenue is measured against. `Color` sets a series' color, such as a neutral one for the plan, in place of the palette's next. `ValueFormat` formats the values on the axis and in the table. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." }
+        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Label`, which captions the chart and names it for screen readers. Each `ChartSeries` draws one `Value` per item, as bars by default; set `Type` on a series to draw it as a line or area instead, here the plan each month's revenue is measured against. `Color` sets a series' color in place of the palette's next, here the theme's primary color for the revenue and its text color for the plan, and `LineStyle` dashes the plan's line. `ValueFormat` formats the values on the axis and in the table. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." }
       ],
       "topics": [
         {
@@ -1724,7 +1724,7 @@
           ]
         },
         {
-          "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["SeriesType", "ChartSeries.Type", "ChartSeries.Curve", "ChartSeries.Markers", "ChartSeries.ConnectNulls"],
+          "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["SeriesType", "ChartSeries.Type", "ChartSeries.Curve", "ChartSeries.LineStyle", "ChartSeries.Markers", "ChartSeries.ConnectNulls"],
           "examples": [
             { "id": "chart-lines", "title": "Lines over dates", "lead": "To draw every series as a line, set `SeriesType` on the chart. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and an `Area` series fills down to zero. Lines differ by dash and marker shape as well as color." }
           ]

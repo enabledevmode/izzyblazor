@@ -11,6 +11,7 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 {
     public string? Color { get; init; }
     public ChartCurve Curve { get; init; }
+    public ChartLineStyle? LineStyle { get; init; }
     public bool? Markers { get; init; }
     public bool ConnectNulls { get; init; }
     public bool Hidden { get; init; }
@@ -59,6 +60,15 @@ internal sealed class SeriesShape
     public required int Slot { get; init; }
     public required int Index { get; init; }
     public int Style { get; init; }
+
+    /// <summary>The line's dash: 0 solid, 1 dashed, 2 dotted, 3 dash-dot.</summary>
+    public int Dash => Data.LineStyle switch
+    {
+        ChartLineStyle.Solid => 0,
+        ChartLineStyle.Dashed => 1,
+        ChartLineStyle.Dotted => 2,
+        _ => Style % 4,
+    };
     public List<BarRect> Bars { get; } = [];
 
 

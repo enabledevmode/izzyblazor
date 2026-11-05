@@ -36,6 +36,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public string? Color { get; set; }
 
+    /// <summary>
+    /// How a line or area's line is drawn. Defaults to the next of solid, dashed, dotted and
+    /// dash-dot, so lines differ by more than color; set it to mark a line apart, such as a plan
+    /// as <see cref="ChartLineStyle.Dashed"/>.
+    /// </summary>
+    [Parameter] public ChartLineStyle? LineStyle { get; set; }
+
     /// <summary>A line's or area's shape between values. Defaults to straight.</summary>
     [Parameter] public ChartCurve Curve { get; set; }
 
@@ -94,6 +101,7 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
         {
             Color = Color,
             Curve = Curve,
+            LineStyle = LineStyle,
             Markers = Markers,
             ConnectNulls = ConnectNulls,
             Hidden = Hidden,
