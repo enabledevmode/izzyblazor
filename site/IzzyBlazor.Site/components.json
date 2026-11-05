@@ -770,12 +770,39 @@
       ]
     },
     {
+      "id": "month-field", "icon": "CalendarFold", "name": "MonthField", "category": "Forms", "summary": "Lets the user choose a month, such as a card's expiry, from a page of twelve.", "keywords": ["month picker", "month input", "expiry date"],
+      "features": [
+        { "feature": "A page of twelve months to choose from", "noscript": "partial" },
+        { "feature": "Binds the 1st of the month, in a DateOnly or DateTime" },
+        { "feature": "Min and Max compare whole months, and are checked again on the server" }
+      ],
+      "examples": [
+        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
+          "notes": {
+            "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
+            "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
+          } }
+      ]
+    },
+    {
+      "id": "year-field", "icon": "Calendar1", "name": "YearField", "category": "Forms", "summary": "Lets the user type a year, or choose it from a page of twelve.", "keywords": ["year picker", "year input"],
+      "features": [
+        { "feature": "A page of twelve years beside the input", "noscript": "partial" },
+        { "feature": "Binds an int" }
+      ],
+      "examples": [
+        { "id": "year-field-model-year", "title": "A year", "lead": "A year field is a number input held in an `int`, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
+          "notes": {
+            "noscript": "A number input, with no page of years."
+          } }
+      ]
+    },
+    {
       "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "Lets the user type a date, or a date and time, or choose it from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
         { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
         { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
         { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
-        { "feature": "A month or a year to choose from a page of twelve", "noscript": "partial" },
         { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
@@ -789,11 +816,6 @@
           "notes": {
             "noscript": "The server reads the New York time in its own zone, so the saved offset is the server's.",
             "static": "IzzyBlazor's script posts the New York time with its offset, so the saved value is correct."
-          } },
-        { "id": "date-field-periods", "title": "A month or a year", "lead": "A date field can choose a whole month or a year in place of a day. Set `Type`: a month is stored as its 1st day, and a year in an `int`. `Min` and `Max` then compare whole months or years.",
-          "notes": {
-            "noscript": "The browser's month input shows, or a text box with a pattern where the browser has none. The year is a number input.",
-            "static": "On a desktop, the user chooses Starts rather than typing it. On a phone it's the browser's month input."
           } },
         { "id": "date-field-days", "title": "Disabled days and the browser's calendar", "lead": "To turn days off, set `DateDisabled`; the server checks it too. To keep the browser's calendar, set `UseNative`.",
           "notes": {

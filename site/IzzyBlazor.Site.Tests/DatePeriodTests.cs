@@ -5,43 +5,55 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>A month and a year chosen from their pages reach the model.</summary>
 public sealed class DatePeriodTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(IAsyncDisposable Browser, IPage Page, ILocator Example)> OpenAsync(string mode)
+    private async Task<(IAsyncDisposable Browser, IPage Page)> OpenAsync()
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/date-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        return (browser, page, page.Locator("[data-ex='date-field-periods']"));
+        return (browser, page);
+    }
+
+    private async Task<ILocator> GoToAsync(IPage page, string component, string example, string mode)
+    {
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/{component}?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        return page.Locator($"[data-ex='{example}']");
     }
 
     [Theory]
     [InlineData("static")]
     public async Task A_month_and_a_year_chosen_from_their_pages_save(string mode)
     {
-        var (browser, page, example) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync();
         await using var _ = browser;
         var open = page.Locator("[popover]:popover-open ib-period-grid");
 
-        await example.GetByRole(AriaRole.Button, new() { Name = "Change month, March 2027" }).ClickAsync();
+        var month = await GoToAsync(page, "month-field", "month-field-starts", mode);
+        await month.GetByRole(AriaRole.Button, new() { Name = "Change month, March 2027" }).ClickAsync();
         await open.GetByRole(AriaRole.Button, new() { Name = "July 2027" }).ClickAsync();
         await Assertions.Expect(open).ToHaveCountAsync(0);
+        await month.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(month).ToContainTextAsync("Starts July 2027.");
 
-        await example.GetByRole(AriaRole.Button, new() { Name = "Choose year" }).ClickAsync();
+        var year = await GoToAsync(page, "year-field", "year-field-model-year", mode);
+        await year.GetByRole(AriaRole.Button, new() { Name = "Choose year" }).ClickAsync();
         await open.GetByRole(AriaRole.Button, new() { Name = "2025", Exact = true }).ClickAsync();
-
-        await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
-        await Assertions.Expect(example).ToContainTextAsync("Starts July 2027, model year 2025.");
+        await year.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(year).ToContainTextAsync("Model year 2025.");
     }
 
     [Fact]
     public async Task With_no_script_the_browsers_inputs_post_them()
     {
-        var (browser, page, example) = await OpenAsync("noscript");
+        var (browser, page) = await OpenAsync();
         await using var _ = browser;
 
-        await example.Locator("input[type=month]").FillAsync("2027-05");
-        await example.GetByLabel("Model year").FillAsync("2029");
-        await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        var month = await GoToAsync(page, "month-field", "month-field-starts", "noscript");
+        await month.Locator("input[type=month]").FillAsync("2027-05");
+        await month.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(month).ToContainTextAsync("Starts May 2027.");
 
-        await Assertions.Expect(example).ToContainTextAsync("Starts May 2027, model year 2029.");
+        var year = await GoToAsync(page, "year-field", "year-field-model-year", "noscript");
+        await year.GetByLabel("Model year").FillAsync("2029");
+        await year.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(year).ToContainTextAsync("Model year 2029.");
     }
 }

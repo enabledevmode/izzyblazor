@@ -610,7 +610,7 @@ public enum TextFieldType
     Url,
 }
 
-/// <summary>What a <see cref="DateField{TValue}"/> takes. Sets the input type.</summary>
+/// <summary>What a <see cref="DateField{TValue}"/> or a <see cref="Calendar{TValue}"/> takes.</summary>
 public enum DateFieldType
 {
     /// <summary>A date.</summary>
@@ -619,10 +619,10 @@ public enum DateFieldType
     /// <summary>A date and a time of day.</summary>
     DateTime,
 
-    /// <summary>A month, held as the 1st of it in a <c>DateOnly</c> or <c>DateTime</c>.</summary>
+    /// <summary>A month, held as the 1st of it: a Calendar's page of months. For a field, use <see cref="MonthField{TValue}"/>.</summary>
     Month,
 
-    /// <summary>A year, held in an <c>int</c>.</summary>
+    /// <summary>A year, held in an <c>int</c>: a Calendar's page of years. For a field, use <see cref="YearField{TValue}"/>.</summary>
     Year,
 }
 
