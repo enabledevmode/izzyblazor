@@ -183,9 +183,12 @@
         get
         {
             var keys = ChosenKeys;
-            return keys.Count == 0 ? [] : Walk(Items, 0).Where(item => keys.Contains(KeyOf(item)));
+            return keys.Count == 0 ? [] : AllItems.Where(item => keys.Contains(KeyOf(item)));
         }
     }
+
+    /// <summary>Every item, in the tree's order.</summary>
+    private protected IEnumerable<TItem> AllItems => Walk(Items, 0);
 
     private IEnumerable<TItem> Walk(IEnumerable<TItem>? items, int depth)
     {

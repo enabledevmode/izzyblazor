@@ -35,6 +35,25 @@
     color: var(--ib-color-subtle);
   }
 
+  /* MultiTreeSelect: the chips wrap, and the field grows with them. */
+  .ib-treeselect-button:has(> .ib-treeselect-chips) {
+    height: auto;
+    min-height: var(--ib-field-h);
+    padding-block: 0.1875rem;
+  }
+
+  .ib-treeselect-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-1);
+    white-space: normal;
+  }
+
+  .ib-treeselect-chips[data-ib-empty] {
+    display: block;
+    white-space: nowrap;
+  }
+
   .ib-treeselect-chevron {
     flex: none;
     color: var(--ib-color-subtle);

@@ -518,6 +518,13 @@
         else
         {
             keys.Remove(key);
+            // With cascade, a parent with a box unchecked isn't checked: drop the ancestors too, as
+            // the script does. Their own change may come after this one, and until then a checked
+            // parent would check this box again as the tree renders.
+            if (Multiple && Cascade && PathTo(_roots, key) is { } path)
+            {
+                keys.ExceptWith(path);
+            }
         }
 
         _selected = keys;
@@ -584,6 +591,30 @@
             if (Find(node.Children, key) is { } found)
             {
                 return found;
+            }
+        }
+
+        return null;
+    }
+
+    // The keys of an item's ancestors, from the top, or null when it isn't in the tree.
+    private static List<string>? PathTo(List<Node> nodes, string key)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Key == key)
+            {
+                return [];
+            }
+
+            if (PathTo(node.Children, key) is { } below)
+            {
+                if (node.Key is not null)
+                {
+                    below.Insert(0, node.Key);
+                }
+
+                return below;
             }
         }
 

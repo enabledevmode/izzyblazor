@@ -1308,6 +1308,23 @@
       ]
     },
     {
+      "id": "multi-tree-select", "icon": "ListTree", "name": "MultiTreeSelect", "category": "Selection", "summary": "Lets the user choose several items from a tree, such as teams, in a field that opens it, shown as chips.", "keywords": ["tree select", "multi select tree", "checkbox tree", "dropdown tree", "hierarchy"],
+      "features": [
+        { "feature": "Choose several items from a tree, posted with the form" },
+        { "feature": "Checking a parent checks its branch; mixed parents", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Chips that follow the choice, a branch checked whole as one", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A search box that narrows the tree", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "@bind-Value follows each change", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "multi-tree-select-share", "title": "Teams to share with", "lead": "A `MultiTreeSelect` binds to a collection; `ItemValue` is what each checked item adds. Checking a department checks its teams, and the value holds every checked item, departments included. A department checked whole shows as one chip. To require a choice, put `[Required]` and `[MinLength(1)]` on the property.",
+          "notes": {
+            "noscript": "The field opens the tree as checkboxes in branches, and checking a department doesn't check its teams. The chips change once the form posts.",
+            "static": "Checking a department checks its teams and the chips follow at once; a chip's × or Backspace on the field unchecks it."
+          } }
+      ]
+    },
+    {
       "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "Shows a checkbox styled to match the fields.",
       "examples": [
         { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
