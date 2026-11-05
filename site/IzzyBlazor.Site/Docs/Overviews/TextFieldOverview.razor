@@ -15,7 +15,7 @@
 <Code Block Language="razor">@Types</Code>
 
 <Heading Level="2">Masks</Heading>
-<TextBlock>A mask gives the text a fixed form, such as a phone number or a postal code. Set <Code>Mask</Code>. As the user types or pastes, the field drops characters that don't fit and adds the mask's own, such as the brackets and the dash in <Code>(000) 000-0000</Code>. The server does the same when the form posts, so <Code>416.555.0199</Code> posted with JavaScript off binds as <Code>(416) 555-0199</Code>. A value with an empty slot is invalid. Show the format in <Code>Placeholder</Code>, such as <Code>(000) 000-0000</Code>, and say it in the <Code>Hint</Code>: screen readers don't hear the mask, and may not read a placeholder.</TextBlock>
+<TextBlock>A mask gives the text a fixed form, such as a phone number or a postal code. Set <Code>Mask</Code>. As the user types or pastes, the field drops characters that don't fit and adds the mask's own, such as the brackets and the dash in <Code>(000) 000-0000</Code>. The server does the same when the form posts, so <Code>416.555.0199</Code> posted with JavaScript off binds as <Code>(416) 555-0199</Code>. A value with an empty slot is invalid. Show the format in <Code>Placeholder</Code>, such as <Code>(000) 000-0000</Code>. Screen readers don't hear the mask, and some don't read a placeholder, so when the label doesn't make the format plain, say it in the <Code>Hint</Code> too.</TextBlock>
 <ExampleViewer Example="text-field-masks" />
 <Prose Class="site-table ib-scroll">
     <table>
