@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tabs-edit.css"),
   },
   {
+    // A sheet of its own, linked by TreeSelect.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "treeselect.css")],
+    outfile: join(lib, "wwwroot", "treeselect.css"),
+  },
+  {
     // A sheet of its own, linked by SpeedDial.
     ...common,
     sourcemap: false,

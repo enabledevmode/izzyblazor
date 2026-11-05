@@ -1,0 +1,101 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@inherits TreeSelectBase<TValue, TItem>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the panel opens with radio buttons in branches; the field's text changes once the form posts, the search box needs script, and there's no clear button.")]
+
+@*
+    Choose one item from a tree, such as a category, a team or a folder: a field that opens a
+    tree. Items are the top level and ItemChildren gives each item's own; ItemValue is what's
+    bound and posted, and both types are inferred.
+
+    <TreeSelect @bind-Value="Model.CategoryId" Items="Categories" ItemChildren="c => c.Children"
+                ItemValue="c => c.Id" ItemText="c => c.Name" Label="Category" Searchable />
+
+    Any item can be chosen, a parent too; ItemSelectable makes parents labels for their branches:
+
+    <TreeSelect ... ItemSelectable="c => c.Children.Count == 0" />
+
+    The field shows the chosen item's ItemText. When two items share a name, have ItemText return
+    a path ("West / Sales"). The tree opens on the chosen item, its branch open.
+
+    How it works three ways:
+    - No script: the button opens the panel (the Popover API), whose radio buttons post with the
+      form. The field's text changes once the form posts.
+    - With script: the tree takes the arrow keys, choosing closes the panel and the field shows
+      the choice at once; Searchable narrows the tree.
+    - Interactive: the same, and @bind-Value follows the choice.
+
+    Accessibility:
+    - The field is a `button` named by its label and the chosen text ("Category, Phones"), with
+      `aria-haspopup="dialog"`, the hint and errors as its description.
+    - The panel is a non-modal `dialog` named by the label. With script the tree in it is an ARIA
+      `tree` (one Tab stop, the arrow keys between items, each `treeitem` saying whether it's
+      selected); with JavaScript off it's radio buttons in branches that open.
+    - Opening it moves focus to the chosen item, or the first, or to the search box with
+      `Searchable`; choosing or Escape closes it and puts focus back on the field.
+    - The clear button is named "Clear" (`IzzyText.Clear`).
+
+    Keyboard:
+    - Enter, Space, Down | Open the tree (on the field)
+    - Down | Move from the search box to the first match
+    - Up, Down | Move to the item above or below
+    - Right | Open an item's branch, or move to its first child
+    - Left | Close an item's branch, or move to its parent
+    - Home, End | Move to the first or last item
+    - Enter, Space | Choose the item and close
+    - A letter | Move to the next item starting with it
+    - Escape | Close without changing the choice
+    See also: MultiTreeSelect, TreeView, Combobox, Select.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <summary>The value an item stands for, which is bound and posted, such as its id.</summary>
+    [Parameter, EditorRequired] public Func<TItem, TValue>? ItemValue { get; set; }
+
+    /// <inheritdoc />
+    private protected override bool Multiple => false;
+
+    private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ItemValue is null)
+        {
+            throw new InvalidOperationException("TreeSelect needs an ItemValue: the value each item stands for, such as its id.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    private protected override string KeyOf(TItem item) => FormatValueAsString(ItemValue!(item)) ?? "";
+
+    /// <inheritdoc />
+    private protected override IReadOnlyCollection<string> ChosenKeys => HasValue ? [CurrentValueAsString!] : [];
+
+    /// <inheritdoc />
+    private protected override void Choose(Selection selection) => CurrentValueAsString = selection.Keys?.FirstOrDefault() ?? "";
+
+    /// <inheritdoc />
+    private protected override RenderFragment Shown => __builder =>
+    {
+        var chosen = ChosenItems.FirstOrDefault();
+        var text = HasValue ? (chosen is null ? CurrentValueAsString : TextOf(chosen)) : null;
+        <span id="@TextId" class="ib-treeselect-text" data-ib-empty="@(text is null ? "" : null)">@(text ?? Placeholder)</span>
+    };
+
+    /// <inheritdoc />
+    private protected override RenderFragment Clear => __builder =>
+    {
+        @* Checked to empty the field: it posts nothing, and on an interactive page clears the value. *@
+        <input type="radio" class="ib-treeselect-none" name="@GroupName" value="" checked="@(!HasValue)" hidden
+               @onchange="() => CurrentValueAsString = string.Empty" />
+        <button type="button" class="ib-treeselect-clear" hidden="@(!HasValue)" aria-label="@TextDefaults.Clear" title="@TextDefaults.Clear">
+            <Icon Role="IconRole.Close" />
+        </button>
+    };
+}

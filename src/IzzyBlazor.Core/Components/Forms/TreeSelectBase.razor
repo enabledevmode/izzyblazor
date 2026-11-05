@@ -1,0 +1,221 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@inherits FieldBase<TValue>
+
+@*
+    What TreeSelect and MultiTreeSelect share: a button that shows the choice, and a panel with a
+    TreeView to choose from, whose boxes post under the field's name. Not a component of its own.
+*@
+
+<FieldFrame Class="@WrapperClass("treeselect")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        @ReadOnlyControl(string.Join(", ", ChosenItems.Select(TextOf)))
+    }
+    else
+    {
+        <ib-treeselect class="ib-field-control ib-treeselect"
+                       data-ib-multiple="@(Multiple ? "" : null)"
+                       data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
+                       data-ib-placeholder="@Placeholder">
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/treeselect.css"]" />
+            <ib-popover class="ib-pop-root ib-treeselect-root" style="@($"anchor-name:{Anchor}")" data-placement="bottom-start">
+                <button @attributes="ControlAttributes"
+                        type="button"
+                        id="@FieldId"
+                        class="ib-field-input ib-treeselect-button"
+                        popovertarget="@(IsDisabled ? null : PanelId)"
+                        aria-haspopup="dialog"
+                        aria-controls="@(IsDisabled ? null : PanelId)"
+                        aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {TextId}")"
+                        aria-describedby="@DescribedBy"
+                        disabled="@IsDisabled">
+                    @Shown
+                    <Icon Role="IconRole.ChevronDown" Class="ib-treeselect-chevron" />
+                </button>
+                @if (!IsDisabled)
+                {
+                    <div id="@PanelId"
+                         popover="auto"
+                         role="dialog"
+                         aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? FieldId : LabelId)"
+                         class="ib-pop ib-popover ib-place-bottom-start ib-treeselect-panel"
+                         style="@($"position-anchor:{Anchor}")">
+                        <CascadingValue Value="_field" IsFixed="true">
+                            <TreeView TItem="TItem"
+                                      Items="Items"
+                                      ItemChildren="ItemChildren"
+                                      ItemKey="KeyOf"
+                                      ItemText="ItemText"
+                                      ItemDescription="ItemDescription"
+                                      ItemIcon="ItemIcon"
+                                      ItemExpanded="ItemExpanded"
+                                      ItemDisabled="ItemDisabled"
+                                      ItemSelectable="ItemSelectable"
+                                      ChildContent="ItemTemplate"
+                                      SelectionMode="@(Multiple ? SelectionMode.Multiple : SelectionMode.Single)"
+                                      Selection="@Selection.Of(ChosenKeys)"
+                                      SelectionChanged="ChooseAsync"
+                                      Cascade="Cascades"
+                                      Searchable="Searchable"
+                                      SearchLabel="@SearchLabel"
+                                      EmptyText="@EmptyText"
+                                      AriaLabel="@ResolvedLabel" />
+                        </CascadingValue>
+                    </div>
+                }
+            </ib-popover>
+            @if (Clearable && !IsDisabled && default(TValue) is null)
+            {
+                @Clear
+            }
+        </ib-treeselect>
+    }
+    @if (PostsReadOnlyValue)
+    {
+        @* Read-only: the choice shows in a read-only text field, which doesn't post it; these do. *@
+        @foreach (var key in ChosenKeys)
+        {
+            <input type="hidden" name="@NameAttributeValue" value="@key" />
+        }
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>The items at the top of the tree.</summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>An item's children, or <see langword="null"/> or empty when it has none.</summary>
+    [Parameter] public Func<TItem, IEnumerable<TItem>?>? ItemChildren { get; set; }
+
+    /// <summary>
+    /// An item's text in the tree and in the field once chosen. Defaults to the item's
+    /// <c>ToString()</c>. Where two items share a name (Sales under two regions), return a path
+    /// such as "West / Sales".
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? ItemText { get; set; }
+
+    /// <summary>A muted second line under an item's text in the tree.</summary>
+    [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
+
+    /// <summary>An icon before an item's text in the tree.</summary>
+    [Parameter] public Func<TItem, IconData?>? ItemIcon { get; set; }
+
+    /// <summary>Markup for each item in the tree, in place of its text, description and icon. The field shows <see cref="ItemText"/>.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>Starts an item's children open. Branches that hold a chosen item start open anyway.</summary>
+    [Parameter] public Func<TItem, bool>? ItemExpanded { get; set; }
+
+    /// <summary>Dims an item and stops it being chosen. Its children still open.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>
+    /// Whether an item can be chosen; one that can't is a label for its branch. Every item can be
+    /// by default; <c>c => c.Children.Count == 0</c> allows only the ends of branches.
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
+
+    /// <summary>
+    /// A search box at the top of the panel that narrows the tree as you type: matches and their
+    /// parents stay, their branches open. In the browser, with script.
+    /// </summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The search box's name and placeholder. Defaults to "Search" (<see cref="IzzyText.Search"/>).</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    /// <summary>Text in the field while nothing is chosen, such as "Choose a category".</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Shown in the panel when there are no items. Defaults to "No items" (<see cref="IzzyText.NoItems"/>).</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>A button in the field that empties it, for a value that can be empty, there while one is chosen. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>Makes the field read-only: the chosen text shows in a read-only text field, and the value still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private TreeField? _field;
+
+    private protected string LabelId => FieldId + "-label";
+
+    private protected string TextId => FieldId + "-text";
+
+    private string PanelId => FieldId + "-tree";
+
+    private string Anchor => StyleValues.AnchorName(PanelId);
+
+    /// <summary>Whether several items can be chosen, with a checkbox each.</summary>
+    private protected abstract bool Multiple { get; }
+
+    /// <summary>Whether checking a parent checks its branch.</summary>
+    private protected virtual bool Cascades => false;
+
+    /// <summary>An item's key: its value's string form, which posts.</summary>
+    private protected abstract string KeyOf(TItem item);
+
+    /// <summary>The keys of the chosen values.</summary>
+    private protected abstract IReadOnlyCollection<string> ChosenKeys { get; }
+
+    /// <summary>Takes the tree's selection as the value, on an interactive page.</summary>
+    private protected abstract void Choose(Selection selection);
+
+    /// <summary>What the button shows: the chosen text, or chips.</summary>
+    private protected abstract RenderFragment Shown { get; }
+
+    /// <summary>The button that empties the field, with the script.</summary>
+    private protected abstract RenderFragment Clear { get; }
+
+    /// <summary>An item's text.</summary>
+    private protected string TextOf(TItem item) => ItemText?.Invoke(item) ?? item?.ToString() ?? "";
+
+    /// <summary>The chosen items, in the tree's order.</summary>
+    private protected IEnumerable<TItem> ChosenItems
+    {
+        get
+        {
+            var keys = ChosenKeys;
+            return keys.Count == 0 ? [] : Walk(Items, 0).Where(item => keys.Contains(KeyOf(item)));
+        }
+    }
+
+    private IEnumerable<TItem> Walk(IEnumerable<TItem>? items, int depth)
+    {
+        if (items is null || depth > 64)
+        {
+            yield break;
+        }
+
+        foreach (var item in items)
+        {
+            yield return item;
+            if (ItemChildren is not null)
+            {
+                foreach (var child in Walk(ItemChildren(item), depth + 1))
+                {
+                    yield return child;
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _field ??= new TreeField(GroupName);
+    }
+
+    private Task ChooseAsync(Selection selection)
+    {
+        Choose(selection);
+        return Task.CompletedTask;
+    }
+}

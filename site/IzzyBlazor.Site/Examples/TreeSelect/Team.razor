@@ -1,0 +1,41 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="tree-select-team" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TreeSelect @bind-Value="Model!.TeamId" Items="Departments" ItemChildren="d => d.Teams"
+                ItemValue="d => d.Id" ItemText="d => d.Name" ItemSelectable="d => d.Teams.Length == 0"
+                Placeholder="Choose a team" Hint="Departments group the teams." />
+    <Row><Button Submit>Assign</Button></Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Assigned to @_saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "tree-select-team")]
+    private Ticket? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Departments.SelectMany(d => d.Teams).FirstOrDefault(t => t.Id == Model!.TeamId)?.Name;
+
+    public sealed class Ticket
+    {
+        [Required(ErrorMessage = "Choose a team")]
+        [Display(Name = "Team")]
+        public string? TeamId { get; set; }
+    }
+
+    @* hide *@
+    private static readonly Unit[] Departments =
+    [
+        new("eng", "Engineering", [new("eng-web", "Web", []), new("eng-mobile", "Mobile", []), new("eng-platform", "Platform", [])]),
+        new("support", "Support", [new("support-billing", "Billing", []), new("support-tech", "Technical", [])]),
+        new("sales", "Sales", [new("sales-west", "West", []), new("sales-east", "East", [])]),
+    ];
+
+    private sealed record Unit(string Id, string Name, Unit[] Teams);
+    @* /hide *@
+}

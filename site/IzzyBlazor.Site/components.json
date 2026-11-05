@@ -1286,6 +1286,28 @@
       ]
     },
     {
+      "id": "tree-select", "icon": "ListTree", "name": "TreeSelect", "category": "Selection", "summary": "Lets the user choose one item from a tree, such as a category or a team, in a field that opens it.", "keywords": ["tree select", "dropdown tree", "drop-down tree", "hierarchy", "category picker", "cascader"],
+      "features": [
+        { "feature": "Choose one item from a tree, posted with the form" },
+        { "feature": "The field shows the choice as it's made", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "One Tab stop, arrow keys and typeahead in the tree", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A search box that narrows the tree", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A clear button (Clearable)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "@bind-Value follows the choice", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "tree-select-category", "title": "A category", "lead": "Set `Items` to the top level and `ItemChildren` to each item's children. `ItemValue` is what binds and posts, here an id, and `ItemText` names each item. Any item can be chosen, a parent too. The tree opens on the chosen item; `Searchable` adds a box that narrows it.",
+          "notes": {
+            "noscript": "The field opens the tree as radio buttons in branches. The field's text changes once the form posts, and there's no search box or clear button.",
+            "static": "Choosing closes the tree and shows the category in the field at once; Save posts it."
+          } },
+        { "id": "tree-select-team", "title": "Only the ends of branches", "lead": "To make parents labels for their branches, return `false` from `ItemSelectable` for them. Here departments group the teams, and a ticket goes to a team.",
+          "notes": {
+            "noscript": "Departments can't be chosen; their radio buttons are disabled."
+          } }
+      ]
+    },
+    {
       "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "Shows a checkbox styled to match the fields.",
       "examples": [
         { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
