@@ -60,7 +60,7 @@
     - Left | Close an item's branch, or move to its parent
     - Home, End | Move to the first or last item
     - * | Open every branch beside the focused item
-    - Space | Check or uncheck the item, or select it
+    - Space | Check or uncheck the item, or select it; one that can't be, open or close its branch
     - Enter | Select the item; with checkboxes, check or uncheck it
     - A letter | Move to the next item starting with it
     See also: NavGroup, ListView.
@@ -218,7 +218,10 @@
     /// </summary>
     [Parameter] public string? SelectionName { get; set; }
 
-    /// <summary>Whether an item can be selected; one that can't keeps its place, with its box disabled.</summary>
+    /// <summary>
+    /// Whether an item can be selected; one that can't keeps its place, with its box disabled, and
+    /// with script a click on it opens or closes its branch.
+    /// </summary>
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
     /// <summary>

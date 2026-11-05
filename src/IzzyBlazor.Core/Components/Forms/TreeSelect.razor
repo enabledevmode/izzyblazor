@@ -12,7 +12,8 @@
     <TreeSelect @bind-Value="Model.CategoryId" Items="Categories" ItemChildren="c => c.Children"
                 ItemValue="c => c.Id" ItemText="c => c.Name" Label="Category" Searchable />
 
-    Any item can be chosen, a parent too; ItemSelectable makes parents labels for their branches:
+    Any item can be chosen, a parent too; ItemSelectable makes parents labels for their branches,
+    which open and close when clicked:
 
     <TreeSelect ... ItemSelectable="c => c.Children.Count == 0" />
 
@@ -43,7 +44,7 @@
     - Right | Open an item's branch, or move to its first child
     - Left | Close an item's branch, or move to its parent
     - Home, End | Move to the first or last item
-    - Enter, Space | Choose the item and close
+    - Enter, Space | Choose the item and close; on one that can't be chosen, open or close its branch
     - A letter | Move to the next item starting with it
     - Escape | Close without changing the choice
     See also: MultiTreeSelect, TreeView, Combobox, Select.

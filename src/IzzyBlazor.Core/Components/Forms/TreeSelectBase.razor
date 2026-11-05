@@ -113,7 +113,8 @@
     [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
 
     /// <summary>
-    /// Whether an item can be chosen; one that can't is a label for its branch. Every item can be
+    /// Whether an item can be chosen; one that can't is a label for its branch, and with script a
+    /// click on it opens or closes the branch. Every item can be
     /// by default; <c>c => c.Children.Count == 0</c> allows only the ends of branches.
     /// </summary>
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }

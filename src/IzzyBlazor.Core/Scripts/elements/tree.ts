@@ -10,6 +10,8 @@ import { fetchPart } from "../fetch-part";
  *   tabindex on the items), arrows, Home, End, `*`, typeahead, Space and Enter; each item a
  *   treeitem with its level, open state and aria-checked or aria-selected. The boxes and the
  *   branches' summaries leave the Tab order and the accessibility tree; they still post and click.
+ * - An item that can't be chosen and has a branch opens and closes it on a click on its line, or
+ *   Enter or Space.
  * - With checkboxes and cascade: a box checks or unchecks its branch, and each parent is checked
  *   when its whole branch is, mixed when part of it is. Every box it changes reports a change, so
  *   posting and @bind-Selection see the boxes as they are.
@@ -148,6 +150,21 @@ class Tree extends IzzyElement {
         if (!item || item.closest("ib-tree") !== this) return;
         event.preventDefault();
         this.#focus(item);
+      },
+      { signal }
+    );
+    // An item that can't be chosen, with a branch: a click on its line opens or closes the branch,
+    // as there's nothing else for it to do (a TreeSelect's departments over their teams).
+    list.addEventListener(
+      "click",
+      (event) => {
+        const row = (event.target as Element).closest("label.ib-tree-item");
+        const item = row?.parentElement;
+        const details = item && this.#detailsOf(item);
+        if (!details || item.closest("ib-tree") !== this || !this.#boxOf(item)?.disabled) return;
+        event.preventDefault();
+        details.open = !details.open;
+        this.#byHand(details, details.open);
       },
       { signal }
     );
@@ -362,6 +379,8 @@ class Tree extends IzzyElement {
       case "Enter": {
         const box = this.#boxOf(item);
         if (box && !box.disabled && !(box.type === "radio" && box.checked)) box.click();
+        // One that can't be chosen opens or closes its branch.
+        else if (box?.disabled && details) open(details, !details.open);
         break;
       }
       default:
