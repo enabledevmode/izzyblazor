@@ -42,6 +42,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-pick-list": () => import("./elements/pick-list.js"),
   "ib-splitter": () => import("./elements/splitter.js"),
   "ib-carousel": () => import("./elements/carousel.js"),
+  "ib-chart": () => import("./elements/chart.js"),
   "ib-tooltip": () => import("./elements/tooltip.js"),
   "ib-dismiss": () => import("./elements/dismiss.js"),
   "ib-banner": () => import("./elements/banner.js"),

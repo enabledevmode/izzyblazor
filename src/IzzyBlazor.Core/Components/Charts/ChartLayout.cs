@@ -85,6 +85,9 @@ internal sealed class ChartModel
     /// <summary>Whether the argument labels have a second line (a month under days, a year under months).</summary>
     public bool TwoLine { get; set; }
 
+    /// <summary>Each item's place along the argument axis, 0 to 1 (NaN where it has none).</summary>
+    public double[] ArgumentPositions { get; set; } = [];
+
     public required string[] ArgumentTexts { get; init; }
     public required string?[][] ValueTexts { get; init; }
 }
@@ -214,6 +217,8 @@ internal static class ChartLayout
                 TimeLabels(model, new DateTime((long)amin), new DateTime((long)amax), count, input.ArgumentFormat, culture, argumentRoomPx);
             }
         }
+
+        model.ArgumentPositions = positions;
 
         // A scale's last label is centered on the plot's end: leave room for its far half.
         var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category ? null : model.ArgumentLabels;

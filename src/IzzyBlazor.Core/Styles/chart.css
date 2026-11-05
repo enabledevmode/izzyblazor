@@ -155,7 +155,92 @@
     stroke-width: 1.5px;
   }
 
-  .ib-chart-off { display: none; }
+  ib-chart { display: block; }
+
+  /* A series hidden from the legend (or by Hidden). */
+  ib-chart .ib-chart-frame [data-ib-hidden] { display: none; }
+
+  .ib-chart-frame:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 4px;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  /* With the script's tooltips, the plot's shapes don't take the pointer: their <title>s are the
+     tips for when there's no script, and would show over the script's. */
+  ib-chart[data-ib-tooltips] .ib-chart-svg { pointer-events: none; }
+
+  /* The band (or line) under the item the tooltip is for. */
+  .ib-chart-hover {
+    position: absolute;
+    background-color: var(--ib-color-on-surface);
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  .ib-chart-hover-line {
+    min-width: 1px;
+    min-height: 1px;
+    opacity: 0.3;
+  }
+
+  .ib-chart-tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    padding: var(--ib-space-2) var(--ib-space-3);
+    border: 1px solid var(--ib-color-overlay-border, var(--ib-color-border));
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-md);
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .ib-chart-tooltip-title {
+    margin-block-end: var(--ib-space-1);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-chart-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-chart-tooltip-key {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 2px;
+  }
+
+  .ib-chart-tooltip-value {
+    margin-inline-start: auto;
+    padding-inline-start: var(--ib-space-4);
+    font-weight: var(--ib-weight-medium);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The labels the script measured to fit (data-ib-fit), in place of the container queries. */
+  ib-chart[data-ib-fit] :is(.ib-chart-bottom > span, line.ib-chart-grid) { display: inline; }
+  ib-chart[data-ib-fit="0"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from1, .ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="1"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from2, .ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="2"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from3, .ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="3"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from4, .ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="4"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from5, .ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="5"] :is(.ib-chart-bottom > span, line.ib-chart-grid):is(.ib-chart-from6, .ib-chart-from7) { display: none; }
+  ib-chart[data-ib-fit="6"] :is(.ib-chart-bottom > span, line.ib-chart-grid).ib-chart-from7 { display: none; }
+  ib-chart[data-ib-fit="0"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w0); }
+  ib-chart[data-ib-fit="1"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w1); }
+  ib-chart[data-ib-fit="2"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w2); }
+  ib-chart[data-ib-fit="3"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w3); }
+  ib-chart[data-ib-fit="4"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w4); }
+  ib-chart[data-ib-fit="5"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w5); }
+  ib-chart[data-ib-fit="6"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w6); }
+  ib-chart[data-ib-fit="7"] .ib-chart-bands { --ib-chart-w: var(--ib-chart-w7); }
 
   /* Arguments (or values, for bars across) along the bottom, centered on their place. */
   .ib-chart-bottom {
@@ -213,10 +298,21 @@
     font-size: var(--ib-text-sm);
   }
 
-  .ib-chart-legend > li {
+  .ib-chart-toggle {
     display: inline-flex;
     align-items: center;
     gap: var(--ib-space-2);
+    border-radius: var(--ib-radius-sm);
+  }
+
+  /* With script, a legend item is a button that hides and shows its series. */
+  .ib-chart-toggle[role="button"] { cursor: pointer; }
+
+  .ib-chart-toggle[aria-pressed="false"] { opacity: 0.45; }
+
+  .ib-chart-toggle:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
   }
 
   .ib-chart-key {
@@ -252,5 +348,6 @@
 
   @media print {
     .ib-chart { print-color-adjust: exact; }
+    .ib-chart :is(.ib-chart-tooltip, .ib-chart-hover) { display: none; }
   }
 }
