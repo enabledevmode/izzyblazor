@@ -15,8 +15,15 @@ public sealed class RangeSliderTests(SiteFixture site) : IClassFixture<SiteFixtu
         var low = example.GetByRole(AriaRole.Slider, new() { Name = "Minimum" });
         var high = example.GetByRole(AriaRole.Slider, new() { Name = "Maximum" });
 
-        // End goes to the top of the scale, but the lower thumb stops at the upper one.
+        // The shown values get shorter ("$0 – $300") without lengthening the track, which would
+        // move the upper thumb.
+        var length = (await high.BoundingBoxAsync())!.Width;
         await low.FocusAsync();
+        await page.Keyboard.PressAsync("Home");
+        await Assertions.Expect(low).ToHaveValueAsync("0");
+        Assert.Equal(length, (await high.BoundingBoxAsync())!.Width);
+
+        // End goes to the top of the scale, but the lower thumb stops at the upper one.
         await page.Keyboard.PressAsync("End");
         await Assertions.Expect(low).ToHaveValueAsync("300");
         await Assertions.Expect(low).ToHaveAttributeAsync("aria-valuetext", "$300");

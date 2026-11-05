@@ -68,7 +68,7 @@
         @if (ShowValue)
         {
             @* The script shows the live values through data-current; this text stays Blazor's. *@
-            <output class="ib-slider-value" for="@($"{FieldId} {EndId}")" aria-hidden="true">@ValueText</output>
+            <output class="ib-slider-value" for="@($"{FieldId} {EndId}")" aria-hidden="true" style="@ValueWidth">@ValueText</output>
         }
     </ib-field-control>
     @if (PostsReadOnlyValue)
@@ -146,6 +146,9 @@
     private double End => CurrentValue is { } range ? double.CreateTruncating(range.End) : ResolvedMax;
 
     private string Said(double value) => ValueFormat.Replace("{0}", Format(value), StringComparison.Ordinal);
+
+    // Both ends at their widest (each with its spare character), and the dash between them.
+    private string ValueWidth => $"--ib-slider-value-ch: {2 * NumberTypes.ShownWidth(ResolvedMin, ResolvedMax, Step, ValueFormat) + 1}";
 
     private string ValueText => $"{Said(Start)} – {Said(End)}";
 

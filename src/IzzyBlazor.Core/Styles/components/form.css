@@ -563,9 +563,11 @@
     --ib-slider-accent: var(--ib-color-danger);
   }
 
+  /* --ib-slider-value-ch, from the server: the widest value's characters, so the track keeps its
+     length as the value changes. */
   .ib-slider-value {
     flex: none;
-    min-width: 3ch;
+    min-width: calc(var(--ib-slider-value-ch, 3) * 1ch);
     font-size: var(--ib-field-font);
     font-variant-numeric: tabular-nums;
     text-align: end;
@@ -579,6 +581,8 @@
 
   .ib-slider-value[data-current]::after {
     content: attr(data-current);
+    display: inline-block;
+    min-width: calc(var(--ib-slider-value-ch, 3) * 1ch);
     font-size: var(--ib-field-font);
   }
 
@@ -631,7 +635,8 @@
     height: auto;
   }
 
-  .ib-slider-vertical .ib-slider-value {
+  .ib-slider-vertical .ib-slider-value,
+  .ib-slider-vertical .ib-slider-value[data-current]::after {
     min-width: 0;
     text-align: center;
   }
