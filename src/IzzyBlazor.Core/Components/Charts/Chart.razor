@@ -236,7 +236,11 @@
                         <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)">
                             @foreach (var bar in s.Bars)
                             {
-                                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
+                                <rect class="@(bar.Base is null ? null : "ib-chart-tip")" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
+                                @if (bar.Base is { } half)
+                                {
+                                    <rect x="@Num(half.X)%" y="@Num(half.Y)%" width="@Num(half.Width)%" height="@Num(half.Height)%" />
+                                }
                             }
                         </g>
                     }

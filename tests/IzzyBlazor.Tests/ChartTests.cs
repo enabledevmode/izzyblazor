@@ -85,7 +85,7 @@ public class ChartLayoutTests
     }
 
     [Fact]
-    public void Stacked_bars_sit_on_each_other_and_full_stacks_reach_the_top()
+    public void Stacked_bars_sit_on_each_other_and_full_stacks_reach_the_top_with_a_rounded_end()
     {
         var model = ChartLayout.Build(new ChartInput(
             ["Q1", "Q2"],
@@ -102,6 +102,10 @@ public class ChartLayoutTests
         Assert.Equal(0, b[0].Y, 6);
         Assert.Equal(0, b[1].Y, 6);
         Assert.Equal("100%", model.ValueLabels[^1].Text.Replace(" ", ""));
+
+        // Only the top of each stack has a rounded end.
+        Assert.All(a, bar => Assert.Null(bar.Base));
+        Assert.All(b, bar => Assert.NotNull(bar.Base));
     }
 
     [Fact]
@@ -159,7 +163,7 @@ public class ChartRenderTests : BunitContext
         Assert.Equal(caption.Id, image.GetAttribute("aria-labelledby"));
 
         // Bars and a line with its markers; each mark describes its value.
-        Assert.Equal(2, cut.FindAll(".ib-chart-bars rect").Count);
+        Assert.Equal(2, cut.FindAll(".ib-chart-bars rect title").Count);
         Assert.Single(cut.FindAll("path.ib-chart-line"));
         Assert.Equal("Feb, Costs: 70.5", cut.FindAll(".ib-chart-marks use title")[1].TextContent);
 

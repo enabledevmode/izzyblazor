@@ -109,8 +109,20 @@
 
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
-  /* Bars in the series color, a little see-through (--ib-chart-fill-opacity), with no edge. */
-  .ib-chart-bars,
+  /* Bars in the series color, a little see-through (--ib-chart-fill-opacity), with no edge. The
+     value end is rounded by the theme's small radius (--ib-chart-bar-radius to set it apart): a
+     rounded rectangle with a square one over its baseline half. The group, not each rectangle,
+     is see-through, so where they overlap is no darker. */
+  .ib-chart-bars {
+    fill: var(--ib-chart-c);
+    opacity: var(--ib-chart-fill-opacity, 0.65);
+  }
+
+  .ib-chart-bars > .ib-chart-tip,
+  .ib-chart-key rect {
+    rx: var(--ib-chart-bar-radius, var(--ib-radius-sm));
+  }
+
   .ib-chart-key rect {
     fill: var(--ib-chart-c);
     fill-opacity: var(--ib-chart-fill-opacity, 0.65);
