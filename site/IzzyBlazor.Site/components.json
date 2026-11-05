@@ -633,7 +633,7 @@
     },
 
     {
-      "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts its fields on static pages and validates them live on interactive pages.", "parts": ["FormActions", "FormErrors"],
+      "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts its fields on static pages and validates them live on interactive pages.", "keywords": ["unsaved changes", "confirm leave", "exit prompt", "navigation lock", "beforeunload", "dirty form"], "parts": ["FormActions", "FormErrors"],
       "examples": [
         { "id": "home-settings", "title": "A settings form, static or interactive",
           "notes": {
@@ -666,6 +666,13 @@
             "noscript": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "static": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "interactive": "Nothing posts on interactive pages: the list is just empty."
+          } },
+        { "id": "form-confirm-leave", "title": "Asking before leaving", "height": 420, "page": true,
+          "lead": "`ConfirmLeave` asks before the user leaves with unsaved changes: by a link, another form's post, a reload or closing the tab. Links and posts open a dialog; reload and close show the browser's own prompt. A save, or putting the values back, ends the asking.",
+          "notes": {
+            "noscript": "Nothing asks: leaving needs script to catch.",
+            "static": "Change a field and choose Projects or Cancel: the dialog asks. Back and forward don't ask on static pages with enhanced navigation.",
+            "interactive": "Change a field and choose Projects or Cancel: the dialog asks. NavigateTo asks too, and back and forward do when the whole app is interactive. After Save it doesn't."
           } },
         { "id": "form-redirect-after-save", "title": "A redirect after saving",
           "notes": {
