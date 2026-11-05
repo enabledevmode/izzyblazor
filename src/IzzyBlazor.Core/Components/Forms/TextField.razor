@@ -1,6 +1,6 @@
 @namespace IzzyBlazor
-@inherits FieldBase<string?>
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, password fields have no show/hide button.")]
+@inherits TextFieldBase
+@attribute [ModeSupport]
 
 @*
     A single-line text input with label, hint and errors.
@@ -14,8 +14,7 @@
         <EndAddon><Button Submit>Search</Button></EndAddon>
     </TextField>
 
-    A password field on a static page is empty after a post: the page doesn't write the password
-    back into its HTML, so it has to be typed again when the form comes back with errors.
+    For a password, use PasswordField.
 
     Accessibility:
     - It renders a native `input` with a `label` linked to it, so clicking the label focuses the field.
@@ -26,159 +25,23 @@
     - A placeholder isn't a label: it's gone once there's text, and screen readers may not read it.
     - Add-on text isn't part of the field's name, so put a unit that matters in the label too, as
       in "Price (USD)".
-    - The show/hide button is a toggle named "Show password" (`ShowPasswordLabel`), pressed while
-      the password shows.
-    - With script, a password field says "Caps Lock is on." (`IzzyText.CapsLockOn`) under it while
-      typing with Caps Lock on, announced once through a polite status.
     - Screen readers don't hear a `Mask`, and the field shows no prompt characters for it. Show the
       format in `Placeholder`, as in "(000) 000-0000", and say it in `Hint`, as in "10 digits". The
       server puts a posted value in the mask's form, so text typed with spaces or dots, or with no
       script, is taken too.
-    - `Requirements` lists what a new password needs under the field, linked as its description;
-      with script each item says "met" or "not yet" in its text, not by its icon alone, and "All
-      requirements met." (`IzzyText.PasswordRulesMet`) is announced once when the last one is.
 *@
 
-<FieldFrame Class="@WrapperClass("text")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
-            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
-    <ib-field-control class="@ControlClass">
-        @if (StartIcon is { } start)
-        {
-            <Icon Name="start" Class="ib-field-icon ib-field-icon-start" />
-        }
-        <input inputmode="@MaskInputMode"
-               @attributes="ControlAttributes"
-               id="@FieldId"
-               class="ib-field-input"
-               type="@InputType"
-               name="@NameAttributeValue"
-               value="@(EchoesValue ? CurrentValueAsString : null)"
-               @onchange="EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString)"
-               placeholder="@Placeholder"
-               autocomplete="@(AutoComplete ?? (Requirements is null ? null : "new-password"))"
-               passwordrules="@Requirements?.AppleRules()"
-               required="@IsRequired"
-               maxlength="@(MaxLength ?? AnnotatedMaxLength)"
-               minlength="@(MinLength ?? AnnotatedMinLength ?? (Requirements?.RequiredLength > 0 ? Requirements.RequiredLength : null))"
-               disabled="@IsDisabled"
-               readonly="@IsReadOnly"
-               aria-invalid="@(Invalid ? "true" : null)"
-               aria-describedby="@InputDescribedBy"
-               data-ib-mask="@Mask"
-               data-ib-mask-rules="@MaskRulesAttribute" />
-        @if (ResolvedType == TextFieldType.Password && Reveal)
-        {
-            <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="@(ShowPasswordLabel ?? TextDefaults.ShowPassword)" aria-pressed="false">
-                <Icon Role="IconRole.Show" Class="ib-reveal-show" />
-                <Icon Role="IconRole.Hide" Class="ib-reveal-hide" />
-            </button>
-        }
-        else if (EndIcon is { } end)
-        {
-            <Icon Name="end" Class="ib-field-icon ib-field-icon-end" />
-        }
-        @if (Clearable && !IsDisabled && !IsReadOnly)
-        {
-            @ClearButton
-        }
-    </ib-field-control>
-    </FieldAddons>
-    @if (ResolvedType == TextFieldType.Password)
-    {
-        @* Filled by the script while Caps Lock is on: a status that's there from the start, so it's announced. *@
-        <p class="ib-field-capslock" data-ib-capslock="@TextDefaults.CapsLockOn"><Icon Role="IconRole.Warning" /><span role="status"></span></p>
-    }
-    @if (ListsRules)
-    {
-        var rules = Requirements!;
-        <ul class="ib-password-rules" id="@RulesId" data-ib-met="@TextDefaults.RuleMet" data-ib-unmet="@TextDefaults.RuleNotMet" data-ib-all="@TextDefaults.PasswordRulesMet" data-ib-invalid="@UnmetMessage">
-            @foreach (var (key, count, _) in rules.Each())
-            {
-                <li data-rule="@key" data-n="@(count > 0 ? count : null)"><Icon Role="IconRole.Check" Class="ib-rule-met" /><Icon Role="IconRole.Minus" Class="ib-rule-unmet" /><span>@RuleText(key, count)</span></li>
-            }
-        </ul>
-        <span class="ib-visually-hidden ib-password-status" role="status"></span>
-    }
-</FieldFrame>
+@{ base.BuildRenderTree(__builder); }
 
 @code {
-    /// <summary>A button in the field that empties it, there while it holds something. Off by default.</summary>
-    [Parameter] public bool Clearable { get; set; }
-
-    /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
-    [Parameter] public bool ReadOnly { get; set; }
-
-    /// <inheritdoc />
-    protected override bool OwnReadOnly => ReadOnly;
-
-    // A static page doesn't write a password back into its HTML: after a failed post the field is
-    // empty, as browsers and other frameworks leave it. Interactive pages keep it in the circuit.
-    private bool EchoesValue => ResolvedType != TextFieldType.Password || RendererInfo.IsInteractive;
-
-    /// <summary>The kind of text. Defaults from the model: <c>[EmailAddress]</c>, <c>[Phone]</c>, <c>[Url]</c>, <c>[DataType(DataType.Password)]</c>; otherwise text.</summary>
+    /// <summary>The kind of text. Defaults from the model: <c>[EmailAddress]</c>, <c>[Phone]</c>, <c>[Url]</c>; otherwise text.</summary>
     [Parameter] public TextFieldType? Type { get; set; }
 
-    /// <summary>Example text shown when empty. Not a substitute for a label.</summary>
-    [Parameter] public string? Placeholder { get; set; }
-
-    /// <summary>The browser autofill hint, such as <c>email</c>, <c>name</c>, <c>new-password</c>.</summary>
-    [Parameter] public string? AutoComplete { get; set; }
-
-    /// <summary>Maximum length. Defaults to <c>[StringLength]</c> or <c>[MaxLength]</c>.</summary>
-    [Parameter] public int? MaxLength { get; set; }
-
-    /// <summary>Minimum length. Defaults to <c>[StringLength(MinimumLength)]</c> or <c>[MinLength]</c>.</summary>
-    [Parameter] public int? MinLength { get; set; }
-
-    /// <summary>An icon inside the field, before the text.</summary>
-    [Parameter] public IconData? StartIcon { get; set; }
-
-    /// <summary>An icon inside the field, after the text. Ignored for passwords with <see cref="Reveal"/>.</summary>
+    /// <summary>An icon inside the field, after the text.</summary>
     [Parameter] public IconData? EndIcon { get; set; }
 
-    /// <summary>
-    /// Content attached before the control, outside its border: short text (<c>https://</c>, <c>$</c>),
-    /// a button, or another field such as a <see cref="Select{TValue}"/> (its label is kept for screen
-    /// readers but not shown). Text here is not part of the field's accessible name, so say it in the label
-    /// when it matters, as in "Price (USD)".
-    /// </summary>
-    [Parameter] public RenderFragment? StartAddon { get; set; }
-
-    /// <summary>Content attached after the control, outside its border. See <see cref="StartAddon"/>.</summary>
-    [Parameter] public RenderFragment? EndAddon { get; set; }
-
-    /// <summary>For passwords: a button that shows or hides the text. Appears once scripts run. Defaults to true.</summary>
-    [Parameter] public bool Reveal { get; set; } = true;
-
-    /// <summary>The reveal button's name; it's a toggle, pressed while the password shows. Defaults to "Show password".</summary>
-    [Parameter] public string? ShowPasswordLabel { get; set; }
-
-    /// <summary>
-    /// What a new password must have, listed under the field and checked off as it's typed; the form
-    /// doesn't validate until the password meets them, on the server too. Password fields only. Sets <see cref="AutoComplete"/>
-    /// to <c>new-password</c> unless it's set, and tells Safari the rules for the passwords it suggests.
-    /// </summary>
-    [Parameter] public PasswordRules? Requirements { get; set; }
-
-    private string RulesId => FieldId + "-rules";
-
-    // Rules that ask nothing list nothing.
-    private bool ListsRules => Requirements?.Each().Any() == true;
-
-    private string? InputDescribedBy => !ListsRules ? DescribedBy : DescribedBy is null ? RulesId : $"{RulesId} {DescribedBy}";
-
-    private string UnmetMessage => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordRulesUnmet, ResolvedLabel ?? FieldIdentifier.FieldName);
-
-    private string RuleText(string key, int count) => key switch
-    {
-        "length" => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordLength, count),
-        "lower" => TextDefaults.PasswordLowercase,
-        "upper" => TextDefaults.PasswordUppercase,
-        "digit" => TextDefaults.PasswordDigit,
-        "symbol" => TextDefaults.PasswordSymbol,
-        _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordUnique, count),
-    };
+    /// <inheritdoc />
+    private protected override IconData? EndIconShown => EndIcon;
 
     /// <summary>
     /// The form the text takes: as it's typed or pasted with script, and on the server whenever a value
@@ -187,7 +50,7 @@
     /// but a space; <c>9</c>, <c>?</c>, <c>a</c> and <c>C</c> are the same, optional. <c>&gt;</c> makes
     /// the letters after it upper case, <c>&lt;</c> lower case, and <c>|</c> stops either. <c>\</c>
     /// makes the next character a literal; anything else is one already. A value with an empty slot
-    /// that isn't optional is invalid. Show the format in <see cref="Placeholder"/> and say it in
+    /// that isn't optional is invalid. Show the format in <see cref="TextFieldBase.Placeholder"/> and say it in
     /// <see cref="FieldBase{TValue}.Hint"/>.
     /// </summary>
     /// <example><c>Mask="(000) 000-0000"</c>, <c>Mask="&gt;L0L 0L0"</c></example>
@@ -209,17 +72,22 @@
     private string? _maskSource;
     private Dictionary<char, string>? _maskRulesSource;
 
-    private string? MaskInputMode => _mask is { DigitsOnly: true } && ResolvedType == TextFieldType.Text ? "numeric" : null;
+    /// <inheritdoc />
+    private protected override string? InputMode => _mask is { DigitsOnly: true } && ResolvedType == TextFieldType.Text ? "numeric" : null;
+
+    /// <inheritdoc />
+    private protected override string? MaskAttribute => Mask;
 
     // Each rule as its character and then its class: "X[A-HJ-NP-Z]Y[0-5]".
-    private string? MaskRulesAttribute => Mask is null || MaskRules is not { Count: > 0 } rules ? null : string.Concat(rules.Select(r => r.Key + r.Value));
+    /// <inheritdoc />
+    private protected override string? MaskRulesAttribute => Mask is null || MaskRules is not { Count: > 0 } rules ? null : string.Concat(rules.Select(r => r.Key + r.Value));
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Requirements is not null && ResolvedType != TextFieldType.Password)
+        if (Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Password)
         {
-            throw new InvalidOperationException("TextField's Requirements are for passwords: set Type=\"TextFieldType.Password\", or [DataType(DataType.Password)] on the property.");
+            throw new InvalidOperationException($"\"{FieldIdentifier.FieldName}\" is a password ([DataType(DataType.Password)]): use a PasswordField, which masks it.");
         }
 
         if (Mask is null && (RawValue || MaskRules is not null))
@@ -267,7 +135,7 @@
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Requirements is not null || Mask is not null;
+    private protected override bool HasOwnRules => Mask is not null;
 
     /// <inheritdoc />
     private protected override string? OwnRuleError(string? value)
@@ -275,11 +143,6 @@
         if (value is not { Length: > 0 })
         {
             return null;
-        }
-
-        if (Requirements is { } rules && !rules.IsMetBy(value))
-        {
-            return UnmetMessage;
         }
 
         return _mask is not null && !_mask.Apply(value).Complete
@@ -291,22 +154,15 @@
         ?? (Attribute<System.ComponentModel.DataAnnotations.EmailAddressAttribute>() is not null ? TextFieldType.Email
         : Attribute<System.ComponentModel.DataAnnotations.PhoneAttribute>() is not null ? TextFieldType.Tel
         : Attribute<System.ComponentModel.DataAnnotations.UrlAttribute>() is not null ? TextFieldType.Url
-        : Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Password ? TextFieldType.Password
         : TextFieldType.Text);
 
-    private string InputType => ResolvedType switch
+    /// <inheritdoc />
+    private protected override string InputType => ResolvedType switch
     {
         TextFieldType.Email => "email",
-        TextFieldType.Password => "password",
         TextFieldType.Search => "search",
         TextFieldType.Tel => "tel",
         TextFieldType.Url => "url",
         _ => "text",
     };
-
-    private string ControlClass => new ClassBuilder()
-        .Add("ib-field-control")
-        .Add("ib-has-start", StartIcon is not null)
-        .Add("ib-has-end", EndIcon is not null || (ResolvedType == TextFieldType.Password && Reveal))
-        .Build()!;
 }

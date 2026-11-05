@@ -10,8 +10,8 @@ public sealed class PasswordTests(SiteFixture site) : IClassFixture<SiteFixture>
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/text-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var example = page.Locator("[data-ex='text-field-new-password']");
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/password-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var example = page.Locator("[data-ex='password-field-new-password']");
         var password = example.Locator("input[type=password]");
         var rules = example.Locator(".ib-password-rules > li");
 

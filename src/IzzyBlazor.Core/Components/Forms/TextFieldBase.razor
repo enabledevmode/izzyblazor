@@ -1,0 +1,166 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+
+@*
+    What TextField and PasswordField share: the input with its label, hint, errors, icons and
+    add-ons. Not a component of its own.
+*@
+
+<FieldFrame Class="@WrapperClass("text")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
+    <ib-field-control class="@ControlClass">
+        @if (StartIcon is { } start)
+        {
+            <Icon Name="start" Class="ib-field-icon ib-field-icon-start" />
+        }
+        <input inputmode="@InputMode"
+               @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@NameAttributeValue"
+               value="@(EchoesValue ? CurrentValueAsString : null)"
+               @onchange="EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString)"
+               placeholder="@Placeholder"
+               autocomplete="@(AutoComplete ?? DefaultAutoComplete)"
+               passwordrules="@PasswordRequirements?.AppleRules()"
+               required="@IsRequired"
+               maxlength="@(MaxLength ?? AnnotatedMaxLength)"
+               minlength="@(MinLength ?? AnnotatedMinLength ?? (PasswordRequirements?.RequiredLength > 0 ? PasswordRequirements.RequiredLength : null))"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@InputDescribedBy"
+               data-ib-mask="@MaskAttribute"
+               data-ib-mask-rules="@MaskRulesAttribute" />
+        @if (ShowsReveal)
+        {
+            <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="@(RevealLabel ?? TextDefaults.ShowPassword)" aria-pressed="false">
+                <Icon Role="IconRole.Show" Class="ib-reveal-show" />
+                <Icon Role="IconRole.Hide" Class="ib-reveal-hide" />
+            </button>
+        }
+        else if (EndIconShown is { } end)
+        {
+            <Icon Name="end" Class="ib-field-icon ib-field-icon-end" />
+        }
+        @if (Clearable && !IsDisabled && !IsReadOnly)
+        {
+            @ClearButton
+        }
+    </ib-field-control>
+    </FieldAddons>
+    @if (IsPassword)
+    {
+        @* Filled by the script while Caps Lock is on: a status that's there from the start, so it's announced. *@
+        <p class="ib-field-capslock" data-ib-capslock="@TextDefaults.CapsLockOn"><Icon Role="IconRole.Warning" /><span role="status"></span></p>
+    }
+    @if (ListsRules)
+    {
+        var rules = PasswordRequirements!;
+        <ul class="ib-password-rules" id="@RulesId" data-ib-met="@TextDefaults.RuleMet" data-ib-unmet="@TextDefaults.RuleNotMet" data-ib-all="@TextDefaults.PasswordRulesMet" data-ib-invalid="@UnmetMessage">
+            @foreach (var (key, count, _) in rules.Each())
+            {
+                <li data-rule="@key" data-n="@(count > 0 ? count : null)"><Icon Role="IconRole.Check" Class="ib-rule-met" /><Icon Role="IconRole.Minus" Class="ib-rule-unmet" /><span>@RuleText(key, count)</span></li>
+            }
+        </ul>
+        <span class="ib-visually-hidden ib-password-status" role="status"></span>
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>A button in the field that empties it, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>Example text shown when empty. Not a substitute for a label.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>The browser autofill hint, such as <c>email</c>, <c>name</c>, <c>current-password</c>.</summary>
+    [Parameter] public string? AutoComplete { get; set; }
+
+    /// <summary>Maximum length. Defaults to <c>[StringLength]</c> or <c>[MaxLength]</c>.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>Minimum length. Defaults to <c>[StringLength(MinimumLength)]</c> or <c>[MinLength]</c>.</summary>
+    [Parameter] public int? MinLength { get; set; }
+
+    /// <summary>An icon inside the field, before the text.</summary>
+    [Parameter] public IconData? StartIcon { get; set; }
+
+    /// <summary>
+    /// Content attached before the control, outside its border: short text (<c>https://</c>, <c>$</c>),
+    /// a button, or another field such as a <see cref="Select{TValue}"/> (its label is kept for screen
+    /// readers but not shown). Text here is not part of the field's accessible name, so say it in the label
+    /// when it matters, as in "Price (USD)".
+    /// </summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border. See <see cref="StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    /// <summary>Whether it's a password: masked, never written back on a static page, with the Caps Lock warning.</summary>
+    private protected virtual bool IsPassword => false;
+
+    /// <summary>The input's type.</summary>
+    private protected abstract string InputType { get; }
+
+    /// <summary>The on-screen keyboard, when the type doesn't set it.</summary>
+    private protected virtual string? InputMode => null;
+
+    /// <summary>The autofill hint when <see cref="AutoComplete"/> isn't set.</summary>
+    private protected virtual string? DefaultAutoComplete => null;
+
+    /// <summary>What a new password needs, listed under the field.</summary>
+    private protected virtual PasswordRules? PasswordRequirements => null;
+
+    /// <summary>Whether the show/hide button shows.</summary>
+    private protected virtual bool ShowsReveal => false;
+
+    /// <summary>The show/hide button's name.</summary>
+    private protected virtual string? RevealLabel => null;
+
+    /// <summary>The icon after the text.</summary>
+    private protected virtual IconData? EndIconShown => null;
+
+    /// <summary>The mask, for the script.</summary>
+    private protected virtual string? MaskAttribute => null;
+
+    /// <summary>The mask's own characters, for the script.</summary>
+    private protected virtual string? MaskRulesAttribute => null;
+
+    // A static page doesn't write a password back into its HTML: after a failed post the field is
+    // empty, as browsers and other frameworks leave it. Interactive pages keep it in the circuit.
+    private bool EchoesValue => !IsPassword || RendererInfo.IsInteractive;
+
+    private string RulesId => FieldId + "-rules";
+
+    // Rules that ask nothing list nothing.
+    private bool ListsRules => PasswordRequirements?.Each().Any() == true;
+
+    private string? InputDescribedBy => !ListsRules ? DescribedBy : DescribedBy is null ? RulesId : $"{RulesId} {DescribedBy}";
+
+    private protected string UnmetMessage => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordRulesUnmet, ResolvedLabel ?? FieldIdentifier.FieldName);
+
+    private string RuleText(string key, int count) => key switch
+    {
+        "length" => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordLength, count),
+        "lower" => TextDefaults.PasswordLowercase,
+        "upper" => TextDefaults.PasswordUppercase,
+        "digit" => TextDefaults.PasswordDigit,
+        "symbol" => TextDefaults.PasswordSymbol,
+        _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordUnique, count),
+    };
+
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-has-start", StartIcon is not null)
+        .Add("ib-has-end", EndIconShown is not null || ShowsReveal)
+        .Build()!;
+}

@@ -661,29 +661,15 @@
       ]
     },
     {
-      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "Lets the user enter text, with a label, add-ons and a password reveal.", "keywords": ["input", "textbox"],
+      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "Lets the user enter a line of text, with a label, add-ons and masks.", "keywords": ["input", "textbox", "input mask"],
       "features": [
         { "feature": "Label, hint, type and limits from the model" },
         { "feature": "Icons and add-ons" },
         { "feature": "Checks before posting, server messages under the field" },
-        { "feature": "Show/hide button on passwords", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "Caps Lock warning on passwords", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" },
         { "feature": "Masks, formatted as typed and on the server", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "text-field-labels", "title": "Labels and hints" },
-        { "id": "text-field-password", "title": "Passwords",
-          "notes": {
-            "noscript": "A plain password input, with no show/hide button.",
-            "static": "IzzyBlazor's script adds the show/hide button."
-          } },
-        { "id": "text-field-new-password", "title": "A new password's requirements", "lead": "To list a new password's rules under the field, set `Requirements` to the rules the server checks. Each one is checked off as the password meets it.",
-          "notes": {
-            "noscript": "The rules are listed but aren't checked off as you type; the server checks them when the form posts.",
-            "static": "The rules are checked off as you type; Create account posts without a full reload.",
-            "interactive": "The rules are checked off as you type; Create account runs C# without a full reload."
-          } },
         { "id": "text-field-clearable", "title": "A clear button", "lead": "A clear button empties the field, and shows while the field has a value. To add it, set `Clearable`. Every field whose value can be empty has it, and a `Select` goes back to its `Placeholder`.",
           "notes": {
             "noscript": "The button stays hidden, and the user can empty the field by hand."
@@ -702,8 +688,30 @@
             "static": "The browser checks the fields before posting, with your model's messages. The server's messages show after a post.",
             "interactive": "Each field is checked when it changes, and submitting runs C# without a full reload."
           } },
-        { "id": "text-field-states", "title": "Sizes, read-only and disabled" },
-        { "id": "text-field-sign-in", "title": "A password after a failed post",
+        { "id": "text-field-states", "title": "Sizes, read-only and disabled" }
+      ]
+    },
+    {
+      "id": "password-field", "icon": "KeyRound", "name": "PasswordField", "category": "Forms", "summary": "Lets the user enter a password, show it, and see a new one's requirements.", "keywords": ["password", "password input", "show password", "password strength", "password rules"],
+      "features": [
+        { "feature": "Label, hint and limits from the model" },
+        { "feature": "Show/hide button", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Caps Lock warning", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "password-field-reveal", "title": "Show and hide",
+          "notes": {
+            "noscript": "A plain password input, with no show/hide button.",
+            "static": "IzzyBlazor's script adds the show/hide button."
+          } },
+        { "id": "password-field-new-password", "title": "A new password's requirements", "lead": "To list a new password's rules under the field, set `Requirements` to the rules the server checks. Each one is checked off as the password meets it.",
+          "notes": {
+            "noscript": "The rules are listed but aren't checked off as you type; the server checks them when the form posts.",
+            "static": "The rules are checked off as you type; Create account posts without a full reload.",
+            "interactive": "The rules are checked off as you type; Create account runs C# without a full reload."
+          } },
+        { "id": "password-field-sign-in", "title": "A password after a failed post",
           "notes": {
             "noscript": "After the failed post, the email comes back and the password field is empty.",
             "static": "After the failed post, the email comes back and the password field is empty.",
