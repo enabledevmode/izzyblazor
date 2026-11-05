@@ -84,6 +84,17 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             _registeredTab?.AddField(FieldIdentifier);
         }
 
+        // On a static page the value came from a post or from code, never through the field's own
+        // parsing, so put it in the field's form here, before the form's submit handler sees it.
+        if (FitsValue && ValueChanged.HasDelegate && !IsDisabled && !IsReadOnly && !RendererInfo.IsInteractive)
+        {
+            var fitted = FitValue(CurrentValue);
+            if (!EqualityComparer<TValue?>.Default.Equals(fitted, CurrentValue))
+            {
+                CurrentValue = fitted;
+            }
+        }
+
         if (HasOwnRules && !ReferenceEquals(EditContext, _rulesContext))
         {
             StopRules();
@@ -96,6 +107,16 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
 
     private EditContext? _rulesContext;
     private ValidationMessageStore? _rulesStore;
+
+    /// <summary>
+    /// The value in the field's own form, as its parsing would give it: a masked text formatted, a
+    /// range's ends in order. A static page writes it back to the model, since a post binds the
+    /// model directly.
+    /// </summary>
+    private protected virtual TValue? FitValue(TValue? value) => value;
+
+    /// <summary>Whether <see cref="FitValue"/> can change a value.</summary>
+    private protected virtual bool FitsValue => false;
 
     /// <summary>Whether this field has rules of its own on its value, such as a date's Min and Max.</summary>
     private protected virtual bool HasOwnRules => false;

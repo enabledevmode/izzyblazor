@@ -252,6 +252,21 @@
     }
 
     /// <inheritdoc />
+    private protected override bool FitsValue => _mask is not null;
+
+    /// <inheritdoc />
+    private protected override string? FitValue(string? value)
+    {
+        if (_mask is null || value is not { Length: > 0 })
+        {
+            return value;
+        }
+
+        var fit = _mask.Apply(value);
+        return RawValue ? fit.Raw : fit.Text;
+    }
+
+    /// <inheritdoc />
     private protected override bool HasOwnRules => Requirements is not null || Mask is not null;
 
     /// <inheritdoc />
