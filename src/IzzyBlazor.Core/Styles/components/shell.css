@@ -181,6 +181,22 @@
     padding: var(--ib-space-4) var(--ib-sb-pad-x);
   }
 
+  /* When the page scrolls, the sidebar runs down beside the footer, which spans main and the
+     aside: a footer below the sidebar would push the sticky sidebar up as it scrolled in (as
+     MudBlazor, shadcn and Tailwind's docs lay it out). A sticky footer is always on screen, so it
+     spans the width. */
+  .ib-shell-scroll-page:not(:has(> .ib-shell-footer-sticky)) > .ib-shell-sidebar {
+    grid-row-end: footer-end;
+  }
+
+  .ib-shell-scroll-page:not(:has(> .ib-shell-footer-sticky)):has(> .ib-shell-sidebar) > .ib-shell-footer {
+    grid-column: main-start / aside-end;
+  }
+
+  .ib-shell-scroll-page:not(:has(> .ib-shell-footer-sticky)):has(> .ib-shell-sidebar-end) > .ib-shell-footer {
+    grid-column: aside-start / main-end;
+  }
+
   .ib-shell-scroll-page > .ib-shell-sidebar > .ib-shell-sidebar-inner {
     position: sticky;
     top: var(--ib-shell-top);
