@@ -1,0 +1,36 @@
+@namespace IzzyBlazor
+@inherits ProgressBase
+@attribute [ModeSupport]
+
+@*
+    Progress as a ring, for a compact status such as on a card or a tile: the value in its middle
+    and the label under it. Without a Value it's indeterminate (an arc that turns). Rendered on the
+    server, so it works on static pages; on interactive pages, update Value from C#.
+
+    <ProgressCircle Value="72" ShowValue Label="Profile" />
+
+    Accessibility:
+    - It renders `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`;
+      screen readers hear `ValueText` or the percentage.
+    - `Label` is its accessible name (through `aria-labelledby`); without one, an `aria-label` on
+      the component names it.
+    - Without a `Value` it has no value attributes, which marks it as indeterminate.
+    - With reduced motion, the indeterminate arc turns more slowly.
+    See also: Progress, Spinner, Gauge.
+*@
+
+@{ base.BuildRenderTree(__builder); }
+
+@code {
+    /// <summary>
+    /// The diameter: 2rem, 3rem or 5rem. Defaults to <see cref="ControlSize.Md"/>. At
+    /// <see cref="ControlSize.Sm"/>, the value goes on the label's line. For another diameter, set <c>Width</c>.
+    /// </summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <inheritdoc />
+    private protected override bool IsCircle => true;
+
+    /// <inheritdoc />
+    private protected override ControlSize ShownSize => Size;
+}

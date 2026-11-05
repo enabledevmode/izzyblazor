@@ -1663,12 +1663,17 @@
       ]
     },
     {
-      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar or circle, with or without a known value.", "keywords": ["progress bar", "circular progress", "progress ring"],
+      "id": "progress-circle", "icon": "CircleDashed", "name": "ProgressCircle", "category": "Feedback", "summary": "Shows progress as a ring, with the value in its middle.", "keywords": ["circular progress", "progress ring", "radial progress", "donut progress"],
+      "examples": [
+        { "id": "progress-circle-sizes", "title": "Values, sizes and colors", "lead": "The ring fills clockwise from the top. `ShowValue` and `ValueText` put the value in the middle, and the `Label` goes under the ring. `Size` sets the diameter: 2rem, 3rem or 5rem; at Sm, the value goes beside the label. For any other diameter, set `Width`. Without a `Value`, an arc turns around the ring." }
+      ]
+    },
+    {
+      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar, with or without a known value.", "keywords": ["progress bar", "loading bar"],
       "examples": [
         { "id": "progress-values", "title": "Value and label", "lead": "The value is how far along the work is, out of a maximum. Set `Value` and `Max`, and name the bar with `Label`. To show the amount, set `ShowValue` or `ValueText`." },
         { "id": "progress-sizes", "title": "Sizes and colors", "lead": "To change the bar's thickness, set `Size`. To change its color, set `Accent`." },
         { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "When the work has no known length, leave out `Value`. The bar sweeps instead." },
-        { "id": "progress-circle", "title": "Circle", "lead": "To show the progress as a circle, set `Shape` to `ProgressShape.Circle`. The value goes in the middle and the label under it." },
         { "id": "progress-from-code", "title": "Updating from C#", "lead": "On interactive pages, changing `Value` from C# moves the bar.", "modes": ["interactive"] }
       ]
     },
