@@ -29,8 +29,8 @@
       the label, so a screen reader hears the chart, not each tick.
     - "Show data" under the chart opens a table of every value (DataTable), with no script.
     - Lines differ by dash and marker shape as well as color; bars keep the legend's order.
-    - The palette's colors are 3:1 against the surface in dark mode; three of them are lighter in
-      light mode, which the legend and the table make up for.
+    - The palette's colors are 3:1 against the surface in dark mode; in light mode orange, aqua,
+      yellow and pink are lighter than that, which the legend, tooltips and table make up for.
     See also: Stat, Table.
 *@
 
@@ -78,7 +78,7 @@
 
     /// <summary>
     /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
-    /// 0.65 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
+    /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
     /// </summary>
     [Parameter] public double? BarOpacity { get; set; }
 
