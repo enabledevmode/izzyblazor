@@ -9,19 +9,21 @@
  * (ChartLayout.Widths: 320, 400, 480, 560, 640, 800, 960).
  */
 
-/* The palette, chosen and checked with a color-vision validator: neighbors stay apart under the
-   common deficiencies, and every color is 3:1 against the dark surface (the 3rd, 4th and 5th are
-   lighter than that in light mode; the legend and the data table make up for it). Zero
-   specificity, so a theme's own values win wherever they're set. */
+/* The palette, checked with a color-vision validator: neighbors stay apart under the common
+   deficiencies, and every color is 3:1 against the dark surface (the 3rd, 4th and 5th are
+   lighter than that in light mode; the legend and the data table make up for it). The dark
+   steps are the light hues brighter (OKLCH L 0.68 to 0.80), so they stay clear on a near-black
+   surface instead of going muddy. Zero specificity, so a theme's own values win wherever
+   they're set. */
 :where(:root) {
-  --ib-chart-1: light-dark(#2a78d6, #3987e5);
-  --ib-chart-2: light-dark(#eb6834, #d95926);
-  --ib-chart-3: light-dark(#1baf7a, #199e70);
-  --ib-chart-4: light-dark(#eda100, #c98500);
-  --ib-chart-5: light-dark(#e87ba4, #d55181);
-  --ib-chart-6: light-dark(#008300, #008300);
-  --ib-chart-7: light-dark(#6250d6, #9085e9);
-  --ib-chart-8: light-dark(#e34948, #e66767);
+  --ib-chart-1: light-dark(#2a78d6, #5fa0f5);
+  --ib-chart-2: light-dark(#eb6834, #f77c4e);
+  --ib-chart-3: light-dark(#1baf7a, #37c78e);
+  --ib-chart-4: light-dark(#eda100, #f6ae37);
+  --ib-chart-5: light-dark(#e87ba4, #f77cab);
+  --ib-chart-6: light-dark(#008300, #32bd2d);
+  --ib-chart-7: light-dark(#6250d6, #8d88f5);
+  --ib-chart-8: light-dark(#e34948, #f66c66);
 }
 
 @layer izzy.components {
