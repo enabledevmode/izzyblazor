@@ -64,7 +64,10 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     /// <summary>Draws a line or area straight across a missing value, instead of leaving a gap.</summary>
     [Parameter] public bool ConnectNulls { get; set; }
 
-    /// <summary>Starts with the series hidden. It keeps its place in the legend and the data table.</summary>
+    /// <summary>
+    /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
+    /// place in the legend, to show it again, and in the data table.
+    /// </summary>
     [Parameter] public bool Hidden { get; set; }
 
     [CascadingParameter] private ChartContext<TItem>? Context { get; set; }
