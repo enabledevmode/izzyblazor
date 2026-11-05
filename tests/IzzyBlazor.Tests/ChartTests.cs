@@ -183,6 +183,22 @@ public class ChartRedrawTests
         Assert.Equal(0, ChartScale.TickSpec(10, 10, 5).I2 - ChartScale.TickSpec(10, 10, 5).I1 + 1);
     }
 
+    [Fact]
+    public void A_palette_spreads_its_ramp_over_the_series_and_leaves_the_default_to_the_theme()
+    {
+        Assert.Null(ChartPalette.Colors.Style(3));
+
+        // Three shades: light, the color itself, dark, each turned round for dark mode.
+        var shades = ChartPalette.Shades(Color.Primary).Style(3)!;
+        Assert.Equal(3, shades.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
+        Assert.Contains("--ib-chart-2:light-dark(color-mix(in oklab, var(--ib-color-primary) 100%, white)", shades);
+
+        // An odd count meets in a gray middle; your own colors repeat.
+        Assert.Contains("--ib-chart-3:light-dark(color-mix(in oklab, var(--ib-color-neutral)", ChartPalette.Diverging(Color.Danger, Color.Success).Style(5));
+        Assert.Contains("--ib-chart-3:#111", ChartPalette.Of(Color.Of("#111"), Color.Of("#222")).Style(3));
+        Assert.Equal(8, ChartPalette.Shades(Color.Primary).Style(12)!.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
     [Theory]
     [InlineData("C0", "en-US", "$", "", "-$", ",", ".", 0, 1)]
     [InlineData("P0", "en-US", "", "%", "-", ",", ".", 0, 100)]

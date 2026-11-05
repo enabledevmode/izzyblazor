@@ -9,19 +9,21 @@
  * (ChartLayout.Widths: 320, 400, 480, 560, 640, 800, 960).
  */
 
-/* The palette, checked with a color-vision validator: neighbors stay apart under the common
-   deficiencies, and every color is 3:1 against the dark surface. In light mode the 2nd to 5th
-   (orange, aqua, yellow, pink) are under 3:1 against white, the 3rd to 5th even solid; the
-   legend, the tooltips and the data table carry their values. The dark steps are the light hues
-   brighter (OKLCH L 0.68 to 0.80), so they stay clear on a near-black surface. Zero specificity,
-   so a theme's own values win wherever they're set. */
+/* The palette (ChartPalette.Colors): blue, green, pink, yellow, aqua, orange, violet, red, an
+   order chosen with a color-vision validator so neighbors stay apart under the common
+   deficiencies in both modes, and so the first three, which most stacks show, are apart from
+   each other too. Every color is 3:1 against the dark surface. In light mode pink, yellow, aqua
+   and orange are under 3:1 against white (yellow, aqua and pink even solid); the legend, the
+   tooltips and the data table carry their values. The dark steps are the light hues brighter
+   (OKLCH L 0.68 to 0.80). Zero specificity, so a theme's own values win wherever they're set; a
+   chart's Palette sets them on the chart. */
 :where(:root) {
   --ib-chart-1: light-dark(#2a78d6, #5fa0f5);
-  --ib-chart-2: light-dark(#eb6834, #f77c4e);
-  --ib-chart-3: light-dark(#1baf7a, #37c78e);
+  --ib-chart-2: light-dark(#008300, #32bd2d);
+  --ib-chart-3: light-dark(#e87ba4, #f77cab);
   --ib-chart-4: light-dark(#eda100, #f6ae37);
-  --ib-chart-5: light-dark(#e87ba4, #f77cab);
-  --ib-chart-6: light-dark(#008300, #32bd2d);
+  --ib-chart-5: light-dark(#1baf7a, #37c78e);
+  --ib-chart-6: light-dark(#eb6834, #f77c4e);
   --ib-chart-7: light-dark(#6250d6, #8d88f5);
   --ib-chart-8: light-dark(#e34948, #f66c66);
 }

@@ -37,7 +37,8 @@
         var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
         var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
     }
-    <ib-chart data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
+    <ib-chart style="@Palette?.Style(items.Count)"
+              data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
               data-ib-pos="@string.Join(",", Enumerable.Range(0, items.Count).Select(i => slices.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))">
         <div class="@(Legend == ChartLegend.None ? "ib-pie" : "ib-pie ib-pie-legended")">
@@ -171,6 +172,14 @@
     /// script. Defaults to true.
     /// </summary>
     [Parameter] public bool Tooltip { get; set; } = true;
+
+    /// <summary>
+    /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
+    /// <see cref="ChartPalette.Shades"/> of one color for slices in an order,
+    /// <see cref="ChartPalette.Diverging"/> for slices either side of a middle, or your own with
+    /// <see cref="ChartPalette.Of"/>.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
 
     /// <summary>
     /// The legend: each slice's name, value and share, beside the circle when there's room and

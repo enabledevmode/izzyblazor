@@ -1737,6 +1737,13 @@
           ]
         },
         {
+          "id": "colors", "title": "Colors", "summary": "Series take the theme's eight colors, shades of one color for series in an order, two colors either side of a middle, or your own.", "members": ["Palette", "ChartSeries.Color"],
+          "examples": [
+            { "id": "chart-shades", "title": "Shades for tiers", "lead": "When the series are in an order, such as plan tiers, set `Palette` to `ChartPalette.Shades` with one color, here the theme's primary: the first series is the lightest and each one after is darker, and in dark mode the ramp turns round so the last is the brightest. The shades are spread over as many series as the chart has. Past about six they're hard to tell apart; for series in no order, keep the default `ChartPalette.Colors`." },
+            { "id": "chart-diverging", "title": "A survey from disagree to agree", "lead": "For series on either side of a middle, such as answers from disagree to agree, set `Palette` to `ChartPalette.Diverging` with the two ends' colors. The first series is the strongest of the first color, the last the strongest of the second, and with an odd count the middle one is gray. `ChartPalette.Of` takes your own colors in order, and a series' `Color` still sets that one series." }
+          ]
+        },
+        {
           "id": "tooltips", "title": "Tooltips and the legend", "summary": "A tooltip shows every series' value for the item under the pointer or keyboard focus, from a template if you give one; the legend hides and shows series.", "members": ["Tooltip", "TooltipTemplate", "Legend", "ChartSeries.Hidden", "DataTable", "HideLabel"],
           "examples": [
             { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month. Page Up and Page Down move by a tenth, Home and End go to the ends, and Escape hides the tooltip. With a screen reader, the chart takes the arrow keys and reads each value as it moves. To draw the tooltip yourself, give the chart a `TooltipTemplate`: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it: the chart is drawn again without it, so stacks close up and the value axis rescales. `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out.",

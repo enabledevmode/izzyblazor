@@ -1,0 +1,21 @@
+@* A customer survey: each statement's answers as shares, from disagree to agree. *@
+<Chart Items="_answers" Argument="a => a.Statement" Label="Customer survey, Q3" Stacked="ChartStack.Full"
+       Orientation="Orientation.Horizontal" Palette="ChartPalette.Diverging(Color.Danger, Color.Success)">
+    <ChartSeries Value="a => a.StronglyDisagree" Name="Strongly disagree" />
+    <ChartSeries Value="a => a.Disagree" />
+    <ChartSeries Value="a => a.Neutral" />
+    <ChartSeries Value="a => a.Agree" />
+    <ChartSeries Value="a => a.StronglyAgree" Name="Strongly agree" />
+</Chart>
+
+@code {
+    private record Answers(string Statement, int StronglyDisagree, int Disagree, int Neutral, int Agree, int StronglyAgree);
+
+    private readonly Answers[] _answers =
+    [
+        new("Setup was easy", 12, 31, 58, 164, 135),
+        new("The docs answered my question", 21, 47, 82, 151, 99),
+        new("Support replied quickly", 9, 18, 61, 140, 172),
+        new("I'd recommend it", 15, 26, 70, 128, 161),
+    ];
+}

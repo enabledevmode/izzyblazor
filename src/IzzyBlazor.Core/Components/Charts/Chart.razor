@@ -29,8 +29,10 @@
       the label, so a screen reader hears the chart, not each tick.
     - "Show data" under the chart opens a table of every value (DataTable), with no script.
     - Lines differ by dash and marker shape as well as color; bars keep the legend's order.
-    - The palette's colors are 3:1 against the surface in dark mode; in light mode orange, aqua,
-      yellow and pink are lighter than that, which the legend, tooltips and table make up for.
+    - The palette's colors are 3:1 against the surface in dark mode; in light mode pink, yellow,
+      aqua and orange are lighter than that, which the legend, tooltips and table make up for.
+      Palette's shades and diverging ramps keep their lightest step at about 2:1, so the data
+      table matters more with them.
     See also: Stat, Table.
 *@
 
@@ -106,6 +108,14 @@
     /// the server for each item, so keep it to text and inline content (no buttons or links).
     /// </summary>
     [Parameter] public RenderFragment<ChartTooltip<TItem>>? TooltipTemplate { get; set; }
+
+    /// <summary>
+    /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
+    /// <see cref="ChartPalette.Shades"/> of one color for series in an order,
+    /// <see cref="ChartPalette.Diverging"/> for series either side of a middle, or your own with
+    /// <see cref="ChartPalette.Of"/>.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
 
     /// <summary>The legend: below the chart when there are two series or more, by default.</summary>
     [Parameter] public ChartLegend Legend { get; set; }
@@ -228,7 +238,8 @@
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
 
-        <ib-chart data-ib-count="@model.ArgumentTexts.Length"
+        <ib-chart style="@Palette?.Style(model.Series.Count)"
+                  data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
