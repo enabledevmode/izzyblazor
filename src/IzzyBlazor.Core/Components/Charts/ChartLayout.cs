@@ -51,7 +51,7 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
 internal sealed record BarHalf(double X, double Y, double Width, double Height);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
-internal sealed record PointMark(double X, double Y, string Title);
+internal sealed record PointMark(double X, double Y, string Title, int Index);
 
 /// <summary>A series drawn: bars, or a line and its area in a 1000 by 1000 box that stretches, with markers.</summary>
 internal sealed class SeriesShape
@@ -153,7 +153,7 @@ internal static class ChartLayout
             }
         }
 
-        if (input.Series.Any(s => s.Type != ChartType.Line))
+        if (input.Series.Any(s => s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
@@ -216,8 +216,15 @@ internal static class ChartLayout
             var amin = finite.Length > 0 ? finite.Min() : 0;
             var amax = finite.Length > 0 ? finite.Max() : 1;
             if (amin == amax) { amin -= kind == ArgumentKind.Time ? TimeSpan.TicksPerDay : 1; amax += kind == ArgumentKind.Time ? TimeSpan.TicksPerDay : 1; }
-            positions = values.Select(v => v is { } x ? (x - amin) / (amax - amin) : double.NaN).ToArray();
             var count = Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 90);
+
+            // Points have round ends to the scale, so none sits on the plot's edge; lines run edge to edge.
+            if (kind == ArgumentKind.Number && input.Series.Any(s => s.Type == ChartType.Scatter))
+            {
+                (amin, amax) = ChartScale.Nice(amin, amax, (int)count);
+            }
+
+            positions = values.Select(v => v is { } x ? (x - amin) / (amax - amin) : double.NaN).ToArray();
             if (kind == ArgumentKind.Number)
             {
                 NumberLabels(model.ArgumentLabels, amin, amax, count, input.ArgumentFormat, culture, argumentRoomPx, grid: null);
@@ -313,7 +320,7 @@ internal static class ChartLayout
                 }
             }
 
-            var runs = Runs(points);
+            var runs = data.Type == ChartType.Scatter ? [] : Runs(points);
             var line = new StringBuilder();
             var area = new StringBuilder();
             foreach (var run in runs)
@@ -333,13 +340,13 @@ internal static class ChartLayout
             shape.Area = area.Length > 0 ? area.ToString() : null;
 
             var count = points.Count(p => p is not null);
-            if (data.Markers ?? (data.Type == ChartType.Line && count <= 40))
+            if (data.Type == ChartType.Scatter || (data.Markers ?? (data.Type == ChartType.Line && count <= 40)))
             {
                 foreach (var p in points)
                 {
                     if (p is not { } point) continue;
                     var (x, y) = Map(point.A, point.V, input.Horizontal);
-                    shape.Marks.Add(new PointMark(x * 100, y * 100, $"{model.ArgumentTexts[point.I]}, {data.Name}: {model.ValueTexts[s][point.I]}"));
+                    shape.Marks.Add(new PointMark(x * 100, y * 100, $"{model.ArgumentTexts[point.I]}, {data.Name}: {model.ValueTexts[s][point.I]}", point.I));
                 }
             }
         }

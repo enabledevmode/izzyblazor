@@ -153,6 +153,12 @@
     fill: var(--ib-chart-c);
   }
 
+  /* The point the tooltip is for, on a scatter chart. */
+  .ib-chart-marks > [data-ib-active] {
+    stroke: var(--ib-color-on-surface);
+    stroke-width: 2px;
+  }
+
   ib-chart { display: block; }
 
   /* A series hidden from the legend (or by Hidden). */

@@ -11,6 +11,12 @@ public enum ChartType
 
     /// <summary>A line with the space down to zero filled.</summary>
     Area,
+
+    /// <summary>
+    /// A marker at each value and no line, for how two measures relate: give the chart numbers or
+    /// dates as its Argument.
+    /// </summary>
+    Scatter,
 }
 
 /// <summary>Whether a chart's bars and areas sit side by side or on top of each other.</summary>
