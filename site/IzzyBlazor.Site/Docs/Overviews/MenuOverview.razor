@@ -35,6 +35,11 @@
     <ListItem>To leave the menu open after an item is chosen, so the user can check several in a row, set <Code>KeepOpen</Code> on the item.</ListItem>
 </List>
 
+<Heading Level="2">Right-click menus</Heading>
+<TextBlock>A context menu opens where the user right-clicks, such as on a file or a card. Set <Code>ContextFor</Code> to the id of the element: right-click, a long press on touch, the menu key or Shift+F10 in it opens the menu at the pointer. Links, fields and selected text keep the browser's menu, as does Shift+right-click.</TextBlock>
+<ExampleViewer Example="menu-context" />
+<TextBlock>Right-click can't be seen, so keep a button for the same menu, as each card's ⋮ does here. Without a <Code>Trigger</Code>, no button renders, and <Code>Label</Code> names the menu; make its actions reachable another way. Each card has its own menu, so its items already know which file they act on. It needs script: with JavaScript off, right-click shows the browser's menu.</TextBlock>
+
 <Heading Level="2">Submenus</Heading>
 <TextBlock>A submenu is an item that opens another menu beside it. Add a <Code>MenuSub</Code>. Choosing an item in it closes the whole menu.</TextBlock>
 <ExampleViewer Example="menu-sub" />

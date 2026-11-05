@@ -1,11 +1,11 @@
 /**
- * Opens a row's or item's own menu at the pointer: by right-click, the menu key, or a long press on
- * touch. It's the same menu its ⋮ button opens, so it acts on that row and works the same however
- * it's opened. Links (a row that is one included), fields and selected text keep the browser's menu,
- * as does Shift+right-click.
+ * Opens a menu at the pointer: by right-click, the menu key, or a long press on touch. A row's or
+ * item's own menu (the one its ⋮ button opens, so it acts on that row), or a Menu's ContextFor
+ * element (<ib-context-menu>). Links (a row that is one included), fields and selected text keep
+ * the browser's menu, as does Shift+right-click.
  */
 
-const OWN_MENU = "a[href], input, select, textarea, [contenteditable]:not([contenteditable=false]), [popover], dialog";
+export const OWN_MENU = "a[href], input, select, textarea, [contenteditable]:not([contenteditable=false]), [popover], dialog";
 const LONG_PRESS = 500;
 const MOVE_LIMIT = 8;
 // The click that ends a long press comes this soon after the finger lifts, or it isn't coming.
@@ -20,7 +20,12 @@ export function ownTrigger(owner: Element, row: string, trigger: string): HTMLEl
 export function openMenuAt(trigger: HTMLElement, x: number, y: number): void {
   const panelId = trigger.getAttribute("popovertarget");
   const panel = panelId ? document.getElementById(panelId) : null;
-  if (!panel || typeof panel.showPopover !== "function") return;
+  if (panel) openPanelAt(panel, trigger, x, y);
+}
+
+/** Opens a menu panel at a point on the screen; it closes once `anchor` has scrolled away. */
+export function openPanelAt(panel: HTMLElement, anchor: Element, x: number, y: number): void {
+  if (typeof panel.showPopover !== "function") return;
   if (panel.matches(":popover-open")) panel.hidePopover();
   // Not placed by its button, which is what the script does where the browser can't anchor it.
   panel.dataset.ibAtPointer = "";
@@ -34,9 +39,9 @@ export function openMenuAt(trigger: HTMLElement, x: number, y: number): void {
   // It stays where it opened, so once its row has scrolled away it's closed, not left over another.
   // By where the row is, not that something scrolled: another list may have, or a scroll that had
   // already ended, whose event comes a frame later.
-  const opened = trigger.getBoundingClientRect();
+  const opened = anchor.getBoundingClientRect();
   const scrolled = () => {
-    const now = trigger.getBoundingClientRect();
+    const now = anchor.getBoundingClientRect();
     if (now.top !== opened.top || now.left !== opened.left) panel.hidePopover();
   };
   document.addEventListener("scroll", scrolled, { capture: true, passive: true });
@@ -58,23 +63,31 @@ const handled = new WeakSet<Event>();
  * something else (a list that drags on it).
  */
 export function setupContextMenu(root: HTMLElement, row: string, trigger: string, longPress: () => boolean, signal: AbortSignal): void {
-  const triggerFor = (target: Element): HTMLElement | null => {
-    if (target.closest(OWN_MENU)) return null;
+  setupContextOpener(root, (target) => {
     const owner = target.closest<HTMLElement>(row);
-    return owner && root.contains(owner) ? ownTrigger(owner, row, trigger) : null;
-  };
+    const button = owner && root.contains(owner) ? ownTrigger(owner, row, trigger) : null;
+    return button && ((x, y) => openMenuAt(button, x, y));
+  }, longPress, signal);
+}
+
+/**
+ * Right-click, the menu key and long press inside `root` call what `openerFor` returns for the
+ * element pressed, with the point to open at; where it returns null, the browser's menu stays.
+ */
+export function setupContextOpener(root: HTMLElement, openerFor: (target: Element) => ((x: number, y: number) => void) | null, longPress: () => boolean, signal: AbortSignal): void {
+  const triggerFor = (target: Element) => (target.closest(OWN_MENU) ? null : openerFor(target));
 
   root.addEventListener("contextmenu", (event) => {
     if (handled.has(event) || event.shiftKey || !getSelection()?.isCollapsed) return;
     const target = event.target as Element;
-    const button = triggerFor(target);
-    if (!button) return;
+    const opener = triggerFor(target);
+    if (!opener) return;
     handled.add(event);
     event.preventDefault();
     // The menu key has no pointer: under what has focus.
     const rect = target.getBoundingClientRect();
     const fromKey = event.button !== 2 || (event.clientX === 0 && event.clientY === 0);
-    const open = () => openMenuAt(button, fromKey ? rect.left : event.clientX, fromKey ? rect.bottom : event.clientY);
+    const open = () => opener(fromKey ? rect.left : event.clientX, fromKey ? rect.bottom : event.clientY);
     if (!event.buttons) {
       open();
       return;
@@ -98,8 +111,8 @@ export function setupContextMenu(root: HTMLElement, row: string, trigger: string
   root.addEventListener("pointerdown", (down) => {
     clearTimeout(timer);
     if (handled.has(down) || down.pointerType !== "touch" || !longPress()) return;
-    const button = triggerFor(down.target as Element);
-    if (!button) return;
+    const opener = triggerFor(down.target as Element);
+    if (!opener) return;
     handled.add(down);
     // It opens as the finger lifts: opened under it, the lift would count as a press outside.
     let held = false;
@@ -119,7 +132,7 @@ export function setupContextMenu(root: HTMLElement, row: string, trigger: string
     const up = () => {
       stop();
       if (!held) return;
-      openMenuAt(button, down.clientX, down.clientY);
+      opener(down.clientX, down.clientY);
       // The tap that ends the press isn't a click on the row, or on the menu now under the finger.
       const swallow = (event: Event) => {
         event.preventDefault();

@@ -1,0 +1,64 @@
+@inject NavigationManager Navigation
+
+@* Each file's ⋮ menu also opens by right-click, long press or Shift+F10 anywhere on its card. *@
+<form method="post" @onsubmit="Posted" @formname="files" data-enhance>
+    <AntiforgeryToken />
+    <Stack Gap="3" Grow>
+        <Grid MinChildWidth="13.Rem" Gap="3">
+            @foreach (var file in Files)
+            {
+                <Card id="@($"file-{file.Id}")" Size="ControlSize.Sm">
+                    <Row Gap="2" Align="Align.Center">
+                        <Icon Name="file.Icon" />
+                        <Stack Gap="0" Grow>
+                            <TextBlock Weight="FontWeight.Medium">@file.Name</TextBlock>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@file.Size</TextBlock>
+                        </Stack>
+                        <Menu ContextFor="@($"file-{file.Id}")">
+                            <Trigger><IconButton Icon="Lucide.EllipsisVertical" Label="@($"{file.Name} actions")" Variant="ButtonVariant.Ghost" @attributes="context" /></Trigger>
+                            <ChildContent>
+                                <MenuItem Href="@Navigation.GetUriWithQueryParameter("open", file.Name)" Icon="Lucide.ExternalLink">Open</MenuItem>
+                                <MenuItem Submit Name="duplicate" Value="@file.Name" OnClick="() => _pressed = (file.Name, false)" Icon="Lucide.Copy">Duplicate</MenuItem>
+                                <MenuDivider />
+                                <MenuItem Submit Name="delete" Value="@file.Name" OnClick="() => _pressed = (file.Name, true)" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                            </ChildContent>
+                        </Menu>
+                    </Row>
+                </Card>
+            }
+        </Grid>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Result</TextBlock>
+    </Stack>
+</form>
+
+@code {
+    [SupplyParameterFromQuery(Name = "open")] private string? Opened { get; set; }
+
+    // Static pages: the chosen item's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "files", Name = "duplicate")] private string? Duplicated { get; set; }
+
+    [SupplyParameterFromForm(FormName = "files", Name = "delete")] private string? Deleted { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which item it was.
+    private (string File, bool Delete)? _pressed;
+    private string? _posted;
+
+    private string Result => _posted ?? (Opened is not null ? $"Opened {Opened}." : "Right-click a file, or use its ⋮ button.");
+
+    private void Posted()
+    {
+        var (file, delete) = _pressed ?? (Deleted ?? Duplicated ?? "", Deleted is not null);
+        _posted = delete ? $"Deleted {file}." : $"Duplicated {file}.";
+    }
+
+    @* hide *@
+    private sealed record FileInfo(int Id, string Name, string Size, IconData Icon);
+
+    private static readonly FileInfo[] Files =
+    [
+        new(1, "Q3 report.pdf", "2.4 MB", Lucide.FileText),
+        new(2, "Budget 2027.xlsx", "860 KB", Lucide.FileSpreadsheet),
+        new(3, "Logo.svg", "12 KB", Lucide.Image),
+    ];
+    @* /hide *@
+}
