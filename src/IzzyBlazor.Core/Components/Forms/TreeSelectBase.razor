@@ -45,6 +45,7 @@
                          style="@($"position-anchor:{Anchor}")">
                         <CascadingValue Value="_field" IsFixed="true">
                             <TreeView TItem="TItem"
+                                      id="@TreeId"
                                       Items="Items"
                                       ItemChildren="ItemChildren"
                                       ItemKey="KeyOf"
@@ -54,6 +55,8 @@
                                       ItemExpanded="ItemExpanded"
                                       ItemDisabled="ItemDisabled"
                                       ItemSelectable="ItemSelectable"
+                                      ItemHasChildren="ItemHasChildren"
+                                      ChildrenProvider="@(ChildrenProvider is null ? null : LoadChildrenAsync)"
                                       ChildContent="ItemTemplate"
                                       SelectionMode="@(Multiple ? SelectionMode.Multiple : SelectionMode.Single)"
                                       Selection="@Selection.Of(ChosenKeys)"
@@ -67,6 +70,15 @@
                     </div>
                 }
             </ib-popover>
+            @if (!RendererInfo.IsInteractive && !IsDisabled)
+            {
+                @* Chosen values whose items haven't loaded: they post from here until their branch
+                   loads, which the script then checks. *@
+                @foreach (var key in UnloadedKeys)
+                {
+                    <input type="@(Multiple ? "checkbox" : "radio")" class="ib-treeselect-kept" name="@GroupName" value="@key" checked hidden />
+                }
+            }
             @if (Clearable && !IsDisabled && default(TValue) is null)
             {
                 @Clear
@@ -128,6 +140,20 @@
     /// <summary>The search box's name and placeholder. Defaults to "Search" (<see cref="IzzyText.Search"/>).</summary>
     [Parameter] public string? SearchLabel { get; set; }
 
+    /// <summary>
+    /// Says an item has children to load with <see cref="ChildrenProvider"/> when its branch first
+    /// opens, for items whose <see cref="ItemChildren"/> is empty.
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? ItemHasChildren { get; set; }
+
+    /// <summary>
+    /// Loads an item's children, given its key (its value's string form), the first time its branch
+    /// opens: in the component on an interactive page, and on a static page by the script fetching
+    /// the page with the key. Needs <see cref="ItemHasChildren"/>. A chosen value whose item hasn't
+    /// loaded is named by <c>ValueText</c>.
+    /// </summary>
+    [Parameter] public Func<string, CancellationToken, ValueTask<IEnumerable<TItem>>>? ChildrenProvider { get; set; }
+
     /// <summary>Text in the field while nothing is chosen, such as "Choose a category".</summary>
     [Parameter] public string? Placeholder { get; set; }
 
@@ -150,6 +176,26 @@
     private protected string TextId => FieldId + "-text";
 
     private string PanelId => FieldId + "-tree";
+
+    // Stable across renders, so a static page's fetch for a branch's children finds this tree: the
+    // field's id or form name (a generated id changes every render).
+    private string? TreeId => SuggestionKey is { } key ? key + "-tree" : null;
+
+    /// <summary>The chosen keys whose items aren't in <see cref="Items"/> and its children yet: in branches still to load.</summary>
+    private protected IReadOnlyCollection<string> UnloadedKeys
+    {
+        get
+        {
+            var keys = ChosenKeys;
+            if (keys.Count == 0)
+            {
+                return [];
+            }
+
+            var found = AllItems.Select(KeyOf).ToHashSet();
+            return keys.Where(k => !found.Contains(k)).ToList();
+        }
+    }
 
     private string Anchor => StyleValues.AnchorName(PanelId);
 
@@ -187,6 +233,20 @@
         }
     }
 
+    // Children loaded through ChildrenProvider, by their parent's key, so the field knows those items.
+    private readonly Dictionary<string, List<TItem>> _loaded = [];
+
+    private async ValueTask<IEnumerable<TItem>> LoadChildrenAsync(string key, CancellationToken token)
+    {
+        var children = (await ChildrenProvider!(key, token)).ToList();
+        _loaded[key] = children;
+        return children;
+    }
+
+    /// <summary>An item's children: its own, or those loaded for it.</summary>
+    private protected IEnumerable<TItem>? ChildrenOf(TItem item) =>
+        ItemChildren?.Invoke(item) is { } own && own.Any() ? own : _loaded.GetValueOrDefault(KeyOf(item));
+
     /// <summary>Every item, in the tree's order.</summary>
     private protected IEnumerable<TItem> AllItems => Walk(Items, 0);
 
@@ -200,12 +260,9 @@
         foreach (var item in items)
         {
             yield return item;
-            if (ItemChildren is not null)
+            foreach (var child in Walk(ChildrenOf(item), depth + 1))
             {
-                foreach (var child in Walk(ItemChildren(item), depth + 1))
-                {
-                    yield return child;
-                }
+                yield return child;
             }
         }
     }

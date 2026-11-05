@@ -58,4 +58,35 @@ public class MultiTreeSelectRenderTests : BunitContext
 
         Assert.Equal(["web", "billing"], _model.TeamIds);
     }
+
+    [Fact]
+    public void A_chosen_value_still_to_load_shows_by_ValueText_posts_from_a_kept_box_and_survives_a_change()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        // Departments only: their teams load (ChildrenProvider), and "web" is chosen already.
+        Unit[] tops = [new("eng", "Engineering", []), new("support", "Support", [])];
+        _model.TeamIds = ["web"];
+        var cut = Render<MultiTreeSelect<List<string>?, Unit, string>>(p => p
+            .AddCascadingValue(new EditContext(_model))
+            .Add(t => t.Value, _model.TeamIds)
+            .Add(t => t.ValueExpression, () => _model.TeamIds)
+            .Add(t => t.ValueChanged, (List<string>? v) => _model.TeamIds = v)
+            .Add(t => t.Items, tops)
+            .Add(t => t.ItemValue, d => d.Id)
+            .Add(t => t.ItemText, d => d.Name)
+            .Add(t => t.ItemHasChildren, _ => true)
+            .Add(t => t.ChildrenProvider, (key, _) => ValueTask.FromResult<IEnumerable<Unit>>(Departments.First(d => d.Id == key).Teams))
+            .Add(t => t.ValueText, id => $"Engineering / {id}")
+            .Add(t => t.Label, "Visible to"));
+
+        Assert.Equal(["Engineering / web"], cut.FindAll(".ib-chip .ib-chip-text").Select(c => c.TextContent));
+        var kept = cut.Find(".ib-treeselect-kept");
+        Assert.Equal("web", kept.GetAttribute("value"));
+        Assert.Equal(cut.Find("li[data-ib-key='eng'] input").GetAttribute("name"), kept.GetAttribute("name"));
+
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        cut.Render();
+        cut.Find("li[data-ib-key='support'] input").Change(true);
+        Assert.Equal(["support", "web"], _model.TeamIds);
+    }
 }

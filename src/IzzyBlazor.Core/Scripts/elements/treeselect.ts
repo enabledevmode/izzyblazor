@@ -143,8 +143,28 @@ class TreeSelect extends IzzyElement {
       { signal }
     );
 
+    // A chosen value whose item was still to load posts from a hidden box beside the panel; when its
+    // branch loads, the item's own box takes over, checked.
+    const kept = () => [...this.querySelectorAll<HTMLInputElement>(":scope > .ib-treeselect-kept")];
+    if (kept().length) {
+      const adopt = new MutationObserver(() => {
+        for (const input of kept()) {
+          const box = panel.querySelector<HTMLInputElement>(`li[data-ib-key="${CSS.escape(input.value)}"] > .ib-tree-item > .ib-tree-select`);
+          if (!box) continue;
+          input.remove();
+          if (input.checked && !box.checked) {
+            box.checked = true;
+            box.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+        if (!kept().length) adopt.disconnect();
+      });
+      adopt.observe(panel, { childList: true, subtree: true });
+      signal.addEventListener("abort", () => adopt.disconnect());
+    }
+
     if (multiple) {
-      this.#setupMultiple(button, panel, text, clear, interactive, signal);
+      this.#setupMultiple(button, panel, text, clear, kept, interactive, signal);
       return;
     }
 
@@ -172,12 +192,19 @@ class TreeSelect extends IzzyElement {
    * their boxes, so the tree's cascade, posting and @bind see a person's changes. On a static page
    * the chips are drawn again from the checked boxes: each one whose parent isn't checked too.
    */
-  #setupMultiple(button: HTMLButtonElement, panel: HTMLElement, chips: HTMLElement | null, clear: HTMLButtonElement | null, interactive: boolean, signal: AbortSignal): void {
+  #setupMultiple(button: HTMLButtonElement, panel: HTMLElement, chips: HTMLElement | null, clear: HTMLButtonElement | null, kept: () => HTMLInputElement[], interactive: boolean, signal: AbortSignal): void {
     const said = this.querySelector<HTMLElement>(".ib-treeselect-said");
     const boxOf = (li: Element | null) => li?.querySelector<HTMLInputElement>(":scope > .ib-tree-item > .ib-tree-select") ?? null;
+    let redraw = () => {};
     const uncheck = (key: string) => {
       const box = boxOf(panel.querySelector(`li[data-ib-key="${CSS.escape(key)}"]`));
       if (box?.checked && !box.disabled) box.click();
+      // A value still to load posts from its hidden box: drop it.
+      const input = kept().find((k) => k.value === key);
+      if (input) {
+        input.remove();
+        redraw();
+      }
     };
     const keys = () => [...(chips?.querySelectorAll<HTMLElement>(".ib-chip") ?? [])].map((chip) => chip.dataset.value ?? "");
 
@@ -216,6 +243,8 @@ class TreeSelect extends IzzyElement {
     const cascade = panel.querySelector("ib-tree")?.hasAttribute("data-ib-cascade") ?? false;
     const icon = chips.querySelector(".ib-chip-remove")?.innerHTML ?? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
     let queued = false;
+    // The server named the values still to load (ValueText): keep their chips' text.
+    const named = new Map([...chips.querySelectorAll<HTMLElement>(".ib-chip")].map((chip) => [chip.dataset.value ?? "", chip.textContent ?? ""]));
     const draw = () => {
       queued = false;
       const tops = [...panel.querySelectorAll<HTMLElement>("li[data-ib-key]")].filter((li) => {
@@ -223,23 +252,27 @@ class TreeSelect extends IzzyElement {
         const parent = li.parentElement?.closest("li");
         return !(cascade && boxOf(parent ?? null)?.checked);
       });
-      const names = tops.map((li) => li.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel ?? "");
+      const shown: [string, string][] = [
+        ...tops.map((li): [string, string] => [li.dataset.ibKey ?? "", li.querySelector<HTMLElement>(":scope > .ib-tree-item [data-ib-label]")?.dataset.ibLabel ?? ""]),
+        ...kept().map((k): [string, string] => [k.value, named.get(k.value) ?? k.value]),
+      ];
       chips.replaceChildren(
-        ...(tops.length === 0
+        ...(shown.length === 0
           ? [this.dataset.ibPlaceholder ?? ""]
-          : tops.map((li, i) => {
+          : shown.map(([key, name]) => {
               const chip = document.createElement("span");
               chip.className = "ib-chip";
-              chip.dataset.value = li.dataset.ibKey;
+              chip.dataset.value = key;
               chip.innerHTML = `<span class="ib-chip-text"></span><span class="ib-chip-remove" data-ib-remove>${icon}</span>`;
-              chip.firstElementChild!.textContent = names[i];
+              chip.firstElementChild!.textContent = name;
               return chip;
             }))
       );
-      chips.toggleAttribute("data-ib-empty", tops.length === 0);
-      if (said) said.textContent = names.join(", ");
-      if (clear) clear.hidden = tops.length === 0;
+      chips.toggleAttribute("data-ib-empty", shown.length === 0);
+      if (said) said.textContent = shown.map(([, name]) => name).join(", ");
+      if (clear) clear.hidden = shown.length === 0;
     };
+    redraw = draw;
     // A cascade changes many boxes at once: draw once after them.
     panel.addEventListener(
       "change",

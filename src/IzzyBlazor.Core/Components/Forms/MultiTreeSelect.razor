@@ -18,6 +18,9 @@
     included. The field shows the choice as chips, and a branch checked whole as one chip, its
     parent's.
 
+    For a large tree, ItemHasChildren and ChildrenProvider load a branch's children the first time
+    it opens, as in TreeView; ValueText names a chosen value whose item is still to load.
+
     How it works three ways:
     - No script: the button opens the panel (the Popover API), whose checkboxes post with the form
       as repeated fields, which Blazor binds to the collection. Checking a parent doesn't check its
@@ -61,6 +64,12 @@
     /// </summary>
     [Parameter] public bool Cascade { get; set; } = true;
 
+    /// <summary>
+    /// Names a chosen value when its item isn't in the tree yet: in a branch still to load
+    /// (<see cref="TreeSelectBase{TValue, TItem}.ChildrenProvider"/>). Defaults to the value's string form.
+    /// </summary>
+    [Parameter] public Func<TItemValue, string>? ValueText { get; set; }
+
     /// <inheritdoc />
     private protected override bool Multiple => true;
 
@@ -91,8 +100,21 @@
     /// <inheritdoc />
     private protected override void Choose(Selection selection)
     {
-        var keys = selection.Keys ?? [];
-        CurrentValue = ChoiceCollection<TValue, TItemValue>.Create(AllItems.Where(item => keys.Contains(KeyOf(item))).Select(ItemValue!));
+        // In the tree's order; then values whose items it doesn't hold (in branches loaded since, or
+        // still to load), kept as they were or read from their keys.
+        var keys = (selection.Keys ?? []).ToHashSet();
+        var found = AllItems.Where(item => keys.Remove(KeyOf(item))).Select(ItemValue!).ToList();
+        var had = ChoiceCollection<TValue, TItemValue>.Items(CurrentValue).ToDictionary(v => ChoiceOptions.Value(v));
+        foreach (var key in keys)
+        {
+            if (had.TryGetValue(key, out var value)
+                || BindConverter.TryConvertTo(key, System.Globalization.CultureInfo.CurrentCulture, out value))
+            {
+                found.Add(value!);
+            }
+        }
+
+        CurrentValue = ChoiceCollection<TValue, TItemValue>.Create(found);
     }
 
     // What the chips show: each chosen item whose parent isn't chosen too, so a branch checked whole
@@ -116,7 +138,7 @@
                     tops.Add(item);
                 }
 
-                Walk(ItemChildren?.Invoke(item), chosen, depth + 1);
+                Walk(ChildrenOf(item), chosen, depth + 1);
             }
         }
 
@@ -124,20 +146,29 @@
         return tops;
     }
 
+    // Chosen values whose items aren't in the tree: a chip each, named by ValueText.
+    private IEnumerable<(string Key, string Text)> UnloadedChips()
+    {
+        var unloaded = UnloadedKeys;
+        return ChoiceCollection<TValue, TItemValue>.Items(CurrentValue)
+            .Where(v => unloaded.Contains(ChoiceOptions.Value(v)))
+            .Select(v => (ChoiceOptions.Value(v), ValueText?.Invoke(v) ?? ChoiceOptions.Value(v)));
+    }
+
     /// <inheritdoc />
     private protected override RenderFragment Shown => __builder =>
     {
-        var tops = Tops();
+        var chips = Tops().Select(item => (Key: KeyOf(item), Text: TextOf(item))).Concat(UnloadedChips()).ToList();
         @* The button's name after its label: the chips in words, as the chips' text would run together. *@
-        <span id="@TextId" class="ib-treeselect-said" hidden>@string.Join(", ", tops.Select(TextOf))</span>
-        <span class="ib-treeselect-text ib-treeselect-chips" data-ib-empty="@(tops.Count == 0 ? "" : null)" aria-hidden="true">
-            @if (tops.Count == 0)
+        <span id="@TextId" class="ib-treeselect-said" hidden>@string.Join(", ", chips.Select(c => c.Text))</span>
+        <span class="ib-treeselect-text ib-treeselect-chips" data-ib-empty="@(chips.Count == 0 ? "" : null)" aria-hidden="true">
+            @if (chips.Count == 0)
             {
                 @Placeholder
             }
-            @foreach (var item in tops)
+            @foreach (var (key, text) in chips)
             {
-                <span @key="KeyOf(item)" class="ib-chip" data-value="@KeyOf(item)"><span class="ib-chip-text">@TextOf(item)</span><span class="ib-chip-remove" data-ib-remove><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></span></span>
+                <span @key="key" class="ib-chip" data-value="@key"><span class="ib-chip-text">@text</span><span class="ib-chip-remove" data-ib-remove><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></span></span>
             }
         </span>
     };

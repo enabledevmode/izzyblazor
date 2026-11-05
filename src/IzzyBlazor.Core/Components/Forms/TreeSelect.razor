@@ -20,6 +20,13 @@
     The field shows the chosen item's ItemText. When two items share a name, have ItemText return
     a path ("West / Sales"). The tree opens on the chosen item, its branch open.
 
+    For a large tree, ItemHasChildren and ChildrenProvider load a branch's children the first time
+    it opens, as in TreeView. A chosen value in a branch still to load has no item to name it, so
+    ValueText does:
+
+    <TreeSelect ... ItemHasChildren="f => f.HasFolders" ChildrenProvider="LoadFolders"
+                ValueText="id => Folders.PathOf(id)" />
+
     How it works three ways:
     - No script: the button opens the panel (the Popover API), whose radio buttons post with the
       form. The field's text changes once the form posts.
@@ -56,6 +63,12 @@
     /// <summary>The value an item stands for, which is bound and posted, such as its id.</summary>
     [Parameter, EditorRequired] public Func<TItem, TValue>? ItemValue { get; set; }
 
+    /// <summary>
+    /// Names the chosen value when its item isn't in the tree yet: in a branch still to load
+    /// (<see cref="TreeSelectBase{TValue, TItem}.ChildrenProvider"/>). Defaults to the value's string form.
+    /// </summary>
+    [Parameter] public Func<TValue, string>? ValueText { get; set; }
+
     /// <inheritdoc />
     private protected override bool Multiple => false;
 
@@ -85,7 +98,7 @@
     private protected override RenderFragment Shown => __builder =>
     {
         var chosen = ChosenItems.FirstOrDefault();
-        var text = HasValue ? (chosen is null ? CurrentValueAsString : TextOf(chosen)) : null;
+        var text = HasValue ? (chosen is null ? ValueText?.Invoke(CurrentValue!) ?? CurrentValueAsString : TextOf(chosen)) : null;
         <span id="@TextId" class="ib-treeselect-text" data-ib-empty="@(text is null ? "" : null)">@(text ?? Placeholder)</span>
     };
 

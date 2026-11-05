@@ -303,11 +303,16 @@
         _roots = Build(Items, 1, false);
 
         // The boxes a checked parent checks are part of the selection, so a change starts from them.
+        // Keys of items still to load (ChildrenProvider) stay selected.
         if (Multiple && Cascade)
         {
-            _selected = [.. Checked(_roots)];
+            var shown = Keys(_roots).ToHashSet();
+            _selected = [.. Checked(_roots), .. _selected.Where(k => !shown.Contains(k))];
         }
     }
+
+    private static IEnumerable<string> Keys(List<Node> nodes) =>
+        nodes.SelectMany(n => (n.Key is not null ? [n.Key] : Array.Empty<string>()).Concat(Keys(n.Children)));
 
     private static IEnumerable<string> Checked(List<Node> nodes) =>
         nodes.SelectMany(n => (n.Selected && n.Key is not null ? [n.Key] : Array.Empty<string>()).Concat(Checked(n.Children)));
