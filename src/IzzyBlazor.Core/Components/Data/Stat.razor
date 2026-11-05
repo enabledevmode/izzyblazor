@@ -15,6 +15,7 @@
     - The change's color isn't read, so when the color carries meaning (`ChangeStatus`), say it in
       `Description` or `TrendLabel` too.
     - The `Icon` is decorative and hidden from screen readers.
+    - A `Spark` is an image named by `Label`, with the first, last, lowest and highest values.
     See also: Card, DescriptionList, Progress, Badge.
 *@
 
@@ -49,6 +50,12 @@
                 {
                     <span class="ib-stat-description">@Description</span>
                 }
+            </dd>
+        }
+        @if (Spark is not null)
+        {
+            <dd class="ib-stat-spark">
+                <Sparkline Values="Spark" Label="@(Label ?? "")" Type="SparkType" ValueFormat="@SparkFormat" />
             </dd>
         }
     </dl>
@@ -86,6 +93,18 @@
 
     /// <summary>A muted note after the change, such as "vs last month".</summary>
     [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Recent values to draw as a sparkline under the figure, such as the last twelve weeks. It's
+    /// named by <see cref="Label"/>, which it needs.
+    /// </summary>
+    [Parameter] public IEnumerable<double?>? Spark { get; set; }
+
+    /// <summary>How the <see cref="Spark"/> draws: a line (the default), an area or bars.</summary>
+    [Parameter] public SparklineType SparkType { get; set; }
+
+    /// <summary>A .NET format string for the <see cref="Spark"/>'s values as a screen reader hears them, such as <c>C0</c>.</summary>
+    [Parameter] public string? SparkFormat { get; set; }
 
     /// <summary>An icon in a tinted square at the end.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -125,9 +144,18 @@
         classes.Add("ib-stat");
         classes.Add("ib-stat-sm", Size == ControlSize.Sm);
         classes.Add("ib-stat-lg", Size == ControlSize.Lg);
+        classes.Add("ib-stat-sparked", Spark is not null);
         base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        if (Spark is not null && string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("A Stat with a Spark needs a Label, which names the sparkline.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
 }

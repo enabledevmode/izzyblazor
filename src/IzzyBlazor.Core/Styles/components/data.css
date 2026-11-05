@@ -2919,8 +2919,8 @@
 }
 
 @layer izzy.components {
-  /* Chart: the rest is in chart.css, which shows it. */
-  .ib-chart {
+  /* Charts: the rest is in chart.css, which shows them. */
+  .ib-chart, .ib-sparkline, .ib-gauge {
     visibility: hidden;
   }
 }

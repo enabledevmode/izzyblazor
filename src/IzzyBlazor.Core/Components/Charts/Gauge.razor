@@ -1,0 +1,107 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+@using System.Globalization
+
+@*
+    A value on a dial: a 240° track filled up to the value, with the value in the middle and the
+    label under it. 12rem wide unless Width says otherwise, and never wider than its container.
+
+    <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" />
+
+    Accessibility:
+    - role="meter", named by Label, which is required, with aria-valuenow, -min and -max, and the
+      formatted value as aria-valuetext, so a screen reader hears "Disk used, 72%".
+    - Status colors the fill; the color isn't read, so say what it means in the label or nearby.
+    See also: Progress, Stat.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="meter"
+     aria-labelledby="@_labelId"
+     aria-valuenow="@Num(Math.Clamp(_value, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@_text">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <div class="ib-gauge-dial">
+        <svg class="ib-gauge-svg" viewBox="-1 -1 2 1.56" aria-hidden="true">
+            <path class="ib-gauge-track" d="@ChartShapes.GaugeArc(0, 1, Radius)" />
+            @if (_share > 0)
+            {
+                <path class="ib-gauge-fill" d="@ChartShapes.GaugeArc(0, _share, Radius)" />
+            }
+        </svg>
+        <span class="ib-gauge-value" aria-hidden="true">@_text</span>
+        <span class="ib-gauge-end" aria-hidden="true">@Text(Min)</span>
+        <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
+    </div>
+    <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-gauge-label")">@Label</span>
+</div>
+
+@code {
+    private const double Radius = 0.88;
+
+    /// <summary>The value. One outside <see cref="Min"/> and <see cref="Max"/> fills none or all of the dial, and still shows as it is.</summary>
+    [Parameter, EditorRequired] public double Value { get; set; }
+
+    /// <summary>The dial's start. Defaults to 0.</summary>
+    [Parameter] public double Min { get; set; }
+
+    /// <summary>The dial's end. Defaults to 1, for a share shown with <c>ValueFormat="P0"</c>.</summary>
+    [Parameter] public double Max { get; set; } = 1;
+
+    /// <summary>What it measures, such as "Disk used": under the dial, and its accessible name. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>Hides the label, which still names the gauge for screen readers.</summary>
+    [Parameter] public bool HideLabel { get; set; }
+
+    /// <summary>A .NET format string for the value and the ends, such as <c>P0</c>, <c>N0</c> or <c>C0</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>
+    /// The fill's color, such as <see cref="IzzyBlazor.Status.Warning"/> when the value is high.
+    /// Defaults to the theme's primary color.
+    /// </summary>
+    [Parameter] public Status? Status { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-gauge");
+    private double _value;
+    private double _share;
+    private string _text = "";
+    private string? _class;
+    private string? _style;
+
+    private static string Num(double value) => value.ToString("0.######", CultureInfo.InvariantCulture);
+
+    private string Text(double value) => value.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-gauge");
+        if (Status is { } status)
+        {
+            styles.AddVar("gauge-color", $"var(--ib-color-{status.ToString().ToLowerInvariant()})");
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Gauge needs a Label, what it measures, such as \"Disk used\".");
+        }
+
+        if (!(Max > Min))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Max), Max, "A Gauge's Max must be more than its Min.");
+        }
+
+        _value = double.IsFinite(Value) ? Value : Min;
+        _share = Math.Clamp((_value - Min) / (Max - Min), 0, 1);
+        _text = Text(_value);
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

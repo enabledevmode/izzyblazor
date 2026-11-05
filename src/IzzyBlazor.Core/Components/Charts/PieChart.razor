@@ -1,0 +1,233 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    Parts of a whole as slices of a circle, or of a ring with Donut, drawn on the server. The
+    legend beside it (under it, when narrow) names each slice with its value and share.
+
+    <PieChart Items="plans" Argument="p => p.Plan" Value="p => p.Customers" Label="Customers by plan" Donut>
+        <Center><strong>1,240</strong> customers</Center>
+    </PieChart>
+
+    Slices go clockwise from the top in item order, in the palette's colors. Missing, zero and
+    negative values get no slice but keep their row in the legend and the table. Past about six
+    slices they get hard to tell apart: group the smallest as "Other", or use a Chart with bars.
+
+    Accessibility:
+    - A figure captioned by Label, which is required; the circle is one image named by it.
+    - The legend is text: each slice's name, value and share, read in order.
+    - "Show data" under the chart opens a table of every value and share (DataTable).
+    - With script, the circle is one Tab stop: the arrow keys move between slices and say each one.
+    See also: Chart, Gauge.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <figcaption id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-chart-label")">@Label</figcaption>
+    @{
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var names = items.Select(i => ChartLayout.ArgumentText(_argument!(i), null, CultureInfo.CurrentCulture)).ToArray();
+        var values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
+        var total = values.Sum(v => v is > 0 ? v.Value : 0);
+        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0);
+        var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
+        var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
+    }
+    <ib-chart data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
+              data-ib-count="@items.Count"
+              data-ib-pos="@string.Join(",", Enumerable.Range(0, items.Count).Select(i => slices.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))">
+        <div class="@(Legend == ChartLegend.None ? "ib-pie" : "ib-pie ib-pie-legended")">
+            <div class="ib-pie-plot">
+                <div class="ib-pie-frame" role="img" aria-labelledby="@_labelId">
+                    <svg class="ib-pie-svg" viewBox="-1 -1 2 2">
+                        @if (slices.Count == 0)
+                        {
+                            <path class="ib-pie-empty" d="@ChartShapes.Pie([1], Donut ? ChartShapes.DonutHole : 0)[0].Path" />
+                        }
+                        @foreach (var slice in slices)
+                        {
+                            <path class="@($"ib-pie-slice ib-chart-s{slice.Index % 8 + 1}")" d="@slice.Path" data-ib-i="@slice.Index"><title>@($"{names[slice.Index]}: {texts[slice.Index]} ({shares[slice.Index]})")</title></path>
+                        }
+                    </svg>
+                </div>
+                @if (Donut && Center is not null)
+                {
+                    <div class="ib-pie-center">@Center</div>
+                }
+                @if (Tooltip)
+                {
+                    <div class="ib-chart-tooltip" hidden></div>
+                }
+            </div>
+            @if (Legend != ChartLegend.None)
+            {
+                <ul class="ib-chart-legend ib-pie-legend">
+                    @for (var i = 0; i < items.Count; i++)
+                    {
+                        <li class="@($"ib-chart-s{i % 8 + 1}")">
+                            <span class="ib-pie-key" aria-hidden="true"></span>
+                            <span class="ib-pie-name">@names[i]</span>
+                            <span class="ib-pie-number">@texts[i]</span>
+                            <span class="ib-pie-number ib-pie-share">@shares[i]</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        @if (Tooltip)
+        {
+            <div class="ib-chart-tips" hidden>
+                @for (var i = 0; i < items.Count; i++)
+                {
+                    <div data-ib-tip>
+                        <div class="ib-chart-tooltip-title">@names[i]</div>
+                        <div class="ib-chart-tooltip-row">
+                            <span class="@($"ib-chart-tooltip-key ib-chart-s{i % 8 + 1}")"></span>
+                            <span>@texts[i]</span>
+                            <span class="ib-chart-tooltip-value">@shares[i]</span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+        }
+    </ib-chart>
+
+    @if (DataTable != ChartDataTable.None)
+    {
+        <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+            <summary class="ib-collapsible-trigger">
+                <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
+                <span>@TextDefaults.ChartShowData</span>
+            </summary>
+            <div class="ib-chart-table-scroll">
+                <table class="ib-chart-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                            <th scope="col">@(_valueName ?? Label)</th>
+                            <th scope="col">@TextDefaults.ChartShare</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < items.Count; i++)
+                        {
+                            <tr>
+                                <th scope="row">@names[i]</th>
+                                <td>@texts[i]</td>
+                                <td>@shares[i]</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    }
+</figure>
+
+@code {
+    /// <summary>The items, one slice each.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each slice's name, such as <c>p =&gt; p.Plan</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+
+    /// <summary>Each slice's size, such as <c>p =&gt; p.Customers</c>: any number. The slices share the circle by their values.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>What the chart shows, such as "Customers by plan": its caption and accessible name. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>Hides the caption, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideLabel { get; set; }
+
+    /// <summary>Draws a ring with a hole in the middle, for <see cref="Center"/>.</summary>
+    [Parameter] public bool Donut { get; set; }
+
+    /// <summary>Content in a donut's hole, such as the total. Not drawn without <see cref="Donut"/>.</summary>
+    [Parameter] public RenderFragment? Center { get; set; }
+
+    /// <summary>
+    /// The circle's largest size. Defaults to 16rem; it's smaller when its container is narrower.
+    /// </summary>
+    [Parameter] public Length? Size { get; set; }
+
+    /// <summary>A .NET format string for the values, such as <c>C0</c> or <c>N0</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>
+    /// Shows a tooltip with the slice's value and share under the pointer or keyboard focus, with
+    /// script. Defaults to true.
+    /// </summary>
+    [Parameter] public bool Tooltip { get; set; } = true;
+
+    /// <summary>
+    /// The legend: each slice's name, value and share, beside the circle when there's room and
+    /// under it otherwise. <see cref="ChartLegend.None"/> leaves it out; the other values show it.
+    /// </summary>
+    [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private Expression<Func<TItem, object?>>? _lastArgument;
+    private Expression<Func<TItem, object?>>? _lastValue;
+    private Func<TItem, object?>? _argument;
+    private Func<TItem, object?>? _value;
+    private string? _argumentName;
+    private string? _valueName;
+    private string? _class;
+    private string? _style;
+
+    private static string Num(double value) => value.ToString("0.#####", CultureInfo.InvariantCulture);
+
+    // Whole percents, with a tenth for a sliver, so a small slice doesn't read as 0%.
+    private static string Share(double share) =>
+        share.ToString(share is > 0 and < 0.095 ? "P1" : "P0", CultureInfo.CurrentCulture);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-pie-chart");
+        if (Size is { } size) styles.AddVar("pie-size", size.Css);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("PieChart needs a Label, its caption and accessible name, such as \"Customers by plan\".");
+        }
+
+        if (Argument is null || Value is null)
+        {
+            throw new InvalidOperationException("PieChart needs an Argument, each slice's name, and a Value, its size, such as p => p.Plan and p => p.Customers.");
+        }
+
+        if (!ReferenceEquals(Argument, _lastArgument))
+        {
+            _lastArgument = Argument;
+            _argument = Argument.Compile();
+            _argumentName = ChartMembers.Name(Argument);
+        }
+
+        if (!ReferenceEquals(Value, _lastValue))
+        {
+            _lastValue = Value;
+            _value = Value.Compile();
+            _valueName = ChartMembers.Name(Value);
+        }
+
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}
