@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace IzzyBlazor.Tests;
@@ -5,20 +6,25 @@ namespace IzzyBlazor.Tests;
 public class ButtonRenderTests : BunitContext
 {
     [Fact]
-    public void A_click_toggles_a_bound_button_before_its_OnClick()
+    public void A_toggle_button_is_a_checkbox_drawn_as_a_button()
     {
-        var pressed = false;
-        var seen = (bool?)null;
-        var cut = Render<Button>(p => p
-            .Add(b => b.Pressed, pressed)
-            .Add(b => b.PressedChanged, (bool value) => pressed = value)
-            .Add(b => b.OnClick, (MouseEventArgs _) => seen = pressed)
-            .AddChildContent("Bold"));
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var on = false;
+        var cut = Render<ToggleButton>(p => p
+            .Add(b => b.Value, on)
+            .Add(b => b.ValueChanged, (bool value) => on = value)
+            .Add(b => b.ValueExpression, () => on)
+            .Add(b => b.Icon, Lucide.Bold)
+            .Add(b => b.Label, "Bold")
+            .Add(b => b.IconOnly, true));
 
-        cut.Find("button").Click();
+        var label = cut.Find("label.ib-btn.ib-btn-toggle");
+        var box = label.QuerySelector("input[type=checkbox]")!;
+        Assert.Equal("Bold", label.GetAttribute("title"));
+        Assert.Equal("Bold", label.QuerySelector(".ib-visually-hidden:not(input)")!.TextContent);
 
-        Assert.True(pressed);
-        Assert.True(seen);
+        box.Change(true);
+        Assert.True(on);
     }
 
     [Fact]

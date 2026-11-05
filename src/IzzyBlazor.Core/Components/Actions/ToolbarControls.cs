@@ -5,8 +5,8 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// A <see cref="Button"/> in a <see cref="Toolbar"/> or a <see cref="ToolbarButtonGroup"/>. In the
-/// "…" menu it's a menu item with the same link, form post and <c>OnClick</c>; a toggle
-/// (<see cref="ButtonBase.Pressed"/>) is a checkbox item there.
+/// "…" menu it's a menu item with the same link, form post and <c>OnClick</c>. For a toggle, use
+/// <see cref="ToolbarToggleButton"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -61,13 +61,6 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
             builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
         }
 
-        // A toggle is a checkbox item there.
-        builder.AddComponentParameter(14, nameof(MenuItem.Checked), Pressed);
-        if (PressedChanged.HasDelegate)
-        {
-            builder.AddComponentParameter(15, nameof(MenuItem.CheckedChanged), PressedChanged);
-        }
-
         if (External && Href is not null)
         {
             builder.AddAttribute(11, "target", "_blank");
@@ -114,7 +107,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
 /// <summary>
 /// An <see cref="IconButton"/> in a <see cref="Toolbar"/> or a <see cref="ToolbarButtonGroup"/>. In
 /// the "…" menu it's a menu item with its icon, its <c>Label</c> as text, and the same link, form
-/// post and <c>OnClick</c>; a toggle (<see cref="ButtonBase.Pressed"/>) is a checkbox item there.
+/// post and <c>OnClick</c>. For a toggle, use <see cref="ToolbarToggleButton"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -165,13 +158,6 @@ public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
         if (OnClick.HasDelegate)
         {
             builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
-        }
-
-        // A toggle is a checkbox item there.
-        builder.AddComponentParameter(14, nameof(MenuItem.Checked), Pressed);
-        if (PressedChanged.HasDelegate)
-        {
-            builder.AddComponentParameter(15, nameof(MenuItem.CheckedChanged), PressedChanged);
         }
 
         ToolbarControl.CopyDownload(builder, AdditionalAttributes);
@@ -615,7 +601,8 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
         var name = control.GetType().Name;
         var instead = control.GetType() == typeof(Button) ? "ToolbarButton"
             : control.GetType() == typeof(IconButton) ? "ToolbarIconButton"
-            : control.GetType() == typeof(ButtonGroup) ? "ToolbarButtonGroup"
+            : control.GetType() == typeof(ButtonGroup) || control.GetType() == typeof(ToggleGroup) ? "ToolbarButtonGroup"
+            : control.GetType() == typeof(ToggleButton) ? "ToolbarToggleButton"
             : control.GetType() == typeof(Menu) ? "ToolbarMenu"
             : control.GetType() == typeof(SplitButton) ? "ToolbarSplitButton"
             : null;
@@ -628,7 +615,7 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
 
         if (group is ToolbarButtonGroup)
         {
-            throw new InvalidOperationException($"{name} can't go in a ToolbarButtonGroup: use ToolbarButton or ToolbarIconButton.");
+            throw new InvalidOperationException($"{name} can't go in a ToolbarButtonGroup: use ToolbarButton, ToolbarIconButton or ToolbarToggleButton.");
         }
     }
 

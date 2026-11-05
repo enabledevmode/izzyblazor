@@ -41,13 +41,13 @@ public class ToolbarTests : BunitContext
     {
         var cut = RenderToolbar("toggles", interactive: true);
 
-        cut.Find(".ib-toolbar-unit button.ib-btn:not([aria-label])").Click();
+        cut.Find(".ib-toolbar-unit label:not([title]) input[type=checkbox]").Change(true);
         Assert.True(cut.Instance.Preview);
-        Assert.Equal("true", cut.Find(".ib-toolbar-unit button.ib-btn:not([aria-label])").GetAttribute("aria-pressed"));
+        Assert.True(cut.Find(".ib-toolbar-unit label:not([title]) input[type=checkbox]").HasAttribute("checked"));
 
         MenuPanel(cut).QuerySelectorAll(".ib-menu-item").Single(i => i.TextContent.Trim() == "Bold").Click();
         Assert.False(cut.Instance.Bold);
-        Assert.Equal("false", cut.Find(".ib-toolbar-unit button[aria-label='Bold']").GetAttribute("aria-pressed"));
+        Assert.False(cut.Find(".ib-toolbar-unit label[title='Bold'] input[type=checkbox]").HasAttribute("checked"));
     }
 
     [Fact]

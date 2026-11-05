@@ -1,14 +1,14 @@
-@* Toggles in a toolbar: in the … menu they're checkbox items, which toggle the same. *@
+@* ToolbarToggleButtons: in the … menu they're checkbox items, which toggle the same value. *@
 <Card Size="ControlSize.Sm" Width="Length.Full">
     <CardBody Gap="3">
         <Toolbar Label="Format">
             <ToolbarButtonGroup Label="Text style" Priority="1">
-                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="_bold" />
-                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" @bind-Pressed="_italic" />
+                <ToolbarToggleButton Icon="Lucide.Bold" Label="Bold" IconOnly @bind-Value="_bold" />
+                <ToolbarToggleButton Icon="Lucide.Italic" Label="Italic" IconOnly @bind-Value="_italic" />
             </ToolbarButtonGroup>
             <ToolbarSeparator />
-            <ToolbarButton StartIcon="Lucide.Pilcrow" @bind-Pressed="_marks">Show marks</ToolbarButton>
-            <ToolbarButton StartIcon="Lucide.SpellCheck" @bind-Pressed="_spelling">Check spelling</ToolbarButton>
+            <ToolbarToggleButton Icon="Lucide.Pilcrow" @bind-Value="_marks">Show marks</ToolbarToggleButton>
+            <ToolbarToggleButton Icon="Lucide.SpellCheck" @bind-Value="_spelling">Check spelling</ToolbarToggleButton>
         </Toolbar>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Bold @OnOff(_bold), italic @OnOff(_italic), marks @OnOff(_marks), spelling @OnOff(_spelling)

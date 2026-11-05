@@ -1,0 +1,15 @@
+@* Text styles: each toggle turns on and off on its own; the group joins them and names the set. *@
+<Stack Gap="3" Align="Align.Center">
+    <ToggleGroup Label="Text style">
+        <ToggleButton Icon="Lucide.Bold" Label="Bold" IconOnly @bind-Value="_bold" />
+        <ToggleButton Icon="Lucide.Italic" Label="Italic" IconOnly @bind-Value="_italic" />
+        <ToggleButton Icon="Lucide.Underline" Label="Underline" IconOnly @bind-Value="_underline" />
+    </ToggleGroup>
+    <TextBlock Weight="@(_bold ? FontWeight.Bold : FontWeight.Normal)" Italic="_italic" Decoration="@(_underline ? TextDecoration.Underline : null)">The quick brown fox</TextBlock>
+</Stack>
+
+@code {
+    private bool _bold = true;
+    private bool _italic;
+    private bool _underline;
+}
