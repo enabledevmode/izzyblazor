@@ -458,18 +458,14 @@ public class AppAside : AppShellPart, IDisposable
     }
 }
 
-/// <summary>
-/// The bottom bar of an <see cref="AppShell"/>. When the page scrolls, it sits beside the sidebar,
-/// under the main area and the aside, so it never pushes the sidebar up; a sticky footer, or one in
-/// a shell whose main area scrolls, spans the full width.
-/// </summary>
+/// <summary>The bottom bar of an <see cref="AppShell"/>.</summary>
 public class AppFooter : AppShellPart
 {
     /// <summary>Whether it stays at the bottom while the page scrolls. Defaults to <see cref="BarPosition.Static"/>.</summary>
     [Parameter] public BarPosition Position { get; set; } = BarPosition.Static;
 
     /// <summary>
-    /// The width the footer's content is centered at; the bar itself keeps its full span. Overrides
+    /// The width the footer's content is centered at; the bar itself stays full width. Overrides
     /// the shell's <see cref="AppShell.ContentWidth"/>.
     /// </summary>
     [Parameter] public Length? ContentWidth { get; set; }
