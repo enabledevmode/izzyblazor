@@ -5,20 +5,41 @@
  * ib-sd-icons). The first action in the markup is the one nearest the button, where focus starts.
  */
 @layer izzy.components {
-  /* The button turns into a close button while the actions show. */
-  .ib-sd-button .ib-sd-open,
+  /* The button turns into a close button while the actions show: the two icons share one cell,
+     and the open one spins in as the other spins out (SpinIcon), or they just swap. */
+  .ib-sd-button {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .ib-sd-button > .ib-icon {
+    grid-area: 1 / 1;
+  }
+
+  .ib-sd-button > .ib-sd-open,
   .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-closed {
-    display: none;
+    opacity: 0;
   }
 
   .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-open {
-    display: inline-flex;
+    opacity: 1;
+  }
+
+  .ib-sd-spin > .ib-sd-open {
+    rotate: -90deg;
+  }
+
+  .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-spin > .ib-sd-closed {
     rotate: 90deg;
   }
 
+  .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-spin > .ib-sd-open {
+    rotate: 0deg;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
-    .ib-sd-button .ib-icon {
-      transition: rotate 150ms ease;
+    .ib-sd-spin > .ib-icon {
+      transition: rotate 200ms ease, opacity 200ms ease;
     }
   }
 
@@ -71,7 +92,9 @@
     color: var(--ib-color-on-surface);
   }
 
+  /* A menu label trims its line to the letters; in a pill, a full line reads less cramped. */
   .ib-sd-action > .ib-menu-label {
+    text-box: normal;
     padding: var(--ib-space-1) var(--ib-space-3);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-md);

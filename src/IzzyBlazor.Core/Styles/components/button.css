@@ -85,6 +85,10 @@
     box-shadow: var(--ib-shadow-lg);
   }
 
+  .ib-btn-round {
+    border-radius: var(--ib-radius-full);
+  }
+
   .ib-btn-float-start {
     inset-inline: var(--ib-float-gap) auto;
   }
