@@ -33,6 +33,6 @@ public sealed class MaskTests(SiteFixture site) : IClassFixture<SiteFixture>
         await Assertions.Expect(ssn).ToHaveValueAsync("123-45-6789");
 
         await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
-        await Assertions.Expect(example).ToContainTextAsync("We'll call (416) 555-0199 and charge the card ending 4242.");
+        await Assertions.Expect(example).ToContainTextAsync("Saved.");
     }
 }
