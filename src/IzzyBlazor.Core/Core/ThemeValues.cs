@@ -20,7 +20,7 @@ public enum ThemePreset
 }
 
 /// <summary>
-/// The values <see cref="IzzyTheme.Brand"/> and <see cref="IzzyTheme.Gray"/> take: a built-in name
+/// The values <see cref="ThemeBase.Brand"/> and <see cref="ThemeBase.Gray"/> take: a built-in name
 /// or a hex color.
 /// </summary>
 internal static class ThemeColors

@@ -4,7 +4,7 @@
 <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4" Grow>
     @foreach (var set in Sets)
     {
-        <IzzyTheme Preset="set.Preset" Brand="@set.Brand" Gray="@set.Gray" Style="@set.Style">
+        <ThemeScope Preset="set.Preset" Brand="@set.Brand" Gray="@set.Gray" Style="@set.Style">
             <Card Title="@set.Preset.ToString()" Description="@set.Description" Height="Length.Full">
                 <Row Gap="2" Wrap Align="Align.Center">
                     <Button>Invite</Button>
@@ -12,7 +12,7 @@
                     <Badge Status="Status.Success">Active</Badge>
                 </Row>
             </Card>
-        </IzzyTheme>
+        </ThemeScope>
     }
 </Grid>
 

@@ -1,5 +1,5 @@
 @* IzzyTheme's Overview, written by hand: presets, brand colors (built-in and hex), the rest of the
-   settings as code, the color scheme, and part of a page. The Theming articles have the detail;
+   settings as code and the color scheme. The Theming articles have the detail;
    this page points to them. Accessibility and See also come from the doc comment. *@
 
 <Heading Level="2">Usage</Heading>
@@ -35,13 +35,7 @@
 <TextBlock>The color scheme a page starts in is light, dark, or the device's. Set <Code>ColorScheme</Code> to choose; unset, it follows the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user choose, and their choice overrides this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
 
 <Heading Level="2">Part of a page</Heading>
-<TextBlock>An IzzyTheme around part of a page themes only that part, such as a dark panel in a light page. Put the content inside an IzzyTheme, and set any of <Code>Brand</Code>, a built-in <Code>Gray</Code>, <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> (shape, density and depth) and <Code>ColorScheme</Code>. Here <Code>ColorScheme</Code> can also be <Code>Inverse</Code>.</TextBlock>
-<ExampleViewer Example="izzy-theme-part" />
-<List>
-    <ListItem>What the inner theme doesn't set comes from the theme around it.</ListItem>
-    <ListItem>Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide only.</ListItem>
-    <ListItem>For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</ListItem>
-</List>
+<TextBlock>To theme only part of a page, such as a dark panel in a light page, use a <Anchor Href="docs/components/theme-scope">ThemeScope</Anchor>. Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are the app's, set here. For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

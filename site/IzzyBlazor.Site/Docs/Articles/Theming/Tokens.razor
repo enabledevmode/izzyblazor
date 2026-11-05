@@ -70,12 +70,12 @@
 
         <Heading Level="2">Theme part of a page</Heading>
         <TextBlock>
-            Wrap the part in an <Code>IzzyTheme</Code>. It themes what's inside, and what it doesn't set comes from the theme
-            around it.
+            Wrap the part in a <Anchor Href="docs/components/theme-scope">ThemeScope</Anchor>. It themes what's inside, and
+            what it doesn't set comes from the theme around it.
         </TextBlock>
-        <ExampleViewer Example="izzy-theme-part" />
+        <ExampleViewer Example="theme-scope-panel" />
         <TextBlock>
-            Around part of a page, <Code>IzzyTheme</Code> accepts <Code>Brand</Code>, a built-in <Code>Gray</Code>,
+            A <Code>ThemeScope</Code> accepts <Code>Brand</Code>, a built-in <Code>Gray</Code>,
             <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> and <Code>ColorScheme</Code>, and renders a
             <Code>div</Code>. On part of a page, a preset changes only density, shape and the card shadow. To set one exact
             value, use <Code>Style</Code> or a class:
@@ -177,8 +177,8 @@
         """;
 
     private const string Part = """
-        <IzzyTheme Density="ThemeDensity.Compact" Brand="#be123c" Style="--ib-card-padding: 1rem">
+        <ThemeScope Density="ThemeDensity.Compact" Brand="#be123c" Style="--ib-card-padding: 1rem">
             <Table ... />
-        </IzzyTheme>
+        </ThemeScope>
         """;
 }

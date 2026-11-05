@@ -4,7 +4,7 @@ using static IzzyBlazor.ColorMath;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A gray set derived from one color (<see cref="IzzyTheme.Gray"/> as hex): the page, surfaces,
+/// A gray set derived from one color (<see cref="ThemeBase.Gray"/> as hex): the page, surfaces,
 /// fills, borders and text, in light and dark, each text color checked for contrast.
 /// </summary>
 /// <remarks>

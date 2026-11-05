@@ -6,9 +6,9 @@ namespace IzzyBlazor.Tests;
 public class ThemeScopeTests : BunitContext
 {
     [Fact]
-    public void A_nested_IzzyTheme_themes_its_content()
+    public void A_ThemeScope_themes_its_content()
     {
-        var part = Render<IzzyTheme>(p => p
+        var part = Render<ThemeScope>(p => p
             .Add(t => t.Density, ThemeDensity.Compact)
             .Add(t => t.Radius, ThemeRadius.Sm)
             .Add(t => t.Preset, ThemePreset.Editorial)

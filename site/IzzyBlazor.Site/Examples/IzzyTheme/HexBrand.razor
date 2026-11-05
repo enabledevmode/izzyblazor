@@ -6,16 +6,16 @@
     <Row Gap="2" Wrap>
         @foreach (var (name, hex) in Colors)
         {
-            <IzzyTheme Brand="@hex">
+            <ThemeScope Brand="@hex">
                 <Button Href="@Navigation.GetUriWithQueryParameter("brand", hex)" Size="ControlSize.Sm"
                         Variant="@(hex == Chosen ? ButtonVariant.Solid : ButtonVariant.Soft)">@name</Button>
-            </IzzyTheme>
+            </ThemeScope>
         }
     </Row>
     <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
         @foreach (var scheme in new[] { ColorScheme.Light, ColorScheme.Dark })
         {
-            <IzzyTheme Brand="@Chosen" ColorScheme="scheme">
+            <ThemeScope Brand="@Chosen" ColorScheme="scheme">
                 <Card Title="@(scheme == ColorScheme.Light ? "Light" : "Dark")" Description="@Chosen">
                     <Stack Gap="4">
                         <Row Gap="2" Wrap>
@@ -30,7 +30,7 @@
                         <Progress Value="64" Label="Upload" />
                     </Stack>
                 </Card>
-            </IzzyTheme>
+            </ThemeScope>
         }
     </Grid>
 </Stack>
