@@ -3,7 +3,9 @@ namespace IzzyBlazor;
 /// <summary>
 /// Toggles that belong together, such as bold, italic and underline: any of them can be on. It
 /// names the set and joins the buttons into one control; Accent, Variant and Size here are the
-/// defaults for the <see cref="ToggleButton"/>s inside. Each toggle keeps its own value.
+/// defaults for the <see cref="ToggleButton"/>s inside. Each toggle keeps its own value. For one
+/// choice of several, such as text alignment (a single-selection toggle group), use
+/// <see cref="SegmentedControl{TValue}"/>.
 /// </summary>
 /// <example>
 /// <code>

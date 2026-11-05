@@ -495,9 +495,9 @@
       ]
     },
     {
-      "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Actions", "summary": "Joins toggle buttons that belong together, such as text styles.", "keywords": ["toggle group", "toggle button group", "formatting buttons"],
+      "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Actions", "summary": "Joins toggle buttons that any of can be on, such as text styles.", "keywords": ["toggle group", "toggle button group", "multiple toggle group", "formatting buttons"],
       "examples": [
-        { "id": "toggle-group-text-style", "title": "Text styles", "lead": "Toggles that belong together, such as bold, italic and underline, read as one control in a group. Name it with `Label`. Each toggle keeps its own value, and any of them can be on. For one choice of several, such as text alignment, use a SegmentedControl.", "modes": ["interactive"] }
+        { "id": "toggle-group-text-style", "title": "Text styles", "lead": "Toggles that belong together, such as bold, italic and underline, read as one control in a group. Name it with `Label`. Each toggle keeps its own value, and any of them can be on. For one choice of several, such as text alignment, use a SegmentedControl: the single-selection toggle group of other libraries.", "modes": ["interactive"] }
       ]
     },
     {
@@ -1330,7 +1330,7 @@
       ]
     },
     {
-      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "Lets the user pick one of a few choices from joined buttons.", "keywords": ["toggle group"],
+      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "Lets the user pick one of a few choices from joined buttons.", "keywords": ["exclusive toggle group", "single toggle group", "single select button group", "radio buttons as buttons"],
       "examples": [
         { "id": "segmented-control-icons", "title": "Icons", "lead": "To put an icon before each option's text, set `ItemIcon`. To show only the icons, set `IconOnly`; the text becomes a tooltip and stays for screen readers." },
         { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "To share the width equally between the segments, set `FullWidth`. To keep the label for screen readers only, set `HideLabel`." },
