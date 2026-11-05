@@ -1,0 +1,56 @@
+@inject NavigationManager Navigation
+
+@* The open invoices are in the URL (?open=INV-1042,INV-1043), so closing and adding are links. *@
+<Tabs QueryKey="tab" AddHref="@AddHref()" AddLabel="New invoice" Label="Open invoices" Grow>
+    <Tab Label="All invoices" Value="all" Icon="Lucide.List">
+        <TextBlock Color="Color.Muted">@OpenNumbers.Count invoices open.</TextBlock>
+    </Tab>
+    @foreach (var number in OpenNumbers)
+    {
+        <Tab @key="number" Label="@number" Value="@number" CloseHref="@CloseHref(number)">
+            <TextBlock>@Customer(number)</TextBlock>
+        </Tab>
+    }
+</Tabs>
+
+@code {
+    [SupplyParameterFromQuery] private string? Open { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tab")] private string? Selected { get; set; }
+
+    private List<string> OpenNumbers =>
+        Open is null ? ["INV-1042", "INV-1043", "INV-1045"] : [.. Open.Split(',', StringSplitOptions.RemoveEmptyEntries)];
+
+    // The list without this invoice; when it's the open tab, the tab after it opens (or before).
+    private string CloseHref(string number)
+    {
+        var open = OpenNumbers;
+        var i = open.IndexOf(number);
+        var tab = Selected != number ? Selected : i + 1 < open.Count ? open[i + 1] : i > 0 ? open[i - 1] : "all";
+        open.RemoveAt(i);
+        return Link(open, tab);
+    }
+
+    private string AddHref()
+    {
+        var open = OpenNumbers;
+        var next = $"INV-{open.Select(n => int.Parse(n[4..])).Append(1045).Max() + 1}";
+        return Link([.. open, next], next);
+    }
+
+    private string Link(List<string> open, string? tab) => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+    {
+        ["open"] = open.Count > 0 ? string.Join(",", open) : ",",
+        ["tab"] = tab,
+    });
+
+    @* hide *@
+    private static string Customer(string number) => number switch
+    {
+        "INV-1042" => "Northwind Traders: $1,280.00",
+        "INV-1043" => "Contoso Pharmacy: $642.50",
+        "INV-1045" => "Fabrikam Garden Supply: $3,915.75",
+        _ => "New customer: $0.00",
+    };
+    @* /hide *@
+}

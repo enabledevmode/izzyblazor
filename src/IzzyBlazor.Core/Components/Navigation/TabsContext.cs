@@ -70,10 +70,20 @@ internal sealed class TabsContext(Tabs owner)
 
     public void Unregister(Tab tab)
     {
-        if (_tabs.Remove(tab))
+        var index = _tabs.IndexOf(tab);
+        if (index < 0)
         {
-            owner.TabsChanged();
+            return;
         }
+
+        var selected = IsSelected(tab);
+        _tabs.RemoveAt(index);
+        if (selected)
+        {
+            owner.SelectedRemoved(index);
+        }
+
+        owner.TabsChanged();
     }
 
     public void RegisterLink(TabLink link)

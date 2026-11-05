@@ -13,6 +13,8 @@ import { revealSelectedTab } from "../tab-scroll";
 class Tabs extends IzzyElement {
   // The tab last scrolled into view, so a re-sync for anything else leaves the strip where it is.
   private revealed: HTMLElement | null = null;
+  // Until when a close may still replace the page (a link), and focus should come back to a tab.
+  private refocus = 0;
 
   private get list(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > .ib-tabs-list");
@@ -47,6 +49,38 @@ class Tabs extends IzzyElement {
     );
 
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
+    // A click on a close control leaves focus on the tabs, not on it.
+    this.addEventListener(
+      "mousedown",
+      (event) => {
+        if ((event.target as Element).closest?.(".ib-tab-close")) event.preventDefault();
+      },
+      { signal }
+    );
+
+    // A close control (tabs-edit.css) follows its tab. Before the tab goes, move focus to a tab
+    // that stays: closing the selected one selects the one after it (or before, when it's last),
+    // as the ARIA tabs pattern does, and C# hears that before it hears the close.
+    this.addEventListener(
+      "click",
+      (event) => {
+        const close = (event.target as Element).closest?.(".ib-tab-close");
+        const tab = close?.previousElementSibling as HTMLElement | null;
+        if (close?.parentElement !== this.list || !tab) return;
+        this.closing(tab);
+        this.refocus = performance.now() + 5000;
+        // A close link was written with the tab selected when the page was rendered; carry the
+        // one selected now, so the page that comes back shows it.
+        const key = this.dataset.queryKey;
+        const value = this.tabs.map((t) => this.radio(t)).find((r) => r?.checked)?.value;
+        if (close instanceof HTMLAnchorElement && key && value) {
+          const url = new URL(close.href);
+          url.searchParams.set(key, value);
+          close.href = url.href;
+        }
+      },
+      { signal }
+    );
 
     // The browser can't focus an invalid field in a closed panel, and blocks the submit with no
     // message: open its tab first. "invalid" doesn't bubble, so listen while it travels down.
@@ -132,8 +166,22 @@ class Tabs extends IzzyElement {
       }
       if (radio.disabled) tab.setAttribute("aria-disabled", "true");
       else tab.removeAttribute("aria-disabled");
+      // A tablist holds only tabs: its close controls are for the pointer, and the tab closes with
+      // Delete, announced as its shortcut.
+      const close = this.closeOf(tab);
+      if (close) {
+        close.tabIndex = -1;
+        close.setAttribute("aria-hidden", "true");
+        tab.setAttribute("aria-keyshortcuts", "Delete");
+      } else tab.removeAttribute("aria-keyshortcuts");
       radio.hidden = true;
       if (selected) focusable = tab;
+    }
+
+    // A close link brought a new page, patched in over this one: the focused tab may have gone.
+    if (this.refocus > performance.now() && focusable && (document.activeElement === document.body || !document.activeElement)) {
+      this.refocus = 0;
+      focusable.focus();
     }
 
     // Nothing selected (every tab disabled): keep the list reachable.
@@ -190,12 +238,38 @@ class Tabs extends IzzyElement {
       case " ":
         next = tab;
         break;
+      // Delete closes the tab (Backspace for keyboards without Delete).
+      case "Delete":
+      case "Backspace": {
+        const close = this.closeOf(tab);
+        if (!close) return;
+        event.preventDefault();
+        close.click();
+        return;
+      }
       default:
         return;
     }
 
     event.preventDefault();
     if (next) this.select(next);
+  }
+
+  private closeOf(tab: Element): HTMLElement | null {
+    const next = tab.nextElementSibling;
+    return next?.matches(".ib-tab-close") ? (next as HTMLElement) : null;
+  }
+
+  /** A tab is about to close: select its neighbor if it's the selected one, and focus a tab that stays. */
+  private closing(tab: HTMLElement): void {
+    const enabled = this.tabs.filter((t) => t === tab || !this.radio(t)?.disabled);
+    if (this.radio(tab)?.checked) {
+      const i = enabled.indexOf(tab);
+      const next = enabled[i + 1] ?? enabled[i - 1];
+      if (next) this.select(next);
+    } else {
+      this.tabs.find((t) => this.radio(t)?.checked)?.focus();
+    }
   }
 
   private select(tab: HTMLElement): void {

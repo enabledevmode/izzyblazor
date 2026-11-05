@@ -28,6 +28,17 @@
 <TextBlock>Tabs can keep the selected tab in the URL, so a link to <Code>?tab=billing</Code> opens Billing, and a copied URL keeps the tab. Set <Code>QueryKey</Code>. The URL overrides <Code>Selected</Code>.</TextBlock>
 <ExampleViewer Example="tabs-url" />
 
+<Heading Level="2">Closing and adding tabs</Heading>
+<TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. To keep a tab open, such as one with unsaved changes, leave it in the list. Handle <Code>OnAdd</Code> to show an add button after the tabs. <Code>Closable="false"</Code> keeps one tab without a close button.</TextBlock>
+<ExampleViewer Example="tabs-closable" />
+<List Gap="2">
+    <ListItem>When the selected tab closes, the tab after it opens, or the one before when it was last.</ListItem>
+    <ListItem>Delete or Backspace on a tab closes it, with script.</ListItem>
+    <ListItem>When the tabs don't fit, they scroll and the add button stays at the end of the row.</ListItem>
+</List>
+<TextBlock>On static pages, closing and adding are links. Set each <Code>Tab</Code>'s <Code>CloseHref</Code> and the tabs' <Code>AddHref</Code> to addresses that drop or add the tab, here by keeping the open invoices in the URL. With <Code>QueryKey</Code> set, a close link carries the tab that's open when it's followed.</TextBlock>
+<ExampleViewer Example="tabs-closable-links" />
+
 <Heading Level="2">In a form</Heading>
 <TextBlock>Tabs can split a long form. Put <Code>Tabs</Code> inside a <Anchor Href="docs/components/form">Form</Anchor>: every panel is part of the form, so every field posts.</TextBlock>
 <ExampleViewer Example="tabs-account-form" />

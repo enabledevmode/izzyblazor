@@ -43,6 +43,18 @@
     /// <summary>Shows the tab but stops it being selected.</summary>
     [Parameter] public bool Disabled { get; set; }
 
+    /// <summary>
+    /// <c>false</c> leaves this tab without a close button when the tabs have <c>OnClose</c>, such
+    /// as a pinned "All invoices" tab. Defaults to <c>true</c>.
+    /// </summary>
+    [Parameter] public bool Closable { get; set; } = true;
+
+    /// <summary>
+    /// Adds a close link to this address, such as the current page without this tab. Used on
+    /// static pages, and on interactive ones when the tabs have no <c>OnClose</c>.
+    /// </summary>
+    [Parameter] public string? CloseHref { get; set; }
+
     /// <summary>Padding inside this tab's panel, in spacing steps, in place of the tabs' <c>ContentPadding</c>.</summary>
     [Parameter] public Responsive<int> ContentPadding { get; set; }
 
@@ -114,7 +126,7 @@
         ApplyResponsive(classes, styles, padding, "ib-py", "py", StyleValues.Spacing);
     }
 
-    private (string, string?, IconData?, string?, bool)? _shown;
+    private (string, string?, IconData?, string?, bool, bool, string?)? _shown;
 
     /// <summary>The tabs' <c>ContentPadding</c> changed: recompute the panel's padding.</summary>
     internal void ContentPaddingChanged()
@@ -132,7 +144,7 @@
         (_class, _style) = BuildRootAttributes();
 
         // The tab list is rendered by Tabs, so tell it when what it shows has changed.
-        var shown = (Label, Value, Icon, Badge, Disabled);
+        var shown = (Label, Value, Icon, Badge, Disabled, Closable, CloseHref);
         if (_shown is { } previous && previous != shown)
         {
             Context?.Changed();

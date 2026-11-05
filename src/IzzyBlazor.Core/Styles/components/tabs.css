@@ -1,7 +1,8 @@
 /*
  * Tabs. Each tab holds a radio button and its label; CSS shows the panel whose tab is checked,
  * so switching works with no script. Panels follow the list in order, so tab N shows panel N
- * (up to 30 tabs). With script, <ib-tabs> adds ARIA tab roles and roving focus; the radios
+ * (up to 30 tabs), counted by element type (tabs are spans, the list and panels divs), so close
+ * and add controls (tabs-edit.css) among them don't shift the count. With script, <ib-tabs> adds ARIA tab roles and roving focus; the radios
  * stay the source of truth.
  *
  * Link tabs (TabLink) are a <nav> of links instead; the current page's tab is marked
@@ -239,36 +240,36 @@
     border-radius: var(--ib-radius-sm);
   }
 
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(1) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(2),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(2) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(3),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(3) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(4),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(4) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(5),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(5) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(6),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(6) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(7),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(7) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(8),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(8) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(9),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(9) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(10),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(10) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(11),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(11) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(12),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(12) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(13),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(13) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(14),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(14) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(15),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(15) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(16),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(16) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(17),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(17) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(18),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(18) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(19),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(19) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(20),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(20) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(21),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(21) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(22),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(22) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(23),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(23) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(24),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(24) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(25),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(25) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(26),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(26) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(27),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(27) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(28),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(28) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(29),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(29) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(30),
-  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(30) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(31) {
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(1) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(2),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(2) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(3),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(3) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(4),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(4) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(5),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(5) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(6),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(6) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(7),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(7) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(8),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(8) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(9),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(9) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(10),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(10) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(11),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(11) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(12),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(12) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(13),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(13) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(14),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(14) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(15),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(15) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(16),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(16) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(17),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(17) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(18),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(18) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(19),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(19) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(20),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(20) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(21),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(21) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(22),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(22) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(23),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(23) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(24),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(24) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(25),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(25) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(26),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(26) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(27),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(27) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(28),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(28) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(29),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(29) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(30),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-of-type(30) > .ib-tab-input:checked) > .ib-tab-panel:nth-of-type(31) {
     display: block;
   }
 
