@@ -40,7 +40,7 @@ internal sealed record AxisLabel(double Pos, string Text, string? Context = null
 internal sealed record GridLine(double Pos, int From, bool Zero);
 
 /// <summary>A bar, in percent of the plot.</summary>
-internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, bool Negative = false);
+internal sealed record BarRect(double X, double Y, double Width, double Height, string Title);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title);
@@ -249,8 +249,8 @@ internal static class ChartLayout
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
                     var (lo, hi) = (Math.Min(v0, v1), Math.Max(v0, v1));
                     shape.Bars.Add(input.Horizontal
-                        ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title, v1 < v0)
-                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title, v1 < v0));
+                        ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title)
+                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title));
                 }
 
                 continue;

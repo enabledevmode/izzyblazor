@@ -76,6 +76,12 @@
     /// <summary>The plot's height. Defaults to 18rem. The chart is always as wide as its container.</summary>
     [Parameter] public Length? Height { get; set; }
 
+    /// <summary>
+    /// How solid the bars are, from 0 (clear) to 1 (solid). Defaults to 0.85, or the theme's
+    /// <c>--ib-chart-fill-opacity</c>.
+    /// </summary>
+    [Parameter] public double? BarOpacity { get; set; }
+
     /// <summary>A .NET format string for values, such as <c>C0</c>, <c>N1</c> or <c>P0</c>.</summary>
     [Parameter] public string? ValueFormat { get; set; }
 
@@ -127,6 +133,16 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-chart");
+        if (BarOpacity is { } opacity)
+        {
+            if (opacity is < 0 or > 1 || double.IsNaN(opacity))
+            {
+                throw new ArgumentOutOfRangeException(nameof(BarOpacity), opacity, "A Chart's BarOpacity goes from 0 to 1.");
+            }
+
+            styles.AddVar("chart-fill-opacity", Num(opacity));
+        }
+
         base.BuildAttributes(classes, styles);
     }
 
@@ -202,20 +218,6 @@
                         <path id="@(marks)1" d="M-3.5,-3.5h7v7h-7z" />
                         <path id="@(marks)2" d="M0,-5L4.6,3.5H-4.6Z" />
                         <path id="@(marks)3" d="M0,-5L5,0L0,5L-5,0Z" />
-                        @* Bars fade from full color at the value to faint at the baseline (as Radzen's do): a
-                           gradient per bar series, and one the other way for bars below zero. *@
-                        @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
-                        {
-                            foreach (var negative in new[] { false, true })
-                            {
-                                if (negative && !s.Bars.Any(b => b.Negative)) continue;
-                                var tipFirst = horizontal == negative;
-                                <linearGradient id="@GradientId(s, negative)" x1="0" y1="0" x2="@(horizontal ? "1" : "0")" y2="@(horizontal ? "0" : "1")">
-                                    <stop offset="0" style="@StopStyle(s, tipFirst)" />
-                                    <stop offset="1" style="@StopStyle(s, !tipFirst)" />
-                                </linearGradient>
-                            }
-                        }
                     </defs>
                     @foreach (var line in model.Grid)
                     {
@@ -234,7 +236,7 @@
                         <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)">
                             @foreach (var bar in s.Bars)
                             {
-                                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%" fill="@($"url(#{GradientId(s, bar.Negative)})")"><title>@bar.Title</title></rect>
+                                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
                             }
                         </g>
                     }
@@ -339,15 +341,6 @@
 
     private static string SeriesClass(SeriesShape s, string? kind) =>
         $"{kind} ib-chart-s{s.Slot}{(s.Data.Hidden ? " ib-chart-off" : "")}".TrimStart();
-
-    private string GradientId(SeriesShape s, bool negative) => $"{_labelId}-g{s.Index}{(negative ? "n" : "")}";
-
-    private static string StopStyle(SeriesShape s, bool tip)
-    {
-        var color = s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-chart-" + s.Slot + ")";
-        var opacity = tip ? "var(--ib-chart-tip-opacity, 0.85)" : "var(--ib-chart-base-opacity, 0.6)";
-        return "stop-color:" + color + ";stop-opacity:" + opacity;
-    }
 
     private static string? ColorStyle(SeriesShape s) => s.Data.Color is { } color ? $"--ib-chart-color:{StyleValues.Raw(color, "color")}" : null;
 }
