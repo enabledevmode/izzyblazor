@@ -3,13 +3,14 @@
 @attribute [ModeSupport]
 
 @*
-    A progress bar. With a Value it shows how far along something is; without one it's
-    indeterminate (a bar that moves, for "working on it"). Rendered on the server, so it works on
+    A progress bar, or a circle. With a Value it shows how far along something is; without one it's
+    indeterminate (a bar that moves or an arc that turns, for "working on it"). Rendered on the server, so it works on
     static pages; on interactive pages, update Value from C#.
 
     <Progress Value="40" Label="Uploading" ShowValue />
     <Progress Value="3" Max="5" ValueText="3 of 5 files" Accent="Accent.From(Color.Success)" />
     <Progress Label="Preparing export" />                       (indeterminate)
+    <Progress Shape="ProgressShape.Circle" Value="72" ShowValue Label="Profile" />
 
     Accessibility:
     - It renders `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`;
@@ -17,34 +18,59 @@
     - `Label` is the bar's accessible name (through `aria-labelledby`); without one, an `aria-label`
       on the component names the bar.
     - Without a `Value` it has no value attributes, which marks it as indeterminate.
-    - With reduced motion, the indeterminate bar moves more slowly.
+    - With reduced motion, the indeterminate bar and arc move more slowly.
     See also: Spinner, Stepper, Skeleton.
 *@
 
 <div @attributes="_rootAttributes" class="@_class" style="@_style">
-    @if (Label is not null || ShowValue || ValueText is not null)
+    @if (Shape == ProgressShape.Circle)
     {
-        <div class="ib-progress-head">
-            @if (Label is not null)
+        <div class="ib-progress-ring" @attributes="_barAttributes">
+            <svg class="ib-progress-svg" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+                <circle class="ib-progress-ring-track" cx="18" cy="18" r="15.9155" />
+                @if (Value is null || Percent > 0)
+                {
+                    <circle class="ib-progress-ring-fill" cx="18" cy="18" r="15.9155" style="@RingStyle" />
+                }
+            </svg>
+            @if (ShowsValue && Size != ControlSize.Sm)
             {
-                <span class="ib-progress-label" id="@LabelId">@Label</span>
-            }
-            @if ((ShowValue || ValueText is not null) && Value is not null)
-            {
-                <span class="ib-progress-value" aria-hidden="true">@DisplayValue</span>
+                <span class="ib-progress-ring-value" aria-hidden="true">@DisplayValue</span>
             }
         </div>
+        @if (Label is not null || (ShowsValue && Size == ControlSize.Sm))
+        {
+            <div class="ib-progress-head">
+                @if (Label is not null)
+                {
+                    <span class="ib-progress-label" id="@LabelId">@Label</span>
+                }
+                @if (ShowsValue && Size == ControlSize.Sm)
+                {
+                    <span class="ib-progress-value" aria-hidden="true">@DisplayValue</span>
+                }
+            </div>
+        }
     }
-    <div class="ib-progress-track"
-         role="progressbar"
-         aria-labelledby="@(Label is not null ? LabelId : _labelledBy)"
-         aria-label="@(Label is null ? _ariaLabel : null)"
-         aria-valuemin="@(Value is null ? null : "0")"
-         aria-valuemax="@(Value is null ? null : Max.ToString(System.Globalization.CultureInfo.InvariantCulture))"
-         aria-valuenow="@(Value is null ? null : Clamped.ToString(System.Globalization.CultureInfo.InvariantCulture))"
-         aria-valuetext="@(Value is null ? null : DisplayValue)">
-        <div class="ib-progress-bar" style="@BarStyle"></div>
-    </div>
+    else
+    {
+        @if (Label is not null || ShowValue || ValueText is not null)
+        {
+            <div class="ib-progress-head">
+                @if (Label is not null)
+                {
+                    <span class="ib-progress-label" id="@LabelId">@Label</span>
+                }
+                @if (ShowsValue)
+                {
+                    <span class="ib-progress-value" aria-hidden="true">@DisplayValue</span>
+                }
+            </div>
+        }
+        <div class="ib-progress-track" @attributes="_barAttributes">
+            <div class="ib-progress-bar" style="@BarStyle"></div>
+        </div>
+    }
 </div>
 
 @code {
@@ -55,6 +81,7 @@
     private string? _ariaLabel;
     private string? _labelledBy;
     private IReadOnlyDictionary<string, object>? _rootAttributes;
+    private Dictionary<string, object> _barAttributes = [];
 
     /// <summary>How far along, from 0 to <see cref="Max"/>. Leave it out for an indeterminate bar.</summary>
     [Parameter] public double? Value { get; set; }
@@ -62,10 +89,10 @@
     /// <summary>The value that means done. Defaults to 100.</summary>
     [Parameter] public double Max { get; set; } = 100;
 
-    /// <summary>A label above the bar, also its accessible name. Without one, give the component an <c>aria-label</c>, which goes on the bar.</summary>
+    /// <summary>A label above a bar or under a circle, also its accessible name. Without one, give the component an <c>aria-label</c>, which goes on the bar.</summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>Shows the percentage above the bar, at the end.</summary>
+    /// <summary>Shows the percentage: above a bar, at the end, or in the middle of a circle.</summary>
     [Parameter] public bool ShowValue { get; set; }
 
     /// <summary>Text for the value in place of a percentage, such as "3 of 5 files". Shown, and read by screen readers.</summary>
@@ -77,7 +104,16 @@
     /// </summary>
     [Parameter] public Accent? Accent { get; set; }
 
-    /// <summary>Thickness. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    /// <summary>
+    /// A bar (the default) or a circle. A circle shows the value in its middle and the label under it;
+    /// at <see cref="ControlSize.Sm"/>, the value goes on the label's line.
+    /// </summary>
+    [Parameter] public ProgressShape Shape { get; set; }
+
+    /// <summary>
+    /// A bar's thickness, or a circle's diameter: 2rem, 3rem or 5rem. Defaults to <see cref="ControlSize.Md"/>.
+    /// For a circle of another size, set <c>Width</c>.
+    /// </summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
     private string LabelId => (AdditionalAttributes?.TryGetValue("id", out var id) == true ? $"{id}-label" : _labelId);
@@ -87,6 +123,10 @@
     private double Percent => Max <= 0 ? 0 : Clamped / Max * 100;
 
     private string DisplayValue => ValueText ?? $"{Math.Round(Percent):0}%";
+
+    private bool ShowsValue => (ShowValue || ValueText is not null) && Value is not null;
+
+    private string? RingStyle => Value is null ? null : $"stroke-dashoffset:{(100 - Percent).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}";
 
     private string? BarStyle => Value is null ? null : $"width:{Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
 
@@ -99,6 +139,7 @@
         classes.Add("ib-progress-sm", Size == ControlSize.Sm);
         classes.Add("ib-progress-lg", Size == ControlSize.Lg);
         classes.Add("ib-progress-indeterminate", Value is null);
+        classes.Add("ib-progress-circle", Shape == ProgressShape.Circle);
         if (Accent is { } accent)
         {
             styles.AddVar("progress-color", StyleValues.Color(accent.ToColor()));
@@ -116,6 +157,25 @@
         _rootAttributes = _ariaLabel is null && _labelledBy is null
             ? AdditionalAttributes
             : AdditionalAttributes!.Where(a => a.Key is not ("aria-label" or "aria-labelledby")).ToDictionary(a => a.Key, a => a.Value);
+
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        _barAttributes = new() { ["role"] = "progressbar" };
+        if (Label is not null || _labelledBy is not null)
+        {
+            _barAttributes["aria-labelledby"] = Label is not null ? LabelId : _labelledBy!;
+        }
+        else if (_ariaLabel is not null)
+        {
+            _barAttributes["aria-label"] = _ariaLabel;
+        }
+
+        if (Value is not null)
+        {
+            _barAttributes["aria-valuemin"] = "0";
+            _barAttributes["aria-valuemax"] = Max.ToString(inv);
+            _barAttributes["aria-valuenow"] = Clamped.ToString(inv);
+            _barAttributes["aria-valuetext"] = DisplayValue;
+        }
     }
 
     private string? Attribute(string name) =>

@@ -102,4 +102,16 @@ public class FeedbackRenderTests : BunitContext
         Assert.Equal("width:60%", cut.Find(".ib-progress-bar").GetAttribute("style"));
         Assert.Equal("3 of 5 files", cut.Find(".ib-progress-value").TextContent);
     }
+
+    [Fact]
+    public void Progress_circle_fills_to_the_value_with_the_value_inside()
+    {
+        var cut = Render<Progress>(p => p.Add(x => x.Shape, ProgressShape.Circle).Add(x => x.Value, 72).Add(x => x.Label, "Profile").Add(x => x.ShowValue, true));
+        var ring = cut.Find("[role=progressbar]");
+
+        Assert.Equal("72", ring.GetAttribute("aria-valuenow"));
+        Assert.Equal(cut.Find(".ib-progress-label").Id, ring.GetAttribute("aria-labelledby"));
+        Assert.Equal("stroke-dashoffset:28", cut.Find(".ib-progress-ring-fill").GetAttribute("style"));
+        Assert.Equal("72%", ring.QuerySelector(".ib-progress-ring-value")!.TextContent);
+    }
 }
