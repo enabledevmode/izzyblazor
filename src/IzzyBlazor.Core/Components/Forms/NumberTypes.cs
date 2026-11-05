@@ -76,4 +76,21 @@ internal static class NumberTypes
         _ when IsNumber(value.GetType()) => Convert.ToDouble(value, CultureInfo.InvariantCulture),
         _ => null,
     };
+
+    /// <summary>
+    /// How many characters (<c>ch</c>) a slider's shown value can take anywhere on its scale: the
+    /// longest whole part of its ends, the step's decimals, and the format's own text. Reserved so
+    /// the track doesn't change length, and move the thumbs, as the value gets shorter or longer.
+    /// </summary>
+    public static int ShownWidth(double min, double max, double? step, string format)
+    {
+        static string Text(double value) => value.ToString("R", CultureInfo.InvariantCulture);
+        static int Decimals(double value) => Text(value) is var text && text.IndexOf('.') is var dot and >= 0 ? text.Length - dot - 1 : 0;
+
+        var whole = Math.Max(Text(Math.Truncate(min)).Length, Text(Math.Truncate(max)).Length);
+        var decimals = Math.Max(Decimals(min), step is { } s ? Decimals(s) : 0);
+        var number = whole + (decimals > 0 ? decimals + 1 : 0);
+        // One more for a format's characters wider than a digit, such as % or $.
+        return format.Replace("{0}", new string('0', number), StringComparison.Ordinal).Length + 1;
+    }
 }

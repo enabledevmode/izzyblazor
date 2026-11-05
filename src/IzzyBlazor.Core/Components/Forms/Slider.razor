@@ -39,7 +39,7 @@
         @if (ShowValue)
         {
             @* The script shows the live value through data-current; this text stays Blazor's. *@
-            <output class="ib-slider-value" for="@FieldId" aria-hidden="true">@ValueText</output>
+            <output class="ib-slider-value" for="@FieldId" aria-hidden="true" style="@ValueWidth">@ValueText</output>
         }
     </ib-field-control>
     @if (PostsReadOnlyValue)
@@ -116,6 +116,8 @@
         snapped = Math.Round(snapped, 10);
         return snapped > ResolvedMax ? snapped - step : snapped;
     }
+
+    private string ValueWidth => $"--ib-slider-value-ch: {NumberTypes.ShownWidth(ResolvedMin, ResolvedMax, Step, ValueFormat)}";
 
     private string ValueText => ValueFormat.Replace("{0}", Format(Shown), StringComparison.Ordinal);
 
