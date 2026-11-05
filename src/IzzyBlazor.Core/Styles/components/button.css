@@ -182,6 +182,12 @@
     background-color: color-mix(in oklab, var(--ib-accent-text) 18%, transparent);
   }
 
+  /* OnIcon: the icon for the box's state. */
+  .ib-btn-toggle:has(:checked) > .ib-toggle-off,
+  .ib-btn-toggle:not(:has(:checked)) > .ib-toggle-on {
+    display: none;
+  }
+
   .ib-btn-toggle.ib-btn-solid:has(:checked) {
     background-color: color-mix(in oklab, var(--ib-accent) 78%, var(--ib-color-on-surface));
     box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--ib-on-accent) 70%, transparent);

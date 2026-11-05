@@ -49,7 +49,7 @@ public sealed class ToolbarToggleButton : ToggleButton, IToolbarItem, IDisposabl
     RenderFragment? IToolbarItem.Menu => !ToolbarControl.CopiesToMenu(AdditionalAttributes) ? null : builder =>
     {
         builder.OpenComponent<MenuItem>(0);
-        builder.AddComponentParameter(1, nameof(MenuItem.Icon), Icon);
+        builder.AddComponentParameter(1, nameof(MenuItem.Icon), CurrentValue && OnIcon is not null ? OnIcon : Icon);
         builder.AddComponentParameter(2, nameof(MenuItem.Disabled), IsDisabled);
         builder.AddComponentParameter(3, nameof(MenuItem.Checked), (bool?)CurrentValue);
         builder.AddComponentParameter(4, nameof(MenuItem.CheckedChanged), EventCallback.Factory.Create<bool>(this, value => CurrentValue = value));

@@ -501,7 +501,7 @@
       ],
       "examples": [
         { "id": "toggle-button-filters", "title": "Toggle buttons", "lead": "A toggle button turns something on and off, such as a filter. Bind it with `@bind-Value`, and keep its text the same whether it's on or off. It's a checkbox drawn as a button, so screen readers hear \"checked\" or \"not checked\".", "modes": ["interactive"] },
-        { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip.", "modes": ["interactive"] },
+        { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip. To show the state in the icon, such as a muted microphone, set `OnIcon`, shown while it's on in place of `Icon`; the label stays the same.", "modes": ["interactive"] },
         { "id": "toggle-button-submit-on-change", "title": "Applying at once", "lead": "On static pages a toggle changes nothing until its form posts. To post the form as it changes, set `SubmitOnChange`. With JavaScript off, give the form a submit button, here in a `noscript`.",
           "notes": {
             "noscript": "Toggling changes only the button; Apply posts the form.",
