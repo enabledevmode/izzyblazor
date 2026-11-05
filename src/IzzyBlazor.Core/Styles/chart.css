@@ -151,8 +151,6 @@
   .ib-chart-marks,
   .ib-chart-key use {
     fill: var(--ib-chart-c);
-    stroke: var(--ib-color-surface);
-    stroke-width: 1.5px;
   }
 
   ib-chart { display: block; }

@@ -236,10 +236,12 @@
                 }
                 <svg class="ib-chart-svg">
                     <defs>
-                        <path id="@(marks)0" d="M-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
-                        <path id="@(marks)1" d="M-3.5,-3.5h7v7h-7z" />
-                        <path id="@(marks)2" d="M0,-5L4.6,3.5H-4.6Z" />
-                        <path id="@(marks)3" d="M0,-5L5,0L0,5L-5,0Z" />
+                        @* Markers, a little larger than the line is wide and with no halo, so they read on a
+                           bar and on the plain surface alike: a circle, square, triangle and diamond. *@
+                        <path id="@(marks)0" d="M-5,0a5,5 0 1,0 10,0a5,5 0 1,0 -10,0" />
+                        <path id="@(marks)1" d="M-4.5,-4.5h9v9h-9z" />
+                        <path id="@(marks)2" d="M0,-6.2L5.8,4.2H-5.8Z" />
+                        <path id="@(marks)3" d="M0,-6.2L6.2,0L0,6.2L-6.2,0Z" />
                     </defs>
                     @foreach (var line in model.Grid)
                     {
