@@ -40,7 +40,14 @@ internal sealed record AxisLabel(double Pos, string Text, string? Context = null
 internal sealed record GridLine(double Pos, int From, bool Zero);
 
 /// <summary>A bar, in percent of the plot.</summary>
-internal sealed record BarRect(double X, double Y, double Width, double Height, string Title);
+/// <summary>
+/// A bar, in percent of the plot. <c>Base</c> is set on a bar whose value end is rounded: the
+/// square half at the baseline, drawn over the rounded rectangle's baseline corners.
+/// </summary>
+internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, BarHalf? Base = null);
+
+/// <summary>A bar's baseline half, in percent of the plot.</summary>
+internal sealed record BarHalf(double X, double Y, double Width, double Height);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title);
@@ -248,9 +255,30 @@ internal static class ChartLayout
                     var v1 = Scale(top);
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
                     var (lo, hi) = (Math.Min(v0, v1), Math.Max(v0, v1));
-                    shape.Bars.Add(input.Horizontal
+                    var rect = input.Horizontal
                         ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title)
-                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title));
+                        : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title);
+
+                    // The value end is rounded on the outermost bar: every bar side by side, the
+                    // last segment of a stack each way from zero.
+                    var below = v1 < v0;
+                    var outermost = !stacked || !bars.Skip(j + 1).Any(other =>
+                        other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
+                    if (outermost && hi > lo)
+                    {
+                        rect = rect with
+                        {
+                            Base = (input.Horizontal, below) switch
+                            {
+                                (false, false) => new BarHalf(rect.X, rect.Y + rect.Height / 2, rect.Width, rect.Height / 2),
+                                (false, true) => new BarHalf(rect.X, rect.Y, rect.Width, rect.Height / 2),
+                                (true, false) => new BarHalf(rect.X, rect.Y, rect.Width / 2, rect.Height),
+                                (true, true) => new BarHalf(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height),
+                            },
+                        };
+                    }
+
+                    shape.Bars.Add(rect);
                 }
 
                 continue;
