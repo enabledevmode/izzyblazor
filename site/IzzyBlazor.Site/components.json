@@ -1320,7 +1320,22 @@
       ]
     },
     {
-      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "context menu", "right-click menu", "long press"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
+      "id": "context-menu", "icon": "MousePointer2", "name": "ContextMenu", "category": "Overlays", "summary": "Opens a menu at the pointer by right-click, with no button.", "keywords": ["context menu", "right-click menu", "long press", "shift+f10"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
+      "features": [
+        { "feature": "Opens by right-click, long press, the menu key or Shift+F10", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Links and form posts as items" },
+        { "feature": "Focus goes back where it was", "noscript": "none", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "context-menu-folder", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it. Right-click can't be seen, so give its actions another way in, here the toolbar. For a menu with a button that also opens by right-click, use a Menu's `ContextFor`.",
+          "notes": {
+            "noscript": "Right-click shows the browser's own menu; the toolbar has the same actions.",
+            "static": "IzzyBlazor's script opens the menu at the pointer. Its items are links."
+          } }
+      ]
+    },
+    {
+      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "actions menu", "right-click menu"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
         { "id": "menu-actions", "title": "Links, posts and actions",
           "notes": {
@@ -1331,7 +1346,7 @@
         { "id": "menu-groups", "title": "Groups, shortcuts and colors" },
         { "id": "menu-trigger", "title": "Custom trigger" },
         { "id": "menu-checked", "title": "Checked items" },
-        { "id": "menu-context", "title": "Right-click menus", "lead": "To open a menu by right-click, long press or Shift+F10 on an element, set `ContextFor` to its id. Here each file's ⋮ menu also opens anywhere on its card.",
+        { "id": "menu-context", "title": "Right-click menus", "lead": "To also open a menu by right-click, long press or Shift+F10 on an element, set `ContextFor` to its id. Here each file's ⋮ menu also opens anywhere on its card.",
           "notes": {
             "noscript": "Right-click shows the browser's own menu; the ⋮ buttons open the menus.",
             "static": "IzzyBlazor's script opens each card's menu at the pointer. Open is a link; Duplicate and Delete post the form."
