@@ -1,0 +1,54 @@
+@* RangeSlider's Overview, written by hand after Slider's: binding a NumberRange, filtering with
+   it, naming the thumbs, what holds without script, vertical and states.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A range slider picks a span, such as a price filter's lowest and highest prices. It's two native range inputs on one track, so both ends post with the form, and each thumb moves with the arrow keys, Page Up and Page Down, and Home and End, with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too. When the exact numbers matter, use two <Anchor Href="docs/components/number-field">NumberFields</Anchor>.</TextBlock>
+
+<Heading Level="2">Filtering by a range</Heading>
+<TextBlock>Bind the slider to a <Code>NumberRange</Code> of any number type, such as <Code>NumberRange&lt;int&gt;</Code> or <Code>NumberRange&lt;decimal&gt;</Code>. It holds <Code>Start</Code> and <Code>End</Code>, both included, and <Code>Contains</Code> tests a value against them. The ends post as <Code>Price.Start</Code> and <Code>Price.End</Code>, so a <Code>[SupplyParameterFromForm]</Code> model binds them on a static page.</TextBlock>
+<TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>. To show both ends beside the slider, set <Code>ShowValue</Code>, and to set how each reads, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
+<ExampleViewer Example="range-slider-price" />
+<TextBlock>With no value, the thumbs sit at the ends of the scale, as a filter that hasn't narrowed anything.</TextBlock>
+
+<Heading Level="2">Naming the thumbs</Heading>
+<TextBlock>Screen readers hear the label and then each thumb's name, "Minimum" and "Maximum" by default. When other words fit better, such as "Earliest" and "Latest", set <Code>StartText</Code> and <Code>EndText</Code>.</TextBlock>
+<ExampleViewer Example="range-slider-window" />
+
+<Heading Level="2">When the thumbs meet</Heading>
+<TextBlock>With script, a thumb stops at the other, so the ends can be equal but never cross, and a click on the track moves the nearer thumb there. Without script, the thumbs can pass each other; when the form posts, the server binds the lower value as <Code>Start</Code>. The server also turns away an end outside <Code>Min</Code> and <Code>Max</Code>, so a crafted post can't widen the range. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+
+<Heading Level="2">Vertical, live and disabled</Heading>
+<TextBlock>To stand the slider upright, set <Code>Orientation</Code> to <Code>Orientation.Vertical</Code>; the lowest value is at the bottom, and <Code>Height</Code> sets the track's length, 10rem by default. On interactive pages, to update the bound value as a thumb moves, set <Code>Live</Code>; each move is a round trip. <Code>Size</Code> and <Code>Disabled</Code> work as on <Anchor Href="docs/components/slider">Slider</Anchor>, and so does a read-only <Anchor Href="docs/components/form">Form</Anchor>: the slider is disabled, and hidden fields post both ends.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* 0 to 100; Price is a NumberRange<int>. *@
+        <RangeSlider @bind-Value="Model!.Price" />
+
+        @* Its own scale and steps, both ends shown in dollars. *@
+        <RangeSlider @bind-Value="Model!.Price" Max="400" Step="10"
+                     ShowValue ValueFormat="${0}" />
+        """;
+}

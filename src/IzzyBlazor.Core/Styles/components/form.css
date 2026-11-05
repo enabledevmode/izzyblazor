@@ -592,6 +592,11 @@
     text-align: center;
   }
 
+  /* A range slider's fieldset: Firefox places a legend by its margins, not by align-items. */
+  .ib-field-slider-vertical > legend {
+    margin-inline: auto;
+  }
+
   .ib-slider-vertical {
     flex-direction: column;
     min-height: 0;
@@ -644,6 +649,111 @@
 
     .ib-slider-value {
       display: none;
+    }
+  }
+
+  /*
+   * RangeSlider: two native range inputs stacked on one track. The track draws the rail and the
+   * fill between --ib-slider-from and --ib-slider-fill (0 to 100); the inputs' own tracks are
+   * transparent and let the pointer through, so only the thumbs take it. Without script the rail
+   * is plain, as Slider's.
+   */
+  .ib-range-slider {
+    --ib-slider-start: calc(var(--ib-slider-thumb) / 2 + (100% - var(--ib-slider-thumb)) * var(--ib-slider-from, 0) / 100);
+    --ib-range-rail: var(--ib-color-fill-strong, var(--ib-color-outline));
+  }
+
+  .ib-range-slider-track {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--ib-slider-thumb);
+  }
+
+  .ib-range-slider-track::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: calc((var(--ib-slider-thumb) - var(--ib-slider-track)) / 2);
+    height: var(--ib-slider-track);
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--ib-range-rail) var(--ib-slider-start), var(--ib-slider-accent) 0 var(--ib-slider-stop), var(--ib-range-rail) 0);
+    pointer-events: none;
+  }
+
+  .ib-range-slider-track:dir(rtl)::before {
+    background: linear-gradient(to left, var(--ib-range-rail) var(--ib-slider-start), var(--ib-slider-accent) 0 var(--ib-slider-stop), var(--ib-range-rail) 0);
+  }
+
+  .ib-range-slider-track > .ib-slider-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .ib-range-slider-track > .ib-slider-input::-webkit-slider-runnable-track,
+  .ib-range-slider-track > .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
+    background: transparent;
+  }
+
+  .ib-range-slider-track > .ib-slider-input::-moz-range-track,
+  .ib-range-slider-track > .ib-slider-input::-moz-range-progress {
+    background: transparent;
+  }
+
+  .ib-range-slider-track > .ib-slider-input::-webkit-slider-thumb {
+    pointer-events: auto;
+  }
+
+  .ib-range-slider-track > .ib-slider-input::-moz-range-thumb {
+    pointer-events: auto;
+  }
+
+  /* With script, the thumb that can still move is on top where they meet. */
+  .ib-range-slider-track > .ib-slider-input[data-ib-top] {
+    z-index: 1;
+  }
+
+  .ib-range-slider-track > .ib-slider-input:disabled {
+    cursor: not-allowed;
+  }
+
+  .ib-range-slider:has(.ib-slider-input:disabled) {
+    --ib-slider-accent: var(--ib-color-disabled);
+  }
+
+  .ib-slider-vertical .ib-range-slider-track {
+    flex: none;
+    width: var(--ib-slider-thumb);
+    height: var(--ib-slider-length, 10rem);
+  }
+
+  .ib-slider-vertical .ib-range-slider-track::before {
+    inset-inline: auto;
+    inset-block: 0;
+    left: calc((var(--ib-slider-thumb) - var(--ib-slider-track)) / 2);
+    top: 0;
+    width: var(--ib-slider-track);
+    height: auto;
+  }
+
+  .ib-slider-vertical .ib-range-slider-track::before,
+  .ib-slider-vertical .ib-range-slider-track:dir(rtl)::before {
+    background: linear-gradient(to top, var(--ib-range-rail) var(--ib-slider-start), var(--ib-slider-accent) 0 var(--ib-slider-stop), var(--ib-range-rail) 0);
+  }
+
+  .ib-slider-vertical .ib-range-slider-track > .ib-slider-input {
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (scripting: none) {
+    .ib-range-slider-track::before,
+    .ib-range-slider-track:dir(rtl)::before,
+    .ib-slider-vertical .ib-range-slider-track::before,
+    .ib-slider-vertical .ib-range-slider-track:dir(rtl)::before {
+      background: var(--ib-range-rail);
     }
   }
 

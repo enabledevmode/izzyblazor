@@ -1,0 +1,16 @@
+<Form Model="Model" FormName="range-slider-window" MaxWidth="28.Rem" Grow>
+    <RangeSlider @bind-Value="Model!.Window" Label="Delivery window" Min="7" Max="21" ShowValue ValueFormat="{0}:00"
+                 StartText="Earliest" EndText="Latest" Hint="Someone will be home between these hours." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "range-slider-window")]
+    private Delivery? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Delivery
+    {
+        public NumberRange<int> Window { get; set; } = new(9, 17);
+    }
+}
