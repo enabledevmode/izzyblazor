@@ -110,7 +110,7 @@
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
   /* Bars fade from the series color at the value (--ib-chart-tip-opacity, 0.85) to faint at the
-     baseline (--ib-chart-base-opacity, 0.4), as Radzen's do; the gradients are in the chart's
+     baseline (--ib-chart-base-opacity, 0.6), as Radzen's do (measured from its pages); the gradients are in the chart's
      own defs. The legend's key shows the color at the tip. */
   .ib-chart-key rect {
     fill: var(--ib-chart-c);
