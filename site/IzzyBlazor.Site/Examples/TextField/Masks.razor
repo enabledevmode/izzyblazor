@@ -8,11 +8,10 @@
             <TextField @bind-Value="Model!.Ssn" Mask="000-00-0000" Placeholder="000-00-0000" AutoComplete="off" />
             <Row>
                 <Button Submit StartIcon="Lucide.Save">Save</Button>
-                <Button Reset StartIcon="Lucide.CircleX" Variant="ButtonVariant.Soft" Accent="Accent.Neutral">Cancel</Button>
             </Row>
-            @if (_saved is not null)
+            @if (_saved)
             {
-                <Alert Status="Status.Success">@_saved</Alert>
+                <Alert Status="Status.Success">Saved.</Alert>
             }
         </Form>
     </CardBody>
@@ -22,12 +21,11 @@
     [SupplyParameterFromForm(FormName = "text-field-masks")]
     private Applicant? Model { get; set; }
 
-    private string? _saved;
+    private bool _saved;
 
     protected override void OnInitialized() => Model ??= new();
 
-    // What was saved, not the fields: on an interactive page they change as people type.
-    private void Save() => _saved = $"Saved. We'll call {Model!.Telephone} and charge the card ending {Model.CardNumber![^4..]}.";
+    private void Save() => _saved = true;
     @* hide *@
     public sealed class Applicant
     {
