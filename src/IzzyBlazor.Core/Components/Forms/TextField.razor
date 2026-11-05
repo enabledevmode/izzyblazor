@@ -30,6 +30,9 @@
       the password shows.
     - With script, a password field says "Caps Lock is on." (`IzzyText.CapsLockOn`) under it while
       typing with Caps Lock on, announced once through a polite status.
+    - Screen readers don't hear a `Mask`, and the field shows no placeholder characters for it: say
+      the format in `Hint`, as in "10 digits". The server puts a posted value in the mask's form, so
+      text typed with spaces or dots, or with no script, is taken too.
     - `Requirements` lists what a new password needs under the field, linked as its description;
       with script each item says "met" or "not yet" in its text, not by its icon alone, and "All
       requirements met." (`IzzyText.PasswordRulesMet`) is announced once when the last one is.
@@ -43,7 +46,8 @@
         {
             <Icon Name="start" Class="ib-field-icon ib-field-icon-start" />
         }
-        <input @attributes="ControlAttributes"
+        <input inputmode="@MaskInputMode"
+               @attributes="ControlAttributes"
                id="@FieldId"
                class="ib-field-input"
                type="@InputType"
@@ -59,7 +63,9 @@
                disabled="@IsDisabled"
                readonly="@IsReadOnly"
                aria-invalid="@(Invalid ? "true" : null)"
-               aria-describedby="@InputDescribedBy" />
+               aria-describedby="@InputDescribedBy"
+               data-ib-mask="@Mask"
+               data-ib-mask-rules="@MaskRulesAttribute" />
         @if (ResolvedType == TextFieldType.Password && Reveal)
         {
             <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="@(ShowPasswordLabel ?? TextDefaults.ShowPassword)" aria-pressed="false">
@@ -173,6 +179,39 @@
         _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.PasswordUnique, count),
     };
 
+    /// <summary>
+    /// The form the text takes: as it's typed or pasted with script, and on the server whenever a value
+    /// arrives, so a phone number posted as <c>555.123.4567</c> binds as <c>(555) 123-4567</c>.
+    /// <c>0</c> is a digit, <c>L</c> a letter, <c>A</c> a letter or digit, <c>&amp;</c> any character
+    /// but a space; <c>9</c>, <c>?</c>, <c>a</c> and <c>C</c> are the same, optional. <c>&gt;</c> makes
+    /// the letters after it upper case, <c>&lt;</c> lower case, and <c>|</c> stops either. <c>\</c>
+    /// makes the next character a literal; anything else is one already. A value with an empty slot
+    /// that isn't optional is invalid. Say the format in <see cref="FieldBase{TValue}.Hint"/>.
+    /// </summary>
+    /// <example><c>Mask="(000) 000-0000"</c>, <c>Mask="&gt;L0L 0L0"</c></example>
+    [Parameter] public string? Mask { get; set; }
+
+    /// <summary>With <see cref="Mask"/>: binds only the characters in the mask's slots, <c>5551234567</c> for <c>(555) 123-4567</c>. Off by default.</summary>
+    [Parameter] public bool RawValue { get; set; }
+
+    /// <summary>
+    /// With <see cref="Mask"/>: mask characters of your own, each with the one character class it
+    /// accepts, as <c>new() { ['X'] = "[A-HJ-NP-Z]" }</c>. They replace a built-in character of the same name.
+    /// </summary>
+    [Parameter] public Dictionary<char, string>? MaskRules { get; set; }
+
+    /// <summary>With <see cref="Mask"/>: the message for an incomplete value. Defaults to "The {label} field is incomplete." (<see cref="IzzyText.MaskIncomplete"/>).</summary>
+    [Parameter] public string? MaskInvalidMessage { get; set; }
+
+    private TextMask? _mask;
+    private string? _maskSource;
+    private Dictionary<char, string>? _maskRulesSource;
+
+    private string? MaskInputMode => _mask is { DigitsOnly: true } && ResolvedType == TextFieldType.Text ? "numeric" : null;
+
+    // Each rule as its character and then its class: "X[A-HJ-NP-Z]Y[0-5]".
+    private string? MaskRulesAttribute => Mask is null || MaskRules is not { Count: > 0 } rules ? null : string.Concat(rules.Select(r => r.Key + r.Value));
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
@@ -180,14 +219,56 @@
         {
             throw new InvalidOperationException("TextField's Requirements are for passwords: set Type=\"TextFieldType.Password\", or [DataType(DataType.Password)] on the property.");
         }
+
+        if (Mask is null && (RawValue || MaskRules is not null))
+        {
+            throw new InvalidOperationException("TextField's RawValue and MaskRules work with a Mask: set Mask too.");
+        }
+
+        if (!string.Equals(Mask, _maskSource, StringComparison.Ordinal) || !ReferenceEquals(MaskRules, _maskRulesSource))
+        {
+            _mask = Mask is null ? null : new TextMask(Mask, MaskRules);
+            _maskSource = Mask;
+            _maskRulesSource = MaskRules;
+        }
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Requirements is not null;
+    protected override string? FormatValueAsString(string? value) =>
+        _mask is null ? base.FormatValueAsString(value) : _mask.Apply(value).Text;
 
     /// <inheritdoc />
-    private protected override string? OwnRuleError(string? value) =>
-        value is { Length: > 0 } && Requirements is { } rules && !rules.IsMetBy(value) ? UnmetMessage : null;
+    protected override bool TryParseValueFromString(string? value, out string? result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (_mask is not null && value is not null)
+        {
+            var fit = _mask.Apply(value);
+            value = RawValue ? fit.Raw : fit.Text;
+        }
+
+        return base.TryParseValueFromString(value, out result, out validationErrorMessage);
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Requirements is not null || Mask is not null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(string? value)
+    {
+        if (value is not { Length: > 0 })
+        {
+            return null;
+        }
+
+        if (Requirements is { } rules && !rules.IsMetBy(value))
+        {
+            return UnmetMessage;
+        }
+
+        return _mask is not null && !_mask.Apply(value).Complete
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, MaskInvalidMessage ?? TextDefaults.MaskIncomplete, ResolvedLabel ?? FieldIdentifier.FieldName)
+            : null;
+    }
 
     private TextFieldType ResolvedType => Type
         ?? (Attribute<System.ComponentModel.DataAnnotations.EmailAddressAttribute>() is not null ? TextFieldType.Email

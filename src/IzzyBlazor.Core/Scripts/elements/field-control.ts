@@ -8,6 +8,7 @@ import { load } from "../lazy";
  * - a live character count for text areas
  * - increase and decrease buttons for number inputs (hold to repeat)
  * - a slider's track fill and shown value, kept current while dragging
+ * - a text field's Mask, loaded with the first field that has one
  */
 class FieldControl extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -34,6 +35,13 @@ class FieldControl extends IzzyElement {
     if (input instanceof HTMLInputElement && (input.type === "password" || reveal)) {
       void load<typeof import("./password")>("ib-password").then((module) => {
         if (!signal.aborted) module.setupPassword(this, input, signal);
+      }, () => {});
+    }
+
+    // A mask loads only where there's one.
+    if (input instanceof HTMLInputElement && input.dataset.ibMask) {
+      void load<typeof import("./mask")>("ib-mask").then((module) => {
+        if (!signal.aborted) module.setupMask(input, signal);
       }, () => {});
     }
 

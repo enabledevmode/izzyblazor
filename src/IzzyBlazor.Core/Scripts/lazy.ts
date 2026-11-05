@@ -50,6 +50,8 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-scheme-switch": () => import("./elements/scheme-switch.js"),
   // Not an element: a password TextField's Caps Lock warning and requirements, loaded by field-control.ts.
   "ib-password": () => import("./elements/password.js"),
+  // Not an element: a TextField's Mask, loaded by field-control.ts.
+  "ib-mask": () => import("./elements/mask.js"),
   // Not an element: ReconnectDialog's code, loaded with the first reconnection state (reconnect.ts).
   "ib-reconnect": () => import("./elements/reconnect.js"),
 };
