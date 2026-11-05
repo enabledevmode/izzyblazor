@@ -230,12 +230,6 @@
     font-size: var(--ib-text-sm);
   }
 
-  .ib-chart-data > summary {
-    width: fit-content;
-    color: var(--ib-color-primary-text);
-    cursor: pointer;
-  }
-
   .ib-chart-table-scroll {
     overflow-x: auto;
     margin-block-start: var(--ib-space-2);

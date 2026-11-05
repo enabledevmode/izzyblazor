@@ -169,7 +169,7 @@ public class ChartRenderTests : BunitContext
 
         // Series named from their properties, in the legend and the table.
         Assert.Equal(["Revenue", "Costs"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
-        Assert.Equal("Show data", cut.Find("details.ib-chart-data > summary").TextContent);
+        Assert.Equal("Show data", cut.Find("details.ib-chart-data > summary").TextContent.Trim());
         Assert.Equal(["Name", "Revenue", "Costs"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
         Assert.Equal(["Feb", "120.0", "70.5"], cut.FindAll(".ib-chart-table tbody tr")[1].Children.Select(c => c.TextContent));
     }
