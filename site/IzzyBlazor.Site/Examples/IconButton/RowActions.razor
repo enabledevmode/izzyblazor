@@ -2,9 +2,9 @@
 
 @* A link and a post on each row. Static pages: Delete posts its Name=Value and redirects with the
    deleted names in the address. Interactive pages: OnClick says which button it was. *@
-<form method="post" @formname="icon-button-files" @onsubmit="Delete" data-enhance class="ib-grow">
+<form method="post" @formname="icon-button-files" @onsubmit="Delete" data-enhance style="width: min(100%, 28rem)">
     <AntiforgeryToken />
-    <Stack Gap="0" MaxWidth="28.Rem" Grow Border="1" Radius="Radius.Md">
+    <Stack Gap="0" Border="1" Radius="Radius.Md">
         @foreach (var file in Shown)
         {
             <Row Gap="1" Align="Align.Center" PaddingX="3" PaddingY="2" BorderTop="@(file == Shown[0] ? 0 : 1)">
