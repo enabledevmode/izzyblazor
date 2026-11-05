@@ -1,11 +1,11 @@
 @* Each figure with its last twelve weeks under it. *@
 <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4" Grow>
     <Card><Stat Label="Weekly revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last week"
-                Spark="_revenue" SparkFormat="C0" /></Card>
+                Spark="_revenue" SparkLabel="Weekly revenue, last 12 weeks" SparkFormat="C0" /></Card>
     <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week"
-                Spark="_users" SparkType="SparklineType.Area" SparkFormat="N0" /></Card>
+                Spark="_users" SparkLabel="Active users, last 12 weeks" SparkType="SparklineType.Area" SparkFormat="N0" /></Card>
     <Card><Stat Label="Orders" Value="1,126" Change="4.6%" Trend="StatTrend.Up" Description="vs last week"
-                Spark="_orders" SparkType="SparklineType.Bar" SparkFormat="N0" /></Card>
+                Spark="_orders" SparkLabel="Orders, last 12 weeks" SparkType="SparklineType.Bar" SparkFormat="N0" /></Card>
 </Grid>
 
 @code {

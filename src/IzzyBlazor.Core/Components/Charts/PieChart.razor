@@ -13,7 +13,7 @@
         <Center><strong>1,240</strong> customers</Center>
     </PieChart>
 
-    Slices go clockwise from the top in item order, in the palette's colors. Missing, zero and
+    Slices go clockwise from the top in item order, in the palette's eight colors, then gray. Missing, zero and
     negative values get no slice but keep their row in the legend and the table. Past about six
     slices they get hard to tell apart: group the smallest as "Other", or use a Chart with bars.
 
@@ -50,7 +50,7 @@
                         }
                         @foreach (var slice in slices)
                         {
-                            <path class="@($"ib-pie-slice ib-chart-s{slice.Index % 8 + 1}")" d="@slice.Path" data-ib-i="@slice.Index"><title>@($"{names[slice.Index]}: {texts[slice.Index]} ({shares[slice.Index]})")</title></path>
+                            <path class="@($"ib-pie-slice {Slot(slice.Index)}")" d="@slice.Path" data-ib-i="@slice.Index"><title>@($"{names[slice.Index]}: {texts[slice.Index]} ({shares[slice.Index]})")</title></path>
                         }
                     </svg>
                 </div>
@@ -68,7 +68,7 @@
                 <ul class="ib-chart-legend ib-pie-legend">
                     @for (var i = 0; i < items.Count; i++)
                     {
-                        <li class="@($"ib-chart-s{i % 8 + 1}")">
+                        <li class="@Slot(i)">
                             <span class="ib-pie-key" aria-hidden="true"></span>
                             <span class="ib-pie-name">@names[i]</span>
                             <span class="ib-pie-number">@texts[i]</span>
@@ -87,14 +87,20 @@
                     <div data-ib-tip>
                         <div class="ib-chart-tooltip-title">@names[i]</div>
                         <div class="ib-chart-tooltip-row">
-                            <span class="@($"ib-chart-tooltip-key ib-chart-s{i % 8 + 1}")"></span>
-                            <span>@texts[i]</span>
+                            <span class="@($"ib-chart-tooltip-key {Slot(i)}")"></span>
+                            <span>@(_valueName ?? Label)</span>
+                            <span class="ib-chart-tooltip-value">@texts[i]</span>
+                        </div>
+                        <div class="ib-chart-tooltip-row">
+                            <span class="ib-chart-tooltip-key ib-pie-blank"></span>
+                            <span>@TextDefaults.ChartShare</span>
                             <span class="ib-chart-tooltip-value">@shares[i]</span>
                         </div>
                     </div>
                 }
             </div>
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
         }
     </ib-chart>
 
@@ -103,10 +109,10 @@
         <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
             <summary class="ib-collapsible-trigger">
                 <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
-                <span>@TextDefaults.ChartShowData</span>
+                <span>@TextDefaults.ChartShowData<span class="ib-visually-hidden">, @Label</span></span>
             </summary>
             <div class="ib-chart-table-scroll">
-                <table class="ib-chart-table">
+                <table class="ib-chart-table" aria-labelledby="@_labelId">
                     <thead>
                         <tr>
                             <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
@@ -168,7 +174,8 @@
 
     /// <summary>
     /// The legend: each slice's name, value and share, beside the circle when there's room and
-    /// under it otherwise. <see cref="ChartLegend.None"/> leaves it out; the other values show it.
+    /// under it otherwise. Shown unless <see cref="ChartLegend.None"/>; <c>Auto</c> and
+    /// <c>Bottom</c> both show it, and its items don't hide slices.
     /// </summary>
     [Parameter] public ChartLegend Legend { get; set; }
 
@@ -186,6 +193,10 @@
     private string? _style;
 
     private static string Num(double value) => value.ToString("0.#####", CultureInfo.InvariantCulture);
+
+    // The palette's eight colors, then a neutral one for the rest: a ninth slice in the first
+    // color would sit beside the first.
+    private static string Slot(int i) => i < 8 ? $"ib-chart-s{i + 1}" : "ib-chart-s9";
 
     // Whole percents, with a tenth for a sliver, so a small slice doesn't read as 0%.
     private static string Share(double share) =>

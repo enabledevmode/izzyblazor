@@ -167,6 +167,11 @@
             throw new InvalidOperationException("Chart needs a Label, its caption and accessible name, such as \"Revenue by month\".");
         }
 
+        if (ValueMin is { } lo && ValueMax is { } hi && !(hi > lo))
+        {
+            throw new ArgumentOutOfRangeException(nameof(ValueMax), hi, "A Chart's ValueMax must be more than its ValueMin.");
+        }
+
         if (Argument is null)
         {
             throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month.");
@@ -198,6 +203,10 @@
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         var series = _context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList();
+        var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
+
+        // Hidden needs a legend to show the series again: with none, it's drawn.
+        if (!legend) series = series.Select(s => s with { Hidden = false }).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
         var model = ChartLayout.Build(new ChartInput(items.Select(_argument!).ToList(), series)
         {
@@ -212,9 +221,9 @@
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
-        var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
         // With a legend, the script draws the chart again without the series it hides.
-        var redraw = legend;
+        var shape = legend ? NumberShape.Of(Stacked == ChartStack.Full ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
+        var redraw = shape is not null;
         var room = model.LabelRoom is { } r && !horizontal
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
@@ -224,7 +233,7 @@
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
                   data-ib-pos="@Positions(model)"
-                  data-ib-draw="@(redraw ? DrawData(model, horizontal, marks) : null)">
+                  data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
         <div class="ib-chart-frame" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
             <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
                 <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
@@ -383,6 +392,7 @@
                 }
             </div>
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
         }
         </ib-chart>
 
@@ -391,10 +401,10 @@
             <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
                 <summary class="ib-collapsible-trigger">
                     <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
-                    <span>@TextDefaults.ChartShowData</span>
+                    <span>@TextDefaults.ChartShowData<span class="ib-visually-hidden">, @Label</span></span>
                 </summary>
                 <div class="ib-chart-table-scroll">
-                    <table class="ib-chart-table">
+                    <table class="ib-chart-table" aria-labelledby="@_labelId">
                         <thead>
                             <tr>
                                 <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
@@ -457,9 +467,8 @@
 
     // What the script needs to draw the chart again without a series (chart-draw.ts): each
     // series' values and look, the stacking, the value range and how values read.
-    private string DrawData(ChartModel model, bool horizontal, string marks)
+    private string DrawData(ChartModel model, NumberShape shape, bool horizontal, string marks)
     {
-        var shape = NumberShape.Of(Stacked == ChartStack.Full ? "P0" : ValueFormat, CultureInfo.CurrentCulture);
         using var stream = new MemoryStream();
         using (var w = new System.Text.Json.Utf8JsonWriter(stream))
         {
@@ -482,7 +491,7 @@
             w.WriteString("g", shape.Group);
             w.WriteString("d", shape.Decimal);
             w.WriteNumber("n", shape.Decimals);
-            w.WriteBoolean("t", shape.Trim);
+            w.WriteNumber("t", shape.MinDecimals);
             w.WriteNumber("k", shape.Scale);
             w.WriteEndObject();
             w.WriteStartArray("a");
@@ -494,6 +503,12 @@
 
             w.WriteEndArray();
             w.WriteString("mk", marks);
+            // The tick count up the side, as the server worked it out from Height.
+            w.WriteNumber("vc", Math.Max(2, (int)Math.Round(Math.Max(80, HeightInPixels(Height)) / 56)));
+            // The series the server drew hidden: the script compares the legend's with these.
+            w.WriteStartArray("off");
+            foreach (var s in model.Series.Where(s => s.Data.Hidden)) w.WriteNumberValue(s.Index);
+            w.WriteEndArray();
             w.WriteStartArray("s");
             foreach (var s in model.Series)
             {

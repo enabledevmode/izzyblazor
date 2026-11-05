@@ -15,7 +15,8 @@
     - The change's color isn't read, so when the color carries meaning (`ChangeStatus`), say it in
       `Description` or `TrendLabel` too.
     - The `Icon` is decorative and hidden from screen readers.
-    - A `Spark` is an image named by `Label`, with the first, last, lowest and highest values.
+    - A `Spark` is an image named by `SparkLabel` (or `Label`), with the first, last, lowest and
+      highest values. Give the period in `SparkLabel`, such as "Revenue, last 12 weeks".
     See also: Card, DescriptionList, Progress, Badge.
 *@
 
@@ -55,7 +56,7 @@
         @if (Spark is not null)
         {
             <dd class="ib-stat-spark">
-                <Sparkline Values="Spark" Label="@(Label ?? "")" Type="SparkType" ValueFormat="@SparkFormat" />
+                <Sparkline Values="Spark" Label="@(SparkLabel ?? Label ?? "")" Type="SparkType" ValueFormat="@SparkFormat" />
             </dd>
         }
     </dl>
@@ -99,6 +100,12 @@
     /// named by <see cref="Label"/>, which it needs.
     /// </summary>
     [Parameter] public IEnumerable<double?>? Spark { get; set; }
+
+    /// <summary>
+    /// The <see cref="Spark"/>'s name for screen readers, with its period, such as "Revenue, last
+    /// 12 weeks". Defaults to <see cref="Label"/>.
+    /// </summary>
+    [Parameter] public string? SparkLabel { get; set; }
 
     /// <summary>How the <see cref="Spark"/> draws: a line (the default), an area or bars.</summary>
     [Parameter] public SparklineType SparkType { get; set; }
@@ -151,9 +158,9 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Spark is not null && string.IsNullOrWhiteSpace(Label))
+        if (Spark is not null && string.IsNullOrWhiteSpace(SparkLabel ?? Label))
         {
-            throw new InvalidOperationException("A Stat with a Spark needs a Label, which names the sparkline.");
+            throw new InvalidOperationException("A Stat with a Spark needs a Label or SparkLabel, which names the sparkline.");
         }
 
         (_class, _style) = BuildRootAttributes();

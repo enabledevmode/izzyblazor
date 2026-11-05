@@ -1,5 +1,9 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { type DrawData, draw } from "./chart-draw";
+import type { DrawData, draw as Draw } from "./chart-draw";
+
+// The redraw (chart-draw.ts), loaded the first time a legend hides a series.
+let drawing: Promise<typeof Draw> | undefined;
+const loadDraw = () => (drawing ??= import("./parts/chart-draw.js" as string).then((m: { draw: typeof Draw }) => m.draw));
 
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
@@ -13,10 +17,20 @@ import { type DrawData, draw } from "./chart-draw";
  * tooltip's and live region's contents, which Blazor leaves empty.
  */
 class Chart extends IzzyElement {
+  // The series the legend hides, kept when the server sends new data for the same chart.
+  #hidden: Set<number> | null = null;
+  // The series the server drew hidden, as last read: when they change, the app set Hidden.
+  #off = "";
+  #keep = false;
+
   protected setup(signal: AbortSignal): void {
     // An interactive page can draw the chart again with new data in this same element: set up
-    // again from what the server sent.
-    const changed = new MutationObserver(() => this.connectedCallback());
+    // again from what the server sent, keeping what the legend hides. (Enhanced navigation sets
+    // up again too, for what may be another chart: that starts over.)
+    const changed = new MutationObserver(() => {
+      this.#keep = true;
+      this.connectedCallback();
+    });
     changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
@@ -30,29 +44,45 @@ class Chart extends IzzyElement {
     const bottom = this.querySelector<HTMLElement>(".ib-chart-bottom");
     if (!frame || !plot) return;
 
-    // Legend: each item hides and shows its series.
-    const hidden = new Set<number>();
-    for (const toggle of this.querySelectorAll<HTMLElement>(".ib-chart-toggle")) {
-      const series = Number(toggle.dataset.ibSeries);
-      if (toggle.hasAttribute("data-ib-hidden")) hidden.add(series);
+    // Legend: each item hides and shows its series. The server says which it drew hidden; the
+    // legend's own choice carries over a new draw of the same chart.
+    const data: DrawData | null = this.dataset.ibDraw ? JSON.parse(this.dataset.ibDraw) : null;
+    const toggles = [...this.querySelectorAll<HTMLElement>(".ib-chart-toggle")];
+    const drawn = new Set(data?.off ?? toggles.filter((t) => t.hasAttribute("data-ib-hidden")).map((t) => Number(t.dataset.ibSeries)));
+    const off = [...drawn].join();
+    if (!this.#keep || !this.#hidden || this.#off !== off) this.#hidden = new Set(drawn);
+    this.#keep = false;
+    this.#off = off;
+    const hidden = this.#hidden;
+    const apply = (series: number) => {
+      const isOff = hidden.has(series);
+      for (const el of this.querySelectorAll(`[data-ib-series="${series}"]:not(.ib-chart-tooltip-row)`)) el.toggleAttribute("data-ib-hidden", isOff);
+      this.querySelector(`.ib-chart-toggle[data-ib-series="${series}"]`)?.setAttribute("aria-pressed", String(!isOff));
+    };
+    for (const toggle of toggles) {
       toggle.setAttribute("role", "button");
       toggle.tabIndex = 0;
-      toggle.setAttribute("aria-pressed", String(!hidden.has(series)));
+      apply(Number(toggle.dataset.ibSeries));
     }
 
     // With a series hidden that the server drew shown (or the other way round), the chart is
     // drawn again here without it: its own plot and value labels stand in for the server's.
-    const data: DrawData | null = this.dataset.ibDraw ? JSON.parse(this.dataset.ibDraw) : null;
-    const drawn = new Set(hidden);
     const jsSvg = plot.querySelector<SVGSVGElement>("svg.ib-chart-js");
     const jsLabels = this.querySelector<HTMLElement>(".ib-chart-values.ib-chart-js");
-    const redraw = () => {
+    const redraw = async () => {
       const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
-      this.toggleAttribute("data-ib-redrawn", !same && !!data);
-      if (same || !data || !jsSvg || !jsLabels) return;
+      if (same || !data || !jsSvg || !jsLabels) {
+        this.removeAttribute("data-ib-redrawn");
+        return;
+      }
+      const draw = await loadDraw();
+      if (signal.aborted) return;
       const out = draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight });
       jsSvg.innerHTML = out.svg;
       jsLabels.innerHTML = out.labels;
+      this.setAttribute("data-ib-redrawn", "");
+      if (bottom) this.fit(bottom);
+      refresh();
     };
     signal.addEventListener("abort", () => this.removeAttribute("data-ib-redrawn"));
 
@@ -75,17 +105,17 @@ class Chart extends IzzyElement {
 
     // Draws the open tooltip again once it's set up below (a chart can have no tooltips).
     let refresh = () => {};
-    const setHidden = (series: number, off: boolean) => {
-      if (off) hidden.add(series);
+    const setHidden = (series: number, isOff: boolean) => {
+      if (isOff) hidden.add(series);
       else hidden.delete(series);
-      for (const el of this.querySelectorAll(`[data-ib-series="${series}"]:not(.ib-chart-tooltip-row)`)) {
-        el.toggleAttribute("data-ib-hidden", off);
-      }
-      this.querySelector(`.ib-chart-toggle[data-ib-series="${series}"]`)?.setAttribute("aria-pressed", String(!off));
+      apply(series);
       redraw();
       refit();
       refresh();
     };
+
+    // A legend choice kept over new data from the server draws again at once.
+    redraw();
 
     this.addEventListener(
       "click",
@@ -258,8 +288,10 @@ class Chart extends IzzyElement {
       { signal }
     );
 
-    // The keyboard: one Tab stop on the plot.
-    frame.tabIndex = 0;
+    // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
+    // not an image, so the frame becomes one, described by the keys' hint.
+    this.keyboard(frame, signal);
+    document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
     const announce = () => {
       if (!live) return;
       live.textContent = [...tooltip.children]
@@ -292,6 +324,10 @@ class Chart extends IzzyElement {
           case "ArrowLeft":
           case "ArrowUp":
             next = step(-1);
+            break;
+          case "PageDown":
+          case "PageUp":
+            next = step((event.key === "PageDown" ? 1 : -1) * Math.max(1, Math.round(order.length / 10)));
             break;
           case "Home":
             next = order[0];
@@ -393,7 +429,8 @@ class Chart extends IzzyElement {
       { signal }
     );
 
-    frame.tabIndex = 0;
+    this.keyboard(frame, signal);
+    document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
     const announce = () => {
       if (!live) return;
       // "Pro, 412, 33%": the name, the value and the share.
@@ -444,6 +481,26 @@ class Chart extends IzzyElement {
       },
       { signal }
     );
+  }
+
+  /**
+   * Makes the plot one Tab stop that takes the arrow keys: an application to screen readers (an
+   * image takes no keys in their browse mode), named as before and described by the keys' hint.
+   */
+  private keyboard(frame: HTMLElement, signal: AbortSignal): void {
+    frame.tabIndex = 0;
+    frame.setAttribute("role", "application");
+    const hint = this.querySelector<HTMLElement>("[data-ib-keys]");
+    if (hint) {
+      frame.setAttribute("aria-roledescription", hint.dataset.ibKeys!);
+      frame.setAttribute("aria-describedby", hint.id);
+    }
+    signal.addEventListener("abort", () => {
+      frame.setAttribute("role", "img");
+      frame.removeAttribute("aria-roledescription");
+      frame.removeAttribute("aria-describedby");
+      frame.removeAttribute("tabindex");
+    });
   }
 
   /**

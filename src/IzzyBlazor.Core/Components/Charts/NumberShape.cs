@@ -16,13 +16,22 @@ internal sealed record NumberShape(
     string Group,
     string Decimal,
     int Decimals,
-    bool Trim,
+    int MinDecimals,
     double Scale)
 {
-    /// <summary>The shape of <paramref name="format"/>; null is the axis default, N with the tick step's decimals.</summary>
-    public static NumberShape Of(string? format, CultureInfo culture)
+    /// <summary>
+    /// The shape of <paramref name="format"/>; null is the axis default, N with the tick step's
+    /// decimals. Returns null for a format a shape can't hold (exponents, general, hex), and the
+    /// chart then doesn't draw itself again in the browser.
+    /// </summary>
+    public static NumberShape? Of(string? format, CultureInfo culture)
     {
         var auto = format is null;
+        if (format is not null && (System.Text.RegularExpressions.Regex.IsMatch(format, @"^[EeGgRrXxDd]\d*$") || System.Text.RegularExpressions.Regex.IsMatch(format, @"[Ee][+-]?0")))
+        {
+            return null;
+        }
+
         format ??= "N0";
         var nf = culture.NumberFormat;
         string[] decimalSeparators = [nf.NumberDecimalSeparator, nf.CurrencyDecimalSeparator, nf.PercentDecimalSeparator];
@@ -45,13 +54,17 @@ internal sealed record NumberShape(
 
         var group = separators.Count > 0 ? separators[0] : "";
 
-        // The scale, from 1: "100%" is 100 at no decimals; "1.00" is 1 at two.
-        var one = Split(1.0.ToString(format, culture)).Digits;
-        var oneDigits = new string(one.Where(char.IsDigit).ToArray());
-        var oneDecimals = one.Contains(dec) ? one[(one.LastIndexOf(dec, StringComparison.Ordinal) + dec.Length)..].Length : 0;
-        var scale = double.TryParse(oneDigits, NumberStyles.None, CultureInfo.InvariantCulture, out var x) ? x / Math.Pow(10, oneDecimals) : 1;
+        // The scale, from a million: "100,000,000%" is 100, "1,000K" (#,##0,K) is a thousandth.
+        var million = Split(1e6.ToString(format, culture)).Digits;
+        if (group.Length > 0) million = million.Replace(group, "");
+        million = million.Replace(dec, ".");
+        var scale = double.TryParse(million, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var m) && m > 0 ? m / 1e6 : 1;
 
-        return new NumberShape(prefix, suffix, negPrefix, negSuffix, group, dec, auto ? -1 : decimals, !auto && oneDecimals < decimals, scale);
+        // The fewest decimals a value keeps: "0.0#" keeps one, "#,##0.##" none.
+        var one = Split(1.0.ToString(format, culture)).Digits;
+        var minDecimals = one.Contains(dec) ? one[(one.LastIndexOf(dec, StringComparison.Ordinal) + dec.Length)..].Length : 0;
+
+        return new NumberShape(prefix, suffix, negPrefix, negSuffix, group, dec, auto ? -1 : decimals, auto ? 0 : Math.Min(minDecimals, decimals), scale);
     }
 
     private static (string Prefix, string Digits, string Suffix) Split(string text)

@@ -1,6 +1,6 @@
-@* A server's load, with the fill colored by how close each is to full. *@
+@* A server's load. The fill turns amber and red as memory and disk fill up, and the labels say so. *@
 <Row Gap="8" Wrap Justify="Justify.Center">
     <Gauge Label="CPU" Value="0.42" ValueFormat="P0" />
-    <Gauge Label="Memory" Value="0.78" ValueFormat="P0" Status="Status.Warning" />
-    <Gauge Label="Disk" Value="0.93" ValueFormat="P0" Status="Status.Danger" />
+    <Gauge Label="Memory, high" Value="0.78" ValueFormat="P0" Accent="Accent.From(Color.Warning)" />
+    <Gauge Label="Disk, nearly full" Value="0.93" ValueFormat="P0" Accent="Accent.Danger" />
 </Row>

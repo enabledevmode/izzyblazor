@@ -161,8 +161,10 @@ internal static class ChartLayout
         }
 
         if (!double.IsFinite(min)) { (min, max) = (0, 1); }
-        if (input.ValueMin is { } vmin) min = vmin;
-        if (input.ValueMax is { } vmax) max = vmax;
+
+        // A set end the values cross moves the other end past it, so the range never runs backward.
+        if (input.ValueMin is { } vmin) { min = vmin; max = Math.Max(max, vmin); }
+        if (input.ValueMax is { } vmax) { max = vmax; min = Math.Min(min, vmax); }
 
         // Upright values get a tick per 56px of height; values across are fitted by width.
         var plotHeight = Math.Max(80, input.HeightPx);
