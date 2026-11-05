@@ -12,8 +12,10 @@ public sealed class TabsCloseTests(SiteFixture site) : IClassFixture<SiteFixture
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/tabs?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/tabs?mode={mode}").ToString());
         var example = page.Locator($"[data-ex='{id}']");
+        // Ready: the circuit has rendered the tabs, or (static) the script has made them tabs.
+        await example.Locator(mode == "interactive" ? "ib-tabs[data-ib-interactive]:has(> .ib-tab-add)" : "ib-tabs:has(> .ib-tab-add) > [role=tablist]").WaitForAsync();
         var tabs = example.Locator("ib-tabs:has(> .ib-tab-add) > .ib-tabs-list > .ib-tab .ib-tab-text");
         ILocator Tab(string name) => example.GetByRole(AriaRole.Tab, new() { Name = name });
 

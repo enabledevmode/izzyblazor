@@ -95,7 +95,8 @@ else
          class="@_class"
          style="@_style"
          data-selected="@SelectedValue"
-         data-query-key="@QueryKey">
+         data-query-key="@QueryKey"
+         data-ib-interactive="@(IsInteractive ? "" : null)">
     <div class="ib-tabs-list" role="radiogroup" aria-label="@Label" aria-orientation="@(Orientation == Orientation.Vertical ? "vertical" : null)">
         @foreach (var tab in _context.Items)
         {
