@@ -5,11 +5,12 @@
 
 @*
     A slider: a native range input, so it posts with the form, works with arrow keys, Page Up/Down
-    and Home/End, and needs no script. With JavaScript the track fills up to the thumb and the
-    value beside it follows as you drag.
-    <Slider @bind-Value="Model.Volume" ShowValue />
-    <Slider @bind-Value="Model.Discount" Min="0" Max="50" Step="5" ShowValue ValueFormat="{0}%" />
-    <Slider @bind-Value="Model.Microphone" Orientation="Orientation.Vertical" ShowValue />
+    and Home/End, and needs no script. With JavaScript the track fills up to the thumb and a value
+    tooltip follows as you drag.
+    <Slider @bind-Value="Model.Volume" ValueTooltip="SliderTooltip.Active" />
+    <Slider @bind-Value="Model.Discount" Max="50" Step="5" ValueFormat="{0}%" ShowEnds ShowStepMarks />
+    <Slider @bind-Value="Model.Temperature" Marks="@(new SliderMark[] { new(0, "0°C"), new(37, "37°C"), new(100, "100°C") })" />
+    <Slider @bind-Value="Model.Microphone" Orientation="Orientation.Vertical" ValueTooltip="SliderTooltip.Always" />
 
     Accessibility:
     - It renders a native range `input` (a slider to screen readers): arrow keys, Page Up/Down and
@@ -18,7 +19,8 @@
       once scripts run or on interactive pages; on a static page without script, the bare number.
     - Vertical, it's still a native range input, upright through CSS: the lowest value is at the
       bottom, and Up and Right raise it.
-    - The value `ShowValue` shows is hidden from screen readers, which hear the slider's own value.
+    - The value tooltip, the marks and the ends' labels are hidden from screen readers, which hear
+      the slider's own value and scale.
     - Label, hint and errors work as in `TextField`.
     See also: NumberField, SegmentedControl, Progress.
 *@
@@ -26,21 +28,24 @@
 <FieldFrame Class="@WrapperClass("slider", Vertical ? "ib-field-slider-vertical" : null)" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="@ControlClass" style="@ControlStyle">
-        @* @bind (not a plain value) so a render that answers an earlier key press doesn't move the
-           thumb back while later ones are on their way. *@
-        @if (Live)
-        {
-            <input @attributes="InputAttributes" @bind="CurrentValueAsString" @bind:event="oninput" />
-        }
-        else
-        {
-            <input @attributes="InputAttributes" @bind="CurrentValueAsString" />
-        }
-        @if (ShowValue)
-        {
-            @* The script shows the live value through data-current; this text stays Blazor's. *@
-            <output class="ib-slider-value" for="@FieldId" aria-hidden="true" style="@ValueWidth">@ValueText</output>
-        }
+        <div class="ib-slider-track">
+            @SliderScale.Draw(ShownMarks, ShowEnds, ResolvedMin, ResolvedMax, Said)
+            @* @bind (not a plain value) so a render that answers an earlier key press doesn't move the
+               thumb back while later ones are on their way. *@
+            @if (Live)
+            {
+                <input @attributes="InputAttributes" @bind="CurrentValueAsString" @bind:event="oninput" />
+            }
+            else
+            {
+                <input @attributes="InputAttributes" @bind="CurrentValueAsString" />
+            }
+            @if (ValueTooltip != SliderTooltip.None)
+            {
+                @* The script shows the live value through data-current; this text stays Blazor's. *@
+                <span class="ib-slider-tip" aria-hidden="true">@ValueText</span>
+            }
+        </div>
     </ib-field-control>
     @if (PostsReadOnlyValue)
     {
@@ -69,12 +74,24 @@
     /// <summary>The step between values. Defaults to 1.</summary>
     [Parameter] public double? Step { get; set; }
 
-    /// <summary>Shows the current value beside the slider.</summary>
-    [Parameter] public bool ShowValue { get; set; }
+    /// <summary>
+    /// Shows the value in a tooltip over the thumb: <see cref="SliderTooltip.Active"/> while it's
+    /// hovered, focused or held, <see cref="SliderTooltip.Always"/> all the time. Off by default.
+    /// </summary>
+    [Parameter] public SliderTooltip ValueTooltip { get; set; }
+
+    /// <summary>Labels the ends of the track with <see cref="Min"/> and <see cref="Max"/>, as <see cref="ValueFormat"/> writes them.</summary>
+    [Parameter] public bool ShowEnds { get; set; }
+
+    /// <summary>Points to mark on the track, each a dot with an optional label under it, such as <c>new(37, "37°C")</c>. The thumb still moves by <see cref="Step"/>.</summary>
+    [Parameter] public IReadOnlyList<SliderMark>? Marks { get; set; }
+
+    /// <summary>Marks every step with a dot. For scales with few steps.</summary>
+    [Parameter] public bool ShowStepMarks { get; set; }
 
     /// <summary>
     /// How the value reads, with <c>{0}</c> for the number: <c>"{0}%"</c>, <c>"${0}"</c>. Used for the
-    /// shown value and for what screen readers announce. Defaults to the number alone.
+    /// tooltip, the ends' labels and what screen readers announce. Defaults to the number alone.
     /// </summary>
     [Parameter] public string ValueFormat { get; set; } = "{0}";
 
@@ -117,21 +134,26 @@
         return snapped > ResolvedMax ? snapped - step : snapped;
     }
 
-    private string ValueWidth => $"--ib-slider-value-ch: {NumberTypes.ShownWidth(ResolvedMin, ResolvedMax, Step, ValueFormat)}";
+    private string Said(double value) => ValueFormat.Replace("{0}", Format(value), StringComparison.Ordinal);
 
-    private string ValueText => ValueFormat.Replace("{0}", Format(Shown), StringComparison.Ordinal);
+    private string ValueText => Said(Shown);
 
     private bool Vertical => Orientation == Orientation.Vertical;
 
-    private string ControlClass => Vertical ? "ib-field-control ib-slider ib-slider-vertical" : "ib-field-control ib-slider";
+    private IReadOnlyList<SliderMark> ShownMarks => SliderScale.Marks(Marks, ShowStepMarks, ResolvedMin, ResolvedMax, Step);
+
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control ib-slider")
+        .Add("ib-slider-vertical", Vertical)
+        .Add("ib-slider-tips-always", ValueTooltip == SliderTooltip.Always)
+        .Add("ib-slider-has-labels", SliderScale.HasLabels(ShownMarks, ShowEnds))
+        .Build()!;
 
     private string ControlStyle
     {
         get
         {
-            var span = ResolvedMax - ResolvedMin;
-            var percent = span <= 0 ? 0 : Math.Clamp((Shown - ResolvedMin) / span * 100, 0, 100);
-            var style = "--ib-slider-fill: " + Format(Math.Round(percent, 3));
+            var style = $"--ib-slider-fill: {SliderScale.Percent(Shown, ResolvedMin, ResolvedMax)}; --ib-slider-value-ch: {NumberTypes.ShownWidth(ResolvedMin, ResolvedMax, Step, ValueFormat)}";
             return Vertical && Height is { } height ? style + "; --ib-slider-length: " + height : style;
         }
     }

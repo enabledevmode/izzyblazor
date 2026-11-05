@@ -328,8 +328,8 @@
                             </Card>
                             <Card Title="Limits">
                                 <Stack Gap="4">
-                                    <Slider @bind-Value="Settings!.DailyLimit" Max="1000" Step="50" ShowValue />
-                                    <Slider @bind-Value="Settings!.Retries" Max="10" ShowValue />
+                                    <Slider @bind-Value="Settings!.DailyLimit" Max="1000" Step="50" ValueTooltip="SliderTooltip.Always" />
+                                    <Slider @bind-Value="Settings!.Retries" Max="10" ValueTooltip="SliderTooltip.Active" ShowStepMarks />
                                     <SegmentedControl @bind-Value="Settings!.Period" />
                                 </Stack>
                             </Card>

@@ -8,7 +8,7 @@
 
 <Heading Level="2">Filtering by a range</Heading>
 <TextBlock>Bind the slider to a <Code>NumberRange</Code> of any number type, such as <Code>NumberRange&lt;int&gt;</Code> or <Code>NumberRange&lt;decimal&gt;</Code>. It holds <Code>Start</Code> and <Code>End</Code>, both included, and <Code>Contains</Code> tests a value against them. The ends post as <Code>Price.Start</Code> and <Code>Price.End</Code>, so a <Code>[SupplyParameterFromForm]</Code> model binds them on a static page.</TextBlock>
-<TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>. To show both ends beside the slider, set <Code>ShowValue</Code>, and to set how each reads, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
+<TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>. To show each thumb's value in a tooltip over it, set <Code>ValueTooltip</Code> to <Code>SliderTooltip.Active</Code> (while it's hovered, focused or dragged) or <Code>SliderTooltip.Always</Code>. To label the ends of the track, set <Code>ShowEnds</Code>; for marks, set <Code>Marks</Code> or <Code>ShowStepMarks</Code>, as on <Anchor Href="docs/components/slider">Slider</Anchor>. To set how values read, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
 <ExampleViewer Example="range-slider-price" />
 <TextBlock>With no value, the thumbs sit at the ends of the scale, as a filter that hasn't narrowed anything.</TextBlock>
 
@@ -47,8 +47,8 @@
         @* 0 to 100; Price is a NumberRange<int>. *@
         <RangeSlider @bind-Value="Model!.Price" />
 
-        @* Its own scale and steps, both ends shown in dollars. *@
+        @* Its own scale and steps, each value over its thumb in dollars. *@
         <RangeSlider @bind-Value="Model!.Price" Max="400" Step="10"
-                     ShowValue ValueFormat="${0}" />
+                     ValueFormat="${0}" ValueTooltip="SliderTooltip.Always" ShowEnds />
         """;
 }

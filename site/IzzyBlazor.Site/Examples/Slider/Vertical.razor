@@ -2,9 +2,9 @@
 
 <Form Model="Model" FormName="slider-vertical">
     <Row Gap="6">
-        <Slider @bind-Value="Model!.Microphone" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
-        <Slider @bind-Value="Model!.Speaker" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
-        <Slider @bind-Value="Model!.Alerts" Orientation="Orientation.Vertical" ShowValue ValueFormat="{0}%" />
+        <Slider @bind-Value="Model!.Microphone" Orientation="Orientation.Vertical" ValueFormat="{0}%" ValueTooltip="SliderTooltip.Active" />
+        <Slider @bind-Value="Model!.Speaker" Orientation="Orientation.Vertical" ValueFormat="{0}%" ValueTooltip="SliderTooltip.Active" />
+        <Slider @bind-Value="Model!.Alerts" Orientation="Orientation.Vertical" ValueFormat="{0}%" ValueTooltip="SliderTooltip.Active" />
     </Row>
 </Form>
 

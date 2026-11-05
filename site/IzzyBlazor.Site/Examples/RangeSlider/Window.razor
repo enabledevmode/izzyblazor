@@ -1,5 +1,5 @@
 <Form Model="Model" FormName="range-slider-window" MaxWidth="28.Rem" Grow>
-    <RangeSlider @bind-Value="Model!.Window" Label="Delivery window" Min="7" Max="21" ShowValue ValueFormat="{0}:00"
+    <RangeSlider @bind-Value="Model!.Window" Label="Delivery window" Min="7" Max="21" ValueFormat="{0}:00" ValueTooltip="SliderTooltip.Active" ShowEnds ShowStepMarks
                  StartText="Earliest" EndText="Latest" Hint="Someone will be home between these hours." />
 </Form>
 

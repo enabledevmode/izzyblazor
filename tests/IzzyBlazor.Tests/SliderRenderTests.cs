@@ -48,9 +48,9 @@ public class SliderRenderTests : BunitContext
     [Fact]
     public void ValueFormat_shapes_the_shown_and_announced_value()
     {
-        var cut = SliderFor(() => _model.Discount, p => p.Add(f => f.ShowValue, true).Add(f => f.ValueFormat, "{0}%"));
+        var cut = SliderFor(() => _model.Discount, p => p.Add(f => f.ValueTooltip, SliderTooltip.Active).Add(f => f.ValueFormat, "{0}%"));
 
-        Assert.Equal("10%", cut.Find("output").TextContent);
+        Assert.Equal("10%", cut.Find(".ib-slider-tip").TextContent);
         Assert.Equal("{0}%", cut.Find("input").GetAttribute("data-ib-format"));
         // On a static page nothing could keep it current without script, so the script sets it:
         // with JavaScript off, screen readers hear the slider's own (always current) value.
@@ -78,9 +78,9 @@ public class SliderRenderTests : BunitContext
     [Fact]
     public void Float_values_read_without_binary_noise()
     {
-        var cut = SliderFor(() => _model.Light, p => p.Add(f => f.Min, 0).Add(f => f.Max, 1).Add(f => f.Step, 0.1).Add(f => f.ShowValue, true));
+        var cut = SliderFor(() => _model.Light, p => p.Add(f => f.Min, 0).Add(f => f.Max, 1).Add(f => f.Step, 0.1).Add(f => f.ValueTooltip, SliderTooltip.Active));
 
-        Assert.Equal("0.1", cut.Find("output").TextContent);
+        Assert.Equal("0.1", cut.Find(".ib-slider-tip").TextContent);
         Assert.Equal("0.1", cut.Find("input").GetAttribute("value"));
     }
 }

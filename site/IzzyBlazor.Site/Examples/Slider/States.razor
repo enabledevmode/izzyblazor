@@ -3,7 +3,7 @@
 <Form Model="Model" FormName="slider-states" MaxWidth="24.Rem" Grow>
     <Slider @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
     <Slider @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
-    <Slider @bind-Value="Model!.Backups" Disabled ShowValue Hint="Disabled: not posted." />
+    <Slider @bind-Value="Model!.Backups" Disabled ValueTooltip="SliderTooltip.Always" Hint="Disabled: not posted." />
 </Form>
 
 @code {
