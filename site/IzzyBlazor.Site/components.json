@@ -671,8 +671,8 @@
         { "id": "text-field-masks", "title": "Masks",
           "notes": {
             "noscript": "The fields take any text; the server puts it in the mask's form when the form posts.",
-            "static": "The fields take the mask's form as you type; Save address posts without a full reload.",
-            "interactive": "The fields take the mask's form as you type; Save address runs C# without a full reload."
+            "static": "The fields take the mask's form as you type; Save posts without a full reload.",
+            "interactive": "The fields take the mask's form as you type; Save runs C# without a full reload."
           } },
         { "id": "text-field-icons", "title": "Icons" },
         { "id": "text-field-addons", "title": "Add-ons" },

@@ -12,8 +12,9 @@ public sealed class MaskTests(SiteFixture site) : IClassFixture<SiteFixture>
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/text-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var example = page.Locator("[data-ex='text-field-masks']");
-        var phone = example.GetByRole(AriaRole.Textbox, new() { Name = "Phone" });
-        var postal = example.GetByRole(AriaRole.Textbox, new() { Name = "Postal code" });
+        var phone = example.GetByRole(AriaRole.Textbox, new() { Name = "Telephone" });
+        var card = example.GetByRole(AriaRole.Textbox, new() { Name = "Credit card" });
+        var ssn = example.GetByRole(AriaRole.Textbox, new() { Name = "SSN" });
 
         await phone.PressSequentiallyAsync("4165550199");
         await Assertions.Expect(phone).ToHaveValueAsync("(416) 555-0199");
@@ -26,10 +27,12 @@ public sealed class MaskTests(SiteFixture site) : IClassFixture<SiteFixture>
         await Assertions.Expect(phone).ToHaveValueAsync("(416) 555-0199");
 
         // A paste is an input event with the whole text, as here.
-        await postal.FillAsync("m5v-2t6");
-        await Assertions.Expect(postal).ToHaveValueAsync("M5V 2T6");
+        await card.FillAsync("4242-4242-4242-4242");
+        await Assertions.Expect(card).ToHaveValueAsync("4242 4242 4242 4242");
+        await ssn.PressSequentiallyAsync("123456789");
+        await Assertions.Expect(ssn).ToHaveValueAsync("123-45-6789");
 
-        await example.GetByRole(AriaRole.Button, new() { Name = "Save address" }).ClickAsync();
-        await Assertions.Expect(example).ToContainTextAsync("We'll call (416) 555-0199 about the delivery to M5V 2T6.");
+        await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(example).ToContainTextAsync("We'll call (416) 555-0199 and charge the card ending 4242.");
     }
 }
