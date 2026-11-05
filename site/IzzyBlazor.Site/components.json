@@ -1695,7 +1695,7 @@
       "examples": [
         { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
         { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
-        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Spark` the values, such as the last twelve weeks. `SparkType` draws them as a line, an area or bars. The sparkline is an image named by the stat's `Label`, with its first, last, lowest and highest values, formatted with `SparkFormat`." }
+        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Spark` the values, such as the last twelve weeks. `SparkType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparkLabel`, with its first, last, lowest and highest values formatted by `SparkFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
       ],
       "scenarios": [
         { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
@@ -1721,11 +1721,11 @@
           "id": "bars", "title": "Bars", "summary": "Bars sit side by side or stack, upright or across, with the arguments down the side for long names.", "members": ["Stacked", "Orientation", "BarOpacity"],
           "examples": [
             { "id": "chart-stacked", "title": "Stacked", "lead": "To stack bars and areas, set `Stacked`: `Stacked` shows the totals, and `Full` draws each stack to 100% to compare shares." },
-            { "id": "chart-horizontal", "title": "Bars across", "lead": "To draw bars across, with the arguments down the side, set `Orientation` to `Horizontal`. Long names have room there, and past a third of the chart's width they end in an ellipsis. Bars are lighter than their series' color, 0.65 of it in light mode and 0.9 in dark; `BarOpacity` sets how strong, from 0 to 1, and a theme can set `--ib-chart-fill-opacity` for every chart." }
+            { "id": "chart-horizontal", "title": "Bars across", "lead": "To draw bars across, with the arguments down the side, set `Orientation` to `Horizontal`. Long names have room there, and past a third of the chart's width they end in an ellipsis." }
           ]
         },
         {
-          "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["SeriesType", "ChartSeries.Type", "ChartSeries.Curve", "ChartSeries.LineStyle", "ChartSeries.Markers", "ChartSeries.ConnectNulls"],
+          "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["SeriesType", "ChartSeries.Type", "ChartSeries.Curve", "ChartSeries.LineStyle", "ChartSeries.Markers", "ChartSeries.ConnectNulls", "Height", "ValueMin", "ValueMax"],
           "examples": [
             { "id": "chart-lines", "title": "Lines over dates", "lead": "To draw every series as a line, set `SeriesType` on the chart. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and an `Area` series fills down to zero. Lines differ by dash and marker shape as well as color." }
           ]
@@ -1737,10 +1737,10 @@
           ]
         },
         {
-          "id": "tooltips", "title": "Tooltips and the legend", "summary": "A tooltip shows every series' value for the item under the pointer or keyboard focus, from a template if you give one; the legend hides and shows series.", "members": ["Tooltip", "TooltipTemplate", "Legend", "ChartSeries.Hidden"],
+          "id": "tooltips", "title": "Tooltips and the legend", "summary": "A tooltip shows every series' value for the item under the pointer or keyboard focus, from a template if you give one; the legend hides and shows series.", "members": ["Tooltip", "TooltipTemplate", "Legend", "ChartSeries.Hidden", "DataTable", "HideLabel"],
           "examples": [
-            { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month; the keys also say it to a screen reader. To draw the tooltip yourself, give the chart a `TooltipTemplate`: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it: the chart is drawn again without it, so stacks close up and the value axis rescales. `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out.",
-          "notes": { "noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and point still shows its value on hover, and Show data lists every value." } }
+            { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month. Page Up and Page Down move by a tenth, Home and End go to the ends, and Escape hides the tooltip. With a screen reader, the chart takes the arrow keys and reads each value as it moves. To draw the tooltip yourself, give the chart a `TooltipTemplate`: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it: the chart is drawn again without it, so stacks close up and the value axis rescales. `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out.",
+          "notes": { "noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and marker still shows its value on hover, and Show data lists every value." } }
           ]
         }
       ]
@@ -1778,7 +1778,7 @@
         { "feature": "Read as a meter, with its value in words" }
       ],
       "examples": [
-        { "id": "gauge-usage", "title": "Server load", "lead": "Give `Gauge` a `Value` and a `Label`. The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. `Status` colors the fill, here as memory and disk fill up; the color isn't read, so say what matters in words too. A gauge is 12rem wide; `Width` sets another." },
+        { "id": "gauge-usage", "title": "Server load", "lead": "Give `Gauge` a `Value` and a `Label`. The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. `Accent` colors the fill, here as memory and disk fill up; the color isn't read, so the labels say it too. A gauge is 12rem wide; `Width` sets another." },
         { "id": "gauge-range", "title": "Another range", "lead": "To measure on another scale, set `Min` and `Max`. A value past either end fills none or all of the dial, and still shows as it is." }
       ]
     },

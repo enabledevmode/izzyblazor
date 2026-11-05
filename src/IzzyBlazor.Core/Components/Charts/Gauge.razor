@@ -12,7 +12,7 @@
     Accessibility:
     - role="meter", named by Label, which is required, with aria-valuenow, -min and -max, and the
       formatted value as aria-valuetext, so a screen reader hears "Disk used, 72%".
-    - Status colors the fill; the color isn't read, so say what it means in the label or nearby.
+    - Accent colors the fill; the color isn't read, so say what it means in the label or nearby.
     See also: Progress, Stat.
 *@
 
@@ -57,10 +57,10 @@
     [Parameter] public string? ValueFormat { get; set; }
 
     /// <summary>
-    /// The fill's color, such as <see cref="IzzyBlazor.Status.Warning"/> when the value is high.
-    /// Defaults to the theme's primary color.
+    /// The fill's color, such as <c>Accent.From(Color.Warning)</c> when the value is
+    /// high, <c>Accent.Danger</c> or <c>Accent.Of("#0d9488")</c>. Defaults to the primary color.
     /// </summary>
-    [Parameter] public Status? Status { get; set; }
+    [Parameter] public Accent? Accent { get; set; }
 
     private readonly string _labelId = IdGenerator.Next("ib-gauge");
     private double _value;
@@ -77,9 +77,9 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-gauge");
-        if (Status is { } status)
+        if (Accent is { } accent)
         {
-            styles.AddVar("gauge-color", $"var(--ib-color-{status.ToString().ToLowerInvariant()})");
+            styles.AddVar("gauge-color", StyleValues.Color(accent.ToColor()));
         }
 
         base.BuildAttributes(classes, styles);

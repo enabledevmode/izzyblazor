@@ -52,13 +52,15 @@
   .ib-chart-s6 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-6)); }
   .ib-chart-s7 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-7)); }
   .ib-chart-s8 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-8)); }
+  /* A pie's ninth slice and on. */
+  .ib-chart-s9 { --ib-chart-c: var(--ib-color-neutral); }
 
   /* Fills (bars, slices, keys) are lighter than the series color: mixed with the surface, 0.65 of
      the color in light mode and 0.9 in dark, where a weaker mix goes dull against the dark
      surface. --ib-chart-fill-opacity (a chart's BarOpacity) sets one strength for both. Opaque, so
      a bar's rounded end and square base can overlap without a darker band. A scatter's points
      (--ib-chart-see) are see-through instead, so where they crowd shows darker. */
-  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8) {
+  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9) {
     --ib-chart-fill: light-dark(
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.65) * 100%), var(--ib-color-surface)),
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), var(--ib-color-surface)));
@@ -589,6 +591,20 @@
     font-weight: var(--ib-weight-medium);
     color: var(--ib-color-muted);
     text-align: center;
+  }
+
+  .ib-pie-blank { visibility: hidden; }
+
+  /* High contrast: the marks keep their colors (they tell series apart, as the legend's keys
+     show), on the system's colors for everything else. */
+  @media (forced-colors: active) {
+    :is(.ib-chart-svg, .ib-chart-key, .ib-chart-tooltip-key, .ib-pie-svg, .ib-pie-key, .ib-sparkline-svg, .ib-gauge-svg) { forced-color-adjust: none; }
+    .ib-chart-grid { stroke: GrayText; }
+    .ib-chart-zero { stroke: CanvasText; }
+    .ib-pie-slice { stroke: Canvas; }
+    .ib-gauge-track { stroke: GrayText; }
+    .ib-gauge-fill { stroke: Highlight; }
+    .ib-chart-marks > [data-ib-active] { stroke: CanvasText; }
   }
 
   @media print {

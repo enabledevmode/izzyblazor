@@ -254,6 +254,16 @@ const builds = [
     metafile: true,
     plugins: [
       {
+        // Parts of an element it loads only when needed (elements/parts, built below): leave
+        // those imports for the browser.
+        name: "element-parts",
+        setup(build) {
+          build.onResolve({ filter: /^\.\/parts\/[a-z-]+\.js$/ }, (args) =>
+            args.kind === "dynamic-import" ? { path: args.path, external: true } : undefined
+          );
+        },
+      },
+      {
         // Remove files from elements that are no longer built, after writing the new ones, so a
         // page loading during a watch rebuild never finds the folder empty.
         name: "remove-stale-elements",
@@ -262,11 +272,20 @@ const builds = [
             const dir = join(lib, "wwwroot", "elements");
             if (!result.metafile || !existsSync(dir)) return;
             const built = new Set(Object.keys(result.metafile.outputs).map((file) => file.split("/").pop()));
-            for (const file of readdirSync(dir)) if (!built.has(file)) rmSync(join(dir, file));
+            for (const file of readdirSync(dir)) if (file.endsWith(".js") && !built.has(file)) rmSync(join(dir, file));
           });
         },
       },
     ],
+  },
+  {
+    // Parts an element loads only when needed: chart-draw.js, which draws a chart again without
+    // the series its legend hides, loads on the first toggle.
+    ...common,
+    entryPoints: { "elements/parts/chart-draw": join(lib, "Scripts", "elements", "chart-draw.ts") },
+    outdir: join(lib, "wwwroot"),
+    format: "esm",
+    target: "es2022",
   },
 ];
 

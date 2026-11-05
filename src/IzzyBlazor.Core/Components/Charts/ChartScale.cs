@@ -23,6 +23,12 @@ internal static class ChartScale
 
     public static Spec TickSpec(double start, double stop, double count)
     {
+        // No span, or a backward or endless one: no ticks (and no endless loop over them).
+        if (!(stop > start) || !double.IsFinite(start) || !double.IsFinite(stop) || !(count > 0))
+        {
+            return new Spec(0, -1, 1, 1);
+        }
+
         var step = (stop - start) / Math.Max(0, count);
         var power = Math.Floor(Math.Log10(step));
         var error = step / Math.Pow(10, power);

@@ -14,7 +14,7 @@ export interface NumberShape {
   g: string; // group separator, or "" for none
   d: string; // decimal separator
   n: number; // decimals; -1 picks them from the tick step
-  t: boolean; // trailing zeros dropped ("#,##0.##")
+  t: number; // the fewest decimals kept: trailing zeros past these drop ("#,##0.##" keeps 0)
   k: number; // scale (100 for percent)
 }
 
@@ -38,6 +38,8 @@ export interface DrawData {
   f: NumberShape;
   a: (number | null)[]; // each item's place along the argument axis, 0 to 1
   mk: string; // the marker shapes' id prefix
+  vc: number; // the tick count up the side, from the chart's Height
+  off: number[]; // the series the server drew hidden
   s: DrawSeries[];
 }
 
@@ -48,6 +50,8 @@ const E10 = Math.sqrt(50), E5 = Math.sqrt(10), E2 = Math.sqrt(2);
 interface Spec { i1: number; i2: number; inc: number }
 
 function tickSpec(start: number, stop: number, count: number): Spec {
+  // No span, or a backward or endless one: no ticks (and no endless loop over them).
+  if (!(stop > start) || !isFinite(start) || !isFinite(stop) || !(count > 0)) return { i1: 0, i2: -1, inc: 1 };
   const step = (stop - start) / Math.max(0, count);
   const power = Math.floor(Math.log10(step));
   const error = step / Math.pow(10, power);
@@ -102,7 +106,9 @@ const decimalsFor = (step: number) => (step >= 1 || step <= 0 ? 0 : Math.min(10,
 export function format(f: NumberShape, value: number, step: number): string {
   const decimals = f.n < 0 ? decimalsFor(step) : f.n;
   let text = (Math.abs(value) * f.k).toFixed(decimals);
-  if (f.t && decimals > 0) text = text.replace(/\.?0+$/, "");
+  // Optional decimals ("#,##0.##"): trailing zeros drop down to the ones the format keeps.
+  for (let keep = decimals; keep > f.t && /\.\d*0$/.test(text); keep--) text = text.slice(0, -1);
+  text = text.replace(/\.$/, "");
   let [whole, fraction] = text.split(".");
   if (f.g) whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, f.g);
   const digits = fraction ? whole + f.d + fraction : whole;
@@ -225,10 +231,11 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     max = Math.max(max, 0);
   }
   if (!isFinite(min)) [min, max] = [0, 1];
-  if (d.lo != null) min = d.lo;
-  if (d.hi != null) max = d.hi;
+  // A set end the values cross moves the other end past it, so the range never runs backward.
+  if (d.lo != null) [min, max] = [d.lo, Math.max(max, d.lo)];
+  if (d.hi != null) [min, max] = [Math.min(min, d.hi), d.hi];
 
-  const count = d.h ? Math.max(2, plotPx.w / 90) : Math.max(2, Math.round(plotPx.h / 56));
+  const count = d.h ? Math.max(2, plotPx.w / 90) : d.vc;
   let [dmin, dmax] = d.lo != null && d.hi != null ? [min, max] : nice(min, max, Math.round(count));
   if (d.lo != null) dmin = d.lo;
   if (d.hi != null) dmax = d.hi;

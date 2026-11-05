@@ -171,18 +171,31 @@ public class ChartRedrawTests
         Assert.Equal("500 500", string.Join(" ", model.ValueTexts[1]));
     }
 
+    [Fact]
+    public void A_set_end_the_values_cross_widens_the_range_instead_of_reversing_it()
+    {
+        // ValueMin above every value: the axis starts there and runs up, not backward.
+        var model = ChartLayout.Build(new ChartInput(["A", "B"], [new ChartSeriesData("S", ChartType.Bar, [5, 6])])
+        { ValueMin = 100, Culture = CultureInfo.InvariantCulture });
+
+        Assert.Equal("100", model.ValueLabels[0].Text);
+        Assert.DoesNotContain(model.ValueLabels, l => l.Text.Contains("NaN"));
+        Assert.Equal(0, ChartScale.TickSpec(10, 10, 5).I2 - ChartScale.TickSpec(10, 10, 5).I1 + 1);
+    }
+
     [Theory]
     [InlineData("C0", "en-US", "$", "", "-$", ",", ".", 0, 1)]
     [InlineData("P0", "en-US", "", "%", "-", ",", ".", 0, 100)]
     [InlineData("N1", "de-DE", "", "", "-", ".", ",", 1, 1)]
     [InlineData("0' ms'", "en-US", "", " ms", "-", "", ".", 0, 1)]
+    [InlineData("#,##0,K", "en-US", "", "K", "-", ",", ".", 0, 0.001)]
     public void The_script_reads_how_values_look_from_the_format(string format, string culture, string prefix, string suffix, string negative, string group, string dec, int decimals, double scale)
     {
-        var shape = NumberShape.Of(format, CultureInfo.GetCultureInfo(culture));
+        var shape = NumberShape.Of(format, CultureInfo.GetCultureInfo(culture))!;
         Assert.Equal((prefix, suffix, negative, group, dec, decimals, scale),
             (shape.Prefix, shape.Suffix, shape.NegativePrefix, shape.Group, shape.Decimal, shape.Decimals, shape.Scale));
-        Assert.True(NumberShape.Of("#,##0.##", CultureInfo.InvariantCulture).Trim);
-        Assert.Equal(-1, NumberShape.Of(null, CultureInfo.InvariantCulture).Decimals);
+        Assert.Equal(0, NumberShape.Of("#,##0.##", CultureInfo.InvariantCulture)!.MinDecimals);
+        Assert.Equal(-1, NumberShape.Of(null, CultureInfo.InvariantCulture)!.Decimals);
     }
 }
 
@@ -218,7 +231,9 @@ public class ChartRenderTests : BunitContext
 
         // Series named from their properties, in the legend and the table.
         Assert.Equal(["Revenue", "Costs"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
-        Assert.Equal("Show data", cut.Find("details.ib-chart-data > summary").TextContent.Trim());
+        // Each "Show data" says which chart it is, and its table is named by the caption.
+        Assert.Equal("Show data, Revenue and costs", cut.Find("details.ib-chart-data > summary").TextContent.Trim());
+        Assert.Equal(caption.Id, cut.Find(".ib-chart-table").GetAttribute("aria-labelledby"));
         Assert.Equal(["Name", "Revenue", "Costs"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
         Assert.Equal(["Feb", "120.0", "70.5"], cut.FindAll(".ib-chart-table tbody tr")[1].Children.Select(c => c.TextContent));
     }

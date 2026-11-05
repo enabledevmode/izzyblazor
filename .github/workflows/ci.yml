@@ -63,6 +63,12 @@ jobs:
             echo "  $(basename "$f"): $n bytes"
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
+          # Parts an element loads only when needed (elements/parts), on the same budget.
+          for f in src/IzzyBlazor.Core/wwwroot/elements/parts/*.js; do
+            n=$(gzip -c "$f" | wc -c)
+            echo "  parts/$(basename "$f"): $n bytes"
+            if [ "$n" -gt "$big" ]; then big=$n; fi
+          done
           echo "Largest on-demand element: $big bytes (budget 6144)"
           test "$css" -le 51200 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 3072 && test "$js" -le 15360 && test "$big" -le 6144
 

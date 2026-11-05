@@ -1098,6 +1098,12 @@ public class IzzyText
     /// <summary>The first column's header in a Chart's data table, when its Argument isn't a property.</summary>
     public virtual string ChartItem { get; set; } = "Item";
 
+    /// <summary>What screen readers call a chart once its script gives it the keyboard.</summary>
+    public virtual string ChartRole { get; set; } = "chart";
+
+    /// <summary>How the keyboard moves through a chart, read after its name.</summary>
+    public virtual string ChartKeys { get; set; } = "Arrow keys move between values; Escape hides the tooltip.";
+
     /// <summary>A PieChart's data table and tooltip: each slice's share of the whole.</summary>
     public virtual string ChartShare { get; set; } = "Share";
 
