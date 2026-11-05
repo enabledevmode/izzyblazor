@@ -53,6 +53,15 @@
     /// <summary>The button's color. Defaults to <see cref="Accent.Primary"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Primary;
 
+    /// <summary>Makes the button round. Defaults to a rounded square, as a FloatingButton is.</summary>
+    [Parameter] public bool Round { get; set; }
+
+    /// <summary>
+    /// Spins the button's icon into <see cref="OpenIcon"/> as the actions open, and back (the
+    /// default). False swaps them without turning. No turning with reduced motion either way.
+    /// </summary>
+    [Parameter] public bool SpinIcon { get; set; } = true;
+
     /// <summary>Which way the actions open from the button. Defaults to <see cref="SpeedDialDirection.Up"/>.</summary>
     [Parameter] public SpeedDialDirection Direction { get; set; } = SpeedDialDirection.Up;
 
@@ -99,6 +108,8 @@
 
     private string ButtonClass => new ClassBuilder()
         .Add($"ib-btn ib-btn-{Accent.Role ?? "primary"} ib-btn-solid ib-btn-lg ib-btn-icon-only ib-btn-float ib-sd-button")
+        .Add("ib-btn-round", Round)
+        .Add("ib-sd-spin", SpinIcon)
         .Add("ib-btn-float-start", Position == FloatPosition.BottomStart)
         .Add("ib-btn-float-center", Position == FloatPosition.BottomCenter)
         .Build()!;

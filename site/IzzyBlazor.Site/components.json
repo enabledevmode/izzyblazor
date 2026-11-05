@@ -444,7 +444,7 @@
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
-        { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and `Label` to name it; it's required. Keep one per page." },
+        { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and `Label` to name it; it's required. Keep one per page. `Round` makes it round." },
         { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Position` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
       ]
     },
@@ -457,8 +457,8 @@
         { "feature": "Arrow keys between the actions", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "speed-dial-create", "title": "Things to create", "height": 400, "page": true, "lead": "Set `Label` to name the button, and give each `SpeedDialAction` an `Icon` and a `Label`, shown beside it. An action is a link (`Href`), a form post (`Submit`) or C# (`OnClick`). The button turns into a close button while the actions show." },
-        { "id": "speed-dial-hover", "title": "Icons that open on hover", "height": 360, "page": true, "lead": "To show only the icons, with the labels as tooltips, set `ShowLabels=\"false\"`. To open as the pointer comes over the button, set `OpenOn=\"SpeedDialTrigger.Hover\"`; a click or tap still opens it. `Direction` opens the actions down, or toward the start or end, and `Icon` and `OpenIcon` change the button's icons.",
+        { "id": "speed-dial-create", "title": "Things to create", "height": 400, "page": true, "lead": "Set `Label` to name the button, and give each `SpeedDialAction` an `Icon` and a `Label`, shown beside it. An action is a link (`Href`), a form post (`Submit`) or C# (`OnClick`). The button spins into a close button while the actions show; `SpinIcon=\"false\"` swaps the icons without turning." },
+        { "id": "speed-dial-hover", "title": "Icons that open on hover", "height": 360, "page": true, "lead": "To show only the icons, with the labels as tooltips, set `ShowLabels=\"false\"`. To open as the pointer comes over the button, set `OpenOn=\"SpeedDialTrigger.Hover\"`; a click or tap still opens it. `Direction` opens the actions down, or toward the start or end, `Icon` and `OpenIcon` change the button's icons, and `Round` makes it round, as here.",
           "notes": {
             "noscript": "Hover needs script: a click opens the actions."
           } }

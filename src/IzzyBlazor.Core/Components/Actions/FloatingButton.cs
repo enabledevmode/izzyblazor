@@ -34,6 +34,9 @@ public class FloatingButton : IzzyComponentBase
     /// <summary>Where it sits. Defaults to <see cref="FloatPosition.BottomEnd"/>.</summary>
     [Parameter] public FloatPosition Position { get; set; } = FloatPosition.BottomEnd;
 
+    /// <summary>Makes it round (a pill with <see cref="ShowLabel"/>). Defaults to a rounded square.</summary>
+    [Parameter] public bool Round { get; set; }
+
     /// <summary>Its color. Defaults to <see cref="Accent.Primary"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Primary;
 
@@ -156,7 +159,7 @@ public class FloatingButton : IzzyComponentBase
             builder.AddComponentParameter(12, nameof(Button.OnClick), OnClick);
         }
 
-        builder.AddComponentParameter(13, nameof(Class), Class);
+        builder.AddComponentParameter(13, nameof(Class), Round ? (Class is null ? "ib-btn-round" : $"ib-btn-round {Class}") : Class);
         builder.AddComponentParameter(14, nameof(Style), Style);
         builder.AddComponentParameter(15, nameof(HiddenFrom), HiddenFrom);
         builder.AddComponentParameter(16, nameof(VisibleFrom), VisibleFrom);
