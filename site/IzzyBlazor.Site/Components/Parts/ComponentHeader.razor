@@ -36,14 +36,14 @@
        in its body. *@
     <div class="site-lead">@(Topic?.Summary ?? Component.Summary)</div>
     @* A topic's own: its page and the API it's about. *@
-    <Tabs Label="@($"{Topic?.Title ?? Component.Name} pages")">
+    <TabNav Label="@($"{Topic?.Title ?? Component.Name} pages")">
         <TabLink Href="@(Topic is null ? Registry.OverviewHref(Component) : Registry.TopicHref(Component, Topic))" Label="Overview" Match="NavLinkMatch.All" />
         <TabLink Href="@(Topic is { Members.Count: > 0 } ? Registry.TopicApiHref(Component, Topic) : Registry.ApiPageHref(Component))" Label="API" Match="NavLinkMatch.All" />
         @if (Component.Scenarios.Count > 0)
         {
             <TabLink Href="@Registry.DemosHref(Component)" Label="Demos" />
         }
-    </Tabs>
+    </TabNav>
 </Stack>
 
 @code {

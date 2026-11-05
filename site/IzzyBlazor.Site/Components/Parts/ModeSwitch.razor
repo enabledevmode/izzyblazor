@@ -4,7 +4,7 @@
     The page's Static · Interactive switch: links that load the page in that mode, the current one
     marked. A third mode, no script (?mode=noscript: neither Blazor's nor IzzyBlazor's script), isn't
     offered: it's how every page looks before its scripts run, kept for checking the fallback, and
-    shows in the switch only while the page is in it. The library's segmented link Tabs draw it, with TabLink's Current, since the mode
+    shows in the switch only while the page is in it. The library's segmented TabNav draws it, with TabLink's Current, since the mode
     may come from the cookie rather than the address. Every example on the page renders in the page's mode (ExampleViewer), so picking
     another loads the page again in it; site.js keeps the scroll position.
 
@@ -26,13 +26,13 @@
         @* The Tabs' nav is named "Examples run" too, so the visible label isn't read twice. *@
         <span class="site-modeswitch-label" aria-hidden="true">Examples run</span>
     }
-    <Tabs Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" Class="site-modeswitch-options">
+    <TabNav Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" Class="site-modeswitch-options">
         @foreach (var mode in Offered.Concat(_mode == "noscript" ? ["noscript"] : []))
         {
             <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
                      data-mode="@mode" data-enhance-nav="@(mode == "noscript" || _mode == "noscript" ? "false" : null)" />
         }
-    </Tabs>
+    </TabNav>
     @if (!Compact)
     {
         <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text">@Meaning(_mode)</TextBlock>

@@ -35,10 +35,10 @@
                         </Stack>
                         @if (Before is not null)
                         {
-                            <Tabs Label="Layout" Size="ControlSize.Sm">
+                            <TabNav Label="Layout" Size="ControlSize.Sm">
                                 <TabLink Href="@To(ShownKey, null)" Label="Unified" />
                                 <TabLink Href='@To(ShownKey, "split")' Label="Side by side" />
-                            </Tabs>
+                            </TabNav>
                         }
                     </Row>
                     @if (Before is null)

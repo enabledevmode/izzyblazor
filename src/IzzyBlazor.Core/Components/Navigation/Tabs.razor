@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits LayoutItemBase
+@inherits TabsBase
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
@@ -21,9 +21,8 @@
     </Tabs>
 
     Orientation="Orientation.Vertical" puts the tabs in a column beside the panels from 640px up
-    (a scrolling row above them on phones). With TabLink children instead of Tab, it renders a
-    nav of links to separate pages; see TabLink. Up to 30 tabs show their panels: the CSS has a
-    rule for each position.
+    (a scrolling row above them on phones). For tabs that link to pages of their own, use TabNav.
+    Up to 30 tabs show their panels: the CSS has a rule for each position.
 
     Accessibility:
     - With script, the list is ARIA tabs (`tablist`, `tab`, `tabpanel`, `aria-selected`) with only
@@ -34,9 +33,8 @@
       tab's label as plain text, so every field can be filled in.
     - With script, each panel is named by its tab and takes focus, so Tab moves from the tab to the
       panel.
-    - `Label` names the tab list (or the `nav` of TabLinks). It's optional, as in ARIA and other
-      libraries, with no default; set it when the tabs' purpose isn't clear from the heading
-      before them, and give each `nav` of TabLinks its own when a page has more than one.
+    - `Label` names the tab list. It's optional, as in ARIA and other libraries, with no default;
+      set it when the tabs' purpose isn't clear from the heading before them.
     - In a form, with script, a tab whose fields have errors shows a count, read as part of its
       name ("Billing (1 error)").
     - With script, Delete or Backspace on a closable tab closes it, announced as the tab's shortcut
@@ -46,50 +44,9 @@
     - With JavaScript off, each close link follows its tab in the tab order, named "Close" and the
       label ("Close Billing").
     - The add button follows the list, named "Add tab" (`AddLabel`).
-    - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
-      page's link has `aria-current`, and a disabled one is a link with no `href`, announced as
-      disabled (`aria-disabled`).
-    See also: SegmentedControl, NavMenu, Accordion.
+    See also: TabNav, SegmentedControl, Accordion.
 *@
 
-@if (_context.Links.Count > 0)
-{
-    if (_context.Items.Count > 0)
-    {
-        throw new InvalidOperationException("A Tabs holds either Tab (panels on this page) or TabLink (links to other pages), not both.");
-    }
-
-    <nav @attributes="AdditionalAttributes"
-         id="@Id"
-         class="@_class"
-         style="@_style"
-         aria-label="@Label">
-        <div class="ib-tabs-list">
-            @{ var current = CurrentLinks(); }
-            @for (var i = 0; i < _context.Links.Count; i++)
-            {
-                var link = _context.Links[i];
-                @if (link.Disabled)
-                {
-                    @* A link without an href, as Button does: role="link" keeps it in the list of links, disabled. *@
-                    <span class="ib-tab ib-tab-disabled" role="link" aria-disabled="true">@TabContent(link.Icon, link.Label, link.Badge)</span>
-                }
-                else
-                {
-                    <a @attributes="link.AdditionalAttributes"
-                       class="ib-tab"
-                       href="@link.Href"
-                       aria-current="@LinkMatch.AriaCurrent(current[i])">@TabContent(link.Icon, link.Label, link.Badge)</a>
-                }
-            }
-        </div>
-        <CascadingValue Value="_context" IsFixed="true">
-            @ChildContent
-        </CascadingValue>
-    </nav>
-}
-else
-{
 <ib-tabs @attributes="AdditionalAttributes"
          id="@RootId"
          class="@_class"
@@ -150,7 +107,6 @@ else
         @ChildContent
     </CascadingValue>
 </ib-tabs>
-}
 
 @code {
     /// <summary>The selected tab's <see cref="Tab.Value"/>. Defaults to the first tab that isn't disabled.</summary>
@@ -160,23 +116,11 @@ else
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<string> SelectedChanged { get; set; }
 
-    /// <summary>The tab list's (or the TabLinks' <c>nav</c>'s) name for screen readers, such as "Account settings".</summary>
-    [Parameter] public string? Label { get; set; }
-
     /// <summary>
     /// Keeps the selected tab in the URL under this query-string key, such as <c>tab</c>: a link
     /// to <c>?tab=billing</c> opens that tab, and with JavaScript switching tabs updates the URL.
     /// </summary>
     [Parameter] public string? QueryKey { get; set; }
-
-    /// <summary>How the tabs look. Defaults to <see cref="TabsVariant.Line"/>.</summary>
-    [Parameter] public TabsVariant Variant { get; set; } = TabsVariant.Line;
-
-    /// <summary>Tab height and text size, shared with buttons and fields. Defaults to <see cref="ControlSize.Md"/>.</summary>
-    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
-
-    /// <summary>Stretches the tabs to share the full width (or, vertical, the list's width).</summary>
-    [Parameter] public bool FullWidth { get; set; }
 
     /// <summary>
     /// Padding on every side of each panel, in spacing steps, in place of the default space above
@@ -217,12 +161,6 @@ else
     /// <summary>The add button's name, such as "New invoice". Defaults to "Add tab".</summary>
     [Parameter] public string? AddLabel { get; set; }
 
-    /// <summary>The element id; tab and panel ids build on it. Generated when not set.</summary>
-    [Parameter] public string? Id { get; set; }
-
-    /// <summary>The <see cref="Tab"/>s.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
     private TabsContext _context = null!;
     private string? _generatedId;
     private string? _selected;
@@ -246,16 +184,9 @@ else
         Navigation.LocationChanged += OnLocationChanged;
     }
 
-    // Link tabs mark the current page, and a QueryKey tab follows the address (a link to
-    // ?tab=billing on the same page); follow navigation on interactive pages.
+    // A QueryKey tab follows the address (a link to ?tab=billing on the same page) on interactive pages.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        if (_context.Links.Count > 0)
-        {
-            InvokeAsync(StateHasChanged);
-            return;
-        }
-
         if (QueryKey is not null
             && QueryString.Of(e.Location).TryGetValue(QueryKey, out var values)
             && values.ToString() is { Length: > 0 } value
@@ -461,64 +392,15 @@ else
     // A field registered with a tab: its errors may need showing.
     internal void FieldsChanged() => Refresh();
 
-    // Each link's match. A link's own Current wins; the others follow the URL, unless a link is
-    // Current, which leaves them unmarked so only one tab is current. Tabs on one page told apart
-    // by the query (?view=billing): a link without a query matches its page whatever the query, so
-    // when a link with one matches, the one without gives way.
-    private (bool Active, bool Exact)[] CurrentLinks()
+    // A tab's content, with its error count in a form.
+    private RenderFragment TabContent(IconData? icon, string label, string? badge, int errors) =>
+        TabContent(icon, label, badge, errors == 0 ? null : ErrorBadge(errors));
+
+    private RenderFragment ErrorBadge(int errors) => __builder =>
     {
-        var links = _context.Links;
-        var fromUrl = links.Select(l => !l.Disabled && l.Current is null).ToArray();
-        var states = links.Select((l, i) => fromUrl[i] ? LinkMatch.Of(Navigation, l.Href, Navigation.Uri, l.Match) : (Active: false, Exact: false)).ToArray();
-        var queried = links.Select((l, i) => fromUrl[i] && Navigation.ToAbsoluteUri(l.Href).Query.Length > 1).ToArray();
-        if (states.Where((state, i) => state.Active && queried[i]).Any())
-        {
-            for (var i = 0; i < states.Length; i++)
-            {
-                if (!queried[i])
-                {
-                    states[i] = (false, false);
-                }
-            }
-        }
-
-        var chosen = links.Any(l => !l.Disabled && l.Current == true);
-        for (var i = 0; i < states.Length; i++)
-        {
-            if (links[i].Disabled)
-            {
-                continue;
-            }
-
-            if (links[i].Current is { } current)
-            {
-                states[i] = (current, false);
-            }
-            else if (chosen)
-            {
-                states[i] = (false, false);
-            }
-        }
-
-        return states;
-    }
-
-    private RenderFragment TabContent(IconData? icon, string label, string? badge, int errors = 0) => __builder =>
-    {
-        if (icon is { } shown)
-        {
-            <Icon Name="shown" />
-        }
-        <span class="ib-tab-text">@label</span>
-        if (badge is not null)
-        {
-            <Badge Size="BadgeSize.Sm" Pill>@badge</Badge>
-        }
-        if (errors > 0)
-        {
-            var text = IzzyText.From(Services);
-            <Badge Size="BadgeSize.Sm" Pill Status="Status.Danger" Class="ib-tab-errors"><span aria-hidden="true">@errors</span><span class="ib-visually-hidden">(@(errors == 1 ? text.OneError : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ErrorCount, errors)))</span></Badge>
-        }
+        var text = IzzyText.From(Services);
+        var spoken = errors == 1 ? text.OneError : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ErrorCount, errors);
+        <Badge Size="BadgeSize.Sm" Pill Status="Status.Danger" Class="ib-tab-errors"><span aria-hidden="true">@errors</span><span class="ib-visually-hidden">(@spoken)</span></Badge>
     };
 
     /// <inheritdoc />
@@ -565,20 +447,12 @@ else
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
-        classes.Add("ib-tabs");
-        classes.Add($"ib-tabs-{Variant.Name()}");
-        classes.Add("ib-tabs-sm", Size == ControlSize.Sm);
-        classes.Add("ib-tabs-lg", Size == ControlSize.Lg);
-        classes.Add("ib-tabs-fitted", FullWidth);
         classes.Add("ib-tabs-vertical", Orientation == Orientation.Vertical);
-        classes.Add("ib-tabs-nav", _context.Links.Count > 0);
         base.BuildAttributes(classes, styles);
     }
 
     internal void TabsChanged()
     {
-        // Link tabs register after the first render and change the root's classes (ib-tabs-nav).
-        (_class, _style) = BuildRootAttributes();
         StateHasChanged();
     }
 

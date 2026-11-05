@@ -26,7 +26,7 @@ public class TabsExtrasRenderTests : BunitContext
     public void Link_tabs_render_a_nav_of_links_with_the_current_page_marked()
     {
         GoTo("settings/billing");
-        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Settings").Add(t => t.ChildContent, Links()));
+        var cut = Render<TabNav>(p => p.Add(t => t.Label, "Settings").Add(t => t.ChildContent, Links()));
 
         var nav = cut.Find("nav");
         var links = cut.FindAll("nav .ib-tabs-list > a.ib-tab");
@@ -39,7 +39,7 @@ public class TabsExtrasRenderTests : BunitContext
     }
 
     [Fact]
-    public void Mixing_tabs_and_link_tabs_is_an_error()
+    public void A_TabLink_outside_a_TabNav_is_an_error()
     {
         RenderFragment mixed = builder =>
         {
@@ -60,7 +60,7 @@ public class TabsExtrasRenderTests : BunitContext
     {
         // The page is billing, but the choice comes from elsewhere (a cookie, say): Profile is current.
         GoTo("settings/billing");
-        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Settings").Add(t => t.ChildContent, builder =>
+        var cut = Render<TabNav>(p => p.Add(t => t.Label, "Settings").Add(t => t.ChildContent, builder =>
         {
             foreach (var (href, label, current) in new[] { ("settings/profile", "Profile", (bool?)true), ("settings/billing", "Billing", false), ("settings/security", "Security", null) })
             {

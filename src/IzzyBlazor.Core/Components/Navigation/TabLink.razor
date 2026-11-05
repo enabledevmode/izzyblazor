@@ -3,15 +3,12 @@
 @implements IDisposable
 
 @*
-    A tab that's a link to its own page, for sections split across routes (/settings/profile,
-    /settings/billing). A Tabs holding TabLinks renders a nav of real links: no script, no panels,
-    and the tab for the current page is marked from the URL on the server. Don't mix TabLinks
-    with Tabs that have panels.
+    A tab in a TabNav: a link to its own page, marked current from the URL on the server.
 
-    <Tabs Label="Settings">
+    <TabNav Label="Settings">
         <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
         <TabLink Href="settings/billing" Label="Billing" Badge="2" />
-    </Tabs>
+    </TabNav>
 *@
 
 @code {
@@ -49,7 +46,7 @@
     /// <summary>Extra attributes for the link, such as <c>data-enhance-nav</c>.</summary>
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    [CascadingParameter] internal TabsContext? Context { get; set; }
+    [CascadingParameter] internal TabNav? Context { get; set; }
 
     private (string, string, IconData?, string?, bool, NavLinkMatch, bool?)? _shown;
 
@@ -63,16 +60,16 @@
 
         if (Context is null)
         {
-            throw new InvalidOperationException($"{nameof(TabLink)} goes inside a {nameof(Tabs)}.");
+            throw new InvalidOperationException($"{nameof(TabLink)} goes inside a {nameof(TabNav)}.");
         }
 
-        Context.RegisterLink(this);
+        Context.Register(this);
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        // Tabs renders the link, so tell it when what it shows has changed.
+        // TabNav renders the link, so tell it when what it shows has changed.
         var shown = (Href, Label, Icon, Badge, Disabled, Match, Current);
         if (_shown is { } previous && previous != shown)
         {
@@ -83,5 +80,5 @@
     }
 
     /// <inheritdoc />
-    public void Dispose() => Context?.UnregisterLink(this);
+    public void Dispose() => Context?.Unregister(this);
 }

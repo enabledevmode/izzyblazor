@@ -1,6 +1,6 @@
 @inject ApiMetadata Api
 @* Tabs' Overview, written by hand after Button's: picking a tab previewed in each mode, the looks,
-   vertical tabs, the tab in the address, tabs in a form, panel padding and tabs that are links.
+   vertical tabs, the tab in the address, tabs in a form and panel padding.
    Parts, Accessibility and See also come from the doc comments and components.json. *@
 
 <Heading Level="2">Usage</Heading>
@@ -10,7 +10,7 @@
 <Heading Level="2">Picking a tab</Heading>
 <TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>. A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
 <ExampleViewer Example="tabs-modes" />
-<TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tabs#tabs-as-links">TabLink</Anchor>.</TextBlock>
+<TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tab-nav">TabNav</Anchor> link.</TextBlock>
 
 <Heading Level="2">Variants, icons and badges</Heading>
 <TextBlock>Tabs come in three variants: an underline (the default), soft tabs, or a segmented control. Set <Code>Variant</Code>. Each <Code>Tab</Code> can have an <Code>Icon</Code> and a <Code>Badge</Code>, or be <Code>Disabled</Code>.</TextBlock>
@@ -49,14 +49,6 @@
 <TextBlock>A panel's padding is the space around its content. To pad every panel on all sides, set <Code>ContentPadding</Code>. To run a table edge to edge in one panel, set that <Code>Tab</Code>'s own <Code>ContentPadding="0"</Code>.</TextBlock>
 <ExampleViewer Example="tabs-padding" />
 
-<Heading Level="2">Tabs as links</Heading>
-<TextBlock>Tab links suit sections that are pages of their own. Use <Code>TabLink</Code> in place of <Code>Tab</Code>. The tabs are a <Code>nav</Code> of plain links, and the server marks the one for the current URL.</TextBlock>
-<ExampleViewer Example="tabs-links" />
-<List Gap="2">
-    <ListItem>A tab stays current on the pages below its link, so a <Code>settings</Code> tab is current on <Code>settings/billing</Code> too. To stop that, set <Code>Match="NavLinkMatch.All"</Code>.</ListItem>
-    <ListItem>When several tabs link to one page and differ only by their query, one is current at a time.</ListItem>
-</List>
-
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
     <Heading Level="2">Parts</Heading>
@@ -88,12 +80,6 @@
         <Tabs Label="Account">
             <Tab Label="Profile" Icon="Lucide.User">...</Tab>
             <Tab Label="Billing" Badge="2">...</Tab>
-        </Tabs>
-
-        @* Links to pages of their own. *@
-        <Tabs Label="Settings">
-            <TabLink Href="settings/profile" Label="Profile" />
-            <TabLink Href="settings/billing" Label="Billing" />
         </Tabs>
         """;
 }
