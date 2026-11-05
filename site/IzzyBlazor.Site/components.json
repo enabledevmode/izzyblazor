@@ -437,7 +437,7 @@
       ]
     },
     {
-      "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Actions", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "fab menu", "speed dial", "extended fab"],
+      "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Actions", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "extended fab"],
       "features": [
         { "feature": "Stays in its corner as the page scrolls, above a sticky footer" },
         { "feature": "Follows a link, posts a form or runs C#" },
@@ -445,8 +445,23 @@
       ],
       "examples": [
         { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and `Label` to name it; it's required. Keep one per page." },
-        { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Position` puts this one at the bottom center." },
-        { "id": "floating-button-menu", "title": "With a menu", "height": 360, "page": true, "lead": "To offer several things to create from one floating button, put it in a `Menu`'s `Trigger`, with `Placement=\"Placement.TopEnd\"` so the menu opens above it." }
+        { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Position` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
+      ]
+    },
+    {
+      "id": "speed-dial", "icon": "Plus", "name": "SpeedDial", "category": "Actions", "summary": "A floating button that opens a line of actions, such as the things a page can create.", "keywords": ["speed dial", "fab menu", "floating action menu", "floating button menu"], "parts": ["SpeedDialAction"],
+      "features": [
+        { "feature": "Opens and closes with JavaScript off" },
+        { "feature": "Actions are links, form posts or C#" },
+        { "feature": "Opens on hover (OpenOn)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Arrow keys between the actions", "noscript": "none", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "speed-dial-create", "title": "Things to create", "height": 400, "page": true, "lead": "Set `Label` to name the button, and give each `SpeedDialAction` an `Icon` and a `Label`, shown beside it. An action is a link (`Href`), a form post (`Submit`) or C# (`OnClick`). The button turns into a close button while the actions show." },
+        { "id": "speed-dial-hover", "title": "Icons that open on hover", "height": 360, "page": true, "lead": "To show only the icons, with the labels as tooltips, set `ShowLabels=\"false\"`. To open as the pointer comes over the button, set `OpenOn=\"SpeedDialTrigger.Hover\"`; a click or tap still opens it. `Direction` opens the actions down, or toward the start or end, and `Icon` and `OpenIcon` change the button's icons.",
+          "notes": {
+            "noscript": "Hover needs script: a click opens the actions."
+          } }
       ]
     },
     {

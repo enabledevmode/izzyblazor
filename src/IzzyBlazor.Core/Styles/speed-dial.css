@@ -1,0 +1,111 @@
+/*
+ * SpeedDial, built to wwwroot/speed-dial.css and linked by the component, so other pages don't
+ * pay for it. Its panel is a Menu's [popover] with the card look taken off: the actions are round
+ * icons in a line from the button, each with its label in a pill beside it (or as its tooltip,
+ * ib-sd-icons). The first action in the markup is the one nearest the button, where focus starts.
+ */
+@layer izzy.components {
+  /* The button turns into a close button while the actions show. */
+  .ib-sd-button .ib-sd-open,
+  .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-closed {
+    display: none;
+  }
+
+  .ib-pop-root:has(> .ib-sd-panel:popover-open) .ib-sd-open {
+    display: inline-flex;
+    rotate: 90deg;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ib-sd-button .ib-icon {
+      transition: rotate 150ms ease;
+    }
+  }
+
+  .ib-pop.ib-sd-panel {
+    --ib-sd-size: 2.5rem;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: var(--ib-space-3);
+    min-width: 0;
+    max-width: calc(100vw - 1rem);
+    /* The button is 44px and an action 40px: this lines their centers up. */
+    padding: 0 0.125rem;
+    overflow: visible;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    --ib-pop-gap: var(--ib-space-3);
+  }
+
+  .ib-sd-panel.ib-sd-down { flex-direction: column; }
+  .ib-sd-panel.ib-sd-at-start { align-items: flex-start; }
+  .ib-sd-panel.ib-sd-start { flex-direction: row-reverse; padding: 0.125rem 0; }
+  .ib-sd-panel.ib-sd-end { flex-direction: row; padding: 0.125rem 0; }
+
+  /* An action: its label, then the round icon, nearest the button's side of the window. */
+  .ib-sd-panel .ib-sd-action {
+    --ib-icon-size: var(--ib-control-icon-md);
+    flex-direction: row-reverse;
+    gap: var(--ib-space-3);
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    color: var(--ib-color-on-surface);
+    white-space: nowrap;
+  }
+
+  .ib-sd-at-start .ib-sd-action { flex-direction: row; }
+
+  .ib-sd-action > .ib-icon {
+    box-sizing: content-box;
+    flex: none;
+    padding: calc((var(--ib-sd-size) - var(--ib-icon-size)) / 2);
+    border: 1px solid var(--ib-color-border);
+    border-radius: 50%;
+    background-color: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-md);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-sd-action > .ib-menu-label {
+    padding: var(--ib-space-1) var(--ib-space-3);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-md);
+    font-weight: 500;
+  }
+
+  .ib-sd-icons .ib-sd-action > .ib-menu-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ib-sd-panel .ib-sd-action:is(:hover, :focus-visible) {
+    background: none;
+    box-shadow: none;
+  }
+
+  .ib-sd-action:is(:hover, :focus-visible) > .ib-icon {
+    background-color: color-mix(in oklab, var(--ib-color-on-surface) 8%, var(--ib-color-surface-overlay));
+  }
+
+  .ib-sd-action:focus-visible > .ib-icon {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  /* With no script the items are plain links and buttons: the same look. */
+  .ib-sd-panel .ib-sd-action[aria-disabled="true"],
+  .ib-sd-panel .ib-sd-action:disabled {
+    opacity: 0.5;
+  }
+}

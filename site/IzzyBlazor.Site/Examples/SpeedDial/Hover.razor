@@ -1,0 +1,23 @@
+@inject NavigationManager Navigation
+
+@* A document's tools as icons that open as the pointer comes over the button; each label is its
+   tooltip. A click or tap opens them too. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Q3 report</Heading>
+    @if (Done is not null)
+    {
+        <Alert Status="Status.Info">@Done.</Alert>
+    }
+    <TextBlock Color="Color.Muted">Revenue grew 12% over the quarter, led by the new annual plans.</TextBlock>
+</Stack>
+<SpeedDial Label="Document tools" Icon="Lucide.Ellipsis" OpenOn="SpeedDialTrigger.Hover" ShowLabels="false">
+    <SpeedDialAction Icon="Lucide.Share2" Label="Share" Href="@To("Shared")" />
+    <SpeedDialAction Icon="Lucide.Printer" Label="Print" Href="@To("Printed")" />
+    <SpeedDialAction Icon="Lucide.Copy" Label="Duplicate" Href="@To("Duplicated")" />
+</SpeedDial>
+
+@code {
+    [SupplyParameterFromQuery(Name = "done")] private string? Done { get; set; }
+
+    private string To(string what) => Navigation.GetUriWithQueryParameter("done", what);
+}
