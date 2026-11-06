@@ -362,31 +362,36 @@ class GridColumns extends IzzyElement {
       void this.#save(columns, true, key!);
     }
     else if (th && (action === "freeze-start" || action === "freeze-end" || action === "unfreeze")) {
-      // A line, as a sheet's frozen panes: Pin left pins this column and all before it, Pin right
-      // this one and all after it, nothing moving; No pin unpins its whole side. A band is pinned
-      // as one (it never straddles the line), its hidden columns too, so it stays so when they're
-      // shown again.
+      // A line, as a sheet's frozen panes, nothing moving: Pin left pins every column to this one's
+      // left, Pin right every one to its right (a band's edges for a column in one, as a band is
+      // pinned whole), and pinning again moves the line: what falls outside it on that side scrolls.
+      // No pin unpins this column's side, or every pin from one that scrolls. A band's hidden columns
+      // go with it, so it stays whole when they're shown again.
       const headers = this.#headers;
       const outer = this.#path(th)[0];
       const own = outer === undefined ? [th] : headers.filter((h) => this.#path(h)[0] === outer);
       const first = headers.indexOf(own[0]);
       const last = headers.indexOf(own[own.length - 1]);
-      const side = this.#side(th);
       if (action === "unfreeze") {
-        if (!side) return;
-        const pinned = side === 1 ? FROZEN.start : FROZEN.end;
-        for (const h of headers) if (this.#side(h) === side) this.#entry(columns, h.dataset.ibCol!).f = FROZEN.none;
-        for (const entry of columns) if (entry.f === pinned) entry.f = FROZEN.none;
+        const side = this.#side(th);
+        for (const h of headers) if (this.#side(h) && (!side || this.#side(h) === side)) this.#entry(columns, h.dataset.ibCol!).f = FROZEN.none;
+        // Hidden ones too.
+        for (const entry of columns) if (entry.f && (!side || entry.f === side)) entry.f = FROZEN.none;
       } else {
-        const range = action === "freeze-start" ? headers.slice(0, last + 1) : headers.slice(first);
+        const start = action === "freeze-start";
+        const range = start ? headers.slice(0, first) : headers.slice(last + 1);
+        if (range.length === 0) return;
         const keys = new Set(range.map((h) => h.dataset.ibCol!));
         for (const id of new Set(range.map((h) => this.#path(h)[0]).filter((id) => id !== undefined))) for (const k of this.#bandColumns(id)) keys.add(k);
+        const pinned = start ? FROZEN.start : FROZEN.end;
+        for (const h of headers) if (!keys.has(h.dataset.ibCol!) && this.#side(h) === pinned) this.#entry(columns, h.dataset.ibCol!).f = FROZEN.none;
+        for (const entry of columns) if (entry.f === pinned && !keys.has(entry.k)) entry.f = FROZEN.none;
         // Pinned columns are placed by adding the widths up, so each needs one: a hidden one takes
         // the width of one shown beside it, until it's shown and resized.
         for (const k of keys) {
           const entry = this.#entry(columns, k);
-          entry.f = action === "freeze-start" ? FROZEN.start : FROZEN.end;
-          const header = this.#header(k) ?? th;
+          entry.f = start ? FROZEN.start : FROZEN.end;
+          const header = this.#header(k) ?? range[0];
           entry.w ??= `${Math.round(header.offsetWidth)}px`;
         }
       }
