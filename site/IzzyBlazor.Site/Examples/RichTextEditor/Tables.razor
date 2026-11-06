@@ -1,0 +1,18 @@
+@* Meeting notes with a table of action items: who does what, by when. *@
+<RichTextEditor Grow @bind-Value="_notes" Label="Meeting notes" Rows="10" />
+
+@code {
+    private string? _notes =
+        """
+        <h2>Launch review, March 4</h2>
+        <p>We agreed to ship on the 18th if the payment fixes pass review.</p>
+        <table>
+          <thead><tr><th scope="col">Action</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead>
+          <tbody>
+            <tr><td>Fix the refund rounding error</td><td>Priya</td><td>March 8</td></tr>
+            <tr><td>Update the pricing page</td><td>Sam</td><td>March 11</td></tr>
+            <tr><td>Brief the support team</td><td>Dana</td><td>March 15</td></tr>
+          </tbody>
+        </table>
+        """;
+}

@@ -329,6 +329,8 @@ const builds = [
       "elements/parts/rich-text-image": join(lib, "Scripts", "elements", "rich-text-image.ts"),
       // Its Markdown shortcuts, for editors that have them on.
       "elements/parts/rich-text-markdown": join(lib, "Scripts", "elements", "rich-text-markdown.ts"),
+      // Its tables, for editors with the table tool or a table in their text.
+      "elements/parts/rich-text-table": join(lib, "Scripts", "elements", "rich-text-table.ts"),
     },
     outdir: join(lib, "wwwroot"),
     format: "esm",

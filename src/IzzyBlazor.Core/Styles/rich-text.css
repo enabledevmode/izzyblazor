@@ -214,6 +214,16 @@
     gap: var(--ib-space-2);
   }
 
+  /* Table cells while editing: room to click into, and a line around each. */
+  .ib-rich-text-surface :is(td, th) {
+    min-width: 3rem;
+    border: 1px solid var(--ib-color-border);
+  }
+
+  .ib-rich-text-table-size {
+    grid-template-columns: 1fr 1fr;
+  }
+
   /* An image clicked in the text is marked, for the image tool and Delete. */
   .ib-rich-text-surface img[data-ib-selected] {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
