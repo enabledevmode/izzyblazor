@@ -115,7 +115,14 @@
   }
 
   .ib-cp-fields {
+    display: grid;
+    grid-template-columns: repeat(var(--ib-cp-channels, 3), minmax(0, 1fr));
+    gap: var(--ib-space-2);
+  }
+
+  .ib-cp-hex-row {
     display: flex;
+    grid-column: 1 / -1;
     align-items: end;
     gap: var(--ib-space-2);
   }
@@ -123,12 +130,18 @@
   .ib-cp-field {
     display: grid;
     gap: 2px;
-    flex: 1 1 3rem;
     min-width: 0;
   }
 
   .ib-cp-field-hex {
-    flex: 2 1 6rem;
+    flex: 1;
+  }
+
+  /* As tall as the field beside it, and square. */
+  .ib-cp-eyedropper {
+    flex: none;
+    width: var(--ib-field-h);
+    height: var(--ib-field-h);
   }
 
   .ib-cp-field-label {

@@ -90,15 +90,23 @@
         }
         @if (ShowFields)
         {
-            <div class="ib-cp-fields">
+            @* Two rows: hex (and the eyedropper), then a column for each channel. *@
+            <div class="ib-cp-fields" style="--ib-cp-channels: @(ShowAlpha ? 4 : 3)">
                 @* With no script it's shown only when it's what posts: when there are no swatches. *@
-                <label class="ib-cp-field ib-cp-field-hex" data-ib-script="@(_swatches.Length == 0 && !Clearable ? null : "")">
+                <div class="ib-cp-hex-row" data-ib-script="@(_swatches.Length == 0 && !Clearable ? null : "")">
+                <label class="ib-cp-field ib-cp-field-hex">
                     <span class="ib-cp-field-label">@TextDefaults.ColorHexField</span>
                     @* Posts with no script when there are no swatches to post. *@
                     <input class="ib-field-input" type="text" maxlength="9" spellcheck="false" autocomplete="off" data-ib-field="hex"
                            id="@(_firstControl == "hex" ? FieldId : null)" name="@(_swatches.Length == 0 && !Clearable ? NameAttributeValue : null)"
                            value="@_hex" aria-invalid="@(Invalid ? "true" : null)" disabled="@IsDisabled" readonly="@IsReadOnly" />
                 </label>
+                @if (ShowEyedropper)
+                {
+                    <IconButton Icon="Lucide.Pipette" Label="@TextDefaults.ColorEyedropper" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                                class="ib-cp-eyedropper" data-ib-script data-ib-eyedropper hidden Disabled="@(IsDisabled || IsReadOnly)" />
+                }
+                </div>
                 @foreach (var (key, label, value) in Channels)
                 {
                     <label class="ib-cp-field" data-ib-script>
@@ -106,11 +114,6 @@
                         <input class="ib-field-input" type="number" min="0" max="@(key == "A" ? 100 : 255)" inputmode="numeric" data-ib-field="@key"
                                aria-label="@label" value="@value" disabled="@IsDisabled" readonly="@IsReadOnly" />
                     </label>
-                }
-                @if (ShowEyedropper)
-                {
-                    <IconButton Icon="Lucide.Pipette" Label="@TextDefaults.ColorEyedropper" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
-                                data-ib-script data-ib-eyedropper hidden Disabled="@(IsDisabled || IsReadOnly)" />
                 }
             </div>
         }
