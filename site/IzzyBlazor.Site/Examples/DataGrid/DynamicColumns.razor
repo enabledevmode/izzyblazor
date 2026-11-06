@@ -1,0 +1,40 @@
+@* A revenue report with a column for each quarter reported so far: the columns come from the data,
+   so there's no class to write a PropertyColumn against. Each row is a dictionary, as a query or
+   an API returns it. *@
+<DataGrid Items="Report.Rows" Caption="Revenue by region" QueryPrefix="report-" InitialSort="region" Striped Grow>
+    <DynamicColumn Field="Region" Sortable Filterable />
+    @foreach (var quarter in Report.Quarters)
+    {
+        <DynamicColumn @key="quarter" Field="@quarter" Type="typeof(decimal)" Format="C0" Sortable Filterable />
+    }
+</DataGrid>
+
+@* hide *@
+@code {
+    private static class Report
+    {
+        public static readonly string[] Quarters = ["Q1 2026", "Q2 2026", "Q3 2026"];
+
+        public static readonly IReadOnlyList<IDictionary<string, object?>> Rows =
+        [
+            Row("North America", 412_300m, 438_900m, 451_200m),
+            Row("South America", 96_400m, 101_800m, 99_100m),
+            Row("Europe", 355_700m, 342_100m, 368_500m),
+            Row("Middle East", 58_200m, 64_900m, 71_300m),
+            Row("Africa", 31_500m, 33_800m, 36_200m),
+            Row("Asia Pacific", 287_600m, 301_400m, 322_900m),
+        ];
+
+        private static IDictionary<string, object?> Row(string region, params decimal[] revenue)
+        {
+            var row = new Dictionary<string, object?> { ["Region"] = region };
+            for (var i = 0; i < revenue.Length; i++)
+            {
+                row[Quarters[i]] = revenue[i];
+            }
+
+            return row;
+        }
+    }
+}
+@* /hide *@

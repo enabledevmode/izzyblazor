@@ -269,6 +269,16 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>Why an aggregate can't work on this column, or null when it can.</summary>
     private protected virtual string? AggregateProblem(DataAggregate type) => null;
 
+    // For a column whose values are of one type.
+    private protected string? ValueAggregateProblem(Type valueType, DataAggregate type) => type switch
+    {
+        DataAggregate.Sum or DataAggregate.Avg when FilterConvert.KindOf(valueType) != FieldKind.Number =>
+            $"The \"{HeaderText}\" column has a {type}, which only numbers take.",
+        DataAggregate.Min or DataAggregate.Max when FilterConvert.KindOf(valueType) is not (FieldKind.Number or FieldKind.Date or FieldKind.Time or FieldKind.Text) =>
+            $"The \"{HeaderText}\" column has a {type}, which {valueType.Name} values don't take.",
+        _ => null,
+    };
+
     /// <summary>An aggregate of a group, as the column's type where it can be; whether the group has it.</summary>
     internal bool TryAggregate(DataGroup? group, DataAggregate type, out object? value)
     {
@@ -617,14 +627,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     private protected override Type? OwnGroupType => FilterConvert.KindOf(typeof(TValue)) == FieldKind.None ? null : typeof(TValue);
 
     /// <inheritdoc />
-    private protected override string? AggregateProblem(DataAggregate type) => type switch
-    {
-        DataAggregate.Sum or DataAggregate.Avg when FilterConvert.KindOf(typeof(TValue)) != FieldKind.Number =>
-            $"The \"{HeaderText}\" column has a {type}, which only numbers take.",
-        DataAggregate.Min or DataAggregate.Max when FilterConvert.KindOf(typeof(TValue)) is not (FieldKind.Number or FieldKind.Date or FieldKind.Time or FieldKind.Text) =>
-            $"The \"{HeaderText}\" column has a {type}, which {typeof(TValue).Name} values don't take.",
-        _ => null,
-    };
+    private protected override string? AggregateProblem(DataAggregate type) => ValueAggregateProblem(typeof(TValue), type);
 
     /// <inheritdoc />
     protected override string? DefaultTitle =>
