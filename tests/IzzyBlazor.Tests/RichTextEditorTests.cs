@@ -53,6 +53,25 @@ public class RichTextEditorTests : BunitContext
         Assert.Null(model.Body);
     }
 
+    // MaxLength counts the text readers see, not the HTML around it.
+    [Fact]
+    public void Max_length_counts_text_not_html()
+    {
+        var model = new Model { Body = "<p><strong>12345</strong></p><p>6789&amp;</p>" };
+        var context = new EditContext(model);
+        var cut = Render<RichTextEditor>(p => p
+            .AddCascadingValue(context)
+            .Add(f => f.ValueExpression, () => model.Body)
+            .Add(f => f.Value, model.Body)
+            .Add(f => f.ValueChanged, v => model.Body = v)
+            .Add(f => f.MaxLength, 10));
+
+        Assert.True(context.Validate());
+        cut.Render(p => p.Add(f => f.Value, "<p>12345678901</p>"));
+        Assert.False(context.Validate());
+        Assert.Equal(["Body must be 10 characters or fewer."], context.GetValidationMessages());
+    }
+
     [Fact]
     public void Tools_show_their_shortcuts_and_a_read_only_editor_has_none()
     {
@@ -65,7 +84,7 @@ public class RichTextEditorTests : BunitContext
         Assert.Equal("false", bold.GetAttribute("aria-pressed"));
         Assert.Equal("Control+B", bold.GetAttribute("aria-keyshortcuts"));
         Assert.Equal("Bold (Ctrl+B)", bold.GetAttribute("title"));
-        Assert.Equal(4, cut.FindAll("[data-ib-command]").Count);
+        Assert.Equal(5, cut.FindAll("[data-ib-command]").Count);
 
         cut.Render(p => p.Add(f => f.ReadOnly, true));
         Assert.Empty(cut.FindAll("[data-ib-command]"));

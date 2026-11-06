@@ -1266,6 +1266,27 @@ public class IzzyText
     /// <summary>A RichTextEditor's inline code tool.</summary>
     public virtual string RichTextInlineCode { get; set; } = "Code";
 
+    /// <summary>A RichTextEditor's link tool, and its dialog.</summary>
+    public virtual string RichTextLink { get; set; } = "Link";
+
+    /// <summary>A RichTextEditor's link dialog: the address field.</summary>
+    public virtual string RichTextLinkAddress { get; set; } = "Address";
+
+    /// <summary>A RichTextEditor's link dialog: the text field, for a link with no text selected.</summary>
+    public virtual string RichTextLinkText { get; set; } = "Text";
+
+    /// <summary>A RichTextEditor's link dialog: the checkbox that opens the link in a new tab.</summary>
+    public virtual string RichTextLinkNewTab { get; set; } = "Open in a new tab";
+
+    /// <summary>A RichTextEditor's link dialog: the button that adds or changes the link.</summary>
+    public virtual string RichTextLinkApply { get; set; } = "Apply";
+
+    /// <summary>A RichTextEditor's link dialog: the button that removes the link, keeping its text.</summary>
+    public virtual string RichTextLinkRemove { get; set; } = "Remove link";
+
+    /// <summary>A RichTextEditor's message for text over its MaxLength. {0} is the field's label, {1} the most characters.</summary>
+    public virtual string RichTextTooLong { get; set; } = "{0} must be {1} characters or fewer.";
+
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
 

@@ -1,5 +1,8 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a text box holding the HTML, which still posts and is sanitized.")]
 
 @*
@@ -24,6 +27,10 @@
       their format (`aria-pressed`), and each lists its shortcut (`aria-keyshortcuts`, and the
       tooltip).
     - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it.
+    - The link tool opens a small dialog (Address, Text, Open in a new tab); Escape closes it and
+      puts focus back in the text.
+    - With `ShowCount`, the count ("120 / 2000") is part of the text's description; it isn't
+      announced as it changes.
     - With JavaScript off, it's a textarea of the HTML with the field's label.
 
     Keyboard:
@@ -31,12 +38,16 @@
     - Ctrl+B, Ctrl+I, Ctrl+U | Bold, italic, underline
     - Ctrl+Shift+X | Strikethrough
     - Ctrl+E | Inline code
+    - Ctrl+K | Add or change a link
     - Ctrl+Shift+8, Ctrl+Shift+7 | Bulleted list, numbered list
     - Ctrl+], Ctrl+[ | Indent or outdent a list item
     - Ctrl+Alt+0 | Paragraph
     - Ctrl+Alt+2, Ctrl+Alt+3, Ctrl+Alt+4 | Heading 2, 3, 4
     - Ctrl+Z, Ctrl+Y | Undo, redo
     - Ctrl+Shift+V | Paste as plain text
+    - ## , - , 1. , > or three backticks at the start of a line, then Space | Heading, list, quote, code block
+    - **text**, *text*, `text` | Bold, italic, inline code
+    - --- then Enter | Horizontal line
     - Alt+F10 | Move to the toolbar
     In the toolbar
     - Escape | Back to the text
@@ -46,7 +57,7 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-text.css"]" />
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-rich-text class="ib-rich-text">
+    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength">
         @if (ShowsToolbar)
         {
             <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap Class="ib-rich-text-toolbar">
@@ -84,6 +95,7 @@
                         @Tool(RichTextTools.Underline, "underline", Lucide.Underline, TextDefaults.RichTextUnderline, "U", pressed: true)
                         @Tool(RichTextTools.Strikethrough, "strikethrough", Lucide.Strikethrough, TextDefaults.RichTextStrikethrough, "Shift+X", pressed: true)
                         @Tool(RichTextTools.InlineCode, "code", Lucide.Code, TextDefaults.RichTextInlineCode, "E", pressed: true)
+                        @Tool(RichTextTools.Link, "link", Lucide.Link, TextDefaults.RichTextLink, "K", pressed: true)
                     </ToolbarButtonGroup>
                 }
                 @if (HasLists)
@@ -108,6 +120,7 @@
                     @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
                     @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
                 }
+                @ToolbarContent
                 @if (Has(RichTextTools.UndoRedo))
                 {
                     @* No line before these: the space at the end of the bar sets them apart, and a line
@@ -138,7 +151,32 @@
                   readonly="@IsReadOnly"
                   aria-invalid="@(Invalid ? "true" : null)"
                   aria-describedby="@DescribedBy"></textarea>
+        @if (Has(RichTextTools.Link) && ShowsToolbar)
+        {
+            @* Opened by the link tool or Ctrl+K, under the selection. Its fields have no name, so
+               they never post with the form around the editor. *@
+            <div class="ib-rich-text-link" popover role="dialog" aria-label="@TextDefaults.RichTextLink">
+                <div class="ib-field">
+                    <label class="ib-field-label" for="@(FieldId)-link-href">@TextDefaults.RichTextLinkAddress</label>
+                    <input class="ib-field-input" id="@(FieldId)-link-href" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-link="href" />
+                </div>
+                <div class="ib-field" data-ib-link="text-field">
+                    <label class="ib-field-label" for="@(FieldId)-link-text">@TextDefaults.RichTextLinkText</label>
+                    <input class="ib-field-input" id="@(FieldId)-link-text" type="text" autocomplete="off" data-ib-link="text" />
+                </div>
+                <label class="ib-rich-text-link-tab"><input type="checkbox" data-ib-link="tab" /> @TextDefaults.RichTextLinkNewTab</label>
+                <div class="ib-rich-text-link-actions">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" data-ib-link="remove">@TextDefaults.RichTextLinkRemove</Button>
+                    <Button Size="ControlSize.Sm" data-ib-link="apply">@TextDefaults.RichTextLinkApply</Button>
+                </div>
+            </div>
+        }
     </ib-rich-text>
+    @if (ShowsCount)
+    {
+        @* The script keeps the number current and adds the count to the text's description. *@
+        <span class="ib-field-count" id="@CountId"><span class="ib-field-count-current">@TextLength(_shown)</span> / @MaxLength</span>
+    }
 </FieldFrame>
 
 @code {
@@ -165,8 +203,70 @@
     /// <summary>The text size, as <see cref="Prose"/>'s. Defaults to <see cref="ProseSize.Md"/>.</summary>
     [Parameter] public ProseSize TextSize { get; set; } = ProseSize.Md;
 
+    /// <summary>
+    /// Turns typed Markdown into formats as you type: <c>## </c> a heading, <c>- </c> and <c>1. </c>
+    /// lists, <c>&gt; </c> a quote, three backticks a code block, <c>**bold**</c>, <c>*italic*</c>
+    /// and <c>`code`</c>. On by default; Ctrl+Z undoes a change it made.
+    /// </summary>
+    [Parameter] public bool MarkdownShortcuts { get; set; } = true;
+
+    /// <summary>The most characters of text, not counting the HTML around it. Checked on the server; with script, the count shows when it's passed.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>Shows "n / max" under the field. Needs <see cref="MaxLength"/>. Updates as you type once scripts run.</summary>
+    [Parameter] public bool ShowCount { get; set; }
+
+    /// <summary>Tools of your own at the end of the toolbar, such as a <see cref="ToolbarButton"/> whose <c>OnClick</c> calls <see cref="InsertHtmlAsync"/>.</summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
+
+    private ElementReference _host;
+    private IJSObjectReference? _module;
+
+    private bool ShowsCount => ShowCount && MaxLength is not null;
+
+    private string CountId => FieldId + "-count";
+
+    /// <summary>
+    /// Inserts HTML at the caret, or in place of the selection, as if typed: it's sanitized first,
+    /// and Ctrl+Z undoes it. For your own tools on interactive pages; on a static page it does nothing.
+    /// </summary>
+    /// <param name="html">The HTML to insert, such as <c>&lt;p&gt;Kind regards,&lt;br&gt;Dana&lt;/p&gt;</c>.</param>
+    public async Task InsertHtmlAsync(string html)
+    {
+        if (!RendererInfo.IsInteractive) return;
+        // The plain path: the page's import map gives it the same module the page already loaded.
+        _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/IzzyBlazor.Core/elements/rich-text.js");
+        await _module.InvokeVoidAsync("insertHtml", _host, RichTextSanitizer.Sanitize(html));
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null) return;
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => MaxLength is not null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(string? value) =>
+        MaxLength is { } max && TextLength(value ?? "") > max
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RichTextTooLong, ResolvedLabel ?? FieldIdentifier.FieldName, max)
+            : null;
+
+    // The text's length, as the script counts it: no tags, entities as one character.
+    private static int TextLength(string html) =>
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", "")).Length;
 
     private string LabelId => FieldId + "-label";
 
@@ -185,7 +285,7 @@
 
     private bool HasStyle => Has(RichTextTools.TextStyle);
 
-    private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough | RichTextTools.InlineCode);
+    private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough | RichTextTools.InlineCode | RichTextTools.Link);
 
     private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
 

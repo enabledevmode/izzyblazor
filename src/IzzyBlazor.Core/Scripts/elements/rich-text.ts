@@ -110,6 +110,9 @@ class RichText extends IzzyElement {
   #dirty = false;
   #plainPaste = false;
   #dragging = false;
+  #link: HTMLAnchorElement | null = null;
+  #linkCollapsed = true;
+  #linkRange: Range | null = null;
 
   private get surface(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > .ib-rich-text-surface");
@@ -152,8 +155,12 @@ class RichText extends IzzyElement {
     signal.addEventListener("abort", () => observer.disconnect());
 
     this.addEventListener("input", (event) => {
-      if (event.target === this.surface) this.changed();
+      if (event.target !== this.surface) return;
+      const input = event as InputEvent;
+      if (this.dataset.ibMarkdown !== "off" && input.inputType === "insertText") this.markdown(input.data);
+      this.changed();
     }, { signal });
+    this.setupLink(signal);
     this.addEventListener("focusout", (event) => {
       if (event.target !== this.surface) return;
       this.save();
@@ -195,6 +202,10 @@ class RichText extends IzzyElement {
     surface.contentEditable = locked ? "false" : "true";
     surface.tabIndex = surface.getAttribute("aria-disabled") === "true" ? -1 : 0;
     surface.spellcheck = true;
+    // The count is part of the text's description once it follows the typing.
+    const count = document.getElementById(`${this.source?.id}-count`);
+    const described = surface.getAttribute("aria-describedby")?.split(" ") ?? [];
+    if (count && !described.includes(count.id)) surface.setAttribute("aria-describedby", [...described, count.id].join(" "));
   }
 
   /** An empty text starts with a paragraph, so the first line typed is one. */
@@ -221,10 +232,29 @@ class RichText extends IzzyElement {
     const blank = isBlank(surface);
     surface.toggleAttribute("data-ib-empty", blank);
     const html = blank ? "" : serialize(surface);
+    this.count();
     if (html === source.value) return;
     source.value = html;
     this.#dirty = true;
     source.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  /** Shows the text's length under the field, marked once it passes the most allowed. */
+  private count(): void {
+    const count = document.getElementById(`${this.source?.id}-count`);
+    const current = count?.querySelector(".ib-field-count-current");
+    if (!count || !current) return;
+    const length = (this.surface?.textContent ?? "").replace(/\u200B/g, "").length;
+    current.textContent = String(length);
+    count.toggleAttribute("data-ib-over", length > Number(this.dataset.ibMax));
+  }
+
+  /** Inserts sanitized HTML at the caret, as InsertHtmlAsync asks. */
+  insert(html: string): void {
+    if (!this.surface?.isContentEditable) return;
+    this.restore();
+    exec("insertHTML", html);
+    this.changed();
   }
 
   private save(): void {
@@ -263,6 +293,9 @@ class RichText extends IzzyElement {
       case "code":
         this.toggleCode();
         break;
+      case "link":
+        this.openLink();
+        return;
       case "bulleted":
         exec("insertUnorderedList");
         break;
@@ -359,6 +392,7 @@ class RichText extends IzzyElement {
       underline: document.queryCommandState("underline"),
       strikethrough: document.queryCommandState("strikethrough"),
       code: !!this.around("code") && !this.around("pre"),
+      link: !!this.around("a"),
       bulleted: list === "ul",
       numbered: list === "ol",
     };
@@ -402,6 +436,10 @@ class RichText extends IzzyElement {
     }
 
     if (event.target !== surface || !surface.isContentEditable) return;
+    if (event.key === "Enter" && !event.shiftKey && this.dataset.ibMarkdown !== "off" && this.rule()) {
+      event.preventDefault();
+      return;
+    }
     const mod = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
     if (!mod) return;
     // The browser's own Ctrl+B, I and U change the format for what's typed next without moving the
@@ -419,6 +457,7 @@ class RichText extends IzzyElement {
       if (level) command = ["block", level === this.blockStyle() ? "p" : level];
     } else if (!event.altKey) {
       if (event.code === "KeyE") command = ["code"];
+      else if (event.code === "KeyK") command = ["link"];
       else if (event.code === "BracketRight") command = ["indent"];
       else if (event.code === "BracketLeft") command = ["outdent"];
     }
@@ -427,6 +466,194 @@ class RichText extends IzzyElement {
       event.preventDefault();
       this.run(...command);
     }
+  }
+
+  /** Typed Markdown becomes formats: a line's start (## , - , 1. , > , ```) or **bold**, *italic*, `code`. */
+  private markdown(data: string | null): void {
+    const selection = getSelection();
+    const node = selection?.anchorNode;
+    if (!selection?.isCollapsed || !node || node.nodeType !== Node.TEXT_NODE || this.around("pre")) return;
+    const offset = selection.anchorOffset;
+    const before = (node.textContent ?? "").slice(0, offset);
+
+    if (data === " ") {
+      const block = this.around("p,div");
+      const marker = /^(#{1,4}|[-*]|1[.)]|>|```)[ \u00A0]$/.exec(before)?.[1];
+      if (!block || !marker || this.around("li,blockquote")) return;
+      // Only at the very start of the line.
+      const lead = document.createRange();
+      lead.setStart(block, 0);
+      lead.setEnd(node, 0);
+      if (lead.toString() !== "") return;
+      const typed = document.createRange();
+      typed.setStart(node, 0);
+      typed.setEnd(node, offset);
+      selection.removeAllRanges();
+      selection.addRange(typed);
+      exec("delete");
+      if (marker.startsWith("#")) exec("formatBlock", `<h${Math.max(2, marker.length)}>`);
+      else if (marker === "-" || marker === "*") exec("insertUnorderedList");
+      else if (marker === ">") exec("formatBlock", "<blockquote>");
+      else if (marker === "```") exec("formatBlock", "<pre>");
+      else exec("insertOrderedList");
+      return;
+    }
+
+    if (data !== "*" && data !== "`" || this.around("code")) return;
+    const forms: [RegExp, string][] = [
+      [/\*\*([^*\s](?:[^*]*[^*\s])?)\*\*$/, "strong"],
+      [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, "em"],
+      [/`([^`]+)`$/, "code"],
+    ];
+    for (const [pattern, name] of forms) {
+      const match = pattern.exec(before);
+      if (!match) continue;
+      const marks = name === "strong" ? 2 : 1;
+      const start = offset - match[1].length - 2 * marks;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, offset);
+      range.deleteContents();
+      const element = document.createElement(name);
+      element.textContent = match[1];
+      const after = document.createTextNode("\u200B");
+      range.insertNode(after);
+      range.insertNode(element);
+      selection.collapse(after, 1);
+      return;
+    }
+  }
+
+  /** "---" alone on a line, then Enter, becomes a horizontal line. */
+  private rule(): boolean {
+    const block = this.around("p,div");
+    if (!block || (block.textContent ?? "").trim() !== "---" || this.around("li,blockquote,pre")) return false;
+    const line = document.createElement("hr");
+    const next = document.createElement("p");
+    next.append(document.createElement("br"));
+    block.replaceWith(line, next);
+    getSelection()?.collapse(next, 0);
+    this.changed();
+    return true;
+  }
+
+  private linkPart<T extends HTMLElement>(name: string): T | null {
+    return this.querySelector<T>(`:scope > .ib-rich-text-link [data-ib-link="${name}"]`);
+  }
+
+  private setupLink(signal: AbortSignal): void {
+    const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-link");
+    if (!dialog) return;
+    dialog.addEventListener("click", (event) => {
+      const action = (event.target as Element).closest<HTMLElement>("[data-ib-link=apply],[data-ib-link=remove]")?.dataset.ibLink;
+      if (action === "apply") this.applyLink();
+      else if (action === "remove") this.removeLink();
+    }, { signal });
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.target as Element).matches("input[type=url],input[type=text]")) {
+        event.preventDefault();
+        this.applyLink();
+      } else if (event.key === "Escape") {
+        // The popover closes itself; the text takes focus back after, with its selection.
+        setTimeout(() => this.restoreLinkRange(), 0);
+      }
+    }, { signal });
+  }
+
+  /** Opens the link dialog under the selection, filled in from the link there, if any. */
+  private openLink(): void {
+    const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-link");
+    const href = this.linkPart<HTMLInputElement>("href");
+    const text = this.linkPart<HTMLInputElement>("text");
+    const tab = this.linkPart<HTMLInputElement>("tab");
+    const selection = getSelection();
+    if (!dialog || !href || !text || !tab || !selection?.rangeCount) return;
+    this.save();
+    const link = this.around("a") as HTMLAnchorElement | null;
+    this.#link = link;
+    this.#linkCollapsed = selection.isCollapsed;
+    this.#linkRange = selection.getRangeAt(0).cloneRange();
+    href.value = link?.getAttribute("href") ?? "";
+    href.removeAttribute("aria-invalid");
+    text.value = link?.textContent ?? "";
+    tab.checked = link?.target === "_blank";
+    // Text only for a new link with nothing selected, or to change a link's own text.
+    this.linkPart("text-field")!.hidden = !link && !selection.isCollapsed;
+    this.linkPart("remove")!.hidden = !link;
+
+    const rect = selection.getRangeAt(0).getBoundingClientRect();
+    const anchor = rect.height ? rect : this.surface!.getBoundingClientRect();
+    dialog.style.position = "fixed";
+    dialog.style.margin = "0";
+    dialog.style.top = `${Math.round(anchor.bottom + 6)}px`;
+    dialog.showPopover();
+    const width = dialog.offsetWidth;
+    dialog.style.left = `${Math.round(Math.max(8, Math.min(anchor.left, innerWidth - width - 8)))}px`;
+    href.focus();
+  }
+
+  private applyLink(): void {
+    const href = this.linkPart<HTMLInputElement>("href")!;
+    const url = safeUrl(href.value.trim(), false);
+    if (!url) {
+      href.setAttribute("aria-invalid", "true");
+      href.focus();
+      return;
+    }
+    const text = this.linkPart<HTMLInputElement>("text")!.value.trim();
+    const blank = this.linkPart<HTMLInputElement>("tab")!.checked;
+    this.querySelector<HTMLElement>(":scope > .ib-rich-text-link")!.hidePopover();
+    this.restoreLinkRange();
+    const link = this.#link && this.surface!.contains(this.#link) ? this.#link : null;
+    const target = blank ? ' target="_blank" rel="noopener noreferrer"' : "";
+    if (link) {
+      link.setAttribute("href", url);
+      if (blank) {
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      } else {
+        link.removeAttribute("target");
+        link.removeAttribute("rel");
+      }
+      if (text && text !== link.textContent) link.textContent = text;
+    } else if (this.#linkCollapsed) {
+      exec("insertHTML", `<a href="${escape(url, true)}"${target}>${escape(text || url)}</a>`);
+    } else {
+      exec("createLink", url);
+      const made = this.around("a") as HTMLAnchorElement | null;
+      if (made && blank) {
+        made.target = "_blank";
+        made.rel = "noopener noreferrer";
+      }
+    }
+    this.changed();
+    this.reflect();
+  }
+
+  /** Puts back the selection the dialog was opened on: focus in the dialog collapsed it. */
+  private restoreLinkRange(): void {
+    const surface = this.surface!;
+    surface.focus({ preventScroll: true });
+    const range = this.#linkRange;
+    if (range && surface.contains(range.commonAncestorContainer)) {
+      getSelection()?.removeAllRanges();
+      getSelection()?.addRange(range);
+    }
+  }
+
+  private removeLink(): void {
+    this.querySelector<HTMLElement>(":scope > .ib-rich-text-link")!.hidePopover();
+    this.restoreLinkRange();
+    const link = this.#link;
+    if (link && this.surface!.contains(link)) {
+      const range = document.createRange();
+      range.selectNodeContents(link);
+      getSelection()?.removeAllRanges();
+      getSelection()?.addRange(range);
+      exec("unlink");
+    }
+    this.changed();
+    this.reflect();
   }
 
   private paste(event: ClipboardEvent): void {
@@ -472,3 +699,8 @@ class RichText extends IzzyElement {
 }
 
 defineElement("ib-rich-text", RichText);
+
+/** For RichTextEditor.InsertHtmlAsync: inserts HTML the server has sanitized at the caret. */
+export function insertHtml(host: HTMLElement, html: string): void {
+  (host as RichText).insert(html);
+}
