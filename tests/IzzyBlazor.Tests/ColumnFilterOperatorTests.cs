@@ -358,7 +358,7 @@ public class ColumnFilterOperatorTests : BunitContext
     private static void Again<T>(IRenderedComponent<T> cut, Action act) where T : IComponent => cut.WaitForAssertion(act, Timer);
 
     private static IEnumerable<AngleSharp.Dom.IElement> Panel<T>(IRenderedComponent<T> cut, string title) where T : IComponent =>
-        cut.FindAll(".ib-table-filter-panel").Where(p => p.QuerySelector(".ib-table-filter-label")!.TextContent == title);
+        cut.FindAll(".ib-table-filter-panel").Where(p => p.GetAttribute("aria-labelledby") is { } id && p.QuerySelector($"#{id}")?.TextContent == title);
 
     [Fact]
     public void A_bound_operator_applies_at_once_with_a_value_and_only_shapes_the_panel_without_one()

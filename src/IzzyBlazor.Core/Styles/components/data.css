@@ -493,7 +493,9 @@
     height: var(--ib-control-icon-sm);
   }
 
-  .ib-table-filter-button:hover {
+  /* Hovered, or its panel or menu is open, so it's clear where that hangs from. */
+  .ib-table-filter-button:hover,
+  :has(> :popover-open) > .ib-table-filter-button {
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     color: var(--ib-color-on-surface);
   }
