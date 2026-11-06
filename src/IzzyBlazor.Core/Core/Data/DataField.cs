@@ -213,16 +213,18 @@ public static class DataFields
             : null;
     }
 
-    // "OrderDate" -> "Order date"
+    // "OrderDate" -> "Order date", "CustomerID" -> "Customer ID"; "Employee ID" stays as it is.
     internal static string Words(string name)
     {
         var chars = new System.Text.StringBuilder(name.Length + 4);
         for (var i = 0; i < name.Length; i++)
         {
             var c = name[i];
-            if (i > 0 && char.IsUpper(c) && !char.IsUpper(name[i - 1]))
+            if (i > 0 && char.IsUpper(c) && !char.IsUpper(name[i - 1]) && !char.IsWhiteSpace(name[i - 1]))
             {
-                chars.Append(' ').Append(char.ToLowerInvariant(c));
+                // An acronym keeps its capitals.
+                var acronym = i + 1 < name.Length && char.IsUpper(name[i + 1]);
+                chars.Append(' ').Append(acronym ? c : char.ToLowerInvariant(c));
             }
             else
             {

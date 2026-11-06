@@ -1822,7 +1822,7 @@
     },
 
     {
-      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Displays rows of data users can sort, filter, page and select, with the state in the URL.", "keywords": [], "parts": ["PropertyColumn", "TemplateColumn"],
+      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Displays rows of data users can sort, filter, page and select, with the state in the URL.", "keywords": [], "parts": ["PropertyColumn", "TemplateColumn", "DynamicColumn"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Selected rows post with a form" },
@@ -2032,7 +2032,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid"],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
@@ -2064,7 +2064,8 @@
           "id": "columns", "title": "Columns", "summary": "Users resize, move, hide and freeze columns, and the grid saves their layout for the next visit.", "members": ["LayoutKey", "Layout", "LayoutSaveUrl", "ResizableColumns", "ReorderableColumns", "ColumnPicker", "DataGridColumnPicker", "Column.Title", "Column.Align", "Column.Width", "Column.MinWidth", "Column.MaxWidth", "Column.Frozen", "Column.Resizable", "Column.Reorderable", "Column.Pickable", "Column.Visible"],
           "examples": [
             { "id": "data-grid-arrange", "title": "Rearranging columns", "lead": "Users can resize, move and hide columns, and the grid saves their layout. Set `ResizableColumns`, `ReorderableColumns` and `ColumnPicker` to turn these on. The user drags a handle or a header, or uses the keys and the ⋮ menu in each header. A `LayoutKey` saves the layout in a cookie, per user and per page, and the server renders it from the first paint. A column with `Visible` set to false starts hidden, and the user can show it from the picker; with `Pickable` false too, it stays hidden." },
-            { "id": "data-grid-frozen", "title": "Frozen columns", "lead": "A frozen column stays in view at the grid's start or end while the rest scroll sideways. Set `Frozen` on the column; it works with JavaScript off. A frozen column needs a `Width`, and sits at its edge wherever it's declared. On a phone, frozen columns scroll like the rest." }
+            { "id": "data-grid-frozen", "title": "Frozen columns", "lead": "A frozen column stays in view at the grid's start or end while the rest scroll sideways. Set `Frozen` on the column; it works with JavaScript off. A frozen column needs a `Width`, and sits at its edge wherever it's declared. On a phone, frozen columns scroll like the rest." },
+            { "id": "data-grid-dynamic-columns", "title": "Columns at run time", "lead": "When the columns are known only at run time, such as a report with a column for each quarter in the data, or a table the user picks from a list, write a `DynamicColumn` for each one in a loop. Rows can be dictionaries, `ExpandoObject`s (so `dynamic`) or a `DataTable`'s rows. Set `Field` to the name to read and `Type` to its values' type, such as `typeof(decimal)`: it picks the filter, the alignment and what `Format` applies to, as a property's type does for `PropertyColumn`. Without a `Type`, values are text. A value that's missing, or doesn't convert, shows empty. The columns sort, filter and search as any others, but they aren't edited." }
           ]
         },
         {
