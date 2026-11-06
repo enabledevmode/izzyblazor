@@ -1,9 +1,11 @@
 @* A how-to with a C# snippet: the editor marks the block's language, and RichText shows it
    highlighted. Put the caret in the code to change its language. *@
-<Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Grow>
+<Stack Gap="6" Grow>
     <RichTextEditor @bind-Value="_howTo" Label="How-to" Rows="8" />
-    <RichText Html="@_howTo" />
-</Grid>
+    <Card Title="As RichText shows it">
+        <RichText Html="@_howTo" />
+    </Card>
+</Stack>
 
 @code {
     private string? _howTo =
