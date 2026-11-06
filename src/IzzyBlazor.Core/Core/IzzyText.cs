@@ -1419,6 +1419,15 @@ public class IzzyText
     /// <summary>A RichTextEditor's choice of no highlight.</summary>
     public virtual string RichTextNone { get; set; } = "None";
 
+    /// <summary>RichTextEditor's last item in its color menus, with CustomColors.</summary>
+    public virtual string RichTextCustomColor { get; set; } = "Custom…";
+
+    /// <summary>The title of RichTextEditor's custom color dialog for the text color.</summary>
+    public virtual string RichTextCustomTextColor { get; set; } = "Custom text color";
+
+    /// <summary>The title of RichTextEditor's custom color dialog for the highlight.</summary>
+    public virtual string RichTextCustomHighlight { get; set; } = "Custom highlight";
+
     /// <summary>A RichTextEditor's palette color.</summary>
     public virtual string RichTextRed { get; set; } = "Red";
 

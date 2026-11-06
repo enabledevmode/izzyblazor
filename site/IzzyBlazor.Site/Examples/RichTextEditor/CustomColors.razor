@@ -1,0 +1,17 @@
+@* An event flyer in the company's brand colors: CustomColors adds "Custom…" to the color menus,
+   and RichText keeps those colors with the same option. *@
+<Stack Gap="6" Grow>
+    <RichTextEditor @bind-Value="_flyer" Label="Event flyer" Rows="6" Tools="RichTextTools.Extended" CustomColors />
+    @* A labeled line, not a card: RichText draws no box of its own. *@
+    <Divider Label="As RichText shows it" />
+    <RichText Html="@_flyer" CustomColors />
+</Stack>
+
+@code {
+    private string? _flyer =
+        """
+        <h2 class="ib-align-center"><span style="color: #0e7490">Northwind summer meetup</span></h2>
+        <p class="ib-align-center">Thursday, June 18, at the harbor office</p>
+        <p>Talks on the new warehouse system, then dinner on the terrace. <span style="color: #ea580c">Seats are limited to 60</span>, so sign up by June 1.</p>
+        """;
+}

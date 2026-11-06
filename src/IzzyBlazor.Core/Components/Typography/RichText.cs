@@ -55,10 +55,13 @@ public partial class RichText : Prose
     /// <summary>Keep images whose source is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image.</summary>
     [Parameter] public bool AllowDataImages { get; set; }
 
+    /// <summary>Keep the editor's custom colors: a text color or highlight as six hex digits, as the editor's <c>CustomColors</c>.</summary>
+    [Parameter] public bool CustomColors { get; set; }
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var html = Highlight(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages));
+        var html = Highlight(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
         // The editor's content classes (alignment, color, size) have a sheet of their own.
         if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal))
         {
