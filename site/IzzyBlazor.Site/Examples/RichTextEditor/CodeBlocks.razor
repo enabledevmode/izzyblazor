@@ -1,0 +1,18 @@
+@* A how-to with a C# snippet: the editor marks the block's language, and RichText shows it
+   highlighted. Put the caret in the code to change its language. *@
+<Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Grow>
+    <RichTextEditor @bind-Value="_howTo" Label="How-to" Rows="8" />
+    <RichText Html="@_howTo" />
+</Grid>
+
+@code {
+    private string? _howTo =
+        """
+        <h3>Reading a setting</h3>
+        <p>Inject the configuration and read the value by its key:</p>
+        <pre><code class="language-csharp">public class Mailer(IConfiguration config)
+        {
+            private readonly string _host = config["Smtp:Host"] ?? "localhost";
+        }</code></pre>
+        """;
+}

@@ -36,6 +36,8 @@ type ImagePart = typeof import("./rich-text-image");
 type MarkdownPart = typeof import("./rich-text-markdown");
 // Tables: a part, loaded by editors with the table tool or a table in their text.
 type TablePart = typeof import("./rich-text-table");
+// A code block's language button: a part, for editors with the code block tool.
+type CodePart = typeof import("./rich-text-code");
 const formatTools = "align,color,highlight,size,font".split(",");
 
 function escape(text: string, attribute = false): string {
@@ -116,6 +118,11 @@ function element(node: Element, name: string, top: number): string {
       const value = node.getAttribute(cell);
       if (value && /^(\d{1,4}|row|col|rowgroup|colgroup)$/.test(value)) attributes += ` ${cell}="${value}"`;
     }
+  } else if (name === "code") {
+    const language = [...node.classList].find((c) => /^language-[a-z0-9+#-]+$/.test(c));
+    if (language) attributes = ` class="${language}"`;
+  } else if (name === "br" && node.closest("pre")) {
+    return "\n";
   } else if (name === "img") {
     const given = node.getAttribute("src") ?? "";
     const src = safeUrl(given, true) ?? (embedImages && /^data:image\/(png|jpeg|gif|webp|avif)[;,]/i.test(given) ? given : null);
@@ -147,6 +154,15 @@ function isBlank(surface: Element): boolean {
   return !surface.querySelector("img,hr") && !(surface.textContent ?? "").replace(/[\u00A0\u200B]/g, " ").trim();
 }
 
+// The editor's parts (elements/parts/rich-text-*.js), each loaded once, when first needed.
+const parts = new Map<string, Promise<unknown>>();
+function part<T>(name: string): Promise<T> {
+  // A variable, so the bundler leaves the import to the browser (relative to this file).
+  const url = `./parts/rich-text-${name}.js`;
+  if (!parts.has(name)) parts.set(name, import(url));
+  return parts.get(name) as Promise<T>;
+}
+
 function exec(command: string, value?: string): void {
   document.execCommand(command, false, value);
 }
@@ -156,12 +172,9 @@ class RichText extends IzzyElement {
   #dirty = false;
   #plainPaste = false;
   #dragging = false;
-  #link: Promise<LinkPart> | null = null;
-  #image: Promise<ImagePart> | null = null;
   // The image last clicked: a browser puts the caret beside it, so the editor keeps it here.
   #picked: HTMLImageElement | null = null;
   #markdown: MarkdownPart | null = null;
-  #table: Promise<TablePart> | null = null;
   #format: FormatPart | null = null;
   #formatLoading: Promise<FormatPart> | null = null;
 
@@ -234,8 +247,13 @@ class RichText extends IzzyElement {
     // An editor that shows layout tools loads their code now, so the tools show the caret's state.
     if (this.querySelector(formatTools.map((t) => `[data-ib-command="${t}"]`).join(","))) void this.loadFormat();
     if (this.querySelector('[data-ib-command="table"]') || this.surface?.querySelector("table")) void this.tablePart();
+    if (this.querySelector("[data-ib-code-language]")) {
+      void part<CodePart>("code").then((loaded) =>
+        loaded.attach({ host: this, surface: () => this.surface, around: (selector) => this.around(selector), changed: () => this.changed() })
+      );
+    }
     if (this.dataset.ibMarkdown !== "off" && this.surface?.getAttribute("aria-readonly") !== "true") {
-      void (import("./parts/rich-text-markdown.js" as string) as Promise<MarkdownPart>).then((part) => (this.#markdown = part));
+      void part<MarkdownPart>("markdown").then((loaded) => (this.#markdown = loaded));
     }
     this.addEventListener("focusout", (event) => {
       if (event.target !== this.surface) return;
@@ -484,10 +502,10 @@ class RichText extends IzzyElement {
   }
 
   private loadFormat(): Promise<FormatPart> {
-    return (this.#formatLoading ??= import("./parts/rich-text-format.js" as string).then((part: FormatPart) => {
-      this.#format = part;
+    return (this.#formatLoading ??= part<FormatPart>("format").then((loaded) => {
+      this.#format = loaded;
       this.reflect();
-      return part;
+      return loaded;
     }));
   }
 
@@ -658,14 +676,14 @@ class RichText extends IzzyElement {
   }
 
   private tablePart(): Promise<TablePart> {
-    return (this.#table ??= (import("./parts/rich-text-table.js" as string) as Promise<TablePart>).then((part) => {
-      part.attach(this.tableEditor());
-      return part;
-    }));
+    return part<TablePart>("table").then((loaded) => {
+      loaded.attach(this.tableEditor());
+      return loaded;
+    });
   }
 
   private linkPart(): Promise<LinkPart> {
-    return (this.#link ??= import("./parts/rich-text-link.js" as string) as Promise<LinkPart>);
+    return part<LinkPart>("link");
   }
 
   private markdownEditor(): Parameters<MarkdownPart["markdown"]>[0] {
@@ -684,8 +702,8 @@ class RichText extends IzzyElement {
     const dialog = this.querySelector<HTMLDialogElement>(":scope > .ib-rich-text-image");
     const surface = this.surface;
     if (!dialog || !surface) return null;
-    return (this.#image ??= import("./parts/rich-text-image.js" as string) as Promise<ImagePart>).then((part) => [
-      part,
+    return part<ImagePart>("image").then((loaded) => [
+      loaded,
       { host: this, surface, dialog, changed: () => (this.changed(), this.reflect()) },
     ]);
   }

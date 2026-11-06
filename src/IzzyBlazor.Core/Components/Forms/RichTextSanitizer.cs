@@ -36,7 +36,8 @@ namespace IzzyBlazor;
 /// green, blue, purple and gray, and the sizes <c>ib-size-xs</c> and <c>ib-size-2xl</c> too. Two
 /// styles, on a <c>span</c>: <c>font-family</c> when its value is exactly one of <c>fonts</c>, and
 /// <c>font-size</c> when exactly one of <c>fontSizes</c>. No other <c>style</c>, <c>class</c>,
-/// <c>id</c> or event handler gets through.
+/// <c>id</c> or event handler gets through, but a <c>code</c>'s language class
+/// (<c>language-csharp</c>), as Markdown, Prism and highlight.js write it.
 /// </para>
 /// <para>
 /// <see cref="RichTextEditor"/> runs it on every value it binds, and <see cref="RichText"/> on
@@ -459,6 +460,7 @@ public static class RichTextSanitizer
                     ("td" or "th", "rowspan") => Number(value, 0, 65534),
                     ("th", "scope") => value.Trim().ToLowerInvariant() is var s && s is "row" or "col" or "rowgroup" or "colgroup" ? s : null,
                     ("span", "class") => Classes(value, SpanClasses),
+                    ("code", "class") => Language(value),
                     ("span", "style") => SpanStyle(value),
                     ("p" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6" or "li" or "blockquote" or "td" or "th", "class") => Classes(value, BlockClasses),
                     _ => null,
@@ -478,6 +480,12 @@ public static class RichTextSanitizer
             var kept = value.Split([' ', '\t', '\n', '\r', '\f'], StringSplitOptions.RemoveEmptyEntries).Where(allowed.Contains).Distinct().ToList();
             return kept.Count == 0 ? null : string.Join(' ', kept);
         }
+
+        // A code block's language, as Markdown, Prism and highlight.js write it: language-csharp.
+        private static string? Language(string value) =>
+            value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault(c => c.Length <= 33 && c.StartsWith("language-", StringComparison.Ordinal)
+                    && c[9..].Length > 0 && c[9..].All(ch => ch is >= 'a' and <= 'z' or >= '0' and <= '9' or '+' or '#' or '-'));
 
         // A span's font-family and font-size, each kept only when exactly one of the app's values,
         // and written as the app wrote it; anything else in the style goes.

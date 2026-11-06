@@ -214,6 +214,21 @@
     gap: var(--ib-space-2);
   }
 
+  /* A code block's language button, at the block's top end corner while the caret is in it. */
+  .ib-rich-text-code-language {
+    position: absolute;
+    z-index: 1;
+  }
+
+  .ib-rich-text-code-language .ib-btn {
+    background: var(--ib-color-surface);
+  }
+
+  /* In the editor a code block keeps room at its top for that button, so it covers no code. */
+  .ib-rich-text-surface pre {
+    padding-block-start: 2.75rem;
+  }
+
   /* Table cells while editing: room to click into, and a line around each. */
   .ib-rich-text-surface :is(td, th) {
     min-width: 3rem;
