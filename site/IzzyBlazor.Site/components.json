@@ -296,13 +296,21 @@
     {
       "id": "prose", "icon": "FileText", "name": "Prose", "category": "Typography", "summary": "Styles plain HTML, such as rendered Markdown.",
       "examples": [
-        { "id": "prose-markdown", "title": "HTML from Markdown", "lead": "Prose styles plain HTML: its headings, links, lists, quotes, code and tables. It suits HTML you trust, such as rendered Markdown. Put the HTML inside a `Prose`." },
+        { "id": "prose-markdown", "title": "HTML from Markdown", "lead": "Prose styles plain HTML: its headings, links, lists, quotes, code and tables. It suits HTML you trust, such as rendered Markdown. Put the HTML inside a `Prose`. For HTML people write, such as a rich text field, use `RichText`, which sanitizes it first." },
         { "id": "prose-sizes", "title": "Sizes", "lead": "Prose comes in three text sizes: `Sm` for asides, `Md` (the default), and `Lg` for long reading. To choose one, set `Size`." }
       ],
       "scenarios": [
         { "id": "release-notes", "title": "Release notes", "member": "Size",
           "description": "A changelog post: the title, byline and links are components, and the body is HTML from Markdown, set large for reading in an article-width column.",
           "example": { "id": "prose-release-notes", "title": "Release notes", "height": 1100, "page": true } }
+      ]
+    },
+    {
+      "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Shows saved rich text, sanitized and styled as Prose.",
+      "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
+      "examples": [
+        { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML." },
+        { "id": "rich-text-sanitized", "title": "What it removes", "lead": "RichText sanitizes the HTML every time it renders: scripts, event handlers, styles and `javascript:` links go, and other markup becomes the elements a rich text editor makes. HTML saved before you sanitized it can't run script on the page. To clean HTML yourself, call `RichTextSanitizer.Sanitize`." }
       ]
     },
     {

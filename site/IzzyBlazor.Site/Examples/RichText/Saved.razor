@@ -1,0 +1,19 @@
+@* A support article's body, as a rich text editor saved it. *@
+<RichText Html="@body" MaxWidth="Length.Prose" Grow />
+
+@* hide *@
+@code {
+    private const string body =
+        """
+        <h2>Resetting your password</h2>
+        <p>If you can't sign in, reset your password from the sign-in page. The link we email you works for <strong>one hour</strong>.</p>
+        <ol>
+          <li>Select <em>Forgot password</em> under the password field.</li>
+          <li>Enter the email address on your account.</li>
+          <li>Open the email and choose a new password.</li>
+        </ol>
+        <blockquote>We never ask for your password by email or phone.</blockquote>
+        <p>Still stuck? <a href="mailto:support@example.com">Email support</a>.</p>
+        """;
+}
+@* /hide *@
