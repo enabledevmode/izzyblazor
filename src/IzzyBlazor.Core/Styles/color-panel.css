@@ -200,4 +200,13 @@
   .ib-color-trigger:disabled {
     cursor: not-allowed;
   }
+
+  /* The rich text editor's custom color dialog: as narrow as the panel, which fills it. */
+  .ib-rich-text-custom {
+    --ib-dialog-w: 21rem;
+  }
+
+  .ib-rich-text-custom .ib-color-panel {
+    width: auto;
+  }
 }
