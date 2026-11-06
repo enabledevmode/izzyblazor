@@ -387,29 +387,6 @@
     white-space: nowrap;
   }
 
-  /* Bands: a gap above a column with none has no line, so its header reads as one with it; a
-     band's line stops short of the next. */
-  .ib-table-band-row > td {
-    border-bottom-color: transparent;
-    background-color: var(--ib-table-bg, var(--ib-color-surface));
-  }
-
-  .ib-table-grid > * > * > .ib-table-band {
-    border-bottom-color: transparent;
-  }
-
-  .ib-table-band:not(.ib-frozen) {
-    position: relative;
-  }
-
-  .ib-table-band::after {
-    content: "";
-    position: absolute;
-    inset-inline: var(--ib-space-2);
-    bottom: -1px;
-    border-bottom: 1px solid var(--ib-color-border);
-  }
-
   .ib-table-grid > * > * > :is(th, td).ib-cell-end {
     text-align: end;
   }

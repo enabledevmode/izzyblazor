@@ -192,8 +192,12 @@
             @SelectionBar
             @ErrorStatus
             @GridStyleSheet
+            @if (HasBands)
+            {
+                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/bands.css"]" />
+            }
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
-                <table id="@GridId" class="ib-table-grid" role="@StackRole("table")" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
+                <table id="@GridId" class="@(HasBands ? "ib-table-grid ib-table-banded" : "ib-table-grid")" role="@StackRole("table")" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
                     @if (Caption is not null)
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
