@@ -1,0 +1,24 @@
+@using System.ComponentModel.DataAnnotations
+
+@* A product description with a limit on its text: the count counts what readers see, not the HTML. *@
+<Form Model="Model" FormName="rich-text-editor-length">
+    <RichTextEditor @bind-Value="Model!.Description" Tools="RichTextTools.Basic" Rows="4" MaxLength="300" ShowCount />
+    <FormActions>
+        <Button Submit>Save</Button>
+    </FormActions>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "rich-text-editor-length")]
+    private Product? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+    @* hide *@
+    public sealed class Product
+    {
+        [Display(Name = "Description")]
+        public string? Description { get; set; } =
+            "<p>A <strong>1.7 litre</strong> kettle that boils in under two minutes and keeps water warm for an hour.</p><ul><li>Lid that doesn't drip</li><li>Off when lifted from the base</li></ul>";
+    }
+    @* /hide *@
+}

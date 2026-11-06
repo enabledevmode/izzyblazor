@@ -782,19 +782,44 @@
             "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
           } },
         { "id": "rich-text-editor-formats", "title": "Everything it formats", "lead": "Headings 2 to 4, paragraphs with bold, italic, underline, strikethrough and inline code, numbered and bulleted lists inside each other, a quote, a code block and a horizontal line. The page keeps heading 1 for its own title, so the text starts at 2." },
-        { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
+        { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic, links and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
+        { "id": "rich-text-editor-length", "title": "Limiting the length", "lead": "To limit the text, set `MaxLength`; it counts the characters readers see, not the HTML around them, and is checked on the server. To show the count under the field, set `ShowCount`. Don't use `[StringLength]` on the property: it would count the HTML.",
+          "notes": {
+            "noscript": "The count shows the length the page loaded with. A text over the limit gets its message after posting.",
+            "static": "IzzyBlazor's script keeps the count current as the user types and marks it once it passes the limit."
+          } },
         { "id": "rich-text-editor-states", "title": "Read-only and disabled", "lead": "A read-only editor has no toolbar; the text can be selected and still posts. A disabled one doesn't post." }
       ],
       "topics": [
         {
-          "id": "toolbar", "title": "Toolbar and shortcuts", "summary": "Choose the tools in the toolbar. Shortcuts work for every format, shown or not.", "members": ["Tools", "RichTextTools"],
+          "id": "toolbar", "title": "Toolbar and shortcuts", "summary": "Choose the tools in the toolbar. Shortcuts work for every format, shown or not.", "members": ["Tools", "RichTextTools", "ToolbarContent", "InsertHtmlAsync"],
           "intro": [
             "`RichTextTools.Default` shows every tool and `RichTextTools.Basic` four of them. To choose your own, combine tools with `|`. `RichTextTools.None` hides the toolbar and leaves the shortcuts. On narrow screens the toolbar wraps onto more rows.",
-            "Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Shift+X strikethrough, Ctrl+E inline code, Ctrl+Shift+8 bulleted list, Ctrl+Shift+7 numbered list, Ctrl+] and Ctrl+[ indent and outdent a list item, Ctrl+Alt+0 paragraph, Ctrl+Alt+2 to 4 headings, Ctrl+Z undo, Ctrl+Y redo, Ctrl+Shift+V paste as plain text. On a Mac, ⌘ takes Ctrl's place. Alt+F10 moves to the toolbar and Escape back to the text."
+            "With nothing selected, a format's shortcut or tool turns it on for what's typed next, and again turns it off.",
+            "Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Shift+X strikethrough, Ctrl+E inline code, Ctrl+K link, Ctrl+Shift+8 bulleted list, Ctrl+Shift+7 numbered list, Ctrl+] and Ctrl+[ indent and outdent a list item, Ctrl+Alt+0 paragraph, Ctrl+Alt+2 to 4 headings, Ctrl+Z undo, Ctrl+Y redo, Ctrl+Shift+V paste as plain text. On a Mac, ⌘ takes Ctrl's place. Alt+F10 moves to the toolbar and Escape back to the text."
           ],
           "examples": [
-            { "id": "rich-text-editor-tools", "title": "Choosing tools", "lead": "These release notes leave out underline, which reads as a link, and the rule. Set `Tools` to the ones you want." }
+            { "id": "rich-text-editor-tools", "title": "Choosing tools", "lead": "These release notes leave out underline, which reads as a link, and the rule. Set `Tools` to the ones you want." },
+            { "id": "rich-text-editor-signature", "title": "A tool of your own", "modes": ["interactive"], "lead": "To add your own tools, put them in `ToolbarContent`; they go at the end of the toolbar. `InsertHtmlAsync` puts HTML at the caret, sanitized, and Ctrl+Z undoes it. It works on interactive pages." }
           ]
+        },
+        {
+          "id": "markdown", "title": "Markdown shortcuts", "summary": "Typed Markdown becomes formats as you type, for people who write it out of habit.", "members": ["MarkdownShortcuts"],
+          "intro": [
+            "At the start of a line, `## `, `### ` and `#### ` make headings, `- ` or `* ` a bulleted list, `1. ` a numbered list, `> ` a quote, and three backticks and a space a code block. `---` alone on a line, then Enter, makes a horizontal line. In a line, `**bold**`, `*italic*` and `` `code` `` turn into their formats as the closing mark is typed. Ctrl+Z undoes a change.",
+            "The value is still HTML: Markdown is only a way of typing. To turn the shortcuts off, set `MarkdownShortcuts` to false."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-markdown", "title": "Typing Markdown", "lead": "Type `## ` and a space for a heading, `- ` and a space for a list, or `**text**` for bold." }
+          ]
+        },
+        {
+          "id": "links", "title": "Links", "summary": "Add, change and remove links, and open them in a new tab.", "members": ["RichTextTools"],
+          "intro": [
+            "The link tool, or Ctrl+K, opens a small dialog under the selection: the address, the text for a link with nothing selected, and whether it opens in a new tab. With the caret in a link, the same tool changes it or removes it, keeping its text. Escape closes the dialog and puts focus back in the text.",
+            "Addresses can be web (`https:`, `http:`), mail (`mailto:`), phone (`tel:`) or relative. Any other scheme, such as `javascript:`, is refused in the dialog and removed by the sanitizer. A link that opens a new tab gets `rel=\"noopener noreferrer\"`."
+          ],
+          "examples": []
         },
         {
           "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],

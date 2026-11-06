@@ -1,0 +1,7 @@
+@* Meeting notes, typed fast: try ## and a space, - and a space, or **text**. *@
+<RichTextEditor Grow @bind-Value="_notes" Label="Meeting notes" Rows="8" Tools="RichTextTools.Basic"
+                Placeholder="Type ## and a space for a heading, - and a space for a list" />
+
+@code {
+    private string? _notes;
+}

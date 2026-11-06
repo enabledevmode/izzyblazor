@@ -1,0 +1,16 @@
+@* A reply with a tool of its own: Insert signature puts the agent's sign-off at the caret. *@
+<RichTextEditor Grow @ref="_editor" @bind-Value="_reply" Label="Reply" Tools="RichTextTools.Basic" Rows="5">
+    <ToolbarContent>
+        <ToolbarSeparator />
+        <ToolbarButton StartIcon="Lucide.Signature" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                       OnClick="InsertSignature">Insert signature</ToolbarButton>
+    </ToolbarContent>
+</RichTextEditor>
+
+@code {
+    private RichTextEditor? _editor;
+    private string? _reply = "<p>Hi Sam,</p><p>Your refund went out today and should reach your card in 3 to 5 days.</p>";
+
+    private Task InsertSignature() =>
+        _editor!.InsertHtmlAsync("<p>Kind regards,<br><strong>Dana Ruiz</strong><br>Customer support</p>");
+}

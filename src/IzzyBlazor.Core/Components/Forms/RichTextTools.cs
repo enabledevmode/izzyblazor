@@ -31,6 +31,9 @@ public enum RichTextTools
     /// <summary>Inline code (Ctrl+E).</summary>
     InlineCode = 1 << 5,
 
+    /// <summary>Add, change or remove a link (Ctrl+K).</summary>
+    Link = 1 << 6,
+
     /// <summary>Bulleted list (Ctrl+Shift+8).</summary>
     BulletedList = 1 << 7,
 
@@ -49,10 +52,10 @@ public enum RichTextTools
     /// <summary>Undo (Ctrl+Z) and redo (Ctrl+Y).</summary>
     UndoRedo = 1 << 12,
 
-    /// <summary>Bold, italic and the two lists: for short notes and comments.</summary>
-    Basic = Bold | Italic | BulletedList | NumberedList,
+    /// <summary>Bold, italic, links and the two lists: for short notes and comments.</summary>
+    Basic = Bold | Italic | Link | BulletedList | NumberedList,
 
     /// <summary>Every tool (the default).</summary>
-    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | BulletedList | NumberedList
+    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | BulletedList | NumberedList
         | Indent | HorizontalRule | ClearFormatting | UndoRedo,
 }

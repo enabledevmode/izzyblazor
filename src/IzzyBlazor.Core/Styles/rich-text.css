@@ -76,6 +76,44 @@
     pointer-events: none;
   }
 
+  /* The link dialog: a small panel under the selection (placed by the script). */
+  .ib-rich-text-link {
+    width: min(22rem, calc(100vw - 1rem));
+    padding: var(--ib-space-3);
+    border: 1px solid var(--ib-color-outline);
+    border-radius: var(--ib-radius-md);
+    background: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-lg);
+  }
+
+  .ib-rich-text-link:popover-open {
+    display: grid;
+    gap: var(--ib-space-3);
+  }
+
+  /* Fields and buttons set their own display, so hidden ones need saying here. */
+  .ib-rich-text-link [hidden] {
+    display: none;
+  }
+
+  .ib-rich-text-link-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-rich-text-link-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-field-count[data-ib-over] {
+    color: var(--ib-color-danger);
+  }
+
   /* The HTML text box is the control with no script; with script it only holds the value. */
   @media (scripting: enabled) {
     .ib-rich-text-source { display: none; }

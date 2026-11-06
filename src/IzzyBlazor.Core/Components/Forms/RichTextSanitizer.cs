@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 namespace IzzyBlazor;
 
 /// <summary>
-/// Makes HTML safe to show: keeps the content a <c>RichTextEditor</c> can make and drops
+/// Makes HTML safe to show: keeps the content a <see cref="RichTextEditor"/> can make and drops
 /// everything else, such as scripts, event handlers, styles and <c>javascript:</c> links.
 /// </summary>
 /// <example>
@@ -33,12 +33,13 @@ namespace IzzyBlazor;
 /// <c>class</c>, <c>id</c> or event handler gets through.
 /// </para>
 /// <para>
-/// <c>RichTextEditor</c> runs it on every value it binds, and <see cref="RichText"/> on
+/// <see cref="RichTextEditor"/> runs it on every value it binds, and <see cref="RichText"/> on
 /// every value it shows. Call it yourself on HTML from elsewhere before you show it with a
 /// <see cref="MarkupString"/>.
 /// </para>
 /// </remarks>
 /// <seealso cref="RichText"/>
+/// <seealso cref="RichTextEditor"/>
 /// 
 public static class RichTextSanitizer
 {
