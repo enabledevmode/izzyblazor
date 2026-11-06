@@ -94,7 +94,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// Keeps this column in view at the grid's start or end while the rest scrolls sideways, and draws
-    /// it at that edge wherever it's declared. It needs a <see cref="Width"/>. Not for a Table.
+    /// it at that edge wherever it's declared. It needs a <see cref="Width"/>. Frozen columns scroll
+    /// like the rest on a screen narrower than 640px, and when together they'd leave less than 3rem
+    /// for the columns that scroll. Not for a Table.
     /// </summary>
     [Parameter] public ColumnFrozen Frozen { get; set; }
 
