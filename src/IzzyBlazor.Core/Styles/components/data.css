@@ -1439,6 +1439,20 @@
     display: inline-flex;
   }
 
+  /* A band's columns under its name. */
+  .ib-col-picker-list .ib-col-picker-band {
+    display: block;
+    padding-block-start: var(--ib-space-1);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-col-picker-band > ul {
+    padding: 0;
+    padding-inline-start: var(--ib-space-3);
+    list-style: none;
+    color: var(--ib-color-on-surface);
+  }
+
   .ib-col-picker-move .ib-btn {
     width: 1.5rem;
     min-width: 0;

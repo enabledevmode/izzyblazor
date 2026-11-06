@@ -215,7 +215,7 @@
                                     if (span.Band is { } band)
                                     {
                                         @* The outermost bands name their column groups; a band inside one covers the columns it spans. *@
-                                        <th scope="@(band.Parent is null ? "colgroup" : "col")" colspan="@(span.Count > 1 ? span.Count : null)" class="@BandClass(band, span)" role="@StackRole("columnheader")" style="@BandStyle(span)">@BandLabel(band)</th>
+                                        <th scope="@(band.Parent is null ? "colgroup" : "col")" colspan="@(span.Count > 1 ? span.Count : null)" class="@BandClass(band, span)" role="@StackRole("columnheader")" style="@BandStyle(span)" @attributes="BandAttributes(band, span)">@BandHeader(band, span)</th>
                                     }
                                     else
                                     {

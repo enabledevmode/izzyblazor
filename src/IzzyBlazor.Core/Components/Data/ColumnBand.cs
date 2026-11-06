@@ -40,7 +40,9 @@ public sealed class ColumnBand : ComponentBase, IDisposable
     internal List<object> Nodes { get; } = [];
 
     /// <summary>Its bands from the outermost down to itself.</summary>
-    internal IReadOnlyList<ColumnBand> Chain => Parent is null ? [this] : [.. Parent.Chain, this];
+    internal IReadOnlyList<ColumnBand> Chain => _chain ??= Parent is null ? [this] : [.. Parent.Chain, this];
+
+    private IReadOnlyList<ColumnBand>? _chain;
 
     /// <inheritdoc />
     protected override void OnInitialized()

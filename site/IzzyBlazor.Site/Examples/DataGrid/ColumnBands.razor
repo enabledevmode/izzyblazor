@@ -1,7 +1,7 @@
 @* A quarterly report: each quarter's revenue and margin under the quarter's name, the year's total
    beside them. *@
-<DataGrid Items="Report.Rows" Caption="Revenue and margin by region" QueryPrefix="bands-" InitialSort="region" ReorderableColumns ColumnPicker Grow>
-    <PropertyColumn Property="r => r.Region" Sortable />
+<DataGrid Items="Report.Rows" Caption="Revenue and margin by region" QueryPrefix="bands-" InitialSort="region" LayoutKey="bands-example" ReorderableColumns ColumnPicker Grow>
+    <PropertyColumn Property="r => r.Region" Sortable Width="10.Rem" />
     <ColumnBand Title="Q1 2026">
         <PropertyColumn Property="r => r.Q1Revenue" Title="Revenue" Format="C0" Sortable />
         <PropertyColumn Property="r => r.Q1Margin" Title="Margin" Format="P1" Sortable />

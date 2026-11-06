@@ -12,6 +12,38 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
     private int _bandsWaiting;
     private TaskCompletionSource? _bandsJoined;
 
+    private List<ColumnBand>? _bandOrder;
+
+    /// <summary>The columns and bands as the page has them, each band holding its own.</summary>
+    internal IReadOnlyList<object> BandNodes => _nodes;
+
+    /// <summary>A band's number among them all, in page order: the script names it by this.</summary>
+    internal int BandId(ColumnBand band)
+    {
+        if (_bandOrder is null)
+        {
+            _bandOrder = [];
+            Collect(_nodes);
+        }
+
+        return _bandOrder.IndexOf(band);
+
+        void Collect(List<object> nodes)
+        {
+            foreach (var node in nodes.OfType<ColumnBand>())
+            {
+                _bandOrder!.Add(node);
+                Collect(node.Nodes);
+            }
+        }
+    }
+
+    /// <summary>The numbers of the bands a column is in, outermost first: "0.2", or null in none.</summary>
+    internal string? BandPath(ColumnBase<TItem> column) => column.Band is { } band ? BandPath(band) : null;
+
+    /// <summary>The numbers of a band's bands, ending with its own.</summary>
+    internal string BandPath(ColumnBand band) => string.Join('.', band.Chain.Select(BandId));
+
     /// <summary>Whether any column is in a band.</summary>
     internal bool HasBands => _bands > 0;
 
@@ -82,6 +114,12 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
         ColumnClass(column) is { Length: > 0 } own ? "ib-table-band-gap " + own : "ib-table-band-gap";
 
     internal static RenderFragment BandLabel(ColumnBand band) => band.HeaderTemplate ?? (builder => builder.AddContent(0, band.Title));
+
+    /// <summary>A band's header content: its label, and a grid's menu.</summary>
+    internal virtual RenderFragment BandHeader(ColumnBand band, BandSpan span) => BandLabel(band);
+
+    /// <summary>A grid's attributes for a band's header cell, for the script that moves it.</summary>
+    internal virtual IReadOnlyDictionary<string, object>? BandAttributes(ColumnBand band, BandSpan span) => null;
 
     // A table with no columns of its own (a Table's) gets column groups for its bands, which a
     // band's scope="colgroup" names: one before the columns, one per band or column, one after.
@@ -174,12 +212,14 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
 
         _bands++;
         _bandsWaiting++;
+        _bandOrder = null;
     }
 
     void IColumnBandHost.RemoveBand(ColumnBand band)
     {
         (band.Parent?.Nodes ?? _nodes).Remove(band);
         _bands--;
+        _bandOrder = null;
         ColumnChanged();
     }
 
@@ -194,6 +234,7 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
     void IColumnBandHost.BandReady(ColumnBand band)
     {
         _bandsWaiting--;
+        _bandOrder = null;
         OrderColumns();
         ColumnChanged();
         if (!_columnsReady && _bandsWaiting == 0)
