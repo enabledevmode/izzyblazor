@@ -715,8 +715,8 @@ class RichText extends IzzyElement {
     // AltGr is Ctrl+Alt on Windows: a key that types a character (French AltGr+à is @) isn't a
     // shortcut, so it types.
     if (event.altKey && (event.getModifierState("AltGraph") || (event.key.length === 1 && !/[0-9]/.test(event.key)))) return;
-    // The browser's own Ctrl+B, I and U change the format for what's typed next without moving the
-    // selection, so no selectionchange says so: show it once the browser has done it.
+    // Ctrl+B, I and U change the format for what's typed next without moving the selection, so
+    // no selectionchange says so: show it once they're done.
     setTimeout(() => this.reflect(), 0);
 
     let command: [string, string?] | null = null;
@@ -734,7 +734,12 @@ class RichText extends IzzyElement {
       const style = digit === "0" ? "p" : digit && this.offers(Number(digit)) ? `h${digit}` : null;
       if (style) command = ["block", style === this.blockStyle() ? "p" : style];
     } else if (!event.altKey) {
-      if (event.code === "KeyE") command = ["code"];
+      // Bold, italic and underline here too: Firefox gives Ctrl+B, I and U to the bookmarks,
+      // page info and source instead of the text.
+      if (event.code === "KeyB") command = ["bold"];
+      else if (event.code === "KeyI") command = ["italic"];
+      else if (event.code === "KeyU") command = ["underline"];
+      else if (event.code === "KeyE") command = ["code"];
       else if (event.code === "KeyK") command = ["link"];
       else if (event.code === "Equal") command = ["subscript"];
       else if (event.code === "BracketRight") command = ["indent"];
