@@ -986,7 +986,7 @@
                 @if (column.FilterTemplate is { } template)
                 {
                     <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
-                        <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                        <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
                         @template(FilterContextOf(column, current))
                         @FilterPanelActions(column, current)
                     </div>
@@ -1091,7 +1091,7 @@
             @* An operator above the values, and a range's two ends, in a group named by the
                panel's title. Which of them show follows the operator, in CSS. *@
             <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
-                <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
                 @if (ops.Count > 1)
                 {
                     @OperatorSelect(column, current, ops, $"{fieldId}-op")
@@ -1120,20 +1120,22 @@
 
     // Clear: a link on static pages, so it needs no script, and with nothing to clear it's disabled, so
     // the panel keeps its shape.
-    private RenderFragment ClearAction(bool any, Func<string> href, Func<Task> clear, string? text = null) => __builder =>
+    // In a list's panel it's marked: (Select all) does the same, so its script hides it, and it's
+    // left for pages with no script.
+    private RenderFragment ClearAction(bool any, Func<string> href, Func<Task> clear, string? text = null, bool list = false) => __builder =>
     {
         const string look = "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm";
         if (!any)
         {
-            <button type="button" class="@look" disabled>@(text ?? TextDefaults.Clear)</button>
+            <button type="button" class="@look" disabled data-ib-list-clear="@(list ? "" : null)">@(text ?? TextDefaults.Clear)</button>
         }
         else if (UseState)
         {
-            <button type="button" class="@look" data-ib-filter-clear @onclick="() => clear()">@(text ?? TextDefaults.Clear)</button>
+            <button type="button" class="@look" data-ib-filter-clear data-ib-list-clear="@(list ? "" : null)" @onclick="() => clear()">@(text ?? TextDefaults.Clear)</button>
         }
         else
         {
-            <a href="@href()" class="@look" data-ib-filter-clear>@(text ?? TextDefaults.Clear)</a>
+            <a href="@href()" class="@look" data-ib-filter-clear data-ib-list-clear="@(list ? "" : null)">@(text ?? TextDefaults.Clear)</a>
         }
     };
 
@@ -1170,10 +1172,10 @@
     // A column's Clear removes its filter. Enter or Apply submits the filters' GET form, or with script
     // goes to the address the same way without a reload. On an interactive page the fields apply as they
     // change, and CSS hides that button.
-    private RenderFragment FilterPanelActions(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
+    private RenderFragment FilterPanelActions(ColumnBase<TItem> column, ColumnFilterValue current, bool list = false) => __builder =>
     {
         <div class="ib-table-filter-panel-actions">
-            @ClearAction(current.IsFilter, () => FilterHref(column, null), () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false))
+            @ClearAction(current.IsFilter, () => FilterHref(column, null), () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false), list: list)
             @if (!UseState)
             {
                 <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-filter-apply">@TextDefaults.Apply</button>
@@ -1190,19 +1192,19 @@
         var rows = ColumnFilter.ListOf(column, TextDefaults);
         var search = rows.Count > 10;
         <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
-            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
             <ib-filter-list data-ib-none="@(UseState ? null : $"{key}-none")" data-ib-ticked="@(string.Join(' ', rows.Where(r => ColumnFilter.IsTicked(current, r.Value)).Select(r => r.Value ?? "")))" data-ib-results="@TextDefaults.FilterSelectAllResults">
                 @if (search)
                 {
                     <div class="ib-field ib-field-sm ib-filter-list-search">
                         <div class="ib-field-control">
-                            <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-list-search />
+                            <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
                         </div>
                     </div>
                 }
                 <label class="ib-check ib-filter-list-all">
                     <input type="checkbox" class="ib-check-input" autofocus="@(!search)" data-ib-list-all />
-                    <span>@TextDefaults.SelectAll</span><span data-ib-list-results hidden></span>
+                    <span>@TextDefaults.FilterSelectAll</span><span data-ib-list-results hidden></span>
                 </label>
                 <div class="ib-filter-list-items">
                     @foreach (var (value, text) in rows)
@@ -1223,7 +1225,7 @@
                     }
                 </div>
             </ib-filter-list>
-            @FilterPanelActions(column, current)
+            @FilterPanelActions(column, current, list: true)
         </div>
     };
 
@@ -1336,18 +1338,18 @@
             : searchTooLong || list.Full ? TextDefaults.FilterKeepTyping
             : null;
         <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
-            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
             <ib-filter-list data-ib-list-remote data-ib-load-on-scroll data-ib-all="@AllTicked(list, current)" aria-busy="@(list.Loading ? "true" : null)">
                 <div class="ib-field ib-field-sm ib-filter-list-search">
                     <div class="ib-field-control">
-                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-bound-search
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-bound-search
                                @oninput="e => OnValueSearchAsync(column, list, e.Value?.ToString() ?? string.Empty)" />
                     </div>
                 </div>
                 <label class="ib-check ib-filter-list-all">
                     <input type="checkbox" class="ib-check-input" disabled="@(!CanSelectAll(list, current))" data-ib-list-all
                            @onchange="e => OnValueSelectAllAsync(column, list, e.Value is true)" />
-                    <span hidden="@(list.Searching && !searchTooLong)">@TextDefaults.SelectAll</span><span data-ib-list-results hidden="@(!list.Searching || searchTooLong)">@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterSelectAllResults, list.Rows.Count)</span>
+                    <span hidden="@(list.Searching && !searchTooLong)">@TextDefaults.FilterSelectAll</span><span data-ib-list-results hidden="@(!list.Searching || searchTooLong)">@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterSelectAllResults, list.Rows.Count)</span>
                 </label>
                 <div class="ib-filter-list-items">
                     @foreach (var row in list.Rows)
@@ -1379,7 +1381,7 @@
                     <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" data-ib-list-retry OnClick="() => LoadValuesAsync(column, list, list.LastWasMore)">@TextDefaults.Retry</Button>
                 }
             </ib-filter-list>
-            @FilterPanelActions(column, current)
+            @FilterPanelActions(column, current, list: true)
         </div>
     };
 
@@ -1421,7 +1423,7 @@
         var key = FilterQueryKey(column);
         var answer = _answering == column ? ValueListOf(column) : null;
         <div class="ib-table-filter-panel ib-field-sm ib-filter-with-script" role="group" aria-labelledby="@($"{fieldId}-title")">
-            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
             <ib-filter-list data-permanent="@key" data-ib-list-fetch data-ib-load-on-scroll data-ib-list-key="@key" data-ib-values-key="@ValuesKey" data-ib-values-field="@column.Key"
                             data-ib-max="@ColumnFilter.MaxListValues" data-ib-max-rows="@MaxValueRows" data-ib-ignore-case="@(FilterCase == FilterCase.IgnoreCase ? "" : null)"
                             data-ib-results="@TextDefaults.FilterSelectAllResults" data-ib-text-more="@TextDefaults.FilterKeepTyping" data-ib-text-none="@TextDefaults.FilterNoValues"
@@ -1430,12 +1432,12 @@
                             data-ib-next="@(answer is { HasMore: true, Failed: false } ? answer.NextSkip : null)">
                 <div class="ib-field ib-field-sm ib-filter-list-search">
                     <div class="ib-field-control">
-                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-list-search />
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
                     </div>
                 </div>
                 <label class="ib-check ib-filter-list-all">
                     <input type="checkbox" class="ib-check-input" data-ib-list-all />
-                    <span>@TextDefaults.SelectAll</span><span data-ib-list-results hidden></span>
+                    <span>@TextDefaults.FilterSelectAll</span><span data-ib-list-results hidden></span>
                 </label>
                 <div class="ib-filter-list-items">
                     @if (answer is not null)
@@ -1462,7 +1464,7 @@
                 </div>
             </ib-filter-list>
             <div class="ib-table-filter-panel-actions">
-                @ClearAction(current.IsFilter, () => FilterHref(column, null), () => Task.CompletedTask)
+                @ClearAction(current.IsFilter, () => FilterHref(column, null), () => Task.CompletedTask, list: true)
                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-filter-apply">@TextDefaults.Apply</button>
             </div>
         </div>

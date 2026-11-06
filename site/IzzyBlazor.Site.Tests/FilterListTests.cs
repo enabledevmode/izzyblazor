@@ -85,30 +85,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task A_panels_Clear_removes_its_filter_and_closes(string mode)
-    {
-        var (browser, page, table) = await OpenAsync(mode, query: "&lists-f-priority=High&lists-f-open=true");
-        await using (browser)
-        {
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Medium").CheckAsync();
-            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
-
-            await AddressIsAsync(page, "f-open=true");
-            await page.WaitForTimeoutAsync(700);
-            await AddressIsAsync(page, "f-open=true");
-            await Assertions.Expect(page.Locator("[popover]:popover-open .ib-table-filter-panel")).ToHaveCountAsync(0);
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Priority']")).ToBeFocusedAsync();
-
-            panel = await OpenPanelAsync(page, table, "Priority");
-            await Assertions.Expect(Box(panel, "Low")).ToBeCheckedAsync();
-            await Assertions.Expect(panel.GetByRole(AriaRole.Button, new() { Name = "Clear" })).ToBeDisabledAsync();
-        }
-    }
-
     [Fact]
     public async Task With_no_script_ticks_post_with_Apply()
     {
@@ -141,14 +117,14 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Fact]
-    public async Task A_bound_list_applies_in_C_sharp_and_Clear_redraws_it()
+    public async Task A_bound_list_applies_in_C_sharp()
     {
         var (browser, page, table) = await OpenAsync("interactive", "Order history", path: "docs/components/table");
         await using (browser)
         {
             var url = page.Url;
             var panel = await OpenPanelAsync(page, table, "Status");
-            var all = Box(panel, "Select all");
+            var all = Box(panel, "(Select all)");
 
             await Box(panel, "Refunded").UncheckAsync();
             await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: 3 selected']")).ToBeVisibleAsync();
@@ -160,13 +136,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: none']")).ToBeVisibleAsync();
             await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToContainTextAsync("Nothing is selected under Status.");
             Assert.Equal(url, page.Url);
-
-            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
-            panel = await OpenPanelAsync(page, table, "Status");
-            all = Box(panel, "Select all");
-            await Assertions.Expect(all).ToBeCheckedAsync();
-            Assert.False(await all.EvaluateAsync<bool>("b => b.indeterminate"));
         }
     }
 }

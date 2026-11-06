@@ -218,11 +218,20 @@ public class IzzyText
     /// <summary>A filter row's button that clears a column's filter; {0} is the column's title.</summary>
     public virtual string FilterClearColumn { get; set; } = "Clear the {0} filter";
 
-    /// <summary>A list filter's box for narrowing its rows.</summary>
+    /// <summary>A list filter's box for narrowing its rows: its name.</summary>
     public virtual string FilterSearchValues { get; set; } = "Search values";
 
+    /// <summary>A list filter's box for narrowing its rows: the hint in it.</summary>
+    public virtual string FilterSearchPlaceholder { get; set; } = "Search…";
+
+    /// <summary>
+    /// A list filter's box that ticks every row: in parentheses, as "(Blank)" is, so it reads as an
+    /// option, not one of the values.
+    /// </summary>
+    public virtual string FilterSelectAll { get; set; } = "(Select all)";
+
     /// <summary>A list filter's Select all while a search narrows it; {0} is how many rows it found.</summary>
-    public virtual string FilterSelectAllResults { get; set; } = "Select all {0} results";
+    public virtual string FilterSelectAllResults { get; set; } = "(Select all {0} results)";
 
     /// <summary>What a list filter with some rows unticked is set to; {0} is the value, or how many: "All but Ada", "All but 3".</summary>
     public virtual string FilterAllBut { get; set; } = "All but {0}";
