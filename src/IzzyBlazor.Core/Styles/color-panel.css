@@ -201,9 +201,22 @@
     cursor: not-allowed;
   }
 
-  /* The rich text editor's custom color dialog: as narrow as the panel, which fills it. */
+  /* The rich text editor's custom color dialog: no title, padded as tightly as a popover, as
+     narrow as the panel, which fills it. The footer reaches across the same padding. */
   .ib-rich-text-custom {
-    --ib-dialog-w: 21rem;
+    --ib-dialog-w: 20rem;
+  }
+
+  .ib-rich-text-custom > .ib-dialog-body {
+    --ib-dialog-px: var(--ib-space-4);
+    --ib-dialog-pb: var(--ib-space-4);
+    gap: var(--ib-space-4);
+    padding: var(--ib-space-4);
+  }
+
+  .ib-rich-text-custom .ib-dialog-footer {
+    margin-top: 0;
+    padding: var(--ib-space-3) var(--ib-space-4);
   }
 
   .ib-rich-text-custom .ib-color-panel {
