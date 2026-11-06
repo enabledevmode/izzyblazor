@@ -20,7 +20,7 @@ namespace IzzyBlazor;
 /// </remarks>
 /// <accessibility>
 /// <list type="bullet">
-/// <item>Heading levels, alt text and link text come from the HTML. The sanitizer turns a heading 1 into a 2, since the page has its own.</item>
+/// <item>Heading levels, alt text and link text come from the HTML. When the page has its own heading 1 above the text, set <see cref="TopHeading"/> to 2 so the text's headings sit under it.</item>
 /// <item>Links are underlined, not marked by color alone.</item>
 /// </list>
 /// </accessibility>
@@ -31,6 +31,12 @@ public class RichText : Prose
 {
     /// <summary>The HTML to show. It's sanitized first.</summary>
     [Parameter] public string? Html { get; set; }
+
+    /// <summary>The highest heading level shown, 1 to 6: higher headings move down to it. Defaults to 1; set the editor's <c>TopHeading</c> to match.</summary>
+    [Parameter] public int TopHeading { get; set; } = 1;
+
+    /// <summary>The fonts the text may use, as the editor's <c>Fonts</c>: others are dropped.</summary>
+    [Parameter] public IReadOnlyList<string>? Fonts { get; set; }
 
     /// <summary>Keep images whose source is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image.</summary>
     [Parameter] public bool AllowDataImages { get; set; }
@@ -43,7 +49,7 @@ public class RichText : Prose
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "class", cssClass);
         builder.AddAttribute(3, "style", style);
-        builder.AddContent(4, new MarkupString(RichTextSanitizer.Sanitize(Html, AllowDataImages)));
+        builder.AddContent(4, new MarkupString(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, AllowDataImages)));
         builder.CloseElement();
     }
 }

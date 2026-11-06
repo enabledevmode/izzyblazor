@@ -6,6 +6,7 @@
  */
 @layer izzy.components {
   .ib-rich-text {
+    position: relative;
     display: flex;
     flex-direction: column;
     border: 1px solid var(--ib-field-border);
@@ -49,10 +50,25 @@
     justify-content: space-between;
   }
 
+  /* The style menu's dot follows aria-checked, which the script keeps on the caret's style (the
+     server draws only the style the page loaded with). */
+  .ib-rich-text-toolbar [data-ib-value] .ib-menu-dot { display: none; }
+
+  .ib-rich-text-toolbar [data-ib-value][aria-checked="true"] .ib-menu-check::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+
   /* Each style in the menu looks like what it makes. */
-  .ib-rich-text-preview-h2 { font-size: 1.25em; font-weight: 600; }
-  .ib-rich-text-preview-h3 { font-size: 1.125em; font-weight: 600; }
-  .ib-rich-text-preview-h4 { font-weight: 600; }
+  [class^="ib-rich-text-preview-h"] { font-weight: 600; }
+  .ib-rich-text-preview-h1 { font-size: 1.5em; }
+  .ib-rich-text-preview-h2 { font-size: 1.3em; }
+  .ib-rich-text-preview-h3 { font-size: 1.15em; }
+  .ib-rich-text-preview-h5 { font-size: 0.9em; }
+  .ib-rich-text-preview-h6 { font-size: 0.8em; }
   .ib-rich-text-preview-blockquote { padding-inline-start: var(--ib-space-2); border-inline-start: 3px solid var(--ib-color-outline); font-style: italic; }
   .ib-rich-text-preview-pre { font-family: var(--ib-font-mono); font-size: 0.9em; }
 
@@ -110,6 +126,10 @@
     gap: var(--ib-space-2);
   }
 
+  .ib-field-rich-text:has(.ib-field-count) {
+    padding-block-end: var(--ib-space-4);
+  }
+
   .ib-field-count[data-ib-over] {
     color: var(--ib-color-danger);
   }
@@ -121,7 +141,7 @@
 
   @media (scripting: none) {
     .ib-rich-text { border: none; background: none; }
-    .ib-rich-text > :not(.ib-rich-text-source) { display: none; }
+    .ib-rich-text > :not(.ib-rich-text-source, .ib-field-count) { display: none; }
   }
 
   .ib-rich-text[data-ib-failed] {
@@ -129,6 +149,6 @@
     background: none;
   }
 
-  .ib-rich-text[data-ib-failed] > :not(.ib-rich-text-source) { display: none; }
+  .ib-rich-text[data-ib-failed] > :not(.ib-rich-text-source, .ib-field-count) { display: none; }
   .ib-rich-text[data-ib-failed] > .ib-rich-text-source { display: block; }
 }

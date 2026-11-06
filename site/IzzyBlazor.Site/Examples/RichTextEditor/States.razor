@@ -1,5 +1,5 @@
 @* A ticket's description: read-only once the ticket is closed. *@
-<Stack Gap="4">
+<Stack Gap="4" Grow>
     <RichTextEditor @bind-Value="_closed" Label="Description" ReadOnly Rows="3" />
     <RichTextEditor @bind-Value="_archived" Label="Description" Disabled Rows="3" />
 </Stack>

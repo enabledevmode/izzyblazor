@@ -309,7 +309,7 @@
       "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Shows saved rich text, sanitized and styled as Prose.",
       "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
       "examples": [
-        { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML." },
+        { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML. Under the page's own title, set `TopHeading` to 2, as on the editor that wrote it." },
         { "id": "rich-text-sanitized", "title": "What it removes", "lead": "RichText sanitizes the HTML every time it renders: scripts, event handlers, styles and `javascript:` links go, and other markup becomes the elements a rich text editor makes. HTML saved before you sanitized it can't run script on the page. To clean HTML yourself, call `RichTextSanitizer.Sanitize`." }
       ]
     },
@@ -781,7 +781,7 @@
             "noscript": "The field is a text box holding the HTML. It still posts, and is sanitized.",
             "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
           } },
-        { "id": "rich-text-editor-formats", "title": "Everything it formats", "lead": "Headings 2 to 4, paragraphs with bold, italic, underline, strikethrough and inline code, numbered and bulleted lists inside each other, a quote, a code block and a horizontal line. The page keeps heading 1 for its own title, so the text starts at 2." },
+        { "id": "rich-text-editor-formats", "title": "Everything it formats", "lead": "Headings, paragraphs with bold, italic, underline, strikethrough and inline code, numbered and bulleted lists inside each other, a quote, a code block and a horizontal line. The text-style menu offers five heading levels from `TopHeading` (1 by default). This guide sits under the page's own title, so `TopHeading` is 2 and its headings start there; give `RichText` the same." },
         { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic, links and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
         { "id": "rich-text-editor-length", "title": "Limiting the length", "lead": "To limit the text, set `MaxLength`; it counts the characters readers see, not the HTML around them, and is checked on the server. To show the count under the field, set `ShowCount`. Don't use `[StringLength]` on the property: it would count the HTML.",
           "notes": {
@@ -831,7 +831,7 @@
           "examples": []
         },
         {
-          "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["TextSize", "ContentClass"],
+          "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["TextSize", "ContentClass", "TopHeading"],
           "intro": [
             "The text is part of the page, not a frame, and has `Prose`'s styles: what you edit looks like what `RichText` shows. The theme's tokens reach it as they reach everything else. `TextSize` sets its size, as `Prose`'s `Size` does. For rules of your own, give the editor a `ContentClass` and `RichText` the same `Class`; Prose's rules have the lowest weight, so yours win."
           ],

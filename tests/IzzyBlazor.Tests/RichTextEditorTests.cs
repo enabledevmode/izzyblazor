@@ -25,18 +25,18 @@ public class RichTextEditorTests : BunitContext
             .Add(f => f.ValueChanged, v => model.Body = v)
             .Add(f => f.Label, "Body"));
 
-        Assert.Equal("<h2>Hi</h2><p>there</p>", model.Body);
+        Assert.Equal("<h1>Hi</h1><p>there</p>", model.Body);
 
         var surface = cut.Find(".ib-rich-text-surface");
         Assert.Equal("textbox", surface.GetAttribute("role"));
         Assert.Equal("true", surface.GetAttribute("aria-multiline"));
         Assert.Equal(cut.Find("label").Id, surface.GetAttribute("aria-labelledby"));
-        Assert.Equal("<h2>Hi</h2><p>there</p>", surface.InnerHtml);
+        Assert.Equal("<h1>Hi</h1><p>there</p>", surface.InnerHtml);
 
         var source = cut.Find("textarea.ib-rich-text-source");
         Assert.Equal("model.Body", source.GetAttribute("name"));
         Assert.Equal(cut.Find("label").GetAttribute("for"), source.Id);
-        Assert.Equal("<h2>Hi</h2><p>there</p>", source.GetAttribute("value") ?? source.TextContent);
+        Assert.Equal("<h1>Hi</h1><p>there</p>", source.GetAttribute("value") ?? source.TextContent);
     }
 
     // An editor left empty (an empty paragraph) binds null, so [Required] sees it as empty.

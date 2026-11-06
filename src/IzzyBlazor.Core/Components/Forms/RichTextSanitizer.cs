@@ -17,9 +17,9 @@ namespace IzzyBlazor;
 /// <para>
 /// It reads the HTML and writes a new document from what it allows, so nothing in the input
 /// reaches the output as it was: every text and attribute is encoded again. It allows paragraphs,
-/// headings 2 to 4 (a 1 becomes a 2, a 5 or 6 a 4), lists, quotes, code blocks, rules, bold
-/// (<c>strong</c>), italic (<c>em</c>), underline, strikethrough, inline code, links, line
-/// breaks, images and tables. <c>b</c>, <c>i</c>, <c>strike</c> and <c>del</c> become their
+/// headings from <c>topHeading</c> to 6 (a higher one moves down to <c>topHeading</c>), lists,
+/// quotes, code blocks, rules, bold (<c>strong</c>), italic (<c>em</c>), underline,
+/// strikethrough, subscript, superscript, inline code, links, line breaks, images and tables. <c>b</c>, <c>i</c>, <c>strike</c> and <c>del</c> become their
 /// equivalents and a <c>div</c> becomes a paragraph. Other elements are dropped and their text
 /// kept, except elements whose content is code or another document (<c>script</c>,
 /// <c>style</c>, <c>template</c>, <c>iframe</c>, <c>object</c>, <c>svg</c>, <c>math</c> and
@@ -29,8 +29,13 @@ namespace IzzyBlazor;
 /// Attributes: <c>href</c> (http, https, mailto, tel or relative) and <c>target="_blank"</c> on
 /// links, which then get <c>rel="noopener noreferrer"</c>; <c>src</c> (http, https or relative),
 /// <c>alt</c>, <c>width</c> and <c>height</c> on images; <c>start</c> on numbered lists;
-/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells. No <c>style</c>,
-/// <c>class</c>, <c>id</c> or event handler gets through.
+/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells. Classes only from the editor's
+/// own list: alignment (<c>ib-align-center</c>, <c>ib-align-end</c>) on blocks; text color
+/// (<c>ib-color-</c>), highlight (<c>ib-highlight-</c>) and size (<c>ib-size-sm</c>,
+/// <c>ib-size-lg</c>, <c>ib-size-xl</c>) on a <c>span</c>, the colors being red, orange, yellow,
+/// green, blue, purple and gray. One style: <c>font-family</c> on a <c>span</c>, when its value is
+/// exactly one of <c>fonts</c>. No other <c>style</c>, <c>class</c>, <c>id</c> or event handler
+/// gets through.
 /// </para>
 /// <para>
 /// <see cref="RichTextEditor"/> runs it on every value it binds, and <see cref="RichText"/> on
@@ -49,12 +54,13 @@ public static class RichTextSanitizer
     private static readonly Dictionary<string, string> Renames = new(StringComparer.Ordinal)
     {
         ["p"] = "p", ["div"] = "p",
-        ["h1"] = "h2", ["h2"] = "h2", ["h3"] = "h3", ["h4"] = "h4", ["h5"] = "h4", ["h6"] = "h4",
+        ["h1"] = "h1", ["h2"] = "h2", ["h3"] = "h3", ["h4"] = "h4", ["h5"] = "h5", ["h6"] = "h6",
         ["ul"] = "ul", ["ol"] = "ol", ["li"] = "li",
         ["blockquote"] = "blockquote", ["pre"] = "pre", ["hr"] = "hr",
         ["strong"] = "strong", ["b"] = "strong", ["em"] = "em", ["i"] = "em",
         ["u"] = "u", ["s"] = "s", ["strike"] = "s", ["del"] = "s",
         ["code"] = "code", ["a"] = "a", ["br"] = "br", ["img"] = "img",
+        ["span"] = "span", ["font"] = "span", ["sub"] = "sub", ["sup"] = "sup",
         ["table"] = "table", ["thead"] = "thead", ["tbody"] = "tbody",
         ["tr"] = "tr", ["th"] = "th", ["td"] = "td",
     };
@@ -76,8 +82,19 @@ public static class RichTextSanitizer
 
     private static readonly HashSet<string> Inline = new(StringComparer.Ordinal)
     {
-        "strong", "em", "u", "s", "code", "a",
+        "strong", "em", "u", "s", "code", "a", "span", "sub", "sup",
     };
+
+    private static readonly HashSet<string> Headings = new(StringComparer.Ordinal) { "h1", "h2", "h3", "h4", "h5", "h6" };
+
+    // The editor's own classes: alignment on blocks, color, highlight and size on a span.
+    private static readonly string[] Palette = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
+
+    private static readonly HashSet<string> BlockClasses = new(StringComparer.Ordinal) { "ib-align-center", "ib-align-end" };
+
+    private static readonly HashSet<string> SpanClasses = new(
+        Palette.Select(c => "ib-color-" + c).Concat(Palette.Select(c => "ib-highlight-" + c)).Concat(["ib-size-sm", "ib-size-lg", "ib-size-xl"]),
+        StringComparer.Ordinal);
 
     // Elements that hold blocks: opening a block closes everything open up to one of these.
     private static readonly HashSet<string> Containers = new(StringComparer.Ordinal)
@@ -98,12 +115,14 @@ public static class RichTextSanitizer
 
     /// <summary>Returns <paramref name="html"/> with only the allowed elements and attributes, encoded again.</summary>
     /// <param name="html">The HTML to clean. <see langword="null"/> gives an empty string.</param>
+    /// <param name="topHeading">The highest heading level kept, 1 to 6. Higher headings move down to it. Defaults to 1.</param>
+    /// <param name="fonts">The <c>font-family</c> values a <c>span</c> may set, each exactly as written, such as <c>Georgia, serif</c>. None by default.</param>
     /// <param name="allowDataImages">Keep images whose <c>src</c> is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image (never SVG).</param>
-    public static string Sanitize(string? html, bool allowDataImages = false)
+    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, bool allowDataImages = false)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
         var root = new Node(null);
-        new Builder(root, allowDataImages).Run(html);
+        new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? []).Run(html);
         var output = new StringBuilder(html.Length);
         foreach (var child in root.Children) Write(child, output);
         return output.ToString();
@@ -112,16 +131,25 @@ public static class RichTextSanitizer
     private sealed class Node(string? name)
     {
         public string? Name { get; } = name;
+
+        // An element that was dropped but kept its content: open, so its end tag closes it, never written.
+        public bool Unwrapped { get; init; }
         public string? Text { get; init; }
         public List<(string Name, string Value)> Attributes { get; } = [];
         public List<Node> Children { get; } = [];
         public Node? Parent { get; set; }
     }
 
-    private sealed class Builder(Node root, bool allowDataImages)
+    private sealed class Builder(Node root, bool allowDataImages, int topHeading, IReadOnlyList<string> fonts)
     {
         private readonly List<Node> _open = [root];
-        private Node Current => _open[^1];
+        private Node Current => _open.FindLast(n => !n.Unwrapped)!;
+
+        // The name an element is written as: a heading above the top one moves down to it.
+        private string? Map(string tag) =>
+            !Renames.TryGetValue(tag, out var name) ? null
+            : Headings.Contains(name) && name[1] - '0' < topHeading ? "h" + topHeading
+            : name;
 
         public void Run(string html)
         {
@@ -305,7 +333,7 @@ public static class RichTextSanitizer
 
         private void StartTag(string tag, List<(string Name, string Value)> attributes)
         {
-            if (!Renames.TryGetValue(tag, out var name)) return;
+            if (Map(tag) is not { } name) return;
             if (_open.Count > MaxDepth && !Void.Contains(name)) return;
 
             if (!Inline.Contains(name) && name is not ("br" or "img"))
@@ -327,6 +355,13 @@ public static class RichTextSanitizer
             AddAttributes(node, attributes);
             if (name is "a" && !node.Attributes.Exists(a => a.Name == "href")) return;
             if (name is "img" && !node.Attributes.Exists(a => a.Name == "src")) return;
+            if (name is "span" && node.Attributes.Count == 0)
+            {
+                // A span with nothing kept is only its content; it stays open so its end tag
+                // doesn't close a span around it.
+                _open.Add(new Node("span") { Unwrapped = true });
+                return;
+            }
             Append(node);
             if (!Void.Contains(name)) _open.Add(node);
         }
@@ -382,12 +417,12 @@ public static class RichTextSanitizer
 
         private void EndTag(string tag)
         {
-            if (!Renames.TryGetValue(tag, out var name) || Void.Contains(name)) return;
+            if (Map(tag) is not { } name || Void.Contains(name)) return;
             var j = _open.FindLastIndex(n => n.Name == name);
             if (j <= 0) return;
 
             // A text-level end tag (bold, a paragraph) doesn't reach out of a list item, quote or cell.
-            if (Inline.Contains(name) || name is "p" or "h2" or "h3" or "h4" or "pre")
+            if (Inline.Contains(name) || Headings.Contains(name) || name is "p" or "pre")
             {
                 for (var k = _open.Count - 1; k > j; k--)
                 {
@@ -421,6 +456,9 @@ public static class RichTextSanitizer
                     ("td" or "th", "colspan") => Number(value, 1, 1000),
                     ("td" or "th", "rowspan") => Number(value, 0, 65534),
                     ("th", "scope") => value.Trim().ToLowerInvariant() is var s && s is "row" or "col" or "rowgroup" or "colgroup" ? s : null,
+                    ("span", "class") => Classes(value, SpanClasses),
+                    ("span", "style") => Font(value),
+                    ("p" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6" or "li" or "blockquote" or "td" or "th", "class") => Classes(value, BlockClasses),
                     _ => null,
                 };
                 if (kept is not null) node.Attributes.Add((name, kept));
@@ -430,6 +468,24 @@ public static class RichTextSanitizer
             {
                 node.Attributes.Add(("rel", "noopener noreferrer"));
             }
+        }
+
+        // The classes from the editor's list, in their order; null when none is left.
+        private static string? Classes(string value, HashSet<string> allowed)
+        {
+            var kept = value.Split([' ', '\t', '\n', '\r', '\f'], StringSplitOptions.RemoveEmptyEntries).Where(allowed.Contains).Distinct().ToList();
+            return kept.Count == 0 ? null : string.Join(' ', kept);
+        }
+
+        // "font-family: X" when X is exactly one of the app's fonts, written as the app wrote it.
+        private string? Font(string value)
+        {
+            var style = value.Trim().TrimEnd(';').Trim();
+            const string property = "font-family:";
+            if (!style.StartsWith(property, StringComparison.OrdinalIgnoreCase)) return null;
+            var family = style[property.Length..].Trim();
+            var match = fonts.FirstOrDefault(f => string.Equals(f.Trim(), family, StringComparison.OrdinalIgnoreCase));
+            return match is null ? null : "font-family: " + match.Trim();
         }
 
         private string? CleanUrl(string value, bool image)
