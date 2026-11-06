@@ -651,7 +651,7 @@
                 if (taken.TryGetValue(key, out var other) && other != column)
                 {
                     throw new InvalidOperationException(
-                        $"The \"{column.HeaderText}\" and \"{other.HeaderText}\" columns both filter through ?{key}. Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
+                        $"The \"{column.FullName}\" and \"{other.FullName}\" columns both filter through ?{key}. Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
                 }
 
                 taken[key] = column;
@@ -663,15 +663,17 @@
     private void CheckSortKeys()
     {
         var taken = new Dictionary<string, ColumnBase<TItem>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var column in _columns.Where(c => c.Key is not null && (c.CanSort || c.HasAggregate)))
+        // One with no key goes by its title, which columns in different bands often share.
+        foreach (var column in _columns.Where(c => c.Key is not null ? c.CanSort || c.HasAggregate : c.HasAggregate))
         {
-            if (taken.TryGetValue(column.Key!, out var other))
+            var key = column.Key ?? column.AggregateKey;
+            if (taken.TryGetValue(key, out var other))
             {
                 throw new InvalidOperationException(
-                    $"The \"{column.HeaderText}\" and \"{other.HeaderText}\" columns both have the key \"{column.Key}\". Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
+                    $"The \"{column.FullName}\" and \"{other.FullName}\" columns both have the key \"{key}\". Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
             }
 
-            taken[column.Key!] = column;
+            taken[key] = column;
         }
     }
 

@@ -50,10 +50,7 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
         var name = column.HeaderText;
         for (var band = column.Band; band is not null; band = band.Parent)
         {
-            if (band.Title is { Length: > 0 } title)
-            {
-                name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnInBand, title, name);
-            }
+            name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnInBand, band.Title, name);
         }
 
         return name;
@@ -61,6 +58,11 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
 
     /// <summary>Whether the band row can be hidden, so each header names its bands (a stacked table).</summary>
     internal virtual bool StacksBands => false;
+
+    /// <summary>A band's name with the bands it's in: "2026 Q1".</summary>
+    internal string BandFullName(ColumnBand band) => band.Parent is { } parent
+        ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnInBand, BandFullName(parent), band.Title)
+        : band.Title ?? "";
 
     /// <summary>Whether any column is in a band.</summary>
     internal bool HasBands => _bands > 0;
@@ -76,12 +78,24 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
 
     /// <summary>
     /// A row of bands over the columns shown, from 0 at the top: a span per band, and one per column
-    /// with none there. Each band sits right above its columns, so a shallower one has gaps above it.
+    /// with none there. A band sits as low as the bands inside it let it, so a band with none is right
+    /// above its columns, and each band has one row, over all its columns, whatever else it holds.
     /// </summary>
     internal List<BandSpan> BandRow(int level)
     {
+        // How many rows each band and those inside it take, over the columns shown.
+        var height = new Dictionary<ColumnBand, int>();
+        foreach (var column in Shown)
+        {
+            var chain = column.Band?.Chain ?? [];
+            for (var i = 0; i < chain.Count; i++)
+            {
+                height[chain[i]] = Math.Max(height.GetValueOrDefault(chain[i]), chain.Count - i);
+            }
+        }
+
         var depth = BandDepth;
-        return Spans(chain => level - (depth - chain.Count) is var at && at >= 0 ? chain[at] : null);
+        return Spans(chain => chain.FirstOrDefault(b => depth - height[b] == level));
     }
 
     /// <summary>The outermost bands, and a span per column in none: the table's column groups.</summary>

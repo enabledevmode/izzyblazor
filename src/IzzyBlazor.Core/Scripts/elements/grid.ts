@@ -373,7 +373,7 @@ class Grid extends IzzyElement {
 
   // Not the cells of a column hidden at this width (kept in place, at no width), nor a group level's empty lead.
   #visibleCells(row: HTMLTableRowElement): HTMLTableCellElement[] {
-    return [...row.cells].filter((cell) => cell.checkVisibility({ visibilityProperty: true }) && !cell.matches(".ib-grid-lead:empty, .ib-table-band-gap"));
+    return [...row.cells].filter((cell) => cell.checkVisibility({ visibilityProperty: true }) && !cell.matches(".ib-grid-lead:empty, .ib-table-band-row > td"));
   }
 
   /** The visible cell of a row nearest a column, counting spans. */
@@ -389,6 +389,16 @@ class Grid extends IzzyElement {
       }
     }
     return best;
+  }
+
+  // Whether a band row has an empty cell over this column.
+  #gapAt(row: HTMLTableRowElement, column: number): boolean {
+    let at = 0;
+    for (const cell of row.cells) {
+      if (column < at + cell.colSpan) return cell.matches(".ib-table-band-row > td");
+      at += cell.colSpan;
+    }
+    return false;
   }
 
   #columnOf(cell: HTMLTableCellElement): number {
@@ -697,7 +707,8 @@ class Grid extends IzzyElement {
           return true;
         }
         const next = rows[rows.indexOf(row) + (event.key === "ArrowDown" ? 1 : -1)];
-        if (next) this.#focusCell(this.#atColumn(next, this.#column));
+        // Up from a header with no band above it stays: the band beside it isn't its own.
+        if (next && !this.#gapAt(next, this.#column)) this.#focusCell(this.#atColumn(next, this.#column));
         return true;
       }
       case "ArrowRight":

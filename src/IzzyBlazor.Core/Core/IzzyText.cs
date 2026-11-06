@@ -53,7 +53,9 @@ public class IzzyText
 
     /// <summary>
     /// A column's name with its band's, wherever it's named away from its header (a filter's tag, a
-    /// phone's label beside the value): "Q1 Revenue". {0} is the band's title, {1} the column's.
+    /// phone's label beside the value): "Q1 Revenue". {0} is the band's title, {1} the column's. For
+    /// a band in a band, it's applied once a level, from the inside out, so {1} is then the column's
+    /// name with the inner bands' already: "2026 Q1 Revenue".
     /// </summary>
     public virtual string ColumnInBand { get; set; } = "{0} {1}";
 
