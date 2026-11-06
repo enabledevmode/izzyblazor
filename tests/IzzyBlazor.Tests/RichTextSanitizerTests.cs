@@ -8,7 +8,7 @@ public class RichTextSanitizerTests : BunitContext
 {
     public RichTextSanitizerTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
-    private static string S(string html, bool dataImages = false) => RichTextSanitizer.Sanitize(html, dataImages);
+    private static string S(string html, bool dataImages = false, int top = 1, string[]? fonts = null) => RichTextSanitizer.Sanitize(html, top, fonts, dataImages);
 
     [Theory]
     [InlineData("<script>alert(1)</script>ok", "ok")]
@@ -98,8 +98,10 @@ public class RichTextSanitizerTests : BunitContext
     [Fact]
     public void Maps_pasted_markup_to_the_editor_s_elements()
     {
-        Assert.Equal("<h2>T</h2><p><strong>b</strong> <em>i</em> <s>d</s></p><h4>s</h4>",
+        Assert.Equal("<h1>T</h1><p><strong>b</strong> <em>i</em> <s>d</s></p><h6>s</h6>",
             S("<h1>T</h1><div><b>b</b> <i>i</i> <del>d</del></div><h6>s</h6>"));
+        // Under a page's own title, a heading 1 moves down to the top level allowed.
+        Assert.Equal("<h2>T</h2><h3>U</h3>", S("<h1>T</h1><h3>U</h3>", top: 2));
         // Word's and Docs' wrappers go; their text stays.
         Assert.Equal("<p>Hello <strong>world</strong></p>",
             S("<p class=\"MsoNormal\"><span style=\"font-family:Calibri\"><o:p></o:p>Hello <font color=red><b>world</b></font></span></p>"));
@@ -116,6 +118,18 @@ public class RichTextSanitizerTests : BunitContext
         Assert.Equal("<p><br></p>", S("<p><br></p>"));
         // A stray end tag is ignored.
         Assert.Equal("<ul><li>a<em>b</em></li><li>cd</li></ul>", S("<ul><li>a<em>b</li><li>c</em>d</li></ul>"));
+    }
+
+    [Fact]
+    public void Keeps_only_the_editor_s_own_classes_and_the_app_s_fonts()
+    {
+        Assert.Equal("<p class=\"ib-align-center\">a <span class=\"ib-color-red ib-size-lg\">b</span> <sub>2</sub><sup>3</sup></p>",
+            S("<p class=\"ib-align-center MsoNormal\" style=\"text-align:center\">a <span class=\"ib-color-red x ib-size-lg\" style=\"color:red\">b</span> <sub>2</sub><sup>3</sup></p>"));
+        Assert.Equal("<p><span style=\"font-family: Georgia, serif\">a</span>b</p>",
+            S("<p><span style=\"FONT-FAMILY: georgia, serif;\">a</span><span style=\"font-family: Comic Sans MS\">b</span></p>", fonts: ["Georgia, serif"]));
+        // A dropped span doesn't take its end tag from the span around it.
+        Assert.Equal("<p><span class=\"ib-color-blue\">a b c</span></p>", S("<p><span class=\"ib-color-blue\">a <span>b</span> c</span></p>"));
+        Assert.Equal("<p><span class=\"ib-highlight-yellow\">x</span></p>", S("<p><font color=red><span class=\"ib-highlight-yellow\" onclick=x>x</span></font></p>"));
     }
 
     [Fact]
@@ -142,7 +156,7 @@ public class RichTextSanitizerTests : BunitContext
     [Fact]
     public void Rich_text_shows_sanitized_html_as_prose()
     {
-        var cut = Render<RichText>(p => p.Add(r => r.Html, "<h1 onclick=x>Title</h1><script>alert(1)</script>").Add(r => r.Size, ProseSize.Lg));
+        var cut = Render<RichText>(p => p.Add(r => r.Html, "<h1 onclick=x>Title</h1><script>alert(1)</script>").Add(r => r.Size, ProseSize.Lg).Add(r => r.TopHeading, 2));
 
         cut.MarkupMatches("<div class=\"ib-prose ib-prose-lg\"><h2>Title</h2></div>");
     }

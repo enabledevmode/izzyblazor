@@ -761,6 +761,7 @@
   .ib-prose :where(h2) { font-size: 1.5em; }
   .ib-prose :where(h3) { font-size: 1.25em; margin-block-start: var(--ib-space-8); }
   .ib-prose :where(h4, h5, h6) { font-size: 1em; margin-block-start: var(--ib-space-6); }
+  .ib-prose :where(h5, h6) { font-size: 0.875em; }
 
   .ib-prose :where(h1, h2, h3, h4, h5, h6) + :where(*) {
     margin-block-start: 0;

@@ -16,7 +16,7 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
 
 // What each element is written as; anything else gives its content only.
 const names: Record<string, string> = {
-  P: "p", DIV: "p", H1: "h2", H2: "h2", H3: "h3", H4: "h4", H5: "h4", H6: "h4",
+  P: "p", DIV: "p", H1: "h1", H2: "h2", H3: "h3", H4: "h4", H5: "h5", H6: "h6",
   UL: "ul", OL: "ol", LI: "li", BLOCKQUOTE: "blockquote", PRE: "pre", HR: "hr",
   STRONG: "strong", B: "strong", EM: "em", I: "em", U: "u", S: "s", STRIKE: "s", DEL: "s",
   CODE: "code", A: "a", BR: "br", IMG: "img",
@@ -25,7 +25,7 @@ const names: Record<string, string> = {
 const voids = new Set(["br", "hr", "img"]);
 const dropped = new Set(["SCRIPT", "STYLE", "TEMPLATE", "IFRAME", "OBJECT", "EMBED", "SVG", "MATH", "NOSCRIPT", "TEXTAREA", "TITLE", "SELECT", "HEAD", "META", "LINK"]);
 const blocks = "p,h1,h2,h3,h4,h5,h6,blockquote,pre,li,div";
-const styles = ["p", "h2", "h3", "h4", "blockquote", "pre"];
+const styles = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"];
 
 function escape(text: string, attribute = false): string {
   let out = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -45,7 +45,7 @@ function safeUrl(value: string, image: boolean): string | null {
 }
 
 /** Writes a node's children as the editor's HTML: the same elements the server's sanitizer keeps. */
-function serialize(parent: Node): string {
+function serialize(parent: Node, top = 1): string {
   let out = "";
   let openItem = false;
   for (const node of parent.childNodes) {
@@ -57,29 +57,34 @@ function serialize(parent: Node): string {
       continue;
     }
     if (!(node instanceof Element) || dropped.has(node.tagName.toUpperCase())) continue;
-    const name = names[node.tagName.toUpperCase()];
+    const name = level(names[node.tagName.toUpperCase()], top);
     if (!name) {
-      out += serialize(node);
+      out += serialize(node, top);
       continue;
     }
 
     // A browser's indent puts a list straight in a list: it belongs in the item before it.
     if ((name === "ul" || name === "ol") && openItem && out.endsWith("</li>")) {
-      out = out.slice(0, -5) + element(node, name) + "</li>";
+      out = out.slice(0, -5) + element(node, name, top) + "</li>";
       continue;
     }
 
-    out += element(node, name);
+    out += element(node, name, top);
     openItem = name === "li";
   }
   return out;
 }
 
-function element(node: Element, name: string): string {
+/** A heading above the top level moves down to it, as the sanitizer does. */
+function level(name: string | undefined, top: number): string | undefined {
+  return name && /^h[1-6]$/.test(name) && Number(name[1]) < top ? `h${top}` : name;
+}
+
+function element(node: Element, name: string, top: number): string {
   let attributes = "";
   if (name === "a") {
     const href = safeUrl(node.getAttribute("href") ?? "", false);
-    if (!href) return serialize(node);
+    if (!href) return serialize(node, top);
     attributes = ` href="${escape(href, true)}"`;
     if (node.getAttribute("target") === "_blank") attributes += ` target="_blank" rel="noopener noreferrer"`;
   } else if (name === "img") {
@@ -91,8 +96,8 @@ function element(node: Element, name: string): string {
   }
   if (voids.has(name)) return `<${name}${attributes}>`;
   // A browser can put a list inside a paragraph; the paragraph gives way to what's in it.
-  if (/^(p|h[234])$/.test(name) && node.querySelector(":scope > :is(ul,ol,blockquote,pre,table,p,div,h1,h2,h3,h4,h5,h6)")) return serialize(node);
-  const inner = serialize(node);
+  if (/^(p|h[1-6])$/.test(name) && node.querySelector(":scope > :is(ul,ol,blockquote,pre,table,p,div,h1,h2,h3,h4,h5,h6)")) return serialize(node, top);
+  const inner = serialize(node, top);
   if (!inner && name !== "li" && name !== "td" && name !== "th") return "";
   return `<${name}${attributes}>${inner}</${name}>`;
 }
@@ -120,6 +125,16 @@ class RichText extends IzzyElement {
 
   private get source(): HTMLTextAreaElement | null {
     return this.querySelector<HTMLTextAreaElement>(":scope > .ib-rich-text-source");
+  }
+
+  /** The highest heading level (TopHeading). */
+  private get top(): number {
+    return Number(this.dataset.ibTop) || 1;
+  }
+
+  /** Whether a heading level is one the editor offers: the top one and the four below it. */
+  private offers(level: number): boolean {
+    return level >= this.top && level <= Math.min(this.top + 4, 6);
   }
 
   private get toolbar(): HTMLElement | null {
@@ -231,7 +246,7 @@ class RichText extends IzzyElement {
     if (!surface || !source) return;
     const blank = isBlank(surface);
     surface.toggleAttribute("data-ib-empty", blank);
-    const html = blank ? "" : serialize(surface);
+    const html = blank ? "" : serialize(surface, this.top);
     this.count();
     if (html === source.value) return;
     source.value = html;
@@ -340,9 +355,7 @@ class RichText extends IzzyElement {
 
   private blockStyle(): string {
     const block = this.around("blockquote") ?? this.around(blocks);
-    const name = block?.localName ?? "p";
-    if (name === "h1") return "h2";
-    if (name === "h5" || name === "h6") return "h4";
+    const name = level(block?.localName, this.top) ?? "p";
     return styles.includes(name) ? name : "p";
   }
 
@@ -453,8 +466,9 @@ class RichText extends IzzyElement {
       else if (event.code === "Digit8") command = ["bulleted"];
       else if (event.code === "KeyV") this.#plainPaste = true;
     } else if (event.altKey && !event.shiftKey) {
-      const level = { Digit0: "p", Digit2: "h2", Digit3: "h3", Digit4: "h4" }[event.code];
-      if (level) command = ["block", level === this.blockStyle() ? "p" : level];
+      const digit = /^Digit([0-6])$/.exec(event.code)?.[1];
+      const style = digit === "0" ? "p" : digit && this.offers(Number(digit)) ? `h${digit}` : null;
+      if (style) command = ["block", style === this.blockStyle() ? "p" : style];
     } else if (!event.altKey) {
       if (event.code === "KeyE") command = ["code"];
       else if (event.code === "KeyK") command = ["link"];
@@ -478,8 +492,10 @@ class RichText extends IzzyElement {
 
     if (data === " ") {
       const block = this.around("p,div");
-      const marker = /^(#{1,4}|[-*]|1[.)]|>|```)[ \u00A0]$/.exec(before)?.[1];
+      const marker = /^(#{1,6}|[-*]|1[.)]|>|```)[ \u00A0]$/.exec(before)?.[1];
       if (!block || !marker || this.around("li,blockquote")) return;
+      // # is the top heading level, ## the one below it, and so on.
+      if (marker.startsWith("#") && !this.offers(this.top + marker.length - 1)) return;
       // Only at the very start of the line.
       const lead = document.createRange();
       lead.setStart(block, 0);
@@ -491,7 +507,7 @@ class RichText extends IzzyElement {
       selection.removeAllRanges();
       selection.addRange(typed);
       exec("delete");
-      if (marker.startsWith("#")) exec("formatBlock", `<h${Math.max(2, marker.length)}>`);
+      if (marker.startsWith("#")) exec("formatBlock", `<h${this.top + marker.length - 1}>`);
       else if (marker === "-" || marker === "*") exec("insertUnorderedList");
       else if (marker === ">") exec("formatBlock", "<blockquote>");
       else if (marker === "```") exec("formatBlock", "<pre>");
@@ -668,7 +684,7 @@ class RichText extends IzzyElement {
       exec("insertText", data.getData("text/plain"));
     } else {
       // Parsed in a document of its own, where nothing loads or runs.
-      const cleaned = serialize(new DOMParser().parseFromString(html, "text/html").body);
+      const cleaned = serialize(new DOMParser().parseFromString(html, "text/html").body, this.top);
       if (cleaned) exec("insertHTML", cleaned);
     }
     this.changed();
@@ -692,7 +708,7 @@ class RichText extends IzzyElement {
     getSelection()?.removeAllRanges();
     getSelection()?.addRange(range);
     const html = data.getData("text/html");
-    if (html) exec("insertHTML", serialize(new DOMParser().parseFromString(html, "text/html").body));
+    if (html) exec("insertHTML", serialize(new DOMParser().parseFromString(html, "text/html").body, this.top));
     else exec("insertText", data.getData("text/plain"));
     this.changed();
   }

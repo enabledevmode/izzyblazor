@@ -42,7 +42,7 @@
     - Ctrl+Shift+8, Ctrl+Shift+7 | Bulleted list, numbered list
     - Ctrl+], Ctrl+[ | Indent or outdent a list item
     - Ctrl+Alt+0 | Paragraph
-    - Ctrl+Alt+2, Ctrl+Alt+3, Ctrl+Alt+4 | Heading 2, 3, 4
+    - Ctrl+Alt+1 to Ctrl+Alt+6 | Heading 1 to 6, from TopHeading
     - Ctrl+Z, Ctrl+Y | Undo, redo
     - Ctrl+Shift+V | Paste as plain text
     - ## , - , 1. , > or three backticks at the start of a line, then Space | Heading, list, quote, code block
@@ -57,7 +57,7 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-text.css"]" />
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength">
+    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top">
         @if (ShowsToolbar)
         {
             <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap Class="ib-rich-text-toolbar">
@@ -74,9 +74,10 @@
                         <ChildContent>
                             <MenuRadioGroup Label="@TextDefaults.RichTextStyle" Value="p">
                                 @StyleItem("p", TextDefaults.RichTextParagraph, "0")
-                                @StyleItem("h2", string.Format(TextDefaults.RichTextHeading, 2), "2")
-                                @StyleItem("h3", string.Format(TextDefaults.RichTextHeading, 3), "3")
-                                @StyleItem("h4", string.Format(TextDefaults.RichTextHeading, 4), "4")
+                                @for (var level = Top; level <= Math.Min(Top + 4, 6); level++)
+                                {
+                                    @StyleItem($"h{level}", string.Format(TextDefaults.RichTextHeading, level), level.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                                }
                                 @StyleItem("blockquote", TextDefaults.RichTextQuote, null)
                                 @StyleItem("pre", TextDefaults.RichTextCodeBlock, null)
                             </MenuRadioGroup>
@@ -171,12 +172,12 @@
                 </div>
             </div>
         }
+        @if (ShowsCount)
+        {
+            @* The script keeps the number current and adds the count to the text's description. *@
+            <span class="ib-field-count" id="@CountId"><span class="ib-field-count-current">@TextLength(_shown)</span> / @MaxLength</span>
+        }
     </ib-rich-text>
-    @if (ShowsCount)
-    {
-        @* The script keeps the number current and adds the count to the text's description. *@
-        <span class="ib-field-count" id="@CountId"><span class="ib-field-count-current">@TextLength(_shown)</span> / @MaxLength</span>
-    }
 </FieldFrame>
 
 @code {
@@ -209,6 +210,20 @@
     /// and <c>`code`</c>. On by default; Ctrl+Z undoes a change it made.
     /// </summary>
     [Parameter] public bool MarkdownShortcuts { get; set; } = true;
+
+    /// <summary>
+    /// The highest heading level, 1 to 6. The text-style menu offers it and the four below it.
+    /// Defaults to 1; set 2 when the page shows its own heading 1 above the text, and give
+    /// <see cref="RichText"/> the same.
+    /// </summary>
+    [Parameter] public int TopHeading { get; set; } = 1;
+
+    /// <summary>
+    /// The fonts the Font tool offers, each a CSS <c>font-family</c> value such as
+    /// <c>Georgia, serif</c>; the first name in each is its label. Only these are kept in the
+    /// value. Give <see cref="RichText"/> the same list.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? Fonts { get; set; }
 
     /// <summary>The most characters of text, not counting the HTML around it. Checked on the server; with script, the count shows when it's passed.</summary>
     [Parameter] public int? MaxLength { get; set; }
@@ -268,6 +283,8 @@
     private static int TextLength(string html) =>
         System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", "")).Length;
 
+    private int Top => Math.Clamp(TopHeading, 1, 6);
+
     private string LabelId => FieldId + "-label";
 
     private string SurfaceId => FieldId + "-text";
@@ -323,7 +340,7 @@
         var first = _seen is null;
         _seen = value;
         if (value == _reported) return;
-        _shown = RichTextSanitizer.Sanitize(value);
+        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts);
         _reported = null;
         if (!first) _version++;
     }
@@ -344,9 +361,9 @@
     }
 
     // Sanitized, and null when nothing's left to show, so [Required] sees an empty editor as empty.
-    private static string? Clean(string? value)
+    private string? Clean(string? value)
     {
-        var html = RichTextSanitizer.Sanitize(value);
+        var html = RichTextSanitizer.Sanitize(value, Top, Fonts);
         return IsBlank(html) ? null : html;
     }
 
