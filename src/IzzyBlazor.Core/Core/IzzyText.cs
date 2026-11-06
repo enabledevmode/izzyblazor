@@ -1317,6 +1317,9 @@ public class IzzyText
     /// <summary>A RichTextEditor's text size menu.</summary>
     public virtual string RichTextSize { get; set; } = "Size";
 
+    /// <summary>A RichTextEditor's text size: the smallest step.</summary>
+    public virtual string RichTextSizeSmaller { get; set; } = "Smaller";
+
     /// <summary>A RichTextEditor's text size: small.</summary>
     public virtual string RichTextSizeSmall { get; set; } = "Small";
 
@@ -1325,6 +1328,9 @@ public class IzzyText
 
     /// <summary>A RichTextEditor's text size: large.</summary>
     public virtual string RichTextSizeLarge { get; set; } = "Large";
+
+    /// <summary>A RichTextEditor's text size: the largest step.</summary>
+    public virtual string RichTextSizeLargest { get; set; } = "Largest";
 
     /// <summary>A RichTextEditor's text size: larger.</summary>
     public virtual string RichTextSizeLarger { get; set; } = "Larger";

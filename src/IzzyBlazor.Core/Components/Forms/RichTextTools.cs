@@ -67,7 +67,7 @@ public enum RichTextTools
     /// <summary>A highlight behind the text, from the same palette.</summary>
     Highlight = 1 << 17,
 
-    /// <summary>Text size: small, normal, large or larger, in steps of the theme's type scale.</summary>
+    /// <summary>Text size: six steps from Smaller to Largest that scale with the text around them, or the editor's <c>FontSizes</c>.</summary>
     FontSize = 1 << 18,
 
     /// <summary>A font from the editor's <c>Fonts</c>; shows only when it has some.</summary>

@@ -60,10 +60,10 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-content.css"]" />
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)">
+    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)">
         @if (ShowsToolbar)
         {
-            <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap Class="ib-rich-text-toolbar">
+            <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap="WrapToolbar" Class="ib-rich-text-toolbar">
                 @* Groups with a line between each; only those with tools show. *@
                 @{ var first = true; }
                 @foreach (var group in Groups())
@@ -169,6 +169,19 @@
     /// value. Give <see cref="RichText"/> the same list.
     /// </summary>
     [Parameter] public IReadOnlyList<string>? Fonts { get; set; }
+
+    /// <summary>
+    /// Fixed text sizes for the Size tool, such as <c>12px</c> or <c>14pt</c>, in place of its steps
+    /// (Smaller to Largest), which scale with the text around them. Only these are kept in the value.
+    /// Give <see cref="RichText"/> the same list.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? FontSizes { get; set; }
+
+    /// <summary>
+    /// The toolbar wraps onto more rows (the default), filling each; false keeps it one row, and what
+    /// doesn't fit moves into a "…" menu at its end.
+    /// </summary>
+    [Parameter] public bool WrapToolbar { get; set; } = true;
 
     /// <summary>The most characters of text, not counting the HTML around it. Checked on the server; with script, the count shows when it's passed.</summary>
     [Parameter] public int? MaxLength { get; set; }
@@ -290,7 +303,7 @@
         {
             @* The button shows the style where the caret is; the script keeps it and the checked
                item current as the caret moves. *@
-            <ToolbarMenu Label="@TextDefaults.RichTextStyle">
+            <ToolbarMenu Label="@TextDefaults.RichTextStyle" Priority="2">
                 <Trigger>
                     <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
                             EndIcon="Lucide.ChevronDown" class="ib-rich-text-style" data-ib-menu-button="block"
@@ -336,22 +349,35 @@
                 </Trigger>
                 <ChildContent>
                     <MenuRadioGroup Label="@TextDefaults.RichTextSize" Value="">
-                        @ChoiceItem("size", "sm", TextDefaults.RichTextSizeSmall, TextDefaults.RichTextSize, "ib-size-sm")
-                        @ChoiceItem("size", "", TextDefaults.RichTextSizeNormal, TextDefaults.RichTextSize)
-                        @ChoiceItem("size", "lg", TextDefaults.RichTextSizeLarge, TextDefaults.RichTextSize, "ib-size-lg")
-                        @ChoiceItem("size", "xl", TextDefaults.RichTextSizeLarger, TextDefaults.RichTextSize, "ib-size-xl")
+                        @if (FontSizes is { Count: > 0 } sizes)
+                        {
+                            @SizeItem("", TextDefaults.RichTextSizeNormal, null, null)
+                            @foreach (var size in sizes)
+                            {
+                                @SizeItem(size, size, null, size)
+                            }
+                        }
+                        else
+                        {
+                            @foreach (var (step, label, scale) in SizeSteps)
+                            {
+                                @SizeItem(step, label, step.Length == 0 ? null : "ib-size-" + step, $"{Math.Round(BasePixels * scale)}px")
+                            }
+                        }
                     </MenuRadioGroup>
                 </ChildContent>
             </ToolbarMenu>
         }
     </text>;
 
-    private RenderFragment HistoryGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextHistory">
+    // With WrapToolbar false, higher priorities stay in the bar longest: history, then text formats,
+    // then text style and lists; the rest move into the … menu first.
+    private RenderFragment HistoryGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextHistory" Priority="4">
         @Tool(RichTextTools.UndoRedo, "undo", Lucide.Undo2, TextDefaults.RichTextUndo, "Z")
         @Tool(RichTextTools.UndoRedo, "redo", Lucide.Redo2, TextDefaults.RichTextRedo, "Y")
     </ToolbarButtonGroup>;
 
-    private RenderFragment FormatGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextFormats">
+    private RenderFragment FormatGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextFormats" Priority="3">
         @Tool(RichTextTools.Bold, "bold", Lucide.Bold, TextDefaults.RichTextBold, "B", pressed: true)
         @Tool(RichTextTools.Italic, "italic", Lucide.Italic, TextDefaults.RichTextItalic, "I", pressed: true)
         @Tool(RichTextTools.Underline, "underline", Lucide.Underline, TextDefaults.RichTextUnderline, "U", pressed: true)
@@ -367,7 +393,8 @@
         {
             <ToolbarMenu Label="@TextDefaults.RichTextTextColor">
                 <Trigger>
-                    <IconButton @attributes="context" Icon="Lucide.Baseline" Label="@TextDefaults.RichTextTextColor" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    <IconButton @attributes="context" Icon="Lucide.Type" Label="@TextDefaults.RichTextTextColor" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                class="ib-rich-text-swatch-tool" data-ib-swatch="color" />
                 </Trigger>
                 <ChildContent>
                     <MenuRadioGroup Label="@TextDefaults.RichTextTextColor" Value="">
@@ -384,7 +411,8 @@
         {
             <ToolbarMenu Label="@TextDefaults.RichTextHighlight">
                 <Trigger>
-                    <IconButton @attributes="context" Icon="Lucide.Highlighter" Label="@TextDefaults.RichTextHighlight" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    <IconButton @attributes="context" Icon="Lucide.Highlighter" Label="@TextDefaults.RichTextHighlight" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                class="ib-rich-text-swatch-tool" data-ib-swatch="highlight" />
                 </Trigger>
                 <ChildContent>
                     <MenuRadioGroup Label="@TextDefaults.RichTextHighlight" Value="">
@@ -399,7 +427,7 @@
         }
     </text>;
 
-    private RenderFragment ListGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextLists">
+    private RenderFragment ListGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextLists" Priority="2">
         @Tool(RichTextTools.BulletedList, "bulleted", Lucide.List, TextDefaults.RichTextBulletedList, "Shift+8", pressed: true)
         @Tool(RichTextTools.NumberedList, "numbered", Lucide.ListOrdered, TextDefaults.RichTextNumberedList, "Shift+7", pressed: true)
         @Tool(RichTextTools.Indent, "outdent", Lucide.ListIndentDecrease, TextDefaults.RichTextOutdent, "[")
@@ -421,6 +449,27 @@
 
     // "Text style, Heading 2": a menu button's name says what it is and what's chosen.
     private static string MenuLabel(string menu, string choice) => $"{menu}, {choice}";
+
+    // The relative sizes: the class step, its label and its scale of the text around it.
+    private (string Step, string Label, double Scale)[] SizeSteps =>
+    [
+        ("xs", TextDefaults.RichTextSizeSmaller, 0.75),
+        ("sm", TextDefaults.RichTextSizeSmall, 0.875),
+        ("", TextDefaults.RichTextSizeNormal, 1),
+        ("lg", TextDefaults.RichTextSizeLarge, 1.25),
+        ("xl", TextDefaults.RichTextSizeLarger, 1.5),
+        ("2xl", TextDefaults.RichTextSizeLargest, 2),
+    ];
+
+    // The text's own size in pixels, for the hint beside each step ("Large 20px").
+    private double BasePixels => TextSize switch { ProseSize.Sm => 14, ProseSize.Lg => 18, _ => 16 };
+
+    // A size in the menu, drawn at its size: a step's class, or a fixed size's style.
+    private RenderFragment SizeItem(string value, string label, string? step, string? hint) =>
+        @<MenuItem Value="@value" data-ib-command="size" data-ib-value="@value" data-ib-label="@MenuLabel(TextDefaults.RichTextSize, label)"><span class="@(step is null ? "ib-rich-text-menu-text" : "ib-rich-text-menu-text " + step)" style="@(FontSizes is { Count: > 0 } && value.Length > 0 ? $"font-size: {value}" : null)">@label</span>@if (hint is not null && hint != label)
+        {
+            <span class="ib-rich-text-menu-hint">@hint</span>
+        }</MenuItem>;
 
     // A choice in a menu: a font, size, color or highlight. The preview class shows it as it'll look.
     private RenderFragment ChoiceItem(string command, string value, string label, string? menu, string? preview = null) =>
@@ -455,7 +504,7 @@
         var first = _seen is null;
         _seen = value;
         if (value == _reported) return;
-        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts);
+        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes);
         _reported = null;
         if (!first) _version++;
     }
@@ -478,7 +527,7 @@
     // Sanitized, and null when nothing's left to show, so [Required] sees an empty editor as empty.
     private string? Clean(string? value)
     {
-        var html = RichTextSanitizer.Sanitize(value, Top, Fonts);
+        var html = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes);
         return IsBlank(html) ? null : html;
     }
 

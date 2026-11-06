@@ -1,0 +1,7 @@
+@* A notice in a narrow sidebar: every tool, on one row, the rest in the … menu. *@
+<RichTextEditor @bind-Value="_notice" Label="Notice" Tools="RichTextTools.Extended" WrapToolbar="false" Rows="4"
+                MaxWidth="26.Rem" Grow />
+
+@code {
+    private string? _notice = "<p><strong>Maintenance:</strong> the portal is down Saturday from 2 to 4 a.m.</p>";
+}

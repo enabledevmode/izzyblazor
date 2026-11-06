@@ -33,9 +33,10 @@ namespace IzzyBlazor;
 /// own list: alignment (<c>ib-align-center</c>, <c>ib-align-end</c>) on blocks; text color
 /// (<c>ib-color-</c>), highlight (<c>ib-highlight-</c>) and size (<c>ib-size-sm</c>,
 /// <c>ib-size-lg</c>, <c>ib-size-xl</c>) on a <c>span</c>, the colors being red, orange, yellow,
-/// green, blue, purple and gray. One style: <c>font-family</c> on a <c>span</c>, when its value is
-/// exactly one of <c>fonts</c>. No other <c>style</c>, <c>class</c>, <c>id</c> or event handler
-/// gets through.
+/// green, blue, purple and gray, and the sizes <c>ib-size-xs</c> and <c>ib-size-2xl</c> too. Two
+/// styles, on a <c>span</c>: <c>font-family</c> when its value is exactly one of <c>fonts</c>, and
+/// <c>font-size</c> when exactly one of <c>fontSizes</c>. No other <c>style</c>, <c>class</c>,
+/// <c>id</c> or event handler gets through.
 /// </para>
 /// <para>
 /// <see cref="RichTextEditor"/> runs it on every value it binds, and <see cref="RichText"/> on
@@ -93,7 +94,7 @@ public static class RichTextSanitizer
     private static readonly HashSet<string> BlockClasses = new(StringComparer.Ordinal) { "ib-align-center", "ib-align-end" };
 
     private static readonly HashSet<string> SpanClasses = new(
-        Palette.Select(c => "ib-color-" + c).Concat(Palette.Select(c => "ib-highlight-" + c)).Concat(["ib-size-sm", "ib-size-lg", "ib-size-xl"]),
+        Palette.Select(c => "ib-color-" + c).Concat(Palette.Select(c => "ib-highlight-" + c)).Concat(["ib-size-xs", "ib-size-sm", "ib-size-lg", "ib-size-xl", "ib-size-2xl"]),
         StringComparer.Ordinal);
 
     // Elements that hold blocks: opening a block closes everything open up to one of these.
@@ -117,12 +118,13 @@ public static class RichTextSanitizer
     /// <param name="html">The HTML to clean. <see langword="null"/> gives an empty string.</param>
     /// <param name="topHeading">The highest heading level kept, 1 to 6. Higher headings move down to it. Defaults to 1.</param>
     /// <param name="fonts">The <c>font-family</c> values a <c>span</c> may set, each exactly as written, such as <c>Georgia, serif</c>. None by default.</param>
+    /// <param name="fontSizes">The <c>font-size</c> values a <c>span</c> may set, each exactly as written, such as <c>14px</c>. None by default.</param>
     /// <param name="allowDataImages">Keep images whose <c>src</c> is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image (never SVG).</param>
-    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, bool allowDataImages = false)
+    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
         var root = new Node(null);
-        new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? []).Run(html);
+        new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? [], fontSizes ?? []).Run(html);
         var output = new StringBuilder(html.Length);
         foreach (var child in root.Children) Write(child, output);
         return output.ToString();
@@ -140,7 +142,7 @@ public static class RichTextSanitizer
         public Node? Parent { get; set; }
     }
 
-    private sealed class Builder(Node root, bool allowDataImages, int topHeading, IReadOnlyList<string> fonts)
+    private sealed class Builder(Node root, bool allowDataImages, int topHeading, IReadOnlyList<string> fonts, IReadOnlyList<string> fontSizes)
     {
         private readonly List<Node> _open = [root];
         private Node Current => _open.FindLast(n => !n.Unwrapped)!;
@@ -457,7 +459,7 @@ public static class RichTextSanitizer
                     ("td" or "th", "rowspan") => Number(value, 0, 65534),
                     ("th", "scope") => value.Trim().ToLowerInvariant() is var s && s is "row" or "col" or "rowgroup" or "colgroup" ? s : null,
                     ("span", "class") => Classes(value, SpanClasses),
-                    ("span", "style") => Font(value),
+                    ("span", "style") => SpanStyle(value),
                     ("p" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6" or "li" or "blockquote" or "td" or "th", "class") => Classes(value, BlockClasses),
                     _ => null,
                 };
@@ -477,15 +479,25 @@ public static class RichTextSanitizer
             return kept.Count == 0 ? null : string.Join(' ', kept);
         }
 
-        // "font-family: X" when X is exactly one of the app's fonts, written as the app wrote it.
-        private string? Font(string value)
+        // A span's font-family and font-size, each kept only when exactly one of the app's values,
+        // and written as the app wrote it; anything else in the style goes.
+        private string? SpanStyle(string value)
         {
-            var style = value.Trim().TrimEnd(';').Trim();
-            const string property = "font-family:";
-            if (!style.StartsWith(property, StringComparison.OrdinalIgnoreCase)) return null;
-            var family = style[property.Length..].Trim();
-            var match = fonts.FirstOrDefault(f => string.Equals(f.Trim(), family, StringComparison.OrdinalIgnoreCase));
-            return match is null ? null : "font-family: " + match.Trim();
+            var kept = new List<string>();
+            foreach (var declaration in value.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var colon = declaration.IndexOf(':');
+                if (colon < 0) continue;
+                var property = declaration[..colon].Trim().ToLowerInvariant();
+                var given = declaration[(colon + 1)..].Trim();
+                var allowed = property switch { "font-family" => fonts, "font-size" => fontSizes, _ => [] };
+                var match = allowed.FirstOrDefault(f => string.Equals(f.Trim(), given, StringComparison.OrdinalIgnoreCase));
+                if (match is not null && !kept.Exists(k => k.StartsWith(property + ":", StringComparison.Ordinal))) kept.Add($"{property}: {match.Trim()}");
+            }
+
+            // In one order (font-family, then font-size), as the editor writes them, so a value sanitizes to itself.
+            kept.Sort(StringComparer.Ordinal);
+            return kept.Count == 0 ? null : string.Join("; ", kept);
         }
 
         private string? CleanUrl(string value, bool image)

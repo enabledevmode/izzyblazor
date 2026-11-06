@@ -41,21 +41,28 @@ export function alignment(surface: HTMLElement): string {
   return block?.classList.contains("ib-align-center") ? "center" : block?.classList.contains("ib-align-end") ? "end" : "start";
 }
 
+// A size is a step (a class) or one of the editor's fixed sizes (a style, kept as data-ib-font-size).
+const isFixed = (value: string) => /^[0-9.]/.test(value);
+
 function hasFormat(span: HTMLElement, format: string): boolean {
-  return format === "font" ? !!span.dataset.ibFont : [...span.classList].some((c) => c.startsWith(prefixes[format]));
+  if (format === "font") return !!span.dataset.ibFont;
+  if (format === "size" && span.dataset.ibFontSize) return true;
+  return [...span.classList].some((c) => c.startsWith(prefixes[format]));
 }
 
 /** Takes a format off a span; one left with nothing is only its content. */
 function dropFormat(span: HTMLElement, format: string): void {
-  if (format === "font") {
-    delete span.dataset.ibFont;
-    span.style.removeProperty("font-family");
+  if (format === "font" || format === "size") {
+    const property = format === "font" ? "font-family" : "font-size";
+    delete span.dataset[format === "font" ? "ibFont" : "ibFontSize"];
+    span.style.removeProperty(property);
     if (!span.getAttribute("style")) span.removeAttribute("style");
-  } else {
+  }
+  if (format !== "font") {
     for (const c of [...span.classList]) if (c.startsWith(prefixes[format])) span.classList.remove(c);
     if (!span.classList.length) span.removeAttribute("class");
   }
-  if (!span.hasAttribute("class") && !span.dataset.ibFont) span.replaceWith(...span.childNodes);
+  if (!span.hasAttribute("class") && !span.dataset.ibFont && !span.dataset.ibFontSize) span.replaceWith(...span.childNodes);
 }
 
 /** A format's value at the caret: a color, size or font, or "" for none. */
@@ -64,6 +71,7 @@ export function formatAt(surface: HTMLElement, format: string): string {
   while (node && surface.contains(node)) {
     if (node.localName === "span" && hasFormat(node, format)) {
       if (format === "font") return node.dataset.ibFont!;
+      if (format === "size" && node.dataset.ibFontSize) return node.dataset.ibFontSize;
       return [...node.classList].find((c) => c.startsWith(prefixes[format]))!.slice(prefixes[format].length);
     }
     node = node.parentElement;
@@ -115,6 +123,9 @@ export function applyInline(surface: HTMLElement, format: string, value: string)
       if (format === "font") {
         span.dataset.ibFont = value;
         span.style.fontFamily = value;
+      } else if (format === "size" && isFixed(value)) {
+        span.dataset.ibFontSize = value;
+        span.style.fontSize = value;
       } else {
         span.classList.add(prefixes[format] + value);
       }

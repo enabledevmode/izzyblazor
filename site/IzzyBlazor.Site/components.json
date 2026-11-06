@@ -782,7 +782,7 @@
             "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
           } },
         { "id": "rich-text-editor-formats", "title": "Everything it formats", "lead": "Headings, paragraphs with bold, italic, underline, strikethrough and inline code, numbered and bulleted lists inside each other, a quote, a code block and a horizontal line. The text-style menu offers normal text and headings 1 to 5; quote and code block are tools of their own. When the text shows under a page's own heading 1, set `TopHeading` to 2 and the menu starts there (see Styling the content)." },
-        { "id": "rich-text-editor-extended", "title": "Layout tools", "lead": "For pages people lay out, such as newsletters and articles, set `Tools` to `RichTextTools.Extended`: alignment, subscript and superscript, text color and highlight from a palette that reads in light and dark themes, sizes in steps of the type scale, and fonts from `Fonts`. They're written as the library's own classes (and a font from your list), so the value still carries no free styles, and `RichText` shows them with the same `Fonts`." },
+        { "id": "rich-text-editor-extended", "title": "Layout tools", "lead": "For pages people lay out, such as newsletters and articles, set `Tools` to `RichTextTools.Extended`: alignment, subscript and superscript, text color and highlight from a palette that reads in light and dark themes, sizes in steps that scale with the text around them (or fixed sizes from `FontSizes`), and fonts from `Fonts`. They're written as the library's own classes (and a font from your list), so the value still carries no free styles, and `RichText` shows them with the same `Fonts`." },
         { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic, links and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
         { "id": "rich-text-editor-length", "title": "Limiting the length", "lead": "To limit the text, set `MaxLength`; it counts the characters readers see, not the HTML around them, and is checked on the server. To show the count under the field, set `ShowCount`. Don't use `[StringLength]` on the property: it would count the HTML.",
           "notes": {
@@ -793,14 +793,15 @@
       ],
       "topics": [
         {
-          "id": "toolbar", "title": "Toolbar and shortcuts", "summary": "Choose the tools in the toolbar. Shortcuts work for every format, shown or not.", "members": ["Tools", "RichTextTools", "ToolbarContent", "InsertHtmlAsync"],
+          "id": "toolbar", "title": "Toolbar and shortcuts", "summary": "Choose the tools in the toolbar. Shortcuts work for every format, shown or not.", "members": ["Tools", "RichTextTools", "WrapToolbar", "ToolbarContent", "InsertHtmlAsync"],
           "intro": [
-            "`RichTextTools.Default` shows every tool and `RichTextTools.Basic` four of them. To choose your own, combine tools with `|`. `RichTextTools.None` hides the toolbar and leaves the shortcuts. On narrow screens the toolbar wraps onto more rows.",
+            "`RichTextTools.Default` shows every tool and `RichTextTools.Basic` four of them. To choose your own, combine tools with `|`. `RichTextTools.None` hides the toolbar and leaves the shortcuts. When the toolbar is too wide it wraps onto more rows, filling each; to keep it one row, with what doesn't fit in a … menu at its end, set `WrapToolbar` to false.",
             "With nothing selected, a format's shortcut or tool turns it on for what's typed next, and again turns it off.",
             "Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Shift+X strikethrough, Ctrl+= subscript, Ctrl+Shift+= superscript, Ctrl+Shift+L, E and R align start, center and end, Ctrl+E inline code, Ctrl+K link, Ctrl+Shift+8 bulleted list, Ctrl+Shift+7 numbered list, Ctrl+] and Ctrl+[ indent and outdent a list item, Ctrl+Alt+0 paragraph, Ctrl+Alt+2 to 4 headings, Ctrl+Z undo, Ctrl+Y redo, Ctrl+Shift+V paste as plain text. On a Mac, ⌘ takes Ctrl's place. Alt+F10 moves to the toolbar and Escape back to the text."
           ],
           "examples": [
             { "id": "rich-text-editor-tools", "title": "Choosing tools", "lead": "These release notes leave out underline, which reads as a link, and the rule. Set `Tools` to the ones you want." },
+            { "id": "rich-text-editor-one-row", "title": "One row", "lead": "With `WrapToolbar` false, the toolbar stays one row, and the tools that don't fit move into a … menu at its end, with the same choices." },
             { "id": "rich-text-editor-signature", "title": "A tool of your own", "modes": ["interactive"], "lead": "To add your own tools, put them in `ToolbarContent`; they go at the end of the toolbar. `InsertHtmlAsync` puts HTML at the caret, sanitized, and Ctrl+Z undoes it. It works on interactive pages." }
           ]
         },
