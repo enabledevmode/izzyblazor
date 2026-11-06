@@ -157,6 +157,12 @@
     flex: none;
   }
 
+  /* Hidden until the script finds the browser's EyeDropper (Chromium only); a button's own
+     display would otherwise show it anyway. */
+  .ib-cp-eyedropper[hidden] {
+    display: none;
+  }
+
   .ib-cp-field-label {
     color: var(--ib-color-muted);
     font-size: var(--ib-text-xs);
