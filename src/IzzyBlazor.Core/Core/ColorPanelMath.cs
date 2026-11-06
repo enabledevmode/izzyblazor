@@ -23,14 +23,14 @@ internal static class ColorPanelMath
         if (text.Length == 3) text = string.Concat(text.Select(c => $"{c}{c}"));
         if (text.Length is not (6 or 8)) return null;
         int Byte(int at) => int.Parse(text.AsSpan(at, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-        return new Rgba(Byte(0), Byte(2), Byte(4), text.Length == 8 ? Math.Round(Byte(6) / 255.0, 2) : 1);
+        return new Rgba(Byte(0), Byte(2), Byte(4), text.Length == 8 ? Math.Round(Byte(6) / 255.0, 2, MidpointRounding.AwayFromZero) : 1);
     }
 
     /// <summary><c>#rrggbb</c>, or <c>#rrggbbaa</c> when the color isn't opaque, lowercase.</summary>
     public static string ToHex(Rgba color)
     {
         var hex = $"#{color.R:x2}{color.G:x2}{color.B:x2}";
-        return color.A < 1 ? hex + ((int)Math.Round(color.A * 255)).ToString("x2", CultureInfo.InvariantCulture) : hex;
+        return color.A < 1 ? hex + ((int)Math.Round(color.A * 255, MidpointRounding.AwayFromZero)).ToString("x2", CultureInfo.InvariantCulture) : hex;
     }
 
     public static Hsv ToHsv(Rgba color)
@@ -45,6 +45,9 @@ internal static class ColorPanelMath
         return new Hsv(h, max == 0 ? 0 : delta / max, max);
     }
 
+    // Halves round up, as the script's Math.round does, so both sides write the same hex.
+    private static int Byte255(double channel) => (int)Math.Round(channel * 255, MidpointRounding.AwayFromZero);
+
     public static Rgba ToRgba(Hsv color, double alpha = 1)
     {
         double C(double n)
@@ -53,7 +56,7 @@ internal static class ColorPanelMath
             return color.V - color.V * color.S * Math.Max(0, Math.Min(k, Math.Min(4 - k, 1)));
         }
 
-        return new Rgba((int)Math.Round(C(5) * 255), (int)Math.Round(C(3) * 255), (int)Math.Round(C(1) * 255), alpha);
+        return new Rgba(Byte255(C(5)), Byte255(C(3)), Byte255(C(1)), alpha);
     }
 
     /// <summary>A hue's name, with no light or dark: "blue".</summary>

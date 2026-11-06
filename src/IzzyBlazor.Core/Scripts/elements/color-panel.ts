@@ -51,6 +51,8 @@ class ColorPanel extends IzzyElement {
   #v = 1;
   #a = 1;
   #empty = true;
+  // The value this script last wrote (or found), to tell a change from outside.
+  #written = "";
 
   private get names(): string[] {
     return (this.dataset.ibNames ?? "").split("|");
@@ -74,6 +76,14 @@ class ColorPanel extends IzzyElement {
     }
     this.#h = parseFloat(getComputedStyle(this).getPropertyValue("--ib-cp-hue")) || 0;
     this.take(parse(value.value), false);
+    this.#written = value.value;
+    // A value set from outside (C# on an interactive page) re-renders the panel's style: take the
+    // new value, so the next key or drag starts from it rather than the old one.
+    const watch = new MutationObserver(() => {
+      if (value.value !== this.#written) this.take(parse(value.value), false);
+    });
+    watch.observe(this, { attributes: true, attributeFilter: ["style"] });
+    signal.addEventListener("abort", () => watch.disconnect());
     if (this.hasAttribute("data-ib-disabled")) return;
 
     for (const part of this.querySelectorAll<HTMLElement>(".ib-cp-area, .ib-cp-slider")) {
@@ -193,6 +203,7 @@ class ColorPanel extends IzzyElement {
   private write(commit: boolean): void {
     const value = this.querySelector<HTMLInputElement>(":scope > .ib-cp-value")!;
     const next = this.#empty ? "" : hex(fromHsv(this.#h, this.#s, this.#v, this.#a), this.hasAttribute("data-ib-alpha"));
+    this.#written = next;
     if (value.value !== next) {
       value.value = next;
       value.dispatchEvent(new Event("input", { bubbles: true }));

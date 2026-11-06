@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
 <FieldFrame Class="@WrapperClass("color-panel")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ColorPanelView Value="@CurrentValueAsString" OnChange="OnChanged" Text="TextDefaults" ScriptName="@NameAttributeValue" PostName="@NameAttributeValue"
+    <ColorPanelView Value="@CurrentValueAsString" OnChange="OnChanged" Text="TextDefaults" ScriptName="@FormName" PostName="@FormName" Attributes="PanelAttributes"
                     ControlId="@FieldId" LabelId="@LabelId" DescribedBy="@DescribedBy" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="Invalid"
                     Swatches="Swatches" SwatchText="SwatchText" ShowPicker="ShowPicker" ShowAlpha="ShowAlpha" ShowFields="ShowFields"
                     Clearable="Clearable" ShowEyedropper="ShowEyedropper" />
@@ -75,6 +75,14 @@
     protected override bool OwnReadOnly => ReadOnly;
 
     private string LabelId => FieldId + "-label";
+
+    /// <summary>The name the value posts under: Blazor's for the bound field, or a <c>name</c> attribute (a plain GET form).</summary>
+    private string? FormName => NameAttributeValue is { Length: > 0 } bound ? bound
+        : AdditionalAttributes?.TryGetValue("name", out var n) == true && n is string s && s.Length > 0 ? s : null;
+
+    // Other attributes go on the panel; the name is FormName's.
+    private IEnumerable<KeyValuePair<string, object>> PanelAttributes =>
+        ControlAttributes.Where(a => !string.Equals(a.Key, "name", StringComparison.OrdinalIgnoreCase));
 
     private void OnChanged(string? value) => CurrentValueAsString = value;
 
