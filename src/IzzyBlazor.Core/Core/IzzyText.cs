@@ -77,17 +77,17 @@ public class IzzyText
     /// <summary>A DataGrid column menu: back to the column's declared width.</summary>
     public virtual string ColumnResetWidth { get; set; } = "Reset width";
 
-    /// <summary>A DataGrid column menu: the submenu that pins the column to an edge, so it stays in view (its <c>Frozen</c>).</summary>
-    public virtual string ColumnPin { get; set; } = "Pin column";
+    /// <summary>A DataGrid column menu: the submenu that freezes the columns on one side of this one, as a sheet's frozen panes.</summary>
+    public virtual string ColumnFreeze { get; set; } = "Freeze columns";
 
-    /// <summary>A DataGrid column menu's Pin column: at the grid's left (its start).</summary>
-    public virtual string ColumnPinLeft { get; set; } = "Pin left";
+    /// <summary>A DataGrid column menu's Freeze columns: every column to this one's left.</summary>
+    public virtual string ColumnFreezeLeft { get; set; } = "To the left";
 
-    /// <summary>A DataGrid column menu's Pin column: at the grid's right (its end).</summary>
-    public virtual string ColumnPinRight { get; set; } = "Pin right";
+    /// <summary>A DataGrid column menu's Freeze columns: every column to this one's right.</summary>
+    public virtual string ColumnFreezeRight { get; set; } = "To the right";
 
-    /// <summary>A DataGrid column menu's Pin column: scrolling with the rest.</summary>
-    public virtual string ColumnNoPin { get; set; } = "No pin";
+    /// <summary>A DataGrid column menu's Freeze columns: this column's side, or all frozen columns from one that scrolls.</summary>
+    public virtual string ColumnUnfreeze { get; set; } = "Unfreeze";
 
     /// <summary>A DataGrid column menu: sorts by the column, smallest first.</summary>
     public virtual string ColumnSortAscending { get; set; } = "Sort ascending";
@@ -152,8 +152,8 @@ public class IzzyText
     /// <summary>A DataGrid column picker's button that closes every band's list.</summary>
     public virtual string ColumnsCollapseAll { get; set; } = "Collapse all bands";
 
-    /// <summary>A DataGrid column picker's name for a pinned column, for screen readers: "Region, pinned". {0} is its name.</summary>
-    public virtual string ColumnPinnedNote { get; set; } = "{0}, pinned";
+    /// <summary>A DataGrid column picker's name for a frozen column, for screen readers: "Region, frozen". {0} is its name.</summary>
+    public virtual string ColumnFrozenNote { get; set; } = "{0}, frozen";
 
     /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
     public virtual string ColumnsReset { get; set; } = "Reset columns";
