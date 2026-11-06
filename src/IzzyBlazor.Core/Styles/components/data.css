@@ -549,6 +549,15 @@
     gap: var(--ib-space-2);
   }
 
+  /* With script, a list's (Select all) does what Clear does, while it can (not after a failed
+     load). An interactive page's panel then has no actions left: no Apply either. */
+  @media (scripting: enabled) {
+    .ib-table-filter-panel:has([data-ib-list-all]:enabled) [data-ib-list-clear],
+    ib-table[data-ib-interactive] .ib-table-filter-panel:has([data-ib-list-all]:enabled) > .ib-table-filter-panel-actions {
+      display: none;
+    }
+  }
+
   /* With script the filters apply as they change: no Apply button, from the first paint. */
   /* A static page's panel waits for it. An interactive page's applies as it changes. */
   ib-table[data-ib-interactive] .ib-table-filter-apply {

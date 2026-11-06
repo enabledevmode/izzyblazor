@@ -56,14 +56,6 @@ class FilterList extends IzzyElement {
     const box = (row: HTMLLabelElement) => row.querySelector("input")!;
     const shown = () => rows().filter((row) => !row.hidden).map(box);
 
-    // (Select all) does what Clear does, so Clear is left for pages with no script. An interactive
-    // page applies as it changes, with no Apply, so there the row of actions goes.
-    const clear = this.parentElement?.querySelector<HTMLElement>("[data-ib-list-clear]");
-    if (clear) {
-      clear.style.display = "none";
-      if (this.closest("ib-table")?.hasAttribute("data-ib-interactive")) clear.parentElement!.style.display = "none";
-    }
-
     // One Tab stop among the rows: the one with focus, else the one that was, else the first shown.
     const rove = () => {
       const boxes = shown().filter((b) => !b.disabled);

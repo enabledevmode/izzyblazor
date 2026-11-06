@@ -77,17 +77,17 @@ public class IzzyText
     /// <summary>A DataGrid column menu: back to the column's declared width.</summary>
     public virtual string ColumnResetWidth { get; set; } = "Reset width";
 
-    /// <summary>A DataGrid column menu: the submenu that freezes the column at an edge.</summary>
-    public virtual string ColumnFreeze { get; set; } = "Freeze column";
+    /// <summary>A DataGrid column menu: the submenu that pins the column to an edge, so it stays in view (its <c>Frozen</c>).</summary>
+    public virtual string ColumnPin { get; set; } = "Pin column";
 
-    /// <summary>A DataGrid column menu's Freeze column: at the grid's start.</summary>
-    public virtual string ColumnFrozenStart { get; set; } = "At start";
+    /// <summary>A DataGrid column menu's Pin column: at the grid's left (its start).</summary>
+    public virtual string ColumnPinLeft { get; set; } = "Pin left";
 
-    /// <summary>A DataGrid column menu's Freeze column: at the grid's end.</summary>
-    public virtual string ColumnFrozenEnd { get; set; } = "At end";
+    /// <summary>A DataGrid column menu's Pin column: at the grid's right (its end).</summary>
+    public virtual string ColumnPinRight { get; set; } = "Pin right";
 
-    /// <summary>A DataGrid column menu's Freeze column: scrolling with the rest.</summary>
-    public virtual string ColumnNotFrozen { get; set; } = "Not frozen";
+    /// <summary>A DataGrid column menu's Pin column: scrolling with the rest.</summary>
+    public virtual string ColumnNoPin { get; set; } = "No pin";
 
     /// <summary>A DataGrid column menu: sorts by the column, smallest first.</summary>
     public virtual string ColumnSortAscending { get; set; } = "Sort ascending";
@@ -146,26 +146,14 @@ public class IzzyText
     /// <summary>A DataGrid column picker's count of hidden columns: "3 of 8 hidden". {0} is how many, {1} of how many.</summary>
     public virtual string ColumnsHidden { get; set; } = "{0} of {1} hidden";
 
-    /// <summary>A DataGrid column picker's button that opens or closes every band's list.</summary>
+    /// <summary>A DataGrid column picker's button that opens every band's list.</summary>
     public virtual string ColumnsExpandAll { get; set; } = "Expand all bands";
 
-    /// <summary>A DataGrid column picker's handle, which drags a column or opens its moves: "Move Customer". {0} is its name.</summary>
-    public virtual string ColumnMoveMenu { get; set; } = "Move {0}";
+    /// <summary>A DataGrid column picker's button that closes every band's list.</summary>
+    public virtual string ColumnsCollapseAll { get; set; } = "Collapse all bands";
 
-    /// <summary>A DataGrid column picker's move: one place up the list (left in the grid).</summary>
-    public virtual string ColumnMoveUp { get; set; } = "Move up";
-
-    /// <summary>A DataGrid column picker's move: one place down the list (right in the grid).</summary>
-    public virtual string ColumnMoveDown { get; set; } = "Move down";
-
-    /// <summary>A DataGrid column picker's move: to the top of its list.</summary>
-    public virtual string ColumnMoveFirst { get; set; } = "Move to top";
-
-    /// <summary>A DataGrid column picker's move: to the bottom of its list.</summary>
-    public virtual string ColumnMoveLast { get; set; } = "Move to bottom";
-
-    /// <summary>A DataGrid column picker's note on a frozen column, for screen readers.</summary>
-    public virtual string ColumnFrozenNote { get; set; } = "frozen";
+    /// <summary>A DataGrid column picker's name for a pinned column, for screen readers: "Region, pinned". {0} is its name.</summary>
+    public virtual string ColumnPinnedNote { get; set; } = "{0}, pinned";
 
     /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
     public virtual string ColumnsReset { get; set; } = "Reset columns";
@@ -281,8 +269,8 @@ public class IzzyText
     /// <summary>A list filter's box for narrowing its rows: its name.</summary>
     public virtual string FilterSearchValues { get; set; } = "Search values";
 
-    /// <summary>A list filter's box for narrowing its rows: the hint in it.</summary>
-    public virtual string FilterSearchPlaceholder { get; set; } = "Search…";
+    /// <summary>The hint in a box that narrows a list: a list filter's, a column picker's.</summary>
+    public virtual string SearchPlaceholder { get; set; } = "Search…";
 
     /// <summary>
     /// A list filter's box that ticks every row: in parentheses, as "(Blank)" is, so it reads as an
