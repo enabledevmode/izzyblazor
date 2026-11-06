@@ -1896,6 +1896,11 @@
             attributes["data-ib-reorder"] = "";
         }
 
+        if (BandPath(column) is { } path)
+        {
+            attributes["data-ib-path"] = path;
+        }
+
         if (CanResize(column))
         {
             attributes["data-ib-resize"] = "";
@@ -1920,7 +1925,7 @@
         var key = KeyOf(column);
         var frozen = FrozenOf(column);
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.HeaderText);
-        var zone = Shown.Where(c => FrozenOf(c) == frozen && CanMove(c)).ToList();
+        var zone = SiblingBlocks(column.Band, frozen);
         <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
                 <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
@@ -1946,8 +1951,8 @@
                 }
                 @if (CanMove(column))
                 {
-                    <MenuItem Disabled="zone.FirstOrDefault() == column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
-                    <MenuItem Disabled="zone.LastOrDefault() == column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
+                    <MenuItem Disabled="zone.FirstOrDefault() == (object)column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
+                    <MenuItem Disabled="zone.LastOrDefault() == (object)column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
                     @if (CanResize(column) || RowHref is null)
                     {
                         <MenuDivider />
@@ -1977,6 +1982,88 @@
                 }
             </ChildContent>
         </Menu>
+    };
+
+    // What a column or band moves among: the columns and bands in its band (or outside any), in its
+    // frozen zone, that can move. A band is one block.
+    private List<object> SiblingBlocks(ColumnBand? parent, ColumnFrozen zone)
+    {
+        var depth = parent?.Chain.Count ?? 0;
+        var blocks = new List<object>();
+        foreach (var column in Shown)
+        {
+            var chain = column.Band?.Chain ?? [];
+            if (FrozenOf(column) != zone || (parent is not null && (chain.Count < depth || chain[depth - 1] != parent)))
+            {
+                continue;
+            }
+
+            object block = chain.Count > depth ? chain[depth] : column;
+            if (blocks.Count == 0 || blocks[^1] != block)
+            {
+                blocks.Add(block);
+            }
+        }
+
+        return blocks.Where(b => b is ColumnBand band ? BandMoves(band) : CanMove((ColumnBase<TItem>)b)).ToList();
+    }
+
+    // A band moves when every column in it can.
+    private bool BandMoves(ColumnBand band) =>
+        ReorderableColumns && CanSave && Columns.Where(c => c.Band?.Chain.Contains(band) == true).All(c => c.Reorderable);
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? BandAttributes(ColumnBand band, BandSpan span)
+    {
+        if (!Rearrangeable)
+        {
+            return null;
+        }
+
+        var attributes = new Dictionary<string, object> { ["data-ib-band"] = BandId(band), ["data-ib-path"] = BandPath(band) };
+        if (BandMoves(band))
+        {
+            attributes["data-ib-reorder"] = "";
+        }
+
+        return attributes;
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment BandHeader(ColumnBand band, BandSpan span) => !BandMoves(band) ? BandLabel(band) : __builder =>
+    {
+        var id = BandId(band);
+        var frozen = FrozenOf(Shown[span.First]);
+        var zone = SiblingBlocks(band.Parent, frozen);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, band.Title);
+        <div class="ib-table-head">
+            @* Centered (or as aligned) in the room the menu button leaves, which sits at the end. *@
+            <span class="ib-table-title" style="@(band.Align switch { CellAlign.Center => "margin-inline:auto", CellAlign.End => "margin-inline-start:auto", _ => null })">@BandLabel(band)</span>
+            <Menu Class="ib-col-menu" data-ib-user-controlled>
+                <Trigger>
+                    <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
+                        <Icon Role="IconRole.MoreVertical" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    <MenuItem Disabled="zone.FirstOrDefault() == (object)band" data-ib-col-action="left" data-ib-band="@id">@TextDefaults.ColumnMoveStart</MenuItem>
+                    <MenuItem Disabled="zone.LastOrDefault() == (object)band" data-ib-col-action="right" data-ib-band="@id">@TextDefaults.ColumnMoveEnd</MenuItem>
+                    @if (RowHref is null && band.Parent is null)
+                    {
+                        <MenuDivider />
+                        if (frozen == ColumnFrozen.None)
+                        {
+                            <MenuItem data-ib-col-action="freeze-start" data-ib-band="@id">@TextDefaults.ColumnFreezeStart</MenuItem>
+                            <MenuItem data-ib-col-action="freeze-end" data-ib-band="@id">@TextDefaults.ColumnFreezeEnd</MenuItem>
+                        }
+                        else
+                        {
+                            <MenuItem data-ib-col-action="unfreeze" data-ib-band="@id">@TextDefaults.ColumnUnfreeze</MenuItem>
+                        }
+                    }
+                </ChildContent>
+            </Menu>
+        </div>
     };
 
     /// <inheritdoc />
@@ -2097,32 +2184,56 @@
                 </Trigger>
                 <ChildContent>
                     <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
-                    @foreach (var column in Columns.Where(c => c.Pickable))
-                    {
-                        var key = KeyOf(column);
-                        var shown = Shown.Contains(column);
-                        var zoneOf = Shown.Where(c => FrozenOf(c) == FrozenOf(column) && CanMove(c)).ToList();
-                        <li>
-                            <label>
-                                <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
-                                @column.HeaderText
-                            </label>
-                            @if (ReorderableColumns)
-                            {
-                                @* Always drawn, so the row keeps its width when a column is hidden. *@
-                                var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
-                                <span class="ib-col-picker-move">
-                                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><Icon Name="Lucide.ArrowUp" /></button>
-                                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><Icon Name="Lucide.ArrowDown" /></button>
-                                </span>
-                            }
-                        </li>
-                    }
+                    @PickerItems(HasBands ? BandNodes : Columns)
                     </ul>
                     <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
                 </ChildContent>
             </Popover>
         </div>
+    };
+
+    private string? _pickerId;
+
+    // The picker's columns, each band's under its name.
+    private RenderFragment PickerItems(IEnumerable<object> nodes) => __builder =>
+    {
+        foreach (var node in nodes)
+        {
+            if (node is ColumnBand band)
+            {
+                if (!Columns.Any(c => c.Pickable && c.Band?.Chain.Contains(band) == true))
+                {
+                    continue;
+                }
+
+                var heading = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-{BandId(band)}";
+                <li class="ib-col-picker-band">
+                    <span id="@heading">@band.Title</span>
+                    <ul aria-labelledby="@heading">@PickerItems(band.Nodes)</ul>
+                </li>
+            }
+            else if (node is ColumnBase<TItem> { Pickable: true } column && Columns.Contains(column))
+            {
+                var key = KeyOf(column);
+                var shown = Shown.Contains(column);
+                var zoneOf = SiblingBlocks(column.Band, FrozenOf(column));
+                <li>
+                    <label>
+                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                        @column.HeaderText
+                    </label>
+                    @if (ReorderableColumns)
+                    {
+                        @* Always drawn, so the row keeps its width when a column is hidden. *@
+                        var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
+                        <span class="ib-col-picker-move">
+                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><Icon Name="Lucide.ArrowUp" /></button>
+                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><Icon Name="Lucide.ArrowDown" /></button>
+                        </span>
+                    }
+                </li>
+            }
+        }
     };
 
     RenderFragment IDataGridToolbar.ExportBar(bool showText) => __builder =>
@@ -2287,9 +2398,21 @@
     private ColumnFrozen FrozenOf(ColumnBase<TItem> column)
     {
         // A stored layout can't freeze a column on a grid that can't have frozen columns.
-        var frozen = RowHref is not null ? column.Frozen : CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
+        // A band is frozen as one, as its first column is, so it never straddles the frozen edge.
+        if (column.Band is { } band)
+        {
+            var outer = band.Chain[0];
+            var members = Columns.Where(c => c.Band?.Chain[0] == outer).ToList();
+            var first = OwnFrozen(members[0]);
+            return first != ColumnFrozen.None && members.Any(c => WidthOf(c) is null) ? ColumnFrozen.None : first;
+        }
+
+        var frozen = OwnFrozen(column);
         return frozen != ColumnFrozen.None && WidthOf(column) is null ? ColumnFrozen.None : frozen;
     }
+
+    private ColumnFrozen OwnFrozen(ColumnBase<TItem> column) =>
+        RowHref is not null ? column.Frozen : CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
 
     // Start, then the rest, then end, whatever order they were declared or came in: a frozen column
     // among those that scroll would overlap them. Within those, a layout's place, else the declared one.
@@ -2315,12 +2438,58 @@
         // One the page says can't be hidden isn't, whatever a stored layout says.
         // Visible says how it starts. What someone chose goes first, on a column they can choose.
         var visible = Columns.Where(c => !GroupedColumnLeaves(c)).Where(c => c.Pickable && layout?.Column(KeyOf(c))?.Hidden is { } hidden ? !hidden : c.Visible).ToList();
-        return (visible.Count > 0 ? visible : Columns)
-            .Select((column, index) => (column, index))
+        var placed = (visible.Count > 0 ? visible : Columns)
+            .Select((column, index) => (column, index, place: layout?.Column(KeyOf(column))?.Position ?? index))
+            .ToList();
+        if (!HasBands)
+        {
+            return placed
+                .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
+                .ThenBy(x => x.place)
+                .Select(x => x.column)
+                .ToList();
+        }
+
+        // A band's columns stay together: siblings (a column, or a band with all its columns) are in
+        // order of the first place among their columns, so moving a band moves its columns' places.
+        var bandPlace = new Dictionary<ColumnBand, int>();
+        foreach (var (column, _, place) in placed)
+        {
+            foreach (var band in column.Band?.Chain ?? [])
+            {
+                bandPlace[band] = Math.Min(bandPlace.GetValueOrDefault(band, int.MaxValue), place);
+            }
+        }
+
+        // The key of each step down from the top: a band's place (and its number, should two share
+        // one), then the column's.
+        List<(int Place, int Tie)> Key((ColumnBase<TItem> column, int index, int place) x) =>
+            [.. (x.column.Band?.Chain ?? []).Select(b => (bandPlace[b], BandId(b))), (x.place, int.MaxValue / 2 + x.index)];
+
+        return placed
             .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
-            .ThenBy(x => layout?.Column(KeyOf(x.column))?.Position ?? x.index)
+            .ThenBy(Key, KeyOrder.Instance)
             .Select(x => x.column)
             .ToList();
+    }
+
+    private sealed class KeyOrder : IComparer<List<(int Place, int Tie)>>
+    {
+        public static readonly KeyOrder Instance = new();
+
+        public int Compare(List<(int Place, int Tie)>? x, List<(int Place, int Tie)>? y)
+        {
+            for (var i = 0; i < Math.Min(x!.Count, y!.Count); i++)
+            {
+                var step = x[i].CompareTo(y[i]);
+                if (step != 0)
+                {
+                    return step;
+                }
+            }
+
+            return x.Count.CompareTo(y.Count);
+        }
     }
 
     /// <inheritdoc />
@@ -2600,6 +2769,15 @@
         if (RowHref is not null && Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))
         {
             throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
+        }
+
+        // A band is frozen as one: a column frozen on its own would leave the band split at the edge.
+        foreach (var band in Columns.Where(c => c.Band is not null).GroupBy(c => c.Band!.Chain[0]))
+        {
+            if (band.Select(c => c.Frozen).Distinct().Skip(1).Any())
+            {
+                throw new InvalidOperationException($"The \"{band.Key.Title}\" band's columns are frozen differently: set the same {nameof(ColumnBase<TItem>.Frozen)} on all of them, as a band is frozen as one.");
+            }
         }
 
         if (Rearrangeable)

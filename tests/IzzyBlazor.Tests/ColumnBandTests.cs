@@ -38,6 +38,30 @@ public class ColumnBandTests : BunitContext
         Assert.Equal(["South", "West", "North"], cut.FindAll("tbody > tr > td:first-child").Select(c => c.TextContent.Trim()));
     }
 
+    // A saved layout places and freezes columns one at a time: a band still keeps its columns
+    // together, and is frozen as its first column is.
+    [Fact]
+    public void A_saved_layout_keeps_a_band_together_and_freezes_it_as_one()
+    {
+        var layout = new DataGridLayout
+        {
+            Columns =
+            [
+                new() { Key = "q1", Frozen = ColumnFrozen.Start, Width = "120px" },
+                new() { Key = "q1margin", Position = 9, Width = "120px" },
+                new() { Key = "region", Position = 5 },
+                new() { Key = "q3", Position = 0 },
+            ],
+        };
+        var cut = Render<ColumnBandProbe>(p => p.Add(x => x.Layout, layout));
+        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("thead > tr").Count));
+
+        var heads = cut.FindAll("thead > tr")[2].Children;
+        Assert.Equal(["Revenue", "Margin", "Q3", "Total", "Region"], heads.Select(c => c.TextContent.Trim()));
+        Assert.Equal([true, true, false, false, false], heads.Select(c => c.ClassList.Contains("ib-frozen-start")));
+        Assert.Contains("ib-frozen-start", cut.FindAll("th.ib-table-band").Single(c => c.TextContent.Trim() == "Q1").ClassName);
+    }
+
     private sealed class NoCookies : IRequestCookies
     {
         public string? Get(string name) => null;

@@ -80,7 +80,7 @@ class GridColumns extends IzzyElement {
   #arrive(): void {
     this.#letGo();
     if (!this.#refocus) return;
-    const header = this.#header(this.#refocus);
+    const header = this.#refocus.startsWith("band:") ? this.#bandHeader(this.#refocus.slice(5)) : this.#header(this.#refocus);
     const grid = this.closest("ib-table")?.querySelector("ib-grid") as (Element & { focusCell?: (cell: HTMLTableCellElement) => void }) | null;
     if (header) grid?.focusCell?.(header);
     this.#refocus = null;
@@ -88,6 +88,15 @@ class GridColumns extends IzzyElement {
 
   #header(key: string): HTMLTableCellElement | null {
     return [...(this.#table?.querySelectorAll<HTMLTableCellElement>(":scope > thead th[data-ib-col]") ?? [])].find((th) => th.dataset.ibCol === key) ?? null;
+  }
+
+  #bandHeader(id: string): HTMLTableCellElement | null {
+    return this.#table?.querySelector<HTMLTableCellElement>(`:scope > thead th[data-ib-band="${id}"]`) ?? null;
+  }
+
+  // What the new layout's focus goes back to: a column's key, or a band's number.
+  #keyOf(th: HTMLTableCellElement): string {
+    return th.dataset.ibBand !== undefined ? `band:${th.dataset.ibBand}` : th.dataset.ibCol!;
   }
 
   get #headers(): HTMLTableCellElement[] {
@@ -152,31 +161,59 @@ class GridColumns extends IzzyElement {
     if (status) status.textContent = (this.dataset.ibWidthText ?? "{0}: {1}").replace("{0}", th.querySelector(".ib-table-title")?.textContent?.trim() ?? "").replace("{1}", String(width));
   }
 
-  // The headers of a column's own zone: start, the rest and end don't mix.
-  #zone(th: HTMLElement): HTMLTableCellElement[] {
-    const side = (el: Element) => (el.matches(".ib-frozen-start") ? 1 : el.matches(".ib-frozen-end") ? 2 : 0);
-    return this.#headers.filter((other) => side(other) === side(th));
+  #side(el: Element): number {
+    return el.matches(".ib-frozen-start") ? 1 : el.matches(".ib-frozen-end") ? 2 : 0;
   }
 
-  /** Moves a column to a place among the headers, in its zone. */
+  // The numbers of the bands a header is in, outermost first; a band's header ends with its own.
+  #path(el: Element): string[] {
+    return (el.getAttribute("data-ib-path") ?? "").split(".").filter(Boolean);
+  }
+
+  /**
+   * What a header moves among: its column, or for a band's header all its band's columns, is one
+   * block, and the others are the columns and bands beside it in the same band and frozen zone
+   * (start, the rest and end don't mix) that can move. Each block is its column headers, in order.
+   */
+  #blocks(th: HTMLTableCellElement): { blocks: HTMLTableCellElement[][]; from: number; depth: number } {
+    const band = th.dataset.ibBand;
+    const path = this.#path(th);
+    const parent = band === undefined ? path : path.slice(0, -1);
+    const mine = band === undefined ? `c${th.dataset.ibCol}` : `b${band}`;
+    const side = this.#side(th);
+    const all: { key: string; headers: HTMLTableCellElement[] }[] = [];
+    for (const header of this.#headers) {
+      const at = this.#path(header);
+      if (this.#side(header) !== side || !parent.every((id, i) => at[i] === id)) continue;
+      const key = at.length > parent.length ? `b${at[parent.length]}` : `c${header.dataset.ibCol}`;
+      const last = all[all.length - 1];
+      if (last?.key === key) last.headers.push(header);
+      else all.push({ key, headers: [header] });
+    }
+    const moves = (block: { key: string; headers: HTMLTableCellElement[] }) =>
+      block.key === mine || !!(block.key[0] === "b" ? this.#bandHeader(block.key.slice(1)) : block.headers[0])?.hasAttribute("data-ib-reorder");
+    const blocks = all.filter(moves);
+    return { blocks: blocks.map((block) => block.headers), from: blocks.findIndex((block) => block.key === mine), depth: parent.length };
+  }
+
+  /** Moves a column, or a band with its columns, to a place among the blocks beside it. */
   #moveTo(th: HTMLTableCellElement, to: number, focus: boolean): void {
-    const zone = this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th);
-    const from = zone.indexOf(th);
-    const target = Math.max(0, Math.min(zone.length - 1, to));
-    if (from === target) return;
-    const order = this.#headers;
-    order.splice(order.indexOf(th), 1);
-    order.splice(order.indexOf(zone[target]) + (target > from ? 1 : 0), 0, th);
+    const { blocks, from } = this.#blocks(th);
+    const target = Math.max(0, Math.min(blocks.length - 1, to));
+    if (from < 0 || from === target) return;
+    const moving = blocks[from];
+    const order = this.#headers.filter((header) => !moving.includes(header));
+    const anchor = target > from ? blocks[target][blocks[target].length - 1] : blocks[target][0];
+    order.splice(order.indexOf(anchor) + (target > from ? 1 : 0), 0, ...moving);
     const columns = this.#layout();
     order.forEach((header, index) => (this.#entry(columns, header.dataset.ibCol!).p = index));
-    void this.#save(columns, true, focus ? th.dataset.ibCol! : null).then((drawing) => {
+    void this.#save(columns, true, focus ? this.#keyOf(th) : null).then((drawing) => {
       if (!drawing) this.#letGo();
     });
   }
 
   #move(th: HTMLTableCellElement, by: number, focus: boolean): void {
-    const zone = this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th);
-    this.#moveTo(th, zone.indexOf(th) + by, focus);
+    this.#moveTo(th, this.#blocks(th).from + by, focus);
   }
 
   // Whatever the unit (a length may be in ch or vw): as the browser works it out.
@@ -239,7 +276,8 @@ class GridColumns extends IzzyElement {
       void this.#save([], true, null);
       return;
     }
-    const th = key ? this.#header(key) : null;
+    const band = button.dataset.ibBand;
+    const th = band !== undefined ? this.#bandHeader(band) : key ? this.#header(key) : null;
     const columns = this.#layout();
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
     if (th && (action === "left" || action === "right")) this.#move(th, action === "left" ? -1 : 1, true);
@@ -250,11 +288,15 @@ class GridColumns extends IzzyElement {
       void this.#save(columns, true, key!);
     }
     else if (th && (action === "freeze-start" || action === "freeze-end" || action === "unfreeze")) {
-      const entry = this.#entry(columns, key!);
-      entry.f = action === "unfreeze" ? FROZEN.none : action === "freeze-start" ? FROZEN.start : FROZEN.end;
-      // Frozen columns are placed by adding the widths up, so it needs one.
-      entry.w ??= `${Math.round(th.offsetWidth)}px`;
-      void this.#save(columns, true, key!);
+      // A band is frozen as one, so it never straddles the edge.
+      const outer = this.#path(th)[0];
+      for (const header of outer === undefined ? [th] : this.#headers.filter((h) => this.#path(h)[0] === outer)) {
+        const entry = this.#entry(columns, header.dataset.ibCol!);
+        entry.f = action === "unfreeze" ? FROZEN.none : action === "freeze-start" ? FROZEN.start : FROZEN.end;
+        // Frozen columns are placed by adding the widths up, so each needs one.
+        entry.w ??= `${Math.round(header.offsetWidth)}px`;
+      }
+      void this.#save(columns, true, this.#keyOf(th));
     }
   }
 
@@ -287,7 +329,7 @@ class GridColumns extends IzzyElement {
   #onKey(event: KeyboardEvent): void {
     if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || event.ctrlKey || event.metaKey) return;
     if (event.shiftKey === event.altKey) return;
-    const th = this.#mine((event.target as Element).closest<HTMLTableCellElement>("thead th[data-ib-col]"));
+    const th = this.#mine((event.target as Element).closest<HTMLTableCellElement>("thead th[data-ib-col], thead th[data-ib-band]"));
     if (!th || (event.target as Element).closest("[popover], dialog") || (event.target as Element).matches("input, select, textarea")) return;
     const rtl = getComputedStyle(th).direction === "rtl";
     const forward = (event.key === "ArrowRight") !== rtl;
@@ -309,7 +351,7 @@ class GridColumns extends IzzyElement {
     if (event.button !== 0) return;
     const target = event.target as Element;
     const handle = target.closest<HTMLElement>(".ib-col-resize");
-    const th = this.#mine(target.closest<HTMLTableCellElement>("thead th[data-ib-col]"));
+    const th = this.#mine(target.closest<HTMLTableCellElement>("thead th[data-ib-col], thead th[data-ib-band]"));
     if (!th) return;
     if (handle) this.#dragWidth(event, th, handle, signal);
     else if ((th.hasAttribute("data-ib-reorder") || th.hasAttribute("data-ib-group")) && event.pointerType !== "touch" && !target.closest("button, input, [popover]")) this.#dragColumn(event, th, signal);
@@ -497,14 +539,25 @@ class GridColumns extends IzzyElement {
     const table = this.#table!;
     // A header that can be grouped but not reordered only goes to the bar.
     const moves = th.hasAttribute("data-ib-reorder");
-    const zone = moves ? this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th) : [th];
-    const from = zone.indexOf(th);
-    const rects = zone.map((other) => other.getBoundingClientRect());
+    const { blocks: zone, from, depth } = moves ? this.#blocks(th) : { blocks: [[th]], from: 0, depth: 0 };
+    if (from < 0) return;
+    // A block's span across the table, from its first column to its last.
+    const rects = zone.map((block) => {
+      const left = Math.min(...block.map((header) => header.getBoundingClientRect().left));
+      return { left, width: Math.max(...block.map((header) => header.getBoundingClientRect().right)) - left };
+    });
     const columnOf = (header: HTMLTableCellElement) => [...table.rows].filter((row) => !row.matches(".ib-grid-group, .ib-table-band-row")).flatMap((row) => {
       const cell = row.cells[header.cellIndex];
       return cell && cell.colSpan === 1 ? [cell] : [];
     });
-    const cells = zone.map(columnOf);
+    // A band's block takes its own header, and those of the bands in it, along.
+    const bandsOf = (block: HTMLTableCellElement[]) => {
+      const path = this.#path(block[0]);
+      if (path.length <= depth) return [];
+      const own = path.slice(0, depth + 1).join(".");
+      return [...table.querySelectorAll<HTMLTableCellElement>(":scope > thead th[data-ib-band]")].filter((band) => `${band.dataset.ibPath}.`.startsWith(`${own}.`));
+    };
+    const cells = zone.map((block) => [...block.flatMap(columnOf), ...bandsOf(block)]);
     const rtl = getComputedStyle(th).direction === "rtl";
     let to = from;
     let dragging = false;
