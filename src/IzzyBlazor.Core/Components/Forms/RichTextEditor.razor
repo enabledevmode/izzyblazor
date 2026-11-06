@@ -216,6 +216,28 @@
                 </div>
             </dialog>
         }
+        @if (Has(RichTextTools.CodeBlock) && ShowsToolbar && Languages.Count > 0)
+        {
+            @* A code block's language: a button at the block's corner while the caret is in it (placed
+               by the script). The value keeps it as the code's class, language-csharp. *@
+            <div class="ib-rich-text-code-language" hidden data-ib-code-language>
+                <Menu Label="@TextDefaults.RichTextCodeLanguage" Placement="Placement.BottomEnd">
+                    <Trigger>
+                        <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" EndIcon="Lucide.ChevronDown"
+                                aria-label="@MenuLabel(TextDefaults.RichTextCodeLanguage, TextDefaults.RichTextPlainText)" data-ib-code-button><span class="ib-rich-text-menu-name">@TextDefaults.RichTextPlainText</span></Button>
+                    </Trigger>
+                    <ChildContent>
+                        <MenuRadioGroup Label="@TextDefaults.RichTextCodeLanguage" Value="">
+                            <MenuItem Value="" data-ib-code-lang="" data-ib-label="@MenuLabel(TextDefaults.RichTextCodeLanguage, TextDefaults.RichTextPlainText)"><span class="ib-rich-text-menu-text">@TextDefaults.RichTextPlainText</span></MenuItem>
+                            @foreach (var language in Languages)
+                            {
+                                <MenuItem Value="@language" data-ib-code-lang="@language" data-ib-label="@MenuLabel(TextDefaults.RichTextCodeLanguage, LanguageName(language))"><span class="ib-rich-text-menu-text">@LanguageName(language)</span></MenuItem>
+                            }
+                        </MenuRadioGroup>
+                    </ChildContent>
+                </Menu>
+            </div>
+        }
     </ib-rich-text>
 </FieldFrame>
 
@@ -270,6 +292,14 @@
     /// Give <see cref="RichText"/> the same list.
     /// </summary>
     [Parameter] public IReadOnlyList<string>? FontSizes { get; set; }
+
+    /// <summary>
+    /// The languages a code block can be marked as, each a name such as <c>csharp</c>, written in
+    /// the value as the code's class (<c>language-csharp</c>), which <see cref="RichText"/>
+    /// highlights and Prism or highlight.js read too. Defaults to the languages the library's
+    /// highlighter knows; an empty list leaves code blocks unmarked.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? CodeLanguages { get; set; }
 
     /// <summary>
     /// Where the image tool sends a chosen, pasted or dropped image: an endpoint of your app that
@@ -614,6 +644,28 @@
         {
             <span class="ib-rich-text-menu-hint">@hint</span>
         }</MenuItem>;
+
+    private static readonly string[] DefaultLanguages = ["csharp", "razor", "html", "css", "javascript", "typescript", "json", "xml", "bash", "powershell"];
+
+    private IReadOnlyList<string> Languages => CodeLanguages ?? DefaultLanguages;
+
+    // The name a language shows by; one this doesn't know shows as given.
+    private static string LanguageName(string language) => language.ToLowerInvariant() switch
+    {
+        "csharp" or "cs" or "c#" => "C#",
+        "razor" => "Razor",
+        "html" => "HTML",
+        "css" => "CSS",
+        "javascript" or "js" => "JavaScript",
+        "typescript" or "ts" => "TypeScript",
+        "json" => "JSON",
+        "xml" => "XML",
+        "bash" or "sh" or "shell" => "Bash",
+        "powershell" or "pwsh" => "PowerShell",
+        "sql" => "SQL",
+        "python" or "py" => "Python",
+        _ => language,
+    };
 
     // A choice in a menu: a font, size, color or highlight. The preview class shows it as it'll look.
     private RenderFragment ChoiceItem(string command, string value, string label, string? menu, string? preview = null) =>

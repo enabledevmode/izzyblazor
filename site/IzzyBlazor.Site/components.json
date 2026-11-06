@@ -845,6 +845,16 @@
           ]
         },
         {
+          "id": "code-blocks", "title": "Code blocks", "summary": "Mark a code block's language; RichText shows it highlighted.", "members": ["CodeLanguages"],
+          "intro": [
+            "With the caret in a code block, a button at its corner shows the block's language and opens a list of them. The value keeps the language as the code's class, `<pre><code class=\"language-csharp\">`, as Markdown, Prism and highlight.js write it, and nothing else: no colors or markup are saved. `RichText` highlights blocks with a language on the server, with the same highlighter as `Code`, so it works on static pages; HTML shown elsewhere keeps the class for the app's own highlighting.",
+            "`CodeLanguages` sets the list, as language names such as `csharp`; it defaults to the languages the library's highlighter knows. The editor shows code plain while you write it."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-code-blocks", "title": "A code block with its language", "lead": "The editor marks the block as C#; `RichText` beside it shows the same value highlighted." }
+          ]
+        },
+        {
           "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],
           "intro": [
             "The editor's value is sanitized on the server every time it binds, from a post or on an interactive page, by `RichTextSanitizer`. What arrives can be anything, since anyone can post to a form, so the script in the browser only keeps the text tidy and is never trusted. The sanitizer writes a new document from what it allows: paragraphs, headings 2 to 4, lists, quotes, code, rules, bold, italic, underline, strikethrough, links, images and tables, with `href` and `src` limited to web, mail, phone and relative addresses. Scripts, event handlers, styles, classes and `javascript:` links never get through.",

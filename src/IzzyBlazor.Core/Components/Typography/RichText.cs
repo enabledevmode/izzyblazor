@@ -1,5 +1,9 @@
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IzzyBlazor;
 
@@ -15,7 +19,9 @@ namespace IzzyBlazor;
 /// <remarks>
 /// It runs <see cref="RichTextSanitizer"/> on <see cref="Html"/> every time it renders, so HTML
 /// saved before you sanitized it, or written by another system, can't run script on the page.
-/// What's kept is listed on <see cref="RichTextSanitizer"/>. For HTML you wrote yourself and
+/// What's kept is listed on <see cref="RichTextSanitizer"/>. A code block with a language
+/// (<c>&lt;code class="language-csharp"&gt;</c>, as the editor writes it) is highlighted on the
+/// server, as <see cref="Code"/> is, by the same highlighter; the saved HTML keeps only the class. For HTML you wrote yourself and
 /// trust, such as rendered Markdown with its own styling, use <see cref="Prose"/>.
 /// </remarks>
 /// <accessibility>
@@ -27,8 +33,13 @@ namespace IzzyBlazor;
 /// <seealso cref="Prose"/>
 /// <seealso cref="RichTextSanitizer"/>
 [ModeSupport]
-public class RichText : Prose
+public partial class RichText : Prose
 {
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    [GeneratedRegex("<pre><code class=\"language-([a-z0-9+#-]+)\">([^<]*)</code></pre>")]
+    private static partial Regex CodeBlock();
+
     /// <summary>The HTML to show. It's sanitized first.</summary>
     [Parameter] public string? Html { get; set; }
 
@@ -47,7 +58,7 @@ public class RichText : Prose
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var html = RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages);
+        var html = Highlight(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages));
         // The editor's content classes (alignment, color, size) have a sheet of their own.
         if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal))
         {
@@ -64,5 +75,26 @@ public class RichText : Prose
         builder.AddAttribute(3, "style", style);
         builder.AddContent(4, new MarkupString(html));
         builder.CloseElement();
+    }
+
+    // Code blocks with a language the highlighter knows, as tokens in ib-tok-* spans. The code
+    // is the sanitized text, decoded and encoded again, so nothing in it becomes markup.
+    private string Highlight(string html)
+    {
+        if (!html.Contains("<pre><code class=\"language-", StringComparison.Ordinal)) return html;
+        var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;
+        return CodeBlock().Replace(html, match =>
+        {
+            var code = WebUtility.HtmlDecode(match.Groups[2].Value);
+            if (!highlighter.TryHighlight(code, match.Groups[1].Value, out var tokens)) return match.Value;
+            var output = new StringBuilder($"<pre><code class=\"language-{match.Groups[1].Value}\">");
+            foreach (var token in tokens)
+            {
+                var text = WebUtility.HtmlEncode(token.Text);
+                output.Append(token.Kind == CodeTokenKind.Text ? text : $"<span class=\"{Code.ClassOf(token.Kind)}\">{text}</span>");
+            }
+
+            return output.Append("</code></pre>").ToString();
+        });
     }
 }

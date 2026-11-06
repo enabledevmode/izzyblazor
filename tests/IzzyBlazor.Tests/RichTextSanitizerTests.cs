@@ -157,6 +157,23 @@ public class RichTextSanitizerTests : BunitContext
     }
 
     [Fact]
+    public void Keeps_a_code_block_s_language_and_highlights_it_when_shown()
+    {
+        // Only a language-name class on code; the code stays text.
+        Assert.Equal("<pre><code class=\"language-csharp\">var x = 1;</code></pre>",
+            S("<pre><code class=\"hljs language-csharp\" onclick=x>var x = 1;</code></pre>"));
+        Assert.Equal("<pre><code>a</code></pre>", S("<pre><code class=\"language-c<s\">a</code></pre>"));
+
+        // Shown, it's highlighted on the server; the markup in the code stays text.
+        var cut = Render<RichText>(p => p.Add(r => r.Html, "<pre><code class=\"language-csharp\">var s = \"&lt;b&gt;\";</code></pre>"));
+        var code = cut.Find("pre > code");
+        Assert.Equal("language-csharp", code.ClassName);
+        Assert.Equal("var", code.QuerySelector(".ib-tok-keyword")!.TextContent);
+        Assert.Empty(code.QuerySelectorAll("b"));
+        Assert.Equal("var s = \"<b>\";", code.TextContent);
+    }
+
+    [Fact]
     public void Rich_text_shows_sanitized_html_as_prose()
     {
         var cut = Render<RichText>(p => p.Add(r => r.Html, "<h1 onclick=x>Title</h1><script>alert(1)</script>").Add(r => r.Size, ProseSize.Lg).Add(r => r.TopHeading, 2));

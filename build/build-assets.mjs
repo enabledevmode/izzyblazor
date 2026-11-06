@@ -331,6 +331,8 @@ const builds = [
       "elements/parts/rich-text-markdown": join(lib, "Scripts", "elements", "rich-text-markdown.ts"),
       // Its tables, for editors with the table tool or a table in their text.
       "elements/parts/rich-text-table": join(lib, "Scripts", "elements", "rich-text-table.ts"),
+      // Its code block language button.
+      "elements/parts/rich-text-code": join(lib, "Scripts", "elements", "rich-text-code.ts"),
     },
     outdir: join(lib, "wwwroot"),
     format: "esm",

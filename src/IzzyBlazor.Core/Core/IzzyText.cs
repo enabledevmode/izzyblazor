@@ -1473,6 +1473,12 @@ public class IzzyText
     /// <summary>A RichTextEditor's table menu.</summary>
     public virtual string RichTextTableDelete { get; set; } = "Delete table";
 
+    /// <summary>A RichTextEditor's code block language menu.</summary>
+    public virtual string RichTextCodeLanguage { get; set; } = "Code language";
+
+    /// <summary>A RichTextEditor's code block language: none.</summary>
+    public virtual string RichTextPlainText { get; set; } = "Plain text";
+
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
 
