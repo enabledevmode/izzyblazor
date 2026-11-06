@@ -43,6 +43,8 @@ function fromHsv(h: number, s: number, v: number, a: number): Rgba {
 
 const format = (template: string, ...values: (string | number)[]) => values.reduce<string>((t, v, i) => t.replace(`{${i}}`, String(v)), template);
 
+let groups = 0;
+
 class ColorPanel extends IzzyElement {
   #h = 0;
   #s = 0;
@@ -62,7 +64,10 @@ class ColorPanel extends IzzyElement {
     const name = this.dataset.ibName;
     if (name && !this.hasAttribute("data-ib-disabled")) {
       value.name = name;
-      for (const radio of this.querySelectorAll<HTMLInputElement>(".ib-cp-swatch-input")) radio.name = `${name}~swatch`;
+      // A group of this panel's own: two panels outside a form would otherwise share one, and
+      // choosing a swatch in one would clear the other's.
+      const group = `${name}~swatch~${++groups}`;
+      for (const radio of this.querySelectorAll<HTMLInputElement>(".ib-cp-swatch-input")) radio.name = group;
       this.querySelector('[data-ib-field="hex"]')?.removeAttribute("name");
     }
     this.#h = parseFloat(getComputedStyle(this).getPropertyValue("--ib-cp-hue")) || 0;
@@ -89,7 +94,9 @@ class ColorPanel extends IzzyElement {
       if (input.classList.contains("ib-cp-swatch-input")) {
         this.take(parse(input.value), true);
       } else if (input.dataset.ibField === "hex") {
+        // Beside an A field, six digits keep the opacity; eight still set it.
         const color = parse(input.value);
+        if (color && this.querySelector('[data-ib-field="A"]') && input.value.replace("#", "").trim().length <= 6) color.a = this.#a;
         if (color) this.take(color, true);
         else this.render();
       } else if (input.dataset.ibField) {
@@ -226,10 +233,12 @@ class ColorPanel extends IzzyElement {
       alpha.setAttribute("aria-valuetext", `${pct(this.#a)}%`);
     }
     const value = this.#empty ? "" : hex(color, this.hasAttribute("data-ib-alpha"));
+    // The hex field leaves the opacity to the A field, when there is one.
+    const short = this.querySelector('[data-ib-field="A"]') ? opaque : value;
     for (const field of this.querySelectorAll<HTMLInputElement>("[data-ib-field]")) {
       if (field === document.activeElement) continue;
       const key = field.dataset.ibField!;
-      field.value = this.#empty ? "" : key === "hex" ? value : key === "A" ? String(pct(this.#a)) : String(color[key.toLowerCase() as "r" | "g" | "b"]);
+      field.value = this.#empty ? "" : key === "hex" ? short : key === "A" ? String(pct(this.#a)) : String(color[key.toLowerCase() as "r" | "g" | "b"]);
     }
     for (const radio of this.querySelectorAll<HTMLInputElement>(".ib-cp-swatch-input")) {
       radio.checked = radio.value === value || (this.#empty && radio.value === "");

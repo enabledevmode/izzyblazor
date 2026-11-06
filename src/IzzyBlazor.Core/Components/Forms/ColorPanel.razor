@@ -44,27 +44,8 @@
                     style="--ib-cp-hue: @Num(_hsv.H); --ib-cp-color: @(_rgba is { } c ? ColorPanelMath.ToHex(c with { A = 1 }) : "transparent"); --ib-cp-alpha: @Num(_rgba?.A ?? 1)">
         @* The value with script: one field the parts all write, given the field's name by the script. *@
         <input type="hidden" class="ib-cp-value" value="@CurrentValueAsString" @onchange="OnChanged" />
-        @if (_swatches.Length > 0 || Clearable)
-        {
-            <div class="ib-cp-swatches" role="radiogroup" aria-label="@TextDefaults.ColorSwatches" style="@(Swatches is null ? "--ib-cp-columns: 7" : null)">
-                @if (Clearable)
-                {
-                    <label class="ib-cp-swatch ib-cp-swatch-none" title="@TextDefaults.ColorNone">
-                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="" checked="@(_rgba is null)"
-                               id="@(_firstControl == "swatch" ? FieldId : null)" aria-label="@TextDefaults.ColorNone" disabled="@(IsDisabled || IsReadOnly)" />
-                    </label>
-                }
-                @for (var i = 0; i < _swatches.Length; i++)
-                {
-                    var swatch = _swatches[i];
-                    var name = SwatchText?.Invoke(swatch) ?? NameOf(swatch);
-                    <label class="ib-cp-swatch" style="--ib-cp-swatch: @swatch" title="@name">
-                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="@swatch" checked="@(swatch == _hex)"
-                               id="@(_firstControl == "swatch" && i == 0 && !Clearable ? FieldId : null)" aria-label="@name" disabled="@(IsDisabled || IsReadOnly)" />
-                    </label>
-                }
-            </div>
-        }
+        @* In order: the picker, the sliders (with the eyedropper and the preview), the fields, the
+           swatches. The order is the markup's, so Tab follows what's seen. *@
         @if (ShowPicker)
         {
             <div class="ib-cp-area" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" id="@(_firstControl == "area" ? FieldId : null)"
@@ -77,8 +58,14 @@
         }
         @if (ShowPicker || ShowAlpha)
         {
-            @* The sliders, and beside them the color as it is (over the original, when there is one). *@
+            @* The sliders, the eyedropper before them, and after them the color as it is (over the
+               original, when there is one). *@
             <div class="ib-cp-row" data-ib-script>
+                @if (ShowEyedropper)
+                {
+                    <IconButton Icon="Lucide.Pipette" Label="@TextDefaults.ColorEyedropper" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                class="ib-cp-eyedropper" data-ib-eyedropper hidden Disabled="@(IsDisabled || IsReadOnly)" />
+                }
                 <div class="ib-cp-sliders">
                     @if (ShowPicker)
                     {
@@ -111,29 +98,42 @@
         }
         @if (ShowFields)
         {
-            @* Two rows: hex (and the eyedropper), then a column for each channel. *@
+            @* One row of small fields, labeled underneath: hex, then a column for each channel. With no
+               script the hex field shows only when it's what posts: when there are no swatches. *@
             <div class="ib-cp-fields" style="--ib-cp-channels: @(ShowAlpha ? 4 : 3)">
-                @* With no script it's shown only when it's what posts: when there are no swatches. *@
-                <div class="ib-cp-hex-row" data-ib-script="@(_swatches.Length == 0 && !Clearable ? null : "")">
-                <label class="ib-cp-field ib-cp-field-hex">
-                    <span class="ib-cp-field-label">@TextDefaults.ColorHexField</span>
-                    @* Posts with no script when there are no swatches to post. *@
+                <label class="ib-cp-field ib-cp-field-hex" data-ib-script="@(_swatches.Length == 0 && !Clearable ? null : "")">
                     <input class="ib-field-input" type="text" maxlength="9" spellcheck="false" autocomplete="off" data-ib-field="hex"
                            id="@(_firstControl == "hex" ? FieldId : null)" name="@(_swatches.Length == 0 && !Clearable ? NameAttributeValue : null)"
-                           value="@_hex" aria-invalid="@(Invalid ? "true" : null)" disabled="@IsDisabled" readonly="@IsReadOnly" />
+                           value="@HexFieldValue" aria-invalid="@(Invalid ? "true" : null)" disabled="@IsDisabled" readonly="@IsReadOnly" />
+                    <span class="ib-cp-field-label">@TextDefaults.ColorHexField</span>
                 </label>
-                @if (ShowEyedropper)
-                {
-                    <IconButton Icon="Lucide.Pipette" Label="@TextDefaults.ColorEyedropper" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
-                                class="ib-cp-eyedropper" data-ib-script data-ib-eyedropper hidden Disabled="@(IsDisabled || IsReadOnly)" />
-                }
-                </div>
                 @foreach (var (key, label, value) in Channels)
                 {
                     <label class="ib-cp-field" data-ib-script>
-                        <span class="ib-cp-field-label" aria-hidden="true">@key</span>
                         <input class="ib-field-input" type="number" min="0" max="@(key == "A" ? 100 : 255)" inputmode="numeric" data-ib-field="@key"
                                aria-label="@label" value="@value" disabled="@IsDisabled" readonly="@IsReadOnly" />
+                        <span class="ib-cp-field-label" aria-hidden="true">@key</span>
+                    </label>
+                }
+            </div>
+        }
+        @if (_swatches.Length > 0 || Clearable)
+        {
+            <div class="ib-cp-swatches" role="radiogroup" aria-label="@TextDefaults.ColorSwatches" style="@(Swatches is null ? "--ib-cp-columns: 7" : null)">
+                @if (Clearable)
+                {
+                    <label class="ib-cp-swatch ib-cp-swatch-none" title="@TextDefaults.ColorNone">
+                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="" checked="@(_rgba is null)"
+                               id="@(_firstControl == "swatch" ? FieldId : null)" aria-label="@TextDefaults.ColorNone" disabled="@(IsDisabled || IsReadOnly)" />
+                    </label>
+                }
+                @for (var i = 0; i < _swatches.Length; i++)
+                {
+                    var swatch = _swatches[i];
+                    var name = SwatchText?.Invoke(swatch) ?? NameOf(swatch);
+                    <label class="ib-cp-swatch" style="--ib-cp-swatch: @swatch" title="@name">
+                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="@swatch" checked="@(swatch == _hex)"
+                               id="@(_firstControl == "swatch" && i == 0 && !Clearable ? FieldId : null)" aria-label="@name" disabled="@(IsDisabled || IsReadOnly)" />
                     </label>
                 }
             </div>
@@ -150,6 +150,10 @@
     ];
 
     private string[] _swatches = [];
+
+    // The hex field leaves the opacity to the A field, unless it may be what posts: on a static
+    // page with no swatches, where script may not come.
+    private string? HexFieldValue => ShowAlpha && (_swatches.Length > 0 || Clearable || RendererInfo.IsInteractive) && _rgba is { } c ? ColorPanelMath.ToHex(c with { A = 1 }) : _hex;
     private ColorPanelMath.Rgba? _rgba;
     private ColorPanelMath.Hsv _hsv = new(0, 0, 1);
     private string _hex = "";
