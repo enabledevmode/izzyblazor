@@ -1279,7 +1279,7 @@ public class IzzyText
     public virtual string RichTextLinkNewTab { get; set; } = "Open in a new tab";
 
     /// <summary>A RichTextEditor's link dialog: the button that adds or changes the link.</summary>
-    public virtual string RichTextLinkApply { get; set; } = "Apply";
+    public virtual string RichTextLinkApply { get; set; } = "OK";
 
     /// <summary>A RichTextEditor's link dialog: the button that removes the link, keeping its text.</summary>
     public virtual string RichTextLinkRemove { get; set; } = "Remove link";
@@ -1391,6 +1391,42 @@ public class IzzyText
 
     /// <summary>A RichTextEditor's image dialog: the message for an image over MaxImageSize.</summary>
     public virtual string RichTextImageTooLarge { get; set; } = "The image is too large.";
+
+    /// <summary>A RichTextEditor's link dialog title, for a new link.</summary>
+    public virtual string RichTextLinkAdd { get; set; } = "Add link";
+
+    /// <summary>A RichTextEditor's link dialog title, for a link already there.</summary>
+    public virtual string RichTextLinkEdit { get; set; } = "Edit link";
+
+    /// <summary>A RichTextEditor's image dialog title, for a new image.</summary>
+    public virtual string RichTextImageInsert { get; set; } = "Insert image";
+
+    /// <summary>A RichTextEditor's image dialog title, for an image already there.</summary>
+    public virtual string RichTextImageEdit { get; set; } = "Edit image";
+
+    /// <summary>A RichTextEditor's image dialog: the tabs for where the image comes from.</summary>
+    public virtual string RichTextImageSource { get; set; } = "Image source";
+
+    /// <summary>A RichTextEditor's image dialog: the tab for a file from the device.</summary>
+    public virtual string RichTextImageFromDevice { get; set; } = "From your device";
+
+    /// <summary>A RichTextEditor's image dialog: the tab for an image's address.</summary>
+    public virtual string RichTextImageFromWeb { get; set; } = "From the web";
+
+    /// <summary>A RichTextEditor's image dialog: the button that opens the file picker.</summary>
+    public virtual string RichTextImageSelect { get; set; } = "Select a file";
+
+    /// <summary>A RichTextEditor's image dialog: the text beside Select a file.</summary>
+    public virtual string RichTextImageDrop { get; set; } = "or drop a file here";
+
+    /// <summary>A RichTextEditor's image dialog: the width field.</summary>
+    public virtual string RichTextImageWidth { get; set; } = "Width (px)";
+
+    /// <summary>A RichTextEditor's image dialog: the height field.</summary>
+    public virtual string RichTextImageHeight { get; set; } = "Height (px)";
+
+    /// <summary>A RichTextEditor's image dialog: the toggle that keeps width and height in proportion.</summary>
+    public virtual string RichTextImageKeepRatio { get; set; } = "Keep proportions";
 
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";

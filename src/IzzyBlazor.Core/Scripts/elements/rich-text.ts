@@ -117,6 +117,10 @@ function element(node: Element, name: string, top: number): string {
     attributes = ` src="${escape(src, true)}"`;
     const alt = node.getAttribute("alt");
     if (alt !== null) attributes += ` alt="${escape(alt, true)}"`;
+    for (const side of ["width", "height"]) {
+      const value = node.getAttribute(side);
+      if (value && /^\d{1,5}$/.test(value)) attributes += ` ${side}="${value}"`;
+    }
   }
   if (voids.has(name)) return `<${name}${attributes}>`;
   // A browser can put a list inside a paragraph; the paragraph gives way to what's in it.
@@ -234,7 +238,11 @@ class RichText extends IzzyElement {
       }
     }, { signal });
     this.addEventListener("focusin", (event) => {
-      if (event.target === this.surface) this.ensureParagraph();
+      if (event.target !== this.surface) return;
+      this.ensureParagraph();
+      // The dialogs' code arrives while the text has focus, so the first Ctrl+K opens at once.
+      if (this.querySelector(":scope > .ib-rich-text-link")) this.linkPart();
+      this.images();
     }, { signal });
     this.addEventListener("keydown", (event) => this.keydown(event), { signal });
     this.addEventListener("paste", (event) => this.paste(event), { signal });
@@ -385,10 +393,10 @@ class RichText extends IzzyElement {
         void this.images()?.then(([part, editor]) => part.openImage(editor, this.#picked));
         return;
       case "link": {
-        const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-link");
+        const dialog = this.querySelector<HTMLDialogElement>(":scope > .ib-rich-text-link");
         if (!dialog) return;
         this.save();
-        void (this.#link ??= import("./parts/rich-text-link.js" as string) as Promise<LinkPart>).then((part) =>
+        void this.linkPart().then((part) =>
           part.openLink({ surface, dialog, around: (selector) => this.around(selector), changed: () => (this.changed(), this.reflect()) })
         );
         return;
@@ -634,6 +642,10 @@ class RichText extends IzzyElement {
     }
   }
 
+  private linkPart(): Promise<LinkPart> {
+    return (this.#link ??= import("./parts/rich-text-link.js" as string) as Promise<LinkPart>);
+  }
+
   private markdownEditor(): Parameters<MarkdownPart["markdown"]>[0] {
     return { top: this.top, offers: (level) => this.offers(level), around: (selector) => this.around(selector), changed: () => this.changed() };
   }
@@ -647,7 +659,7 @@ class RichText extends IzzyElement {
 
   /** The image part, and what it needs of this editor; null when the editor has no image tool. */
   private images(): Promise<[ImagePart, Parameters<ImagePart["openImage"]>[0]]> | null {
-    const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-image");
+    const dialog = this.querySelector<HTMLDialogElement>(":scope > .ib-rich-text-image");
     const surface = this.surface;
     if (!dialog || !surface) return null;
     return (this.#image ??= import("./parts/rich-text-image.js" as string) as Promise<ImagePart>).then((part) => [
