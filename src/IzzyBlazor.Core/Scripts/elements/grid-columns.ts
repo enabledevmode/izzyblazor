@@ -158,7 +158,7 @@ class GridColumns extends IzzyElement {
   #say(th: HTMLElement): void {
     const width = Math.round(th.offsetWidth);
     const status = this.#host?.querySelector("[data-ib-col-say]");
-    if (status) status.textContent = (this.dataset.ibWidthText ?? "{0}: {1}").replace("{0}", th.querySelector(".ib-table-title")?.textContent?.trim() ?? "").replace("{1}", String(width));
+    if (status) status.textContent = (this.dataset.ibWidthText ?? "{0}: {1}").replace("{0}", th.dataset.ibName ?? th.querySelector(".ib-table-title")?.textContent?.trim() ?? "").replace("{1}", String(width));
   }
 
   #side(el: Element): number {
@@ -206,10 +206,36 @@ class GridColumns extends IzzyElement {
     const anchor = target > from ? blocks[target][blocks[target].length - 1] : blocks[target][0];
     order.splice(order.indexOf(anchor) + (target > from ? 1 : 0), 0, ...moving);
     const columns = this.#layout();
-    order.forEach((header, index) => (this.#entry(columns, header.dataset.ibCol!).p = index));
+    this.#withHidden(order.map((header) => header.dataset.ibCol!)).forEach((key, index) => (this.#entry(columns, key).p = index));
     void this.#save(columns, true, focus ? this.#keyOf(th) : null).then((drawing) => {
       if (!drawing) this.#letGo();
     });
+  }
+
+  // All of an outermost band's columns, hidden ones too, as its header lists them.
+  #bandColumns(id: string | undefined): string[] {
+    try {
+      return id === undefined ? [] : (JSON.parse(this.#bandHeader(id)?.dataset.ibCols ?? "[]") as string[]);
+    } catch {
+      return [];
+    }
+  }
+
+  // The columns shown in order, with each band's hidden ones placed beside the band's others, so
+  // one shown again comes back inside the band where the band now is.
+  #withHidden(keys: string[]): string[] {
+    const bands = new Set(this.#headers.map((header) => this.#path(header)[0]).filter((id) => id !== undefined));
+    for (const id of bands) {
+      const all = this.#bandColumns(id);
+      all.forEach((key, i) => {
+        if (keys.includes(key)) return;
+        const before = all.slice(0, i).reverse().find((other) => keys.includes(other));
+        const after = all.slice(i + 1).find((other) => keys.includes(other));
+        if (before !== undefined) keys.splice(keys.indexOf(before) + 1, 0, key);
+        else if (after !== undefined) keys.splice(keys.indexOf(after), 0, key);
+      });
+    }
+    return keys;
   }
 
   #move(th: HTMLTableCellElement, by: number, focus: boolean): void {
@@ -289,12 +315,17 @@ class GridColumns extends IzzyElement {
     }
     else if (th && (action === "freeze-start" || action === "freeze-end" || action === "unfreeze")) {
       // A band is frozen as one, so it never straddles the edge.
+      // Its hidden columns too, so it's frozen as one when they're shown again.
       const outer = this.#path(th)[0];
-      for (const header of outer === undefined ? [th] : this.#headers.filter((h) => this.#path(h)[0] === outer)) {
-        const entry = this.#entry(columns, header.dataset.ibCol!);
+      const keys = outer === undefined ? [th.dataset.ibCol!] : this.#bandColumns(outer);
+      // Frozen columns are placed by adding the widths up, so each needs one: a hidden one takes the
+      // width of one shown beside it, until it's shown and resized.
+      const near = keys.map((k) => this.#header(k)).find((header) => header);
+      for (const k of keys) {
+        const entry = this.#entry(columns, k);
         entry.f = action === "unfreeze" ? FROZEN.none : action === "freeze-start" ? FROZEN.start : FROZEN.end;
-        // Frozen columns are placed by adding the widths up, so each needs one.
-        entry.w ??= `${Math.round(header.offsetWidth)}px`;
+        const header = this.#header(k) ?? near;
+        if (header) entry.w ??= `${Math.round(header.offsetWidth)}px`;
       }
       void this.#save(columns, true, this.#keyOf(th));
     }
@@ -565,7 +596,7 @@ class GridColumns extends IzzyElement {
     // of it showing where. Places are from the chips as they were, as the preview moves them.
     const bar = th.dataset.ibGroup ? this.#bar : null;
     const slots = this.#chips.map((chip) => chip.getBoundingClientRect());
-    const name = th.querySelector(".ib-table-title")?.textContent?.trim() ?? "";
+    const name = th.dataset.ibName ?? th.querySelector(".ib-table-title")?.textContent?.trim() ?? "";
     let at = -1;
     const abort = this.#until(signal);
     const options = { signal: abort.signal };

@@ -1899,6 +1899,8 @@
         if (BandPath(column) is { } path)
         {
             attributes["data-ib-path"] = path;
+            // Its name where the script says it alone: a width as it's resized.
+            attributes["data-ib-name"] = column.FullName;
         }
 
         if (CanResize(column))
@@ -2021,6 +2023,11 @@
         }
 
         var attributes = new Dictionary<string, object> { ["data-ib-band"] = BandId(band), ["data-ib-path"] = BandPath(band) };
+        // All its columns, hidden ones too, which the script freezes and places with the band.
+        if (band.Parent is null)
+        {
+            attributes["data-ib-cols"] = System.Text.Json.JsonSerializer.Serialize(Columns.Where(c => c.Band?.Chain[0] == band).Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray);
+        }
         if (BandMoves(band))
         {
             attributes["data-ib-reorder"] = "";
@@ -2035,7 +2042,7 @@
         var id = BandId(band);
         var frozen = FrozenOf(Shown[span.First]);
         var zone = SiblingBlocks(band.Parent, frozen);
-        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, band.Title);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, BandFullName(band));
         <div class="ib-table-head">
             @* Centered (or as aligned) in the room the menu button leaves, which sits at the end. *@
             <span class="ib-table-title" style="@(band.Align switch { CellAlign.Center => "margin-inline:auto", CellAlign.End => "margin-inline-start:auto", _ => null })">@BandLabel(band)</span>
@@ -2192,8 +2199,6 @@
         </div>
     };
 
-    private string? _pickerId;
-
     // The picker's columns, each band's under its name.
     private RenderFragment PickerItems(IEnumerable<object> nodes) => __builder =>
     {
@@ -2206,10 +2211,9 @@
                     continue;
                 }
 
-                var heading = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-{BandId(band)}";
                 <li class="ib-col-picker-band">
-                    <span id="@heading">@band.Title</span>
-                    <ul aria-labelledby="@heading">@PickerItems(band.Nodes)</ul>
+                    <span aria-hidden="true">@band.Title</span>
+                    <ul aria-label="@BandFullName(band)">@PickerItems(band.Nodes)</ul>
                 </li>
             }
             else if (node is ColumnBase<TItem> { Pickable: true } column && Columns.Contains(column))
@@ -2219,7 +2223,7 @@
                 var zoneOf = SiblingBlocks(column.Band, FrozenOf(column));
                 <li>
                     <label>
-                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" aria-label="@(column.Band is null ? null : column.FullName)" />
                         @column.HeaderText
                     </label>
                     @if (ReorderableColumns)
@@ -2401,15 +2405,19 @@
         // A band is frozen as one, as its first column is, so it never straddles the frozen edge.
         if (column.Band is { } band)
         {
+            // The script sets all of a band's columns, hidden ones too; only those shown need widths.
             var outer = band.Chain[0];
             var members = Columns.Where(c => c.Band?.Chain[0] == outer).ToList();
             var first = OwnFrozen(members[0]);
-            return first != ColumnFrozen.None && members.Any(c => WidthOf(c) is null) ? ColumnFrozen.None : first;
+            return first != ColumnFrozen.None && members.Any(c => !HiddenByLayout(c) && WidthOf(c) is null) ? ColumnFrozen.None : first;
         }
 
         var frozen = OwnFrozen(column);
         return frozen != ColumnFrozen.None && WidthOf(column) is null ? ColumnFrozen.None : frozen;
     }
+
+    private bool HiddenByLayout(ColumnBase<TItem> column) =>
+        !(column.Pickable && CurrentLayout?.Column(KeyOf(column))?.Hidden is { } hidden ? !hidden : column.Visible);
 
     private ColumnFrozen OwnFrozen(ColumnBase<TItem> column) =>
         RowHref is not null ? column.Frozen : CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
@@ -2437,7 +2445,7 @@
         var layout = CurrentLayout;
         // One the page says can't be hidden isn't, whatever a stored layout says.
         // Visible says how it starts. What someone chose goes first, on a column they can choose.
-        var visible = Columns.Where(c => !GroupedColumnLeaves(c)).Where(c => c.Pickable && layout?.Column(KeyOf(c))?.Hidden is { } hidden ? !hidden : c.Visible).ToList();
+        var visible = Columns.Where(c => !GroupedColumnLeaves(c) && !HiddenByLayout(c)).ToList();
         var placed = (visible.Count > 0 ? visible : Columns)
             .Select((column, index) => (column, index, place: layout?.Column(KeyOf(column))?.Position ?? index))
             .ToList();
@@ -2776,7 +2784,7 @@
         {
             if (band.Select(c => c.Frozen).Distinct().Skip(1).Any())
             {
-                throw new InvalidOperationException($"The \"{band.Key.Title}\" band's columns are frozen differently: set the same {nameof(ColumnBase<TItem>.Frozen)} on all of them, as a band is frozen as one.");
+                throw new InvalidOperationException($"The \"{BandFullName(band.Key)}\" band's columns are frozen differently: set the same {nameof(ColumnBase<TItem>.Frozen)} on all of them, as a band is frozen as one.");
             }
         }
 
@@ -2788,7 +2796,7 @@
             {
                 if (string.IsNullOrEmpty(KeyOf(column)) || !taken.Add(KeyOf(column)))
                 {
-                    throw new InvalidOperationException($"The \"{column.HeaderText}\" column needs a {nameof(ColumnBase<TItem>.SortKey)} of its own, since people can rearrange the columns: its key is empty or another column's.");
+                    throw new InvalidOperationException($"The \"{column.FullName}\" column needs a {nameof(ColumnBase<TItem>.SortKey)} of its own, since people can rearrange the columns: its key is empty or another column's.");
                 }
             }
         }

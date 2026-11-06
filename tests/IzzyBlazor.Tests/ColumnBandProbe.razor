@@ -1,4 +1,4 @@
-@* Quarters over their revenue and margin, with columns outside any band on both sides; ColumnBandTests renders it. *@
+@* Quarters over their revenue and margin, a column outside any band, and a band holding a band and a column; ColumnBandTests renders it. *@
 <DataGrid Items="Rows" TItem="Sales" Layout="Layout">
     <PropertyColumn Property="r => r.Region" />
     <ColumnBand Title="Q1">
@@ -9,8 +9,8 @@
         <ColumnBand Title="H2">
             <PropertyColumn Property="r => r.Q3" Title="Q3" />
         </ColumnBand>
+        <PropertyColumn Property="r => r.Total" />
     </ColumnBand>
-    <PropertyColumn Property="r => r.Total" />
 </DataGrid>
 
 @code {

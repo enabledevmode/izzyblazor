@@ -17,10 +17,13 @@ namespace IzzyBlazor;
 /// </code></example>
 public sealed class ColumnBand : ComponentBase, IDisposable
 {
-    /// <summary>The band's header text, which screen readers also say before each of its columns' names.</summary>
-    [Parameter] public string? Title { get; set; }
+    /// <summary>
+    /// The band's name: its header text, which screen readers say before each of its columns' names,
+    /// and part of each column's name wherever it's named away from the header ("Q1 Revenue").
+    /// </summary>
+    [Parameter, EditorRequired] public string? Title { get; set; }
 
-    /// <summary>The band's header content, in place of <see cref="Title"/>.</summary>
+    /// <summary>The band's header content, in place of <see cref="Title"/>, which still names it.</summary>
     [Parameter] public RenderFragment? HeaderTemplate { get; set; }
 
     /// <summary>Where the header sits across the band. Centered by default.</summary>
@@ -58,9 +61,9 @@ public sealed class ColumnBand : ComponentBase, IDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Title is null && HeaderTemplate is null)
+        if (string.IsNullOrEmpty(Title))
         {
-            throw new InvalidOperationException("A ColumnBand needs a Title or a HeaderTemplate.");
+            throw new InvalidOperationException("A ColumnBand needs a Title, which names it to screen readers and in its columns' names, with a HeaderTemplate too.");
         }
 
         // Only what the header shows: a template is a new one on each render.
@@ -83,7 +86,8 @@ public sealed class ColumnBand : ComponentBase, IDisposable
         builder.AddComponentParameter(2, "IsFixed", true);
         builder.AddComponentParameter(3, "ChildContent", ChildContent);
         builder.CloseComponent();
-        // After its columns: they've joined the table by the time this is made.
+        // Made before its columns (they render inside the cascading value, a render later): the table
+        // goes on waiting through the render, so its columns, and any bands in it, have joined by then.
         builder.OpenComponent<ColumnBandReady>(4);
         builder.AddComponentParameter(5, nameof(ColumnBandReady.Band), this);
         builder.CloseComponent();

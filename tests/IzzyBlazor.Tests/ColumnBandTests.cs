@@ -25,7 +25,9 @@ public class ColumnBandTests : BunitContext
 
         // Each band right above its columns: the shallower Q1 has a gap above it.
         Assert.Equal(3, head.Count);
-        Assert.Equal(["", "", "", "Year", ""], head[0].Children.Select(c => c.TextContent.Trim()));
+        // Year holds H2 and a column of its own: one cell over both, above H2's row.
+        Assert.Equal(["", "", "", "Year"], head[0].Children.Select(c => c.TextContent.Trim()));
+        Assert.Equal("2", head[0].Children[3].GetAttribute("colspan"));
         Assert.Equal(["", "Q1", "H2", ""], head[1].Children.Select(c => c.TextContent.Trim()));
         Assert.Equal("2", head[1].QuerySelector("th")!.GetAttribute("colspan"));
         // The outermost bands name their column groups; a band inside one covers its columns.
@@ -33,7 +35,7 @@ public class ColumnBandTests : BunitContext
         Assert.Equal(["Region", "Revenue", "Margin", "Q3", "Total"], head[2].Children.Select(c => c.TextContent.Trim()));
 
         // A column group per band, which scope="colgroup" names, and one per column with none.
-        Assert.Equal([1, 2, 1, 1], cut.FindAll("table > colgroup").Select(g => g.Children.Length));
+        Assert.Equal([1, 2, 2], cut.FindAll("table > colgroup").Select(g => g.Children.Length));
 
         Assert.Equal(["South", "West", "North"], cut.FindAll("tbody > tr > td:first-child").Select(c => c.TextContent.Trim()));
     }
