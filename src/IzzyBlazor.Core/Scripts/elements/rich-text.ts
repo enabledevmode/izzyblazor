@@ -30,6 +30,10 @@ const styles = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"];
 type FormatPart = typeof import("./rich-text-format");
 // The link dialog's code: a part, loaded when the dialog first opens.
 type LinkPart = typeof import("./rich-text-link");
+// Images (the dialog, uploads, pasted and dropped files): a part, loaded when first used.
+type ImagePart = typeof import("./rich-text-image");
+// Markdown shortcuts: a part, loaded as an editor that has them sets up.
+type MarkdownPart = typeof import("./rich-text-markdown");
 const formatTools = "align,color,highlight,size,font".split(",");
 
 function escape(text: string, attribute = false): string {
@@ -48,6 +52,9 @@ function safeUrl(value: string, image: boolean): string | null {
   if (!image && (scheme === "mailto" || scheme === "tel")) return url;
   return null;
 }
+
+// Whether images may be data: URLs (AllowDataImages), for the editor being written.
+let embedImages = false;
 
 /** Writes a node's children as the editor's HTML: the same elements the server's sanitizer keeps. */
 function serialize(parent: Node, top = 1): string {
@@ -104,7 +111,8 @@ function element(node: Element, name: string, top: number): string {
     const align = [...node.classList].find((c) => c === "ib-align-center" || c === "ib-align-end");
     if (align) attributes = ` class="${align}"`;
   } else if (name === "img") {
-    const src = safeUrl(node.getAttribute("src") ?? "", true);
+    const given = node.getAttribute("src") ?? "";
+    const src = safeUrl(given, true) ?? (embedImages && /^data:image\/(png|jpeg|gif|webp|avif)[;,]/i.test(given) ? given : null);
     if (!src) return "";
     attributes = ` src="${escape(src, true)}"`;
     const alt = node.getAttribute("alt");
@@ -139,6 +147,10 @@ class RichText extends IzzyElement {
   #plainPaste = false;
   #dragging = false;
   #link: Promise<LinkPart> | null = null;
+  #image: Promise<ImagePart> | null = null;
+  // The image last clicked: a browser puts the caret beside it, so the editor keeps it here.
+  #picked: HTMLImageElement | null = null;
+  #markdown: MarkdownPart | null = null;
   #format: FormatPart | null = null;
   #formatLoading: Promise<FormatPart> | null = null;
 
@@ -205,11 +217,14 @@ class RichText extends IzzyElement {
     this.addEventListener("input", (event) => {
       if (event.target !== this.surface) return;
       const input = event as InputEvent;
-      if (this.dataset.ibMarkdown !== "off" && input.inputType === "insertText") this.markdown(input.data);
+      if (input.inputType === "insertText") this.#markdown?.markdown(this.markdownEditor(), input.data);
       this.changed();
     }, { signal });
     // An editor that shows layout tools loads their code now, so the tools show the caret's state.
     if (this.querySelector(formatTools.map((t) => `[data-ib-command="${t}"]`).join(","))) void this.loadFormat();
+    if (this.dataset.ibMarkdown !== "off" && this.surface?.getAttribute("aria-readonly") !== "true") {
+      void (import("./parts/rich-text-markdown.js" as string) as Promise<MarkdownPart>).then((part) => (this.#markdown = part));
+    }
     this.addEventListener("focusout", (event) => {
       if (event.target !== this.surface) return;
       this.save();
@@ -232,6 +247,8 @@ class RichText extends IzzyElement {
       if ((event.target as Element).closest("button[data-ib-command]")) event.preventDefault();
     }, { signal });
     this.addEventListener("click", (event) => {
+      const img = (event.target as Element).closest("img");
+      if (this.surface?.contains(event.target as Node)) this.pick(img && this.surface.isContentEditable ? img : null);
       const tool = (event.target as Element).closest<HTMLButtonElement>("button[data-ib-command]");
       if (!tool || !this.contains(tool)) return;
       this.run(tool.dataset.ibCommand!, tool.dataset.ibValue);
@@ -293,6 +310,7 @@ class RichText extends IzzyElement {
     if (!surface || !source) return;
     const blank = isBlank(surface);
     surface.toggleAttribute("data-ib-empty", blank);
+    embedImages = this.hasAttribute("data-ib-data-images");
     const html = blank ? "" : serialize(surface, this.top);
     this.count();
     if (html === source.value) return;
@@ -362,6 +380,10 @@ class RichText extends IzzyElement {
         // A toggle: on, the text's blocks become a quote or code block; on again, normal text.
         this.formatBlock(command === "quote" ? "blockquote" : "pre");
         break;
+      case "image":
+        this.save();
+        void this.images()?.then(([part, editor]) => part.openImage(editor, this.#picked));
+        return;
       case "link": {
         const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-link");
         if (!dialog) return;
@@ -563,7 +585,18 @@ class RichText extends IzzyElement {
     }
 
     if (event.target !== surface || !surface.isContentEditable) return;
-    if (event.key === "Enter" && !event.shiftKey && this.dataset.ibMarkdown !== "off" && this.rule()) {
+    // A clicked image goes with Delete or Backspace; any other key lets it go.
+    const picked = this.#picked;
+    if (picked && !event.ctrlKey && !event.metaKey && !["Shift", "Control", "Alt", "Meta"].includes(event.key)) {
+      this.pick(null);
+      if (event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault();
+        picked.remove();
+        this.changed();
+        return;
+      }
+    }
+    if (event.key === "Enter" && !event.shiftKey && this.#markdown?.rule(this.markdownEditor())) {
       event.preventDefault();
       return;
     }
@@ -601,75 +634,32 @@ class RichText extends IzzyElement {
     }
   }
 
-  /** Typed Markdown becomes formats: a line's start (## , - , 1. , > , ```) or **bold**, *italic*, `code`. */
-  private markdown(data: string | null): void {
-    const selection = getSelection();
-    const node = selection?.anchorNode;
-    if (!selection?.isCollapsed || !node || node.nodeType !== Node.TEXT_NODE || this.around("pre")) return;
-    const offset = selection.anchorOffset;
-    const before = (node.textContent ?? "").slice(0, offset);
-
-    if (data === " ") {
-      const block = this.around("p,div");
-      const marker = /^(#{1,6}|[-*]|1[.)]|>|```)[ \u00A0]$/.exec(before)?.[1];
-      if (!block || !marker || this.around("li,blockquote")) return;
-      // # is the top heading level, ## the one below it, and so on.
-      if (marker.startsWith("#") && !this.offers(this.top + marker.length - 1)) return;
-      // Only at the very start of the line.
-      const lead = document.createRange();
-      lead.setStart(block, 0);
-      lead.setEnd(node, 0);
-      if (lead.toString() !== "") return;
-      const typed = document.createRange();
-      typed.setStart(node, 0);
-      typed.setEnd(node, offset);
-      selection.removeAllRanges();
-      selection.addRange(typed);
-      exec("delete");
-      if (marker.startsWith("#")) exec("formatBlock", `<h${this.top + marker.length - 1}>`);
-      else if (marker === "-" || marker === "*") exec("insertUnorderedList");
-      else if (marker === ">") exec("formatBlock", "<blockquote>");
-      else if (marker === "```") exec("formatBlock", "<pre>");
-      else exec("insertOrderedList");
-      return;
-    }
-
-    if (data !== "*" && data !== "`" || this.around("code")) return;
-    const forms: [RegExp, string][] = [
-      [/\*\*([^*\s](?:[^*]*[^*\s])?)\*\*$/, "strong"],
-      [/(?:^|[^*\w])\*([^*\s](?:[^*]*[^*\s])?)\*$/, "em"],
-      [/`([^`]+)`$/, "code"],
-    ];
-    for (const [pattern, name] of forms) {
-      const match = pattern.exec(before);
-      if (!match) continue;
-      const marks = name === "strong" ? 2 : 1;
-      const start = offset - match[1].length - 2 * marks;
-      const range = document.createRange();
-      range.setStart(node, start);
-      range.setEnd(node, offset);
-      range.deleteContents();
-      const element = document.createElement(name);
-      element.textContent = match[1];
-      const after = document.createTextNode("\u200B");
-      range.insertNode(after);
-      range.insertNode(element);
-      selection.collapse(after, 1);
-      return;
-    }
+  private markdownEditor(): Parameters<MarkdownPart["markdown"]>[0] {
+    return { top: this.top, offers: (level) => this.offers(level), around: (selector) => this.around(selector), changed: () => this.changed() };
   }
 
-  /** "---" alone on a line, then Enter, becomes a horizontal line. */
-  private rule(): boolean {
-    const block = this.around("p,div");
-    if (!block || (block.textContent ?? "").trim() !== "---" || this.around("li,blockquote,pre")) return false;
-    const line = document.createElement("hr");
-    const next = document.createElement("p");
-    next.append(document.createElement("br"));
-    block.replaceWith(line, next);
-    getSelection()?.collapse(next, 0);
-    this.changed();
-    return true;
+  /** Marks the image clicked (or none), which the image tool and Delete act on. */
+  private pick(img: HTMLImageElement | null): void {
+    this.#picked?.removeAttribute("data-ib-selected");
+    this.#picked = img;
+    img?.setAttribute("data-ib-selected", "");
+  }
+
+  /** The image part, and what it needs of this editor; null when the editor has no image tool. */
+  private images(): Promise<[ImagePart, Parameters<ImagePart["openImage"]>[0]]> | null {
+    const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-image");
+    const surface = this.surface;
+    if (!dialog || !surface) return null;
+    return (this.#image ??= import("./parts/rich-text-image.js" as string) as Promise<ImagePart>).then((part) => [
+      part,
+      { host: this, surface, dialog, changed: () => (this.changed(), this.reflect()) },
+    ]);
+  }
+
+  /** Image files in a paste or drop, when the editor takes them: uploaded or embedded. */
+  private imageFiles(data: DataTransfer): File[] {
+    if (!this.dataset.ibImageUpload && !this.hasAttribute("data-ib-data-images")) return [];
+    return [...data.files].filter((file) => file.type.startsWith("image/"));
   }
 
   private paste(event: ClipboardEvent): void {
@@ -677,6 +667,11 @@ class RichText extends IzzyElement {
     const data = event.clipboardData;
     if (!data || event.target !== surface && !surface?.contains(event.target as Node) || !surface?.isContentEditable) return;
     event.preventDefault();
+    const files = this.imageFiles(data);
+    if (files.length) {
+      void this.images()?.then(([part, editor]) => part.insertFiles(editor, files));
+      return;
+    }
     const plain = this.#plainPaste;
     this.#plainPaste = false;
     const html = data.getData("text/html");
@@ -684,6 +679,7 @@ class RichText extends IzzyElement {
       exec("insertText", data.getData("text/plain"));
     } else {
       // Parsed in a document of its own, where nothing loads or runs.
+      embedImages = this.hasAttribute("data-ib-data-images");
       const cleaned = serialize(new DOMParser().parseFromString(html, "text/html").body, this.top);
       if (cleaned) exec("insertHTML", cleaned);
     }
@@ -697,8 +693,9 @@ class RichText extends IzzyElement {
     // Text moved within the text is the browser's to drop.
     if (this.#dragging) return;
     event.preventDefault();
-    // Files wait for images (a later step); text from elsewhere goes in cleaned.
-    if (data.files.length) return;
+    // Image files go in where they're dropped; other files don't; text from elsewhere goes in cleaned.
+    const files = this.imageFiles(data);
+    if (data.files.length && !files.length) return;
     const point = document.caretPositionFromPoint?.(event.clientX, event.clientY);
     const range = point ? document.createRange() : document.caretRangeFromPoint?.(event.clientX, event.clientY);
     if (point && range) range.setStart(point.offsetNode, point.offset);
@@ -707,7 +704,12 @@ class RichText extends IzzyElement {
     surface.focus();
     getSelection()?.removeAllRanges();
     getSelection()?.addRange(range);
+    if (files.length) {
+      void this.images()?.then(([part, editor]) => part.insertFiles(editor, files));
+      return;
+    }
     const html = data.getData("text/html");
+    embedImages = this.hasAttribute("data-ib-data-images");
     if (html) exec("insertHTML", serialize(new DOMParser().parseFromString(html, "text/html").body, this.top));
     else exec("insertText", data.getData("text/plain"));
     this.changed();

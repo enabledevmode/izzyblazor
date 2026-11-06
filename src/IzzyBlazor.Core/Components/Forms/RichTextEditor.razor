@@ -27,6 +27,8 @@
       their format (`aria-pressed`), and each lists its shortcut (`aria-keyshortcuts`, and the
       tooltip).
     - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it.
+    - The image tool opens a dialog that asks for a description (alternative text) or for the
+      image to be marked decorative; it opens on its own after an image is pasted or dropped.
     - The link tool opens a small dialog (Address, Text, Open in a new tab); Escape closes it and
       puts focus back in the text.
     - With `ShowCount`, the count ("120 / 2000") is part of the text's description; it isn't
@@ -60,7 +62,9 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-content.css"]" />
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)">
+    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)"
+                  data-ib-image-upload="@ImageUploadUrl" data-ib-data-images="@(AllowDataImages ? "" : null)" data-ib-image-max="@MaxImageSize"
+                  data-ib-image-failed="@TextDefaults.RichTextImageFailed" data-ib-image-too-large="@TextDefaults.RichTextImageTooLarge" data-ib-image-needs-alt="@TextDefaults.RichTextImageNeedsAlt">
         @if (ShowsToolbar)
         {
             <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap="WrapToolbar" Class="ib-rich-text-toolbar">
@@ -122,6 +126,37 @@
             @* The script keeps the number current and adds the count to the text's description. *@
             <span class="ib-field-count" id="@CountId"><span class="ib-field-count-current">@TextLength(_shown)</span> / @MaxLength</span>
         }
+        @if (Has(RichTextTools.Image) && ShowsToolbar)
+        {
+            @* The image tool's dialog, opened by the tool, and after an image is pasted or dropped so
+               it gets a description. Its fields have no name, so they never post with the form. *@
+            <div class="ib-rich-text-link ib-rich-text-image" popover role="dialog" aria-label="@TextDefaults.RichTextImage">
+                <div class="ib-field">
+                    <label class="ib-field-label" for="@(FieldId)-image-src">@TextDefaults.RichTextImageAddress</label>
+                    <div class="ib-rich-text-image-source">
+                        <input class="ib-field-input" id="@(FieldId)-image-src" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-image="src" />
+                        @if (ImageUploadUrl is not null || AllowDataImages)
+                        {
+                            <label class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-rich-text-image-upload">
+                                <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" class="ib-visually-hidden" data-ib-image="file" />
+                                @TextDefaults.RichTextImageUpload
+                            </label>
+                        }
+                    </div>
+                </div>
+                <div class="ib-field">
+                    <label class="ib-field-label" for="@(FieldId)-image-alt">@TextDefaults.RichTextImageAlt</label>
+                    <input class="ib-field-input" id="@(FieldId)-image-alt" type="text" autocomplete="off" aria-describedby="@(FieldId)-image-alt-hint" data-ib-image="alt" />
+                    <p class="ib-field-hint" id="@(FieldId)-image-alt-hint">@TextDefaults.RichTextImageAltHint</p>
+                </div>
+                <label class="ib-rich-text-link-tab"><input type="checkbox" data-ib-image="decorative" /> @TextDefaults.RichTextImageDecorative</label>
+                <p class="ib-field-error" role="alert" data-ib-image="error" hidden></p>
+                <div class="ib-rich-text-link-actions">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
+                    <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
+                </div>
+            </div>
+        }
     </ib-rich-text>
 </FieldFrame>
 
@@ -176,6 +211,24 @@
     /// Give <see cref="RichText"/> the same list.
     /// </summary>
     [Parameter] public IReadOnlyList<string>? FontSizes { get; set; }
+
+    /// <summary>
+    /// Where the image tool sends a chosen, pasted or dropped image: an endpoint of your app that
+    /// takes a multipart POST with the image in a <c>file</c> field (and the form's antiforgery
+    /// token), stores it, and answers with its URL, as text or as JSON <c>{ "url": "…" }</c>.
+    /// Without it, images come only by their address, or embedded with <see cref="AllowDataImages"/>.
+    /// </summary>
+    [Parameter] public string? ImageUploadUrl { get; set; }
+
+    /// <summary>
+    /// Images chosen, pasted or dropped with no <see cref="ImageUploadUrl"/> are embedded in the
+    /// value as <c>data:</c> URLs (PNG, JPEG, GIF, WebP or AVIF, never SVG). Off by default: it makes
+    /// the value as large as its images. Give <see cref="RichText"/> the same.
+    /// </summary>
+    [Parameter] public bool AllowDataImages { get; set; }
+
+    /// <summary>The largest image, in bytes, that can be uploaded or embedded. Defaults to 2 MB.</summary>
+    [Parameter] public long MaxImageSize { get; set; } = 2_000_000;
 
     /// <summary>
     /// The toolbar wraps onto more rows (the default), filling each; false keeps it one row, and what
@@ -261,7 +314,7 @@
     private bool HasStyle => Has(RichTextTools.TextStyle);
 
     private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough
-        | RichTextTools.Subscript | RichTextTools.Superscript | RichTextTools.InlineCode | RichTextTools.Link);
+        | RichTextTools.Subscript | RichTextTools.Superscript | RichTextTools.InlineCode | RichTextTools.Link | RichTextTools.Image);
 
     private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
 
@@ -386,6 +439,7 @@
         @Tool(RichTextTools.Superscript, "superscript", Lucide.Superscript, TextDefaults.RichTextSuperscript, "Shift+=", pressed: true)
         @Tool(RichTextTools.InlineCode, "code", Lucide.Code, TextDefaults.RichTextInlineCode, "E", pressed: true)
         @Tool(RichTextTools.Link, "link", Lucide.Link, TextDefaults.RichTextLink, "K", pressed: true)
+        @Tool(RichTextTools.Image, "image", Lucide.Image, TextDefaults.RichTextImage, null)
     </ToolbarButtonGroup>;
 
     private RenderFragment ColorGroup => @<text>
@@ -441,7 +495,7 @@
     </ToolbarButtonGroup>;
 
     private RenderFragment InsertGroup => @<text>
-        @Tool(RichTextTools.Quote, "quote", Lucide.TextQuote, TextDefaults.RichTextQuote, null, pressed: true)
+        @Tool(RichTextTools.Quote, "quote", Lucide.Quote, TextDefaults.RichTextQuote, null, pressed: true)
         @Tool(RichTextTools.CodeBlock, "codeblock", Lucide.SquareCode, TextDefaults.RichTextCodeBlock, null, pressed: true)
         @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
         @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
@@ -504,7 +558,7 @@
         var first = _seen is null;
         _seen = value;
         if (value == _reported) return;
-        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes);
+        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages);
         _reported = null;
         if (!first) _version++;
     }
@@ -527,7 +581,7 @@
     // Sanitized, and null when nothing's left to show, so [Required] sees an empty editor as empty.
     private string? Clean(string? value)
     {
-        var html = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes);
+        var html = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages);
         return IsBlank(html) ? null : html;
     }
 

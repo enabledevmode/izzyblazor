@@ -87,11 +87,19 @@
     box-shadow: inset 0 0 0 1px currentColor;
   }
 
+  /* A size's pixels sit in a column at the item's end, as shortcuts do, on the name's baseline. */
+  .ib-menu-label:has(> .ib-rich-text-menu-hint) {
+    display: flex;
+    flex: 1;
+    align-items: baseline;
+    gap: var(--ib-space-6);
+  }
+
   .ib-rich-text-menu-hint {
     margin-inline-start: auto;
-    padding-inline-start: var(--ib-space-4);
     color: var(--ib-color-subtle);
     font-size: var(--ib-text-xs);
+    font-variant-numeric: tabular-nums;
   }
 
   @media (forced-colors: active) {
@@ -145,6 +153,30 @@
   /* Fields and buttons set their own display, so hidden ones need saying here. */
   .ib-rich-text-link [hidden] {
     display: none;
+  }
+
+  .ib-rich-text-image-source {
+    display: flex;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-rich-text-image-upload {
+    flex: none;
+    cursor: pointer;
+  }
+
+  .ib-rich-text-image-upload:focus-within {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  /* An image the caret is on is selected as a whole; a description it lacks shows. */
+  .ib-rich-text-surface img::selection {
+    background: transparent;
+  }
+
+  .ib-rich-text-surface img[data-ib-selected] {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-rich-text-link-tab {

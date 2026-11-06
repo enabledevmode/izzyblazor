@@ -79,11 +79,14 @@ public enum RichTextTools
     /// <summary>A code block, in a monospaced font, its spaces and lines kept.</summary>
     CodeBlock = 1 << 21,
 
+    /// <summary>An image, by its address or uploaded (the editor's <c>ImageUploadUrl</c>), with its description.</summary>
+    Image = 1 << 22,
+
     /// <summary>Bold, italic, links and the two lists: for short notes and comments.</summary>
     Basic = Bold | Italic | Link | BulletedList | NumberedList,
 
     /// <summary>Every tool (the default).</summary>
-    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | BulletedList | NumberedList
+    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | Image | BulletedList | NumberedList
         | Indent | Quote | CodeBlock | HorizontalRule | ClearFormatting | UndoRedo,
 
     /// <summary>

@@ -824,6 +824,17 @@
           "examples": []
         },
         {
+          "id": "images", "title": "Images", "summary": "Add images by address, upload, paste or drop, each with a description.", "members": ["ImageUploadUrl", "AllowDataImages", "MaxImageSize"],
+          "intro": [
+            "The image tool opens a dialog for the image's address and its description, the alternative text screen readers read in its place. An image that only decorates can be marked decorative instead, and gets an empty description. The dialog opens on its own after an image is pasted or dropped, so every image gets one. Clicking an image selects it, and the tool then changes or removes it.",
+            "To let people upload images, map an endpoint in your app and set `ImageUploadUrl` to it. The editor posts each chosen, pasted or dropped image there as multipart form data, in a field named `file`, with the form's antiforgery token. The endpoint stores it and answers with its URL, as text or as JSON `{ \"url\": \"...\" }`; the editor puts that URL in the value. Check the file's type and size on the server too.",
+            "With no endpoint, `AllowDataImages` embeds images in the value as `data:` URLs instead, which needs no storage but makes the value as large as its images. `MaxImageSize` limits both (2 MB by default). PNG, JPEG, GIF, WebP and AVIF are taken; SVG never is, since it can carry script."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-images", "title": "Adding an image", "lead": "Choose the image tool, then Upload, or paste or drop an image into the text. Here images are embedded with `AllowDataImages`, so nothing is stored." }
+          ]
+        },
+        {
           "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],
           "intro": [
             "The editor's value is sanitized on the server every time it binds, from a post or on an interactive page, by `RichTextSanitizer`. What arrives can be anything, since anyone can post to a form, so the script in the browser only keeps the text tidy and is never trusted. The sanitizer writes a new document from what it allows: paragraphs, headings 2 to 4, lists, quotes, code, rules, bold, italic, underline, strikethrough, links, images and tables, with `href` and `src` limited to web, mail, phone and relative addresses. Scripts, event handlers, styles, classes and `javascript:` links never get through.",

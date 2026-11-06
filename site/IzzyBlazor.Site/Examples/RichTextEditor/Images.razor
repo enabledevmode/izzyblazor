@@ -1,0 +1,6 @@
+@* A product page's description: add a photo with the image tool's Upload, or paste or drop one. *@
+<RichTextEditor Grow @bind-Value="_description" Label="Product description" Rows="8" AllowDataImages MaxImageSize="1_000_000" />
+
+@code {
+    private string? _description = "<h2>Copper kettle</h2><p>Hand-hammered copper with a brass handle. Add a photo above or below this line.</p>";
+}

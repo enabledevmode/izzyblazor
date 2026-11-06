@@ -325,6 +325,10 @@ const builds = [
       "elements/parts/rich-text-format": join(lib, "Scripts", "elements", "rich-text-format.ts"),
       // Its link dialog, loaded when the dialog first opens.
       "elements/parts/rich-text-link": join(lib, "Scripts", "elements", "rich-text-link.ts"),
+      // Its images: the image dialog, uploads, pasted and dropped files.
+      "elements/parts/rich-text-image": join(lib, "Scripts", "elements", "rich-text-image.ts"),
+      // Its Markdown shortcuts, for editors that have them on.
+      "elements/parts/rich-text-markdown": join(lib, "Scripts", "elements", "rich-text-markdown.ts"),
     },
     outdir: join(lib, "wwwroot"),
     format: "esm",
