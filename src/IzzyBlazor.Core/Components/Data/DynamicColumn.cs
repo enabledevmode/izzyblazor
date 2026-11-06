@@ -9,9 +9,11 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// A column read by name from rows whose shape is known only at run time: dictionaries,
-/// <c>ExpandoObject</c> (so <c>IEnumerable&lt;dynamic&gt;</c>) and <c>DataRow</c>. Its
+/// <c>ExpandoObject</c> (so <c>IEnumerable&lt;dynamic&gt;</c>), <c>DataRow</c> and <c>DataRowView</c>. Its
 /// <see cref="Type"/> picks the filter, alignment and format, as a <see cref="PropertyColumn{TItem, TValue}"/>'s
-/// property type does. Read-only: it isn't edited in a DataGrid.
+/// property type does. The title is the field name in words, and the sort key its letters and digits
+/// in lower case, with an underscore for each run of anything else (<c>Q1 2026</c> is <c>q1_2026</c>); set <see cref="ColumnBase{TItem}.Title"/>
+/// or <see cref="ColumnBase{TItem}.SortKey"/> to change them. Read-only: it isn't edited in a DataGrid.
 /// </summary>
 /// <example><code>@foreach (var (name, type) in columns)
 /// {
@@ -46,6 +48,9 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
     internal override string? ValueFormat => Format;
 
     /// <inheritdoc />
+    private protected override object? ReadShape => (Key, Field, Type);
+
+    /// <inheritdoc />
     internal override Type? ValueType => _valueType;
 
     /// <inheritdoc />
@@ -62,9 +67,22 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
     {
         get
         {
-            // A key goes in the address and in filter text, so only letters, digits and underscores.
-            var key = new string((Field ?? "").Where(c => char.IsLetterOrDigit(c) || c == '_').Select(char.ToLowerInvariant).ToArray());
-            return key.Length == 0 ? null : key;
+            // A key goes in the address and in filter text, so letters and digits, with an underscore
+            // for each run of anything else: "Margin" and "Margin %" stay apart, and "#" has a key.
+            var key = new System.Text.StringBuilder();
+            foreach (var c in Field ?? "")
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    key.Append(char.ToLowerInvariant(c));
+                }
+                else if (key.Length == 0 || key[^1] != '_')
+                {
+                    key.Append('_');
+                }
+            }
+
+            return key.Length == 0 ? null : key.ToString();
         }
     }
 
@@ -79,11 +97,11 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
 
     /// <inheritdoc />
     protected override string? FilterProblem => FilterKind == ColumnFilterKind.None
-        ? $"The \"{HeaderText}\" column can't filter {Type.Name} values: Filterable works with text, numbers, dates, enums and booleans."
+        ? $"The \"{HeaderText}\" column can't filter {Type.Name} values: Filterable works with text, numbers, dates, enums and booleans. Set {nameof(Type)} to one of those, or leave out {nameof(Filterable)}."
         : null;
 
     /// <inheritdoc />
-    protected override string? EditProblem => $"The \"{HeaderText}\" column can't be edited: a {nameof(DynamicColumn<TItem>)} is read-only.";
+    protected override string? EditProblem => $"The \"{HeaderText}\" column can't be edited: a {nameof(DynamicColumn<TItem>)} is read-only. Leave out {nameof(Editable)}, or use a {nameof(PropertyColumn<TItem, object>)} to edit a property.";
 
     /// <inheritdoc />
     internal override IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => ColumnFilter.Choices(_valueType, text);
@@ -165,7 +183,8 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
         typeof(IDictionary<string, object?>).IsAssignableFrom(type)
         || typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(type)
         || typeof(IDictionary).IsAssignableFrom(type)
-        || typeof(DataRow).IsAssignableFrom(type);
+        || typeof(DataRow).IsAssignableFrom(type)
+        || typeof(DataRowView).IsAssignableFrom(type);
 
     // The row's value by name, as the column's type, or null when it's missing or doesn't convert.
     private static object? Read(object? row, string field, Type type)
@@ -177,7 +196,8 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
             IReadOnlyDictionary<string, object?> d => d.TryGetValue(field, out var v) ? v : null,
             IDictionary d => d.Contains(field) ? d[field] : null,
             DataRow r => r.Table.Columns.Contains(field) ? r[field] : null,
-            _ => throw new InvalidOperationException($"{nameof(DynamicColumn<TItem>)} reads dictionaries, ExpandoObject and DataRow, not {row.GetType().Name}."),
+            DataRowView v => v.Row.Table.Columns.Contains(field) ? v.Row[field] : null,
+            _ => throw new InvalidOperationException($"The \"{field}\" column reads dictionaries, ExpandoObject and DataRow, not {row.GetType().Name}: use a {nameof(PropertyColumn<TItem, object>)} for a row with properties."),
         };
 
         if (value is null or DBNull)

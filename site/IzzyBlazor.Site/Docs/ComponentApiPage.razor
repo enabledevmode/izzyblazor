@@ -144,7 +144,7 @@
 
     private string PartsLine => _topic is null
         ? $"Components written inside {_component!.Name}, documented here with it."
-        : $"Components written inside {_component!.Name}, and the columns' members, which PropertyColumn and TemplateColumn share.";
+        : $"Components written inside {_component!.Name}, and the columns' members, which PropertyColumn, TemplateColumn and DynamicColumn share.";
 
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
 
@@ -222,9 +222,12 @@
         _events = _events.Where(m => own.Contains(m.Name)).ToList();
         _methods = _methods.Where(m => own.Contains(m.Name)).ToList();
 
-        // Whole parts, a part's members, and the columns' (on PropertyColumn, which TemplateColumn shares).
+        // Whole parts, a part's members, and the columns' (on PropertyColumn, which TemplateColumn and
+        // DynamicColumn share). A component named whole that isn't a part, such as Table's DynamicColumn
+        // on DataGrid's Columns topic, comes in too.
         var column = Api.Component("PropertyColumn");
-        var owners = column is null ? parts : [.. parts, column];
+        var named = topic.Members.Where(m => !m.Contains('.') && !_component!.Parts.Contains(m)).Select(Api.Component).OfType<ApiComponent>();
+        var owners = (column is null ? parts : [.. parts, column]).Concat(named).Distinct().ToList();
         _parts = owners
             .Select(p =>
             {

@@ -435,7 +435,7 @@
             @Footer(PagesLabel)
     };
 
-    /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/> and <see cref="TemplateColumn{TItem}"/>.</summary>
+    /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/>, <see cref="TemplateColumn{TItem}"/> and <see cref="DynamicColumn{TItem}"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending). A DataGrid takes several: <c>"status,-date"</c>.</summary>
@@ -631,6 +631,22 @@
 
                 taken[key] = column;
             }
+        }
+    }
+
+    // A sort or an aggregate finds its column by key, so two sharing one would quietly use the first.
+    private void CheckSortKeys()
+    {
+        var taken = new Dictionary<string, ColumnBase<TItem>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var column in _columns.Where(c => c.Key is not null && (c.CanSort || c.HasAggregate)))
+        {
+            if (taken.TryGetValue(column.Key!, out var other))
+            {
+                throw new InvalidOperationException(
+                    $"The \"{column.HeaderText}\" and \"{other.HeaderText}\" columns both have the key \"{column.Key}\". Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
+            }
+
+            taken[column.Key!] = column;
         }
     }
 
@@ -2034,6 +2050,31 @@
         }
     }
 
+    // A column now reads something else (a DynamicColumn's Field or Type): the rows, their order
+    // and the aggregates came from what it read before. Also when the table loaded in the same
+    // render, before the column had its new parameters.
+    internal void ColumnDataChanged()
+    {
+        ColumnsChanged();
+        if (!_columnsReady)
+        {
+            return;
+        }
+
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                await LoadAsync();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                await DispatchExceptionAsync(ex);
+            }
+        });
+    }
+
     internal void RemoveColumn(ColumnBase<TItem> column)
     {
         if (_columns.Remove(column))
@@ -2331,7 +2372,8 @@
     /// <inheritdoc />
     internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw)
     {
-        var raw = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
+        CheckSortKeys();
+        var raw =!string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
         string[] tokens = raw is null ? [] : MultiSort ? raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [raw];
         var sort = new List<SortField>();
         foreach (var token in tokens)

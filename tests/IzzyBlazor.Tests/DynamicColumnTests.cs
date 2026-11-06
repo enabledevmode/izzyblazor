@@ -43,6 +43,61 @@ public class DynamicColumnTests : BunitContext
         Assert.Equal(["Nuts 30", "Washers 4", "Rivets "], cells);
     }
 
+    // A CSV with both columns: the keys stay apart, so each header sorts by its own.
+    [Fact]
+    public void Margin_and_margin_percent_sort_by_their_own_values()
+    {
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("http://localhost/?sort=margin_");
+        IDictionary<string, object?> Row(string name, int margin, double percent) =>
+            new Dictionary<string, object?> { ["Name"] = name, ["Margin"] = margin, ["Margin %"] = percent };
+        var cut = Render<DataGrid<IDictionary<string, object?>>>(p => p
+            .Add(x => x.Items, [Row("Bolts", 900, 30.5), Row("Nuts", 200, 45.0), Row("Washers", 500, 12.0)])
+            .Add(x => x.ChildContent, (RenderFragment)(b =>
+            {
+                Column<IDictionary<string, object?>>(b, "Name", typeof(string));
+                Column<IDictionary<string, object?>>(b, "Margin", typeof(int));
+                Column<IDictionary<string, object?>>(b, "Margin %", typeof(double));
+            })));
+
+        Assert.Equal(["Washers", "Bolts", "Nuts"], cut.FindAll("tbody tr").Select(r => r.Children[0].TextContent.Trim()));
+    }
+
+    // A "show quarter" picker changes the column's Field: the rows and the total come from the new one.
+    [Fact]
+    public void Changing_the_field_reloads_the_rows_and_totals()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        IDictionary<string, object?> Row(string region, decimal q1, decimal q2) =>
+            new Dictionary<string, object?> { ["Region"] = region, ["Q1"] = q1, ["Q2"] = q2 };
+        IDictionary<string, object?>[] rows = [Row("North", 10, 5), Row("South", 2, 40)];
+        RenderFragment Quarter(string field) => b =>
+        {
+            Column<IDictionary<string, object?>>(b, "Region", typeof(string));
+            b.OpenComponent<DynamicColumn<IDictionary<string, object?>>>(10);
+            b.AddComponentParameter(11, "Field", field);
+            b.AddComponentParameter(12, "Type", typeof(decimal));
+            b.AddComponentParameter(13, "Title", "Revenue");
+            b.AddComponentParameter(14, "SortKey", "revenue");
+            b.AddComponentParameter(15, "Sortable", true);
+            b.AddComponentParameter(16, "Aggregate", DataAggregate.Sum);
+            b.CloseComponent();
+        };
+        var cut = Render<DataGrid<IDictionary<string, object?>>>(p => p
+            .Add(x => x.Items, rows)
+            .Add(x => x.InitialSort, "-revenue")
+            .Add(x => x.ChildContent, Quarter("Q1")));
+        Assert.Equal("North", cut.Find("tbody tr").Children[0].TextContent.Trim());
+        Assert.Contains("12", cut.Find("tfoot").TextContent);
+
+        cut.Render(p => p.Add(x => x.ChildContent, Quarter("Q2")));
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("South", cut.Find("tbody tr").Children[0].TextContent.Trim());
+            Assert.Contains("45", cut.Find("tfoot").TextContent);
+        });
+    }
+
     private static DataTable Table()
     {
         var table = new DataTable();

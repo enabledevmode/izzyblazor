@@ -74,7 +74,10 @@
         <TextBlock>
             A <Code>PropertyColumn</Code>'s key is its property path in lower case (<Code>customer.name</Code>), unless it
             has a <Code>SortKey</Code>. A <Code>TemplateColumn</Code>'s key is its <Code>SortKey</Code>. It filters and
-            searches by its <Code>FilterBy</Code> and sorts by its <Code>SortBy</Code>.
+            searches by its <Code>FilterBy</Code> and sorts by its <Code>SortBy</Code>. A <Code>DynamicColumn</Code>'s key is
+            its <Code>Field</Code>'s letters and digits in lower case, with an underscore for each run of anything else
+            (<Code>Q1 2026</Code> is <Code>q1_2026</Code>),
+            unless it has a <Code>SortKey</Code>.
         </TextBlock>
         <TextBlock>
             Where there are no columns, such as on a server, read the fields from a type with
