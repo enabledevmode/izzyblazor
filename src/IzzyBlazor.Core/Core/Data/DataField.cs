@@ -213,14 +213,21 @@ public static class DataFields
             : null;
     }
 
-    // "OrderDate" -> "Order date", "CustomerID" -> "Customer ID"; "Employee ID" stays as it is.
+    // "OrderDate" -> "Order date", "CustomerID" -> "Customer ID", "order_date" -> "Order date";
+    // "Employee ID" stays as it is.
     internal static string Words(string name)
     {
         var chars = new System.Text.StringBuilder(name.Length + 4);
         for (var i = 0; i < name.Length; i++)
         {
-            var c = name[i];
-            if (i > 0 && char.IsUpper(c) && !char.IsUpper(name[i - 1]) && !char.IsWhiteSpace(name[i - 1]))
+            var c = name[i] == '_' && i > 0 && i < name.Length - 1 ? ' ' : name[i];
+            if (i == 0)
+            {
+                chars.Append(char.ToUpperInvariant(c));
+                continue;
+            }
+
+            if (char.IsUpper(c) && !char.IsUpper(name[i - 1]) && !char.IsWhiteSpace(name[i - 1]) && name[i - 1] != '_')
             {
                 // An acronym keeps its capitals.
                 var acronym = i + 1 < name.Length && char.IsUpper(name[i + 1]);

@@ -193,7 +193,7 @@ public sealed record RegistryTopic
     /// <summary>
     /// The API it's about, for its own API page: the component's members (<c>SmallScreen</c>), a part
     /// whole (<c>DataGridExport</c>) or one of its members (<c>ActionColumn.Overflow</c>), and a column's
-    /// (<c>Column.Priority</c>, on PropertyColumn and TemplateColumn). The types they use come with them.
+    /// (<c>Column.Priority</c>, on PropertyColumn, TemplateColumn and DynamicColumn). The types they use come with them.
     /// </summary>
     public List<string> Members { get; init; } = [];
 }

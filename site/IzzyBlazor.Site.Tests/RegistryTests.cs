@@ -51,7 +51,7 @@ public class RegistryTests
                     var dot = name.IndexOf('.');
                     var owner = dot < 0 ? api : name[..dot] == "Column" ? column : Api.Component(name[..dot]);
                     var member = dot < 0 ? name : name[(dot + 1)..];
-                    var found = (dot < 0 && (component.Parts.Contains(name) || Api.Type(name) is not null))
+                    var found = (dot < 0 && (component.Parts.Contains(name) || Api.Type(name) is not null || Api.Component(name) is not null))
                         || (owner is not null && owner.Properties.Concat(owner.Events).Concat(owner.Methods).Any(m => m.Name == member));
                     if (!found)
                     {

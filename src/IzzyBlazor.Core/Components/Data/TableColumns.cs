@@ -555,6 +555,10 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     protected override bool ShouldRender() => false;
 
     private object? _shown;
+    private object? _read;
+
+    /// <summary>What the column reads from a row, beyond its key: a change reloads the rows.</summary>
+    private protected virtual object? ReadShape => Key;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
     protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (Aggregate, GroupAggregate, GroupFooterAggregate, AggregateBy is not null, AggregateFormat, AggregateLabel, Groupable, GroupFormat, GroupBy is not null));
@@ -564,12 +568,17 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     {
         await base.SetParametersAsync(parameters);
         var shown = Shown;
-        if (_shown is not null && !Equals(_shown, shown))
+        var read = ReadShape;
+        if (_read is not null && !Equals(_read, read))
+        {
+            Table?.ColumnDataChanged();
+        }
+        else if (_shown is not null && !Equals(_shown, shown))
         {
             Table?.ColumnChanged();
         }
 
-        _shown = shown;
+        (_shown, _read) = (shown, read);
     }
 
     /// <inheritdoc />

@@ -33,6 +33,9 @@
 <TextBlock>Two tables on one page would share the same <Code>?sort=</Code> and <Code>?page=</Code> keys. To give each table its own keys in the URL, set <Code>QueryPrefix</Code>. Each table then sorts and pages on its own.</TextBlock>
 <Code Block Language="razor">@Prefix</Code>
 
+<Heading Level="2">Columns at run time</Heading>
+<TextBlock>When the columns are known only at run time, such as rows from a query or a CSV file, add a <Code>DynamicColumn</Code> for each one in a loop. <Code>Field</Code> names the value to read and <Code>Type</Code> its type. <Anchor Href="docs/components/data-grid/columns#columns-at-run-time">DataGrid</Anchor> has an example.</TextBlock>
+
 <Heading Level="2">Look, scrolling and empty text</Heading>
 <TextBlock>A table's look comes from its size, its lines and its header. Set <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code>, <Code>ShadedHeader</Code> and <Code>Bordered</Code> to change it. Turn <Code>Bordered</Code> off for a table in a card.</TextBlock>
 <TextBlock>To scroll the rows under a sticky header, set <Code>MaxHeight</Code>. To show your own text when there are no rows, set <Code>EmptyText</Code>.</TextBlock>
