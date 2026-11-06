@@ -14,6 +14,24 @@
     border-block-end: 1px solid var(--ib-color-border);
   }
 
+  /* The list scrolls, not the panel: the title, the search and the footer stay put when the
+     window is too short for every row. */
+  .ib-col-picker-pop:popover-open {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .ib-col-picker-pop > .ib-popover-header {
+    flex: none;
+  }
+
+  .ib-col-picker-pop > .ib-col-picker-panel,
+  .ib-col-picker-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .ib-col-picker-panel {
     display: flex;
     flex-direction: column;
