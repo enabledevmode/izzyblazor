@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tabs-edit.css"),
   },
   {
+    // A sheet of its own, linked by a DataGrid's column picker.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "column-picker.css")],
+    outfile: join(lib, "wwwroot", "column-picker.css"),
+  },
+  {
     // A sheet of its own, linked by a Table or DataGrid with column bands.
     ...common,
     sourcemap: false,

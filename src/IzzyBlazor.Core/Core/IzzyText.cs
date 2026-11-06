@@ -134,6 +134,39 @@ public class IzzyText
     /// <summary>A DataGrid's column picker button.</summary>
     public virtual string ColumnPicker { get; set; } = "Columns";
 
+    /// <summary>A DataGrid column picker's title.</summary>
+    public virtual string ColumnPickerTitle { get; set; } = "Choose columns";
+
+    /// <summary>A DataGrid column picker's box that shows every column, or hides all but one.</summary>
+    public virtual string ColumnsShowAll { get; set; } = "Show all columns";
+
+    /// <summary>A DataGrid column picker's box that narrows the list by title.</summary>
+    public virtual string ColumnsSearch { get; set; } = "Search columns";
+
+    /// <summary>A DataGrid column picker's count of hidden columns: "3 of 8 hidden". {0} is how many, {1} of how many.</summary>
+    public virtual string ColumnsHidden { get; set; } = "{0} of {1} hidden";
+
+    /// <summary>A DataGrid column picker's button that opens or closes every band's list.</summary>
+    public virtual string ColumnsExpandAll { get; set; } = "Expand all bands";
+
+    /// <summary>A DataGrid column picker's handle, which drags a column or opens its moves: "Move Customer". {0} is its name.</summary>
+    public virtual string ColumnMoveMenu { get; set; } = "Move {0}";
+
+    /// <summary>A DataGrid column picker's move: one place up the list (left in the grid).</summary>
+    public virtual string ColumnMoveUp { get; set; } = "Move up";
+
+    /// <summary>A DataGrid column picker's move: one place down the list (right in the grid).</summary>
+    public virtual string ColumnMoveDown { get; set; } = "Move down";
+
+    /// <summary>A DataGrid column picker's move: to the top of its list.</summary>
+    public virtual string ColumnMoveFirst { get; set; } = "Move to top";
+
+    /// <summary>A DataGrid column picker's move: to the bottom of its list.</summary>
+    public virtual string ColumnMoveLast { get; set; } = "Move to bottom";
+
+    /// <summary>A DataGrid column picker's note on a frozen column, for screen readers.</summary>
+    public virtual string ColumnFrozenNote { get; set; } = "frozen";
+
     /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
     public virtual string ColumnsReset { get; set; } = "Reset columns";
 

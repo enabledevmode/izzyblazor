@@ -2226,8 +2226,11 @@
 
     RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
     {
+        var pickable = InOrder(Columns.Where(c => c.Pickable).ToList());
+        var hidden = pickable.Count(c => !Shown.Contains(c));
         <div class="ib-toolbar-item ib-col-picker">
-            <Popover data-ib-user-controlled>
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/column-picker.css"]" />
+            <Popover Title="@TextDefaults.ColumnPickerTitle" ShowCloseButton="true" Class="ib-col-picker-pop" data-ib-user-controlled>
                 <Trigger>
                     @if (showText)
                     {
@@ -2239,54 +2242,122 @@
                     }
                 </Trigger>
                 <ChildContent>
-                    <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
-                    @PickerItems(HasBands ? BandNodes : Columns)
-                    </ul>
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                    <ib-col-picker class="ib-col-picker-panel">
+                        <div class="ib-col-picker-top">
+                            @if (HasBands)
+                            {
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-label="@TextDefaults.ColumnsExpandAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
+                            }
+                            <input type="checkbox" class="ib-check-input" aria-label="@TextDefaults.ColumnsShowAll" checked="@(hidden == 0)" data-ib-mixed="@(hidden > 0 && hidden < pickable.Count ? "" : null)" data-ib-picker-all />
+                            <div class="ib-field ib-field-sm">
+                                <div class="ib-field-control">
+                                    <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" data-ib-picker-search />
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
+                            @PickerRows(pickable, 0)
+                        </ul>
+                        @* Only with something to say: what's hidden, or a layout to go back from. *@
+                        @if (hidden > 0 || CurrentLayout is not null)
+                        {
+                            <div class="ib-col-picker-foot">
+                                <span>@(hidden > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnsHidden, hidden, pickable.Count) : null)</span>
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                            </div>
+                        }
+                    </ib-col-picker>
                 </ChildContent>
             </Popover>
         </div>
     };
 
-    // The picker's columns, each band's under its name.
-    private RenderFragment PickerItems(IEnumerable<object> nodes) => __builder =>
+    // The picker's rows from here down: each band's columns in a list of their own under its row.
+    private RenderFragment PickerRows(List<ColumnBase<TItem>> columns, int depth) => __builder =>
     {
-        foreach (var node in nodes)
+        for (var i = 0; i < columns.Count;)
         {
-            if (node is ColumnBand band)
+            var chain = columns[i].Band?.Chain ?? [];
+            if (chain.Count > depth)
             {
-                if (!Columns.Any(c => c.Pickable && c.Band?.Chain.Contains(band) == true))
-                {
-                    continue;
-                }
-
-                <li class="ib-col-picker-band">
-                    <span aria-hidden="true">@band.Title</span>
-                    <ul aria-label="@BandFullName(band)">@PickerItems(band.Nodes)</ul>
+                var band = chain[depth];
+                var run = columns.Skip(i).TakeWhile(c => c.Band?.Chain is { } other && other.Count > depth && other[depth] == band).ToList();
+                i += run.Count;
+                var shown = run.Count(Shown.Contains);
+                var id = BandId(band);
+                var list = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-b{id}";
+                <li class="ib-col-picker-band" data-ib-picker-item="band:@id">
+                    <div class="ib-col-picker-row">
+                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-controls="@list" aria-label="@BandFullName(band)" data-ib-picker-toggle><Icon Name="Lucide.ChevronDown" /></button>
+                        <input type="checkbox" class="ib-check-input" id="@($"{list}-c")" checked="@(shown == run.Count)" data-ib-mixed="@(shown > 0 && shown < run.Count ? "" : null)"
+                               data-ib-picker-keys="@System.Text.Json.JsonSerializer.Serialize(run.Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray)" />
+                        @PickerHandle(shown > 0 && BandMoves(band), band, null, BandFullName(band))
+                        <label for="@($"{list}-c")">@band.Title</label>
+                    </div>
+                    <ul id="@list" aria-label="@BandFullName(band)">@PickerRows(run, depth + 1)</ul>
                 </li>
             }
-            else if (node is ColumnBase<TItem> { Pickable: true } column && Columns.Contains(column))
+            else
             {
+                var column = columns[i++];
                 var key = KeyOf(column);
                 var shown = Shown.Contains(column);
-                var zoneOf = SiblingBlocks(column.Band, FrozenOf(column));
-                <li>
-                    <label>
-                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" aria-label="@(column.Band is null ? null : column.FullName)" />
-                        @column.HeaderText
-                    </label>
-                    @if (ReorderableColumns)
-                    {
-                        @* Always drawn, so the row keeps its width when a column is hidden. *@
-                        var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
-                        <span class="ib-col-picker-move">
-                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.FullName}")"><Icon Name="Lucide.ArrowUp" /></button>
-                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.FullName}")"><Icon Name="Lucide.ArrowDown" /></button>
-                        </span>
-                    }
+                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{Columns.ToList().IndexOf(column)}";
+                <li data-ib-picker-item="@key">
+                    <div class="ib-col-picker-row">
+                        @if (HasBands)
+                        {
+                            <span class="ib-col-picker-gap"></span>
+                        }
+                        <input type="checkbox" class="ib-check-input" id="@box" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                        @PickerHandle(shown && CanMove(column), null, column, column.FullName)
+                        <label for="@box">
+                            @column.HeaderText
+                            @if (shown && FrozenOf(column) != ColumnFrozen.None)
+                            {
+                                <Icon Name="Lucide.Pin" Class="ib-col-picker-pin" /><span class="ib-visually-hidden">, @TextDefaults.ColumnFrozenNote</span>
+                            }
+                        </label>
+                    </div>
                 </li>
             }
         }
+    };
+
+    private string? _pickerId;
+
+    // A row's handle: dragged, or pressed for its moves (one pointer, and the keys). Rows that can't
+    // move keep its room.
+    private RenderFragment PickerHandle(bool moves, ColumnBand? band, ColumnBase<TItem>? column, string name) => __builder =>
+    {
+        if (!ReorderableColumns)
+        {
+            return;
+        }
+
+        if (!moves)
+        {
+            <span class="ib-col-picker-gap"></span>
+            return;
+        }
+
+        var zone = band is not null ? SiblingBlocks(band.Parent, FrozenOf(Columns.First(c => c.Band?.Chain.Contains(band) == true && Shown.Contains(c)))) : SiblingBlocks(column!.Band, FrozenOf(column));
+        object self = (object?)band ?? column!;
+        var attributes = band is not null ? new Dictionary<string, object> { ["data-ib-band"] = BandId(band) } : new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column!) };
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnMoveMenu, name);
+        <Menu Class="ib-col-menu" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-handle" aria-label="@label" title="@label" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown" data-ib-picker-handle @attributes="context">
+                    <Icon Name="Lucide.GripVertical" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                <MenuItem Icon="Lucide.ArrowUp" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="left" @attributes="attributes">@TextDefaults.ColumnMoveUp</MenuItem>
+                <MenuItem Icon="Lucide.ArrowDown" Disabled="zone.LastOrDefault() == self" data-ib-col-action="right" @attributes="attributes">@TextDefaults.ColumnMoveDown</MenuItem>
+                <MenuItem Disabled="zone.FirstOrDefault() == self" data-ib-col-action="first" @attributes="attributes">@TextDefaults.ColumnMoveFirst</MenuItem>
+                <MenuItem Disabled="zone.LastOrDefault() == self" data-ib-col-action="last" @attributes="attributes">@TextDefaults.ColumnMoveLast</MenuItem>
+            </ChildContent>
+        </Menu>
     };
 
     RenderFragment IDataGridToolbar.ExportBar(bool showText) => __builder =>
@@ -2491,11 +2562,18 @@
 
     private List<ColumnBase<TItem>> Arrange()
     {
-        var layout = CurrentLayout;
         // One the page says can't be hidden isn't, whatever a stored layout says.
         // Visible says how it starts. What someone chose goes first, on a column they can choose.
         var visible = Columns.Where(c => !GroupedColumnLeaves(c) && !HiddenByLayout(c)).ToList();
-        var placed = (visible.Count > 0 ? visible : Columns)
+        return InOrder(visible.Count > 0 ? visible : Columns);
+    }
+
+    // Columns in the grid's order: frozen at start, the rest, frozen at end, each by its saved place
+    // or its declared one, a band's columns together. The picker lists hidden ones the same way.
+    private List<ColumnBase<TItem>> InOrder(IReadOnlyList<ColumnBase<TItem>> columns)
+    {
+        var layout = CurrentLayout;
+        var placed = columns
             .Select((column, index) => (column, index, place: layout?.Column(KeyOf(column))?.Position ?? index))
             .ToList();
         if (!HasBands)
