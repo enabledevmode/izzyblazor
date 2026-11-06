@@ -30,8 +30,10 @@
     gap: var(--ib-space-2);
   }
 
+  /* Its edge lines up with the handles' dots below, which sit inside their buttons. */
   .ib-col-picker-top > .ib-field {
     flex: 1;
+    margin-inline-start: var(--ib-space-2);
   }
 
   .ib-col-picker-list,
