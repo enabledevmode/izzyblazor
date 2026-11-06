@@ -44,12 +44,22 @@ public class RichText : Prose
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        var html = RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, AllowDataImages);
+        // The editor's content classes (alignment, color, size) have a sheet of their own.
+        if (html.Contains("class=\"ib-", StringComparison.Ordinal))
+        {
+            builder.OpenElement(5, "link");
+            builder.AddAttribute(6, "rel", "stylesheet");
+            builder.AddAttribute(7, "href", Assets["_content/IzzyBlazor.Core/rich-content.css"]);
+            builder.CloseElement();
+        }
+
         var (cssClass, style) = BuildRootAttributes();
         builder.OpenElement(0, ValidateTag(As));
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "class", cssClass);
         builder.AddAttribute(3, "style", style);
-        builder.AddContent(4, new MarkupString(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, AllowDataImages)));
+        builder.AddContent(4, new MarkupString(html));
         builder.CloseElement();
     }
 }

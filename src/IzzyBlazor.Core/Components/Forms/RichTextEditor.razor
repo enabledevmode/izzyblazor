@@ -37,6 +37,8 @@
     In the text
     - Ctrl+B, Ctrl+I, Ctrl+U | Bold, italic, underline
     - Ctrl+Shift+X | Strikethrough
+    - Ctrl+=, Ctrl+Shift+= | Subscript, superscript
+    - Ctrl+Shift+L, Ctrl+Shift+E, Ctrl+Shift+R | Align start, center, end
     - Ctrl+E | Inline code
     - Ctrl+K | Add or change a link
     - Ctrl+Shift+8, Ctrl+Shift+7 | Bulleted list, numbered list
@@ -55,71 +57,23 @@
 *@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-text.css"]" />
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-content.css"]" />
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top">
+    <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)">
         @if (ShowsToolbar)
         {
             <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap Class="ib-rich-text-toolbar">
-                @if (HasStyle)
+                @* Groups with a line between each; only those with tools show. *@
+                @{ var first = true; }
+                @foreach (var group in Groups())
                 {
-                    @* The button shows the style where the caret is; the script keeps it and the
-                       checked item current as the caret moves. *@
-                    <ToolbarMenu Label="@TextDefaults.RichTextStyle">
-                        <Trigger>
-                            <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
-                                    EndIcon="Lucide.ChevronDown" class="ib-rich-text-style" data-ib-style-button
-                                    aria-label="@StyleLabel(TextDefaults.RichTextParagraph)"><span class="ib-rich-text-style-name">@TextDefaults.RichTextParagraph</span></Button>
-                        </Trigger>
-                        <ChildContent>
-                            <MenuRadioGroup Label="@TextDefaults.RichTextStyle" Value="p">
-                                @StyleItem("p", TextDefaults.RichTextParagraph, "0")
-                                @for (var level = Top; level <= Math.Min(Top + 4, 6); level++)
-                                {
-                                    @StyleItem($"h{level}", string.Format(TextDefaults.RichTextHeading, level), level.ToString(System.Globalization.CultureInfo.InvariantCulture))
-                                }
-                                @StyleItem("blockquote", TextDefaults.RichTextQuote, null)
-                                @StyleItem("pre", TextDefaults.RichTextCodeBlock, null)
-                            </MenuRadioGroup>
-                        </ChildContent>
-                    </ToolbarMenu>
-                }
-                @if (HasFormats)
-                {
-                    @if (HasStyle)
+                    @if (!first)
                     {
                         <ToolbarSeparator />
                     }
-                    <ToolbarButtonGroup Label="@TextDefaults.RichTextFormats">
-                        @Tool(RichTextTools.Bold, "bold", Lucide.Bold, TextDefaults.RichTextBold, "B", pressed: true)
-                        @Tool(RichTextTools.Italic, "italic", Lucide.Italic, TextDefaults.RichTextItalic, "I", pressed: true)
-                        @Tool(RichTextTools.Underline, "underline", Lucide.Underline, TextDefaults.RichTextUnderline, "U", pressed: true)
-                        @Tool(RichTextTools.Strikethrough, "strikethrough", Lucide.Strikethrough, TextDefaults.RichTextStrikethrough, "Shift+X", pressed: true)
-                        @Tool(RichTextTools.InlineCode, "code", Lucide.Code, TextDefaults.RichTextInlineCode, "E", pressed: true)
-                        @Tool(RichTextTools.Link, "link", Lucide.Link, TextDefaults.RichTextLink, "K", pressed: true)
-                    </ToolbarButtonGroup>
-                }
-                @if (HasLists)
-                {
-                    @if (HasStyle || HasFormats)
-                    {
-                        <ToolbarSeparator />
-                    }
-                    <ToolbarButtonGroup Label="@TextDefaults.RichTextLists">
-                        @Tool(RichTextTools.BulletedList, "bulleted", Lucide.List, TextDefaults.RichTextBulletedList, "Shift+8", pressed: true)
-                        @Tool(RichTextTools.NumberedList, "numbered", Lucide.ListOrdered, TextDefaults.RichTextNumberedList, "Shift+7", pressed: true)
-                        @Tool(RichTextTools.Indent, "outdent", Lucide.ListIndentDecrease, TextDefaults.RichTextOutdent, "[")
-                        @Tool(RichTextTools.Indent, "indent", Lucide.ListIndentIncrease, TextDefaults.RichTextIndent, "]")
-                    </ToolbarButtonGroup>
-                }
-                @if (HasInserts)
-                {
-                    @if (HasStyle || HasFormats || HasLists)
-                    {
-                        <ToolbarSeparator />
-                    }
-                    @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
-                    @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
+                    first = false;
+                    @group
                 }
                 @ToolbarContent
                 @if (Has(RichTextTools.UndoRedo))
@@ -302,30 +256,192 @@
 
     private bool HasStyle => Has(RichTextTools.TextStyle);
 
-    private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough | RichTextTools.InlineCode | RichTextTools.Link);
+    private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough
+        | RichTextTools.Subscript | RichTextTools.Superscript | RichTextTools.InlineCode | RichTextTools.Link);
 
     private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
 
     private bool HasInserts => HasAny(RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
 
-    // "Text style, Heading 2": the button's name says what it is and what's chosen.
-    private string StyleLabel(string style) => $"{TextDefaults.RichTextStyle}, {style}";
+    // The palette for text color and highlight: names in the sanitizer's list, labels from IzzyText.
+    private static readonly string[] Palette = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
+
+    private string ColorName(string color) => color switch
+    {
+        "red" => TextDefaults.RichTextRed,
+        "orange" => TextDefaults.RichTextOrange,
+        "yellow" => TextDefaults.RichTextYellow,
+        "green" => TextDefaults.RichTextGreen,
+        "blue" => TextDefaults.RichTextBlue,
+        "purple" => TextDefaults.RichTextPurple,
+        _ => TextDefaults.RichTextGray,
+    };
+
+    // A font's label: the first family in its value, without quotes ("Georgia, serif" is Georgia).
+    private static string FontName(string font) => font.Split(',')[0].Trim().Trim('"', '\'');
+
+    // The toolbar's groups in order, each only when it has a tool.
+    private IEnumerable<RenderFragment> Groups()
+    {
+        if (HasAny(RichTextTools.TextStyle | RichTextTools.Font | RichTextTools.FontSize)) yield return TextGroup;
+        if (HasFormats) yield return FormatGroup;
+        if (HasAny(RichTextTools.TextColor | RichTextTools.Highlight)) yield return ColorGroup;
+        if (HasLists) yield return ListGroup;
+        if (Has(RichTextTools.Alignment)) yield return AlignGroup;
+        if (HasInserts) yield return InsertGroup;
+    }
+
+    private RenderFragment TextGroup => @<text>
+        @if (HasStyle)
+        {
+            @* The button shows the style where the caret is; the script keeps it and the checked
+               item current as the caret moves. *@
+            <ToolbarMenu Label="@TextDefaults.RichTextStyle">
+                <Trigger>
+                    <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                            EndIcon="Lucide.ChevronDown" class="ib-rich-text-style" data-ib-menu-button="block"
+                            aria-label="@MenuLabel(TextDefaults.RichTextStyle, TextDefaults.RichTextParagraph)"><span class="ib-rich-text-menu-name">@TextDefaults.RichTextParagraph</span></Button>
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@TextDefaults.RichTextStyle" Value="p">
+                        @StyleItem("p", TextDefaults.RichTextParagraph, "0")
+                        @for (var level = Top; level <= Math.Min(Top + 4, 6); level++)
+                        {
+                            @StyleItem($"h{level}", string.Format(TextDefaults.RichTextHeading, level), level.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                        }
+                        @StyleItem("blockquote", TextDefaults.RichTextQuote, null)
+                        @StyleItem("pre", TextDefaults.RichTextCodeBlock, null)
+                    </MenuRadioGroup>
+                </ChildContent>
+            </ToolbarMenu>
+        }
+        @if (Has(RichTextTools.Font) && Fonts is { Count: > 0 } fonts)
+        {
+            <ToolbarMenu Label="@TextDefaults.RichTextFont">
+                <Trigger>
+                    <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                            EndIcon="Lucide.ChevronDown" class="ib-rich-text-font" data-ib-menu-button="font"
+                            aria-label="@MenuLabel(TextDefaults.RichTextFont, TextDefaults.RichTextDefault)"><span class="ib-rich-text-menu-name">@TextDefaults.RichTextDefault</span></Button>
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@TextDefaults.RichTextFont" Value="">
+                        @ChoiceItem("font", "", TextDefaults.RichTextDefault, TextDefaults.RichTextFont)
+                        @foreach (var font in fonts)
+                        {
+                            <MenuItem Value="@font" data-ib-command="font" data-ib-value="@font" data-ib-label="@MenuLabel(TextDefaults.RichTextFont, FontName(font))"><span class="ib-rich-text-menu-text" style="font-family: @font">@FontName(font)</span></MenuItem>
+                        }
+                    </MenuRadioGroup>
+                </ChildContent>
+            </ToolbarMenu>
+        }
+        @if (Has(RichTextTools.FontSize))
+        {
+            <ToolbarMenu Label="@TextDefaults.RichTextSize">
+                <Trigger>
+                    <Button @attributes="context" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                            EndIcon="Lucide.ChevronDown" class="ib-rich-text-size" data-ib-menu-button="size"
+                            aria-label="@MenuLabel(TextDefaults.RichTextSize, TextDefaults.RichTextSizeNormal)"><span class="ib-rich-text-menu-name">@TextDefaults.RichTextSizeNormal</span></Button>
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@TextDefaults.RichTextSize" Value="">
+                        @ChoiceItem("size", "sm", TextDefaults.RichTextSizeSmall, TextDefaults.RichTextSize, "ib-size-sm")
+                        @ChoiceItem("size", "", TextDefaults.RichTextSizeNormal, TextDefaults.RichTextSize)
+                        @ChoiceItem("size", "lg", TextDefaults.RichTextSizeLarge, TextDefaults.RichTextSize, "ib-size-lg")
+                        @ChoiceItem("size", "xl", TextDefaults.RichTextSizeLarger, TextDefaults.RichTextSize, "ib-size-xl")
+                    </MenuRadioGroup>
+                </ChildContent>
+            </ToolbarMenu>
+        }
+    </text>;
+
+    private RenderFragment FormatGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextFormats">
+        @Tool(RichTextTools.Bold, "bold", Lucide.Bold, TextDefaults.RichTextBold, "B", pressed: true)
+        @Tool(RichTextTools.Italic, "italic", Lucide.Italic, TextDefaults.RichTextItalic, "I", pressed: true)
+        @Tool(RichTextTools.Underline, "underline", Lucide.Underline, TextDefaults.RichTextUnderline, "U", pressed: true)
+        @Tool(RichTextTools.Strikethrough, "strikethrough", Lucide.Strikethrough, TextDefaults.RichTextStrikethrough, "Shift+X", pressed: true)
+        @Tool(RichTextTools.Subscript, "subscript", Lucide.Subscript, TextDefaults.RichTextSubscript, "=", pressed: true)
+        @Tool(RichTextTools.Superscript, "superscript", Lucide.Superscript, TextDefaults.RichTextSuperscript, "Shift+=", pressed: true)
+        @Tool(RichTextTools.InlineCode, "code", Lucide.Code, TextDefaults.RichTextInlineCode, "E", pressed: true)
+        @Tool(RichTextTools.Link, "link", Lucide.Link, TextDefaults.RichTextLink, "K", pressed: true)
+    </ToolbarButtonGroup>;
+
+    private RenderFragment ColorGroup => @<text>
+        @if (Has(RichTextTools.TextColor))
+        {
+            <ToolbarMenu Label="@TextDefaults.RichTextTextColor">
+                <Trigger>
+                    <IconButton @attributes="context" Icon="Lucide.Baseline" Label="@TextDefaults.RichTextTextColor" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@TextDefaults.RichTextTextColor" Value="">
+                        @ChoiceItem("color", "", TextDefaults.RichTextDefault, null, "ib-rich-text-swatch")
+                        @foreach (var color in Palette)
+                        {
+                            @ChoiceItem("color", color, ColorName(color), null, $"ib-rich-text-swatch ib-color-{color}")
+                        }
+                    </MenuRadioGroup>
+                </ChildContent>
+            </ToolbarMenu>
+        }
+        @if (Has(RichTextTools.Highlight))
+        {
+            <ToolbarMenu Label="@TextDefaults.RichTextHighlight">
+                <Trigger>
+                    <IconButton @attributes="context" Icon="Lucide.Highlighter" Label="@TextDefaults.RichTextHighlight" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                </Trigger>
+                <ChildContent>
+                    <MenuRadioGroup Label="@TextDefaults.RichTextHighlight" Value="">
+                        @ChoiceItem("highlight", "", TextDefaults.RichTextNone, null, "ib-rich-text-swatch")
+                        @foreach (var color in Palette)
+                        {
+                            @ChoiceItem("highlight", color, ColorName(color), null, $"ib-rich-text-swatch ib-highlight-{color}")
+                        }
+                    </MenuRadioGroup>
+                </ChildContent>
+            </ToolbarMenu>
+        }
+    </text>;
+
+    private RenderFragment ListGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextLists">
+        @Tool(RichTextTools.BulletedList, "bulleted", Lucide.List, TextDefaults.RichTextBulletedList, "Shift+8", pressed: true)
+        @Tool(RichTextTools.NumberedList, "numbered", Lucide.ListOrdered, TextDefaults.RichTextNumberedList, "Shift+7", pressed: true)
+        @Tool(RichTextTools.Indent, "outdent", Lucide.ListIndentDecrease, TextDefaults.RichTextOutdent, "[")
+        @Tool(RichTextTools.Indent, "indent", Lucide.ListIndentIncrease, TextDefaults.RichTextIndent, "]")
+    </ToolbarButtonGroup>;
+
+    private RenderFragment AlignGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextAlignment">
+        @Tool(RichTextTools.Alignment, "align", Lucide.TextAlignStart, TextDefaults.RichTextAlignStart, "Shift+L", pressed: true, value: "start")
+        @Tool(RichTextTools.Alignment, "align", Lucide.TextAlignCenter, TextDefaults.RichTextAlignCenter, "Shift+E", pressed: true, value: "center")
+        @Tool(RichTextTools.Alignment, "align", Lucide.TextAlignEnd, TextDefaults.RichTextAlignEnd, "Shift+R", pressed: true, value: "end")
+    </ToolbarButtonGroup>;
+
+    private RenderFragment InsertGroup => @<text>
+        @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
+        @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
+    </text>;
+
+    // "Text style, Heading 2": a menu button's name says what it is and what's chosen.
+    private static string MenuLabel(string menu, string choice) => $"{menu}, {choice}";
+
+    // A choice in a menu: a font, size, color or highlight. The preview class shows it as it'll look.
+    private RenderFragment ChoiceItem(string command, string value, string label, string? menu, string? preview = null) =>
+        @<MenuItem Value="@value" data-ib-command="@command" data-ib-value="@value" data-ib-label="@(menu is null ? null : MenuLabel(menu, label))"><span class="@(preview is null ? "ib-rich-text-menu-text" : "ib-rich-text-menu-text " + preview)">@label</span></MenuItem>;
 
     // An item that previews its style, with its shortcut (Ctrl+Alt+digit) when it has one.
     private RenderFragment StyleItem(string tag, string label, string? digit) =>
-        @<MenuItem Value="@tag" data-ib-command="block" data-ib-value="@tag" data-ib-label="@StyleLabel(label)"
+        @<MenuItem Value="@tag" data-ib-command="block" data-ib-value="@tag" data-ib-label="@MenuLabel(TextDefaults.RichTextStyle, label)"
                    Shortcut="@(digit is null ? null : $"Ctrl+Alt+{digit}")"><span class="ib-rich-text-preview-@tag">@label</span></MenuItem>;
 
     private bool HasAny(RichTextTools tools) => (Tools & tools) != 0;
 
-    private RenderFragment? Tool(RichTextTools tool, string command, IconData icon, string label, string? keys, bool pressed = false)
+    private RenderFragment? Tool(RichTextTools tool, string command, IconData icon, string label, string? keys, bool pressed = false, string? value = null)
     {
         if (!Has(tool)) return null;
         // Shown as "Ctrl+B" here; the script writes ⌘ on a Mac.
         var title = keys is null ? label : $"{label} (Ctrl+{keys})";
         var shortcut = keys is null ? null : "Control+" + keys;
         return @<ToolbarIconButton Icon="icon" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
-                                   data-ib-command="@command" aria-pressed="@(pressed ? "false" : null)"
+                                   data-ib-command="@command" data-ib-value="@value" aria-pressed="@(pressed ? "false" : null)"
                                    aria-keyshortcuts="@shortcut" title="@title" />;
     }
 

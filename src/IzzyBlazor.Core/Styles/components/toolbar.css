@@ -129,4 +129,18 @@
   .ib-toolbar-wrap {
     container-type: normal;
   }
+
+  /* All the units wrap as one row of items, so the end ones join the last row, on its right; a
+     separator that starts or ends a row is hidden (data-ib-edge, set by the script). */
+  .ib-toolbar-wrap > :is(.ib-toolbar-start, .ib-toolbar-end) {
+    display: contents;
+  }
+
+  .ib-toolbar-wrap > .ib-toolbar-end > :first-child {
+    margin-inline-start: auto;
+  }
+
+  .ib-toolbar-unit[data-ib-edge] {
+    visibility: hidden;
+  }
 }

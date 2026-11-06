@@ -1287,6 +1287,75 @@ public class IzzyText
     /// <summary>A RichTextEditor's message for text over its MaxLength. {0} is the field's label, {1} the most characters.</summary>
     public virtual string RichTextTooLong { get; set; } = "{0} must be {1} characters or fewer.";
 
+    /// <summary>A RichTextEditor's subscript tool.</summary>
+    public virtual string RichTextSubscript { get; set; } = "Subscript";
+
+    /// <summary>A RichTextEditor's superscript tool.</summary>
+    public virtual string RichTextSuperscript { get; set; } = "Superscript";
+
+    /// <summary>A RichTextEditor's group of alignment tools.</summary>
+    public virtual string RichTextAlignment { get; set; } = "Alignment";
+
+    /// <summary>A RichTextEditor's tool that aligns text to the start of the line (the left, in left-to-right languages).</summary>
+    public virtual string RichTextAlignStart { get; set; } = "Align left";
+
+    /// <summary>A RichTextEditor's tool that centers text.</summary>
+    public virtual string RichTextAlignCenter { get; set; } = "Center";
+
+    /// <summary>A RichTextEditor's tool that aligns text to the end of the line (the right, in left-to-right languages).</summary>
+    public virtual string RichTextAlignEnd { get; set; } = "Align right";
+
+    /// <summary>A RichTextEditor's text color menu.</summary>
+    public virtual string RichTextTextColor { get; set; } = "Text color";
+
+    /// <summary>A RichTextEditor's highlight menu.</summary>
+    public virtual string RichTextHighlight { get; set; } = "Highlight";
+
+    /// <summary>A RichTextEditor's font menu.</summary>
+    public virtual string RichTextFont { get; set; } = "Font";
+
+    /// <summary>A RichTextEditor's text size menu.</summary>
+    public virtual string RichTextSize { get; set; } = "Size";
+
+    /// <summary>A RichTextEditor's text size: small.</summary>
+    public virtual string RichTextSizeSmall { get; set; } = "Small";
+
+    /// <summary>A RichTextEditor's text size: the text's own.</summary>
+    public virtual string RichTextSizeNormal { get; set; } = "Normal";
+
+    /// <summary>A RichTextEditor's text size: large.</summary>
+    public virtual string RichTextSizeLarge { get; set; } = "Large";
+
+    /// <summary>A RichTextEditor's text size: larger.</summary>
+    public virtual string RichTextSizeLarger { get; set; } = "Larger";
+
+    /// <summary>A RichTextEditor's choice of no font or color of its own.</summary>
+    public virtual string RichTextDefault { get; set; } = "Default";
+
+    /// <summary>A RichTextEditor's choice of no highlight.</summary>
+    public virtual string RichTextNone { get; set; } = "None";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextRed { get; set; } = "Red";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextOrange { get; set; } = "Orange";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextYellow { get; set; } = "Yellow";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextGreen { get; set; } = "Green";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextBlue { get; set; } = "Blue";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextPurple { get; set; } = "Purple";
+
+    /// <summary>A RichTextEditor's palette color.</summary>
+    public virtual string RichTextGray { get; set; } = "Gray";
+
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
 
