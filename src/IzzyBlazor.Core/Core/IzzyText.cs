@@ -77,14 +77,41 @@ public class IzzyText
     /// <summary>A DataGrid column menu: back to the column's declared width.</summary>
     public virtual string ColumnResetWidth { get; set; } = "Reset width";
 
-    /// <summary>A DataGrid column menu: freezes the column at the grid's start.</summary>
-    public virtual string ColumnFreezeStart { get; set; } = "Freeze at start";
+    /// <summary>A DataGrid column menu: the submenu that freezes the column at an edge.</summary>
+    public virtual string ColumnFreeze { get; set; } = "Freeze column";
 
-    /// <summary>A DataGrid column menu: freezes the column at the grid's end.</summary>
-    public virtual string ColumnFreezeEnd { get; set; } = "Freeze at end";
+    /// <summary>A DataGrid column menu's Freeze column: at the grid's start.</summary>
+    public virtual string ColumnFrozenStart { get; set; } = "At start";
 
-    /// <summary>A DataGrid column menu: unfreezes the column.</summary>
-    public virtual string ColumnUnfreeze { get; set; } = "Unfreeze";
+    /// <summary>A DataGrid column menu's Freeze column: at the grid's end.</summary>
+    public virtual string ColumnFrozenEnd { get; set; } = "At end";
+
+    /// <summary>A DataGrid column menu's Freeze column: scrolling with the rest.</summary>
+    public virtual string ColumnNotFrozen { get; set; } = "Not frozen";
+
+    /// <summary>A DataGrid column menu: sorts by the column, smallest first.</summary>
+    public virtual string ColumnSortAscending { get; set; } = "Sort ascending";
+
+    /// <summary>A DataGrid column menu: sorts by the column, largest first.</summary>
+    public virtual string ColumnSortDescending { get; set; } = "Sort descending";
+
+    /// <summary>A DataGrid column menu: takes the column out of the sort.</summary>
+    public virtual string ColumnSortClear { get; set; } = "Clear sort";
+
+    /// <summary>A DataGrid column menu: as wide as its header and the rows shown.</summary>
+    public virtual string ColumnFit { get; set; } = "Fit to content";
+
+    /// <summary>A DataGrid column menu: every column that can be resized, fitted to its content.</summary>
+    public virtual string ColumnFitAll { get; set; } = "Fit all columns";
+
+    /// <summary>A DataGrid column menu: the submenu of Wider, Narrower and Reset width.</summary>
+    public virtual string ColumnSize { get; set; } = "Width";
+
+    /// <summary>A DataGrid column menu: hides the column (the picker shows it again).</summary>
+    public virtual string ColumnHide { get; set; } = "Hide column";
+
+    /// <summary>A DataGrid column menu: opens the column picker.</summary>
+    public virtual string ColumnChoose { get; set; } = "Choose columns…";
 
     /// <summary>Said when a DataGrid column is resized: "Customer: 180 pixels". {0} is its title, {1} its width.</summary>
     public virtual string ColumnWidth { get; set; } = "{0}: {1} pixels";
@@ -108,7 +135,7 @@ public class IzzyText
     public virtual string ColumnPicker { get; set; } = "Columns";
 
     /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
-    public virtual string ColumnsReset { get; set; } = "Reset layout";
+    public virtual string ColumnsReset { get; set; } = "Reset columns";
 
     /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";

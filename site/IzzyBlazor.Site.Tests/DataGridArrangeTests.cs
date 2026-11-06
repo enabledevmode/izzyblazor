@@ -116,7 +116,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total", "Weekday"]);
 
             await grid.Locator(".ib-col-picker button").First.ClickAsync();
-            await grid.Locator("[data-ib-col-action=reset]").ClickAsync();
+            await grid.Locator(".ib-col-picker [data-ib-col-action=reset]").ClickAsync();
             await page.WaitForFunctionAsync("() => !document.cookie.includes('ib-grid-arrange-example')");
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total"]);
         }

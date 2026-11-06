@@ -2259,6 +2259,43 @@
         return sorts.Count == 0 ? (string.IsNullOrEmpty(InitialSort) ? null : "-") : string.Join(',', sorts.Select(s => s.Descending ? $"-{s.Key}" : s.Key));
     }
 
+    /// <summary>
+    /// The sort with this column alone, ascending or descending, or with it taken out (null): a
+    /// column menu's Sort ascending, Sort descending and Clear sort.
+    /// </summary>
+    internal string? SortTo(ColumnBase<TItem> column, bool? descending)
+    {
+        if (descending is { } down)
+        {
+            return down ? $"-{column.Key}" : column.Key;
+        }
+
+        var rest = _shapedSort.Where(s => !string.Equals(s.Key, column.Key, StringComparison.OrdinalIgnoreCase)).ToList();
+        return rest.Count > 0 ? string.Join(',', rest.Select(s => s.Descending ? $"-{s.Key}" : s.Key)) : string.IsNullOrEmpty(InitialSort) ? null : "-";
+    }
+
+    internal string SortToHref(ColumnBase<TItem> column, bool? descending) =>
+        LinkWith(new Dictionary<string, object?>
+        {
+            [SortQueryKey] = SortTo(column, descending),
+            [PageKey] = null,
+            [CursorKey] = null,
+        });
+
+    internal async Task SortToAsync(ColumnBase<TItem> column, bool? descending)
+    {
+        var next = SortTo(column, descending);
+        var (pageWas, cursorWas) = (_statePage, _stateCursor);
+        (_stateSort, _statePage, _stateCursor) = (next, 1, null);
+        await SortChanged.InvokeAsync(next);
+        await ReportFirstPageAsync(pageWas, cursorWas);
+        await ReloadIfStaleAsync();
+    }
+
+    /// <summary>Whether this column is in the sort, and which way: null when it isn't.</summary>
+    internal bool? SortedDescending(ColumnBase<TItem> column) =>
+        SortIndex(column) is var index && index < 0 ? null : _sorts[index].Descending;
+
     private string AddSortHref(ColumnBase<TItem> column) =>
         LinkWith(new Dictionary<string, object?>
         {

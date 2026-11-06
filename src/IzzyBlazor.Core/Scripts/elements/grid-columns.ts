@@ -309,6 +309,21 @@ class GridColumns extends IzzyElement {
     if (th && (action === "left" || action === "right")) this.#move(th, action === "left" ? -1 : 1, true);
     else if (th && action === "wider") this.#setWidth(th, th.offsetWidth + rem, true);
     else if (th && action === "narrower") this.#setWidth(th, th.offsetWidth - rem, true);
+    else if (th && action === "fit") {
+      const widest = this.#fit(th);
+      if (widest > 0) this.#setWidth(th, widest, true);
+    }
+    else if (action === "fit-all") {
+      // Measured all first, then saved once and drawn.
+      const fits = this.#headers.filter((h) => h.hasAttribute("data-ib-resize")).map((h) => [h, this.#fit(h)] as const);
+      for (const [h, widest] of fits) if (widest > 0) this.#entry(columns, h.dataset.ibCol!).w = `${this.#clamp(h, widest)}px`;
+      void this.#save(columns, true, key ?? null);
+    }
+    else if (th && action === "hide") this.#setHidden(columns, key!, true);
+    else if (action === "choose") {
+      // The toolbar's picker, as if its button were pressed.
+      this.#host?.querySelector<HTMLElement>(".ib-col-picker [popovertarget]")?.click();
+    }
     else if (th && action === "reset-width") {
       delete this.#entry(columns, key!).w;
       void this.#save(columns, true, key!);
@@ -438,11 +453,19 @@ class GridColumns extends IzzyElement {
     const handle = (event.target as Element).closest(".ib-col-resize");
     const th = this.#mine(handle?.closest<HTMLTableCellElement>("thead th[data-ib-col]"));
     if (!th || !this.#table) return;
-    this.#table.toggleAttribute("data-ib-measuring", true);
+    const widest = this.#fit(th);
+    if (widest > 0) this.#setWidth(th, widest, false);
+  }
+
+  /** As wide as its header and the rows drawn: 0 if there's nothing to measure. */
+  #fit(th: HTMLTableCellElement): number {
+    const table = this.#table!;
+    const handle = th.querySelector(".ib-col-resize");
+    table.toggleAttribute("data-ib-measuring", true);
     const range = document.createRange();
     let widest = 0;
     // A group's row and a band's row span columns differently, and their labels aren't the column's content.
-    for (const row of this.#table.rows) {
+    for (const row of table.rows) {
       if (row.matches(".ib-grid-group, .ib-table-band-row")) continue;
       const cell = row.cells[th.cellIndex];
       if (!cell || cell.colSpan > 1) continue;
@@ -452,8 +475,8 @@ class GridColumns extends IzzyElement {
       if (cell === th && handle) range.setEndBefore(handle);
       widest = Math.max(widest, range.getBoundingClientRect().width + parseFloat(style.paddingInlineStart) + parseFloat(style.paddingInlineEnd));
     }
-    this.#table.toggleAttribute("data-ib-measuring", false);
-    if (widest > 0) this.#setWidth(th, Math.ceil(widest) + 1, false);
+    table.toggleAttribute("data-ib-measuring", false);
+    return widest > 0 ? Math.ceil(widest) + 1 : 0;
   }
 
   get #bar(): HTMLElement | null {
