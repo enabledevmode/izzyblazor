@@ -20,6 +20,7 @@ src/IzzyBlazor.Core/wwwroot/bands.css
 src/IzzyBlazor.Core/wwwroot/column-picker.css
 src/IzzyBlazor.Core/wwwroot/rich-text.css
 src/IzzyBlazor.Core/wwwroot/rich-content.css
+src/IzzyBlazor.Core/wwwroot/color-panel.css
 src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js
 src/IzzyBlazor.Core/wwwroot/elements/
 src/IzzyBlazor.Core/wwwroot/fonts/

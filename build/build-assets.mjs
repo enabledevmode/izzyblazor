@@ -236,6 +236,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "bands.css"),
   },
   {
+    // A sheet of its own, linked by ColorPanel.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "color-panel.css")],
+    outfile: join(lib, "wwwroot", "color-panel.css"),
+  },
+  {
     // The editor's content classes, linked by RichTextEditor and by RichText when it needs them.
     ...common,
     sourcemap: false,

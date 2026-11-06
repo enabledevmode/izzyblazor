@@ -1215,6 +1215,84 @@ public class IzzyText
     /// <summary>ColorPicker's row of preset swatches.</summary>
     public virtual string ColorPresets { get; set; } = "Preset colors";
 
+    /// <summary>ColorPanel's hex field.</summary>
+    public virtual string ColorHexField { get; set; } = "Hex";
+
+    /// <summary>ColorPanel's group of swatches.</summary>
+    public virtual string ColorSwatches { get; set; } = "Colors";
+
+    /// <summary>ColorPanel's swatch for no color (with Clearable).</summary>
+    public virtual string ColorNone { get; set; } = "No color";
+
+    /// <summary>ColorPanel's saturation and brightness area.</summary>
+    public virtual string ColorArea { get; set; } = "Saturation and brightness";
+
+    /// <summary>ColorPanel's area's role, read after its name.</summary>
+    public virtual string ColorAreaRole { get; set; } = "2D slider";
+
+    /// <summary>ColorPanel's area's value. {0} is the saturation, {1} the brightness, {2} the color's name.</summary>
+    public virtual string ColorAreaValue { get; set; } = "Saturation {0}%, brightness {1}%, {2}";
+
+    /// <summary>ColorPanel's hue slider.</summary>
+    public virtual string ColorHue { get; set; } = "Hue";
+
+    /// <summary>ColorPanel's hue slider's value. {0} is the degrees, {1} the hue's name.</summary>
+    public virtual string ColorHueValue { get; set; } = "{0}°, {1}";
+
+    /// <summary>ColorPanel's opacity slider and field.</summary>
+    public virtual string ColorOpacity { get; set; } = "Opacity";
+
+    /// <summary>ColorPanel's red field.</summary>
+    public virtual string ColorRedChannel { get; set; } = "Red";
+
+    /// <summary>ColorPanel's green field.</summary>
+    public virtual string ColorGreenChannel { get; set; } = "Green";
+
+    /// <summary>ColorPanel's blue field.</summary>
+    public virtual string ColorBlueChannel { get; set; } = "Blue";
+
+    /// <summary>ColorPanel's eyedropper button (in browsers that have one).</summary>
+    public virtual string ColorEyedropper { get; set; } = "Pick a color from the screen";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorBlack { get; set; } = "black";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorWhite { get; set; } = "white";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorGray { get; set; } = "gray";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorRed { get; set; } = "red";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorOrange { get; set; } = "orange";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorYellow { get; set; } = "yellow";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorGreen { get; set; } = "green";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorCyan { get; set; } = "cyan";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorBlue { get; set; } = "blue";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorPurple { get; set; } = "purple";
+
+    /// <summary>A color's name, for screen readers.</summary>
+    public virtual string ColorPink { get; set; } = "pink";
+
+    /// <summary>A light color's name, such as light green. {0} is the color.</summary>
+    public virtual string ColorLight { get; set; } = "light {0}";
+
+    /// <summary>A dark color's name, such as dark blue. {0} is the color.</summary>
+    public virtual string ColorDark { get; set; } = "dark {0}";
+
     /// <summary>ColorPicker's message for a value that isn't a hex color. {0} is the field's label.</summary>
     public virtual string ColorInvalid { get; set; } = "The {0} field must be a color like #2563eb.";
 

@@ -2,11 +2,16 @@
  * RichTextEditor, built to wwwroot/rich-text.css and linked by the component, so other pages don't
  * pay for it. The box is drawn as a field input: the toolbar along its top, the text below in
  * Prose's rules. With no script (or if the script can't load) the box gives way to the textarea of
- * HTML, the field's real control.
+ * HTML, the field's real control: data-ib-script and data-ib-noscript, whose rules are in the main
+ * sheet, where the docs' script-off pages reach them.
  */
 @layer izzy.components {
   .ib-rich-text {
     position: relative;
+    display: block;
+  }
+
+  .ib-rich-text-box {
     display: flex;
     flex-direction: column;
     border: 1px solid var(--ib-field-border);
@@ -16,24 +21,24 @@
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
 
-  .ib-rich-text:hover:not(:focus-within) {
+  .ib-rich-text-box:hover:not(:focus-within) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
   }
 
-  .ib-rich-text:has(> .ib-rich-text-surface:focus-visible) {
+  .ib-rich-text-box:has(> .ib-rich-text-surface:focus-visible) {
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
-  .ib-field-invalid .ib-rich-text {
+  .ib-field-invalid .ib-rich-text-box {
     border-color: var(--ib-color-danger);
   }
 
-  .ib-field-readonly .ib-rich-text {
+  .ib-field-readonly .ib-rich-text-box {
     background-color: var(--ib-color-fill);
   }
 
-  .ib-field-disabled .ib-rich-text {
+  .ib-field-disabled .ib-rich-text-box {
     border-color: transparent;
     color: var(--ib-color-disabled);
     background-color: var(--ib-color-fill);
@@ -251,22 +256,4 @@
   .ib-field-count[data-ib-over] {
     color: var(--ib-color-danger);
   }
-
-  /* The HTML text box is the control with no script; with script it only holds the value. */
-  @media (scripting: enabled) {
-    .ib-rich-text-source { display: none; }
-  }
-
-  @media (scripting: none) {
-    .ib-rich-text { border: none; background: none; }
-    .ib-rich-text > :not(.ib-rich-text-source, .ib-field-count) { display: none; }
-  }
-
-  .ib-rich-text[data-ib-failed] {
-    border: none;
-    background: none;
-  }
-
-  .ib-rich-text[data-ib-failed] > :not(.ib-rich-text-source, .ib-field-count) { display: none; }
-  .ib-rich-text[data-ib-failed] > .ib-rich-text-source { display: block; }
 }

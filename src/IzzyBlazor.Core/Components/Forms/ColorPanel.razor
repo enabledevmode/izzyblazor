@@ -1,0 +1,240 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the swatches (or, with none, the hex field) choose the color and post; the picker, sliders and number fields need script.")]
+
+@*
+    A color, chosen inline: swatches, a picker (a saturation and brightness area and a hue slider),
+    an opacity slider, and hex and RGB fields, each optional. Bound to a hex string, "#2563eb", or
+    "#2563ebcc" with ShowAlpha.
+
+    <ColorPanel @bind-Value="Model.Accent" Label="Accent color" />
+    <ColorPanel @bind-Value="Model.Tag" Label="Tag color" ShowPicker="false" ShowFields="false" />
+    <ColorPanel @bind-Value="Model.Overlay" Label="Overlay" Swatches="[]" ShowAlpha />
+
+    Changes apply at once. With no script, the swatches are radios and post as the field; with none,
+    the hex field does. With script, all parts write one value, kept in a hidden field that posts.
+
+    Accessibility:
+    - It's a group named by the label. The swatches are a radio group, each named by SwatchText or
+      by its color's name ("light green"); the chosen one shows a check mark, not only a ring.
+    - The area is one slider with the role "2D slider": its value says both numbers and the
+      color's name ("Saturation 45%, brightness 80%, dark blue"). Left and Right change the
+      saturation, Up and Down the brightness.
+    - Hue and opacity are sliders; a click anywhere on the area or a slider jumps there, and the
+      fields take typed values, so nothing needs dragging.
+
+    Keyboard:
+    On the area and sliders
+    - Left, Right, Up, Down | Move by 1
+    - Shift with an arrow, Page Up, Page Down | Move by 10
+    - Home, End | Go to the start or end
+    On the swatches
+    - Left, Right, Up, Down | Choose the swatch before or after
+    See also: ColorPicker, RadioGroup.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
+<FieldFrame Class="@WrapperClass("color-panel")" Style="@WrapperStyle" Id="@ControlId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-color-panel class="ib-color-panel" role="group" aria-labelledby="@LabelId" aria-describedby="@DescribedBy"
+                    data-ib-alpha="@(ShowAlpha ? "" : null)" data-ib-name="@NameAttributeValue" data-ib-names="@Names"
+                    data-ib-disabled="@(IsDisabled || IsReadOnly ? "" : null)"
+                    style="--ib-cp-hue: @Num(_hsv.H); --ib-cp-color: @(_rgba is { } c ? ColorPanelMath.ToHex(c with { A = 1 }) : "transparent"); --ib-cp-alpha: @Num(_rgba?.A ?? 1)">
+        @* The value with script: one field the parts all write, given the field's name by the script. *@
+        <input type="hidden" class="ib-cp-value" value="@CurrentValueAsString" @onchange="OnChanged" />
+        @if (_swatches.Length > 0 || Clearable)
+        {
+            <div class="ib-cp-swatches" role="radiogroup" aria-label="@TextDefaults.ColorSwatches" style="@(Swatches is null ? "--ib-cp-columns: 7" : null)">
+                @if (Clearable)
+                {
+                    <label class="ib-cp-swatch ib-cp-swatch-none" title="@TextDefaults.ColorNone">
+                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="" checked="@(_rgba is null)"
+                               id="@(_firstControl == "swatch" ? FieldId : null)" aria-label="@TextDefaults.ColorNone" disabled="@(IsDisabled || IsReadOnly)" />
+                        <Icon Name="Lucide.Check" Class="ib-cp-check" />
+                    </label>
+                }
+                @for (var i = 0; i < _swatches.Length; i++)
+                {
+                    var swatch = _swatches[i];
+                    var name = SwatchText?.Invoke(swatch) ?? NameOf(swatch);
+                    <label class="ib-cp-swatch" style="--ib-cp-swatch: @swatch" title="@name">
+                        <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="@swatch" checked="@(swatch == _hex)"
+                               id="@(_firstControl == "swatch" && i == 0 && !Clearable ? FieldId : null)" aria-label="@name" disabled="@(IsDisabled || IsReadOnly)" />
+                        <Icon Name="Lucide.Check" Class="ib-cp-check" />
+                    </label>
+                }
+            </div>
+        }
+        @if (ShowPicker)
+        {
+            <div class="ib-cp-area" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" id="@(_firstControl == "area" ? FieldId : null)"
+                 aria-label="@TextDefaults.ColorArea" aria-roledescription="@TextDefaults.ColorAreaRole"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Pct(_hsv.S)" aria-valuetext="@AreaText"
+                 aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)"
+                 style="--ib-cp-x: @Pct(_hsv.S)%; --ib-cp-y: @(100 - Pct(_hsv.V))%">
+                <span class="ib-cp-thumb"></span>
+            </div>
+            <div class="ib-cp-slider ib-cp-hue" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="hue"
+                 aria-label="@TextDefaults.ColorHue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="@((int)Math.Round(_hsv.H))" aria-valuetext="@HueText"
+                 aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Num(_hsv.H / 3.6)%">
+                <span class="ib-cp-thumb"></span>
+            </div>
+        }
+        @if (ShowAlpha)
+        {
+            <div class="ib-cp-slider ib-cp-alpha" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="alpha"
+                 aria-label="@TextDefaults.ColorOpacity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Pct(_rgba?.A ?? 1)" aria-valuetext="@($"{Pct(_rgba?.A ?? 1)}%")"
+                 aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Pct(_rgba?.A ?? 1)%">
+                <span class="ib-cp-thumb"></span>
+            </div>
+        }
+        @if (ShowFields)
+        {
+            <div class="ib-cp-fields">
+                @* With no script it's shown only when it's what posts: when there are no swatches. *@
+                <label class="ib-cp-field ib-cp-field-hex" data-ib-script="@(_swatches.Length == 0 && !Clearable ? null : "")">
+                    <span class="ib-cp-field-label">@TextDefaults.ColorHexField</span>
+                    @* Posts with no script when there are no swatches to post. *@
+                    <input class="ib-field-input" type="text" maxlength="9" spellcheck="false" autocomplete="off" data-ib-field="hex"
+                           id="@(_firstControl == "hex" ? FieldId : null)" name="@(_swatches.Length == 0 && !Clearable ? NameAttributeValue : null)"
+                           value="@_hex" aria-invalid="@(Invalid ? "true" : null)" disabled="@IsDisabled" readonly="@IsReadOnly" />
+                </label>
+                @foreach (var (key, label, value) in Channels)
+                {
+                    <label class="ib-cp-field" data-ib-script>
+                        <span class="ib-cp-field-label" aria-hidden="true">@key</span>
+                        <input class="ib-field-input" type="number" min="0" max="@(key == "A" ? 100 : 255)" inputmode="numeric" data-ib-field="@key"
+                               aria-label="@label" value="@value" disabled="@IsDisabled" readonly="@IsReadOnly" />
+                    </label>
+                }
+                @if (ShowEyedropper)
+                {
+                    <IconButton Icon="Lucide.Pipette" Label="@TextDefaults.ColorEyedropper" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                data-ib-script data-ib-eyedropper hidden Disabled="@(IsDisabled || IsReadOnly)" />
+                }
+            </div>
+        }
+    </ib-color-panel>
+</FieldFrame>
+
+@code {
+    private static readonly string[] DefaultSwatches =
+    [
+        "#fca5a5", "#fdba74", "#fde047", "#86efac", "#93c5fd", "#d8b4fe", "#d4d4d8",
+        "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7", "#71717a",
+        "#b91c1c", "#c2410c", "#a16207", "#15803d", "#1d4ed8", "#7e22ce", "#27272a",
+    ];
+
+    private string[] _swatches = [];
+    private ColorPanelMath.Rgba? _rgba;
+    private ColorPanelMath.Hsv _hsv = new(0, 0, 1);
+    private string _hex = "";
+    private string _firstControl = "";
+
+    /// <summary>
+    /// The swatches, as hex strings. Defaults to 21 colors: seven hues in a light, a middle and a
+    /// dark shade. An empty list shows none.
+    /// </summary>
+    [Parameter] public IEnumerable<string>? Swatches { get; set; }
+
+    /// <summary>A name for each swatch, such as "Ocean", given its hex string; screen readers hear it and it's the tooltip. Defaults to the color's name ("light green").</summary>
+    [Parameter] public Func<string, string?>? SwatchText { get; set; }
+
+    /// <summary>The picker: a saturation and brightness area and a hue slider. Defaults to true.</summary>
+    [Parameter] public bool ShowPicker { get; set; } = true;
+
+    /// <summary>An opacity slider and field; a color that isn't opaque is <c>#rrggbbaa</c>. Off by default.</summary>
+    [Parameter] public bool ShowAlpha { get; set; }
+
+    /// <summary>Hex, red, green and blue fields (and opacity with <see cref="ShowAlpha"/>). Defaults to true.</summary>
+    [Parameter] public bool ShowFields { get; set; } = true;
+
+    /// <summary>A "no color" swatch first, which makes the value null.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>An eyedropper button beside the fields, shown only in browsers that have one (Chromium).</summary>
+    [Parameter] public bool ShowEyedropper { get; set; }
+
+    /// <summary>Makes the field read-only: nothing changes it, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private string LabelId => FieldId + "-label";
+
+    // The label points at the first control there is: the hex field, the area, or a swatch.
+    private string ControlId => FieldId;
+
+    private static string Num(double value) => Math.Round(value, 2).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private static int Pct(double value) => (int)Math.Round(value * 100);
+
+    private string NameOf(string hex) => ColorPanelMath.Parse(hex) is { } c ? ColorPanelMath.Name(c, TextDefaults) : hex;
+
+    private string AreaText => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColorAreaValue,
+        Pct(_hsv.S), Pct(_hsv.V), _rgba is { } c ? ColorPanelMath.Name(c, TextDefaults) : TextDefaults.ColorNone);
+
+    private string HueText => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColorHueValue,
+        (int)Math.Round(_hsv.H), ColorPanelMath.HueName(_hsv.H, TextDefaults));
+
+    // The names the script needs for the area's and hue's value text, in a fixed order.
+    private string Names => string.Join('|', TextDefaults.ColorBlack, TextDefaults.ColorWhite, TextDefaults.ColorGray, TextDefaults.ColorRed,
+        TextDefaults.ColorOrange, TextDefaults.ColorYellow, TextDefaults.ColorGreen, TextDefaults.ColorCyan, TextDefaults.ColorBlue,
+        TextDefaults.ColorPurple, TextDefaults.ColorPink, TextDefaults.ColorLight, TextDefaults.ColorDark,
+        TextDefaults.ColorAreaValue, TextDefaults.ColorHueValue, TextDefaults.ColorNone);
+
+    private IEnumerable<(string Key, string Label, int Value)> Channels
+    {
+        get
+        {
+            var c = _rgba ?? new ColorPanelMath.Rgba(0, 0, 0);
+            yield return ("R", TextDefaults.ColorRedChannel, c.R);
+            yield return ("G", TextDefaults.ColorGreenChannel, c.G);
+            yield return ("B", TextDefaults.ColorBlueChannel, c.B);
+            if (ShowAlpha) yield return ("A", TextDefaults.ColorOpacity, Pct(c.A));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _swatches = (Swatches ?? DefaultSwatches).Select(s => ColorPanelMath.Parse(s) is { } c ? ColorPanelMath.ToHex(c) : null).OfType<string>().Distinct().ToArray();
+        _rgba = ColorPanelMath.Parse(CurrentValue);
+        if (_rgba is { } color && !ShowAlpha) _rgba = color with { A = 1 };
+        _hex = _rgba is { } rgba ? ColorPanelMath.ToHex(rgba) : "";
+        // Keep the hue of a gray (hue means nothing there) from the last color, as the script does.
+        if (_rgba is { } current)
+        {
+            var hsv = ColorPanelMath.ToHsv(current);
+            _hsv = hsv.S == 0 || hsv.V == 0 ? hsv with { H = _hsv.H } : hsv;
+        }
+
+        _firstControl = ShowFields ? "hex" : ShowPicker ? "area" : "swatch";
+    }
+
+    private void OnChanged(ChangeEventArgs e) => CurrentValueAsString = e.Value?.ToString();
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, out string? result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = null;
+            validationErrorMessage = null;
+            return true;
+        }
+
+        if (ColorPanelMath.Parse(value) is { } color)
+        {
+            result = ColorPanelMath.ToHex(ShowAlpha ? color : color with { A = 1 });
+            validationErrorMessage = null;
+            return true;
+        }
+
+        result = null;
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColorInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+}

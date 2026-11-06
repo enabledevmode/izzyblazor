@@ -253,6 +253,19 @@
     border: 0;
   }
 
+  /* Parts that need script (data-ib-script) and what stands in for them (data-ib-noscript), for
+     components whose own sheet loads on demand: here, so the docs' script-off pages reach them.
+     An element whose code couldn't load (data-ib-failed) is as with no script. */
+  @media (scripting: none) {
+    [data-ib-script] { display: none !important; }
+  }
+
+  @media (scripting: enabled) {
+    :not([data-ib-failed]) > [data-ib-noscript] { display: none !important; }
+  }
+
+  [data-ib-failed] > [data-ib-script] { display: none !important; }
+
   :focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
