@@ -1,27 +1,39 @@
-@* ColorPicker's Overview, written by hand after TextField's: presets, saving a color (previewed in
-   each mode), empty values, states and its own words. Accessibility and See also come from the doc
+@* ColorPicker's Overview, written by hand after TextField's: swatches, the panel's parts, saving a
+   color (previewed in each mode), empty values, the browser's picker, states and its own words. Accessibility and See also come from the doc
    comment. *@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A color picker is a field for choosing a color: a swatch that opens the browser's color panel. It suits a color the user chooses freely, such as a brand color. Its value is a hex string such as <Code>#2563eb</Code>. For a few named choices, such as a label's color, a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> can be clearer.</TextBlock>
-<TextBlock>Underneath is a native color input, so it posts with the form and opens the browser's color panel <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. IzzyBlazor's script adds a hex box beside the swatch, and shows the presets as swatches under it.</TextBlock>
+<TextBlock>A color picker is a field for choosing a color: a swatch and a hex box. The swatch opens a <Anchor Href="docs/components/color-panel">ColorPanel</Anchor> in a popover, with swatches, a picker and fields; changes apply at once, and Escape or a click outside closes it. Its value is a hex string such as <Code>#2563eb</Code>. To show the colors without a popover, use a ColorPanel.</TextBlock>
+<TextBlock>Underneath is a native color input, so the field posts with the form and opens the browser's own picker <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
-<Heading Level="2">Presets</Heading>
-<TextBlock>Presets are the colors offered first, as swatches the user clicks. Set <Code>Presets</Code> to their hex strings. To name them, set <Code>PresetText</Code>: screen readers hear "Teal" rather than "#0f766e", and the name is the swatch's tooltip.</TextBlock>
-<ExampleViewer Example="color-picker-presets" />
-<TextBlock>The user can still pick or type any color. If the value must be one of the presets, check it on the server.</TextBlock>
+<Heading Level="2">Swatches</Heading>
+<TextBlock>The panel offers 21 colors by default. Set <Code>Swatches</Code> to offer your own, and <Code>SwatchText</Code> to name them: screen readers hear "Teal" rather than "dark cyan", and the name is the swatch's tooltip. An empty list shows none.</TextBlock>
+<ExampleViewer Example="color-picker-swatches" />
+<TextBlock>The user can still pick or type any color. If the value must be one of the swatches, check it on the server.</TextBlock>
+
+<Heading Level="2">The panel's parts</Heading>
+<TextBlock>The panel's parts are ColorPanel's, and each shows or hides on its own:</TextBlock>
+<List>
+    <ListItem><Code>ShowPicker</Code> and <Code>ShowFields</Code> (both true by default) show the picker and the hex and RGB fields. Set both to false for swatches only.</ListItem>
+    <ListItem><Code>ShowAlpha</Code> adds an opacity slider and field; a color that isn't opaque becomes <Code>#rrggbbaa</Code>.</ListItem>
+    <ListItem><Code>Clearable</Code> adds a swatch for no color, which makes the value null.</ListItem>
+    <ListItem><Code>ShowEyedropper</Code> adds a button that picks a color from the screen, in browsers that have one.</ListItem>
+</List>
 
 <Heading Level="2">Saving a color</Heading>
-<TextBlock>The picker binds to a string. The browser sends the color as <Code>#rrggbb</Code> in lowercase, whether it was picked, chosen from a preset or typed; <Code>#F60</Code> becomes <Code>#ff6600</Code>.</TextBlock>
+<TextBlock>The picker binds to a string, in lowercase: <Code>#F60</Code> becomes <Code>#ff6600</Code>. This example offers swatches only.</TextBlock>
 <ExampleViewer Example="color-picker-label-color" />
 <List>
-    <ListItem>The hex box accepts three or six hex digits, with or without the <Code>#</Code>. Anything else is put back to the last valid value when the box loses focus.</ListItem>
+    <ListItem>The hex box accepts three, six or (with <Code>ShowAlpha</Code>) eight hex digits, with or without the <Code>#</Code>. Anything else is put back to the last valid value when the box loses focus.</ListItem>
     <ListItem>On static pages, the property gets the posted text as it is, and a crafted form post can send any text. Before you save or use it, pass it through <Code>ColorValues.NormalizeHex</Code>, which returns <Code>#rrggbb</Code> or null, as this example does.</ListItem>
 </List>
 
 <Heading Level="2">Empty values</Heading>
-<TextBlock>A color input always has a value. A property that's null or not a color shows black, and the form posts <Code>#000000</Code>. Start the property with a color, and treat black as a choice like any other.</TextBlock>
+<TextBlock>A property that's null or not a color shows an empty swatch, and stays null until the user picks one. With JavaScript off, the browser's color input has no empty value: it shows black, and the form posts <Code>#000000</Code>.</TextBlock>
+
+<Heading Level="2">The browser's picker</Heading>
+<TextBlock>To keep the browser's own picker, set <Code>NativePicker</Code>. It looks different in each browser and has no opacity. Swatches show under the field, and Chrome and Edge also list them in their picker.</TextBlock>
 
 <Heading Level="2">Sizes, swatch only and locked</Heading>
 <TextBlock>The size lines the picker up with other fields; set <Code>Size</Code> to choose one. To show the swatch alone, set <Code>ShowHex="false"</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
@@ -29,17 +41,16 @@
 <List>
     <ListItem>A read-only picker still shows its hex box, because that's the part that can be focused.</ListItem>
     <ListItem>A read-only color posts from a hidden field. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</ListItem>
-    <ListItem>A disabled picker posts nothing. After a form post on static pages, its property keeps the value a new model starts with; if that's null, the field shows black. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
+    <ListItem>A disabled picker posts nothing. After a form post on static pages, its property keeps the value a new model starts with. Before saving a disabled value from a form post, see <Anchor Href="docs/common/forms#disabled-fields-and-form-posts">Disabled fields and form posts</Anchor>.</ListItem>
 </List>
 
 <Heading Level="2">Labels and localization</Heading>
-<TextBlock>The hex box and the presets group have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+<TextBlock>The hex box, the panel's parts and the color names screen readers hear are all text you can set. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
 <Prose Class="site-table ib-scroll">
     <table>
         <thead><tr><th>Parameter</th><th>Sets</th><th>Example</th></tr></thead>
         <tbody>
             <tr><td><Code>HexLabel</Code></td><td>The end of the hex box's name</td><td>"Brand color, hex"</td></tr>
-            <tr><td><Code>PresetsLabel</Code></td><td>The presets group's name</td><td>"Preset colors"</td></tr>
         </tbody>
     </table>
 </Prose>
@@ -66,10 +77,13 @@
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
     private const string Usage = """
-        @* A hex string, with a few colors offered first. *@
-        <ColorPicker @bind-Value="Model!.Brand" Presets="@(["#2563eb", "#0f766e", "#be123c"])" />
+        @* A hex string; the swatch opens a panel. *@
+        <ColorPicker @bind-Value="Model!.Brand" />
 
-        @* The swatch alone, for a compact row. *@
-        <ColorPicker @bind-Value="Model!.Highlight" ShowHex="false" />
+        @* A few colors, and nothing else. *@
+        <ColorPicker @bind-Value="Model!.Tag" Swatches="@(["#2563eb", "#0f766e", "#be123c"])" ShowPicker="false" ShowFields="false" />
+
+        @* Any color, with opacity: "#2563ebcc". *@
+        <ColorPicker @bind-Value="Model!.Overlay" Swatches="[]" ShowAlpha />
         """;
 }

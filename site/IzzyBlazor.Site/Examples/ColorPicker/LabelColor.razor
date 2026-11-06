@@ -2,7 +2,7 @@
 
 <Form Model="Model" FormName="color-picker-label-color" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
     <TextField @bind-Value="Model!.Name" />
-    <ColorPicker @bind-Value="Model!.Color" Presets="Colors" />
+    <ColorPicker @bind-Value="Model!.Color" Swatches="Colors" ShowPicker="false" ShowFields="false" />
     <Row><Button Submit>Save label</Button></Row>
     @if (_saved is { } saved)
     {

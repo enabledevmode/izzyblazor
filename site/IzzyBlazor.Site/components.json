@@ -1179,20 +1179,21 @@
       ]
     },
     {
-      "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "Lets the user pick a color, with a hex box and presets.",
+      "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "A swatch and a hex box; the swatch opens a color panel.",
       "features": [
-        { "feature": "Pick in the browser's color panel; posted with the form" },
-        { "feature": "A hex box to type or paste in, and preset swatches", "noscript": "none", "static": "full", "interactive": "full" }
+        { "feature": "Pick a color; posted with the form" },
+        { "feature": "A panel with swatches, a picker, opacity and fields", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "A hex box to type or paste in", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "color-picker-presets", "title": "Presets", "lead": "To offer a set of colors, set `Presets`, and name them for screen readers with `PresetText`. The value is a hex string such as `#2563eb`.",
+        { "id": "color-picker-swatches", "title": "Swatches", "lead": "The swatch opens a panel with swatches, a picker and fields. To offer your own colors, set `Swatches`, and name them for screen readers with `SwatchText`. The value is a hex string such as `#2563eb`.",
           "notes": {
-            "noscript": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
-            "static": "IzzyBlazor's script adds the hex box and shows the presets as swatches under the field."
+            "noscript": "The swatch fills the field and opens the browser's picker instead of the panel. There's no hex box.",
+            "static": "IzzyBlazor's script adds the hex box, and the swatch opens the panel."
           } },
         { "id": "color-picker-label-color", "title": "Saving a color",
           "notes": {
-            "noscript": "The swatch opens the browser's panel, with the presets first in Chrome and Edge; Save label posts the color.",
+            "noscript": "The swatch opens the browser's picker; Save label posts the color.",
             "static": "Type a hex value or choose a swatch; Save label posts it without a full reload.",
             "interactive": "Save label runs C# without a full reload; the saved badge keeps what was saved."
           } },
