@@ -42,9 +42,15 @@ function caret(target: Element, select = false): void {
   getSelection()?.addRange(range);
 }
 
-function row(count: number, tag: string): HTMLTableRowElement {
+/** A new row like another: as many cells, each aligned as the one above or below it. */
+function row(like: HTMLTableRowElement): HTMLTableRowElement {
   const made = document.createElement("tr");
-  for (let i = 0; i < count; i++) made.append(cell(tag));
+  for (const old of like.cells) {
+    const added = cell("td");
+    const align = [...old.classList].find((c) => c.startsWith("ib-align-"));
+    if (align) added.classList.add(align);
+    made.append(added);
+  }
   return made;
 }
 
@@ -120,7 +126,7 @@ export function run(editor: TableEditor, action: string): void {
   switch (action) {
     case "row-above":
     case "row-below": {
-      const made = row(tr.cells.length, "td");
+      const made = row(tr);
       // Rows go in the body: one beside the header row goes at the body's top.
       if (head) (table.tBodies[0] ?? table.appendChild(document.createElement("tbody"))).prepend(made);
       else if (action === "row-above") tr.before(made);
@@ -156,6 +162,19 @@ export function run(editor: TableEditor, action: string): void {
         }
       }
       next = table.rows[tr.rowIndex]?.cells[index] ?? null;
+      break;
+    case "align-start":
+    case "align-center":
+    case "align-end":
+      // The whole column, header too: tables of numbers want theirs at the end.
+      for (const each of table.rows) {
+        const target = each.cells[Math.min(index, each.cells.length - 1)];
+        if (!target) continue;
+        target.classList.remove("ib-align-center", "ib-align-end");
+        if (action !== "align-start") target.classList.add(action.replace("align-", "ib-align-"));
+        if (!target.classList.length) target.removeAttribute("class");
+      }
+      next = at;
       break;
     case "delete-row": {
       const near = table.rows[tr.rowIndex + 1] ?? table.rows[tr.rowIndex - 1];

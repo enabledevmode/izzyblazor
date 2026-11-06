@@ -1455,6 +1455,15 @@ public class IzzyText
     /// <summary>A RichTextEditor's table menu: a column after the caret's (right, in left-to-right languages).</summary>
     public virtual string RichTextTableColumnAfter { get; set; } = "Insert column right";
 
+    /// <summary>A RichTextEditor's table menu: aligns the caret's column to the start (left, in left-to-right languages).</summary>
+    public virtual string RichTextTableAlignStart { get; set; } = "Align column left";
+
+    /// <summary>A RichTextEditor's table menu: centers the caret's column.</summary>
+    public virtual string RichTextTableAlignCenter { get; set; } = "Center column";
+
+    /// <summary>A RichTextEditor's table menu: aligns the caret's column to the end (right, in left-to-right languages).</summary>
+    public virtual string RichTextTableAlignEnd { get; set; } = "Align column right";
+
     /// <summary>A RichTextEditor's table menu.</summary>
     public virtual string RichTextTableDeleteRow { get; set; } = "Delete row";
 

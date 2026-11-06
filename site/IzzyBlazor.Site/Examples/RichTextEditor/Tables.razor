@@ -1,4 +1,4 @@
-@* Meeting notes with a table of action items: who does what, by when. *@
+@* Meeting notes with a table of action items: who does what, by when, and how long, its hours aligned right. *@
 <RichTextEditor Grow @bind-Value="_notes" Label="Meeting notes" Rows="10" />
 
 @code {
@@ -7,11 +7,11 @@
         <h2>Launch review, March 4</h2>
         <p>We agreed to ship on the 18th if the payment fixes pass review.</p>
         <table>
-          <thead><tr><th scope="col">Action</th><th scope="col">Owner</th><th scope="col">Due</th></tr></thead>
+          <thead><tr><th scope="col">Action</th><th scope="col">Owner</th><th scope="col">Due</th><th scope="col" class="ib-align-end">Hours</th></tr></thead>
           <tbody>
-            <tr><td>Fix the refund rounding error</td><td>Priya</td><td>March 8</td></tr>
-            <tr><td>Update the pricing page</td><td>Sam</td><td>March 11</td></tr>
-            <tr><td>Brief the support team</td><td>Dana</td><td>March 15</td></tr>
+            <tr><td>Fix the refund rounding error</td><td>Priya</td><td>March 8</td><td class="ib-align-end">6</td></tr>
+            <tr><td>Update the pricing page</td><td>Sam</td><td>March 11</td><td class="ib-align-end">2.5</td></tr>
+            <tr><td>Brief the support team</td><td>Dana</td><td>March 15</td><td class="ib-align-end">1</td></tr>
           </tbody>
         </table>
         """;
