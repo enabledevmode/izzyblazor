@@ -18,7 +18,6 @@
     - It's a group named by the label. The swatches are a radio group, each named by SwatchText or
       by its color's name ("light green"); the chosen one has a ring around it, set apart from the
       swatch by a gap, so it shows on any color, and the focus outline sits outside that.
-    - With Original, the preview's lower half is a button that restores it ("Restore dark blue").
     - The area is one slider with the role "2D slider": its value says both numbers and the
       color's name ("Saturation 45%, brightness 80%, dark blue"). Left and Right change the
       saturation, Up and Down the brightness.
@@ -58,8 +57,7 @@
         }
         @if (ShowPicker || ShowAlpha)
         {
-            @* The sliders, the eyedropper before them, and after them the color as it is (over the
-               original, when there is one). *@
+            @* The sliders, the eyedropper before them, and after them a swatch of the current color. *@
             <div class="ib-cp-row" data-ib-script>
                 @if (ShowEyedropper)
                 {
@@ -84,16 +82,7 @@
                         </div>
                     }
                 </div>
-                <div class="ib-cp-preview">
-                    <span class="ib-cp-preview-new"></span>
-                    @if (ColorPanelMath.Parse(Original) is { } original)
-                    {
-                        var originalHex = ColorPanelMath.ToHex(ShowAlpha ? original : original with { A = 1 });
-                        var restore = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColorRestore, ColorPanelMath.Name(original, TextDefaults));
-                        <button type="button" class="ib-cp-preview-old" style="--ib-cp-old: @originalHex" data-ib-original="@originalHex"
-                                aria-label="@restore" title="@restore" disabled="@(IsDisabled || IsReadOnly)"></button>
-                    }
-                </div>
+                <span class="ib-cp-preview"><span class="ib-cp-preview-color"></span></span>
             </div>
         }
         @if (ShowFields)
@@ -182,12 +171,6 @@
 
     /// <summary>An eyedropper button beside the fields, shown only in browsers that have one (Chromium).</summary>
     [Parameter] public bool ShowEyedropper { get; set; }
-
-    /// <summary>
-    /// A color to compare with, such as the one a popup opened with: shown under the current one in
-    /// the preview, and chosen again by a click there.
-    /// </summary>
-    [Parameter] public string? Original { get; set; }
 
     /// <summary>Makes the field read-only: nothing changes it, and it still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
