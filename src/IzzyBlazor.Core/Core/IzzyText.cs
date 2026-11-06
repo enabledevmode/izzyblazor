@@ -1215,6 +1215,9 @@ public class IzzyText
     /// <summary>ColorPicker's row of preset swatches.</summary>
     public virtual string ColorPresets { get; set; } = "Preset colors";
 
+    /// <summary>ColorPanel's button that chooses its Original again. {0} is that color's name.</summary>
+    public virtual string ColorRestore { get; set; } = "Restore {0}";
+
     /// <summary>ColorPanel's hex field.</summary>
     public virtual string ColorHexField { get; set; } = "Hex";
 

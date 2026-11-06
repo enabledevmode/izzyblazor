@@ -100,6 +100,11 @@ class ColorPanel extends IzzyElement {
       }
     }, { signal });
 
+    // The original color, chosen again.
+    this.querySelector<HTMLElement>("[data-ib-original]")?.addEventListener("click", (event) => {
+      this.take(parse((event.currentTarget as HTMLElement).dataset.ibOriginal!), true);
+    }, { signal });
+
     const dropper = this.querySelector<HTMLElement>("[data-ib-eyedropper]");
     if (dropper && "EyeDropper" in window) {
       dropper.hidden = false;
@@ -200,6 +205,7 @@ class ColorPanel extends IzzyElement {
     const pct = (n: number) => Math.round(n * 100);
     this.style.setProperty("--ib-cp-hue", String(Math.round(this.#h)));
     this.style.setProperty("--ib-cp-color", this.#empty ? "transparent" : opaque);
+    this.style.setProperty("--ib-cp-alpha", String(this.#a));
     const area = this.querySelector<HTMLElement>(".ib-cp-area");
     if (area) {
       area.style.setProperty("--ib-cp-x", `${pct(this.#s)}%`);

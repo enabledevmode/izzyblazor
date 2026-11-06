@@ -16,7 +16,9 @@
 
     Accessibility:
     - It's a group named by the label. The swatches are a radio group, each named by SwatchText or
-      by its color's name ("light green"); the chosen one shows a check mark, not only a ring.
+      by its color's name ("light green"); the chosen one has a ring around it, set apart from the
+      swatch by a gap, so it shows on any color, and the focus outline sits outside that.
+    - With Original, the preview's lower half is a button that restores it ("Restore dark blue").
     - The area is one slider with the role "2D slider": its value says both numbers and the
       color's name ("Saturation 45%, brightness 80%, dark blue"). Left and Right change the
       saturation, Up and Down the brightness.
@@ -50,7 +52,6 @@
                     <label class="ib-cp-swatch ib-cp-swatch-none" title="@TextDefaults.ColorNone">
                         <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="" checked="@(_rgba is null)"
                                id="@(_firstControl == "swatch" ? FieldId : null)" aria-label="@TextDefaults.ColorNone" disabled="@(IsDisabled || IsReadOnly)" />
-                        <Icon Name="Lucide.Check" Class="ib-cp-check" />
                     </label>
                 }
                 @for (var i = 0; i < _swatches.Length; i++)
@@ -60,7 +61,6 @@
                     <label class="ib-cp-swatch" style="--ib-cp-swatch: @swatch" title="@name">
                         <input type="radio" class="ib-cp-swatch-input" name="@NameAttributeValue" value="@swatch" checked="@(swatch == _hex)"
                                id="@(_firstControl == "swatch" && i == 0 && !Clearable ? FieldId : null)" aria-label="@name" disabled="@(IsDisabled || IsReadOnly)" />
-                        <Icon Name="Lucide.Check" Class="ib-cp-check" />
                     </label>
                 }
             </div>
@@ -74,18 +74,39 @@
                  style="--ib-cp-x: @Pct(_hsv.S)%; --ib-cp-y: @(100 - Pct(_hsv.V))%">
                 <span class="ib-cp-thumb"></span>
             </div>
-            <div class="ib-cp-slider ib-cp-hue" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="hue"
-                 aria-label="@TextDefaults.ColorHue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="@((int)Math.Round(_hsv.H))" aria-valuetext="@HueText"
-                 aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Num(_hsv.H / 3.6)%">
-                <span class="ib-cp-thumb"></span>
-            </div>
         }
-        @if (ShowAlpha)
+        @if (ShowPicker || ShowAlpha)
         {
-            <div class="ib-cp-slider ib-cp-alpha" data-ib-script role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="alpha"
-                 aria-label="@TextDefaults.ColorOpacity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Pct(_rgba?.A ?? 1)" aria-valuetext="@($"{Pct(_rgba?.A ?? 1)}%")"
-                 aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Pct(_rgba?.A ?? 1)%">
-                <span class="ib-cp-thumb"></span>
+            @* The sliders, and beside them the color as it is (over the original, when there is one). *@
+            <div class="ib-cp-row" data-ib-script>
+                <div class="ib-cp-sliders">
+                    @if (ShowPicker)
+                    {
+                        <div class="ib-cp-slider ib-cp-hue" role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="hue"
+                             aria-label="@TextDefaults.ColorHue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="@((int)Math.Round(_hsv.H))" aria-valuetext="@HueText"
+                             aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Num(_hsv.H / 3.6)%">
+                            <span class="ib-cp-thumb"></span>
+                        </div>
+                    }
+                    @if (ShowAlpha)
+                    {
+                        <div class="ib-cp-slider ib-cp-alpha" role="slider" tabindex="@(IsDisabled ? null : "0")" data-ib-channel="alpha"
+                             aria-label="@TextDefaults.ColorOpacity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Pct(_rgba?.A ?? 1)" aria-valuetext="@($"{Pct(_rgba?.A ?? 1)}%")"
+                             aria-disabled="@(IsDisabled || IsReadOnly ? "true" : null)" style="--ib-cp-x: @Pct(_rgba?.A ?? 1)%">
+                            <span class="ib-cp-thumb"></span>
+                        </div>
+                    }
+                </div>
+                <div class="ib-cp-preview">
+                    <span class="ib-cp-preview-new"></span>
+                    @if (ColorPanelMath.Parse(Original) is { } original)
+                    {
+                        var originalHex = ColorPanelMath.ToHex(ShowAlpha ? original : original with { A = 1 });
+                        var restore = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColorRestore, ColorPanelMath.Name(original, TextDefaults));
+                        <button type="button" class="ib-cp-preview-old" style="--ib-cp-old: @originalHex" data-ib-original="@originalHex"
+                                aria-label="@restore" title="@restore" disabled="@(IsDisabled || IsReadOnly)"></button>
+                    }
+                </div>
             </div>
         }
         @if (ShowFields)
@@ -157,6 +178,12 @@
 
     /// <summary>An eyedropper button beside the fields, shown only in browsers that have one (Chromium).</summary>
     [Parameter] public bool ShowEyedropper { get; set; }
+
+    /// <summary>
+    /// A color to compare with, such as the one a popup opened with: shown under the current one in
+    /// the preview, and chosen again by a click there.
+    /// </summary>
+    [Parameter] public string? Original { get; set; }
 
     /// <summary>Makes the field read-only: nothing changes it, and it still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
