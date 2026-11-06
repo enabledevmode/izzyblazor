@@ -156,7 +156,7 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
     {
         Key = key,
         Value = _value,
-        Caption = HeaderText,
+        Caption = FullName,
         Format = Format,
         Sortable = CanSort,
         Filterable = CanFilter || (GroupBy is null && Table?.GroupsBy(this) == true),

@@ -1841,7 +1841,8 @@
             "static": "Headers and page numbers are links; Blazor's enhanced navigation swaps the page in without a full reload.",
             "interactive": "Headers and page numbers are links, and the table follows the URL." } },
         { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
-        { "id": "table-stacked", "widthSwitch": true, "title": "Rows that stack on a phone", "lead": "On a phone, a table too narrow for its columns can turn each row into a card, with each column's title beside its value, instead of scrolling sideways. Set `SmallScreen=\"TableSmallScreen.Stack\"`. The column titles stay in a row above, with their sort and filter buttons. The table goes by its own width, which the server works out from its columns, or by `StackBelow` if you set it. It works with JavaScript off." }
+        { "id": "table-stacked", "widthSwitch": true, "title": "Rows that stack on a phone", "lead": "On a phone, a table too narrow for its columns can turn each row into a card, with each column's title beside its value, instead of scrolling sideways. Set `SmallScreen=\"TableSmallScreen.Stack\"`. The column titles stay in a row above, with their sort and filter buttons. The table goes by its own width, which the server works out from its columns, or by `StackBelow` if you set it. It works with JavaScript off." },
+        { "id": "table-bands", "widthSwitch": true, "title": "Column bands", "lead": "A column band is a header over several columns, such as a week over its planned and logged hours. Put the columns in a `ColumnBand` with a `Title`. Screen readers say the band's name before each of its columns' names, and on a phone a stacked row names it beside each value. Sorting and filtering stay on the columns." }
       ],
       "topics": [
         {

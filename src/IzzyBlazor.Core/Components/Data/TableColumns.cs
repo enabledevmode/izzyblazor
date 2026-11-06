@@ -219,7 +219,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     {
         Key = GroupField,
         Value = value,
-        Caption = HeaderText,
+        Caption = FullName,
         Sortable = true,
         Filterable = true,
         Groupable = true,
@@ -325,6 +325,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     internal string HeaderText => Title ?? DefaultTitle ?? "";
 
+    /// <summary>Its title with its bands', for where it's named away from its header: "Q1 Revenue".</summary>
+    internal string FullName => Band is null || Table is null ? HeaderText : Table.FullName(this);
+
     internal string? Key => SortKey ?? DefaultSortKey;
 
     internal bool CanSort => Sortable && Key is not null && HasSortExpression;
@@ -392,7 +395,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed, string? rowForm) => builder =>
     {
         var field = placed();
-        var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = field?.Label ?? HeaderText };
+        var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = field?.Label ?? FullName };
         if (rowForm is not null)
         {
             attributes["form"] = rowForm;
@@ -699,7 +702,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     {
         Key = key,
         Value = Property,
-        Caption = HeaderText,
+        Caption = FullName,
         Format = Format,
         Sortable = CanSort,
         Filterable = CanFilter || (GroupBy is null && Table?.GroupsBy(this) == true),
@@ -761,7 +764,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         {
             var field = placed();
             OpenField(builder);
-            builder.AddComponentParameter(1, "Label", field?.Label ?? HeaderText);
+            builder.AddComponentParameter(1, "Label", field?.Label ?? FullName);
             builder.AddComponentParameter(2, "Value", (TValue)property.GetValue(model)!);
             builder.AddComponentParameter(3, "ValueChanged", changed);
             builder.AddComponentParameter(4, "ValueExpression", value);
@@ -909,7 +912,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
             // Nothing to read but the aggregate.
             Key = AggregateKey,
             Value = (Expression<Func<TItem, int>>)(_ => 0),
-            Caption = HeaderText,
+            Caption = FullName,
             Aggregatable = true,
             AggregateBy = AggregateBy,
         }
@@ -920,7 +923,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         Aggregatable = HasAggregate,
         AggregateBy = AggregateBy,
         SortValue = FilterBy is null ? null : SortBy,
-        Caption = HeaderText,
+        Caption = FullName,
         Sortable = CanSort,
         Filterable = CanFilter,
         Searchable = FilterBy is not null,
