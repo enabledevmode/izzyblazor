@@ -130,17 +130,17 @@
     container-type: normal;
   }
 
-  /* All the units wrap as one row of items, so the end ones join the last row, on its right; a
-     separator that starts or ends a row is hidden (data-ib-edge, set by the script). */
-  .ib-toolbar-wrap > :is(.ib-toolbar-start, .ib-toolbar-end) {
+  /* Every control wraps on its own, groups too, filling each row; the end ones go on the last
+     row's right, and a separator that starts or ends a row is hidden (set by the script). */
+  .ib-toolbar-wrap :is(.ib-toolbar-start, .ib-toolbar-end, .ib-toolbar-unit, .ib-btn-group:not(.ib-btn-group-attached)) {
     display: contents;
   }
 
-  .ib-toolbar-wrap > .ib-toolbar-end > :first-child {
+  .ib-toolbar-wrap > .ib-toolbar-end > :first-child :first-child {
     margin-inline-start: auto;
   }
 
-  .ib-toolbar-unit[data-ib-edge] {
+  .ib-toolbar [data-ib-edge] {
     visibility: hidden;
   }
 }

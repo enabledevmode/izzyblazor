@@ -73,8 +73,6 @@
   .ib-rich-text-preview-h3 { font-size: 1.15em; }
   .ib-rich-text-preview-h5 { font-size: 0.9em; }
   .ib-rich-text-preview-h6 { font-size: 0.8em; }
-  .ib-rich-text-preview-blockquote { padding-inline-start: var(--ib-space-2); border-inline-start: 3px solid var(--ib-color-outline); font-style: italic; }
-  .ib-rich-text-preview-pre { font-family: var(--ib-font-mono); font-size: 0.9em; }
 
   .ib-rich-text-surface {
     position: relative;

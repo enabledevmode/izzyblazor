@@ -1,12 +1,12 @@
 @* Every format the editor makes, as one onboarding guide. *@
-<RichTextEditor Grow @bind-Value="_guide" Label="Onboarding guide" Rows="12" TopHeading="2" />
+<RichTextEditor Grow @bind-Value="_guide" Label="Onboarding guide" Rows="12" />
 
 @code {
     private string? _guide =
         """
-        <h2>Your first week</h2>
+        <h1>Your first week</h1>
         <p>Welcome to the team. This guide covers what to set up before <strong>Friday</strong>, who to ask, and what to <em>skip for now</em>. The old wiki is <s>still the source of truth</s> being retired, so <u>use this guide</u> instead.</p>
-        <h3>Accounts</h3>
+        <h2>Accounts</h2>
         <ol>
           <li>Sign in to your laptop with the password from IT.</li>
           <li>Set up two-step sign-in:
@@ -17,10 +17,10 @@
           </li>
           <li>Join the <code>#team-platform</code> channel.</li>
         </ol>
-        <h4>If something doesn't work</h4>
+        <h3>If something doesn't work</h3>
         <p>Restart once, then ask in <code>#it-help</code> with a screenshot.</p>
         <blockquote>Nobody expects you to ship anything in your first week. Ask questions.</blockquote>
-        <h3>Your development setup</h3>
+        <h2>Your development setup</h2>
         <p>Clone the main repository and run the setup script:</p>
         <pre><code>git clone https://example.com/platform.git
         cd platform

@@ -348,6 +348,11 @@ class RichText extends IzzyElement {
       case "code":
         this.toggleCode();
         break;
+      case "quote":
+      case "codeblock":
+        // A toggle: on, the text's blocks become a quote or code block; on again, normal text.
+        this.formatBlock(command === "quote" ? "blockquote" : "pre");
+        break;
       case "link": {
         const dialog = this.querySelector<HTMLElement>(":scope > .ib-rich-text-link");
         if (!dialog) return;
@@ -395,17 +400,20 @@ class RichText extends IzzyElement {
         if (this.around("code")) this.toggleCode();
         exec("removeFormat");
         break;
-      case "block": {
-        // Choosing the style the text has already turns it back into a paragraph.
-        const current = this.blockStyle();
-        const style = value === current && value !== "p" ? "p" : value ?? "p";
-        if (current === "blockquote" && style !== "blockquote") exec("outdent");
-        exec("formatBlock", `<${style}>`);
+      case "block":
+        this.formatBlock(value ?? "p");
         break;
-      }
     }
     this.changed();
     this.reflect();
+  }
+
+  /** Makes the selection's blocks a style; the style they have already turns them back to normal text. */
+  private formatBlock(value: string): void {
+    const current = this.blockStyle();
+    const style = value === current && value !== "p" ? "p" : value;
+    if (current === "blockquote" && style !== "blockquote") exec("outdent");
+    exec("formatBlock", `<${style}>`);
   }
 
   /** The nearest element around the selection matching the selector, inside the text. */
@@ -481,6 +489,8 @@ class RichText extends IzzyElement {
       subscript: document.queryCommandState("subscript"),
       superscript: document.queryCommandState("superscript"),
       code: !!this.around("code") && !this.around("pre"),
+      quote: !!this.around("blockquote"),
+      codeblock: !!this.around("pre"),
       link: !!this.around("a"),
       bulleted: list === "ul",
       numbered: list === "ol",
@@ -493,7 +503,7 @@ class RichText extends IzzyElement {
     }
     // Each menu checks the caret's choice; one with a text button shows it there.
     const current: Record<string, string> = {
-      block: this.blockStyle(),
+      block: /^h[1-6]$/.test(this.blockStyle()) ? this.blockStyle() : "p",
       font: format?.formatAt(surface, "font") ?? "",
       size: format?.formatAt(surface, "size") ?? "",
       color: format?.formatAt(surface, "color") ?? "",

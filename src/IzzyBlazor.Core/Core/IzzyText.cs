@@ -1239,16 +1239,16 @@ public class IzzyText
     /// <summary>A RichTextEditor's group of undo and redo.</summary>
     public virtual string RichTextHistory { get; set; } = "History";
 
-    /// <summary>A RichTextEditor's text style: a plain paragraph.</summary>
-    public virtual string RichTextParagraph { get; set; } = "Paragraph";
+    /// <summary>A RichTextEditor's text style: normal text, not a heading.</summary>
+    public virtual string RichTextParagraph { get; set; } = "Normal text";
 
     /// <summary>A RichTextEditor's text style: a heading. {0} is its level, 2 to 4.</summary>
     public virtual string RichTextHeading { get; set; } = "Heading {0}";
 
-    /// <summary>A RichTextEditor's text style: a quote.</summary>
+    /// <summary>A RichTextEditor's quote tool.</summary>
     public virtual string RichTextQuote { get; set; } = "Quote";
 
-    /// <summary>A RichTextEditor's text style: a code block.</summary>
+    /// <summary>A RichTextEditor's code block tool.</summary>
     public virtual string RichTextCodeBlock { get; set; } = "Code block";
 
     /// <summary>A RichTextEditor's bold tool.</summary>
