@@ -1,0 +1,45 @@
+@* The page reads the search from the URL and filters its own list. Screen readers hear the count after each search. *@
+<Stack Gap="4" MaxWidth="34.Rem" Grow>
+    <FilterForm Label="Filter people">
+        <FilterSearch Placeholder="Search by name or team" />
+    </FilterForm>
+    <LiveRegion Text="@(Matches.Count == 1 ? "1 person" : $"{Matches.Count} people")" />
+    <List Plain Gap="3">
+        @foreach (var person in Matches)
+        {
+            <ListItem>
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@person.Name" Decorative Size="AvatarSize.Sm" />
+                    <TextBlock As="span" Grow>@person.Name</TextBlock>
+                    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@person.Team</TextBlock>
+                </Row>
+            </ListItem>
+        }
+    </List>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
+
+    private List<Person> Matches => All
+        .Where(p => string.IsNullOrWhiteSpace(Search)
+            || p.Name.Contains(Search, StringComparison.OrdinalIgnoreCase)
+            || p.Team.Contains(Search, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    @* hide *@
+    private static readonly Person[] All =
+    [
+        new("Amara Okafor", "Design"),
+        new("Ben Hartley", "Engineering"),
+        new("Chen Wei", "Engineering"),
+        new("Dana Fischer", "Sales"),
+        new("Elif Demir", "Support"),
+        new("Farid Haddad", "Engineering"),
+        new("Grace Lindqvist", "Design"),
+        new("Hugo Moreau", "Finance"),
+    ];
+
+    private sealed record Person(string Name, string Team);
+    @* /hide *@
+}

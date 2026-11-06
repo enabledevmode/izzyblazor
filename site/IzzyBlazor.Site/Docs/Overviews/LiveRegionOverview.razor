@@ -1,0 +1,70 @@
+@* LiveRegion's Overview, written by hand: state text that's read when it changes (LiveRegion), and
+   messages about what just happened (Announcer, with AnnouncerRegion for static pages), each
+   previewed in each mode. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>Screen readers read the page where the user is. When something changes elsewhere, such as a list that filters or a row that disappears, screen reader users don't hear about it unless the page tells them. IzzyBlazor tells them two ways:</TextBlock>
+<List Gap="2">
+    <ListItem><Code>LiveRegion</Code> holds hidden text that describes the page's state, such as "4 people". Screen readers read it each time the text changes.</ListItem>
+    <ListItem><Code>Announcer</Code> tells screen reader users about something that just happened, such as "Revoked the invite". Call it from a form post or a C# handler.</ListItem>
+</List>
+<TextBlock>Components announce their own changes: <Anchor Href="docs/components/toast-region">toasts</Anchor>, a <Anchor Href="docs/components/copy-button">CopyButton</Anchor>'s "Copied", moves in a reorderable list. Use these for your own.</TextBlock>
+
+<Heading Level="2">Reading a count</Heading>
+<TextBlock>Put a <Code>LiveRegion</Code> next to the content it describes, and set its <Code>Text</Code> from the same data. This list reads the number of people after each search:</TextBlock>
+<ExampleViewer Example="live-region-results" />
+<TextBlock>Screen readers only notice changes in a region that was already on the page, so put the LiveRegion on the page from the start, not inside an <Code>@@if</Code>. The text it first renders with isn't read. Setting the same text again isn't read either, since nothing changed.</TextBlock>
+<TextBlock>For a status that shows on the page, such as a visible "4 of 8 people", put <Code>role="status"</Code> on the element that shows it rather than repeating it in a LiveRegion.</TextBlock>
+
+<Heading Level="2">Announcing an action</Heading>
+<TextBlock>To tell screen reader users what just happened, call <Code>Announce</Code> on the injected <Code>Announcer</Code>. Revoking an invite removes its row, and the announcement says which one went:</TextBlock>
+<ExampleViewer Example="live-region-announce" />
+<TextBlock>Every call is read, the same words twice included. On interactive pages, the message goes to the browser at once. On static pages, it renders in the response, so put an <Code>AnnouncerRegion</Code> in your layout. A <Code>ToastRegion</Code> already includes one, so a layout with toasts needs nothing more. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
+<TextBlock>With JavaScript off, messages aren't read. Put the outcome where focus lands instead: a <Anchor Href="docs/components/form">Form</Anchor>'s errors take focus after a failed post.</TextBlock>
+<TextBlock>Announce in response to an action, not in <Code>OnInitialized</Code>, which runs twice on a prerendered interactive page.</TextBlock>
+
+<Heading Level="2">Interrupting</Heading>
+<TextBlock>Both are polite by default: the screen reader finishes what it's saying first. For an error that stops the task, set <Code>Assertive</Code> on a LiveRegion, or pass <Code>assertive: true</Code> to <Code>Announce</Code>. An assertive message cuts off what's being read, so keep it for errors.</TextBlock>
+<Code Block Language="razor">@Assertive</Code>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* State: read each time the text changes *@
+        <LiveRegion Text="@($"{matches.Count} people")" />
+
+        @* Something that just happened *@
+        @inject Announcer Announcer
+
+        Announcer.Announce("Revoked the invite.");
+
+        @* MainLayout.razor, once for the app, for static pages (a ToastRegion has one) *@
+        <AnnouncerRegion />
+        """;
+
+    private const string Assertive = """
+        <LiveRegion Text="@uploadError" Assertive />
+
+        Announcer.Announce("Couldn't save: you're offline.", assertive: true);
+        """;
+}

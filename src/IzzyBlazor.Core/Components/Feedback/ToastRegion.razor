@@ -25,6 +25,7 @@
       while the browser tab is hidden.
     - With script, the close control is a `button` named "Dismiss" (`DismissLabel`); when a
       focused toast closes, focus moves to the next open toast, or back to where it came from.
+    - It also renders an AnnouncerRegion, for Announcer's messages from static pages.
     - A toast doesn't take focus when it appears, so an action in it should also be reachable
       somewhere else.
     See also: Alert, Banner, Dialog.
@@ -63,6 +64,8 @@
         </template>
     }
 </ib-toasts>
+@* Announcer's messages from static pages, so a layout with toasts needs no AnnouncerRegion. *@
+<AnnouncerRegion />
 
 @code {
     /// <summary>Where toasts stack. Defaults to <see cref="ToastPlacement.BottomEnd"/>.</summary>

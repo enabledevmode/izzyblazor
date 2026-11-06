@@ -16,9 +16,10 @@
 // built files are exactly these). A list, not an import() each: every page downloads this one.
 // Not elements, loaded by other code: password (a password TextField's Caps Lock warning and
 // requirements) and mask (a TextField's Mask), by field-control.ts; reconnect (ReconnectDialog's
-// code), with the first reconnection state (reconnect.ts).
+// code), with the first reconnection state (reconnect.ts); announce (Announcer's messages), by
+// index.ts on the first message.
 const lazyNames =
-  "combobox table grid grid-columns grid-edit filter-form filter-list filter-builder file-upload color-picker duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tree treeselect pick-list splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect".split(" ");
+  "combobox table grid grid-columns grid-edit filter-form filter-list filter-builder file-upload color-picker duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tree treeselect pick-list splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect announce".split(" ");
 
 const loading = new Map<string, Promise<unknown>>();
 const failures = new Map<string, number>();
