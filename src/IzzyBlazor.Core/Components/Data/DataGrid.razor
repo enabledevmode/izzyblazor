@@ -1949,55 +1949,98 @@
                 </button>
             </Trigger>
             <ChildContent>
+                @{ var groups = new List<RenderFragment>(); }
+                @if (column.CanSort)
+                {
+                    var sorted = SortedDescending(column);
+                    groups.Add(@<text>
+                        @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending, sorted == false)
+                        @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending, sorted == true)
+                        @if (sorted is not null)
+                        {
+                            @SortItem(column, null, Lucide.X, TextDefaults.ColumnSortClear, false)
+                        }
+                    </text>);
+                }
                 @if (CanGroupBy(column))
                 {
                     var grouped = GroupsBy(column);
-                    @if (UseState)
-                    {
-                        <MenuItem OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
-                    }
-                    else
-                    {
-                        <MenuItem Href="@GroupHref(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
-                    }
-                    @if (CanMove(column) || CanResize(column))
-                    {
-                        <MenuDivider />
-                    }
-                }
-                @if (CanMove(column))
-                {
-                    <MenuItem Disabled="zone.FirstOrDefault() == (object)column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
-                    <MenuItem Disabled="zone.LastOrDefault() == (object)column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
-                    @if (CanResize(column) || RowHref is null)
-                    {
-                        <MenuDivider />
-                    }
-                }
-                @if (CanResize(column))
-                {
-                    <MenuItem data-ib-col-action="wider" data-ib-col="@key">@TextDefaults.ColumnWider</MenuItem>
-                    <MenuItem data-ib-col-action="narrower" data-ib-col="@key">@TextDefaults.ColumnNarrower</MenuItem>
-                    <MenuItem Disabled="CurrentLayout?.Column(key)?.Width is null || (frozen != ColumnFrozen.None && column.Width is null)" data-ib-col-action="reset-width" data-ib-col="@key">@TextDefaults.ColumnResetWidth</MenuItem>
-                    @if (CanMove(column) && RowHref is null)
-                    {
-                        <MenuDivider />
-                    }
+                    groups.Add(UseState
+                        ? @<MenuItem Icon="Lucide.Rows3" OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                        : @<MenuItem Icon="Lucide.Rows3" Href="@GroupHref(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>);
                 }
                 @if (CanMove(column) && RowHref is null)
                 {
-                    if (frozen == ColumnFrozen.None)
+                    groups.Add(FreezeSub(frozen, "data-ib-col", key));
+                }
+                @if (CanResize(column))
+                {
+                    groups.Add(@<text>
+                        <MenuItem Icon="Lucide.ArrowLeftRight" data-ib-col-action="fit" data-ib-col="@key">@TextDefaults.ColumnFit</MenuItem>
+                        <MenuItem Icon="Lucide.ChevronsLeftRight" data-ib-col-action="fit-all" data-ib-col="@key">@TextDefaults.ColumnFitAll</MenuItem>
+                        <MenuSub Label="@TextDefaults.ColumnSize" Icon="Lucide.Ruler">
+                            <MenuItem data-ib-col-action="wider" data-ib-col="@key">@TextDefaults.ColumnWider</MenuItem>
+                            <MenuItem data-ib-col-action="narrower" data-ib-col="@key">@TextDefaults.ColumnNarrower</MenuItem>
+                            <MenuItem Disabled="CurrentLayout?.Column(key)?.Width is null || (frozen != ColumnFrozen.None && column.Width is null)" data-ib-col-action="reset-width" data-ib-col="@key">@TextDefaults.ColumnResetWidth</MenuItem>
+                        </MenuSub>
+                    </text>);
+                }
+                @if (CanMove(column))
+                {
+                    groups.Add(@<text>
+                        <MenuItem Icon="Lucide.ArrowLeft" Disabled="zone.FirstOrDefault() == (object)column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
+                        <MenuItem Icon="Lucide.ArrowRight" Disabled="zone.LastOrDefault() == (object)column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
+                    </text>);
+                }
+                @if (HasPicker || Rearrangeable)
+                {
+                    groups.Add(@<text>
+                        @if (HasPicker && column.Pickable)
+                        {
+                            <MenuItem Icon="Lucide.EyeOff" Disabled="@(Shown.Count <= 1)" data-ib-col-action="hide" data-ib-col="@key">@TextDefaults.ColumnHide</MenuItem>
+                        }
+                        @if (HasPicker)
+                        {
+                            <MenuItem Icon="Lucide.Columns3" data-ib-col-action="choose" data-ib-col="@key">@TextDefaults.ColumnChoose</MenuItem>
+                        }
+                        <MenuItem Icon="Lucide.RotateCcw" data-ib-col-action="reset">@TextDefaults.ColumnsReset</MenuItem>
+                    </text>);
+                }
+                @for (var i = 0; i < groups.Count; i++)
+                {
+                    if (i > 0)
                     {
-                        <MenuItem data-ib-col-action="freeze-start" data-ib-col="@key">@TextDefaults.ColumnFreezeStart</MenuItem>
-                        <MenuItem data-ib-col-action="freeze-end" data-ib-col="@key">@TextDefaults.ColumnFreezeEnd</MenuItem>
+                        <MenuDivider />
                     }
-                    else
-                    {
-                        <MenuItem data-ib-col-action="unfreeze" data-ib-col="@key">@TextDefaults.ColumnUnfreeze</MenuItem>
-                    }
+                    @groups[i]
                 }
             </ChildContent>
         </Menu>
+    };
+
+    // A column menu's sort item: a link on static pages, as the header's is; checked when it's the sort now.
+    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text, bool current) => __builder =>
+    {
+        if (UseState)
+        {
+            <MenuItem Icon="icon" Disabled="current" OnClick="() => SortToAsync(column, descending)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="icon" Disabled="current" Href="@SortToHref(column, descending)">@text</MenuItem>
+        }
+    };
+
+    // Freeze column ›: the edge it's at, checked. The script freezes a band as one.
+    private RenderFragment FreezeSub(ColumnFrozen frozen, string by, object id) => __builder =>
+    {
+        <MenuSub Label="@TextDefaults.ColumnFreeze" Icon="Lucide.Pin">
+            <MenuRadioGroup Value="@(frozen switch { ColumnFrozen.Start => "start", ColumnFrozen.End => "end", _ => "none" })">
+                <MenuItem Value="start" data-ib-col-action="freeze-start" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnFrozenStart</MenuItem>
+                <MenuItem Value="end" data-ib-col-action="freeze-end" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnFrozenEnd</MenuItem>
+                <MenuItem Value="none" data-ib-col-action="unfreeze" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnNotFrozen</MenuItem>
+            </MenuRadioGroup>
+        </MenuSub>
     };
 
     // What a column or band moves among: the columns and bands in its band (or outside any), in its
@@ -2067,21 +2110,13 @@
                     </button>
                 </Trigger>
                 <ChildContent>
-                    <MenuItem Disabled="zone.FirstOrDefault() == (object)band" data-ib-col-action="left" data-ib-band="@id">@TextDefaults.ColumnMoveStart</MenuItem>
-                    <MenuItem Disabled="zone.LastOrDefault() == (object)band" data-ib-col-action="right" data-ib-band="@id">@TextDefaults.ColumnMoveEnd</MenuItem>
                     @if (RowHref is null && band.Parent is null)
                     {
+                        @FreezeSub(frozen, "data-ib-band", id)
                         <MenuDivider />
-                        if (frozen == ColumnFrozen.None)
-                        {
-                            <MenuItem data-ib-col-action="freeze-start" data-ib-band="@id">@TextDefaults.ColumnFreezeStart</MenuItem>
-                            <MenuItem data-ib-col-action="freeze-end" data-ib-band="@id">@TextDefaults.ColumnFreezeEnd</MenuItem>
-                        }
-                        else
-                        {
-                            <MenuItem data-ib-col-action="unfreeze" data-ib-band="@id">@TextDefaults.ColumnUnfreeze</MenuItem>
-                        }
                     }
+                    <MenuItem Icon="Lucide.ArrowLeft" Disabled="zone.FirstOrDefault() == (object)band" data-ib-col-action="left" data-ib-band="@id">@TextDefaults.ColumnMoveStart</MenuItem>
+                    <MenuItem Icon="Lucide.ArrowRight" Disabled="zone.LastOrDefault() == (object)band" data-ib-col-action="right" data-ib-band="@id">@TextDefaults.ColumnMoveEnd</MenuItem>
                 </ChildContent>
             </Menu>
         </div>
