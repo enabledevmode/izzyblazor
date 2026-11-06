@@ -134,62 +134,89 @@
     pointer-events: none;
   }
 
-  /* The link dialog: a small panel under the selection (placed by the script). */
-  .ib-rich-text-link {
-    width: min(22rem, calc(100vw - 1rem));
-    padding: var(--ib-space-3);
-    border: 1px solid var(--ib-color-outline);
-    border-radius: var(--ib-radius-md);
-    background: var(--ib-color-surface);
-    color: var(--ib-color-on-surface);
-    box-shadow: var(--ib-shadow-lg);
-  }
-
-  .ib-rich-text-link:popover-open {
+  /* The link and image dialogs: the library's Dialog look, fields one under another. */
+  .ib-rich-text-dialog > .ib-dialog-body {
     display: grid;
-    gap: var(--ib-space-3);
+    gap: var(--ib-space-4);
   }
 
   /* Fields and buttons set their own display, so hidden ones need saying here. */
-  .ib-rich-text-link [hidden] {
+  .ib-rich-text-dialog [hidden] {
     display: none;
   }
 
-  .ib-rich-text-image-source {
-    display: flex;
-    gap: var(--ib-space-2);
-  }
-
-  .ib-rich-text-image-upload {
-    flex: none;
-    cursor: pointer;
-  }
-
-  .ib-rich-text-image-upload:focus-within {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-    outline-offset: 2px;
-  }
-
-  /* An image the caret is on is selected as a whole; a description it lacks shows. */
-  .ib-rich-text-surface img::selection {
-    background: transparent;
-  }
-
-  .ib-rich-text-surface img[data-ib-selected] {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-  }
-
-  .ib-rich-text-link-tab {
+  .ib-rich-text-check {
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
     font-size: var(--ib-text-sm);
   }
 
-  .ib-rich-text-link-actions {
+  .ib-rich-text-dialog .ib-rich-text-remove {
+    margin-inline-end: auto;
+  }
+
+  .ib-rich-text-tabs {
     display: flex;
-    justify-content: flex-end;
+    gap: var(--ib-space-4);
+    border-block-end: 1px solid var(--ib-color-border);
+  }
+
+  .ib-rich-text-tabs > [role="tab"] {
+    padding: var(--ib-space-2) 0;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    margin-block-end: -1px;
+    background: none;
+    color: var(--ib-color-muted);
+    font: inherit;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    cursor: pointer;
+  }
+
+  .ib-rich-text-tabs > [aria-selected="true"] {
+    border-block-end-color: var(--ib-color-primary);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-rich-text-drop {
+    display: grid;
+    justify-items: center;
     gap: var(--ib-space-2);
+    padding: var(--ib-space-6) var(--ib-space-4);
+    border: 1px dashed var(--ib-color-outline);
+    border-radius: var(--ib-radius-md);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-rich-text-drop[data-ib-over] {
+    border-color: var(--ib-color-primary);
+    background: var(--ib-color-fill);
+  }
+
+  .ib-rich-text-drop-choose:focus-within {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-rich-text-drop-preview {
+    max-width: 100%;
+    max-height: 8rem;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-rich-text-image-size {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: var(--ib-space-2);
+  }
+
+  /* An image clicked in the text is marked, for the image tool and Delete. */
+  .ib-rich-text-surface img[data-ib-selected] {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-field-rich-text:has(.ib-field-count) {

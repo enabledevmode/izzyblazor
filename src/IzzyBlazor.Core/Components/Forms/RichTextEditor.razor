@@ -27,10 +27,11 @@
       their format (`aria-pressed`), and each lists its shortcut (`aria-keyshortcuts`, and the
       tooltip).
     - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it.
-    - The image tool opens a dialog that asks for a description (alternative text) or for the
-      image to be marked decorative; it opens on its own after an image is pasted or dropped.
-    - The link tool opens a small dialog (Address, Text, Open in a new tab); Escape closes it and
-      puts focus back in the text.
+    - The link and image tools open modal dialogs, named by their titles ("Add link", "Edit
+      image"); Escape or Cancel closes them and puts focus back in the text, with its selection.
+    - The image dialog asks for a description (alternative text) or for the image to be marked
+      decorative; it opens on its own after an image is pasted or dropped. Its two sources are
+      tabs (arrow keys move between them).
     - With `ShowCount`, the count ("120 / 2000") is part of the text's description; it isn't
       announced as it changes.
     - With JavaScript off, it's a textarea of the HTML with the field's label.
@@ -103,23 +104,29 @@
                   aria-describedby="@DescribedBy"></textarea>
         @if (Has(RichTextTools.Link) && ShowsToolbar)
         {
-            @* Opened by the link tool or Ctrl+K, under the selection. Its fields have no name, so
-               they never post with the form around the editor. *@
-            <div class="ib-rich-text-link" popover role="dialog" aria-label="@TextDefaults.RichTextLink">
-                <div class="ib-field">
-                    <label class="ib-field-label" for="@(FieldId)-link-href">@TextDefaults.RichTextLinkAddress</label>
-                    <input class="ib-field-input" id="@(FieldId)-link-href" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-link="href" />
+            @* The link tool's dialog (Ctrl+K too), modal like the library's Dialog. Its fields have no
+               name, so they never post with the form around the editor. *@
+            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-link" aria-labelledby="@(FieldId)-link-title">
+                <header class="ib-dialog-header">
+                    <h2 class="ib-dialog-title" id="@(FieldId)-link-title" data-ib-link="title" data-ib-add="@TextDefaults.RichTextLinkAdd" data-ib-edit="@TextDefaults.RichTextLinkEdit">@TextDefaults.RichTextLinkAdd</h2>
+                </header>
+                <div class="ib-dialog-body">
+                    <div class="ib-field">
+                        <label class="ib-field-label" for="@(FieldId)-link-href">@TextDefaults.RichTextLinkAddress</label>
+                        <input class="ib-field-input" id="@(FieldId)-link-href" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-link="href" />
+                    </div>
+                    <div class="ib-field">
+                        <label class="ib-field-label" for="@(FieldId)-link-text">@TextDefaults.RichTextLinkText</label>
+                        <input class="ib-field-input" id="@(FieldId)-link-text" type="text" autocomplete="off" data-ib-link="text" />
+                    </div>
+                    <label class="ib-rich-text-check"><input type="checkbox" data-ib-link="tab" /> @TextDefaults.RichTextLinkNewTab</label>
+                    <footer class="ib-dialog-footer">
+                        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-link="remove">@TextDefaults.RichTextLinkRemove</Button>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-link="cancel">@TextDefaults.Cancel</Button>
+                        <Button Size="ControlSize.Sm" data-ib-link="apply">@TextDefaults.RichTextLinkApply</Button>
+                    </footer>
                 </div>
-                <div class="ib-field" data-ib-link="text-field">
-                    <label class="ib-field-label" for="@(FieldId)-link-text">@TextDefaults.RichTextLinkText</label>
-                    <input class="ib-field-input" id="@(FieldId)-link-text" type="text" autocomplete="off" data-ib-link="text" />
-                </div>
-                <label class="ib-rich-text-link-tab"><input type="checkbox" data-ib-link="tab" /> @TextDefaults.RichTextLinkNewTab</label>
-                <div class="ib-rich-text-link-actions">
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" data-ib-link="remove">@TextDefaults.RichTextLinkRemove</Button>
-                    <Button Size="ControlSize.Sm" data-ib-link="apply">@TextDefaults.RichTextLinkApply</Button>
-                </div>
-            </div>
+            </dialog>
         }
         @if (ShowsCount)
         {
@@ -130,32 +137,56 @@
         {
             @* The image tool's dialog, opened by the tool, and after an image is pasted or dropped so
                it gets a description. Its fields have no name, so they never post with the form. *@
-            <div class="ib-rich-text-link ib-rich-text-image" popover role="dialog" aria-label="@TextDefaults.RichTextImage">
-                <div class="ib-field">
-                    <label class="ib-field-label" for="@(FieldId)-image-src">@TextDefaults.RichTextImageAddress</label>
-                    <div class="ib-rich-text-image-source">
-                        <input class="ib-field-input" id="@(FieldId)-image-src" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-image="src" />
-                        @if (ImageUploadUrl is not null || AllowDataImages)
-                        {
-                            <label class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-rich-text-image-upload">
+            var takesFiles = ImageUploadUrl is not null || AllowDataImages;
+            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-image" aria-labelledby="@(FieldId)-image-title">
+                <header class="ib-dialog-header">
+                    <h2 class="ib-dialog-title" id="@(FieldId)-image-title" data-ib-image="title" data-ib-add="@TextDefaults.RichTextImageInsert" data-ib-edit="@TextDefaults.RichTextImageEdit">@TextDefaults.RichTextImageInsert</h2>
+                </header>
+                <div class="ib-dialog-body">
+                    @if (takesFiles)
+                    {
+                        <div class="ib-rich-text-tabs" role="tablist" aria-label="@TextDefaults.RichTextImageSource">
+                            <button type="button" role="tab" id="@(FieldId)-image-tab-device" aria-controls="@(FieldId)-image-device" aria-selected="true" data-ib-image="tab" data-ib-panel="device">@TextDefaults.RichTextImageFromDevice</button>
+                            <button type="button" role="tab" id="@(FieldId)-image-tab-web" aria-controls="@(FieldId)-image-web" aria-selected="false" tabindex="-1" data-ib-image="tab" data-ib-panel="web">@TextDefaults.RichTextImageFromWeb</button>
+                        </div>
+                        <div class="ib-rich-text-drop" role="tabpanel" id="@(FieldId)-image-device" aria-labelledby="@(FieldId)-image-tab-device" data-ib-image="device">
+                            <img class="ib-rich-text-drop-preview" alt="" hidden data-ib-image="preview" />
+                            <label class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-rich-text-drop-choose">
                                 <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/avif" class="ib-visually-hidden" data-ib-image="file" />
-                                @TextDefaults.RichTextImageUpload
+                                @TextDefaults.RichTextImageSelect
                             </label>
-                        }
+                            <span class="ib-rich-text-drop-text">@TextDefaults.RichTextImageDrop</span>
+                        </div>
+                    }
+                    <div class="ib-field" role="@(takesFiles ? "tabpanel" : null)" id="@(FieldId)-image-web" aria-labelledby="@(takesFiles ? $"{FieldId}-image-tab-web" : null)" hidden="@takesFiles" data-ib-image="web">
+                        <label class="ib-field-label" for="@(FieldId)-image-src">@TextDefaults.RichTextImageAddress</label>
+                        <input class="ib-field-input" id="@(FieldId)-image-src" type="url" inputmode="url" autocomplete="off" placeholder="https://" data-ib-image="src" />
                     </div>
+                    <div class="ib-rich-text-image-size">
+                        <div class="ib-field">
+                            <label class="ib-field-label" for="@(FieldId)-image-width">@TextDefaults.RichTextImageWidth</label>
+                            <input class="ib-field-input" id="@(FieldId)-image-width" type="number" min="1" max="10000" inputmode="numeric" data-ib-image="width" />
+                        </div>
+                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm" aria-pressed="true" aria-label="@TextDefaults.RichTextImageKeepRatio" title="@TextDefaults.RichTextImageKeepRatio" data-ib-image="ratio"><Icon Name="Lucide.Link2" /></button>
+                        <div class="ib-field">
+                            <label class="ib-field-label" for="@(FieldId)-image-height">@TextDefaults.RichTextImageHeight</label>
+                            <input class="ib-field-input" id="@(FieldId)-image-height" type="number" min="1" max="10000" inputmode="numeric" data-ib-image="height" />
+                        </div>
+                    </div>
+                    <div class="ib-field">
+                        <label class="ib-field-label" for="@(FieldId)-image-alt">@TextDefaults.RichTextImageAlt</label>
+                        <input class="ib-field-input" id="@(FieldId)-image-alt" type="text" autocomplete="off" aria-describedby="@(FieldId)-image-alt-hint" data-ib-image="alt" />
+                        <p class="ib-field-hint" id="@(FieldId)-image-alt-hint">@TextDefaults.RichTextImageAltHint</p>
+                    </div>
+                    <label class="ib-rich-text-check"><input type="checkbox" data-ib-image="decorative" /> @TextDefaults.RichTextImageDecorative</label>
+                    <p class="ib-field-error" role="alert" data-ib-image="error" hidden></p>
+                    <footer class="ib-dialog-footer">
+                        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-image="cancel">@TextDefaults.Cancel</Button>
+                        <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
+                    </footer>
                 </div>
-                <div class="ib-field">
-                    <label class="ib-field-label" for="@(FieldId)-image-alt">@TextDefaults.RichTextImageAlt</label>
-                    <input class="ib-field-input" id="@(FieldId)-image-alt" type="text" autocomplete="off" aria-describedby="@(FieldId)-image-alt-hint" data-ib-image="alt" />
-                    <p class="ib-field-hint" id="@(FieldId)-image-alt-hint">@TextDefaults.RichTextImageAltHint</p>
-                </div>
-                <label class="ib-rich-text-link-tab"><input type="checkbox" data-ib-image="decorative" /> @TextDefaults.RichTextImageDecorative</label>
-                <p class="ib-field-error" role="alert" data-ib-image="error" hidden></p>
-                <div class="ib-rich-text-link-actions">
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
-                    <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
-                </div>
-            </div>
+            </dialog>
         }
     </ib-rich-text>
 </FieldFrame>
