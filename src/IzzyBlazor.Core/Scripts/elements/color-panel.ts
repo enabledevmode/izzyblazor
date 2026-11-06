@@ -107,11 +107,6 @@ class ColorPanel extends IzzyElement {
       }
     }, { signal });
 
-    // The original color, chosen again.
-    this.querySelector<HTMLElement>("[data-ib-original]")?.addEventListener("click", (event) => {
-      this.take(parse((event.currentTarget as HTMLElement).dataset.ibOriginal!), true);
-    }, { signal });
-
     const dropper = this.querySelector<HTMLElement>("[data-ib-eyedropper]");
     if (dropper && "EyeDropper" in window) {
       dropper.hidden = false;
