@@ -1447,14 +1447,16 @@
     .ib-datagrid .ib-frozen-end {
       inset-inline-end: var(--ib-frozen-at, 0);
     }
-  }
 
-  .ib-datagrid .ib-table-grid .ib-frozen-start.ib-frozen-edge {
-    border-inline-end: 1px solid var(--ib-color-border);
-  }
+    /* The line where they stop: only while they stay put, not on a phone or with too little room
+       (they scroll then, and a line would say they don't). */
+    .ib-datagrid .ib-table-grid:not([data-ib-unfrozen]) .ib-frozen-start.ib-frozen-edge {
+      border-inline-end: 1px solid var(--ib-color-border);
+    }
 
-  .ib-datagrid .ib-table-grid .ib-frozen-end.ib-frozen-edge {
-    border-inline-start: 1px solid var(--ib-color-border);
+    .ib-datagrid .ib-table-grid:not([data-ib-unfrozen]) .ib-frozen-end.ib-frozen-edge {
+      border-inline-start: 1px solid var(--ib-color-border);
+    }
   }
 
   .ib-table-sticky.ib-datagrid .ib-table-grid > thead {

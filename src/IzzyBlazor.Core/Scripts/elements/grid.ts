@@ -146,8 +146,9 @@ class Grid extends IzzyElement {
       if (cell.matches(".ib-frozen-start")) start += cell.offsetWidth;
       else if (cell.matches(".ib-frozen-end")) end += cell.offsetWidth;
     }
-    // Room for at least a column's minimum beside them; below 640px the stylesheet has done this.
-    const room = 8 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    // Room beside them to scroll through the rest (3rem: enough to drag or wheel, Israel, Nov 6; 8rem
+    // undid a freeze of a few wide columns on a desktop); below 640px the stylesheet has done this.
+    const room = 3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
     const unfrozen = start + end > 0 && (box.clientWidth - start - end < room || !matchMedia("(min-width: 640px)").matches);
     table.toggleAttribute("data-ib-unfrozen", unfrozen);
     this.#clearOf = unfrozen ? "" : `${start}px ${end}px`;
