@@ -1,0 +1,7 @@
+@* Release notes: text styles, lists and undo, and no underline, which reads as a link. *@
+<RichTextEditor @bind-Value="_notes" Label="Release notes" MaxWidth="40.Rem" Grow
+                Tools="RichTextTools.TextStyle | RichTextTools.Bold | RichTextTools.Italic | RichTextTools.InlineCode | RichTextTools.BulletedList | RichTextTools.UndoRedo" />
+
+@code {
+    private string? _notes = "<h3>Version 2.4</h3><ul><li>Exports keep the column order.</li><li>The <code>--quiet</code> flag hides progress.</li></ul>";
+}

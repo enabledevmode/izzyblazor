@@ -1,0 +1,214 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a text box holding the HTML, which still posts and is sanitized.")]
+
+@*
+    Formatted text with label, hint and errors: headings, lists, quotes, code, bold, italic and the
+    rest of what RichTextSanitizer allows. Its value is that HTML, sanitized on the server every
+    time it binds, with no styles or classes, so it shows the same anywhere (show it with RichText).
+
+    <RichTextEditor @bind-Value="Model.Body" Label="Message" />
+    <RichTextEditor @bind-Value="Model.Notes" Label="Notes" Tools="RichTextTools.Basic" Rows="4" />
+
+    The page renders the formatted text before any script runs, and a text box beside it, hidden
+    with script, holds the HTML: the script keeps it current as you type, so the field posts in a
+    plain form, and on an interactive page Value changes when you leave the field. The look is
+    Prose's, so what you edit looks like what RichText shows; ContentClass puts your own class on
+    the text for rules of your own.
+
+    Accessibility:
+    - The text is a `textbox` with `aria-multiline`, named by the label and described by the hint
+      and errors, as other fields are.
+    - The toolbar is named "Formatting", with one tab stop and arrow keys between its tools. Alt+F10
+      moves from the text to the toolbar, and Escape back. Toggles say whether the selection has
+      their format (`aria-pressed`), and each lists its shortcut (`aria-keyshortcuts`, and the
+      tooltip).
+    - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it.
+    - With JavaScript off, it's a textarea of the HTML with the field's label.
+
+    Keyboard:
+    In the text
+    - Ctrl+B, Ctrl+I, Ctrl+U | Bold, italic, underline
+    - Ctrl+Shift+X | Strikethrough
+    - Ctrl+E | Inline code
+    - Ctrl+Shift+8, Ctrl+Shift+7 | Bulleted list, numbered list
+    - Ctrl+], Ctrl+[ | Indent or outdent a list item
+    - Ctrl+Alt+0 | Paragraph
+    - Ctrl+Alt+2, Ctrl+Alt+3, Ctrl+Alt+4 | Heading 2, 3, 4
+    - Ctrl+Z, Ctrl+Y | Undo, redo
+    - Ctrl+Shift+V | Paste as plain text
+    - Alt+F10 | Move to the toolbar
+    In the toolbar
+    - Escape | Back to the text
+    See also: RichText, RichTextSanitizer, TextArea, Form.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-text.css"]" />
+<FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-rich-text class="ib-rich-text">
+        @if (ShowsToolbar)
+        {
+            <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap Class="ib-rich-text-toolbar">
+                @if (Has(RichTextTools.TextStyle))
+                {
+                    <ToolbarItem Width="Length.Px(132)">
+                        <select class="ib-rich-text-style" aria-label="@TextDefaults.RichTextStyle" data-ib-command="block">
+                            <option value="p">@TextDefaults.RichTextParagraph</option>
+                            <option value="h2">@string.Format(TextDefaults.RichTextHeading, 2)</option>
+                            <option value="h3">@string.Format(TextDefaults.RichTextHeading, 3)</option>
+                            <option value="h4">@string.Format(TextDefaults.RichTextHeading, 4)</option>
+                            <option value="blockquote">@TextDefaults.RichTextQuote</option>
+                            <option value="pre">@TextDefaults.RichTextCodeBlock</option>
+                        </select>
+                    </ToolbarItem>
+                }
+                @if (HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough | RichTextTools.InlineCode))
+                {
+                    <ToolbarButtonGroup Label="@TextDefaults.RichTextFormats">
+                        @Tool(RichTextTools.Bold, "bold", Lucide.Bold, TextDefaults.RichTextBold, "B", pressed: true)
+                        @Tool(RichTextTools.Italic, "italic", Lucide.Italic, TextDefaults.RichTextItalic, "I", pressed: true)
+                        @Tool(RichTextTools.Underline, "underline", Lucide.Underline, TextDefaults.RichTextUnderline, "U", pressed: true)
+                        @Tool(RichTextTools.Strikethrough, "strikethrough", Lucide.Strikethrough, TextDefaults.RichTextStrikethrough, "Shift+X", pressed: true)
+                        @Tool(RichTextTools.InlineCode, "code", Lucide.Code, TextDefaults.RichTextInlineCode, "E", pressed: true)
+                    </ToolbarButtonGroup>
+                }
+                @if (HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent))
+                {
+                    <ToolbarButtonGroup Label="@TextDefaults.RichTextLists">
+                        @Tool(RichTextTools.BulletedList, "bulleted", Lucide.List, TextDefaults.RichTextBulletedList, "Shift+8", pressed: true)
+                        @Tool(RichTextTools.NumberedList, "numbered", Lucide.ListOrdered, TextDefaults.RichTextNumberedList, "Shift+7", pressed: true)
+                        @Tool(RichTextTools.Indent, "outdent", Lucide.ListIndentDecrease, TextDefaults.RichTextOutdent, "[")
+                        @Tool(RichTextTools.Indent, "indent", Lucide.ListIndentIncrease, TextDefaults.RichTextIndent, "]")
+                    </ToolbarButtonGroup>
+                }
+                @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
+                @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
+                @if (Has(RichTextTools.UndoRedo))
+                {
+                    <ToolbarButtonGroup Label="@TextDefaults.RichTextHistory" Position="ToolbarPosition.End">
+                        @Tool(RichTextTools.UndoRedo, "undo", Lucide.Undo2, TextDefaults.RichTextUndo, "Z")
+                        @Tool(RichTextTools.UndoRedo, "redo", Lucide.Redo2, TextDefaults.RichTextRedo, "Y")
+                    </ToolbarButtonGroup>
+                }
+            </Toolbar>
+        }
+        @* The script owns what's typed here: the server writes it again only when Value changes
+           from outside the field (the key changes), never with what the script reported. *@
+        <div @key="_version" class="@SurfaceClass" id="@SurfaceId" role="textbox" aria-multiline="true"
+             aria-labelledby="@LabelId" aria-describedby="@DescribedBy" aria-invalid="@(Invalid ? "true" : null)"
+             aria-required="@(IsRequired ? "true" : null)" aria-readonly="@(IsReadOnly ? "true" : null)"
+             aria-disabled="@(IsDisabled ? "true" : null)" style="--ib-rows: @Rows"
+             data-placeholder="@Placeholder" data-ib-empty="@(IsBlank(_shown) ? "" : null)">@((MarkupString)_shown)</div>
+        <textarea @attributes="ControlAttributes"
+                  id="@FieldId"
+                  class="ib-field-input ib-rich-text-source"
+                  name="@NameAttributeValue"
+                  @bind="CurrentValueAsString"
+                  rows="@Rows"
+                  placeholder="@Placeholder"
+                  required="@IsRequired"
+                  disabled="@IsDisabled"
+                  readonly="@IsReadOnly"
+                  aria-invalid="@(Invalid ? "true" : null)"
+                  aria-describedby="@DescribedBy"></textarea>
+    </ib-rich-text>
+</FieldFrame>
+
+@code {
+    private string _shown = "";
+    private string? _seen;
+    private string? _reported;
+    private int _version;
+
+    /// <summary>The tools in the toolbar. Defaults to <see cref="RichTextTools.Default"/>, every tool; <see cref="RichTextTools.None"/> leaves only the shortcuts.</summary>
+    [Parameter] public RichTextTools Tools { get; set; } = RichTextTools.Default;
+
+    /// <summary>The height of the text, in lines, before it grows. Defaults to 6.</summary>
+    [Parameter] public int Rows { get; set; } = 6;
+
+    /// <summary>Example text shown when empty.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Makes the field read-only: the text can be selected, not changed, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>A class on the text, for your own rules on what's in it, such as <c>.article h2</c>. Give the same class to <see cref="RichText"/> to show it the same way.</summary>
+    [Parameter] public string? ContentClass { get; set; }
+
+    /// <summary>The text size, as <see cref="Prose"/>'s. Defaults to <see cref="ProseSize.Md"/>.</summary>
+    [Parameter] public ProseSize TextSize { get; set; } = ProseSize.Md;
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private string LabelId => FieldId + "-label";
+
+    private string SurfaceId => FieldId + "-text";
+
+    private bool ShowsToolbar => Tools != RichTextTools.None && !IsReadOnly && !IsDisabled;
+
+    private string SurfaceClass => new ClassBuilder()
+        .Add("ib-rich-text-surface ib-prose")
+        .Add("ib-prose-sm", TextSize == ProseSize.Sm)
+        .Add("ib-prose-lg", TextSize == ProseSize.Lg)
+        .Add(ContentClass)
+        .Build()!;
+
+    private bool Has(RichTextTools tool) => (Tools & tool) == tool;
+
+    private bool HasAny(RichTextTools tools) => (Tools & tools) != 0;
+
+    private RenderFragment? Tool(RichTextTools tool, string command, IconData icon, string label, string? keys, bool pressed = false)
+    {
+        if (!Has(tool)) return null;
+        // Shown as "Ctrl+B" here; the script writes ⌘ on a Mac.
+        var title = keys is null ? label : $"{label} (Ctrl+{keys})";
+        var shortcut = keys is null ? null : "Control+" + keys;
+        return @<ToolbarIconButton Icon="icon" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                   data-ib-command="@command" aria-pressed="@(pressed ? "false" : null)"
+                                   aria-keyshortcuts="@shortcut" title="@title" />;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // A Value seen before, or the script's own report coming back, changes nothing on the
+        // page; anything else is new, and replaces what's in the editor.
+        var value = Value ?? "";
+        if (_seen is not null && value == _seen) return;
+        var first = _seen is null;
+        _seen = value;
+        if (value == _reported) return;
+        _shown = RichTextSanitizer.Sanitize(value);
+        _reported = null;
+        if (!first) _version++;
+    }
+
+    /// <inheritdoc />
+    private protected override bool FitsValue => true;
+
+    /// <inheritdoc />
+    private protected override string? FitValue(string? value) => Clean(value);
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, out string? result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        result = Clean(value);
+        _reported = result ?? "";
+        validationErrorMessage = null;
+        return true;
+    }
+
+    // Sanitized, and null when nothing's left to show, so [Required] sees an empty editor as empty.
+    private static string? Clean(string? value)
+    {
+        var html = RichTextSanitizer.Sanitize(value);
+        return IsBlank(html) ? null : html;
+    }
+
+    private static bool IsBlank(string html) =>
+        !html.Contains("<img", StringComparison.Ordinal) && !html.Contains("<hr", StringComparison.Ordinal)
+        && string.IsNullOrWhiteSpace(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", "").Replace("&nbsp;", "").Replace(" ", ""));
+}

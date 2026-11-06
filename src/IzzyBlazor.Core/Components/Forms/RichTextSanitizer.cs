@@ -353,7 +353,14 @@ public static class RichTextSanitizer
                 _open.RemoveAt(_open.Count - 1);
             }
 
-            // Blocks can't sit straight in a list or table row; they'd be moved by a browser.
+            // A browser's indent puts a list straight in a list: it goes in the item before it.
+            if (name is "ul" or "ol" && Current.Name is "ul" or "ol" && Current.Children.LastOrDefault(c => c.Name == "li") is { } item)
+            {
+                _open.Add(item);
+                return true;
+            }
+
+            // Other blocks can't sit straight in a list or table row; they'd be moved by a browser.
             return Current.Name is not ("ul" or "ol" or "table" or "thead" or "tbody" or "tr");
         }
 

@@ -1,0 +1,44 @@
+@using System.ComponentModel.DataAnnotations
+
+@* A team announcement: the editor's value is sanitized HTML, shown back with RichText. *@
+<Form Model="Model" FormName="rich-text-editor-announcement" OnValidSubmit="Post" Grow MaxWidth="40.Rem">
+    <TextField @bind-Value="Model!.Title" />
+    <RichTextEditor @bind-Value="Model.Body" Hint="Shown on the team page." />
+    <FormActions>
+        <Button Submit>Post</Button>
+    </FormActions>
+</Form>
+@if (_posted is not null)
+{
+    <Card Title="@_posted.Value.Title" MaxWidth="40.Rem" Grow>
+        <RichText Html="@_posted.Value.Body" />
+    </Card>
+}
+
+@code {
+    [SupplyParameterFromForm(FormName = "rich-text-editor-announcement")]
+    private TeamPost? Model { get; set; }
+
+    private (string? Title, string? Body)? _posted;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Post() => _posted = (Model!.Title, Model.Body);
+    @* hide *@
+    public sealed class TeamPost
+    {
+        [Required(ErrorMessage = "Enter a title")]
+        public string? Title { get; set; } = "Office closed on Friday";
+
+        [Required(ErrorMessage = "Write the announcement")]
+        [Display(Name = "Announcement")]
+        public string? Body { get; set; } =
+            """
+            <p>The office is closed on <strong>Friday, November 27</strong> for the building's electrical work.</p>
+            <h3>What to do</h3>
+            <ul><li>Work from home, or from the Riverside office.</li><li>Take your laptop home on Thursday.</li></ul>
+            <p>Questions go to <em>Facilities</em>.</p>
+            """;
+    }
+    @* /hide *@
+}
