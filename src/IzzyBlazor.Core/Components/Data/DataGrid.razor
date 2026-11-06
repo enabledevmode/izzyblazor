@@ -1462,7 +1462,7 @@
         }
         else
         {
-            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupLabel, node.Level.Column.HeaderText, value)
+            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupLabel, node.Level.Column.FullName, value)
         }
 
         @(" ")
@@ -1924,7 +1924,7 @@
     {
         var key = KeyOf(column);
         var frozen = FrozenOf(column);
-        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.HeaderText);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.FullName);
         var zone = SiblingBlocks(column.Band, frozen);
         <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
@@ -2227,8 +2227,8 @@
                         @* Always drawn, so the row keeps its width when a column is hidden. *@
                         var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
                         <span class="ib-col-picker-move">
-                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><Icon Name="Lucide.ArrowUp" /></button>
-                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><Icon Name="Lucide.ArrowDown" /></button>
+                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.FullName}")"><Icon Name="Lucide.ArrowUp" /></button>
+                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.FullName}")"><Icon Name="Lucide.ArrowDown" /></button>
                         </span>
                     }
                 </li>
@@ -2362,11 +2362,11 @@
                 <span class="ib-grid-group-chip" data-ib-group-token="@((level.Descending ? "-" : "") + column.GroupToken)">
                     @if (UseState)
                     {
-                        <Tag Label="@column.HeaderText" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
+                        <Tag Label="@column.FullName" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
                     }
                     else
                     {
-                        <Tag Label="@column.HeaderText" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
+                        <Tag Label="@column.FullName" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
                     }
                 </span>
             }

@@ -228,7 +228,7 @@ public partial class DataGrid<TItem>
             builder.OpenElement(2, "div");
             builder.AddAttribute(3, "class", $"ib-h{levels[column]}");
             builder.OpenElement(4, "dt");
-            builder.AddContent(5, column.HeaderText);
+            builder.AddContent(5, column.FullName);
             builder.CloseElement();
             builder.OpenElement(6, "dd");
             if (editing && EditCell(column) is { } field)

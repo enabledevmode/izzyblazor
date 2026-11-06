@@ -44,6 +44,24 @@ public abstract partial class TableViewBase<TItem> : IColumnBandHost
     /// <summary>The numbers of a band's bands, ending with its own.</summary>
     internal string BandPath(ColumnBand band) => string.Join('.', band.Chain.Select(BandId));
 
+    /// <summary>A column's name with its bands', for where it's named away from its header: "Q1 Revenue".</summary>
+    internal string FullName(ColumnBase<TItem> column)
+    {
+        var name = column.HeaderText;
+        for (var band = column.Band; band is not null; band = band.Parent)
+        {
+            if (band.Title is { Length: > 0 } title)
+            {
+                name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnInBand, title, name);
+            }
+        }
+
+        return name;
+    }
+
+    /// <summary>Whether the band row can be hidden, so each header names its bands (a stacked table).</summary>
+    internal virtual bool StacksBands => false;
+
     /// <summary>Whether any column is in a band.</summary>
     internal bool HasBands => _bands > 0;
 

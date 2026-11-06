@@ -1,0 +1,28 @@
+@* A team's hours for two weeks, planned against what was logged. On a phone each value's title
+   names its week: "Week of Oct 27 Planned". Make the window narrower to see it. *@
+<Table Items="Hours" Caption="Hours by week" QueryPrefix="hours-" InitialSort="name" SmallScreen="TableSmallScreen.Stack" StackBelow="28.Rem">
+    <PropertyColumn Property="h => h.Name" Sortable />
+    <ColumnBand Title="Week of Oct 27">
+        <PropertyColumn Property="h => h.FirstPlanned" Title="Planned" Format="0.0" />
+        <PropertyColumn Property="h => h.FirstLogged" Title="Logged" Format="0.0" Sortable />
+    </ColumnBand>
+    <ColumnBand Title="Week of Nov 3">
+        <PropertyColumn Property="h => h.SecondPlanned" Title="Planned" Format="0.0" />
+        <PropertyColumn Property="h => h.SecondLogged" Title="Logged" Format="0.0" Sortable />
+    </ColumnBand>
+</Table>
+
+@* hide *@
+@code {
+    private sealed record WeekHours(string Name, double FirstPlanned, double FirstLogged, double SecondPlanned, double SecondLogged);
+
+    private static readonly WeekHours[] Hours =
+    [
+        new("Amara Okafor", 40, 41.5, 40, 38.0),
+        new("Ben Ishikawa", 32, 30.0, 32, 33.5),
+        new("Clara Mendes", 40, 44.0, 36, 36.5),
+        new("Dev Patel", 24, 22.5, 24, 26.0),
+        new("Elena Novak", 40, 39.0, 40, 40.0),
+    ];
+}
+@* /hide *@

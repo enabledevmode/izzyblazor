@@ -47,6 +47,9 @@ public partial class Table<TItem>
     private bool Stacks => SmallScreen == TableSmallScreen.Stack && Shown.Count > 0;
 
     /// <inheritdoc />
+    internal override bool StacksBands => Stacks && HasBands;
+
+    /// <inheritdoc />
     internal override string? GridId => Stacks ? _tableId ??= IdGenerator.Next("ib-table") : null;
 
     // Its parts become blocks, which can lose a table's meaning in some browsers: written out, it stays.
@@ -94,6 +97,12 @@ public partial class Table<TItem>
         // The header's buttons, in a row that wraps.
         css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ib-space-1) var(--ib-space-3);padding:var(--ib-table-py) var(--ib-table-px);border-block-end:1px solid var(--ib-color-border)}}");
         css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr>th{{display:block;width:auto;padding:0;border:0}}");
+        // Each value's title names its bands instead.
+        if (HasBands)
+        {
+            css.Append(CultureInfo.InvariantCulture, $"{t}>thead>.ib-table-band-row,{t} [data-ib-short]{{display:none}}{t} [data-ib-full]{{display:inline}}");
+        }
+
         css.Append(CultureInfo.InvariantCulture, $"{rows}{{padding-block:var(--ib-table-py);border-block-end:1px solid var(--ib-color-border)}}{rows}:last-child{{border-block-end:0}}");
         // The title floats at the start, and the cell's content, however many parts, flows at the end.
         css.Append(CultureInfo.InvariantCulture, $"{rows}>td{{display:flow-root;padding-block:var(--ib-space-1);border:0;text-align:end}}");
@@ -104,7 +113,7 @@ public partial class Table<TItem>
         var offset = Selectable ? 1 : 0;
         for (var i = 0; i < Shown.Count; i++)
         {
-            var title = CssString(Shown[i].HeaderText);
+            var title = CssString(Shown[i].FullName);
             css.Append(CultureInfo.InvariantCulture, $"{rows}>td:nth-child({i + offset + 1}):not([colspan])::before{{content:{title};content:{title}/\"\"}}");
         }
 

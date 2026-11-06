@@ -336,7 +336,7 @@
                                     <div class="ib-table-empty-content">
                                         @if (NoneTicked() is { } unticked)
                                         {
-                                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterNoneEmpty, unticked.HeaderText)
+                                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterNoneEmpty, unticked.FullName)
                                         }
                                         else if (EmptyContent is not null)
                                         {
@@ -847,6 +847,21 @@
     /// <summary>The id of a FilterBuilder's panel, which the row of filters' Edit opens; null with none.</summary>
     internal virtual string? BuilderPanelId => null;
 
+    // A header's text. Where the band row is hidden (a stacked table), its full name, with its bands',
+    // shows instead: the stacked rows' style shows one and hides the other.
+    private RenderFragment TitleText(ColumnBase<TItem> column) => __builder =>
+    {
+        if (StacksBands && column.Band is not null)
+        {
+            <span hidden data-ib-full>@column.FullName</span>
+            <span data-ib-short>@column.HeaderText</span>
+        }
+        else
+        {
+            @column.HeaderText
+        }
+    };
+
     // The header's title: a sort control (a button when state is in the component, a link
     // otherwise) or plain text.
     private RenderFragment HeaderTitle(ColumnBase<TItem> column) => __builder =>
@@ -854,7 +869,7 @@
         if (column.CanSort && UseState)
         {
             <button type="button" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" @onclick="e => OnSortClickAsync(column, MultiSort && e.ShiftKey)">
-                <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@column.HeaderText</span>
+                <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@TitleText(column)</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)
             </button>
@@ -862,14 +877,14 @@
         else if (column.CanSort)
         {
             <a href="@SortHref(column)" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" data-ib-sort-add="@(MultiSort ? AddSortHref(column) : null)">
-                <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@column.HeaderText</span>
+                <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@TitleText(column)</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)
             </a>
         }
         else
         {
-            <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@column.HeaderText</span>
+            <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@TitleText(column)</span>
         }
     };
 
@@ -886,7 +901,7 @@
     };
 
     private string FilterLabel(ColumnBase<TItem> column) =>
-        string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterColumn, column.HeaderText);
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterColumn, column.FullName);
 
     // What a filter is set to, in words: the text typed, the choice's name, "2 selected", a range
     // ("100–500", "100 or more"), or the operator and its value ("Starts with ada").
@@ -1125,7 +1140,7 @@
         foreach (var column in columns)
         {
             var summary = FilterSummary(column, CurrentFilters()[column.Key!]);
-            <Tag Label="@($"{column.HeaderText}: {summary}")" Size="ControlSize.Sm"
+            <Tag Label="@($"{column.FullName}: {summary}")" Size="ControlSize.Sm"
                  RemoveHref="@(UseState ? null : FilterHref(column, null))"
                  OnRemove="@(UseState ? EventCallback.Factory.Create(this, () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)) : default)" />
         }
@@ -1755,7 +1770,7 @@
                 }
                 @if (current.IsFilter)
                 {
-                    var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.HeaderText);
+                    var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.FullName);
                     if (UseState)
                     {
                         <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Role="IconRole.Close" /></button>

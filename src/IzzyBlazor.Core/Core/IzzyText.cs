@@ -51,6 +51,12 @@ public class IzzyText
     /// <summary>A DataGrid header's place in a sort of several columns, descending: "Sort 2, descending".</summary>
     public virtual string SortOrderDescending { get; set; } = "Sort {0}, descending";
 
+    /// <summary>
+    /// A column's name with its band's, wherever it's named away from its header (a filter's tag, a
+    /// phone's label beside the value): "Q1 Revenue". {0} is the band's title, {1} the column's.
+    /// </summary>
+    public virtual string ColumnInBand { get; set; } = "{0} {1}";
+
     /// <summary>A DataGrid header's menu button: "Options for Customer". {0} is the column's title.</summary>
     public virtual string ColumnOptions { get; set; } = "Options for {0}";
 
