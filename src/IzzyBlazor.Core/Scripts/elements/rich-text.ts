@@ -107,8 +107,10 @@ function element(node: Element, name: string, top: number): string {
     // Only the editor's own classes and font; a span with neither is only its content.
     const classes = [...node.classList].filter((c) => /^ib-(color|highlight|size)-[a-z0-9]+$/.test(c));
     if (classes.length) attributes = ` class="${classes.join(" ")}"`;
-    const { ibFont: font, ibFontSize: size } = (node as HTMLElement).dataset;
-    const style = [font && `font-family: ${font}`, size && `font-size: ${size}`].filter(Boolean).join("; ");
+    // In the sanitizer's order, so the value sanitizes to itself.
+    const { ibFont: font, ibFontSize: size, ibColor: color, ibHighlight: highlight } = (node as HTMLElement).dataset;
+    const style = [highlight && `background-color: ${highlight}`, color && `color: ${color}`, font && `font-family: ${font}`, size && `font-size: ${size}`]
+      .filter(Boolean).join("; ");
     if (style) attributes += ` style="${escape(style, true)}"`;
     if (!attributes) return serialize(node, top);
   } else if (/^(p|h[1-6]|li|blockquote|td|th)$/.test(name)) {
@@ -308,6 +310,12 @@ class RichText extends IzzyElement {
       if (font) span.dataset.ibFont = font;
       const size = this.fontSizes.find((f) => f.trim().toLowerCase() === span.style.fontSize.toLowerCase());
       if (size) span.dataset.ibFontSize = size;
+      // Custom colors, as the server wrote them (six hex digits, which it only keeps with CustomColors).
+      const style = span.getAttribute("style") ?? "";
+      const color = /(?:^|;)\s*color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
+      const highlight = /background-color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
+      if (color) span.dataset.ibColor = color;
+      if (highlight) span.dataset.ibHighlight = highlight;
     }
     // The count is part of the text's description once it follows the typing.
     const count = document.getElementById(`${this.source?.id}-count`);
@@ -330,10 +338,12 @@ class RichText extends IzzyElement {
     if ([...surface.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) exec("formatBlock", "<p>");
     for (const styled of surface.querySelectorAll<HTMLElement>("[style]")) {
       // A font or size the editor set keeps its style; anything else a browser wrote goes.
-      const { ibFont: font, ibFontSize: size } = styled.dataset;
+      const { ibFont: font, ibFontSize: size, ibColor: color, ibHighlight: highlight } = styled.dataset;
       styled.removeAttribute("style");
       if (font) styled.style.fontFamily = font;
       if (size) styled.style.fontSize = size;
+      if (color) styled.style.color = color;
+      if (highlight) styled.style.backgroundColor = highlight;
     }
     this.sync();
   }
@@ -369,6 +379,21 @@ class RichText extends IzzyElement {
     this.restore();
     exec("insertHTML", html);
     this.changed();
+  }
+
+  /** The color the selection shows (for a highlight, a pale yellow when it has none), as hex. */
+  private shown(range: Range, format: string): string {
+    const node = range.startContainer;
+    const element = node instanceof Element ? node : node.parentElement;
+    const css = element ? getComputedStyle(element)[format === "color" ? "color" : "backgroundColor"] : "";
+    // Any CSS color (the theme's may be oklch) as sRGB, by painting a pixel.
+    const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    if (!context || !css) return format === "color" ? "#000000" : "#fef08a";
+    context.fillStyle = css;
+    context.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+    if (!a) return format === "color" ? "#000000" : "#fef08a";
+    return "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
   }
 
   private save(): void {
@@ -462,6 +487,25 @@ class RichText extends IzzyElement {
           this.changed();
           this.reflect();
         });
+        return;
+      }
+      case "custom": {
+        // A custom color: the dialog keeps the selection, and gives it back with the color.
+        const dialog = this.querySelector<HTMLDialogElement>(":scope > .ib-rich-text-custom");
+        this.restore();
+        const range = getSelection()?.rangeCount ? getSelection()!.getRangeAt(0).cloneRange() : null;
+        if (!dialog || !range || !surface.contains(range.commonAncestorContainer)) return;
+        const format = value === "highlight" ? "highlight" : "color";
+        void this.loadFormat().then((part) =>
+          part.openCustom(dialog, format, part.formatAt(surface, format) || this.shown(range, format), (hex) => {
+            surface.focus({ preventScroll: true });
+            getSelection()?.removeAllRanges();
+            getSelection()?.addRange(range);
+            part.applyInline(surface, format, hex);
+            this.changed();
+            this.reflect();
+          })
+        );
         return;
       }
       case "clear":
@@ -588,7 +632,8 @@ class RichText extends IzzyElement {
       const swatch = toolbar.querySelector<HTMLElement>(`[data-ib-swatch="${menu}"]`);
       const preview = value ? chosen?.querySelector<HTMLElement>(".ib-rich-text-menu-text") : null;
       if (swatch) {
-        if (preview) swatch.style.setProperty("--ib-swatch", menu === "color" ? getComputedStyle(preview).color : getComputedStyle(preview).backgroundColor);
+        if (value.startsWith("#")) swatch.style.setProperty("--ib-swatch", value);
+        else if (preview) swatch.style.setProperty("--ib-swatch", menu === "color" ? getComputedStyle(preview).color : getComputedStyle(preview).backgroundColor);
         else swatch.style.removeProperty("--ib-swatch");
       }
       const button = toolbar.querySelector<HTMLElement>(`[data-ib-menu-button="${menu}"]`);

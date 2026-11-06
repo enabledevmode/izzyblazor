@@ -8,7 +8,7 @@ public class RichTextSanitizerTests : BunitContext
 {
     public RichTextSanitizerTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
-    private static string S(string html, bool dataImages = false, int top = 1, string[]? fonts = null, string[]? sizes = null) => RichTextSanitizer.Sanitize(html, top, fonts, sizes, dataImages);
+    private static string S(string html, bool dataImages = false, int top = 1, string[]? fonts = null, string[]? sizes = null, bool colors = false) => RichTextSanitizer.Sanitize(html, top, fonts, sizes, dataImages, colors);
 
     [Theory]
     [InlineData("<script>alert(1)</script>ok", "ok")]
@@ -130,6 +130,10 @@ public class RichTextSanitizerTests : BunitContext
         // A fixed size only from the app's list; both styles together, in one attribute.
         Assert.Equal("<p><span style=\"font-family: Georgia, serif; font-size: 14px\">a</span>b</p>",
             S("<p><span style=\"font-size:14px; font-family: Georgia, serif; color: red\">a</span><span style=\"font-size: 13px\">b</span></p>", fonts: ["Georgia, serif"], sizes: ["14px"]));
+        // Custom colors only with the option, and only as six hex digits, in the sanitizer's order.
+        Assert.Equal("<p><span style=\"background-color: #fde68a; color: #0e7490\">a</span>b</p>",
+            S("<p><span style=\"COLOR: #0E7490; background-color:#fde68a\">a</span><span style=\"color: red; background-color: url(x)\">b</span></p>", colors: true));
+        Assert.Equal("<p>a</p>", S("<p><span style=\"color: #0e7490\">a</span></p>"));
         // A dropped span doesn't take its end tag from the span around it.
         Assert.Equal("<p><span class=\"ib-color-blue\">a b c</span></p>", S("<p><span class=\"ib-color-blue\">a <span>b</span> c</span></p>"));
         Assert.Equal("<p><span class=\"ib-highlight-yellow\">x</span></p>", S("<p><font color=red><span class=\"ib-highlight-yellow\" onclick=x>x</span></font></p>"));

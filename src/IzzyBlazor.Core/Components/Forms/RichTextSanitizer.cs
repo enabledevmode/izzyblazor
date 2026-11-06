@@ -35,7 +35,8 @@ namespace IzzyBlazor;
 /// <c>ib-size-lg</c>, <c>ib-size-xl</c>) on a <c>span</c>, the colors being red, orange, yellow,
 /// green, blue, purple and gray, and the sizes <c>ib-size-xs</c> and <c>ib-size-2xl</c> too. Two
 /// styles, on a <c>span</c>: <c>font-family</c> when its value is exactly one of <c>fonts</c>, and
-/// <c>font-size</c> when exactly one of <c>fontSizes</c>. No other <c>style</c>, <c>class</c>,
+/// <c>font-size</c> when exactly one of <c>fontSizes</c>; with <c>customColors</c>, <c>color</c> and
+/// <c>background-color</c> too, each only as six hex digits (<c>#1d4ed8</c>). No other <c>style</c>, <c>class</c>,
 /// <c>id</c> or event handler gets through, but a <c>code</c>'s language class
 /// (<c>language-csharp</c>), as Markdown, Prism and highlight.js write it.
 /// </para>
@@ -121,11 +122,12 @@ public static class RichTextSanitizer
     /// <param name="fonts">The <c>font-family</c> values a <c>span</c> may set, each exactly as written, such as <c>Georgia, serif</c>. None by default.</param>
     /// <param name="fontSizes">The <c>font-size</c> values a <c>span</c> may set, each exactly as written, such as <c>14px</c>. None by default.</param>
     /// <param name="allowDataImages">Keep images whose <c>src</c> is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image (never SVG).</param>
-    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false)
+    /// <param name="customColors">Keep a <c>span</c>'s <c>color</c> and <c>background-color</c> when each is six hex digits, as the editor's custom colors write them.</param>
+    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false, bool customColors = false)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
         var root = new Node(null);
-        new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? [], fontSizes ?? []).Run(html);
+        new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? [], fontSizes ?? [], customColors).Run(html);
         var output = new StringBuilder(html.Length);
         foreach (var child in root.Children) Write(child, output);
         return output.ToString();
@@ -143,7 +145,7 @@ public static class RichTextSanitizer
         public Node? Parent { get; set; }
     }
 
-    private sealed class Builder(Node root, bool allowDataImages, int topHeading, IReadOnlyList<string> fonts, IReadOnlyList<string> fontSizes)
+    private sealed class Builder(Node root, bool allowDataImages, int topHeading, IReadOnlyList<string> fonts, IReadOnlyList<string> fontSizes, bool customColors)
     {
         private readonly List<Node> _open = [root];
         private Node Current => _open.FindLast(n => !n.Unwrapped)!;
@@ -488,7 +490,8 @@ public static class RichTextSanitizer
                     && c[9..].Length > 0 && c[9..].All(ch => ch is >= 'a' and <= 'z' or >= '0' and <= '9' or '+' or '#' or '-'));
 
         // A span's font-family and font-size, each kept only when exactly one of the app's values,
-        // and written as the app wrote it; anything else in the style goes.
+        // and written as the app wrote it; with custom colors, its color and background-color as
+        // six hex digits, lowercase. Anything else in the style goes.
         private string? SpanStyle(string value)
         {
             var kept = new List<string>();
@@ -499,11 +502,14 @@ public static class RichTextSanitizer
                 var property = declaration[..colon].Trim().ToLowerInvariant();
                 var given = declaration[(colon + 1)..].Trim();
                 var allowed = property switch { "font-family" => fonts, "font-size" => fontSizes, _ => [] };
-                var match = allowed.FirstOrDefault(f => string.Equals(f.Trim(), given, StringComparison.OrdinalIgnoreCase));
+                var match = property is "color" or "background-color"
+                    ? customColors && given.Length == 7 && given[0] == '#' && given[1..].All(char.IsAsciiHexDigit) ? given.ToLowerInvariant() : null
+                    : allowed.FirstOrDefault(f => string.Equals(f.Trim(), given, StringComparison.OrdinalIgnoreCase));
                 if (match is not null && !kept.Exists(k => k.StartsWith(property + ":", StringComparison.Ordinal))) kept.Add($"{property}: {match.Trim()}");
             }
 
-            // In one order (font-family, then font-size), as the editor writes them, so a value sanitizes to itself.
+            // In one order (background-color, color, font-family, font-size), as the editor writes
+            // them, so a value sanitizes to itself.
             kept.Sort(StringComparer.Ordinal);
             return kept.Count == 0 ? null : string.Join("; ", kept);
         }

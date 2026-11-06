@@ -2,7 +2,9 @@
  * The rich text editor's layout formats, loaded (as elements/parts/rich-text-format.js) only by
  * editors that offer them, or on the first alignment shortcut: alignment of blocks, and a span's
  * color, highlight, size or font. What they write is in RichTextSanitizer's list: the alignment
- * and span classes, and a font from the editor's own list (kept as data-ib-font while editing).
+ * and span classes, a font from the editor's own list (kept as data-ib-font while editing), and
+ * with CustomColors a color or highlight as six hex digits (kept as data-ib-color and
+ * data-ib-highlight). Also the custom color dialog.
  */
 
 // Blocks that can be aligned, innermost first when nested (a paragraph in a list item).
@@ -44,9 +46,22 @@ export function alignment(surface: HTMLElement): string {
 // A size is a step (a class) or one of the editor's fixed sizes (a style, kept as data-ib-font-size).
 const isFixed = (value: string) => /^[0-9.]/.test(value);
 
+// A custom color or highlight: a style, kept in a data attribute.
+const customs: Record<string, ["ibColor" | "ibHighlight", "color" | "background-color"]> = {
+  color: ["ibColor", "color"],
+  highlight: ["ibHighlight", "background-color"],
+};
+
+/** Whether a span keeps any format: a class, a font, a size or a custom color. */
+const formatted = (span: HTMLElement) => {
+  const d = span.dataset;
+  return span.hasAttribute("class") || !!(d.ibFont || d.ibFontSize || d.ibColor || d.ibHighlight);
+};
+
 function hasFormat(span: HTMLElement, format: string): boolean {
   if (format === "font") return !!span.dataset.ibFont;
   if (format === "size" && span.dataset.ibFontSize) return true;
+  if (customs[format] && span.dataset[customs[format][0]]) return true;
   return [...span.classList].some((c) => c.startsWith(prefixes[format]));
 }
 
@@ -58,11 +73,17 @@ function dropFormat(span: HTMLElement, format: string): void {
     span.style.removeProperty(property);
     if (!span.getAttribute("style")) span.removeAttribute("style");
   }
+  if (customs[format]) {
+    const [key, property] = customs[format];
+    delete span.dataset[key];
+    span.style.removeProperty(property);
+    if (!span.getAttribute("style")) span.removeAttribute("style");
+  }
   if (format !== "font") {
     for (const c of [...span.classList]) if (c.startsWith(prefixes[format])) span.classList.remove(c);
     if (!span.classList.length) span.removeAttribute("class");
   }
-  if (!span.hasAttribute("class") && !span.dataset.ibFont && !span.dataset.ibFontSize) span.replaceWith(...span.childNodes);
+  if (!formatted(span)) span.replaceWith(...span.childNodes);
 }
 
 /** A format's value at the caret: a color, size or font, or "" for none. */
@@ -72,6 +93,7 @@ export function formatAt(surface: HTMLElement, format: string): string {
     if (node.localName === "span" && hasFormat(node, format)) {
       if (format === "font") return node.dataset.ibFont!;
       if (format === "size" && node.dataset.ibFontSize) return node.dataset.ibFontSize;
+      if (customs[format] && node.dataset[customs[format][0]]) return node.dataset[customs[format][0]]!;
       return [...node.classList].find((c) => c.startsWith(prefixes[format]))!.slice(prefixes[format].length);
     }
     node = node.parentElement;
@@ -126,6 +148,9 @@ export function applyInline(surface: HTMLElement, format: string, value: string)
       } else if (format === "size" && isFixed(value)) {
         span.dataset.ibFontSize = value;
         span.style.fontSize = value;
+      } else if (customs[format] && value.startsWith("#")) {
+        span.dataset[customs[format][0]] = value;
+        span.style.setProperty(customs[format][1], value);
       } else {
         span.classList.add(prefixes[format] + value);
       }
@@ -144,4 +169,30 @@ export function applyInline(surface: HTMLElement, format: string, value: string)
     selection.removeAllRanges();
     selection.addRange(range);
   }
+}
+
+type Panel = HTMLElement & { select?(value: string): void };
+
+/**
+ * The custom color dialog: a color panel (no swatches; the menu has the palette) starting at the
+ * color given (the caret's custom color, or the one the text shows). Apply gives the chosen color to apply; Cancel, Escape or a
+ * click outside closes it with nothing changed.
+ */
+export function openCustom(dialog: HTMLDialogElement, format: string, current: string, apply: (hex: string) => void): void {
+  const title = dialog.querySelector<HTMLElement>('[data-ib-custom="title"]');
+  if (title) title.textContent = (format === "highlight" ? title.dataset.ibHighlight : title.dataset.ibColor) ?? title.textContent;
+  const panel = dialog.querySelector<Panel>("ib-color-panel");
+  const value = panel?.querySelector<HTMLInputElement>(":scope > .ib-cp-value");
+  panel?.select?.(current);
+  const done = new AbortController();
+  dialog.addEventListener("click", (event) => {
+    const action = (event.target as Element).closest<HTMLElement>("[data-ib-custom]")?.dataset.ibCustom;
+    if (event.target === dialog || action === "cancel") dialog.close();
+    else if (action === "apply") {
+      dialog.close();
+      if (value?.value) apply(value.value);
+    }
+  }, { signal: done.signal });
+  dialog.addEventListener("close", () => done.abort(), { once: true });
+  dialog.showModal();
 }

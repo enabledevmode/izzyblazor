@@ -135,6 +135,25 @@
                 </div>
             </dialog>
         }
+        @if (CustomColors && HasAny(RichTextTools.TextColor | RichTextTools.Highlight) && ShowsToolbar)
+        {
+            @* The custom color dialog, opened by "Custom…" in a color menu: a color panel with no
+               swatches (the menu has the palette). Its fields have no name, so they never post. *@
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
+            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-custom" aria-labelledby="@(FieldId)-custom-title">
+                <header class="ib-dialog-header">
+                    <h2 class="ib-dialog-title" id="@(FieldId)-custom-title" data-ib-custom="title"
+                        data-ib-color="@TextDefaults.RichTextCustomTextColor" data-ib-highlight="@TextDefaults.RichTextCustomHighlight">@TextDefaults.RichTextCustomTextColor</h2>
+                </header>
+                <div class="ib-dialog-body">
+                    <ColorPanelView Text="TextDefaults" LabelId="@($"{FieldId}-custom-title")" Swatches="NoSwatches" ShowEyedropper />
+                    <footer class="ib-dialog-footer">
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-custom="cancel">@TextDefaults.Cancel</Button>
+                        <Button Size="ControlSize.Sm" data-ib-custom="apply">@TextDefaults.Apply</Button>
+                    </footer>
+                </div>
+            </dialog>
+        }
         @if (ShowsCount)
         {
             @* The script keeps the number current and adds the count to the text's description. *@
@@ -320,6 +339,14 @@
     /// </summary>
     [Parameter] public bool AllowDataImages { get; set; }
 
+    /// <summary>
+    /// The text color and highlight menus end with "Custom…", which opens a color panel for any
+    /// color, written as a style with six hex digits. Off by default: a color chosen in a light
+    /// theme can be unreadable in a dark one, which the palette's colors avoid. Give
+    /// <see cref="RichText"/> the same.
+    /// </summary>
+    [Parameter] public bool CustomColors { get; set; }
+
     /// <summary>The largest image, in bytes, that can be uploaded or embedded. Defaults to 2 MB.</summary>
     [Parameter] public long MaxImageSize { get; set; } = 2_000_000;
 
@@ -419,6 +446,8 @@
 
     // The palette for text color and highlight: names in the sanitizer's list, labels from IzzyText.
     private static readonly string[] Palette = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
+
+    private static readonly string[] NoSwatches = [];
 
     private string ColorName(string color) => color switch
     {
@@ -555,6 +584,7 @@
                             @ChoiceItem("color", color, ColorName(color), null, $"ib-rich-text-swatch ib-color-{color}")
                         }
                     </MenuRadioGroup>
+                    @CustomItem("color")
                 </ChildContent>
             </ToolbarMenu>
         }
@@ -573,6 +603,7 @@
                             @ChoiceItem("highlight", color, ColorName(color), null, $"ib-rich-text-swatch ib-highlight-{color}")
                         }
                     </MenuRadioGroup>
+                    @CustomItem("highlight")
                 </ChildContent>
             </ToolbarMenu>
         }
@@ -672,6 +703,13 @@
     };
 
     // A choice in a menu: a font, size, color or highlight. The preview class shows it as it'll look.
+    // "Custom…" at the end of a color menu, with CustomColors: opens the custom color dialog.
+    private RenderFragment? CustomItem(string format) => !CustomColors ? null :
+        @<text>
+            <MenuDivider />
+            <MenuItem Icon="Lucide.Palette" data-ib-command="custom" data-ib-value="@format">@TextDefaults.RichTextCustomColor</MenuItem>
+        </text>;
+
     private RenderFragment ChoiceItem(string command, string value, string label, string? menu, string? preview = null) =>
         @<MenuItem Value="@value" data-ib-command="@command" data-ib-value="@value" data-ib-label="@(menu is null ? null : MenuLabel(menu, label))"><span class="@(preview is null ? "ib-rich-text-menu-text" : "ib-rich-text-menu-text " + preview)">@label</span></MenuItem>;
 
@@ -704,7 +742,7 @@
         var first = _seen is null;
         _seen = value;
         if (value == _reported) return;
-        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages);
+        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages, CustomColors);
         _reported = null;
         if (!first) _version++;
     }
@@ -727,7 +765,7 @@
     // Sanitized, and null when nothing's left to show, so [Required] sees an empty editor as empty.
     private string? Clean(string? value)
     {
-        var html = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages);
+        var html = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages, CustomColors);
         return IsBlank(html) ? null : html;
     }
 
