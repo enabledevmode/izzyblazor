@@ -1,0 +1,17 @@
+@* A label's color from the team's own set, named so screen readers say "Ocean", not a hex value. *@
+<ColorPanel @bind-Value="_color" Label="Label color" ShowPicker="false" ShowFields="false" Clearable
+            Swatches="@(["#0ea5e9", "#14b8a6", "#f59e0b", "#e11d48", "#8b5cf6"])" SwatchText="Name" />
+
+@code {
+    private string? _color = "#14b8a6";
+
+    private static string? Name(string hex) => hex switch
+    {
+        "#0ea5e9" => "Ocean",
+        "#14b8a6" => "Lagoon",
+        "#f59e0b" => "Sunset",
+        "#e11d48" => "Berry",
+        "#8b5cf6" => "Dusk",
+        _ => null,
+    };
+}

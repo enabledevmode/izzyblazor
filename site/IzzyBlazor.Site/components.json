@@ -1163,6 +1163,22 @@
       ]
     },
     {
+      "id": "color-panel", "icon": "Palette", "name": "ColorPanel", "category": "Forms", "summary": "Lets the user choose a color inline: swatches, a picker, or both.", "keywords": ["color picker", "swatches", "palette", "hex", "rgb", "opacity", "eyedropper"],
+      "features": [
+        { "feature": "Swatches that post with the form" },
+        { "feature": "Picker, opacity slider and number fields", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "color-panel-usage", "title": "Swatches and a picker", "lead": "A ColorPanel shows swatches for the usual choices and a picker for any other: a saturation and brightness area, a hue slider, and hex and RGB fields. The value is a hex string such as `#22c55e`. Each part shows or hides on its own.",
+          "notes": {
+            "noscript": "The swatches choose the color and post with the form; the picker, sliders and number fields need script, and don't show.",
+            "static": "IzzyBlazor's script runs the picker and fields, and keeps one value that posts with the form."
+          } },
+        { "id": "color-panel-swatches-only", "title": "Swatches only", "lead": "For a fixed set of colors, set `ShowPicker` and `ShowFields` to false and give `Swatches`. Name each with `SwatchText`; otherwise screen readers hear the color's name, such as \"light green\". `Clearable` adds a swatch for no color." },
+        { "id": "color-panel-opacity", "title": "Any color, see-through", "lead": "For the picker alone, set `Swatches` to an empty list. `ShowAlpha` adds an opacity slider and field, and the value becomes `#rrggbbaa` when the color isn't opaque. `ShowEyedropper` adds a button that picks a color from the screen, in browsers that have one." }
+      ]
+    },
+    {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "Lets the user pick a color, with a hex box and presets.",
       "features": [
         { "feature": "Pick in the browser's color panel; posted with the form" },

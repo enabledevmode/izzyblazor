@@ -69,6 +69,9 @@
     <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)"
                   data-ib-image-upload="@ImageUploadUrl" data-ib-data-images="@(AllowDataImages ? "" : null)" data-ib-image-max="@MaxImageSize"
                   data-ib-image-failed="@TextDefaults.RichTextImageFailed" data-ib-image-too-large="@TextDefaults.RichTextImageTooLarge" data-ib-image-needs-alt="@TextDefaults.RichTextImageNeedsAlt">
+        @* The box (toolbar and text) needs script; with none, or if the script can't load, the
+           textarea of HTML stands in for it (data-ib-script and data-ib-noscript, in the main sheet). *@
+        <div class="ib-rich-text-box" data-ib-script>
         @if (ShowsToolbar)
         {
             <Toolbar Label="@TextDefaults.RichTextToolbar" Wrap="WrapToolbar" Class="ib-rich-text-toolbar">
@@ -93,7 +96,8 @@
              aria-required="@(IsRequired ? "true" : null)" aria-readonly="@(IsReadOnly ? "true" : null)"
              aria-disabled="@(IsDisabled ? "true" : null)" style="--ib-rows: @Rows"
              data-placeholder="@Placeholder" data-ib-empty="@(IsBlank(_shown) ? "" : null)">@((MarkupString)_shown)</div>
-        <textarea @attributes="ControlAttributes"
+        </div>
+        <textarea @attributes="ControlAttributes" data-ib-noscript
                   id="@FieldId"
                   class="ib-field-input ib-rich-text-source"
                   name="@NameAttributeValue"

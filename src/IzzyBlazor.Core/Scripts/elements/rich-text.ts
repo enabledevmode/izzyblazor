@@ -179,7 +179,7 @@ class RichText extends IzzyElement {
   #formatLoading: Promise<FormatPart> | null = null;
 
   private get surface(): HTMLElement | null {
-    return this.querySelector<HTMLElement>(":scope > .ib-rich-text-surface");
+    return this.querySelector<HTMLElement>(":scope > .ib-rich-text-box > .ib-rich-text-surface");
   }
 
   private get source(): HTMLTextAreaElement | null {
@@ -207,7 +207,7 @@ class RichText extends IzzyElement {
   }
 
   private get toolbar(): HTMLElement | null {
-    return this.querySelector<HTMLElement>(":scope > .ib-rich-text-toolbar");
+    return this.querySelector<HTMLElement>(":scope > .ib-rich-text-box > .ib-rich-text-toolbar");
   }
 
   protected setup(signal: AbortSignal): void {
@@ -235,7 +235,7 @@ class RichText extends IzzyElement {
 
     // Blazor replaces the text when Value changes from outside the field.
     const observer = new MutationObserver(() => this.prepare());
-    observer.observe(this, { childList: true });
+    observer.observe(this.querySelector(":scope > .ib-rich-text-box") ?? this, { childList: true });
     signal.addEventListener("abort", () => observer.disconnect());
 
     this.addEventListener("input", (event) => {

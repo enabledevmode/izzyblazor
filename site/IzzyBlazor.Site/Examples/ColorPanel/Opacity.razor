@@ -1,0 +1,6 @@
+@* A hero banner's overlay: any color, see-through, so the photo shows under the headline. *@
+<ColorPanel @bind-Value="_overlay" Label="Overlay" Swatches="@([])" ShowAlpha ShowEyedropper />
+
+@code {
+    private string? _overlay = "#0f172a99";
+}

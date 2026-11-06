@@ -52,6 +52,7 @@ jobs:
           picker=$(gzip -c src/IzzyBlazor.Core/wwwroot/column-picker.css | wc -c)
           richtext=$(gzip -c src/IzzyBlazor.Core/wwwroot/rich-text.css | wc -c)
           richcontent=$(gzip -c src/IzzyBlazor.Core/wwwroot/rich-content.css | wc -c)
+          colorpanel=$(gzip -c src/IzzyBlazor.Core/wwwroot/color-panel.css | wc -c)
           echo "CSS gzip: $css bytes (budget 51200)"
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
           echo "carousel.css gzip: $carousel bytes (budget 2048; only pages with a carousel load it)"
@@ -63,6 +64,7 @@ jobs:
           echo "column-picker.css gzip: $picker bytes (budget 1024; only grids with a column picker load it)"
           echo "rich-text.css gzip: $richtext bytes (budget 2048; only pages with a RichTextEditor load it)"
           echo "rich-content.css gzip: $richcontent bytes (budget 1024; only pages with rich text that uses its classes load it)"
+          echo "color-panel.css gzip: $colorpanel bytes (budget 2048; only pages with a ColorPanel load it)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
           # The built files must be exactly the ones lazy.ts loads.
@@ -88,7 +90,7 @@ jobs:
           done
           echo "Largest on-demand element: $big bytes (budget 6144)"
           echo "rich-text.js: $richcore bytes (budget 8192; its tables, images, links, formats and Markdown are parts)"
-          test "$css" -le 51200 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 3072 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$treeselect" -le 1024 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144 && test "$richcore" -le 8192
+          test "$css" -le 51200 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 3072 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$treeselect" -le 1024 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$js" -le 15360 && test "$big" -le 6144 && test "$richcore" -le 8192
 
       - name: Pack
         # Both packages: IzzyBlazor (server apps) and IzzyBlazor.Core (any render mode).
