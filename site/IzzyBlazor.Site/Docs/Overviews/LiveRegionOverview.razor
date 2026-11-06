@@ -9,23 +9,25 @@
     <ListItem><Code>LiveRegion</Code> holds hidden text that describes the page's state, such as "4 people". Screen readers read it each time the text changes.</ListItem>
     <ListItem><Code>Announcer</Code> tells screen reader users about something that just happened, such as "Revoked the invite". Call it from a form post or a C# handler.</ListItem>
 </List>
-<TextBlock>Components announce their own changes: <Anchor Href="docs/components/toast-region">toasts</Anchor>, a <Anchor Href="docs/components/copy-button">CopyButton</Anchor>'s "Copied", moves in a reorderable list. Use these for your own.</TextBlock>
+<TextBlock>Components announce their own changes: <Anchor Href="docs/components/toast-region">toasts</Anchor>, a <Anchor Href="docs/components/copy-button">CopyButton</Anchor>'s "Copied", moves in a reorderable list. Use LiveRegion and Announcer for changes your own code makes.</TextBlock>
 
 <Heading Level="2">Reading a count</Heading>
 <TextBlock>Put a <Code>LiveRegion</Code> next to the content it describes, and set its <Code>Text</Code> from the same data. This list reads the number of people after each search:</TextBlock>
 <ExampleViewer Example="live-region-results" />
-<TextBlock>Screen readers only notice changes in a region that was already on the page, so put the LiveRegion on the page from the start, not inside an <Code>@@if</Code>. The text it first renders with isn't read. Setting the same text again isn't read either, since nothing changed.</TextBlock>
+<TextBlock>Screen readers only notice changes in a region that was already on the page, so put the LiveRegion on the page from the start, not inside an <Code>@@if</Code>. Its first text isn't read. Setting the same text again isn't read either, since nothing changed.</TextBlock>
 <TextBlock>For a status that shows on the page, such as a visible "4 of 8 people", put <Code>role="status"</Code> on the element that shows it rather than repeating it in a LiveRegion.</TextBlock>
 
 <Heading Level="2">Announcing an action</Heading>
-<TextBlock>To tell screen reader users what just happened, call <Code>Announce</Code> on the injected <Code>Announcer</Code>. Revoking an invite removes its row, and the announcement says which one went:</TextBlock>
+<TextBlock>To tell screen reader users what just happened, call <Code>Announce</Code> on the injected <Code>Announcer</Code>. Revoking an invite marks its row and turns the button into Undo. The button keeps focus, but screen readers don't read a focused button's new name, so the announcement says what happened:</TextBlock>
 <ExampleViewer Example="live-region-announce" />
 <TextBlock>Every call is read, the same words twice included. On interactive pages, the message goes to the browser at once. On static pages, it renders in the response, so put an <Code>AnnouncerRegion</Code> in your layout. A <Code>ToastRegion</Code> already includes one, so a layout with toasts needs nothing more. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
+<TextBlock>A redirect drops the message. To tell users something after post-redirect-get, show a <Anchor Href="docs/components/toast-region">toast</Anchor>, which follows them to the next page.</TextBlock>
 <TextBlock>With JavaScript off, messages aren't read. Put the outcome where focus lands instead: a <Anchor Href="docs/components/form">Form</Anchor>'s errors take focus after a failed post.</TextBlock>
 <TextBlock>Announce in response to an action, not in <Code>OnInitialized</Code>, which runs twice on a prerendered interactive page.</TextBlock>
 
 <Heading Level="2">Interrupting</Heading>
 <TextBlock>Both are polite by default: the screen reader finishes what it's saying first. For an error that stops the task, set <Code>Assertive</Code> on a LiveRegion, or pass <Code>assertive: true</Code> to <Code>Announce</Code>. An assertive message cuts off what's being read, so keep it for errors.</TextBlock>
+<TextBlock>Unlike a polite one, an assertive LiveRegion is read when it appears with text, so leave its <Code>Text</Code> empty until there's an error. Set <Code>Assertive</Code> once: screen readers don't reliably notice it changing.</TextBlock>
 <Code Block Language="razor">@Assertive</Code>
 
 <Heading Level="2">Mode support</Heading>

@@ -20,7 +20,10 @@
 
 @if (_claimed)
 {
-    <div id="ib-announcer" data-permanent>
+    @* An interactive render (an island under a static layout's region) has none of its own to
+       keep: the circuit's scope can't see the static one. Interactive messages go through the
+       script, which uses the first region it finds. *@
+    <div id="@(RendererInfo.IsInteractive ? null : "ib-announcer")" data-permanent="@(RendererInfo.IsInteractive ? null : "")">
         <div class="ib-visually-hidden ib-announce-polite" aria-live="polite"></div>
         <div class="ib-visually-hidden ib-announce-assertive" aria-live="assertive"></div>
     </div>

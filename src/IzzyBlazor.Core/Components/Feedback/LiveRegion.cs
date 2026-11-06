@@ -13,14 +13,15 @@ namespace IzzyBlazor;
 /// <list type="bullet">
 /// <item>Polite (<c>role="status"</c>): read when the screen reader is done with what it's saying. <see cref="Assertive"/> (<c>role="alert"</c>) interrupts; keep it for errors that stop the task.</item>
 /// <item>It's read when its text changes. The same text again isn't read: it describes the page, and nothing changed.</item>
-/// <item>Put it on the page from the start. Text it arrives with isn't read: screen readers only watch regions that were already there.</item>
+/// <item>Put it on the page from the start. A polite region's first text isn't read: screen readers only watch regions that were already there. An assertive one is read when it appears with text, so give it text only when there's an error to report.</item>
+/// <item>Set <see cref="Assertive"/> once: screen readers don't reliably notice a region's role changing.</item>
 /// <item>The whole text is read each time (<c>aria-atomic</c>), not just the part that changed.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Announcer"/>
 /// <seealso cref="Alert"/>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the text changes only with a new page, and text a page loads with isn't read.")]
-public class LiveRegion : LayoutItemBase
+public class LiveRegion : IzzyComponentBase
 {
     /// <summary>What's read when it changes.</summary>
     [Parameter] public string? Text { get; set; }

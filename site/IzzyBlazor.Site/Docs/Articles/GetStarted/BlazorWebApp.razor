@@ -55,6 +55,11 @@
         </TextBlock>
         <Code Block Language="razor" Title="Components/Layout/MainLayout.razor" HighlightLines="5">@Layout</Code>
         <TextBlock>
+            The ToastRegion also reads <Code>Announcer</Code>'s messages to screen readers on static pages (see
+            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>). A layout without toasts takes an
+            <Code>&lt;AnnouncerRegion /&gt;</Code> instead.
+        </TextBlock>
+        <TextBlock>
             To open dialogs from C# with <Code>DialogService</Code>, put one <Code>&lt;DialogHost /&gt;</Code> on the
             interactive page that opens them. Or put it in the layout, with a render mode on the host:
             <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page need no host;
