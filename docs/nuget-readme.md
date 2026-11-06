@@ -53,7 +53,7 @@ Register the services in `Program.cs`:
 builder.Services.AddIzzyBlazor();
 ```
 
-IzzyBlazor loads its JavaScript automatically. To display toasts, add `<ToastRegion />` to your layout.
+IzzyBlazor loads its JavaScript automatically. To display toasts and screen reader announcements, add `<ToastRegion />` to your layout (or `<AnnouncerRegion />` for announcements alone).
 
 For WebAssembly and Auto render modes, reference `IzzyBlazor.Core` in your `.Client` project and call `AddIzzyBlazorCore()`. See the [WebAssembly and Auto setup guide](https://izzyblazor.com/docs/get-started/webassembly-and-auto) for details.
 

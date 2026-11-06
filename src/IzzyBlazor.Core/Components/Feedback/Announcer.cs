@@ -22,7 +22,8 @@ namespace IzzyBlazor;
 /// <item>On an interactive page (Server or WebAssembly), the message is read straight away.</item>
 /// <item>On a static page (such as a form post), the message goes in the response and is read when
 /// it arrives. That needs an <see cref="AnnouncerRegion"/> in the layout, or a
-/// <see cref="ToastRegion"/>, which has one; without either the message is dropped.</item>
+/// <see cref="ToastRegion"/>, which has one; without either the message is dropped. A redirect
+/// drops it too: show a toast instead, which <see cref="ToastService"/> carries over.</item>
 /// <item>With JavaScript off, messages aren't read: put the outcome where focus lands (a form's
 /// <see cref="FormErrors"/> takes focus) or in the page's heading.</item>
 /// </list>
@@ -55,17 +56,17 @@ public sealed class Announcer
     internal IReadOnlyList<Announcement> Pending => _pending;
 
     /// <summary>Tells screen reader users something.</summary>
-    /// <param name="text">What's read.</param>
+    /// <param name="message">What's read.</param>
     /// <param name="assertive">Interrupts what the screen reader is saying. Defaults to false (polite).</param>
-    public void Announce(string text, bool assertive = false)
+    public void Announce(string message, bool assertive = false)
     {
-        if (string.IsNullOrWhiteSpace(text) || BrowserCall.TrySend(_js, "izzyBlazor.announce", text, assertive))
+        if (string.IsNullOrWhiteSpace(message) || BrowserCall.TrySend(_js, "izzyBlazor.announce", message, assertive))
         {
             return;
         }
 
         // Static rendering (or prerendering): render it in this response.
-        _pending.Add(new Announcement(Guid.NewGuid().ToString("N"), text, assertive));
+        _pending.Add(new Announcement(Guid.NewGuid().ToString("N"), message, assertive));
         Changed?.Invoke();
     }
 

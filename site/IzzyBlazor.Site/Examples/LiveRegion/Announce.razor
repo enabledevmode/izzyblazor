@@ -4,50 +4,58 @@
 
 <Card Title="Pending invites" MaxWidth="34.Rem" Grow>
     <CardBody Flush>
-        @if (Pending.Count == 0)
-        {
-            <EmptyState Icon="Lucide.MailCheck" Title="No pending invites" Size="ControlSize.Sm" />
-        }
-        else
-        {
-            <form method="post" @formname="invites" @onsubmit="Revoke" data-enhance>
-                <AntiforgeryToken />
-                @* Static pages: the invites already revoked post with the form. *@
-                @foreach (var email in _revoked)
-                {
-                    <input type="hidden" name="revoked" value="@email" />
-                }
-                @foreach (var email in Pending)
-                {
-                    <Row Gap="3" Align="Align.Center" PaddingX="4" PaddingY="3" BorderTop="1">
-                        <TextBlock As="span" Grow Truncate>@email</TextBlock>
-                        <Button Submit Name="revoke" Value="@email" OnClick="() => _clicked = email" aria-label="@($"Revoke {email}")"
-                                Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger">Revoke</Button>
-                    </Row>
-                }
-            </form>
-        }
+        <form method="post" @formname="invites" @onsubmit="Toggle" data-enhance>
+            <AntiforgeryToken />
+            @* Static pages: the invites already revoked post with the form. *@
+            @foreach (var email in _revoked)
+            {
+                <input type="hidden" name="revoked" value="@email" />
+            }
+            @foreach (var email in Invites)
+            {
+                var revoked = _revoked.Contains(email);
+                @* Keyed, so the pressed button stays the same element and keeps focus as it turns into Undo. *@
+                <Row @key="email" Gap="3" Align="Align.Center" PaddingX="4" PaddingY="3" BorderTop="1">
+                    <TextBlock As="span" Grow Truncate>@email</TextBlock>
+                    @if (revoked)
+                    {
+                        <Badge Size="BadgeSize.Sm">Revoked</Badge>
+                    }
+                    <Button Submit Name="toggle" Value="@email" OnClick="() => _clicked = email"
+                            aria-label="@($"{(revoked ? "Undo" : "Revoke")} {email}")"
+                            Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="@(revoked ? Accent.Neutral : Accent.Danger)">@(revoked ? "Undo" : "Revoke")</Button>
+                </Row>
+            }
+        </form>
     </CardBody>
 </Card>
 
 @code {
-    [SupplyParameterFromForm(FormName = "invites", Name = "revoke")] private string? Posted { get; set; }
+    [SupplyParameterFromForm(FormName = "invites", Name = "toggle")] private string? Posted { get; set; }
     [SupplyParameterFromForm(FormName = "invites", Name = "revoked")] private string[]? PostedRevoked { get; set; }
 
     // Interactive pages post nothing, so OnClick says which button it was.
     private string? _clicked;
     private HashSet<string> _revoked = [];
 
-    private List<string> Pending => Invites.Where(e => !_revoked.Contains(e)).ToList();
-
     protected override void OnInitialized() => _revoked = [.. PostedRevoked ?? []];
 
-    private void Revoke()
+    private void Toggle()
     {
-        if ((Posted ?? _clicked) is { } email && _revoked.Add(email))
+        if ((Posted ?? _clicked) is not { } email)
         {
-            // The row is gone from the screen; screen reader users hear what happened.
+            return;
+        }
+
+        // The button's new name isn't read while it has focus; the announcement says what happened.
+        if (_revoked.Add(email))
+        {
             Announcer.Announce($"Revoked the invite for {email}.");
+        }
+        else
+        {
+            _revoked.Remove(email);
+            Announcer.Announce($"Restored the invite for {email}.");
         }
     }
 

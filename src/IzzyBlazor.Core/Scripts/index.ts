@@ -41,7 +41,7 @@ installIndeterminate();
 installSelectAll();
 installScrollbarWidth();
 installTabScroll();
-announceRendered();
+announceRendered(true);
 
 // ToastService and Announcer call these through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
@@ -69,11 +69,12 @@ function announcer() {
 }
 
 /** Reads the messages an AnnouncerRegion rendered in a static response (after a load or an enhanced update). */
-function announceRendered(): void {
+function announceRendered(afterLoad = false): void {
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", announceRendered, { once: true });
+    document.addEventListener("DOMContentLoaded", () => announceRendered(afterLoad), { once: true });
   } else if (document.querySelector("[data-ib-announcements] > [data-id]")) {
-    void announcer().then((module) => module.announceRendered());
+    // If the code can't load, the messages stay unread and the next update tries again.
+    announcer().then((module) => module.announceRendered(afterLoad), () => {});
   }
 }
 

@@ -1752,7 +1752,7 @@
           } },
         { "id": "live-region-announce", "title": "Announcing an action", "lead": "To tell screen reader users what just happened, call `Announcer.Announce`. On static pages, an `AnnouncerRegion` in the layout (or a `ToastRegion`, which has one) renders the message.",
           "notes": {
-            "noscript": "Revoke posts the form and the row goes, but the message isn't read.",
+            "noscript": "Revoke posts the form and the row is marked, but the message isn't read.",
             "static": "Revoke posts without a full reload, and the message in the response is read.",
             "interactive": "Revoke runs C# over the connection, and the message is read at once."
           } }
