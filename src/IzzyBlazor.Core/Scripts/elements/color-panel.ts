@@ -62,13 +62,15 @@ class ColorPanel extends IzzyElement {
     // One field posts now: the hidden one. The swatches keep a group name of their own (so arrow
     // keys still move between them) that the server doesn't read.
     const name = this.dataset.ibName;
-    if (name && !this.hasAttribute("data-ib-disabled")) {
-      value.name = name;
+    if (!this.hasAttribute("data-ib-disabled")) {
       // A group of this panel's own: two panels outside a form would otherwise share one, and
       // choosing a swatch in one would clear the other's.
-      const group = `${name}~swatch~${++groups}`;
+      const group = `${name ?? "ib-color"}~swatch~${++groups}`;
       for (const radio of this.querySelectorAll<HTMLInputElement>(".ib-cp-swatch-input")) radio.name = group;
-      this.querySelector('[data-ib-field="hex"]')?.removeAttribute("name");
+      if (name) {
+        value.name = name;
+        this.querySelector('[data-ib-field="hex"]')?.removeAttribute("name");
+      }
     }
     this.#h = parseFloat(getComputedStyle(this).getPropertyValue("--ib-cp-hue")) || 0;
     this.take(parse(value.value), false);
@@ -120,6 +122,12 @@ class ColorPanel extends IzzyElement {
         }
       }, { signal });
     }
+  }
+
+  /** Chooses a color from outside, such as ColorPicker's hex box, as if picked here. */
+  select(value: string): void {
+    const color = parse(value);
+    if (color) this.take(color, true);
   }
 
   /** Takes a color (or none), keeping the hue of a gray, where it means nothing. */

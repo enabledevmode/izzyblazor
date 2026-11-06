@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -16,7 +17,11 @@ public class ColorPickerRenderTests : BunitContext
     private readonly Model _model = new();
     private readonly EditContext _context;
 
-    public ColorPickerRenderTests() => _context = new EditContext(_model);
+    public ColorPickerRenderTests()
+    {
+        _context = new EditContext(_model);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+    }
 
     private IRenderedComponent<ColorPicker> Picker(Action<ComponentParameterCollectionBuilder<ColorPicker>>? more = null) =>
         Render<ColorPicker>(p =>
@@ -40,7 +45,7 @@ public class ColorPickerRenderTests : BunitContext
     {
         var cut = Picker();
 
-        cut.Find("input[type=color]").Change("#0F766E");
+        cut.Find(".ib-cp-value").Change("#0F766E");
 
         Assert.Equal("#0f766e", _model.Brand);
     }
@@ -66,7 +71,7 @@ public class ColorPickerRenderTests : BunitContext
             .Add(f => f.ReadOnly, true)
             .Add(f => f.Disabled, true)
             .AddUnmatched("name", "brand"));
-        Assert.Empty(disabled.FindAll("input[type=hidden]"));
+        Assert.Empty(disabled.FindAll("input[type=hidden][name]"));
     }
 
     [Fact]

@@ -84,7 +84,8 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
         type is { IsPublic: true, IsAbstract: false, IsInterface: false } &&
         typeof(IComponent).IsAssignableFrom(type) &&
         type.Namespace == "IzzyBlazor" &&
-        !Removed(type);
+        !Removed(type) &&
+        type.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>(inherit: false) is not { State: System.ComponentModel.EditorBrowsableState.Never };
 
     /// <summary>Marked <c>[Obsolete]</c> as an error: not part of the API.</summary>
     private static bool Removed(MemberInfo member) => member.GetCustomAttribute<ObsoleteAttribute>() is { IsError: true };
