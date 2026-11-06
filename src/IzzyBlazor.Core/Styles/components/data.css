@@ -1401,52 +1401,6 @@
     justify-content: flex-end;
   }
 
-  .ib-col-picker-list {
-    margin: 0 0 var(--ib-space-2);
-    padding: 0;
-    list-style: none;
-    font-size: var(--ib-text-sm);
-  }
-
-  .ib-col-picker-list li {
-    display: flex;
-    align-items: center;
-    gap: var(--ib-space-4);
-  }
-
-  .ib-col-picker-move {
-    display: inline-flex;
-  }
-
-  /* A band's columns under its name. */
-  .ib-col-picker-list .ib-col-picker-band {
-    display: block;
-    padding-block-start: var(--ib-space-1);
-    color: var(--ib-color-muted);
-  }
-
-  .ib-col-picker-band > ul {
-    padding: 0;
-    padding-inline-start: var(--ib-space-3);
-    list-style: none;
-    color: var(--ib-color-on-surface);
-  }
-
-  .ib-col-picker-move .ib-btn {
-    width: 1.5rem;
-    min-width: 0;
-    height: 1.5rem;
-    padding: 0;
-  }
-
-  .ib-col-picker-list label {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    gap: var(--ib-space-2);
-    padding-block: var(--ib-space-1);
-  }
-
   @media (scripting: none) {
     .ib-datagrid [data-ib-menu],
     .ib-col-resize,
@@ -1833,7 +1787,7 @@
   .ib-listview-select,
   .ib-listview-select-all,
   .ib-tree-select,
-  .ib-col-picker-list .ib-check-input {
+  .ib-col-picker .ib-check-input {
     --ib-check-size: 1rem;
     margin: 0;
   }

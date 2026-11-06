@@ -1,0 +1,126 @@
+/*
+ * A DataGrid's column picker, built to wwwroot/column-picker.css and linked by the picker, so other
+ * pages don't pay for it.
+ *
+ * Each row is a checkbox, a handle and the title; a band's row has a chevron before them and its
+ * columns in a list of their own under it. Rows with no chevron or no handle keep their room, so
+ * checkboxes, handles and titles line up down the list.
+ */
+@layer izzy.components {
+  /* A line under the title, across the whole panel. */
+  .ib-col-picker-pop > .ib-popover-header {
+    margin-inline: calc(var(--ib-space-4) * -1);
+    padding: 0 var(--ib-space-4) var(--ib-space-3);
+    border-block-end: 1px solid var(--ib-color-border);
+  }
+
+  .ib-col-picker-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    min-width: 16rem;
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-col-picker-top,
+  .ib-col-picker-row,
+  .ib-col-picker-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-col-picker-top > .ib-field {
+    flex: 1;
+  }
+
+  .ib-col-picker-list,
+  .ib-col-picker-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ib-col-picker-list {
+    max-height: min(24rem, 60vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ib-col-picker-list ul {
+    padding-inline-start: 1.75rem;
+  }
+
+  .ib-col-picker-list li[hidden],
+  .ib-col-picker-list ul[hidden] {
+    display: none;
+  }
+
+  .ib-col-picker-row {
+    min-height: 2rem;
+  }
+
+  .ib-col-picker-row > label {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--ib-space-1);
+    cursor: pointer;
+  }
+
+  .ib-col-picker-gap,
+  .ib-col-picker-chevron,
+  .ib-col-picker-handle {
+    flex: none;
+    width: 1.5rem;
+    min-width: 0;
+    height: 1.5rem;
+    padding: 0;
+  }
+
+  .ib-col-picker-handle {
+    color: var(--ib-color-muted);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .ib-col-picker-chevron > .ib-icon {
+    transition: rotate 0.15s;
+  }
+
+  .ib-col-picker-chevron[aria-expanded="false"] > .ib-icon {
+    rotate: -90deg;
+  }
+
+  .ib-col-picker-pin {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--ib-color-muted);
+  }
+
+  /* Where a dragged row would land: a line above or below the row it's over. */
+  .ib-col-picker-list li[data-ib-drop="before"] > .ib-col-picker-row {
+    box-shadow: inset 0 2px var(--ib-color-primary);
+  }
+
+  .ib-col-picker-list li[data-ib-drop="after"] > .ib-col-picker-row {
+    box-shadow: inset 0 -2px var(--ib-color-primary);
+  }
+
+  .ib-col-picker-list li[data-ib-dragging] {
+    opacity: 0.5;
+  }
+
+  .ib-col-picker-foot {
+    justify-content: space-between;
+    padding-block-start: var(--ib-space-2);
+    border-block-start: 1px solid var(--ib-color-border);
+    color: var(--ib-color-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-col-picker-chevron > .ib-icon {
+      transition: none;
+    }
+  }
+}

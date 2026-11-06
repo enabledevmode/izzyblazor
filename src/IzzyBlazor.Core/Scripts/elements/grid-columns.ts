@@ -238,6 +238,33 @@ class GridColumns extends IzzyElement {
     return keys;
   }
 
+  // The picker's names for what it moves: a column's key, or "band:3".
+  #item(name: string): HTMLTableCellElement | null {
+    return name.startsWith("band:") ? this.#bandHeader(name.slice(5)) : this.#header(name);
+  }
+
+  /**
+   * For the column picker: moves a column or band (its name, as #item reads it) by a step, or to
+   * the place of another (a column or band beside it).
+   */
+  movePicked(name: string, to: number | string): void {
+    const th = this.#item(name);
+    if (!th) return;
+    if (typeof to === "number") return this.#move(th, to, false);
+    const target = to.startsWith("band:") ? this.#headers.find((h) => this.#path(h).includes(to.slice(5))) : this.#header(to);
+    const index = this.#blocks(th).blocks.findIndex((block) => target && block.includes(target));
+    if (index >= 0) this.#moveTo(th, index, false);
+  }
+
+  /** For the column picker: shows or hides these columns at once, keeping one shown. */
+  showPicked(keys: string[], on: boolean): void {
+    const columns = this.#layout();
+    for (const k of keys) this.#entry(columns, k).h = !on;
+    const shown = this.#headers.map((h) => h.dataset.ibCol!).filter((k) => !keys.includes(k));
+    if (!on && shown.length === 0) this.#entry(columns, this.#headers[0]?.dataset.ibCol ?? keys[0]).h = false;
+    void this.#save(columns, true, null);
+  }
+
   #move(th: HTMLTableCellElement, by: number, focus: boolean): void {
     this.#moveTo(th, this.#blocks(th).from + by, focus);
   }
@@ -307,6 +334,7 @@ class GridColumns extends IzzyElement {
     const columns = this.#layout();
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
     if (th && (action === "left" || action === "right")) this.#move(th, action === "left" ? -1 : 1, true);
+    else if (th && (action === "first" || action === "last")) this.#moveTo(th, action === "first" ? 0 : 1e9, true);
     else if (th && action === "wider") this.#setWidth(th, th.offsetWidth + rem, true);
     else if (th && action === "narrower") this.#setWidth(th, th.offsetWidth - rem, true);
     else if (th && action === "fit") {
