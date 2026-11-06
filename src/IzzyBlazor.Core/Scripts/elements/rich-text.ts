@@ -94,10 +94,11 @@ function element(node: Element, name: string, top: number): string {
     if (node.getAttribute("target") === "_blank") attributes += ` target="_blank" rel="noopener noreferrer"`;
   } else if (name === "span") {
     // Only the editor's own classes and font; a span with neither is only its content.
-    const classes = [...node.classList].filter((c) => /^ib-(color|highlight|size)-[a-z]+$/.test(c));
+    const classes = [...node.classList].filter((c) => /^ib-(color|highlight|size)-[a-z0-9]+$/.test(c));
     if (classes.length) attributes = ` class="${classes.join(" ")}"`;
-    const font = (node as HTMLElement).dataset.ibFont;
-    if (font) attributes += ` style="font-family: ${escape(font, true)}"`;
+    const { ibFont: font, ibFontSize: size } = (node as HTMLElement).dataset;
+    const style = [font && `font-family: ${font}`, size && `font-size: ${size}`].filter(Boolean).join("; ");
+    if (style) attributes += ` style="${escape(style, true)}"`;
     if (!attributes) return serialize(node, top);
   } else if (/^(p|h[1-6]|li|blockquote|td|th)$/.test(name)) {
     const align = [...node.classList].find((c) => c === "ib-align-center" || c === "ib-align-end");
@@ -152,6 +153,11 @@ class RichText extends IzzyElement {
   /** The fonts the editor offers (its Fonts), exactly as the app wrote them. */
   private get fonts(): string[] {
     return this.dataset.ibFonts ? this.dataset.ibFonts.split("|") : [];
+  }
+
+  /** The fixed sizes the editor offers (its FontSizes), exactly as the app wrote them. */
+  private get fontSizes(): string[] {
+    return this.dataset.ibFontSizes ? this.dataset.ibFontSizes.split("|") : [];
   }
 
   /** The highest heading level (TopHeading). */
@@ -249,6 +255,8 @@ class RichText extends IzzyElement {
     for (const span of surface.querySelectorAll<HTMLElement>("span[style]")) {
       const font = this.fonts.find((f) => sameFont(f, span.style.fontFamily));
       if (font) span.dataset.ibFont = font;
+      const size = this.fontSizes.find((f) => f.trim().toLowerCase() === span.style.fontSize.toLowerCase());
+      if (size) span.dataset.ibFontSize = size;
     }
     // The count is part of the text's description once it follows the typing.
     const count = document.getElementById(`${this.source?.id}-count`);
@@ -270,10 +278,11 @@ class RichText extends IzzyElement {
     // Text typed straight into the box becomes a paragraph; a browser's style attributes go.
     if ([...surface.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) exec("formatBlock", "<p>");
     for (const styled of surface.querySelectorAll<HTMLElement>("[style]")) {
-      // A font the editor set keeps its one style; anything else a browser wrote goes.
-      const font = styled.dataset.ibFont;
+      // A font or size the editor set keeps its style; anything else a browser wrote goes.
+      const { ibFont: font, ibFontSize: size } = styled.dataset;
       styled.removeAttribute("style");
       if (font) styled.style.fontFamily = font;
+      if (size) styled.style.fontSize = size;
     }
     this.sync();
   }
@@ -515,6 +524,13 @@ class RichText extends IzzyElement {
         const checked = item.dataset.ibValue === value;
         if (item.hasAttribute("aria-checked")) item.setAttribute("aria-checked", String(checked));
         if (checked) chosen = item;
+      }
+      // The color tools show the caret's color as a bar under their icon.
+      const swatch = toolbar.querySelector<HTMLElement>(`[data-ib-swatch="${menu}"]`);
+      const preview = value ? chosen?.querySelector<HTMLElement>(".ib-rich-text-menu-text") : null;
+      if (swatch) {
+        if (preview) swatch.style.setProperty("--ib-swatch", menu === "color" ? getComputedStyle(preview).color : getComputedStyle(preview).backgroundColor);
+        else swatch.style.removeProperty("--ib-swatch");
       }
       const button = toolbar.querySelector<HTMLElement>(`[data-ib-menu-button="${menu}"]`);
       const text = button?.querySelector(".ib-rich-text-menu-name");

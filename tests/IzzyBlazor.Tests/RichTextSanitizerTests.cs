@@ -8,7 +8,7 @@ public class RichTextSanitizerTests : BunitContext
 {
     public RichTextSanitizerTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
-    private static string S(string html, bool dataImages = false, int top = 1, string[]? fonts = null) => RichTextSanitizer.Sanitize(html, top, fonts, dataImages);
+    private static string S(string html, bool dataImages = false, int top = 1, string[]? fonts = null, string[]? sizes = null) => RichTextSanitizer.Sanitize(html, top, fonts, sizes, dataImages);
 
     [Theory]
     [InlineData("<script>alert(1)</script>ok", "ok")]
@@ -127,6 +127,9 @@ public class RichTextSanitizerTests : BunitContext
             S("<p class=\"ib-align-center MsoNormal\" style=\"text-align:center\">a <span class=\"ib-color-red x ib-size-lg\" style=\"color:red\">b</span> <sub>2</sub><sup>3</sup></p>"));
         Assert.Equal("<p><span style=\"font-family: Georgia, serif\">a</span>b</p>",
             S("<p><span style=\"FONT-FAMILY: georgia, serif;\">a</span><span style=\"font-family: Comic Sans MS\">b</span></p>", fonts: ["Georgia, serif"]));
+        // A fixed size only from the app's list; both styles together, in one attribute.
+        Assert.Equal("<p><span style=\"font-family: Georgia, serif; font-size: 14px\">a</span>b</p>",
+            S("<p><span style=\"font-size:14px; font-family: Georgia, serif; color: red\">a</span><span style=\"font-size: 13px\">b</span></p>", fonts: ["Georgia, serif"], sizes: ["14px"]));
         // A dropped span doesn't take its end tag from the span around it.
         Assert.Equal("<p><span class=\"ib-color-blue\">a b c</span></p>", S("<p><span class=\"ib-color-blue\">a <span>b</span> c</span></p>"));
         Assert.Equal("<p><span class=\"ib-highlight-yellow\">x</span></p>", S("<p><font color=red><span class=\"ib-highlight-yellow\" onclick=x>x</span></font></p>"));

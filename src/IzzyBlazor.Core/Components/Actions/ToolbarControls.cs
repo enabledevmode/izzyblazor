@@ -572,18 +572,27 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
     public static ToolbarContext? Of(ToolbarContext? toolbar, ButtonGroup? group) => group is ToolbarButtonGroup buttons ? buttons.Toolbar : toolbar;
 
     /// <summary>
-    /// Whether its other attributes are only names, ids and a link's download, which a menu copy can keep or do without. One
-    /// wired to something by its attributes (a popover's trigger, an event handler) can't be copied.
+    /// Whether its other attributes are only names, ids, data attributes and a link's download,
+    /// which a menu copy can keep or do without. One wired to something by its attributes (a
+    /// popover's trigger, an event handler) can't be copied.
     /// </summary>
     public static bool CopiesToMenu(IReadOnlyDictionary<string, object>? attributes) => attributes is null
-        || attributes.Keys.All(k => k is "id" or "title" or "download" || k.StartsWith("aria-", StringComparison.Ordinal));
+        || attributes.Keys.All(k => k is "id" or "title" or "download" || k.StartsWith("aria-", StringComparison.Ordinal) || k.StartsWith("data-", StringComparison.Ordinal));
 
-    /// <summary>A link's download stays one in the menu, or it would navigate instead.</summary>
+    /// <summary>
+    /// A link's download stays one in the menu, or it would navigate instead; data attributes go with
+    /// the copy, so a script that reads them on the button reads them on the menu item too.
+    /// </summary>
     public static void CopyDownload(RenderTreeBuilder builder, IReadOnlyDictionary<string, object>? attributes)
     {
         if (attributes?.TryGetValue("download", out var download) == true)
         {
             builder.AddAttribute(16, "download", download);
+        }
+
+        if (attributes?.Any(a => a.Key.StartsWith("data-", StringComparison.Ordinal)) == true)
+        {
+            builder.AddMultipleAttributes(17, attributes.Where(a => a.Key.StartsWith("data-", StringComparison.Ordinal)));
         }
     }
 

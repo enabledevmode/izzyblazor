@@ -38,15 +38,18 @@ public class RichText : Prose
     /// <summary>The fonts the text may use, as the editor's <c>Fonts</c>: others are dropped.</summary>
     [Parameter] public IReadOnlyList<string>? Fonts { get; set; }
 
+    /// <summary>The fixed text sizes the text may use, as the editor's <c>FontSizes</c>: others are dropped.</summary>
+    [Parameter] public IReadOnlyList<string>? FontSizes { get; set; }
+
     /// <summary>Keep images whose source is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image.</summary>
     [Parameter] public bool AllowDataImages { get; set; }
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var html = RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, AllowDataImages);
+        var html = RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages);
         // The editor's content classes (alignment, color, size) have a sheet of their own.
-        if (html.Contains("class=\"ib-", StringComparison.Ordinal))
+        if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal))
         {
             builder.OpenElement(5, "link");
             builder.AddAttribute(6, "rel", "stylesheet");
