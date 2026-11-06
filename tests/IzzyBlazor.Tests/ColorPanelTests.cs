@@ -62,4 +62,23 @@ public class ColorPanelTests : BunitContext
         Assert.Null(cut.Find("[data-ib-field=hex]").GetAttribute("name"));
         Assert.Null(cut.Find(".ib-cp-value").GetAttribute("name"));
     }
+
+    [Fact]
+    public void A_value_that_isnt_a_swatch_and_a_read_only_value_still_post_with_no_script()
+    {
+        IRenderedComponent<ColorPanel> Panel(bool readOnly) => Render<ColorPanel>(p => p
+            .Add(f => f.ValueExpression, () => new Model().Color)
+            .Add(f => f.Value, "#123456")
+            .Add(f => f.ReadOnly, readOnly)
+            .AddUnmatched("name", "accent"));
+
+        // Not among the swatches: a radio of its own, chosen, shown only with no script.
+        var own = Assert.Single(Panel(false).FindAll(".ib-cp-swatch-input[checked]"));
+        Assert.Equal("#123456", own.GetAttribute("value"));
+        Assert.Equal("accent", own.GetAttribute("name"));
+        Assert.True(own.ParentElement!.HasAttribute("data-ib-noscript"));
+
+        // Read-only: the swatches are disabled, so a hidden field posts the value.
+        Assert.Equal("#123456", Panel(true).Find("input[type=hidden][name=accent]").GetAttribute("value"));
+    }
 }
