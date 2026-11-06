@@ -781,6 +781,7 @@
             "noscript": "The field is a text box holding the HTML. It still posts, and is sanitized.",
             "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
           } },
+        { "id": "rich-text-editor-formats", "title": "Everything it formats", "lead": "Headings 2 to 4, paragraphs with bold, italic, underline, strikethrough and inline code, numbered and bulleted lists inside each other, a quote, a code block and a horizontal line. The page keeps heading 1 for its own title, so the text starts at 2." },
         { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
         { "id": "rich-text-editor-states", "title": "Read-only and disabled", "lead": "A read-only editor has no toolbar; the text can be selected and still posts. A disabled one doesn't post." }
       ],
