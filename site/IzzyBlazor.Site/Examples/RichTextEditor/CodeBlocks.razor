@@ -2,9 +2,13 @@
    highlighted. Put the caret in the code to change its language. *@
 <Stack Gap="6" Grow>
     <RichTextEditor @bind-Value="_howTo" Label="How-to" Rows="8" />
-    <Card Title="As RichText shows it">
-        <RichText Html="@_howTo" />
-    </Card>
+    @* Labeled as the editor is, so the label isn't taken for part of the text. *@
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">As RichText shows it</TextBlock>
+        <Card>
+            <RichText Html="@_howTo" />
+        </Card>
+    </Stack>
 </Stack>
 
 @code {
