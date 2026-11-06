@@ -71,7 +71,7 @@ public static class RichTextSanitizer
     // Dropped along with everything inside them.
     private static readonly HashSet<string> DropWithContent = new(StringComparer.Ordinal)
     {
-        "script", "style", "template", "iframe", "object", "embed", "svg", "math", "noscript",
+        "script", "style", "template", "iframe", "object", "svg", "math", "noscript",
         "textarea", "title", "xmp", "noembed", "noframes", "plaintext", "select", "head", "frameset",
     };
 
@@ -126,6 +126,9 @@ public static class RichTextSanitizer
     public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false, bool customColors = false)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
+        // Line breaks as a browser reads them (a form post sends CRLF), so a value is the same
+        // however it arrived.
+        html = html.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
         var root = new Node(null);
         new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? [], fontSizes ?? [], customColors).Run(html);
         var output = new StringBuilder(html.Length);
@@ -259,6 +262,8 @@ public static class RichTextSanitizer
                 attributes.Add((attrName, Decode(value)));
             }
 
+            // "<svg/>" and "<math/>" close themselves (they're foreign content); an HTML element's slash means nothing.
+            var selfClosing = i < html.Length && i > 0 && html[i - 1] == '/';
             i = Math.Min(i + 1, html.Length);
 
             if (end)
@@ -269,7 +274,7 @@ public static class RichTextSanitizer
 
             if (name == "plaintext") return html.Length;
             if (RawText.Contains(name)) return SkipRawText(html, i, name);
-            if (DropWithContent.Contains(name)) return SkipElement(html, i, name);
+            if (DropWithContent.Contains(name)) return selfClosing && name is "svg" or "math" ? i : SkipElement(html, i, name);
             StartTag(name, attributes);
             return i;
         }
@@ -333,6 +338,10 @@ public static class RichTextSanitizer
             text.Clear();
             if (value.Length == 0) return;
             if (NoText.Contains(Current.Name ?? "")) return;
+            // A browser drops a line break right after <pre>: so does this, or the editor's value
+            // would lose it on its next post and change.
+            if (Current.Name == "pre" && Current.Children.Count == 0 && value[0] == '\n') value = value[1..];
+            if (value.Length == 0) return;
             Append(new Node(null) { Text = value });
         }
 

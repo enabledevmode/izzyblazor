@@ -184,4 +184,14 @@ public class RichTextSanitizerTests : BunitContext
 
         cut.MarkupMatches("<div class=\"ib-prose ib-prose-lg\"><h2>Title</h2></div>");
     }
+
+    [Fact]
+    public void Reads_as_a_browser_does_where_the_value_would_otherwise_change_or_be_lost()
+    {
+        // A dropped void or self-closing element keeps what follows it.
+        Assert.Equal("<p>A</p><p>Rest</p>", S("<p>A</p><embed src=x><p>Rest</p>"));
+        Assert.Equal("<p>A</p><p>Rest</p>", S("<p>A</p><svg/><p>Rest</p>"));
+        // A line break right after <pre> isn't content, and a post's CRLF is a line break.
+        Assert.Equal("<pre>a\nb</pre>", S("<pre>\r\na\r\nb</pre>"));
+    }
 }

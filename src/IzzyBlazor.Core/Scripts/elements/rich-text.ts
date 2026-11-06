@@ -152,6 +152,13 @@ function sameFont(a: string, b: string): boolean {
   return probe.style.fontFamily === b || a === b;
 }
 
+// A size as the app wrote it (".875rem") and as the browser shows it ("0.875rem") are the same.
+function sameSize(a: string, b: string): boolean {
+  const probe = document.createElement("span");
+  probe.style.fontSize = a;
+  return probe.style.fontSize === b || a.trim().toLowerCase() === b.toLowerCase();
+}
+
 function isBlank(surface: Element): boolean {
   return !surface.querySelector("img,hr") && !(surface.textContent ?? "").replace(/[\u00A0\u200B]/g, " ").trim();
 }
@@ -244,6 +251,13 @@ class RichText extends IzzyElement {
       if (event.target !== this.surface) return;
       const input = event as InputEvent;
       if (input.inputType === "insertText") this.#markdown?.markdown(this.markdownEditor(), input.data);
+      // Undo and redo replay the browser's own steps, not the ones this script made after them
+      // (a format's span replaces the browser's mark): tidy what's left, an emptied span and a
+      // stray mark.
+      if (input.inputType === "historyUndo" || input.inputType === "historyRedo") {
+        for (const span of this.surface!.querySelectorAll("span")) if (!span.textContent && !span.querySelector("img")) span.remove();
+        for (const mark of this.surface!.querySelectorAll('font[face="ib-mark"]')) mark.replaceWith(...mark.childNodes);
+      }
       this.changed();
     }, { signal });
     // An editor that shows layout tools loads their code now, so the tools show the caret's state.
@@ -304,23 +318,32 @@ class RichText extends IzzyElement {
     surface.contentEditable = locked ? "false" : "true";
     surface.tabIndex = surface.getAttribute("aria-disabled") === "true" ? -1 : 0;
     surface.spellcheck = true;
-    // A font from the server comes as a style: note which of the editor's fonts it is.
-    for (const span of surface.querySelectorAll<HTMLElement>("span[style]")) {
-      const font = this.fonts.find((f) => sameFont(f, span.style.fontFamily));
-      if (font) span.dataset.ibFont = font;
-      const size = this.fontSizes.find((f) => f.trim().toLowerCase() === span.style.fontSize.toLowerCase());
-      if (size) span.dataset.ibFontSize = size;
-      // Custom colors, as the server wrote them (six hex digits, which it only keeps with CustomColors).
-      const style = span.getAttribute("style") ?? "";
-      const color = /(?:^|;)\s*color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
-      const highlight = /background-color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
-      if (color) span.dataset.ibColor = color;
-      if (highlight) span.dataset.ibHighlight = highlight;
-    }
+    this.adopt(surface);
     // The count is part of the text's description once it follows the typing.
     const count = document.getElementById(`${this.source?.id}-count`);
     const described = surface.getAttribute("aria-describedby")?.split(" ") ?? [];
     if (count && !described.includes(count.id)) surface.setAttribute("aria-describedby", [...described, count.id].join(" "));
+  }
+
+  /**
+   * Notes the editor's own styles on spans that came as a style (from the server, or pasted from
+   * this editor): a font or fixed size from its lists, and with CustomColors a color or highlight
+   * as six hex digits. Anything else a style holds goes when the text changes.
+   */
+  private adopt(root: HTMLElement): void {
+    const custom = this.hasAttribute("data-ib-custom-colors");
+    for (const span of root.querySelectorAll<HTMLElement>("span[style]")) {
+      const font = this.fonts.find((f) => sameFont(f, span.style.fontFamily));
+      if (font) span.dataset.ibFont = font;
+      const size = this.fontSizes.find((f) => sameSize(f, span.style.fontSize));
+      if (size) span.dataset.ibFontSize = size;
+      if (!custom) continue;
+      const style = span.getAttribute("style") ?? "";
+      const color = /(?:^|;)\s*color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
+      const highlight = /background-color:\s*(#[0-9a-f]{6})/i.exec(style)?.[1];
+      if (color) span.dataset.ibColor = color.toLowerCase();
+      if (highlight) span.dataset.ibHighlight = highlight.toLowerCase();
+    }
   }
 
   /** An empty text starts with a paragraph, so the first line typed is one. */
@@ -336,6 +359,7 @@ class RichText extends IzzyElement {
     const surface = this.surface!;
     // Text typed straight into the box becomes a paragraph; a browser's style attributes go.
     if ([...surface.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim())) exec("formatBlock", "<p>");
+    this.adopt(surface);
     for (const styled of surface.querySelectorAll<HTMLElement>("[style]")) {
       // A font or size the editor set keeps its style; anything else a browser wrote goes.
       const { ibFont: font, ibFontSize: size, ibColor: color, ibHighlight: highlight } = styled.dataset;
@@ -368,7 +392,8 @@ class RichText extends IzzyElement {
     const count = document.getElementById(`${this.source?.id}-count`);
     const current = count?.querySelector(".ib-field-count-current");
     if (!count || !current) return;
-    const length = (this.surface?.textContent ?? "").replace(/\u200B/g, "").length;
+    // Line breaks don't count (a code block's), on the server too.
+    const length = (this.surface?.textContent ?? "").replace(/[\u200B\r\n]/g, "").length;
     current.textContent = String(length);
     count.toggleAttribute("data-ib-over", length > Number(this.dataset.ibMax));
   }
@@ -496,15 +521,18 @@ class RichText extends IzzyElement {
         const range = getSelection()?.rangeCount ? getSelection()!.getRangeAt(0).cloneRange() : null;
         if (!dialog || !range || !surface.contains(range.commonAncestorContainer)) return;
         const format = value === "highlight" ? "highlight" : "color";
+        const back = () => {
+          surface.focus({ preventScroll: true });
+          getSelection()?.removeAllRanges();
+          getSelection()?.addRange(range);
+        };
         void this.loadFormat().then((part) =>
           part.openCustom(dialog, format, part.formatAt(surface, format) || this.shown(range, format), (hex) => {
-            surface.focus({ preventScroll: true });
-            getSelection()?.removeAllRanges();
-            getSelection()?.addRange(range);
+            back();
             part.applyInline(surface, format, hex);
             this.changed();
             this.reflect();
-          })
+          }, back)
         );
         return;
       }
@@ -684,6 +712,9 @@ class RichText extends IzzyElement {
     }
     const mod = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
     if (!mod) return;
+    // AltGr is Ctrl+Alt on Windows: a key that types a character (French AltGr+à is @) isn't a
+    // shortcut, so it types.
+    if (event.altKey && (event.getModifierState("AltGraph") || (event.key.length === 1 && !/[0-9]/.test(event.key)))) return;
     // The browser's own Ctrl+B, I and U change the format for what's typed next without moving the
     // selection, so no selectionchange says so: show it once the browser has done it.
     setTimeout(() => this.reflect(), 0);
