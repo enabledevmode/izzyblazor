@@ -1,7 +1,7 @@
 @using System.ComponentModel.DataAnnotations
 
 @* A team announcement: the editor's value is sanitized HTML, shown back with RichText. *@
-<Form Model="Model" FormName="rich-text-editor-announcement" OnValidSubmit="Post" Grow MaxWidth="40.Rem">
+<Form Model="Model" FormName="rich-text-editor-announcement" OnValidSubmit="Post">
     <TextField @bind-Value="Model!.Title" />
     <RichTextEditor @bind-Value="Model.Body" Hint="Shown on the team page." />
     <FormActions>
@@ -10,7 +10,7 @@
 </Form>
 @if (_posted is not null)
 {
-    <Card Title="@_posted.Value.Title" MaxWidth="40.Rem" Grow>
+    <Card Title="@_posted.Value.Title">
         <RichText Html="@_posted.Value.Body" />
     </Card>
 }

@@ -43,21 +43,18 @@
     border-block-end: 1px solid var(--ib-color-outline-variant, var(--ib-field-border));
   }
 
+  /* Wide enough for the longest style, so the toolbar doesn't move as the caret does. */
   .ib-rich-text-style {
-    height: 2rem;
-    padding-inline: var(--ib-space-2);
-    border: 1px solid transparent;
-    border-radius: var(--ib-radius-sm);
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: var(--ib-text-sm);
-    cursor: pointer;
+    min-width: 8.5rem;
+    justify-content: space-between;
   }
 
-  .ib-rich-text-style:hover {
-    background-color: var(--ib-color-fill);
-  }
+  /* Each style in the menu looks like what it makes. */
+  .ib-rich-text-preview-h2 { font-size: 1.25em; font-weight: 600; }
+  .ib-rich-text-preview-h3 { font-size: 1.125em; font-weight: 600; }
+  .ib-rich-text-preview-h4 { font-weight: 600; }
+  .ib-rich-text-preview-blockquote { padding-inline-start: var(--ib-space-2); border-inline-start: 3px solid var(--ib-color-outline); font-style: italic; }
+  .ib-rich-text-preview-pre { font-family: var(--ib-font-mono); font-size: 0.9em; }
 
   .ib-rich-text-surface {
     position: relative;

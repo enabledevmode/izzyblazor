@@ -52,7 +52,7 @@ function serialize(parent: Node): string {
     if (node.nodeType === Node.TEXT_NODE) {
       // Whitespace between list items or table rows isn't content.
       if (/^(UL|OL|TABLE|THEAD|TBODY|TR)$/.test((parent as Element).tagName ?? "") && !node.textContent?.trim()) continue;
-      out += escape(node.textContent ?? "");
+      out += escape((node.textContent ?? "").replace(/​/g, ""));
       openItem = false;
       continue;
     }
@@ -98,7 +98,7 @@ function element(node: Element, name: string): string {
 }
 
 function isBlank(surface: Element): boolean {
-  return !surface.querySelector("img,hr") && !(surface.textContent ?? "").replace(/ /g, " ").trim();
+  return !surface.querySelector("img,hr") && !(surface.textContent ?? "").replace(/[ ​]/g, " ").trim();
 }
 
 function exec(command: string, value?: string): void {
@@ -136,6 +136,7 @@ class RichText extends IzzyElement {
         tool.title = tool.title.replace("Ctrl+", "⌘");
         tool.setAttribute("aria-keyshortcuts", tool.getAttribute("aria-keyshortcuts")!.replace("Control+", "Meta+"));
       }
+      for (const key of this.querySelectorAll<HTMLElement>("[data-ib-command] .ib-menu-shortcut")) key.textContent = key.textContent!.replace("Ctrl+", "⌘");
     }
 
     // The label points at the textarea, which is hidden: a click on it focuses the text.
@@ -176,11 +177,10 @@ class RichText extends IzzyElement {
     }, { signal });
     this.addEventListener("click", (event) => {
       const tool = (event.target as Element).closest<HTMLButtonElement>("button[data-ib-command]");
-      if (tool && this.contains(tool)) this.run(tool.dataset.ibCommand!);
-    }, { signal });
-    this.addEventListener("change", (event) => {
-      const select = event.target as HTMLSelectElement;
-      if (select.matches?.("select[data-ib-command]")) this.run("block", select.value);
+      if (!tool || !this.contains(tool)) return;
+      this.run(tool.dataset.ibCommand!, tool.dataset.ibValue);
+      // A menu puts focus back on its button as it closes: the text takes it after that.
+      if (tool.closest("[popover]")) setTimeout(() => this.restore(), 0);
     }, { signal });
 
     document.addEventListener("selectionchange", () => this.reflect(), { signal });
@@ -315,8 +315,25 @@ class RichText extends IzzyElement {
 
   private toggleCode(): void {
     const selection = getSelection();
-    if (!selection?.rangeCount) return;
+    // A code block is code already: inline code has no meaning in it.
+    if (!selection?.rangeCount || this.around("pre")) return;
     const code = this.around("code");
+    if (selection.isCollapsed) {
+      // With no selection it starts code at the caret, or ends it there: what's typed next is or
+      // isn't code. A zero-width space holds the caret's place; it never reaches the value.
+      if (code && !code.closest("pre")) {
+        const after = document.createTextNode("​");
+        code.after(after);
+        selection.collapse(after, 1);
+      } else {
+        // Made by hand: a browser's insertHTML turns an empty code into a span.
+        const added = document.createElement("code");
+        added.textContent = "​";
+        selection.getRangeAt(0).insertNode(added);
+        selection.collapse(added.firstChild, 1);
+      }
+      return;
+    }
     if (code && !code.closest("pre")) {
       const range = document.createRange();
       range.selectNode(code);
@@ -348,8 +365,20 @@ class RichText extends IzzyElement {
     for (const tool of toolbar.querySelectorAll<HTMLElement>("[data-ib-command][aria-pressed]")) {
       tool.setAttribute("aria-pressed", String(!!states[tool.dataset.ibCommand!]));
     }
-    const select = toolbar.querySelector<HTMLSelectElement>("select[data-ib-command]");
-    if (select) select.value = this.blockStyle();
+    const style = this.blockStyle();
+    let label: string | undefined;
+    for (const item of toolbar.querySelectorAll<HTMLElement>("[data-ib-command=block][data-ib-value]")) {
+      const checked = item.dataset.ibValue === style;
+      if (item.hasAttribute("aria-checked")) item.setAttribute("aria-checked", String(checked));
+      if (checked) label = item.dataset.ibLabel;
+    }
+    const button = toolbar.querySelector<HTMLElement>("[data-ib-style-button]");
+    const text = button?.querySelector(".ib-rich-text-style-name") ?? null;
+    const name = toolbar.querySelector<HTMLElement>(`.ib-rich-text-preview-${style}`)?.textContent;
+    if (button && label && name) {
+      button.setAttribute("aria-label", label);
+      if (text) text.textContent = name;
+    }
   }
 
   private keydown(event: KeyboardEvent): void {
@@ -375,6 +404,9 @@ class RichText extends IzzyElement {
     if (event.target !== surface || !surface.isContentEditable) return;
     const mod = isMac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
     if (!mod) return;
+    // The browser's own Ctrl+B, I and U change the format for what's typed next without moving the
+    // selection, so no selectionchange says so: show it once the browser has done it.
+    setTimeout(() => this.reflect(), 0);
 
     let command: [string, string?] | null = null;
     if (event.shiftKey && !event.altKey) {
