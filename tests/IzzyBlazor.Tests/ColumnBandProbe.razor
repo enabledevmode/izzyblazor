@@ -1,0 +1,20 @@
+@* Quarters over their revenue and margin, with columns outside any band on both sides; ColumnBandTests renders it. *@
+<DataGrid Items="Rows" TItem="Sales">
+    <PropertyColumn Property="r => r.Region" />
+    <ColumnBand Title="Q1">
+        <PropertyColumn Property="r => r.Q1" Title="Revenue" Sortable SortKey="q1" />
+        <PropertyColumn Property="r => r.Q1Margin" Title="Margin" />
+    </ColumnBand>
+    <ColumnBand Title="Year">
+        <ColumnBand Title="H2">
+            <PropertyColumn Property="r => r.Q3" Title="Q3" />
+        </ColumnBand>
+    </ColumnBand>
+    <PropertyColumn Property="r => r.Total" />
+</DataGrid>
+
+@code {
+    public sealed record Sales(string Region, int Q1, double Q1Margin, int Q3, int Total);
+
+    private static readonly Sales[] Rows = [new("North", 10, 0.1, 30, 40), new("South", 50, 0.2, 10, 60), new("West", 30, 0.3, 20, 50)];
+}

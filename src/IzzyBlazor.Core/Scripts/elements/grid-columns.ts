@@ -212,7 +212,7 @@ class GridColumns extends IzzyElement {
   #show(th: HTMLTableCellElement, width: number): void {
     const [index, at] = this.#place(th);
     this.#table!.style.setProperty(`--ib-col-${index}`, `${width}px`);
-    const col = this.#table!.querySelector("colgroup")?.children[at] as HTMLElement | undefined;
+    const col = this.#table!.querySelectorAll(":scope > colgroup > col")[at] as HTMLElement | undefined;
     if (col) col.style.width = `var(--ib-col-${index})`;
   }
 
@@ -357,7 +357,7 @@ class GridColumns extends IzzyElement {
   #forget(th: HTMLTableCellElement): void {
     const [index, at] = this.#place(th);
     this.#table?.style.removeProperty(`--ib-col-${index}`);
-    (this.#table?.querySelector("colgroup")?.children[at] as HTMLElement | undefined)?.style.removeProperty("width");
+    (this.#table?.querySelectorAll<HTMLElement>(":scope > colgroup > col")[at])?.style.removeProperty("width");
   }
 
   // Double-click on a handle: as wide as its header and the rows drawn.
@@ -368,9 +368,9 @@ class GridColumns extends IzzyElement {
     this.#table.toggleAttribute("data-ib-measuring", true);
     const range = document.createRange();
     let widest = 0;
-    // A group's row spans its columns differently, and its label isn't the column's content.
+    // A group's row and a band's row span columns differently, and their labels aren't the column's content.
     for (const row of this.#table.rows) {
-      if (row.matches(".ib-grid-group")) continue;
+      if (row.matches(".ib-grid-group, .ib-table-band-row")) continue;
       const cell = row.cells[th.cellIndex];
       if (!cell || cell.colSpan > 1) continue;
       const style = getComputedStyle(cell);
@@ -500,7 +500,7 @@ class GridColumns extends IzzyElement {
     const zone = moves ? this.#zone(th).filter((other) => other.hasAttribute("data-ib-reorder") || other === th) : [th];
     const from = zone.indexOf(th);
     const rects = zone.map((other) => other.getBoundingClientRect());
-    const columnOf = (header: HTMLTableCellElement) => [...table.rows].filter((row) => !row.matches(".ib-grid-group")).flatMap((row) => {
+    const columnOf = (header: HTMLTableCellElement) => [...table.rows].filter((row) => !row.matches(".ib-grid-group, .ib-table-band-row")).flatMap((row) => {
       const cell = row.cells[header.cellIndex];
       return cell && cell.colSpan === 1 ? [cell] : [];
     });

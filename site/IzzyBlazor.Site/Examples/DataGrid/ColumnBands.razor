@@ -1,0 +1,40 @@
+@* A quarterly report: each quarter's revenue and margin under the quarter's name, the year's total
+   beside them. *@
+<DataGrid Items="Report.Rows" Caption="Revenue and margin by region" QueryPrefix="bands-" InitialSort="region" ReorderableColumns ColumnPicker Grow>
+    <PropertyColumn Property="r => r.Region" Sortable />
+    <ColumnBand Title="Q1 2026">
+        <PropertyColumn Property="r => r.Q1Revenue" Title="Revenue" Format="C0" Sortable />
+        <PropertyColumn Property="r => r.Q1Margin" Title="Margin" Format="P1" Sortable />
+    </ColumnBand>
+    <ColumnBand Title="Q2 2026">
+        <PropertyColumn Property="r => r.Q2Revenue" Title="Revenue" Format="C0" Sortable />
+        <PropertyColumn Property="r => r.Q2Margin" Title="Margin" Format="P1" Sortable />
+    </ColumnBand>
+    <ColumnBand Title="Q3 2026">
+        <PropertyColumn Property="r => r.Q3Revenue" Title="Revenue" Format="C0" Sortable />
+        <PropertyColumn Property="r => r.Q3Margin" Title="Margin" Format="P1" Sortable />
+    </ColumnBand>
+    <PropertyColumn Property="r => r.Total" Title="Year to date" Format="C0" Sortable />
+</DataGrid>
+
+@* hide *@
+@code {
+    private sealed record RegionSales(string Region, decimal Q1Revenue, double Q1Margin, decimal Q2Revenue, double Q2Margin, decimal Q3Revenue, double Q3Margin)
+    {
+        public decimal Total => Q1Revenue + Q2Revenue + Q3Revenue;
+    }
+
+    private static class Report
+    {
+        public static readonly IReadOnlyList<RegionSales> Rows =
+        [
+            new("North America", 412_300m, 0.312, 438_900m, 0.324, 451_200m, 0.331),
+            new("South America", 96_400m, 0.218, 101_800m, 0.225, 99_100m, 0.209),
+            new("Europe", 355_700m, 0.287, 342_100m, 0.276, 368_500m, 0.294),
+            new("Middle East", 58_200m, 0.241, 64_900m, 0.252, 71_300m, 0.263),
+            new("Africa", 31_500m, 0.196, 33_800m, 0.204, 36_200m, 0.211),
+            new("Asia Pacific", 287_600m, 0.268, 301_400m, 0.273, 322_900m, 0.281),
+        ];
+    }
+}
+@* /hide *@
