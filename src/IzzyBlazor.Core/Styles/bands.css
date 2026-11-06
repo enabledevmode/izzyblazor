@@ -1,0 +1,18 @@
+/*
+ * Column bands, built to wwwroot/bands.css and linked by a Table or DataGrid that has them, so
+ * other pages don't pay for them.
+ *
+ * The header is a grid of lines, as Radzen, DevExtreme and Kendo draw it: a band's label sits over
+ * a line across its columns, and a column outside any band reads as one tall cell, as the gap above
+ * it has no line under it. The body's lines are the table's own: RowLines and ColumnLines.
+ */
+@layer izzy.components {
+  .ib-table-banded > thead > tr > :not(:first-child) {
+    border-inline-start: 1px solid var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
+  }
+
+  .ib-table-band-row > td {
+    border-bottom-color: transparent;
+    background-color: var(--ib-table-bg, var(--ib-color-surface));
+  }
+}

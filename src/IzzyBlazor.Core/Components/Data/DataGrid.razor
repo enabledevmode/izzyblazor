@@ -17,7 +17,7 @@
     widths are set by the server, so nothing moves when the script arrives.
 
     A column with a `Width` keeps it (a fixed length, not a percent). Columns without one share the rest of the space, down to their
-    `MinWidth` (8rem by default), and then the grid scrolls sideways. If every column has a `Width`, the
+    `MinWidth` (by default 8rem, or wider to fit its header), and then the grid scrolls sideways. If every column has a `Width`, the
     grid is as wide as their sum.
 
     `Frozen` keeps a column in view at the grid's start or end, with no script, and is drawn at that
@@ -222,6 +222,20 @@
 
 @code {
     private const string DefaultMinWidth = "8rem";
+
+    // A column with no MinWidth is at least 8rem, and wide enough for its header: the title (14px
+    // semibold, a little over the estimate), the sort icon, the filter and menu buttons and the padding,
+    // measured in the browser at 28, 24, 24 and 32px. Fewer columns fit before the grid scrolls, but
+    // none is cut short.
+    private string HeaderMinWidth(ColumnBase<TItem> column)
+    {
+        var px = TextWidths.AtSize(column.HeaderText, 14) * 1.05 + 32
+            + (column.CanSort ? 28 : 0)
+            + (column.CanFilter ? 24 : 0)
+            + (HasHeaderMenu(column) ? 24 : 0);
+        var rem = Math.Ceiling(px / 16 * 4) / 4;
+        return rem <= 8 ? DefaultMinWidth : rem.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "rem";
+    }
 
     /// <summary>How a row is edited. Needs <see cref="OnSave"/> and an <c>ItemKey</c>.</summary>
     [Parameter] public DataGridEditMode EditMode { get; set; }
@@ -2652,7 +2666,7 @@
                 }
                 else
                 {
-                    unset.Add(Shown[i].MinWidth is { } min ? StyleValues.Length(min) : DefaultMinWidth);
+                    unset.Add(Shown[i].MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(Shown[i]));
                 }
             }
 

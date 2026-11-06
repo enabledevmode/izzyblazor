@@ -1,0 +1,10 @@
+/* src/IzzyBlazor.Core/Styles/bands.css */
+@layer izzy.components {
+  .ib-table-banded > thead > tr > :not(:first-child) {
+    border-inline-start: 1px solid var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
+  }
+  .ib-table-band-row > td {
+    border-bottom-color: transparent;
+    background-color: var(--ib-table-bg, var(--ib-color-surface));
+  }
+}

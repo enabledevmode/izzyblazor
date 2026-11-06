@@ -88,7 +88,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// How narrow a column without a <see cref="Width"/> can get before the grid scrolls sideways.
-    /// Defaults to 8rem. Not for a Table, whose columns size to their content.
+    /// Defaults to 8rem, or wider to fit its header. Not for a Table, whose columns size to their content.
     /// </summary>
     [Parameter] public Length? MinWidth { get; set; }
 

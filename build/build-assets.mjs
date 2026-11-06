@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tabs-edit.css"),
   },
   {
+    // A sheet of its own, linked by a Table or DataGrid with column bands.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "bands.css")],
+    outfile: join(lib, "wwwroot", "bands.css"),
+  },
+  {
     // A sheet of its own, linked by TreeSelect.
     ...common,
     sourcemap: false,
