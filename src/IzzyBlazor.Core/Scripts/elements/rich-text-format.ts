@@ -179,8 +179,8 @@ type Panel = HTMLElement & { select?(value: string): void };
  * click outside closes it with nothing changed.
  */
 export function openCustom(dialog: HTMLDialogElement, format: string, current: string, apply: (hex: string) => void, back: () => void): void {
-  const title = dialog.querySelector<HTMLElement>('[data-ib-custom="title"]');
-  if (title) title.textContent = (format === "highlight" ? title.dataset.ibHighlight : title.dataset.ibColor) ?? title.textContent;
+  const name = format === "highlight" ? dialog.dataset.ibHighlight : dialog.dataset.ibColor;
+  if (name) dialog.setAttribute("aria-label", name);
   const panel = dialog.querySelector<Panel>("ib-color-panel");
   const value = panel?.querySelector<HTMLInputElement>(":scope > .ib-cp-value");
   panel?.select?.(current);

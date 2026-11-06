@@ -140,13 +140,12 @@
             @* The custom color dialog, opened by "Custom…" in a color menu: a color panel with no
                swatches (the menu has the palette). Its fields have no name, so they never post. *@
             <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
-            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-custom" aria-labelledby="@(FieldId)-custom-title">
-                <header class="ib-dialog-header">
-                    <h2 class="ib-dialog-title" id="@(FieldId)-custom-title" data-ib-custom="title"
-                        data-ib-color="@TextDefaults.RichTextCustomTextColor" data-ib-highlight="@TextDefaults.RichTextCustomHighlight">@TextDefaults.RichTextCustomTextColor</h2>
-                </header>
+            @* No visible title: the menu item that opens it says what it's for. Its name is for
+               screen readers, set to the text color's or the highlight's as it opens. *@
+            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-custom" aria-label="@TextDefaults.RichTextCustomTextColor"
+                    data-ib-color="@TextDefaults.RichTextCustomTextColor" data-ib-highlight="@TextDefaults.RichTextCustomHighlight">
                 <div class="ib-dialog-body">
-                    <ColorPanelView Text="TextDefaults" LabelId="@($"{FieldId}-custom-title")" Swatches="NoSwatches" ShowEyedropper />
+                    <ColorPanelView Text="TextDefaults" Swatches="NoSwatches" ShowEyedropper />
                     <footer class="ib-dialog-footer">
                         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-custom="cancel">@TextDefaults.Cancel</Button>
                         <Button Size="ControlSize.Sm" data-ib-custom="apply">@TextDefaults.Apply</Button>
