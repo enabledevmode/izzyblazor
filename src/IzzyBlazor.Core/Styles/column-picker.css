@@ -62,7 +62,7 @@
   }
 
   .ib-col-picker-list {
-    max-height: min(24rem, 60vh);
+    max-height: min(16rem, 50vh);
     overflow: auto;
     overscroll-behavior: contain;
   }
@@ -77,7 +77,7 @@
   }
 
   .ib-col-picker-row {
-    min-height: 2rem;
+    min-height: 1.75rem;
   }
 
   .ib-col-picker-row > label {
