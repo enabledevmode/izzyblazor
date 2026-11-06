@@ -1,0 +1,99 @@
+/*
+ * RichTextEditor, built to wwwroot/rich-text.css and linked by the component, so other pages don't
+ * pay for it. The box is drawn as a field input: the toolbar along its top, the text below in
+ * Prose's rules. With no script (or if the script can't load) the box gives way to the textarea of
+ * HTML, the field's real control.
+ */
+@layer izzy.components {
+  .ib-rich-text {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background-color: var(--ib-field-bg);
+    color: var(--ib-color-on-surface);
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-rich-text:hover:not(:focus-within) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
+  }
+
+  .ib-rich-text:has(> .ib-rich-text-surface:focus-visible) {
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
+  }
+
+  .ib-field-invalid .ib-rich-text {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-field-readonly .ib-rich-text {
+    background-color: var(--ib-color-fill);
+  }
+
+  .ib-field-disabled .ib-rich-text {
+    border-color: transparent;
+    color: var(--ib-color-disabled);
+    background-color: var(--ib-color-fill);
+  }
+
+  .ib-rich-text-toolbar {
+    padding: var(--ib-space-1);
+    border-block-end: 1px solid var(--ib-color-outline-variant, var(--ib-field-border));
+  }
+
+  .ib-rich-text-style {
+    height: 2rem;
+    padding-inline: var(--ib-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--ib-radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: var(--ib-text-sm);
+    cursor: pointer;
+  }
+
+  .ib-rich-text-style:hover {
+    background-color: var(--ib-color-fill);
+  }
+
+  .ib-rich-text-surface {
+    position: relative;
+    min-height: calc(var(--ib-rows) * 1lh + 2 * var(--ib-space-3));
+    padding: var(--ib-space-3) var(--ib-field-px);
+    overflow-wrap: anywhere;
+    outline: none;
+    cursor: text;
+  }
+
+  .ib-field-disabled .ib-rich-text-surface {
+    cursor: not-allowed;
+  }
+
+  .ib-rich-text-surface[data-ib-empty]::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    color: var(--ib-color-subtle);
+    pointer-events: none;
+  }
+
+  /* The HTML text box is the control with no script; with script it only holds the value. */
+  @media (scripting: enabled) {
+    .ib-rich-text-source { display: none; }
+  }
+
+  @media (scripting: none) {
+    .ib-rich-text { border: none; background: none; }
+    .ib-rich-text > :not(.ib-rich-text-source) { display: none; }
+  }
+
+  .ib-rich-text[data-ib-failed] {
+    border: none;
+    background: none;
+  }
+
+  .ib-rich-text[data-ib-failed] > :not(.ib-rich-text-source) { display: none; }
+  .ib-rich-text[data-ib-failed] > .ib-rich-text-source { display: block; }
+}

@@ -111,6 +111,8 @@ public class RichTextSanitizerTests : BunitContext
         Assert.Equal("<p><strong>a</strong></p><p>b</p>", S("<p><strong>a<p>b"));
         Assert.Equal("<ul><li>a</li><li>b<ol><li>c</li></ol></li></ul>", S("<ul><li>a<li>b<ol><li>c</ol></ul>"));
         Assert.Equal("<p>a</p>", S("<p>a</p><p></p><strong></strong>"));
+        // A browser's indent: the inner list moves into the item before it.
+        Assert.Equal("<ul><li>a<ul><li>b</li></ul></li><li>c</li></ul>", S("<ul><li>a</li><ul><li>b</li></ul><li>c</li></ul>"));
         Assert.Equal("<p><br></p>", S("<p><br></p>"));
         // A stray end tag is ignored.
         Assert.Equal("<ul><li>a<em>b</em></li><li>cd</li></ul>", S("<ul><li>a<em>b</li><li>c</em>d</li></ul>"));

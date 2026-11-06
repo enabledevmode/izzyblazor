@@ -236,6 +236,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "bands.css"),
   },
   {
+    // A sheet of its own, linked by RichTextEditor.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "rich-text.css")],
+    outfile: join(lib, "wwwroot", "rich-text.css"),
+  },
+  {
     // A sheet of its own, linked by TreeSelect.
     ...common,
     sourcemap: false,

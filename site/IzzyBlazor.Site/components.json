@@ -769,6 +769,53 @@
       ]
     },
     {
+      "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Forms", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text"],
+      "features": [
+        { "feature": "Label, hint and errors from the model" },
+        { "feature": "Posts in a plain form; sanitized on the server" },
+        { "feature": "Toolbar, shortcuts and paste", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "rich-text-editor-announcement", "title": "In a form", "lead": "A RichTextEditor's value is HTML: headings, lists, quotes, code, bold, italic and the like, with no styles or classes. It's sanitized on the server whenever it binds, so the model only ever holds safe HTML. To show it, use `RichText`.",
+          "notes": {
+            "noscript": "The field is a text box holding the HTML. It still posts, and is sanitized.",
+            "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
+          } },
+        { "id": "rich-text-editor-comment", "title": "A short comment", "lead": "For short notes and comments, set `Tools` to `RichTextTools.Basic`: bold, italic and the two lists. `Rows` sets the height the text starts at, and `Placeholder` the prompt in it while it's empty." },
+        { "id": "rich-text-editor-states", "title": "Read-only and disabled", "lead": "A read-only editor has no toolbar; the text can be selected and still posts. A disabled one doesn't post." }
+      ],
+      "topics": [
+        {
+          "id": "toolbar", "title": "Toolbar and shortcuts", "summary": "Choose the tools in the toolbar. Shortcuts work for every format, shown or not.", "members": ["Tools", "RichTextTools"],
+          "intro": [
+            "`RichTextTools.Default` shows every tool and `RichTextTools.Basic` four of them. To choose your own, combine tools with `|`. `RichTextTools.None` hides the toolbar and leaves the shortcuts. On narrow screens the toolbar wraps onto more rows.",
+            "Shortcuts: Ctrl+B bold, Ctrl+I italic, Ctrl+U underline, Ctrl+Shift+X strikethrough, Ctrl+E inline code, Ctrl+Shift+8 bulleted list, Ctrl+Shift+7 numbered list, Ctrl+] and Ctrl+[ indent and outdent a list item, Ctrl+Alt+0 paragraph, Ctrl+Alt+2 to 4 headings, Ctrl+Z undo, Ctrl+Y redo, Ctrl+Shift+V paste as plain text. On a Mac, ⌘ takes Ctrl's place. Alt+F10 moves to the toolbar and Escape back to the text."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-tools", "title": "Choosing tools", "lead": "These release notes leave out underline, which reads as a link, and the rule. Set `Tools` to the ones you want." }
+          ]
+        },
+        {
+          "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],
+          "intro": [
+            "The editor's value is sanitized on the server every time it binds, from a post or on an interactive page, by `RichTextSanitizer`. What arrives can be anything, since anyone can post to a form, so the script in the browser only keeps the text tidy and is never trusted. The sanitizer writes a new document from what it allows: paragraphs, headings 2 to 4, lists, quotes, code, rules, bold, italic, underline, strikethrough, links, images and tables, with `href` and `src` limited to web, mail, phone and relative addresses. Scripts, event handlers, styles, classes and `javascript:` links never get through.",
+            "Pasted text goes through the same list, so a paste from Word or a web page keeps its headings, lists and bold, and drops its fonts, colors and classes. Ctrl+Shift+V pastes plain text.",
+            "Show saved HTML with `RichText`, which sanitizes it again as it renders, so HTML saved before, or written by another system, is safe too. To clean HTML yourself, call `RichTextSanitizer.Sanitize`. A Content Security Policy that blocks inline script adds a second line of defense."
+          ],
+          "examples": []
+        },
+        {
+          "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["TextSize", "ContentClass"],
+          "intro": [
+            "The text is part of the page, not a frame, and has `Prose`'s styles: what you edit looks like what `RichText` shows. The theme's tokens reach it as they reach everything else. `TextSize` sets its size, as `Prose`'s `Size` does. For rules of your own, give the editor a `ContentClass` and `RichText` the same `Class`; Prose's rules have the lowest weight, so yours win."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-content-style", "title": "A class on the content", "lead": "This help article is large text, and its headings are the primary color, in the editor and on the published page alike." }
+          ]
+        }
+      ]
+    },
+    {
       "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Lets the user enter several lines of text, and can grow and count them.", "keywords": ["textarea", "multiline"],
       "features": [
         { "feature": "Label, hint and length limits from the model" },

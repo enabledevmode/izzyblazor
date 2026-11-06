@@ -1,0 +1,7 @@
+@* A comment box: four tools, a few lines, a prompt. *@
+<RichTextEditor @bind-Value="_comment" Label="Comment" Tools="RichTextTools.Basic" Rows="3"
+                Placeholder="Add a comment" MaxWidth="32.Rem" Grow />
+
+@code {
+    private string? _comment;
+}

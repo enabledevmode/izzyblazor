@@ -1223,4 +1223,70 @@ public class IzzyText
 
     /// <summary>ColorSchemeSwitch's toggle, on a dark page.</summary>
     public virtual string SchemeToLight { get; set; } = "Switch to light mode";
+
+    /// <summary>A RichTextEditor's toolbar.</summary>
+    public virtual string RichTextToolbar { get; set; } = "Formatting";
+
+    /// <summary>A RichTextEditor's list of text styles.</summary>
+    public virtual string RichTextStyle { get; set; } = "Text style";
+
+    /// <summary>A RichTextEditor's group of text format tools: bold, italic and the rest.</summary>
+    public virtual string RichTextFormats { get; set; } = "Text formats";
+
+    /// <summary>A RichTextEditor's group of list tools.</summary>
+    public virtual string RichTextLists { get; set; } = "Lists";
+
+    /// <summary>A RichTextEditor's group of undo and redo.</summary>
+    public virtual string RichTextHistory { get; set; } = "History";
+
+    /// <summary>A RichTextEditor's text style: a plain paragraph.</summary>
+    public virtual string RichTextParagraph { get; set; } = "Paragraph";
+
+    /// <summary>A RichTextEditor's text style: a heading. {0} is its level, 2 to 4.</summary>
+    public virtual string RichTextHeading { get; set; } = "Heading {0}";
+
+    /// <summary>A RichTextEditor's text style: a quote.</summary>
+    public virtual string RichTextQuote { get; set; } = "Quote";
+
+    /// <summary>A RichTextEditor's text style: a code block.</summary>
+    public virtual string RichTextCodeBlock { get; set; } = "Code block";
+
+    /// <summary>A RichTextEditor's bold tool.</summary>
+    public virtual string RichTextBold { get; set; } = "Bold";
+
+    /// <summary>A RichTextEditor's italic tool.</summary>
+    public virtual string RichTextItalic { get; set; } = "Italic";
+
+    /// <summary>A RichTextEditor's underline tool.</summary>
+    public virtual string RichTextUnderline { get; set; } = "Underline";
+
+    /// <summary>A RichTextEditor's strikethrough tool.</summary>
+    public virtual string RichTextStrikethrough { get; set; } = "Strikethrough";
+
+    /// <summary>A RichTextEditor's inline code tool.</summary>
+    public virtual string RichTextInlineCode { get; set; } = "Code";
+
+    /// <summary>A RichTextEditor's bulleted list tool.</summary>
+    public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
+
+    /// <summary>A RichTextEditor's numbered list tool.</summary>
+    public virtual string RichTextNumberedList { get; set; } = "Numbered list";
+
+    /// <summary>A RichTextEditor's tool that indents a list item.</summary>
+    public virtual string RichTextIndent { get; set; } = "Indent";
+
+    /// <summary>A RichTextEditor's tool that outdents a list item.</summary>
+    public virtual string RichTextOutdent { get; set; } = "Outdent";
+
+    /// <summary>A RichTextEditor's horizontal line tool.</summary>
+    public virtual string RichTextHorizontalRule { get; set; } = "Horizontal line";
+
+    /// <summary>A RichTextEditor's tool that removes text formats.</summary>
+    public virtual string RichTextClearFormatting { get; set; } = "Clear formatting";
+
+    /// <summary>A RichTextEditor's undo tool.</summary>
+    public virtual string RichTextUndo { get; set; } = "Undo";
+
+    /// <summary>A RichTextEditor's redo tool.</summary>
+    public virtual string RichTextRedo { get; set; } = "Redo";
 }
