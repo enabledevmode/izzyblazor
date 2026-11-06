@@ -1169,7 +1169,7 @@
         { "feature": "Picker, opacity slider and number fields", "noscript": "none" }
       ],
       "examples": [
-        { "id": "color-panel-usage", "title": "Swatches and a picker", "lead": "A ColorPanel shows swatches for the usual choices and a picker for any other: a saturation and brightness area, a hue slider, and hex and RGB fields. The value is a hex string such as `#22c55e`. Each part shows or hides on its own.",
+        { "id": "color-panel-usage", "title": "Swatches and a picker", "lead": "A ColorPanel shows swatches for the usual choices and a picker for any other: a saturation and brightness area, a hue slider, and hex and RGB fields. The value is a hex string such as `#22c55e`. Each part shows or hides on its own. Beside the sliders, the preview shows the color; set `Original` to show the color it started as under it, which a click restores.",
           "notes": {
             "noscript": "The swatches choose the color and post with the form; the picker, sliders and number fields need script, and don't show.",
             "static": "IzzyBlazor's script runs the picker and fields, and keeps one value that posts with the form."
