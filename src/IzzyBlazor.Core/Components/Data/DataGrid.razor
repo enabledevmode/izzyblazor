@@ -2034,18 +2034,19 @@
         }
     };
 
-    // Pin column ›: a line, as a sheet's frozen panes. Pin left pins every column to this one's left
-    // (its band's, for a column in one), Pin right every column to its right; pinning again moves the
-    // line. No pin unpins this column's side, or every pin from a column that isn't pinned.
+    // Freeze columns ›: a line, as a sheet's frozen panes. To the left freezes every column to this
+    // one's left (its band's, for a column in one), To the right every column to its right; freezing
+    // again moves the line. Unfreeze clears this column's side, or every frozen column from one that
+    // scrolls.
     private RenderFragment FreezeSub(ColumnBase<TItem> member, string by, object id) => __builder =>
     {
         var outer = member.Band?.Chain[0];
         var span = Shown.Select((c, i) => (c, i)).Where(x => outer is null ? x.c == member : x.c.Band?.Chain[0] == outer).Select(x => x.i).ToList();
         var attributes = new Dictionary<string, object> { [by] = id };
-        <MenuSub Label="@TextDefaults.ColumnPin" Icon="Lucide.Pin">
-            <MenuItem Disabled="@(span[0] == 0)" data-ib-col-action="freeze-start" @attributes="attributes">@TextDefaults.ColumnPinLeft</MenuItem>
-            <MenuItem Disabled="@(span[^1] == Shown.Count - 1)" data-ib-col-action="freeze-end" @attributes="attributes">@TextDefaults.ColumnPinRight</MenuItem>
-            <MenuItem Disabled="@(!Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))" data-ib-col-action="unfreeze" @attributes="attributes">@TextDefaults.ColumnNoPin</MenuItem>
+        <MenuSub Label="@TextDefaults.ColumnFreeze" Icon="Lucide.Pin">
+            <MenuItem Disabled="@(span[0] == 0)" data-ib-col-action="freeze-start" @attributes="attributes">@TextDefaults.ColumnFreezeLeft</MenuItem>
+            <MenuItem Disabled="@(span[^1] == Shown.Count - 1)" data-ib-col-action="freeze-end" @attributes="attributes">@TextDefaults.ColumnFreezeRight</MenuItem>
+            <MenuItem Disabled="@(!Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))" data-ib-col-action="unfreeze" @attributes="attributes">@TextDefaults.ColumnUnfreeze</MenuItem>
         </MenuSub>
     };
 
@@ -2312,7 +2313,7 @@
                 var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{Columns.ToList().IndexOf(column)}";
                 var frozen = shown && FrozenOf(column) != ColumnFrozen.None;
                 var name = column.Band is null ? column.HeaderText : column.FullName;
-                name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnPinnedNote, name) : name;
+                name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnFrozenNote, name) : name;
                 <li data-ib-picker-item="@key" data-ib-title="@column.HeaderText">
                     <div class="ib-col-picker-row">
                         @if (HasBands)
