@@ -52,10 +52,37 @@ public enum RichTextTools
     /// <summary>Undo (Ctrl+Z) and redo (Ctrl+Y).</summary>
     UndoRedo = 1 << 12,
 
+    /// <summary>Align a paragraph or heading to the start, center or end (Ctrl+Shift+L, E, R).</summary>
+    Alignment = 1 << 13,
+
+    /// <summary>Subscript, as in H₂O (Ctrl+=).</summary>
+    Subscript = 1 << 14,
+
+    /// <summary>Superscript, as in x² (Ctrl+Shift+=).</summary>
+    Superscript = 1 << 15,
+
+    /// <summary>Text color, from a palette of seven that read in light and dark themes.</summary>
+    TextColor = 1 << 16,
+
+    /// <summary>A highlight behind the text, from the same palette.</summary>
+    Highlight = 1 << 17,
+
+    /// <summary>Text size: small, normal, large or larger, in steps of the theme's type scale.</summary>
+    FontSize = 1 << 18,
+
+    /// <summary>A font from the editor's <c>Fonts</c>; shows only when it has some.</summary>
+    Font = 1 << 19,
+
     /// <summary>Bold, italic, links and the two lists: for short notes and comments.</summary>
     Basic = Bold | Italic | Link | BulletedList | NumberedList,
 
     /// <summary>Every tool (the default).</summary>
     Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | BulletedList | NumberedList
         | Indent | HorizontalRule | ClearFormatting | UndoRedo,
+
+    /// <summary>
+    /// Every tool in <see cref="Default"/>, and alignment, subscript, superscript, text color,
+    /// highlight, size and font: for pages people lay out, such as announcements and articles.
+    /// </summary>
+    Extended = Default | Alignment | Subscript | Superscript | TextColor | Highlight | FontSize | Font,
 }

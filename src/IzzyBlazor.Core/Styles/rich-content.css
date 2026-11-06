@@ -1,0 +1,38 @@
+/*
+ * The rich text editor's own content classes: alignment, text color, highlight and size. Built
+ * to wwwroot/rich-content.css and linked by RichTextEditor, and by RichText when the HTML it
+ * shows has one of them, so pages without rich text don't pay for it. Each name is in
+ * RichTextSanitizer's list. The colors are light-dark pairs that keep text readable on the
+ * surface in both schemes; a highlight is a wash of the same hue behind the text.
+ */
+@layer izzy.components {
+  .ib-align-center { text-align: center; }
+  .ib-align-end { text-align: end; }
+
+  .ib-color-red { color: light-dark(#b42318, #f97066); }
+  .ib-color-orange { color: light-dark(#b54708, #fd853a); }
+  .ib-color-yellow { color: light-dark(#854a0e, #fdb022); }
+  .ib-color-green { color: light-dark(#067647, #47cd89); }
+  .ib-color-blue { color: light-dark(#1d5bd6, #6aa2ff); }
+  .ib-color-purple { color: light-dark(#6941c6, #b692f6); }
+  .ib-color-gray { color: light-dark(#5f5f66, #a1a1a8); }
+
+  [class*="ib-highlight-"] {
+    padding-inline: 0.1em;
+    border-radius: 0.2em;
+    background-color: color-mix(in oklab, var(--ib-highlight) 32%, transparent);
+    box-decoration-break: clone;
+  }
+
+  .ib-highlight-red { --ib-highlight: #f04438; }
+  .ib-highlight-orange { --ib-highlight: #f79009; }
+  .ib-highlight-yellow { --ib-highlight: #fac515; }
+  .ib-highlight-green { --ib-highlight: #17b26a; }
+  .ib-highlight-blue { --ib-highlight: #2e90fa; }
+  .ib-highlight-purple { --ib-highlight: #9e77ed; }
+  .ib-highlight-gray { --ib-highlight: #85888e; }
+
+  .ib-size-sm { font-size: 0.875em; }
+  .ib-size-lg { font-size: 1.25em; }
+  .ib-size-xl { font-size: 1.5em; }
+}

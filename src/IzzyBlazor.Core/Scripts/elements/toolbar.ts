@@ -249,9 +249,25 @@ class Toolbar extends IzzyElement {
   }
 
   /** Measures the units and shows the layout that fits. */
+  /**
+   * A wrapping toolbar (no "…" menu) hides a separator that starts or ends a row: a line only
+   * shows between two groups on the same row.
+   */
+  #edges(): void {
+    const units = this.#barUnits().filter((u) => u.checkVisibility());
+    const middle = (u: HTMLElement | undefined) => (u ? u.getBoundingClientRect().top + u.offsetHeight / 2 : NaN);
+    units.forEach((unit, i) => {
+      if (!unit.querySelector(":scope > [role=separator]")) return;
+      const row = middle(unit);
+      const alone = !(Math.abs(middle(units[i - 1]) - row) < 4 && Math.abs(middle(units[i + 1]) - row) < 4);
+      unit.toggleAttribute("data-ib-edge", alone);
+    });
+  }
+
   #update(): void {
     const more = this.querySelector<HTMLElement>(":scope > .ib-toolbar-end > .ib-toolbar-more");
     if (!more) {
+      this.#edges();
       this.#roving();
       return;
     }

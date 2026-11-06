@@ -1,0 +1,17 @@
+@* A newsletter: the extended tools for a centered title, a colored callout, a highlight and
+   a footnote mark, with the publication's own fonts. *@
+<RichTextEditor Grow @bind-Value="_newsletter" Label="Newsletter" Rows="10" TopHeading="2"
+                Tools="RichTextTools.Extended" Fonts="fonts" />
+
+@code {
+    private static readonly string[] fonts = ["Georgia, serif", "ui-monospace, monospace"];
+
+    private string? _newsletter =
+        """
+        <h2 class="ib-align-center">The Riverside quarterly</h2>
+        <p class="ib-align-center"><span class="ib-size-sm ib-color-gray">Spring issue</span></p>
+        <p><span style="font-family: Georgia, serif">Our building now runs on solar power, cutting CO<sub>2</sub> emissions by a third.</span><sup>1</sup></p>
+        <p><span class="ib-color-green">The roof garden opens on April 12.</span> Bring <span class="ib-highlight-yellow">your own gloves</span>.</p>
+        <p><span class="ib-size-sm">1. Compared with the same quarter last year.</span></p>
+        """;
+}

@@ -236,6 +236,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "bands.css"),
   },
   {
+    // The editor's content classes, linked by RichTextEditor and by RichText when it needs them.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "rich-content.css")],
+    outfile: join(lib, "wwwroot", "rich-content.css"),
+  },
+  {
     // A sheet of its own, linked by RichTextEditor.
     ...common,
     sourcemap: false,
@@ -312,7 +319,13 @@ const builds = [
     // Parts an element loads only when needed: chart-draw.js, which draws a chart again without
     // the series its legend hides, loads on the first toggle.
     ...common,
-    entryPoints: { "elements/parts/chart-draw": join(lib, "Scripts", "elements", "chart-draw.ts") },
+    entryPoints: {
+      "elements/parts/chart-draw": join(lib, "Scripts", "elements", "chart-draw.ts"),
+      // RichTextEditor's alignment and span formats, for editors that use them.
+      "elements/parts/rich-text-format": join(lib, "Scripts", "elements", "rich-text-format.ts"),
+      // Its link dialog, loaded when the dialog first opens.
+      "elements/parts/rich-text-link": join(lib, "Scripts", "elements", "rich-text-link.ts"),
+    },
     outdir: join(lib, "wwwroot"),
     format: "esm",
     target: "es2022",
