@@ -1973,7 +1973,7 @@
                 }
                 @if (CanMove(column) && RowHref is null)
                 {
-                    groups.Add(FreezeSub(frozen, "data-ib-col", key));
+                    groups.Add(FreezeSub(column, "data-ib-col", key));
                 }
                 @if (CanResize(column))
                 {
@@ -2034,15 +2034,18 @@
         }
     };
 
-    // Pin column ›: the edge it's pinned (frozen) at, checked. The script pins a band as one.
-    private RenderFragment FreezeSub(ColumnFrozen frozen, string by, object id) => __builder =>
+    // Pin column ›: a line, as a sheet's frozen panes. Pin left pins every column to this one's left
+    // (its band's, for a column in one), Pin right every column to its right; pinning again moves the
+    // line. No pin unpins this column's side, or every pin from a column that isn't pinned.
+    private RenderFragment FreezeSub(ColumnBase<TItem> member, string by, object id) => __builder =>
     {
+        var outer = member.Band?.Chain[0];
+        var span = Shown.Select((c, i) => (c, i)).Where(x => outer is null ? x.c == member : x.c.Band?.Chain[0] == outer).Select(x => x.i).ToList();
+        var attributes = new Dictionary<string, object> { [by] = id };
         <MenuSub Label="@TextDefaults.ColumnPin" Icon="Lucide.Pin">
-            <MenuRadioGroup Value="@(frozen switch { ColumnFrozen.Start => "start", ColumnFrozen.End => "end", _ => "none" })">
-                <MenuItem Value="start" data-ib-col-action="freeze-start" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnPinLeft</MenuItem>
-                <MenuItem Value="end" data-ib-col-action="freeze-end" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnPinRight</MenuItem>
-                <MenuItem Value="none" data-ib-col-action="unfreeze" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnNoPin</MenuItem>
-            </MenuRadioGroup>
+            <MenuItem Disabled="@(span[0] == 0)" data-ib-col-action="freeze-start" @attributes="attributes">@TextDefaults.ColumnPinLeft</MenuItem>
+            <MenuItem Disabled="@(span[^1] == Shown.Count - 1)" data-ib-col-action="freeze-end" @attributes="attributes">@TextDefaults.ColumnPinRight</MenuItem>
+            <MenuItem Disabled="@(!Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))" data-ib-col-action="unfreeze" @attributes="attributes">@TextDefaults.ColumnNoPin</MenuItem>
         </MenuSub>
     };
 
@@ -2115,7 +2118,7 @@
                 <ChildContent>
                     @if (RowHref is null && band.Parent is null)
                     {
-                        @FreezeSub(frozen, "data-ib-band", id)
+                        @FreezeSub(Shown[span.First], "data-ib-band", id)
                         <MenuDivider />
                     }
                     <MenuItem Icon="Lucide.ArrowLeft" Disabled="zone.FirstOrDefault() == (object)band" data-ib-col-action="left" data-ib-band="@id">@TextDefaults.ColumnMoveStart</MenuItem>
