@@ -67,7 +67,7 @@
 <FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)"
-                  data-ib-image-upload="@ImageUploadUrl" data-ib-data-images="@(AllowDataImages ? "" : null)" data-ib-image-max="@MaxImageSize"
+                  data-ib-image-upload="@ImageUploadUrl" data-ib-data-images="@(AllowDataImages ? "" : null)" data-ib-custom-colors="@(CustomColors ? "" : null)" data-ib-image-max="@MaxImageSize"
                   data-ib-image-failed="@TextDefaults.RichTextImageFailed" data-ib-image-too-large="@TextDefaults.RichTextImageTooLarge" data-ib-image-needs-alt="@TextDefaults.RichTextImageNeedsAlt">
         @* The box (toolbar and text) needs script; with none, or if the script can't load, the
            textarea of HTML stands in for it (data-ib-script and data-ib-noscript, in the main sheet). *@
@@ -385,7 +385,7 @@
         if (!RendererInfo.IsInteractive) return;
         // The plain path: the page's import map gives it the same module the page already loaded.
         _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/IzzyBlazor.Core/elements/rich-text.js");
-        await _module.InvokeVoidAsync("insertHtml", _host, RichTextSanitizer.Sanitize(html));
+        await _module.InvokeVoidAsync("insertHtml", _host, RichTextSanitizer.Sanitize(html, Top, Fonts, FontSizes, AllowDataImages, CustomColors));
     }
 
     /// <inheritdoc />
@@ -410,9 +410,10 @@
             ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RichTextTooLong, ResolvedLabel ?? FieldIdentifier.FieldName, max)
             : null;
 
-    // The text's length, as the script counts it: no tags, entities as one character.
+    // The text's length, as the script counts it: no tags, entities as one character, and line
+    // breaks (a code block's) not counted, as a <br> isn't.
     private static int TextLength(string html) =>
-        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", "")).Length;
+        System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", "")).Count(c => c is not ('\n' or '\r'));
 
     private int Top => Math.Clamp(TopHeading, 1, 6);
 

@@ -178,7 +178,7 @@ type Panel = HTMLElement & { select?(value: string): void };
  * color given (the caret's custom color, or the one the text shows). Apply gives the chosen color to apply; Cancel, Escape or a
  * click outside closes it with nothing changed.
  */
-export function openCustom(dialog: HTMLDialogElement, format: string, current: string, apply: (hex: string) => void): void {
+export function openCustom(dialog: HTMLDialogElement, format: string, current: string, apply: (hex: string) => void, back: () => void): void {
   const title = dialog.querySelector<HTMLElement>('[data-ib-custom="title"]');
   if (title) title.textContent = (format === "highlight" ? title.dataset.ibHighlight : title.dataset.ibColor) ?? title.textContent;
   const panel = dialog.querySelector<Panel>("ib-color-panel");
@@ -189,10 +189,16 @@ export function openCustom(dialog: HTMLDialogElement, format: string, current: s
     const action = (event.target as Element).closest<HTMLElement>("[data-ib-custom]")?.dataset.ibCustom;
     if (event.target === dialog || action === "cancel") dialog.close();
     else if (action === "apply") {
+      applied = true;
       dialog.close();
       if (value?.value) apply(value.value);
     }
   }, { signal: done.signal });
-  dialog.addEventListener("close", () => done.abort(), { once: true });
+  // Closed any other way (Cancel, Escape, a click outside): focus and the selection go back.
+  let applied = false;
+  dialog.addEventListener("close", () => {
+    done.abort();
+    if (!applied) back();
+  }, { once: true });
   dialog.showModal();
 }
