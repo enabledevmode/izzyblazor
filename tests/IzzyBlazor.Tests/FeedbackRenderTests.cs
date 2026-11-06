@@ -7,10 +7,12 @@ public class FeedbackRenderTests : BunitContext
 {
     // Services must be registered before anything starts the renderer, SetRendererInfo included.
     private readonly ToastService _toasts = new(new ServiceCollection().BuildServiceProvider());
+    private readonly Announcer _announcer = new(new ServiceCollection().BuildServiceProvider());
 
     public FeedbackRenderTests()
     {
         Services.AddSingleton(_toasts);
+        Services.AddSingleton(_announcer);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
     }
 
@@ -86,6 +88,49 @@ public class FeedbackRenderTests : BunitContext
         _toasts.Error("Nope.");
 
         cut.WaitForAssertion(() => Assert.Contains(cut.FindAll(".ib-toast"), t => t.Closest("template") is null && t.TextContent.Contains("Nope.")));
+    }
+
+    [Fact]
+    public void Announcer_messages_from_a_static_response_are_rendered_for_the_script_to_read()
+    {
+        _announcer.Announce("Saved.");
+        var cut = Render<AnnouncerRegion>();
+
+        _announcer.Announce("Couldn't send.", assertive: true);
+
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("[data-ib-announcements] > [data-id]").Count));
+        var messages = cut.FindAll("[data-ib-announcements] > [data-id]");
+        Assert.True(cut.Find("[data-ib-announcements]").HasAttribute("hidden"));
+        Assert.Equal("Saved.", messages[0].TextContent);
+        Assert.False(messages[0].HasAttribute("data-assertive"));
+        Assert.True(messages[1].HasAttribute("data-assertive"));
+        Assert.NotEqual(messages[0].GetAttribute("data-id"), messages[1].GetAttribute("data-id"));
+    }
+
+    [Fact]
+    public void A_layout_with_toasts_and_an_announcer_region_renders_each_message_once()
+    {
+        _announcer.Announce("Saved.");
+
+        var toasts = Render<ToastRegion>();
+        var region = Render<AnnouncerRegion>();
+
+        Assert.Single(toasts.FindAll("[data-ib-announcements] > [data-id]"));
+        Assert.Empty(region.FindAll("[data-ib-announcements] > [data-id]"));
+    }
+
+    [Theory]
+    [InlineData(false, "status")]
+    [InlineData(true, "alert")]
+    public void Live_region_is_hidden_text_with_its_role(bool assertive, string role)
+    {
+        var region = Render<LiveRegion>(p => p.Add(x => x.Text, "12 results").Add(x => x.Assertive, assertive)).Find("div");
+
+        Assert.Equal(role, region.GetAttribute("role"));
+        Assert.Null(region.GetAttribute("aria-live"));
+        Assert.Equal("true", region.GetAttribute("aria-atomic"));
+        Assert.Contains("ib-visually-hidden", region.ClassName);
+        Assert.Equal("12 results", region.TextContent);
     }
 
     [Fact]

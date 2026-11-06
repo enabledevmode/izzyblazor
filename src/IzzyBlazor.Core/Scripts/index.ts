@@ -41,12 +41,14 @@ installIndeterminate();
 installSelectAll();
 installScrollbarWidth();
 installTabScroll();
+announceRendered();
 
-// ToastService calls this through JS interop on interactive pages.
+// ToastService and Announcer call these through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
   ...((window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor ?? {}),
   showToast: (detail: ToastDetail) =>
     load<typeof import("./elements/toasts")>("ib-toasts").then((toasts) => toasts.showToast(detail)),
+  announce: (text: string, assertive: boolean) => announcer().then((module) => module.announce(text, assertive)),
 };
 installToggleBridge();
 installCommandFallback();
@@ -59,6 +61,20 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => openActiveNavGroups());
 } else {
   openActiveNavGroups();
+}
+
+// Announcer's messages: its code loads with the first one.
+function announcer() {
+  return load<typeof import("./elements/announce")>("ib-announce");
+}
+
+/** Reads the messages an AnnouncerRegion rendered in a static response (after a load or an enhanced update). */
+function announceRendered(): void {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", announceRendered, { once: true });
+  } else if (document.querySelector("[data-ib-announcements] > [data-id]")) {
+    void announcer().then((module) => module.announceRendered());
+  }
 }
 
 /** Custom events Blazor should know about. Elements append to this list. */
@@ -124,6 +140,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     clearClosedDialogQuery();
     keepDismissed();
     focusMarked();
+    announceRendered();
     applySavedScheme();
     measureScrollbar();
     // Enhanced navigation can keep an element in place whose code failed to load: try again.

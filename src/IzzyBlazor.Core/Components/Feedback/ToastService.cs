@@ -151,59 +151,24 @@ public sealed class ToastService : IDisposable
     public void Error(string message, string? title = null, ToastAction? action = null) => Show(message, Status.Danger, title, action: action);
 
     // On an interactive page the browser is reachable and the toast goes straight there. During
-    // static rendering the JS runtime refuses the call at once, and the toast is queued instead.
-    private bool TrySendToBrowser(ToastMessage toast)
-    {
-        if (_js is null)
+    // static rendering the call is refused at once, and the toast is queued instead.
+    private bool TrySendToBrowser(ToastMessage toast) =>
+        BrowserCall.TrySend(_js, "izzyBlazor.showToast", new
         {
-            return false;
-        }
-
-        ValueTask call;
-        try
-        {
-            call = _js.InvokeVoidAsync("izzyBlazor.showToast", new
-            {
-                message = toast.Message,
-                status = toast.Status.ToString().ToLowerInvariant(),
-                title = toast.Title,
-                duration = toast.Duration is { } duration ? (long?)duration.TotalMilliseconds : null,
-                action = toast.Action is { } action
-                    ? new
-                    {
-                        label = action.Label,
-                        href = action.Href,
-                        id = action.OnClick is null ? null : Actions.Add(action.OnClick),
-                        invoker = action.OnClick is null ? null : Actions.Reference,
-                    }
-                    : null,
-            });
-        }
-        catch (InvalidOperationException)
-        {
-            return false;
-        }
-
-        if (call.IsCompleted)
-        {
-            return call.IsCompletedSuccessfully || call.AsTask().Exception?.InnerException is not InvalidOperationException;
-        }
-
-        _ = ObserveAsync(call);
-        return true;
-    }
-
-    private static async Task ObserveAsync(ValueTask call)
-    {
-        try
-        {
-            await call;
-        }
-        catch (Exception ex) when (ex is JSException or JSDisconnectedException or TaskCanceledException or InvalidOperationException)
-        {
-            // The circuit went away before the toast arrived.
-        }
-    }
+            message = toast.Message,
+            status = toast.Status.ToString().ToLowerInvariant(),
+            title = toast.Title,
+            duration = toast.Duration is { } duration ? (long?)duration.TotalMilliseconds : null,
+            action = toast.Action is { } action
+                ? new
+                {
+                    label = action.Label,
+                    href = action.Href,
+                    id = action.OnClick is null ? null : Actions.Add(action.OnClick),
+                    invoker = action.OnClick is null ? null : Actions.Reference,
+                }
+                : null,
+        });
 
     // Toasts carried over from a redirect come first.
     private void Receive()

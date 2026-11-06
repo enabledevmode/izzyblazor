@@ -1737,6 +1737,28 @@
       ]
     },
     {
+      "id": "live-region", "icon": "AudioLines", "name": "LiveRegion", "category": "Feedback", "summary": "Tells screen reader users what changed or just happened.", "keywords": ["aria-live", "announcer", "screen reader", "announcement", "status message"], "parts": ["AnnouncerRegion"],
+      "features": [
+        { "feature": "Hidden text read when it changes (LiveRegion)" },
+        { "feature": "Messages from C# (Announcer), the same words twice included", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Polite or assertive" }
+      ],
+      "examples": [
+        { "id": "live-region-results", "title": "Reading a count", "lead": "A `LiveRegion` holds hidden text that describes the page, such as a filtered list's count. Screen readers read it each time `Text` changes.",
+          "notes": {
+            "noscript": "Each search loads a new page, and text a page loads with isn't read.",
+            "static": "Each search updates the page without a full reload, and the new count is read.",
+            "interactive": "Each search updates the list over the connection, and the new count is read."
+          } },
+        { "id": "live-region-announce", "title": "Announcing an action", "lead": "To tell screen reader users what just happened, call `Announcer.Announce`. On static pages, an `AnnouncerRegion` in the layout (or a `ToastRegion`, which has one) renders the message.",
+          "notes": {
+            "noscript": "Revoke posts the form and the row goes, but the message isn't read.",
+            "static": "Revoke posts without a full reload, and the message in the response is read.",
+            "interactive": "Revoke runs C# over the connection, and the message is read at once."
+          } }
+      ]
+    },
+    {
       "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Feedback", "summary": "Labels a status, category or count.", "keywords": ["pill", "label"],
       "examples": [
         { "id": "badge-statuses", "title": "Status", "lead": "A status sets what the badge means, and its color. To choose one, set `Status`. For a color of your own, set `Accent`." },

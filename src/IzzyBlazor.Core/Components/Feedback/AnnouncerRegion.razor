@@ -1,0 +1,74 @@
+@namespace IzzyBlazor
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+@attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, messages aren't read.")]
+
+@*
+    Where Announcer's messages from static pages go. Put one in the layout, unless it has a
+    ToastRegion, which renders one:
+
+    <AnnouncerRegion />
+
+    It renders the two live regions the script speaks through, empty from the page's first load
+    (a region screen readers already know reads more reliably than one made for a message) and
+    kept by enhanced navigation (data-permanent), along with the lines the script adds to them.
+    On a static page (a form post, a link), Announcer.Announce() queues the message and this renders
+    it in the response, hidden; the script reads each one once, after an enhanced post or navigation
+    or after a full page load. On interactive pages Announcer talks to the browser directly.
+*@
+
+@if (_claimed)
+{
+    <div id="ib-announcer" data-permanent>
+        <div class="ib-visually-hidden ib-announce-polite" aria-live="polite"></div>
+        <div class="ib-visually-hidden ib-announce-assertive" aria-live="assertive"></div>
+    </div>
+    <div hidden data-ib-announcements>
+        @foreach (var message in _rendered)
+        {
+            <div @key="message.Id" data-id="@message.Id" data-assertive="@(message.Assertive ? "" : null)">@message.Text</div>
+        }
+    </div>
+}
+
+@code {
+    private Announcer? _announcer;
+    private bool _claimed;
+    private IReadOnlyList<Announcement> _rendered = [];
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // One per page: a second (an AnnouncerRegion beside a ToastRegion) renders nothing.
+        if (Services.GetService<Announcer>() is not { } announcer || !announcer.Claim(this))
+        {
+            return;
+        }
+
+        _announcer = announcer;
+        _claimed = true;
+        if (!RendererInfo.IsInteractive)
+        {
+            _rendered = announcer.Pending.ToList();
+            announcer.Changed += OnChanged;
+        }
+    }
+
+    // During static rendering this runs on the renderer's own thread; InvokeAsync makes it safe from any other.
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        _rendered = _announcer!.Pending.ToList();
+        StateHasChanged();
+    });
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_announcer is not null)
+        {
+            _announcer.Changed -= OnChanged;
+            _announcer.Release(this);
+        }
+    }
+}
