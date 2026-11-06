@@ -5,6 +5,8 @@
  * would drop them.
  */
 
+import { place } from "./rich-text-place";
+
 /** What the dialog needs from its editor. */
 export interface LinkEditor {
   surface: HTMLElement;
@@ -130,12 +132,10 @@ export function openLink(editor: LinkEditor): void {
   part(editor, "text-field").hidden = !link && !collapsed;
   part(editor, "remove").hidden = !link;
 
-  const rect = saved.getBoundingClientRect();
-  const anchor = rect.height ? rect : surface.getBoundingClientRect();
-  dialog.style.position = "fixed";
-  dialog.style.margin = "0";
-  dialog.style.top = `${Math.round(anchor.bottom + 6)}px`;
-  dialog.showPopover();
-  dialog.style.left = `${Math.round(Math.max(8, Math.min(anchor.left, innerWidth - dialog.offsetWidth - 8)))}px`;
+  const range = saved;
+  place(dialog, () => {
+    const rect = range.getBoundingClientRect();
+    return rect.height ? rect : surface.getBoundingClientRect();
+  });
   href.focus();
 }

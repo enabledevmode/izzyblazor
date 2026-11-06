@@ -1362,6 +1362,36 @@ public class IzzyText
     /// <summary>A RichTextEditor's palette color.</summary>
     public virtual string RichTextGray { get; set; } = "Gray";
 
+    /// <summary>A RichTextEditor's image tool, and its dialog.</summary>
+    public virtual string RichTextImage { get; set; } = "Image";
+
+    /// <summary>A RichTextEditor's image dialog: the image's address.</summary>
+    public virtual string RichTextImageAddress { get; set; } = "Image address";
+
+    /// <summary>A RichTextEditor's image dialog: the button that uploads an image from the device.</summary>
+    public virtual string RichTextImageUpload { get; set; } = "Upload";
+
+    /// <summary>A RichTextEditor's image dialog: the image's alternative text.</summary>
+    public virtual string RichTextImageAlt { get; set; } = "Description";
+
+    /// <summary>A RichTextEditor's image dialog: the hint under the description.</summary>
+    public virtual string RichTextImageAltHint { get; set; } = "What the image shows, for people who can't see it.";
+
+    /// <summary>A RichTextEditor's image dialog: the checkbox for an image that adds nothing to the text.</summary>
+    public virtual string RichTextImageDecorative { get; set; } = "Decorative: no description";
+
+    /// <summary>A RichTextEditor's image dialog: the button that removes the image.</summary>
+    public virtual string RichTextImageRemove { get; set; } = "Remove image";
+
+    /// <summary>A RichTextEditor's image dialog: the message for an image with no description.</summary>
+    public virtual string RichTextImageNeedsAlt { get; set; } = "Describe the image, or mark it decorative.";
+
+    /// <summary>A RichTextEditor's image dialog: the message when an upload fails.</summary>
+    public virtual string RichTextImageFailed { get; set; } = "The image couldn't be uploaded.";
+
+    /// <summary>A RichTextEditor's image dialog: the message for an image over MaxImageSize.</summary>
+    public virtual string RichTextImageTooLarge { get; set; } = "The image is too large.";
+
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
 
