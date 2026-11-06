@@ -851,7 +851,7 @@
             "`CodeLanguages` sets the list, as language names such as `csharp`; it defaults to the languages the library's highlighter knows. The editor shows code plain while you write it."
           ],
           "examples": [
-            { "id": "rich-text-editor-code-blocks", "title": "A code block with its language", "lead": "The editor marks the block as C#; `RichText` beside it shows the same value highlighted." }
+            { "id": "rich-text-editor-code-blocks", "title": "A code block with its language", "lead": "The editor marks the block as C#; `RichText` below it shows the same value highlighted." }
           ]
         },
         {
@@ -869,7 +869,7 @@
             "The text is part of the page, not a frame, and has `Prose`'s styles: what you edit looks like what `RichText` shows. The theme's tokens reach it as they reach everything else. `TextSize` sets its size, as `Prose`'s `Size` does. For rules of your own, give the editor a `ContentClass` and `RichText` the same `Class`; Prose's rules have the lowest weight, so yours win."
           ],
           "examples": [
-            { "id": "rich-text-editor-content-style", "title": "A class on the content", "lead": "This help article is large text, and its headings are the primary color, in the editor and on the published page alike." }
+            { "id": "rich-text-editor-content-style", "title": "A class on the content", "lead": "This help article is large text, and its headings are the primary color, in the editor and, below it, as `RichText` shows it." }
           ]
         }
       ]

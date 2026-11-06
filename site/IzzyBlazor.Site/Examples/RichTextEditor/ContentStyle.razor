@@ -1,9 +1,11 @@
 @* A help article: larger text, and the article's own heading style on both the editor and the
    published page. *@
-<Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Grow>
+<Stack Gap="6" Grow>
     <RichTextEditor @bind-Value="_article" Label="Article" TextSize="ProseSize.Lg" ContentClass="help-article" />
-    <RichText Html="@_article" Size="ProseSize.Lg" Class="help-article" />
-</Grid>
+    <Card Title="As RichText shows it">
+        <RichText Html="@_article" Size="ProseSize.Lg" Class="help-article" />
+    </Card>
+</Stack>
 
 <style>
     .help-article h3 { color: var(--ib-color-primary); }
