@@ -196,11 +196,11 @@ class GridColumns extends IzzyElement {
     return { blocks: blocks.map((block) => block.headers), from: blocks.findIndex((block) => block.key === mine), depth: parent.length };
   }
 
-  /** Moves a column, or a band with its columns, to a place among the blocks beside it. */
-  #moveTo(th: HTMLTableCellElement, to: number, focus: boolean): void {
+  /** Moves a column, or a band with its columns, to a place among the blocks beside it: false if it's there. */
+  #moveTo(th: HTMLTableCellElement, to: number, focus: boolean): boolean {
     const { blocks, from } = this.#blocks(th);
     const target = Math.max(0, Math.min(blocks.length - 1, to));
-    if (from < 0 || from === target) return;
+    if (from < 0 || from === target) return false;
     const moving = blocks[from];
     const order = this.#headers.filter((header) => !moving.includes(header));
     const anchor = target > from ? blocks[target][blocks[target].length - 1] : blocks[target][0];
@@ -210,6 +210,7 @@ class GridColumns extends IzzyElement {
     void this.#save(columns, true, focus ? this.#keyOf(th) : null).then((drawing) => {
       if (!drawing) this.#letGo();
     });
+    return true;
   }
 
   // All of an outermost band's columns, hidden ones too, as its header lists them.
@@ -247,13 +248,13 @@ class GridColumns extends IzzyElement {
    * For the column picker: moves a column or band (its name, as #item reads it) by a step, or to
    * the place of another (a column or band beside it).
    */
-  movePicked(name: string, to: number | string): void {
+  movePicked(name: string, to: number | string): boolean {
     const th = this.#item(name);
-    if (!th) return;
+    if (!th) return false;
     if (typeof to === "number") return this.#move(th, to, false);
     const target = to.startsWith("band:") ? this.#headers.find((h) => this.#path(h).includes(to.slice(5))) : this.#header(to);
     const index = this.#blocks(th).blocks.findIndex((block) => target && block.includes(target));
-    if (index >= 0) this.#moveTo(th, index, false);
+    return index >= 0 && this.#moveTo(th, index, false);
   }
 
   /** For the column picker: shows or hides these columns at once, keeping one shown. */
@@ -265,8 +266,8 @@ class GridColumns extends IzzyElement {
     void this.#save(columns, true, null);
   }
 
-  #move(th: HTMLTableCellElement, by: number, focus: boolean): void {
-    this.#moveTo(th, this.#blocks(th).from + by, focus);
+  #move(th: HTMLTableCellElement, by: number, focus: boolean): boolean {
+    return this.#moveTo(th, this.#blocks(th).from + by, focus);
   }
 
   // Whatever the unit (a length may be in ch or vw): as the browser works it out.
@@ -347,7 +348,11 @@ class GridColumns extends IzzyElement {
       for (const [h, widest] of fits) if (widest > 0) this.#entry(columns, h.dataset.ibCol!).w = `${this.#clamp(h, widest)}px`;
       void this.#save(columns, true, key ?? null);
     }
-    else if (th && action === "hide") this.#setHidden(columns, key!, true);
+    else if (th && action === "hide") {
+      const headers = this.#headers;
+      const at = headers.indexOf(th);
+      this.#setHidden(columns, key!, true, (headers[at + 1] ?? headers[at - 1])?.dataset.ibCol ?? null);
+    }
     else if (action === "choose") {
       // The toolbar's picker, as if its button were pressed.
       this.#host?.querySelector<HTMLElement>(".ib-col-picker [popovertarget]")?.click();
@@ -368,20 +373,20 @@ class GridColumns extends IzzyElement {
         const entry = this.#entry(columns, k);
         entry.f = action === "unfreeze" ? FROZEN.none : action === "freeze-start" ? FROZEN.start : FROZEN.end;
         const header = this.#header(k) ?? near;
-        if (header) entry.w ??= `${Math.round(header.offsetWidth)}px`;
+        if (header && action !== "unfreeze") entry.w ??= `${Math.round(header.offsetWidth)}px`;
       }
       void this.#save(columns, true, this.#keyOf(th));
     }
   }
 
-  #setHidden(columns: ColumnEntry[], key: string, hidden: boolean): void {
+  #setHidden(columns: ColumnEntry[], key: string, hidden: boolean, focus: string | null = null): void {
     const entry = this.#entry(columns, key);
     if (hidden) {
       // At least one stays.
       if (this.#headers.length <= 1) return;
       entry.h = true;
     } else entry.h = false; // Said outright: a column can start hidden.
-    void this.#save(columns, true, null);
+    void this.#save(columns, true, focus);
   }
 
   // This grid's own: not a grid's in one of its details.

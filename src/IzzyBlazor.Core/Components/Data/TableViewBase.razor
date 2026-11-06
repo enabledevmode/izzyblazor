@@ -1198,7 +1198,7 @@
                 {
                     <div class="ib-field ib-field-sm ib-filter-list-search">
                         <div class="ib-field-control">
-                            <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
+                            <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
                         </div>
                     </div>
                 }
@@ -1342,7 +1342,7 @@
             <ib-filter-list data-ib-list-remote data-ib-load-on-scroll data-ib-all="@AllTicked(list, current)" aria-busy="@(list.Loading ? "true" : null)">
                 <div class="ib-field ib-field-sm ib-filter-list-search">
                     <div class="ib-field-control">
-                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-bound-search
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" autofocus data-ib-bound-search
                                @oninput="e => OnValueSearchAsync(column, list, e.Value?.ToString() ?? string.Empty)" />
                     </div>
                 </div>
@@ -1432,7 +1432,7 @@
                             data-ib-next="@(answer is { HasMore: true, Failed: false } ? answer.NextSkip : null)">
                 <div class="ib-field ib-field-sm ib-filter-list-search">
                     <div class="ib-field-control">
-                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" autofocus data-ib-list-search />
                     </div>
                 </div>
                 <label class="ib-check ib-filter-list-all">

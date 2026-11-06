@@ -1122,8 +1122,10 @@
     public bool ReorderableColumns { get; set; }
 
     /// <summary>
-    /// A button above the grid listing the columns to show or hide, and to put back as declared. Needs
-    /// script, and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// A button above the grid that opens a list of the columns, in the grid's order, each band's under
+    /// it: tick to show or hide, search by title, drag a handle (or open its menu, or Alt+Up and Down)
+    /// to move, and reset to the columns as declared. Each header's menu opens it too. Needs script,
+    /// and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool ColumnPicker { get; set; }
@@ -1954,11 +1956,11 @@
                 {
                     var sorted = SortedDescending(column);
                     groups.Add(@<text>
-                        @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending, sorted == false)
-                        @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending, sorted == true)
+                        @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending)
+                        @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending)
                         @if (sorted is not null)
                         {
-                            @SortItem(column, null, Lucide.X, TextDefaults.ColumnSortClear, false)
+                            @SortItem(column, null, Lucide.X, TextDefaults.ColumnSortClear)
                         }
                     </text>);
                 }
@@ -2018,27 +2020,28 @@
         </Menu>
     };
 
-    // A column menu's sort item: a link on static pages, as the header's is; checked when it's the sort now.
-    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text, bool current) => __builder =>
+    // A column menu's sort item: a link on static pages, as the header's is. The header shows the
+    // sort now; each item sorts by this column alone, which changes a sort of several too.
+    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text) => __builder =>
     {
         if (UseState)
         {
-            <MenuItem Icon="icon" Disabled="current" OnClick="() => SortToAsync(column, descending)">@text</MenuItem>
+            <MenuItem Icon="icon" OnClick="() => SortToAsync(column, descending)">@text</MenuItem>
         }
         else
         {
-            <MenuItem Icon="icon" Disabled="current" Href="@SortToHref(column, descending)">@text</MenuItem>
+            <MenuItem Icon="icon" Href="@SortToHref(column, descending)">@text</MenuItem>
         }
     };
 
-    // Freeze column ›: the edge it's at, checked. The script freezes a band as one.
+    // Pin column ›: the edge it's pinned (frozen) at, checked. The script pins a band as one.
     private RenderFragment FreezeSub(ColumnFrozen frozen, string by, object id) => __builder =>
     {
-        <MenuSub Label="@TextDefaults.ColumnFreeze" Icon="Lucide.Pin">
+        <MenuSub Label="@TextDefaults.ColumnPin" Icon="Lucide.Pin">
             <MenuRadioGroup Value="@(frozen switch { ColumnFrozen.Start => "start", ColumnFrozen.End => "end", _ => "none" })">
-                <MenuItem Value="start" data-ib-col-action="freeze-start" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnFrozenStart</MenuItem>
-                <MenuItem Value="end" data-ib-col-action="freeze-end" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnFrozenEnd</MenuItem>
-                <MenuItem Value="none" data-ib-col-action="unfreeze" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnNotFrozen</MenuItem>
+                <MenuItem Value="start" data-ib-col-action="freeze-start" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnPinLeft</MenuItem>
+                <MenuItem Value="end" data-ib-col-action="freeze-end" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnPinRight</MenuItem>
+                <MenuItem Value="none" data-ib-col-action="unfreeze" @attributes="new Dictionary<string, object> { [by] = id }">@TextDefaults.ColumnNoPin</MenuItem>
             </MenuRadioGroup>
         </MenuSub>
     };
@@ -2246,12 +2249,13 @@
                         <div class="ib-col-picker-top">
                             @if (HasBands)
                             {
-                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-label="@TextDefaults.ColumnsExpandAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
+                                @* Named for what it does next: every band starts open. *@
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" data-ib-open="" aria-label="@TextDefaults.ColumnsCollapseAll" data-ib-text-open="@TextDefaults.ColumnsExpandAll" data-ib-text-close="@TextDefaults.ColumnsCollapseAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
                             }
                             <input type="checkbox" class="ib-check-input" aria-label="@TextDefaults.ColumnsShowAll" checked="@(hidden == 0)" data-ib-mixed="@(hidden > 0 && hidden < pickable.Count ? "" : null)" data-ib-picker-all />
                             <div class="ib-field ib-field-sm">
                                 <div class="ib-field-control">
-                                    <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.FilterSearchPlaceholder" autocomplete="off" data-ib-picker-search />
+                                    <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" data-ib-picker-search />
                                 </div>
                             </div>
                         </div>
@@ -2286,10 +2290,10 @@
                 var shown = run.Count(Shown.Contains);
                 var id = BandId(band);
                 var list = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-b{id}";
-                <li class="ib-col-picker-band" data-ib-picker-item="band:@id">
+                <li class="ib-col-picker-band" data-ib-picker-item="band:@id" data-ib-title="@band.Title">
                     <div class="ib-col-picker-row">
                         <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-controls="@list" aria-label="@BandFullName(band)" data-ib-picker-toggle><Icon Name="Lucide.ChevronDown" /></button>
-                        <input type="checkbox" class="ib-check-input" id="@($"{list}-c")" checked="@(shown == run.Count)" data-ib-mixed="@(shown > 0 && shown < run.Count ? "" : null)"
+                        <input type="checkbox" class="ib-check-input" id="@($"{list}-c")" aria-label="@(band.Parent is null ? null : BandFullName(band))" checked="@(shown == run.Count)" data-ib-mixed="@(shown > 0 && shown < run.Count ? "" : null)"
                                data-ib-picker-keys="@System.Text.Json.JsonSerializer.Serialize(run.Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray)" />
                         @PickerHandle(shown > 0 && BandMoves(band), band, null, BandFullName(band))
                         <label for="@($"{list}-c")">@band.Title</label>
@@ -2303,19 +2307,22 @@
                 var key = KeyOf(column);
                 var shown = Shown.Contains(column);
                 var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{Columns.ToList().IndexOf(column)}";
-                <li data-ib-picker-item="@key">
+                var frozen = shown && FrozenOf(column) != ColumnFrozen.None;
+                var name = column.Band is null ? column.HeaderText : column.FullName;
+                name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnPinnedNote, name) : name;
+                <li data-ib-picker-item="@key" data-ib-title="@column.HeaderText">
                     <div class="ib-col-picker-row">
                         @if (HasBands)
                         {
                             <span class="ib-col-picker-gap"></span>
                         }
-                        <input type="checkbox" class="ib-check-input" id="@box" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                        <input type="checkbox" class="ib-check-input" id="@box" aria-label="@(name == column.HeaderText ? null : name)" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
                         @PickerHandle(shown && CanMove(column), null, column, column.FullName)
                         <label for="@box">
                             @column.HeaderText
-                            @if (shown && FrozenOf(column) != ColumnFrozen.None)
+                            @if (frozen)
                             {
-                                <Icon Name="Lucide.Pin" Class="ib-col-picker-pin" /><span class="ib-visually-hidden">, @TextDefaults.ColumnFrozenNote</span>
+                                <Icon Name="Lucide.Pin" Class="ib-col-picker-pin" />
                             }
                         </label>
                     </div>
@@ -2344,18 +2351,18 @@
         var zone = band is not null ? SiblingBlocks(band.Parent, FrozenOf(Columns.First(c => c.Band?.Chain.Contains(band) == true && Shown.Contains(c)))) : SiblingBlocks(column!.Band, FrozenOf(column));
         object self = (object?)band ?? column!;
         var attributes = band is not null ? new Dictionary<string, object> { ["data-ib-band"] = BandId(band) } : new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column!) };
-        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnMoveMenu, name);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, name);
         <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
-                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-handle" aria-label="@label" title="@label" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown" data-ib-picker-handle @attributes="context">
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-handle" aria-label="@label" title="@label" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+Home Alt+End" data-ib-picker-handle @attributes="context">
                     <Icon Name="Lucide.GripVertical" />
                 </button>
             </Trigger>
             <ChildContent>
-                <MenuItem Icon="Lucide.ArrowUp" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="left" @attributes="attributes">@TextDefaults.ColumnMoveUp</MenuItem>
-                <MenuItem Icon="Lucide.ArrowDown" Disabled="zone.LastOrDefault() == self" data-ib-col-action="right" @attributes="attributes">@TextDefaults.ColumnMoveDown</MenuItem>
-                <MenuItem Disabled="zone.FirstOrDefault() == self" data-ib-col-action="first" @attributes="attributes">@TextDefaults.ColumnMoveFirst</MenuItem>
-                <MenuItem Disabled="zone.LastOrDefault() == self" data-ib-col-action="last" @attributes="attributes">@TextDefaults.ColumnMoveLast</MenuItem>
+                <MenuItem Icon="Lucide.ArrowUp" Shortcut="Alt+↑" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="left" @attributes="attributes">@TextDefaults.MoveUp</MenuItem>
+                <MenuItem Icon="Lucide.ArrowDown" Shortcut="Alt+↓" Disabled="zone.LastOrDefault() == self" data-ib-col-action="right" @attributes="attributes">@TextDefaults.MoveDown</MenuItem>
+                <MenuItem Shortcut="Alt+Home" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="first" @attributes="attributes">@TextDefaults.MoveToTop</MenuItem>
+                <MenuItem Shortcut="Alt+End" Disabled="zone.LastOrDefault() == self" data-ib-col-action="last" @attributes="attributes">@TextDefaults.MoveToBottom</MenuItem>
             </ChildContent>
         </Menu>
     };
