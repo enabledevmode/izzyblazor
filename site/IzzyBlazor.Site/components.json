@@ -837,7 +837,7 @@
         {
           "id": "tables", "title": "Tables", "summary": "Insert tables, add and delete rows and columns, and give them a header row.", "members": ["RichTextTools"],
           "intro": [
-            "The table tool is one menu: Insert table opens a dialog for the rows, the columns and a header row; with the caret in a table, the rest add a row above or below, a column on either side, turn the header row on or off, or delete a row, a column or the table. A header row's cells are column headers, so screen readers read each cell with its column's name.",
+            "The table tool is one menu: Insert table opens a dialog for the rows, the columns and a header row; with the caret in a table, the rest add a row above or below, a column on either side, align the whole column to the left, center or right (a new row keeps its column's alignment), turn the header row on or off, or delete a row, a column or the table. A cell holds what the rest of the text can: formats, links, lists, images, and its own alignment with the alignment tools. A header row's cells are column headers, so screen readers read each cell with its column's name.",
             "Tab and Shift+Tab move between cells, selecting each one's text. From the last cell, Tab leaves the editor as it does anywhere else, so the keyboard never gets stuck; add a row with the menu."
           ],
           "examples": [
