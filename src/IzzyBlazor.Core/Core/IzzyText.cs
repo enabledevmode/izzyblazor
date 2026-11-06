@@ -1428,6 +1428,42 @@ public class IzzyText
     /// <summary>A RichTextEditor's image dialog: the toggle that keeps width and height in proportion.</summary>
     public virtual string RichTextImageKeepRatio { get; set; } = "Keep proportions";
 
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTable { get; set; } = "Table";
+
+    /// <summary>A RichTextEditor's table menu: insert a table; and the title of its dialog.</summary>
+    public virtual string RichTextTableInsert { get; set; } = "Insert table";
+
+    /// <summary>A RichTextEditor's insert table dialog: the number of rows.</summary>
+    public virtual string RichTextTableRows { get; set; } = "Rows";
+
+    /// <summary>A RichTextEditor's insert table dialog: the number of columns.</summary>
+    public virtual string RichTextTableColumns { get; set; } = "Columns";
+
+    /// <summary>A RichTextEditor's table: a first row of column headers.</summary>
+    public virtual string RichTextTableHeader { get; set; } = "Header row";
+
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTableRowAbove { get; set; } = "Insert row above";
+
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTableRowBelow { get; set; } = "Insert row below";
+
+    /// <summary>A RichTextEditor's table menu: a column before the caret's (left, in left-to-right languages).</summary>
+    public virtual string RichTextTableColumnBefore { get; set; } = "Insert column left";
+
+    /// <summary>A RichTextEditor's table menu: a column after the caret's (right, in left-to-right languages).</summary>
+    public virtual string RichTextTableColumnAfter { get; set; } = "Insert column right";
+
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTableDeleteRow { get; set; } = "Delete row";
+
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTableDeleteColumn { get; set; } = "Delete column";
+
+    /// <summary>A RichTextEditor's table menu.</summary>
+    public virtual string RichTextTableDelete { get; set; } = "Delete table";
+
     /// <summary>A RichTextEditor's bulleted list tool.</summary>
     public virtual string RichTextBulletedList { get; set; } = "Bulleted list";
 

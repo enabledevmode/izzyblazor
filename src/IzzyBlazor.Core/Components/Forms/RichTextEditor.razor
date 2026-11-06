@@ -26,7 +26,9 @@
       moves from the text to the toolbar, and Escape back. Toggles say whether the selection has
       their format (`aria-pressed`), and each lists its shortcut (`aria-keyshortcuts`, and the
       tooltip).
-    - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it.
+    - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it. In a
+      table it moves between cells, and from the last one out of the editor.
+    - Tables have a header row by default, its cells column headers (`scope="col"`).
     - The link and image tools open modal dialogs, named by their titles ("Add link", "Edit
       image"); Escape or Cancel closes them and puts focus back in the text, with its selection.
     - The image dialog asks for a description (alternative text) or for the image to be marked
@@ -53,6 +55,7 @@
     - ## , - , 1. , > or three backticks at the start of a line, then Space | Heading, list, quote, code block
     - **text**, *text*, `text` | Bold, italic, inline code
     - --- then Enter | Horizontal line
+    - Tab, Shift+Tab | In a table, the next or previous cell; Tab in its last cell leaves the editor
     - Alt+F10 | Move to the toolbar
     In the toolbar
     - Escape | Back to the text
@@ -184,6 +187,31 @@
                         <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
                         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-image="cancel">@TextDefaults.Cancel</Button>
                         <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
+                    </footer>
+                </div>
+            </dialog>
+        }
+        @if (Has(RichTextTools.Table) && ShowsToolbar)
+        {
+            <dialog class="ib-dialog ib-dialog-sm ib-dialog-center ib-rich-text-dialog ib-rich-text-table" aria-labelledby="@(FieldId)-table-title">
+                <header class="ib-dialog-header">
+                    <h2 class="ib-dialog-title" id="@(FieldId)-table-title">@TextDefaults.RichTextTableInsert</h2>
+                </header>
+                <div class="ib-dialog-body">
+                    <div class="ib-rich-text-image-size ib-rich-text-table-size">
+                        <div class="ib-field">
+                            <label class="ib-field-label" for="@(FieldId)-table-rows">@TextDefaults.RichTextTableRows</label>
+                            <input class="ib-field-input" id="@(FieldId)-table-rows" type="number" min="1" max="50" value="3" inputmode="numeric" data-ib-table="rows" />
+                        </div>
+                        <div class="ib-field">
+                            <label class="ib-field-label" for="@(FieldId)-table-columns">@TextDefaults.RichTextTableColumns</label>
+                            <input class="ib-field-input" id="@(FieldId)-table-columns" type="number" min="1" max="12" value="3" inputmode="numeric" data-ib-table="columns" />
+                        </div>
+                    </div>
+                    <label class="ib-rich-text-check"><input type="checkbox" checked data-ib-table="header" /> @TextDefaults.RichTextTableHeader</label>
+                    <footer class="ib-dialog-footer">
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-table="cancel">@TextDefaults.Cancel</Button>
+                        <Button Size="ControlSize.Sm" data-ib-table="apply">@TextDefaults.RichTextLinkApply</Button>
                     </footer>
                 </div>
             </dialog>
@@ -349,7 +377,11 @@
 
     private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
 
-    private bool HasInserts => HasAny(RichTextTools.Quote | RichTextTools.CodeBlock | RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
+    private bool HasInserts => HasAny(RichTextTools.Quote | RichTextTools.CodeBlock | RichTextTools.Table | RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
+
+    // An item in the table menu; those that change a table are disabled outside one (data-ib-in-table).
+    private RenderFragment TableItem(string action, string label, IconData icon) =>
+        @<MenuItem Icon="icon" data-ib-command="table" data-ib-value="@action" data-ib-in-table="@(action == "insert" ? null : "")">@label</MenuItem>;
 
     // The palette for text color and highlight: names in the sanitizer's list, labels from IzzyText.
     private static readonly string[] Palette = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
@@ -528,6 +560,29 @@
     private RenderFragment InsertGroup => @<text>
         @Tool(RichTextTools.Quote, "quote", Lucide.Quote, TextDefaults.RichTextQuote, null, pressed: true)
         @Tool(RichTextTools.CodeBlock, "codeblock", Lucide.SquareCode, TextDefaults.RichTextCodeBlock, null, pressed: true)
+        @if (Has(RichTextTools.Table))
+        {
+            @* One menu for tables: inserting one, and what changes the table at the caret (those
+               items are disabled elsewhere, by the script). *@
+            <ToolbarMenu Label="@TextDefaults.RichTextTable">
+                <Trigger>
+                    <IconButton @attributes="context" Icon="Lucide.Table" Label="@TextDefaults.RichTextTable" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                </Trigger>
+                <ChildContent>
+                    @TableItem("insert", TextDefaults.RichTextTableInsert, Lucide.Table)
+                    <MenuDivider />
+                    @TableItem("row-above", TextDefaults.RichTextTableRowAbove, Lucide.ArrowUpToLine)
+                    @TableItem("row-below", TextDefaults.RichTextTableRowBelow, Lucide.ArrowDownToLine)
+                    @TableItem("column-before", TextDefaults.RichTextTableColumnBefore, Lucide.ArrowLeftToLine)
+                    @TableItem("column-after", TextDefaults.RichTextTableColumnAfter, Lucide.ArrowRightToLine)
+                    @TableItem("header", TextDefaults.RichTextTableHeader, Lucide.PanelTop)
+                    <MenuDivider />
+                    @TableItem("delete-row", TextDefaults.RichTextTableDeleteRow, Lucide.Trash)
+                    @TableItem("delete-column", TextDefaults.RichTextTableDeleteColumn, Lucide.Trash)
+                    @TableItem("delete-table", TextDefaults.RichTextTableDelete, Lucide.Trash)
+                </ChildContent>
+            </ToolbarMenu>
+        }
         @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
         @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
     </text>;
