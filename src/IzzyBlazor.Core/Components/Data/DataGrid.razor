@@ -2326,6 +2326,9 @@
     /// <inheritdoc />
     internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
     {
+        @* An empty group would be a column of its own. *@
+        @if (!HasBands || HasGrip || Selectable || LeadSpan > 0)
+        {
         <colgroup>
             @if (HasGrip)
             {
@@ -2346,16 +2349,81 @@
                     <col class="ib-grid-lead-col" />
                 }
             }
-            @for (var i = 0; i < Shown.Count; i++)
+            @if (!HasBands)
             {
-                <col class="@ColClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+                @for (var i = 0; i < Shown.Count; i++)
+                {
+                    @ColumnCol(i)
+                }
+                @if (HasActionCell)
+                {
+                    <col class="ib-datagrid-menu-col" />
+                }
+            }
+        </colgroup>
+        }
+        @* With bands, a group per band, which its scope="colgroup" names, or per column with none. *@
+        @if (HasBands)
+        {
+            @foreach (var span in OuterBands())
+            {
+                <colgroup>
+                    @for (var i = span.First; i <= span.Last; i++)
+                    {
+                        @ColumnCol(i)
+                    }
+                </colgroup>
             }
             @if (HasActionCell)
             {
-                <col class="ib-datagrid-menu-col" />
+                <colgroup>
+                    <col class="ib-datagrid-menu-col" />
+                </colgroup>
             }
-        </colgroup>
+        }
     };
+
+    private RenderFragment ColumnCol(int i) => __builder =>
+    {
+        <col class="@ColClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+    };
+
+    /// <inheritdoc />
+    internal override bool BandBreaks(ColumnBase<TItem> before, ColumnBase<TItem> after) => FrozenOf(before) != FrozenOf(after);
+
+    // As its columns: frozen at their edge, and, once every one of them hides, hidden with the last.
+    /// <inheritdoc />
+    internal override string? BandColumnsClass(BandSpan span)
+    {
+        var columns = Enumerable.Range(span.First, span.Count).Select(i => Shown[i]).ToList();
+        var frozen = FrozenOf(columns[0]);
+        var classes = new List<string>();
+        if (frozen != ColumnFrozen.None)
+        {
+            var side = frozen == ColumnFrozen.Start ? "start" : "end";
+            classes.Add($"ib-frozen ib-frozen-{side}");
+            if (columns.Any(c => ColumnClass(c)?.Contains("ib-frozen-edge", StringComparison.Ordinal) == true))
+            {
+                classes.Add("ib-frozen-edge");
+            }
+        }
+        else if (Hiding && columns.All(c => Plan.Levels.ContainsKey(c)))
+        {
+            classes.Add($"ib-h{columns.Max(c => Plan.Levels[c])}");
+        }
+
+        return classes.Count == 0 ? null : string.Join(' ', classes);
+    }
+
+    // A frozen band sits where its first column does at the start, or its last at the end.
+    /// <inheritdoc />
+    internal override string? BandStyle(BandSpan span) =>
+        FrozenOf(Shown[span.First]) switch
+        {
+            ColumnFrozen.Start => CellStyle(Shown[span.First]),
+            ColumnFrozen.End => CellStyle(Shown[span.Last]),
+            _ => null,
+        };
 
     // How many buttons wide the action column is: as the most a row has, the ⋮ among them. Save and
     // Cancel have to fit, and starting an edit mustn't move the columns.

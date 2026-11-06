@@ -137,7 +137,7 @@ class Grid extends IzzyElement {
   #frozen(): void {
     const table = this.#table;
     const box = this.#box;
-    const cells = table?.tHead?.rows[0]?.cells;
+    const cells = table?.querySelector<HTMLTableRowElement>(":scope > thead > tr:not(.ib-table-band-row)")?.cells;
     if (!table || !box || !cells || box.clientWidth === 0) return;
     // A detail's content is as wide as the box, so it stays in view.
     table.style.setProperty("--ib-box", `${box.clientWidth}px`);
@@ -373,7 +373,7 @@ class Grid extends IzzyElement {
 
   // Not the cells of a column hidden at this width (kept in place, at no width), nor a group level's empty lead.
   #visibleCells(row: HTMLTableRowElement): HTMLTableCellElement[] {
-    return [...row.cells].filter((cell) => cell.checkVisibility({ visibilityProperty: true }) && !cell.matches(".ib-grid-lead:empty"));
+    return [...row.cells].filter((cell) => cell.checkVisibility({ visibilityProperty: true }) && !cell.matches(".ib-grid-lead:empty, .ib-table-band-gap"));
   }
 
   /** The visible cell of a row nearest a column, counting spans. */

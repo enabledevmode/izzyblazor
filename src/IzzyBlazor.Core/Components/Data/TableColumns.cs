@@ -320,6 +320,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
 
+    /// <summary>The band it's in, if any.</summary>
+    [CascadingParameter] internal ColumnBand? Band { get; set; }
+
     internal string HeaderText => Title ?? DefaultTitle ?? "";
 
     internal string? Key => SortKey ?? DefaultSortKey;

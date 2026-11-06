@@ -198,9 +198,34 @@
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
                     }
-                    @ColGroup
+                    @(ColGroup ?? (HasBands ? PlainBandColGroups : null))
                 <thead role="@StackRole("rowgroup")">
-                        <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? 1 : null)">
+                        @{ var bandDepth = BandDepth; }
+                        @for (var level = 0; level < bandDepth; level++)
+                        {
+                            <tr class="ib-table-band-row" role="@StackRole("row")" aria-rowindex="@(VirtualRows ? level + 1 : null)">
+                                @GripEmptyCell
+                                @if (Selectable)
+                                {
+                                    <td class="@SelectCellClass"></td>
+                                }
+                                @LeadCell
+                                @foreach (var span in BandRow(level))
+                                {
+                                    if (span.Band is { } band)
+                                    {
+                                        @* The outermost bands name their column groups; a band inside one covers the columns it spans. *@
+                                        <th scope="@(band.Parent is null ? "colgroup" : "col")" colspan="@(span.Count > 1 ? span.Count : null)" class="@BandClass(band, span)" role="@StackRole("columnheader")" style="@BandStyle(span)">@BandLabel(band)</th>
+                                    }
+                                    else
+                                    {
+                                        <td class="@BandGapClass(Shown[span.First])" style="@CellStyle(Shown[span.First])"></td>
+                                    }
+                                }
+                                @LastEmptyCell
+                            </tr>
+                        }
+                        <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? bandDepth + 1 : null)">
                             @GripHeader
                             @if (Selectable)
                             {
@@ -242,7 +267,7 @@
                         </tr>
                         @if (ShowsFilterRow && headerFilters is not null)
                         {
-                            <tr class="ib-table-filter-row" aria-rowindex="@(VirtualRows ? 2 : null)">
+                            <tr class="ib-table-filter-row" aria-rowindex="@(VirtualRows ? bandDepth + 2 : null)">
                                 @GripEmptyCell
                                 @if (Selectable)
                                 {
@@ -1664,7 +1689,7 @@
     internal virtual bool ShowsFilterRow => false;
 
     // How many rows the head has, which numbers the rest for virtual rows.
-    private int HeaderRows => ShowsFilterRow && HasFilters ? 2 : 1;
+    private int HeaderRows => BandDepth + (ShowsFilterRow && HasFilters ? 2 : 1);
 
     private string FilterRowFormId => $"{FilterFormId}-row";
 
@@ -2030,7 +2055,9 @@
     {
         if (!_columns.Contains(column))
         {
+            PlaceColumn(column);
             _columns.Add(column);
+            OrderColumns();
             ColumnsChanged();
 
             // A column shown later (behind an @if) appears without waiting for another render.
@@ -2077,6 +2104,7 @@
 
     internal void RemoveColumn(ColumnBase<TItem> column)
     {
+        UnplaceColumn(column);
         if (_columns.Remove(column))
         {
             ColumnsChanged();
@@ -2145,6 +2173,7 @@
 
     private async Task ColumnsReadyAsync()
     {
+        await BandsJoined();
         _columnsReady = true;
 
         // Filters kept in the component start from the URL too, once the columns that name them
