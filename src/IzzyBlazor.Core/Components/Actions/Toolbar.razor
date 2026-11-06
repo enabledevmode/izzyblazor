@@ -29,7 +29,8 @@
     ToolbarItem holds anything else (a field, a SegmentedControl, a Tooltip), with a Width so the
     widths without script allow for it, and MenuContent for what stands in for it in the menu
     (without that, it stays). The toolbar fills its container's width; in a row, give it Grow.
-    With Wrap, everything shows in the bar. With CollapseLabels, buttons with an icon drop their
+    With Wrap, everything shows in the bar: controls wrap onto more rows one by one, groups too,
+    the end items on the last row's right, and a separator at a row's start or end is hidden. With CollapseLabels, buttons with an icon drop their
     text first, and items move into the menu only once that isn't enough.
 
     The toolbar draws its items itself, so a cascading value or form written around one inside the
@@ -122,7 +123,7 @@
     /// <summary>The space between items, in spacing steps (one step = 4px). Defaults to 2.</summary>
     [Parameter] public int Gap { get; set; } = 2;
 
-    /// <summary>Wraps onto more rows instead of moving items into a "…" menu, for toolbars where everything must show.</summary>
+    /// <summary>Wraps onto more rows instead of moving items into a "…" menu, for toolbars where everything must show. Controls wrap one by one, filling each row; a separator at a row's edge is hidden.</summary>
     [Parameter] public bool Wrap { get; set; }
 
     /// <summary>

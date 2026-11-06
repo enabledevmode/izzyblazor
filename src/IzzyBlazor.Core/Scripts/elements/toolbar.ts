@@ -254,13 +254,15 @@ class Toolbar extends IzzyElement {
    * shows between two groups on the same row.
    */
   #edges(): void {
-    const units = this.#barUnits().filter((u) => u.checkVisibility());
-    const middle = (u: HTMLElement | undefined) => (u ? u.getBoundingClientRect().top + u.offsetHeight / 2 : NaN);
-    units.forEach((unit, i) => {
-      if (!unit.querySelector(":scope > [role=separator]")) return;
-      const row = middle(unit);
-      const alone = !(Math.abs(middle(units[i - 1]) - row) < 4 && Math.abs(middle(units[i + 1]) - row) < 4);
-      unit.toggleAttribute("data-ib-edge", alone);
+    // The controls and separators in the row, in order (groups and units have no box of their own).
+    const items = [...this.querySelectorAll<HTMLElement>(".ib-toolbar-unit :is([role=separator], button, a, input, select)")].filter(
+      (el) => !el.closest("[popover]") && el.checkVisibility()
+    );
+    const middle = (el: HTMLElement | undefined) => (el ? el.getBoundingClientRect().top + el.offsetHeight / 2 : NaN);
+    items.forEach((el, i) => {
+      if (el.getAttribute("role") !== "separator") return;
+      const row = middle(el);
+      el.toggleAttribute("data-ib-edge", !(Math.abs(middle(items[i - 1]) - row) < 4 && Math.abs(middle(items[i + 1]) - row) < 4));
     });
   }
 

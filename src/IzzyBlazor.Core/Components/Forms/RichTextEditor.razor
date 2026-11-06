@@ -76,15 +76,6 @@
                     @group
                 }
                 @ToolbarContent
-                @if (Has(RichTextTools.UndoRedo))
-                {
-                    @* No line before these: the space at the end of the bar sets them apart, and a line
-                       would start the second row when the toolbar wraps. *@
-                    <ToolbarButtonGroup Label="@TextDefaults.RichTextHistory" Position="ToolbarPosition.End">
-                        @Tool(RichTextTools.UndoRedo, "undo", Lucide.Undo2, TextDefaults.RichTextUndo, "Z")
-                        @Tool(RichTextTools.UndoRedo, "redo", Lucide.Redo2, TextDefaults.RichTextRedo, "Y")
-                    </ToolbarButtonGroup>
-                }
             </Toolbar>
         }
         @* The script owns what's typed here: the server writes it again only when Value changes
@@ -261,7 +252,7 @@
 
     private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
 
-    private bool HasInserts => HasAny(RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
+    private bool HasInserts => HasAny(RichTextTools.Quote | RichTextTools.CodeBlock | RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
 
     // The palette for text color and highlight: names in the sanitizer's list, labels from IzzyText.
     private static readonly string[] Palette = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
@@ -281,8 +272,11 @@
     private static string FontName(string font) => font.Split(',')[0].Trim().Trim('"', '\'');
 
     // The toolbar's groups in order, each only when it has a tool.
+    // Undo and redo first, as in DevExtreme and Radzen: nothing is pinned to the end, so the
+    // tools fill each row when the toolbar wraps.
     private IEnumerable<RenderFragment> Groups()
     {
+        if (Has(RichTextTools.UndoRedo)) yield return HistoryGroup;
         if (HasAny(RichTextTools.TextStyle | RichTextTools.Font | RichTextTools.FontSize)) yield return TextGroup;
         if (HasFormats) yield return FormatGroup;
         if (HasAny(RichTextTools.TextColor | RichTextTools.Highlight)) yield return ColorGroup;
@@ -309,8 +303,6 @@
                         {
                             @StyleItem($"h{level}", string.Format(TextDefaults.RichTextHeading, level), level.ToString(System.Globalization.CultureInfo.InvariantCulture))
                         }
-                        @StyleItem("blockquote", TextDefaults.RichTextQuote, null)
-                        @StyleItem("pre", TextDefaults.RichTextCodeBlock, null)
                     </MenuRadioGroup>
                 </ChildContent>
             </ToolbarMenu>
@@ -353,6 +345,11 @@
             </ToolbarMenu>
         }
     </text>;
+
+    private RenderFragment HistoryGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextHistory">
+        @Tool(RichTextTools.UndoRedo, "undo", Lucide.Undo2, TextDefaults.RichTextUndo, "Z")
+        @Tool(RichTextTools.UndoRedo, "redo", Lucide.Redo2, TextDefaults.RichTextRedo, "Y")
+    </ToolbarButtonGroup>;
 
     private RenderFragment FormatGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextFormats">
         @Tool(RichTextTools.Bold, "bold", Lucide.Bold, TextDefaults.RichTextBold, "B", pressed: true)
@@ -416,6 +413,8 @@
     </ToolbarButtonGroup>;
 
     private RenderFragment InsertGroup => @<text>
+        @Tool(RichTextTools.Quote, "quote", Lucide.TextQuote, TextDefaults.RichTextQuote, null, pressed: true)
+        @Tool(RichTextTools.CodeBlock, "codeblock", Lucide.SquareCode, TextDefaults.RichTextCodeBlock, null, pressed: true)
         @Tool(RichTextTools.HorizontalRule, "rule", Lucide.Minus, TextDefaults.RichTextHorizontalRule, null)
         @Tool(RichTextTools.ClearFormatting, "clear", Lucide.RemoveFormatting, TextDefaults.RichTextClearFormatting, null)
     </text>;
