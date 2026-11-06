@@ -2,9 +2,13 @@
    published page. *@
 <Stack Gap="6" Grow>
     <RichTextEditor @bind-Value="_article" Label="Article" TextSize="ProseSize.Lg" ContentClass="help-article" />
-    <Card Title="As RichText shows it">
-        <RichText Html="@_article" Size="ProseSize.Lg" Class="help-article" />
-    </Card>
+    @* Labeled as the editor is, so the label isn't taken for part of the text. *@
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">As RichText shows it</TextBlock>
+        <Card>
+            <RichText Html="@_article" Size="ProseSize.Lg" Class="help-article" />
+        </Card>
+    </Stack>
 </Stack>
 
 <style>
