@@ -43,4 +43,12 @@ export function installScrollbarWidth(): void {
   // opens a dialog (?dialog=) arrives locked, with nothing left to measure: put them back before
   // the page paints.
   new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "data-ib-scrollbar"] });
+  // A dialog stops being open (and modal) as it starts to fade out: it keeps the page locked
+  // until it has (the fade is --ib-duration-normal, 200ms), or the scrollbar would come back
+  // under it and shift it.
+  document.addEventListener("close", ({ target }) => {
+    const fading = (target as HTMLElement).dataset;
+    fading.ibFading = "";
+    setTimeout(() => delete fading.ibFading, 400);
+  }, true);
 }

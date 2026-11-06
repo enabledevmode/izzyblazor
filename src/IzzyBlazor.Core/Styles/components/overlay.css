@@ -532,15 +532,15 @@
     background-color: var(--ib-color-backdrop);
   }
 
-  html:has(.ib-dialog:modal),
-  html:has(.ib-dialog[open]:not(:modal)) {
+  /* Locked while a dialog is open, modal or not, and while one fades out (data-ib-fading,
+     scrollbar.ts): the scrollbar coming back then would narrow the page and shift the dialog. */
+  html:has(.ib-dialog:is([open], [data-ib-fading])) {
     overflow: hidden;
   }
 
   /* The locked page has no scrollbar: it's padded by the scrollbar's width instead
      (scrollbar.ts), so nothing shifts and the overlay reaches the edge. */
-  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-dialog:modal),
-  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-dialog[open]:not(:modal)) {
+  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-dialog:is([open], [data-ib-fading])) {
     scrollbar-gutter: auto;
     padding-inline-end: var(--ib-scrollbar-w);
   }
