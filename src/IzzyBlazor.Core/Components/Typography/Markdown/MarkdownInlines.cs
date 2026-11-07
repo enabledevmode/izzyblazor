@@ -312,9 +312,10 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
             {
                 if (closer.Char == '~')
                 {
-                    if (opener.Char == '~' && opener.CanOpen && opener.Original == closer.Original)
+                    // The nearest tilde opener, as GitHub's: a different count means no strikethrough.
+                    if (opener.Char == '~' && opener.CanOpen)
                     {
-                        found = true;
+                        found = opener.Original == closer.Original;
                         break;
                     }
                 }
@@ -829,6 +830,21 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
 
         if (periods < 1 || end == at + 1 || text[end - 1] is '-' or '_') return (0, 0, null);
         var address = text[start..end];
+
+        // mailto: and xmpp: before the address are part of the link; xmpp: may end in one /resource.
+        if (start >= 7 && string.CompareOrdinal(text, start - 7, "mailto:", 0, 7) == 0) return (start - 7, end, "mailto:" + address);
+        if (start >= 5 && string.CompareOrdinal(text, start - 5, "xmpp:", 0, 5) == 0)
+        {
+            if (end + 1 < text.Length && text[end] == '/' && (char.IsAsciiLetterOrDigit(text[end + 1]) || text[end + 1] is '@' or '.'))
+            {
+                end++;
+                while (end < text.Length && (char.IsAsciiLetterOrDigit(text[end]) || text[end] is '@' or '.')) end++;
+                if (text[end - 1] == '.') end--;
+            }
+
+            return (start - 5, end, text[(start - 5)..end]);
+        }
+
         return (start, end, "mailto:" + address);
     }
 }

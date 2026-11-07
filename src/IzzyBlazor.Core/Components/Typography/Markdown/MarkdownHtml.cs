@@ -14,9 +14,13 @@ internal sealed class MdHtml
     private string _lastOut = "\n";
     private int _disableTags;
 
-    public static string Render(MdNode document)
+    // For showing: HTML the sanitizer wouldn't keep is shown as text (List<string> in an answer
+    // stays List<string>, not List).
+    private bool _display;
+
+    public static string Render(MdNode document, bool display = false)
     {
-        var html = new MdHtml();
+        var html = new MdHtml { _display = display };
         var node = document;
         var entering = true;
         while (true)
@@ -79,6 +83,17 @@ internal sealed class MdHtml
         return output.ToString();
     }
 
+    // Whether raw HTML starts with a tag the sanitizer keeps; a comment or declaration counts as
+    // kept, since it shows nothing either way.
+    private static bool Kept(string html)
+    {
+        var i = html.Length > 1 && html[1] == '/' ? 2 : 1;
+        if (i >= html.Length || !char.IsAsciiLetter(html[i])) return true;
+        var end = i;
+        while (end < html.Length && (char.IsAsciiLetterOrDigit(html[end]) || html[end] == '-')) end++;
+        return RichTextSanitizer.Keeps(html[i..end].ToLowerInvariant());
+    }
+
     // A tight list's paragraphs are only their text.
     private static bool Tight(MdNode paragraph) => paragraph.Parent?.Parent is { Type: MdType.List, List.Tight: true };
 
@@ -118,6 +133,13 @@ internal sealed class MdHtml
                 Out(node.Literal);
                 Tag("</code>");
                 Tag("</pre>");
+                Cr();
+                break;
+            case MdType.HtmlBlock when _display && !Kept(node.Literal):
+                Cr();
+                Tag("<p>");
+                Out(node.Literal);
+                Tag("</p>");
                 Cr();
                 break;
             case MdType.HtmlBlock:
@@ -168,6 +190,9 @@ internal sealed class MdHtml
                 Tag("<code>");
                 Out(node.Literal);
                 Tag("</code>");
+                break;
+            case MdType.HtmlInline when _display && !Kept(node.Literal):
+                Out(node.Literal);
                 break;
             case MdType.HtmlInline:
                 Lit(node.Literal);
