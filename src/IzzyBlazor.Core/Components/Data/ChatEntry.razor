@@ -1,0 +1,218 @@
+@namespace IzzyBlazor
+@using System.Globalization
+@using System.Text.RegularExpressions
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@*
+    One message in a Chat: yours (Mine), or someone else's, with their name and avatar.
+
+    <ChatEntry Mine Text="Where's my order?" Time="sent" />
+    <ChatEntry Author="Assistant" Markdown="@reply" Pending="_streaming" />
+
+    The content is Text (plain, its lines kept), Markdown (shown as RichText shows it, code
+    highlighted), Html (sanitized), or anything else as ChildContent. Pending shows three dots
+    until content arrives, then a caret after it while more is coming. Failed says so, with
+    Retry (OnRetry). Others' entries have a copy button for their text (Copyable).
+
+    Time puts the time beside the author, and a day ("Today", "Yesterday", or the date) above
+    the first entry of each day.
+*@
+
+@if (_day is not null)
+{
+    <p class="ib-chat-day"><time datetime="@Time!.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">@_day</time></p>
+}
+<article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_headingId"
+         data-ib-pending="@(Pending ? "" : null)">
+    @Heading
+    @if (!Mine && (Author is not null || Avatar is not null))
+    {
+        <Avatar Name="@Author" Src="@Avatar" Size="AvatarSize.Sm" Decorative Class="ib-chat-avatar" />
+    }
+    <div class="ib-chat-body">
+        @if ((!Mine && Author is not null) || Time is not null)
+        {
+            <p class="ib-chat-meta">
+                @if (!Mine && Author is not null)
+                {
+                    <span class="ib-chat-author">@Author</span>
+                }
+                @if (Time is { } time)
+                {
+                    <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)">@time.ToString("t", CultureInfo.CurrentCulture)</time>
+                }
+            </p>
+        }
+        <div class="ib-chat-bubble">
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else if (!string.IsNullOrEmpty(Markdown))
+            {
+                @* While it streams, a last line that would make a heading waits for the next. *@
+                <RichText Class="ib-chat-content" TopHeading="ContentTop" Html="@(Pending ? RichTextMarkdown.Render(Markdown, display: true, streaming: true) : null)"
+                          Markdown="@(Pending ? null : Markdown)" />
+            }
+            else if (!string.IsNullOrEmpty(Html))
+            {
+                <RichText Class="ib-chat-content" TopHeading="ContentTop" Html="@Html" />
+            }
+            else if (!string.IsNullOrEmpty(Text))
+            {
+                <p class="ib-chat-content ib-chat-text">@Text</p>
+            }
+            else if (Pending)
+            {
+                <span class="ib-chat-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+            }
+        </div>
+        @if (Failed)
+        {
+            <p class="ib-chat-failed">
+                @(Mine ? TextDefaults.ChatNotSent : TextDefaults.ChatReplyFailed)
+                @if (OnRetry.HasDelegate)
+                {
+                    @if (RendererInfo.IsInteractive)
+                    {
+                        <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" @onclick="() => OnRetry.InvokeAsync()">@TextDefaults.ChatRetry</Button>
+                    }
+                    else
+                    {
+                        @* The chat's form posts it, from here. *@
+                        <Button Submit Form="@Context!.Owner.FormId" Name="@ChatPost.RetryName" Value="@Context.IndexOf(this).ToString(CultureInfo.InvariantCulture)"
+                                Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">@TextDefaults.ChatRetry</Button>
+                    }
+                }
+            </p>
+        }
+        @if ((Copyable ?? !Mine) && !Pending && !Failed && CopyText is { Length: > 0 } copy)
+        {
+            <div class="ib-chat-actions">
+                <CopyButton Text="@copy" Label="@TextDefaults.ChatCopy" />
+            </div>
+        }
+    </div>
+</article>
+
+@code {
+    /// <summary>Whether the entry is yours: it sits at the end, in a bubble, with no name.</summary>
+    [Parameter] public bool Mine { get; set; }
+
+    /// <summary>Who wrote it, such as "Assistant" or "Dana". Shown above it, and its avatar's name.</summary>
+    [Parameter] public string? Author { get; set; }
+
+    /// <summary>The address of the author's picture. Without one, the avatar shows the author's initials.</summary>
+    [Parameter] public string? Avatar { get; set; }
+
+    /// <summary>When it was written: the time is shown, and the day above the day's first entry.</summary>
+    [Parameter] public DateTimeOffset? Time { get; set; }
+
+    /// <summary>The message as plain text; its line breaks are kept.</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>The message as Markdown, shown as <see cref="RichText"/> shows it.</summary>
+    [Parameter] public string? Markdown { get; set; }
+
+    /// <summary>The message as HTML; it's sanitized first.</summary>
+    [Parameter] public string? Html { get; set; }
+
+    /// <summary>Anything else, such as a card or the sources an answer used. It replaces Text, Markdown and Html.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Whether more is coming: dots until content arrives, then a caret after it.</summary>
+    [Parameter] public bool Pending { get; set; }
+
+    /// <summary>Whether it failed: "Not sent" for yours, "Reply failed" for others, with Retry when <see cref="OnRetry"/> is set.</summary>
+    [Parameter] public bool Failed { get; set; }
+
+    /// <summary>Called when a person chooses Retry on a failed entry.</summary>
+    [Parameter, ModeSupport] public EventCallback OnRetry { get; set; }
+
+    /// <summary>Whether a copy button copies its text. Defaults to on for others' entries and off for yours.</summary>
+    [Parameter] public bool? Copyable { get; set; }
+
+    [CascadingParameter] private ChatContext? Context { get; set; }
+
+    private readonly string _headingId = IdGenerator.Next("ib-chat-entry");
+    private string? _class;
+    private string? _style;
+    private string? _day;
+
+    // The content's headings sit under the entry's own.
+    private int ContentTop => Math.Min(6, Context!.Owner.EntryHeadingLevel + 1);
+
+    // What Copy copies: the Markdown as written, the text, or the HTML's text.
+    private string? CopyText => Markdown is { Length: > 0 } ? Markdown : Text is { Length: > 0 } ? Text : Html is { Length: > 0 } ? PlainText() : null;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("ChatEntry must be inside a Chat.");
+        }
+
+        Context.Register(this);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        // A day above the day's first entry.
+        _day = null;
+        if (Time is { } time && Context!.Before(this)?.Time is var before && (before is null || before.Value.Date != time.Date))
+        {
+            _day = DayOf(time);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) Context!.Owner.Arrived(this);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chat-entry");
+        classes.Add(Mine ? "ib-chat-mine" : "ib-chat-other");
+        base.BuildAttributes(classes, styles);
+    }
+
+    private string DayOf(DateTimeOffset time)
+    {
+        var today = DateTimeOffset.Now.ToOffset(time.Offset).Date;
+        return time.Date == today ? TextDefaults.ChatToday
+            : time.Date == today.AddDays(-1) ? TextDefaults.ChatYesterday
+            : time.ToString("D", CultureInfo.CurrentCulture);
+    }
+
+    // The hidden heading screen readers jump between: "You said", "Dana said", or "Reply".
+    private RenderFragment Heading => builder =>
+    {
+        builder.OpenElement(0, $"h{Context!.Owner.EntryHeadingLevel}");
+        builder.AddAttribute(1, "id", _headingId);
+        builder.AddAttribute(2, "class", "ib-visually-hidden");
+        builder.AddContent(3, Mine ? TextDefaults.ChatYouSaid : Author is { Length: > 0 } author ? string.Format(CultureInfo.CurrentCulture, TextDefaults.ChatSaid, author) : TextDefaults.ChatReply);
+        builder.CloseElement();
+    };
+
+    /// <summary>The entry's text without markup, for its announcement and Copy.</summary>
+    internal string PlainText()
+    {
+        if (Text is { Length: > 0 }) return Text;
+        if (Markdown is { Length: > 0 }) return Markdown;
+        if (Html is not { Length: > 0 }) return "";
+        var text = Regex.Replace(RichTextSanitizer.Sanitize(Html), "<[^>]*>", " ");
+        return Regex.Replace(System.Net.WebUtility.HtmlDecode(text), @"\s+", " ").Trim();
+    }
+
+    internal Task RetryAsync() => OnRetry.InvokeAsync();
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

@@ -1572,6 +1572,54 @@ public class IzzyText
     /// <summary>A RichTextEditor's numbered list tool.</summary>
     public virtual string RichTextNumberedList { get; set; } = "Numbered list";
 
+    /// <summary>A Chat's message box.</summary>
+    public virtual string ChatMessage { get; set; } = "Message";
+
+    /// <summary>A Chat's send button.</summary>
+    public virtual string ChatSend { get; set; } = "Send";
+
+    /// <summary>A Chat's button that stops a reply.</summary>
+    public virtual string ChatStop { get; set; } = "Stop";
+
+    /// <summary>A Chat's group of suggested messages.</summary>
+    public virtual string ChatSuggestions { get; set; } = "Suggestions";
+
+    /// <summary>Announced when a Chat's reply starts.</summary>
+    public virtual string ChatReplying { get; set; } = "Replying";
+
+    /// <summary>Announced when a Chat's reply is done.</summary>
+    public virtual string ChatReplied { get; set; } = "Reply complete";
+
+    /// <summary>Announced when a Chat's reply is stopped.</summary>
+    public virtual string ChatStopped { get; set; } = "Stopped";
+
+    /// <summary>A Chat's failed reply, announced and shown on it.</summary>
+    public virtual string ChatReplyFailed { get; set; } = "Reply failed";
+
+    /// <summary>A ChatEntry of yours that failed to send.</summary>
+    public virtual string ChatNotSent { get; set; } = "Not sent";
+
+    /// <summary>A failed ChatEntry's retry button.</summary>
+    public virtual string ChatRetry { get; set; } = "Retry";
+
+    /// <summary>A ChatEntry's copy button.</summary>
+    public virtual string ChatCopy { get; set; } = "Copy";
+
+    /// <summary>The hidden heading of a ChatEntry of yours.</summary>
+    public virtual string ChatYouSaid { get; set; } = "You said";
+
+    /// <summary>The hidden heading of someone else's ChatEntry: {0} is the author.</summary>
+    public virtual string ChatSaid { get; set; } = "{0} said";
+
+    /// <summary>The hidden heading of a ChatEntry with no author.</summary>
+    public virtual string ChatReply { get; set; } = "Reply";
+
+    /// <summary>A Chat's day separator for today.</summary>
+    public virtual string ChatToday { get; set; } = "Today";
+
+    /// <summary>A Chat's day separator for yesterday.</summary>
+    public virtual string ChatYesterday { get; set; } = "Yesterday";
+
     /// <summary>A RichTextEditor's task list tool.</summary>
     public virtual string RichTextTaskList { get; set; } = "Task list";
 
