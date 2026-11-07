@@ -22,6 +22,8 @@
 
     On a static page the box is a form that posts (FormName names it, as with Form), so a
     message sends with JavaScript off too; with script, Enter sends and Shift+Enter adds a line.
+    A reply streams on a static page too, with [StreamRendering] on the page, when the post came
+    with script: OnSend's CanStream says so (with JavaScript off, send the reply whole).
 
     Accessibility:
     - The log is a `log` named by Label, which is required. It's quiet (aria-live off): a reply
@@ -100,6 +102,13 @@
 
     /// <summary>The form's name on a static page, unique on the page, as a Form's FormName. Defaults to "chat".</summary>
     [Parameter] public string FormName { get; set; } = "chat";
+
+    /// <summary>
+    /// The address the form posts to on a static page; by default, the page's own. Set it to keep
+    /// the conversation's id in the address, such as <c>/help?conversation=4f2a</c>: the post goes
+    /// there, so the page knows the conversation, with no redirect.
+    /// </summary>
+    [Parameter] public string? FormAction { get; set; }
 
     /// <summary>The level of each entry's hidden heading, 2 to 6. Defaults to 3.</summary>
     [Parameter] public int HeadingLevel { get; set; } = 3;
@@ -208,13 +217,13 @@
         if (string.IsNullOrEmpty(text) || Busy) return;
         if (MaxLength is { } max && text.Length > max) text = text[..max];
         _draft.Text = null;
-        await OnSend.InvokeAsync(new ChatSendArgs(text));
+        await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: posted is null || posted.Script == "1"));
     }
 
     private async Task SuggestAsync(string text)
     {
         if (Busy) return;
-        await OnSend.InvokeAsync(new ChatSendArgs(text));
+        await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: true));
     }
 
     private async Task StopAsync()
@@ -223,7 +232,7 @@
         await OnStop.InvokeAsync();
     }
 
-    private RenderFragment Composer(ChatPost? posted) => @<EditForm id="@FormId" class="ib-chat-composer" Model="_draft" FormName="@(posted is null ? null : "send")" Enhance OnSubmit="@(() => SubmitAsync(posted))">
+    private RenderFragment Composer(ChatPost? posted) => @<EditForm id="@FormId" action="@(posted is null ? null : FormAction)" class="ib-chat-composer" Model="_draft" FormName="@(posted is null ? null : "send")" Enhance OnSubmit="@(() => SubmitAsync(posted))">
         @if (Suggestions is { Count: > 0 } suggestions && !Busy)
         {
             <div class="ib-chat-suggestions" role="group" aria-label="@TextDefaults.ChatSuggestions">

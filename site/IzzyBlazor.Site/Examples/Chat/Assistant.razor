@@ -1,10 +1,12 @@
-@* A help desk assistant. Its answers are canned here; an app streams them from a model
-   (see Streaming a reply). On a static page the conversation is kept under an id in the
-   address, as a chat app keeps it under /chat/{id}. *@
+@* A help desk assistant. Its answers are canned here; an app streams them from a model.
+   A static page streams them too, with [StreamRendering], when the post came with script; it
+   keeps the conversation under an id in the address the form posts to, as a chat app keeps it
+   under /chat/{id}. *@
 @using System.Collections.Concurrent
 @inject NavigationManager Navigation
+@attribute [StreamRendering]
 
-<Chat Label="Help desk assistant" FormName="help-desk" OnSend="SendAsync" OnStop="Stop" Status="_status"
+<Chat Label="Help desk assistant" FormName="help-desk" FormAction="@_action" OnSend="SendAsync" OnStop="Stop" Status="_status"
       Suggestions="@(_turns.Count == 0 ? Ideas : null)" Placeholder="Ask about an order, a refund or shipping">
     <EmptyContent>
         <EmptyState Icon="Lucide.MessagesSquare" Title="How can we help?" Description="Ask about an order, a refund or shipping." />
@@ -45,51 +47,60 @@
         public bool Pending { get; set; }
     }
 
+    private string? _action;
+
     protected override void OnInitialized()
     {
         if (ConversationId is { } id && Conversations.TryGetValue(id, out var turns)) _turns = turns;
+        // A static page's form posts to the conversation's address: a new id until the first post.
+        if (!RendererInfo.IsInteractive) _action = Navigation.GetUriWithQueryParameter("help-desk", ConversationId ?? Guid.NewGuid().ToString("N")[..12]);
     }
 
     private async Task SendAsync(ChatSendArgs message)
     {
         _turns.Add(new Turn { Mine = true, Text = message.Text });
         var answer = Answer(message.Text);
-
-        if (!RendererInfo.IsInteractive)
-        {
-            // A static page answers at once, and keeps the conversation for the next post.
-            _turns.Add(new Turn { Text = answer });
-            if (Conversations.Count > 500) Conversations.Clear();
-            var id = ConversationId ?? Guid.NewGuid().ToString("N")[..12];
-            Conversations[id] = _turns.TakeLast(20).ToList();
-            if (ConversationId is null) Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("help-desk", id));
-            return;
-        }
-
-        // An interactive page streams it, a few words at a time.
-        var reply = new Turn { Pending = true };
+        var reply = new Turn();
         _turns.Add(reply);
-        _status = ChatStatus.Waiting;
-        _reply = new CancellationTokenSource();
-        try
+
+        if (message.CanStream)
         {
-            await Task.Delay(700, _reply.Token);
-            _status = ChatStatus.Streaming;
-            foreach (var words in answer.Split(' ').Chunk(3))
+            // A few words at a time, as a model's reply arrives.
+            reply.Pending = true;
+            _status = ChatStatus.Waiting;
+            _reply = new CancellationTokenSource();
+            try
             {
-                reply.Text += string.Join(' ', words) + " ";
-                StateHasChanged();
-                await Task.Delay(60, _reply.Token);
+                await Task.Delay(700, _reply.Token);
+                _status = ChatStatus.Streaming;
+                foreach (var words in answer.Split(' ').Chunk(3))
+                {
+                    reply.Text += string.Join(' ', words) + " ";
+                    StateHasChanged();
+                    await Task.Delay(60, _reply.Token);
+                }
             }
+            catch (OperationCanceledException)
+            {
+                // Stopped: what arrived stays.
+            }
+
+            reply.Text = reply.Text.TrimEnd();
+            reply.Pending = false;
+            _status = ChatStatus.Ready;
         }
-        catch (OperationCanceledException)
+        else
         {
-            // Stopped: what arrived stays.
+            // With JavaScript off, the reply comes whole.
+            reply.Text = answer;
         }
 
-        reply.Text = reply.Text.TrimEnd();
-        reply.Pending = false;
-        _status = ChatStatus.Ready;
+        if (!RendererInfo.IsInteractive && ConversationId is { } conversation)
+        {
+            // A static page keeps the conversation for the next post.
+            if (Conversations.Count > 500) Conversations.Clear();
+            Conversations[conversation] = _turns.TakeLast(20).ToList();
+        }
     }
 
     private void Stop() => _reply?.Cancel();
