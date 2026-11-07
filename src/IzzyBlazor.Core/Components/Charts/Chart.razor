@@ -387,6 +387,7 @@
             ValueStep = ValueStep,
             ValueLog = ValueLog,
             ArgumentLog = _argumentAxis?.Logarithmic ?? false,
+            ArgumentReverse = _argumentAxis?.Reverse ?? false,
             ValueGrid = ValueGrid,
             ArgumentGrid = ArgumentGrid,
             ArgumentLabels = ArgumentLabels,
@@ -424,6 +425,7 @@
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
+                  data-ib-reverse="@(_argumentAxis?.Reverse == true ? "" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
@@ -1005,6 +1007,7 @@
 
             w.WriteStartObject();
             w.WriteBoolean("h", horizontal);
+            if (_argumentAxis?.Reverse == true) w.WriteBoolean("ar", true);
             w.WriteNumber("st", (int)Stacked);
             Number("lo", ValueMin);
             Number("hi", ValueMax);

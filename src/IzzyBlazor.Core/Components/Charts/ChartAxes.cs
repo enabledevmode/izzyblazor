@@ -172,4 +172,11 @@ public sealed class ChartArgumentAxis : ChartAxisBase
     /// have no place on it and aren't drawn. Numbers only: a chart of names or dates throws.
     /// </summary>
     [Parameter] public bool Logarithmic { get; set; }
+
+    /// <summary>
+    /// Runs the arguments backward: the first at the right, or at the bottom on a horizontal chart.
+    /// For an app whose readers take time right to left. A right-to-left page alone doesn't
+    /// reverse a chart.
+    /// </summary>
+    [Parameter] public bool Reverse { get; set; }
 }

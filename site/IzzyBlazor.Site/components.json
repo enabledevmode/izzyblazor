@@ -2099,7 +2099,7 @@
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips from a template, on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" },
-        { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page" }
+        { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page; `Reverse` on `ChartArgumentAxis` runs the arguments right to left" }
       ],
       "examples": [
         { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`, shown above the chart and read as its name by screen readers. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against. `Color` sets a series' color in place of the palette's next, here the theme's primary color for the revenue and its text color for the plan, and `LineStyle` dashes the plan's line. A `ChartValueAxis` with a `Format` formats the values on the axis and in the table; leave the axes out and they take their defaults. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." },

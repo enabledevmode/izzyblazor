@@ -79,6 +79,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public bool ArgumentLog { get; init; }
     public bool ValueGrid { get; init; } = true;
     public bool ArgumentGrid { get; init; }
+
+    /// <summary>Whether the arguments run backward: right to left, or bottom to top across.</summary>
+    public bool ArgumentReverse { get; init; }
     public ChartLabelFit ArgumentLabels { get; init; }
     public Func<double, string>? ValueFormatter { get; init; }
     public Func<object?, string>? ArgumentFormatter { get; init; }
@@ -447,7 +450,7 @@ internal static class ChartLayout
             }
             else
             {
-                CategoryLabels(model, positions, argumentRoomPx, input.ArgumentLabels);
+                CategoryLabels(model, positions, argumentRoomPx, input.ArgumentLabels, input.ArgumentReverse);
             }
         }
         else
@@ -528,6 +531,17 @@ internal static class ChartLayout
             }
         }
 
+        // Reversed: every place along the arguments is turned end for end, the labels' with the items'.
+        var reverse = input.ArgumentReverse;
+        if (reverse)
+        {
+            positions = positions.Select(p => 1 - p).ToArray();
+            for (var j = 0; j < model.ArgumentLabels.Count; j++)
+            {
+                model.ArgumentLabels[j] = model.ArgumentLabels[j] with { Pos = 1 - model.ArgumentLabels[j].Pos };
+            }
+        }
+
         model.ArgumentPositions = positions;
 
         // Grid lines along the arguments: between bands (where a label starts its band), or at a
@@ -536,14 +550,14 @@ internal static class ChartLayout
         {
             foreach (var label in model.ArgumentLabels)
             {
-                var pos = kind == ArgumentKind.Category ? label.Pos - 0.5 / Math.Max(1, n) : label.Pos;
+                var pos = kind == ArgumentKind.Category ? label.Pos + (reverse ? 0.5 : -0.5) / Math.Max(1, n) : label.Pos;
                 if (pos > 1e-9 && pos < 1 - 1e-9) model.Grid.Add(new GridLine(pos, label.From, false, Argument: true));
             }
         }
 
         // A scale's last label is centered on the plot's end: leave room for its far half.
         var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category ? null : model.ArgumentLabels;
-        if (bottom is { Count: > 0 } && bottom[^1] is { Pos: > 0.9 } last)
+        if (bottom is { Count: > 0 } && bottom.MaxBy(l => l.Pos) is { Pos: > 0.9 } last)
         {
             var half = Math.Max(Width(last.Text), last.Context is { } c ? Width(c) : 0) / 2;
             model.EndRoomPx = Math.Ceiling(Math.Max(0, half - (1 - last.Pos) * 200));
@@ -612,6 +626,7 @@ internal static class ChartLayout
                 {
                     if (highs[s][i] is not { } top) continue;
                     var a0 = i * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
+                    if (reverse) a0 = 1 - a0 - width;
                     var v0 = sc(lows[s][i] ?? 0);
                     var v1 = sc(top);
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
@@ -636,7 +651,8 @@ internal static class ChartLayout
                     {
                         // The first bar is the amount the waterfall starts from: a total, on the baseline.
                         rect = rect with { Change = totals[i] || steps.Count == 0 ? "total" : top < (lows[s][i] ?? 0) ? "down" : "up" };
-                        steps.Add((a0, a0 + width, v1));
+                        // Each step's edge toward the bar before, then toward the next.
+                        steps.Add(reverse ? (a0 + width, a0, v1) : (a0, a0 + width, v1));
                     }
 
                     shape.Bars.Add(rect);
@@ -673,7 +689,7 @@ internal static class ChartLayout
                 }
             }
 
-            // A trend runs left to right, whatever order the items come in (a scatter's needn't be sorted).
+            // A trend runs along the axis, whatever order the items come in (a scatter's needn't be sorted).
             if (data.ColorFrom is not null) points.Sort((p, q) => p!.Value.A.CompareTo(q!.Value.A));
 
             var runs = data.IsPoint ? [] : Runs(points);
@@ -693,7 +709,8 @@ internal static class ChartLayout
             }
 
             shape.Line = line.Length > 0 ? line.ToString() : null;
-            if (data.EndLabel && !data.IsPoint && points.LastOrDefault(p => p is not null) is { } end)
+            // An end label sits past the plot's right edge, beside the point there: the first, reversed.
+            if (data.EndLabel && !data.IsPoint && (reverse ? points.FirstOrDefault(p => p is not null) : points.LastOrDefault(p => p is not null)) is { } end)
             {
                 ends.Add((s, (1 - end.V) * plotHeight));
             }
@@ -777,8 +794,9 @@ internal static class ChartLayout
         double? At(object? a) => kind == ArgumentKind.Category
             ? IndexOf(a) is var i and >= 0 ? positions[i] : null
             : ToDouble(a, kind) is not { } x ? null
-            : input.ArgumentLog ? x > 0 ? Math.Clamp((Math.Log10(x) - Math.Log10(argMin)) / (Math.Log10(argMax) - Math.Log10(argMin)), 0, 1) : null
-            : Math.Clamp((x - argMin) / (argMax - argMin), 0, 1);
+            : Flip(input.ArgumentLog ? x > 0 ? Math.Clamp((Math.Log10(x) - Math.Log10(argMin)) / (Math.Log10(argMax) - Math.Log10(argMin)), 0, 1) : null
+                : Math.Clamp((x - argMin) / (argMax - argMin), 0, 1));
+        double? Flip(double? p) => input.ArgumentReverse && p is { } v ? 1 - v : p;
 
         foreach (var m0 in marks)
         {
@@ -828,6 +846,7 @@ internal static class ChartLayout
                         var (i0, i1) = (IndexOf(m.At), IndexOf(m.AtTo));
                         if (i0 < 0 || i1 < 0) break;
                         (p, q) = ((double)Math.Min(i0, i1) / n, (double)(Math.Max(i0, i1) + 1) / n);
+                        if (input.ArgumentReverse) (p, q) = (1 - q, 1 - p);
                     }
                     else
                     {
@@ -1381,7 +1400,8 @@ internal static class ChartLayout
     private static double Width(string text) => TextWidths.AtSize(text, FontPx);
 
     // Bands: label i shows at stride 1, 2, 4… when i is a multiple of it.
-    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartLabelFit mode)
+    // Reversed, the strides count from the last name, which then sits at the start (the left).
+    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartLabelFit mode, bool reverse)
     {
         var n = positions.Length;
         if (n == 0) return;
@@ -1425,12 +1445,12 @@ internal static class ChartLayout
 
             var turned = model.ArgumentTexts.Select(t => Math.Min(Width(t), TurnedMaxPx)).Max();
             model.TurnedPx = Math.Ceiling((turned + LineHeightPx / 2) * Math.Sqrt(0.5) + LineHeightPx / 2);
-            model.LeadPx = Math.Ceiling(Math.Max(0, Math.Min(Width(model.ArgumentTexts[0]), TurnedMaxPx) * Math.Sqrt(0.5) - columnPx));
+            model.LeadPx = Math.Ceiling(Math.Max(0, Math.Min(Width(model.ArgumentTexts[reverse ? n - 1 : 0]), TurnedMaxPx) * Math.Sqrt(0.5) - columnPx));
         }
 
         for (var i = 0; i < n; i++)
         {
-            var from = Array.FindIndex(strides, s => i % s == 0);
+            var from = Array.FindIndex(strides, s => (reverse ? n - 1 - i : i) % s == 0);
             if (from >= 0)
             {
                 var text = model.ArgumentTexts[i];
