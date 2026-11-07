@@ -7,7 +7,8 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * in a plain form and @bind updates on interactive pages. The server sanitizes whatever arrives:
  * what's written here is only tidy, not trusted.
  *
- * Formats come from the browser's editing commands (execCommand), which keep its undo history.
+ * Formats come from the browser's editing commands (execCommand); undo and redo are the editor's own
+ * history (record, step), since the browser's knows only its own steps.
  * The browser's own markup (b, i, strike, spans with styles) is written as the editor's elements
  * when the value is read, so the page's DOM is never rewritten under the caret.
  */
@@ -28,6 +29,11 @@ const blocks = "p,h1,h2,h3,h4,h5,h6,blockquote,pre,li,div";
 const styles = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"];
 // Alignment and span formats (color, highlight, size, font): a part, loaded only when used.
 type FormatPart = typeof import("./rich-text-format");
+// A selection as two paths of child indexes from the text, each ending in an offset.
+type Spot = [number[], number[]] | null;
+// A history step: the text, the selection after the change, and the selection before it (which
+// undo puts back).
+type Snapshot = [string, Spot, Spot?];
 // The link dialog's code: a part, loaded when the dialog first opens.
 type LinkPart = typeof import("./rich-text-link");
 // Images (the dialog, uploads, pasted and dropped files): a part, loaded when first used.
@@ -179,6 +185,14 @@ function exec(command: string, value?: string): void {
 class RichText extends IzzyElement {
   #saved: Range | null = null;
   #dirty = false;
+  #history: Snapshot[] = [];
+  #at = 0;
+  #typed = 0;
+  #typing = false;
+  #keyed = false;
+  #before: Spot = null;
+  // Whether a snapshot is waiting for the task to end, and if it's typing.
+  #pending: boolean | null = null;
   #plainPaste = false;
   #dragging = false;
   // The image last clicked: a browser puts the caret beside it, so the editor keeps it here.
@@ -249,16 +263,25 @@ class RichText extends IzzyElement {
 
     this.addEventListener("input", (event) => {
       if (event.target !== this.surface) return;
-      const input = event as InputEvent;
-      if (input.inputType === "insertText") this.#markdown?.markdown(this.markdownEditor(), input.data);
-      // Undo and redo replay the browser's own steps, not the ones this script made after them
-      // (a format's span replaces the browser's mark): tidy what's left, an emptied span and a
-      // stray mark.
-      if (input.inputType === "historyUndo" || input.inputType === "historyRedo") {
-        for (const span of this.surface!.querySelectorAll("span")) if (!span.textContent && !span.querySelector("img")) span.remove();
-        for (const mark of this.surface!.querySelectorAll('font[face="ib-mark"]')) mark.replaceWith(...mark.childNodes);
+      const type = (event as InputEvent).inputType;
+      // Typing and deleting are one step until a pause. A Markdown shortcut's change is a step of
+      // its own after the typing, so undo gives the typed characters back.
+      this.#typing = this.#keyed && /^(insertText|insertComp|delete(Content|Word))/.test(type);
+      if (this.#keyed && type === "insertText") {
+        this.snap(true);
+        this.#typing = false;
+        this.#markdown?.markdown(this.markdownEditor(), (event as InputEvent).data);
       }
       this.changed();
+    }, { signal });
+    // The browser's own undo (its Edit menu) knows only its own steps: use the editor's history.
+    this.addEventListener("beforeinput", (event) => {
+      const type = (event as InputEvent).inputType;
+      if (event.target !== this.surface) return;
+      if (this.#pending === null && !this.#typed) this.#before = this.spot();
+      if (!type.startsWith("history")) return;
+      event.preventDefault();
+      this.step(type === "historyUndo" ? -1 : 1);
     }, { signal });
     // An editor that shows layout tools loads their code now, so the tools show the caret's state.
     if (this.querySelector(formatTools.map((t) => `[data-ib-command="${t}"]`).join(","))) void this.loadFormat();
@@ -319,6 +342,8 @@ class RichText extends IzzyElement {
     surface.tabIndex = surface.getAttribute("aria-disabled") === "true" ? -1 : 0;
     surface.spellcheck = true;
     this.adopt(surface);
+    this.#history = [[surface.innerHTML, null]];
+    this.#at = 0;
     // The count is part of the text's description once it follows the typing.
     const count = document.getElementById(`${this.source?.id}-count`);
     const described = surface.getAttribute("aria-describedby")?.split(" ") ?? [];
@@ -369,7 +394,89 @@ class RichText extends IzzyElement {
       if (color) styled.style.color = color;
       if (highlight) styled.style.backgroundColor = highlight;
     }
+    this.record(this.#typing);
+    this.#typing = false;
     this.sync();
+  }
+
+  /**
+   * Undo history: the text and selection after each change. The browser's own history knows only
+   * its own steps, not the ones the editor makes (a format's span, a Markdown shortcut, a table),
+   * so undo would miss or garble them. Typing is one step until a second's pause. A command's
+   * own edits (the browser's mark, then the span that replaces it) are one step: the snapshot is
+   * taken once the task is done.
+   */
+  private record(typing: boolean): void {
+    if (this.#pending === null) setTimeout(() => this.snap(this.#pending ?? false));
+    this.#pending = (this.#pending ?? true) && typing;
+  }
+
+  private snap(typing: boolean): void {
+    this.#pending = null;
+    const surface = this.surface;
+    if (!surface) return;
+    const history = this.#history;
+    const top = history[this.#at];
+    const state: Snapshot = [surface.innerHTML, this.spot(), this.#before];
+    const now = Date.now();
+    if (top?.[0] === state[0]) {
+      // Only the selection moved.
+      top[1] = state[1];
+      return;
+    }
+    this.#before = null;
+    if (typing && now - this.#typed < 1000) history[this.#at] = [state[0], state[1], top[2]];
+    else {
+      history.splice(++this.#at, Infinity, state);
+      if (history.length > 100) history.shift(), this.#at--;
+    }
+    this.#typed = typing ? now : 0;
+  }
+
+  /** The selection in the text, as paths; null when it's elsewhere. */
+  private spot(): Spot {
+    const surface = this.surface!;
+    const range = getSelection()?.rangeCount ? getSelection()!.getRangeAt(0) : null;
+    if (!range || !surface.contains(range.commonAncestorContainer)) return null;
+    const where = (node: Node, offset: number) => {
+      const path = [offset];
+      for (; node !== surface && node.parentNode; node = node.parentNode) path.unshift([...node.parentNode.childNodes].indexOf(node as ChildNode));
+      return path;
+    };
+    return [where(range.startContainer, range.startOffset), where(range.endContainer, range.endOffset)];
+  }
+
+  /** Undo (-1) or redo (1): the text and selection as they were. */
+  private step(by: number): void {
+    // A change still waiting to be recorded is the step to undo.
+    if (this.#pending !== null) this.snap(this.#pending);
+    const surface = this.surface;
+    const state = this.#history[this.#at + by];
+    if (!surface?.isContentEditable || !state) return;
+    // Undo puts back the selection from before the change it undoes; redo, the one after.
+    const spot = (by < 0 && this.#history[this.#at][2]) || state[1];
+    this.#at += by;
+    this.#typed = 0;
+    surface.innerHTML = state[0];
+    surface.focus({ preventScroll: true });
+    if (spot) {
+      const at = (path: number[]): [Node, number] => {
+        let node: Node = surface;
+        for (const i of path.slice(0, -1)) node = node.childNodes[i] ?? node;
+        return [node, path[path.length - 1]];
+      };
+      try {
+        const range = document.createRange();
+        range.setStart(...at(spot[0]));
+        range.setEnd(...at(spot[1]));
+        getSelection()?.removeAllRanges();
+        getSelection()?.addRange(range);
+      } catch {
+        // A selection that no longer fits: the caret stays where focus put it.
+      }
+    }
+    this.sync();
+    this.reflect();
   }
 
   private sync(): void {
@@ -443,6 +550,7 @@ class RichText extends IzzyElement {
     const surface = this.surface;
     if (!surface?.isContentEditable) return;
     this.restore();
+    if (command !== "undo" && command !== "redo") this.#before = this.spot();
     exec("styleWithCSS", "false");
     exec("defaultParagraphSeparator", "p");
     switch (command) {
@@ -452,10 +560,12 @@ class RichText extends IzzyElement {
       case "strikethrough":
       case "subscript":
       case "superscript":
-      case "undo":
-      case "redo":
         exec(command);
         break;
+      case "undo":
+      case "redo":
+        this.step(command === "undo" ? -1 : 1);
+        return;
       case "code":
         this.toggleCode();
         break;
@@ -677,6 +787,12 @@ class RichText extends IzzyElement {
   private keydown(event: KeyboardEvent): void {
     const surface = this.surface;
     if (!surface) return;
+    // Input in the same task as a key in the text is typing; any other (a tool's insert, which
+    // WebKit reports as insertText too) is a command.
+    if (event.target === surface) {
+      this.#keyed = true;
+      setTimeout(() => (this.#keyed = false));
+    }
 
     if (event.altKey && event.key === "F10" && event.target === surface) {
       event.preventDefault();
@@ -721,7 +837,8 @@ class RichText extends IzzyElement {
 
     let command: [string, string?] | null = null;
     if (event.shiftKey && !event.altKey) {
-      if (event.code === "KeyX") command = ["strikethrough"];
+      if (event.code === "KeyZ") command = ["redo"];
+      else if (event.code === "KeyX") command = ["strikethrough"];
       else if (event.code === "Digit7") command = ["numbered"];
       else if (event.code === "Equal") command = ["superscript"];
       else if (event.code === "KeyL") command = ["align", "start"];
@@ -736,7 +853,9 @@ class RichText extends IzzyElement {
     } else if (!event.altKey) {
       // Bold, italic and underline here too: Firefox gives Ctrl+B, I and U to the bookmarks,
       // page info and source instead of the text.
-      if (event.code === "KeyB") command = ["bold"];
+      if (event.code === "KeyZ") command = ["undo"];
+      else if (event.code === "KeyY") command = ["redo"];
+      else if (event.code === "KeyB") command = ["bold"];
       else if (event.code === "KeyI") command = ["italic"];
       else if (event.code === "KeyU") command = ["underline"];
       else if (event.code === "KeyE") command = ["code"];
