@@ -164,10 +164,11 @@
 
     /// <summary>
     /// Shows a tooltip with every series' value for the item under the pointer, or under keyboard
-    /// focus on the chart, with script. Defaults to true; turning it off leaves the tooltips out of
-    /// the page.
+    /// focus on the chart, with script. By default it's on unless every series writes its values
+    /// as <see cref="ChartSeries{TItem}.Labels"/>, which the tooltip would repeat; true or false
+    /// decides. Off, the tooltips are left out of the page.
     /// </summary>
-    [Parameter] public bool Tooltip { get; set; } = true;
+    [Parameter] public bool? Tooltip { get; set; }
 
     /// <summary>
     /// The tooltip's content in place of the item's argument and each series' value. It's drawn on
@@ -307,6 +308,7 @@
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         var series = _context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList();
+        var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None));
         var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
 
         // Hidden needs a legend to show the series again: with none, it's drawn.
@@ -370,7 +372,7 @@
                 }
             </div>
             <div class="ib-chart-plot">
-                @if (Tooltip)
+                @if (tooltip)
                 {
                     @* The band or line under the pointer: the script places it. *@
                     <div class="ib-chart-hover" hidden></div>
@@ -444,7 +446,7 @@
                         <div class="ib-chart-dl ib-chart-js" aria-hidden="true"></div>
                     }
                 }
-                @if (Tooltip)
+                @if (tooltip)
                 {
                     <div class="ib-chart-tooltip" hidden></div>
                 }
@@ -500,7 +502,7 @@
             </ul>
         }
 
-        @if (Tooltip)
+        @if (tooltip)
         {
             @* Each item's tooltip, drawn here so a template is real Razor; the script shows the one
                under the pointer or keyboard focus, and says it in the live region. *@
