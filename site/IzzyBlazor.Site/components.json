@@ -2470,6 +2470,8 @@
             "noscript": "Send posts the form, and the page comes back with the whole reply: `CanStream` is false. Enter adds a line.",
             "static": "The form posts without reloading the page. With `[StreamRendering]` on the page, the reply streams as it does interactively: `OnSend`'s `CanStream` is true when the post came with script. Keep the conversation yourself between posts, under an id: this example sets `FormAction` to an address with the conversation's id, so each post goes there."
           } }
+,
+        { "id": "chat-people", "title": "People talking", "lead": "For a conversation between people, set `Mine` on your entries and `Author` on everyone else's: their name sits above the message, with an `Avatar` (a picture's address, or initials from the name). With `Time`, each entry shows its time and the day sits above the first message of each day: \"Yesterday\", \"Today\", or the date. A message from someone else that arrives on an interactive page is announced with their name. `Height` sets the chat's height; the log scrolls inside it." }
       ],
       "topics": [
         {
