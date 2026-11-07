@@ -1,0 +1,18 @@
+@* Each region's share of sales by quarter, as bars across that each run to 100%. *@
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Share of sales by region, 2026" Stacking="ChartStacking.Percent" Orientation="Orientation.Horizontal">
+    <ChartBarSeries Value="q => q.Americas" />
+    <ChartBarSeries Value="q => q.Europe" />
+    <ChartBarSeries Value="q => q.Asia" />
+</Chart>
+
+@code {
+    private record QuarterSales(string Quarter, decimal Americas, decimal Europe, decimal Asia);
+
+    private readonly QuarterSales[] _quarters =
+    [
+        new("Q1", 120_000, 84_000, 51_000),
+        new("Q2", 134_000, 88_000, 63_000),
+        new("Q3", 129_000, 97_000, 78_000),
+        new("Q4", 151_000, 104_000, 92_000),
+    ];
+}

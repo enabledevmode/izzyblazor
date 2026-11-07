@@ -55,6 +55,7 @@ export interface DrawData {
   f: NumberShape;
   a: (number | null)[]; // each item's place along the argument axis, 0 to 1
   mk: string; // the marker shapes' id prefix
+  lr?: [number, number]; // room past the plot for labels past bars' ends: beside, above
   vc: number; // the tick count up the side, from the chart's Height
   off: number[]; // the series the server drew hidden
   s: DrawSeries[];
@@ -260,7 +261,7 @@ interface LabelAt {
   force: boolean; // shows even when it overlaps
 }
 
-function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => number, color: (s: number) => string): string {
+function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => number, color: (s: number) => string, [rx, ry] = [0, 0]): string {
   const boxes: [number, number, number, number][] = [];
   let html = "";
   // Labels that show overlapping or not go first, so the others step around them.
@@ -272,7 +273,7 @@ function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => 
       const box: [number, number, number, number] = [cx - w / 2 - PAD, cy - LINE / 2, cx + w / 2 + PAD, cy + LINE / 2];
       const room = bar
         ? box[0] >= bar[0] && box[2] <= bar[2] && box[1] >= bar[1] - 0.5 && box[3] <= bar[3] + 0.5
-        : box[0] >= 0 && box[2] <= W && box[1] >= 0 && box[3] <= H;
+        : box[0] >= 0 && box[2] <= W + rx + 0.5 && box[1] >= -ry - 0.5 && box[3] <= H;
       if (!room) continue;
       if (!force && boxes.some((o) => box[0] < o[2] && o[0] < box[2] && box[1] < o[3] && o[1] < box[3])) break;
       boxes.push(box);
@@ -546,5 +547,5 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const endsHtml = ends
     .map(([s], i) => `<span class="ib-chart-s${d.s[s].k}" style="top:${pct(centers[i] / H)};${d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""}" data-ib-series="${s}">${esc(d.s[s].en!)}</span>`)
     .join("");
-  return { svg, labels, pos: scale, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
+  return { svg, labels, pos: scale, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""), d.lr) };
 }

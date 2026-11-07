@@ -1,0 +1,18 @@
+@* Revenue each quarter, this year beside last year: last year in gray, so this year stands out. *@
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue by quarter, 2026 against 2025">
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartBarSeries Value="q => q.LastYear" Name="2025" Color="var(--ib-color-neutral)" />
+    <ChartBarSeries Value="q => q.ThisYear" Name="2026" />
+</Chart>
+
+@code {
+    private record QuarterRevenue(string Quarter, decimal LastYear, decimal ThisYear);
+
+    private readonly QuarterRevenue[] _quarters =
+    [
+        new("Q1", 412_000, 468_000),
+        new("Q2", 438_000, 503_000),
+        new("Q3", 455_000, 497_000),
+        new("Q4", 521_000, 584_000),
+    ];
+}

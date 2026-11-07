@@ -1,7 +1,7 @@
-@* The most visited pages, as bars across so their paths have room. *@
+@* The most visited pages, ranked as bars across so their paths have room, each bar labeled with its value. *@
 <Chart Items="_pages" Argument="p => p.Path" Title="Most visited pages, October" Orientation="Orientation.Horizontal">
-    <ChartValueAxis Format="N0" />
-    <ChartBarSeries Value="p => p.Views" />
+    <ChartValueAxis HideLabels GridLines="false" />
+    <ChartBarSeries Value="p => p.Views" Name="Views" Labels="ChartLabels.Auto" LabelFormat="N0" />
 </Chart>
 
 @code {
