@@ -1,0 +1,55 @@
+@* Income per person against life expectancy for 32 countries, each sized by its population and
+   colored by its region, income on a log scale: each step of ten in income counts alike.
+   Figures are rounded, around 2023. *@
+<Chart Items="_countries" Argument="c => c.Income" Title="Income and life expectancy by country, around 2023" Height="Length.Rem(24)">
+    <ChartValueAxis Format="0" Title="Life expectancy (years)" />
+    <ChartArgumentAxis Format="$#,##0" Title="GDP per person (US$, log scale)" Logarithmic />
+    <ChartBubbleSeries Value="c => c.LifeExpectancy" Size="c => c.Population" SizeFormat="#,##0,,M" SeriesBy="c => c.Region" LabelText="c => c.Name" />
+    <ChartTooltip>
+        <div class="ib-chart-tooltip-title">@context.Item.Name</div>
+        <div>@context.Item.Income.ToString("$#,##0") per person</div>
+        <div>Lives to @context.Item.LifeExpectancy.ToString("0.0") years</div>
+        <div>@context.Item.Population.ToString("#,##0,,") million people</div>
+    </ChartTooltip>
+</Chart>
+
+@code {
+    private record Country(string Name, string Region, double Income, double LifeExpectancy, double Population);
+
+    // Largest first, so the most populous countries are named when names crowd.
+    private readonly Country[] _countries =
+    [
+        new("India", "Asia", 2_500, 72.0, 1_430_000_000),
+        new("China", "Asia", 12_600, 78.0, 1_410_000_000),
+        new("United States", "Americas", 81_700, 78.4, 335_000_000),
+        new("Indonesia", "Asia", 4_900, 71.0, 278_000_000),
+        new("Pakistan", "Asia", 1_400, 67.0, 240_000_000),
+        new("Nigeria", "Africa", 1_600, 54.5, 224_000_000),
+        new("Brazil", "Americas", 10_000, 75.8, 216_000_000),
+        new("Bangladesh", "Asia", 2_600, 73.5, 173_000_000),
+        new("Russia", "Europe", 13_800, 73.2, 144_000_000),
+        new("Mexico", "Americas", 13_800, 75.1, 129_000_000),
+        new("Ethiopia", "Africa", 1_300, 65.6, 127_000_000),
+        new("Japan", "Asia", 33_800, 84.5, 124_000_000),
+        new("Philippines", "Asia", 3_700, 69.8, 117_000_000),
+        new("Egypt", "Africa", 3_500, 70.2, 113_000_000),
+        new("DR Congo", "Africa", 650, 61.6, 102_000_000),
+        new("Vietnam", "Asia", 4_300, 74.6, 99_000_000),
+        new("Germany", "Europe", 52_700, 81.4, 84_000_000),
+        new("Thailand", "Asia", 7_200, 76.4, 72_000_000),
+        new("United Kingdom", "Europe", 48_900, 81.3, 68_000_000),
+        new("France", "Europe", 44_500, 83.3, 68_000_000),
+        new("South Africa", "Africa", 6_000, 61.5, 62_000_000),
+        new("Italy", "Europe", 38_400, 83.7, 59_000_000),
+        new("Kenya", "Africa", 2_000, 62.7, 55_000_000),
+        new("Colombia", "Americas", 6_900, 77.7, 52_000_000),
+        new("South Korea", "Asia", 33_100, 83.5, 52_000_000),
+        new("Spain", "Europe", 33_500, 83.7, 48_000_000),
+        new("Argentina", "Americas", 13_700, 77.4, 46_000_000),
+        new("Canada", "Americas", 53_400, 81.7, 40_000_000),
+        new("Poland", "Europe", 22_100, 78.5, 37_000_000),
+        new("Peru", "Americas", 7_800, 77.7, 34_000_000),
+        new("Australia", "Oceania", 64_700, 83.6, 27_000_000),
+        new("Singapore", "Asia", 84_700, 83.7, 6_000_000),
+    ];
+}

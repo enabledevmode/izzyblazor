@@ -73,6 +73,7 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public double? ValueMax { get; init; }
     public double? ValueStep { get; init; }
     public bool ValueLog { get; init; }
+    public bool ArgumentLog { get; init; }
     public bool ValueGrid { get; init; } = true;
     public bool ArgumentGrid { get; init; }
     public ChartLabelFit ArgumentLabels { get; init; }
@@ -413,6 +414,17 @@ internal static class ChartLayout
         else
         {
             var values = input.Arguments.Select(a => ToDouble(a, kind)).ToArray();
+            if (input.ArgumentLog)
+            {
+                if (kind != ArgumentKind.Number)
+                {
+                    throw new InvalidOperationException("A logarithmic ChartArgumentAxis needs numbers as the Argument: names and dates have no log scale.");
+                }
+
+                // Only numbers over zero have a place on a log scale.
+                values = values.Select(v => v > 0 ? v : null).ToArray();
+            }
+
             var finite = values.Where(v => v is not null).Select(v => v!.Value).ToArray();
             var amin = finite.Length > 0 ? finite.Min() : 0;
             var amax = finite.Length > 0 ? finite.Max() : 1;
@@ -427,7 +439,27 @@ internal static class ChartLayout
 
             positions = values.Select(v => v is { } x ? (x - amin) / (amax - amin) : double.NaN).ToArray();
             (argMin, argMax) = (amin, amax);
-            if (kind == ArgumentKind.Number)
+            if (input.ArgumentLog)
+            {
+                // The powers of ten around the arguments; ticks at each, with 2s and 5s when few,
+                // as many as fit each width.
+                var lo = finite.Length > 0 ? Power(1, (int)Math.Floor(Math.Log10(finite.Min()) + 1e-9)) : 1;
+                var hi = finite.Length > 0 ? Power(1, (int)Math.Ceiling(Math.Log10(finite.Max()) - 1e-9)) : 10;
+                if (!(hi > lo)) hi = lo * 10;
+                (argMin, argMax) = (lo, hi);
+                var (g0, g1) = (Math.Log10(lo), Math.Log10(hi));
+                positions = values.Select(v => v is { } x ? (Math.Log10(x) - g0) / (g1 - g0) : double.NaN).ToArray();
+                var ticks = LogTicks(lo, hi, count);
+                var placed = ticks.Select(t => (Pos: (Math.Log10(t.V) - g0) / (g1 - g0), t.Level,
+                    Text: input.ArgumentFormatter?.Invoke(t.V) ?? t.V.ToString(input.ArgumentFormat ?? "#,##0.##########", culture))).ToList();
+                var froms = FitLevels(placed.Select(t => (t.Pos, t.Level)).ToList(), Widths.Length, k => PlotWidth(k, argumentRoomPx),
+                    placed.Select(t => Width(t.Text)).DefaultIfEmpty(0).Max() + LabelGapPx);
+                for (var j = 0; j < placed.Count; j++)
+                {
+                    if (froms[j] >= 0) model.ArgumentLabels.Add(new AxisLabel(placed[j].Pos, placed[j].Text, From: froms[j]));
+                }
+            }
+            else if (kind == ArgumentKind.Number)
             {
                 NumberLabels(model.ArgumentLabels, amin, amax, count, input.ArgumentFormat, culture, argumentRoomPx, grid: null,
                     input.ArgumentFormatter is { } af ? v => af(v) : null);
@@ -686,7 +718,9 @@ internal static class ChartLayout
 
         double? At(object? a) => kind == ArgumentKind.Category
             ? IndexOf(a) is var i and >= 0 ? positions[i] : null
-            : ToDouble(a, kind) is { } x ? Math.Clamp((x - argMin) / (argMax - argMin), 0, 1) : null;
+            : ToDouble(a, kind) is not { } x ? null
+            : input.ArgumentLog ? x > 0 ? Math.Clamp((Math.Log10(x) - Math.Log10(argMin)) / (Math.Log10(argMax) - Math.Log10(argMin)), 0, 1) : null
+            : Math.Clamp((x - argMin) / (argMax - argMin), 0, 1);
 
         foreach (var m0 in marks)
         {
@@ -926,6 +960,7 @@ internal static class ChartLayout
     private static void PlaceLabels(ChartInput input, ChartModel model, double columnPx, double plotH)
     {
         var stacked = input.Stacked != ChartStacking.None;
+        var weights = new List<double>();
         var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots, string? Change)>();
         foreach (var shape in model.Series)
         {
@@ -960,6 +995,7 @@ internal static class ChartLayout
                     _ => [Out(), End()],
                 };
                 candidates.Add((shape.Index, text, w, spots, bar.Change));
+                weights.Add(0);
             }
 
             foreach (var mark in shape.Marks)
@@ -970,6 +1006,7 @@ internal static class ChartLayout
                 var d = (mark.R ?? 6) + MarkGapPx + LineHeightPx / 2;
                 (double, double, double, double, (double, double, double, double)?) above = (px, 0, py, -d, null), below = (px, 0, py, d, null);
                 candidates.Add((shape.Index, text, w, data.Labels == ChartLabels.Inside ? [below, above] : [above, below], null));
+                weights.Add(mark.R ?? 0);
             }
         }
 
@@ -977,7 +1014,8 @@ internal static class ChartLayout
         var placed = new (double AX, double DX, double AY, double DY, bool Inside, double Justify)?[Widths.Length, candidates.Count];
         // Labels that show overlapping or not go first, so the others step around them.
         bool Forced(int c) => input.Series[candidates[c].S].LabelOverlap == ChartLabelOverlap.Show;
-        var shown = Enumerable.Range(0, candidates.Count).OrderBy(c => Forced(c) ? 0 : 1).ToList();
+        // Then larger bubbles' labels, across series; the rest in order.
+        var shown = Enumerable.Range(0, candidates.Count).OrderBy(c => Forced(c) ? 0 : 1).ThenByDescending(c => weights[c]).ToList();
         for (var k = Widths.Length - 1; k >= 0; k--)
         {
             var plotW = PlotWidth(k, columnPx);
