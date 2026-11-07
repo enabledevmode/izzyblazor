@@ -29,6 +29,8 @@
     - Tab leaves the text: it never types a tab, so the keyboard can't get stuck in it. In a
       table it moves between cells, and from the last one out of the editor.
     - Tables have a header row by default, its cells column headers (`scope="col"`).
+    - A task's checkbox is named by the task's text, and says whether it's done. Ctrl+Enter ticks
+      it from the text, without the mouse.
     - The link and image tools open modal dialogs, named by their titles ("Add link", "Edit
       image"); Escape or Cancel closes them and puts focus back in the text, with its selection.
     - The image dialog asks for a description (alternative text) or for the image to be marked
@@ -46,13 +48,15 @@
     - Ctrl+Shift+L, Ctrl+Shift+E, Ctrl+Shift+R | Align start, center, end
     - Ctrl+E | Inline code
     - Ctrl+K | Add or change a link
-    - Ctrl+Shift+8, Ctrl+Shift+7 | Bulleted list, numbered list
+    - Ctrl+Shift+8, Ctrl+Shift+7, Ctrl+Shift+9 | Bulleted list, numbered list, task list
+    - Ctrl+Enter | Tick or untick the task at the caret
     - Ctrl+], Ctrl+[ | Indent or outdent a list item
     - Ctrl+Alt+0 | Paragraph
     - Ctrl+Alt+1 to Ctrl+Alt+6 | Heading 1 to 6, from TopHeading
     - Ctrl+Z, Ctrl+Y | Undo, redo
     - Ctrl+Shift+V | Paste as plain text
     - ## , - , 1. , > or three backticks at the start of a line, then Space | Heading, list, quote, code block
+    - [ ] or [x] at the start of a line or list item, then Space | A task, not done or done
     - **text**, *text*, `text` | Bold, italic, inline code
     - --- then Enter | Horizontal line
     - Tab, Shift+Tab | In a table, the next or previous cell; Tab in its last cell leaves the editor
@@ -436,7 +440,7 @@
     private bool HasFormats => HasAny(RichTextTools.Bold | RichTextTools.Italic | RichTextTools.Underline | RichTextTools.Strikethrough
         | RichTextTools.Subscript | RichTextTools.Superscript | RichTextTools.InlineCode | RichTextTools.Link | RichTextTools.Image);
 
-    private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.Indent);
+    private bool HasLists => HasAny(RichTextTools.BulletedList | RichTextTools.NumberedList | RichTextTools.TaskList | RichTextTools.Indent);
 
     private bool HasInserts => HasAny(RichTextTools.Quote | RichTextTools.CodeBlock | RichTextTools.Table | RichTextTools.HorizontalRule | RichTextTools.ClearFormatting);
 
@@ -612,6 +616,7 @@
     private RenderFragment ListGroup => @<ToolbarButtonGroup Label="@TextDefaults.RichTextLists" Priority="2">
         @Tool(RichTextTools.BulletedList, "bulleted", Lucide.List, TextDefaults.RichTextBulletedList, "Shift+8", pressed: true)
         @Tool(RichTextTools.NumberedList, "numbered", Lucide.ListOrdered, TextDefaults.RichTextNumberedList, "Shift+7", pressed: true)
+        @Tool(RichTextTools.TaskList, "tasks", Lucide.ListTodo, TextDefaults.RichTextTaskList, "Shift+9", pressed: true)
         @Tool(RichTextTools.Indent, "outdent", Lucide.ListIndentDecrease, TextDefaults.RichTextOutdent, "[")
         @Tool(RichTextTools.Indent, "indent", Lucide.ListIndentIncrease, TextDefaults.RichTextIndent, "]")
     </ToolbarButtonGroup>;
@@ -742,7 +747,7 @@
         var first = _seen is null;
         _seen = value;
         if (value == _reported) return;
-        _shown = RichTextSanitizer.Sanitize(value, Top, Fonts, FontSizes, AllowDataImages, CustomColors);
+        _shown = RichTextSanitizer.Sanitize(value, labelTasks: true, Top, Fonts, FontSizes, AllowDataImages, CustomColors);
         _reported = null;
         if (!first) _version++;
     }

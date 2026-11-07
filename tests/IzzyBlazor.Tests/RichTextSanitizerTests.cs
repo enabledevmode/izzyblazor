@@ -194,4 +194,32 @@ public class RichTextSanitizerTests : BunitContext
         // A line break right after <pre> isn't content, and a post's CRLF is a line break.
         Assert.Equal("<pre>a\nb</pre>", S("<pre>\r\na\r\nb</pre>"));
     }
+
+    [Theory]
+    // GitHub's and Markdig's task list HTML, CKEditor's (a label around the box), and the editor's own.
+    [InlineData("<ul class=\"contains-task-list\"><li class=\"task-list-item\"><input type=\"checkbox\" class=\"task-list-item-checkbox\" disabled=\"disabled\" checked=\"checked\" /> Done</li></ul>",
+        "<ul><li><input type=\"checkbox\" disabled checked> Done</li></ul>")]
+    [InlineData("<ul class=\"todo-list\"><li><label class=\"todo-list__label\"><input type=\"checkbox\" disabled=\"disabled\"><span>Open</span></label></li></ul>",
+        "<ul><li><input type=\"checkbox\" disabled>Open</li></ul>")]
+    [InlineData("<ul><li><input type=\"checkbox\" disabled checked>Done</li></ul>", "<ul><li><input type=\"checkbox\" disabled checked>Done</li></ul>")]
+    [InlineData("<ul><li><p><input type=checkbox> Loose</p></li></ul>", "<ul><li><p><input type=\"checkbox\" disabled> Loose</p></li></ul>")]
+    // Only a checkbox, only first in its item, and only its type and checked.
+    [InlineData("<ul><li>Text <input type=checkbox></li></ul>", "<ul><li>Text </li></ul>")]
+    [InlineData("<ul><li><input type=text value=x></li></ul>", "<ul><li></li></ul>")]
+    [InlineData("<ul><li><input type=checkbox onclick=alert(1) name=x form=f formaction=javascript:alert(1)></li></ul>", "<ul><li><input type=\"checkbox\" disabled></li></ul>")]
+    [InlineData("<p><input type=checkbox>Not a task</p><input type=checkbox>", "<p>Not a task</p>")]
+    public void Keeps_a_task_list_checkbox_first_in_its_item(string html, string expected) =>
+        Assert.Equal(expected, S(html));
+
+    [Fact]
+    public void RichText_names_each_task_box_by_its_text()
+    {
+        var cut = Render<RichText>(p => p.Add(r => r.Html, "<ul><li><input type=checkbox checked> Send the <strong>invoice</strong><ul><li><input type=checkbox> Sub</li></ul></li></ul>"));
+
+        var boxes = cut.FindAll("input");
+        Assert.Equal("Send the invoice", boxes[0].GetAttribute("aria-label"));
+        Assert.Equal("Sub", boxes[1].GetAttribute("aria-label"));
+        Assert.True(boxes[0].HasAttribute("disabled"));
+        Assert.Contains("rich-content.css", cut.Find("link").GetAttribute("href"));
+    }
 }

@@ -19,7 +19,8 @@ namespace IzzyBlazor;
 /// reaches the output as it was: every text and attribute is encoded again. It allows paragraphs,
 /// headings from <c>topHeading</c> to 6 (a higher one moves down to <c>topHeading</c>), lists,
 /// quotes, code blocks, rules, bold (<c>strong</c>), italic (<c>em</c>), underline,
-/// strikethrough, subscript, superscript, inline code, links, line breaks, images and tables. <c>b</c>, <c>i</c>, <c>strike</c> and <c>del</c> become their
+/// strikethrough, subscript, superscript, inline code, links, line breaks, images, tables and
+/// task lists. <c>b</c>, <c>i</c>, <c>strike</c> and <c>del</c> become their
 /// equivalents and a <c>div</c> becomes a paragraph. Other elements are dropped and their text
 /// kept, except elements whose content is code or another document (<c>script</c>,
 /// <c>style</c>, <c>template</c>, <c>iframe</c>, <c>object</c>, <c>svg</c>, <c>math</c> and
@@ -29,7 +30,10 @@ namespace IzzyBlazor;
 /// Attributes: <c>href</c> (http, https, mailto, tel or relative) and <c>target="_blank"</c> on
 /// links, which then get <c>rel="noopener noreferrer"</c>; <c>src</c> (http, https or relative),
 /// <c>alt</c>, <c>width</c> and <c>height</c> on images; <c>start</c> on numbered lists;
-/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells. Classes only from the editor's
+/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells. A task is a list item whose
+/// first child is <c>&lt;input type="checkbox"&gt;</c>, as GitHub-flavored Markdown renders it: the
+/// box is kept there only (or first in the item's first paragraph), with <c>checked</c>, and is
+/// always written <c>disabled</c>; any other <c>input</c> is dropped. Classes only from the editor's
 /// own list: alignment (<c>ib-align-center</c>, <c>ib-align-end</c>) on blocks; text color
 /// (<c>ib-color-</c>), highlight (<c>ib-highlight-</c>) and size (<c>ib-size-sm</c>,
 /// <c>ib-size-lg</c>, <c>ib-size-xl</c>) on a <c>span</c>, the colors being red, orange, yellow,
@@ -81,7 +85,7 @@ public static class RichTextSanitizer
         "script", "style", "textarea", "title", "xmp", "iframe", "noembed", "noframes", "noscript",
     };
 
-    private static readonly HashSet<string> Void = new(StringComparer.Ordinal) { "br", "hr", "img" };
+    private static readonly HashSet<string> Void = new(StringComparer.Ordinal) { "br", "hr", "img", "input" };
 
     private static readonly HashSet<string> Inline = new(StringComparer.Ordinal)
     {
@@ -123,7 +127,12 @@ public static class RichTextSanitizer
     /// <param name="fontSizes">The <c>font-size</c> values a <c>span</c> may set, each exactly as written, such as <c>14px</c>. None by default.</param>
     /// <param name="allowDataImages">Keep images whose <c>src</c> is a <c>data:</c> URL of a PNG, JPEG, GIF, WebP or AVIF image (never SVG).</param>
     /// <param name="customColors">Keep a <c>span</c>'s <c>color</c> and <c>background-color</c> when each is six hex digits, as the editor's custom colors write them.</param>
-    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false, bool customColors = false)
+    public static string Sanitize(string? html, int topHeading = 1, IReadOnlyList<string>? fonts = null, IReadOnlyList<string>? fontSizes = null, bool allowDataImages = false, bool customColors = false) =>
+        Sanitize(html, labelTasks: false, topHeading, fonts, fontSizes, allowDataImages, customColors);
+
+    // For showing, not for a value: each task's box is named by its item's text (aria-label), so a
+    // screen reader says what's done. The editor's script writes the value without the names.
+    internal static string Sanitize(string? html, bool labelTasks, int topHeading, IReadOnlyList<string>? fonts, IReadOnlyList<string>? fontSizes, bool allowDataImages, bool customColors)
     {
         if (string.IsNullOrEmpty(html)) return string.Empty;
         // Line breaks as a browser reads them (a form post sends CRLF), so a value is the same
@@ -132,7 +141,7 @@ public static class RichTextSanitizer
         var root = new Node(null);
         new Builder(root, allowDataImages, Math.Clamp(topHeading, 1, 6), fonts ?? [], fontSizes ?? [], customColors).Run(html);
         var output = new StringBuilder(html.Length);
-        foreach (var child in root.Children) Write(child, output);
+        foreach (var child in root.Children) Write(child, output, labelTasks);
         return output.ToString();
     }
 
@@ -347,6 +356,12 @@ public static class RichTextSanitizer
 
         private void StartTag(string tag, List<(string Name, string Value)> attributes)
         {
+            if (tag == "input")
+            {
+                Task(attributes);
+                return;
+            }
+
             if (Map(tag) is not { } name) return;
             if (_open.Count > MaxDepth && !Void.Contains(name)) return;
 
@@ -378,6 +393,33 @@ public static class RichTextSanitizer
             }
             Append(node);
             if (!Void.Contains(name)) _open.Add(node);
+        }
+
+        // A task's checkbox: kept only as the first thing in a list item, or in the item's first
+        // paragraph (a loose list's), and always disabled.
+        private void Task(List<(string Name, string Value)> attributes)
+        {
+            if (!attributes.Exists(a => a.Name == "type" && a.Value.Trim().Equals("checkbox", StringComparison.OrdinalIgnoreCase))) return;
+            var at = Current;
+            var item = at.Name == "li" ? at : at.Name == "p" && at.Parent is { Name: "li" } parent && Blank(parent, until: at) ? parent : null;
+            if (item is null || !Blank(at, until: null)) return;
+            var box = new Node("input");
+            box.Attributes.Add(("type", "checkbox"));
+            box.Attributes.Add(("disabled", ""));
+            if (attributes.Exists(a => a.Name == "checked")) box.Attributes.Add(("checked", ""));
+            Append(box);
+        }
+
+        // Whether a node has nothing but white space before the child given (or at all).
+        private static bool Blank(Node node, Node? until)
+        {
+            foreach (var child in node.Children)
+            {
+                if (child == until) return true;
+                if (child.Name is not null || !string.IsNullOrWhiteSpace(child.Text)) return false;
+            }
+
+            return true;
         }
 
         // Closes what a new block can't sit in. Returns false when the block has no valid place.
@@ -565,7 +607,7 @@ public static class RichTextSanitizer
                 : null;
     }
 
-    private static void Write(Node node, StringBuilder output)
+    private static void Write(Node node, StringBuilder output, bool labelTasks)
     {
         if (node.Name is null)
         {
@@ -578,15 +620,44 @@ public static class RichTextSanitizer
         output.Append('<').Append(node.Name);
         foreach (var (name, value) in node.Attributes)
         {
+            // A task's disabled and checked, bare, as the editor writes them.
+            if (value.Length == 0 && node.Name == "input")
+            {
+                output.Append(' ').Append(name);
+                continue;
+            }
+
             output.Append(' ').Append(name).Append("=\"");
             Encode(value, output, attribute: true);
             output.Append('"');
         }
 
+        if (labelTasks && node.Name == "input" && ItemText(node.Parent!) is { Length: > 0 } label)
+        {
+            output.Append(" aria-label=\"");
+            Encode(label, output, attribute: true);
+            output.Append('"');
+        }
+
         output.Append('>');
         if (Void.Contains(node.Name)) return;
-        foreach (var child in node.Children) Write(child, output);
+        foreach (var child in node.Children) Write(child, output, labelTasks);
         output.Append("</").Append(node.Name).Append('>');
+    }
+
+    // A task's text, for its box's name: the item's own text, not its sublists', on one line.
+    private static string ItemText(Node item)
+    {
+        var text = new StringBuilder();
+        void Add(Node node)
+        {
+            if (node.Name is null) text.Append(node.Text);
+            else if (node.Name is not ("ul" or "ol")) foreach (var child in node.Children) Add(child);
+            if (node.Name is "p" or "br") text.Append(' ');
+        }
+
+        foreach (var child in item.Children) Add(child);
+        return string.Join(' ', text.ToString().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static void Encode(string value, StringBuilder output, bool attribute)

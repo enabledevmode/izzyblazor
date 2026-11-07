@@ -1,0 +1,26 @@
+@* A release checklist: tick a task with a click or Ctrl+Enter, and RichText shows the same
+   value with its boxes read-only. *@
+<Stack Gap="6" Grow>
+    <RichTextEditor @bind-Value="_checklist" Label="Release checklist" Rows="8" />
+    @* A labeled line, not a card: RichText draws no box of its own. *@
+    <Divider Label="As RichText shows it" />
+    <RichText Html="@_checklist" />
+</Stack>
+
+@code {
+    private string? _checklist =
+        """
+        <h3>Version 2.4</h3>
+        <ul>
+          <li><input type="checkbox" disabled checked>Merge the payment fixes</li>
+          <li><input type="checkbox" disabled checked>Update the pricing page</li>
+          <li><input type="checkbox" disabled>Write the release notes
+            <ul>
+              <li><input type="checkbox" disabled checked>New features</li>
+              <li><input type="checkbox" disabled>Breaking changes</li>
+            </ul>
+          </li>
+          <li><input type="checkbox" disabled>Brief the support team</li>
+        </ul>
+        """;
+}

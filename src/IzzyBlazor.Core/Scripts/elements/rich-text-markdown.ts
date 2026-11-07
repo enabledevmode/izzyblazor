@@ -1,7 +1,8 @@
 /**
  * The rich text editor's Markdown shortcuts, loaded (as elements/parts/rich-text-markdown.js) by
  * editors that have them on, as they set up: typed Markdown at a line's start (## , - , 1. , > ,
- * three backticks, and --- then Enter) or in a line (**bold**, *italic*, `code`) becomes formats.
+ * three backticks, [ ] and [x], and --- then Enter) or in a line (**bold**, *italic*, `code`)
+ * becomes formats.
  */
 
 /** What the shortcuts need from their editor. */
@@ -13,6 +14,8 @@ export interface MarkdownEditor {
   /** The nearest element around the selection matching the selector, inside the text. */
   around(selector: string): Element | null;
   changed(): void;
+  /** Whether the editor has the task list tool. */
+  tasks: boolean;
 }
 
 /** Typed Markdown becomes formats: a line's start (## , - , 1. , > , ```) or **bold**, *italic*, `code`. */
@@ -24,6 +27,7 @@ export function markdown(editor: MarkdownEditor, data: string | null): void {
   const before = (node.textContent ?? "").slice(0, offset);
 
   if (data === " ") {
+    if (task(editor, selection, node, before)) return;
     const block = editor.around("p,div");
     const marker = /^(#{1,6}|[-*]|1[.)]|>|```)[ \u00A0]$/.exec(before)?.[1];
     if (!block || !marker || editor.around("li,blockquote")) return;
@@ -71,6 +75,37 @@ export function markdown(editor: MarkdownEditor, data: string | null): void {
     selection.collapse(after, 1);
     return;
   }
+}
+
+/** [ ] or [x] at the start of a line or list item, then Space: a task, not done or done. */
+function task(editor: MarkdownEditor, selection: Selection, node: Node, before: string): boolean {
+  const mark = /^\[([ \u00A0xX])\][ \u00A0]$/.exec(before)?.[1];
+  const item = editor.around("li");
+  const block = item ?? editor.around("p,div");
+  if (!editor.tasks || !mark || !block || item?.querySelector(":scope > input:first-child") || editor.around("blockquote")) return false;
+  const lead = document.createRange();
+  lead.setStart(block, 0);
+  lead.setEnd(node, 0);
+  if (lead.toString() !== "") return false;
+  const typed = document.createRange();
+  typed.setStart(node, 0);
+  typed.setEnd(node, before.length);
+  selection.removeAllRanges();
+  selection.addRange(typed);
+  document.execCommand("delete");
+  if (!item) document.execCommand("insertUnorderedList");
+  const made = editor.around("li");
+  if (!made) return true;
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  box.tabIndex = -1;
+  if (/[xX]/.test(mark)) box.setAttribute("checked", "");
+  // The empty item's line break (a browser's placeholder) goes, or it stays after what's typed.
+  if (!made.textContent?.trim()) made.querySelector(":scope > br")?.remove();
+  made.prepend(box);
+  selection.collapse(made, 1);
+  editor.changed();
+  return true;
 }
 
 /** "---" alone on a line, then Enter, becomes a horizontal line. */

@@ -769,7 +769,7 @@
       ]
     },
     {
-      "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Forms", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text"],
+      "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Forms", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text", "checklist", "task list"],
       "features": [
         { "feature": "Label, hint and errors from the model" },
         { "feature": "Posts in a plain form; sanitized on the server" },
@@ -843,6 +843,16 @@
           ],
           "examples": [
             { "id": "rich-text-editor-tables", "title": "A table of action items", "lead": "Put the caret in a cell and open the table menu to add a row or a column; Tab moves to the next cell." }
+          ]
+        },
+        {
+          "id": "task-lists", "title": "Task lists", "summary": "Lists of tasks with checkboxes, ticked as they're done.", "members": ["RichTextTools"],
+          "intro": [
+            "The task list tool (Ctrl+Shift+9) turns the selected lines into tasks, each with a checkbox in place of its bullet, and turns them back. Typing `[ ] ` or `[x] ` at the start of a line does the same, the second one already done. A click on a box ticks it, and so does Ctrl+Enter with the caret in the task. Enter starts the next task; Enter in an empty task ends the list. Tasks nest and indent like other list items.",
+            "The value holds each task as GitHub-flavored Markdown renders it, `<li><input type=\"checkbox\" disabled checked>`, so task lists from GitHub or Markdig keep their boxes when they're pasted or bound. `RichText` shows the boxes read-only. In both, each box is named by its task's text for screen readers."
+          ],
+          "examples": [
+            { "id": "rich-text-editor-tasks", "title": "A release checklist", "lead": "Tick a task, then see the same value in `RichText` below the editor." }
           ]
         },
         {
