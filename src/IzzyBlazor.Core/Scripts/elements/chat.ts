@@ -33,13 +33,7 @@ class Chat extends IzzyElement {
   }
 
   protected setup(signal: AbortSignal): void {
-    // The keys hint is part of the box's description once the keys work.
-    const hint = this.querySelector<HTMLElement>(".ib-chat-hint");
-    const input = this.input;
-    if (hint && input) {
-      hint.hidden = false;
-      input.setAttribute("aria-describedby", hint.id);
-    }
+    this.hint();
 
     this.addEventListener("keydown", (event) => {
       const box = event.target as HTMLElement;
@@ -57,6 +51,10 @@ class Chat extends IzzyElement {
     document.addEventListener("formdata", (event) => {
       if (this.contains(event.target as Node)) event.formData.set("ib-chat-script", "1");
     }, { signal, capture: true });
+
+    this.addEventListener("click", (event) => {
+      if ((event.target as Element).closest?.(".ib-chat-suggestions button")) this.#sent = true;
+    }, { signal });
 
     this.addEventListener("submit", () => {
       this.#sent = true;
@@ -100,7 +98,17 @@ class Chat extends IzzyElement {
     this.away();
   }
 
+  /** The keys hint is part of the box's description once the keys work (again after a post, which sets the server's markup back). */
+  private hint(): void {
+    const hint = this.querySelector<HTMLElement>(".ib-chat-hint");
+    const input = this.input;
+    if (!hint || !input) return;
+    hint.hidden = false;
+    if (input.getAttribute("aria-describedby") !== hint.id) input.setAttribute("aria-describedby", hint.id);
+  }
+
   private changed(): void {
+    this.hint();
     if (this.#sent) {
       this.#sent = false;
       this.toEnd();

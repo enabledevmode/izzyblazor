@@ -18,7 +18,7 @@
     The chat is 32rem tall, its log scrolling inside; set Height, or Grow to fill its parent.
     The app keeps the entries and makes the replies: OnSend gets what was typed, and the app adds
     it and the reply as ChatEntry items. Status says where the reply is: while it's Waiting or
-    Streaming, Send becomes Stop (OnStop). Suggestions are buttons above the box that send their
+    Streaming, Send becomes Stop (OnStop) on an interactive page, and goes on a static one. Suggestions are buttons above the box that send their
     text. The log starts at its newest entry and stays there as entries arrive, with no script.
 
     On a static page the box is a form that posts (FormName names it, as with Form), so a
@@ -27,7 +27,11 @@
     with script: OnSend's CanStream says so (with JavaScript off, send the reply whole).
 
     AllowFiles adds a button to attach files (Accept, MaxFileSize, MaxFiles); they come to OnSend
-    with the text, checked against those limits, and post with the form on a static page.
+    with the text, checked against those limits, and post with the form on a static page. Each
+    pick replaces the files chosen before.
+
+    Entries are added at the end: a day separator and a static Retry go by the order entries
+    arrived in, so inserting earlier ones (loading older messages) isn't supported yet.
 
     Accessibility:
     - The log is a `log` named by Label, which is required. It's quiet (aria-live off): a reply
@@ -199,6 +203,8 @@
     }
 
     /// <summary>An entry from someone else arrived after the page did: announced, as people's messages are.</summary>
+    internal bool Rendered => _rendered;
+
     internal void Arrived(ChatEntry entry)
     {
         if (!_rendered || entry.Mine || entry.Pending || Busy) return;
@@ -236,7 +242,8 @@
             return;
         }
 
-        var text = (posted is null ? _draft.Text : posted.Suggestion ?? posted.Text)?.Trim() ?? "";
+        // A form posts line breaks as CRLF; maxlength counts each as one, and so does OnSend's text.
+        var text = (posted is null ? _draft.Text : posted.Suggestion ?? posted.Text)?.Replace("\r\n", "\n").Trim() ?? "";
         var files = AllowFiles && posted?.Suggestion is null ? (posted is null ? _files : posted.Files?.Where(f => f.Size > 0 || f.Name.Length > 0).ToList() ?? []) : [];
         if ((text.Length == 0 && files.Count == 0) || Busy) return;
         // The limits, checked here too: a static page's files come with no check before posting.
@@ -257,9 +264,14 @@
     private string? FileError(IReadOnlyList<IBrowserFile> files)
     {
         if (files.Count > MaxFiles) return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ChatTooManyFiles, MaxFiles);
+        if (files.FirstOrDefault(f => !FileHints.Accepts(Accept, f.Name, f.ContentType)) is { } wrong)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FileWrongType, wrong.Name);
+        }
+
         if (files.FirstOrDefault(f => f.Size > MaxFileSize) is { } large)
         {
-            return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FileTooLarge, large.Name, ChatEntry.SizeText(MaxFileSize));
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FileTooLarge, large.Name, FileHints.FormatSize(MaxFileSize));
         }
 
         return null;
@@ -267,7 +279,9 @@
 
     private void Chosen(InputFileChangeEventArgs args)
     {
-        _files = [.. _files, .. args.GetMultipleFiles(MaxFiles + 1)];
+        // Each pick replaces the last (the browser can't read an earlier pick's files once there's a
+        // new one), all of them taken, as GetMultipleFiles throws when given fewer than were chosen.
+        _files = args.FileCount == 0 ? [] : [.. args.GetMultipleFiles(args.FileCount)];
         _fileError = FileError(_files);
     }
 
@@ -343,17 +357,16 @@
             }
             else
             {
-                <textarea id="@_inputId" class="ib-chat-input" name="@ChatPost.TextName" rows="1" placeholder="@Placeholder" maxlength="@MaxLength"></textarea>
+                @* A post refused for its files comes back with what was typed. *@
+                <textarea id="@_inputId" class="ib-chat-input" name="@ChatPost.TextName" rows="1" placeholder="@Placeholder" maxlength="@MaxLength">@(_fileError is not null ? posted.Text : null)</textarea>
             }
             @if (Busy)
             {
+                @* Stop only on an interactive page: on a static one the reply streams in another
+                   request, which a new post can't reach. *@
                 @if (posted is null)
                 {
                     <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
-                }
-                else
-                {
-                    <IconButton Submit Name="@ChatPost.StopName" Value="stop" Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" />
                 }
             }
             else

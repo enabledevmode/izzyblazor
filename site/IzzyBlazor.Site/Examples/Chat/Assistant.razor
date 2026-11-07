@@ -68,6 +68,7 @@
             : Answer(message.Text);
         var reply = new Turn();
         _turns.Add(reply);
+        Keep();
 
         if (message.CanStream)
         {
@@ -101,12 +102,15 @@
             reply.Text = answer;
         }
 
-        if (!RendererInfo.IsInteractive && ConversationId is { } conversation)
-        {
-            // A static page keeps the conversation for the next post.
-            if (Conversations.Count > 500) Conversations.Clear();
-            Conversations[conversation] = _turns.TakeLast(20).ToList();
-        }
+        Keep();
+    }
+
+    // A static page keeps the conversation for the next post, before the reply streams too.
+    private void Keep()
+    {
+        if (RendererInfo.IsInteractive || ConversationId is not { } conversation) return;
+        if (Conversations.Count > 500) Conversations.Clear();
+        Conversations[conversation] = _turns.TakeLast(20).ToList();
     }
 
     private void Stop() => _reply?.Cancel();
