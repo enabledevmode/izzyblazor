@@ -74,6 +74,8 @@ public static class SiteApp
         builder.Services.AddSingleton(new SearchIndex(registry, api));
         builder.Services.AddSingleton<NoScriptCss>();
         builder.Services.AddSingleton<ExampleCatalog>();
+        // The Chat examples' stand-in model (canned answers, no API key).
+        builder.Services.AddSingleton<Microsoft.Extensions.AI.IChatClient, Services.CannedChatClient>();
 
         // The MCP server at /mcp (docs/get-started/ai-assistants): read-only tools over the same
         // data, stateless so any of Fly's machines can answer any request.

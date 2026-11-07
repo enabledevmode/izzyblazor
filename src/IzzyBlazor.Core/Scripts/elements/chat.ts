@@ -1,5 +1,7 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 
+// Stop: a plain button on an interactive page, a submit button named ib-chat-stop on a static one.
+const stopSelector = ".ib-chat-action:not([type=submit]), button[name=ib-chat-stop]";
 // How far from the newest entry the reader must have scrolled for "Jump to latest" to show.
 const AWAY_PX = 48;
 
@@ -78,7 +80,10 @@ class Chat extends IzzyElement {
     }, { signal });
 
     this.addEventListener("focusin", (event) => {
-      this.#stopFocused = (event.target as Element).matches?.(".ib-chat-action:not([type=submit]), button[name=ib-chat-stop]") ?? false;
+      // Stop, or the Send that takes its place: the box takes focus once the reply ends.
+      const target = event.target as Element;
+      if (target.matches?.(stopSelector)) this.#stopFocused = true;
+      else if (!target.matches?.(".ib-chat-action")) this.#stopFocused = false;
     }, { signal });
 
     this.log?.addEventListener("scroll", () => this.away(), { signal, passive: true });
@@ -102,8 +107,9 @@ class Chat extends IzzyElement {
       this.input?.focus({ preventScroll: true });
     }
 
-    // Stop had focus and went: the box takes it.
-    if (this.#stopFocused && (document.activeElement === document.body || !this.contains(document.activeElement))) {
+    // Stop had focus and went (or became Send, the same button made again): the box takes it.
+    const active = document.activeElement;
+    if (this.#stopFocused && !active?.matches(stopSelector) && (active === document.body || !this.contains(active) || active?.matches(".ib-chat-action"))) {
       this.#stopFocused = false;
       this.input?.focus({ preventScroll: true });
     }

@@ -1,0 +1,88 @@
+@* A cooking assistant streaming from a model through Microsoft.Extensions.AI's IChatClient.
+   This site registers a stand-in client with canned answers; an app registers its own
+   (OpenAI, Azure OpenAI, Ollama), and this page doesn't change. *@
+@using System.Text
+@using Microsoft.Extensions.AI
+@inject IChatClient Client
+
+<Chat Label="Cooking assistant" FormName="cooking" OnSend="SendAsync" OnStop="Stop" Status="_status"
+      Suggestions="@(_history.Count == 1 ? Ideas : null)" Placeholder="Ask about rice, eggs or substitutions">
+    @foreach (var message in _history.Where(m => m.Role != ChatRole.System))
+    {
+        @if (message.Role == ChatRole.User)
+        {
+            <ChatEntry Mine Text="@message.Text" />
+        }
+        else
+        {
+            <ChatEntry Author="Assistant" Markdown="@message.Text" Pending="message == _streaming" Failed="message == _failed" OnRetry="RetryAsync" />
+        }
+    }
+</Chat>
+
+@* hide *@
+@code {
+    private static readonly string[] Ideas = ["How do I cook rice?", "How long do I boil an egg?", "What can I use instead of buttermilk?"];
+
+    private readonly List<ChatMessage> _history = [new(ChatRole.System, "Answer cooking questions briefly, in Markdown.")];
+    private ChatMessage? _streaming;
+    private ChatMessage? _failed;
+    private ChatStatus _status;
+    private CancellationTokenSource? _stop;
+
+    private Task SendAsync(ChatSendArgs message)
+    {
+        _history.Add(new ChatMessage(ChatRole.User, message.Text));
+        return ReplyAsync();
+    }
+
+    private Task RetryAsync()
+    {
+        _history.Remove(_failed!);
+        _failed = null;
+        return ReplyAsync();
+    }
+
+    private async Task ReplyAsync()
+    {
+        var reply = new ChatMessage(ChatRole.Assistant, "");
+        var asked = _history.ToList();
+        _history.Add(reply);
+        _streaming = reply;
+        _status = ChatStatus.Waiting;
+        _stop = new CancellationTokenSource();
+        var text = new StringBuilder();
+        var shown = DateTime.UtcNow;
+        try
+        {
+            await foreach (var update in Client.GetStreamingResponseAsync(asked, cancellationToken: _stop.Token))
+            {
+                text.Append(update.Text);
+                _status = ChatStatus.Streaming;
+                // At most every 50 ms: a render per token would cross the circuit thousands of times.
+                if (DateTime.UtcNow - shown < TimeSpan.FromMilliseconds(50)) continue;
+                reply.Contents = [new TextContent(text.ToString())];
+                shown = DateTime.UtcNow;
+                StateHasChanged();
+            }
+
+            _status = ChatStatus.Ready;
+        }
+        catch (OperationCanceledException)
+        {
+            // Stopped: what arrived stays.
+            _status = ChatStatus.Ready;
+        }
+        catch (Exception)
+        {
+            _failed = reply;
+            _status = ChatStatus.Failed;
+        }
+
+        reply.Contents = [new TextContent(text.ToString())];
+        _streaming = null;
+    }
+
+    private void Stop() => _stop?.Cancel();
+}
+@* /hide *@
