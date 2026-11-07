@@ -61,7 +61,7 @@ public class TableCursorRenderTests : BunitContext
              .Add(t => t.Paging, paging)
              .Add(t => t.ItemKey, r => r.Name)
              .Add(t => t.Caption, "Rows")
-             .Add(t => t.ChildContent, Columns);
+             .Add(t => t.Columns, Columns);
             more?.Invoke(p);
         });
 
@@ -262,7 +262,7 @@ public class TableCursorRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 3)
             .Add(t => t.Paging, DataPaging.LoadOnScroll)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         cut.Find(".ib-data-more button").Click();
         cut.Find(".ib-data-more button").Click();
@@ -281,7 +281,7 @@ public class TableCursorRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 3)
             .Add(t => t.Paging, DataPaging.NextPrevious)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "r7" }, Names(cut));
         Assert.Equal("7–7 of 7", Summary(cut));

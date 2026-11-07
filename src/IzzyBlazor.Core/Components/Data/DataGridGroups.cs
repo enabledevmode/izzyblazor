@@ -147,7 +147,7 @@ public partial class DataGrid<TItem>
     {
         get
         {
-            var inputs = (UseState, UseState ? null : Navigation.Uri, Columns.Count, (Group, InitialGroup, ExpandAllGroups, Groupable), (_stateGroupSet, _stateGroup, _stateOpen, ExpandedGroups), (GroupChanged.HasDelegate, ExpandedGroupsChanged.HasDelegate));
+            var inputs = (UseState, UseState ? null : Navigation.Uri, AllColumns.Count, (Group, InitialGroup, ExpandAllGroups, Groupable), (_stateGroupSet, _stateGroup, _stateOpen, ExpandedGroups), (GroupChanged.HasDelegate, ExpandedGroupsChanged.HasDelegate));
             if (_grouping is null || !Equals(_groupingFor, inputs))
             {
                 (_groupingFor, _grouping) = (inputs, ReadGrouping());
@@ -179,7 +179,7 @@ public partial class DataGrid<TItem>
             foreach (var token in SortField.ParseList(text))
             {
                 if (levels.Count < DataGroupRequest<TItem>.MaxLevels
-                    && Columns.FirstOrDefault(c => c.CanGroup && string.Equals(c.GroupToken, token.Key, StringComparison.OrdinalIgnoreCase)) is { } column
+                    && AllColumns.FirstOrDefault(c => c.CanGroup && string.Equals(c.GroupToken, token.Key, StringComparison.OrdinalIgnoreCase)) is { } column
                     && (!chosen || column.Visible || column.Pickable)
                     && levels.All(l => l.Column != column))
                 {

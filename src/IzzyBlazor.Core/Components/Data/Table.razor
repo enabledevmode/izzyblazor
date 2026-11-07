@@ -46,9 +46,11 @@
     take FooterText or Footer for a footer row.
 
     <Table Items="orders" PageSize="10" Caption="Orders">
-        <PropertyColumn Property="o => o.Customer" Sortable />
-        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
-        <TemplateColumn Title="Status"><Badge>@context.Status</Badge></TemplateColumn>
+        <Columns>
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+            <TemplateColumn Title="Status"><Badge>@context.Status</Badge></TemplateColumn>
+        </Columns>
     </Table>
 
     Accessibility:

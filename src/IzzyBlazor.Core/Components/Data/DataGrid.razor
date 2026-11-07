@@ -30,9 +30,11 @@
     at the first paint with no script. The grid takes the whole width it's given, and needs an ItemKey.
 
     <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
-        <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" Frozen="ColumnFrozen.Start" />
-        <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
-        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
+        <Columns>
+            <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" Frozen="ColumnFrozen.Start" />
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
+        </Columns>
     </DataGrid>
 
     `Groupable` lets people group by columns from a header's menu, and `InitialGroup` or `Group` starts
@@ -94,15 +96,17 @@
     static page, a row type Blazor can fill from a form: public settable properties.
 
     <DataGrid Items="orders" ItemKey="o => o.Id.ToString()" EditMode="DataGridEditMode.Dialog" OnSave="SaveAsync">
-        <PropertyColumn Property="o => o.Id" Editable="false" />
-        <PropertyColumn Property="o => o.Customer" />
-        <PropertyColumn Property="o => o.Notes" Visible="false" />
+        <Columns>
+            <PropertyColumn Property="o => o.Id" Editable="false" />
+            <PropertyColumn Property="o => o.Customer" />
+            <PropertyColumn Property="o => o.Notes" Visible="false" />
+        </Columns>
     </DataGrid>
 
     `DataGridEditMode.Row` edits where the row stands, with Save and Cancel in place of its actions, also
     with no script. Only the columns shown have a field, so a hidden one keeps its value. A new row
     starts at the top of the page. Sorting, filtering or changing page ends the edit, and what's typed
-    goes with it. It can't be used with Virtualize or loading on scroll, or with an EditFormTemplate.
+    goes with it. It can't be used with Virtualize or loading on scroll, or with an EditDialogForm.
 
     `DataGridEditMode.Cell` edits one cell at a time on an interactive page, and OnSave runs for each one
     that changed. A click, Enter, F2 or typing starts it; Tab, Enter or a click elsewhere saves it, and an
@@ -348,7 +352,7 @@
     private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
 
     // In a row, only what's shown has a field to post; the rest stays as loaded.
-    private List<ColumnBase<TItem>> EditColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : Columns).Where(c => c.IsEditable).ToList();
+    private List<ColumnBase<TItem>> EditableColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : AllColumns).Where(c => c.IsEditable).ToList();
 
     // Cell mode where it can be: a static page, with a round trip for each cell, edits rows instead.
     private bool CellMode => EditMode == DataGridEditMode.Cell && WillBeInteractive;
@@ -449,11 +453,35 @@
         <CascadingValue @key="_editContext" TValue="EditContext" Value="_editContext">@EditorOf(column)</CascadingValue>
     };
 
-    /// <summary>The form written in place of the generated one.</summary>
-    internal EditFormTemplate<TItem>? FormTemplate { get; set; }
+    /// <summary>
+    /// Arranges the generated edit dialog's fields: an <see cref="EditField"/> for a column sets its
+    /// place and its label, hint or span, and the library's components can go around them. The grid
+    /// still draws, binds and checks each field. An editable column left out is added at the end, as
+    /// a field that isn't drawn isn't posted, and would save as empty; to leave one out, set its
+    /// <c>Editable</c> to false.
+    /// </summary>
+    [Parameter] public RenderFragment? EditDialog { get; set; }
 
-    /// <summary>The arrangement of the generated form's fields.</summary>
-    internal EditLayout<TItem>? EditLayoutPart { get; set; }
+    /// <summary>
+    /// Your own form in the edit dialog, in place of the generated one, for what isn't fields of the
+    /// row, such as steps or a save across several records. The grid opens and closes the dialog; the
+    /// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so is
+    /// guarding against forged fields, with a view model. Call <c>context.CloseAsync()</c> when it has
+    /// saved. Needs <c>EditMode="DataGridEditMode.Dialog"</c>.
+    /// </summary>
+    [Parameter] public RenderFragment<DataGridEditFormContext<TItem>>? EditDialogForm { get; set; }
+
+    /// <summary>The columns the edit dialog's fields are laid out in, as <c>Form</c>'s <c>Columns</c>. Defaults to 1.</summary>
+    [Parameter] public int EditColumns { get; set; } = 1;
+
+    /// <summary>How labels sit next to the edit dialog's fields, as <c>Form</c>'s <c>Layout</c>.</summary>
+    [Parameter] public FormLayout EditLayout { get; set; } = FormLayout.Vertical;
+
+    /// <summary>The edit dialog's size. Defaults to <see cref="DialogSize.Md"/>.</summary>
+    [Parameter] public DialogSize EditDialogSize { get; set; } = DialogSize.Md;
+
+    /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label, or "Add".</summary>
+    [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
 
     private string? _foundKey;
     private TItem? _found;
@@ -532,9 +560,9 @@
     // Here and not with the parameters: the parts that decide these are written among the columns.
     private void CheckEditing()
     {
-        if (CanEdit && EditMode != DataGridEditMode.Dialog && FormTemplate is not null)
+        if (CanEdit && EditMode != DataGridEditMode.Dialog && EditDialogForm is not null)
         {
-            throw new InvalidOperationException($"An EditFormTemplate replaces the edit dialog, so it needs {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+            throw new InvalidOperationException($"An EditDialogForm replaces the generated edit form, so it needs {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
         }
 
         if (EditMode == DataGridEditMode.Cell && RowHref is not null)
@@ -542,14 +570,14 @@
             throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Cell)} starts on a click, which a row with a {nameof(RowHref)} follows: use a link in a cell, or {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Row)}.");
         }
 
-        if (!CanEdit || FormTemplate is not null)
+        if (!CanEdit || EditDialogForm is not null)
         {
             return;
         }
 
         if (!OnSave.HasDelegate)
         {
-            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditFormTemplate of your own.");
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditDialogForm of your own.");
         }
 
         if (!WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
@@ -558,7 +586,7 @@
         }
     }
 
-    private List<PropertyInfo> EditProperties => EditColumns.Select(c => c.EditProperty!).ToList();
+    private List<PropertyInfo> EditProperties => EditableColumns.Select(c => c.EditProperty!).ToList();
 
     private string? _editKeyFor;
     private TItem? _editItem;
@@ -611,7 +639,7 @@
                 // Opening goes to the first field. After a failed save, a dialog's FormErrors takes focus
                 // instead, and a row's first invalid field, its message beside it.
                 () => InPlace
-                    ? column == (EditColumns.FirstOrDefault(c => HasError(c)) ?? EditColumns.FirstOrDefault())
+                    ? column == (EditableColumns.FirstOrDefault(c => HasError(c)) ?? EditableColumns.FirstOrDefault())
                     : column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
                 () => _placedFields.GetValueOrDefault(column),
                 InPlace ? RowFormId : null);
@@ -624,15 +652,15 @@
 
     private DataGridEditFields? _editFields;
 
-    private List<string> PlacedKeys => InPlace ? [] : EditField.KeysIn(EditLayoutPart?.ChildContent);
+    private List<string> PlacedKeys => InPlace ? [] : EditField.KeysIn(EditDialog);
 
     // In the order the dialog draws them: those placed, then the rest.
     private ColumnBase<TItem>? FirstEditColumn =>
-        PlacedKeys.Select(k => EditColumns.FirstOrDefault(c => c.EditKey == k)).FirstOrDefault(c => c is not null) ?? EditColumns.FirstOrDefault();
+        PlacedKeys.Select(k => EditableColumns.FirstOrDefault(c => c.EditKey == k)).FirstOrDefault(c => c is not null) ?? EditableColumns.FirstOrDefault();
 
     private DataGridEditFields EditFieldsOf => _editFields ??= new(placed =>
     {
-        if (EditColumns.FirstOrDefault(c => c.EditKey == placed.Key) is not { } column)
+        if (EditableColumns.FirstOrDefault(c => c.EditKey == placed.Key) is not { } column)
         {
             return null;
         }
@@ -765,13 +793,13 @@
             return __builder =>
             {
                 @* The form's name is the page's to match, so it's outside this grid's scope. *@
-                if (delete is null && FormTemplate is not null)
+                if (delete is null && EditDialogForm is not null)
                 {
                     @OwnFormDialog(key!)
                 }
                 else if (RendererInfo.IsInteractive)
                 {
-                    @(delete is not null ? DeleteDialog(delete) : InPlace ? RowForm(key!, default) : EditDialog(key!, default))
+                    @(delete is not null ? DeleteDialog(delete) : InPlace ? RowForm(key!, default) : EditDialogFor(key!, default))
                 }
                 else
                 {
@@ -867,12 +895,12 @@
         var isNew = key == NewRowKey;
         var item = isNew ? default : RowOf(key);
         var found = isNew || (item is not null && CanEditRow(item));
-        var label = FormTemplate!.Title?.Invoke(item)
+        var label = EditDialogTitle?.Invoke(item)
             ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="FormTemplate.Size" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
             @if (found)
             {
-                @FormTemplate!.ChildContent?.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
+                @EditDialogForm!.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
             }
             else if (!IsLoading && !_finding)
             {
@@ -1002,7 +1030,7 @@
     private RenderFragment EditBinding(string key) => builder =>
     {
         builder.OpenComponent<DataGridEditBinding<TItem>>(0);
-        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InPlace ? RowForm(key, posted) : EditDialog(key, posted)));
+        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InPlace ? RowForm(key, posted) : EditDialogFor(key, posted)));
         builder.CloseComponent();
     };
 
@@ -1044,13 +1072,13 @@
         }
     };
 
-    private RenderFragment EditDialog(string key, TItem? posted) => __builder =>
+    private RenderFragment EditDialogFor(string key, TItem? posted) => __builder =>
     {
         SyncEdit(key, posted);
         var missing = _editModel is null && !IsLoading && !_finding;
-        var title = EditLayoutPart?.Title is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditLayoutPart?.Size ?? DialogSize.Md" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
-            <Form Columns="EditLayoutPart?.Columns ?? 1" Layout="EditLayoutPart?.Layout ?? FormLayout.Vertical" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
+        var title = EditDialogTitle is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+            <Form Columns="EditColumns" Layout="EditLayout" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {
                     <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
@@ -1059,11 +1087,11 @@
                 {
                     <FormErrors />
                     var placed = PlacedKeys;
-                    @if (EditLayoutPart is not null)
+                    @if (EditDialog is not null)
                     {
-                        <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditLayoutPart.ChildContent</CascadingValue>
+                        <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditDialog</CascadingValue>
                     }
-                    @foreach (var column in EditColumns.Where(c => !placed.Contains(c.EditKey!)))
+                    @foreach (var column in EditableColumns.Where(c => !placed.Contains(c.EditKey!)))
                     {
                         @EditorOf(column)
                     }
@@ -2076,7 +2104,7 @@
 
     // A band moves when every column in it can.
     private bool BandMoves(ColumnBand band) =>
-        ReorderableColumns && CanSave && Columns.Where(c => c.Band?.Chain.Contains(band) == true).All(c => c.Reorderable);
+        ReorderableColumns && CanSave && AllColumns.Where(c => c.Band?.Chain.Contains(band) == true).All(c => c.Reorderable);
 
     /// <inheritdoc />
     internal override IReadOnlyDictionary<string, object>? BandAttributes(ColumnBand band, BandSpan span)
@@ -2090,7 +2118,7 @@
         // All its columns, hidden ones too, which the script freezes and places with the band.
         if (band.Parent is null)
         {
-            attributes["data-ib-cols"] = System.Text.Json.JsonSerializer.Serialize(Columns.Where(c => c.Band?.Chain[0] == band).Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray);
+            attributes["data-ib-cols"] = System.Text.Json.JsonSerializer.Serialize(AllColumns.Where(c => c.Band?.Chain[0] == band).Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray);
         }
         if (BandMoves(band))
         {
@@ -2233,7 +2261,7 @@
 
     RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
     {
-        var pickable = InOrder(Columns.Where(c => c.Pickable).ToList());
+        var pickable = InOrder(AllColumns.Where(c => c.Pickable).ToList());
         var hidden = pickable.Count(c => !Shown.Contains(c));
         <div class="ib-toolbar-item ib-col-picker">
             <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/column-picker.css"]" />
@@ -2310,7 +2338,7 @@
                 var column = columns[i++];
                 var key = KeyOf(column);
                 var shown = Shown.Contains(column);
-                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{Columns.ToList().IndexOf(column)}";
+                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{AllColumns.ToList().IndexOf(column)}";
                 var frozen = shown && FrozenOf(column) != ColumnFrozen.None;
                 var name = column.Band is null ? column.HeaderText : column.FullName;
                 name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnFrozenNote, name) : name;
@@ -2352,7 +2380,7 @@
             return;
         }
 
-        var zone = band is not null ? SiblingBlocks(band.Parent, FrozenOf(Columns.First(c => c.Band?.Chain.Contains(band) == true && Shown.Contains(c)))) : SiblingBlocks(column!.Band, FrozenOf(column));
+        var zone = band is not null ? SiblingBlocks(band.Parent, FrozenOf(AllColumns.First(c => c.Band?.Chain.Contains(band) == true && Shown.Contains(c)))) : SiblingBlocks(column!.Band, FrozenOf(column));
         object self = (object?)band ?? column!;
         var attributes = band is not null ? new Dictionary<string, object> { ["data-ib-band"] = BandId(band) } : new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column!) };
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, name);
@@ -2538,7 +2566,7 @@
         {
             // The script sets all of a band's columns, hidden ones too; only those shown need widths.
             var outer = band.Chain[0];
-            var members = Columns.Where(c => c.Band?.Chain[0] == outer).ToList();
+            var members = AllColumns.Where(c => c.Band?.Chain[0] == outer).ToList();
             var first = OwnFrozen(members[0]);
             return first != ColumnFrozen.None && members.Any(c => !HiddenByLayout(c) && WidthOf(c) is null) ? ColumnFrozen.None : first;
         }
@@ -2575,8 +2603,8 @@
     {
         // One the page says can't be hidden isn't, whatever a stored layout says.
         // Visible says how it starts. What someone chose goes first, on a column they can choose.
-        var visible = Columns.Where(c => !GroupedColumnLeaves(c) && !HiddenByLayout(c)).ToList();
-        return InOrder(visible.Count > 0 ? visible : Columns);
+        var visible = AllColumns.Where(c => !GroupedColumnLeaves(c) && !HiddenByLayout(c)).ToList();
+        return InOrder(visible.Count > 0 ? visible : AllColumns);
     }
 
     // Columns in the grid's order: frozen at start, the rest, frozen at end, each by its saved place
@@ -2918,7 +2946,7 @@
         }
 
         // A band is frozen as one: a column frozen on its own would leave the band split at the edge.
-        foreach (var band in Columns.Where(c => c.Band is not null).GroupBy(c => c.Band!.Chain[0]))
+        foreach (var band in AllColumns.Where(c => c.Band is not null).GroupBy(c => c.Band!.Chain[0]))
         {
             if (band.Select(c => c.Frozen).Distinct().Skip(1).Any())
             {
@@ -2930,7 +2958,7 @@
         {
             // A layout finds columns by key: two with one, or one with none, would be mixed up.
             var taken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var column in Columns)
+            foreach (var column in AllColumns)
             {
                 if (string.IsNullOrEmpty(KeyOf(column)) || !taken.Add(KeyOf(column)))
                 {

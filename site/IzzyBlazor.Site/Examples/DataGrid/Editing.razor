@@ -6,12 +6,14 @@
    from NewItem and OnDelete, and a paid order can't be deleted. *@
 <DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders you can edit" ItemKey="o => o.Number.ToString()" QueryPrefix="edits-"
           EditMode="DataGridEditMode.Dialog" OnSave="Save" NewItem="NewOrder" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
-    <PropertyColumn Property="o => o.Customer" />
-    <PropertyColumn Property="o => o.Status" />
-    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
-    <PropertyColumn Property="o => o.Date" Visible="false" />
-    <PropertyColumn Property="o => o.Notes" Visible="false" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Status" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Date" Visible="false" />
+        <PropertyColumn Property="o => o.Notes" Visible="false" />
+    </Columns>
 </DataGrid>
 
 @code {

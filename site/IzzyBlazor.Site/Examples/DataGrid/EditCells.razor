@@ -4,11 +4,13 @@
    comes back as an error under its field, and the cell stays open. *@
 <DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders edited by the cell" ItemKey="o => o.Number.ToString()" QueryPrefix="cell-"
           EditMode="DataGridEditMode.Cell" OnSave="Save" NewItem="NewOrder" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
-    <PropertyColumn Property="o => o.Customer" />
-    <PropertyColumn Property="o => o.Status" />
-    <PropertyColumn Property="o => o.Date" />
-    <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Status" />
+        <PropertyColumn Property="o => o.Date" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    </Columns>
 </DataGrid>
 
 @code {

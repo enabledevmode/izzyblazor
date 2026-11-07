@@ -32,13 +32,16 @@
                 <Button StartIcon="Lucide.Plus">New rule</Button>
             </Row>
             <Table Items="Rules" PageSize="6" InitialSort="-updated" Caption="Rules">
-                <PropertyColumn Property="r => r.Name" Sortable />
-                <TemplateColumn Title="Status" SortBy="r => r.Status" SortKey="status" Sortable>
-                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
-                </TemplateColumn>
-                <PropertyColumn Property="r => r.Owner" Sortable />
-                <PropertyColumn Property="r => r.Updated" Format="MMM d" Sortable />
-                <PropertyColumn Property="r => r.Hits" Title="Hits (7 days)" Format="N0" Sortable />
+                <Columns>
+                    <PropertyColumn Property="r => r.Name" Sortable />
+                    <TemplateColumn Title="Status" SortBy="r => r.Status" SortKey="status" Sortable>
+                        <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                    </TemplateColumn>
+                    <PropertyColumn Property="r => r.Owner" Sortable />
+                    <PropertyColumn Property="r => r.Updated" Format="MMM d" Sortable />
+                    <PropertyColumn Property="r => r.Hits" Title="Hits (7 days)" Format="N0" Sortable />
+        
+                </Columns>
             </Table>
         </Stack>
     </AppMain>

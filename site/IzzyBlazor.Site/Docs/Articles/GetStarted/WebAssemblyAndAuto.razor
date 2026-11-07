@@ -46,9 +46,12 @@
         <Heading Level="2">Packages</Heading>
         <TextBlock>IzzyBlazor ships as two packages. Keep them on the same version.</TextBlock>
         <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Package" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
-            <TemplateColumn Title="Contains">@context!.Contains</TemplateColumn>
-            <TemplateColumn Title="Install in">@context!.Where</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Package" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Contains">@context!.Contains</TemplateColumn>
+                <TemplateColumn Title="Install in">@context!.Where</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>
             Every component is in <Code>IzzyBlazor.Core</Code>, and both packages use the <Code>IzzyBlazor</Code> namespace, so

@@ -12,7 +12,7 @@
         <ToolbarButton StartIcon="Lucide.Share2" Position="ToolbarPosition.End">Share</ToolbarButton>
         <ToolbarButton StartIcon="Lucide.Archive" Position="ToolbarPosition.End">Archive</ToolbarButton>
     </ToolbarContent>
-    <ChildContent>
+    <Columns>
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
         <PropertyColumn Property="o => o.Customer" Priority="2" MinWidth="7.Rem" />
         <PropertyColumn Property="o => o.Date" Format="MMM d" Width="7.Rem" />
@@ -22,5 +22,5 @@
             <RowAction Icon="Lucide.Eye" Label="@($"View {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("order", order.Number)" />
             <RowAction Icon="Lucide.Copy" Label="@($"Duplicate {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("from", order.Number)" />
         </ActionColumn>
-    </ChildContent>
+    </Columns>
 </DataGrid>

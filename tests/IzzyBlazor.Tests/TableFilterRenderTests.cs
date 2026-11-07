@@ -56,7 +56,7 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
     }
 
     private static string[] Names(IRenderedComponent<Table<Row>> cut) =>
@@ -141,7 +141,7 @@ public class TableFilterRenderTests : BunitContext
                 return ValueTask.FromResult(request.ToResult(rows.AsQueryable()));
             })
             .Add(t => t.PageSize, 10)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         // The rows and the condition, and the condition's text for an export link.
         Assert.Equal(values.Order(StringComparer.OrdinalIgnoreCase), Names(cut));
@@ -151,7 +151,7 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(values.Order(StringComparer.OrdinalIgnoreCase), back.Order(StringComparer.OrdinalIgnoreCase));
 
         // The reader and the writer agree: what's written reads back, and it's the address it came from.
-        var column = cut.Instance.Columns[0];
+        var column = cut.Instance.AllColumns[0];
         var read = ColumnFilter.Read(column, "f-name", QueryString.Of(Nav.Uri))!;
         Assert.Equal(values, read.Values);
         var written = Assert.IsType<string[]>(ColumnFilter.Write(column, "f-name", read)["f-name"]);
@@ -171,7 +171,7 @@ public class TableFilterRenderTests : BunitContext
         FieldFilter? seen = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, b =>
+            .Add(t => t.Columns, b =>
             {
                 b.AddContent(0, Col<string>(r => r.Name));
                 b.OpenComponent<PropertyColumn<Row, DateTime>>(1);
@@ -199,7 +199,7 @@ public class TableFilterRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.Filter, Filter.Where("when", op, new DateOnly(2026, 1, 2)))
             .Add(t => t.FilterChanged, (Filter? _) => { })
-            .Add(t => t.ChildContent, b =>
+            .Add(t => t.Columns, b =>
             {
                 b.AddContent(0, Col<string>(r => r.Name));
                 b.AddContent(1, Col<DateTime>(r => r.When));
@@ -223,7 +223,7 @@ public class TableFilterRenderTests : BunitContext
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, b =>
+            .Add(t => t.Columns, b =>
             {
                 b.AddContent(0, Col<string>(r => r.Name));
                 b.AddContent(1, Col<DateTime>(r => r.When));
@@ -245,7 +245,7 @@ public class TableFilterRenderTests : BunitContext
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, b =>
+            .Add(t => t.Columns, b =>
             {
                 b.OpenComponent<TemplateColumn<Row>>(0);
                 b.AddComponentParameter(1, "Title", "Who");
@@ -273,7 +273,7 @@ public class TableFilterRenderTests : BunitContext
                 return ValueTask.FromResult(new DataResult<Row>(request.Apply(query).ToList(), request.ApplyFiltering(query).Count()));
             })
             .Add(t => t.PageSize, 10)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new FieldFilter("name", FilterOperator.Contains, "gr"), seen!.Filter!.Find("name"));
         Assert.Equal(new[] { "Grace" }, Names(cut));
@@ -291,7 +291,7 @@ public class TableFilterRenderTests : BunitContext
             .Add(t => t.PageSize, 1)
             .Add(t => t.FilterChanged, (Filter? f) => reported.Add(f))
             .Add(t => t.PageChanged, (int page) => pages.Add(page))
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
         var url = Nav.Uri;
 
@@ -325,7 +325,7 @@ public class TableFilterRenderTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         // Both ends typed within one pause: the filter applies once, with both.
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(200);
 
@@ -361,7 +361,7 @@ public class TableFilterRenderTests : BunitContext
     public void Unbound_filters_on_an_interactive_page_use_the_url()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
 
         Assert.Equal(8, cut.FindAll("[data-ib-filter]").Count);   // Name, Qty's two ends, and the lists' rows
         Assert.Single(cut.FindAll("form.ib-table-filter-form"));
@@ -403,7 +403,7 @@ public class TableFilterRenderTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
         Tick(cut, "Yes", false);
@@ -425,6 +425,6 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
     }
 }

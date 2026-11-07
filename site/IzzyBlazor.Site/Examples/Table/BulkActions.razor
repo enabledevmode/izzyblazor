@@ -10,12 +10,12 @@
             <SelectionActions>
                 <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
             </SelectionActions>
-            <ChildContent>
+            <Columns>
                 <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
                 <PropertyColumn Property="o => o.Customer" Filterable />
                 <PropertyColumn Property="o => o.Status" Filterable />
                 <PropertyColumn Property="o => o.Total" Format="C" />
-            </ChildContent>
+            </Columns>
         </Table>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
     </Stack>

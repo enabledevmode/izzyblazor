@@ -42,7 +42,7 @@ public class DataGridHideColumnsTests : BunitContext
             p.Add(x => x.ItemKey, o => o.Id.ToString());
             p.Add(x => x.RowLabel, o => $"Order {o.Id}");
             p.Add(x => x.SmallScreen, DataGridSmallScreen.HideColumns);
-            p.Add(x => x.ChildContent, Columns);
+            p.Add(x => x.Columns, Columns);
             more?.Invoke(p);
         });
     }

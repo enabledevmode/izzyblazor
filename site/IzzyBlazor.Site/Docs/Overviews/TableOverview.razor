@@ -100,11 +100,14 @@
 
     private const string Usage = """
         <Table Items="orders" PageSize="10" Caption="Orders">
-            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
-            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
-            <TemplateColumn Title="Status">
-                <Badge>@context.Status</Badge>
-            </TemplateColumn>
+            <Columns>
+                <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+                <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+                <TemplateColumn Title="Status">
+                    <Badge>@context.Status</Badge>
+                </TemplateColumn>
+        
+            </Columns>
         </Table>
         """;
 
@@ -119,8 +122,11 @@
 
     private const string Totals = """
         <Table Items="orders">
-            <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
-            <PropertyColumn Property="o => o.Total" Format="C" FooterText="@orders.Sum(o => o.Total).ToString("C")" />
+            <Columns>
+                <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+                <PropertyColumn Property="o => o.Total" Format="C" FooterText="@orders.Sum(o => o.Total).ToString("C")" />
+        
+            </Columns>
         </Table>
         """;
 

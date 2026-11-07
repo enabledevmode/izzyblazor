@@ -233,7 +233,7 @@ public sealed class DataGridEditField<TItem>
     public IReadOnlyDictionary<string, object> Attributes { get; }
 }
 
-/// <summary>What a <see cref="EditFormTemplate{TItem}"/> gets.</summary>
+/// <summary>What a <c>DataGrid</c>'s <c>EditDialogForm</c> gets.</summary>
 /// <typeparam name="TItem">The type of the rows.</typeparam>
 public sealed class DataGridEditFormContext<TItem>
 {
@@ -254,94 +254,10 @@ public sealed class DataGridEditFormContext<TItem>
     public Task CloseAsync() => _close();
 }
 
-/// <summary>
-/// Your own form in a <c>DataGrid</c>'s edit dialog, in place of the generated one, for what isn't fields
-/// of the row, such as steps or a save across several records. The grid opens and closes the dialog; the
-/// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so is
-/// guarding against forged fields, with a view model.
-/// </summary>
-public sealed class EditFormTemplate<TItem> : ComponentBase
-{
-    /// <summary>The form. Call <c>context.CloseAsync()</c> when it has saved.</summary>
-    [Parameter] public RenderFragment<DataGridEditFormContext<TItem>>? ChildContent { get; set; }
-
-    /// <summary>The dialog's size.</summary>
-    [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
-
-    /// <summary>The dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label.</summary>
-    [Parameter] public Func<TItem?, string>? Title { get; set; }
-
-    [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
-
-    /// <inheritdoc />
-    protected override void OnInitialized()
-    {
-        if (Table is not DataGrid<TItem> grid)
-        {
-            throw new InvalidOperationException("An EditFormTemplate must be inside a DataGrid.");
-        }
-
-        grid.FormTemplate = this;
-    }
-
-    /// <inheritdoc />
-    protected override bool ShouldRender() => false;
-}
-
-/// <summary>
-/// Sets up a <c>DataGrid</c>'s generated edit dialog. Its parameters are the dialog's and the form's, as
-/// <c>Form</c> names them. Inside it, an <see cref="EditField"/> for a column sets its place and its label,
-/// hint or span, and the library's components can go around them. The grid still draws, binds and
-/// checks each field. An editable column left out is added at the end, as a field that isn't drawn
-/// isn't posted, and would save as empty; to leave one out, set its <c>Editable</c> to false.
-/// </summary>
-/// <example>
-/// <code>
-/// &lt;EditLayout Columns="2" Size="DialogSize.Lg"&gt;
-///     &lt;EditField Key="customer" /&gt;
-///     &lt;EditField Key="total" /&gt;
-///     &lt;EditField Key="notes" ColSpan="2" /&gt;
-/// &lt;/EditLayout&gt;
-/// </code>
-/// </example>
-public sealed class EditLayout<TItem> : ComponentBase
-{
-    /// <summary>The fields, and whatever goes around them.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    /// <summary>The columns the fields are laid out in, as <c>Form</c>'s <c>Columns</c>. Defaults to 1.</summary>
-    [Parameter] public int Columns { get; set; } = 1;
-
-    /// <summary>How labels sit next to fields, as <c>Form</c>'s <c>Layout</c>.</summary>
-    [Parameter] public FormLayout Layout { get; set; } = FormLayout.Vertical;
-
-    /// <summary>The dialog's size.</summary>
-    [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
-
-    /// <summary>The dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label.</summary>
-    [Parameter] public Func<TItem?, string>? Title { get; set; }
-
-    [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
-
-    /// <inheritdoc />
-    protected override void OnInitialized()
-    {
-        if (Table is not DataGrid<TItem> grid)
-        {
-            throw new InvalidOperationException("An EditLayout must be inside a DataGrid.");
-        }
-
-        grid.EditLayoutPart = this;
-    }
-
-    /// <inheritdoc />
-    protected override bool ShouldRender() => false;
-}
-
 /// <summary>Finds a column's field for an <see cref="EditField"/>.</summary>
 internal sealed record DataGridEditFields(Func<EditField, RenderFragment?> Field);
 
-/// <summary>A column's generated field, placed in an <see cref="EditLayout{TItem}"/>.</summary>
+/// <summary>A column's generated field, placed in a <c>DataGrid</c>'s <c>EditDialog</c>.</summary>
 public sealed class EditField : ComponentBase
 {
     /// <summary>The column's key: its <c>SortKey</c>, or its property's name in lower case, as in the address.</summary>
@@ -363,7 +279,7 @@ public sealed class EditField : ComponentBase
     {
         if (Fields is null)
         {
-            throw new InvalidOperationException("An EditField must be inside a DataGrid's EditLayout.");
+            throw new InvalidOperationException("An EditField must be inside a DataGrid's EditDialog.");
         }
 
         builder.AddContent(0, Fields.Field(this) ?? throw new InvalidOperationException($"An EditField names \"{Key}\", which isn't an editable column of this DataGrid."));

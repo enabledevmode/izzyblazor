@@ -54,7 +54,7 @@ public class TableFilterValuesTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.Filter, filter)
             .Add(t => t.FilterChanged, reported)
-            .Add(t => t.ChildContent, columns ?? Columns));
+            .Add(t => t.Columns, columns ?? Columns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(30);
         return cut;
     }
@@ -63,7 +63,7 @@ public class TableFilterValuesTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(30);
         return cut;
     }
@@ -101,7 +101,7 @@ public class TableFilterValuesTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns ?? Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, columns ?? Columns));
     }
 
     private static IEnumerable<string?> Answered(IRenderedComponent<Table<Row>> cut, string key) =>
@@ -143,7 +143,7 @@ public class TableFilterValuesTests : BunitContext
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, r => { loads++; return ValueTask.FromResult(new DataResult<Row>([], 0)); })
-            .Add(t => t.ChildContent, (RenderFragment)(b => b.AddContent(0, Col<string?>(r => r.Name, Counting)))));
+            .Add(t => t.Columns, (RenderFragment)(b => b.AddContent(0, Col<string?>(r => r.Name, Counting)))));
 
         Assert.Equal(0, loads);
         Assert.Single(_asked);
@@ -362,10 +362,10 @@ public class TableFilterValuesTests : BunitContext
 
         Nav.NavigateTo("/orders" + query);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        Check(Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns)));
+        Check(Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, columns)));
 
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Check(Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns)));
+        Check(Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, columns)));
     }
 
     private static readonly FilterValuesLoader Hundred = r =>
@@ -416,7 +416,7 @@ public class TableFilterValuesTests : BunitContext
             b.AddContent(1, Col<string>(r => r.City));
         };
 
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, rows).Add(t => t.ChildContent, columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, rows).Add(t => t.Columns, columns));
 
         Assert.Equal(new[] { "Oslo", "Lima" }, cut.FindAll("tbody tr td:nth-child(2)").Select(c => c.TextContent.Trim()));
     }
@@ -438,7 +438,7 @@ public class TableFilterValuesTests : BunitContext
                 b.AddContent(1, Col<int>(r => r.Id, Ids));
             };
 
-            var cut = Render<Table<Row>>(p => p.Add(t => t.Items, rows).Add(t => t.ChildContent, columns));
+            var cut = Render<Table<Row>>(p => p.Add(t => t.Items, rows).Add(t => t.Columns, columns));
 
             Assert.Equal(new[] { "y" }, cut.FindAll("tbody tr td:first-child").Select(c => c.TextContent.Trim()));
         }
@@ -453,7 +453,7 @@ public class TableFilterValuesTests : BunitContext
     {
         Nav.NavigateTo("/orders?f-name-op=notin&f-name=Ada&f-name-blank=1");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
 
         var hidden = cut.FindAll("[popover]")[0].QuerySelectorAll("input[type='hidden']").Select(i => (i.GetAttribute("name"), i.GetAttribute("value"))).ToList();
         Assert.Contains(("f-name-op", "notin"), hidden);

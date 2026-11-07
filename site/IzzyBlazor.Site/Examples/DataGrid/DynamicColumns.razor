@@ -2,11 +2,13 @@
    so there's no class to write a PropertyColumn against. Each row is a dictionary, as a query or
    an API returns it. *@
 <DataGrid Items="Report.Rows" Caption="Revenue by region" QueryPrefix="report-" InitialSort="region" Striped Grow>
-    <DynamicColumn Field="Region" Sortable Filterable />
-    @foreach (var quarter in Report.Quarters)
-    {
-        <DynamicColumn @key="quarter" Field="@quarter" Type="typeof(decimal)" Format="C0" Sortable Filterable />
-    }
+    <Columns>
+        <DynamicColumn Field="Region" Sortable Filterable />
+        @foreach (var quarter in Report.Quarters)
+        {
+            <DynamicColumn @key="quarter" Field="@quarter" Type="typeof(decimal)" Format="C0" Sortable Filterable />
+        }
+    </Columns>
 </DataGrid>
 
 @* hide *@

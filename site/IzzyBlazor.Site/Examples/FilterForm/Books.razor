@@ -6,9 +6,12 @@
     </FilterForm>
     <Table Items="Found" PageSize="4" InitialSort="title" Caption="Books" QueryPrefix="books-"
            EmptyText="No books match these filters" Grow>
-        <PropertyColumn Property="b => b.Title" Sortable />
-        <PropertyColumn Property="b => b.Author" Sortable />
-        <PropertyColumn Property="b => b.Year" Sortable />
+        <Columns>
+            <PropertyColumn Property="b => b.Title" Sortable />
+            <PropertyColumn Property="b => b.Author" Sortable />
+            <PropertyColumn Property="b => b.Year" Sortable />
+
+        </Columns>
     </Table>
 </Stack>
 

@@ -3,12 +3,12 @@
    so this works on a static page with no script, and the lines are drawn only for open rows. *@
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders with their lines" QueryPrefix="orders-" Grow
           ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")">
-    <ChildContent>
+    <Columns>
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
         <PropertyColumn Property="o => o.Customer" Sortable />
         <PropertyColumn Property="o => o.Status" />
         <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
-    </ChildContent>
+    </Columns>
     <DetailTemplate>
         @* Its own prefix, so each order's lines keep their own sort. The title is what the grid's caption
            already says, so it's for the eye only. *@
@@ -16,10 +16,13 @@
             <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold" aria-hidden="true">Lines of order @context.Number</TextBlock>
             <DataGrid Items="OrderLines.For(context.Number)" Caption="@($"Lines of order {context.Number}")"
                       QueryPrefix="@($"lines{context.Number}-")" Size="ControlSize.Sm" Bordered="false">
-                <PropertyColumn Property="l => l.Product" Sortable />
-                <PropertyColumn Property="l => l.Quantity" Title="Qty" Width="5.Rem" />
-                <PropertyColumn Property="l => l.Price" Format="C" Width="7.Rem" />
-                <PropertyColumn Property="l => l.Amount" Format="C" Width="8.Rem" Aggregate="DataAggregate.Sum" AggregateLabel="" />
+                <Columns>
+                    <PropertyColumn Property="l => l.Product" Sortable />
+                    <PropertyColumn Property="l => l.Quantity" Title="Qty" Width="5.Rem" />
+                    <PropertyColumn Property="l => l.Price" Format="C" Width="7.Rem" />
+                    <PropertyColumn Property="l => l.Amount" Format="C" Width="8.Rem" Aggregate="DataAggregate.Sum" AggregateLabel="" />
+            
+                </Columns>
             </DataGrid>
         </Stack>
     </DetailTemplate>

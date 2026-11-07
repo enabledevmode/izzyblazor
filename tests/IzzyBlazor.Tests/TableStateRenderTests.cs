@@ -41,7 +41,7 @@ public class TableStateRenderTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.SortChanged, (string? s) => reported.Add(s))
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         var urlBefore = Nav.Uri;
 
         Assert.Empty(cut.FindAll("thead a"));
@@ -64,7 +64,7 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 1)
             .Add(t => t.PageChanged, (int page) => pages.Add(page))
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "b" }, Names(cut));
         PageButton(cut, 2).Click();
@@ -84,7 +84,7 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.PageSize, 2)
             .Add(t => t.Sort, "name")
             .Add(t => t.SortChanged, (string? _) => { })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         Assert.Equal(new[] { "a", "b" }, Names(cut));
 
         cut.Render(p => p.Add(t => t.Sort, "-qty").Add(t => t.Page, 2));
@@ -100,7 +100,7 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 1)
             .Add(t => t.PageChanged, (int _) => { })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "b" }, Names(cut));
     }
@@ -111,7 +111,7 @@ public class TableStateRenderTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 1)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(2, cut.FindAll("thead a.ib-table-sort").Count);
         Assert.Empty(cut.FindAll(".ib-data-footer button"));

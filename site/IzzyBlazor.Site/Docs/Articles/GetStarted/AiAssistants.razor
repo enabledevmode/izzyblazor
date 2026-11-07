@@ -38,8 +38,11 @@
 
         <Heading Level="2">Tools</Heading>
         <Table Items="Tools" Caption="Tools" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Tool" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
-            <TemplateColumn Title="Answers with">@context!.Answers</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Tool" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Answers with">@context!.Answers</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>
             Answers are Markdown with links to this site. Ask for what you're building, such as "a settings form that

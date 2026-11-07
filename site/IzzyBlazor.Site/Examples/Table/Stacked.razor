@@ -2,11 +2,13 @@
    buttons stay, in a row above. Make the window narrower to see it. *@
 <Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Orders that stack" QueryPrefix="stack-"
        SmallScreen="TableSmallScreen.Stack" SelectionMode="SelectionMode.Multiple" ItemKey="o => o.Number.ToString()">
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
-    <PropertyColumn Property="o => o.Customer" Sortable />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
-    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
-        <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
-    </TemplateColumn>
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+        <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+            <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
+        </TemplateColumn>
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    </Columns>
 </Table>

@@ -14,10 +14,13 @@
         <Stack Gap="4" Padding="new() { Base = 4, Md = 6 }">
             <Heading Level="1" Size="TextSize.Xl2">Rules</Heading>
             <Table Items="Rules" Caption="Rules" RowHref="r => To(r == Rules[0] ? null : r.Id, null)" RowLabel="r => r.Name" RowCurrent="r => r == Shown">
-                <PropertyColumn Property="r => r.Name" />
-                <TemplateColumn Title="Status">
-                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
-                </TemplateColumn>
+                <Columns>
+                    <PropertyColumn Property="r => r.Name" />
+                    <TemplateColumn Title="Status">
+                        <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                    </TemplateColumn>
+        
+                </Columns>
             </Table>
         </Stack>
 

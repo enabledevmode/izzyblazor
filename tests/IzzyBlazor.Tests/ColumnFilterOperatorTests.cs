@@ -48,14 +48,14 @@ public class ColumnFilterOperatorTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<DataGrid<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.ExportCsvHref, "/export").Add(t => t.ChildContent, columns ?? AllColumns));
+        return Render<DataGrid<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.ExportCsvHref, "/export").Add(t => t.Columns, columns ?? AllColumns));
     }
 
     private IRenderedComponent<Table<Line>> Table(string url = "/lines", RenderFragment? columns = null)
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.ChildContent, columns ?? AllColumns));
+        return Render<Table<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.Columns, columns ?? AllColumns));
     }
 
     private static string[] Names<T>(IRenderedComponent<T> cut) where T : IComponent =>
@@ -215,7 +215,7 @@ public class ColumnFilterOperatorTests : BunitContext
     {
         var cut = Grid("/lines?" + query);
         var key = query[..query.IndexOf('=')].Replace("-op", "", StringComparison.Ordinal);
-        var column = cut.Instance.Columns.Single(c => $"f-{c.Key}" == key);
+        var column = cut.Instance.AllColumns.Single(c => $"f-{c.Key}" == key);
         var parsed = QueryString.Parse(query);
 
         var read = ColumnFilter.Read(column, key, parsed)!;
@@ -313,7 +313,7 @@ public class ColumnFilterOperatorTests : BunitContext
             .Add(t => t.Items, Lines)
             .Add(t => t.Filter, Filter.Where("name", FilterOperator.Contains, "a"))
             .Add(t => t.FilterChanged, (Filter? _) => { })
-            .Add(t => t.ChildContent, columns));
+            .Add(t => t.Columns, columns));
         Assert.Empty(Names(bound));
         Assert.Contains(Tags(bound), t => t.Contains("contains(name,'a')", StringComparison.Ordinal));
     }
@@ -336,7 +336,7 @@ public class ColumnFilterOperatorTests : BunitContext
                 return ValueTask.FromResult(request.ToResult(Lines.AsQueryable()));
             })
             .Add(t => t.PageSize, 10)
-            .Add(t => t.ChildContent, AllColumns));
+            .Add(t => t.Columns, AllColumns));
 
         Assert.Equal(expected, Names(cut));
         Assert.Contains(odata, Uri.UnescapeDataString(seen!.ToODataQuery()), StringComparison.Ordinal);
@@ -349,7 +349,7 @@ public class ColumnFilterOperatorTests : BunitContext
             .Add(t => t.Items, Lines)
             .Add(t => t.Filter, filter)
             .Add(t => t.FilterChanged, (Filter? f) => reported.Add(f))
-            .Add(t => t.ChildContent, AllColumns));
+            .Add(t => t.Columns, AllColumns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
         return cut;
     }
