@@ -1,0 +1,20 @@
+@* A plan's price per seat over three years: it holds until the next change, so it's drawn as steps. *@
+<Chart Items="_prices" Argument="p => p.Date" Title="Team plan price per seat, 2024–2026">
+    <ChartValueAxis Format="$0" Min="0" />
+    <ChartLineSeries Value="p => p.Price" Name="Price per seat" Curve="ChartCurve.Step" />
+</Chart>
+
+@code {
+    private record PriceChange(DateOnly Date, decimal Price);
+
+    // Each change, and today, so the last price runs to the present.
+    private readonly PriceChange[] _prices =
+    [
+        new(new DateOnly(2024, 1, 1), 8),
+        new(new DateOnly(2024, 7, 1), 10),
+        new(new DateOnly(2025, 3, 1), 12),
+        new(new DateOnly(2025, 9, 15), 11),
+        new(new DateOnly(2026, 4, 1), 14),
+        new(new DateOnly(2026, 11, 7), 14),
+    ];
+}
