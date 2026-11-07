@@ -3,19 +3,21 @@ using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor;
 
-/// <summary>Which axis a chart mark is drawn against.</summary>
+/// <summary>Which axis a <see cref="ChartReferenceBand"/> runs along.</summary>
 public enum ChartAxis
 {
-    /// <summary>The value axis: a mark at a value, across the plot.</summary>
+    /// <summary>The value axis: a band between two values, across the plot.</summary>
     Value,
 
-    /// <summary>The argument axis: a mark at an argument (a name, number or date).</summary>
+    /// <summary>The argument axis: a band between two arguments (names, numbers or dates).</summary>
     Argument,
+}
 
-    /// <summary>
-    /// The second value axis, at the end side: a series on it (<c>ChartSeries Axis</c>) has its own
-    /// scale, and a reference line or band on it is drawn by that scale.
-    /// </summary>
+/// <summary>The axis a mark is laid out against, with the second value axis apart.</summary>
+internal enum MarkAxis
+{
+    Value,
+    Argument,
     Secondary,
 }
 
@@ -88,14 +90,14 @@ public sealed class ChartReferenceLine : ChartMark
     /// <summary>The value the line is drawn at, on the value axis.</summary>
     [Parameter] public double? Value { get; set; }
 
-    /// <summary>
-    /// The axis: <see cref="ChartAxis.Value"/>, the default; <see cref="ChartAxis.Secondary"/>, a
-    /// value on the second axis; or <see cref="ChartAxis.Argument"/> with <see cref="At"/>.
-    /// </summary>
-    [Parameter] public ChartAxis Axis { get; set; }
+    /// <summary>The argument the line is drawn at, across the argument axis: a name, number or date, such as a launch day.</summary>
+    [Parameter] public object? Argument { get; set; }
 
-    /// <summary>The argument the line is drawn at, with <c>Axis="ChartAxis.Argument"</c>: a name, number or date.</summary>
-    [Parameter] public object? At { get; set; }
+    /// <summary>
+    /// The <see cref="ChartValueAxis.Name"/> of the value axis <see cref="Value"/> or
+    /// <see cref="Statistic"/> is read on. Defaults to the first.
+    /// </summary>
+    [Parameter] public string? ValueAxis { get; set; }
 
     /// <summary>Works the value out from <see cref="Series"/> in place of <see cref="Value"/>.</summary>
     [Parameter] public ChartStatistic? Statistic { get; set; }
@@ -108,15 +110,15 @@ public sealed class ChartReferenceLine : ChartMark
 
     private protected override void Check()
     {
-        var count = (Value is not null ? 1 : 0) + (At is not null ? 1 : 0) + (Statistic is not null ? 1 : 0);
+        var count = (Value is not null ? 1 : 0) + (Argument is not null ? 1 : 0) + (Statistic is not null ? 1 : 0);
         if (count != 1)
         {
-            throw new InvalidOperationException("ChartReferenceLine takes one of Value, At (with Axis=\"ChartAxis.Argument\") or Statistic (with Series).");
+            throw new InvalidOperationException("ChartReferenceLine takes one of Value, Argument or Statistic (with Series).");
         }
 
-        if (At is not null && Axis != ChartAxis.Argument)
+        if (Argument is not null && ValueAxis is not null)
         {
-            throw new InvalidOperationException("ChartReferenceLine's At is an argument: set Axis=\"ChartAxis.Argument\" with it.");
+            throw new InvalidOperationException("ChartReferenceLine's ValueAxis is for a Value or Statistic: a line at an Argument crosses every value axis.");
         }
 
         if (Statistic is not null && string.IsNullOrEmpty(Series))
@@ -125,12 +127,13 @@ public sealed class ChartReferenceLine : ChartMark
         }
     }
 
-    internal override ChartMarkInput Read() => new(ChartMarkKind.Line, At is not null ? ChartAxis.Argument : Axis == ChartAxis.Secondary ? ChartAxis.Secondary : ChartAxis.Value, Label)
+    internal override ChartMarkInput Read() => new(ChartMarkKind.Line, Argument is not null ? MarkAxis.Argument : MarkAxis.Value, Label)
     {
         Value = Value,
-        At = At,
+        At = Argument,
         Statistic = Statistic,
         Series = Series,
+        ValueAxis = ValueAxis,
     };
 }
 
@@ -141,8 +144,14 @@ public sealed class ChartReferenceLine : ChartMark
 /// </summary>
 public sealed class ChartReferenceBand : ChartMark
 {
-    /// <summary>The axis: <see cref="ChartAxis.Value"/>, the default, <see cref="ChartAxis.Secondary"/>, or <see cref="ChartAxis.Argument"/>.</summary>
+    /// <summary>The axis the band runs along: <see cref="ChartAxis.Value"/>, the default, or <see cref="ChartAxis.Argument"/>.</summary>
     [Parameter] public ChartAxis Axis { get; set; }
+
+    /// <summary>
+    /// The <see cref="ChartValueAxis.Name"/> of the value axis <see cref="From"/> and
+    /// <see cref="To"/> are read on. Defaults to the first.
+    /// </summary>
+    [Parameter] public string? ValueAxis { get; set; }
 
     /// <summary>Where the band starts: a number on the value axis, or an argument (a name, number or date).</summary>
     [Parameter, EditorRequired] public object? From { get; set; }
@@ -160,6 +169,11 @@ public sealed class ChartReferenceBand : ChartMark
             throw new InvalidOperationException("ChartReferenceBand needs From and To.");
         }
 
+        if (Axis == ChartAxis.Argument && ValueAxis is not null)
+        {
+            throw new InvalidOperationException("ChartReferenceBand's ValueAxis is for a band of values: a band of arguments crosses every value axis.");
+        }
+
         if (Axis != ChartAxis.Argument)
         {
             ToNumber(From);
@@ -168,8 +182,8 @@ public sealed class ChartReferenceBand : ChartMark
     }
 
     internal override ChartMarkInput Read() => Axis != ChartAxis.Argument
-        ? new(ChartMarkKind.Band, Axis, Label) { Value = ToNumber(From), To = ToNumber(To) }
-        : new(ChartMarkKind.Band, ChartAxis.Argument, Label) { At = From, AtTo = To };
+        ? new(ChartMarkKind.Band, MarkAxis.Value, Label) { Value = ToNumber(From), To = ToNumber(To), ValueAxis = ValueAxis }
+        : new(ChartMarkKind.Band, MarkAxis.Argument, Label) { At = From, AtTo = To };
 }
 
 /// <summary>
@@ -195,13 +209,13 @@ public sealed class ChartAnnotation : ChartMark
         }
     }
 
-    internal override ChartMarkInput Read() => new(ChartMarkKind.Note, ChartAxis.Value, Text) { Value = Value, At = Argument };
+    internal override ChartMarkInput Read() => new(ChartMarkKind.Note, MarkAxis.Value, Text) { Value = Value, At = Argument };
 }
 
 internal enum ChartMarkKind { Line, Band, Note }
 
 /// <summary>A mark as the layout sees it.</summary>
-internal sealed record ChartMarkInput(ChartMarkKind Kind, ChartAxis Axis, string? Label)
+internal sealed record ChartMarkInput(ChartMarkKind Kind, MarkAxis Axis, string? Label)
 {
     public double? Value { get; init; }
     public double? To { get; init; }
@@ -209,6 +223,7 @@ internal sealed record ChartMarkInput(ChartMarkKind Kind, ChartAxis Axis, string
     public object? AtTo { get; init; }
     public ChartStatistic? Statistic { get; init; }
     public string? Series { get; init; }
+    public string? ValueAxis { get; init; }
 }
 
 /// <summary>
@@ -217,7 +232,7 @@ internal sealed record ChartMarkInput(ChartMarkKind Kind, ChartAxis Axis, string
 /// value-axis positions, for the script to place again when it rescales. <c>Series</c> is the
 /// series a statistic hides with.
 /// </summary>
-internal sealed record MarkShape(ChartMarkKind Kind, ChartAxis Axis, double P, double Q, double A, string Text)
+internal sealed record MarkShape(ChartMarkKind Kind, MarkAxis Axis, double P, double Q, double A, string Text)
 {
     public double? V { get; init; }
     public double? VTo { get; init; }
@@ -228,12 +243,35 @@ internal sealed record MarkShape(ChartMarkKind Kind, ChartAxis Axis, double P, d
 internal abstract class ChartContextBase
 {
     private readonly ChildOrder<ChartMark> _marks = new();
+    private readonly ChildOrder<ChartAxisBase> _axes = new();
 
     public IReadOnlyList<ChartMark> Marks => _marks.Items;
 
+    public IReadOnlyList<ChartAxisBase> Axes => _axes.Items;
+
     public ChartPlot? Plot { get; set; }
 
-    public virtual void BeginPass() => _marks.BeginPass();
+    public virtual void BeginPass()
+    {
+        _marks.BeginPass();
+        _axes.BeginPass();
+    }
+
+    public void Register(ChartAxisBase axis) => _axes.Add(axis);
+
+    public void Seen(ChartAxisBase axis)
+    {
+        _axes.Seen(axis);
+        Plot?.Refresh();
+    }
+
+    public void Unregister(ChartAxisBase axis)
+    {
+        if (_axes.Remove(axis))
+        {
+            Plot?.Refresh();
+        }
+    }
 
     public void Register(ChartMark mark) => _marks.Add(mark);
 

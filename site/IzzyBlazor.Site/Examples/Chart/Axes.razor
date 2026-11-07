@@ -1,7 +1,8 @@
 @* Monthly revenue with titled axes, a tick every $25,000 and lines between the months. *@
-<Chart Items="_months" Argument="m => m.Month" Title="Revenue by month, 2026" ValueFormat="C0"
-       ValueTitle="Revenue (USD)" ArgumentTitle="Month" ValueStep="25_000" GridLines="ChartGridLines.Both">
-    <ChartSeries Value="m => m.Revenue" />
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue by month, 2026">
+    <ChartValueAxis Format="C0" Title="Revenue (USD)" Step="25_000" />
+    <ChartArgumentAxis Title="Month" GridLines="true" />
+    <ChartBarSeries Value="m => m.Revenue" />
 </Chart>
 
 @code {

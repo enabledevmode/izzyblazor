@@ -10,16 +10,17 @@
     Bars, lines and areas over a list of items, drawn on the server: the chart is in the page's
     HTML, so it shows with no script and no circuit, prints, and fills its container's width.
 
-    <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026" ValueFormat="C0">
-        <ChartSeries Value="m => m.Revenue" />
-        <ChartSeries Value="m => m.Costs" />
-        <ChartSeries Value="m => m.Target" Type="ChartType.Line" />
+    <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026">
+        <ChartValueAxis Format="C0" />
+        <ChartBarSeries Value="m => m.Revenue" />
+        <ChartBarSeries Value="m => m.Costs" />
+        <ChartLineSeries Value="m => m.Target" />
     </Chart>
 
     Argument is what each item is plotted at: names and enums sit in bands, one per item; numbers
     and dates, on a line or area chart, sit on a scale (any chart with bars uses bands). Each
-    ChartSeries draws one value per item, as SeriesType or its own Type. Stacked stacks bars and
-    areas; Orientation.Horizontal lays bars across, the arguments down the side.
+    series draws one value per item, as bars, a line, an area, points or bubbles; ChartValueAxis
+    and ChartArgumentAxis set up the axes. Stacking stacks bars and areas; Orientation.Horizontal lays bars across, the arguments down the side.
 
     The text is HTML beside the plot, so it keeps its size at any width; at narrow widths every
     other label (or every fourth) hides so they don't crowd. --ib-chart-tick-color and
@@ -76,11 +77,12 @@
     /// </summary>
     [Parameter] public string? TitledBy { get; set; }
 
-    /// <summary>How series draw unless they say otherwise. Defaults to <see cref="ChartType.Bar"/>.</summary>
-    [Parameter] public ChartType SeriesType { get; set; }
-
-    /// <summary>Whether bars and areas stack. Lines never do.</summary>
-    [Parameter] public ChartStack Stacked { get; set; }
+    /// <summary>
+    /// Whether bar and area series stack: <see cref="ChartStacking.Normal"/> puts each on top of
+    /// the one before, so the stack's height is the total; <see cref="ChartStacking.Percent"/>
+    /// draws each stack to 100%, so the parts show as shares of the whole. Lines never stack.
+    /// </summary>
+    [Parameter] public ChartStacking Stacking { get; set; }
 
     /// <summary>
     /// <see cref="Orientation.Vertical"/>, the default, draws upright columns with the arguments
@@ -93,100 +95,12 @@
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>
-    /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
-    /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
-    /// </summary>
-    [Parameter] public double? BarOpacity { get; set; }
-
-    /// <summary>A .NET format string for values, such as <c>C0</c>, <c>N1</c> or <c>P0</c>.</summary>
-    [Parameter] public string? ValueFormat { get; set; }
-
-    /// <summary>A .NET format string for the arguments, such as <c>MMM</c> or <c>N0</c>.</summary>
-    [Parameter] public string? ArgumentFormat { get; set; }
-
-    /// <summary>
-    /// Writes each value's text yourself, such as <c>v =&gt; $"${v / 1e6:0.#}M"</c>, in place of
-    /// <see cref="ValueFormat"/>: on the axis, in tooltips and in the data table. (A full stack's
-    /// axis still reads in percent.) Hiding a series from the legend then keeps the value axis as
-    /// it is rather than rescaling it, since its text comes from the server.
-    /// </summary>
-    [Parameter] public Func<double, string>? ValueFormatter { get; set; }
-
-    /// <summary>
-    /// Writes each argument's text yourself, in place of <see cref="ArgumentFormat"/>. It gets the
-    /// item's argument, or a tick on a number or date scale: a double, or a date of the argument's
-    /// own type. Dates then have no second line for the month or year.
-    /// </summary>
-    [Parameter] public Func<object?, string>? ArgumentFormatter { get; set; }
-
-    /// <summary>A .NET format string for the second value axis (series with <c>Axis="ChartAxis.Secondary"</c>), such as <c>P0</c>.</summary>
-    [Parameter] public string? SecondaryFormat { get; set; }
-
-    /// <summary>Where the second value axis starts. Defaults to a round number its ticks line up with the first axis's grid at.</summary>
-    [Parameter] public double? SecondaryMin { get; set; }
-
-    /// <summary>Where the second value axis ends.</summary>
-    [Parameter] public double? SecondaryMax { get; set; }
-
-    /// <summary>A title beside the second value axis, such as "Margin". With two axes, each title has a key in its first series' color.</summary>
-    [Parameter] public string? SecondaryTitle { get; set; }
-
-    /// <summary>Leaves out the value axis's labels, for a small chart or one whose values are labeled on the marks.</summary>
-    [Parameter] public bool HideValueAxis { get; set; }
-
-    /// <summary>Leaves out the argument axis's labels.</summary>
-    [Parameter] public bool HideArgumentAxis { get; set; }
-
-    /// <summary>Where the value axis starts. Defaults to a round number at or below the lowest value (0 with bars and areas).</summary>
-    [Parameter] public double? ValueMin { get; set; }
-
-    /// <summary>Where the value axis ends. Defaults to a round number at or above the highest value.</summary>
-    [Parameter] public double? ValueMax { get; set; }
-
-    /// <summary>
-    /// The gap between the value axis's ticks, such as <c>25_000</c>. The axis's ends round to it
-    /// unless <see cref="ValueMin"/> and <see cref="ValueMax"/> are set. Defaults to a round step
-    /// for the chart's size; ticks that would crowd still thin out. A step that would make more
-    /// than 500 ticks is ignored.
-    /// </summary>
-    [Parameter] public double? ValueStep { get; set; }
-
-    /// <summary>
-    /// Draws the value axis on a log scale (base 10), for values that span several powers of ten,
-    /// such as company sizes. Values at or under zero have no place on it and aren't drawn; bars
-    /// and areas start at the axis's bottom.
-    /// </summary>
-    [Parameter] public bool ValueLog { get; set; }
-
-    /// <summary>A title beside the value axis, such as "Revenue (USD)".</summary>
-    [Parameter] public string? ValueTitle { get; set; }
-
-    /// <summary>A title beside the argument axis, such as "Month". It also heads the data table's first column.</summary>
-    [Parameter] public string? ArgumentTitle { get; set; }
-
-    /// <summary>Which grid lines cross the plot: at the values (the default), at the arguments too, or none.</summary>
-    [Parameter] public ChartGridLines GridLines { get; set; }
-
-    /// <summary>
-    /// How names along the bottom fit when they crowd: skipped (the default), turned 45° first, or
-    /// all shown, wrapped. Applies to names in bands on an upright chart; ticks on a number or date
-    /// scale are always chosen to fit.
-    /// </summary>
-    [Parameter] public ChartArgumentLabels ArgumentLabels { get; set; }
-
-    /// <summary>
     /// Shows a tooltip with every series' value for the item under the pointer, or under keyboard
     /// focus on the chart, with script. By default it's on unless every series writes its values
-    /// as <see cref="ChartSeries{TItem}.Labels"/>, which the tooltip would repeat; true or false
+    /// as <see cref="ChartSeriesBase{TItem}.Labels"/>, which the tooltip would repeat; true or false
     /// decides. Off, the tooltips are left out of the page.
     /// </summary>
     [Parameter] public bool? Tooltip { get; set; }
-
-    /// <summary>
-    /// The tooltip's content in place of the item's argument and each series' value. It's drawn on
-    /// the server for each item, so keep it to text and inline content (no buttons or links).
-    /// </summary>
-    [Parameter] public RenderFragment<ChartTooltip<TItem>>? TooltipTemplate { get; set; }
 
     /// <summary>
     /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
@@ -202,8 +116,39 @@
     /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
     [Parameter] public ChartDataTable DataTable { get; set; }
 
-    /// <summary>The <see cref="ChartSeries{TItem}"/>.</summary>
+    /// <summary>
+    /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
+    /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
+    /// <see cref="ChartBubbleSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
+    /// <see cref="ChartArgumentAxis"/>), reference marks and a <see cref="ChartTooltip{TItem}"/>.
+    /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // What the axes say, read when the plot draws.
+    private ChartValueAxis? _valueAxis;
+    private ChartValueAxis? _secondAxis;
+    private ChartArgumentAxis? _argumentAxis;
+    private ChartStacking Stacked => Stacking;
+    private string? ValueFormat => _valueAxis?.Format;
+    private Func<double, string>? ValueFormatter => _valueAxis?.Formatter;
+    private double? ValueMin => _valueAxis?.Min;
+    private double? ValueMax => _valueAxis?.Max;
+    private double? ValueStep => _valueAxis?.Step;
+    private bool ValueLog => _valueAxis?.Logarithmic ?? false;
+    private string? ValueTitle => _valueAxis?.Title;
+    private bool HideValueAxis => _valueAxis?.HideLabels ?? false;
+    private bool ValueGrid => _valueAxis?.GridLines ?? true;
+    private string? SecondaryFormat => _secondAxis?.Format;
+    private double? SecondaryMin => _secondAxis?.Min;
+    private double? SecondaryMax => _secondAxis?.Max;
+    private string? SecondaryTitle => _secondAxis?.Title;
+    private string? ArgumentFormat => _argumentAxis?.Format;
+    private Func<object?, string>? ArgumentFormatter => _argumentAxis?.Formatter;
+    private string? ArgumentTitle => _argumentAxis?.Title;
+    private bool HideArgumentAxis => _argumentAxis?.HideLabels ?? false;
+    private ChartLabelFit ArgumentLabels => _argumentAxis?.LabelFit ?? ChartLabelFit.Skip;
+    private bool ArgumentGrid => _argumentAxis?.GridLines ?? false;
+    private RenderFragment<ChartTooltipContext<TItem>>? TooltipTemplate => _context.TooltipTemplate;
 
     private readonly string _labelId = IdGenerator.Next("ib-chart");
 
@@ -238,16 +183,6 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-chart");
-        if (BarOpacity is { } opacity)
-        {
-            if (opacity is < 0 or > 1 || double.IsNaN(opacity))
-            {
-                throw new ArgumentOutOfRangeException(nameof(BarOpacity), opacity, "A Chart's BarOpacity goes from 0 to 1.");
-            }
-
-            styles.AddVar("chart-fill-opacity", Num(opacity));
-        }
-
         base.BuildAttributes(classes, styles);
     }
 
@@ -259,34 +194,6 @@
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
                 ? "Chart needs a Title, such as \"Revenue by month\", or TitledBy, the id of a heading on the page that titles it."
                 : "Chart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
-        }
-
-        if (ValueMin is { } lo && ValueMax is { } hi && !(hi > lo))
-        {
-            throw new ArgumentOutOfRangeException(nameof(ValueMax), hi, "A Chart's ValueMax must be more than its ValueMin.");
-        }
-
-        if (ValueStep is { } step && !(step > 0 && double.IsFinite(step)))
-        {
-            throw new ArgumentOutOfRangeException(nameof(ValueStep), step, "A Chart's ValueStep must be more than 0.");
-        }
-
-        if (ValueLog)
-        {
-            if (ValueMin <= 0 || ValueMax <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(ValueMin), "A Chart with ValueLog needs ValueMin and ValueMax over 0: a log scale has no zero.");
-            }
-
-            if (Stacked == ChartStack.Full)
-            {
-                throw new InvalidOperationException("A Chart can't use ValueLog with Stacked=\"ChartStack.Full\": shares of a whole read on a straight scale.");
-            }
-
-            if (ValueStep is not null)
-            {
-                throw new InvalidOperationException("A Chart can't use ValueStep with ValueLog: a log scale's ticks are powers of ten.");
-            }
         }
 
         if (Argument is null)
@@ -306,6 +213,82 @@
         (_class, _style) = BuildRootAttributes();
     }
 
+    /// <summary>Finds the value axes and the argument axis among the chart's children.</summary>
+    private void ReadAxes()
+    {
+        var values = _context.Axes.OfType<ChartValueAxis>().ToList();
+        var arguments = _context.Axes.OfType<ChartArgumentAxis>().ToList();
+        if (values.Count > 2)
+        {
+            throw new InvalidOperationException("A Chart has at most two ChartValueAxis: the first, and a second with a Name at the end side.");
+        }
+
+        if (arguments.Count > 1)
+        {
+            throw new InvalidOperationException("A Chart has one ChartArgumentAxis.");
+        }
+
+        // The first value axis has no name; a named one is the second, at the end side.
+        if (values.Count(a => a.Name is null) > 1)
+        {
+            throw new InvalidOperationException("A Chart's second ChartValueAxis needs a Name, which its series give as their ValueAxis.");
+        }
+
+        if (values.Count(a => a.Name is not null) > 1)
+        {
+            throw new InvalidOperationException("A Chart has at most two ChartValueAxis: the first, and a second with a Name at the end side.");
+        }
+
+        _valueAxis = values.FirstOrDefault(a => a.Name is null);
+        _secondAxis = values.FirstOrDefault(a => a.Name is not null);
+        _argumentAxis = arguments.FirstOrDefault();
+        if (_secondAxis is { } second)
+        {
+            if (second.Step is not null || second.Logarithmic || second.Formatter is not null || second.HideLabels)
+            {
+                throw new InvalidOperationException("A second ChartValueAxis takes Format, Min, Max and Title: its ticks fall on the first axis's grid lines.");
+            }
+
+            foreach (var series in _context.Series)
+            {
+                IsSecond(series.ValueAxis, $"The series \"{series.DisplayName}\"");
+            }
+
+            if (!_context.Series.Any(s => s.ValueAxis == second.Name))
+            {
+                throw new InvalidOperationException($"The ChartValueAxis named \"{second.Name}\" has no series: give one ValueAxis=\"{second.Name}\".");
+            }
+        }
+
+        if (ValueLog && Stacking == ChartStacking.Percent)
+        {
+            throw new InvalidOperationException("A Chart can't use a logarithmic value axis with Stacking=\"ChartStacking.Percent\": shares of a whole read on a straight scale.");
+        }
+    }
+
+    /// <summary>Whether a series or mark asking for a value axis by name is on the second one.</summary>
+    private bool IsSecond(string? name, string what)
+    {
+        if (name is null)
+        {
+            return false;
+        }
+
+        if (name == _secondAxis?.Name)
+        {
+            return true;
+        }
+
+        throw new InvalidOperationException($"{what}'s ValueAxis \"{name}\" isn't a ChartValueAxis on the chart: give the axis that Name.");
+    }
+
+    private ChartSeriesData OnAxis(ChartSeriesData data) => data with { Secondary = IsSecond(data.ValueAxis, $"The series \"{data.Name}\"") };
+
+    private ChartMarkInput OnAxis(ChartMarkInput mark) =>
+        mark.Axis == MarkAxis.Value && mark.Kind != ChartMarkKind.Note && IsSecond(mark.ValueAxis, "A reference mark")
+            ? mark with { Axis = MarkAxis.Secondary }
+            : mark;
+
     private static double HeightInPixels(Length? height)
     {
         var css = height?.Css;
@@ -320,7 +303,8 @@
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         var arguments = items.Select(_argument!).ToList();
-        var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList(), arguments, TextDefaults);
+        ReadAxes();
+        var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items)).Select(OnAxis).ToList(), arguments, TextDefaults);
         var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None));
         if (series.Any(s => s.Secondary))
         {
@@ -329,9 +313,9 @@
                 throw new InvalidOperationException("A Chart's second value axis needs upright bars or lines: leave Orientation Vertical, or use two charts.");
             }
 
-            if (Stacked != ChartStack.None && series.Any(s => s.Secondary && s.Type is ChartType.Bar or ChartType.Area))
+            if (Stacked != ChartStacking.None && series.Any(s => s.Secondary && s.Type is ChartType.Bar or ChartType.Area))
             {
-                throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacked off.");
+                throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacking off.");
             }
         }
         var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
@@ -350,13 +334,14 @@
             ValueMax = ValueMax,
             ValueStep = ValueStep,
             ValueLog = ValueLog,
-            GridLines = GridLines,
+            ValueGrid = ValueGrid,
+            ArgumentGrid = ArgumentGrid,
             ArgumentLabels = ArgumentLabels,
             ValueFormatter = ValueFormatter,
             ArgumentFormatter = ArgumentFormatter,
             HideValueAxis = HideValueAxis,
             HideArgumentAxis = HideArgumentAxis,
-            Marks = _context.Marks.Select(m => m.Read()).ToList(),
+            Marks = _context.Marks.Select(m => m.Read()).Select(OnAxis).ToList(),
             SecondaryFormat = SecondaryFormat,
             SecondaryMin = SecondaryMin,
             SecondaryMax = SecondaryMax,
@@ -366,7 +351,7 @@
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
         // With a legend, the script draws the chart again without the series it hides.
-        var shape = legend ? NumberShape.Of(Stacked == ChartStack.Full ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
+        var shape = legend ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
         var room = model.Wrap && !horizontal
             ? $"--ib-chart-n:{model.ArgumentTexts.Length}"
@@ -428,7 +413,7 @@
                         <path id="@(marks)2" d="M0,-6.2L5.8,4.2H-5.8Z" />
                         <path id="@(marks)3" d="M0,-6.2L6.2,0L0,6.2L-6.2,0Z" />
                     </defs>
-                    @foreach (var line in model.Grid.Where(l => GridLines != ChartGridLines.None || l.Zero))
+                    @foreach (var line in model.Grid.Where(l => l.Argument || ValueGrid || l.Zero))
                     {
                         @* Values run up (or across, for bars across); arguments across (or down from the top). *@
                         var upright = horizontal != line.Argument;
@@ -726,9 +711,9 @@
     // are its ends; a note's --n is its argument. data-ib-v holds the value the script rescales.
     private static RenderFragment MarkElement(MarkShape mark, bool horizontal) => builder =>
     {
-        var y = (mark.Axis == ChartAxis.Value) != horizontal;
-        var (p, q) = !y || mark.Axis == ChartAxis.Value || mark.Kind == ChartMarkKind.Note ? (mark.P, mark.Q) : (1 - mark.Q, 1 - mark.P);
-        if (mark.Kind == ChartMarkKind.Line && mark.Axis == ChartAxis.Argument && y) (p, q) = (1 - mark.P, 0);
+        var y = (mark.Axis == MarkAxis.Value) != horizontal;
+        var (p, q) = !y || mark.Axis == MarkAxis.Value || mark.Kind == ChartMarkKind.Note ? (mark.P, mark.Q) : (1 - mark.Q, 1 - mark.P);
+        if (mark.Kind == ChartMarkKind.Line && mark.Axis == MarkAxis.Argument && y) (p, q) = (1 - mark.P, 0);
         var style = mark.Kind switch
         {
             ChartMarkKind.Band => $"--p:{Num(p)};--q:{Num(q)}",
@@ -740,7 +725,7 @@
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", kind + axis);
         builder.AddAttribute(2, "style", style);
-        builder.AddAttribute(3, "data-ib-v", mark.V is { } v && (mark.Axis == ChartAxis.Value) ? v.ToString("R", CultureInfo.InvariantCulture) : null);
+        builder.AddAttribute(3, "data-ib-v", mark.V is { } v && (mark.Axis == MarkAxis.Value) ? v.ToString("R", CultureInfo.InvariantCulture) : null);
         builder.AddAttribute(4, "data-ib-vto", mark.VTo is { } vt ? vt.ToString("R", CultureInfo.InvariantCulture) : null);
         builder.AddAttribute(5, "data-ib-series", mark.Series >= 0 ? mark.Series.ToString(CultureInfo.InvariantCulture) : null);
         builder.OpenElement(6, "span");
@@ -772,7 +757,7 @@
         ? null
         : string.Join(",", model.ArgumentPositions.Select(p => double.IsNaN(p) ? "" : Num(p)));
 
-    private static ChartTooltip<TItem> TooltipFor(IReadOnlyList<TItem> items, ChartModel model, int index) => new(
+    private static ChartTooltipContext<TItem> TooltipFor(IReadOnlyList<TItem> items, ChartModel model, int index) => new(
         items[index],
         index,
         model.ArgumentTexts[index],
@@ -824,9 +809,9 @@
                 w.WriteEndArray();
             }
             w.WriteBoolean("lg", ValueLog);
-            w.WriteBoolean("gl", GridLines != ChartGridLines.None);
+            w.WriteBoolean("gl", ValueGrid);
             // With a ValueFormatter, the server's value axis as drawn: its range and ticks.
-            if (ValueFormatter is not null && Stacked != ChartStack.Full)
+            if (ValueFormatter is not null && Stacked != ChartStacking.Percent)
             {
                 w.WriteNumber("rl", model.ValueRange.Min);
                 w.WriteNumber("rh", model.ValueRange.Max);
@@ -886,7 +871,7 @@
 
                 w.WriteEndArray();
                 w.WriteNumber("c", (int)d.Curve);
-                w.WriteBoolean("j", d.ConnectNulls);
+                w.WriteBoolean("j", d.ConnectGaps);
                 w.WriteBoolean("m", d.IsPoint || (d.Markers ?? (d.Type == ChartType.Line && d.Values.Count(v => v is not null) <= 40)));
                 // A bubble's radius by item, which doesn't change with the value axis.
                 if (d.Type == ChartType.Bubble)
@@ -926,5 +911,7 @@
         return System.Text.Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static string? ColorStyle(SeriesShape s) => s.Data.Color is { } color ? $"--ib-chart-color:{StyleValues.Raw(color, "color")}" : null;
+    private static string? ColorStyle(SeriesShape s) =>
+        (s.Data.Color is { } color ? $"--ib-chart-color:{StyleValues.Raw(color, "color")};" : "")
+        + (s.Data.Opacity is { } opacity ? $"--ib-chart-fill-opacity:{Num(opacity)}" : "") is { Length: > 0 } style ? style : null;
 }

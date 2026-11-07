@@ -1,7 +1,7 @@
 @* Daily signups over a quarter, with notes at a price change and a launch. *@
-<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Title="Daily signups, Q3 2026">
-    <ChartSeries Value="d => d.Signups" Markers="false" />
-    <ChartReferenceLine Axis="ChartAxis.Argument" At="@(new DateOnly(2026, 8, 18))" Label="Mobile app launch" />
+<Chart Items="_days" Argument="d => d.Date" Title="Daily signups, Q3 2026">
+    <ChartLineSeries Value="d => d.Signups" Markers="false" />
+    <ChartReferenceLine Argument="@(new DateOnly(2026, 8, 18))" Label="Mobile app launch" />
     <ChartAnnotation Argument="@(new DateOnly(2026, 7, 21))" Value="94" Text="Price change" />
 </Chart>
 

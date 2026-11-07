@@ -13,7 +13,7 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public ChartCurve Curve { get; init; }
     public ChartLineStyle? LineStyle { get; init; }
     public bool? Markers { get; init; }
-    public bool ConnectNulls { get; init; }
+    public bool ConnectGaps { get; init; }
     public bool Hidden { get; init; }
     public ChartLabels Labels { get; init; }
     public string? LabelFormat { get; init; }
@@ -29,6 +29,12 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     /// <summary>On the second value axis, at the end side.</summary>
     public bool Secondary { get; init; }
 
+    /// <summary>The name of the value axis the series asked for (null: the first).</summary>
+    public string? ValueAxis { get; init; }
+
+    /// <summary>A bar series' own fill strength, 0 to 1.</summary>
+    public double? Opacity { get; init; }
+
     /// <summary>A bubble series' sizes by item, and what they measure (its property's name).</summary>
     public double?[]? Sizes { get; init; }
 
@@ -40,7 +46,7 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
 internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyList<ChartSeriesData> Series)
 {
-    public ChartStack Stacked { get; init; }
+    public ChartStacking Stacked { get; init; }
     public bool Horizontal { get; init; }
     public double HeightPx { get; init; } = 288;
     public string? ValueFormat { get; init; }
@@ -49,8 +55,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public double? ValueMax { get; init; }
     public double? ValueStep { get; init; }
     public bool ValueLog { get; init; }
-    public ChartGridLines GridLines { get; init; }
-    public ChartArgumentLabels ArgumentLabels { get; init; }
+    public bool ValueGrid { get; init; } = true;
+    public bool ArgumentGrid { get; init; }
+    public ChartLabelFit ArgumentLabels { get; init; }
     public Func<double, string>? ValueFormatter { get; init; }
     public Func<object?, string>? ArgumentFormatter { get; init; }
     public bool HideValueAxis { get; init; }
@@ -151,7 +158,7 @@ internal sealed class ChartModel
     public double EndRoomPx { get; set; }
 
     /// <summary>
-    /// For names turned 45° (<see cref="ChartArgumentLabels.Rotate"/>): the first of
+    /// For names turned 45° (<see cref="ChartLabelFit.Rotate"/>): the first of
     /// <see cref="ChartLayout.Widths"/> at which they all fit flat, or its length when they never
     /// do; 0 when they're never turned.
     /// </summary>
@@ -171,7 +178,7 @@ internal sealed class ChartModel
 
     public (double Min, double Max) SecondaryRange { get; set; } = (0, 1);
 
-    /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartArgumentLabels.All"/>).</summary>
+    /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartLabelFit.Wrap"/>).</summary>
     public bool Wrap { get; set; }
 
     /// <summary>Whether the argument labels have a second line (a month under days, a year under months).</summary>
@@ -210,8 +217,8 @@ internal static class ChartLayout
         var hasBars = input.Series.Any(s => s.Type == ChartType.Bar);
         var kind = hasBars ? ArgumentKind.Category : KindOf(input.Arguments);
         var culture = input.Culture;
-        var full = input.Stacked == ChartStack.Full;
-        var stacked = input.Stacked != ChartStack.None;
+        var full = input.Stacked == ChartStacking.Percent;
+        var stacked = input.Stacked != ChartStacking.None;
 
         var model = new ChartModel
         {
@@ -251,7 +258,7 @@ internal static class ChartLayout
         var marks = ResolveMarks(input);
         foreach (var m in marks)
         {
-            if (m.Axis != ChartAxis.Value) continue;
+            if (m.Axis != MarkAxis.Value) continue;
             foreach (var v in new[] { m.Value, m.To })
             {
                 if (v is not { } x || !double.IsFinite(x) || (log && x <= 0)) continue;
@@ -392,7 +399,7 @@ internal static class ChartLayout
 
         // Grid lines along the arguments: between bands (where a label starts its band), or at a
         // scale's ticks.
-        if (input.GridLines == ChartGridLines.Both)
+        if (input.ArgumentGrid)
         {
             foreach (var label in model.ArgumentLabels)
             {
@@ -487,7 +494,7 @@ internal static class ChartLayout
                 {
                     points.Add((positions[i], sc(v), i));
                 }
-                else if (!data.ConnectNulls)
+                else if (!data.ConnectGaps)
                 {
                     points.Add(null);
                 }
@@ -583,8 +590,8 @@ internal static class ChartLayout
         foreach (var m0 in marks)
         {
             // A mark on the second axis is placed and written by it, and drawn as a value-axis mark.
-            var on2 = m0.Axis == ChartAxis.Secondary;
-            var m = on2 ? m0 with { Axis = ChartAxis.Value } : m0;
+            var on2 = m0.Axis == MarkAxis.Secondary;
+            var m = on2 ? m0 with { Axis = MarkAxis.Value } : m0;
             var scale = on2 ? secondary : primary;
             string ValueText(double v) => on2
                 ? v.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
@@ -593,7 +600,7 @@ internal static class ChartLayout
             var series = m.Statistic is not null ? input.Series.ToList().FindIndex(s => s.Name == m.Series) : -1;
             switch (m.Kind, m.Axis)
             {
-                case (ChartMarkKind.Line, ChartAxis.Value) when m.Value is { } v:
+                case (ChartMarkKind.Line, MarkAxis.Value) when m.Value is { } v:
                 {
                     var value = ValueText(v);
                     var name = m.Statistic is { } st ? st == ChartStatistic.Average ? input.Text.ChartAverage : input.Text.ChartMedian : null;
@@ -603,7 +610,7 @@ internal static class ChartLayout
                     break;
                 }
 
-                case (ChartMarkKind.Line, ChartAxis.Argument) when At(m.At) is { } p:
+                case (ChartMarkKind.Line, MarkAxis.Argument) when At(m.At) is { } p:
                 {
                     var at = ArgText(m.At);
                     model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, 0, 0, m.Label ?? at));
@@ -611,7 +618,7 @@ internal static class ChartLayout
                     break;
                 }
 
-                case (ChartMarkKind.Band, ChartAxis.Value) when m.Value is { } from && m.To is { } to:
+                case (ChartMarkKind.Band, MarkAxis.Value) when m.Value is { } from && m.To is { } to:
                 {
                     var range = $"{ValueText(Math.Min(from, to))} {input.Text.ChartRangeTo} {ValueText(Math.Max(from, to))}";
                     var (p, q) = (scale(Math.Min(from, to)), scale(Math.Max(from, to)));
@@ -620,7 +627,7 @@ internal static class ChartLayout
                     break;
                 }
 
-                case (ChartMarkKind.Band, ChartAxis.Argument):
+                case (ChartMarkKind.Band, MarkAxis.Argument):
                 {
                     double? p, q;
                     if (kind == ArgumentKind.Category)
@@ -643,7 +650,7 @@ internal static class ChartLayout
                 }
 
                 case (ChartMarkKind.Note, _) when m.Value is { } v && At(m.At) is { } a:
-                    model.Marks.Add(new MarkShape(m.Kind, ChartAxis.Value, scale(v), 0, a, m.Label ?? "") { V = v });
+                    model.Marks.Add(new MarkShape(m.Kind, MarkAxis.Value, scale(v), 0, a, m.Label ?? "") { V = v });
                     model.MarkTexts.Add($"{m.Label}: {ArgText(m.At)}, {ValueText(v)}");
                     break;
             }
@@ -656,7 +663,7 @@ internal static class ChartLayout
     // ---- The second value axis. ----
 
     /// <summary>
-    /// The second value axis, for series with <see cref="ChartAxis.Secondary"/>: its range from
+    /// The second value axis, for series with <see cref="MarkAxis.Secondary"/>: its range from
     /// those series (and its marks), and ticks at the first axis's grid lines, each a round step,
     /// so both read off the same lines. With its own SecondaryMin and SecondaryMax, or a first axis
     /// whose ticks don't reach both ends, it takes its own round ticks instead. Returns its scale.
@@ -676,7 +683,7 @@ internal static class ChartLayout
             }
         }
 
-        foreach (var m in marks.Where(m => m.Axis == ChartAxis.Secondary))
+        foreach (var m in marks.Where(m => m.Axis == MarkAxis.Secondary))
         {
             foreach (var v in new[] { m.Value, m.To })
             {
@@ -770,7 +777,7 @@ internal static class ChartLayout
             model.LabelTexts[si] = s.Values.Select((v, i) => v is { } x ? s.LabelFormat is { } f ? x.ToString(f, culture) : model.ValueTexts[si][i] : null).ToArray();
         }
 
-        var stacked = input.Stacked != ChartStack.None;
+        var stacked = input.Stacked != ChartStacking.None;
         var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots)>();
         foreach (var shape in model.Series)
         {
@@ -1031,7 +1038,7 @@ internal static class ChartLayout
         var secondPx = second < 0 ? 0 : Width(second.ToString(input.SecondaryFormat ?? "N0", input.Culture)) + GapPx;
         var all = input.Series.Where(s => !s.Secondary).SelectMany(s => s.Values).Where(v => v is not null).Select(v => v!.Value).DefaultIfEmpty(0).ToArray();
         var widest = Math.Max(Math.Abs(all.Max()), Math.Abs(all.Min()));
-        var sample = input.Stacked == ChartStack.Full ? "100%" : input.ValueFormatter?.Invoke(widest) ?? widest.ToString(input.ValueFormat ?? "N0", input.Culture);
+        var sample = input.Stacked == ChartStacking.Percent ? "100%" : input.ValueFormatter?.Invoke(widest) ?? widest.ToString(input.ValueFormat ?? "N0", input.Culture);
         return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx + secondPx;
     }
 
@@ -1040,11 +1047,11 @@ internal static class ChartLayout
     private static double Width(string text) => TextWidths.AtSize(text, FontPx);
 
     // Bands: label i shows at stride 1, 2, 4… when i is a multiple of it.
-    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartArgumentLabels mode)
+    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartLabelFit mode)
     {
         var n = positions.Length;
         if (n == 0) return;
-        if (mode == ChartArgumentLabels.All)
+        if (mode == ChartLabelFit.Wrap)
         {
             // Every name, wrapped in its band by CSS.
             model.Wrap = true;
@@ -1070,7 +1077,7 @@ internal static class ChartLayout
 
         // Turned 45° at the widths where they don't all fit flat: a name then needs about a line
         // and a half along the axis, and the axis is as tall as the longest turned name.
-        if (mode == ChartArgumentLabels.Rotate && strides[0] > 1)
+        if (mode == ChartLabelFit.Rotate && strides[0] > 1)
         {
             var flatFrom = Array.IndexOf(strides, 1);
             model.FlatFrom = flatFrom < 0 ? Widths.Length : flatFrom;

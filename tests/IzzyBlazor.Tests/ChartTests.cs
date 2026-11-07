@@ -93,7 +93,7 @@ public class ChartLayoutTests
                 new ChartSeriesData("A", ChartType.Bar, [30, 10]),
                 new ChartSeriesData("B", ChartType.Bar, [70, 30]),
             ])
-        { Stacked = ChartStack.Full, Culture = CultureInfo.InvariantCulture });
+        { Stacked = ChartStacking.Percent, Culture = CultureInfo.InvariantCulture });
 
         var a = model.Series[0].Bars;
         var b = model.Series[1].Bars;
@@ -114,7 +114,7 @@ public class ChartLayoutTests
         double?[] values = [1, 2, null, 4];
         ChartModel Build(bool connect) => ChartLayout.Build(new ChartInput(
             ["a", "b", "c", "d"],
-            [new ChartSeriesData("S", ChartType.Line, values) { ConnectNulls = connect }])
+            [new ChartSeriesData("S", ChartType.Line, values) { ConnectGaps = connect }])
         { Culture = CultureInfo.InvariantCulture });
 
         Assert.Equal(2, Build(false).Series[0].Line!.Count(c => c == 'M'));
@@ -168,18 +168,18 @@ public class ChartLayoutTests
     public void Crowded_names_turn_before_they_skip_or_all_show_wrapped()
     {
         string[] names = [.. Enumerable.Range(1, 12).Select(i => $"Region number {i}")];
-        ChartModel Build(ChartArgumentLabels mode) => ChartLayout.Build(new ChartInput(names,
+        ChartModel Build(ChartLabelFit mode) => ChartLayout.Build(new ChartInput(names,
             [new ChartSeriesData("S", ChartType.Bar, [.. names.Select((_, i) => (double?)i)])])
         { ArgumentLabels = mode, Culture = CultureInfo.InvariantCulture });
 
-        var auto = Build(ChartArgumentLabels.Auto);
-        var turned = Build(ChartArgumentLabels.Rotate);
+        var auto = Build(ChartLabelFit.Skip);
+        var turned = Build(ChartLabelFit.Rotate);
         Assert.Equal(0, auto.FlatFrom);
         Assert.True(turned.FlatFrom > 0 && turned.TurnedPx > 16);
         // Turned, more names show at the narrowest width than flat.
         Assert.True(turned.ArgumentLabels.Count(l => l.From == 0) > auto.ArgumentLabels.Count(l => l.From == 0));
 
-        var all = Build(ChartArgumentLabels.All);
+        var all = Build(ChartLabelFit.Wrap);
         Assert.True(all.Wrap);
         Assert.Equal(12, all.ArgumentLabels.Count(l => l.From == 0));
     }
@@ -200,7 +200,7 @@ public class ChartLayoutTests
             new ChartSeriesData("A", ChartType.Bar, [60]) { Labels = ChartLabels.Auto },
             new ChartSeriesData("B", ChartType.Bar, [40]) { Labels = ChartLabels.Auto },
         ])
-        { Stacked = ChartStack.Stacked, Culture = CultureInfo.InvariantCulture });
+        { Stacked = ChartStacking.Normal, Culture = CultureInfo.InvariantCulture });
         Assert.All(stacked.DataLabels, l => Assert.True(l.Inside && l.DY == 0));
         Assert.Equal(["60", "40"], stacked.DataLabels.Select(l => l.Text));
     }
@@ -236,10 +236,10 @@ public class ChartLayoutTests
             Culture = CultureInfo.InvariantCulture,
             Marks =
             [
-                new(ChartMarkKind.Line, ChartAxis.Value, "Target") { Value = 150 },
-                new(ChartMarkKind.Line, ChartAxis.Value, null) { Statistic = ChartStatistic.Average, Series = "Revenue" },
-                new(ChartMarkKind.Band, ChartAxis.Argument, "Holiday season") { At = "Nov", AtTo = "Dec" },
-                new(ChartMarkKind.Line, ChartAxis.Argument, "Launch") { At = "Jan" },
+                new(ChartMarkKind.Line, MarkAxis.Value, "Target") { Value = 150 },
+                new(ChartMarkKind.Line, MarkAxis.Value, null) { Statistic = ChartStatistic.Average, Series = "Revenue" },
+                new(ChartMarkKind.Band, MarkAxis.Argument, "Holiday season") { At = "Nov", AtTo = "Dec" },
+                new(ChartMarkKind.Line, MarkAxis.Argument, "Launch") { At = "Jan" },
             ],
         });
 
@@ -334,7 +334,7 @@ public class ChartRedrawTests
             new ChartSeriesData("Shown", ChartType.Bar, [10, 20]),
             new ChartSeriesData("Hidden", ChartType.Bar, [500, 500]) { Hidden = true },
         ])
-        { Stacked = ChartStack.Stacked, Culture = CultureInfo.InvariantCulture });
+        { Stacked = ChartStacking.Normal, Culture = CultureInfo.InvariantCulture });
 
         Assert.Empty(model.Series[1].Bars);
         Assert.Equal("20", model.ValueLabels[^1].Text);
@@ -401,9 +401,9 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue and costs")
-            .Add(c => c.ValueFormat, "N1")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Line)));
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Format, "N1"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartLineSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs)));
 
         // One image, named by the caption.
         var caption = cut.Find("figure.ib-chart > figcaption");
@@ -432,8 +432,8 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .Add(c => c.TooltipTemplate, tip => builder => builder.AddContent(0, $"{tip.Argument}: {tip.Item.Revenue - tip.Item.Costs} margin, {tip.Points[0].Series}"))
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+            .AddChildContent<ChartTooltip<Month>>(t => t.Add(x => x.ChildContent, tip => builder => builder.AddContent(0, $"{tip.Argument}: {tip.Item.Revenue - tip.Item.Costs} margin, {tip.Points[0].Series}")))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
 
         var tips = cut.FindAll("ib-chart .ib-chart-tips[hidden] > [data-ib-tip]");
         Assert.Equal(["Jan: 40 margin, Revenue", "Feb: 49.5 margin, Revenue"], tips.Select(t => t.TextContent.Trim()));
@@ -448,7 +448,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, months)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue by plan")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.SeriesBy, m => m.Costs == 1 ? "Basic" : "Pro")));
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.SeriesBy, m => m.Costs == 1 ? "Basic" : "Pro")));
 
         Assert.Equal(["Basic", "Pro"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
         Assert.Equal(["Jan", "100", ""], cut.FindAll(".ib-chart-table tbody tr")[0].Children.Select(c => c.TextContent));
@@ -456,26 +456,25 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
-    public void Axis_titles_sit_beside_their_axes_and_grid_lines_follow_GridLines()
+    public void Axis_titles_sit_beside_their_axes_and_grid_lines_follow_each_axis()
     {
         Month[] months = [new("Jan", 100, 60), new("Feb", 120, 70), new("Mar", 90, 80)];
-        IRenderedComponent<Chart<Month>> Build(ChartGridLines grid) => Render<Chart<Month>>(p => p
+        IRenderedComponent<Chart<Month>> Build(bool grid) => Render<Chart<Month>>(p => p
             .Add(c => c.Items, months)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .Add(c => c.ValueTitle, "Revenue (USD)")
-            .Add(c => c.ArgumentTitle, "Month")
-            .Add(c => c.GridLines, grid)
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Title, "Revenue (USD)").Add(x => x.GridLines, grid))
+            .AddChildContent<ChartArgumentAxis>(a => a.Add(x => x.Title, "Month").Add(x => x.GridLines, grid))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
 
-        var cut = Build(ChartGridLines.Both);
+        var cut = Build(true);
         Assert.Equal("Revenue (USD)", cut.Find(".ib-chart-titled > .ib-chart-title-side").TextContent);
         Assert.Equal("Month", cut.Find(".ib-chart-frame > .ib-chart-title-bottom").TextContent);
         Assert.Equal("Month", cut.Find(".ib-chart-table thead th").TextContent);
         // Between the three bands: two lines.
         Assert.Equal(["33.333%", "66.667%"], cut.FindAll("line.ib-chart-agrid").Select(l => l.GetAttribute("x1")));
 
-        var none = Build(ChartGridLines.None);
+        var none = Build(false);
         Assert.All(none.FindAll("line.ib-chart-grid"), l => Assert.Contains("ib-chart-zero", l.ClassName));
     }
 
@@ -487,11 +486,10 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, months)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .Add(c => c.ValueFormatter, v => $"${v / 1e6:0.#}M")
-            .Add(c => c.ArgumentFormatter, a => $"{a} '26")
-            .Add(c => c.HideArgumentAxis, true)
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs)));
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Formatter, v => $"${v / 1e6:0.#}M"))
+            .AddChildContent<ChartArgumentAxis>(a => a.Add(x => x.Formatter, a => $"{a} '26").Add(x => x.HideLabels, true))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs)));
 
         Assert.Contains("$2.5M", cut.FindAll(".ib-chart-side span").Select(s => s.TextContent));
         Assert.Equal(["Jan '26", "$1.2M", "$0.6M"], cut.FindAll(".ib-chart-table tbody tr")[0].Children.Select(c => c.TextContent));
@@ -510,8 +508,8 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue and costs")
             .Add(c => c.Tooltip, tooltip)
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Labels, ChartLabels.Auto))
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Labels, second)));
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Labels, ChartLabels.Auto))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Labels, second)));
 
         var labeled = Build(null, ChartLabels.Auto);
         Assert.Empty(labeled.FindAll(".ib-chart-tips"));
@@ -528,8 +526,8 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .Add(c => c.ValueFormat, "$#,##0")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Format, "$#,##0"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
             .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target"))
             .AddChildContent<ChartAnnotation>(a => a.Add(x => x.Argument, "Feb").Add(x => x.Value, 120).Add(x => x.Text, "Price change")));
 
@@ -548,7 +546,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Trend, ChartTrend.Linear).Add(x => x.TrendColor, color)));
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Trend, ChartTrend.Linear).Add(x => x.TrendColor, color)));
 
         Assert.Contains("ib-chart-trend", Build(null).Find("path.ib-chart-line").ClassName);
         var own = Build("var(--ib-color-danger)").Find("path.ib-chart-line");
@@ -564,9 +562,9 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue and costs")
             .Add(c => c.Orientation, orientation)
-            .Add(c => c.SecondaryTitle, "Costs")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Line).Add(x => x.Axis, ChartAxis.Secondary)));
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Name, "costs").Add(x => x.Title, "Costs"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartLineSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.ValueAxis, "costs")));
 
         var cut = Build(Orientation.Vertical);
         Assert.Contains("ib-chart-dual", cut.Find(".ib-chart-frame").ClassName);
@@ -576,13 +574,26 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_value_axis_name_no_axis_has_is_an_error()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue and costs")
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Name, "costs"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartLineSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.ValueAxis, "cost"))));
+        Assert.Contains("\"cost\"", error.Message);
+    }
+
+    [Fact]
     public void A_bubbles_size_is_in_the_table_and_the_tooltip_and_it_needs_one()
     {
         var cut = Render<Chart<Month>>(p => p
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Revenue)
             .Add(c => c.Title, "Revenue against costs")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Bubble).Add(x => x.Size, m => m.Revenue)));
+            .AddChildContent<ChartBubbleSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Size, m => m.Revenue)));
 
         Assert.Equal(["Revenue", "Costs", "Revenue"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
         Assert.Equal(2, cut.FindAll("circle.ib-chart-bubble[data-ib-i]").Count);
@@ -591,7 +602,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Revenue)
             .Add(c => c.Title, "Costs")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Bubble))));
+            .AddChildContent<ChartBubbleSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs))));
     }
 
     [Fact]
@@ -611,7 +622,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.TitledBy, "revenue-heading")
-            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
 
         Assert.Empty(cut.FindAll("figcaption"));
         Assert.Equal("revenue-heading", cut.Find("figure").GetAttribute("aria-labelledby"));

@@ -1,9 +1,9 @@
 @* A dashboard card whose heading titles the chart: the chart takes its name from it and shows no
    title of its own. *@
 <Card Title="New signups, last 7 days" TitleId="signups-heading" Description="Trials and paid plans" Width="Length.Full" MaxWidth="32.Rem">
-    <Chart Items="_days" Argument="d => d.Day" TitledBy="signups-heading" Stacked="ChartStack.Stacked" Height="12.Rem">
-        <ChartSeries Value="d => d.Trials" />
-        <ChartSeries Value="d => d.Paid" />
+    <Chart Items="_days" Argument="d => d.Day" TitledBy="signups-heading" Stacking="ChartStacking.Normal" Height="12.Rem">
+        <ChartBarSeries Value="d => d.Trials" />
+        <ChartBarSeries Value="d => d.Paid" />
     </Chart>
 </Card>
 

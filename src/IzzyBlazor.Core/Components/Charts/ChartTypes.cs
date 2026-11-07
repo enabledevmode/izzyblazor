@@ -1,7 +1,7 @@
 namespace IzzyBlazor;
 
-/// <summary>How a <see cref="ChartSeries{TItem}"/> draws its values.</summary>
-public enum ChartType
+/// <summary>How a series draws its values: which series component it is.</summary>
+internal enum ChartType
 {
     /// <summary>A bar for each value: upright columns, or bars across with <see cref="Orientation.Horizontal"/>.</summary>
     Bar,
@@ -26,16 +26,16 @@ public enum ChartType
 }
 
 /// <summary>Whether a chart's bars and areas sit side by side or on top of each other.</summary>
-public enum ChartStack
+public enum ChartStacking
 {
     /// <summary>Bars side by side, areas over each other.</summary>
     None,
 
     /// <summary>Each series on top of the one before, so the stack's height is the total.</summary>
-    Stacked,
+    Normal,
 
     /// <summary>Stacked, with each stack drawn to 100%, so the parts show as shares of the whole.</summary>
-    Full,
+    Percent,
 }
 
 /// <summary>The shape of a line between its values.</summary>
@@ -103,7 +103,7 @@ public enum SparklineType
     Bar,
 }
 
-/// <summary>Where a <see cref="ChartSeries{TItem}"/> writes each value beside its bar or point.</summary>
+/// <summary>Where a series writes each value beside its bar or point.</summary>
 public enum ChartLabels
 {
     /// <summary>No labels.</summary>
@@ -122,7 +122,7 @@ public enum ChartLabels
     Outside,
 }
 
-/// <summary>What a <see cref="ChartSeries{TItem}"/>'s labels do when they'd overlap other labels.</summary>
+/// <summary>What a series's labels do when they'd overlap other labels.</summary>
 public enum ChartLabelOverlap
 {
     /// <summary>A label that would overlap one placed before it is left out at the widths where it would.</summary>
@@ -135,28 +135,15 @@ public enum ChartLabelOverlap
     Show,
 }
 
-/// <summary>Which grid lines a <see cref="Chart{TItem}"/> draws across its plot.</summary>
-public enum ChartGridLines
-{
-    /// <summary>A line at each value on the value axis.</summary>
-    Value,
-
-    /// <summary>Lines at the values, and between the arguments (at each tick on a number or date scale).</summary>
-    Both,
-
-    /// <summary>No grid lines. The zero line stays where values cross zero.</summary>
-    None,
-}
-
-/// <summary>How a <see cref="Chart{TItem}"/> fits the names along its bottom when they don't all fit side by side.</summary>
-public enum ChartArgumentLabels
+/// <summary>How a <see cref="ChartArgumentAxis"/> fits the names along the bottom when they don't all fit side by side.</summary>
+public enum ChartLabelFit
 {
     /// <summary>Names that don't fit are skipped: every other one, then every fourth, and so on.</summary>
-    Auto,
+    Skip,
 
     /// <summary>Names are turned 45° before any are skipped, so more of them show.</summary>
     Rotate,
 
     /// <summary>Every name shows, wrapped onto more lines in its band. Suits a few long names.</summary>
-    All,
+    Wrap,
 }

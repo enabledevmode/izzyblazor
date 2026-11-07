@@ -1,6 +1,7 @@
 @* Monthly revenue with its linear trend. *@
-<Chart Items="_months" Argument="m => m.Month" Title="Revenue by month, 2026" ValueFormat="C0">
-    <ChartSeries Value="m => m.Revenue" Name="Revenue" Trend="ChartTrend.Linear" />
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue by month, 2026">
+    <ChartValueAxis Format="C0" />
+    <ChartBarSeries Value="m => m.Revenue" Name="Revenue" Trend="ChartTrend.Linear" />
 </Chart>
 
 @code {

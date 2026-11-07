@@ -1,8 +1,9 @@
 @* Quarterly revenue in dollars, with the gross margin in percent on a second axis. *@
-<Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue and gross margin" ValueFormat="C0"
-       ValueTitle="Revenue" SecondaryTitle="Gross margin" SecondaryFormat="P0">
-    <ChartSeries Value="q => q.Revenue" Name="Revenue" />
-    <ChartSeries Value="q => q.Margin" Name="Gross margin" Type="ChartType.Line" Axis="ChartAxis.Secondary" Color="var(--ib-chart-6)" />
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue and gross margin">
+    <ChartValueAxis Format="C0" Title="Revenue" />
+    <ChartValueAxis Name="margin" Title="Gross margin" Format="P0" />
+    <ChartBarSeries Value="q => q.Revenue" Name="Revenue" />
+    <ChartLineSeries Value="q => q.Margin" Name="Gross margin" ValueAxis="margin" Color="var(--ib-chart-6)" />
 </Chart>
 
 @code {

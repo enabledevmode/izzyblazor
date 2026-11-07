@@ -1,8 +1,8 @@
 @* Support tickets by channel each week, stacked, each segment labeled in its middle. *@
-<Chart Items="_weeks" Argument="w => w.Week" Title="Support tickets by channel" Stacked="ChartStack.Stacked">
-    <ChartSeries Value="w => w.Email" Labels="ChartLabels.Auto" />
-    <ChartSeries Value="w => w.Chat" Labels="ChartLabels.Auto" />
-    <ChartSeries Value="w => w.Phone" Labels="ChartLabels.Auto" />
+<Chart Items="_weeks" Argument="w => w.Week" Title="Support tickets by channel" Stacking="ChartStacking.Normal">
+    <ChartBarSeries Value="w => w.Email" Labels="ChartLabels.Auto" />
+    <ChartBarSeries Value="w => w.Chat" Labels="ChartLabels.Auto" />
+    <ChartBarSeries Value="w => w.Phone" Labels="ChartLabels.Auto" />
 </Chart>
 
 @code {

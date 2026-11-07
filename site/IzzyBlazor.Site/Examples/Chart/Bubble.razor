@@ -1,16 +1,14 @@
 @* Sales regions by average deal size and win rate, each bubble sized by its open pipeline. *@
-<Chart Items="_regions" Argument="r => r.AverageDeal" SeriesType="ChartType.Bubble"
-       Title="Sales regions: deal size, win rate and pipeline" ArgumentFormat="C0" ValueFormat="P0"
-       ArgumentTitle="Average deal size" ValueTitle="Win rate">
-    <TooltipTemplate>
+<Chart Items="_regions" Argument="r => r.AverageDeal" Title="Sales regions: deal size, win rate and pipeline">
+    <ChartValueAxis Format="P0" Title="Win rate" />
+    <ChartArgumentAxis Format="C0" Title="Average deal size" />
+    <ChartBubbleSeries Value="r => r.WinRate" Size="r => r.Pipeline" SeriesBy="r => r.Segment" />
+    <ChartTooltip>
         <div class="ib-chart-tooltip-title">@context.Item.Region</div>
         <div>Average deal @context.Argument</div>
         <div>Wins @context.Item.WinRate.ToString("P0")</div>
         <div>Pipeline @context.Item.Pipeline.ToString("C0")</div>
-    </TooltipTemplate>
-    <ChildContent>
-        <ChartSeries Value="r => r.WinRate" Size="r => r.Pipeline" SeriesBy="r => r.Segment" />
-    </ChildContent>
+    </ChartTooltip>
 </Chart>
 
 @code {

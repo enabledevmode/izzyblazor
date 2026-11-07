@@ -11,7 +11,7 @@ const loadDraw = () => (drawing ??= import("./parts/chart-draw.js" as string).th
  * goes to a live region), legend items that hide and show their series, and labels fitted to the
  * width they really have.
  *
- * The server draws each item's tooltip (from the chart's TooltipTemplate, if any) in a hidden
+ * The server draws each item's tooltip (from the chart's ChartTooltip, if any) in a hidden
  * list; this copies the one in use into the tooltip. Nothing Blazor renders is changed but
  * attributes Blazor doesn't set (data-ib-hidden, data-ib-fit, aria-pressed, tabindex), and the
  * tooltip's and live region's contents, which Blazor leaves empty.

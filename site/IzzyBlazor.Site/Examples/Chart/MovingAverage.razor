@@ -1,6 +1,6 @@
 @* Daily site visits, which dip every weekend, with a 7-day moving average. *@
-<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Title="Site visits, last 60 days">
-    <ChartSeries Value="d => d.Visits" Name="Visits" Markers="false" Trend="ChartTrend.MovingAverage" TrendPeriod="7" />
+<Chart Items="_days" Argument="d => d.Date" Title="Site visits, last 60 days">
+    <ChartLineSeries Value="d => d.Visits" Name="Visits" Markers="false" Trend="ChartTrend.MovingAverage" TrendPeriod="7" />
 </Chart>
 
 @code {
