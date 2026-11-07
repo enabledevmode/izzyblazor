@@ -808,6 +808,15 @@
           ]
         },
         {
+          "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],
+          "intro": [
+            "The editor's value is sanitized on the server every time it binds, from a post or on an interactive page, by `RichTextSanitizer`. What arrives can be anything, since anyone can post to a form, so the script in the browser only keeps the text tidy and is never trusted. The sanitizer writes a new document from what it allows: paragraphs, headings, lists, quotes, code, rules, bold, italic, underline, strikethrough, links, images and tables, with `href` and `src` limited to web, mail, phone and relative addresses. Scripts, event handlers and `javascript:` links never get through, and neither do styles and classes but the editor's own: its classes for alignment, color, highlight and size, a font or size from your `Fonts` and `FontSizes`, and with `CustomColors` a color or highlight as six hex digits.",
+            "Pasted text goes through the same list, so a paste from Word or a web page keeps its headings, lists and bold, and drops its fonts, colors and classes. Ctrl+Shift+V pastes plain text.",
+            "Show saved HTML with `RichText`, which sanitizes it again as it renders, so HTML saved before, or written by another system, is safe too. To clean HTML yourself, call `RichTextSanitizer.Sanitize`. A Content Security Policy that blocks inline script adds a second line of defense."
+          ],
+          "examples": []
+        },
+        {
           "id": "markdown", "title": "Markdown shortcuts", "summary": "Typed Markdown becomes formats as you type, for people who write it out of habit.", "members": ["MarkdownShortcuts"],
           "intro": [
             "At the start of a line, `## `, `### ` and `#### ` make headings, `- ` or `* ` a bulleted list, `1. ` a numbered list, `> ` a quote, and three backticks and a space a code block. `---` alone on a line, then Enter, makes a horizontal line. In a line, `**bold**`, `*italic*` and `` `code` `` turn into their formats as the closing mark is typed. Ctrl+Z undoes a change.",
@@ -865,15 +874,6 @@
           "examples": [
             { "id": "rich-text-editor-code-blocks", "title": "A code block with its language", "lead": "The editor marks the block as C#; `RichText` below it shows the same value highlighted." }
           ]
-        },
-        {
-          "id": "security", "title": "Security", "summary": "What the editor's value can hold, where it's sanitized, and how to show it safely.", "members": ["RichText"],
-          "intro": [
-            "The editor's value is sanitized on the server every time it binds, from a post or on an interactive page, by `RichTextSanitizer`. What arrives can be anything, since anyone can post to a form, so the script in the browser only keeps the text tidy and is never trusted. The sanitizer writes a new document from what it allows: paragraphs, headings, lists, quotes, code, rules, bold, italic, underline, strikethrough, links, images and tables, with `href` and `src` limited to web, mail, phone and relative addresses. Scripts, event handlers and `javascript:` links never get through, and neither do styles and classes but the editor's own: its classes for alignment, color, highlight and size, a font or size from your `Fonts` and `FontSizes`, and with `CustomColors` a color or highlight as six hex digits.",
-            "Pasted text goes through the same list, so a paste from Word or a web page keeps its headings, lists and bold, and drops its fonts, colors and classes. Ctrl+Shift+V pastes plain text.",
-            "Show saved HTML with `RichText`, which sanitizes it again as it renders, so HTML saved before, or written by another system, is safe too. To clean HTML yourself, call `RichTextSanitizer.Sanitize`. A Content Security Policy that blocks inline script adds a second line of defense."
-          ],
-          "examples": []
         },
         {
           "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["FontSize", "ContentClass", "TopHeading"],
@@ -2335,6 +2335,20 @@
           ]
         },
         {
+          "id": "editing", "title": "Editing", "summary": "Users add, edit and delete rows in a dialog, in the row itself, or one cell at a time.", "members": ["EditMode", "FindItem", "NewItem", "ItemEditable", "ItemDeletable", "EditKey", "EditCopy", "OnSave", "OnDelete", "ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditDialog", "EditField", "EditColumns", "EditLayout", "EditDialogSize", "EditDialogTitle", "EditDialogForm", "DataGridAdd", "Column.Editable", "Column.EditTemplate"],
+          "intro": [
+            "Choose a mode by what there is to edit. `DataGridEditMode.Dialog` has room for many fields, including ones the table doesn't show, and works with rows that load as they're needed. `DataGridEditMode.Row` keeps the row in place, for a few short fields. `DataGridEditMode.Cell` is the quickest way to change one value at a time, on interactive pages. Dialog and Row also work on static pages and with JavaScript off.",
+            "A field shows the value itself, not what the column's `Format` makes of it: a number has no currency sign, and a date follows the browser's language, which can differ from the server's culture the column formats with."
+          ],
+          "examples": [
+            { "id": "data-grid-editing", "title": "Editing rows", "lead": "Dialog editing opens a form in a dialog where the user adds or edits a row. Set `EditMode` to `DataGridEditMode.Dialog`, and handle `OnSave`. Each column, shown or not, gets a field that matches its type. To lock one, such as the key, set its `Editable` to false. A save is a form post, and only editable columns receive a value from it. To reject a save, call `AddError` in `OnSave`. The dialog stays open with the error on its field. To add an Add button, set `NewItem`. To add a Delete action that asks first, set `OnDelete`. To limit editing or deleting by row, set `ItemEditable` or `ItemDeletable`. To order the actions or add your own, write an `ActionColumn`. The grid needs an explicit `TItem`. On static pages, the row type also needs a parameterless constructor." },
+            { "id": "data-grid-edit-in-row", "title": "Editing in the row", "lead": "Row editing changes a row where it stands, with Save and Cancel in place of its actions, and suits a few short fields. Set `EditMode` to `DataGridEditMode.Row`; it works with JavaScript off. Only the columns shown have a field, so a hidden column keeps its value. A new row starts at the top of the page. Sorting or changing page ends the edit and drops what was typed. It can't be used with `Virtualize` or loading on scroll." },
+            { "id": "data-grid-edit-cells", "title": "Editing one cell at a time", "modes": ["interactive"], "lead": "Cell editing changes one value at a time, the quickest way to make small changes. Set `EditMode` to `DataGridEditMode.Cell`. A click, Enter, F2 or typing opens a cell, and Tab, Enter or a click elsewhere saves it. `OnSave` runs for each cell that changed, and an invalid cell stays open. A new row is edited as with `Row`. Cell editing is for interactive pages: on static pages the same grid edits a row at a time, as with `Row`." },
+            { "id": "data-grid-two-columns", "title": "Laying out the edit dialog", "lead": "`EditColumns`, `EditLayout`, `EditDialogSize` and `EditDialogTitle` set up the edit dialog and its form, here two columns in a large dialog. In `EditDialog`, an `EditField` sets each field's place, `ColSpan`, `Label` and `Hint`. A column's `EditTemplate` replaces its field with your own. To show a disabled Delete with a tooltip instead of hiding it, set `DisabledReason` on the `DeleteAction`." },
+            { "id": "data-grid-own-form", "title": "A custom form in the dialog", "lead": "For a form that isn't fields of the row, write it in `EditDialogForm`; its context's `CloseAsync` closes the dialog once you've saved. The grid opens and closes the dialog; the form, its model and its post are yours. On static pages, guard against forged fields with a view model, as this example does." }
+          ]
+        },
+        {
           "id": "filtering", "title": "Filtering", "summary": "Users filter each column from its header or from a filter row under the titles. A filter builder combines conditions across columns.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterRow", "FilterBuilder", "FilterFromQuery", "Searchable", "Search", "SearchLabel", "DataGridSearch", "DataGridFilterBuilder", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "data-grid-filters", "title": "Column filters", "lead": "A column filter narrows the rows by the values in one column. A filter icon in the column's header opens a panel where the user picks an operator, such as contains or between, and enters a value. It's the standard way to filter, and it keeps the header compact. Set `Filterable` on a column to add one. To limit the operators a column offers, set `FilterOperators`; the first one is the default. To list every active filter below the rows, set `FilterPanel`.",
@@ -2385,20 +2399,6 @@
           "notes": {
             "noscript": "The detail shows the hidden columns' values and any message instead of fields, as it does if IzzyBlazor's script fails to load. An edited row keeps those values, and a new row gets their defaults. Edit them where the grid is wide enough to show them."
           } }
-          ]
-        },
-        {
-          "id": "editing", "title": "Editing", "summary": "Users add, edit and delete rows in a dialog, in the row itself, or one cell at a time.", "members": ["EditMode", "FindItem", "NewItem", "ItemEditable", "ItemDeletable", "EditKey", "EditCopy", "OnSave", "OnDelete", "ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditDialog", "EditField", "EditColumns", "EditLayout", "EditDialogSize", "EditDialogTitle", "EditDialogForm", "DataGridAdd", "Column.Editable", "Column.EditTemplate"],
-          "intro": [
-            "Choose a mode by what there is to edit. `DataGridEditMode.Dialog` has room for many fields, including ones the table doesn't show, and works with rows that load as they're needed. `DataGridEditMode.Row` keeps the row in place, for a few short fields. `DataGridEditMode.Cell` is the quickest way to change one value at a time, on interactive pages. Dialog and Row also work on static pages and with JavaScript off.",
-            "A field shows the value itself, not what the column's `Format` makes of it: a number has no currency sign, and a date follows the browser's language, which can differ from the server's culture the column formats with."
-          ],
-          "examples": [
-            { "id": "data-grid-editing", "title": "Editing rows", "lead": "Dialog editing opens a form in a dialog where the user adds or edits a row. Set `EditMode` to `DataGridEditMode.Dialog`, and handle `OnSave`. Each column, shown or not, gets a field that matches its type. To lock one, such as the key, set its `Editable` to false. A save is a form post, and only editable columns receive a value from it. To reject a save, call `AddError` in `OnSave`. The dialog stays open with the error on its field. To add an Add button, set `NewItem`. To add a Delete action that asks first, set `OnDelete`. To limit editing or deleting by row, set `ItemEditable` or `ItemDeletable`. To order the actions or add your own, write an `ActionColumn`. The grid needs an explicit `TItem`. On static pages, the row type also needs a parameterless constructor." },
-            { "id": "data-grid-edit-in-row", "title": "Editing in the row", "lead": "Row editing changes a row where it stands, with Save and Cancel in place of its actions, and suits a few short fields. Set `EditMode` to `DataGridEditMode.Row`; it works with JavaScript off. Only the columns shown have a field, so a hidden column keeps its value. A new row starts at the top of the page. Sorting or changing page ends the edit and drops what was typed. It can't be used with `Virtualize` or loading on scroll." },
-            { "id": "data-grid-edit-cells", "title": "Editing one cell at a time", "modes": ["interactive"], "lead": "Cell editing changes one value at a time, the quickest way to make small changes. Set `EditMode` to `DataGridEditMode.Cell`. A click, Enter, F2 or typing opens a cell, and Tab, Enter or a click elsewhere saves it. `OnSave` runs for each cell that changed, and an invalid cell stays open. A new row is edited as with `Row`. Cell editing is for interactive pages: on static pages the same grid edits a row at a time, as with `Row`." },
-            { "id": "data-grid-two-columns", "title": "Laying out the edit dialog", "lead": "`EditColumns`, `EditLayout`, `EditDialogSize` and `EditDialogTitle` set up the edit dialog and its form, here two columns in a large dialog. In `EditDialog`, an `EditField` sets each field's place, `ColSpan`, `Label` and `Hint`. A column's `EditTemplate` replaces its field with your own. To show a disabled Delete with a tooltip instead of hiding it, set `DisabledReason` on the `DeleteAction`." },
-            { "id": "data-grid-own-form", "title": "A custom form in the dialog", "lead": "For a form that isn't fields of the row, write it in `EditDialogForm`; its context's `CloseAsync` closes the dialog once you've saved. The grid opens and closes the dialog; the form, its model and its post are yours. On static pages, guard against forged fields with a view model, as this example does." }
           ]
         },
         {

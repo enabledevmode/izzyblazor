@@ -10,6 +10,10 @@
 <TextBlock>The accent sets a button's color, and the variant sets how strongly it stands out, from a solid fill to a link. Set <Code>Accent</Code> and <Code>Variant</Code>. Keep one solid primary button per area, for its main action.</TextBlock>
 <ExampleViewer Example="button-variants" />
 
+<Heading Level="2">Sizes and icons</Heading>
+<TextBlock>A button's size should match the fields beside it. Set <Code>Size</Code> to choose one. To show an icon before or after the label, set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
+<ExampleViewer Example="button-sizes-icons" />
+
 <Heading Level="2">Submit and reset</Heading>
 <TextBlock>A submit button posts its <Anchor Href="docs/components/form">Form</Anchor>, and a reset button resets its fields. Set <Code>Submit</Code> or <Code>Reset</Code> on a button inside the form. The browser does the work, so the form posts <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
 <ExampleViewer Example="button-submit-reset" />
@@ -22,17 +26,13 @@
 <TextBlock>A button can be a link that looks like a button, for an action that opens a page. Set <Code>Href</Code> to render a link. To open it in a new tab, set <Code>External</Code>.</TextBlock>
 <ExampleViewer Example="button-links" />
 
-<Heading Level="2">Sizes and icons</Heading>
-<TextBlock>A button's size should match the fields beside it. Set <Code>Size</Code> to choose one. To show an icon before or after the label, set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>
-<ExampleViewer Example="button-sizes-icons" />
+<Heading Level="2">Running C# on click</Heading>
+<TextBlock>On interactive pages, a button can run C# when it's clicked. Set <Code>OnClick</Code> to the method. On static pages, use <Code>Submit</Code> or <Code>Href</Code> instead.</TextBlock>
+<ExampleViewer Example="button-on-click" />
 
 <Heading Level="2">Loading and disabled</Heading>
 <TextBlock>A loading button shows a spinner and blocks clicks while its action runs. Set <Code>Loading</Code> to show it. To turn the button off, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="button-states" />
-
-<Heading Level="2">Running C# on click</Heading>
-<TextBlock>On interactive pages, a button can run C# when it's clicked. Set <Code>OnClick</Code> to the method. On static pages, use <Code>Submit</Code> or <Code>Href</Code> instead.</TextBlock>
-<ExampleViewer Example="button-on-click" />
 
 <Heading Level="2">Toggle buttons</Heading>
 <TextBlock>For a button that stays on or off, such as a filter, use a <Anchor Href="docs/components/toggle-button">ToggleButton</Anchor>.</TextBlock>
