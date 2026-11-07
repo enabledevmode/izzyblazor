@@ -14,16 +14,17 @@
 @code {
     private sealed record Message(bool Mine, string Text, DateTimeOffset Time);
 
-    private static readonly DateTimeOffset Today = DateTimeOffset.Now.Date;
+    private readonly List<Message> _messages = Conversation(DateTimeOffset.Now);
 
-    private readonly List<Message> _messages =
+    // Times from when the page opens: yesterday's messages, and a few minutes ago.
+    private static List<Message> Conversation(DateTimeOffset now) =>
     [
-        new(false, "Hi, my order #4821 arrived without the charger.", Today.AddDays(-1).AddHours(16).AddMinutes(12)),
-        new(false, "It's the 65 W one that comes with the laptop.", Today.AddDays(-1).AddHours(16).AddMinutes(13)),
-        new(true, "Sorry about that, Dana. I've sent a charger by express; it should arrive tomorrow morning.", Today.AddDays(-1).AddHours(16).AddMinutes(20)),
-        new(false, "It came this morning, thanks!", Today.AddHours(9).AddMinutes(5)),
-        new(true, "Great to hear.", Today.AddHours(9).AddMinutes(7)),
-        new(true, "Is there anything else I can help with?", Today.AddHours(9).AddMinutes(7)),
+        new(false, "Hi, my order #4821 arrived without the charger.", now.AddDays(-1).AddMinutes(-40)),
+        new(false, "It's the 65 W one that comes with the laptop.", now.AddDays(-1).AddMinutes(-39)),
+        new(true, "Sorry about that, Dana. I've sent a charger by express; it should arrive tomorrow.", now.AddDays(-1).AddMinutes(-32)),
+        new(false, "It came today, thanks!", now.AddMinutes(-6)),
+        new(true, "Great to hear.", now.AddMinutes(-4)),
+        new(true, "Is there anything else I can help with?", now.AddMinutes(-4)),
     ];
 
     private void Send(ChatSendArgs message) => _messages.Add(new Message(true, message.Text, DateTimeOffset.Now));
