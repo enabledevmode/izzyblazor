@@ -418,7 +418,9 @@
 
         @* A bubble chart's size key goes where the legend does, with or without the series' keys. *@
         var keyed = legend || (Legend != ChartLegend.None && model.SizeKey is not null);
-        <ib-chart class="@(keyed ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") : null)" style="@RootStyle(model, waterfall)"
+        @* In the top corner, across from the title, when the chart is wide enough (chart.css). *@
+        var cornerKey = keyed && model.SizeKey is not null && TitledBy is null && !HideTitle && Place is ChartLegend.Top or ChartLegend.Bottom;
+        <ib-chart class="@(keyed ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") + (cornerKey ? " ib-chart-kc" : "") : null)" style="@RootStyle(model, waterfall)"
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
