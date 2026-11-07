@@ -264,6 +264,13 @@
 
   .ib-chart-key .ib-chart-bubble { fill: var(--ib-chart-see); }
 
+  /* A bubble chart's size key: outlined circles on one base, each value level with its top. */
+  .ib-chart-size-key { display: inline-flex; align-items: center; gap: var(--ib-space-2); }
+  .ib-chart-size-key circle { fill: none; stroke: var(--ib-color-muted); }
+  .ib-chart-size-key line { stroke: var(--ib-color-muted); stroke-dasharray: 1 2; }
+  .ib-chart-size-texts { display: grid; margin-inline-start: calc(-1 * var(--ib-space-1)); font-size: var(--ib-text-xs); line-height: 1; color: var(--ib-color-muted); }
+  .ib-chart-size-texts > span { grid-area: 1 / 1; align-self: start; position: relative; translate: 0 -50%; white-space: nowrap; }
+
   /* Value labels (a series' Labels), centered on the spot the server (or the script) worked
      out, in the text color with a halo of the surface so they read on a bar or a grid line. */
   .ib-chart-dl {

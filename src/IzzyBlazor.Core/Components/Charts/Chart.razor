@@ -329,7 +329,8 @@
         var arguments = items.Select(_argument!).ToList();
         ReadAxes();
         var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items)).Select(OnAxis).ToList(), arguments, TextDefaults);
-        var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None));
+        // Off by default when every series writes its values beside them; labels of other text keep it.
+        var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null));
         if (series.Any(s => s.Secondary))
         {
             if (Orientation == Orientation.Horizontal)
@@ -414,16 +415,18 @@
         var mixed = model.Series.Any(s => s.Bars.Count > 0) && model.Series.Any(s => s.Line is not null || s.Marks.Count > 0);
         var bottomTitle = horizontal ? ValueTitle : ArgumentTitle;
 
-        <ib-chart class="@(legend ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") : null)" style="@RootStyle(model, waterfall)"
+        @* A bubble chart's size key goes where the legend does, with or without the series' keys. *@
+        var keyed = legend || (Legend != ChartLegend.None && model.SizeKey is not null);
+        <ib-chart class="@(keyed ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") : null)" style="@RootStyle(model, waterfall)"
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        @if (legend && Place is ChartLegend.Top or ChartLegend.Start)
+        @if (keyed && Place is ChartLegend.Top or ChartLegend.Start)
         {
-            @LegendList(model, waterfall, marks)
+            @LegendList(model, waterfall, marks, legend)
         }
         @* Its own size container, so the labels fit the plot's width with a legend beside it. *@
         <div class="ib-chart-main">
@@ -608,9 +611,9 @@
             }
         </div>
         </div>
-        @if (legend && Place is not (ChartLegend.Top or ChartLegend.Start))
+        @if (keyed && Place is not (ChartLegend.Top or ChartLegend.Start))
         {
-            @LegendList(model, waterfall, marks)
+            @LegendList(model, waterfall, marks, legend)
         }
 
         @if (tooltip)
@@ -727,7 +730,7 @@
     };
 
     // The legend: a waterfall's keys to its colors, or a toggle for each series.
-    private RenderFragment LegendList(ChartModel model, ChartSeriesData? waterfall, string marks) => @<text>
+    private RenderFragment LegendList(ChartModel model, ChartSeriesData? waterfall, string marks, bool toggles) => @<text>
         @if (waterfall is not null)
         {
             @* A waterfall's keys: what each color means. Not toggles: there's one series. *@
@@ -749,7 +752,7 @@
         else
         {
             <ul class="@LegendListClass">
-                @foreach (var s in model.Series)
+                @foreach (var s in toggles ? model.Series : [])
                 {
                     <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">
                         @* The script makes this a toggle button that hides and shows the series. *@
@@ -779,9 +782,40 @@
                         </span>
                     </li>
                 }
+                @if (model.SizeKey is { } key)
+                {
+                    @SizeKeyItem(key)
+                }
             </ul>
         }
 
+    </text>;
+
+    // A bubble chart's size key: what the sizes measure, then reference circles standing on one
+    // base, each value level with its circle's top along a dotted leader.
+    private static RenderFragment SizeKeyItem((string Name, List<(string Text, double R)> Circles) key) => @<text>
+        @{
+            var big = key.Circles.Max(c => c.R);
+            var height = Math.Ceiling(big * 2 + 2);
+            var width = Math.Ceiling(big * 2 + 8);
+        }
+        <li class="ib-chart-size-key">
+            <span>@key.Name</span>
+            <svg width="@Num(width)" height="@Num(height)" aria-hidden="true">
+                @foreach (var (_, r) in key.Circles)
+                {
+                    var top = height - 1 - r * 2;
+                    <circle cx="@Num(big + 1)" cy="@Num(height - 1 - r)" r="@Num(r)" />
+                    <line x1="@Num(big + 1)" x2="@Num(width)" y1="@Num(top)" y2="@Num(top)" />
+                }
+            </svg>
+            <span class="ib-chart-size-texts" style="height:@(Num(height))px">
+                @foreach (var (text, r) in key.Circles)
+                {
+                    <span style="top:@(Num(height - 1 - r * 2))px">@text</span>
+                }
+            </span>
+        </li>
     </text>;
 
     // A bar's rounded end, and a waterfall bar's color by whether it adds, takes away or totals.

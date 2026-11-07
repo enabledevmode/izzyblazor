@@ -519,7 +519,9 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     }
     if (data.m) {
       marks += `<g ${attrs(s, data.t >= 3 ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")}>`;
-      for (const p of points) {
+      // Larger bubbles first, so none covers a smaller one of its series.
+      const drawn = data.t === 4 ? points.filter((p) => p).sort((a, b) => (data.r?.[b![2]] ?? 0) - (data.r?.[a![2]] ?? 0)) : points;
+      for (const p of drawn) {
         if (!p) continue;
         const [x, y] = d.h ? [p[1], p[0]] : [p[0], 1 - p[1]];
         const radius = data.r?.[p[2]];

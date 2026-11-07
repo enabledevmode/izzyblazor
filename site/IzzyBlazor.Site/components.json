@@ -2223,13 +2223,15 @@
       "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows three measures at once: a circle for each item at two, sized by the third.", "keywords": ["bubble chart", "bubble plot"],
       "features": [
         { "feature": "Circles sized by area, on one scale across series" },
+        { "feature": "A size key of reference circles beside the legend" },
+        { "feature": "Each bubble named on the chart" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-bubble", "title": "Bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each region's open pipeline. Circles are sized by area, so a pipeline twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. The tooltip and Show data give the size, named after its property." }
+        { "id": "chart-bubble", "title": "Named bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each product's revenue. Circles are sized by area, so revenue twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. A size key beside the chart gives round sizes near the largest and a quarter of it; `SizeFormat` sets how sizes read there, in the tooltip and in Show data. With few bubbles, name each one with `LabelText`, so the reader knows which is which without pointing at it; names that would collide are left out at the widths where they would. Larger bubbles are drawn first, so none hides a smaller one." }
       ]
     },
     {

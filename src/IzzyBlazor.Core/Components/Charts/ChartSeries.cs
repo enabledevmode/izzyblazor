@@ -24,6 +24,9 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private string? _memberName;
     private Expression<Func<TItem, object?>>? _lastSeriesBy;
     private Func<TItem, object?>? _seriesBy;
+    private Expression<Func<TItem, object?>>? _lastLabelText;
+    private Func<TItem, object?>? _labelText;
+    private string?[]? _labelTexts;
 
     private protected ChartSeriesBase()
     {
@@ -59,6 +62,13 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>A .NET format string for this series' labels, such as <c>C0</c>. Defaults to the values' own text.</summary>
     [Parameter] public string? LabelFormat { get; set; }
+
+    /// <summary>
+    /// What each label says in place of its value, such as <c>r =&gt; r.Region</c> to name each
+    /// bubble or point. Setting it turns the labels on (<see cref="ChartLabels.Auto"/>, unless
+    /// <see cref="Labels"/> says otherwise), and the tooltip stays on for the values.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? LabelText { get; set; }
 
     /// <summary>
     /// What labels do when they'd overlap others: left out at those widths (<see cref="ChartLabelOverlap.Hide"/>,
@@ -120,6 +130,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual Expression<Func<TItem, object?>>? SizeOf => null;
 
+    private protected virtual string? SizeFormatOf => null;
+
     // A waterfall's: which items are totals, and the colors of rises and falls.
     private protected virtual Func<TItem, bool>? TotalOf => null;
 
@@ -165,6 +177,12 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             throw new ArgumentOutOfRangeException("Opacity", opacity, $"A {Kind}'s Opacity goes from 0 to 1.");
         }
 
+        if (!ReferenceEquals(LabelText, _lastLabelText))
+        {
+            _lastLabelText = LabelText;
+            _labelText = LabelText?.Compile();
+        }
+
         var size = SizeOf;
         if (!ReferenceEquals(size, _lastSize))
         {
@@ -203,6 +221,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         }
 
         var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        _labelTexts = _labelText is null ? null : items.Select(item => _labelText(item)?.ToString()).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
         if (IsWaterfall)
         {
@@ -249,10 +268,12 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             Markers = MarkersOf,
             ConnectGaps = ConnectGapsOf,
             EndLabel = EndLabelOf,
+            SizeFormat = SizeFormatOf,
             Opacity = OpacityOf,
             Hidden = Hidden,
-            Labels = Labels,
+            Labels = Labels == ChartLabels.None && _labelText is not null ? ChartLabels.Auto : Labels,
             LabelFormat = LabelFormat,
+            LabelTexts = _labelTexts,
             LabelOverlap = LabelOverlap,
             Trend = Trend,
             TrendOrder = TrendOrder,
@@ -395,7 +416,15 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 
     private protected override ChartType Type => ChartType.Bubble;
 
+    /// <summary>
+    /// A .NET format string for the sizes, such as <c>C0</c> or <c>$#,##0,,.#M</c>, in the
+    /// tooltip, the data table and the size key. Defaults to the sizes' own text.
+    /// </summary>
+    [Parameter] public string? SizeFormat { get; set; }
+
     private protected override Expression<Func<TItem, object?>>? SizeOf => Size;
+
+    private protected override string? SizeFormatOf => SizeFormat;
 }
 
 /// <summary>

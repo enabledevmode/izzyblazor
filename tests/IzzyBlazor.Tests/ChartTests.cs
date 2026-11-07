@@ -301,12 +301,17 @@ public class ChartLayoutTests
             [new ChartSeriesData("Markets", ChartType.Bubble, [5, 8, 6]) { Sizes = [100, 400, 0], SizeName = "Customers" }])
         { Culture = CultureInfo.InvariantCulture, HeightPx = 320 });
 
+        // Largest first, so none covers a smaller one.
         var marks = model.Series[0].Marks;
-        Assert.Equal([0, 1], marks.Select(m => m.Index));
+        Assert.Equal([1, 0], marks.Select(m => m.Index));
         // Four times the size, twice the radius; the largest is an eighth of the plot's height.
-        Assert.Equal(2, marks[1].R!.Value / marks[0].R!.Value, 6);
-        Assert.Equal(40, marks[1].R!.Value, 6);
-        Assert.Contains("Customers: 400", marks[1].Title);
+        Assert.Equal(2, marks[0].R!.Value / marks[1].R!.Value, 6);
+        Assert.Equal(40, marks[0].R!.Value, 6);
+        Assert.Contains("Customers: 400", marks[0].Title);
+
+        // The size key: round sizes near the largest and a quarter of it, at their bubbles' radii.
+        Assert.Equal("Customers", model.SizeKey!.Value.Name);
+        Assert.Equal([("400", 40.0), ("100", 20.0)], model.SizeKey.Value.Circles.Select(c => (c.Text, Math.Round(c.R, 6))));
     }
 
     [Fact]

@@ -20,6 +20,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public bool EndLabel { get; init; }
     public ChartLabels Labels { get; init; }
     public string? LabelFormat { get; init; }
+
+    /// <summary>Each item's label text in place of its value (a series' LabelText), or null.</summary>
+    public string?[]? LabelTexts { get; init; }
     public ChartLabelOverlap LabelOverlap { get; init; }
     public ChartTrend Trend { get; init; }
     public int TrendOrder { get; init; } = 2;
@@ -42,6 +45,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public double?[]? Sizes { get; init; }
 
     public string? SizeName { get; init; }
+
+    /// <summary>A .NET format for a bubble series' sizes, in the tooltip, data table and size key.</summary>
+    public string? SizeFormat { get; init; }
 
     /// <summary>A waterfall's totals by item (null for other series); a total's value is everything before it.</summary>
     public bool[]? Totals { get; init; }
@@ -166,6 +172,12 @@ internal sealed class ChartModel
     public List<SeriesShape> Series { get; } = [];
     public List<DataLabel> DataLabels { get; } = [];
 
+    /// <summary>
+    /// A bubble chart's key to its sizes: what they measure, and reference circles (a round value
+    /// near the largest size, and a quarter of it) at the radius a bubble of that size has.
+    /// </summary>
+    public (string Name, List<(string Text, double R)> Circles)? SizeKey { get; set; }
+
     /// <summary>The series' names past the plot's end (a series' EndLabel), and the room they take, in pixels.</summary>
     public List<LineEndLabel> EndLabels { get; } = [];
 
@@ -261,7 +273,7 @@ internal static class ChartLayout
             Horizontal = input.Horizontal,
             Kind = kind,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
-            SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString("#,##0.##", culture) : null).ToArray()).ToArray(),
+            SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString(s.SizeFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : Change(s, i) ? Signed(x, y => input.ValueFormatter?.Invoke(y) ?? y.ToString(input.ValueFormat ?? "#,##0.##", culture))
@@ -470,6 +482,14 @@ internal static class ChartLayout
         var maxSize = input.Series.Where(s => s.Type == ChartType.Bubble && s.Sizes is not null)
             .SelectMany(s => s.Sizes!).Where(v => v is > 0 && double.IsFinite(v.Value)).Select(v => v!.Value).DefaultIfEmpty(1).Max();
         var maxRadius = Math.Clamp(plotHeight / 8, 12, 40);
+        if (input.Series.FirstOrDefault(s => s.Type == ChartType.Bubble && s.Sizes is not null && s.Sizes.Any(v => v is > 0)) is { } bubbles)
+        {
+            // Round values a reader can take in: near the largest size, and a quarter of it (half the radius).
+            var circles = new[] { RoundDown(maxSize), RoundDown(maxSize / 4) }.Where(v => v > 0).Distinct()
+                .Select(v => (v.ToString(bubbles.SizeFormat ?? "#,##0.##", culture), Math.Max(2, Math.Sqrt(v / maxSize) * maxRadius))).ToList();
+            model.SizeKey = (bubbles.SizeName ?? input.Text.ChartSize, circles);
+        }
+
         var lineStyle = 0;
         var palette = 0;
         var ends = new List<(int S, double Y)>();
@@ -608,6 +628,9 @@ internal static class ChartLayout
 
                     shape.Marks.Add(new PointMark(x * 100, y * 100, title, point.I));
                 }
+
+                // Larger bubbles first, so none covers a smaller one of its series.
+                if (data.Type == ChartType.Bubble) shape.Marks.Sort((a, b) => (b.R ?? 0).CompareTo(a.R ?? 0));
             }
         }
 
@@ -834,6 +857,14 @@ internal static class ChartLayout
         if (i >= 0) labels[i] = labels[i] with { Text = shape.Prefix + "0" };
     }
 
+    /// <summary><paramref name="x"/> rounded down to one significant digit: 46 million is 40 million.</summary>
+    private static double RoundDown(double x)
+    {
+        if (!(x > 0) || !double.IsFinite(x)) return 0;
+        var power = Math.Pow(10, Math.Floor(Math.Log10(x)));
+        return Math.Floor(x / power * (1 + 1e-12)) * power;
+    }
+
     /// <summary>The round step (1, 2 or 5 times a power of ten) at or above <paramref name="raw"/>; with <paramref name="up"/>, the next one past it.</summary>
     private static double NiceStep(double raw, bool up = false)
     {
@@ -868,6 +899,7 @@ internal static class ChartLayout
             var s = input.Series[si];
             if (s.Labels == ChartLabels.None) continue;
             model.LabelTexts[si] = s.Values.Select((v, i) => v is not { } x ? null
+                : s.LabelTexts is { } given ? (i < given.Length ? given[i] : null)
                 : s.LabelFormat is not { } f ? model.ValueTexts[si][i]
                 : Change(s, i) ? Signed(x, y => y.ToString(f, culture)) : x.ToString(f, culture)).ToArray();
         }
