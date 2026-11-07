@@ -83,6 +83,34 @@ public class RichTextMarkdownTests
         Assert.DoesNotContain("href=\"data:", html, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    // Tags the sanitizer wouldn't keep read as written, as an assistant's .NET answers need.
+    [InlineData("Use List<string> or <Button />.", "List&lt;string&gt; or &lt;Button /&gt;.")]
+    [InlineData("Press <kbd>Ctrl</kbd>, then <b>Save</b>.", "&lt;kbd&gt;Ctrl&lt;/kbd&gt;, then <strong>Save</strong>.")]
+    // GitHub's mailto: and xmpp: links take their scheme; xmpp: one /resource.
+    [InlineData("mailto:foo@bar.baz", """<a href="mailto:foo@bar.baz">mailto:foo@bar.baz</a>""")]
+    // GitHub's strikethrough: the nearest tildes, and only the same number of them.
+    [InlineData("~d~~ ~~e~", "~d~~ ~~e~")]
+    // A language in capitals is still highlighted.
+    [InlineData("""
+        ```CSharp
+        var x = 1;
+        ```
+        """, """<code class="language-csharp">""")]
+    public void Shows_what_was_meant(string markdown, string expected) =>
+        Assert.Contains(expected, RichTextMarkdown.ToHtml(markdown));
+
+    [Fact]
+    public void Links_xmpp_addresses_with_one_resource() =>
+        Assert.Contains("""<a href="xmpp:foo@bar.baz/txt">xmpp:foo@bar.baz/txt</a>/bin""", RichTextMarkdown.Render("xmpp:foo@bar.baz/txt/bin"));
+
+    [Fact]
+    public void A_streaming_reply_holds_back_a_line_that_would_make_a_heading()
+    {
+        Assert.DoesNotContain("<h2>", RichTextMarkdown.Render("Para\n-", streaming: true));
+        Assert.Contains("<h2>Para</h2>", RichTextMarkdown.Render("Para\n---\n", streaming: true));
+    }
+
     [Fact]
     public void Writes_what_the_editor_and_RichText_know()
     {
@@ -108,8 +136,8 @@ public class RichTextMarkdownTests
         Assert.Contains("<h2>Plan</h2>", html);
         Assert.Contains("""<th class="ib-align-end">Hours</th>""", html);
         Assert.Contains("""<td class="ib-align-end">6</td>""", html);
-        Assert.Contains("""<li><input type="checkbox" disabled checked> Draft</li>""", html);
-        Assert.Contains("""<input type="checkbox" disabled> <s>Review</s>""", html);
+        Assert.Contains("""<li><input type="checkbox" disabled checked aria-label="Draft"> Draft</li>""", html);
+        Assert.Contains("""<input type="checkbox" disabled aria-label="Review"> <s>Review</s>""", html);
         Assert.Contains("""<pre><code class="language-csharp">var x = 1;""", html);
         Assert.Contains("""<a href="http://www.example.com">www.example.com</a>.""", html);
     }

@@ -59,6 +59,9 @@ public static class RichTextSanitizer
     private const int MaxDepth = 64;
 
     // Allowed elements and the name each is written as.
+    /// <summary>Whether an element by this name (lowercase) is kept, as itself or its equivalent.</summary>
+    internal static bool Keeps(string name) => Renames.ContainsKey(name) || name == "input";
+
     private static readonly Dictionary<string, string> Renames = new(StringComparer.Ordinal)
     {
         ["p"] = "p", ["div"] = "p",
@@ -549,8 +552,9 @@ public static class RichTextSanitizer
         }
 
         // A code block's language, as Markdown, Prism and highlight.js write it: language-csharp.
+        // Lowercase, so a code block marked CSharp or JSON is highlighted as csharp or json.
         private static string? Language(string value) =>
-            value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            value.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .FirstOrDefault(c => c.Length <= 33 && c.StartsWith("language-", StringComparison.Ordinal)
                     && c[9..].Length > 0 && c[9..].All(ch => ch is >= 'a' and <= 'z' or >= '0' and <= '9' or '+' or '#' or '-'));
 

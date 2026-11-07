@@ -67,12 +67,12 @@ public partial class RichText : Prose
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (Html is not null && Markdown is not null)
+        if (!string.IsNullOrEmpty(Html) && !string.IsNullOrEmpty(Markdown))
         {
             throw new InvalidOperationException("RichText shows Html or Markdown, not both.");
         }
 
-        var source = Markdown is null ? Html : RichTextMarkdown.Render(Markdown);
+        var source = string.IsNullOrEmpty(Markdown) ? Html : RichTextMarkdown.Render(Markdown, display: true);
         var html = Highlight(RichTextSanitizer.Sanitize(source, labelTasks: true, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
         // The editor's content classes (alignment, color, size) and task lists have a sheet of their own.
         if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal) || html.Contains("<input", StringComparison.Ordinal))
