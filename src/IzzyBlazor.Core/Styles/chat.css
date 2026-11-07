@@ -118,11 +118,22 @@
 
   .ib-chat-bubble { min-inline-size: 0; max-inline-size: 100%; }
 
-  .ib-chat-mine .ib-chat-bubble {
+  /* Yours: a bubble tinted with the accent. Others', in a conversation: a neutral one. */
+  :is(.ib-chat-mine, .ib-chat-conversation .ib-chat-other) .ib-chat-bubble {
     padding: var(--ib-space-2) var(--ib-space-3);
     border-radius: var(--ib-radius-lg);
     background-color: var(--ib-color-fill-subtle);
   }
+
+  .ib-chat-entry.ib-chat-mine .ib-chat-bubble { background-color: color-mix(in oklab, var(--ib-color-primary) 14%, var(--ib-color-surface)); }
+
+  .ib-chat-conversation .ib-chat-other { max-inline-size: min(80%, 40rem); }
+  .ib-chat-conversation .ib-chat-other .ib-chat-body { flex: 0 1 auto; }
+
+  /* Entries in a row from one person: closer, with the name, avatar and time shown once. */
+  .ib-chat-continued { margin-block-start: calc(var(--ib-space-1) - var(--ib-space-4)); }
+  .ib-chat-continued .ib-chat-avatar { visibility: hidden; }
+  .ib-chat-continued .ib-chat-meta { display: none; }
 
   .ib-chat-text {
     margin: 0;
@@ -297,6 +308,6 @@
       background-color: CanvasText;
     }
 
-    .ib-chat-mine .ib-chat-bubble { border: 1px solid CanvasText; }
+    :is(.ib-chat-mine, .ib-chat-conversation .ib-chat-other) .ib-chat-bubble { border: 1px solid CanvasText; }
   }
 }

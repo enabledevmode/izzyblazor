@@ -1,11 +1,12 @@
-@* A support thread with a customer, as the agent sees it: your replies at the end, theirs with
-   their name and picture, and the day above each day's first message. *@
+@* A support thread with a customer, as the agent sees it: everyone's messages in bubbles, yours
+   at the end with your team's logo, theirs with their name and initials, the day above each
+   day's first message, and messages in a row grouped. *@
 <Chat Label="Conversation with Dana Whitfield" FormName="support-thread" OnSend="Send"
-      Height="Length.Rem(28)" Placeholder="Reply to Dana">
+      Appearance="ChatAppearance.Conversation" Height="Length.Rem(30)" Placeholder="Reply to Dana">
     @foreach (var message in _messages)
     {
         <ChatEntry Mine="message.Mine" Author="@(message.Mine ? null : "Dana Whitfield")" Text="@message.Text"
-                   Time="message.Time" Copyable="false" />
+                   Avatar="@(message.Mine ? "/apple-touch-icon.png" : null)" Time="message.Time" Copyable="false" />
     }
 </Chat>
 
@@ -18,9 +19,11 @@
     private readonly List<Message> _messages =
     [
         new(false, "Hi, my order #4821 arrived without the charger.", Today.AddDays(-1).AddHours(16).AddMinutes(12)),
+        new(false, "It's the 65 W one that comes with the laptop.", Today.AddDays(-1).AddHours(16).AddMinutes(13)),
         new(true, "Sorry about that, Dana. I've sent a charger by express; it should arrive tomorrow morning.", Today.AddDays(-1).AddHours(16).AddMinutes(20)),
         new(false, "It came this morning, thanks!", Today.AddHours(9).AddMinutes(5)),
-        new(true, "Great to hear. Is there anything else I can help with?", Today.AddHours(9).AddMinutes(7)),
+        new(true, "Great to hear.", Today.AddHours(9).AddMinutes(7)),
+        new(true, "Is there anything else I can help with?", Today.AddHours(9).AddMinutes(7)),
     ];
 
     private void Send(ChatSendArgs message) => _messages.Add(new Message(true, message.Text, DateTimeOffset.Now));
