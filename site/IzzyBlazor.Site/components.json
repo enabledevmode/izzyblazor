@@ -2090,12 +2090,12 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines, areas, scatter, bubbles and waterfalls on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart", "scatter plot", "bubble chart", "waterfall chart", "bridge chart"],
-      "parts": ["ChartBarSeries", "ChartLineSeries", "ChartAreaSeries", "ChartScatterSeries", "ChartBubbleSeries", "ChartWaterfallSeries", "ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
+      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line"],
+      "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
-        { "feature": "Bars, lines and areas, grouped or stacked, upright or across; scatter, bubbles and waterfalls" },
-        { "feature": "Fills its container's width, with labels that thin out as it narrows" },
-        { "feature": "Axis titles, set steps, log scales and grid lines" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "Axis titles, set steps, log scales, grid lines and a second axis" },
+        { "feature": "Value labels, reference lines and bands, notes and trends" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips from a template, on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
@@ -2105,19 +2105,6 @@
         { "id": "chart-in-card", "title": "In a card", "lead": "When a heading on the page already says what the chart shows, such as a card's title, set `TitledBy` to the heading's id instead of giving the chart a `Title`: screen readers name the chart, and its Show data, from the heading, and the title isn't written twice. A `Card` gives its heading an id with `TitleId`. `HideTitle` keeps a `Title` for screen readers only, for a chart with no heading near it." }
       ],
       "topics": [
-        {
-          "id": "bars", "title": "Bars", "summary": "Bars sit side by side or stack, upright or across, with the arguments down the side for long names.", "members": ["Stacking", "Orientation", "ChartBarSeries.Opacity"],
-          "examples": [
-            { "id": "chart-stacked", "title": "Stacked", "lead": "To stack bars and areas, set `Stacking`: `Normal` shows the totals, and `Percent` draws each stack to 100% to compare shares." },
-            { "id": "chart-horizontal", "title": "Bars across", "lead": "To draw bars across, with the arguments down the side, set `Orientation` to `Horizontal`. Long names have room there, and past a third of the chart's width they end in an ellipsis." }
-          ]
-        },
-        {
-          "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["ChartLineSeries", "ChartAreaSeries", "ChartLineSeries.Curve", "ChartLineSeries.LineStyle", "ChartLineSeries.Markers", "ChartLineSeries.ConnectGaps", "Height", "ChartValueAxis.Min", "ChartValueAxis.Max"],
-          "examples": [
-            { "id": "chart-lines", "title": "Lines over dates", "lead": "`ChartLineSeries` draws a series as a line. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and `ChartAreaSeries` fills down to zero. `ConnectGaps` draws across a missing value instead of leaving a gap. Lines differ by dash and marker shape as well as color." }
-          ]
-        },
         {
           "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, on any series, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartBarSeries.Labels", "ChartBarSeries.LabelFormat", "ChartBarSeries.LabelOverlap"],
           "examples": [
@@ -2155,20 +2142,6 @@
           ]
         },
         {
-          "id": "scatter", "title": "Scatter and bubbles", "summary": "A marker for each item at two measures, such as a page's load time and bounce rate, to show how they relate, and bubbles sized by a third.", "members": ["ChartScatterSeries", "ChartBubbleSeries", "ChartScatterSeries.SeriesBy", "ChartBubbleSeries.Size"],
-          "examples": [
-            { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `ChartTooltip` names the page." },
-            { "id": "chart-bubble", "title": "Bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each region's open pipeline. Circles are sized by area, so a pipeline twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. The tooltip and Show data give the size, named after its property." }
-          ]
-        },
-        {
-          "id": "waterfall", "title": "Waterfall", "summary": "Bars that each start where the last ended, walking from a starting amount through rises and falls to a result, with totals along the way.", "members": ["ChartWaterfallSeries", "ChartWaterfallSeries.Total", "ChartWaterfallSeries.IncreaseColor", "ChartWaterfallSeries.DecreaseColor"],
-          "examples": [
-            { "id": "chart-waterfall", "title": "A profit and loss", "lead": "`ChartWaterfallSeries` draws each item's `Value` as a change from where the last bar ended, here from revenue down to net profit. The first bar, the starting amount, stands on the baseline, as does each item `Total` picks: everything so far, here gross, operating and net profit, whatever its own `Value`. Line items read best as bars across, with `Orientation` set to `Horizontal`, so their names stay flat. Rises are blue, falls red and totals gray, colors that stay apart for red-green color blindness, and labels write each change signed, such as −$498K. With every bar labeled, the value axis's labels and grid lines step aside. `IncreaseColor`, `DecreaseColor` and `Color` (the totals') set the colors. A waterfall is its chart's only series." },
-            { "id": "chart-waterfall-over-time", "title": "Changes over time", "lead": "For changes over time, such as a year's cash flow, keep the columns upright so time runs left to right: the opening balance, each month's net change, and the closing balance as a `Total`. The connectors show where each month starts." }
-          ]
-        },
-        {
           "id": "colors", "title": "Colors", "summary": "Series take the theme's eight colors, shades of one color for series in an order, two colors either side of a middle, or your own.", "members": ["Palette", "ChartBarSeries.Color"],
           "examples": [
             { "id": "chart-shades", "title": "Shades for tiers", "lead": "When the series are in an order, such as plan tiers, set `Palette` to `ChartPalette.Shades` with one color, here the theme's primary: the first series is the lightest and each one after is darker, and in dark mode the ramp turns round so the last is the brightest. The shades are spread over as many series as the chart has. Past about six they're hard to tell apart; for series in no order, keep the default `ChartPalette.Colors`." },
@@ -2176,16 +2149,101 @@
           ]
         },
         {
-          "id": "tooltips", "title": "Tooltips and the legend", "summary": "A tooltip shows every series' value for the item under the pointer or keyboard focus, from a template if you give one; the legend hides and shows series, above, below or beside the chart.", "members": ["Tooltip", "ChartTooltip", "Legend", "ChartBarSeries.Hidden", "DataTable"],
+          "id": "tooltips", "title": "Tooltips and the legend", "summary": "Each series' value for the item under the pointer or keyboard focus, from a template if you give one, and a legend above, below or beside the chart.", "members": ["Tooltip", "ChartTooltip", "Legend", "ChartBarSeries.Hidden", "DataTable"],
           "examples": [
-            { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month. Page Up and Page Down move by a tenth, Home and End go to the ends, and Escape hides the tooltip. With a screen reader, the chart takes the arrow keys and reads each value as it moves. To draw the tooltip yourself, put a `ChartTooltip` in the chart: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it: the chart is drawn again without it, so stacks close up and the value axis rescales. `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out; they're also off by default when every series has value labels. `Legend` places the legend: `Top`, `Bottom`, `Start` or `End` (beside the chart in a column, moving above or below it under 30rem wide), or `None`. By default it's below, with two series or more.",
-          "notes": { "noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and marker still shows its value on hover, and Show data lists every value." } }
+            { "id": "chart-tooltips", "title": "A tooltip template", "lead": "Point at a column, or Tab to the chart and use the arrow keys, to see each series' value for that month. Page Up and Page Down move by a tenth, Home and End go to the ends, and Escape hides the tooltip. With a screen reader, the chart takes the arrow keys and reads each value as it moves. To draw the tooltip yourself, put a `ChartTooltip` in the chart: its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors. The tooltips are drawn on the server with the page, so keep the template to text and inline content. Click a legend item to hide its series, and again to show it: the chart is drawn again without it, so stacks close up and the value axis rescales. `Hidden` starts a series hidden. `Tooltip` set to false leaves the tooltips out; they're also off by default when every series has value labels. `Legend` places the legend: `Top`, `Bottom`, `Start` or `End` (beside the chart in a column, moving above or below it under 30rem wide), or `None`. By default it's below, with two series or more.", "notes": {"noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and marker still shows its value on hover, and Show data lists every value."} }
           ]
         }
       ]
     },
     {
-      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
+      "id": "bar-chart", "icon": "ChartColumn", "name": "ChartBarSeries", "title": "Bar chart", "category": "Charts", "summary": "Compares values across names as bars: ranked across, grouped or stacked as columns.", "keywords": ["bar chart", "column chart", "bar graph", "stacked bar chart", "grouped bar chart"],
+      "features": [
+        { "feature": "Bars across, or upright columns" },
+        { "feature": "Grouped side by side, stacked, or stacked to 100%" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Legend items that hide and show a series", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-horizontal", "title": "Bars across", "lead": "`ChartBarSeries` in a `Chart` draws a bar for each item's `Value`. Ranked names read best as bars across, longest first: set `Orientation` to `Horizontal`, and long names have room down the side, ending in an ellipsis past a third of the chart's width. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
+        { "id": "chart-stacked", "title": "Stacked", "lead": "To stack bars and areas, set `Stacking`: `Normal` shows the totals, and `Percent` draws each stack to 100% to compare shares." }
+      ]
+    },
+    {
+      "id": "line-chart", "icon": "ChartLine", "name": "ChartLineSeries", "title": "Line chart", "category": "Charts", "summary": "Shows how values change over time as lines, on a date or number scale.", "keywords": ["line chart", "line graph", "time series", "trend chart"],
+      "features": [
+        { "feature": "Lines over dates, numbers or names, straight, smooth or stepped" },
+        { "feature": "Dashes and marker shapes that tell lines apart besides color" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Legend items that hide and show a series", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-line-usage", "title": "A few lines over time", "lead": "`ChartLineSeries` in a `Chart` draws each item's `Value` as a point on a line. With dates as the `Argument`, the points sit on a date scale, with a tick per month or year as the width allows. Keep to a few lines: each takes the next color and a dash pattern and marker of its own, so they differ by more than color. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
+        { "id": "chart-lines", "title": "A smooth line and an area", "lead": "`ChartLineSeries` draws a series as a line. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and `ChartAreaSeries` fills down to zero. `ConnectGaps` draws across a missing value instead of leaving a gap. Lines differ by dash and marker shape as well as color." }
+      ]
+    },
+    {
+      "id": "area-chart", "icon": "ChartArea", "name": "ChartAreaSeries", "title": "Area chart", "category": "Charts", "summary": "Shows a total over time as filled areas, stacked to show each part of the whole.", "keywords": ["area chart", "stacked area chart", "area graph"],
+      "features": [
+        { "feature": "Areas over dates, numbers or names, straight, smooth or stepped" },
+        { "feature": "Stacked, or stacked to 100%" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Legend items that hide and show a series", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-area-channels", "title": "Parts of a total over time", "lead": "`ChartAreaSeries` fills the space under a line. Stacked with `Stacking`, the areas show a total over time and how it divides: the top edge is all visits, and each band one channel's part. Put the largest, steadiest part at the bottom, where its edge is straight and easiest to read. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." }
+      ]
+    },
+    {
+      "id": "scatter-chart", "icon": "ChartScatter", "name": "ChartScatterSeries", "title": "Scatter chart", "category": "Charts", "summary": "Shows how two measures relate, a marker for each item.", "keywords": ["scatter plot", "scatter chart", "xy chart", "correlation"],
+      "features": [
+        { "feature": "Two measures on number or date scales" },
+        { "feature": "Groups split into series by a value, each with its own marker shape" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Legend items that hide and show a series", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `ChartTooltip` names the page." }
+      ]
+    },
+    {
+      "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows three measures at once: a circle for each item at two, sized by the third.", "keywords": ["bubble chart", "bubble plot"],
+      "features": [
+        { "feature": "Circles sized by area, on one scale across series" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Legend items that hide and show a series", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-bubble", "title": "Bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each region's open pipeline. Circles are sized by area, so a pipeline twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. The tooltip and Show data give the size, named after its property." }
+      ]
+    },
+    {
+      "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
+      "features": [
+        { "feature": "Rises, falls and totals in three colors, keyed in the legend" },
+        { "feature": "Changes written signed, so color isn't the only cue" },
+        { "feature": "Bars across for line items, columns for changes over time" },
+        { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-waterfall", "title": "A profit and loss", "lead": "`ChartWaterfallSeries` draws each item's `Value` as a change from where the last bar ended, here from revenue down to net profit. The first bar, the starting amount, stands on the baseline, as does each item `Total` picks: everything so far, here gross, operating and net profit, whatever its own `Value`. Line items read best as bars across, with `Orientation` set to `Horizontal`, so their names stay flat. Rises are blue, falls red and totals gray, colors that stay apart for red-green color blindness, and labels write each change signed, such as −$498K. With every bar labeled, the value axis's labels and grid lines step aside. `IncreaseColor`, `DecreaseColor` and `Color` (the totals') set the colors. A waterfall is its chart's only series." },
+        { "id": "chart-waterfall-over-time", "title": "Changes over time", "lead": "For changes over time, such as a year's cash flow, keep the columns upright so time runs left to right: the opening balance, each month's net change, and the closing balance as a `Total`. The connectors show where each month starts." }
+      ]
+    },
+    {
+      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
         { "feature": "A legend with each slice's value and share, beside the circle or under it" },

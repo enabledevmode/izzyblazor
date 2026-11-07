@@ -8,12 +8,12 @@
         <BreadcrumbItem Href="@($"docs/components#{ApiMetadata.Anchor(Component.Category).Replace(' ', '-')}")">@Component.Category</BreadcrumbItem>
         @if (Topic is not null)
         {
-            <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.Name</BreadcrumbItem>
+            <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.DisplayName</BreadcrumbItem>
         }
     </Breadcrumb>
     <Row Gap="3" Align="Align.Center" Wrap>
         <Pictogram Name="@Component.Icon" Size="ControlSize.Lg" />
-        <Heading Level="1" Size="TextSize.Xl3">@(Topic?.Title ?? Component.Name)</Heading>
+        <Heading Level="1" Size="TextSize.Xl3">@(Topic?.Title ?? Component.DisplayName)</Heading>
         @if (Component.Preview)
         {
             <Badge Variant="BadgeVariant.Outline">Preview</Badge>
@@ -36,7 +36,7 @@
        in its body. *@
     <div class="site-lead">@(Topic?.Summary ?? Component.Summary)</div>
     @* A topic's own: its page and the API it's about. *@
-    <TabNav Label="@($"{Topic?.Title ?? Component.Name} pages")">
+    <TabNav Label="@($"{Topic?.Title ?? Component.DisplayName} pages")">
         <TabLink Href="@(Topic is null ? Registry.OverviewHref(Component) : Registry.TopicHref(Component, Topic))" Label="Overview" Match="NavLinkMatch.All" />
         <TabLink Href="@(Topic is { Members.Count: > 0 } ? Registry.TopicApiHref(Component, Topic) : Registry.ApiPageHref(Component))" Label="API" Match="NavLinkMatch.All" />
         @if (Component.Scenarios.Count > 0)

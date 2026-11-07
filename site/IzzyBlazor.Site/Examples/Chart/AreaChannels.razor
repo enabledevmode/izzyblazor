@@ -1,0 +1,26 @@
+@* Visits by channel each month, stacked: the top edge is the total, and each band its channel's part. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Visits by channel, 2026" Stacking="ChartStacking.Normal">
+    <ChartValueAxis Format="#,##0,K" />
+    <ChartAreaSeries Value="m => m.Search" Name="Search" />
+    <ChartAreaSeries Value="m => m.Direct" Name="Direct" />
+    <ChartAreaSeries Value="m => m.Social" Name="Social" />
+    <ChartAreaSeries Value="m => m.Email" Name="Email" />
+</Chart>
+
+@code {
+    private record ChannelMonth(DateOnly Month, int Search, int Direct, int Social, int Email);
+
+    private readonly ChannelMonth[] _months =
+    [
+        new(new(2026, 1, 1), 148_000, 92_000, 41_000, 18_000),
+        new(new(2026, 2, 1), 141_000, 88_000, 44_000, 21_000),
+        new(new(2026, 3, 1), 156_000, 95_000, 52_000, 19_000),
+        new(new(2026, 4, 1), 162_000, 97_000, 49_000, 23_000),
+        new(new(2026, 5, 1), 171_000, 101_000, 58_000, 22_000),
+        new(new(2026, 6, 1), 165_000, 99_000, 63_000, 26_000),
+        new(new(2026, 7, 1), 158_000, 94_000, 71_000, 24_000),
+        new(new(2026, 8, 1), 152_000, 90_000, 68_000, 21_000),
+        new(new(2026, 9, 1), 174_000, 104_000, 62_000, 28_000),
+        new(new(2026, 10, 1), 183_000, 109_000, 66_000, 31_000),
+    ];
+}
