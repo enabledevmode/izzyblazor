@@ -650,6 +650,21 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_legend_at_the_top_or_start_comes_before_the_plot_and_shows_for_one_series()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue")
+            .Add(c => c.Legend, ChartLegend.Start)
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+
+        var chart = cut.Find("ib-chart");
+        Assert.Contains("ib-chart-lg-start", chart.ClassName);
+        Assert.Equal(["ib-chart-legend", "ib-chart-main"], chart.Children.Take(2).Select(e => e.ClassName));
+    }
+
+    [Fact]
     public void Needs_a_title_or_a_heading_that_titles_it()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p

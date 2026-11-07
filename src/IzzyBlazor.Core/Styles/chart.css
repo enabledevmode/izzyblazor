@@ -568,6 +568,28 @@
   @container ib-chart (width < 800px) { .ib-chart-from6 { display: none; } .ib-chart-rot6 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
   @container ib-chart (width < 960px) { .ib-chart-from7 { display: none; } .ib-chart-rot7 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
 
+  /* The plot and its axes: a size container of their own, so labels fit the plot's width when a
+     legend is beside it. */
+  .ib-chart-main {
+    container: ib-chart / inline-size;
+    min-width: 0;
+  }
+
+  /* A legend above, or beside in a column from 30rem wide (Start before the plot, End after). */
+  .ib-chart-lg-top > .ib-chart-legend { margin: 0 0 var(--ib-space-3); }
+
+  @container ib-chart (width >= 30rem) {
+    :is(.ib-chart-lg-start, .ib-chart-lg-end) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: var(--ib-space-6);
+    }
+
+    .ib-chart-lg-start { grid-template-columns: auto minmax(0, 1fr); }
+    :is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend { flex-direction: column; margin: 0; }
+  }
+
   .ib-chart-legend {
     display: flex;
     flex-wrap: wrap;
@@ -634,11 +656,16 @@
     gap: var(--ib-space-4) var(--ib-space-6);
   }
 
+  /* A legend above, or at the start side. */
+  .ib-pie-lg-first > .ib-pie-legend { order: -1; }
+
   @container ib-chart (width >= 30rem) {
     .ib-pie-legended {
       grid-template-columns: auto minmax(0, 1fr);
       justify-items: start;
     }
+
+    .ib-pie-legended.ib-pie-lg-first { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
   }
 
   .ib-pie-plot {
