@@ -526,7 +526,9 @@
     grid-column: -2;
     position: relative;
     height: var(--ib-chart-bh, 1lh);
-    margin-block-start: var(--ib-space-1);
+    /* Clear of the lowest value label, which is centered on the plot's bottom edge: the first
+       name, centered on the plot's start, sits under that label's corner. */
+    margin-block-start: var(--ib-space-2);
   }
 
   .ib-chart-title-bottom { grid-column: -2; }
@@ -560,9 +562,6 @@
     display: block;
     color: var(--ib-color-subtle);
   }
-
-  /* A scale's label at the plot's start starts there, clear of the value axis's corner. */
-  .ib-chart-bottom > * > .ib-chart-start { --ib-chart-tx: 0%; text-align: start; }
 
   /* Names in bands get the room the server worked out for each width, and an ellipsis past it. */
   .ib-chart-bands > * > span {
