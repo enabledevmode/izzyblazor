@@ -1,0 +1,32 @@
+@* A changelog entry kept in Markdown, as a repository's release notes are. *@
+<RichText Markdown="@notes" TopHeading="2" MaxWidth="Length.Prose" Grow />
+
+@* hide *@
+@code {
+    private const string notes =
+        """
+        ## Version 2.4
+
+        Invoices can now be paid in **any currency** your account accepts. See the [currency guide](https://example.com/docs/currencies) for the list.
+
+        ### Changes
+
+        | Area | Change | Ticket |
+        | --- | --- | ---: |
+        | Billing | Refunds round to the cent | 1182 |
+        | Exports | CSV files open in Excel without a prompt | 1207 |
+        | Search | ~~Beta~~ Available to everyone | 1213 |
+
+        ### Before you upgrade
+
+        - [x] Back up the `invoices` table
+        - [ ] Set `Billing:Currencies` in *appsettings.json*:
+
+        ```json
+        { "Billing": { "Currencies": ["USD", "EUR", "GBP"] } }
+        ```
+
+        Questions? Write to support@example.com.
+        """;
+}
+@* /hide *@
