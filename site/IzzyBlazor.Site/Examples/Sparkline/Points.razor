@@ -1,0 +1,17 @@
+@* A store's daily visitors over the last 30 days, its lowest, highest and latest marked, and the
+   price of its plan over a year, which holds until it changes. *@
+<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="6" Grow>
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Visitors a day</TextBlock>
+        <Sparkline Values="_visitors" Label="Visitors a day, last 30 days" Points="SparklinePoints.Low | SparklinePoints.High | SparklinePoints.Last" Curve="ChartCurve.Smooth" Height="3.Rem" ValueFormat="N0" />
+    </Stack>
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Team plan, per seat</TextBlock>
+        <Sparkline Values="_price" Label="Team plan price per seat, last 12 months" Points="SparklinePoints.First | SparklinePoints.Last" Curve="ChartCurve.Step" Height="3.Rem" ValueFormat="C0" />
+    </Stack>
+</Grid>
+
+@code {
+    private readonly double?[] _visitors = [1_840, 1_910, 1_760, 2_050, 2_230, 1_420, 1_310, 1_980, 2_120, 2_260, 2_190, 2_410, 1_560, 1_480, 2_200, 2_380, 2_450, 2_310, 2_520, 1_690, 1_610, 2_480, 2_590, 2_640, 2_550, 2_720, 1_820, 1_760, 2_690, 2_810];
+    private readonly double?[] _price = [12, 12, 12, 12, 14, 14, 14, 14, 14, 15, 15, 15];
+}

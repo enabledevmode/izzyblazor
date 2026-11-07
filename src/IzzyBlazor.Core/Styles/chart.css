@@ -927,6 +927,18 @@
       color-mix(in srgb, currentColor calc(var(--ib-chart-fill-opacity, 0.9) * 100%), transparent));
   }
 
+  /* Marked values (Points): a dot, with the line inset by its radius so end dots aren't cut; on
+     bars, the marked ones solid and the rest lighter, the current period standing out. */
+  .ib-sparkline-marked:not(.ib-sparkline-bars) .ib-sparkline-svg { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); }
+  .ib-sparkline-dot { fill: currentColor; }
+  .ib-sparkline-marked rect:not(.ib-sparkline-on) { fill: color-mix(in srgb, currentColor 40%, transparent); }
+  .ib-sparkline-marked .ib-sparkline-on { fill: currentColor; }
+
+  /* Win-loss: up and down in the waterfall's colors, a tick for even. */
+  .ib-sparkline .ib-sparkline-up { fill: var(--ib-chart-increase, var(--ib-chart-1)); }
+  .ib-sparkline .ib-sparkline-down { fill: var(--ib-chart-decrease, var(--ib-chart-8)); }
+  .ib-sparkline .ib-sparkline-even { fill: var(--ib-color-muted); }
+
   /* In a Stat, under the figure. */
   .ib-stat-sparked > .ib-stat-body { flex: 1; }
   .ib-stat-body > .ib-stat-spark { margin-block-start: var(--ib-space-2); }

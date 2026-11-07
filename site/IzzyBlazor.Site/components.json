@@ -2268,12 +2268,17 @@
     {
       "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Draws a run of values as a small line, area or bars, with no axes, to show a trend at a glance.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
       "features": [
-        { "feature": "A line, an area or bars, as wide as its container" },
+        { "feature": "A line, an area, bars or win-loss bars, as wide as its container" },
+        { "feature": "The latest value marked, and the first, lowest or highest when they matter" },
+        { "feature": "One scale for a column of sparklines, so their heights compare" },
         { "feature": "A name that says the first, last, lowest and highest values" }
       ],
       "examples": [
-        { "id": "sparkline-usage", "title": "A trend beside each row", "lead": "Give `Sparkline` the `Values` and a `Label`. It has no axes or tooltip, so screen readers hear the label with the first, last, lowest and highest values, formatted with `ValueFormat`. It fills its container's width. A missing value, null, breaks the line, as the image resizer's outage does here." },
-        { "id": "sparkline-types", "title": "Line, area and bars", "lead": "`Type` draws the values as a `Line` (the default), an `Area` or `Bar`s. `Height` sets how tall it is, 2rem by default, and `Color` sets its color in place of the theme's primary color. To put a sparkline in a `Stat`, set the stat's `Spark`." }
+        { "id": "sparkline-usage", "title": "A trend beside each row", "lead": "Give `Sparkline` the `Values` and a `Label`. It has no axes or tooltip, so screen readers hear the label with the first, last, lowest and highest values, formatted with `ValueFormat`. It fills its container's width, with a dot on the last value, the current one. A missing value, null, breaks the line, as the image resizer's outage does here." },
+        { "id": "sparkline-types", "title": "Line, area and bars", "lead": "`Type` draws the values as a `Line` (the default), an `Area` or `Bar`s. `Height` sets how tall it is, 2rem by default, and `Color` sets its color in place of the theme's primary color. To put a sparkline in a `Stat`, set the stat's `Sparkline`." },
+        { "id": "sparkline-points", "title": "Marking values", "lead": "`Points` marks values with a dot: `Last` by default, or any of `First`, `Last`, `Low` and `High` combined with `|`, or `None`. On bars, the marked ones are solid and the rest lighter. `Curve` runs the line smooth, or in steps for a value that holds until it changes, as a price does." },
+        { "id": "sparkline-shared-scale", "title": "One scale for a column", "lead": "Each sparkline spans its own lowest to highest value, which suits one alone but makes a column of them misleading: a product that sells little looks as busy as one that sells a lot. Give them all the same `Min` and `Max` so their heights compare." },
+        { "id": "sparkline-win-loss", "title": "Wins and losses", "lead": "`Type=\"SparklineType.WinLoss\"` draws one bar a value, all the same height: up for a value over `Threshold` (0 by default), down for one under, and a tick for one at it. It shows only which way each went, here a month over or under quota. Up bars take `--ib-chart-increase` and down bars `--ib-chart-decrease`, as a waterfall's do. Screen readers hear how many went each way." }
       ]
     },
     {

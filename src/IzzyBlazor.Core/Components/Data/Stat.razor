@@ -56,7 +56,7 @@
         @if (Sparkline is not null)
         {
             <dd class="ib-stat-spark">
-                <Sparkline Values="Sparkline" Label="@(SparklineLabel ?? Label ?? "")" Type="SparklineType" ValueFormat="@SparklineFormat" />
+                <Sparkline Values="Sparkline" Label="@(SparklineLabel ?? Label ?? "")" Type="SparklineType" Points="SparklinePoints" ValueFormat="@SparklineFormat" />
             </dd>
         }
     </dl>
@@ -109,6 +109,9 @@
 
     /// <summary>How the <see cref="Sparkline"/> draws: a line (the default), an area or bars.</summary>
     [Parameter] public SparklineType SparklineType { get; set; }
+
+    /// <summary>The <see cref="Sparkline"/>'s marked values: the last (the current one) by default. See <see cref="IzzyBlazor.Sparkline.Points"/>.</summary>
+    [Parameter] public SparklinePoints SparklinePoints { get; set; } = SparklinePoints.Last;
 
     /// <summary>A .NET format string for the <see cref="Sparkline"/>'s values as a screen reader hears them, such as <c>C0</c>.</summary>
     [Parameter] public string? SparklineFormat { get; set; }

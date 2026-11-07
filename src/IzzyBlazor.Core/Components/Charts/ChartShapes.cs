@@ -147,28 +147,50 @@ internal static class ChartShapes
     }
 
     /// <summary>
-    /// A sparkline's line (and, for an area, its fill down to the bottom), in a 1000 by 1000 box
-    /// that stretches. Missing values break the line. The values span the box's height.
+    /// A sparkline's value range: its values' (with zero, for bars), or <paramref name="min"/> and
+    /// <paramref name="max"/> where given, so sparklines in a column can share one.
     /// </summary>
-    public static (string Line, string? Area) Spark(IReadOnlyList<double?> values, bool area)
+    public static (double Min, double Max) SparkRange(IReadOnlyList<double?> values, bool includeZero, double? min, double? max)
     {
-        var (min, max) = Range(values, includeZero: false);
+        var (lo, hi) = Range(values, includeZero);
+        (lo, hi) = (min ?? lo, max ?? hi);
+        return lo < hi ? (lo, hi) : Range(values, includeZero);
+    }
+
+    // A value's height in the box, 0 at the top and 1000 at the bottom, held inside it.
+    private static double SparkY(double v, double min, double max) => Math.Clamp(1000 - (v - min) / (max - min) * 1000, 0, 1000);
+
+    /// <summary>
+    /// A sparkline's line (and, for an area, its fill down to the bottom), in a 1000 by 1000 box
+    /// that stretches, and each value's spot in percent of the box, for dots. Missing values break
+    /// the line.
+    /// </summary>
+    public static (string Line, string? Area, Dictionary<int, (double X, double Y)> Spots) Spark(
+        IReadOnlyList<double?> values, bool area, (double Min, double Max) range, ChartCurve curve)
+    {
         var n = values.Count;
         var line = new StringBuilder();
         var fill = new StringBuilder();
-        var run = new List<(double X, double Y)>();
+        var spots = new Dictionary<int, (double X, double Y)>();
+        var run = new List<(double A, double V)>();
 
         void Flush()
         {
             if (run.Count == 0) return;
-            line.Append($"M{N(run[0].X)},{N(run[0].Y)}");
-            foreach (var p in run.Skip(1)) line.Append($"L{N(p.X)},{N(p.Y)}");
-            if (run.Count == 1) line.Append("h0");
+            var (first, segments) = ChartLayout.Curve(run, curve);
+            var path = new StringBuilder($"M{N(first.A)},{N(first.V)}");
+            foreach (var g in segments)
+            {
+                path.Append(g is { C1: { } c1, C2: { } c2 }
+                    ? $"C{N(c1.A)},{N(c1.V)} {N(c2.A)},{N(c2.V)} {N(g.To.A)},{N(g.To.V)}"
+                    : $"L{N(g.To.A)},{N(g.To.V)}");
+            }
+
+            if (run.Count == 1) path.Append("h0");
+            line.Append(path);
             if (area)
             {
-                fill.Append($"M{N(run[0].X)},1000");
-                foreach (var p in run) fill.Append($"L{N(p.X)},{N(p.Y)}");
-                fill.Append($"L{N(run[^1].X)},1000Z");
+                fill.Append(path).Append($"L{N(run[^1].A)},1000L{N(run[0].A)},1000Z");
             }
 
             run.Clear();
@@ -183,29 +205,71 @@ internal static class ChartShapes
             }
 
             var x = n == 1 ? 500 : i * 1000.0 / (n - 1);
-            run.Add((x, 1000 - (v - min) / (max - min) * 1000));
+            var y = SparkY(v, range.Min, range.Max);
+            run.Add((x, y));
+            spots[i] = (x / 10, y / 10);
         }
 
         Flush();
-        return (line.ToString(), area ? fill.ToString() : null);
+        return (line.ToString(), area ? fill.ToString() : null, spots);
     }
 
-    /// <summary>A sparkline's bars, in percent of its box: x, y, width and height, with 0 as the base.</summary>
-    public static List<(int Index, double X, double Y, double Width, double Height)> SparkBars(IReadOnlyList<double?> values)
+    /// <summary>A sparkline's bars, in percent of its box: x, y, width and height, with 0 as the base (or the range's nearer end).</summary>
+    public static List<(int Index, double X, double Y, double Width, double Height)> SparkBars(IReadOnlyList<double?> values, (double Min, double Max) range)
     {
-        var (min, max) = Range(values, includeZero: true);
         var bars = new List<(int, double, double, double, double)>();
         var n = values.Count;
         var band = 100.0 / n;
-        var zero = 100 - (0 - min) / (max - min) * 100;
+        var zero = SparkY(0, range.Min, range.Max) / 10;
         for (var i = 0; i < n; i++)
         {
             if (values[i] is not { } v) continue;
-            var y = 100 - (v - min) / (max - min) * 100;
+            var y = SparkY(v, range.Min, range.Max) / 10;
             bars.Add((i, i * band + band * 0.15, Math.Min(y, zero), band * 0.7, Math.Abs(zero - y)));
         }
 
         return bars;
+    }
+
+    /// <summary>
+    /// A win-loss sparkline's bars, in percent of its box: the top half for a value over the
+    /// threshold (1), the bottom half under it (-1), a tick across the middle at it (0).
+    /// </summary>
+    public static List<(int Index, int Sign, double X, double Y, double Width, double Height)> SparkWinLoss(IReadOnlyList<double?> values, double threshold)
+    {
+        var bars = new List<(int, int, double, double, double, double)>();
+        var n = values.Count;
+        var band = 100.0 / n;
+        for (var i = 0; i < n; i++)
+        {
+            if (values[i] is not { } v) continue;
+            var sign = Math.Sign(v - threshold);
+            var (y, h) = sign switch { > 0 => (0.0, 46.0), < 0 => (54.0, 46.0), _ => (47.0, 6.0) };
+            bars.Add((i, sign, i * band + band * 0.15, y, band * 0.7, h));
+        }
+
+        return bars;
+    }
+
+    /// <summary>The indexes a sparkline marks: its first and last present values, and its lowest and highest (the first of a tie).</summary>
+    public static HashSet<int> SparkMarked(IReadOnlyList<double?> values, SparklinePoints points)
+    {
+        var marked = new HashSet<int>();
+        int? first = null, last = null, low = null, high = null;
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (values[i] is not { } v) continue;
+            first ??= i;
+            last = i;
+            if (low is null || v < values[low.Value]) low = i;
+            if (high is null || v > values[high.Value]) high = i;
+        }
+
+        if (points.HasFlag(SparklinePoints.First) && first is { } f) marked.Add(f);
+        if (points.HasFlag(SparklinePoints.Last) && last is { } l) marked.Add(l);
+        if (points.HasFlag(SparklinePoints.Low) && low is { } lo) marked.Add(lo);
+        if (points.HasFlag(SparklinePoints.High) && high is { } hi) marked.Add(hi);
+        return marked;
     }
 
     private static (double Min, double Max) Range(IReadOnlyList<double?> values, bool includeZero)

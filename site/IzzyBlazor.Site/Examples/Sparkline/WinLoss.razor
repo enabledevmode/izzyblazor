@@ -1,0 +1,27 @@
+@* Each rep's monthly sales this year against a $50,000 quota: up for a month over it, down for one
+   under, a tick for a month right at it. *@
+<Table Items="_reps" Caption="Months over quota, this year" Grow>
+    <Columns>
+        <PropertyColumn Property="r => r.Name" Title="Rep" />
+        <TemplateColumn Title="Jan to Oct" Width="10.Rem">
+            <Sparkline Values="context.Monthly" Label="@($"{context.Name}, months against quota")" Type="SparklineType.WinLoss" Threshold="Quota" />
+        </TemplateColumn>
+        <PropertyColumn Property="r => r.Over" Title="Over quota" />
+    </Columns>
+</Table>
+
+@code {
+    private const double Quota = 50_000;
+
+    private record Rep(string Name, double?[] Monthly)
+    {
+        public int Over => Monthly.Count(m => m > Quota);
+    }
+
+    private readonly Rep[] _reps =
+    [
+        new("Amara Okafor", [54_200, 61_800, 48_900, 57_300, 63_100, 50_000, 58_400, 66_200, 52_700, 59_900]),
+        new("Luis Romero", [44_100, 47_600, 51_200, 46_800, 53_900, 49_300, 55_100, 48_200, 51_800, 56_400]),
+        new("Mei Tanaka", [39_800, 42_300, 45_700, 41_200, 47_900, 44_600, 46_100, 51_300, 43_800, 49_200]),
+    ];
+}

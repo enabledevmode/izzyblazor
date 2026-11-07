@@ -11,7 +11,9 @@
 
     Accessibility:
     - One image, named by Label, which is required, and a summary of what it shows: "Signups,
-      last 12 weeks: from 410 to 482, low 390, high 520" (IzzyText.SparklineSummary).
+      last 12 weeks: from 410 to 482, low 390, high 520" (IzzyText.SparklineSummary); for
+      win-loss bars, "Games this season: 9 up, 4 down, 1 even" (SparklineWinLossSummary).
+    - The marked points (Points) are what the summary already reads, so they add nothing to hear.
     - It's a glance, not the data: when the values matter, show them too, as a Chart or a Table.
     See also: Chart, Stat.
 *@
@@ -19,16 +21,23 @@
 <span @attributes="AdditionalAttributes" class="@_class" style="@_style" role="img" aria-label="@_name">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
     <svg class="ib-sparkline-svg" aria-hidden="true">
-        @if (Type == SparklineType.Bar)
+        @if (Type == SparklineType.WinLoss)
         {
-            @foreach (var bar in ChartShapes.SparkBars(_values))
+            @foreach (var bar in ChartShapes.SparkWinLoss(_values, Threshold))
             {
-                <rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(Math.Max(bar.Height, 0.5))%" />
+                <rect class="@(bar.Sign switch { > 0 => "ib-sparkline-up", < 0 => "ib-sparkline-down", _ => "ib-sparkline-even" })" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%" />
+            }
+        }
+        else if (Type == SparklineType.Bar)
+        {
+            @foreach (var bar in ChartShapes.SparkBars(_values, _range))
+            {
+                <rect class="@(_marked.Contains(bar.Index) ? "ib-sparkline-on" : null)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(Math.Max(bar.Height, 0.5))%" />
             }
         }
         else
         {
-            var (line, area) = ChartShapes.Spark(_values, Type == SparklineType.Area);
+            var (line, area, spots) = ChartShapes.Spark(_values, Type == SparklineType.Area, _range, Curve);
             <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                 @if (area is not null)
                 {
@@ -36,6 +45,10 @@
                 }
                 <path class="ib-sparkline-line" d="@line" />
             </svg>
+            @foreach (var i in _marked)
+            {
+                <circle class="ib-sparkline-dot" cx="@Num(spots[i].X)%" cy="@Num(spots[i].Y)%" r="3" />
+            }
         }
     </svg>
 </span>
@@ -47,8 +60,31 @@
     /// <summary>What it shows, such as "Signups, last 12 weeks": its accessible name, with a summary of the values. Required.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
-    /// <summary>A line (the default), an area or bars.</summary>
+    /// <summary>A line (the default), an area, bars, or win-loss bars (up or down from <see cref="Threshold"/>).</summary>
     [Parameter] public SparklineType Type { get; set; }
+
+    /// <summary>
+    /// The values marked: a dot on a line or area; on bars, solid while the rest are lighter. The
+    /// last (the current value) by default; combine with <c>|</c>, such as
+    /// <c>SparklinePoints.Low | SparklinePoints.High</c>, or <c>None</c>. Win-loss bars mark none.
+    /// </summary>
+    [Parameter] public SparklinePoints Points { get; set; } = SparklinePoints.Last;
+
+    /// <summary>How a line or area runs from value to value: straight (the default), a smooth curve, or steps.</summary>
+    [Parameter] public ChartCurve Curve { get; set; }
+
+    /// <summary>
+    /// The bottom of the value range, in place of the lowest value (or zero, for bars). Give
+    /// sparklines in a column the same <see cref="Min"/> and <see cref="Max"/> so their heights
+    /// compare. A value past either is drawn at the edge.
+    /// </summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>The top of the value range, in place of the highest value. See <see cref="Min"/>.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>For win-loss bars: values over it go up, under it down. Defaults to 0.</summary>
+    [Parameter] public double Threshold { get; set; }
 
     /// <summary>How tall it is. Defaults to 2rem. It's as wide as its container.</summary>
     [Parameter] public Length? Height { get; set; }
@@ -60,6 +96,8 @@
     [Parameter] public string? ValueFormat { get; set; }
 
     private IReadOnlyList<double?> _values = [];
+    private (double Min, double Max) _range;
+    private HashSet<int> _marked = [];
     private string? _name;
     private string? _class;
     private string? _style;
@@ -70,7 +108,8 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-sparkline");
-        classes.Add("ib-sparkline-bars", Type == SparklineType.Bar);
+        classes.Add("ib-sparkline-bars", Type is SparklineType.Bar or SparklineType.WinLoss);
+        classes.Add("ib-sparkline-marked", Type != SparklineType.WinLoss && Points != SparklinePoints.None);
         if (Height is { } height) styles.AddVar("sparkline-height", height.Css);
         if (Color is { } color) styles.AddVar("sparkline-color", StyleValues.Raw(color, "color"));
         base.BuildAttributes(classes, styles);
@@ -85,9 +124,23 @@
         }
 
         _values = (Values ?? []).Select(v => v is { } x && double.IsFinite(x) ? v : null).ToList();
-        _name = Summary(Label, _values, ValueFormat, TextDefaults.SparklineSummary);
+        _range = ChartShapes.SparkRange(_values, Type == SparklineType.Bar, Min, Max);
+        _marked = Type == SparklineType.WinLoss ? [] : ChartShapes.SparkMarked(_values, Points);
+        _name = Type == SparklineType.WinLoss
+            ? WinLossSummary(Label, _values, Threshold, TextDefaults.SparklineWinLossSummary, TextDefaults.SparklineEven)
+            : Summary(Label, _values, ValueFormat, TextDefaults.SparklineSummary);
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
+    }
+
+    internal static string WinLossSummary(string label, IReadOnlyList<double?> values, double threshold, string template, string evenTemplate)
+    {
+        var present = values.Where(v => v is not null).Select(v => Math.Sign(v!.Value - threshold)).ToList();
+        if (present.Count == 0) return label;
+        var culture = CultureInfo.CurrentCulture;
+        var even = present.Count(s => s == 0);
+        return string.Format(culture, template, label, present.Count(s => s > 0), present.Count(s => s < 0))
+            + (even > 0 ? string.Format(culture, evenTemplate, even) : "");
     }
 
     internal static string Summary(string label, IReadOnlyList<double?> values, string? format, string template)

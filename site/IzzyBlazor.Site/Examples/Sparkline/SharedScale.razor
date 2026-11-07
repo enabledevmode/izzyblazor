@@ -1,0 +1,28 @@
+@* Units each product sold a week over the last 12 weeks. Every sparkline runs from 0 to the best week
+   of any product, so the rows compare: the desk lamp's line sits low because it sells less. *@
+<Table Items="_products" Caption="Weekly units sold, last 12 weeks" Grow>
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Title="Product" />
+        <TemplateColumn Title="Last 12 weeks" Width="12.Rem">
+            <Sparkline Values="context.Weekly" Label="@($"{context.Name}, units a week, last 12 weeks")" Min="0" Max="_best" Points="SparklinePoints.High | SparklinePoints.Last" />
+        </TemplateColumn>
+        <PropertyColumn Property="p => p.Total" Title="Units" Format="N0" />
+    </Columns>
+</Table>
+
+@code {
+    private record Product(string Name, double?[] Weekly)
+    {
+        public double Total => Weekly.Sum(w => w ?? 0);
+    }
+
+    private readonly Product[] _products =
+    [
+        new("Standing desk", [118, 124, 131, 127, 140, 152, 149, 158, 166, 171, 163, 178]),
+        new("Office chair", [142, 138, 135, 140, 133, 129, 131, 126, 122, 125, 119, 116]),
+        new("Monitor arm", [64, 70, 75, 81, 79, 88, 94, 91, 99, 104, 110, 107]),
+        new("Desk lamp", [38, 41, 36, 44, 47, 43, 50, 46, 52, 49, 55, 58]),
+    ];
+
+    private double _best => _products.SelectMany(p => p.Weekly).Max() ?? 0;
+}

@@ -137,6 +137,33 @@ public enum SparklineType
 
     /// <summary>A bar for each value, up from zero (down, for a value under it).</summary>
     Bar,
+
+    /// <summary>
+    /// A bar of one height for each value, up when it's over the sparkline's Threshold (0 by
+    /// default) and down when it's under, with a tick for one at it: a run of wins and losses,
+    /// gains and drops. Up in <c>--ib-chart-increase</c>, down in <c>--ib-chart-decrease</c>.
+    /// </summary>
+    WinLoss,
+}
+
+/// <summary>A sparkline's values marked with a dot (or, on bars, drawn solid while the rest are lighter). Combine them with <c>|</c>.</summary>
+[Flags]
+public enum SparklinePoints
+{
+    /// <summary>None marked.</summary>
+    None = 0,
+
+    /// <summary>The first value.</summary>
+    First = 1,
+
+    /// <summary>The last value: the current one.</summary>
+    Last = 2,
+
+    /// <summary>The lowest value (the first, if it's tied).</summary>
+    Low = 4,
+
+    /// <summary>The highest value (the first, if it's tied).</summary>
+    High = 8,
 }
 
 /// <summary>Where a series writes each value beside its bar or point.</summary>
