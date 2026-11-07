@@ -14,9 +14,9 @@
 <ExampleViewer Example="barcode-product" />
 
 <Heading Level="2">Size and print</Heading>
-<TextBlock><Code>ModuleWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins on either side are part of the barcode: scanners need them, so keep other content out of them.</TextBlock>
+<TextBlock><Code>BarWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins on either side are part of the barcode: scanners need them, so keep other content out of them.</TextBlock>
 <TextBlock>In a narrower box the barcode shrinks and keeps its shape. Below about 1.5px per bar, a phone's camera may not read it, so give it the room or use a shorter value.</TextBlock>
-<TextBlock>For print, set <Code>ModuleWidth</Code> in millimetres, <Code>Length.Of("0.33mm")</Code>: that's EAN's standard size, and GS1 permits down to 0.264mm. A full-height EAN-13 at that size has a <Code>BarHeight</Code> of about 69; shorter bars are harder for retail scanners.</TextBlock>
+<TextBlock>For print, set <Code>BarWidth</Code> in millimetres, <Code>Length.Of("0.33mm")</Code>: that's EAN's standard size, and GS1 permits down to 0.264mm. A full-height EAN-13 at that size has a <Code>BarHeight</Code> of about 69; shorter bars are harder for retail scanners.</TextBlock>
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>Screen readers hear "Barcode" and the value. To say what the barcode is for, set <Code>Label</Code>, such as "Tracking number": the name becomes "Tracking number, SHIP-2026-0417". When the value is written beside it, set <Code>Decorative</Code> so screen readers skip it.</TextBlock>
 <TextBlock>The default name comes from the app's text (<Code>IzzyText.BarcodeLabel</Code>, "Barcode {0}", where <Code>{0}</Code> is the value). To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>

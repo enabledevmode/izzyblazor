@@ -56,7 +56,7 @@ public class Anchor : LayoutItemBase
     [Parameter] public AnchorUnderline Underline { get; set; } = AnchorUnderline.Always;
 
     /// <summary>Uses the surrounding text color instead of the accent, still underlined, for links in muted text or on colored backgrounds.</summary>
-    [Parameter] public bool Inherit { get; set; }
+    [Parameter] public bool InheritColor { get; set; }
 
     /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
     [Parameter] public string? NewTabLabel { get; set; }
@@ -70,7 +70,7 @@ public class Anchor : LayoutItemBase
         classes.Add("ib-anchor");
         classes.Add("ib-anchor-hover", Underline == AnchorUnderline.Hover);
         classes.Add("ib-anchor-plain", Underline == AnchorUnderline.None);
-        classes.Add("ib-anchor-inherit", Inherit);
+        classes.Add("ib-anchor-inherit", InheritColor);
         base.BuildAttributes(classes, styles);
     }
 

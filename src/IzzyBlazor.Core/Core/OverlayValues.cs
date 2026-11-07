@@ -44,16 +44,6 @@ public enum Placement
     End,
 }
 
-/// <summary>How a <see cref="Popover"/> closes.</summary>
-public enum PopoverMode
-{
-    /// <summary>Closes on Escape, on a click outside, or when another popover opens (the default).</summary>
-    Auto,
-
-    /// <summary>Stays open until its trigger or a close button closes it.</summary>
-    Manual,
-}
-
 /// <summary>
 /// The width of a <see cref="Dialog"/>. A <see cref="Drawer"/>, or a dialog at the start or end edge, is
 /// narrower: Sm 20rem, Md 24rem, Lg 32rem, Xl 40rem.

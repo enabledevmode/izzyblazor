@@ -40,7 +40,7 @@ public class Barcode : LayoutItemBase
     [Parameter] public BarcodeType Type { get; set; }
 
     /// <summary>The width of the narrowest bar; the barcode is as wide as its bars need. Defaults to 2px; for print, <c>Length.Of("0.33mm")</c>.</summary>
-    [Parameter] public Length? ModuleWidth { get; set; }
+    [Parameter] public Length? BarWidth { get; set; }
 
     /// <summary>The bars' height, in widths of the narrowest bar, so the barcode scales as one. Defaults to 50; a full-height EAN-13 is about 69.</summary>
     [Parameter] public int BarHeight { get; set; } = 50;
@@ -85,7 +85,7 @@ public class Barcode : LayoutItemBase
         classes.Add("ib-barcode");
         base.BuildAttributes(classes, styles);
         styles.AddVar("barcode-modules", (_symbol?.Width ?? 0).ToString(CultureInfo.InvariantCulture));
-        if (ModuleWidth is { } width)
+        if (BarWidth is { } width)
         {
             styles.AddVar("barcode-module", width.Css);
         }

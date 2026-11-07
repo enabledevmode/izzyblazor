@@ -318,7 +318,7 @@
       "id": "anchor", "icon": "Link", "name": "Anchor", "category": "Typography", "summary": "Renders a text link, internal or external.",
       "examples": [
         { "id": "anchor-new-tab", "title": "Internal and external links", "lead": "To open a link in a new tab, set `External`. The link gets an icon and a note for screen readers." },
-        { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Links are underlined by default. For links whose place already marks them as links, such as a nav, set `Underline` to `Hover` or `None`. To use the color of the text around a link, set `Inherit`." }
+        { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Links are underlined by default. For links whose place already marks them as links, such as a nav, set `Underline` to `Hover` or `None`. To use the color of the text around a link, set `InheritColor`." }
       ]
     },
     {
@@ -1648,7 +1648,7 @@
             "interactive": "Apply runs C#, nothing is posted, and the panel stays open."
           } },
         { "id": "popover-sides", "title": "Placement and width", "lead": "The panel opens below its trigger, at the start, by default. To open it on another side, set `Placement`. To give it a fixed width, set `PanelWidth`. Without one, the panel is as wide as its content, up to 24rem." },
-        { "id": "popover-manual", "title": "Staying open", "lead": "A manual popover stays open while the user works elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button. Set `Mode` to `PopoverMode.Manual`." },
+        { "id": "popover-manual", "title": "Staying open", "lead": "To keep a popover open while the user works elsewhere on the page, set `AutoClose` to false: Escape, a click outside and other popovers no longer close it, so it shows a close button." },
         { "id": "popover-info-button", "title": "Custom trigger", "lead": "To open the popover from a button of your own, such as an info icon, put the button in `Trigger` and pass it `context` with `@attributes`." }
       ]
     },
@@ -1989,7 +1989,7 @@
       ],
       "topics": [
         {
-          "id": "filtering", "title": "Filtering", "summary": "Column filters narrow the rows from each column's header. The filter is kept in the URL and can be set from C#.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "id": "filtering", "title": "Filtering", "summary": "Column filters narrow the rows from each column's header. The filter is kept in the URL and can be set from C#.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromQuery", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "table-filters", "title": "Column filters",
           "notes": {
@@ -2081,7 +2081,7 @@
       "examples": [
         { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
         { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
-        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Spark` the values, such as the last twelve weeks. `SparkType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparkLabel`, with its first, last, lowest and highest values formatted by `SparkFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
+        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Sparkline` the values, such as the last twelve weeks. `SparklineType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparklineLabel`, with its first, last, lowest and highest values formatted by `SparklineFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
       ],
       "scenarios": [
         { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
@@ -2254,7 +2254,7 @@
           ]
         },
         {
-          "id": "filtering", "title": "Filtering", "summary": "Users filter each column from its header or from a filter row under the titles. A filter builder combines conditions across columns.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterRow", "FilterBuilder", "FilterFromAddress", "Searchable", "Search", "SearchLabel", "DataGridSearch", "DataGridFilterBuilder", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "id": "filtering", "title": "Filtering", "summary": "Users filter each column from its header or from a filter row under the titles. A filter builder combines conditions across columns.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterRow", "FilterBuilder", "FilterFromQuery", "Searchable", "Search", "SearchLabel", "DataGridSearch", "DataGridFilterBuilder", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "data-grid-filters", "title": "Column filters", "lead": "A column filter narrows the rows by the values in one column. A filter icon in the column's header opens a panel where the user picks an operator, such as contains or between, and enters a value. It's the standard way to filter, and it keeps the header compact. Set `Filterable` on a column to add one. To limit the operators a column offers, set `FilterOperators`; the first one is the default. To list every active filter below the rows, set `FilterPanel`.",
           "notes": {
