@@ -315,9 +315,13 @@
     // color would sit beside the first.
     private static string Slot(int i) => i < 8 ? $"ib-chart-s{i + 1}" : "ib-chart-s9";
 
-    // Whole percents, with a tenth for a sliver, so a small slice doesn't read as 0%.
-    private static string Share(double share) =>
-        share.ToString(share is > 0 and < 0.095 ? "P1" : "P0", CultureInfo.CurrentCulture);
+    // Whole percents, with a tenth for a sliver, and "<0.1%" for less, so a small slice doesn't read as 0%.
+    private static string Share(double share) => share switch
+    {
+        > 0 and < 0.0005 => "<" + 0.001.ToString("P1", CultureInfo.CurrentCulture),
+        > 0 and < 0.095 => share.ToString("P1", CultureInfo.CurrentCulture),
+        _ => share.ToString("P0", CultureInfo.CurrentCulture),
+    };
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

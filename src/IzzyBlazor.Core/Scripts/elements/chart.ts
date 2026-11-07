@@ -191,8 +191,10 @@ class Chart extends IzzyElement {
     let active: SVGElement | undefined;
 
     // The keyboard's order: the items, or on a scatter chart its points from left to right.
-    const order = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
-    if (pointsMode) order.sort((a, b) => positions[a] - positions[b]);
+    const items = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
+    if (pointsMode) items.sort((a, b) => positions[a] - positions[b]);
+    // A point of a series the legend hid isn't a stop.
+    const keys = () => (pointsMode ? items.filter((i) => markFor(i)) : items);
 
     let current = -1;
     let lastY: number | null = null;
@@ -212,7 +214,8 @@ class Chart extends IzzyElement {
     };
 
     const show = (index: number, pointerY: number | null) => {
-      if (index < 0 || index >= tips.length) return;
+      // Not a number: no stop left (the legend hid every series).
+      if (!(index >= 0) || index >= tips.length) return;
       current = index;
       lastY = pointerY;
       tooltip.innerHTML = tips[index].innerHTML;
@@ -327,6 +330,7 @@ class Chart extends IzzyElement {
         .join(", ");
     };
     const step = (by: number) => {
+      const order = keys();
       const k = order.indexOf(current);
       return order[k < 0 ? (by > 0 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, k + by))];
     };
@@ -336,7 +340,7 @@ class Chart extends IzzyElement {
       () => {
         if (!frame.matches(":focus-visible")) return;
         byKeys = true;
-        show(current >= 0 ? current : order[0], null);
+        show(current >= 0 ? current : keys()[0], null);
         announce();
       },
       { signal }
@@ -358,13 +362,13 @@ class Chart extends IzzyElement {
             break;
           case "PageDown":
           case "PageUp":
-            next = step((event.key === "PageDown" ? 1 : -1) * Math.max(1, Math.round(order.length / 10)));
+            next = step((event.key === "PageDown" ? 1 : -1) * Math.max(1, Math.round(keys().length / 10)));
             break;
           case "Home":
-            next = order[0];
+            next = keys()[0];
             break;
           case "End":
-            next = order[order.length - 1];
+            next = keys().slice(-1)[0];
             break;
           case "Escape":
             hide();
@@ -424,7 +428,7 @@ class Chart extends IzzyElement {
       const box = this.getBoundingClientRect();
       const offset = plot.getBoundingClientRect().left - box.left;
       const left = x + gap + tw <= box.width - offset ? x + gap : x - gap - tw;
-      tooltip.style.left = `${Math.min(Math.max(left, -offset), box.width - offset - tw)}px`;
+      tooltip.style.left = `${Math.max(-offset, Math.min(left, box.width - offset - tw))}px`;
       tooltip.style.top = `${Math.min(Math.max(y - th / 2, 0), Math.max(0, size - th))}px`;
     };
 
@@ -538,7 +542,9 @@ class Chart extends IzzyElement {
     signal.addEventListener("abort", () => {
       frame.setAttribute("role", "img");
       frame.removeAttribute("aria-roledescription");
-      if (described) frame.setAttribute("aria-describedby", described);
+      // Only the hint comes off: a render since may have changed the server's part.
+      const rest = (frame.getAttribute("aria-describedby") ?? "").split(" ").filter((id) => id && id !== hint?.id).join(" ");
+      if (rest) frame.setAttribute("aria-describedby", rest);
       else frame.removeAttribute("aria-describedby");
       frame.removeAttribute("tabindex");
     });

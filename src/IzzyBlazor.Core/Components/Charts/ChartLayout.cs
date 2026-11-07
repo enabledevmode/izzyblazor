@@ -157,6 +157,12 @@ internal sealed class SeriesShape
     };
     public List<BarRect> Bars { get; } = [];
 
+    /// <summary>Whether its points are marked: in the legend's key, and when the script draws it again.</summary>
+    public bool Markers { get; init; }
+
+    /// <summary>A bubble series' radius by item, in pixels (0 with no size), worked out even when it's hidden, for the script.</summary>
+    public double[]? Radii { get; init; }
+
 
     public string? Line { get; set; }
     public string? Area { get; set; }
@@ -275,6 +281,17 @@ internal static class ChartLayout
         var full = input.Stacked == ChartStacking.Percent;
         var stacked = input.Stacked != ChartStacking.None;
 
+        // A full stack's axis is shares: a trend or a statistic of raw values has no place on it.
+        if (full && input.Series.Any(s => s.ColorFrom is not null && !s.Secondary))
+        {
+            throw new InvalidOperationException("A Trend can't be drawn on a percent stack (Stacking=\"ChartStacking.Percent\"): its axis is shares, not the series' values.");
+        }
+
+        if (full && input.Marks.Any(m => m.Statistic is not null && m.Axis == MarkAxis.Value))
+        {
+            throw new InvalidOperationException("A ChartReferenceLine's Statistic can't be drawn on a percent stack (Stacking=\"ChartStacking.Percent\"): its axis is shares, not the series' values.");
+        }
+
         var model = new ChartModel
         {
             Horizontal = input.Horizontal,
@@ -299,16 +316,25 @@ internal static class ChartLayout
         StackValues(input, stacked, full, log, lows, highs);
 
         // The value domain, from the series that show: a hidden one is drawn as if it weren't there.
+        // But a ValueFormatter's ticks are the server's text, which the script can't redo when the
+        // legend shows a hidden series, so then the range takes in every series, as if all showed.
         // On a log scale, only values over zero have a place.
+        var (domainLows, domainHighs) = (lows, highs);
+        if (tickText is not null && input.Series.Any(s => s.Hidden && !s.Secondary))
+        {
+            (domainLows, domainHighs) = (new double?[input.Series.Count][], new double?[input.Series.Count][]);
+            StackValues(input with { Series = input.Series.Select(s => s with { Hidden = false }).ToList() }, stacked, full, log, domainLows, domainHighs);
+        }
+
         var min = double.PositiveInfinity;
         var max = double.NegativeInfinity;
         for (var s = 0; s < input.Series.Count; s++)
         {
-            if (input.Series[s].Hidden || input.Series[s].Secondary) continue;
+            if ((input.Series[s].Hidden && domainHighs == highs) || input.Series[s].Secondary) continue;
             for (var i = 0; i < n; i++)
             {
-                if (highs[s][i] is { } h && (!log || h > 0)) { min = Math.Min(min, h); max = Math.Max(max, h); }
-                if (lows[s][i] is { } l && (!log || l > 0)) { min = Math.Min(min, l); max = Math.Max(max, l); }
+                if (domainHighs[s][i] is { } h && (!log || h > 0)) { min = Math.Min(min, h); max = Math.Max(max, h); }
+                if (domainLows[s][i] is { } l && (!log || l > 0)) { min = Math.Min(min, l); max = Math.Max(max, l); }
             }
         }
 
@@ -563,6 +589,10 @@ internal static class ChartLayout
                 Slot = data.ColorFrom is { } from ? model.Series[from].Slot : own % 8 + 1,
                 Index = s,
                 Style = data.Type == ChartType.Bar || data.ColorFrom is not null ? 0 : lineStyle++ + own / 8,
+                Markers = data.IsPoint || (data.Markers ?? (data.Type == ChartType.Line && data.Values.Count(v => v is not null) <= 12)),
+                // By area: the radius goes with the square root of the size.
+                Radii = data.Type != ChartType.Bubble ? null : data.Values.Select((_, i) =>
+                    data.Sizes?[i] is { } size && size > 0 ? Math.Max(2, Math.Sqrt(size / maxSize) * maxRadius) : 0).ToArray(),
             };
             model.Series.Add(shape);
             if (data.Hidden) continue;
@@ -643,6 +673,9 @@ internal static class ChartLayout
                 }
             }
 
+            // A trend runs left to right, whatever order the items come in (a scatter's needn't be sorted).
+            if (data.ColorFrom is not null) points.Sort((p, q) => p!.Value.A.CompareTo(q!.Value.A));
+
             var runs = data.IsPoint ? [] : Runs(points);
             var line = new StringBuilder();
             var area = new StringBuilder();
@@ -667,8 +700,7 @@ internal static class ChartLayout
 
             shape.Area = area.Length > 0 ? area.ToString() : null;
 
-            var count = points.Count(p => p is not null);
-            if (data.IsPoint || (data.Markers ?? (data.Type == ChartType.Line && count <= 12)))
+            if (shape.Markers)
             {
                 foreach (var p in points)
                 {
@@ -677,10 +709,10 @@ internal static class ChartLayout
                     var title = $"{model.ArgumentTexts[point.I]}, {data.Name}: {model.ValueTexts[s][point.I]}";
                     if (data.Type == ChartType.Bubble)
                     {
-                        // By area: the radius goes with the square root of the size.
-                        if (data.Sizes?[point.I] is not { } size || !(size > 0)) continue;
+                        var r = shape.Radii![point.I];
+                        if (!(r > 0)) continue;
                         title += $", {data.SizeName ?? input.Text.ChartSize}: {model.SizeTexts[s]![point.I]}";
-                        shape.Marks.Add(new PointMark(x * 100, y * 100, title, point.I, Math.Max(2, Math.Sqrt(size / maxSize) * maxRadius)));
+                        shape.Marks.Add(new PointMark(x * 100, y * 100, title, point.I, r));
                         continue;
                     }
 
@@ -836,7 +868,9 @@ internal static class ChartLayout
         var culture = input.Culture;
         var min = double.PositiveInfinity;
         var max = double.NegativeInfinity;
-        foreach (var s in on.Where(s => !input.Series[s].Hidden))
+        // Hidden series too: the script keeps this axis as the server drew it (its ticks are the
+        // server's), so a series the legend shows again has to fit in it.
+        foreach (var s in on)
         {
             foreach (var v in highs[s].Concat(lows[s]))
             {
@@ -870,6 +904,13 @@ internal static class ChartLayout
         var ticks = new List<double>();
         if (even)
         {
+            // One value all along: widened as ChartScale.Nice widens it, so the step is a real one.
+            if (min == max)
+            {
+                var pad = min == 0 ? 1 : Math.Abs(min) * 0.1;
+                (min, max) = (min >= 0 && min - pad < 0 ? 0 : min - pad, max + pad);
+            }
+
             // The smallest round step (1, 2 or 5 times a power of ten) whose run of steps covers the range.
             var step = NiceStep(Math.Max(max - min, 1e-12) / steps);
             for (var tries = 0; ; tries++)
@@ -918,7 +959,7 @@ internal static class ChartLayout
     }
 
     /// <summary>The largest bubble's radius: an eighth of the plot's height, 12 to 40 pixels.</summary>
-    private static double BubbleRadius(double plotHeightPx) => Math.Clamp(Math.Max(80, plotHeightPx) / 8, 12, 40);
+    internal static double BubbleRadius(double plotHeightPx) => Math.Clamp(Math.Max(80, plotHeightPx) / 8, 12, 40);
 
     /// <summary>
     /// A scale's ends moved out so a circle of <paramref name="radiusPx"/> at either end stays on a

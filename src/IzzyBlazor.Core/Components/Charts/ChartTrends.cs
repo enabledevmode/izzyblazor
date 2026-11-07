@@ -73,14 +73,22 @@ internal static class ChartTrends
         return text.ChartAverageName;
     }
 
-    /// <summary>The average of each item's window of <paramref name="period"/> items, from when the window is full.</summary>
+    /// <summary>
+    /// At each item with a value, the average of the series' last <paramref name="period"/> values,
+    /// from when there are that many. Missing values (a SeriesBy split's other groups) aren't counted.
+    /// </summary>
     internal static double?[] MovingAverage(double?[] values, int period)
     {
         var result = new double?[values.Length];
-        for (var i = period - 1; i < values.Length; i++)
+        var window = new Queue<double>();
+        var sum = 0.0;
+        for (var i = 0; i < values.Length; i++)
         {
-            var window = values[(i - period + 1)..(i + 1)].Where(v => v is { } x && double.IsFinite(x)).Select(v => v!.Value).ToArray();
-            result[i] = window.Length > 0 ? window.Average() : null;
+            if (values[i] is not { } v || !double.IsFinite(v)) continue;
+            window.Enqueue(v);
+            sum += v;
+            if (window.Count > period) sum -= window.Dequeue();
+            if (window.Count == period) result[i] = sum / period;
         }
 
         return result;
