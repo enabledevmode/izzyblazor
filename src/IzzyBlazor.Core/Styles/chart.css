@@ -265,25 +265,33 @@
     right: calc((1 - var(--ib-chart-b)) * 100%);
   }
 
+  /* Their labels are tags on the surface, so they read over bars, grid lines and bands. */
   :is(.ib-chart-rule, .ib-chart-band, .ib-chart-note) > span {
     position: absolute;
+    padding: 0 0.375rem;
+    border-radius: var(--ib-radius-sm);
+    background-color: var(--ib-color-surface);
+    box-shadow: 0 0 0 1px var(--ib-color-outline);
     white-space: nowrap;
     color: var(--ib-color-on-surface);
     font-weight: var(--ib-weight-medium);
-    text-shadow: 0 0 2px var(--ib-color-surface), 0 0 2px var(--ib-color-surface), 0 0 1px var(--ib-color-surface);
   }
 
-  /* Lines are dashed, labeled above their end (or beside their top). */
-  .ib-chart-rule.ib-chart-mk-y { border-top: 1.5px dashed var(--ib-color-muted); translate: 0 -0.75px; }
-  .ib-chart-rule.ib-chart-mk-x { border-left: 1.5px dashed var(--ib-color-muted); translate: -0.75px 0; }
-  .ib-chart-rule.ib-chart-mk-y > span { right: 0; bottom: 2px; }
-  .ib-chart-rule.ib-chart-mk-x > span { top: 0; left: 4px; }
+  /* Lines are dashed in the text color, their tag on the line at its end (or its top). */
+  .ib-chart-rule.ib-chart-mk-y { border-top: 2px dashed var(--ib-color-on-surface); translate: 0 -1px; }
+  .ib-chart-rule.ib-chart-mk-x { border-left: 2px dashed var(--ib-color-on-surface); translate: -1px 0; }
+  .ib-chart-rule.ib-chart-mk-y > span { right: 0; top: -1px; translate: 0 -50%; }
+  .ib-chart-rule.ib-chart-mk-x > span { top: 0; left: -1px; translate: -50% 0; }
 
-  /* Bands are shaded with edges, labeled in their top corner. */
-  .ib-chart-band { background-color: color-mix(in srgb, var(--ib-color-on-surface) 6%, transparent); }
-  .ib-chart-band.ib-chart-mk-y { border-block: 1px solid var(--ib-color-border); }
-  .ib-chart-band.ib-chart-mk-x { border-inline: 1px solid var(--ib-color-border); }
-  .ib-chart-band > span { top: 2px; left: 4px; }
+  /* Bands are shaded with edges, their tag in the top corner. */
+  .ib-chart-band {
+    background-color: light-dark(
+      color-mix(in srgb, var(--ib-color-on-surface) 8%, transparent),
+      color-mix(in srgb, var(--ib-color-on-surface) 12%, transparent));
+  }
+  .ib-chart-band.ib-chart-mk-y { border-block: 1px solid var(--ib-color-outline); }
+  .ib-chart-band.ib-chart-mk-x { border-inline: 1px solid var(--ib-color-outline); }
+  .ib-chart-band > span { top: 4px; left: 4px; }
 
   /* A note: a dot at its point, a line up from it, and the text above. */
   .ib-chart-note {
