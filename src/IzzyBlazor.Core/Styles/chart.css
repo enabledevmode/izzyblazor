@@ -307,7 +307,7 @@
   }
 
   @supports (color: contrast-color(red)) {
-    .ib-chart-dl > .ib-chart-dl-in { color: contrast-color(var(--ib-chart-fill)); }
+    :is(.ib-chart-dl > .ib-chart-dl-in, .ib-pie-inside > span) { color: contrast-color(var(--ib-chart-fill)); }
   }
 
   /* End labels (a series' EndLabel): past the plot's end, in the frame's padding (or before a
@@ -822,6 +822,65 @@
   }
 
   .ib-pie-share { color: var(--ib-color-muted); }
+
+  /* Labels beside the circle (PieChart Labels Outside): two columns either side, each label
+     centered on the height worked out for it, in its slice's color toward the text's, joined to
+     its slice by a thin line. Under 40rem the circle would shrink to fit them: the legend stands in. */
+  .ib-pie-unringed { display: contents; }
+
+  .ib-pie-ring {
+    display: grid;
+    grid-template-columns: max-content minmax(0, var(--ib-pie-size, 16rem)) max-content;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .ib-pie-labels {
+    display: grid;
+    font-size: var(--ib-text-sm);
+    line-height: 20px;
+  }
+
+  .ib-pie-labels > span {
+    grid-area: 1 / 1;
+    align-self: start;
+    position: relative;
+    translate: 0 -50%;
+    padding-inline-start: var(--ib-space-3);
+    white-space: nowrap;
+    font-weight: var(--ib-weight-medium);
+    color: color-mix(in oklab, var(--ib-chart-c) 70%, var(--ib-color-on-surface));
+  }
+
+  .ib-pie-labels-start > span { padding-inline: 0 var(--ib-space-3); text-align: end; }
+
+  .ib-pie-label-share { color: var(--ib-color-muted); }
+
+  .ib-pie-leader {
+    fill: none;
+    stroke: var(--ib-color-muted);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ib-pie-legend-narrow { display: none; }
+
+  @container ib-chart (width < 40rem) {
+    .ib-pie-ring { display: contents; }
+    .ib-pie-labels, .ib-pie-leader { display: none; }
+    .ib-pie-legend-narrow { display: grid; }
+  }
+
+  /* Shares in their slices (PieChart Labels Inside): dark ink, or black or white for the fill
+     where browsers can pick. */
+  .ib-pie-inside > span {
+    position: absolute;
+    translate: -50% -50%;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
+  }
 
   /* ---- Sparkline: a line, area or bars as wide as its container. ---- */
   .ib-sparkline {
