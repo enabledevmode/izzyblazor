@@ -26,7 +26,7 @@
 <article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_headingId"
          data-ib-pending="@(Pending ? "" : null)">
     @Heading
-    @if (!Mine && (Author is not null || Avatar is not null))
+    @if (Mine ? Avatar is not null : Author is not null || Avatar is not null)
     {
         <Avatar Name="@Author" Src="@Avatar" Size="AvatarSize.Sm" Decorative Class="ib-chat-avatar" />
     }
@@ -134,7 +134,7 @@
     /// <summary>Who wrote it, such as "Assistant" or "Dana". Shown above it, and its avatar's name.</summary>
     [Parameter] public string? Author { get; set; }
 
-    /// <summary>The address of the author's picture. Without one, the avatar shows the author's initials.</summary>
+    /// <summary>The address of the author's picture. Without one, others' avatars show the author's initials; yours shows only with one.</summary>
     [Parameter] public string? Avatar { get; set; }
 
     /// <summary>When it was written: the time is shown, and the day above the day's first entry. Both are in the value's own offset, so give it in the reader's (the server can't know their time zone).</summary>
@@ -177,6 +177,7 @@
     private string? _style;
     private string? _day;
     private bool _arrived;
+    private bool _continues;
 
     // The content's headings sit under the entry's own.
     private int ContentTop => Math.Min(6, Context!.Owner.EntryHeadingLevel + 1);
@@ -200,13 +201,19 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        (_class, _style) = BuildRootAttributes();
         // A day above the day's first entry.
+        var previous = Context!.Before(this);
         _day = null;
-        if (Time is { } time && Context!.Before(this)?.Time is var before && (before is null || before.Value.Date != time.Date))
+        if (Time is { } time && previous?.Time is var before && (before is null || before.Value.Date != time.Date))
         {
             _day = DayOf(time);
         }
+
+        // An entry right after one from the same person, minutes later, joins it: no name, avatar
+        // or time of its own.
+        _continues = previous is not null && _day is null && previous.Mine == Mine && previous.Author == Author
+            && (Time is null || previous.Time is null || (Time - previous.Time).Value is { TotalMinutes: >= 0 and <= 5 });
+        (_class, _style) = BuildRootAttributes();
     }
 
     /// <inheritdoc />
@@ -221,6 +228,7 @@
     {
         classes.Add("ib-chat-entry");
         classes.Add(Mine ? "ib-chat-mine" : "ib-chat-other");
+        classes.Add("ib-chat-continued", _continues);
         base.BuildAttributes(classes, styles);
     }
 

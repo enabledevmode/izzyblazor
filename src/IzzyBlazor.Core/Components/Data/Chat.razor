@@ -15,6 +15,10 @@
         }
     </Chat>
 
+    Appearance chooses how others' entries look: across the log for an assistant, or in bubbles
+    for people talking. Entries in a row from the same person, minutes apart, are grouped: their
+    name, avatar and time show once.
+
     The chat is 32rem tall, its log scrolling inside; set Height, or Grow to fill its parent.
     The app keeps the entries and makes the replies: OnSend gets what was typed, and the app adds
     it and the reply as ChatEntry items. Status says where the reply is: while it's Waiting or
@@ -133,6 +137,9 @@
     /// <summary>The most files a message can have. Defaults to 5.</summary>
     [Parameter] public int MaxFiles { get; set; } = 5;
 
+    /// <summary>How others' entries look: across the log (Assistant, the default) or in bubbles (Conversation, for people talking).</summary>
+    [Parameter] public ChatAppearance Appearance { get; set; }
+
     /// <summary>The level of each entry's hidden heading, 2 to 6. Defaults to 3.</summary>
     [Parameter] public int HeadingLevel { get; set; } = 3;
 
@@ -196,6 +203,7 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-chat");
+        classes.Add("ib-chat-conversation", Appearance == ChatAppearance.Conversation);
         // 32rem tall unless Height says otherwise; with Grow and no Height, it fills its parent.
         classes.Add("ib-chat-sized", Height.IsEmpty && !Grow);
         classes.Add("ib-chat-fill", Height.IsEmpty && Grow);

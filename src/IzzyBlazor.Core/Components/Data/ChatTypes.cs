@@ -20,6 +20,16 @@ public enum ChatStatus
     Failed,
 }
 
+/// <summary>How a <see cref="Chat"/> shows others' entries.</summary>
+public enum ChatAppearance
+{
+    /// <summary>Others' entries across the log with no bubble, for an assistant's answers with tables and code. Yours are bubbles at the end.</summary>
+    Assistant,
+
+    /// <summary>Everyone's entries in bubbles, yours at the end and others' at the start, for people talking.</summary>
+    Conversation,
+}
+
 /// <summary>What a person sent in a <see cref="Chat"/>.</summary>
 /// <param name="Text">The message, as typed (or the suggestion chosen), trimmed.</param>
 /// <param name="CanStream">
