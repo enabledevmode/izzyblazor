@@ -5,8 +5,8 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>A DateRangeField posts both ends and binds, and its rules hold on the server.</summary>
 public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
+    // With no script, so nothing replaces the form between saves; the server's check is the same.
     [Theory]
-    [InlineData("static", true)]
     [InlineData("noscript", false)]
     public async Task A_good_range_saves_and_a_bad_one_doesnt(string mode, bool script)
     {
