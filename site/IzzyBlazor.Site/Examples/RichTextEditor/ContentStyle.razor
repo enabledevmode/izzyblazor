@@ -1,7 +1,7 @@
 @* A help article: larger text, and the article's own heading style on both the editor and the
    published page. *@
 <Stack Gap="6" Grow>
-    <RichTextEditor @bind-Value="_article" Label="Article" TextSize="ProseSize.Lg" ContentClass="help-article" />
+    <RichTextEditor @bind-Value="_article" Label="Article" FontSize="ProseSize.Lg" ContentClass="help-article" />
     @* A labeled line, not a card: RichText draws no box of its own. *@
     <Divider Label="As RichText shows it" />
     <RichText Html="@_article" Size="ProseSize.Lg" Class="help-article" />

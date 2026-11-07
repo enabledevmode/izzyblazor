@@ -288,8 +288,12 @@
     /// <summary>A class on the text, for your own rules on what's in it, such as <c>.article h2</c>. Give the same class to <see cref="RichText"/> to show it the same way.</summary>
     [Parameter] public string? ContentClass { get; set; }
 
-    /// <summary>The text size, as <see cref="Prose"/>'s. Defaults to <see cref="ProseSize.Md"/>.</summary>
-    [Parameter] public ProseSize TextSize { get; set; } = ProseSize.Md;
+    /// <summary>
+    /// The text's font size, on <see cref="Prose"/>'s scale: 14, 16 or 18px, with the gaps
+    /// between paragraphs to match. Defaults to <see cref="ProseSize.Md"/>. The width follows the
+    /// editor's container.
+    /// </summary>
+    [Parameter] public ProseSize FontSize { get; set; } = ProseSize.Md;
 
     /// <summary>
     /// Turns typed Markdown into formats as you type: <c>## </c> a heading, <c>- </c> and <c>1. </c>
@@ -428,8 +432,8 @@
 
     private string SurfaceClass => new ClassBuilder()
         .Add("ib-rich-text-surface ib-prose")
-        .Add("ib-prose-sm", TextSize == ProseSize.Sm)
-        .Add("ib-prose-lg", TextSize == ProseSize.Lg)
+        .Add("ib-prose-sm", FontSize == ProseSize.Sm)
+        .Add("ib-prose-lg", FontSize == ProseSize.Lg)
         .Add(ContentClass)
         .Build()!;
 
@@ -676,7 +680,7 @@
     ];
 
     // The text's own size in pixels, for the hint beside each step ("Large 20px").
-    private double BasePixels => TextSize switch { ProseSize.Sm => 14, ProseSize.Lg => 18, _ => 16 };
+    private double BasePixels => FontSize switch { ProseSize.Sm => 14, ProseSize.Lg => 18, _ => 16 };
 
     // A size in the menu, drawn at its size: a step's class, or a fixed size's style.
     private RenderFragment SizeItem(string value, string label, string? step, string? hint) =>
