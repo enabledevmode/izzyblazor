@@ -406,7 +406,8 @@
                         <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars)
                             {
-                                <rect class="@(bar.End is { } end ? $"ib-chart-end-{end}" : null)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
+                                <rect class="@(bar.End is { } end ? $"ib-chart-end-{end}" : null)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
+                                {<title>@bar.Title</title>}</rect>
                             }
                         </g>
                     }
@@ -421,7 +422,8 @@
                         <g class="@SeriesClass(s, s.Data.Type == ChartType.Scatter ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var mark in s.Marks)
                             {
-                                <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%" data-ib-i="@mark.Index"><title>@mark.Title</title></use>
+                                <use href="@($"#{marks}{s.Style % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%" data-ib-i="@mark.Index">@if (tooltip)
+                                {<title>@mark.Title</title>}</use>
                             }
                         </g>
                     }
