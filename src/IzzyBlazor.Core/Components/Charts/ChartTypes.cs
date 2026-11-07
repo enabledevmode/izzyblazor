@@ -51,14 +51,32 @@ public enum ChartCurve
     Step,
 }
 
-/// <summary>Where a chart's legend goes.</summary>
+/// <summary>Whether a chart has a legend, and where it goes.</summary>
 public enum ChartLegend
 {
-    /// <summary>Below the chart, when there are two series or more. A single series is named by the chart's title.</summary>
+    /// <summary>
+    /// A Chart's legend below it, when there are two series or more (a single series is named by
+    /// the chart's title); a PieChart's beside the circle when there's room, and below it otherwise.
+    /// </summary>
     Auto,
+
+    /// <summary>Above the chart, even for one series.</summary>
+    Top,
 
     /// <summary>Below the chart, even for one series.</summary>
     Bottom,
+
+    /// <summary>
+    /// Beside the chart on the start side (the left, in a left-to-right page), in a column; below
+    /// 30rem wide, above it instead.
+    /// </summary>
+    Start,
+
+    /// <summary>
+    /// Beside the chart on the end side (the right, in a left-to-right page), in a column; below
+    /// 30rem wide, below it instead.
+    /// </summary>
+    End,
 
     /// <summary>No legend.</summary>
     None,
