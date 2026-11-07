@@ -89,6 +89,26 @@ public class RoundChartTests : BunitContext
     }
 
     [Fact]
+    public void Pie_labels_sit_in_columns_either_side_and_never_overlap()
+    {
+        // Two slices on the right (their middles before half a turn), three small ones bunched at
+        // the left's top, which the spread pulls a line apart.
+        var slices = ChartShapes.Pie([30, 30, 20, 10, 10], hole: 0);
+        var labels = ChartShapes.PieLabels(slices, sizePx: 256, linePx: 20);
+
+        Assert.Equal([0, 1, 2, 3, 4], labels.Select(l => l.Index));
+        Assert.Equal([true, true, false, false, false], labels.Select(l => l.End));
+        foreach (var side in labels.GroupBy(l => l.End))
+        {
+            var px = side.Select(l => l.Pos * 256).Order().ToArray();
+            for (var i = 1; i < px.Length; i++) Assert.True(px[i] - px[i - 1] >= 20 - 1e-6, $"{px[i - 1]} and {px[i]}");
+        }
+
+        // Each leader runs from the slice's edge out to its column, level with the label.
+        Assert.EndsWith($"L1.07,{(labels[0].Pos * 2 - 1).ToString("0.####", CultureInfo.InvariantCulture)}", labels[0].Leader);
+    }
+
+        [Fact]
     public void A_gauge_is_a_meter_with_its_value_in_words()
     {
         var cut = Render<Gauge>(p => p

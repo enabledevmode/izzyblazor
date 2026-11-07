@@ -10,6 +10,13 @@ internal sealed record PieSlice(int Index, double Start, double End, string Path
     public double Middle => (Start + End) / 2;
 }
 
+/// <summary>
+/// A slice's label beside a pie: on the end side (the right, for slices whose middle is on the
+/// right half) or the start side; its center, 0 to 1 down the circle's box; and its leader line,
+/// from the slice's edge out and across to the label, in the pie's viewBox.
+/// </summary>
+internal sealed record PieLabel(int Index, bool End, double Pos, string Leader);
+
 /// <summary>The geometry of the round charts and sparklines, as SVG paths. Pure, so tested alone.</summary>
 internal static class ChartShapes
 {
@@ -76,6 +83,39 @@ internal static class ChartShapes
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Labels for the slices in two columns beside the circle, as DevExtreme's columns and
+    /// Datawrapper's lines: each level with its slice's middle, nudged apart a line each
+    /// (<see cref="ChartLayout.Spread"/>) on a circle <paramref name="sizePx"/> across, with a
+    /// leader from the slice's edge out to the column. In item order.
+    /// </summary>
+    public static List<PieLabel> PieLabels(IReadOnlyList<PieSlice> slices, double sizePx, double linePx)
+    {
+        var labels = new List<PieLabel>();
+        foreach (var end in new[] { true, false })
+        {
+            var side = slices.Where(s => s.Middle < 0.5 == end).ToList();
+            var centers = ChartLayout.Spread(side.Select(s => (At(s.Middle, 1.05).Y + 1) / 2 * sizePx).ToList(), sizePx, linePx);
+            for (var k = 0; k < side.Count; k++)
+            {
+                var (ex, ey) = At(side[k].Middle, 1);
+                var (bx, by) = At(side[k].Middle, 1.05);
+                var y = centers[k] / sizePx * 2 - 1;
+                labels.Add(new PieLabel(side[k].Index, end, centers[k] / sizePx,
+                    $"M{N(ex)},{N(ey)}L{N(bx)},{N(by)}L{N(end ? 1.07 : -1.07)},{N(y)}"));
+            }
+        }
+
+        return [.. labels.OrderBy(l => l.Index)];
+    }
+
+    /// <summary>Where a share goes inside its slice: its middle, halfway across the ring (or 62% out on a pie), 0 to 1 of the box.</summary>
+    public static (double X, double Y) PieInside(PieSlice slice, double hole)
+    {
+        var (x, y) = At(slice.Middle, hole > 0 ? (1 + hole) / 2 : 0.62);
+        return ((x + 1) / 2, (y + 1) / 2);
     }
 
     /// <summary>A gauge's sweep, in turns: 240°, with the gap at the bottom.</summary>
