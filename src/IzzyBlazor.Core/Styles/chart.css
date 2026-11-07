@@ -97,6 +97,13 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Right to left, the plot keeps its direction, as Material and AG Charts keep a chart's:
+     arguments left to right, values on the left, end labels where the lines end. Its text still
+     reads in its own direction, and the tooltip, legend and title follow the page. */
+  .ib-chart-frame, .ib-pie-ring { direction: ltr; }
+  :is(.ib-chart-frame, .ib-pie-ring) :is(span, .ib-chart-title):dir(rtl) { unicode-bidi: plaintext; }
+  .ib-chart-tooltip:dir(rtl) { direction: rtl; }
+
   /* Values up the side (or names, for bars across): all in one cell, so the column is as wide as
      the longest; each moved down by percent of the plot's height. */
   .ib-chart-side {
