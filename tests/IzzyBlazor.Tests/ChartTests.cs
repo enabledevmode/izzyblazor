@@ -310,6 +310,26 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_waterfalls_changes_start_where_the_last_ended_and_a_total_starts_from_zero()
+    {
+        // Revenue 100, costs -40, a total (everything so far, as the series reads it), tax -10.
+        var model = ChartLayout.Build(new ChartInput(["Revenue", "Costs", "Gross", "Tax"],
+            [new ChartSeriesData("Profit", ChartType.Bar, [100, -40, 60, -10]) { Totals = [false, false, true, false] }])
+        { Culture = CultureInfo.InvariantCulture, ValueMin = 0, ValueMax = 100 });
+
+        var bars = model.Series[0].Bars;
+        Assert.Equal(["up", "down", "total", "down"], bars.Select(b => b.Change));
+        // Costs float from 100 down to 60; the total stands from zero to 60; tax from 60 to 50.
+        Assert.Equal((0, 40), (Math.Round(bars[1].Y, 6), Math.Round(bars[1].Height, 6)));
+        Assert.Equal((40, 60), (Math.Round(bars[2].Y, 6), Math.Round(bars[2].Height, 6)));
+        Assert.Equal((40, 10), (Math.Round(bars[3].Y, 6), Math.Round(bars[3].Height, 6)));
+        // The start and totals read plain, the changes signed with a minus sign.
+        Assert.Equal(["100", "−40", "60", "−10"], model.ValueTexts[0].Select(t => t!));
+        // A connector from each bar to the next.
+        Assert.Equal(3, model.Series[0].Connectors!.Split('M', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
@@ -603,6 +623,29 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Argument, m => m.Revenue)
             .Add(c => c.Title, "Costs")
             .AddChildContent<ChartBubbleSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs))));
+    }
+
+    [Fact]
+    public void A_waterfall_keys_its_colors_in_the_legend_and_is_its_charts_only_series()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Change")
+            .AddChildContent<ChartWaterfallSeries<Month>>(s => s.Add(x => x.Value, m => m.Name == "Jan" ? m.Revenue : -m.Costs)));
+
+        // Jan's 100 starts the run; Feb's 70.5 comes off it.
+        Assert.Equal(["Increase", "Decrease"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
+        Assert.Empty(cut.FindAll(".ib-chart-toggle"));
+        Assert.Null(cut.Find("ib-chart").GetAttribute("data-ib-draw"));
+        Assert.Single(cut.FindAll(".ib-chart-bars rect.ib-chart-down"));
+        Assert.Single(cut.FindAll("path.ib-chart-connect"));
+        Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Change")
+            .AddChildContent<ChartWaterfallSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartLineSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs))));
     }
 
     [Fact]

@@ -60,13 +60,17 @@
   .ib-chart-s8 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-8)); }
   /* A pie's ninth slice and on. */
   .ib-chart-s9 { --ib-chart-c: var(--ib-color-neutral); }
+  /* A waterfall's rises and falls; its totals keep the series color. */
+  .ib-chart-up { --ib-chart-c: var(--ib-chart-increase, var(--ib-chart-2)); }
+  .ib-chart-down { --ib-chart-c: var(--ib-chart-decrease, var(--ib-chart-8)); }
+  .ib-chart-bars > :is(.ib-chart-up, .ib-chart-down) { fill: var(--ib-chart-fill); }
 
   /* Fills (bars, slices, keys) are a little lighter than the series color: mixed with the
      surface, 0.85 of the color in light mode and 0.9 in dark. --ib-chart-fill-opacity (a bar
      series' Opacity) sets one strength for both. Opaque, so a bar's rounded end and square base can
      overlap without a darker band. A scatter's points (--ib-chart-see) are see-through instead,
      so where they crowd shows darker. */
-  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9) {
+  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9, .ib-chart-up, .ib-chart-down) {
     --ib-chart-fill: light-dark(
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.85) * 100%), var(--ib-color-surface)),
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), var(--ib-color-surface)));
@@ -200,6 +204,13 @@
 
   .ib-chart-key rect {
     fill: var(--ib-chart-fill);
+  }
+
+  /* A waterfall's step from one bar's end to the next. */
+  .ib-chart-connect {
+    stroke: var(--ib-color-outline);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
   }
 
   .ib-chart-line,
@@ -565,7 +576,7 @@
     font-size: var(--ib-text-sm);
   }
 
-  .ib-chart-toggle {
+  :is(.ib-chart-toggle, .ib-chart-entry) {
     display: inline-flex;
     align-items: center;
     gap: var(--ib-space-2);

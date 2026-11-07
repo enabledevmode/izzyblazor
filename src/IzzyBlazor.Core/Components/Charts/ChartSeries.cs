@@ -10,8 +10,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// What every series of a <see cref="Chart{TItem}"/> has: a value from each item, a name, a color,
 /// labels and a trend. Use <see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
-/// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/> or
-/// <see cref="ChartBubbleSeries{TItem}"/>. A series renders nothing itself; the chart draws it.
+/// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
+/// <see cref="ChartBubbleSeries{TItem}"/> or <see cref="ChartWaterfallSeries{TItem}"/>. A series renders nothing itself; the chart draws it.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
@@ -118,6 +118,15 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual Expression<Func<TItem, object?>>? SizeOf => null;
 
+    // A waterfall's: which items are totals, and the colors of rises and falls.
+    private protected virtual Func<TItem, bool>? TotalOf => null;
+
+    private protected virtual bool IsWaterfall => false;
+
+    private protected virtual string? IncreaseColorOf => null;
+
+    private protected virtual string? DecreaseColorOf => null;
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -193,6 +202,26 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
         var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
+        if (IsWaterfall)
+        {
+            // A total's value is everything so far, whatever its own Value says.
+            var totals = items.Select(item => TotalOf?.Invoke(item) ?? false).ToArray();
+            var sum = 0.0;
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (totals[i]) values[i] = sum;
+                else if (values[i] is { } v) sum += v;
+            }
+
+            yield return Data(DisplayName, values, Color) with
+            {
+                Totals = totals,
+                IncreaseColor = IncreaseColorOf,
+                DecreaseColor = DecreaseColorOf,
+            };
+            yield break;
+        }
+
         if (_seriesBy is null)
         {
             yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName };
@@ -339,6 +368,78 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
     private protected override ChartType Type => ChartType.Bubble;
 
     private protected override Expression<Func<TItem, object?>>? SizeOf => Size;
+}
+
+/// <summary>
+/// A waterfall: each item's <c>Value</c> is a change, drawn as a bar from where the last one
+/// ended, so the bars walk from a starting amount to a result, such as revenue less costs to
+/// profit. An item that's a <see cref="Total"/> is a bar from zero to everything so far. Rises,
+/// falls and totals each take a color, and the values read signed ("+12,000", "−4,500").
+/// A waterfall is its chart's only series, and the chart's legend keys its three colors.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
+{
+    private Expression<Func<TItem, bool>>? _lastTotal;
+    private Func<TItem, bool>? _total;
+
+    /// <summary>
+    /// Which items are totals, such as <c>r =&gt; r.IsTotal</c>: each is a bar from zero showing
+    /// everything so far (gross profit, net profit), whatever its own Value.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, bool>>? Total { get; set; }
+
+    /// <summary>
+    /// How solid the bars are, from 0 (the surface's color) to 1 (the bar's color). Defaults to
+    /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
+    /// </summary>
+    [Parameter] public double? Opacity { get; set; }
+
+    /// <summary>
+    /// The CSS color of bars that add, such as <c>var(--ib-color-success)</c>. Defaults to the
+    /// palette's green (<c>--ib-chart-increase</c>, or <c>--ib-chart-2</c>). <c>Color</c> is the totals'.
+    /// </summary>
+    [Parameter] public string? IncreaseColor { get; set; }
+
+    /// <summary>
+    /// The CSS color of bars that take away. Defaults to the palette's red
+    /// (<c>--ib-chart-decrease</c>, or <c>--ib-chart-8</c>).
+    /// </summary>
+    [Parameter] public string? DecreaseColor { get; set; }
+
+    private protected override ChartType Type => ChartType.Bar;
+
+    private protected override double? OpacityOf => Opacity;
+
+    private protected override bool IsWaterfall => true;
+
+    private protected override Func<TItem, bool>? TotalOf => _total;
+
+    private protected override string? IncreaseColorOf => IncreaseColor;
+
+    private protected override string? DecreaseColorOf => DecreaseColor;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Trend != ChartTrend.None)
+        {
+            throw new InvalidOperationException("A ChartWaterfallSeries takes no Trend: its bars are changes, not a run of values.");
+        }
+
+        if (SeriesBy is not null)
+        {
+            throw new InvalidOperationException("A ChartWaterfallSeries can't be split with SeriesBy: a waterfall is one run of changes.");
+        }
+
+        if (!ReferenceEquals(Total, _lastTotal))
+        {
+            _lastTotal = Total;
+            _total = Total?.Compile();
+        }
+
+        base.OnParametersSet();
+    }
 }
 
 

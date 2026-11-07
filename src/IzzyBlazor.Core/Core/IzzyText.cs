@@ -1220,6 +1220,15 @@ public class IzzyText
     /// <summary>A bubble's size, in the tooltip and data table, when its Size isn't a property.</summary>
     public virtual string ChartSize { get; set; } = "Size";
 
+    /// <summary>A waterfall chart's legend: the key for bars that add to the running total.</summary>
+    public virtual string ChartIncrease { get; set; } = "Increase";
+
+    /// <summary>A waterfall chart's legend: the key for bars that take from the running total.</summary>
+    public virtual string ChartDecrease { get; set; } = "Decrease";
+
+    /// <summary>A waterfall chart's legend: the key for total bars, which show everything so far.</summary>
+    public virtual string ChartTotal { get; set; } = "Total";
+
     /// <summary>
     /// A Sparkline's accessible name, which says what a glance at it shows: "Revenue, last 12 weeks:
     /// from 41 to 48, low 39, high 52". {0} is the label; {1} and {2} the first and last values;
