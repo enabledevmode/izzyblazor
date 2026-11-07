@@ -189,8 +189,8 @@ function curve(p: Pt[], kind: number): { start: Pt; segs: Seg[] } {
   const segs: Seg[] = [];
   if (kind === 2) {
     for (let i = 1; i < p.length; i++) {
-      const mid = (p[i - 1][0] + p[i][0]) / 2;
-      segs.push([null, null, [mid, p[i - 1][1]]], [null, null, [mid, p[i][1]]], [null, null, p[i]]);
+      // Each value holds until the next one's argument, where it steps.
+      segs.push([null, null, [p[i][0], p[i - 1][1]]], [null, null, p[i]]);
     }
   } else if (kind === 1 && p.length > 2) {
     // Monotone cubic (Fritsch–Carlson): never overshoots a value.

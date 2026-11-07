@@ -299,7 +299,7 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
     /// <summary>The line's shape between values. Defaults to straight.</summary>
     [Parameter] public ChartCurve Curve { get; set; }
 
-    /// <summary>Whether each value is marked. Defaults to marking them when there are 40 or fewer.</summary>
+    /// <summary>Whether each value is marked. Defaults to marking them when there are 12 or fewer: more read as a line, and the markers crowd it.</summary>
     [Parameter] public bool? Markers { get; set; }
 
     /// <summary>Draws the line straight across a missing value, instead of leaving a gap.</summary>

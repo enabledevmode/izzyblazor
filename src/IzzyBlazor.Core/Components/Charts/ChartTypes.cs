@@ -47,7 +47,7 @@ public enum ChartCurve
     /// <summary>A smooth curve that never overshoots a value (monotone).</summary>
     Smooth,
 
-    /// <summary>Flat, with a step halfway between values.</summary>
+    /// <summary>Flat from each value to the next one's argument, where it steps: for values that hold until they change, such as a price or a plan's tier.</summary>
     Step,
 }
 
