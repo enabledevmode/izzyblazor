@@ -4,7 +4,7 @@
     <ChartBarSeries Value="m => m.Revenue" Name="Revenue" />
     <ChartReferenceLine Value="150_000" Label="Target $150K" />
     <ChartReferenceLine Statistic="ChartStatistic.Average" Series="Revenue" />
-    <ChartReferenceBand Axis="ChartAxis.Argument" From="@("Nov")" To="@("Dec")" Label="Holiday season" />
+    <ChartReferenceBand ArgumentFrom="@("Nov")" ArgumentTo="@("Dec")" Label="Holiday season" />
 </Chart>
 
 @code {
