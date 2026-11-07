@@ -44,6 +44,8 @@
                 }
             </p>
         }
+        @if (ChildContent is not null || Pending || !string.IsNullOrEmpty(Markdown) || !string.IsNullOrEmpty(Html) || !string.IsNullOrEmpty(Text))
+        {
         <div class="ib-chat-bubble">
             @if (ChildContent is not null)
             {
@@ -68,6 +70,30 @@
                 <span class="ib-chat-dots" aria-hidden="true"><span></span><span></span><span></span></span>
             }
         </div>
+        }
+        @if (Attachments is { Count: > 0 } attachments)
+        {
+            <ul class="ib-chat-attachments">
+                @foreach (var file in attachments)
+                {
+                    <li class="ib-chat-file-chip">
+                        <Icon Name="Lucide.Paperclip" />
+                        @if (file.Href is { } href)
+                        {
+                            <a href="@href">@file.Name</a>
+                        }
+                        else
+                        {
+                            <span>@file.Name</span>
+                        }
+                        @if (file.Size is { } size)
+                        {
+                            <span class="ib-chat-file-size">@SizeText(size)</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
         @if (Failed)
         {
             <p class="ib-chat-failed">
@@ -120,6 +146,9 @@
 
     /// <summary>Anything else, such as a card or the sources an answer used. It replaces Text, Markdown and Html.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Files sent with it, shown under it as their names (linked when they have an address).</summary>
+    [Parameter] public IReadOnlyList<ChatAttachment>? Attachments { get; set; }
 
     /// <summary>Whether more is coming: dots until content arrives, then a caret after it.</summary>
     [Parameter] public bool Pending { get; set; }
@@ -212,6 +241,21 @@
     }
 
     internal Task RetryAsync() => OnRetry.InvokeAsync();
+
+    /// <summary>A size for people, in the units FileUpload uses: 840 bytes, 1.5 KB, 2 MB.</summary>
+    internal static string SizeText(long bytes)
+    {
+        string[] units = ["bytes", "KB", "MB", "GB"];
+        double size = bytes;
+        var unit = 0;
+        while (size >= 1000 && unit < units.Length - 1)
+        {
+            size /= 1000;
+            unit++;
+        }
+
+        return $"{Math.Round(size, 1).ToString(System.Globalization.CultureInfo.CurrentCulture)} {units[unit]}";
+    }
 
     /// <inheritdoc />
     public void Dispose() => Context?.Unregister(this);

@@ -7,6 +7,7 @@
 @attribute [StreamRendering]
 
 <Chat Label="Help desk assistant" FormName="help-desk" FormAction="@_action" OnSend="SendAsync" OnStop="Stop" Status="_status"
+      AllowFiles Accept="image/*,.pdf" MaxFileSize="5_000_000"
       Suggestions="@(_turns.Count == 0 ? Ideas : null)" Placeholder="Ask about an order, a refund or shipping">
     <EmptyContent>
         <EmptyState Icon="Lucide.MessagesSquare" Title="How can we help?" Description="Ask about an order, a refund or shipping." />
@@ -16,7 +17,7 @@
         {
             @if (turn.Mine)
             {
-                <ChatEntry Mine Text="@turn.Text" Time="turn.Time" />
+                <ChatEntry Mine Text="@turn.Text" Attachments="turn.Files" Time="turn.Time" />
             }
             else
             {
@@ -45,6 +46,7 @@
         public string Text { get; set; } = "";
         public DateTimeOffset Time { get; init; } = DateTimeOffset.Now;
         public bool Pending { get; set; }
+        public IReadOnlyList<ChatAttachment>? Files { get; init; }
     }
 
     private string? _action;
@@ -58,8 +60,12 @@
 
     private async Task SendAsync(ChatSendArgs message)
     {
-        _turns.Add(new Turn { Mine = true, Text = message.Text });
-        var answer = Answer(message.Text);
+        // Files are named here, not kept: a real app saves them where the team can open them.
+        var files = message.Files.Select(f => new ChatAttachment(f.Name, Size: f.Size)).ToList();
+        _turns.Add(new Turn { Mine = true, Text = message.Text, Files = files });
+        var answer = files.Count > 0
+            ? $"Thanks, I have **{string.Join(", ", files.Select(f => f.Name))}**. Someone from the team will look at it and reply by email within a day."
+            : Answer(message.Text);
         var reply = new Turn();
         _turns.Add(reply);
 
