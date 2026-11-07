@@ -47,15 +47,11 @@ internal sealed record AxisLabel(double Pos, string Text, string? Context = null
 /// </summary>
 internal sealed record GridLine(double Pos, int From, bool Zero, bool Argument = false);
 
-/// <summary>A bar, in percent of the plot.</summary>
 /// <summary>
-/// A bar, in percent of the plot. <c>Base</c> is set on a bar whose value end is rounded: the
-/// square half at the baseline, drawn over the rounded rectangle's baseline corners.
+/// A bar, in percent of the plot. <c>End</c> is set on a bar whose value end is rounded: the side
+/// it's on, <c>t</c>, <c>b</c>, <c>l</c> or <c>r</c> (chart.css rounds that side's corners).
 /// </summary>
-internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, BarHalf? Base = null);
-
-/// <summary>A bar's baseline half, in percent of the plot.</summary>
-internal sealed record BarHalf(double X, double Y, double Width, double Height);
+internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, char? End = null);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title, int Index);
@@ -358,16 +354,7 @@ internal static class ChartLayout
                         other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
                     if (outermost && hi > lo)
                     {
-                        rect = rect with
-                        {
-                            Base = (input.Horizontal, below) switch
-                            {
-                                (false, false) => new BarHalf(rect.X, rect.Y + rect.Height / 2, rect.Width, rect.Height / 2),
-                                (false, true) => new BarHalf(rect.X, rect.Y, rect.Width, rect.Height / 2),
-                                (true, false) => new BarHalf(rect.X, rect.Y, rect.Width / 2, rect.Height),
-                                (true, true) => new BarHalf(rect.X + rect.Width / 2, rect.Y, rect.Width / 2, rect.Height),
-                            },
-                        };
+                        rect = rect with { End = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
                     }
 
                     shape.Bars.Add(rect);

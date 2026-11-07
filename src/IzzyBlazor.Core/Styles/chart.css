@@ -106,27 +106,31 @@
     text-overflow: ellipsis;
   }
 
+  ib-chart[data-ib-horizontal] .ib-chart-frame { padding-block-start: 0; }
+
   .ib-chart-plot {
     position: relative;
     min-width: 0;
   }
 
   /* Axis titles: one in a column of its own beside the side's labels, read bottom to top, and
-     one under the bottom's. */
+     one under the bottom's, each a little further from its labels than they are from the plot,
+     and in the text color, so neither reads as one more label. */
   .ib-chart-titled { grid-template-columns: auto auto minmax(0, 1fr); }
 
   .ib-chart-title {
-    color: var(--ib-color-muted);
+    color: var(--ib-color-on-surface);
     font-weight: var(--ib-weight-medium);
     text-align: center;
   }
 
   .ib-chart-title-side {
+    margin-right: var(--ib-space-1);
     writing-mode: vertical-rl;
     rotate: 180deg;
   }
 
-  .ib-chart-title-bottom { margin-block-start: var(--ib-space-1); }
+  .ib-chart-title-bottom { margin-block-start: var(--ib-space-2); }
 
   .ib-chart-svg {
     position: absolute;
@@ -147,12 +151,19 @@
 
   .ib-chart-zero { stroke: var(--ib-color-outline); }
 
-  /* Bars in the series' fill, with no edge. The value end is rounded by the theme's small radius
-     (--ib-chart-bar-radius to set it apart): a rounded rectangle with a square one over its
-     baseline half. */
-  .ib-chart-bars { fill: var(--ib-chart-fill); }
+  /* Bars in the series' fill, with no edge. The value end (ib-chart-end-t, b, l or r) is rounded
+     by the theme's small radius (--ib-chart-bar-radius to set it apart), clipped from one
+     rectangle so no seam shows where two would meet. */
+  .ib-chart-bars {
+    --ib-chart-r: var(--ib-chart-bar-radius, var(--ib-radius-sm));
+    fill: var(--ib-chart-fill);
+  }
 
-  .ib-chart-bars > .ib-chart-tip,
+  .ib-chart-end-t { clip-path: inset(0 round var(--ib-chart-r) var(--ib-chart-r) 0 0); }
+  .ib-chart-end-b { clip-path: inset(0 round 0 0 var(--ib-chart-r) var(--ib-chart-r)); }
+  .ib-chart-end-r { clip-path: inset(0 round 0 var(--ib-chart-r) var(--ib-chart-r) 0); }
+  .ib-chart-end-l { clip-path: inset(0 round var(--ib-chart-r) 0 0 var(--ib-chart-r)); }
+
   .ib-chart-key rect {
     rx: var(--ib-chart-bar-radius, var(--ib-radius-sm));
   }

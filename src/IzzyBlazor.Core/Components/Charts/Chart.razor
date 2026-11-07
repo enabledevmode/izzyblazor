@@ -360,11 +360,7 @@
                         <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars)
                             {
-                                <rect class="@(bar.Base is null ? null : "ib-chart-tip")" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
-                                @if (bar.Base is { } half)
-                                {
-                                    <rect x="@Num(half.X)%" y="@Num(half.Y)%" width="@Num(half.Width)%" height="@Num(half.Height)%" />
-                                }
+                                <rect class="@(bar.End is { } end ? $"ib-chart-end-{end}" : null)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%"><title>@bar.Title</title></rect>
                             }
                         </g>
                     }
