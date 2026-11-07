@@ -139,6 +139,52 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_set_step_puts_ticks_on_its_multiples_and_writes_them_with_its_decimals()
+    {
+        ChartModel Build(double step, double?[] values) => ChartLayout.Build(new ChartInput(["A", "B", "C"], [new ChartSeriesData("S", ChartType.Bar, values)])
+        { ValueStep = step, Culture = CultureInfo.InvariantCulture });
+
+        Assert.Equal(["0", "25,000", "50,000", "75,000", "100,000", "125,000", "150,000", "175,000"],
+            Build(25_000, [90_000, 160_000, 120_000]).ValueLabels.Select(l => l.Text));
+        Assert.Equal(["0.00", "0.25", "0.50", "0.75", "1.00"], Build(0.25, [0.3, 0.9, 0.6]).ValueLabels.Select(l => l.Text));
+    }
+
+    [Fact]
+    public void A_log_scale_ticks_powers_of_ten_and_leaves_out_values_it_has_no_place_for()
+    {
+        var model = ChartLayout.Build(new ChartInput(["Acme", "Globex", "Initech", "Hooli"],
+            [new ChartSeriesData("Employees", ChartType.Bar, [12, 3_400, 0, 250_000])])
+        { ValueLog = true, Culture = CultureInfo.InvariantCulture });
+
+        Assert.Equal(["10", "100", "1,000", "10,000", "100,000", "1,000,000"], model.ValueLabels.Select(l => l.Text));
+        // Each power of ten an equal step up; bars from the bottom; zero not drawn.
+        Assert.Equal(0.2, model.ValueLabels[1].Pos - model.ValueLabels[0].Pos, 6);
+        var bars = model.Series[0].Bars;
+        Assert.Equal(3, bars.Count);
+        Assert.All(bars, b => Assert.Equal(100, b.Y + b.Height, 6));
+    }
+
+    [Fact]
+    public void Crowded_names_turn_before_they_skip_or_all_show_wrapped()
+    {
+        string[] names = [.. Enumerable.Range(1, 12).Select(i => $"Region number {i}")];
+        ChartModel Build(ChartArgumentLabels mode) => ChartLayout.Build(new ChartInput(names,
+            [new ChartSeriesData("S", ChartType.Bar, [.. names.Select((_, i) => (double?)i)])])
+        { ArgumentLabels = mode, Culture = CultureInfo.InvariantCulture });
+
+        var auto = Build(ChartArgumentLabels.Auto);
+        var turned = Build(ChartArgumentLabels.Rotate);
+        Assert.Equal(0, auto.FlatFrom);
+        Assert.True(turned.FlatFrom > 0 && turned.TurnedPx > 16);
+        // Turned, more names show at the narrowest width than flat.
+        Assert.True(turned.ArgumentLabels.Count(l => l.From == 0) > auto.ArgumentLabels.Count(l => l.From == 0));
+
+        var all = Build(ChartArgumentLabels.All);
+        Assert.True(all.Wrap);
+        Assert.Equal(12, all.ArgumentLabels.Count(l => l.From == 0));
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
@@ -282,6 +328,30 @@ public class ChartRenderTests : BunitContext
         Assert.Equal(["Basic", "Pro"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
         Assert.Equal(["Jan", "100", ""], cut.FindAll(".ib-chart-table tbody tr")[0].Children.Select(c => c.TextContent));
         Assert.Equal(2, cut.FindAll(".ib-chart-bars[data-ib-series='0'] rect title").Count);
+    }
+
+    [Fact]
+    public void Axis_titles_sit_beside_their_axes_and_grid_lines_follow_GridLines()
+    {
+        Month[] months = [new("Jan", 100, 60), new("Feb", 120, 70), new("Mar", 90, 80)];
+        IRenderedComponent<Chart<Month>> Build(ChartGridLines grid) => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Label, "Revenue")
+            .Add(c => c.ValueTitle, "Revenue (USD)")
+            .Add(c => c.ArgumentTitle, "Month")
+            .Add(c => c.GridLines, grid)
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+
+        var cut = Build(ChartGridLines.Both);
+        Assert.Equal("Revenue (USD)", cut.Find(".ib-chart-titled > .ib-chart-title-side").TextContent);
+        Assert.Equal("Month", cut.Find(".ib-chart-frame > .ib-chart-title-bottom").TextContent);
+        Assert.Equal("Month", cut.Find(".ib-chart-table thead th").TextContent);
+        // Between the three bands: two lines.
+        Assert.Equal(["33.333%", "66.667%"], cut.FindAll("line.ib-chart-agrid").Select(l => l.GetAttribute("x1")));
+
+        var none = Build(ChartGridLines.None);
+        Assert.All(none.FindAll("line.ib-chart-grid"), l => Assert.Contains("ib-chart-zero", l.ClassName));
     }
 
     [Fact]

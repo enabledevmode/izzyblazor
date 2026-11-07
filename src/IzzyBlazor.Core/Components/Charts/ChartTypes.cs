@@ -96,3 +96,29 @@ public enum SparklineType
     /// <summary>A bar for each value, up from zero (down, for a value under it).</summary>
     Bar,
 }
+
+/// <summary>Which grid lines a <see cref="Chart{TItem}"/> draws across its plot.</summary>
+public enum ChartGridLines
+{
+    /// <summary>A line at each value on the value axis.</summary>
+    Value,
+
+    /// <summary>Lines at the values, and between the arguments (at each tick on a number or date scale).</summary>
+    Both,
+
+    /// <summary>No grid lines. The zero line stays where values cross zero.</summary>
+    None,
+}
+
+/// <summary>How a <see cref="Chart{TItem}"/> fits the names along its bottom when they don't all fit side by side.</summary>
+public enum ChartArgumentLabels
+{
+    /// <summary>Names that don't fit are skipped: every other one, then every fourth, and so on.</summary>
+    Auto,
+
+    /// <summary>Names are turned 45° before any are skipped, so more of them show.</summary>
+    Rotate,
+
+    /// <summary>Every name shows, wrapped onto more lines in its band. Suits a few long names.</summary>
+    All,
+}

@@ -35,6 +35,9 @@ export interface DrawData {
   st: number; // 0 none, 1 stacked, 2 full
   lo: number | null; // ValueMin
   hi: number | null; // ValueMax
+  vs: number | null; // ValueStep
+  lg: boolean; // ValueLog
+  gl: boolean; // grid lines at the values
   f: NumberShape;
   a: (number | null)[]; // each item's place along the argument axis, 0 to 1
   mk: string; // the marker shapes' id prefix
@@ -100,6 +103,51 @@ function nice(min: number, max: number, count: number): [number, number] {
   return [min, max];
 }
 
+// ---- Set steps and log scales (ChartLayout.StepDomain, StepTicks, LogDomain, LogTicks). ----
+
+const power = (m: number, e: number) => Number(`${m}e${e}`);
+
+function logTicks(min: number, max: number, count: number): [number, number][] {
+  const lo = Math.floor(Math.log10(min) + 1e-9), hi = Math.ceil(Math.log10(max) - 1e-9);
+  const multiples = (hi - lo) * 3 <= count + 1 ? [1, 2, 5] : [1];
+  const ticks: [number, number][] = [];
+  for (let e = lo; e <= hi; e++) {
+    for (const m of multiples) {
+      const v = power(m, e);
+      if (v < min * (1 - 1e-9) || v > max * (1 + 1e-9)) continue;
+      let zeros = 0;
+      while (e !== 0 && zeros < 4 && (Math.abs(e) >> zeros) % 2 === 0) zeros++;
+      ticks.push([v, m !== 1 ? 0 : e === 0 ? 6 : 1 + zeros]);
+    }
+  }
+  return ticks;
+}
+
+function stepTicks(min: number, max: number, step: number, decimals: number): [number, number][] {
+  const i1 = Math.ceil(min / step - 1e-9), i2 = Math.floor(max / step + 1e-9);
+  // Levels as ChartScale.Ladder's from a step of 1: every 1, 2, 10, 20, 100… steps.
+  const ladder = [1];
+  for (let k = 1, j = 0; k < Math.max(1, i2 - i1) && ladder.length < 40; j++) ladder.push((k *= j % 2 === 0 ? 2 : 5));
+  const ticks: [number, number][] = [];
+  for (let i = i1; i <= i2; i++) {
+    let level = 0;
+    while (level < ladder.length - 1 && i % ladder[level + 1] === 0) level++;
+    ticks.push([Number((i * step).toFixed(decimals)), level]);
+  }
+  return ticks;
+}
+
+/** The ticks to keep: those of the finest level whose ticks are needPx apart. */
+function thin(ticks: [number, number][], pos: (v: number) => number, px: number, needPx: number): [number, number][] {
+  const top = Math.max(0, ...ticks.map((t) => t[1]));
+  for (let level = 0; ; level++) {
+    const kept = ticks.filter((t) => t[1] >= level);
+    let gap = Infinity;
+    for (let i = 1; i < kept.length; i++) gap = Math.min(gap, Math.abs(pos(kept[i][0]) - pos(kept[i - 1][0])));
+    if (level >= top || gap * px >= needPx) return kept;
+  }
+}
+
 const decimalsFor = (step: number) => (step >= 1 || step <= 0 ? 0 : Math.min(10, Math.ceil(-Math.log10(step) - 1e-9)));
 
 /** Formats a value as the chart's .NET format would, from the shape the server read off it. */
@@ -107,7 +155,8 @@ export function format(f: NumberShape, value: number, step: number): string {
   const decimals = f.n < 0 ? decimalsFor(step) : f.n;
   let text = (Math.abs(value) * f.k).toFixed(decimals);
   // Optional decimals ("#,##0.##"): trailing zeros drop down to the ones the format keeps.
-  for (let keep = decimals; keep > f.t && /\.\d*0$/.test(text); keep--) text = text.slice(0, -1);
+  // The axis default (n -1) keeps them all, as .NET's N does.
+  for (let keep = decimals; keep > (f.n < 0 ? decimals : f.t) && /\.\d*0$/.test(text); keep--) text = text.slice(0, -1);
   text = text.replace(/\.$/, "");
   let [whole, fraction] = text.split(".");
   if (f.g) whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, f.g);
@@ -189,7 +238,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
 
   // Stacks: bars with bars, areas with areas.
   const lows: (number | null)[][] = d.s.map(() => new Array(n).fill(null));
-  const highs: (number | null)[][] = d.s.map((s) => s.v.map((v) => (v === null || !isFinite(v) ? null : v)));
+  const log = d.lg;
+  const highs: (number | null)[][] = d.s.map((s) => s.v.map((v) => (v === null || !isFinite(v) || (log && v <= 0) ? null : v)));
   if (stacked) {
     for (const type of [0, 2]) {
       const group = visible.filter((s) => d.s[s].t === type);
@@ -219,43 +269,73 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   for (const s of visible) {
     for (let i = 0; i < n; i++) {
       for (const x of [highs[s][i], lows[s][i]]) {
-        if (x !== null) {
+        if (x !== null && (!log || x > 0)) {
           min = Math.min(min, x);
           max = Math.max(max, x);
         }
       }
     }
   }
-  if (visible.some((s) => d.s[s].t === 0 || d.s[s].t === 2)) {
+  if (!log && visible.some((s) => d.s[s].t === 0 || d.s[s].t === 2)) {
     min = Math.min(min, 0);
     max = Math.max(max, 0);
   }
-  if (!isFinite(min)) [min, max] = [0, 1];
+  if (!isFinite(min)) [min, max] = log ? [1, 10] : [0, 1];
   // A set end the values cross moves the other end past it, so the range never runs backward.
   if (d.lo != null) [min, max] = [d.lo, Math.max(max, d.lo)];
   if (d.hi != null) [min, max] = [Math.min(min, d.hi), d.hi];
 
   const count = d.h ? Math.max(2, plotPx.w / 90) : d.vc;
-  let [dmin, dmax] = d.lo != null && d.hi != null ? [min, max] : nice(min, max, Math.round(count));
-  if (d.lo != null) dmin = d.lo;
-  if (d.hi != null) dmax = d.hi;
-  const span = dmax - dmin || 1;
-  const scale = (v: number) => Math.min(1, Math.max(0, (v - dmin) / span));
+  let dmin: number, dmax: number;
+  let ticks: [number, number][] | null = null;
+  // A step's decimals, as 10 to minus them, for format to pick.
+  const stepDecimals = d.vs != null && d.vs < 1 ? Math.min(10, (String(d.vs).split(".")[1] ?? "").length) : 0;
+  let step = d.vs;
+  if (log) {
+    dmin = d.lo ?? power(1, Math.floor(Math.log10(min) + 1e-9));
+    dmax = d.hi ?? power(1, Math.ceil(Math.log10(max) - 1e-9));
+    if (!(dmax > dmin)) dmax = dmin * 10;
+    ticks = logTicks(dmin, dmax, count);
+  } else if (step != null) {
+    dmin = d.lo ?? Math.floor(min / step + 1e-9) * step;
+    dmax = d.hi ?? Math.ceil(max / step - 1e-9) * step;
+    if (!(dmax > dmin)) dmax = dmin + step;
+    if ((dmax - dmin) / step > 500) step = null;
+    else ticks = stepTicks(dmin, dmax, step, stepDecimals);
+  }
+  if (!log && step == null) {
+    [dmin, dmax] = d.lo != null && d.hi != null ? [min, max] : nice(min, max, Math.round(count));
+    if (d.lo != null) dmin = d.lo;
+    if (d.hi != null) dmax = d.hi;
+  }
+  const span = dmax! - dmin! || 1;
+  const [l0, l1] = log ? [Math.log10(dmin!), Math.log10(dmax!)] : [0, 1];
+  const scale = (v: number) =>
+    log ? (v > 0 ? Math.min(1, Math.max(0, (Math.log10(v) - l0) / (l1 - l0))) : 0) : Math.min(1, Math.max(0, (v - dmin!) / span));
 
-  // Ticks, labels and grid lines.
-  const spec = tickSpec(dmin, dmax, count);
+  // Ticks, labels and grid lines: thinned to a line apart up the side, or to a label's width across.
+  if (ticks) {
+    const text = (v: number) => format(d.f, v, log ? v : Math.pow(10, -stepDecimals));
+    const widest = Math.max(0, ...ticks.map((t) => text(t[0]).length)) * 7 + 8;
+    ticks = thin(ticks, scale, d.h ? plotPx.w : plotPx.h, d.h ? widest : 20);
+  } else {
+    const spec = tickSpec(dmin!, dmax!, count);
+    ticks = [];
+    for (let i = spec.i1; i <= spec.i2; i++) ticks.push([tickValue(spec, i), 0]);
+    step = tickStep(spec);
+  }
   let svg = "";
   let labels = "";
-  for (let i = spec.i1; i <= spec.i2; i++) {
-    const v = tickValue(spec, i);
-    const pos = (v - dmin) / span;
-    const text = esc(format(d.f, v, tickStep(spec)));
+  for (const [v] of ticks) {
+    const pos = scale(v);
+    const text = esc(format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!));
     const zero = v === 0 ? " ib-chart-zero" : "";
+    const line = d.gl || v === 0;
     if (d.h) {
-      svg += `<line class="ib-chart-grid${zero}" x1="${pct(pos)}" x2="${pct(pos)}" y1="0" y2="100%"/>`;
+      if (line) svg += `<line class="ib-chart-grid${zero}" x1="${pct(pos)}" x2="${pct(pos)}" y1="0" y2="100%"/>`;
       labels += `<span style="left:${pct(pos)}">${text}</span>`;
     } else {
-      svg += `<line class="ib-chart-grid${zero}" x1="0" x2="100%" y1="${pct(1 - pos)}" y2="${pct(1 - pos)}"/>`;
+      if (line) svg += `<line class="ib-chart-grid${zero}" x1="0" x2="100%" y1="${pct(1 - pos)}" y2="${pct(1 - pos)}"/>`;
       labels += `<span style="top:${pct(1 - pos)}">${text}</span>`;
     }
   }

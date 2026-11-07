@@ -27,6 +27,10 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public string? ArgumentFormat { get; init; }
     public double? ValueMin { get; init; }
     public double? ValueMax { get; init; }
+    public double? ValueStep { get; init; }
+    public bool ValueLog { get; init; }
+    public ChartGridLines GridLines { get; init; }
+    public ChartArgumentLabels ArgumentLabels { get; init; }
     public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
 }
 
@@ -37,8 +41,11 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 /// </summary>
 internal sealed record AxisLabel(double Pos, string Text, string? Context = null, int From = 0, string? Title = null);
 
-/// <summary>A grid line across the plot at a value, shown from a container width as its label is.</summary>
-internal sealed record GridLine(double Pos, int From, bool Zero);
+/// <summary>
+/// A grid line across the plot, shown from a container width as its label is: at a value, or
+/// (<c>Argument</c>) at an argument's tick or between two bands.
+/// </summary>
+internal sealed record GridLine(double Pos, int From, bool Zero, bool Argument = false);
 
 /// <summary>A bar, in percent of the plot.</summary>
 /// <summary>
@@ -92,6 +99,22 @@ internal sealed class ChartModel
     /// <summary>Room the last label along the bottom of a scale needs past the plot's end, in pixels.</summary>
     public double EndRoomPx { get; set; }
 
+    /// <summary>
+    /// For names turned 45° (<see cref="ChartArgumentLabels.Rotate"/>): the first of
+    /// <see cref="ChartLayout.Widths"/> at which they all fit flat, or its length when they never
+    /// do; 0 when they're never turned.
+    /// </summary>
+    public int FlatFrom { get; set; }
+
+    /// <summary>The height turned names need, in pixels.</summary>
+    public double TurnedPx { get; set; }
+
+    /// <summary>How far the first turned name reaches past the plot's start, in pixels.</summary>
+    public double LeadPx { get; set; }
+
+    /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartArgumentLabels.All"/>).</summary>
+    public bool Wrap { get; set; }
+
     /// <summary>Whether the argument labels have a second line (a month under days, a year under months).</summary>
     public bool TwoLine { get; set; }
 
@@ -114,7 +137,7 @@ internal static class ChartLayout
     /// <summary>The container widths the labels are fitted at, in pixels. chart.css has a container query for each but the first.</summary>
     public static readonly int[] Widths = [0, 320, 400, 480, 560, 640, 800, 960];
 
-    private const double FontPx = 12, LineHeightPx = 16, LabelGapPx = 8, GapPx = 8;
+    private const double FontPx = 12, LineHeightPx = 16, LabelGapPx = 8, GapPx = 8, TurnedPitchPx = 24, TurnedMaxPx = 128;
 
     // The width each breakpoint is fitted at: its own, or 280 for anything under 320.
     private static double FitWidth(int k) => k == 0 ? 280 : Widths[k];
@@ -139,9 +162,11 @@ internal static class ChartLayout
         // Stacks: bars with bars, areas with areas. Each point's base and top, before scaling.
         var lows = new double?[input.Series.Count][];
         var highs = new double?[input.Series.Count][];
-        StackValues(input, stacked, full, lows, highs);
+        var log = input.ValueLog;
+        StackValues(input, stacked, full, log, lows, highs);
 
         // The value domain, from the series that show: a hidden one is drawn as if it weren't there.
+        // On a log scale, only values over zero have a place.
         var min = double.PositiveInfinity;
         var max = double.NegativeInfinity;
         for (var s = 0; s < input.Series.Count; s++)
@@ -149,18 +174,18 @@ internal static class ChartLayout
             if (input.Series[s].Hidden) continue;
             for (var i = 0; i < n; i++)
             {
-                if (highs[s][i] is { } h) { min = Math.Min(min, h); max = Math.Max(max, h); }
-                if (lows[s][i] is { } l) { min = Math.Min(min, l); max = Math.Max(max, l); }
+                if (highs[s][i] is { } h && (!log || h > 0)) { min = Math.Min(min, h); max = Math.Max(max, h); }
+                if (lows[s][i] is { } l && (!log || l > 0)) { min = Math.Min(min, l); max = Math.Max(max, l); }
             }
         }
 
-        if (input.Series.Any(s => !s.Hidden && s.Type is ChartType.Bar or ChartType.Area))
+        if (!log && input.Series.Any(s => !s.Hidden && s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
         }
 
-        if (!double.IsFinite(min)) { (min, max) = (0, 1); }
+        if (!double.IsFinite(min)) { (min, max) = log ? (1, 10) : (0, 1); }
 
         // A set end the values cross moves the other end past it, so the range never runs backward.
         if (input.ValueMin is { } vmin) { min = vmin; max = Math.Max(max, vmin); }
@@ -170,7 +195,34 @@ internal static class ChartLayout
         var plotHeight = Math.Max(80, input.HeightPx);
         var argumentRoomPx = EstimateValueColumn(input, model, kind);
         double dmin, dmax;
-        if (!input.Horizontal)
+        var step = log ? null : input.ValueStep;
+        var stepDomain = step is { } st ? StepDomain(min, max, st, input) : null;
+        if (stepDomain is null) step = null;
+        if (log || step is not null)
+        {
+            (dmin, dmax) = log ? LogDomain(min, max, input) : stepDomain!.Value;
+            var count = input.Horizontal ? Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 80) : Math.Max(2, Math.Round(plotHeight / 56));
+            var ticks = log ? LogTicks(dmin, dmax, count) : StepTicks(dmin, dmax, step!.Value);
+            var format = full ? "P0" : input.ValueFormat ?? (log ? "#,##0.##########" : "N" + StepDecimals(step!.Value));
+            var (l0, l1) = log ? (Math.Log10(dmin), Math.Log10(dmax)) : (0, 0);
+            var placed = ticks.Select(t => (
+                Pos: log ? (Math.Log10(t.V) - l0) / (l1 - l0) : (t.V - dmin) / (dmax - dmin),
+                t.Level,
+                Text: t.V.ToString(format, culture))).ToList();
+            var levels = placed.Select(t => (t.Pos, t.Level)).ToList();
+
+            // Up the side, the ticks a line apart at the plot's height; across, those that fit each width.
+            var froms = input.Horizontal
+                ? FitLevels(levels, Widths.Length, k => PlotWidth(k, argumentRoomPx), placed.Select(t => Width(t.Text)).DefaultIfEmpty(0).Max() + LabelGapPx)
+                : FitLevels(levels, 1, _ => plotHeight, LineHeightPx + 4);
+            for (var j = 0; j < placed.Count; j++)
+            {
+                if (froms[j] < 0) continue;
+                model.ValueLabels.Add(new AxisLabel(placed[j].Pos, placed[j].Text, From: froms[j]));
+                model.Grid.Add(new GridLine(placed[j].Pos, froms[j], ticks[j].V == 0));
+            }
+        }
+        else if (!input.Horizontal)
         {
             var count = Math.Max(2, (int)Math.Round(plotHeight / 56));
             (dmin, dmax) = input.ValueMin is not null && input.ValueMax is not null ? (min, max) : Nice(min, max, count, input);
@@ -209,7 +261,7 @@ internal static class ChartLayout
             }
             else
             {
-                CategoryLabels(model, positions, argumentRoomPx);
+                CategoryLabels(model, positions, argumentRoomPx, input.ArgumentLabels);
             }
         }
         else
@@ -240,6 +292,17 @@ internal static class ChartLayout
 
         model.ArgumentPositions = positions;
 
+        // Grid lines along the arguments: between bands (where a label starts its band), or at a
+        // scale's ticks.
+        if (input.GridLines == ChartGridLines.Both)
+        {
+            foreach (var label in model.ArgumentLabels)
+            {
+                var pos = kind == ArgumentKind.Category ? label.Pos - 0.5 / Math.Max(1, n) : label.Pos;
+                if (pos > 1e-9 && pos < 1 - 1e-9) model.Grid.Add(new GridLine(pos, label.From, false, Argument: true));
+            }
+        }
+
         // A scale's last label is centered on the plot's end: leave room for its far half.
         var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category ? null : model.ArgumentLabels;
         if (bottom is { Count: > 0 } && bottom[^1] is { Pos: > 0.9 } last)
@@ -249,7 +312,10 @@ internal static class ChartLayout
         }
 
         // The series.
-        double Scale(double v) => Math.Clamp((v - dmin) / (dmax - dmin), 0, 1);
+        var (lmin, lmax) = log ? (Math.Log10(dmin), Math.Log10(dmax)) : (0, 0);
+        double Scale(double v) => log
+            ? v > 0 ? Math.Clamp((Math.Log10(v) - lmin) / (lmax - lmin), 0, 1) : 0
+            : Math.Clamp((v - dmin) / (dmax - dmin), 0, 1);
         var zero = Scale(0);
         var bars = input.Series.Where(s => s.Type == ChartType.Bar && !s.Hidden).ToList();
         var band = 1.0 / Math.Max(1, n);
@@ -364,13 +430,111 @@ internal static class ChartLayout
         return (input.ValueMin ?? a, input.ValueMax ?? b);
     }
 
-    private static void StackValues(ChartInput input, bool stacked, bool full, double?[][] lows, double?[][] highs)
+    // A log scale's ends: the powers of ten around the values, unless set.
+    private static (double, double) LogDomain(double min, double max, ChartInput input)
+    {
+        var lo = input.ValueMin ?? Power(1, (int)Math.Floor(Math.Log10(min) + 1e-9));
+        var hi = input.ValueMax ?? Power(1, (int)Math.Ceiling(Math.Log10(max) - 1e-9));
+        return hi > lo ? (lo, hi) : (lo, lo * 10);
+    }
+
+    // Ends on multiples of the step, unless set. Null when that would make more than 500 ticks.
+    private static (double, double)? StepDomain(double min, double max, double step, ChartInput input)
+    {
+        var lo = input.ValueMin ?? Math.Floor(min / step + 1e-9) * step;
+        var hi = input.ValueMax ?? Math.Ceiling(max / step - 1e-9) * step;
+        if (!(hi > lo)) hi = lo + step;
+        return (hi - lo) / step > 500 ? null : (Math.Round(lo, 10), Math.Round(hi, 10));
+    }
+
+    // m × 10^e, exactly as it's written (so 0.001 isn't 0.0010000000000000002).
+    private static double Power(int m, int e) => double.Parse($"{m}e{e}", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// A log scale's ticks: each power of ten, with 2 and 5 times it when the range spans few.
+    /// Levels say which to keep when they crowd: the powers before the 2s and 5s, then every
+    /// other power, every fourth….
+    /// </summary>
+    internal static List<(double V, int Level)> LogTicks(double min, double max, double count)
+    {
+        var lo = (int)Math.Floor(Math.Log10(min) + 1e-9);
+        var hi = (int)Math.Ceiling(Math.Log10(max) - 1e-9);
+        int[] multiples = (hi - lo) * 3 <= count + 1 ? [1, 2, 5] : [1];
+        var ticks = new List<(double, int)>();
+        for (var e = lo; e <= hi; e++)
+        {
+            foreach (var m in multiples)
+            {
+                var v = Power(m, e);
+                if (v < min * (1 - 1e-9) || v > max * (1 + 1e-9)) continue;
+                var level = m != 1 ? 0 : e == 0 ? 6 : 1 + Math.Min(4, System.Numerics.BitOperations.TrailingZeroCount(Math.Abs(e)));
+                ticks.Add((v, level));
+            }
+        }
+
+        return ticks;
+    }
+
+    /// <summary>Ticks at each multiple of a step, leveled as a number axis's are (every 1, 2, 10, 20… steps).</summary>
+    internal static List<(double V, int Level)> StepTicks(double min, double max, double step)
+    {
+        var i1 = (long)Math.Ceiling(min / step - 1e-9);
+        var i2 = (long)Math.Floor(max / step + 1e-9);
+        var ladder = ChartScale.Ladder(1, Math.Max(1, i2 - i1));
+        var exact = Math.Max(Math.Abs(min), Math.Abs(max)) < 1e20 && step >= 1e-20;
+        var ticks = new List<(double, int)>();
+        for (var i = i1; i <= i2; i++)
+        {
+            var level = 0;
+            while (level < ladder.Count - 1 && i % ladder[level + 1] == 0) level++;
+            ticks.Add((exact ? (double)((decimal)i * (decimal)step) : i * step, level));
+        }
+
+        return ticks;
+    }
+
+    /// <summary>The decimals a step is written with, so a step of 0.25 reads 0.25, not 0.3.</summary>
+    internal static int StepDecimals(double step)
+    {
+        if (step >= 1 || step < 1e-10) return 0;
+        var d = (decimal)step / 1.000000000000000000000000000000m;
+        return Math.Min(10, (decimal.GetBits(d)[3] >> 16) & 0xFF);
+    }
+
+    /// <summary>
+    /// For each tick, the first of <paramref name="widths"/> widths at which it shows (−1: never):
+    /// at each, the finest level whose ticks are <paramref name="needPx"/> apart on a plot that size.
+    /// </summary>
+    private static int[] FitLevels(IReadOnlyList<(double Pos, int Level)> ticks, int widths, Func<int, double> plotPx, double needPx)
+    {
+        if (ticks.Count == 0) return [];
+        var top = ticks.Max(t => t.Level);
+        double Gap(int level)
+        {
+            var pos = ticks.Where(t => t.Level >= level).Select(t => t.Pos).Order().ToArray();
+            var gap = double.PositiveInfinity;
+            for (var i = 1; i < pos.Length; i++) gap = Math.Min(gap, pos[i] - pos[i - 1]);
+            return gap;
+        }
+
+        var needed = new int[widths];
+        for (var k = 0; k < widths; k++)
+        {
+            var level = 0;
+            while (level < top && Gap(level) * plotPx(k) < needPx) level++;
+            needed[k] = level;
+        }
+
+        return ticks.Select(t => Array.FindIndex(needed, l => t.Level >= l)).ToArray();
+    }
+
+    private static void StackValues(ChartInput input, bool stacked, bool full, bool log, double?[][] lows, double?[][] highs)
     {
         var n = input.Arguments.Count;
         for (var s = 0; s < input.Series.Count; s++)
         {
             lows[s] = new double?[n];
-            highs[s] = input.Series[s].Values.Select(v => v is { } x && double.IsFinite(x) ? (double?)x : null).ToArray();
+            highs[s] = input.Series[s].Values.Select(v => v is { } x && double.IsFinite(x) && (!log || x > 0) ? (double?)x : null).ToArray();
         }
 
         if (!stacked)
@@ -428,10 +592,22 @@ internal static class ChartLayout
     private static double Width(string text) => TextWidths.AtSize(text, FontPx);
 
     // Bands: label i shows at stride 1, 2, 4… when i is a multiple of it.
-    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx)
+    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartArgumentLabels mode)
     {
         var n = positions.Length;
         if (n == 0) return;
+        if (mode == ChartArgumentLabels.All)
+        {
+            // Every name, wrapped in its band by CSS.
+            model.Wrap = true;
+            for (var i = 0; i < n; i++)
+            {
+                model.ArgumentLabels.Add(new AxisLabel(positions[i], model.ArgumentTexts[i], Title: model.ArgumentTexts[i]));
+            }
+
+            return;
+        }
+
         var widest = model.ArgumentTexts.Select(t => Math.Min(Width(t), 120)).Max();
         var strides = new int[Widths.Length];
         model.LabelRoom = new double[Widths.Length];
@@ -442,6 +618,25 @@ internal static class ChartLayout
             while (stride < n && slot * stride < widest + LabelGapPx) stride *= 2;
             strides[k] = stride;
             model.LabelRoom[k] = Math.Min(100, stride * 100.0 / n);
+        }
+
+        // Turned 45° at the widths where they don't all fit flat: a name then needs about a line
+        // and a half along the axis, and the axis is as tall as the longest turned name.
+        if (mode == ChartArgumentLabels.Rotate && strides[0] > 1)
+        {
+            var flatFrom = Array.IndexOf(strides, 1);
+            model.FlatFrom = flatFrom < 0 ? Widths.Length : flatFrom;
+            for (var k = 0; k < model.FlatFrom; k++)
+            {
+                var slot = PlotWidth(k, columnPx) / n;
+                var stride = 1;
+                while (stride < n && slot * stride < TurnedPitchPx) stride *= 2;
+                strides[k] = stride;
+            }
+
+            var turned = model.ArgumentTexts.Select(t => Math.Min(Width(t), TurnedMaxPx)).Max();
+            model.TurnedPx = Math.Ceiling((turned + LineHeightPx / 2) * Math.Sqrt(0.5) + LineHeightPx / 2);
+            model.LeadPx = Math.Ceiling(Math.Max(0, Math.Min(Width(model.ArgumentTexts[0]), TurnedMaxPx) * Math.Sqrt(0.5) - columnPx));
         }
 
         for (var i = 0; i < n; i++)

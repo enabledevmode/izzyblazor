@@ -1,0 +1,15 @@
+@* Support tickets by product area: long names, turned 45° when they don't fit flat. *@
+<Chart Items="_areas" Argument="a => a.Area" Label="Support tickets by product area, October" ArgumentLabels="ChartArgumentLabels.Rotate">
+    <ChartSeries Value="a => a.Tickets" />
+</Chart>
+
+@code {
+    private record AreaTickets(string Area, int Tickets);
+
+    private readonly AreaTickets[] _areas =
+    [
+        new("Billing and invoices", 412), new("Sign-in and accounts", 368), new("Data import", 291),
+        new("Reports and exports", 254), new("Mobile app", 233), new("Integrations", 198),
+        new("Notifications", 141), new("Permissions and roles", 127), new("Search", 96), new("Other", 74),
+    ];
+}

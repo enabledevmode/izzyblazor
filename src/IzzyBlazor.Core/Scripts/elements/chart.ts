@@ -510,13 +510,15 @@ class Chart extends IzzyElement {
    */
   private fit(axis: HTMLElement): void {
     const labels = [...axis.querySelectorAll<HTMLElement>(":scope > .ib-chart-ticks > span")].filter((l) => getComputedStyle(l.parentElement!).display !== "none");
-    if (labels.length === 0) return;
+    // Names wrapped in their bands (ArgumentLabels All) all show.
+    if (labels.length === 0 || axis.classList.contains("ib-chart-wrap")) return;
     const from = (l: HTMLElement) => Number(/ib-chart-from(\d)/.exec(l.className)?.[1] ?? 0);
     const width = axis.clientWidth;
     if (width === 0) return;
 
-    // Show them all to measure them.
+    // Show them all, flat, to measure them.
     this.dataset.ibFit = "7";
+    this.removeAttribute("data-ib-turn");
     const bands = axis.classList.contains("ib-chart-bands");
     const style = getComputedStyle(axis);
     const sizes = labels.map((l) => l.scrollWidth);
@@ -535,6 +537,23 @@ class Chart extends IzzyElement {
       if (fits) {
         chosen = k;
         break;
+      }
+    }
+
+    // Names that turn (ArgumentLabels Rotate) stay flat only when every one fits its band; the
+    // server's sets are for turned names below that. Turned 45°, each needs about a line and a
+    // half along the axis.
+    const band = width / Math.max(1, Number(this.dataset.ibCount) || labels.length);
+    if (/ib-chart-rot\d/.test(axis.parentElement!.className) && sizes.some((s) => s > band - 6)) {
+      this.setAttribute("data-ib-turn", "");
+      const pitch = 1.5 * (parseFloat(style.lineHeight) || 16);
+      chosen = 0;
+      for (let k = 7; k >= 0; k--) {
+        const shown = labels.map((l, i) => i).filter((i) => from(labels[i]) <= k);
+        if (shown.every((i, j) => j === 0 || centers[i] - centers[shown[j - 1]] >= pitch)) {
+          chosen = k;
+          break;
+        }
       }
     }
 
