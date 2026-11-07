@@ -61,9 +61,9 @@ public partial class RichText : Prose
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var html = Highlight(RichTextSanitizer.Sanitize(Html, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
-        // The editor's content classes (alignment, color, size) have a sheet of their own.
-        if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal))
+        var html = Highlight(RichTextSanitizer.Sanitize(Html, labelTasks: true, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
+        // The editor's content classes (alignment, color, size) and task lists have a sheet of their own.
+        if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal) || html.Contains("<input", StringComparison.Ordinal))
         {
             builder.OpenElement(5, "link");
             builder.AddAttribute(6, "rel", "stylesheet");

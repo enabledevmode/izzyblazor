@@ -1,7 +1,7 @@
 /*
- * The rich text editor's own content classes: alignment, text color, highlight and size. Built
- * to wwwroot/rich-content.css and linked by RichTextEditor, and by RichText when the HTML it
- * shows has one of them, so pages without rich text don't pay for it. Each name is in
+ * The rich text editor's own content classes (alignment, text color, highlight and size) and its
+ * task lists. Built to wwwroot/rich-content.css and linked by RichTextEditor, and by RichText when
+ * the HTML it shows has one of them, so pages without rich text don't pay for it. Each name is in
  * RichTextSanitizer's list. The colors are light-dark pairs that keep text readable on the
  * surface in both schemes; a highlight is a wash of the same hue behind the text.
  */
@@ -37,4 +37,44 @@
   .ib-size-lg { font-size: 1.25em; }
   .ib-size-xl { font-size: 1.5em; }
   .ib-size-2xl { font-size: 2em; }
+
+  /* A task: a list item whose first child is a checkbox, which stands where its bullet was. It's
+     drawn as the library's checkboxes are, since a disabled box (read-only, in RichText) would
+     be the browser's faint gray. */
+  li:has(> input[type="checkbox"]:first-child) { list-style: none; }
+
+  li > input[type="checkbox"]:first-child {
+    appearance: none;
+    display: inline-grid;
+    place-content: center;
+    inline-size: 1em;
+    block-size: 1em;
+    margin-block: 0;
+    margin-inline: -1.5em 0.5em;
+    vertical-align: -0.125em;
+    border: 1px solid color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
+    border-radius: 0.25em;
+    background-color: var(--ib-color-surface);
+  }
+
+  li > input[type="checkbox"]:first-child:not(:disabled) { cursor: pointer; }
+
+  li > input[type="checkbox"]:first-child:checked {
+    border-color: var(--ib-color-primary);
+    background-color: var(--ib-color-primary);
+  }
+
+  li > input[type="checkbox"]:first-child:checked::before {
+    content: "";
+    inline-size: calc(1em - 2px);
+    block-size: calc(1em - 2px);
+    background-color: var(--ib-color-on-primary);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  /* Windows high contrast: the browser's own box, which follows the system colors. */
+  @media (forced-colors: active) {
+    li > input[type="checkbox"]:first-child { appearance: auto; }
+    li > input[type="checkbox"]:first-child::before { display: none; }
+  }
 }

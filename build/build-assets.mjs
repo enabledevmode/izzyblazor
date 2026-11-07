@@ -340,6 +340,8 @@ const builds = [
       "elements/parts/rich-text-table": join(lib, "Scripts", "elements", "rich-text-table.ts"),
       // Its code block language button.
       "elements/parts/rich-text-code": join(lib, "Scripts", "elements", "rich-text-code.ts"),
+      // Its task lists, for editors with the task list tool or a task in their text.
+      "elements/parts/rich-text-task": join(lib, "Scripts", "elements", "rich-text-task.ts"),
     },
     outdir: join(lib, "wwwroot"),
     format: "esm",

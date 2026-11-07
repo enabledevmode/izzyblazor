@@ -85,11 +85,14 @@ public enum RichTextTools
     /// <summary>Tables: insert one, add and delete rows and columns, a header row.</summary>
     Table = 1 << 23,
 
+    /// <summary>A task list: list items with a checkbox, ticked with a click or Ctrl+Enter (Ctrl+Shift+9).</summary>
+    TaskList = 1 << 24,
+
     /// <summary>Bold, italic, links and the two lists: for short notes and comments.</summary>
     Basic = Bold | Italic | Link | BulletedList | NumberedList,
 
     /// <summary>Every tool (the default).</summary>
-    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | Image | BulletedList | NumberedList
+    Default = TextStyle | Bold | Italic | Underline | Strikethrough | InlineCode | Link | Image | BulletedList | NumberedList | TaskList
         | Indent | Quote | CodeBlock | Table | HorizontalRule | ClearFormatting | UndoRedo,
 
     /// <summary>

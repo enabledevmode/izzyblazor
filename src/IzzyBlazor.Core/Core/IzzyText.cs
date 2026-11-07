@@ -1572,6 +1572,9 @@ public class IzzyText
     /// <summary>A RichTextEditor's numbered list tool.</summary>
     public virtual string RichTextNumberedList { get; set; } = "Numbered list";
 
+    /// <summary>A RichTextEditor's task list tool.</summary>
+    public virtual string RichTextTaskList { get; set; } = "Task list";
+
     /// <summary>A RichTextEditor's tool that indents a list item.</summary>
     public virtual string RichTextIndent { get; set; } = "Indent";
 

@@ -21,9 +21,9 @@ const names: Record<string, string> = {
   UL: "ul", OL: "ol", LI: "li", BLOCKQUOTE: "blockquote", PRE: "pre", HR: "hr",
   STRONG: "strong", B: "strong", EM: "em", I: "em", U: "u", S: "s", STRIKE: "s", DEL: "s",
   CODE: "code", A: "a", BR: "br", IMG: "img", SPAN: "span", FONT: "span", SUB: "sub", SUP: "sup",
-  TABLE: "table", THEAD: "thead", TBODY: "tbody", TR: "tr", TH: "th", TD: "td",
+  TABLE: "table", THEAD: "thead", TBODY: "tbody", TR: "tr", TH: "th", TD: "td", INPUT: "input",
 };
-const voids = new Set(["br", "hr", "img"]);
+const voids = new Set(["br", "hr", "img", "input"]);
 const dropped = new Set(["SCRIPT", "STYLE", "TEMPLATE", "IFRAME", "OBJECT", "EMBED", "SVG", "MATH", "NOSCRIPT", "TEXTAREA", "TITLE", "SELECT", "HEAD", "META", "LINK"]);
 const blocks = "p,h1,h2,h3,h4,h5,h6,blockquote,pre,li,div";
 const styles = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"];
@@ -44,6 +44,8 @@ type MarkdownPart = typeof import("./rich-text-markdown");
 type TablePart = typeof import("./rich-text-table");
 // A code block's language button: a part, for editors with the code block tool.
 type CodePart = typeof import("./rich-text-code");
+// Task lists: a part, loaded by editors with the task list tool or a task in their text.
+type TaskPart = typeof import("./rich-text-task");
 const formatTools = "align,color,highlight,size,font".split(",");
 
 function escape(text: string, attribute = false): string {
@@ -131,6 +133,10 @@ function element(node: Element, name: string, top: number): string {
     if (language) attributes = ` class="${language}"`;
   } else if (name === "br" && node.closest("pre")) {
     return "\n";
+  } else if (name === "input") {
+    // Only a task's checkbox, first in its item (or the item's first paragraph), as the sanitizer keeps it.
+    if ((node as HTMLInputElement).type !== "checkbox" || !node.matches("li > input:first-child, li > p:first-child > input:first-child")) return "";
+    attributes = ` type="checkbox" disabled${node.hasAttribute("checked") ? " checked" : ""}`;
   } else if (name === "img") {
     const given = node.getAttribute("src") ?? "";
     const src = safeUrl(given, true) ?? (embedImages && /^data:image\/(png|jpeg|gif|webp|avif)[;,]/i.test(given) ? given : null);
@@ -146,7 +152,10 @@ function element(node: Element, name: string, top: number): string {
   if (voids.has(name)) return `<${name}${attributes}>`;
   // A browser can put a list inside a paragraph; the paragraph gives way to what's in it.
   if (/^(p|h[1-6])$/.test(name) && node.querySelector(":scope > :is(ul,ol,blockquote,pre,table,p,div,h1,h2,h3,h4,h5,h6)")) return serialize(node, top);
-  const inner = serialize(node, top);
+  let inner = serialize(node, top);
+  // A line break that ends a block after its text shows nothing (WebKit leaves one in a new list
+  // item); two show an empty line, so they stay.
+  if (/^(p|h[1-6]|li|td|th)$/.test(name) && inner.length > 4 && inner.endsWith("<br>") && !inner.endsWith("<br><br>")) inner = inner.slice(0, -4);
   if (!inner && name !== "li" && name !== "td" && name !== "th") return "";
   return `<${name}${attributes}>${inner}</${name}>`;
 }
@@ -286,6 +295,7 @@ class RichText extends IzzyElement {
     // An editor that shows layout tools loads their code now, so the tools show the caret's state.
     if (this.querySelector(formatTools.map((t) => `[data-ib-command="${t}"]`).join(","))) void this.loadFormat();
     if (this.querySelector('[data-ib-command="table"]') || this.surface?.querySelector("table")) void this.tablePart();
+    if (this.querySelector('[data-ib-command="tasks"]') || this.surface?.querySelector("li > input")) void this.taskPart();
     if (this.querySelector("[data-ib-code-language]")) {
       void part<CodePart>("code").then((loaded) =>
         loaded.attach({ host: this, surface: () => this.surface, around: (selector) => this.around(selector), changed: () => this.changed() })
@@ -593,6 +603,9 @@ class RichText extends IzzyElement {
       case "bulleted":
         exec("insertUnorderedList");
         break;
+      case "tasks":
+        void this.taskPart().then((loaded) => (loaded.toggle(this.taskEditor()), this.reflect()));
+        return;
       case "numbered":
         exec("insertOrderedList");
         break;
@@ -731,6 +744,7 @@ class RichText extends IzzyElement {
     const toolbar = this.toolbar;
     if (!toolbar) return;
     const list = this.around("ul,ol")?.localName;
+    const task = !!this.around("li")?.querySelector(":scope > input:first-child");
     const states: Record<string, boolean> = {
       bold: document.queryCommandState("bold"),
       italic: document.queryCommandState("italic"),
@@ -742,7 +756,8 @@ class RichText extends IzzyElement {
       quote: !!this.around("blockquote"),
       codeblock: !!this.around("pre"),
       link: !!this.around("a"),
-      bulleted: list === "ul",
+      bulleted: list === "ul" && !task,
+      tasks: task,
       numbered: list === "ol",
     };
     const format = this.#format;
@@ -845,6 +860,7 @@ class RichText extends IzzyElement {
       else if (event.code === "KeyE") command = ["align", "center"];
       else if (event.code === "KeyR") command = ["align", "end"];
       else if (event.code === "Digit8") command = ["bulleted"];
+      else if (event.code === "Digit9") command = ["tasks"];
       else if (event.code === "KeyV") this.#plainPaste = true;
     } else if (event.altKey && !event.shiftKey) {
       const digit = /^Digit([0-6])$/.exec(event.code)?.[1];
@@ -887,7 +903,21 @@ class RichText extends IzzyElement {
   }
 
   private markdownEditor(): Parameters<MarkdownPart["markdown"]>[0] {
-    return { top: this.top, offers: (level) => this.offers(level), around: (selector) => this.around(selector), changed: () => this.changed() };
+    return {
+      top: this.top, offers: (level) => this.offers(level), around: (selector) => this.around(selector), changed: () => this.changed(),
+      tasks: !!this.querySelector('[data-ib-command="tasks"]'),
+    };
+  }
+
+  private taskEditor(): Parameters<TaskPart["attach"]>[0] {
+    return { host: this, surface: () => this.surface, around: (selector) => this.around(selector), changed: () => (this.changed(), this.reflect()) };
+  }
+
+  private taskPart(): Promise<TaskPart> {
+    return part<TaskPart>("task").then((loaded) => {
+      loaded.attach(this.taskEditor());
+      return loaded;
+    });
   }
 
   /** Marks the image clicked (or none), which the image tool and Delete act on. */
