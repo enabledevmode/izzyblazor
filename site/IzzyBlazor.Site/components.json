@@ -2119,11 +2119,12 @@
           ]
         },
         {
-          "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels"],
+          "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels", "ValueFormatter", "ArgumentFormatter", "HideValueAxis", "HideArgumentAxis"],
           "examples": [
             { "id": "chart-axes", "title": "Titles, a set step and grid lines", "lead": "`ValueTitle` and `ArgumentTitle` put a title beside each axis; the argument's title also heads the first column of the data table. `ValueStep` sets the gap between the value axis's ticks, here $25,000, and the axis ends on a multiple of it. `GridLines` set to `Both` adds lines between the months; `None` leaves only the zero line." },
             { "id": "chart-log-scale", "title": "A log scale", "lead": "For values that span several powers of ten, set `ValueLog`: each power of ten is an equal step up, so growth from hundreds to thousands shows as clearly as from hundreds of thousands to millions. A log scale has no zero, so values at or under zero aren't drawn." },
-            { "id": "chart-rotated", "title": "Long names along the bottom", "lead": "Names that don't fit side by side are skipped, every other one first. To turn them 45° before any are skipped, set `ArgumentLabels` to `Rotate`; narrow the window to see them turn. `All` shows every name, wrapped onto more lines in its band, which suits a few long names." }
+            { "id": "chart-rotated", "title": "Long names along the bottom", "lead": "Names that don't fit side by side are skipped, every other one first. To turn them 45° before any are skipped, set `ArgumentLabels` to `Rotate`; narrow the window to see them turn. `All` shows every name, wrapped onto more lines in its band, which suits a few long names." },
+            { "id": "chart-formatters", "title": "Your own label text", "lead": "When a format string can't say it, `ValueFormatter` writes each value's text, here revenue in millions, and `ArgumentFormatter` each argument's, here a quarter named from its start date. The text shows on the axis, in tooltips and in the data table. Hiding a series from the legend then keeps the value axis as it is, since the browser can't run your formatter. `HideValueAxis` and `HideArgumentAxis` leave an axis's labels out. `--ib-chart-tick-color` and `--ib-chart-tick-size` set the labels' color and size." }
           ]
         },
         {

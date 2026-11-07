@@ -38,6 +38,11 @@ export interface DrawData {
   vs: number | null; // ValueStep
   lg: boolean; // ValueLog
   gl: boolean; // grid lines at the values
+  // With a ValueFormatter, the server's axis as drawn, kept as it is: its range, and each tick's
+  // place (0 to 1), text, first width it shows at, and whether it's zero.
+  rl?: number;
+  rh?: number;
+  tk?: [number, string, number, boolean][];
   f: NumberShape;
   a: (number | null)[]; // each item's place along the argument axis, 0 to 1
   mk: string; // the marker shapes' id prefix
@@ -308,6 +313,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     if (d.lo != null) dmin = d.lo;
     if (d.hi != null) dmax = d.hi;
   }
+  if (d.tk) [dmin, dmax] = [d.rl!, d.rh!];
   const span = dmax! - dmin! || 1;
   const [l0, l1] = log ? [Math.log10(dmin!), Math.log10(dmax!)] : [0, 1];
   const scale = (v: number) =>
@@ -324,19 +330,21 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     for (let i = spec.i1; i <= spec.i2; i++) ticks.push([tickValue(spec, i), 0]);
     step = tickStep(spec);
   }
+  const axisTicks: [number, string, number, boolean][] = d.tk ??
+    ticks.map(([v]) => [scale(v), format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
   let svg = "";
   let labels = "";
-  for (const [v] of ticks) {
-    const pos = scale(v);
-    const text = esc(format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!));
-    const zero = v === 0 ? " ib-chart-zero" : "";
-    const line = d.gl || v === 0;
+  for (const [pos, raw, from, isZero] of axisTicks) {
+    const text = esc(raw);
+    const cls = (isZero ? " ib-chart-zero" : "") + (from > 0 ? ` ib-chart-from${from}` : "");
+    const span = from > 0 ? ` class="ib-chart-from${from}"` : "";
+    const line = d.gl || isZero;
     if (d.h) {
-      if (line) svg += `<line class="ib-chart-grid${zero}" x1="${pct(pos)}" x2="${pct(pos)}" y1="0" y2="100%"/>`;
-      labels += `<span style="left:${pct(pos)}">${text}</span>`;
+      if (line) svg += `<line class="ib-chart-grid${cls}" x1="${pct(pos)}" x2="${pct(pos)}" y1="0" y2="100%"/>`;
+      labels += `<span${span} style="left:${pct(pos)}">${text}</span>`;
     } else {
-      if (line) svg += `<line class="ib-chart-grid${zero}" x1="0" x2="100%" y1="${pct(1 - pos)}" y2="${pct(1 - pos)}"/>`;
-      labels += `<span style="top:${pct(1 - pos)}">${text}</span>`;
+      if (line) svg += `<line class="ib-chart-grid${cls}" x1="0" x2="100%" y1="${pct(1 - pos)}" y2="${pct(1 - pos)}"/>`;
+      labels += `<span${span} style="top:${pct(1 - pos)}">${text}</span>`;
     }
   }
 
