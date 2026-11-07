@@ -51,6 +51,11 @@ class Chat extends IzzyElement {
       form.requestSubmit(send);
     }, { signal });
 
+    // What the form posts says the page has script, so a static page's reply can stream.
+    document.addEventListener("formdata", (event) => {
+      if (this.contains(event.target as Node)) event.formData.set("ib-chat-script", "1");
+    }, { signal, capture: true });
+
     this.addEventListener("submit", () => {
       this.#sent = true;
     }, { signal, capture: true });

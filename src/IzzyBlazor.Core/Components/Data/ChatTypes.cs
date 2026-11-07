@@ -21,7 +21,12 @@ public enum ChatStatus
 
 /// <summary>What a person sent in a <see cref="Chat"/>.</summary>
 /// <param name="Text">The message, as typed (or the suggestion chosen), trimmed.</param>
-public sealed record ChatSendArgs(string Text);
+/// <param name="CanStream">
+/// Whether the reply can arrive in pieces: on an interactive page, and on a static page whose
+/// post came with script (with <c>[StreamRendering]</c> on the page). With JavaScript off it's
+/// false: send the reply whole, since a streamed one would stop at its first piece there.
+/// </param>
+public sealed record ChatSendArgs(string Text, bool CanStream);
 
 /// <summary>
 /// A Chat's entries in the order they arrived, which is page order as a conversation only grows:
@@ -55,6 +60,7 @@ internal sealed class ChatPost : ComponentBase
     internal const string SuggestionName = "ib-chat-suggestion";
     internal const string StopName = "ib-chat-stop";
     internal const string RetryName = "ib-chat-retry";
+    internal const string ScriptName = "ib-chat-script";
 
     [SupplyParameterFromForm(Name = TextName)]
     public string? Text { get; set; }
@@ -67,6 +73,10 @@ internal sealed class ChatPost : ComponentBase
 
     [SupplyParameterFromForm(Name = RetryName)]
     public int? Retry { get; set; }
+
+    // Added by the chat's script to what the form posts: the page has script, so it can stream.
+    [SupplyParameterFromForm(Name = ScriptName)]
+    public string? Script { get; set; }
 
     [Parameter] public RenderFragment<ChatPost>? ChildContent { get; set; }
 
