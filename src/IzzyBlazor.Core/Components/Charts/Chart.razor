@@ -119,6 +119,18 @@
     /// </summary>
     [Parameter] public Func<object?, string>? ArgumentFormatter { get; set; }
 
+    /// <summary>A .NET format string for the second value axis (series with <c>Axis="ChartAxis.Secondary"</c>), such as <c>P0</c>.</summary>
+    [Parameter] public string? SecondaryFormat { get; set; }
+
+    /// <summary>Where the second value axis starts. Defaults to a round number its ticks line up with the first axis's grid at.</summary>
+    [Parameter] public double? SecondaryMin { get; set; }
+
+    /// <summary>Where the second value axis ends.</summary>
+    [Parameter] public double? SecondaryMax { get; set; }
+
+    /// <summary>A title beside the second value axis, such as "Margin". With two axes, each title has a key in its first series' color.</summary>
+    [Parameter] public string? SecondaryTitle { get; set; }
+
     /// <summary>Leaves out the value axis's labels, for a small chart or one whose values are labeled on the marks.</summary>
     [Parameter] public bool HideValueAxis { get; set; }
 
@@ -310,6 +322,18 @@
         var arguments = items.Select(_argument!).ToList();
         var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList(), arguments, TextDefaults);
         var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None));
+        if (series.Any(s => s.Secondary))
+        {
+            if (Orientation == Orientation.Horizontal)
+            {
+                throw new InvalidOperationException("A Chart's second value axis needs upright bars or lines: leave Orientation Vertical, or use two charts.");
+            }
+
+            if (Stacked != ChartStack.None && series.Any(s => s.Secondary && s.Type is ChartType.Bar or ChartType.Area))
+            {
+                throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacked off.");
+            }
+        }
         var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
 
         // Hidden needs a legend to show the series again: with none, it's drawn.
@@ -333,6 +357,9 @@
             HideValueAxis = HideValueAxis,
             HideArgumentAxis = HideArgumentAxis,
             Marks = _context.Marks.Select(m => m.Read()).ToList(),
+            SecondaryFormat = SecondaryFormat,
+            SecondaryMin = SecondaryMin,
+            SecondaryMax = SecondaryMax,
             Text = TextDefaults,
         });
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
@@ -347,6 +374,8 @@
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
         var sideTitle = horizontal ? ArgumentTitle : ValueTitle;
+        var dual = model.SecondaryLabels.Count > 0;
+        var mixed = model.Series.Any(s => s.Bars.Count > 0) && model.Series.Any(s => s.Line is not null || s.Marks.Count > 0);
         var bottomTitle = horizontal ? ValueTitle : ArgumentTitle;
 
         <ib-chart style="@Palette?.Style(model.Series.Count)"
@@ -359,7 +388,7 @@
         <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@NameId" aria-describedby="@(model.MarkTexts.Count > 0 ? $"{_labelId}-marks" : null)" style="@FrameStyle(model)">
             @if (sideTitle is not null)
             {
-                <div class="ib-chart-title ib-chart-title-side">@sideTitle</div>
+                <div class="ib-chart-title ib-chart-title-side">@TitleKey(model, dual, secondary: false)@sideTitle</div>
             }
             <div class="@((horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side") + ((horizontal ? HideArgumentAxis : HideValueAxis) ? " ib-chart-off" : ""))">
                 <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
@@ -390,7 +419,7 @@
                         }
                     </div>
                 }
-                <svg class="ib-chart-svg">
+                <svg class="@(mixed ? "ib-chart-svg ib-chart-mixed" : "ib-chart-svg")">
                     <defs>
                         @* Markers, a little larger than the line is wide and with no halo, so they read on a
                            bar and on the plain surface alike: a circle, square, triangle and diamond. *@
@@ -427,6 +456,11 @@
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
+                            @if (mixed)
+                            {
+                                @* Over bars, a line has a halo of the surface, so it reads on a bar of any color. *@
+                                <path class="ib-chart-halo" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                            }
                             <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Dash}{Trend(s)}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>
@@ -476,6 +510,22 @@
                     <div class="ib-chart-tooltip" hidden></div>
                 }
             </div>
+            @if (dual)
+            {
+                @* The second value axis, after the plot. *@
+                <div class="ib-chart-side ib-chart-side2">
+                    <div class="ib-chart-ticks">
+                        @foreach (var label in model.SecondaryLabels)
+                        {
+                            <span style="top:@Pct(1 - label.Pos)">@label.Text</span>
+                        }
+                    </div>
+                </div>
+                @if (SecondaryTitle is not null)
+                {
+                    <div class="ib-chart-title ib-chart-title-side2">@TitleKey(model, dual, secondary: true)@SecondaryTitle</div>
+                }
+            }
             <div class="@(BottomClass(model, horizontal) + ((horizontal ? HideValueAxis : HideArgumentAxis) ? " ib-chart-off" : ""))" style="@room">
                 <div class="@(horizontal ? "ib-chart-ticks ib-chart-values" : "ib-chart-ticks")">
                     @foreach (var label in bottom)
@@ -610,7 +660,21 @@
 
     // A side title adds a column; names turned below some width carry the first width they're flat at.
     private static string FrameClass(ChartModel model, string? sideTitle) =>
-        "ib-chart-frame" + (sideTitle is null ? "" : " ib-chart-titled") + (model.FlatFrom > 0 ? $" ib-chart-rot{model.FlatFrom}" : "");
+        "ib-chart-frame" + (sideTitle is null ? "" : " ib-chart-titled") + (model.SecondaryLabels.Count > 0 ? " ib-chart-dual" : "")
+        + (model.FlatFrom > 0 ? $" ib-chart-rot{model.FlatFrom}" : "");
+
+    // With two value axes, each title's key in its first series' color says which axis is whose.
+    private static RenderFragment? TitleKey(ChartModel model, bool dual, bool secondary) => !dual
+        ? null
+        : model.Series.FirstOrDefault(s => s.Data.Secondary == secondary && s.Data.ColorFrom is null) is not { } owner
+        ? null
+        : builder =>
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", $"ib-chart-title-key ib-chart-s{owner.Slot}");
+            builder.AddAttribute(2, "style", ColorStyle(owner));
+            builder.CloseElement();
+        };
 
     // Room at the end for half the last label on a scale, which is centered on the plot's edge;
     // turned names' height, and how far the first reaches past the plot's start.
@@ -711,6 +775,13 @@
             Number("lo", ValueMin);
             Number("hi", ValueMax);
             Number("vs", ValueLog ? null : ValueStep);
+            // The second axis's range, which a redraw keeps.
+            if (model.SecondaryLabels.Count > 0)
+            {
+                w.WriteNumber("s2l", model.SecondaryRange.Min);
+                w.WriteNumber("s2h", model.SecondaryRange.Max);
+            }
+
             // The marks' values, which the value axis always takes in.
             if (model.MarkValues.Count > 0)
             {
@@ -787,6 +858,7 @@
                 w.WriteNumber("y", s.Style);
                 w.WriteNumber("d", s.Dash);
                 if (d.ColorFrom is not null && d.TrendColor is null) w.WriteBoolean("tr", true);
+                if (d.Secondary) w.WriteBoolean("ax", true);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
                 // Labels: the mode, and each item's text, which the script can't format itself.
                 if (model.LabelTexts[s.Index] is { } texts)

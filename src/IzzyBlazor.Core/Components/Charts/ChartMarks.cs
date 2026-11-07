@@ -11,6 +11,12 @@ public enum ChartAxis
 
     /// <summary>The argument axis: a mark at an argument (a name, number or date).</summary>
     Argument,
+
+    /// <summary>
+    /// The second value axis, at the end side: a series on it (<c>ChartSeries Axis</c>) has its own
+    /// scale, and a reference line or band on it is drawn by that scale.
+    /// </summary>
+    Secondary,
 }
 
 /// <summary>A value worked out from a series, for a <see cref="ChartReferenceLine"/>.</summary>
@@ -82,7 +88,10 @@ public sealed class ChartReferenceLine : ChartMark
     /// <summary>The value the line is drawn at, on the value axis.</summary>
     [Parameter] public double? Value { get; set; }
 
-    /// <summary>The axis: <see cref="ChartAxis.Value"/>, the default, or <see cref="ChartAxis.Argument"/> with <see cref="At"/>.</summary>
+    /// <summary>
+    /// The axis: <see cref="ChartAxis.Value"/>, the default; <see cref="ChartAxis.Secondary"/>, a
+    /// value on the second axis; or <see cref="ChartAxis.Argument"/> with <see cref="At"/>.
+    /// </summary>
     [Parameter] public ChartAxis Axis { get; set; }
 
     /// <summary>The argument the line is drawn at, with <c>Axis="ChartAxis.Argument"</c>: a name, number or date.</summary>
@@ -116,7 +125,7 @@ public sealed class ChartReferenceLine : ChartMark
         }
     }
 
-    internal override ChartMarkInput Read() => new(ChartMarkKind.Line, At is not null ? ChartAxis.Argument : ChartAxis.Value, Label)
+    internal override ChartMarkInput Read() => new(ChartMarkKind.Line, At is not null ? ChartAxis.Argument : Axis == ChartAxis.Secondary ? ChartAxis.Secondary : ChartAxis.Value, Label)
     {
         Value = Value,
         At = At,
@@ -132,7 +141,7 @@ public sealed class ChartReferenceLine : ChartMark
 /// </summary>
 public sealed class ChartReferenceBand : ChartMark
 {
-    /// <summary>The axis: <see cref="ChartAxis.Value"/>, the default, or <see cref="ChartAxis.Argument"/>.</summary>
+    /// <summary>The axis: <see cref="ChartAxis.Value"/>, the default, <see cref="ChartAxis.Secondary"/>, or <see cref="ChartAxis.Argument"/>.</summary>
     [Parameter] public ChartAxis Axis { get; set; }
 
     /// <summary>Where the band starts: a number on the value axis, or an argument (a name, number or date).</summary>
@@ -151,15 +160,15 @@ public sealed class ChartReferenceBand : ChartMark
             throw new InvalidOperationException("ChartReferenceBand needs From and To.");
         }
 
-        if (Axis == ChartAxis.Value)
+        if (Axis != ChartAxis.Argument)
         {
             ToNumber(From);
             ToNumber(To);
         }
     }
 
-    internal override ChartMarkInput Read() => Axis == ChartAxis.Value
-        ? new(ChartMarkKind.Band, ChartAxis.Value, Label) { Value = ToNumber(From), To = ToNumber(To) }
+    internal override ChartMarkInput Read() => Axis != ChartAxis.Argument
+        ? new(ChartMarkKind.Band, Axis, Label) { Value = ToNumber(From), To = ToNumber(To) }
         : new(ChartMarkKind.Band, ChartAxis.Argument, Label) { At = From, AtTo = To };
 }
 

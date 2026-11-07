@@ -274,6 +274,27 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_second_axis_has_round_ticks_on_the_first_axis_grid_lines()
+    {
+        var model = ChartLayout.Build(new ChartInput(["Q1", "Q2", "Q3", "Q4"],
+        [
+            new ChartSeriesData("Revenue", ChartType.Bar, [120_000, 134_000, 129_000, 151_000]),
+            new ChartSeriesData("Margin", ChartType.Line, [0.12, 0.18, 0.21, 0.31]) { Secondary = true },
+        ])
+        { SecondaryFormat = "P0", Culture = CultureInfo.InvariantCulture });
+
+        // As many ticks as the first axis, at the same places, each a round step; a line's axis
+        // starts near its values, not at zero.
+        Assert.Equal(model.ValueLabels.Select(l => Math.Round(l.Pos, 6)), model.SecondaryLabels.Select(l => Math.Round(l.Pos, 6)));
+        Assert.Equal("10 %", model.SecondaryLabels[0].Text);
+        Assert.True(model.SecondaryRange.Max >= 0.31);
+        // The margin line is drawn on its own scale, not the revenue's (where it would lie flat on
+        // the bottom edge).
+        var (q1, q4) = (model.Series[1].Marks[0], model.Series[1].Marks[3]);
+        Assert.True(q4.Y < q1.Y && q1.Y < 99, $"Q1 at {q1.Y}%, Q4 at {q4.Y}% from the top");
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
@@ -518,6 +539,25 @@ public class ChartRenderTests : BunitContext
         var own = Build("var(--ib-color-danger)").Find("path.ib-chart-line");
         Assert.DoesNotContain("ib-chart-trend", own.ClassName);
         Assert.Contains("var(--ib-color-danger)", own.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void A_second_axis_draws_its_labels_after_the_plot_and_needs_an_upright_chart()
+    {
+        IRenderedComponent<Chart<Month>> Build(Orientation orientation) => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue and costs")
+            .Add(c => c.Orientation, orientation)
+            .Add(c => c.SecondaryTitle, "Costs")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Line).Add(x => x.Axis, ChartAxis.Secondary)));
+
+        var cut = Build(Orientation.Vertical);
+        Assert.Contains("ib-chart-dual", cut.Find(".ib-chart-frame").ClassName);
+        Assert.NotEmpty(cut.FindAll(".ib-chart-side2 span"));
+        Assert.NotNull(cut.Find(".ib-chart-title-side2 .ib-chart-title-key.ib-chart-s2"));
+        Assert.Throws<InvalidOperationException>(() => Build(Orientation.Horizontal));
     }
 
     [Fact]

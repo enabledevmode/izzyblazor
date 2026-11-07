@@ -141,6 +141,27 @@
 
   .ib-chart-title-bottom { margin-block-start: var(--ib-space-2); }
 
+  /* A second value axis: its labels and title after the plot, the bottom axis kept under it. */
+  .ib-chart-dual { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .ib-chart-titled.ib-chart-dual { grid-template-columns: auto auto minmax(0, 1fr) auto auto; }
+  .ib-chart-dual > :is(.ib-chart-bottom, .ib-chart-title-bottom) { grid-column: -4; }
+  .ib-chart-side2 > * > span { text-align: start; }
+
+  .ib-chart-title-side2 {
+    margin-left: var(--ib-space-1);
+    writing-mode: vertical-rl;
+  }
+
+  .ib-chart-title-key {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    margin-inline-end: 0.375rem;
+    vertical-align: middle;
+    border-radius: 2px;
+    background-color: var(--ib-chart-c);
+  }
+
   .ib-chart-svg {
     position: absolute;
     inset: 0;
@@ -193,6 +214,23 @@
 
 
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
+
+  /* Lines and markers over bars: a halo of the surface under each, so a line reads on a bar of
+     any color. */
+  .ib-chart-halo {
+    fill: none;
+    stroke: var(--ib-color-surface);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ib-chart-mixed .ib-chart-marks {
+    stroke: var(--ib-color-surface);
+    stroke-width: 2px;
+    paint-order: stroke;
+  }
 
   /* A trend: its series' color toward the text's, so it reads over the series' own bars. */
   :is(.ib-chart-line, .ib-chart-key line).ib-chart-trend { stroke: color-mix(in oklab, var(--ib-chart-c) 60%, var(--ib-color-on-surface)); }
