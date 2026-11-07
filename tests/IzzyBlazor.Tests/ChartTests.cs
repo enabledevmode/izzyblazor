@@ -414,6 +414,22 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void Tooltips_are_off_when_every_series_is_labeled_unless_asked_for()
+    {
+        IRenderedComponent<Chart<Month>> Build(bool? tooltip, ChartLabels second) => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue and costs")
+            .Add(c => c.Tooltip, tooltip)
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Labels, ChartLabels.Auto))
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Labels, second)));
+
+        Assert.Empty(Build(null, ChartLabels.Auto).FindAll(".ib-chart-tips"));
+        Assert.NotEmpty(Build(null, ChartLabels.None).FindAll(".ib-chart-tips"));
+        Assert.NotEmpty(Build(true, ChartLabels.Auto).FindAll(".ib-chart-tips"));
+    }
+
+    [Fact]
     public void Needs_a_title_or_a_heading_that_titles_it()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
