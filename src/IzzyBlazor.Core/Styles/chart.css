@@ -264,12 +264,19 @@
 
   .ib-chart-key .ib-chart-bubble { fill: var(--ib-chart-see); }
 
-  /* A bubble chart's size key: outlined circles on one base, each value level with its top. In a
-     legend above or below the chart it keeps to the far end, across from the title and the
-     series' keys; beside the chart, under them. */
-  .ib-chart-size-key { display: inline-flex; align-items: center; gap: var(--ib-space-2); margin-inline-start: auto; }
-  /* Across the chart's width (over a start, center or end legend's own place), so the key can keep to the far end. */
-  .ib-chart-legend.ib-chart-legend-sized { justify-self: stretch; align-items: flex-end; }
+  /* A bubble chart's size key: outlined circles on one base, each value level with its top. In
+     a chart 40rem wide or more with a title, it sits in the top corner across from the title, so
+     it doesn't push the legend down; the title and the legend's keys keep clear of it. Narrower,
+     or with the legend beside the chart, it's one more item in the legend. */
+  .ib-chart-size-key { display: inline-flex; align-items: center; gap: var(--ib-space-2); }
+  .ib-chart:has(> .ib-chart-label):has(.ib-chart-size-key) { position: relative; }
+
+  @container ib-chart (width >= 40rem) {
+    .ib-chart:has(.ib-chart-size-key) > .ib-chart-label { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
+    ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend:has(.ib-chart-size-key) { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
+    .ib-chart:has(> .ib-chart-label) ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key { position: absolute; top: 0; inset-inline-end: 0; }
+  }
+
   .ib-chart-size-key circle { fill: none; stroke: var(--ib-color-muted); }
   .ib-chart-size-key line { stroke: var(--ib-color-muted); stroke-dasharray: 1 2; }
   .ib-chart-size-texts { display: grid; margin-inline-start: calc(-1 * var(--ib-space-1)); font-size: var(--ib-text-xs); line-height: 1; color: var(--ib-color-muted); }
@@ -635,8 +642,6 @@
 
     .ib-chart-lg-start { grid-template-columns: auto minmax(0, 1fr); }
     :is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend { flex-direction: column; margin: 0; }
-    :is(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key { margin-inline-start: 0; }
-    :is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend.ib-chart-legend-sized { justify-self: start; align-items: flex-start; }
 
     /* Beside an upright stack, the keys run bottom to top as the stack does. */
     .ib-chart-stack-up:is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend { flex-direction: column-reverse; }
