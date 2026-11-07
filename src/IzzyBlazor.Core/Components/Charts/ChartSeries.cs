@@ -94,6 +94,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public int TrendPeriod { get; set; } = 3;
 
     /// <summary>
+    /// The trend's CSS color, such as <c>var(--ib-color-danger)</c>, used as given. Defaults to the
+    /// series' color mixed toward the text color (darker in light mode, lighter in dark), so it
+    /// reads over the series' own bars.
+    /// </summary>
+    [Parameter] public string? TrendColor { get; set; }
+
+    /// <summary>
     /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
     /// place in the legend, to show it again, and in the data table.
     /// </summary>
@@ -186,6 +193,7 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             Trend = Trend,
             TrendOrder = TrendOrder,
             TrendPeriod = TrendPeriod,
+            TrendColor = TrendColor,
         };
 
     /// <inheritdoc />

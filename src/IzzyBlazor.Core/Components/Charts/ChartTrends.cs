@@ -43,7 +43,8 @@ internal static class ChartTrends
                 : Fit(x, data.Values, data.Trend == ChartTrend.Linear ? 1 : data.TrendOrder);
             result.Add(new ChartSeriesData(string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ChartTrendName, data.Name), ChartType.Line, values)
             {
-                Color = data.Color,
+                Color = data.TrendColor ?? data.Color,
+                TrendColor = data.TrendColor,
                 ColorFrom = source,
                 Curve = data.Trend == ChartTrend.Linear ? ChartCurve.Straight : ChartCurve.Smooth,
                 LineStyle = ChartLineStyle.Dashed,

@@ -506,6 +506,21 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_trend_is_drawn_toward_the_text_color_unless_it_has_its_own()
+    {
+        IRenderedComponent<Chart<Month>> Build(string? color) => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Trend, ChartTrend.Linear).Add(x => x.TrendColor, color)));
+
+        Assert.Contains("ib-chart-trend", Build(null).Find("path.ib-chart-line").ClassName);
+        var own = Build("var(--ib-color-danger)").Find("path.ib-chart-line");
+        Assert.DoesNotContain("ib-chart-trend", own.ClassName);
+        Assert.Contains("var(--ib-color-danger)", own.GetAttribute("style"));
+    }
+
+    [Fact]
     public void Needs_a_title_or_a_heading_that_titles_it()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p

@@ -21,6 +21,7 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public ChartTrend Trend { get; init; }
     public int TrendOrder { get; init; } = 2;
     public int TrendPeriod { get; init; } = 3;
+    public string? TrendColor { get; init; }
 
     /// <summary>For a trend: the series it's drawn from, whose color it takes.</summary>
     public int? ColorFrom { get; init; }

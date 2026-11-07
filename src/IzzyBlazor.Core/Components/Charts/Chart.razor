@@ -632,7 +632,8 @@
     private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
 
     // A trend's line is its series' color toward the text's, so it reads over the series' bars.
-    private static string Trend(SeriesShape s) => s.Data.ColorFrom is null ? "" : " ib-chart-trend";
+    // A TrendColor is used as given.
+    private static string Trend(SeriesShape s) => s.Data.ColorFrom is null || s.Data.TrendColor is not null ? "" : " ib-chart-trend";
 
     // A reference line, band or note. Each runs along an axis: "y" places it up from the bottom
     // (values on an upright chart, names on bars across), "x" across from the left. --p and --q
@@ -779,7 +780,7 @@
                 w.WriteNumber("k", s.Slot);
                 w.WriteNumber("y", s.Style);
                 w.WriteNumber("d", s.Dash);
-                if (d.ColorFrom is not null) w.WriteBoolean("tr", true);
+                if (d.ColorFrom is not null && d.TrendColor is null) w.WriteBoolean("tr", true);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
                 // Labels: the mode, and each item's text, which the script can't format itself.
                 if (model.LabelTexts[s.Index] is { } texts)
