@@ -17,6 +17,26 @@
     block-size: auto;
   }
 
+  /* The log, with "Jump to latest" over its bottom edge. */
+  .ib-chat-view {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .ib-chat-jump {
+    position: absolute;
+    inset-block-end: var(--ib-space-2);
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    background-color: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-sm, 0 1px 3px rgb(0 0 0 / 0.15));
+  }
+
+  .ib-chat-jump[hidden] { display: none; }
+
   /* Reversed: the log starts at its end and stays there as entries arrive, with no script, until
      the reader scrolls up. Its one child keeps the entries in reading order. */
   .ib-chat-log {

@@ -41,16 +41,20 @@
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chat.css"]" />
     @* Reversed, so the log starts at its end and stays there as entries arrive, with no script;
        the one child keeps the entries in reading order. *@
-    <div class="ib-chat-log" role="log" aria-label="@Label" aria-live="off" tabindex="0">
-        <div class="ib-chat-entries">
-            @if (EmptyContent is not null)
-            {
-                <div class="ib-chat-empty">@EmptyContent</div>
-            }
-            <CascadingValue Value="_context" IsFixed="true">
-                @ChildContent
-            </CascadingValue>
+    <div class="ib-chat-view">
+        <div class="ib-chat-log" role="log" aria-label="@Label" aria-live="off" tabindex="0">
+            <div class="ib-chat-entries">
+                @if (EmptyContent is not null)
+                {
+                    <div class="ib-chat-empty">@EmptyContent</div>
+                }
+                <CascadingValue Value="_context" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
+            </div>
         </div>
+        @* Shown by the script when the reader has scrolled up. *@
+        <IconButton Icon="Lucide.ArrowDown" Label="@TextDefaults.ChatJumpToLatest" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-jump" hidden />
     </div>
     <LiveRegion Text="@_announcement" />
     @if (RendererInfo.IsInteractive)
@@ -238,6 +242,8 @@
         }
         <div class="ib-chat-box">
             <label class="ib-visually-hidden" for="@_inputId">@TextDefaults.ChatMessage</label>
+            @* Shown (to screen readers) by the script, which makes the keys work. *@
+            <span id="@(_inputId)-hint" class="ib-visually-hidden ib-chat-hint" hidden>@TextDefaults.ChatKeys</span>
             @if (posted is null)
             {
                 <textarea id="@_inputId" class="ib-chat-input" rows="1" placeholder="@Placeholder" maxlength="@MaxLength"
