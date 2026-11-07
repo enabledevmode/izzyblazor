@@ -1042,7 +1042,7 @@
                 w.WriteEndArray();
                 w.WriteNumber("c", (int)d.Curve);
                 w.WriteBoolean("j", d.ConnectGaps);
-                w.WriteBoolean("m", d.IsPoint || (d.Markers ?? (d.Type == ChartType.Line && d.Values.Count(v => v is not null) <= 40)));
+                w.WriteBoolean("m", d.IsPoint || (d.Markers ?? (d.Type == ChartType.Line && d.Values.Count(v => v is not null) <= 12)));
                 // A bubble's radius by item, which doesn't change with the value axis.
                 if (d.Type == ChartType.Bubble)
                 {

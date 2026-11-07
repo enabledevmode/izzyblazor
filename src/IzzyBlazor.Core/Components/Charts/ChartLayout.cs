@@ -580,7 +580,7 @@ internal static class ChartLayout
             shape.Area = area.Length > 0 ? area.ToString() : null;
 
             var count = points.Count(p => p is not null);
-            if (data.IsPoint || (data.Markers ?? (data.Type == ChartType.Line && count <= 40)))
+            if (data.IsPoint || (data.Markers ?? (data.Type == ChartType.Line && count <= 12)))
             {
                 foreach (var p in points)
                 {
@@ -1369,9 +1369,8 @@ internal static class ChartLayout
         {
             for (var i = 1; i < p.Count; i++)
             {
-                var mid = (p[i - 1].A + p[i].A) / 2;
-                segments.Add(new Segment(null, null, (mid, p[i - 1].V)));
-                segments.Add(new Segment(null, null, (mid, p[i].V)));
+                // Each value holds until the next one's argument, where it steps.
+                segments.Add(new Segment(null, null, (p[i].A, p[i - 1].V)));
                 segments.Add(new Segment(null, null, p[i]));
             }
         }
