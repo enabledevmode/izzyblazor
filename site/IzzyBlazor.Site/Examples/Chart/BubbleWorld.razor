@@ -1,7 +1,7 @@
 @* Income per person against life expectancy for 32 countries, each sized by its population and
    colored by its region, income on a log scale: each step of ten in income counts alike.
    Figures are rounded, around 2023. *@
-<Chart Items="_countries" Argument="c => c.Income" Title="Income and life expectancy by country, around 2023" Height="Length.Rem(24)">
+<Chart Items="_countries" Argument="c => c.Income" Title="Income and life expectancy by country, around 2023" Height="Length.Rem(24)" Legend="ChartLegend.End">
     <ChartValueAxis Format="0" Title="Life expectancy (years)" />
     <ChartArgumentAxis Format="$#,##0" Title="GDP per person (US$, log scale)" Logarithmic />
     <ChartBubbleSeries Value="c => c.LifeExpectancy" Size="c => c.Population" SizeFormat="#,##0,,M" SeriesBy="c => c.Region" LabelText="c => c.Name" ShowSizeKey />

@@ -272,7 +272,7 @@
   .ib-chart:has(> .ib-chart-label):has(.ib-chart-size-key) { position: relative; }
 
   @container ib-chart (width >= 40rem) {
-    .ib-chart:has(.ib-chart-size-key) > .ib-chart-label { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
+    .ib-chart:has(> ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key) > .ib-chart-label { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
     ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend:has(.ib-chart-size-key) { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
     .ib-chart:has(> .ib-chart-label) ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key { position: absolute; top: 0; inset-inline-end: 0; }
   }
