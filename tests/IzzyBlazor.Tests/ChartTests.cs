@@ -185,6 +185,42 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Value_labels_sit_past_a_bars_end_move_inside_when_clipped_and_center_in_a_stack()
+    {
+        var model = ChartLayout.Build(new ChartInput(["Q1", "Q2"],
+            [new ChartSeriesData("Revenue", ChartType.Bar, [100, 40]) { Labels = ChartLabels.Auto }])
+        { ValueMax = 100, Culture = CultureInfo.InvariantCulture });
+
+        // Q1 reaches the top, so its label goes inside; Q2's sits above its bar.
+        Assert.Equal([true, false], model.DataLabels.Select(l => l.Inside));
+        Assert.True(model.DataLabels[1].DY < 0);
+
+        var stacked = ChartLayout.Build(new ChartInput(["Q1"],
+        [
+            new ChartSeriesData("A", ChartType.Bar, [60]) { Labels = ChartLabels.Auto },
+            new ChartSeriesData("B", ChartType.Bar, [40]) { Labels = ChartLabels.Auto },
+        ])
+        { Stacked = ChartStack.Stacked, Culture = CultureInfo.InvariantCulture });
+        Assert.All(stacked.DataLabels, l => Assert.True(l.Inside && l.DY == 0));
+        Assert.Equal(["60", "40"], stacked.DataLabels.Select(l => l.Text));
+    }
+
+    [Fact]
+    public void Value_labels_that_would_overlap_hide_at_the_widths_where_they_would()
+    {
+        var days = Enumerable.Range(0, 30).Select(i => (object?)$"D{i}").ToList();
+        var model = ChartLayout.Build(new ChartInput(days,
+            [new ChartSeriesData("Visits", ChartType.Line, [.. days.Select((_, i) => (double?)1_000 + i % 3)]) { Labels = ChartLabels.Auto, Markers = true }])
+        { Culture = CultureInfo.InvariantCulture });
+
+        var narrow = model.DataLabels.Count(l => l.From == 0);
+        var wide = model.DataLabels.Count;
+        Assert.True(narrow < wide && wide < 30, $"{narrow} narrow, {wide} wide");
+        // A label shown narrow is shown at every width (its From is 0), never fewer as it widens.
+        Assert.Equal(wide, model.DataLabels.Count(l => l.From <= ChartLayout.Widths.Length - 1));
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();

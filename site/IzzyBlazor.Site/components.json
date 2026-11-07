@@ -2119,6 +2119,13 @@
           ]
         },
         {
+          "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartSeries.Labels", "ChartSeries.LabelFormat"],
+          "examples": [
+            { "id": "chart-labels", "title": "Labels on bars", "lead": "To write each value beside its bar, set `Labels` on the series to `Auto`: past the end of the bar, or inside it when there's no room above. `LabelFormat` formats the labels apart from the axis. A label that would overlap another is left out at the widths where it would; narrow the window to see them go. Screen readers skip the labels, since Show data has every value." },
+            { "id": "chart-labels-stacked", "title": "Labels in a stack", "lead": "In a stack, `Auto` puts each label in the middle of its segment, and leaves it out when the segment is too small to hold it. `Inside` puts labels inside the bar at its end, and `Outside` past it." }
+          ]
+        },
+        {
           "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels", "ValueFormatter", "ArgumentFormatter", "HideValueAxis", "HideArgumentAxis"],
           "examples": [
             { "id": "chart-axes", "title": "Titles, a set step and grid lines", "lead": "`ValueTitle` and `ArgumentTitle` put a title beside each axis; the argument's title also heads the first column of the data table. `ValueStep` sets the gap between the value axis's ticks, here $25,000, and the axis ends on a multiple of it. `GridLines` set to `Both` adds lines between the months; `None` leaves only the zero line." },

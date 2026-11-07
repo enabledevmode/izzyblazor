@@ -65,6 +65,15 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public bool ConnectNulls { get; set; }
 
     /// <summary>
+    /// Writes each value beside its bar or point. Labels that would overlap others are left out at
+    /// the widths where they would, and screen readers skip them: the data table has every value.
+    /// </summary>
+    [Parameter] public ChartLabels Labels { get; set; }
+
+    /// <summary>A .NET format string for this series' labels, such as <c>C0</c>. Defaults to the values' own text.</summary>
+    [Parameter] public string? LabelFormat { get; set; }
+
+    /// <summary>
     /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
     /// place in the legend, to show it again, and in the data table.
     /// </summary>
@@ -141,6 +150,8 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             Markers = Markers,
             ConnectNulls = ConnectNulls,
             Hidden = Hidden,
+            Labels = Labels,
+            LabelFormat = LabelFormat,
         };
 
     /// <inheritdoc />

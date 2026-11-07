@@ -209,6 +209,34 @@
   /* A scatter's points are see-through as bars are, so where they crowd shows darker. */
   .ib-chart-scatter { fill: var(--ib-chart-see); }
 
+  /* Value labels (ChartSeries Labels), centered on the spot the server (or the script) worked
+     out, in the text color with a halo of the surface so they read on a bar or a grid line. */
+  .ib-chart-dl {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .ib-chart-dl > span {
+    position: absolute;
+    translate: -50% -50%;
+    white-space: nowrap;
+    color: var(--ib-color-on-surface);
+    font-weight: var(--ib-weight-medium);
+    text-shadow: 0 0 2px var(--ib-color-surface), 0 0 2px var(--ib-color-surface), 0 0 1px var(--ib-color-surface);
+  }
+
+  /* On a bar: no halo, in dark ink, which the palette's fills (mid-tone in light mode, bright in
+     dark) all clear 4.3:1 against; or black or white for the bar, where browsers can pick. */
+  .ib-chart-dl > .ib-chart-dl-in {
+    color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
+    text-shadow: none;
+  }
+
+  @supports (color: contrast-color(red)) {
+    .ib-chart-dl > .ib-chart-dl-in { color: contrast-color(var(--ib-chart-fill)); }
+  }
+
   /* The point the tooltip is for, on a scatter chart. */
   .ib-chart-marks > [data-ib-active] {
     stroke: var(--ib-color-on-surface);
@@ -224,7 +252,9 @@
      for the server's plot and value labels, and is empty and out of the way until then. */
   .ib-chart-js,
   ib-chart[data-ib-redrawn] .ib-chart-values:not(.ib-chart-js),
-  ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs, .ib-chart-agrid) { display: none; }
+  ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs, .ib-chart-agrid),
+  ib-chart[data-ib-redrawn] .ib-chart-dl:not(.ib-chart-js) { display: none; }
+  ib-chart[data-ib-redrawn] .ib-chart-dl.ib-chart-js { display: block; }
   ib-chart[data-ib-redrawn] .ib-chart-values.ib-chart-js { display: contents; }
   ib-chart[data-ib-redrawn] svg.ib-chart-js { display: block; }
 

@@ -97,6 +97,25 @@ public enum SparklineType
     Bar,
 }
 
+/// <summary>Where a <see cref="ChartSeries{TItem}"/> writes each value beside its bar or point.</summary>
+public enum ChartLabels
+{
+    /// <summary>No labels.</summary>
+    None,
+
+    /// <summary>
+    /// Placed by type: past a bar's end, in the middle of a stacked segment, above a point. A label
+    /// with no room there moves inside the bar or below the point, or is left out.
+    /// </summary>
+    Auto,
+
+    /// <summary>Inside the bar, at its end (in the middle of a stacked segment), or below a point.</summary>
+    Inside,
+
+    /// <summary>Past the bar's end, or above a point, moving inside or below when there's no room.</summary>
+    Outside,
+}
+
 /// <summary>Which grid lines a <see cref="Chart{TItem}"/> draws across its plot.</summary>
 public enum ChartGridLines
 {

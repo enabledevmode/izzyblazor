@@ -15,6 +15,8 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public bool? Markers { get; init; }
     public bool ConnectNulls { get; init; }
     public bool Hidden { get; init; }
+    public ChartLabels Labels { get; init; }
+    public string? LabelFormat { get; init; }
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -55,7 +57,20 @@ internal sealed record GridLine(double Pos, int From, bool Zero, bool Argument =
 /// A bar, in percent of the plot. <c>End</c> is set on a bar whose value end is rounded: the side
 /// it's on, <c>t</c>, <c>b</c>, <c>l</c> or <c>r</c> (chart.css rounds that side's corners).
 /// </summary>
-internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, char? End = null);
+internal sealed record BarRect(double X, double Y, double Width, double Height, string Title, char? End = null)
+{
+    /// <summary>The item it's for, and which way it grows from its base: t, b, l or r.</summary>
+    public int Index { get; init; }
+
+    public char Dir { get; init; } = 't';
+}
+
+/// <summary>
+/// A value written beside its bar or point. Its center is <c>AX</c>/<c>AY</c> (0 to 1 of the plot)
+/// moved by <c>DX</c>/<c>DY</c> pixels; it shows from the <c>From</c>th of
+/// <see cref="ChartLayout.Widths"/>. <c>Inside</c> is on the bar.
+/// </summary>
+internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title, int Index);
@@ -92,6 +107,10 @@ internal sealed class ChartModel
     public List<AxisLabel> ValueLabels { get; } = [];
     public List<GridLine> Grid { get; } = [];
     public List<SeriesShape> Series { get; } = [];
+    public List<DataLabel> DataLabels { get; } = [];
+
+    /// <summary>Each series' label texts by item (null with no labels), for the script's redraw.</summary>
+    public string?[]?[] LabelTexts { get; set; } = [];
 
     /// <summary>For bands: each width's room for a label, in percent of the plot, by <see cref="ChartLayout.Widths"/>.</summary>
     public double[]? LabelRoom { get; set; }
@@ -373,11 +392,12 @@ internal static class ChartLayout
                     // The value end is rounded on the outermost bar: every bar side by side, the
                     // last segment of a stack each way from zero.
                     var below = v1 < v0;
+                    rect = rect with { Index = i, Dir = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
                     var outermost = !stacked || !bars.Skip(j + 1).Any(other =>
                         other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
                     if (outermost && hi > lo)
                     {
-                        rect = rect with { End = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
+                        rect = rect with { End = rect.Dir };
                     }
 
                     shape.Bars.Add(rect);
@@ -431,7 +451,119 @@ internal static class ChartLayout
             }
         }
 
+        PlaceLabels(input, model, argumentRoomPx, plotHeight);
         return model;
+    }
+
+    // ---- Data labels. ----
+
+    private const double MarkGapPx = 4, LabelPadPx = 2;
+
+    /// <summary>
+    /// Places each series' labels at each of <see cref="Widths"/>, from the widest down: a label
+    /// keeps the first spot its mode allows that stays in the plot (in the bar, for one inside)
+    /// and clears the labels placed before it. A label shown at a width shows at every wider one,
+    /// at the spot it has at the narrowest.
+    /// </summary>
+    private static void PlaceLabels(ChartInput input, ChartModel model, double columnPx, double plotH)
+    {
+        var culture = input.Culture;
+        model.LabelTexts = new string?[]?[input.Series.Count];
+        for (var si = 0; si < input.Series.Count; si++)
+        {
+            var s = input.Series[si];
+            if (s.Labels == ChartLabels.None) continue;
+            model.LabelTexts[si] = s.Values.Select((v, i) => v is { } x ? s.LabelFormat is { } f ? x.ToString(f, culture) : model.ValueTexts[si][i] : null).ToArray();
+        }
+
+        var stacked = input.Stacked != ChartStack.None;
+        var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots)>();
+        foreach (var shape in model.Series)
+        {
+            var data = shape.Data;
+            if (data.Hidden || data.Labels == ChartLabels.None || model.LabelTexts[shape.Index] is not { } texts) continue;
+            foreach (var bar in shape.Bars)
+            {
+                if (texts[bar.Index] is not { } text) continue;
+                var (x0, y0, x1, y1) = (bar.X / 100, bar.Y / 100, (bar.X + bar.Width) / 100, (bar.Y + bar.Height) / 100);
+                var w = Width(text) * 1.04;
+                var (mx, my) = ((x0 + x1) / 2, (y0 + y1) / 2);
+                var (dw, dh) = (MarkGapPx + w / 2, MarkGapPx + LineHeightPx / 2);
+                (double, double, double, double, (double, double, double, double)?) Out() => bar.Dir switch
+                {
+                    't' => (mx, 0, y0, -dh, null),
+                    'b' => (mx, 0, y1, dh, null),
+                    'r' => (x1, dw, my, 0, null),
+                    _ => (x0, -dw, my, 0, null),
+                };
+                (double, double, double, double, (double, double, double, double)?) End() => bar.Dir switch
+                {
+                    't' => (mx, 0, y0, dh, (x0, y0, x1, y1)),
+                    'b' => (mx, 0, y1, -dh, (x0, y0, x1, y1)),
+                    'r' => (x1, -dw, my, 0, (x0, y0, x1, y1)),
+                    _ => (x0, dw, my, 0, (x0, y0, x1, y1)),
+                };
+                (double, double, double, double, (double, double, double, double)?) Middle() => (mx, 0, my, 0, (x0, y0, x1, y1));
+                var spots = (data.Labels, stacked) switch
+                {
+                    (ChartLabels.Inside, true) or (ChartLabels.Auto, true) => new[] { Middle() },
+                    (ChartLabels.Inside, false) => [End()],
+                    _ => [Out(), End()],
+                };
+                candidates.Add((shape.Index, text, w, spots));
+            }
+
+            var markR = shape.Marks.Count > 0 ? 6 : 2;
+            var points = shape.Marks.Count > 0
+                ? shape.Marks.Select(m => (m.X / 100, m.Y / 100, m.Index)).ToList()
+                : [];
+            foreach (var (px, py, i) in points)
+            {
+                if (texts[i] is not { } text) continue;
+                var w = Width(text) * 1.04;
+                var d = markR + MarkGapPx + LineHeightPx / 2;
+                (double, double, double, double, (double, double, double, double)?) above = (px, 0, py, -d, null), below = (px, 0, py, d, null);
+                candidates.Add((shape.Index, text, w, data.Labels == ChartLabels.Inside ? [below, above] : [above, below]));
+            }
+        }
+
+        if (candidates.Count == 0) return;
+        var placed = new (double AX, double DX, double AY, double DY, bool Inside)?[Widths.Length, candidates.Count];
+        var shown = Enumerable.Range(0, candidates.Count).ToList();
+        for (var k = Widths.Length - 1; k >= 0; k--)
+        {
+            var plotW = PlotWidth(k, columnPx);
+            var boxes = new List<(double L, double T, double R, double B)>();
+            var keep = new List<int>();
+            foreach (var c in shown)
+            {
+                var (_, _, w, spots) = candidates[c];
+                foreach (var (ax, dx, ay, dy, bar) in spots)
+                {
+                    var (cx, cy) = (ax * plotW + dx, ay * plotH + dy);
+                    var box = (L: cx - w / 2 - LabelPadPx, T: cy - LineHeightPx / 2, R: cx + w / 2 + LabelPadPx, B: cy + LineHeightPx / 2);
+                    var room = bar is { } b
+                        ? box.L >= b.X0 * plotW && box.R <= b.X1 * plotW && box.T >= b.Y0 * plotH - 0.5 && box.B <= b.Y1 * plotH + 0.5
+                        : box.L >= 0 && box.R <= plotW && box.T >= 0 && box.B <= plotH;
+                    if (!room) continue;
+                    if (boxes.Any(o => box.L < o.R && o.L < box.R && box.T < o.B && o.T < box.B)) break;
+                    boxes.Add(box);
+                    keep.Add(c);
+                    placed[k, c] = (ax, dx, ay, dy, bar is not null);
+                    break;
+                }
+            }
+
+            shown = keep;
+        }
+
+        for (var c = 0; c < candidates.Count; c++)
+        {
+            var from = Enumerable.Range(0, Widths.Length).FirstOrDefault(k => placed[k, c] is not null, -1);
+            if (from < 0 || placed[Widths.Length - 1, c] is null) continue;
+            var (ax, dx, ay, dy, inside) = placed[from, c]!.Value;
+            model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside));
+        }
     }
 
     private static (double, double) Nice(double min, double max, int count, ChartInput input)

@@ -429,6 +429,21 @@
                     @* The plot the script draws when the legend hides a series. *@
                     <svg class="ib-chart-svg ib-chart-js"></svg>
                 }
+                @if (model.DataLabels.Count > 0 || model.LabelTexts.Any(t => t is not null))
+                {
+                    @* The series' value labels; screen readers have the data table instead. *@
+                    <div class="ib-chart-dl" aria-hidden="true">
+                        @foreach (var label in model.DataLabels)
+                        {
+                            var owner = model.Series[label.Series];
+                            <span class="@LabelClass(label, owner)" style="left:calc(@Pct(label.AX) + @Num(label.DX)px);top:calc(@Pct(label.AY) + @Num(label.DY)px);@ColorStyle(owner)" data-ib-series="@label.Series">@label.Text</span>
+                        }
+                    </div>
+                    @if (redraw)
+                    {
+                        <div class="ib-chart-dl ib-chart-js" aria-hidden="true"></div>
+                    }
+                }
                 @if (Tooltip)
                 {
                     <div class="ib-chart-tooltip" hidden></div>
@@ -585,6 +600,10 @@
 
     private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
 
+    // A label on a bar carries its series' slot, for the fill its text color is picked against.
+    private static string? LabelClass(DataLabel label, SeriesShape owner) =>
+        ((label.Inside ? $"ib-chart-dl-in ib-chart-s{owner.Slot}" : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
+
     private static string SeriesColor(SeriesShape s) => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-chart-" + s.Slot + ")";
 
     private static string KeyStyle(ChartTooltipPoint point) => "background:" + point.Color;
@@ -687,6 +706,19 @@
                 w.WriteNumber("y", s.Style);
                 w.WriteNumber("d", s.Dash);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
+                // Labels: the mode, and each item's text, which the script can't format itself.
+                if (model.LabelTexts[s.Index] is { } texts)
+                {
+                    w.WriteNumber("lm", (int)d.Labels);
+                    w.WriteStartArray("lt");
+                    foreach (var text in texts)
+                    {
+                        if (text is null) w.WriteNullValue();
+                        else w.WriteStringValue(text);
+                    }
+
+                    w.WriteEndArray();
+                }
                 w.WriteEndObject();
             }
 

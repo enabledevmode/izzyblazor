@@ -69,6 +69,17 @@ class Chart extends IzzyElement {
     // drawn again here without it: its own plot and value labels stand in for the server's.
     const jsSvg = plot.querySelector<SVGSVGElement>("svg.ib-chart-js");
     const jsLabels = this.querySelector<HTMLElement>(".ib-chart-values.ib-chart-js");
+    // Value labels, placed again at the plot's size: measured in their own font.
+    const jsDl = plot.querySelector<HTMLElement>(".ib-chart-dl.ib-chart-js");
+    let measure: ((text: string) => number) | undefined;
+    if (jsDl) {
+      const css = getComputedStyle(jsDl);
+      const ctx = document.createElement("canvas").getContext("2d");
+      if (ctx) {
+        ctx.font = `500 ${css.fontSize} ${css.fontFamily}`;
+        measure = (text) => ctx.measureText(text).width;
+      }
+    }
     const redraw = async () => {
       const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
       if (same || !data || !jsSvg || !jsLabels) {
@@ -77,9 +88,10 @@ class Chart extends IzzyElement {
       }
       const draw = await loadDraw();
       if (signal.aborted) return;
-      const out = draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight });
+      const out = draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight }, measure);
       jsSvg.innerHTML = out.svg;
       jsLabels.innerHTML = out.labels;
+      if (jsDl) jsDl.innerHTML = out.dl;
       this.setAttribute("data-ib-redrawn", "");
       if (bottom) this.fit(bottom);
       refresh();
@@ -91,7 +103,7 @@ class Chart extends IzzyElement {
     const refit = () => {
       cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
-        if (this.hasAttribute("data-ib-redrawn") && this.hasAttribute("data-ib-horizontal")) redraw();
+        if (this.hasAttribute("data-ib-redrawn") && (jsDl || this.hasAttribute("data-ib-horizontal"))) redraw();
         if (bottom) this.fit(bottom);
       });
     };
