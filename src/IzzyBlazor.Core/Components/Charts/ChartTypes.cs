@@ -55,8 +55,9 @@ public enum ChartCurve
 public enum ChartLegend
 {
     /// <summary>
-    /// A Chart's legend below it, when there are two series or more (a single series is named by
-    /// the chart's title); a PieChart's beside the circle when there's room, and below it otherwise.
+    /// A Chart's legend above it, under the title, when there are two series or more (a single
+    /// series is named by the chart's title); a PieChart's beside the circle when there's room,
+    /// and below it otherwise.
     /// </summary>
     Auto,
 
