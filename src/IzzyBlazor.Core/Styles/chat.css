@@ -151,7 +151,7 @@
   .ib-chat-dots > span:nth-child(2) { animation-delay: 0.15s; }
   .ib-chat-dots > span:nth-child(3) { animation-delay: 0.3s; }
 
-  .ib-chat-entry[data-ib-pending] .ib-chat-content > :last-child::after {
+  .ib-chat-entry[data-ib-pending] :is(.ib-chat-content > :last-child, .ib-chat-text)::after {
     content: "";
     display: inline-block;
     inline-size: 0.5em;
@@ -173,7 +173,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .ib-chat-dots > span,
-    .ib-chat-entry[data-ib-pending] .ib-chat-content > :last-child::after { animation: none; }
+    .ib-chat-entry[data-ib-pending] :is(.ib-chat-content > :last-child, .ib-chat-text)::after { animation: none; }
   }
 
   .ib-chat-failed {
@@ -287,5 +287,16 @@
     margin: 0;
     color: var(--ib-color-danger);
     font-size: var(--ib-text-sm);
+  }
+
+  /* Windows high contrast: the dots and caret in the text color, your bubble with an edge. */
+  @media (forced-colors: active) {
+    .ib-chat-dots > span,
+    .ib-chat-entry[data-ib-pending] :is(.ib-chat-content > :last-child, .ib-chat-text)::after {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+
+    .ib-chat-mine .ib-chat-bubble { border: 1px solid CanvasText; }
   }
 }

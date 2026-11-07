@@ -32,6 +32,9 @@
 
     private Task SendAsync(ChatSendArgs message)
     {
+        // A new message drops a reply that failed, rather than leave its Retry behind.
+        if (_failed is not null) _history.Remove(_failed);
+        _failed = null;
         _history.Add(new ChatMessage(ChatRole.User, message.Text));
         return ReplyAsync();
     }
@@ -50,7 +53,7 @@
         _history.Add(reply);
         _streaming = reply;
         _status = ChatStatus.Waiting;
-        _stop = new CancellationTokenSource();
+        using var stop = _stop = new CancellationTokenSource();
         var text = new StringBuilder();
         var shown = DateTime.UtcNow;
         try

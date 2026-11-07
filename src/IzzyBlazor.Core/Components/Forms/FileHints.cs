@@ -80,4 +80,19 @@ internal static class FileHints
 
         return names;
     }
+
+    /// <summary>Whether a file matches an accept attribute: an extension (.pdf), a type (image/png) or a family (image/*). An empty accept takes anything.</summary>
+    public static bool Accepts(string? accept, string name, string? contentType)
+    {
+        if (string.IsNullOrWhiteSpace(accept)) return true;
+        foreach (var token in accept.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (token.StartsWith('.') && name.EndsWith(token, StringComparison.OrdinalIgnoreCase)) return true;
+            if (contentType is null) continue;
+            if (token.EndsWith("/*", StringComparison.Ordinal) && contentType.StartsWith(token[..^1], StringComparison.OrdinalIgnoreCase)) return true;
+            if (string.Equals(token, contentType, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
 }

@@ -88,7 +88,7 @@
                         }
                         @if (file.Size is { } size)
                         {
-                            <span class="ib-chat-file-size">@SizeText(size)</span>
+                            <span class="ib-chat-file-size">@FileHints.FormatSize(size)</span>
                         }
                     </li>
                 }
@@ -117,7 +117,12 @@
         {
             <div class="ib-chat-actions">
                 <CopyButton Text="@copy" Label="@TextDefaults.ChatCopy" />
+                @Actions
             </div>
+        }
+        else if (Actions is not null && !Pending)
+        {
+            <div class="ib-chat-actions">@Actions</div>
         }
     </div>
 </article>
@@ -132,7 +137,7 @@
     /// <summary>The address of the author's picture. Without one, the avatar shows the author's initials.</summary>
     [Parameter] public string? Avatar { get; set; }
 
-    /// <summary>When it was written: the time is shown, and the day above the day's first entry.</summary>
+    /// <summary>When it was written: the time is shown, and the day above the day's first entry. Both are in the value's own offset, so give it in the reader's (the server can't know their time zone).</summary>
     [Parameter] public DateTimeOffset? Time { get; set; }
 
     /// <summary>The message as plain text; its line breaks are kept.</summary>
@@ -159,6 +164,9 @@
     /// <summary>Called when a person chooses Retry on a failed entry.</summary>
     [Parameter, ModeSupport] public EventCallback OnRetry { get; set; }
 
+    /// <summary>Buttons of your own after Copy, such as thumbs up and down for an answer. Give each a label.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
     /// <summary>Whether a copy button copies its text. Defaults to on for others' entries and off for yours.</summary>
     [Parameter] public bool? Copyable { get; set; }
 
@@ -168,12 +176,14 @@
     private string? _class;
     private string? _style;
     private string? _day;
+    private bool _arrived;
 
     // The content's headings sit under the entry's own.
     private int ContentTop => Math.Min(6, Context!.Owner.EntryHeadingLevel + 1);
 
-    // What Copy copies: the Markdown as written, the text, or the HTML's text.
-    private string? CopyText => Markdown is { Length: > 0 } ? Markdown : Text is { Length: > 0 } ? Text : Html is { Length: > 0 } ? PlainText() : null;
+    // What Copy copies, in the order content is chosen: nothing for ChildContent, the Markdown as
+    // written, the HTML's text, or the text.
+    private string? CopyText => ChildContent is not null ? null : Markdown is { Length: > 0 } ? Markdown : PlainText() is { Length: > 0 } text ? text : null;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -184,6 +194,7 @@
         }
 
         Context.Register(this);
+        _arrived = Context.Owner.Rendered;
     }
 
     /// <inheritdoc />
@@ -201,7 +212,8 @@
     /// <inheritdoc />
     protected override void OnAfterRender(bool firstRender)
     {
-        if (firstRender) Context!.Owner.Arrived(this);
+        // Only an entry that came after the page did is announced, not the ones it loaded with.
+        if (firstRender && _arrived) Context!.Owner.Arrived(this);
     }
 
     /// <inheritdoc />
@@ -230,32 +242,17 @@
         builder.CloseElement();
     };
 
-    /// <summary>The entry's text without markup, for its announcement and Copy.</summary>
+    /// <summary>The entry's text without markup, for its announcement and Copy, in the order content is chosen.</summary>
     internal string PlainText()
     {
-        if (Text is { Length: > 0 }) return Text;
-        if (Markdown is { Length: > 0 }) return Markdown;
-        if (Html is not { Length: > 0 }) return "";
-        var text = Regex.Replace(RichTextSanitizer.Sanitize(Html), "<[^>]*>", " ");
+        if (ChildContent is not null) return "";
+        var html = Markdown is { Length: > 0 } ? RichTextMarkdown.ToHtml(Markdown) : Html is { Length: > 0 } ? RichTextSanitizer.Sanitize(Html) : null;
+        if (html is null) return Text ?? "";
+        var text = Regex.Replace(html, "<[^>]*>", " ");
         return Regex.Replace(System.Net.WebUtility.HtmlDecode(text), @"\s+", " ").Trim();
     }
 
     internal Task RetryAsync() => OnRetry.InvokeAsync();
-
-    /// <summary>A size for people, in the units FileUpload uses: 840 bytes, 1.5 KB, 2 MB.</summary>
-    internal static string SizeText(long bytes)
-    {
-        string[] units = ["bytes", "KB", "MB", "GB"];
-        double size = bytes;
-        var unit = 0;
-        while (size >= 1000 && unit < units.Length - 1)
-        {
-            size /= 1000;
-            unit++;
-        }
-
-        return $"{Math.Round(size, 1).ToString(System.Globalization.CultureInfo.CurrentCulture)} {units[unit]}";
-    }
 
     /// <inheritdoc />
     public void Dispose() => Context?.Unregister(this);
