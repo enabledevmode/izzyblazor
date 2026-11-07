@@ -125,6 +125,18 @@
     /// </summary>
     [Parameter] public string? FormAction { get; set; }
 
+    /// <summary>
+    /// The message being written, to fill the box or clear it from code (with <c>@bind-Draft</c>,
+    /// it follows what's typed on an interactive page). A static page shows it in the box.
+    /// </summary>
+    [Parameter] public string? Draft { get; set; }
+
+    /// <summary>Called as the message being written changes, on an interactive page.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)] public EventCallback<string?> DraftChanged { get; set; }
+
+    /// <summary>Buttons of your own in the box's row of tools, just before Send, such as a microphone that dictates into <see cref="Draft"/>. Give each a label.</summary>
+    [Parameter] public RenderFragment? ComposerActions { get; set; }
+
     /// <summary>Adds a button to attach files to a message: they come to <see cref="OnSend"/> as its <c>Files</c>.</summary>
     [Parameter] public bool AllowFiles { get; set; }
 
@@ -143,9 +155,10 @@
     /// <summary>The level of each entry's hidden heading, 2 to 6. Defaults to 3.</summary>
     [Parameter] public int HeadingLevel { get; set; } = 3;
 
-    private readonly Draft _draft = new();
+    private readonly DraftModel _draft = new();
     private List<IBrowserFile> _files = [];
     private string? _fileError;
+    private string? _lastDraft;
     private ChatContext _context = null!;
     private string? _class;
     private string? _style;
@@ -155,7 +168,7 @@
     private bool _rendered;
     private readonly string _inputId = IdGenerator.Next("ib-chat");
 
-    private sealed class Draft
+    private sealed class DraftModel
     {
         public string? Text { get; set; }
     }
@@ -194,6 +207,19 @@
         }
 
         _lastStatus = Status;
+
+        // A draft set from outside replaces what's in the box.
+        if (Draft != _lastDraft)
+        {
+            _lastDraft = Draft;
+            _draft.Text = Draft;
+        }
+    }
+
+    private Task DraftEdited()
+    {
+        _lastDraft = _draft.Text;
+        return DraftChanged.InvokeAsync(_draft.Text);
     }
 
     /// <inheritdoc />
@@ -259,7 +285,9 @@
         if (_fileError is not null) return;
         if (MaxLength is { } max && text.Length > max) text = text[..max];
         _draft.Text = null;
+        _lastDraft = null;
         _files = [];
+        if (DraftChanged.HasDelegate) await DraftChanged.InvokeAsync(null);
         await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: posted is null || posted.Script == "1") { Files = files });
     }
 
@@ -339,51 +367,56 @@
         {
             <p class="ib-chat-file-error" id="@(_inputId)-error" role="alert">@_fileError</p>
         }
+        @* The text across the box, and its tools on a row below: attach at the start; your own, then Send, at the end. *@
         <div class="ib-chat-box">
-            @if (AllowFiles)
-            {
-                <label class="ib-btn ib-btn-ghost ib-btn-neutral ib-btn-sm ib-btn-icon-only ib-chat-attach" for="@(_inputId)-files" title="@TextDefaults.ChatAttach">
-                    <Icon Name="Lucide.Paperclip" />
-                    <span class="ib-visually-hidden">@TextDefaults.ChatAttach</span>
-                </label>
-                @if (posted is null)
-                {
-                    <InputFile id="@FilesId" class="ib-chat-file" multiple accept="@Accept" OnChange="Chosen" />
-                }
-                else
-                {
-                    <input type="file" id="@(_inputId)-files" class="ib-chat-file" name="@ChatPost.FilesName" multiple accept="@Accept" />
-                }
-            }
             <label class="ib-visually-hidden" for="@_inputId">@TextDefaults.ChatMessage</label>
             @* Shown (to screen readers) by the script, which makes the keys work. *@
             <span id="@(_inputId)-hint" class="ib-visually-hidden ib-chat-hint" hidden>@TextDefaults.ChatKeys</span>
             @if (posted is null)
             {
                 <textarea id="@_inputId" class="ib-chat-input" rows="1" placeholder="@Placeholder" maxlength="@MaxLength"
-                          @bind="_draft.Text" @bind:event="oninput"></textarea>
+                          @bind="_draft.Text" @bind:event="oninput" @bind:after="DraftEdited"></textarea>
             }
             else
             {
                 @* A post refused for its files comes back with what was typed. *@
-                <textarea id="@_inputId" class="ib-chat-input" name="@ChatPost.TextName" rows="1" placeholder="@Placeholder" maxlength="@MaxLength">@(_fileError is not null ? posted.Text : null)</textarea>
+                <textarea id="@_inputId" class="ib-chat-input" name="@ChatPost.TextName" rows="1" placeholder="@Placeholder" maxlength="@MaxLength">@(_fileError is not null ? posted.Text : Draft)</textarea>
             }
-            @if (Busy)
-            {
-                @* Stop only on an interactive page: on a static one the reply streams in another
-                   request, which a new post can't reach. *@
-                @if (posted is null)
+            <div class="ib-chat-tools">
+                @if (AllowFiles)
                 {
-                    <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
+                    <label class="ib-btn ib-btn-ghost ib-btn-neutral ib-btn-sm ib-btn-icon-only ib-chat-attach" for="@(_inputId)-files" title="@TextDefaults.ChatAttach">
+                        <Icon Name="Lucide.Paperclip" />
+                        <span class="ib-visually-hidden">@TextDefaults.ChatAttach</span>
+                    </label>
+                    @if (posted is null)
+                    {
+                        <InputFile id="@FilesId" class="ib-chat-file" multiple accept="@Accept" OnChange="Chosen" />
+                    }
+                    else
+                    {
+                        <input type="file" id="@(_inputId)-files" class="ib-chat-file" name="@ChatPost.FilesName" multiple accept="@Accept" />
+                    }
                 }
-            }
-            else
-            {
-                @* Disabled until there's something to send: here on an interactive page; on a static one by
-                   the script, so that with JavaScript off it still sends. *@
-                <IconButton Submit Icon="Lucide.ArrowRight" Label="@TextDefaults.ChatSend" Size="ControlSize.Sm" Class="ib-chat-action"
-                            Disabled="@(posted is null && string.IsNullOrWhiteSpace(_draft.Text) && _files.Count == 0)" />
-            }
+                <span class="ib-chat-spacer"></span>
+                @ComposerActions
+                @if (Busy)
+                {
+                    @* Stop only on an interactive page: on a static one the reply streams in another
+                       request, which a new post can't reach. *@
+                    @if (posted is null)
+                    {
+                        <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
+                    }
+                }
+                else
+                {
+                    @* Disabled until there's something to send: here on an interactive page; on a static
+                       one by the script, so that with JavaScript off it still sends. *@
+                    <IconButton Submit Icon="Lucide.ArrowRight" Label="@TextDefaults.ChatSend" Size="ControlSize.Sm" Class="ib-chat-action"
+                                Disabled="@(posted is null && string.IsNullOrWhiteSpace(_draft.Text) && _files.Count == 0)" />
+                }
+            </div>
         </div>
     </EditForm>;
 }
