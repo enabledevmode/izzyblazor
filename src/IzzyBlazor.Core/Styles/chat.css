@@ -249,6 +249,13 @@
 
   .ib-chat-action { flex: none; }
 
+  /* Send's arrow and Stop's square, heavier than the library's 1.5 line: they're the box's one action. */
+  .ib-chat-action .ib-icon {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    stroke-width: 2.25;
+  }
+
   /* Attachments: the paperclip is a label for a file input, out of sight with script (the
      label shows its focus); with none, the browser's own input shows instead. */
   .ib-chat-attach { flex: none; cursor: pointer; }
