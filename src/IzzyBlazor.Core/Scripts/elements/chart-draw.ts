@@ -41,6 +41,7 @@ export interface DrawSeries {
 
 export interface DrawData {
   h: boolean; // horizontal
+  ar?: boolean; // the arguments run backward (ChartArgumentAxis Reverse)
   st: number; // 0 none, 1 stacked, 2 full
   lo: number | null; // ValueMin
   hi: number | null; // ValueMax
@@ -478,7 +479,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     for (let i = 0; i < n; i++) {
       const top = highs[s][i];
       if (top === null) continue;
-      const a0 = i * band + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
+      let a0 = i * band + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
+      if (d.ar) a0 = 1 - a0 - width;
       const sc = d.s[s].ax ? scale2 : scale;
       const v0 = sc(lows[s][i] ?? 0), v1 = sc(top);
       const lo = Math.min(v0, v1), hi = Math.max(v0, v1);
@@ -541,7 +543,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
-      const last = points.filter((p) => p).pop();
+      // The point at the plot's right edge, beside the end label: the first when reversed.
+      const last = d.ar ? points.find((p) => p) : points.filter((p) => p).pop();
       if (data.en != null && last) ends.push([s, (1 - last[1]) * H]);
     }
     if (data.m) {

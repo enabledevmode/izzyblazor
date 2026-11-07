@@ -173,9 +173,10 @@ class Chart extends IzzyElement {
     const count = Number(this.dataset.ibCount) || tips.length;
     const horizontal = this.hasAttribute("data-ib-horizontal");
     const scale = this.hasAttribute("data-ib-scale");
+    const reverse = this.hasAttribute("data-ib-reverse");
     const positions = scale
       ? (this.dataset.ibPos ?? "").split(",").map((p) => (p === "" ? NaN : Number(p)))
-      : Array.from({ length: count }, (_, i) => (i + 0.5) / count);
+      : Array.from({ length: count }, (_, i) => (reverse ? count - i - 0.5 : i + 0.5) / count);
     // A scatter chart's tooltip is for the point nearest the pointer, not the band under it.
     const pointsMode = this.hasAttribute("data-ib-points");
     // The points shown: the server's, or the script's once it has drawn the chart again.
@@ -190,9 +191,11 @@ class Chart extends IzzyElement {
     ];
     let active: SVGElement | undefined;
 
-    // The keyboard's order: the items, or on a scatter chart its points from left to right.
+    // The keyboard's order: the items, or on a scatter chart its points from left to right;
+    // reversed, the items from the last, so Right still moves right.
     const items = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
     if (pointsMode) items.sort((a, b) => positions[a] - positions[b]);
+    else if (reverse) items.reverse();
     // A point of a series the legend hid isn't a stop.
     const keys = () => (pointsMode ? items.filter((i) => markFor(i)) : items);
 
@@ -205,7 +208,10 @@ class Chart extends IzzyElement {
     };
 
     const nearest = (f: number) => {
-      if (!scale) return Math.min(count - 1, Math.max(0, Math.floor(f * count)));
+      if (!scale) {
+        const i = Math.min(count - 1, Math.max(0, Math.floor(f * count)));
+        return reverse ? count - 1 - i : i;
+      }
       let best = -1;
       for (let i = 0; i < positions.length; i++) {
         if (!Number.isNaN(positions[i]) && (best < 0 || Math.abs(positions[i] - f) < Math.abs(positions[best] - f))) best = i;
@@ -230,7 +236,7 @@ class Chart extends IzzyElement {
       // The band (or, on a scale, a line) under the item.
       const pos = positions[index];
       const size = scale ? 0 : 1 / count;
-      const start = scale ? pos : index / count;
+      const start = scale ? pos : pos - size / 2;
       hover.classList.toggle("ib-chart-hover-line", scale);
       hover.style.cssText = horizontal
         ? `top:${start * 100}%;height:${size * 100}%;left:0;width:100%`

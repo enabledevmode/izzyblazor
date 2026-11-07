@@ -85,6 +85,27 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Reversed_arguments_mirror_the_bars_and_labels_and_keep_the_leftmost_label()
+    {
+        var input = new ChartInput(
+            Months,
+            [new ChartSeriesData("Revenue", ChartType.Bar, [.. Enumerable.Range(1, 12).Select(i => (double?)i * 1000)])])
+        { Culture = CultureInfo.InvariantCulture };
+        var forward = ChartLayout.Build(input);
+        var reversed = ChartLayout.Build(input with { ArgumentReverse = true });
+
+        // January's bar at the right, where December's was, and each label mirrored.
+        var (jan, dec) = (reversed.Series[0].Bars[0], forward.Series[0].Bars[11]);
+        Assert.Equal(dec.X, jan.X, 6);
+        Assert.Equal(1 - forward.ArgumentPositions[0], reversed.ArgumentPositions[0], 6);
+        var label = (ChartModel m, string text) => m.ArgumentLabels.First(l => l.Text == text);
+        Assert.Equal(1 - label(forward, "January").Pos, label(reversed, "January").Pos, 6);
+
+        // Thinned, the labels count from the left: December shows at every width.
+        Assert.Equal(0, label(reversed, "December").From);
+    }
+
+    [Fact]
     public void Stacked_bars_sit_on_each_other_and_full_stacks_reach_the_top_with_a_rounded_end()
     {
         var model = ChartLayout.Build(new ChartInput(
