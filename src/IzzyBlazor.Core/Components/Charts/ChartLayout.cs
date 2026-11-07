@@ -87,11 +87,7 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 /// arguments of a horizontal chart; bottom for upright values). <c>From</c> is the narrowest
 /// container width, as an index into <see cref="ChartLayout.Widths"/>, at which it shows.
 /// </summary>
-internal sealed record AxisLabel(double Pos, string Text, string? Context = null, int From = 0, string? Title = null)
-{
-    /// <summary>Starts at its place instead of centered on it: a scale's label at the plot's start, clear of the value axis's corner.</summary>
-    public bool Start { get; init; }
-}
+internal sealed record AxisLabel(double Pos, string Text, string? Context = null, int From = 0, string? Title = null);
 
 /// <summary>
 /// A grid line across the plot, shown from a container width as its label is: at a value, or
@@ -431,26 +427,6 @@ internal static class ChartLayout
         }
 
         model.ArgumentPositions = positions;
-
-        // An argument scale's label at the plot's start starts there, rather than reaching back
-        // under the value axis's lowest label. Reaching further along, it can crowd the next one:
-        // at each width, the labels after it that it would touch wait for a wider one.
-        if (!input.Horizontal && kind != ArgumentKind.Category && model.ArgumentLabels is { Count: > 0 } args && args[0].Pos < 1e-9)
-        {
-            var first = args[0] = args[0] with { Start = true };
-            double Wide(AxisLabel l) => Math.Max(Width(l.Text), l.Context is { } c ? Width(c) : 0);
-            for (var k = first.From; k < Widths.Length; k++)
-            {
-                for (var i = 1; i < args.Count; i++)
-                {
-                    if (args[i].From > k) continue;
-                    if (args[i].Pos * PlotWidth(k, argumentRoomPx) - Wide(args[i]) / 2 - Wide(first) >= LabelGapPx) break;
-                    args[i] = args[i] with { From = k + 1 };
-                }
-            }
-
-            args.RemoveAll(l => l.From >= Widths.Length);
-        }
 
         // Grid lines along the arguments: between bands (where a label starts its band), or at a
         // scale's ticks.
