@@ -123,7 +123,7 @@ function lift(mark: Element, span: Element): void {
 
 /**
  * Gives the selection a color, highlight, size or font ("" takes it off). The browser marks the
- * selected text (fontName, which keeps the undo history and splits across elements); each mark
+ * selected text (fontName, which splits across elements); each mark
  * then leaves any span of the same format around or inside it, and becomes the new span.
  */
 export function applyInline(surface: HTMLElement, format: string, value: string): void {
