@@ -586,7 +586,9 @@
   }
 
   /* A legend above, or beside in a column from 30rem wide (Start before the plot, End after). */
-  .ib-chart-lg-top > .ib-chart-legend { margin: 0 0 var(--ib-space-3); }
+  /* Above, the legend goes with the title: nearer it than the plot. */
+  .ib-chart-lg-top > .ib-chart-legend { margin: 0 0 var(--ib-space-4); }
+  .ib-chart-label:has(+ .ib-chart-lg-top) { margin-block-end: var(--ib-space-3); }
 
   @container ib-chart (width >= 30rem) {
     :is(.ib-chart-lg-start, .ib-chart-lg-end) {
@@ -598,6 +600,9 @@
 
     .ib-chart-lg-start { grid-template-columns: auto minmax(0, 1fr); }
     :is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend { flex-direction: column; margin: 0; }
+
+    /* Beside an upright stack, the keys run bottom to top as the stack does. */
+    .ib-chart-stack-up:is(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend { flex-direction: column-reverse; }
   }
 
   .ib-chart-legend {

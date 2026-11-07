@@ -117,8 +117,8 @@
     [Parameter] public ChartPalette? Palette { get; set; }
 
     /// <summary>
-    /// The legend and where it goes: below the chart when there are two series or more, by
-    /// default; <see cref="ChartLegend.Top"/>, <see cref="ChartLegend.Bottom"/>,
+    /// The legend and where it goes: above the chart, under the title, when there are two series
+    /// or more, by default, so its keys are read before the data; <see cref="ChartLegend.Top"/>, <see cref="ChartLegend.Bottom"/>,
     /// <see cref="ChartLegend.Start"/> or <see cref="ChartLegend.End"/> to always show it there,
     /// or <see cref="ChartLegend.None"/>. Beside the chart, it moves above or below under 30rem.
     /// </summary>
@@ -407,14 +407,14 @@
         var mixed = model.Series.Any(s => s.Bars.Count > 0) && model.Series.Any(s => s.Line is not null || s.Marks.Count > 0);
         var bottomTitle = horizontal ? ValueTitle : ArgumentTitle;
 
-        <ib-chart class="@(legend ? LegendClass : null)" style="@RootStyle(model, waterfall)"
+        <ib-chart class="@(legend ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") : null)" style="@RootStyle(model, waterfall)"
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        @if (legend && Legend is ChartLegend.Top or ChartLegend.Start)
+        @if (legend && Place is ChartLegend.Top or ChartLegend.Start)
         {
             @LegendList(model, waterfall, marks)
         }
@@ -585,7 +585,7 @@
             }
         </div>
         </div>
-        @if (legend && Legend is not (ChartLegend.Top or ChartLegend.Start))
+        @if (legend && Place is not (ChartLegend.Top or ChartLegend.Start))
         {
             @LegendList(model, waterfall, marks)
         }
@@ -684,8 +684,11 @@
         }
     }
 
+    // Where the legend goes: Auto is above, under the title.
+    private ChartLegend Place => Legend == ChartLegend.Auto ? ChartLegend.Top : Legend;
+
     // Where the legend sits: above or below in a row, or beside in a column (chart.css).
-    private string? LegendClass => Legend switch
+    private string? LegendClass => Place switch
     {
         ChartLegend.Top => "ib-chart-lg-top",
         ChartLegend.Start => "ib-chart-lg-start",
