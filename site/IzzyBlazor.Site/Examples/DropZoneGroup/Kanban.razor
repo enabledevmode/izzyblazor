@@ -52,7 +52,7 @@
                                     <Heading Level="2" Size="TextSize.Sm">@column.Name</Heading>
                                     <Badge Size="BadgeSize.Sm" Pill>@(column.Limit is { } limit ? $"{count} / {limit}" : count)</Badge>
                                 </Row>
-                                <ListView Zone="@column.Id" AriaLabel="@column.Name" Cards DragWholeItem MaxItems="column.Limit" ItemLabel="c => c.Title"
+                                <ListView Zone="@column.Id" Label="@column.Name" Cards DragWholeItem MaxItems="column.Limit" ItemLabel="c => c.Title"
                                           ItemHref="c => CardHref(c)" ItemCurrent="c => c.Id == Opened" EmptyText="No cards" Size="ControlSize.Sm" Context="card">
                                     <ChildContent>
                                         <Stack Gap="2">

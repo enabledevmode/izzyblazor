@@ -95,7 +95,7 @@ public class Anchor : LayoutItemBase
             if (!HideExternalIcon)
             {
                 builder.OpenComponent<Icon>(8);
-                builder.AddComponentParameter(9, nameof(Icon.Role), IconRole.ExternalLink);
+                builder.AddComponentParameter(9, nameof(Icon.Purpose), IconPurpose.ExternalLink);
                 builder.AddComponentParameter(10, nameof(Icon.Class), "ib-anchor-icon");
                 builder.CloseComponent();
             }

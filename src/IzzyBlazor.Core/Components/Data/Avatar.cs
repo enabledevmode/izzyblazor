@@ -224,7 +224,7 @@ public class Avatar : LayoutItemBase, IDisposable
         else
         {
             builder.OpenComponent<Icon>(10);
-            builder.AddComponentParameter(11, nameof(IzzyBlazor.Icon.Name), Icon ?? IconSet.Current.Get(IconRole.Person));
+            builder.AddComponentParameter(11, nameof(IzzyBlazor.Icon.Name), Icon ?? IconSet.Current.Get(IconPurpose.Person));
             builder.CloseComponent();
         }
 

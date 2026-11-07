@@ -127,7 +127,7 @@ public enum ControlSize
 }
 
 /// <summary>Where a floating button sits in the window. Start and End follow the reading direction.</summary>
-public enum FloatPosition
+public enum FloatPlacement
 {
     /// <summary>The bottom corner on the end side (the default).</summary>
     BottomEnd,

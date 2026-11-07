@@ -31,7 +31,7 @@ public class IconRenderTests : BunitContext
     [Fact]
     public void Every_role_has_an_icon()
     {
-        foreach (var role in Enum.GetValues<IconRole>())
+        foreach (var role in Enum.GetValues<IconPurpose>())
         {
             Assert.False(string.IsNullOrEmpty(IconSet.Current.Get(role).Body), $"{role} has no icon");
         }

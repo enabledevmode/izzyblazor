@@ -107,11 +107,11 @@ public class CopyButton : ButtonBase
         builder.AddAttribute(11, "style", style);
 
         builder.OpenComponent<Icon>(12);
-        builder.AddComponentParameter(13, nameof(Icon.Role), (IconRole?)IconRole.Copy);
+        builder.AddComponentParameter(13, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.Copy);
         builder.AddComponentParameter(14, nameof(Icon.Class), "ib-copy-icon");
         builder.CloseComponent();
         builder.OpenComponent<Icon>(15);
-        builder.AddComponentParameter(16, nameof(Icon.Role), (IconRole?)IconRole.Copied);
+        builder.AddComponentParameter(16, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.Copied);
         builder.AddComponentParameter(17, nameof(Icon.Class), "ib-copied-icon");
         builder.CloseComponent();
         if (ChildContent is not null)

@@ -1,7 +1,7 @@
 @* One choice: a click, Space or Enter selects an item, and its branch opens on the way back. *@
 <Stack Gap="3" MaxWidth="20.Rem" Grow>
     <TreeView Items="_categories" ItemChildren="c => c.Children" ItemKey="c => c.Name" ItemText="c => c.Name"
-              SelectionMode="SelectionMode.Single" @bind-Selection="_category" AriaLabel="Category" />
+              SelectionMode="SelectionMode.Single" @bind-Selection="_category" Label="Category" />
     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Chosen: @(_category?.Keys?.FirstOrDefault() ?? "none")</TextBlock>
 </Stack>
 

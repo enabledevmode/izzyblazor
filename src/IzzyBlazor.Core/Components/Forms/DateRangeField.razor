@@ -82,7 +82,7 @@
                autofocus="@FocusesGroup"
                data-ib-autofocus="@(FocusesGroup ? "" : null)"
                aria-invalid="@(Invalid ? "true" : null)" />
-        <Icon Role="IconRole.RangeTo" />
+        <Icon Purpose="IconPurpose.RangeTo" />
         <input @attributes="ControlAttributes"
                id="@EndId"
                data-ib-end
@@ -110,7 +110,7 @@
             <Popover Placement="Placement.BottomStart" PanelWidth="Length.FitContent">
                 <Trigger Context="trigger">
                     <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
-                        <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                        <Icon Purpose="IconPurpose.Calendar" Class="ib-field-icon" />
                     </button>
                 </Trigger>
                 <ChildContent>

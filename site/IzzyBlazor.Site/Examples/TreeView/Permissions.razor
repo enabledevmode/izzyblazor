@@ -4,7 +4,7 @@
     <AntiforgeryToken />
     <Stack Gap="3">
         <TreeView Items="_areas" ItemChildren="a => a.Children" ItemKey="a => a.Code" ItemText="a => a.Name"
-                  SelectionMode="SelectionMode.Multiple" SelectionName="granted" @bind-Selection="_granted" AriaLabel="Permissions" />
+                  SelectionMode="SelectionMode.Multiple" SelectionName="granted" @bind-Selection="_granted" Label="Permissions" />
         <Row Gap="3" Align="Align.Center" Wrap>
             <Button Submit>Save</Button>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>

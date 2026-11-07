@@ -404,7 +404,7 @@
         { "id": "icon-beside-text", "title": "Beside text", "lead": "Set `Name` to an icon such as `Lucide.House`. An icon is sized in em and uses the text color, so it matches the text it sits in." },
         { "id": "icon-sizes", "title": "Sizes", "lead": "To scale an icon relative to the text around it, set `Size`." },
         { "id": "icon-color-stroke", "title": "Color, stroke width and spin", "lead": "To style an icon, set `Color`, `StrokeWidth` and `Spin`. To name an icon that stands alone, set `Label`." },
-        { "id": "icon-roles", "title": "Semantic roles", "lead": "To ask for an icon by its purpose rather than its picture, set `Role`. One icon set can then change every icon the library shows." },
+        { "id": "icon-roles", "title": "Semantic roles", "lead": "To ask for an icon by its purpose rather than its picture, set `Purpose`. One icon set can then change every icon the library shows." },
         { "id": "icon-logos", "title": "Brand logos", "lead": "The brand logos are the ones sites link to most, designed to match Lucide. To show one, pass a member of `Brands`, such as `Brands.GitHub`, where you would pass a Lucide icon." }
       ]
     },
@@ -454,7 +454,7 @@
       ],
       "examples": [
         { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and `Label` to name it; it's required. Keep one per page. `Round` makes it round." },
-        { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Position` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
+        { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Placement` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
       ]
     },
     {
@@ -510,7 +510,7 @@
       ],
       "examples": [
         { "id": "toggle-button-filters", "title": "Toggle buttons", "lead": "A toggle button turns something on and off, such as a filter. Bind it with `@bind-Value`, and keep its text the same whether it's on or off. It's a checkbox drawn as a button, so screen readers hear \"checked\" or \"not checked\".", "modes": ["interactive"] },
-        { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip. To show the state in the icon, such as a muted microphone, set `OnIcon`, shown while it's on in place of `Icon`; the label stays the same.", "modes": ["interactive"] },
+        { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip. To show the state in the icon, such as a muted microphone, set `CheckedIcon`, shown while it's checked in place of `Icon`; the label stays the same.", "modes": ["interactive"] },
         { "id": "toggle-button-submit-on-change", "title": "Applying at once", "lead": "On static pages a toggle changes nothing until its form posts. To post the form as it changes, set `SubmitOnChange`. With JavaScript off, give the form a submit button, here in a `noscript`.",
           "notes": {
             "noscript": "Toggling changes only the button; Apply posts the form.",
@@ -1171,7 +1171,7 @@
             "static": "Verify posts the code without a full reload.",
             "interactive": "Verify runs C# without a full reload."
           } },
-        { "id": "pin-field-pin", "title": "PINs and codes with letters", "lead": "To hide a PIN, set `Masked` and an `AutoComplete` of `current-password`, so password managers save it and screen readers don't read it out. `Length` sets the number of boxes, and `Letters` accepts letters too, upper-cased." }
+        { "id": "pin-field-pin", "title": "PINs and codes with letters", "lead": "To hide a PIN, set `Secret` and an `AutoComplete` of `current-password`, so password managers save it and screen readers don't read it out. `Length` sets the number of boxes, and `Letters` accepts letters too, upper-cased." }
       ]
     },
     {
@@ -1779,7 +1779,7 @@
       "examples": [
         { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "To keep the steps in a column on every screen, set `Orientation` to `Orientation.Vertical`. A `Step` can have a `Description`, and an `Icon` that shows until the step is done." },
         { "id": "stepper-sizes", "title": "Sizes", "lead": "To scale the markers and text, set `Size`." },
-        { "id": "stepper-optional", "title": "A step that only sometimes applies", "lead": "To leave out a step that doesn't apply this time, such as a gift message, set `Hidden`. The steps after it keep their numbers in order." }
+        { "id": "stepper-optional", "title": "A step that only sometimes applies", "lead": "To leave out a step that doesn't apply this time, such as a gift message, set `Visible` to false. The steps after it keep their numbers in order." }
       ],
       "scenarios": [
         { "id": "checkout", "title": "Checkout", "member": "Current",
@@ -2240,7 +2240,7 @@
         { "id": "data-grid-row-menu", "title": "Row menus", "lead": "A row menu is a ⋮ button on each row that opens the row's actions. Add an `ActionColumn` of `RowAction`s and set its `Overflow` to `RowActionOverflow.Always`. With IzzyBlazor's script, a right-click, a long press, Shift+F10 or the menu key opens the same menu. The menu acts on the row it was opened from, whatever is selected. Right-clicking a link still opens the browser's own menu." },
         { "id": "data-grid-cells", "title": "Controls in cells", "lead": "Cells can contain buttons, links or fields: put them in a `TemplateColumn`. The grid is one Tab stop, and the arrow keys move between cells. In a cell with one button or link, the arrow keys focus it directly, so Enter activates it. In a cell with several controls or a field, press Enter to move into it and Escape to come back out." },
         { "id": "data-grid-virtual-rows", "title": "Virtual rows", "lead": "Virtual rows render only the rows in view, so 100,000 rows scroll as easily as 100. Set `Virtualize`, which works on interactive pages. It needs a `MaxHeight`, and each row must fit one line of `RowHeight`. On static pages the same grid loads more rows as the user scrolls. This example is static unless you switch the page to Interactive." },
-        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "The grid's own tools can sit among your buttons in the order you choose. Add `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` to `ToolbarContent`, directly rather than inside a component of your own; they appear in the order written. A tool you don't add stays in its usual place, and the grid's parameter still turns it on. Export and Columns show only an icon with a tooltip. To add text to both, set `ToolbarLabels`; to add it to one, set its `ShowText`." }
+        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "The grid's own tools can sit among your buttons in the order you choose. Add `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` to `ToolbarContent`, directly rather than inside a component of your own; they appear in the order written. A tool you don't add stays in its usual place, and the grid's parameter still turns it on. Export and Columns show only an icon with a tooltip. To add text to both, set `ToolbarLabels`; to add it to one, set its `ShowLabel`." }
       ],
       "topics": [
         {
@@ -2277,16 +2277,16 @@
           ]
         },
         {
-          "id": "grouping", "title": "Grouping", "summary": "Grouping puts rows under a heading row for each value of a column, with a count or total on each group.", "members": ["Groupable", "Group", "InitialGroup", "GroupsOpen", "OpenGroups", "GroupRowLimit", "GroupPanel", "ShowGroupedColumns", "GroupsProvider", "Column.Groupable", "Column.GroupBy", "Column.GroupFormat", "Column.GroupTemplate"],
+          "id": "grouping", "title": "Grouping", "summary": "Grouping puts rows under a heading row for each value of a column, with a count or total on each group.", "members": ["Groupable", "Group", "InitialGroup", "ExpandAllGroups", "ExpandedGroups", "GroupRowLimit", "GroupPanel", "ShowGroupedColumns", "GroupsProvider", "Column.Groupable", "Column.GroupBy", "Column.GroupFormat", "Column.GroupTemplate"],
           "examples": [
             { "id": "data-grid-grouping", "title": "Groups", "lead": "Grouping puts rows under a heading row for each value of a column. To offer grouping in each header's menu, set `Groupable`. To start grouped, set `InitialGroup`. The grouping is kept in the URL, as `?group=status`, and each group's row is a link that opens it, so grouping works on static pages and with JavaScript off. A page counts top-level groups, so a group is never split across pages, and a group's count covers the whole group. To show a value on each group's row, set `GroupAggregate`, or `GroupFooterAggregate` for one under an open group's rows. With an `ItemsProvider`, add a `GroupsProvider`; rows still come from your provider, with the group's value in the filter." }
           ]
         },
         {
-          "id": "master-detail", "title": "Master-detail", "summary": "A row's detail opens underneath it, such as an order's lines in a grid of their own.", "members": ["DetailTemplate", "ItemHasDetail", "OpenDetails", "DetailsOpen", "SingleDetail", "ItemKey"],
+          "id": "master-detail", "title": "Master-detail", "summary": "A row's detail opens underneath it, such as an order's lines in a grid of their own.", "members": ["DetailTemplate", "ItemHasDetail", "ExpandedDetails", "ExpandAllDetails", "SingleDetail", "ItemKey"],
           "examples": [
-            { "id": "data-grid-master-detail", "title": "A row's detail", "lead": "A row's detail opens under the row, across the grid, such as an order's lines. Set `DetailTemplate`, and an `ItemKey` to keep track of open rows. Each row gets a button in a column of its own, and the header's button opens them all. Open rows are kept in the URL, as `?detail=1004`, so details work on static pages and with JavaScript off; to keep them in the component instead, bind `OpenDetails`. Only open rows render their detail, so a nested grid loads its rows, from an `ItemsProvider` too, only when its row opens. Give a nested grid its own `QueryPrefix`, or every row's grid would share one sort and page." },
-            { "id": "data-grid-grouped-detail", "title": "Details in groups", "lead": "In a grouped grid, a row's detail opens under it, inside its group, and its button sits one level in from the group's. To keep one detail open at a time, set `SingleDetail`. To leave the button off rows with nothing to show, set `ItemHasDetail`. To start with every row open, set `DetailsOpen`." }
+            { "id": "data-grid-master-detail", "title": "A row's detail", "lead": "A row's detail opens under the row, across the grid, such as an order's lines. Set `DetailTemplate`, and an `ItemKey` to keep track of open rows. Each row gets a button in a column of its own, and the header's button opens them all. Open rows are kept in the URL, as `?detail=1004`, so details work on static pages and with JavaScript off; to keep them in the component instead, bind `ExpandedDetails`. Only open rows render their detail, so a nested grid loads its rows, from an `ItemsProvider` too, only when its row opens. Give a nested grid its own `QueryPrefix`, or every row's grid would share one sort and page." },
+            { "id": "data-grid-grouped-detail", "title": "Details in groups", "lead": "In a grouped grid, a row's detail opens under it, inside its group, and its button sits one level in from the group's. To keep one detail open at a time, set `SingleDetail`. To leave the button off rows with nothing to show, set `ItemHasDetail`. To start with every row open, set `ExpandAllDetails`." }
           ]
         },
         {
@@ -2397,7 +2397,7 @@
     {
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
-        { "id": "description-list-divided", "title": "Terms beside details", "lead": "To add lines between items, set `Divided`. Terms sit beside their details from 640px up, and above them on phones." },
+        { "id": "description-list-divided", "title": "Terms beside details", "lead": "To add lines between items, set `Dividers`. Terms sit beside their details from 640px up, and above them on phones." },
         { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`." }
       ]
     },
@@ -2427,7 +2427,7 @@
         { "feature": "One Tab stop, arrow keys and typeahead in a tree to choose from", "noscript": "none" },
         { "feature": "Children that load when a branch first opens", "noscript": "none" },
         { "feature": "A search box that narrows the tree", "noscript": "none" },
-        { "feature": "The open branches bound to C#", "member": "Expanded" }
+        { "feature": "The open branches bound to C#", "member": "ExpandedItems" }
       ],
       "examples": [
         { "id": "tree-view-folders", "title": "A tree of links", "lead": "To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`. Its branch arrives open. A link with children gets its own button at its end that opens them." },
@@ -2437,7 +2437,7 @@
         {
           "id": "selection", "title": "Selection", "summary": "Checkboxes or a single choice. The keys post with a form or bind to C#.", "members": ["ItemKey", "SelectionMode", "Selection", "SelectionName", "Cascade", "ItemSelectable"],
           "examples": [
-            { "id": "tree-view-permissions", "title": "Checkboxes", "lead": "To give each item a checkbox, set `SelectionMode` to `Multiple` and `ItemKey`. Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed box; to make each box its own, set `Cascade` to `false`. In a form the checked keys post under `SelectionName`, parents included; on an interactive page bind them with `@bind-Selection`. Give the tree an `AriaLabel`." },
+            { "id": "tree-view-permissions", "title": "Checkboxes", "lead": "To give each item a checkbox, set `SelectionMode` to `Multiple` and `ItemKey`. Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed box; to make each box its own, set `Cascade` to `false`. In a form the checked keys post under `SelectionName`, parents included; on an interactive page bind them with `@bind-Selection`. Give the tree an `Label`." },
             { "id": "tree-view-category", "title": "One choice", "lead": "To choose one item, set `SelectionMode` to `Single`. A click, Space or Enter selects it, and the branch holding it starts open." }
           ]
         },
@@ -2511,7 +2511,7 @@
           } }
 ,
         { "id": "chat-dictation", "title": "A button of your own", "modes": ["interactive"], "lead": "Buttons in `ComposerActions` sit in the box's row of tools, just before Send. Here a microphone dictates into the message with the browser's speech recognition: `@bind-Draft` fills the box with what it hears, and Send sends it as typed text. Chrome, Edge and Safari have speech recognition (Chrome and Edge send the audio to their speech services); where it's missing, the button doesn't show. For another service, such as Azure Speech, send the audio there and set `Draft` from the result." },
-        { "id": "chat-people", "title": "People talking", "lead": "For a conversation between people, set `Appearance` to `Conversation`: everyone's messages sit in bubbles, yours at the end. Set `Mine` on your entries and `Author` on everyone else's: their name sits above the message, with an `Avatar` (a picture's address, or initials from the name); yours shows one when you give it a picture or `Initials`. Messages in a row from one person, minutes apart, are grouped, their name, avatar and time shown once. With `Time`, each entry shows its time and the day sits above the first message of each day: \"Yesterday\", \"Today\", or the date. A message from someone else that arrives on an interactive page is announced with their name. While someone is typing, an entry with their `Author` and `Pending` shows three dots. `Height` sets the chat's height; the log scrolls inside it." }
+        { "id": "chat-people", "title": "People talking", "lead": "For a conversation between people, set `Variant` to `Conversation`: everyone's messages sit in bubbles, yours at the end. Set `Mine` on your entries and `Author` on everyone else's: their name sits above the message, with an `Avatar` (a picture's address, or initials from the name); yours shows one when you give it a picture or `Initials`. Messages in a row from one person, minutes apart, are grouped, their name, avatar and time shown once. With `Time`, each entry shows its time and the day sits above the first message of each day: \"Yesterday\", \"Today\", or the date. A message from someone else that arrives on an interactive page is announced with their name. While someone is typing, an entry with their `Author` and `Pending` shows three dots. `Height` sets the chat's height; the log scrolls inside it." }
       ],
       "topics": [
         {

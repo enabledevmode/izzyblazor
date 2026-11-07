@@ -223,7 +223,7 @@ public partial class VideoEmbed : StyledComponentBase
         builder.AddAttribute(16, "class", "ib-video-play");
         builder.AddAttribute(17, "aria-hidden", "true");
         builder.OpenComponent<Icon>(18);
-        builder.AddComponentParameter(19, nameof(Icon.Name), IconSet.Current.Get(IconRole.Play));
+        builder.AddComponentParameter(19, nameof(Icon.Name), IconSet.Current.Get(IconPurpose.Play));
         builder.CloseComponent();
         builder.CloseElement();
         builder.CloseElement();
@@ -263,7 +263,7 @@ public partial class VideoEmbed : StyledComponentBase
         else
         {
             builder.OpenComponent<Icon>(44);
-            builder.AddComponentParameter(45, nameof(Icon.Role), (IconRole?)IconRole.Clock);
+            builder.AddComponentParameter(45, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.Clock);
             builder.CloseComponent();
             builder.OpenElement(46, "span");
             builder.AddContent(47, EmptyText ?? IzzyText.From(Services).VideoComingSoon);

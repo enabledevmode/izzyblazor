@@ -47,8 +47,8 @@
     /// <summary>The button's icon while the actions show. Defaults to a close icon.</summary>
     [Parameter] public IconData? OpenIcon { get; set; }
 
-    /// <summary>Where the button sits. Defaults to <see cref="FloatPosition.BottomEnd"/>.</summary>
-    [Parameter] public FloatPosition Position { get; set; } = FloatPosition.BottomEnd;
+    /// <summary>Where the button sits. Defaults to <see cref="FloatPlacement.BottomEnd"/>.</summary>
+    [Parameter] public FloatPlacement Placement { get; set; } = FloatPlacement.BottomEnd;
 
     /// <summary>The button's color. Defaults to <see cref="Accent.Primary"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Primary;
@@ -84,15 +84,15 @@
     private bool Horizontal => Direction is SpeedDialDirection.Start or SpeedDialDirection.End;
 
     // The actions line up with the button's edge on its side of the window; labels reach inward.
-    private bool AtStart => Position == FloatPosition.BottomStart;
+    private bool AtStart => Placement == FloatPlacement.BottomStart;
 
     /// <inheritdoc />
     private protected override Placement PanelPlacement => Direction switch
     {
-        SpeedDialDirection.Down => AtStart ? Placement.BottomStart : Placement.BottomEnd,
-        SpeedDialDirection.Start => Placement.Start,
-        SpeedDialDirection.End => Placement.End,
-        _ => AtStart ? Placement.TopStart : Placement.TopEnd,
+        SpeedDialDirection.Down => AtStart ? IzzyBlazor.Placement.BottomStart : IzzyBlazor.Placement.BottomEnd,
+        SpeedDialDirection.Start => IzzyBlazor.Placement.Start,
+        SpeedDialDirection.End => IzzyBlazor.Placement.End,
+        _ => AtStart ? IzzyBlazor.Placement.TopStart : IzzyBlazor.Placement.TopEnd,
     };
 
     /// <inheritdoc />
@@ -100,8 +100,8 @@
     {
         <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/speed-dial.css"]" />
         <button @attributes="TriggerAttributes" type="button" class="@ButtonClass" style="@ButtonStyle" aria-label="@Label">
-            <Icon Name="@(Icon ?? IconSet.Current.Get(IconRole.Plus))" Class="ib-sd-closed" />
-            <Icon Name="@(OpenIcon ?? IconSet.Current.Get(IconRole.Close))" Class="ib-sd-open" />
+            <Icon Name="@(Icon ?? IconSet.Current.Get(IconPurpose.Plus))" Class="ib-sd-closed" />
+            <Icon Name="@(OpenIcon ?? IconSet.Current.Get(IconPurpose.Close))" Class="ib-sd-open" />
         </button>
         <ib-speed-dial hidden data-ib-hover="@(OpenOn == SpeedDialTrigger.Hover ? "" : null)"></ib-speed-dial>
     };
@@ -110,8 +110,8 @@
         .Add($"ib-btn ib-btn-{Accent.Role ?? "primary"} ib-btn-solid ib-btn-lg ib-btn-icon-only ib-btn-float ib-sd-button")
         .Add("ib-btn-round", Round)
         .Add("ib-sd-spin", SpinIcon)
-        .Add("ib-btn-float-start", Position == FloatPosition.BottomStart)
-        .Add("ib-btn-float-center", Position == FloatPosition.BottomCenter)
+        .Add("ib-btn-float-start", Placement == FloatPlacement.BottomStart)
+        .Add("ib-btn-float-center", Placement == FloatPlacement.BottomCenter)
         .Build()!;
 
     private string? ButtonStyle

@@ -2,7 +2,7 @@
    last item scrolls into view, on interactive pages. *@
 <ListView Items="_messages" ItemKey="m => m.Id" ItemText="m => m.Title" ItemDescription="m => m.When"
           ItemIcon="_ => Lucide.MessageSquare" PageSize="8" Paging="DataPaging.LoadOnScroll" QueryPrefix="feed-"
-          MaxHeight="18.Rem" Bordered AriaLabel="Messages" MaxWidth="28.Rem" Grow />
+          MaxHeight="18.Rem" Bordered Label="Messages" MaxWidth="28.Rem" Grow />
 
 @code {
     private readonly Message[] _messages = Enumerable.Range(1, 40)

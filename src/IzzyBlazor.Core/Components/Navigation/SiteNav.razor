@@ -54,8 +54,8 @@
             class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-site-nav-toggle"
             popovertarget="@PanelId"
             aria-label="@(MenuLabel ?? TextDefaults.Menu)">
-        <Icon Role="IconRole.Menu" Class="ib-site-nav-open-icon" />
-        <Icon Role="IconRole.Close" Class="ib-site-nav-close-icon" />
+        <Icon Purpose="IconPurpose.Menu" Class="ib-site-nav-open-icon" />
+        <Icon Purpose="IconPurpose.Close" Class="ib-site-nav-close-icon" />
     </button>
     <div id="@PanelId" popover class="ib-site-nav-panel">
         @* The dimmed area below the sheet: a tap there closes the panel (with no script too) instead of

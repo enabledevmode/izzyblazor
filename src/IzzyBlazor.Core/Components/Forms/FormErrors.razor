@@ -24,7 +24,7 @@
          aria-describedby="@DescriptionId"
          autofocus="@(!RendererInfo.IsInteractive)"
          data-ib-autofocus="@(RendererInfo.IsInteractive ? null : "")">
-        <p class="ib-form-errors-title" id="@_titleId"><Icon Role="IconRole.Error" /> @(Title ?? TextDefaults.FormErrorsTitle)</p>
+        <p class="ib-form-errors-title" id="@_titleId"><Icon Purpose="IconPurpose.Error" /> @(Title ?? TextDefaults.FormErrorsTitle)</p>
         <ul>
             @foreach (var message in Messages)
             {

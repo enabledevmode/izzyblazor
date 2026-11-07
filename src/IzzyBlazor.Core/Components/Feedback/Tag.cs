@@ -180,7 +180,7 @@ public class Tag : LayoutItemBase
     private static void RemoveIcon(RenderTreeBuilder builder)
     {
         builder.OpenComponent<Icon>(50);
-        builder.AddComponentParameter(51, nameof(Icon.Role), (IconRole?)IconRole.Close);
+        builder.AddComponentParameter(51, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.Close);
         builder.CloseComponent();
     }
 }

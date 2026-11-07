@@ -25,14 +25,14 @@
             @if (PreviousHref is not null)
             {
                 <a class="ib-prev-next-link ib-prev-next-prev" href="@PreviousHref" rel="prev">
-                    <span class="ib-prev-next-dir"><Icon Role="IconRole.ChevronLeft" Class="ib-prev-next-icon" />@(PreviousText ?? TextDefaults.Previous)</span>
+                    <span class="ib-prev-next-dir"><Icon Purpose="IconPurpose.ChevronLeft" Class="ib-prev-next-icon" />@(PreviousText ?? TextDefaults.Previous)</span>
                     <span class="ib-prev-next-title">@PreviousTitle</span>
                 </a>
             }
             @if (NextHref is not null)
             {
                 <a class="ib-prev-next-link ib-prev-next-next" href="@NextHref" rel="next">
-                    <span class="ib-prev-next-dir">@(NextText ?? TextDefaults.Next)<Icon Role="IconRole.ChevronRight" Class="ib-prev-next-icon" /></span>
+                    <span class="ib-prev-next-dir">@(NextText ?? TextDefaults.Next)<Icon Purpose="IconPurpose.ChevronRight" Class="ib-prev-next-icon" /></span>
                     <span class="ib-prev-next-title">@NextTitle</span>
                 </a>
             }

@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;Icon Name="Lucide.House" /&gt;
 /// &lt;Icon Name="Lucide.TriangleAlert" Size="IconSize.Lg" Color="Color.WarningText" Label="Warning" /&gt;
-/// &lt;Icon Role="IconRole.Close" /&gt;
+/// &lt;Icon Purpose="IconPurpose.Close" /&gt;
 /// </code>
 /// </example>
 /// <accessibility>
@@ -29,11 +29,11 @@ namespace IzzyBlazor;
 [ModeSupport]
 public class Icon : IzzyComponentBase
 {
-    /// <summary>The icon to show, such as <c>Lucide.House</c>. Set this or <see cref="Role"/>.</summary>
+    /// <summary>The icon to show, such as <c>Lucide.House</c>. Set this or <see cref="Purpose"/>.</summary>
     [Parameter] public IconData? Name { get; set; }
 
-    /// <summary>A purpose such as <see cref="IconRole.Close"/>, resolved through the current icon set. Set this or <see cref="Name"/>.</summary>
-    [Parameter] public IconRole? Role { get; set; }
+    /// <summary>A purpose such as <see cref="IconPurpose.Close"/>, resolved through the current icon set. Set this or <see cref="Name"/>.</summary>
+    [Parameter] public IconPurpose? Purpose { get; set; }
 
     /// <summary>Size relative to the surrounding text. Defaults to the text size (1em).</summary>
     [Parameter] public IconSize Size { get; set; } = IconSize.Md;
@@ -58,12 +58,12 @@ public class Icon : IzzyComponentBase
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _icon = (Name, Role) switch
+        _icon = (Name, Purpose) switch
         {
             ({ } name, null) => name,
             (null, { } role) => IconSet.Current.Get(role),
-            (null, null) => throw new InvalidOperationException("Icon needs either Name or Role."),
-            _ => throw new InvalidOperationException("Icon takes Name or Role, not both."),
+            (null, null) => throw new InvalidOperationException("Icon needs either Name or Purpose."),
+            _ => throw new InvalidOperationException("Icon takes Name or Purpose, not both."),
         };
     }
 

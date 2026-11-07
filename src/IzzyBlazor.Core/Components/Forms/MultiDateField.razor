@@ -100,7 +100,7 @@
                                 aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")"
                                 aria-describedby="@DescribedBy">
                             <span class="ib-date-text" data-ib-empty="@(Dates.Count == 0 ? "" : null)">@(Dates.Count == 0 ? ChooseText : Summary)</span>
-                            <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                            <Icon Purpose="IconPurpose.Calendar" Class="ib-field-icon" />
                         </button>
                     </Trigger>
                     <ChildContent>

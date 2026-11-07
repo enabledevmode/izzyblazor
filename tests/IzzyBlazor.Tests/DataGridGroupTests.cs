@@ -110,13 +110,13 @@ public class DataGridGroupTests : BunitContext
     [Fact]
     public void All_open_with_exceptions()
     {
-        var cut = Grid("/sales?group=region", p => p.Add(x => x.GroupsOpen, true));
+        var cut = Grid("/sales?group=region", p => p.Add(x => x.ExpandAllGroups, true));
         Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North", "r:4", "g:West", "r:5", "r:6" }, Rows(cut));
 
         var shut = cut.FindAll("tr.ib-grid-group")[1].QuerySelector("a")!.GetAttribute("href")!;
         Assert.Contains("shut=North", shut);
 
-        cut = Grid(shut, p => p.Add(x => x.GroupsOpen, true));
+        cut = Grid(shut, p => p.Add(x => x.ExpandAllGroups, true));
         Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North", "g:West", "r:5", "r:6" }, Rows(cut));
     }
 
@@ -315,7 +315,7 @@ public class DataGridGroupTests : BunitContext
         var cut = Grid("/sales", p => p
             .Add(x => x.Group, "region")
             .Add(x => x.GroupChanged, _ => { })
-            .Add(x => x.GroupsOpen, true));
+            .Add(x => x.ExpandAllGroups, true));
         Assert.Contains("r:1", Rows(cut));
 
         cut.Find("thead button.ib-grid-expand").Click();
@@ -356,7 +356,7 @@ public class DataGridGroupTests : BunitContext
         var cut = Grid("/sales", p => p
             .Add(x => x.Group, "region")
             .Add(x => x.GroupChanged, _ => { })
-            .Add(x => x.OpenGroupsChanged, v => open = v));
+            .Add(x => x.ExpandedGroupsChanged, v => open = v));
 
         cut.Find("tr.ib-grid-group button").Click();
 

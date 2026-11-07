@@ -69,8 +69,8 @@ else
         @if (Copyable)
         {
             <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@(CopyLabel ?? TextDefaults.CopyCode)" title="@(CopyLabel ?? TextDefaults.CopyCode)" data-copied-label="@(CopiedLabel ?? TextDefaults.Copied)">
-                <Icon Role="IconRole.Copy" Class="ib-code-copy-icon" />
-                <Icon Role="IconRole.Copied" Class="ib-code-copied-icon" />
+                <Icon Purpose="IconPurpose.Copy" Class="ib-code-copy-icon" />
+                <Icon Purpose="IconPurpose.Copied" Class="ib-code-copied-icon" />
             </button>
         }
     };

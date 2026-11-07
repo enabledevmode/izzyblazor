@@ -6,7 +6,7 @@
 <Stack Gap="5" Grow>
     <Stepper Current="@(Gift ? 3 : 2)" Label="Order progress">
         <Step Label="Cart" />
-        <Step Label="Gift message" Hidden="!Gift" />
+        <Step Label="Gift message" Visible="Gift" />
         <Step Label="Shipping" />
         <Step Label="Payment" />
     </Stepper>

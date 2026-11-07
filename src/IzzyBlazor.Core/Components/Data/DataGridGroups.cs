@@ -54,17 +54,17 @@ public partial class DataGrid<TItem>
     public EventCallback<string?> GroupChanged { get; set; }
 
     /// <summary>Whether groups start open. They start closed by default, which is what a page of groups is for.</summary>
-    [Parameter] public bool GroupsOpen { get; set; }
+    [Parameter] public bool ExpandAllGroups { get; set; }
 
     /// <summary>
     /// Which groups are open, each by its values joined with <c>/</c>, escaped, such as <c>"Shipped/Acme"</c>; <c>"*"</c>
     /// is all of them, and <c>"!Shipped"</c> an exception to that. Binding it on an interactive page keeps it in the component.
     /// </summary>
-    [Parameter] public IReadOnlyList<string>? OpenGroups { get; set; }
+    [Parameter] public IReadOnlyList<string>? ExpandedGroups { get; set; }
 
     /// <summary>Raised when a group opens or closes, on interactive pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<string>?> OpenGroupsChanged { get; set; }
+    public EventCallback<IReadOnlyList<string>?> ExpandedGroupsChanged { get; set; }
 
     /// <summary>
     /// The most rows drawn in one open group. Past it, the group says how many it has and links to
@@ -147,7 +147,7 @@ public partial class DataGrid<TItem>
     {
         get
         {
-            var inputs = (UseState, UseState ? null : Navigation.Uri, Columns.Count, (Group, InitialGroup, GroupsOpen, Groupable), (_stateGroupSet, _stateGroup, _stateOpen, OpenGroups), (GroupChanged.HasDelegate, OpenGroupsChanged.HasDelegate));
+            var inputs = (UseState, UseState ? null : Navigation.Uri, Columns.Count, (Group, InitialGroup, ExpandAllGroups, Groupable), (_stateGroupSet, _stateGroup, _stateOpen, ExpandedGroups), (GroupChanged.HasDelegate, ExpandedGroupsChanged.HasDelegate));
             if (_grouping is null || !Equals(_groupingFor, inputs))
             {
                 (_groupingFor, _grouping) = (inputs, ReadGrouping());
@@ -190,7 +190,7 @@ public partial class DataGrid<TItem>
             IReadOnlyList<string> open, shut;
             if (UseState)
             {
-                var list = OpenGroupsChanged.HasDelegate ? OpenGroups ?? [] : _stateOpen ?? OpenGroups ?? [];
+                var list = ExpandedGroupsChanged.HasDelegate ? ExpandedGroups ?? [] : _stateOpen ?? ExpandedGroups ?? [];
                 open = list.Where(p => !p.StartsWith('!')).Take(MaxOpenPaths).ToList();
                 shut = list.Where(p => p.StartsWith('!')).Select(p => p[1..]).Take(MaxOpenPaths).ToList();
             }
@@ -200,7 +200,7 @@ public partial class DataGrid<TItem>
                 shut = query.TryGetValue(ShutKey, out var s) ? s.OfType<string>().Take(MaxOpenPaths).ToList() : [];
             }
 
-            var all = open.Contains("*") || (GroupsOpen && open.Count == 0 && !shut.Contains("*"));
+            var all = open.Contains("*") || (ExpandAllGroups && open.Count == 0 && !shut.Contains("*"));
             return new GroupState(levels, all, open, shut);
         }
     }
@@ -405,9 +405,9 @@ public partial class DataGrid<TItem>
         var state = Grouping;
         var list = state.AllOpen
             ? (Toggled(state.Shut, node.Path, node.Open) ?? []).Select(p => "!" + p).Prepend("*").ToList()
-            : (Toggled(state.Open, node.Path, !node.Open) ?? []).Concat(GroupsOpen ? ["!*"] : []).ToList();
+            : (Toggled(state.Open, node.Path, !node.Open) ?? []).Concat(ExpandAllGroups ? ["!*"] : []).ToList();
         _stateOpen = list;
-        await OpenGroupsChanged.InvokeAsync(list);
+        await ExpandedGroupsChanged.InvokeAsync(list);
         await ReloadIfStaleAsync();
     }
 
@@ -419,9 +419,9 @@ public partial class DataGrid<TItem>
     {
         (_stateGroup, _stateGroupSet, _stateOpen, _statePage, _stateCursor) = (text, true, [], 1, null);
         await GroupChanged.InvokeAsync(text);
-        if (OpenGroupsChanged.HasDelegate)
+        if (ExpandedGroupsChanged.HasDelegate)
         {
-            await OpenGroupsChanged.InvokeAsync([]);
+            await ExpandedGroupsChanged.InvokeAsync([]);
         }
 
         await PageChanged.InvokeAsync(1);
@@ -451,7 +451,7 @@ public partial class DataGrid<TItem>
             (_stateGroup, _stateGroupSet) = (group.ToString(), true);
         }
 
-        if (!OpenGroupsChanged.HasDelegate && (query.ContainsKey(OpenKey) || query.ContainsKey(ShutKey)))
+        if (!ExpandedGroupsChanged.HasDelegate && (query.ContainsKey(OpenKey) || query.ContainsKey(ShutKey)))
         {
             var open = query.TryGetValue(OpenKey, out var o) ? o.OfType<string>() : [];
             var shut = query.TryGetValue(ShutKey, out var s) ? s.OfType<string>().Select(p => "!" + p) : [];
@@ -484,17 +484,17 @@ public partial class DataGrid<TItem>
 
     private string AllOpenHref(bool open) => LinkWith(new Dictionary<string, object?>
     {
-        [OpenKey] = open && !GroupsOpen ? "*" : null,
-        [ShutKey] = !open && GroupsOpen ? "*" : null,
+        [OpenKey] = open && !ExpandAllGroups ? "*" : null,
+        [ShutKey] = !open && ExpandAllGroups ? "*" : null,
     });
 
     private async Task SetAllOpenAsync(bool open)
     {
-        IReadOnlyList<string> list = open ? ["*"] : GroupsOpen ? ["!*"] : [];
+        IReadOnlyList<string> list = open ? ["*"] : ExpandAllGroups ? ["!*"] : [];
         _stateOpen = list;
-        await OpenGroupsChanged.InvokeAsync(list);
+        await ExpandedGroupsChanged.InvokeAsync(list);
         await ReloadIfStaleAsync();
     }
 
-    private bool GroupBound => GroupChanged.HasDelegate || OpenGroupsChanged.HasDelegate;
+    private bool GroupBound => GroupChanged.HasDelegate || ExpandedGroupsChanged.HasDelegate;
 }

@@ -20,7 +20,7 @@
     by RememberKey, or by a key made from the title and text, so a new message shows again. Where the server can't read
     cookies (WebAssembly), the element hides a remembered banner as soon as it connects.
 
-    Position="BarPosition.Sticky" keeps it at the top while the page scrolls. In an AppShell the
+    Sticky keeps it at the top while the page scrolls. In an AppShell the
     sticky header and sidebar then sit below it: CSS assumes one line (37px), and <ib-banner>
     measures it when the message wraps.
 
@@ -71,12 +71,12 @@
                    data-ib-remember-for="@(_key is not null && Remember == DismissMemory.Session ? "session" : null)"
                    @onchange="OnDismiss" />
             <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
-                <Icon Role="IconRole.Close" />
+                <Icon Purpose="IconPurpose.Close" />
             </label>
             @* With the script: a real button in place of the checkbox (CSS swaps them where the browser runs script). *@
             <ib-dismiss>
                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-label="@(DismissLabel ?? TextDefaults.Dismiss)" title="@(DismissLabel ?? TextDefaults.Dismiss)">
-                    <Icon Role="IconRole.Close" />
+                    <Icon Purpose="IconPurpose.Close" />
                 </button>
             </ib-dismiss>
         }
@@ -98,11 +98,10 @@
     [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Soft;
 
     /// <summary>
-    /// Whether it stays at the top of the window while the page scrolls
-    /// (<see cref="BarPosition.Sticky"/>) or scrolls away with it. Defaults to
-    /// <see cref="BarPosition.Static"/>.
+    /// Keeps it at the top of the window while the page scrolls, instead of scrolling away with
+    /// it. Off by default.
     /// </summary>
-    [Parameter] public BarPosition Position { get; set; } = BarPosition.Static;
+    [Parameter] public bool Sticky { get; set; }
 
     /// <summary>A short bold lead-in before the message, on the same line.</summary>
     [Parameter] public string? Title { get; set; }
@@ -294,7 +293,7 @@
 
         classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
-        classes.Add("ib-banner-sticky", Position == BarPosition.Sticky);
+        classes.Add("ib-banner-sticky", Sticky);
         if (Accent is { } accent)
         {
             ColorOverride.Apply(styles, accent.ToColor());

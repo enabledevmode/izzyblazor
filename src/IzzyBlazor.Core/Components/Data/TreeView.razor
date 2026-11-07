@@ -14,7 +14,7 @@
     Each item with children opens and closes, with no script. A branch starts open when it holds
     the current item (ItemCurrent), a selected one, or ItemExpanded says so, so a page arrives with
     its own place in the tree showing. With script, the branches a person opened stay open as they
-    move between pages; on an interactive page @bind-Expanded follows them.
+    move between pages; on an interactive page @bind-ExpandedItems follows them.
 
     With no template, ItemText, ItemDescription and ItemIcon draw an icon, the text and a muted
     second line; ChildContent draws each item instead. ItemHref makes items links. In a tree of
@@ -26,7 +26,7 @@
     interactive page bind them with @bind-Selection:
 
     <TreeView Items="areas" ItemChildren="a => a.Children" ItemKey="a => a.Code" ItemText="a => a.Name"
-              SelectionMode="SelectionMode.Multiple" @bind-Selection="granted" AriaLabel="Permissions" />
+              SelectionMode="SelectionMode.Multiple" @bind-Selection="granted" Label="Permissions" />
 
     Checking a parent checks its branch, and a parent with some of its branch checked shows a mixed
     box (Cascade="false" makes each box its own). The selection holds every checked key, parents
@@ -40,7 +40,7 @@
     Accessibility:
     - It's nested lists (`ul` with `role="list"`), so screen readers say how many items each level
       has and how deep an item is. Put a tree of links for moving around the site in a `nav`, or
-      name it with `AriaLabel`.
+      name it with `Label`.
     - An item with children opens and closes with a `details` element: its summary is a button
       that says whether it's open. A link with children has a separate button after it, named by
       the item, so Tab reaches the link, then its button.
@@ -49,7 +49,7 @@
       children still open.
     - In a tree of links, Tab goes through the links and buttons in order. Arrow keys don't move
       through it: a list of links is read and reached as one.
-    - With `SelectionMode` and script, it's an ARIA `tree` (give it an `AriaLabel`): one Tab stop,
+    - With `SelectionMode` and script, it's an ARIA `tree` (give it an `Label`): one Tab stop,
       the arrow keys between items, and each item a `treeitem` that says whether it's open and
       whether it's checked (`aria-checked`, "mixed" for a part-checked parent) or selected. With
       JavaScript off it's a list of checkboxes or radio buttons in branches.
@@ -69,7 +69,7 @@
 <ib-tree @attributes="AdditionalAttributes" class="@_class" style="@_style"
          data-ib-select="@(Selects ? (Multiple ? "multiple" : "single") : null)"
          data-ib-cascade="@(Multiple && Cascade ? "" : null)"
-         data-ib-label="@(Selects ? AriaLabel : null)"
+         data-ib-label="@(Selects ? Label : null)"
          data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
          data-ib-tree-key="@(FetchesChildren ? TreeKey : null)"
          data-ib-no-matches="@(Searchable ? TextDefaults.NoMatches : null)"
@@ -110,7 +110,7 @@
             </div>
             <div class="ib-visually-hidden" role="status" data-ib-tree-found></div>
         }
-        <ul class="ib-tree-list" role="list" aria-label="@AriaLabel">
+        <ul class="ib-tree-list" role="list" aria-label="@Label">
             @foreach (var node in _roots)
             {
                 @NodeItem(node)
@@ -191,14 +191,14 @@
 
     /// <summary>
     /// The keys of the items whose children are open, on an interactive page; bind it with
-    /// <c>@bind-Expanded</c>. Branches that hold the current or a selected item, or that
+    /// <c>@bind-ExpandedItems</c>. Branches that hold the current or a selected item, or that
     /// <see cref="ItemExpanded"/> opens, start open too.
     /// </summary>
-    [Parameter] public IReadOnlyCollection<string>? Expanded { get; set; }
+    [Parameter] public IReadOnlyCollection<string>? ExpandedItems { get; set; }
 
     /// <summary>Raised when a branch opens or closes, on an interactive page, with the open keys.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyCollection<string>> ExpandedChanged { get; set; }
+    public EventCallback<IReadOnlyCollection<string>> ExpandedItemsChanged { get; set; }
 
     /// <summary>
     /// <see cref="SelectionMode.Multiple"/> gives each item a checkbox; <see cref="SelectionMode.Single"/>
@@ -232,7 +232,7 @@
     [Parameter] public bool Cascade { get; set; } = true;
 
     /// <summary>Names the tree for screen readers, when nothing around it does. A tree to choose from needs one.</summary>
-    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>Shown when there are no items. Defaults to "No items" (<see cref="IzzyText.NoItems"/>).</summary>
     [Parameter] public string? EmptyText { get; set; }
@@ -296,9 +296,9 @@
         (_class, _style) = BuildRootAttributes();
         _selection = Selection ?? IzzyBlazor.Selection.None;
         _selected = [.. _selection.Keys ?? []];
-        if (Expanded is not null)
+        if (ExpandedItems is not null)
         {
-            _expanded = [.. Expanded];
+            _expanded = [.. ExpandedItems];
         }
 
         _roots = Build(Items, 1, false);
@@ -404,7 +404,7 @@
                 @Row(node, href, disabled, toggle: false)
                 <details class="ib-tree-branch" open="@node.Open">
                     <summary class="ib-tree-toggle">
-                        <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
+                        <Icon Purpose="IconPurpose.ChevronRight" Class="ib-tree-chevron" />
                         <span class="ib-visually-hidden">@LabelOf(item)</span>
                     </summary>
                     @Group(node)
@@ -479,7 +479,7 @@
         else if (toggle)
         {
             <summary class="@css" aria-current="@(node.Current ? "true" : null)">
-                <Icon Role="IconRole.ChevronRight" Class="ib-tree-chevron" />
+                <Icon Purpose="IconPurpose.ChevronRight" Class="ib-tree-chevron" />
                 @Content(node.Item)
             </summary>
         }
@@ -562,7 +562,7 @@
             return;
         }
 
-        await ExpandedChanged.InvokeAsync([.. _expanded]);
+        await ExpandedItemsChanged.InvokeAsync([.. _expanded]);
     }
 
     // Interactive: a branch's children, the first time it opens, or again from Retry.

@@ -35,7 +35,7 @@
 <TextBlock>On a <Code>Canvas</Code> page, put content in <Anchor Href="docs/components/card">Cards</Anchor>. A filled area placed directly on the tinted background looks like a hole in the page. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
 
 <Heading Level="2">Bars and colors</Heading>
-<TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part. To set whether the header or footer stays in view as the page scrolls, set <Code>Position</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code>. The header stays in view by default; the footer doesn't.</TextBlock>
+<TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part. The header stays in view as the page scrolls and the footer scrolls away; set <Code>Sticky</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code> to change either. The header stays in view by default; the footer doesn't.</TextBlock>
 <Code Block Language="razor">@Bars</Code>
 <TextBlock>Text on a <Code>Bg</Code> uses the color's matching text color when it has one. Everything inside a part with a <Code>ColorScheme</Code> follows that scheme, its menus included. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
 
@@ -97,7 +97,7 @@
             <AppHeader Bg="Color.FillSubtle">...</AppHeader>
             <AppSidebar ColorScheme="ColorScheme.Dark">...</AppSidebar>
             <AppMain>@Body</AppMain>
-            <AppFooter Position="BarPosition.Sticky">...</AppFooter>
+            <AppFooter Sticky>...</AppFooter>
         </AppShell>
         """;
 

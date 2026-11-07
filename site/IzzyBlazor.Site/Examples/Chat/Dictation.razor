@@ -6,7 +6,7 @@
 @implements IAsyncDisposable
 
 <Chat Label="Trip notes" FormName="trip-notes" OnSend="Send" @bind-Draft="_draft" Height="Length.Rem(20)"
-      Appearance="ChatAppearance.Conversation" Placeholder="Dictate or type a note">
+      Variant="ChatVariant.Conversation" Placeholder="Dictate or type a note">
     <ComposerActions>
         @if (_supported)
         {

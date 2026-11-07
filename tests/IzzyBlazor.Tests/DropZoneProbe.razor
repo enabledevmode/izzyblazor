@@ -1,9 +1,9 @@
 @* A board of three zones for DropZoneGroupTests: Doing holds two at most, Done takes only reviewed tasks. *@
 <DropZoneGroup TItem="BoardTask" Items="Tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" Name="@Name" Order="Order"
                ItemsChanged="Changed" OnMove="Moved">
-    <ListView Zone="todo" AriaLabel="To do" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
-    <ListView Zone="doing" AriaLabel="Doing" MaxItems="2" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
-    <ListView Zone="done" AriaLabel="Done" Accepts="t => t.Reviewed" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+    <ListView Zone="todo" Label="To do" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+    <ListView Zone="doing" Label="Doing" MaxItems="2" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+    <ListView Zone="done" Label="Done" Accepts="t => t.Reviewed" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
 </DropZoneGroup>
 
 @code {

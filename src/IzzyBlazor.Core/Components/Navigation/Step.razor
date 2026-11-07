@@ -3,16 +3,16 @@
 @implements IDisposable
 
 @* One step in a Stepper: a numbered marker (a check once done), its label and an optional description.
-   For a step that only sometimes applies, set Hidden rather than wrapping it in @if: Blazor renders
+   For a step that only sometimes applies, set Visible to false rather than wrapping it in @if: Blazor renders
    a step added later after the others, which would number it out of order. *@
 
-@if (!Hidden)
+@if (Visible)
 {
     <li @attributes="AdditionalAttributes" class="@StepClass" style="@_style" aria-current="@(State == StepState.Current ? "step" : null)">
         <span class="ib-step-marker" aria-hidden="true">
             @if (State == StepState.Complete)
             {
-                <Icon Role="IconRole.Check" />
+                <Icon Purpose="IconPurpose.Check" />
             }
             else if (Icon is { } icon)
             {
@@ -51,11 +51,11 @@
     [Parameter] public string? Href { get; set; }
 
     /// <summary>
-    /// Leaves the step out (not rendered, not numbered) while keeping its place, for a step that
-    /// only sometimes applies. Use this rather than <c>@if</c>, which would number a step that
-    /// appears later out of order.
+    /// Whether the step is shown. False leaves it out (not rendered, not numbered) while keeping
+    /// its place, for a step that only sometimes applies. Use this rather than <c>@if</c>, which
+    /// would number a step that appears later out of order. Defaults to true.
     /// </summary>
-    [Parameter] public bool Hidden { get; set; }
+    [Parameter] public bool Visible { get; set; } = true;
 
     /// <summary>An icon in the marker in place of the number (until the step is done).</summary>
     [Parameter] public IconData? Icon { get; set; }

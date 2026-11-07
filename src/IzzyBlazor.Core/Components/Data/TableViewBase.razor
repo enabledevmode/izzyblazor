@@ -876,7 +876,7 @@
         {
             <button type="button" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" @onclick="e => OnSortClickAsync(column, MultiSort && e.ShiftKey)">
                 <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@TitleText(column)</span>
-                <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+                <Icon Purpose="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)
             </button>
         }
@@ -884,7 +884,7 @@
         {
             <a href="@SortHref(column)" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" data-ib-sort-add="@(MultiSort ? AddSortHref(column) : null)">
                 <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@TitleText(column)</span>
-                <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+                <Icon Purpose="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)
             </a>
         }
@@ -979,7 +979,7 @@
             <Trigger>
                 @* With a row of filters the row is the way in, so the panel stays for it and the button goes. *@
                 <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
-                    <Icon Role="IconRole.Filter" />
+                    <Icon Purpose="IconPurpose.Filter" />
                 </button>
             </Trigger>
             <ChildContent>
@@ -1781,17 +1781,17 @@
                     var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.FullName);
                     if (UseState)
                     {
-                        <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Role="IconRole.Close" /></button>
+                        <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Purpose="IconPurpose.Close" /></button>
                     }
                     else
                     {
-                        <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" data-ib-filter-clear aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
+                        <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" data-ib-filter-clear aria-label="@clearName" title="@clearName"><Icon Purpose="IconPurpose.Close" /></a>
                     }
                 }
             </div>
             @* Named apart from the slot: with what's set, else the operator a value would take, which the row doesn't show. *@
             @{ var name = current.IsFilter ? $"{label}: {FilterSummary(column, current, days: true)}" : list ? label : $"{label}: {ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults)}"; }
-            <button type="button" class="ib-table-filter-button" popovertarget="@panel" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name"><Icon Role="IconRole.Filter" /></button>
+            <button type="button" class="ib-table-filter-button" popovertarget="@panel" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name"><Icon Purpose="IconPurpose.Filter" /></button>
         </div>
     };
 
@@ -1884,7 +1884,7 @@
                         @OperatorOptions(column, ops)
                     </select>
                 }
-                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+                <Icon Purpose="IconPurpose.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
             </div>
         </div>
     };
@@ -2327,8 +2327,8 @@
 
     private string? AriaSort(ColumnBase<TItem> column) => !column.CanSort ? null : SortIndex(column) != 0 ? "none" : _sorts[0].Descending ? "descending" : "ascending";
 
-    private IconRole SortIcon(ColumnBase<TItem> column) =>
-        SortIndex(column) is var index && index < 0 ? IconRole.Sortable : _sorts[index].Descending ? IconRole.SortDescending : IconRole.SortAscending;
+    private IconPurpose SortIcon(ColumnBase<TItem> column) =>
+        SortIndex(column) is var index && index < 0 ? IconPurpose.Sortable : _sorts[index].Descending ? IconPurpose.SortDescending : IconPurpose.SortAscending;
 
     /// <summary>A class for a column's cells beyond their alignment and its own.</summary>
     internal virtual string? ColumnClass(ColumnBase<TItem> column) => null;

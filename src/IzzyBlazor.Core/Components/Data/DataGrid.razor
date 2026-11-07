@@ -984,7 +984,7 @@
 
     RenderFragment IDataGridToolbar.AddBar(bool showText) => __builder =>
     {
-        var plus = IconSet.Current.Get(IconRole.Plus);
+        var plus = IconSet.Current.Get(IconPurpose.Plus);
         @if (UseState)
         {
             <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); _stateAdding = true; })" data-ib-edit />
@@ -1253,11 +1253,11 @@
                 <Trigger>
                     @if (showText)
                     {
-                        <Button StartIcon="IconSet.Current.Get(IconRole.Filter)" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-active="@(active ? "" : null)" @attributes="context">@TextDefaults.FilterBuilderLabel</Button>
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-active="@(active ? "" : null)" @attributes="context">@TextDefaults.FilterBuilderLabel</Button>
                     }
                     else
                     {
-                        <Button StartIcon="IconSet.Current.Get(IconRole.Filter)" IconOnly Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="@TextDefaults.FilterBuilderLabel" title="@TextDefaults.FilterBuilderLabel" data-active="@(active ? "" : null)" @attributes="context" />
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" IconOnly Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="@TextDefaults.FilterBuilderLabel" title="@TextDefaults.FilterBuilderLabel" data-active="@(active ? "" : null)" @attributes="context" />
                     }
                 </Trigger>
                 <ChildContent>
@@ -1388,14 +1388,14 @@
                     @if (UseState)
                     {
                         <button type="button" class="ib-grid-group-toggle" aria-expanded="@(node.Open ? "true" : "false")" @onclick="() => ToggleGroupAsync(node)">
-                            <Icon Role="IconRole.ChevronRight" />
+                            <Icon Purpose="IconPurpose.ChevronRight" />
                             @GroupLabel(node, value)
                         </button>
                     }
                     else
                     {
                         <a class="ib-grid-group-toggle" href="@ToggleHref(node)" aria-expanded="@(node.Open ? "true" : "false")">
-                            <Icon Role="IconRole.ChevronRight" />
+                            <Icon Purpose="IconPurpose.ChevronRight" />
                             @GroupLabel(node, value)
                         </a>
                     }
@@ -1516,11 +1516,11 @@
             <th scope="col" class="@LeadClass" style="@LeadStyle" colspan="@levels">
                 @if (UseState)
                 {
-                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetAllOpenAsync(!all)"><Icon Role="IconRole.ChevronRight" /></button>
+                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetAllOpenAsync(!all)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
                 }
                 else
                 {
-                    <a class="ib-grid-expand" href="@AllOpenHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
+                    <a class="ib-grid-expand" href="@AllOpenHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
                 }
             </th>
         }
@@ -1536,11 +1536,11 @@
                 }
                 else if (UseState)
                 {
-                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetDetailsAsync(AllDetails(!all, DetailsOpen))"><Icon Role="IconRole.ChevronRight" /></button>
+                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetDetailsAsync(AllDetails(!all, ExpandAllDetails))"><Icon Purpose="IconPurpose.ChevronRight" /></button>
                 }
                 else
                 {
-                    <a class="ib-grid-expand" href="@AllDetailsHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
+                    <a class="ib-grid-expand" href="@AllDetailsHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
                 }
             </th>
         }
@@ -1578,11 +1578,11 @@
                 var css = HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx";
                 if (UseState)
                 {
-                    <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Role="IconRole.ChevronRight" /></button>
+                    <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
                 }
                 else
                 {
-                    <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Role="IconRole.ChevronRight" /></a>
+                    <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
                 }
             }
         </td>
@@ -1947,7 +1947,7 @@
         <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
                 <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
-                    <Icon Role="IconRole.MoreVertical" />
+                    <Icon Purpose="IconPurpose.MoreVertical" />
                 </button>
             </Trigger>
             <ChildContent>
@@ -2113,7 +2113,7 @@
             <Menu Class="ib-col-menu" data-ib-user-controlled>
                 <Trigger>
                     <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
-                        <Icon Role="IconRole.MoreVertical" />
+                        <Icon Purpose="IconPurpose.MoreVertical" />
                     </button>
                 </Trigger>
                 <ChildContent>
@@ -2178,7 +2178,7 @@
                     @* With only buttons that fold, the ⋮ shows once they're in it. *@
                     <Menu>
                         <Trigger Context="wire">
-                            <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
+                            <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreVertical)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
                                         Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
                         </Trigger>
                         <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
@@ -2241,11 +2241,11 @@
                 <Trigger>
                     @if (showText)
                     {
-                        <Button StartIcon="IconSet.Current.Get(IconRole.Columns)" @attributes="context">@TextDefaults.ColumnPicker</Button>
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Columns)" @attributes="context">@TextDefaults.ColumnPicker</Button>
                     }
                     else
                     {
-                        <IconButton Icon="IconSet.Current.Get(IconRole.Columns)" Label="@TextDefaults.ColumnPicker" @attributes="context" />
+                        <IconButton Icon="IconSet.Current.Get(IconPurpose.Columns)" Label="@TextDefaults.ColumnPicker" @attributes="context" />
                     }
                 </Trigger>
                 <ChildContent>
@@ -2380,11 +2380,11 @@
         }
 
         var label = ((IDataGridToolbar)this).ExportLabel;
-        var icon = IconSet.Current.Get(IconRole.Export);
+        var icon = IconSet.Current.Get(IconPurpose.Export);
         if (ExportHasMenu)
         {
             // Both inside one button, not a split button: one click only ever opens the menu.
-            var chevron = IconSet.Current.Get(IconRole.ChevronDown);
+            var chevron = IconSet.Current.Get(IconPurpose.ChevronDown);
             <Menu>
                 <Trigger>
                     @if (showText)

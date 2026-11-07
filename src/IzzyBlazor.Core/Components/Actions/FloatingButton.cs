@@ -31,8 +31,8 @@ public class FloatingButton : IzzyComponentBase
     /// <summary>Shows <see cref="Label"/> beside the icon, for a main action an icon alone wouldn't name.</summary>
     [Parameter] public bool ShowLabel { get; set; }
 
-    /// <summary>Where it sits. Defaults to <see cref="FloatPosition.BottomEnd"/>.</summary>
-    [Parameter] public FloatPosition Position { get; set; } = FloatPosition.BottomEnd;
+    /// <summary>Where it sits. Defaults to <see cref="FloatPlacement.BottomEnd"/>.</summary>
+    [Parameter] public FloatPlacement Placement { get; set; } = FloatPlacement.BottomEnd;
 
     /// <summary>Makes it round (a pill with <see cref="ShowLabel"/>). Defaults to a rounded square.</summary>
     [Parameter] public bool Round { get; set; }
@@ -68,7 +68,7 @@ public class FloatingButton : IzzyComponentBase
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
-    private FloatSpot _spot = new(FloatPosition.BottomEnd);
+    private FloatSpot _spot = new(FloatPlacement.BottomEnd);
 
     // Every parameter of the buttons it renders, which an unmatched attribute of the same name would set.
     private static readonly HashSet<string> ButtonParameters = new(
@@ -91,9 +91,9 @@ public class FloatingButton : IzzyComponentBase
             throw new InvalidOperationException($"FloatingButton doesn't take {refused}.");
         }
 
-        if (_spot.Position != Position)
+        if (_spot.Position != Placement)
         {
-            _spot = new FloatSpot(Position);
+            _spot = new FloatSpot(Placement);
         }
     }
 
@@ -169,4 +169,4 @@ public class FloatingButton : IzzyComponentBase
 }
 
 /// <summary>Where the <see cref="FloatingButton"/> around a button puts it.</summary>
-internal sealed record FloatSpot(FloatPosition Position);
+internal sealed record FloatSpot(FloatPlacement Position);

@@ -47,8 +47,8 @@
                 aria-label="@TextDefaults.StartRotation"
                 data-ib-start-label="@TextDefaults.StartRotation"
                 data-ib-stop-label="@TextDefaults.StopRotation">
-            <Icon Role="IconRole.Play" Class="ib-carousel-play" />
-            <Icon Role="IconRole.Pause" Class="ib-carousel-pause" />
+            <Icon Purpose="IconPurpose.Play" Class="ib-carousel-play" />
+            <Icon Purpose="IconPurpose.Pause" Class="ib-carousel-pause" />
         </button>
     }
     @if (Arrows)
@@ -56,11 +56,11 @@
         <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-prev"
                 aria-label="@TextDefaults.PreviousSlide" aria-controls="@TrackId"
                 aria-disabled="@(_startIndex == 0 && !Loop ? "true" : null)">
-            <Icon Role="IconRole.ChevronLeft" />
+            <Icon Purpose="IconPurpose.ChevronLeft" />
         </button>
         <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-carousel-next"
                 aria-label="@TextDefaults.NextSlide" aria-controls="@TrackId">
-            <Icon Role="IconRole.ChevronRight" />
+            <Icon Purpose="IconPurpose.ChevronRight" />
         </button>
     }
     @* Dots after the slides, so they render once every slide has registered. *@

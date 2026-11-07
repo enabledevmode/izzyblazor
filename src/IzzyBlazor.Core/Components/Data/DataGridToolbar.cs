@@ -168,9 +168,9 @@ public sealed class DataGridSearch : DataGridToolbarItem
 public sealed class DataGridFilterBuilder : DataGridToolbarItem
 {
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
-    [Parameter] public bool? ShowText { get; set; }
+    [Parameter] public bool? ShowLabel { get; set; }
 
-    private bool Text => ShowText ?? Grid.ToolbarLabels;
+    private bool Text => ShowLabel ?? Grid.ToolbarLabels;
 
     private protected override bool On => Grid.HasFilterBuilder;
 
@@ -190,9 +190,9 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
     public DataGridColumnPicker() => Position = ToolbarPosition.End;
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
-    [Parameter] public bool? ShowText { get; set; }
+    [Parameter] public bool? ShowLabel { get; set; }
 
-    private bool Text => ShowText ?? Grid.ToolbarLabels;
+    private bool Text => ShowLabel ?? Grid.ToolbarLabels;
 
     private protected override bool On => Grid.HasColumnPicker;
 
@@ -212,9 +212,9 @@ public sealed class DataGridAdd : DataGridToolbarItem
     public DataGridAdd() => Position = ToolbarPosition.End;
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
-    [Parameter] public bool? ShowText { get; set; }
+    [Parameter] public bool? ShowLabel { get; set; }
 
-    private bool Text => ShowText ?? Grid.ToolbarLabels;
+    private bool Text => ShowLabel ?? Grid.ToolbarLabels;
 
     private protected override bool On => Grid.HasAdd;
 
@@ -241,9 +241,9 @@ public sealed class DataGridExport : DataGridToolbarItem
     [Parameter] public ToolbarOverflow Overflow { get; set; }
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
-    [Parameter] public bool? ShowText { get; set; }
+    [Parameter] public bool? ShowLabel { get; set; }
 
-    private bool Text => ShowText ?? Grid.ToolbarLabels;
+    private bool Text => ShowLabel ?? Grid.ToolbarLabels;
 
     private protected override bool On => Grid.HasExport;
 

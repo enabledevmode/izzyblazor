@@ -5,7 +5,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
  *   - The panel (the default): the swatch opens a ColorPanel in a popover. The panel's hidden
  *     field holds the value and posts (the native input, the no-script picker, stops posting);
  *     each change shows on the swatch and in the hex box, and a hex typed there goes to the panel.
- *   - NativePicker: the native color input holds the value (it posts and Blazor binds it); the
+ *   - UseNative: the native color input holds the value (it posts and Blazor binds it); the
  *     hex box and the swatches under the field write into it and raise its input and change
  *     events, so binding sees them as a pick.
  * CSS shows the script's parts from the first paint, so the field doesn't change when this

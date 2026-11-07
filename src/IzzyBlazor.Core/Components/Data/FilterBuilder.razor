@@ -42,7 +42,7 @@
                 @* A group's add stays last among its rows. *@
                 <div class="ib-fb-add" data-ib-fb-add>
                     <ButtonGroup Label="@TextDefaults.FilterAddRule" Accent="Accent.Neutral" Variant="ButtonVariant.Soft" Size="ControlSize.Sm">
-                        <IconButton Icon="IconSet.Current.Get(IconRole.Plus)" Label="@TextDefaults.FilterAddRule" data-ib-fb-add-rule />
+                        <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@TextDefaults.FilterAddRule" data-ib-fb-add-rule />
                         <IconButton Icon="Lucide.ListPlus" Label="@TextDefaults.FilterAddGroup" data-ib-fb-add-group />
                     </ButtonGroup>
                 </div>
@@ -152,7 +152,7 @@
                 <select class="ib-field-input ib-field-select" aria-label="@name" @attributes="@(new Dictionary<string, object> { [attribute] = "" })">
                     @options
                 </select>
-                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+                <Icon Purpose="IconPurpose.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
             </div>
         </div>
     };
@@ -169,7 +169,7 @@
 
     private RenderFragment RemoveButton => __builder =>
     {
-        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only" data-ib-fb-remove aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterRemove, TextDefaults.FilterGroupLabel)"><Icon Role="IconRole.Close" /></button>
+        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only" data-ib-fb-remove aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterRemove, TextDefaults.FilterGroupLabel)"><Icon Purpose="IconPurpose.Close" /></button>
     };
 
     private RenderFragment OperatorSelect(DataField<TItem> field) => Select(TextDefaults.FilterOperatorLabel, "data-ib-fb-op", OperatorOptions(field));

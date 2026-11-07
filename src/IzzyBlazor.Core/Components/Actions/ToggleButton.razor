@@ -35,7 +35,7 @@
            aria-describedby="@DescribedBy" />
     @if (Icon is { } icon)
     {
-        @if (OnIcon is { } on)
+        @if (CheckedIcon is { } on)
         {
             @* Both drawn; CSS shows the one for the box's state, so it follows with JavaScript off. *@
             <Icon Name="icon" Class="ib-toggle-off" />
@@ -68,14 +68,14 @@
     /// <summary>The text, such as "Starred". Without it, <see cref="FieldBase{TValue}.Label"/> (or the model property's name) is the text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>An icon before the text, such as <c>Lucide.Mic</c>; while it's off, when <see cref="OnIcon"/> is set.</summary>
+    /// <summary>An icon before the text, such as <c>Lucide.Mic</c>; while it's off, when <see cref="CheckedIcon"/> is set.</summary>
     [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>
     /// The icon while it's on, in place of <see cref="Icon"/>, such as <c>Lucide.MicOff</c> on a mute
     /// toggle. The name stays the same: screen readers hear the state as checked or not.
     /// </summary>
-    [Parameter] public IconData? OnIcon { get; set; }
+    [Parameter] public IconData? CheckedIcon { get; set; }
 
     /// <summary>Shows only the <see cref="Icon"/>; <see cref="FieldBase{TValue}.Label"/> stays as its name for screen readers and its tooltip.</summary>
     [Parameter] public bool IconOnly { get; set; }
@@ -129,9 +129,9 @@
     {
         base.OnParametersSet();
         ToolbarControl.Refuse(this, Toolbar, Group);
-        if (OnIcon is not null && Icon is null)
+        if (CheckedIcon is not null && Icon is null)
         {
-            throw new InvalidOperationException("A ToggleButton's OnIcon replaces its Icon while it's on: set Icon too.");
+            throw new InvalidOperationException("A ToggleButton's CheckedIcon replaces its Icon while it's on: set Icon too.");
         }
 
         if (IconOnly && (Icon is null || string.IsNullOrWhiteSpace(Name)))

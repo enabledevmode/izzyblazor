@@ -3,7 +3,7 @@
    JavaScript off, the button is a link to the same list with one more page. *@
 <ListView Items="_events" ItemKey="e => e.Id" ItemText="e => e.Title" ItemDescription="e => e.When"
           ItemIcon="_ => Lucide.Bell" PageSize="4" Paging="DataPaging.LoadMore" QueryPrefix="events-"
-          MaxHeight="16.Rem" Bordered AriaLabel="Notifications" MaxWidth="28.Rem" Grow />
+          MaxHeight="16.Rem" Bordered Label="Notifications" MaxWidth="28.Rem" Grow />
 
 @code {
     private readonly Event[] _events = Enumerable.Range(1, 11)
