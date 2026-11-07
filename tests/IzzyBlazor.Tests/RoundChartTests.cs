@@ -80,12 +80,12 @@ public class RoundChartTests : BunitContext
         var cut = Render<Stat>(p => p
             .Add(c => c.Label, "Revenue")
             .Add(c => c.Value, "$48,210")
-            .Add(c => c.Spark, [41_000, 44_500, 48_210])
-            .Add(c => c.SparkFormat, "C0"));
+            .Add(c => c.Sparkline, [41_000, 44_500, 48_210])
+            .Add(c => c.SparklineFormat, "C0"));
 
         Assert.Equal("Revenue: from $41,000 to $48,210, low $41,000, high $48,210",
             cut.Find("dd.ib-stat-spark [role=img]").GetAttribute("aria-label"));
-        Assert.Throws<InvalidOperationException>(() => Render<Stat>(p => p.Add(c => c.Spark, [1, 2])));
+        Assert.Throws<InvalidOperationException>(() => Render<Stat>(p => p.Add(c => c.Sparkline, [1, 2])));
     }
 
     [Fact]

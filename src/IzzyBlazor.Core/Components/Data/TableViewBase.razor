@@ -820,10 +820,10 @@
     /// <see cref="FilterBuilder{TItem}"/> on the page writes it, along with the columns' own. Off by
     /// default, as the page may use that name itself.
     /// </summary>
-    [Parameter] public bool FilterFromAddress { get; set; }
+    [Parameter] public bool FilterFromQuery { get; set; }
 
     /// <summary>Whether this view reads that filter.</summary>
-    internal virtual bool ReadsFilterText => FilterFromAddress;
+    internal virtual bool ReadsFilterText => FilterFromQuery;
 
     /// <summary>The fields a FilterBuilder on this view builds from: its columns.</summary>
     internal IReadOnlyList<DataField<TItem>> BuilderFields => _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList();

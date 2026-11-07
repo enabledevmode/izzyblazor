@@ -39,7 +39,7 @@
     }
     <div @attributes="AdditionalAttributes"
          id="@ElementId"
-         popover="@(Mode == PopoverMode.Manual ? "manual" : "auto")"
+         popover="@(AutoClose ? "auto" : "manual")"
          role="dialog"
          aria-labelledby="@(Title is not null ? TitleId : TriggerId)"
          class="@_class"
@@ -101,11 +101,15 @@
     /// <summary>A heading at the top, which also names the popover for screen readers.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Shows a close button at the top. Always shown in <see cref="PopoverMode.Manual"/> unless set to false.</summary>
+    /// <summary>Shows a close button at the top. Shown by default when <see cref="AutoClose"/> is false.</summary>
     [Parameter] public bool? ShowCloseButton { get; set; }
 
-    /// <summary>How it closes. Defaults to <see cref="PopoverMode.Auto"/>: Escape, a click outside, or another popover opening.</summary>
-    [Parameter] public PopoverMode Mode { get; set; } = PopoverMode.Auto;
+    /// <summary>
+    /// Closes the popover on Escape, a click outside it, or another popover opening. On by
+    /// default. False keeps it open while the user works elsewhere on the page, until its trigger
+    /// or its close button closes it.
+    /// </summary>
+    [Parameter] public bool AutoClose { get; set; } = true;
 
     /// <summary>Where it opens. Defaults to <see cref="Placement.BottomStart"/>.</summary>
     [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
@@ -129,7 +133,7 @@
 
     private string TitleId => $"{ElementId}-title";
 
-    private bool ShowClose => ShowCloseButton ?? Mode == PopoverMode.Manual;
+    private bool ShowClose => ShowCloseButton ?? !AutoClose;
 
     /// <inheritdoc />
     protected override string IdPrefix => "ib-popover";
