@@ -2281,7 +2281,7 @@
       ]
     },
     {
-      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "keywords": ["meter", "dial", "speedometer", "radial progress"],
+      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "parts": ["GaugeBand"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
       "features": [
         { "feature": "A 240° dial with the value in the middle and the ends under it" },
         { "feature": "Bands along the dial that color the fill and name the value's range" },
