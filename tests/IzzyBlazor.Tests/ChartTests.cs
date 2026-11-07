@@ -253,6 +253,27 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Trends_fit_the_values_and_take_their_series_color_without_shifting_the_others()
+    {
+        // A linear trend through points on a line is that line, missing values and all; a
+        // parabola fits a parabola exactly; a moving average starts when its window is full.
+        double?[] x = [0, 1, 2, 3, 4];
+        Assert.Equal([1, 3, 5, 7, 9], ChartTrends.Fit(x, [1, 3, null, 7, 9], 1).Select(v => Math.Round(v!.Value, 9)));
+        Assert.Equal([0, 1, 4, 9, 16], ChartTrends.Fit(x, [0, 1, 4, 9, 16], 2).Select(v => Math.Round(v!.Value, 9)));
+        Assert.Equal([null, null, 2, 3, 4], ChartTrends.MovingAverage([1, 2, 3, 4, 5], 3));
+
+        var series = ChartTrends.Add(
+        [
+            new ChartSeriesData("Revenue", ChartType.Bar, [1, 2, 3]) { Trend = ChartTrend.Linear },
+            new ChartSeriesData("Costs", ChartType.Bar, [1, 1, 1]),
+        ], ["a", "b", "c"], new IzzyText());
+        Assert.Equal(["Revenue", "Revenue trend", "Costs"], series.Select(s => s.Name));
+        var model = ChartLayout.Build(new ChartInput(["a", "b", "c"], series) { Culture = CultureInfo.InvariantCulture });
+        Assert.Equal([1, 1, 2], model.Series.Select(s => s.Slot));
+        Assert.Equal(1, model.Series[1].Dash);
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();

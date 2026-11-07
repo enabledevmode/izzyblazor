@@ -1,0 +1,15 @@
+@* Daily site visits, which dip every weekend, with a 7-day moving average. *@
+<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Title="Site visits, last 60 days">
+    <ChartSeries Value="d => d.Visits" Name="Visits" Markers="false" Trend="ChartTrend.MovingAverage" TrendPeriod="7" />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, int Visits);
+
+    private readonly Day[] _days = Enumerable.Range(0, 60).Select(i =>
+    {
+        var date = new DateOnly(2026, 9, 8).AddDays(i);
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+        return new Day(date, 2_400 + i * 18 + (int)(160 * Math.Sin(i / 5.0)) - (weekend ? 900 : 0));
+    }).ToArray();
+}
