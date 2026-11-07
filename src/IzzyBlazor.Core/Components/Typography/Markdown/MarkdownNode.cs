@@ -40,6 +40,9 @@ internal sealed class MdNode(MdType type)
     // A leaf block's raw text, before its inlines are parsed.
     public StringBuilder Content { get; set; } = new();
 
+    // Where the last line added to Content starts.
+    public int LastLineStart { get; set; }
+
     public string Literal { get; set; } = "";
     public string Info { get; set; } = "";
     public int Level { get; set; }

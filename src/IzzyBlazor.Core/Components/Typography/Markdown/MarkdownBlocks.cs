@@ -29,6 +29,9 @@ internal sealed partial class MdBlocks
     private bool _blank;
     private bool _partiallyConsumedTab;
     private bool _allClosed = true;
+    private const int MaxColumns = 128;
+    private int _filledCells;
+    private int _cellBudget;
 
     [GeneratedRegex(@"^#{1,6}(?:[ \t]+|$)")]
     private static partial Regex AtxHeadingMarker();
@@ -97,6 +100,7 @@ internal sealed partial class MdBlocks
         _oldTip = _doc;
         _lastMatched = _doc;
         input = input.Replace('\0', (char)0xFFFD);
+        _cellBudget = Math.Max(10_000, input.Length);
         var lines = Lines(input);
         foreach (var line in lines) IncorporateLine(line);
         while (_tip is not null) Finalize(_tip, lines.Count);
@@ -284,8 +288,15 @@ internal sealed partial class MdBlocks
                 return 0;
             case MdType.HtmlBlock:
                 return _blank && block.HtmlBlockType is 6 or 7 ? 1 : 0;
-            case MdType.Paragraph or MdType.Table:
+            case MdType.Paragraph:
                 return _blank ? 1 : 0;
+            case MdType.Table:
+                if (_blank) return 1;
+                // Short rows are filled with empty cells, up to a budget the size of the input:
+                // past it the table ends, so a few bytes can't make megabytes of cells.
+                var missing = block.Align!.Count - SplitRow(_line[_nextNonspace..]).Count;
+                if (missing > 0 && (_filledCells += missing) > _cellBudget) return 1;
+                return 0;
             default:
                 return 0;
         }
@@ -398,9 +409,9 @@ internal sealed partial class MdBlocks
         if (_indented || container.Type != MdType.Paragraph) return 0;
         var delimiter = _line[_nextNonspace..];
         if (ParseDelimiterRow(delimiter) is not { } align) return 0;
-        var content = container.Content.ToString().TrimEnd('\n');
-        var lastBreak = content.LastIndexOf('\n');
-        var header = content[(lastBreak + 1)..];
+        // The paragraph's last line is the header (the whole text isn't copied for every candidate).
+        var lineStart = Math.Min(container.LastLineStart, container.Content.Length);
+        var header = container.Content.ToString(lineStart, container.Content.Length - lineStart).TrimEnd('\n');
         if (!header.Contains('|') && !delimiter.Contains('|')) return 0;
         var cells = SplitRow(header);
         if (cells.Count != align.Count) return 0;
@@ -408,13 +419,13 @@ internal sealed partial class MdBlocks
         CloseUnmatchedBlocks();
         var table = new MdNode(MdType.Table) { StartLine = _lineNumber - 1, Align = align };
         container.InsertAfter(table);
-        if (lastBreak < 0)
+        if (lineStart == 0)
         {
             container.Unlink();
         }
         else
         {
-            container.Content = new StringBuilder(content[..(lastBreak + 1)]);
+            container.Content.Length = lineStart;
             _tip = container;
             Finalize(container, _lineNumber - 2);
         }
@@ -432,7 +443,10 @@ internal sealed partial class MdBlocks
         if (text.StartsWith('|')) text = text[1..];
         if (text.EndsWith('|')) text = text[..^1];
         var align = new List<string?>();
-        foreach (var part in text.Split('|'))
+        var parts = text.Split('|');
+        // A table this wide is no table; wider would let a short input fill huge rows.
+        if (parts.Length > MaxColumns) return null;
+        foreach (var part in parts)
         {
             var cell = part.Trim();
             if (!DelimiterCell().IsMatch(cell)) return null;
@@ -670,6 +684,7 @@ internal sealed partial class MdBlocks
             return;
         }
 
+        tip.LastLineStart = tip.Content.Length;
         if (_partiallyConsumedTab)
         {
             _offset++;
@@ -718,7 +733,7 @@ internal sealed partial class MdBlocks
                 FinalizeCode(block);
                 break;
             case MdType.HtmlBlock:
-                block.Literal = TrailingBlankLines().Replace(block.Content.ToString(), "");
+                block.Literal = TrimTrailingBlankLines(block.Content.ToString());
                 break;
             case MdType.Item:
                 block.EndLine = block.LastChild?.EndLine ?? block.StartLine;
@@ -731,8 +746,20 @@ internal sealed partial class MdBlocks
         _tip = above;
     }
 
-    [GeneratedRegex(@"(\n *)+$")]
-    private static partial Regex TrailingBlankLines();
+    // Line breaks, each followed by spaces only, off the end (a regex for it is quadratic).
+    private static string TrimTrailingBlankLines(string text)
+    {
+        var end = text.Length;
+        while (true)
+        {
+            var i = end;
+            while (i > 0 && text[i - 1] == ' ') i--;
+            if (i == 0 || text[i - 1] != '\n') break;
+            end = i - 1;
+        }
+
+        return text[..end];
+    }
 
     // Definitions at a paragraph's start ([label]: destination "title") go into the map; what
     // follows them is the paragraph's text.
