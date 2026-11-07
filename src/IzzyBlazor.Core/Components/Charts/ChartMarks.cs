@@ -1,17 +1,6 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor;
-
-/// <summary>Which axis a <see cref="ChartReferenceBand"/> runs along.</summary>
-public enum ChartAxis
-{
-    /// <summary>The value axis: a band between two values, across the plot.</summary>
-    Value,
-
-    /// <summary>The argument axis: a band between two arguments (names, numbers or dates).</summary>
-    Argument,
-}
 
 /// <summary>The axis a mark is laid out against, with the second value axis apart.</summary>
 internal enum MarkAxis
@@ -70,12 +59,6 @@ public abstract class ChartMark : ComponentBase, IDisposable
     /// <inheritdoc />
     public void Dispose() => Context?.Unregister(this);
 
-    private protected static double? ToNumber(object? value) => value switch
-    {
-        null => null,
-        IConvertible c when value is not string and not DateTime => Convert.ToDouble(c, CultureInfo.InvariantCulture),
-        _ => throw new ArgumentException($"A value-axis mark takes numbers; got {value.GetType().Name}."),
-    };
 }
 
 /// <summary>
@@ -138,14 +121,26 @@ public sealed class ChartReferenceLine : ChartMark
 }
 
 /// <summary>
-/// A shaded range across a chart, on either axis, labeled in text inside it:
-/// <c>&lt;ChartReferenceBand Axis="ChartAxis.Argument" From="@("Nov")" To="@("Dec")" Label="Holiday season" /&gt;</c>.
+/// A shaded range across a chart, labeled in text inside it: between two values with
+/// <see cref="From"/> and <see cref="To"/>, such as
+/// <c>&lt;ChartReferenceBand From="120_000" To="150_000" Label="Target range" /&gt;</c>, or between
+/// two arguments with <see cref="ArgumentFrom"/> and <see cref="ArgumentTo"/>, such as
+/// <c>&lt;ChartReferenceBand ArgumentFrom="@("Nov")" ArgumentTo="@("Dec")" Label="Holiday season" /&gt;</c>.
 /// Its edges are drawn, so it reads apart from the grid.
 /// </summary>
 public sealed class ChartReferenceBand : ChartMark
 {
-    /// <summary>The axis the band runs along: <see cref="ChartAxis.Value"/>, the default, or <see cref="ChartAxis.Argument"/>.</summary>
-    [Parameter] public ChartAxis Axis { get; set; }
+    /// <summary>Where a band of values starts, on the value axis.</summary>
+    [Parameter] public double? From { get; set; }
+
+    /// <summary>Where a band of values ends.</summary>
+    [Parameter] public double? To { get; set; }
+
+    /// <summary>Where a band of arguments starts: a name, number or date.</summary>
+    [Parameter] public object? ArgumentFrom { get; set; }
+
+    /// <summary>Where a band of arguments ends. On names, the band covers both ends' bands.</summary>
+    [Parameter] public object? ArgumentTo { get; set; }
 
     /// <summary>
     /// The <see cref="ChartValueAxis.Name"/> of the value axis <see cref="From"/> and
@@ -153,37 +148,35 @@ public sealed class ChartReferenceBand : ChartMark
     /// </summary>
     [Parameter] public string? ValueAxis { get; set; }
 
-    /// <summary>Where the band starts: a number on the value axis, or an argument (a name, number or date).</summary>
-    [Parameter, EditorRequired] public object? From { get; set; }
-
-    /// <summary>Where it ends. On names, the band covers both ends' bands.</summary>
-    [Parameter, EditorRequired] public object? To { get; set; }
-
     /// <summary>The band's label, such as "Holiday season".</summary>
     [Parameter] public string? Label { get; set; }
 
+    private bool OnArguments => ArgumentFrom is not null || ArgumentTo is not null;
+
     private protected override void Check()
     {
-        if (From is null || To is null)
+        var values = From is not null || To is not null;
+        if (values == OnArguments)
         {
-            throw new InvalidOperationException("ChartReferenceBand needs From and To.");
+            throw new InvalidOperationException("ChartReferenceBand takes From and To (values) or ArgumentFrom and ArgumentTo (arguments), not both.");
         }
 
-        if (Axis == ChartAxis.Argument && ValueAxis is not null)
+        if (values ? From is null || To is null : ArgumentFrom is null || ArgumentTo is null)
+        {
+            throw new InvalidOperationException(values
+                ? "ChartReferenceBand needs both From and To."
+                : "ChartReferenceBand needs both ArgumentFrom and ArgumentTo.");
+        }
+
+        if (OnArguments && ValueAxis is not null)
         {
             throw new InvalidOperationException("ChartReferenceBand's ValueAxis is for a band of values: a band of arguments crosses every value axis.");
         }
-
-        if (Axis != ChartAxis.Argument)
-        {
-            ToNumber(From);
-            ToNumber(To);
-        }
     }
 
-    internal override ChartMarkInput Read() => Axis != ChartAxis.Argument
-        ? new(ChartMarkKind.Band, MarkAxis.Value, Label) { Value = ToNumber(From), To = ToNumber(To), ValueAxis = ValueAxis }
-        : new(ChartMarkKind.Band, MarkAxis.Argument, Label) { At = From, AtTo = To };
+    internal override ChartMarkInput Read() => OnArguments
+        ? new(ChartMarkKind.Band, MarkAxis.Argument, Label) { At = ArgumentFrom, AtTo = ArgumentTo }
+        : new(ChartMarkKind.Band, MarkAxis.Value, Label) { Value = From, To = To, ValueAxis = ValueAxis };
 }
 
 /// <summary>
