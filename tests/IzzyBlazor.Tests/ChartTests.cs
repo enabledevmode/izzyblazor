@@ -528,7 +528,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
-            .Add(c => c.ValueFormat, "C0")
+            .Add(c => c.ValueFormat, "$#,##0")
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
             .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target"))
             .AddChildContent<ChartAnnotation>(a => a.Add(x => x.Argument, "Feb").Add(x => x.Value, 120).Add(x => x.Text, "Price change")));
