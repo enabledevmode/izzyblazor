@@ -549,7 +549,7 @@ class Chart extends IzzyElement {
    */
   private fit(axis: HTMLElement): void {
     const labels = [...axis.querySelectorAll<HTMLElement>(":scope > .ib-chart-ticks > span")].filter((l) => getComputedStyle(l.parentElement!).display !== "none");
-    // Names wrapped in their bands (ArgumentLabels All) all show.
+    // Names wrapped in their bands (LabelFit Wrap) all show.
     if (labels.length === 0 || axis.classList.contains("ib-chart-wrap")) return;
     const from = (l: HTMLElement) => Number(/ib-chart-from(\d)/.exec(l.className)?.[1] ?? 0);
     const width = axis.clientWidth;
@@ -579,7 +579,7 @@ class Chart extends IzzyElement {
       }
     }
 
-    // Names that turn (ArgumentLabels Rotate) stay flat only when every one fits its band; the
+    // Names that turn (LabelFit Rotate) stay flat only when every one fits its band; the
     // server's sets are for turned names below that. Turned 45°, each needs about a line and a
     // half along the axis.
     const band = width / Math.max(1, Number(this.dataset.ibCount) || labels.length);

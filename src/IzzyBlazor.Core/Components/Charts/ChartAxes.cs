@@ -18,7 +18,7 @@ public abstract class ChartAxisBase : ComponentBase, IDisposable
     /// <summary>A title beside the axis, such as "Revenue (USD)" or "Month".</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Leaves out the axis's labels, for a small chart or one whose values are labeled on the marks. The scale stays.</summary>
+    /// <summary>Leaves out the axis's labels, for a small chart or one whose values are labeled on the marks. The scale stays. Not on a second value axis.</summary>
     [Parameter] public bool HideLabels { get; set; }
 
     /// <inheritdoc />
@@ -64,7 +64,8 @@ public sealed class ChartValueAxis : ChartAxisBase
     /// <summary>
     /// The axis's name, which makes it the second value axis, at the end side: series and
     /// reference marks with this as their <c>ValueAxis</c> are read off it. The first value axis
-    /// has none.
+    /// has none. A second axis has a <see cref="Format"/>, <see cref="Min"/>, <see cref="Max"/> and
+    /// <see cref="ChartAxisBase.Title"/>; its ticks fall on the first axis's grid lines.
     /// </summary>
     [Parameter] public string? Name { get; set; }
 

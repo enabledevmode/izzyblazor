@@ -31,6 +31,7 @@ export interface DrawSeries {
   tr?: boolean; // a trend, drawn toward the text color
   ax?: boolean; // on the second value axis, which keeps the server's range
   col?: string; // the series' own color
+  op?: number; // a bar series' own fill strength
   lm?: number; // value labels: 1 auto, 2 inside, 3 outside
   lt?: (string | null)[]; // each item's label text
   lo?: boolean; // labels show even when they overlap (LabelOverlap.Show)
@@ -43,7 +44,7 @@ export interface DrawData {
   hi: number | null; // ValueMax
   vs: number | null; // ValueStep
   rv?: number[]; // the reference marks' values, which the value axis always takes in
-  lg: boolean; // ValueLog
+  lg: boolean; // a logarithmic value axis
   gl: boolean; // grid lines at the values
   // With a ValueFormatter, the server's axis as drawn, kept as it is: its range, and each tick's
   // place (0 to 1), text, first width it shows at, and whether it's zero.
@@ -410,7 +411,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   }
 
   const attrs = (s: number, kind: string) => {
-    const color = d.s[s].col ? ` style="--ib-chart-color:${esc(d.s[s].col!)}"` : "";
+    const own = (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)};` : "") + (d.s[s].op != null ? `--ib-chart-fill-opacity:${d.s[s].op}` : "");
+    const color = own ? ` style="${own}"` : "";
     return `class="${kind} ib-chart-s${d.s[s].k}"${color} data-ib-series="${s}"`;
   };
 

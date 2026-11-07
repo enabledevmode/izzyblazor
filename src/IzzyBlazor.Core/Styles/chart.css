@@ -62,8 +62,8 @@
   .ib-chart-s9 { --ib-chart-c: var(--ib-color-neutral); }
 
   /* Fills (bars, slices, keys) are a little lighter than the series color: mixed with the
-     surface, 0.85 of the color in light mode and 0.9 in dark. --ib-chart-fill-opacity (a chart's
-     BarOpacity) sets one strength for both. Opaque, so a bar's rounded end and square base can
+     surface, 0.85 of the color in light mode and 0.9 in dark. --ib-chart-fill-opacity (a bar
+     series' Opacity) sets one strength for both. Opaque, so a bar's rounded end and square base can
      overlap without a darker band. A scatter's points (--ib-chart-see) are see-through instead,
      so where they crowd shows darker. */
   :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9) {
@@ -112,7 +112,7 @@
 
   ib-chart[data-ib-horizontal] .ib-chart-frame { padding-block-start: 0; }
 
-  /* An axis left out (HideValueAxis, HideArgumentAxis): its labels take no room, and the script
+  /* An axis left out (an axis's HideLabels): its labels take no room, and the script
      still has its places to draw into. */
   .ib-chart-side.ib-chart-off { visibility: hidden; max-width: 0; }
   .ib-chart-bottom.ib-chart-off { display: none; }
@@ -248,7 +248,7 @@
 
   .ib-chart-key .ib-chart-bubble { fill: var(--ib-chart-see); }
 
-  /* Value labels (ChartSeries Labels), centered on the spot the server (or the script) worked
+  /* Value labels (a series' Labels), centered on the spot the server (or the script) worked
      out, in the text color with a halo of the surface so they read on a bar or a grid line. */
   .ib-chart-dl {
     position: absolute;
@@ -488,7 +488,7 @@
 
   .ib-chart-two-line { height: 2lh; }
 
-  /* Turned 45° (ArgumentLabels Rotate), a name ends at its place: below the first width they fit
+  /* Turned 45° (LabelFit Rotate), a name ends at its place: below the first width they fit
      flat at (ib-chart-rotN, by container queries) or as the script measured (data-ib-turn). */
   .ib-chart-bottom > * > span {
     position: absolute;
@@ -523,7 +523,7 @@
     text-overflow: ellipsis;
   }
 
-  /* Every name, wrapped in its band (ArgumentLabels All). */
+  /* Every name, wrapped in its band (LabelFit Wrap). */
   .ib-chart-wrap {
     display: grid;
     grid-template-columns: repeat(var(--ib-chart-n), minmax(0, 1fr));

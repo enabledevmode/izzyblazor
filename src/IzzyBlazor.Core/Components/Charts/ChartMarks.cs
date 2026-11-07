@@ -198,6 +198,9 @@ public sealed class ChartAnnotation : ChartMark
     /// <summary>The value the note points at.</summary>
     [Parameter, EditorRequired] public double Value { get; set; }
 
+    /// <summary>The <see cref="ChartValueAxis.Name"/> of the value axis <see cref="Value"/> is read on. Defaults to the first.</summary>
+    [Parameter] public string? ValueAxis { get; set; }
+
     /// <summary>The note, a few words. Required.</summary>
     [Parameter, EditorRequired] public string Text { get; set; } = "";
 
@@ -209,7 +212,7 @@ public sealed class ChartAnnotation : ChartMark
         }
     }
 
-    internal override ChartMarkInput Read() => new(ChartMarkKind.Note, MarkAxis.Value, Text) { Value = Value, At = Argument };
+    internal override ChartMarkInput Read() => new(ChartMarkKind.Note, MarkAxis.Value, Text) { Value = Value, At = Argument, ValueAxis = ValueAxis };
 }
 
 internal enum ChartMarkKind { Line, Band, Note }
