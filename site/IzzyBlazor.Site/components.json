@@ -2223,7 +2223,7 @@
       "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows three measures at once: a circle for each item at two, sized by the third.", "keywords": ["bubble chart", "bubble plot"],
       "features": [
         { "feature": "Circles sized by area, on one scale across series" },
-        { "feature": "A size key of reference circles beside the legend" },
+        { "feature": "An optional size key of reference circles" },
         { "feature": "Each bubble named on the chart" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
@@ -2231,8 +2231,8 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-bubble", "title": "Named bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each product's revenue. Circles are sized by area, so revenue twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. A size key beside the chart gives round sizes near the largest and a quarter of it; `SizeFormat` sets how sizes read there, in the tooltip and in Show data. With few bubbles, name each one with `LabelText`, so the reader knows which is which without pointing at it; names that would collide are left out at the widths where they would. Larger bubbles are drawn first, so none hides a smaller one." },
-        { "id": "chart-bubble-world", "title": "Many bubbles, by group, on a log scale", "lead": "The classic bubble chart: each country's income against how long its people live, sized by population and colored by region with `SeriesBy`. Income spans a hundredfold, so `Logarithmic` on `ChartArgumentAxis` puts each step of ten an equal distance apart, and the poorer countries spread out instead of crowding the left edge. With this many bubbles, not every name fits: list the items largest first, and `LabelText` names the biggest, leaving out those that would collide." }
+        { "id": "chart-bubble", "title": "Named bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each product's revenue. Circles are sized by area, so revenue twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. `SizeFormat` sets how sizes read in the tooltip and in Show data. With few bubbles, name each one with `LabelText`, so the reader knows which is which without pointing at it; names that would collide are left out at the widths where they would. Larger bubbles are drawn first, so none hides a smaller one." },
+        { "id": "chart-bubble-world", "title": "Many bubbles, by group, on a log scale", "lead": "The classic bubble chart: each country's income against how long its people live, sized by population and colored by region with `SeriesBy`. Income spans a hundredfold, so `Logarithmic` on `ChartArgumentAxis` puts each step of ten an equal distance apart, and the poorer countries spread out instead of crowding the left edge. With this many bubbles, not every name fits: list the items largest first, and `LabelText` names the biggest, leaving out those that would collide. `ShowSizeKey` adds a key at the far end of the legend row, with reference circles for a round size near the largest and a quarter of it, so a size can be read and not only compared; `SizeFormat` sets how it reads there too." }
       ]
     },
     {

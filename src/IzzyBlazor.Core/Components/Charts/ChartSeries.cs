@@ -132,7 +132,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual string? SizeFormatOf => null;
 
-    private protected virtual bool HideSizeKeyOf => false;
+    private protected virtual bool ShowSizeKeyOf => false;
 
     // A waterfall's: which items are totals, and the colors of rises and falls.
     private protected virtual Func<TItem, bool>? TotalOf => null;
@@ -271,7 +271,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             ConnectGaps = ConnectGapsOf,
             EndLabel = EndLabelOf,
             SizeFormat = SizeFormatOf,
-            HideSizeKey = HideSizeKeyOf,
+            ShowSizeKey = ShowSizeKeyOf,
             Opacity = OpacityOf,
             Hidden = Hidden,
             Labels = Labels == ChartLabels.None && _labelText is not null ? ChartLabels.Auto : Labels,
@@ -428,14 +428,14 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
     private protected override Expression<Func<TItem, object?>>? SizeOf => Size;
 
     /// <summary>
-    /// Leaves out the size key, the reference circles beside the legend that say what a bubble's
-    /// size stands for. Shown by default: without it, sizes compare only with each other.
+    /// Shows a size key: reference circles at the far end of the legend row, for a round size
+    /// near the largest and a quarter of it, so a bubble's size can be read, not only compared.
     /// </summary>
-    [Parameter] public bool HideSizeKey { get; set; }
+    [Parameter] public bool ShowSizeKey { get; set; }
 
     private protected override string? SizeFormatOf => SizeFormat;
 
-    private protected override bool HideSizeKeyOf => HideSizeKey;
+    private protected override bool ShowSizeKeyOf => ShowSizeKey;
 }
 
 /// <summary>
