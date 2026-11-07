@@ -1,7 +1,11 @@
 @* A support thread with a customer, as the agent sees it: everyone's messages in bubbles, yours
    at the end with your team's initials, theirs with their name and initials, the day above each
-   day's first message, and messages in a row grouped. *@
-<Chat Label="Conversation with Dana Whitfield" FormName="support-thread" OnSend="Send"
+   day's first message, and messages in a row grouped. On a static page the thread is kept under
+   an id in the address the form posts to, as an app keeps it under /threads/{id}. *@
+@using System.Collections.Concurrent
+@inject NavigationManager Navigation
+
+<Chat Label="Conversation with Dana Whitfield" FormName="support-thread" FormAction="@_action" OnSend="Send"
       Appearance="ChatAppearance.Conversation" Height="Length.Rem(30)" Placeholder="Reply to Dana">
     @foreach (var message in _messages)
     {
@@ -14,7 +18,20 @@
 @code {
     private sealed record Message(bool Mine, string Text, DateTimeOffset Time);
 
-    private readonly List<Message> _messages = Conversation(DateTimeOffset.Now);
+    // A static page's threads, by id (kept short: this is a demo on a public site).
+    private static readonly ConcurrentDictionary<string, List<Message>> Threads = new();
+
+    [SupplyParameterFromQuery(Name = "thread")] private string? ThreadId { get; set; }
+
+    private List<Message> _messages = [];
+    private string? _action;
+
+    protected override void OnInitialized()
+    {
+        _messages = ThreadId is { } id && Threads.TryGetValue(id, out var kept) ? kept : Conversation(DateTimeOffset.Now);
+        // A static page's form posts to the thread's address: a new id until the first post.
+        if (!RendererInfo.IsInteractive) _action = Navigation.GetUriWithQueryParameter("thread", ThreadId ?? Guid.NewGuid().ToString("N")[..12]);
+    }
 
     // Times from when the page opens: yesterday's messages, and a few minutes ago.
     private static List<Message> Conversation(DateTimeOffset now) =>
@@ -27,6 +44,12 @@
         new(true, "Is there anything else I can help with?", now.AddMinutes(-4)),
     ];
 
-    private void Send(ChatSendArgs message) => _messages.Add(new Message(true, message.Text, DateTimeOffset.Now));
+    private void Send(ChatSendArgs message)
+    {
+        _messages.Add(new Message(true, message.Text, DateTimeOffset.Now));
+        if (RendererInfo.IsInteractive || ThreadId is not { } id) return;
+        if (Threads.Count > 500) Threads.Clear();
+        Threads[id] = _messages.TakeLast(30).ToList();
+    }
 }
 @* /hide *@
