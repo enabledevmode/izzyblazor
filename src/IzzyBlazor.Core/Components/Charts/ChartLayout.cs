@@ -17,6 +17,7 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public bool Hidden { get; init; }
     public ChartLabels Labels { get; init; }
     public string? LabelFormat { get; init; }
+    public ChartLabelOverlap LabelOverlap { get; init; }
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -68,9 +69,11 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
 /// <summary>
 /// A value written beside its bar or point. Its center is <c>AX</c>/<c>AY</c> (0 to 1 of the plot)
 /// moved by <c>DX</c>/<c>DY</c> pixels; it shows from the <c>From</c>th of
-/// <see cref="ChartLayout.Widths"/>. <c>Inside</c> is on the bar.
+/// <see cref="ChartLayout.Widths"/>. <c>Inside</c> is on the bar. <c>Justify</c>, when over 0, is
+/// how far its center keeps from the plot's sides, in pixels: a label above or below a point near
+/// an edge slides in rather than being left out.
 /// </summary>
-internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside);
+internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside, double Justify = 0);
 
 /// <summary>A marker at a point, in percent of the plot.</summary>
 internal sealed record PointMark(double X, double Y, string Title, int Index);
@@ -528,8 +531,10 @@ internal static class ChartLayout
         }
 
         if (candidates.Count == 0) return;
-        var placed = new (double AX, double DX, double AY, double DY, bool Inside)?[Widths.Length, candidates.Count];
-        var shown = Enumerable.Range(0, candidates.Count).ToList();
+        var placed = new (double AX, double DX, double AY, double DY, bool Inside, double Justify)?[Widths.Length, candidates.Count];
+        // Labels that show overlapping or not go first, so the others step around them.
+        bool Forced(int c) => input.Series[candidates[c].S].LabelOverlap == ChartLabelOverlap.Show;
+        var shown = Enumerable.Range(0, candidates.Count).OrderBy(c => Forced(c) ? 0 : 1).ToList();
         for (var k = Widths.Length - 1; k >= 0; k--)
         {
             var plotW = PlotWidth(k, columnPx);
@@ -541,15 +546,19 @@ internal static class ChartLayout
                 foreach (var (ax, dx, ay, dy, bar) in spots)
                 {
                     var (cx, cy) = (ax * plotW + dx, ay * plotH + dy);
+
+                    // Above or below its mark, a label near a side slides in to stay in the plot.
+                    var justify = bar is null && dx == 0 ? w / 2 + LabelPadPx : 0;
+                    if (justify > 0) cx = Math.Clamp(cx, justify, Math.Max(justify, plotW - justify));
                     var box = (L: cx - w / 2 - LabelPadPx, T: cy - LineHeightPx / 2, R: cx + w / 2 + LabelPadPx, B: cy + LineHeightPx / 2);
                     var room = bar is { } b
                         ? box.L >= b.X0 * plotW && box.R <= b.X1 * plotW && box.T >= b.Y0 * plotH - 0.5 && box.B <= b.Y1 * plotH + 0.5
                         : box.L >= 0 && box.R <= plotW && box.T >= 0 && box.B <= plotH;
                     if (!room) continue;
-                    if (boxes.Any(o => box.L < o.R && o.L < box.R && box.T < o.B && o.T < box.B)) break;
+                    if (!Forced(c) && boxes.Any(o => box.L < o.R && o.L < box.R && box.T < o.B && o.T < box.B)) break;
                     boxes.Add(box);
                     keep.Add(c);
-                    placed[k, c] = (ax, dx, ay, dy, bar is not null);
+                    placed[k, c] = (ax, dx, ay, dy, bar is not null, justify);
                     break;
                 }
             }
@@ -561,8 +570,8 @@ internal static class ChartLayout
         {
             var from = Enumerable.Range(0, Widths.Length).FirstOrDefault(k => placed[k, c] is not null, -1);
             if (from < 0 || placed[Widths.Length - 1, c] is null) continue;
-            var (ax, dx, ay, dy, inside) = placed[from, c]!.Value;
-            model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside));
+            var (ax, dx, ay, dy, inside, justify) = placed[from, c]!.Value;
+            model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside, Math.Ceiling(justify)));
         }
     }
 

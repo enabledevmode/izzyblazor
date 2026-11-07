@@ -116,6 +116,19 @@ public enum ChartLabels
     Outside,
 }
 
+/// <summary>What a <see cref="ChartSeries{TItem}"/>'s labels do when they'd overlap other labels.</summary>
+public enum ChartLabelOverlap
+{
+    /// <summary>A label that would overlap one placed before it is left out at the widths where it would.</summary>
+    Hide,
+
+    /// <summary>
+    /// Every label shows, overlapping or not. They're placed before other series' labels, which
+    /// step around them. A label still needs room in the plot (or in its bar, inside).
+    /// </summary>
+    Show,
+}
+
 /// <summary>Which grid lines a <see cref="Chart{TItem}"/> draws across its plot.</summary>
 public enum ChartGridLines
 {

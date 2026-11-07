@@ -215,9 +215,16 @@ public class ChartLayoutTests
 
         var narrow = model.DataLabels.Count(l => l.From == 0);
         var wide = model.DataLabels.Count;
-        Assert.True(narrow < wide && wide < 30, $"{narrow} narrow, {wide} wide");
+        Assert.True(narrow < wide, $"{narrow} narrow, {wide} wide");
         // A label shown narrow is shown at every width (its From is 0), never fewer as it widens.
         Assert.Equal(wide, model.DataLabels.Count(l => l.From <= ChartLayout.Widths.Length - 1));
+
+        var all = ChartLayout.Build(new ChartInput(days,
+            [new ChartSeriesData("Visits", ChartType.Line, [.. days.Select((_, i) => (double?)1_000 + i % 3)]) { Labels = ChartLabels.Auto, Markers = true, LabelOverlap = ChartLabelOverlap.Show }])
+        { Culture = CultureInfo.InvariantCulture });
+        // LabelOverlap.Show: every label at every width; those at the ends slide in from the edges.
+        Assert.Equal(30, all.DataLabels.Count(l => l.From == 0));
+        Assert.Contains(all.DataLabels, l => l.Justify > 0);
     }
 
     [Fact]

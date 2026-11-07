@@ -74,6 +74,12 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public string? LabelFormat { get; set; }
 
     /// <summary>
+    /// What labels do when they'd overlap others: left out at those widths (<see cref="ChartLabelOverlap.Hide"/>,
+    /// the default), or shown anyway (<see cref="ChartLabelOverlap.Show"/>).
+    /// </summary>
+    [Parameter] public ChartLabelOverlap LabelOverlap { get; set; }
+
+    /// <summary>
     /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
     /// place in the legend, to show it again, and in the data table.
     /// </summary>
@@ -152,6 +158,7 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             Hidden = Hidden,
             Labels = Labels,
             LabelFormat = LabelFormat,
+            LabelOverlap = LabelOverlap,
         };
 
     /// <inheritdoc />
