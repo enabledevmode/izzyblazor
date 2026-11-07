@@ -259,13 +259,14 @@ interface LabelAt {
   w: number;
   spots: Spot[];
   force: boolean; // shows even when it overlaps
+  r?: number; // a bubble's radius: larger bubbles are labeled first
 }
 
 function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => number, color: (s: number) => string, [rx, ry] = [0, 0]): string {
   const boxes: [number, number, number, number][] = [];
   let html = "";
   // Labels that show overlapping or not go first, so the others step around them.
-  const order = [...all.filter((l) => l.force), ...all.filter((l) => !l.force)];
+  const order = [...all].sort((a, b) => Number(b.force) - Number(a.force) || (b.r ?? 0) - (a.r ?? 0));
   for (const { s, text, w, spots, force } of order) {
     for (const [x, cy, bar, slide] of spots) {
       // Above or below its mark, a label near a side slides in to stay in the plot.
@@ -526,15 +527,16 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const [x, y] = d.h ? [p[1], p[0]] : [p[0], 1 - p[1]];
         const radius = data.r?.[p[2]];
         if (data.t === 4) {
-          if (radius) marks += `<circle class="ib-chart-bubble" cx="${pct(x)}" cy="${pct(y)}" r="${radius}" data-ib-i="${p[2]}"/>`;
-          continue;
+          if (!radius) continue;
+          marks += `<circle class="ib-chart-bubble" cx="${pct(x)}" cy="${pct(y)}" r="${radius}" data-ib-i="${p[2]}"/>`;
+        } else {
+          marks += `<use href="#${d.mk}${data.y % 4}" x="${pct(x)}" y="${pct(y)}" data-ib-i="${p[2]}"/>`;
         }
-        marks += `<use href="#${d.mk}${data.y % 4}" x="${pct(x)}" y="${pct(y)}" data-ib-i="${p[2]}"/>`;
         const text = data.lt?.[p[2]];
         if (data.lm && text != null) {
-          const dy = 6 + GAP + LINE / 2;
+          const dy = (data.t === 4 ? radius! : 6) + GAP + LINE / 2;
           const above: Spot = [x * W, y * H - dy, null, true], under: Spot = [x * W, y * H + dy, null, true];
-          labelsAt.push({ s, text, w: widthOf(text), force: !!data.lo, spots: data.lm === 2 ? [under, above] : [above, under] });
+          labelsAt.push({ s, text, w: widthOf(text), force: !!data.lo, r: data.t === 4 ? radius : 0, spots: data.lm === 2 ? [under, above] : [above, under] });
         }
       }
       marks += "</g>";

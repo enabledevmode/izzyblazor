@@ -165,4 +165,11 @@ public sealed class ChartArgumentAxis : ChartAxisBase
 
     /// <summary>Draws grid lines between the arguments (at each tick on a number or date scale). Off by default.</summary>
     [Parameter] public bool GridLines { get; set; }
+
+    /// <summary>
+    /// Draws the arguments on a log scale (base 10), for numbers that span several powers of ten,
+    /// such as income per person, where each step of ten counts alike. Arguments at or under zero
+    /// have no place on it and aren't drawn. Numbers only: a chart of names or dates throws.
+    /// </summary>
+    [Parameter] public bool Logarithmic { get; set; }
 }
