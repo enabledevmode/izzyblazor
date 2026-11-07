@@ -2091,7 +2091,7 @@
     },
     {
       "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines and areas on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart"],
-      "parts": ["ChartSeries"],
+      "parts": ["ChartSeries", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
         { "feature": "Bars, lines and areas, grouped or stacked, upright or across" },
         { "feature": "Fills its container's width, with labels that thin out as it narrows" },
