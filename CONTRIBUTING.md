@@ -226,8 +226,25 @@ An Overview is for using the component; the API page is the reference. Follow Bu
    what it is. Then its example. Details such as ARIA attributes and edge cases go in the
    parameter's doc comment or the Accessibility section. A `components.json` lead follows the
    same order.
+
+   Order the sections by what the reader needs first. Open with what the component is for: its
+   core behavior (opening a dialog, sorting and paging a table), or its look when that's what
+   it's chosen by (Button's variants, Badge, Card). Then its structure and content, its look kept
+   together (variants beside sizes), its states, then state across requests and other settings
+   (binding, the URL, several on a page, in a form, from code). **Labels and localization** is
+   always the last feature section.
 3. **Mode support**, **Accessibility** (from the doc comment, as above), **Parameters**
    (`<ParameterTable Compact />`) and **See also**, after the examples.
+
+A component with topics lists them after Usage. Make a feature a topic, not an Overview section,
+when it needs real explanation or three or more examples that build on each other, has setup of
+its own (a data provider, a service, a model), works differently enough in Static and Interactive
+that a note under the example won't do, or would push what most users need down the page. Keep it
+on the Overview when most users need it and a sentence or two and one example cover it. Order the
+topics by how often they're needed (DataGrid's Editing comes right after Columns), and put what
+every user needs before shipping early (RichTextEditor's Security, after Toolbar). A topic opens
+with its `summary` as the lead, then any setup, the basic case, and variations after what they
+build on. Mode support, Accessibility and Parameters stay on the Overview.
 
 For each section, pick how to show it by what the reader needs:
 

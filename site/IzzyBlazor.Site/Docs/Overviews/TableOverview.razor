@@ -1,5 +1,5 @@
 @* Table's Overview, written by hand after Button's: sorting and paging through the URL, previewed in
-   each mode, then state in the component (Interactive only), row links and the look as code. Filtering,
+   each mode, then the rows and columns, the look, and state in the component (Interactive only). Filtering,
    selection and loading data are topics of their own (Docs/Topics/Table*Topic). From docs/components.md
    (Table) and the dev host's TableDemo. *@
 
@@ -19,19 +19,10 @@
     <ListItem>To add a "Rows per page" menu, set <Code>PageSizeOptions</Code>.</ListItem>
 </List>
 
-<Heading Level="2">Binding the sort, page and filter</Heading>
-<TextBlock>On interactive pages, the table can keep its sort, page and filter in C# instead of the URL. This suits a table in a dialog, or any page whose URL shouldn't change. Bind them with <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code>.</TextBlock>
-<ExampleViewer Example="table-bound" />
-<TextBlock>The table starts from the URL when the URL has values. A new sort or filter returns to page 1. When your own filters change, set the page back to 1 yourself. To set a filter from code, see <Anchor Href="docs/components/table/filtering#filters-in-code">Filters in code</Anchor>.</TextBlock>
-
 <Heading Level="2">Row links</Heading>
 <TextBlock>A row link makes the whole row a link, such as to the item's details page. Set <Code>RowHref</Code> to each row's URL, and <Code>RowLabel</Code> to name the row for screen readers. Links, buttons and checkboxes inside the row still work on their own.</TextBlock>
 <Code Block Language="razor">@RowLinks</Code>
 <TextBlock>To mark the row the page is showing, such as the one whose details are beside the table, set <Code>RowCurrent</Code>. That row looks selected, and screen readers hear it as current. <Anchor Href="docs/components/app-shell/aside#a-panel-for-the-chosen-row">AppShell</Anchor> has an example with the row's details in an aside.</TextBlock>
-
-<Heading Level="2">Several tables on a page</Heading>
-<TextBlock>Two tables on one page would share the same <Code>?sort=</Code> and <Code>?page=</Code> keys. To give each table its own keys in the URL, set <Code>QueryPrefix</Code>. Each table then sorts and pages on its own.</TextBlock>
-<Code Block Language="razor">@Prefix</Code>
 
 <Heading Level="2">Columns at run time</Heading>
 <TextBlock>When the columns are known only at run time, such as rows from a query or a CSV file, add a <Code>DynamicColumn</Code> for each one in a loop. <Code>Field</Code> names the value to read and <Code>Type</Code> its type. <Anchor Href="docs/components/data-grid/columns#columns-at-run-time">DataGrid</Anchor> has an example.</TextBlock>
@@ -40,10 +31,28 @@
 <TextBlock>A column band is a header over several columns, such as a week over its planned and logged hours. Put the columns in a <Code>ColumnBand</Code> with a <Code>Title</Code>; a band can hold bands for another row of headers. Screen readers say the band's name before each of its columns' names, and a stacked row on a phone names it beside each value. Sorting and filtering stay on the columns.</TextBlock>
 <ExampleViewer Example="table-bands" />
 
+<Heading Level="2">Totals row</Heading>
+<TextBlock>A totals row is a footer row under the rows, such as a sum under an amount column. Set <Code>FooterText</Code> on each column that shows a value there. For content other than text, set the column's <Code>Footer</Code> instead.</TextBlock>
+<Code Block Language="razor">@Totals</Code>
+
 <Heading Level="2">Look, scrolling and empty text</Heading>
 <TextBlock>A table's look comes from its size, its lines and its header. Set <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code>, <Code>ShadedHeader</Code> and <Code>Bordered</Code> to change it. Turn <Code>Bordered</Code> off for a table in a card.</TextBlock>
 <TextBlock>To scroll the rows under a sticky header, set <Code>MaxHeight</Code>. To show your own text when there are no rows, set <Code>EmptyText</Code>.</TextBlock>
 <Code Block Language="razor">@Look</Code>
+
+<Heading Level="2">On a phone</Heading>
+<TextBlock>A table too wide for its space scrolls sideways. To show each row as a card of lines instead, set <Code>SmallScreen="TableSmallScreen.Stack"</Code>. Each line shows a column's title beside its value, and the column titles stay in a row above, with their sort and filter buttons.</TextBlock>
+<ExampleViewer Example="table-stacked" />
+<TextBlock>The table stacks when its own width is narrow, not the window's, and it's right on the first paint, with JavaScript off too. By default it stacks below about the width its columns need. To choose that width, set <Code>StackBelow</Code>. To hide columns on a phone instead, use a <Anchor Href="docs/components/data-grid/adaptability">DataGrid</Anchor>.</TextBlock>
+
+<Heading Level="2">Binding the sort, page and filter</Heading>
+<TextBlock>On interactive pages, the table can keep its sort, page and filter in C# instead of the URL. This suits a table in a dialog, or any page whose URL shouldn't change. Bind them with <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code>.</TextBlock>
+<ExampleViewer Example="table-bound" />
+<TextBlock>The table starts from the URL when the URL has values. A new sort or filter returns to page 1. When your own filters change, set the page back to 1 yourself. To set a filter from code, see <Anchor Href="docs/components/table/filtering#filters-in-code">Filters in code</Anchor>.</TextBlock>
+
+<Heading Level="2">Several tables on a page</Heading>
+<TextBlock>Two tables on one page would share the same <Code>?sort=</Code> and <Code>?page=</Code> keys. To give each table its own keys in the URL, set <Code>QueryPrefix</Code>. Each table then sorts and pages on its own.</TextBlock>
+<Code Block Language="razor">@Prefix</Code>
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The table has text and names of its own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
@@ -58,15 +67,6 @@
         </tbody>
     </table>
 </Prose>
-
-<Heading Level="2">Totals row</Heading>
-<TextBlock>A totals row is a footer row under the rows, such as a sum under an amount column. Set <Code>FooterText</Code> on each column that shows a value there. For content other than text, set the column's <Code>Footer</Code> instead.</TextBlock>
-<Code Block Language="razor">@Totals</Code>
-
-<Heading Level="2">On a phone</Heading>
-<TextBlock>A table too wide for its space scrolls sideways. To show each row as a card of lines instead, set <Code>SmallScreen="TableSmallScreen.Stack"</Code>. Each line shows a column's title beside its value, and the column titles stay in a row above, with their sort and filter buttons.</TextBlock>
-<ExampleViewer Example="table-stacked" />
-<TextBlock>The table stacks when its own width is narrow, not the window's, and it's right on the first paint, with JavaScript off too. By default it stacks below about the width its columns need. To choose that width, set <Code>StackBelow</Code>. To hide columns on a phone instead, use a <Anchor Href="docs/components/data-grid/adaptability">DataGrid</Anchor>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
