@@ -140,7 +140,7 @@ public sealed class FilterSearch : FilterFieldBase
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-field-control ib-has-start");
         builder.OpenComponent<Icon>(12);
-        builder.AddComponentParameter(13, nameof(Icon.Role), IconRole.Search);
+        builder.AddComponentParameter(13, nameof(Icon.Purpose), IconPurpose.Search);
         builder.AddComponentParameter(14, nameof(Icon.Class), "ib-field-icon ib-field-icon-start");
         builder.CloseComponent();
         builder.OpenElement(20, "input");
@@ -226,7 +226,7 @@ public sealed class FilterSelect : FilterFieldBase
 
         builder.CloseElement();
         builder.OpenComponent<Icon>(40);
-        builder.AddComponentParameter(41, nameof(Icon.Role), IconRole.ChevronDown);
+        builder.AddComponentParameter(41, nameof(Icon.Purpose), IconPurpose.ChevronDown);
         builder.AddComponentParameter(42, nameof(Icon.Class), "ib-field-icon ib-field-icon-end");
         builder.CloseComponent();
         builder.CloseElement();

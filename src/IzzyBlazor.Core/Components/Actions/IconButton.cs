@@ -152,7 +152,7 @@ public class IconButton : ButtonBase
         builder.AddAttribute(19, "style", style);
 
         builder.OpenComponent<IzzyBlazor.Icon>(20);
-        builder.AddComponentParameter(21, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconRole.Loading) : Icon));
+        builder.AddComponentParameter(21, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconPurpose.Loading) : Icon));
         builder.AddComponentParameter(22, nameof(IzzyBlazor.Icon.Spin), Loading);
         builder.CloseComponent();
         builder.CloseElement();

@@ -88,7 +88,7 @@
             {
                 var anchor = ApiMetadata.Anchor(part.Name);
                 <div class="site-part" id="@anchor">
-                    <Heading Level="3" Outline="false" Anchor="false">
+                    <Heading Level="3" OnThisPage="false" Anchor="false">
                         <code>@part.DisplayName</code>
                     </Heading>
                     <DocHtml Html="@part.Summary" Context="_context" />
@@ -108,7 +108,7 @@
             {
                 <div class="site-type-block" id="@($"type-{ApiMetadata.Anchor(type.Name)}")">
                     <Row Gap="2" Align="Align.Center">
-                        <Heading Level="3" Outline="false" Anchor="false"><code>@type.Name</code></Heading>
+                        <Heading Level="3" OnThisPage="false" Anchor="false"><code>@type.Name</code></Heading>
                         <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm">@type.Kind</Badge>
                     </Row>
                     <DocHtml Html="@type.Summary" Context="_context" />

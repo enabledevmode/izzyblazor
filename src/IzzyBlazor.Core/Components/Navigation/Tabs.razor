@@ -81,11 +81,11 @@
             {
                 if (OnClose.HasDelegate && (IsInteractive || (tab.CloseHref is null && WillBeInteractive)))
                 {
-                    <button @key="(tab, 1)" type="button" class="ib-tab-close" aria-label="@CloseName(tab)" @onclick="() => OnClose.InvokeAsync(key)"><Icon Role="IconRole.Close" /></button>
+                    <button @key="(tab, 1)" type="button" class="ib-tab-close" aria-label="@CloseName(tab)" @onclick="() => OnClose.InvokeAsync(key)"><Icon Purpose="IconPurpose.Close" /></button>
                 }
                 else if (tab.CloseHref is not null)
                 {
-                    <a @key="(tab, 1)" class="ib-tab-close" href="@tab.CloseHref" aria-label="@CloseName(tab)"><Icon Role="IconRole.Close" /></a>
+                    <a @key="(tab, 1)" class="ib-tab-close" href="@tab.CloseHref" aria-label="@CloseName(tab)"><Icon Purpose="IconPurpose.Close" /></a>
                 }
             }
         }
@@ -93,11 +93,11 @@
     @* After the list, outside it: it ends the row and stays in view while the tabs scroll. *@
     @if (OnAdd.HasDelegate && (IsInteractive || (AddHref is null && WillBeInteractive)))
     {
-        <button type="button" class="ib-tab-add" aria-label="@AddName" @onclick="() => OnAdd.InvokeAsync()"><Icon Role="IconRole.Plus" /></button>
+        <button type="button" class="ib-tab-add" aria-label="@AddName" @onclick="() => OnAdd.InvokeAsync()"><Icon Purpose="IconPurpose.Plus" /></button>
     }
     else if (AddHref is not null)
     {
-        <a class="ib-tab-add" href="@AddHref" aria-label="@AddName"><Icon Role="IconRole.Plus" /></a>
+        <a class="ib-tab-add" href="@AddHref" aria-label="@AddName"><Icon Purpose="IconPurpose.Plus" /></a>
     }
     @if (Editable)
     {

@@ -3,7 +3,7 @@
 @inject NavigationManager Navigation
 <TreeView Items="_folders" ItemChildren="f => f.Folders" ItemKey="f => f.Id" ItemText="f => f.Name"
           ItemIcon="_ => Lucide.Folder" ItemHref="@(f => Navigation.GetUriWithQueryParameter("folder", f.Id))"
-          ItemCurrent="@(f => f.Id == (Folder ?? "invoices"))" AriaLabel="Folders" MaxWidth="18.Rem" Grow />
+          ItemCurrent="@(f => f.Id == (Folder ?? "invoices"))" Label="Folders" MaxWidth="18.Rem" Grow />
 
 @code {
     [SupplyParameterFromQuery] private string? Folder { get; set; }

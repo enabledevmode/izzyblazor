@@ -12,14 +12,14 @@ internal sealed class StepperContext(Stepper owner)
     /// <summary>
     /// The step's position, counting from 1, among the visible steps in the order they were first
     /// rendered. (Blazor renders a step inserted later after the existing ones, so conditional
-    /// steps use Step.Hidden rather than @if to keep the order.)
+    /// steps use Step.Visible rather than @if to keep the order.)
     /// </summary>
     public int NumberOf(Step step)
     {
         var number = 0;
         foreach (var other in _steps)
         {
-            if (!other.Hidden)
+            if (other.Visible)
             {
                 number++;
             }

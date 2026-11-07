@@ -7,7 +7,7 @@
 {
     var id = $"{IdPrefix}{group.Group.ToString().ToLowerInvariant()}";
     <section class="site-search-group" aria-labelledby="@id">
-        <Heading Level="HeadingLevel" Size="TextSize.Md" id="@id" Outline="Outline" Anchor="false">@group.Title (@group.Total)</Heading>
+        <Heading Level="HeadingLevel" Size="TextSize.Md" id="@id" OnThisPage="Outline" Anchor="false">@group.Title (@group.Total)</Heading>
         <ul class="site-search-list" role="list">
             @foreach (var entry in group.Entries)
             {

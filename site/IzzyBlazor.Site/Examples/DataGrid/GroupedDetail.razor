@@ -4,7 +4,7 @@
    has none. *@
 <DataGrid Items="Rows.All" PageSize="2" Caption="Orders in groups with details" QueryPrefix="summary-" Grow
           ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"
-          InitialGroup="status" GroupsOpen SingleDetail ItemHasDetail="o => o.Status != Status.Refunded">
+          InitialGroup="status" ExpandAllGroups SingleDetail ItemHasDetail="o => o.Status != Status.Refunded">
     <ChildContent>
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
         <PropertyColumn Property="o => o.Customer" />

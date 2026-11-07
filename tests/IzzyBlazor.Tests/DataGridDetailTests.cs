@@ -93,8 +93,8 @@ public class DataGridDetailTests : BunitContext
         IReadOnlyList<string>? open = ["1"];
         var cut = Grid("/orders", p => p
             .Add(x => x.SingleDetail, true)
-            .Add(x => x.OpenDetails, open)
-            .Add(x => x.OpenDetailsChanged, v => open = v)
+            .Add(x => x.ExpandedDetails, open)
+            .Add(x => x.ExpandedDetailsChanged, v => open = v)
             .Add(x => x.ItemHasDetail, o => o.Status == "Paid"));
 
         Assert.Empty(cut.FindAll("thead .ib-grid-expand"));

@@ -8,7 +8,7 @@
     autofill, screen readers and form posts work as in any text field.
 
     <PinField @bind-Value="Model.Code" Label="Code from the app" />
-    <PinField @bind-Value="Model.Pin" Length="4" Masked AutoComplete="current-password" Label="PIN" />
+    <PinField @bind-Value="Model.Pin" Length="4" Secret AutoComplete="current-password" Label="PIN" />
 
     Spaces and dashes are dropped from the value ("123 456" is "123456"), and letters are
     upper-cased with Letters. The form doesn't validate until the code has Length characters.
@@ -18,7 +18,7 @@
       edit text", not a box per digit; the boxes are hidden from them.
     - `autocomplete="one-time-code"` (`AutoComplete`) lets phones offer a code from a text message
       or email; phones show the number keyboard for digits.
-    - Masked, it's a password input: screen readers don't read the characters, and the browser
+    - Secret, it's a password input: screen readers don't read the characters, and the browser
       doesn't keep them in its form history.
     - The focus ring is drawn on the box the next character goes into.
     - An incomplete code gets "The Code field must be 6 digits." (`IzzyText.PinDigits`, or
@@ -33,7 +33,7 @@
         <input @attributes="ControlAttributes"
                id="@FieldId"
                class="ib-field-input ib-pin-input"
-               type="@(Masked ? "password" : "text")"
+               type="@(Secret ? "password" : "text")"
                name="@NameAttributeValue"
                value="@(EchoesValue ? CurrentValueAsString : null)"
                @onchange="EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString)"
@@ -70,7 +70,7 @@
     /// Hides the characters, for a PIN: it's a password input, so screen readers don't read it, and a
     /// static page doesn't fill it in again after a form post. Phones may not offer a texted code for it.
     /// </summary>
-    [Parameter] public bool Masked { get; set; }
+    [Parameter] public bool Secret { get; set; }
 
     /// <summary>
     /// The browser autofill hint. Defaults to <c>one-time-code</c>, which lets phones offer a code from a
@@ -85,7 +85,7 @@
     protected override bool OwnReadOnly => ReadOnly;
 
     // As PasswordField: a static page doesn't write a masked value back into its HTML.
-    private bool EchoesValue => !Masked || RendererInfo.IsInteractive;
+    private bool EchoesValue => !Secret || RendererInfo.IsInteractive;
 
     // Spaces and dashes anywhere, and Length allowed characters.
     private string Pattern => $"[\\s\\-]*(?:{(Letters ? "[0-9A-Za-z]" : "[0-9]")}[\\s\\-]*){{{Length}}}";
@@ -96,7 +96,7 @@
     private string? BoxText(int i)
     {
         var value = EchoesValue ? CurrentValueAsString : null;
-        return value is null || i >= value.Length ? null : Masked ? "•" : value[i].ToString();
+        return value is null || i >= value.Length ? null : Secret ? "•" : value[i].ToString();
     }
 
     /// <summary>The code without spaces or dashes, upper-cased with <paramref name="letters"/>.</summary>

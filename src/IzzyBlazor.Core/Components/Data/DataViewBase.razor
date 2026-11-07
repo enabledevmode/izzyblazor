@@ -30,7 +30,7 @@
                             <Trigger>
                                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-data-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
                                     @size
-                                    <Icon Role="IconRole.ChevronDown" Class="ib-data-page-size-chevron" />
+                                    <Icon Purpose="IconPurpose.ChevronDown" Class="ib-data-page-size-chevron" />
                                 </button>
                             </Trigger>
                             <ChildContent>
@@ -62,9 +62,9 @@
                 @* By cursor there are no page numbers to show: first, previous and next, drawn as Pagination's. *@
                 <nav class="ib-pagination ib-pagination-sm" aria-label="@pagesLabel">
                     <ul class="ib-pagination-list">
-                        <li>@CursorControl(FirstTarget, TextDefaults.FirstPage, IconRole.FirstPage, "ib-pagination-first")</li>
-                        <li>@CursorControl(PreviousTarget, TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
-                        <li>@CursorControl(NextTarget, TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
+                        <li>@CursorControl(FirstTarget, TextDefaults.FirstPage, IconPurpose.FirstPage, "ib-pagination-first")</li>
+                        <li>@CursorControl(PreviousTarget, TextDefaults.PreviousPage, IconPurpose.ChevronLeft, "ib-pagination-prev")</li>
+                        <li>@CursorControl(NextTarget, TextDefaults.NextPage, IconPurpose.ChevronRight, "ib-pagination-next")</li>
                     </ul>
                 </nav>
             }
@@ -199,12 +199,12 @@
 
     // First, Previous or Next by cursor, drawn as Pagination's: a button when state is in the
     // component (unavailable ones stay focusable), else a link, unavailable without an href.
-    private RenderFragment CursorControl(PageTarget target, string label, IconRole icon, string extra) => __builder =>
+    private RenderFragment CursorControl(PageTarget target, string label, IconPurpose icon, string extra) => __builder =>
     {
         var classes = $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item ib-btn-icon-only {extra}";
         if (UseState)
         {
-            <button type="button" class="@classes" aria-disabled="@(target.Enabled ? null : "true")" aria-label="@label" @onclick="() => target.Enabled ? OnCursorClickAsync(target) : Task.CompletedTask"><Icon Role="icon" /></button>
+            <button type="button" class="@classes" aria-disabled="@(target.Enabled ? null : "true")" aria-label="@label" @onclick="() => target.Enabled ? OnCursorClickAsync(target) : Task.CompletedTask"><Icon Purpose="icon" /></button>
         }
         else
         {
@@ -212,7 +212,7 @@
                but still focused (tabindex -1 keeps it focusable, out of the Tab order). *@
             <a href="@(target.Enabled ? CursorHref(target) : null)" class="@classes" aria-label="@label" aria-disabled="@(target.Enabled ? null : "true")"
                role="@(target.Enabled ? null : "link")" tabindex="@(target.Enabled ? null : "-1")"
-               rel="@(target.Enabled && extra == "ib-pagination-next" ? "next" : target.Enabled && extra == "ib-pagination-prev" ? "prev" : null)"><Icon Role="icon" /></a>
+               rel="@(target.Enabled && extra == "ib-pagination-next" ? "next" : target.Enabled && extra == "ib-pagination-prev" ? "prev" : null)"><Icon Purpose="icon" /></a>
         }
     };
 }

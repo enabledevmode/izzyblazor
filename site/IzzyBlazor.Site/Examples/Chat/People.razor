@@ -6,7 +6,7 @@
 @inject NavigationManager Navigation
 
 <Chat Label="Conversation with Dana Whitfield" FormName="support-thread" FormAction="@_action" OnSend="Send"
-      Appearance="ChatAppearance.Conversation" Height="Length.Rem(30)" Placeholder="Reply to Dana">
+      Variant="ChatVariant.Conversation" Height="Length.Rem(30)" Placeholder="Reply to Dana">
     @foreach (var message in _messages)
     {
         <ChatEntry Mine="message.Mine" Author="@(message.Mine ? null : "Dana Whitfield")" Text="@message.Text"

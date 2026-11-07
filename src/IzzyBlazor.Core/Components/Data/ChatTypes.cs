@@ -21,7 +21,7 @@ public enum ChatStatus
 }
 
 /// <summary>How a <see cref="Chat"/> shows others' entries.</summary>
-public enum ChatAppearance
+public enum ChatVariant
 {
     /// <summary>Others' entries across the log with no bubble, for an assistant's answers with tables and code. Yours are bubbles at the end.</summary>
     Assistant,

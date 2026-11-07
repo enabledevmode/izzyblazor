@@ -23,10 +23,10 @@
    aria-controls="@For"
    aria-label="@(Label ?? TextDefaults.OpenMenu)"
    data-ib-shell-toggle>
-    <Icon Role="IconRole.Menu" />
+    <Icon Purpose="IconPurpose.Menu" />
 </a>
 <label class="@_collapseClass" style="@_style" for="@($"{For}-collapse")" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
-    <Icon Role="IconRole.Menu" />
+    <Icon Purpose="IconPurpose.Menu" />
 </label>
 @* A sidebar that opens as a panel under the header: while it's open this close button takes the
    menu button's place (CSS), so the same spot opens and closes it, with JavaScript off too. *@
@@ -36,7 +36,7 @@
    aria-controls="@For"
    aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)"
    data-ib-shell-close>
-    <Icon Role="IconRole.Close" />
+    <Icon Purpose="IconPurpose.Close" />
 </a>
 
 @code {

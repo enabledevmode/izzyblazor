@@ -234,7 +234,7 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         builder.AddAttribute(6, "aria-label", TextDefaults.Clear);
         builder.AddAttribute(7, "title", TextDefaults.Clear);
         builder.OpenComponent<Icon>(8);
-        builder.AddComponentParameter(9, nameof(Icon.Role), (IconRole?)IconRole.Close);
+        builder.AddComponentParameter(9, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.Close);
         builder.CloseComponent();
         builder.CloseElement();
         builder.CloseElement();

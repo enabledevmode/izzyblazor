@@ -200,7 +200,7 @@ public class Button : ButtonBase
             if (EndIcon is null && !HideExternalIcon)
             {
                 builder.OpenComponent<Icon>(33);
-                builder.AddComponentParameter(34, nameof(Icon.Role), (IconRole?)IconRole.ExternalLink);
+                builder.AddComponentParameter(34, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.ExternalLink);
                 builder.AddComponentParameter(35, nameof(Icon.Size), IconSize.Sm);
                 builder.CloseComponent();
             }

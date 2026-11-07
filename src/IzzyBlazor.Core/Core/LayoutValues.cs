@@ -205,16 +205,6 @@ public enum VerticalPosition
     Bottom,
 }
 
-/// <summary>Whether an AppShell header or footer scrolls with the page.</summary>
-public enum BarPosition
-{
-    /// <summary>Scrolls away with the page.</summary>
-    Static,
-
-    /// <summary>Stays in view: the header at the top, the footer at the bottom.</summary>
-    Sticky,
-}
-
 /// <summary>What scrolls in an <see cref="AppShell"/>.</summary>
 public enum ShellScroll
 {

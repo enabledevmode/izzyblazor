@@ -117,7 +117,7 @@ internal static class CalendarGrid
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-head");
-        builder.AddContent(2, NavButton(view.Size, view.Disabled, view.Text.CalendarPrevious, IconRole.ChevronLeft));
+        builder.AddContent(2, NavButton(view.Size, view.Disabled, view.Text.CalendarPrevious, IconPurpose.ChevronLeft));
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-calendar-month");
         builder.AddAttribute(5, "id", view.MonthId);
@@ -145,7 +145,7 @@ internal static class CalendarGrid
             options.CloseElement();
         }));
         builder.CloseElement();
-        builder.AddContent(11, NavButton(view.Size, view.Disabled, view.Text.CalendarNext, IconRole.ChevronRight));
+        builder.AddContent(11, NavButton(view.Size, view.Disabled, view.Text.CalendarNext, IconPurpose.ChevronRight));
         builder.CloseElement();
         builder.AddContent(12, Days(view, describedBy));
         builder.AddContent(13, Live);
@@ -169,7 +169,7 @@ internal static class CalendarGrid
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-head");
-        builder.AddContent(2, NavButton(view.Size, view.Disabled, previous, IconRole.ChevronLeft));
+        builder.AddContent(2, NavButton(view.Size, view.Disabled, previous, IconPurpose.ChevronLeft));
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-calendar-month");
         builder.AddAttribute(5, "id", view.TitleId);
@@ -192,7 +192,7 @@ internal static class CalendarGrid
             builder.CloseElement();
         }
 
-        builder.AddContent(10, NavButton(view.Size, view.Disabled, next, IconRole.ChevronRight));
+        builder.AddContent(10, NavButton(view.Size, view.Disabled, next, IconPurpose.ChevronRight));
         builder.CloseElement();
 
         builder.OpenElement(11, "table");
@@ -243,8 +243,8 @@ internal static class CalendarGrid
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-months");
         builder.AddAttribute(2, "style", $"--ib-calendar-months:{views.Count}");
-        builder.AddContent(3, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarPrevious, IconRole.ChevronLeft));
-        builder.AddContent(4, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarNext, IconRole.ChevronRight));
+        builder.AddContent(3, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarPrevious, IconPurpose.ChevronLeft));
+        builder.AddContent(4, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarNext, IconPurpose.ChevronRight));
         foreach (var view in views)
         {
             builder.OpenElement(5, "div");
@@ -307,7 +307,7 @@ internal static class CalendarGrid
             builder.CloseElement();
             builder.CloseElement();
             builder.OpenComponent<Icon>(20);
-            builder.AddComponentParameter(21, nameof(Icon.Role), (IconRole?)IconRole.ChevronDown);
+            builder.AddComponentParameter(21, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.ChevronDown);
             builder.AddComponentParameter(22, nameof(Icon.Class), "ib-field-icon ib-field-icon-end");
             builder.CloseComponent();
             builder.CloseElement();
@@ -334,13 +334,13 @@ internal static class CalendarGrid
         builder.AddAttribute(12, "class", "ib-field-steppers");
         builder.AddAttribute(13, "data-ib-steppers", true);
         builder.AddAttribute(14, "hidden", true);
-        builder.AddContent(15, Stepper(text.Increase, "up", IconRole.ChevronUp));
-        builder.AddContent(16, Stepper(text.Decrease, "down", IconRole.ChevronDown));
+        builder.AddContent(15, Stepper(text.Increase, "up", IconPurpose.ChevronUp));
+        builder.AddContent(16, Stepper(text.Decrease, "down", IconPurpose.ChevronDown));
         builder.CloseElement();
         builder.CloseElement();
     };
 
-    private static RenderFragment Stepper(string label, string direction, IconRole icon) => builder =>
+    private static RenderFragment Stepper(string label, string direction, IconPurpose icon) => builder =>
     {
         builder.OpenElement(0, "button");
         builder.AddAttribute(1, "type", "button");
@@ -349,7 +349,7 @@ internal static class CalendarGrid
         builder.AddAttribute(4, "tabindex", "-1");
         builder.AddAttribute(5, "aria-label", label);
         builder.OpenComponent<Icon>(6);
-        builder.AddComponentParameter(7, nameof(Icon.Role), (IconRole?)icon);
+        builder.AddComponentParameter(7, nameof(Icon.Purpose), (IconPurpose?)icon);
         builder.CloseComponent();
         builder.CloseElement();
     };
@@ -449,7 +449,7 @@ internal static class CalendarGrid
         builder.CloseElement();
     };
 
-    private static RenderFragment NavButton(ControlSize size, bool disabled, string label, IconRole icon) => builder =>
+    private static RenderFragment NavButton(ControlSize size, bool disabled, string label, IconPurpose icon) => builder =>
     {
         builder.OpenElement(0, "button");
         builder.AddAttribute(1, "type", "button");
@@ -461,7 +461,7 @@ internal static class CalendarGrid
         builder.AddAttribute(3, "aria-label", label);
         builder.AddAttribute(4, "disabled", disabled);
         builder.OpenComponent<Icon>(5);
-        builder.AddComponentParameter(6, nameof(Icon.Role), (IconRole?)icon);
+        builder.AddComponentParameter(6, nameof(Icon.Purpose), (IconPurpose?)icon);
         builder.CloseComponent();
         builder.CloseElement();
     };
@@ -478,7 +478,7 @@ internal static class CalendarGrid
         builder.AddContent(6, options);
         builder.CloseElement();
         builder.OpenComponent<Icon>(7);
-        builder.AddComponentParameter(8, nameof(Icon.Role), (IconRole?)IconRole.ChevronDown);
+        builder.AddComponentParameter(8, nameof(Icon.Purpose), (IconPurpose?)IconPurpose.ChevronDown);
         builder.AddComponentParameter(9, nameof(Icon.Class), "ib-field-icon ib-field-icon-end");
         builder.CloseComponent();
         builder.CloseElement();

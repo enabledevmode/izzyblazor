@@ -14,7 +14,7 @@
     <Diff OldText="@before" NewText="@after" Language="xml" Title="rules.xml" />
 
     The texts are compared line by line (TextDiff.Compare, Myers's algorithm); give Lines instead
-    for a diff computed elsewhere. Unchanged runs more than Context lines from a change fold into a
+    for a diff computed elsewhere. Unchanged runs more than ContextLines from a change fold into a
     "12 unchanged lines" row that opens in place (a native details); the folded lines are still in
     the page. `Layout Split` puts the old text beside the new, and shows as Unified where the diff is
     narrower than 45rem. With a Language, each text is colored whole as Code colors it, so a
@@ -56,7 +56,7 @@
                     if (block.Kind == DiffBlockKind.Fold)
                     {
                         <details class="ib-diff-fold" @key="block.Old[0]">
-                            <summary class="ib-diff-fold-summary"><Icon Role="IconRole.ChevronRight" Class="ib-diff-fold-chevron" />@string.Format(CultureInfo.CurrentCulture, TextDefaults.DiffUnchanged, block.Old.Count)</summary>
+                            <summary class="ib-diff-fold-summary"><Icon Purpose="IconPurpose.ChevronRight" Class="ib-diff-fold-chevron" />@string.Format(CultureInfo.CurrentCulture, TextDefaults.DiffUnchanged, block.Old.Count)</summary>
                             @RenderBlock(block)
                         </details>
                     }
@@ -106,7 +106,7 @@
     [Parameter] public DiffLayout Layout { get; set; }
 
     /// <summary>The unchanged lines kept on each side of a change when the rest are folded. Defaults to 3.</summary>
-    [Parameter] public int Context { get; set; } = 3;
+    [Parameter] public int ContextLines { get; set; } = 3;
 
     /// <summary>Folds runs of unchanged lines away from the changes into a row that opens them. Defaults to true.</summary>
     [Parameter] public bool Fold { get; set; } = true;
@@ -182,11 +182,11 @@
             throw new InvalidOperationException("Diff takes either Lines or OldText and NewText, not both.");
         }
 
-        ArgumentOutOfRangeException.ThrowIfNegative(Context);
+        ArgumentOutOfRangeException.ThrowIfNegative(ContextLines);
         ArgumentOutOfRangeException.ThrowIfNegative(MaxChanges);
 
         // Compare again only when what the diff is made from changes.
-        var key = (OldText, NewText, Lines, Language, Highlight, Context, Fold, MarkWords, MaxChanges);
+        var key = (OldText, NewText, Lines, Language, Highlight, ContextLines, Fold, MarkWords, MaxChanges);
         if (!Equals(key, _computedFor))
         {
             _computedFor = key;
@@ -230,7 +230,7 @@
             return;
         }
 
-        _blocks = DiffBlocks.Build(_lines, Context, Fold);
+        _blocks = DiffBlocks.Build(_lines, ContextLines, Fold);
         if (Highlight && Language is not null)
         {
             var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;

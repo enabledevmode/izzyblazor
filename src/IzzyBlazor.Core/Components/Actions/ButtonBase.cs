@@ -116,8 +116,8 @@ public abstract class ButtonBase : LayoutItemBase
         classes.Add("ib-btn-full", FullWidth);
         classes.Add("ib-btn-loading", Loading);
         classes.Add("ib-btn-float", Floating);
-        classes.Add("ib-btn-float-start", FloatSpot?.Position == FloatPosition.BottomStart);
-        classes.Add("ib-btn-float-center", FloatSpot?.Position == FloatPosition.BottomCenter);
+        classes.Add("ib-btn-float-start", FloatSpot?.Position == FloatPlacement.BottomStart);
+        classes.Add("ib-btn-float-center", FloatSpot?.Position == FloatPlacement.BottomCenter);
         if (accent.Custom is { } custom)
         {
             ColorOverride.Apply(styles, custom);
@@ -129,7 +129,7 @@ public abstract class ButtonBase : LayoutItemBase
     {
         if (Loading)
         {
-            builder.AddContent(0, IconFragment(IconSet.Current.Get(IconRole.Loading), spin: true));
+            builder.AddContent(0, IconFragment(IconSet.Current.Get(IconPurpose.Loading), spin: true));
             builder.OpenElement(6, "span");
             builder.AddAttribute(7, "class", "ib-visually-hidden");
             builder.AddContent(8, LoadingLabel ?? TextDefaults.Loading);

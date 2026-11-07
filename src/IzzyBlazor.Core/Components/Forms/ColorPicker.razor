@@ -10,7 +10,7 @@
     A swatch and a hex box. The swatch opens a ColorPanel in a popover: swatches, a picker and
     fields, each optional as on ColorPanel. Changes apply at once; Escape or a click outside
     closes it. With no script, a native <input type="color"> stands in for the swatch, opens the
-    browser's picker and posts. NativePicker keeps the browser's picker with script too, with the
+    browser's picker and posts. UseNative keeps the browser's picker with script too, with the
     swatches under the field.
 
     Accessibility:
@@ -21,13 +21,13 @@
       `aria-describedby`, and they set `aria-invalid` when the field is invalid.
     - Read-only, the swatch is disabled and can't be focused; the hex box is shown, with
       JavaScript off and with `ShowHex` false too, and stays focusable and read-only.
-    - With NativePicker, the swatch is the browser's color `input`, and the swatches are buttons
+    - With UseNative, the swatch is the browser's color `input`, and the swatches are buttons
       in a group named "Preset colors", each named by SwatchText or its hex value and pressed
       (`aria-pressed`) while it's the value.
     See also: ColorPanel, TextField.
 *@
 
-@if (!NativePicker)
+@if (!UseNative)
 {
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
 }
@@ -35,7 +35,7 @@
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-color-picker class="@(ShowsReadOnlyHex ? "ib-color-picker ib-color-readonly" : "ib-color-picker")">
         <span class="ib-color-box">
-            @if (NativePicker)
+            @if (UseNative)
             {
                 <input @attributes="ControlAttributes"
                        id="@FieldId"
@@ -80,8 +80,8 @@
             {
                 <input class="ib-color-hex"
                        type="text"
-                       value="@(NativePicker ? Hex : _hex)"
-                       maxlength="@(ShowAlpha && !NativePicker ? 9 : 7)"
+                       value="@(UseNative ? Hex : _hex)"
+                       maxlength="@(ShowAlpha && !UseNative ? 9 : 7)"
                        spellcheck="false"
                        autocomplete="off"
                        disabled="@IsDisabled"
@@ -94,7 +94,7 @@
         @if (IsReadOnly && !IsDisabled && FormName is { Length: > 0 } name)
         {
             @* A disabled input doesn't post; read-only fields do. *@
-            <input type="hidden" name="@name" value="@(NativePicker ? Hex : _hex)" />
+            <input type="hidden" name="@name" value="@(UseNative ? Hex : _hex)" />
         }
         @if (HasPresets)
         {
@@ -127,7 +127,7 @@
 
     /// <summary>
     /// The swatches, as hex strings. In the panel they default to ColorPanel's 21 colors, and an
-    /// empty list shows none. With <see cref="NativePicker"/> they're under the field (with
+    /// empty list shows none. With <see cref="UseNative"/> they're under the field (with
     /// script) and in Chrome's and Edge's picker (with none), and default to none.
     /// </summary>
     [Parameter] public IEnumerable<string>? Swatches { get; set; }
@@ -135,20 +135,20 @@
     /// <summary>
     /// A name for each swatch, such as "Ocean", given its string from <see cref="Swatches"/>. Screen
     /// readers hear it and it's the tooltip. Defaults to the color's name in the panel ("light
-    /// green"), and to the hex value with <see cref="NativePicker"/>.
+    /// green"), and to the hex value with <see cref="UseNative"/>.
     /// </summary>
     [Parameter] public Func<string, string?>? SwatchText { get; set; }
 
     /// <summary>The panel's picker: a saturation and brightness area and a hue slider. Defaults to true.</summary>
     [Parameter] public bool ShowPicker { get; set; } = true;
 
-    /// <summary>An opacity slider and field in the panel; a color that isn't opaque is <c>#rrggbbaa</c>. Not with <see cref="NativePicker"/>.</summary>
+    /// <summary>An opacity slider and field in the panel; a color that isn't opaque is <c>#rrggbbaa</c>. Not with <see cref="UseNative"/>.</summary>
     [Parameter] public bool ShowAlpha { get; set; }
 
     /// <summary>The panel's hex, red, green and blue fields. Defaults to true.</summary>
     [Parameter] public bool ShowFields { get; set; } = true;
 
-    /// <summary>A "no color" swatch first in the panel, which makes the value null. Not with <see cref="NativePicker"/>.</summary>
+    /// <summary>A "no color" swatch first in the panel, which makes the value null. Not with <see cref="UseNative"/>.</summary>
     [Parameter] public bool Clearable { get; set; }
 
     /// <summary>An eyedropper button in the panel, shown only in browsers that have one (Chromium).</summary>
@@ -158,7 +158,7 @@
     /// Opens the browser's own color picker instead of the panel, with the swatches under the
     /// field. It looks different in each browser and has no opacity.
     /// </summary>
-    [Parameter] public bool NativePicker { get; set; }
+    [Parameter] public bool UseNative { get; set; }
 
     /// <summary>
     /// A hex text box beside the swatch (with script), for typing or pasting a value. Defaults to
@@ -184,7 +184,7 @@
     private string? FormName => NameAttributeValue is { Length: > 0 } bound ? bound
         : AdditionalAttributes?.TryGetValue("name", out var n) == true && n is string s && s.Length > 0 ? s : null;
 
-    // Swatches under the field, with NativePicker only.
+    // Swatches under the field, with UseNative only.
     private bool HasPresets => _presets.Length > 0;
 
     private string ListId => FieldId + "-presets";
@@ -205,11 +205,11 @@
     {
         base.OnParametersSet();
         _rgba = ColorPanelMath.Parse(CurrentValue);
-        if (_rgba is { } color && (NativePicker || !ShowAlpha)) _rgba = color with { A = 1 };
+        if (_rgba is { } color && (UseNative || !ShowAlpha)) _rgba = color with { A = 1 };
         _hex = _rgba is { } rgba ? ColorPanelMath.ToHex(rgba) : "";
 
         // Read once: the swatches and their names must come from the same list.
-        var presets = NativePicker ? Swatches?.ToArray() ?? [] : [];
+        var presets = UseNative ? Swatches?.ToArray() ?? [] : [];
         _presets = presets.Select(ColorValues.NormalizeHex).OfType<string>().Distinct().ToArray();
         _presetNames = [];
         if (SwatchText is not null)
@@ -226,7 +226,7 @@
     }
 
     /// <inheritdoc />
-    protected override string? FormatValueAsString(string? value) => NativePicker ? ColorValues.NormalizeHex(value) ?? "#000000" : value;
+    protected override string? FormatValueAsString(string? value) => UseNative ? ColorValues.NormalizeHex(value) ?? "#000000" : value;
 
     /// <inheritdoc />
     protected override bool TryParseValueFromString(string? value, out string? result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
@@ -240,7 +240,7 @@
 
         if (ColorPanelMath.Parse(value) is { } color)
         {
-            result = ColorPanelMath.ToHex(ShowAlpha && !NativePicker ? color : color with { A = 1 });
+            result = ColorPanelMath.ToHex(ShowAlpha && !UseNative ? color : color with { A = 1 });
             validationErrorMessage = null;
             return true;
         }

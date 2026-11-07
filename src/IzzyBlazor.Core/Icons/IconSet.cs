@@ -4,7 +4,7 @@ namespace IzzyBlazor;
 /// The icons IzzyBlazor's own components use, by purpose rather than by name, so the
 /// whole library can switch icon sets in one place.
 /// </summary>
-public enum IconRole
+public enum IconPurpose
 {
     /// <summary>Close a dialog, toast or alert.</summary>
     Close,
@@ -137,7 +137,7 @@ public enum IconRole
 }
 
 /// <summary>
-/// Maps each <see cref="IconRole"/> to an icon. IzzyBlazor components ask the icon set for a
+/// Maps each <see cref="IconPurpose"/> to an icon. IzzyBlazor components ask the icon set for a
 /// role instead of naming an icon, so a different set can be swapped in later.
 /// </summary>
 public class IconSet
@@ -145,49 +145,49 @@ public class IconSet
     /// <summary>The bundled Lucide mapping.</summary>
     public static IconSet Lucide { get; } = new(role => role switch
     {
-        IconRole.Close => IzzyBlazor.Lucide.X,
-        IconRole.ChevronDown => IzzyBlazor.Lucide.ChevronDown,
-        IconRole.ChevronUp => IzzyBlazor.Lucide.ChevronUp,
-        IconRole.ChevronLeft => IzzyBlazor.Lucide.ChevronLeft,
-        IconRole.ChevronRight => IzzyBlazor.Lucide.ChevronRight,
-        IconRole.Check => IzzyBlazor.Lucide.Check,
-        IconRole.Minus => IzzyBlazor.Lucide.Minus,
-        IconRole.Plus => IzzyBlazor.Lucide.Plus,
-        IconRole.Menu => IzzyBlazor.Lucide.Menu,
-        IconRole.Search => IzzyBlazor.Lucide.Search,
-        IconRole.MoreHorizontal => IzzyBlazor.Lucide.Ellipsis,
-        IconRole.MoreVertical => IzzyBlazor.Lucide.EllipsisVertical,
-        IconRole.Export => IzzyBlazor.Lucide.Download,
-        IconRole.Columns => IzzyBlazor.Lucide.Columns3,
-        IconRole.Info => IzzyBlazor.Lucide.Info,
-        IconRole.Success => IzzyBlazor.Lucide.CircleCheck,
-        IconRole.Warning => IzzyBlazor.Lucide.TriangleAlert,
-        IconRole.Error => IzzyBlazor.Lucide.CircleAlert,
-        IconRole.ExternalLink => IzzyBlazor.Lucide.ExternalLink,
-        IconRole.Copy => IzzyBlazor.Lucide.Copy,
-        IconRole.Copied => IzzyBlazor.Lucide.CopyCheck,
-        IconRole.Calendar => IzzyBlazor.Lucide.Calendar,
-        IconRole.Clock => IzzyBlazor.Lucide.Clock,
-        IconRole.Show => IzzyBlazor.Lucide.Eye,
-        IconRole.Hide => IzzyBlazor.Lucide.EyeOff,
-        IconRole.Loading => IzzyBlazor.Lucide.LoaderCircle,
-        IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUp,
-        IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDown,
-        IconRole.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
-        IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
-        IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
-        IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
-        IconRole.Filter => OperatorIcons.Filter,
-        IconRole.SchemeLight => IzzyBlazor.Lucide.Sun,
-        IconRole.SchemeDark => IzzyBlazor.Lucide.Moon,
-        IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,
-        IconRole.Person => IzzyBlazor.Lucide.User,
-        IconRole.Play => IzzyBlazor.Lucide.Play,
-        IconRole.Pause => IzzyBlazor.Lucide.Pause,
-        IconRole.Upload => IzzyBlazor.Lucide.Upload,
-        IconRole.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
-        IconRole.Panel => IzzyBlazor.Lucide.PanelRight,
-        IconRole.RangeTo => IzzyBlazor.Lucide.ArrowRight,
+        IconPurpose.Close => IzzyBlazor.Lucide.X,
+        IconPurpose.ChevronDown => IzzyBlazor.Lucide.ChevronDown,
+        IconPurpose.ChevronUp => IzzyBlazor.Lucide.ChevronUp,
+        IconPurpose.ChevronLeft => IzzyBlazor.Lucide.ChevronLeft,
+        IconPurpose.ChevronRight => IzzyBlazor.Lucide.ChevronRight,
+        IconPurpose.Check => IzzyBlazor.Lucide.Check,
+        IconPurpose.Minus => IzzyBlazor.Lucide.Minus,
+        IconPurpose.Plus => IzzyBlazor.Lucide.Plus,
+        IconPurpose.Menu => IzzyBlazor.Lucide.Menu,
+        IconPurpose.Search => IzzyBlazor.Lucide.Search,
+        IconPurpose.MoreHorizontal => IzzyBlazor.Lucide.Ellipsis,
+        IconPurpose.MoreVertical => IzzyBlazor.Lucide.EllipsisVertical,
+        IconPurpose.Export => IzzyBlazor.Lucide.Download,
+        IconPurpose.Columns => IzzyBlazor.Lucide.Columns3,
+        IconPurpose.Info => IzzyBlazor.Lucide.Info,
+        IconPurpose.Success => IzzyBlazor.Lucide.CircleCheck,
+        IconPurpose.Warning => IzzyBlazor.Lucide.TriangleAlert,
+        IconPurpose.Error => IzzyBlazor.Lucide.CircleAlert,
+        IconPurpose.ExternalLink => IzzyBlazor.Lucide.ExternalLink,
+        IconPurpose.Copy => IzzyBlazor.Lucide.Copy,
+        IconPurpose.Copied => IzzyBlazor.Lucide.CopyCheck,
+        IconPurpose.Calendar => IzzyBlazor.Lucide.Calendar,
+        IconPurpose.Clock => IzzyBlazor.Lucide.Clock,
+        IconPurpose.Show => IzzyBlazor.Lucide.Eye,
+        IconPurpose.Hide => IzzyBlazor.Lucide.EyeOff,
+        IconPurpose.Loading => IzzyBlazor.Lucide.LoaderCircle,
+        IconPurpose.SortAscending => IzzyBlazor.Lucide.ArrowUp,
+        IconPurpose.SortDescending => IzzyBlazor.Lucide.ArrowDown,
+        IconPurpose.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
+        IconPurpose.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
+        IconPurpose.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
+        IconPurpose.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
+        IconPurpose.Filter => OperatorIcons.Filter,
+        IconPurpose.SchemeLight => IzzyBlazor.Lucide.Sun,
+        IconPurpose.SchemeDark => IzzyBlazor.Lucide.Moon,
+        IconPurpose.SchemeSystem => IzzyBlazor.Lucide.Monitor,
+        IconPurpose.Person => IzzyBlazor.Lucide.User,
+        IconPurpose.Play => IzzyBlazor.Lucide.Play,
+        IconPurpose.Pause => IzzyBlazor.Lucide.Pause,
+        IconPurpose.Upload => IzzyBlazor.Lucide.Upload,
+        IconPurpose.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
+        IconPurpose.Panel => IzzyBlazor.Lucide.PanelRight,
+        IconPurpose.RangeTo => IzzyBlazor.Lucide.ArrowRight,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
@@ -197,11 +197,11 @@ public class IconSet
     /// </summary>
     public static IconSet Current => Lucide;
 
-    private readonly Func<IconRole, IconData> _resolve;
+    private readonly Func<IconPurpose, IconData> _resolve;
 
     /// <summary>Creates an icon set from a role-to-icon mapping. Internal until other sets are supported.</summary>
-    internal IconSet(Func<IconRole, IconData> resolve) => _resolve = resolve;
+    internal IconSet(Func<IconPurpose, IconData> resolve) => _resolve = resolve;
 
     /// <summary>The icon for a role.</summary>
-    public IconData Get(IconRole role) => _resolve(role);
+    public IconData Get(IconPurpose role) => _resolve(role);
 }

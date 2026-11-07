@@ -38,7 +38,7 @@
                     data-ib-expand-label="@string.Format(TextDefaults.ExpandPane, name).Trim()"
                     data-ib-target="@(target == this ? "after" : "before")"
                     data-ib-collapsed="@(collapsed ? "" : null)">
-                <Icon Role="@(Context.Vertical ? (target == this ? IconRole.ChevronDown : IconRole.ChevronUp) : (target == this ? IconRole.ChevronRight : IconRole.ChevronLeft))" />
+                <Icon Purpose="@(Context.Vertical ? (target == this ? IconPurpose.ChevronDown : IconPurpose.ChevronUp) : (target == this ? IconPurpose.ChevronRight : IconPurpose.ChevronLeft))" />
             </button>
         }
     </div>

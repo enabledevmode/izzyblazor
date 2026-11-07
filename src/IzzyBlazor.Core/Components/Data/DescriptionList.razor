@@ -7,7 +7,7 @@
     Horizontal puts each term beside its detail from 640px up (the term column fits the longest
     term), stacking them on phones; Vertical puts the term above, optionally in Columns. No script.
 
-    <DescriptionList Divided>
+    <DescriptionList Dividers>
         <DescriptionItem Term="Status"><Badge Status="Status.Success" Dot>Paid</Badge></DescriptionItem>
         <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
     </DescriptionList>
@@ -37,7 +37,7 @@
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
     /// <summary>Lines between the items.</summary>
-    [Parameter] public bool Divided { get; set; }
+    [Parameter] public bool Dividers { get; set; }
 
     /// <summary>
     /// For a vertical list, how many columns the items flow into on screens 640px and wider
@@ -56,7 +56,7 @@
     {
         classes.Add("ib-dl");
         classes.Add(Orientation == Orientation.Horizontal ? "ib-dl-horizontal" : "ib-dl-vertical");
-        classes.Add("ib-dl-divided", Divided);
+        classes.Add("ib-dl-divided", Dividers);
         classes.Add("ib-dl-sm", Size == ControlSize.Sm);
         classes.Add("ib-dl-lg", Size == ControlSize.Lg);
         var columns = Math.Clamp(Columns, 1, 4);

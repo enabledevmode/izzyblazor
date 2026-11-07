@@ -131,7 +131,7 @@
         <input type="radio" class="ib-treeselect-none" name="@GroupName" value="" checked="@(!HasValue)" hidden
                @onchange="() => CurrentValueAsString = string.Empty" />
         <button type="button" class="ib-treeselect-clear" hidden="@(!HasValue)" aria-label="@TextDefaults.Clear" title="@TextDefaults.Clear">
-            <Icon Role="IconRole.Close" />
+            <Icon Purpose="IconPurpose.Close" />
         </button>
     };
 }

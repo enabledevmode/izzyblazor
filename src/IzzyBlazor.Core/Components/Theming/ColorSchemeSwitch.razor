@@ -41,11 +41,11 @@
             @* Two buttons; CSS shows the one that leads away from the page's scheme. *@
             <button type="button" class="@ButtonClass ib-scheme-if-light" data-ib-scheme="dark"
                     aria-label="@TextDefaults.SchemeToDark" title="@TextDefaults.SchemeToDark">
-                <Icon Role="IconRole.SchemeDark" />
+                <Icon Purpose="IconPurpose.SchemeDark" />
             </button>
             <button type="button" class="@ButtonClass ib-scheme-if-dark" data-ib-scheme="light"
                     aria-label="@TextDefaults.SchemeToLight" title="@TextDefaults.SchemeToLight">
-                <Icon Role="IconRole.SchemeLight" />
+                <Icon Purpose="IconPurpose.SchemeLight" />
             </button>
             break;
 
@@ -71,8 +71,8 @@
             <Menu>
                 <Trigger>
                     <button type="button" class="@ButtonClass" aria-label="@GroupLabel" title="@GroupLabel" @attributes="context">
-                        <Icon Role="IconRole.SchemeLight" Class="ib-scheme-if-light" />
-                        <Icon Role="IconRole.SchemeDark" Class="ib-scheme-if-dark" />
+                        <Icon Purpose="IconPurpose.SchemeLight" Class="ib-scheme-if-light" />
+                        <Icon Purpose="IconPurpose.SchemeDark" Class="ib-scheme-if-dark" />
                     </button>
                 </Trigger>
                 <ChildContent>
@@ -142,9 +142,9 @@
 
     private IEnumerable<(ColorScheme Scheme, IconData Icon, string Label)> Options =>
     [
-        (ColorScheme.Auto, IconSet.Current.Get(IconRole.SchemeSystem), TextDefaults.SchemeSystem),
-        (ColorScheme.Light, IconSet.Current.Get(IconRole.SchemeLight), TextDefaults.SchemeLight),
-        (ColorScheme.Dark, IconSet.Current.Get(IconRole.SchemeDark), TextDefaults.SchemeDark),
+        (ColorScheme.Auto, IconSet.Current.Get(IconPurpose.SchemeSystem), TextDefaults.SchemeSystem),
+        (ColorScheme.Light, IconSet.Current.Get(IconPurpose.SchemeLight), TextDefaults.SchemeLight),
+        (ColorScheme.Dark, IconSet.Current.Get(IconPurpose.SchemeDark), TextDefaults.SchemeDark),
     ];
 
     /// <inheritdoc />

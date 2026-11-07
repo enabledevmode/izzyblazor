@@ -43,23 +43,23 @@
     <Heading Level="2">How it's built</Heading>
     <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Class="site-concepts">
         <Stack Gap="1">
-            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">One set for every render mode</Heading>
+            <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-concept-title">One set for every render mode</Heading>
             <TextBlock Color="Color.Muted">The same components work on static, Server, WebAssembly and Auto pages. Every page is working HTML before its scripts run. <Anchor Href="docs/common/render-modes">Render modes</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Forms that post</Heading>
+            <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-concept-title">Forms that post</Heading>
             <TextBlock Color="Color.Muted"><Code>Form</Code> and its fields bind to your model on static pages, through a form post, and on interactive pages. Labels, limits and messages come from your model's attributes. <Anchor Href="docs/common/forms">Forms and validation</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">State in the URL</Heading>
+            <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-concept-title">State in the URL</Heading>
             <TextBlock Color="Color.Muted">Table, FilterForm and Pagination store sorting, filters and the page in the URL. They work without a circuit, and a link to the page keeps them. <Anchor Href="docs/components/table">Table</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Style props and themes</Heading>
+            <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-concept-title">Style props and themes</Heading>
             <TextBlock Color="Color.Muted">Style props set spacing, sizes and colors as parameters. <Code>IzzyTheme</Code> sets the preset, brand and fonts on the server, so the theme is in place on first paint. <Anchor Href="docs/common/style-props">Style props</Anchor> · <Anchor Href="docs/theming/themes">Theming</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Native elements first</Heading>
+            <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-concept-title">Native elements first</Heading>
             <TextBlock Color="Color.Muted">Buttons, dialogs, selects and disclosures use the browser's own elements. Focus, the keyboard and screen readers work as the platform defines them. Where IzzyBlazor's script adds behavior, it adds the ARIA that goes with it.</TextBlock>
         </Stack>
     </Grid>
@@ -71,7 +71,7 @@
         {
             var components = Registry.InCategory(category).ToList();
             <div class="site-box-category">
-                <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-box-title">
+                <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-box-title">
                     <Anchor Href="@($"docs/components#{ApiMetadata.Anchor(category).Replace(' ', '-')}")" Underline="AnchorUnderline.Hover">@category</Anchor>
                     <span class="site-box-count">@components.Count<span class="ib-visually-hidden"> components</span></span>
                 </Heading>

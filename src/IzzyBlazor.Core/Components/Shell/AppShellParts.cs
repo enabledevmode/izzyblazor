@@ -141,8 +141,8 @@ public abstract class AppShellPart : IzzyComponentBase
 /// <summary>The top bar of an <see cref="AppShell"/>: brand, <see cref="SidebarToggle"/>, actions.</summary>
 public class AppHeader : AppShellPart
 {
-    /// <summary>Whether it stays at the top while the page scrolls. Defaults to <see cref="BarPosition.Sticky"/>.</summary>
-    [Parameter] public BarPosition Position { get; set; } = BarPosition.Sticky;
+    /// <summary>Keeps it at the top while the page scrolls. On by default; false lets it scroll away with the page.</summary>
+    [Parameter] public bool Sticky { get; set; } = true;
 
     /// <summary>
     /// The width the header's content is centered at, such as <c>Length.Rem(64)</c>; the bar itself
@@ -157,7 +157,7 @@ public class AppHeader : AppShellPart
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        classes.Add("ib-shell-header-sticky", Position == BarPosition.Sticky);
+        classes.Add("ib-shell-header-sticky", Sticky);
         AddContentWidth(classes, styles, ContentWidth);
     }
 
@@ -429,7 +429,7 @@ public class AppAside : AppShellPart, IDisposable
             builder.AddAttribute(35, "aria-label", CloseLabel ?? TextDefaults.ClosePanel);
             builder.AddAttribute(37, "data-ib-shell-close", true);
             builder.OpenComponent<Icon>(38);
-            builder.AddComponentParameter(39, nameof(Icon.Role), IconRole.Close);
+            builder.AddComponentParameter(39, nameof(Icon.Purpose), IconPurpose.Close);
             builder.CloseComponent();
             builder.CloseElement();
             builder.CloseElement();
@@ -461,8 +461,8 @@ public class AppAside : AppShellPart, IDisposable
 /// <summary>The bottom bar of an <see cref="AppShell"/>.</summary>
 public class AppFooter : AppShellPart
 {
-    /// <summary>Whether it stays at the bottom while the page scrolls. Defaults to <see cref="BarPosition.Static"/>.</summary>
-    [Parameter] public BarPosition Position { get; set; } = BarPosition.Static;
+    /// <summary>Keeps it at the bottom while the page scrolls, instead of scrolling away with it. Off by default.</summary>
+    [Parameter] public bool Sticky { get; set; }
 
     /// <summary>
     /// The width the footer's content is centered at; the bar itself stays full width. Overrides
@@ -477,7 +477,7 @@ public class AppFooter : AppShellPart
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        classes.Add("ib-shell-footer-sticky", Position == BarPosition.Sticky);
+        classes.Add("ib-shell-footer-sticky", Sticky);
         AddContentWidth(classes, styles, ContentWidth);
     }
 

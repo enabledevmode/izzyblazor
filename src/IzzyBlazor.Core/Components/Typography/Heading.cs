@@ -18,7 +18,7 @@ namespace IzzyBlazor;
 /// Defaults: bold, tight line height, balanced wrapping, no margins. Every default can be
 /// overridden with the typography props.
 /// <para>
-/// In an <see cref="AppMain"/> on a page with an <see cref="OnThisPage"/>, a heading gets an id
+/// In an <see cref="AppMain"/> on a page with an <see cref="IzzyBlazor.OnThisPage"/>, a heading gets an id
 /// from its text (unless it sets one) and is listed there; headings at the levels it lists also
 /// become links to themselves, with a "#" shown on hover, so a section can be linked.
 /// </para>
@@ -29,11 +29,11 @@ namespace IzzyBlazor;
 /// <item>It doesn't take <c>As</c>, so the element always matches the level; for text that only looks like a heading, use <see cref="TextBlock"/>.</item>
 /// <item>An anchored heading's text is the link, so the link's name is the heading's text; the "#" is CSS with empty alt text and isn't read.</item>
 /// <item>Each anchored heading is a tab stop, and shows its focus ring and "#" on keyboard focus.</item>
-/// <item><c>Outline="false"</c> leaves a heading out of the <see cref="OnThisPage"/> and gives it no link; <c>Anchor="false"</c> removes only the link.</item>
+/// <item><c>OnThisPage="false"</c> leaves a heading out of the <see cref="IzzyBlazor.OnThisPage"/> and gives it no link; <c>Anchor="false"</c> removes only the link.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="TextBlock"/>
-/// <seealso cref="OnThisPage"/>
+/// <seealso cref="IzzyBlazor.OnThisPage"/>
 /// <seealso cref="Prose"/>
 [ModeSupport]
 [RefusesParameter(nameof(As))]
@@ -46,14 +46,14 @@ public class Heading : TextBase, IDisposable
     public Heading() => As = $"h{Level}";
 
     /// <summary>
-    /// Lists the heading in the page's <see cref="OnThisPage"/> (when its level is one it lists).
+    /// Lists the heading in the page's <see cref="IzzyBlazor.OnThisPage"/> (when its level is one it lists).
     /// Defaults to true; false leaves it out and gives it no anchor link.
     /// </summary>
-    [Parameter] public bool Outline { get; set; } = true;
+    [Parameter] public bool OnThisPage { get; set; } = true;
 
     /// <summary>
     /// Makes the heading a link to itself, with a "#" on hover, so a section can be linked. By
-    /// default, headings listed in an <see cref="OnThisPage"/> are; true adds the link to any heading
+    /// default, headings listed in an <see cref="IzzyBlazor.OnThisPage"/> are; true adds the link to any heading
     /// with an id, false removes it. A heading whose content holds a link or button of its own
     /// (an <c>a</c>, <c>button</c>, <see cref="IzzyBlazor.Anchor"/> or button component) never gets
     /// one, since links can't nest. A heading holding a component that isn't one of IzzyBlazor's
@@ -64,7 +64,7 @@ public class Heading : TextBase, IDisposable
     [Parameter] public bool? Anchor { get; set; }
 
     /// <summary>
-    /// The id a heading with this text gets once an <see cref="OnThisPage"/> lists it, for a link to
+    /// The id a heading with this text gets once an <see cref="IzzyBlazor.OnThisPage"/> lists it, for a link to
     /// it from elsewhere: lowercase, letters and digits kept (in any script), spaces and dashes as
     /// one dash, everything else dropped, so "Rows &amp; columns" is "rows-columns". A second
     /// heading with the same text on the page gets "-2" after it, a third "-3".
@@ -111,7 +111,7 @@ public class Heading : TextBase, IDisposable
         var text = content.Text;
         _hasControl = content.HasControl;
         _mayHaveControl = content.MayHaveControl;
-        var outline = Outline ? PageOutline : null;
+        var outline = OnThisPage ? PageOutline : null;
         if (_subscribed != outline)
         {
             Unregister();
@@ -161,7 +161,7 @@ public class Heading : TextBase, IDisposable
         builder.OpenElement(0, ValidateTag(As));
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "id", id);
-        builder.AddAttribute(3, "data-ib-outline", !Outline && id is not null ? "false" : null);
+        builder.AddAttribute(3, "data-ib-outline", !OnThisPage && id is not null ? "false" : null);
         builder.AddAttribute(4, "class", cssClass);
         builder.AddAttribute(5, "style", style);
         if (anchored)

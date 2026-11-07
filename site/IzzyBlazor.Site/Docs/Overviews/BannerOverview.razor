@@ -39,7 +39,7 @@
 <TextBlock>The server reads the cookie through <Code>AddIzzyBlazor()</Code>, from the IzzyBlazor package. On interactive pages, <Code>@@bind-Dismissed</Code> also reports a dismissal found in the cookie.</TextBlock>
 
 <Heading Level="2">In an app</Heading>
-<TextBlock>In an AppShell, a banner has its own row above the header. To keep it in view as the page scrolls, set <Code>Position="BarPosition.Sticky"</Code>.</TextBlock>
+<TextBlock>In an AppShell, a banner has its own row above the header. To keep it in view as the page scrolls, set <Code>Sticky</Code>.</TextBlock>
 <Code Block Language="razor" Title="MainLayout.razor">@InShell</Code>
 <TextBlock>A sticky banner pushes the sticky header and sidebar down by its height. When the message wraps to a second line, IzzyBlazor's script measures the new height. With JavaScript off, the banner keeps room for one line.</TextBlock>
 
@@ -96,7 +96,7 @@
 
     private const string InShell = """
         <AppShell>
-            <Banner Status="Status.Warning" Position="BarPosition.Sticky" Dismissible
+            <Banner Status="Status.Warning" Sticky Dismissible
                     RememberKey="maintenance-2026-11">
                 Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
             </Banner>

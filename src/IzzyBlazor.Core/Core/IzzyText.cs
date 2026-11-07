@@ -845,7 +845,7 @@ public class IzzyText
     /// <summary>The name of a Table's or ListView's selection bar, for screen readers, when the view has no name.</summary>
     public virtual string SelectionBar { get; set; } = "Selection";
 
-    /// <summary>The name of the selection bar of a named view (a Table's Caption, a ListView's AriaLabel): {0} is that name ("Orders selection").</summary>
+    /// <summary>The name of the selection bar of a named view (a Table's Caption, a ListView's Label): {0} is that name ("Orders selection").</summary>
     public virtual string SelectionBarOf { get; set; } = "{0} selection";
 
     /// <summary>The selection's count in a Table or ListView: {0} is how many are selected ("3 selected").</summary>
@@ -935,7 +935,7 @@ public class IzzyText
     /// <summary>Stat, a figure that didn't change.</summary>
     public virtual string TrendFlat { get; set; } = "No change";
 
-    /// <summary>A ListView's name for screen readers in its pagination, when it has no AriaLabel.</summary>
+    /// <summary>A ListView's name for screen readers in its pagination, when it has no Label.</summary>
     public virtual string ListName { get; set; } = "List";
 
     /// <summary>A ListView whose items failed to load, with Retry after it.</summary>

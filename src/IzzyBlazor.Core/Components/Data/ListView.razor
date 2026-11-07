@@ -89,7 +89,7 @@
     }
     @* The items and, in a list that grows, Load more after them: one box, which scrolls with a MaxHeight. *@
     <div class="@(MaxHeight is null ? "ib-listview-body" : "ib-listview-body ib-listview-scroll")" style="@BodyStyle" role="@(MaxHeight is null ? null : "region")"
-         aria-label="@(MaxHeight is null ? null : AriaLabel ?? TextDefaults.ListName)" tabindex="@(MaxHeight is null ? null : "0")">
+         aria-label="@(MaxHeight is null ? null : Label ?? TextDefaults.ListName)" tabindex="@(MaxHeight is null ? null : "0")">
         @if (_loadError is not null)
         {
             @* In place of the items: what went wrong and a way to try again. *@
@@ -271,7 +271,7 @@
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
     /// <summary>Names the list for screen readers, when the text around it doesn't.</summary>
-    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>
     /// Lets the user reorder the items: each gets a handle to drag, which also opens a menu (Move
@@ -334,7 +334,7 @@
     /// <summary>
     /// Makes the list a zone of the <see cref="DropZoneGroup{TItem}"/> around it: it shows the
     /// group's items whose zone is this one, and items move here from the group's other zones. Name
-    /// each zone with <see cref="AriaLabel"/>, which also names it in the menu of moves.
+    /// each zone with <see cref="Label"/>, which also names it in the menu of moves.
     /// </summary>
     [Parameter] public string? Zone { get; set; }
 
@@ -375,7 +375,7 @@
     private string? PostName => InGroup ? Group!.Name : Name;
 
     /// <summary>The zone's name in the menu of moves and in announcements.</summary>
-    internal string ZoneLabel => AriaLabel ?? Zone ?? "";
+    internal string ZoneLabel => Label ?? Zone ?? "";
 
     /// <inheritdoc />
     internal override IEnumerable<TItem>? SourceItems => InGroup ? Group!.ItemsIn(Zone!) : Items;
@@ -396,7 +396,7 @@
     internal override string ViewName => "ListView";
 
     /// <inheritdoc />
-    internal override string? AccessibleName => AriaLabel;
+    internal override string? AccessibleName => Label;
 
     /// <inheritdoc />
     internal override string LoadFailedText => TextDefaults.ListLoadFailed;
@@ -413,7 +413,7 @@
     /// <inheritdoc />
     internal override string LabelOf(TItem item) => ItemLabel?.Invoke(item) ?? ItemText?.Invoke(item) ?? KeyOf(item);
 
-    private string PagesLabel => string.Format(CultureInfo.CurrentCulture, TextDefaults.TablePages, AriaLabel ?? TextDefaults.ListName);
+    private string PagesLabel => string.Format(CultureInfo.CurrentCulture, TextDefaults.TablePages, Label ?? TextDefaults.ListName);
 
     private string ItemClasses(bool action, bool current, bool disabled, bool trail) =>
         (Sortable ? "ib-listview-item ib-sortable-item" : "ib-listview-item")
@@ -546,7 +546,7 @@
     // The items, in a list; inside <ib-sortable> when they can be reordered.
     private RenderFragment ItemsList => __builder =>
     {
-    <ul class="@(Sortable ? "ib-listview-list ib-sortable-list" : "ib-listview-list")" role="list" aria-label="@AriaLabel" aria-busy="@(IsLoading ? "true" : null)">
+    <ul class="@(Sortable ? "ib-listview-list ib-sortable-list" : "ib-listview-list")" role="list" aria-label="@Label" aria-busy="@(IsLoading ? "true" : null)">
         @for (var index = 0; index < _items.Count; index++)
         {
             var row = index;
@@ -760,7 +760,7 @@
         var focus = moves && !Live && key == _focusKey;
         <Menu>
             <Trigger Context="wire">
-                <IconButton Icon="IconSet.Current.Get(IconRole.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
+                <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="@(moves ? "ib-listview-menu ib-sortable-trigger" : "ib-listview-menu")"
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
             </Trigger>

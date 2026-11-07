@@ -3,7 +3,7 @@
    detail, above what the template draws. *@
 <DataGrid Items="Rows.All" PageSize="2" Caption="Orders in groups that fit a phone" QueryPrefix="narrow-groups-"
           ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"
-          SmallScreen="DataGridSmallScreen.HideColumns" InitialGroup="status" GroupsOpen>
+          SmallScreen="DataGridSmallScreen.HideColumns" InitialGroup="status" ExpandAllGroups>
     <ChildContent>
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
         <PropertyColumn Property="o => o.Customer" Priority="1" />

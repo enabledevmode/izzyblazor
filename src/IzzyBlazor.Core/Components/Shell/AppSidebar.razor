@@ -229,7 +229,7 @@
     {
         <div class="ib-shell-sidebar-close">
             <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@ClosedHref" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
-                <Icon Role="IconRole.Close" />
+                <Icon Purpose="IconPurpose.Close" />
             </a>
         </div>
     };
@@ -249,7 +249,7 @@
                    data-ib-collapsed="@(_collapsed ? "1" : "0")"
                    @onchange="OnCollapseChange" />
             <label for="@CollapseInputId" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-shell-collapse-btn" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
-                <Icon Role="IconRole.ChevronLeft" Class="ib-shell-collapse-icon" />
+                <Icon Purpose="IconPurpose.ChevronLeft" Class="ib-shell-collapse-icon" />
             </label>
         </div>
     };

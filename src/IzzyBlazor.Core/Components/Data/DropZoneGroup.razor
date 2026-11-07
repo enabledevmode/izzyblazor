@@ -13,9 +13,9 @@
 
     <DropZoneGroup @bind-Items="tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" OnMove="Moved">
         <Grid Columns="3">
-            <ListView Zone="todo" AriaLabel="To do" Context="task">@task.Title</ListView>
-            <ListView Zone="doing" AriaLabel="Doing" MaxItems="3" Context="task">@task.Title</ListView>
-            <ListView Zone="done" AriaLabel="Done" Accepts="t => t.Reviewed" Context="task">@task.Title</ListView>
+            <ListView Zone="todo" Label="To do" Context="task">@task.Title</ListView>
+            <ListView Zone="doing" Label="Doing" MaxItems="3" Context="task">@task.Title</ListView>
+            <ListView Zone="done" Label="Done" Accepts="t => t.Reviewed" Context="task">@task.Title</ListView>
         </Grid>
     </DropZoneGroup>
 
@@ -32,7 +32,7 @@
     static page give the group a Name inside a form and pass the posted ListOrder back as Order.
 
     Accessibility:
-    - Each zone is a list named by its AriaLabel (give every zone one), which also names it in
+    - Each zone is a list named by its Label (give every zone one), which also names it in
       the menu ("Move to Done").
     - A move is announced from the zone it lands in: "Moved Ada to Done, position 1 of 3".
     See also: ListView.
@@ -173,7 +173,7 @@
         // Zones are written into the menu's posted moves (to:zone:key) and a space-separated attribute.
         if (string.IsNullOrEmpty(zone.Zone) || zone.Zone.Any(c => char.IsWhiteSpace(c) || c == ':'))
         {
-            throw new InvalidOperationException($"A drop zone's Zone (\"{zone.Zone}\") must be a value without spaces or colons, such as \"in-progress\"; name it for people with AriaLabel.");
+            throw new InvalidOperationException($"A drop zone's Zone (\"{zone.Zone}\") must be a value without spaces or colons, such as \"in-progress\"; name it for people with Label.");
         }
 
         if (!_zones.Contains(zone))

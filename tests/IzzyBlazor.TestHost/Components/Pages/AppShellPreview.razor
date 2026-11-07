@@ -10,7 +10,7 @@
 <AppShell Variant="@ShellVariantValue" Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
     @if (BannerOn == "on")
     {
-        <Banner Status="Status.Warning" Dismissible Position="@(BannerSticky == "on" ? BarPosition.Sticky : BarPosition.Static)">
+        <Banner Status="Status.Warning" Dismissible Sticky="@(BannerSticky == "on")">
             Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
             <BannerActions><Anchor Href='@Link("changelog")'>Details</Anchor></BannerActions>
         </Banner>
@@ -85,7 +85,7 @@
         <OnThisPage />
     </AppAside>
 
-    <AppFooter Bg="@Chrome" Position="@(StickyFooter == "on" ? BarPosition.Sticky : BarPosition.Static)">
+    <AppFooter Bg="@Chrome" Sticky="@(StickyFooter == "on")">
         <TextBlock Size="TextSize.Sm" Color="Color.Subtle">© Acme. Built with IzzyBlazor.</TextBlock>
     </AppFooter>
 </AppShell>

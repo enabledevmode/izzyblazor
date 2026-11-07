@@ -41,7 +41,7 @@
                     <span class="@ChangeClass">
                         @if (Trend != StatTrend.None)
                         {
-                            <Icon Role="TrendIcon" Class="ib-stat-trend" />
+                            <Icon Purpose="TrendIcon" Class="ib-stat-trend" />
                             <span class="ib-visually-hidden">@(EffectiveTrendLabel + " ")</span>
                         }
                         @Change
@@ -122,11 +122,11 @@
     private string? _class;
     private string? _style;
 
-    private IconRole TrendIcon => Trend switch
+    private IconPurpose TrendIcon => Trend switch
     {
-        StatTrend.Up => IconRole.TrendUp,
-        StatTrend.Down => IconRole.TrendDown,
-        _ => IconRole.TrendFlat,
+        StatTrend.Up => IconPurpose.TrendUp,
+        StatTrend.Down => IconPurpose.TrendDown,
+        _ => IconPurpose.TrendFlat,
     };
 
     private string EffectiveTrendLabel => TrendLabel ?? Trend switch

@@ -114,7 +114,7 @@
     {
         <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
             <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
-                <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
+                <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
                 <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
                     {<span class="ib-visually-hidden">, @Title</span>}</span>
             </summary>

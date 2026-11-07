@@ -22,14 +22,14 @@ public partial class DataGrid<TItem>
     /// Which rows' details are open, by key; <c>"*"</c> is all of them, and <c>"!key"</c> an exception to
     /// that. Binding it on an interactive page keeps it in the component; otherwise it's in the address.
     /// </summary>
-    [Parameter] public IReadOnlyList<string>? OpenDetails { get; set; }
+    [Parameter] public IReadOnlyList<string>? ExpandedDetails { get; set; }
 
     /// <summary>Raised when a detail opens or closes, on interactive pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<string>?> OpenDetailsChanged { get; set; }
+    public EventCallback<IReadOnlyList<string>?> ExpandedDetailsChanged { get; set; }
 
     /// <summary>Whether every row's detail starts open.</summary>
-    [Parameter] public bool DetailsOpen { get; set; }
+    [Parameter] public bool ExpandAllDetails { get; set; }
 
     /// <summary>Opening a row's detail closes the one that was open. There's no button to open them all.</summary>
     [Parameter] public bool SingleDetail { get; set; }
@@ -59,7 +59,7 @@ public partial class DataGrid<TItem>
     // A row being edited shows its hidden columns' fields.
     private bool DetailOpen(TItem item) => HasDetail(item) && (Details.IsOpen(KeyOf(item)) || (Hiding && IsEditingRow(item)));
 
-    private bool DetailBound => OpenDetailsChanged.HasDelegate;
+    private bool DetailBound => ExpandedDetailsChanged.HasDelegate;
 
     // A detail opening or closing isn't a page leaving fewer rows: the height held starts again.
     /// <inheritdoc />
@@ -72,7 +72,7 @@ public partial class DataGrid<TItem>
     {
         get
         {
-            var inputs = (UseState, UseState ? null : Navigation.Uri, _stateDetails, OpenDetails, DetailsOpen, SingleDetail, DetailBound);
+            var inputs = (UseState, UseState ? null : Navigation.Uri, _stateDetails, ExpandedDetails, ExpandAllDetails, SingleDetail, DetailBound);
             if (_details is null || !Equals(_detailsFor, inputs))
             {
                 (_detailsFor, _details) = (inputs, ReadDetails());
@@ -87,7 +87,7 @@ public partial class DataGrid<TItem>
         IReadOnlyList<string> list;
         if (UseState)
         {
-            list = DetailBound ? OpenDetails ?? [] : _stateDetails ?? OpenDetails ?? [];
+            list = DetailBound ? ExpandedDetails ?? [] : _stateDetails ?? ExpandedDetails ?? [];
         }
         else
         {
@@ -96,11 +96,11 @@ public partial class DataGrid<TItem>
 
         var open = list.Where(k => k != "*" && !k.StartsWith('!')).TakeLast(SingleDetail ? 1 : MaxOpenPaths).ToList();
         var shut = list.Where(k => k.StartsWith('!') && k != "!*").Select(k => k[1..]).TakeLast(MaxOpenPaths).ToList();
-        var all = !SingleDetail && (list.Contains("*") || (DetailsOpen && open.Count == 0 && !list.Contains("!*")));
+        var all = !SingleDetail && (list.Contains("*") || (ExpandAllDetails && open.Count == 0 && !list.Contains("!*")));
         return new DetailState(all, open, shut);
     }
 
-    // The open rows with this one the other way. Empty with DetailsOpen would open them all again.
+    // The open rows with this one the other way. Empty with ExpandAllDetails would open them all again.
     private IReadOnlyList<string> DetailsToggled(string key)
     {
         var state = Details;
@@ -118,14 +118,14 @@ public partial class DataGrid<TItem>
 
         var kept = state.Open.Where(k => k != key);
         var list = (open ? kept : kept.Append(key)).TakeLast(MaxOpenPaths).ToList();
-        return DetailsOpen && list.Count == 0 ? ["!*"] : list;
+        return ExpandAllDetails && list.Count == 0 ? ["!*"] : list;
     }
 
     private static IReadOnlyList<string> AllDetails(bool open, bool startOpen) => open ? ["*"] : startOpen ? ["!*"] : [];
 
     private string DetailHref(string key) => DetailLink(DetailsToggled(key));
 
-    private string AllDetailsHref(bool open) => DetailLink(AllDetails(open, DetailsOpen));
+    private string AllDetailsHref(bool open) => DetailLink(AllDetails(open, ExpandAllDetails));
 
     private string DetailLink(IReadOnlyList<string> list) =>
         LinkWith(new Dictionary<string, object?> { [DetailKey] = list.Count == 0 ? null : list.ToArray() });
@@ -135,7 +135,7 @@ public partial class DataGrid<TItem>
     private async Task SetDetailsAsync(IReadOnlyList<string> list)
     {
         _stateDetails = list;
-        await OpenDetailsChanged.InvokeAsync(list);
+        await ExpandedDetailsChanged.InvokeAsync(list);
     }
 
     // The detail row's id, for its button's aria-controls: by its place, as keys can be any text.
@@ -158,7 +158,7 @@ public partial class DataGrid<TItem>
 
         if (!HasExpander)
         {
-            if (DetailsOpen || SingleDetail || OpenDetails is not null)
+            if (ExpandAllDetails || SingleDetail || ExpandedDetails is not null)
             {
                 throw new InvalidOperationException($"The DataGrid sets up details with no {nameof(DetailTemplate)} to show.");
             }
@@ -178,9 +178,9 @@ public partial class DataGrid<TItem>
             throw new InvalidOperationException($"A DataGrid with {what} can't {nameof(Virtualize)}: an open detail changes a row's height.");
         }
 
-        if (SingleDetail && DetailsOpen)
+        if (SingleDetail && ExpandAllDetails)
         {
-            throw new InvalidOperationException($"A DataGrid can't have both {nameof(SingleDetail)} and {nameof(DetailsOpen)}.");
+            throw new InvalidOperationException($"A DataGrid can't have both {nameof(SingleDetail)} and {nameof(ExpandAllDetails)}.");
         }
     }
 }

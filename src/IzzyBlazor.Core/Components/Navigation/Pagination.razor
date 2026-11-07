@@ -28,7 +28,7 @@
 
 <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Pagination)" class="@_class" style="@_style">
     <ul class="ib-pagination-list">
-        <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel ?? TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
+        <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel ?? TextDefaults.PreviousPage, IconPurpose.ChevronLeft, "ib-pagination-prev")</li>
         @{ var gaps = 0; var items = Items().ToList(); var far = HiddenOnPhones(items); }
         @for (var index = 0; index < items.Count; index++)
         {
@@ -61,7 +61,7 @@
                 <li class="@(far[index] ? "ib-pagination-far" : null)">@PageLink(item)</li>
             }
         }
-        <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel ?? TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
+        <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel ?? TextDefaults.NextPage, IconPurpose.ChevronRight, "ib-pagination-next")</li>
     </ul>
 </nav>
 
@@ -245,21 +245,21 @@
         <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</a>
     };
 
-    private RenderFragment PageControl(int target, bool disabled, string label, IconRole icon, string extra) => __builder =>
+    private RenderFragment PageControl(int target, bool disabled, string label, IconPurpose icon, string extra) => __builder =>
     {
         if (UseButtons)
         {
             @* One button, unavailable at the ends but still focusable (announced as unavailable), so
                focus isn't lost when it reaches the first or last page. *@
-            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="@(disabled ? "true" : null)" aria-label="@label" @onclick="() => disabled ? Task.CompletedTask : Pick(target)"><Icon Role="icon" /></button>
+            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="@(disabled ? "true" : null)" aria-label="@label" @onclick="() => disabled ? Task.CompletedTask : Pick(target)"><Icon Purpose="icon" /></button>
         }
         else if (disabled)
         {
-            <span class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label" role="link"><Icon Role="icon" /></span>
+            <span class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label" role="link"><Icon Purpose="icon" /></span>
         }
         else
         {
-            <a href="@Href(target)" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-label="@label" rel="@(target < _page ? "prev" : "next")"><Icon Role="icon" /></a>
+            <a href="@Href(target)" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-label="@label" rel="@(target < _page ? "prev" : "next")"><Icon Purpose="icon" /></a>
         }
     };
 }

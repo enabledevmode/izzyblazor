@@ -34,7 +34,7 @@
                         @if (group.Title is not null)
                         {
                             @* Only the section is listed in "On this page": some have nine of these. *@
-                            <Heading Level="3" Size="TextSize.Md" Outline="false">@group.Title</Heading>
+                            <Heading Level="3" Size="TextSize.Md" OnThisPage="false">@group.Title</Heading>
                         }
                         <KeyboardTable Group="group" Name="@api.Name" />
                     </div>
