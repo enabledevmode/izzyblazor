@@ -26,9 +26,11 @@ public sealed class Registry
     public Registry(RegistryFile file)
     {
         Categories = file.Categories;
-        // Groups in the file's order (foundations first); components by name within each, so a
-        // reader scanning for one they know finds it, and a new one has an obvious place.
-        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c).OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)).ToList();
+        // Groups in the file's order (foundations first); within each, the base the others build
+        // on first, then by name, so a reader scanning for one they know finds it, and a new one
+        // has an obvious place.
+        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c)
+            .OrderBy(x => !x.Base).ThenBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)).ToList();
         Components = AllComponents.Where(c => !c.Preview).ToList();
         var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id).ToList();
         if (stray.Count > 0)
@@ -151,6 +153,9 @@ public sealed record RegistryComponent
 
     /// <summary>The name shown to readers: <see cref="Title"/>, or the type name.</summary>
     public string DisplayName => Title ?? Name;
+
+    /// <summary>The base its group's other entries build on (Chart, for the chart types): listed first in its group.</summary>
+    public bool Base { get; init; }
     public required string Category { get; init; }
 
     /// <summary>A Lucide icon's name (<c>MousePointerClick</c>), the component's pictogram on cards and its page.</summary>
