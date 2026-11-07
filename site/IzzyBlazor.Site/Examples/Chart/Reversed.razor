@@ -1,0 +1,17 @@
+@* An Arabic store's monthly sales, right to left: the months run backward, January at the right. *@
+<Chart Items="_months" Argument="m => m.Month" Title="المبيعات الشهرية، 2026" dir="rtl" lang="ar">
+    <ChartValueAxis Format="N0" Title="ألف ريال" />
+    <ChartArgumentAxis Title="الشهر" Reverse />
+    <ChartBarSeries Value="m => m.Sales" Name="المبيعات" />
+</Chart>
+
+@code {
+    private record MonthSales(string Month, decimal Sales);
+
+    private readonly MonthSales[] _months =
+    [
+        new("يناير", 412), new("فبراير", 386), new("مارس", 521), new("أبريل", 468),
+        new("مايو", 455), new("يونيو", 398), new("يوليو", 372), new("أغسطس", 409),
+        new("سبتمبر", 447), new("أكتوبر", 493), new("نوفمبر", 566), new("ديسمبر", 618),
+    ];
+}

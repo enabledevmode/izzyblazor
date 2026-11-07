@@ -3,7 +3,7 @@ namespace IzzyBlazor;
 /// <summary>
 /// Estimates how wide a line of button text is, from Inter's character widths
 /// (<c>_generated/TextWidths.g.cs</c>, measured by <c>build/measure-text.mjs</c>). Kerning is left
-/// out, which is within a pixel or two for a label; characters outside Latin count as 1em.
+/// out, which is within a pixel or two for a label; characters outside Latin count by script (<see cref="Other"/>).
 /// </summary>
 internal static partial class TextWidths
 {
@@ -47,9 +47,22 @@ internal static partial class TextWidths
             var index = c is >= ' ' and <= '~' ? c - 0x20
                 : c is >= ' ' and <= 'ſ' ? AsciiCount + c - 0xa0
                 : -1;
-            width += index >= 0 ? table[index] / 100.0 : em;
+            width += index >= 0 ? table[index] / 100.0 : em * Other(c);
         }
 
         return width;
     }
+
+    // A character outside Inter's table, in ems, a little over the widest of its script: combining
+    // marks take no room; Greek, Cyrillic, Hebrew and Arabic letters are narrower than an em (an
+    // Arabic month name, such as سبتمبر, is about half its 1em-a-letter estimate); the rest
+    // (Chinese, Japanese, Korean, symbols) an em.
+    private static double Other(char c) => c switch
+    {
+        >= '̀' and <= 'ͯ' or >= '֑' and <= 'ׇ' or >= 'ؐ' and <= 'ؚ'
+            or >= 'ً' and <= 'ٟ' or 'ٰ' or >= 'ۖ' and <= 'ۭ' => 0,
+        >= 'Ͱ' and <= 'ԯ' or >= '֐' and <= 'ۿ' or >= 'ݐ' and <= 'ݿ'
+            or >= 'יִ' and <= '﷿' or >= 'ﹰ' and <= '﻿' => 0.75,
+        _ => 1,
+    };
 }
