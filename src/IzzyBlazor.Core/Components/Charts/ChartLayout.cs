@@ -31,6 +31,10 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public bool ValueLog { get; init; }
     public ChartGridLines GridLines { get; init; }
     public ChartArgumentLabels ArgumentLabels { get; init; }
+    public Func<double, string>? ValueFormatter { get; init; }
+    public Func<object?, string>? ArgumentFormatter { get; init; }
+    public bool HideValueAxis { get; init; }
+    public bool HideArgumentAxis { get; init; }
     public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
 }
 
@@ -108,6 +112,9 @@ internal sealed class ChartModel
     /// <summary>How far the first turned name reaches past the plot's start, in pixels.</summary>
     public double LeadPx { get; set; }
 
+    /// <summary>The value axis's ends, as drawn.</summary>
+    public (double Min, double Max) ValueRange { get; set; }
+
     /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartArgumentLabels.All"/>).</summary>
     public bool Wrap { get; set; }
 
@@ -151,14 +158,17 @@ internal static class ChartLayout
         {
             Horizontal = input.Horizontal,
             Kind = kind,
-            ArgumentTexts = input.Arguments.Select(a => ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
-            ValueTexts = input.Series.Select(s => s.Values.Select(v => v is { } x ? x.ToString(input.ValueFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
+            ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
+            ValueTexts = input.Series.Select(s => s.Values.Select(v => v is { } x ? input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
         };
 
         // Stacks: bars with bars, areas with areas. Each point's base and top, before scaling.
         var lows = new double?[input.Series.Count][];
         var highs = new double?[input.Series.Count][];
         var log = input.ValueLog;
+
+        // A tick's text: the formatter's, but a full stack's ticks are shares, so they keep P0.
+        Func<double, string>? tickText = full ? null : input.ValueFormatter;
         StackValues(input, stacked, full, log, lows, highs);
 
         // The value domain, from the series that show: a hidden one is drawn as if it weren't there.
@@ -204,7 +214,7 @@ internal static class ChartLayout
             var placed = ticks.Select(t => (
                 Pos: log ? (Math.Log10(t.V) - l0) / (l1 - l0) : (t.V - dmin) / (dmax - dmin),
                 t.Level,
-                Text: t.V.ToString(format, culture))).ToList();
+                Text: tickText?.Invoke(t.V) ?? t.V.ToString(format, culture))).ToList();
             var levels = placed.Select(t => (t.Pos, t.Level)).ToList();
 
             // Up the side, the ticks a line apart at the plot's height; across, those that fit each width.
@@ -228,7 +238,7 @@ internal static class ChartLayout
             {
                 var v = spec.Value(i);
                 var pos = (v - dmin) / (dmax - dmin);
-                model.ValueLabels.Add(new AxisLabel(pos, v.ToString(format, culture)));
+                model.ValueLabels.Add(new AxisLabel(pos, tickText?.Invoke(v) ?? v.ToString(format, culture)));
                 model.Grid.Add(new GridLine(pos, 0, v == 0));
             }
         }
@@ -237,8 +247,10 @@ internal static class ChartLayout
             var count = Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 80);
             (dmin, dmax) = input.ValueMin is not null && input.ValueMax is not null ? (min, max) : Nice(min, max, (int)count, input);
             var format = full ? "P0" : input.ValueFormat;
-            NumberLabels(model.ValueLabels, dmin, dmax, count, format, culture, argumentRoomPx, grid: model.Grid);
+            NumberLabels(model.ValueLabels, dmin, dmax, count, format, culture, argumentRoomPx, grid: model.Grid, tickText);
         }
+
+        model.ValueRange = (dmin, dmax);
 
         // The argument axis.
         double[] positions;
@@ -278,11 +290,22 @@ internal static class ChartLayout
             positions = values.Select(v => v is { } x ? (x - amin) / (amax - amin) : double.NaN).ToArray();
             if (kind == ArgumentKind.Number)
             {
-                NumberLabels(model.ArgumentLabels, amin, amax, count, input.ArgumentFormat, culture, argumentRoomPx, grid: null);
+                NumberLabels(model.ArgumentLabels, amin, amax, count, input.ArgumentFormat, culture, argumentRoomPx, grid: null,
+                    input.ArgumentFormatter is { } af ? v => af(v) : null);
             }
             else
             {
-                TimeLabels(model, new DateTime((long)amin), new DateTime((long)amax), count, input.ArgumentFormat, culture, argumentRoomPx);
+                // A formatter gets each tick as a date of the argument's own type.
+                var first = input.Arguments.FirstOrDefault(a => a is not null);
+                Func<DateTime, string>? timeText = input.ArgumentFormatter is { } tf
+                    ? t => tf(first switch
+                    {
+                        DateOnly => DateOnly.FromDateTime(t),
+                        DateTimeOffset o => new DateTimeOffset(t, o.Offset),
+                        _ => t,
+                    })
+                    : null;
+                TimeLabels(model, new DateTime((long)amin), new DateTime((long)amax), count, input.ArgumentFormat, culture, argumentRoomPx, timeText);
             }
         }
 
@@ -563,6 +586,11 @@ internal static class ChartLayout
     // capped at a third of the width by CSS.
     private static double EstimateValueColumn(ChartInput input, ChartModel model, ArgumentKind kind)
     {
+        if (input.Horizontal ? input.HideArgumentAxis : input.HideValueAxis)
+        {
+            return GapPx;
+        }
+
         if (input.Horizontal)
         {
             var longest = model.ArgumentTexts.Select(t => Width(t)).DefaultIfEmpty(0).Max();
@@ -570,7 +598,8 @@ internal static class ChartLayout
         }
 
         var all = input.Series.SelectMany(s => s.Values).Where(v => v is not null).Select(v => v!.Value).DefaultIfEmpty(0).ToArray();
-        var sample = input.Stacked == ChartStack.Full ? "100%" : Math.Max(Math.Abs(all.Max()), Math.Abs(all.Min())).ToString(input.ValueFormat ?? "N0", input.Culture);
+        var widest = Math.Max(Math.Abs(all.Max()), Math.Abs(all.Min()));
+        var sample = input.Stacked == ChartStack.Full ? "100%" : input.ValueFormatter?.Invoke(widest) ?? widest.ToString(input.ValueFormat ?? "N0", input.Culture);
         return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx;
     }
 
@@ -638,7 +667,7 @@ internal static class ChartLayout
     }
 
     // Numbers: D3 ticks at the widest fit, and coarser multiples of the step at narrower ones.
-    private static void NumberLabels(List<AxisLabel> labels, double min, double max, double count, string? format, CultureInfo culture, double columnPx, List<GridLine>? grid)
+    private static void NumberLabels(List<AxisLabel> labels, double min, double max, double count, string? format, CultureInfo culture, double columnPx, List<GridLine>? grid, Func<double, string>? tickText = null)
     {
         var spec = ChartScale.TickSpec(min, max, count);
         format ??= "N" + ChartScale.Decimals(spec.Step);
@@ -647,7 +676,7 @@ internal static class ChartLayout
         for (var i = spec.I1; i <= spec.I2; i++)
         {
             var v = spec.Value(i);
-            ticks.Add((i, v, v.ToString(format, culture)));
+            ticks.Add((i, v, tickText?.Invoke(v) ?? v.ToString(format, culture)));
         }
 
         if (ticks.Count == 0) return;
@@ -673,7 +702,7 @@ internal static class ChartLayout
         }
     }
 
-    private static void TimeLabels(ChartModel model, DateTime min, DateTime max, double count, string? format, CultureInfo culture, double columnPx)
+    private static void TimeLabels(ChartModel model, DateTime min, DateTime max, double count, string? format, CultureInfo culture, double columnPx, Func<DateTime, string>? text = null)
     {
         var b = ChartTime.BaseIndex((max - min).Ticks, count);
         var unit = ChartTime.Ladder[b].Unit;
@@ -686,7 +715,7 @@ internal static class ChartLayout
             return level;
         }).ToArray();
 
-        string Text(DateTime t) => format is not null ? t.ToString(format, culture) : unit switch
+        string Text(DateTime t) => text is not null ? text(t) : format is not null ? t.ToString(format, culture) : unit switch
         {
             ChartTime.Unit.Second => t.ToString("T", culture),
             ChartTime.Unit.Minute or ChartTime.Unit.Hour => t.ToString("t", culture),
@@ -696,7 +725,7 @@ internal static class ChartLayout
         };
 
         // The second line: the month (and year) under days, the date under times, the year under months.
-        string? Context(DateTime t, DateTime? previous) => format is not null ? null : unit switch
+        string? Context(DateTime t, DateTime? previous) => format is not null || text is not null ? null : unit switch
         {
             ChartTime.Unit.Second or ChartTime.Unit.Minute or ChartTime.Unit.Hour =>
                 previous?.Date == t.Date ? null : t.ToString(previous?.Year == t.Year ? "MMM d" : "MMM d, yyyy", culture),

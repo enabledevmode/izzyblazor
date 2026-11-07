@@ -355,6 +355,29 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void Formatters_write_the_labels_and_the_redraw_keeps_the_servers_axis()
+    {
+        Month[] months = [new("Jan", 1_200_000, 600_000), new("Feb", 2_450_000, 700_000)];
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue")
+            .Add(c => c.ValueFormatter, v => $"${v / 1e6:0.#}M")
+            .Add(c => c.ArgumentFormatter, a => $"{a} '26")
+            .Add(c => c.HideArgumentAxis, true)
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs)));
+
+        Assert.Contains("$2.5M", cut.FindAll(".ib-chart-side span").Select(s => s.TextContent));
+        Assert.Equal(["Jan '26", "$1.2M", "$0.6M"], cut.FindAll(".ib-chart-table tbody tr")[0].Children.Select(c => c.TextContent));
+        Assert.Contains("ib-chart-off", cut.Find(".ib-chart-bottom").ClassName);
+
+        // The legend's redraw gets the server's ticks, since it can't run the formatter.
+        var draw = System.Text.Json.JsonDocument.Parse(cut.Find("ib-chart").GetAttribute("data-ib-draw")!).RootElement;
+        Assert.Contains(draw.GetProperty("tk").EnumerateArray(), t => t[1].GetString() == "$2.5M");
+    }
+
+    [Fact]
     public void Needs_a_title_or_a_heading_that_titles_it()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p

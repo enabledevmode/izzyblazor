@@ -82,9 +82,9 @@
     column-gap: var(--ib-space-2);
     padding-block-start: 0.5lh;
     padding-inline-start: var(--ib-chart-pad, 0);
-    font-size: var(--ib-text-xs);
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
     line-height: 1.3;
-    color: var(--ib-color-muted);
+    color: var(--ib-chart-tick-color, var(--ib-color-muted));
     font-variant-numeric: tabular-nums;
   }
 
@@ -111,6 +111,11 @@
   }
 
   ib-chart[data-ib-horizontal] .ib-chart-frame { padding-block-start: 0; }
+
+  /* An axis left out (HideValueAxis, HideArgumentAxis): its labels take no room, and the script
+     still has its places to draw into. */
+  .ib-chart-side.ib-chart-off { visibility: hidden; max-width: 0; }
+  .ib-chart-bottom.ib-chart-off { display: none; }
 
   .ib-chart-plot {
     position: relative;

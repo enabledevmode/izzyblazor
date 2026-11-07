@@ -1,0 +1,17 @@
+@* Quarterly revenue in millions, each quarter named from its start date. *@
+<Chart Items="_quarters" Argument="q => q.Start" Title="Revenue by quarter"
+       ValueFormatter="@(v => v == 0 ? "$0" : $"${v / 1_000_000:0.#}M")"
+       ArgumentFormatter="@(a => a is DateOnly d ? $"Q{(d.Month + 2) / 3} '{d:yy}" : "")">
+    <ChartSeries Value="q => q.Revenue" />
+</Chart>
+
+@code {
+    private record QuarterRevenue(DateOnly Start, decimal Revenue);
+
+    private readonly QuarterRevenue[] _quarters =
+    [
+        new(new(2025, 1, 1), 3_840_000), new(new(2025, 4, 1), 4_120_000), new(new(2025, 7, 1), 4_510_000),
+        new(new(2025, 10, 1), 5_260_000), new(new(2026, 1, 1), 5_030_000), new(new(2026, 4, 1), 5_690_000),
+        new(new(2026, 7, 1), 6_140_000), new(new(2026, 10, 1), 6_870_000),
+    ];
+}

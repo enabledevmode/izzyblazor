@@ -22,7 +22,9 @@
     areas; Orientation.Horizontal lays bars across, the arguments down the side.
 
     The text is HTML beside the plot, so it keeps its size at any width; at narrow widths every
-    other label (or every fourth) hides so they don't crowd.
+    other label (or every fourth) hides so they don't crowd. --ib-chart-tick-color and
+    --ib-chart-tick-size set the axis labels' color and size (the theme's muted text at
+    --ib-text-xs by default); labels fit by Inter at 12px until the script measures them.
 
     Accessibility:
     - A figure captioned by Title (or named by a heading on the page, with TitledBy). The plot and
@@ -101,6 +103,27 @@
 
     /// <summary>A .NET format string for the arguments, such as <c>MMM</c> or <c>N0</c>.</summary>
     [Parameter] public string? ArgumentFormat { get; set; }
+
+    /// <summary>
+    /// Writes each value's text yourself, such as <c>v =&gt; $"${v / 1e6:0.#}M"</c>, in place of
+    /// <see cref="ValueFormat"/>: on the axis, in tooltips and in the data table. (A full stack's
+    /// axis still reads in percent.) Hiding a series from the legend then keeps the value axis as
+    /// it is rather than rescaling it, since its text comes from the server.
+    /// </summary>
+    [Parameter] public Func<double, string>? ValueFormatter { get; set; }
+
+    /// <summary>
+    /// Writes each argument's text yourself, in place of <see cref="ArgumentFormat"/>. It gets the
+    /// item's argument, or a tick on a number or date scale: a double, or a date of the argument's
+    /// own type. Dates then have no second line for the month or year.
+    /// </summary>
+    [Parameter] public Func<object?, string>? ArgumentFormatter { get; set; }
+
+    /// <summary>Leaves out the value axis's labels, for a small chart or one whose values are labeled on the marks.</summary>
+    [Parameter] public bool HideValueAxis { get; set; }
+
+    /// <summary>Leaves out the argument axis's labels.</summary>
+    [Parameter] public bool HideArgumentAxis { get; set; }
 
     /// <summary>Where the value axis starts. Defaults to a round number at or below the lowest value (0 with bars and areas).</summary>
     [Parameter] public double? ValueMin { get; set; }
@@ -302,6 +325,10 @@
             ValueLog = ValueLog,
             GridLines = GridLines,
             ArgumentLabels = ArgumentLabels,
+            ValueFormatter = ValueFormatter,
+            ArgumentFormatter = ArgumentFormatter,
+            HideValueAxis = HideValueAxis,
+            HideArgumentAxis = HideArgumentAxis,
         });
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
@@ -329,7 +356,7 @@
             {
                 <div class="ib-chart-title ib-chart-title-side">@sideTitle</div>
             }
-            <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
+            <div class="@((horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side") + ((horizontal ? HideArgumentAxis : HideValueAxis) ? " ib-chart-off" : ""))">
                 <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
                     @foreach (var label in side)
                     {
@@ -407,7 +434,7 @@
                     <div class="ib-chart-tooltip" hidden></div>
                 }
             </div>
-            <div class="@BottomClass(model, horizontal)" style="@room">
+            <div class="@(BottomClass(model, horizontal) + ((horizontal ? HideValueAxis : HideArgumentAxis) ? " ib-chart-off" : ""))" style="@room">
                 <div class="@(horizontal ? "ib-chart-ticks ib-chart-values" : "ib-chart-ticks")">
                     @foreach (var label in bottom)
                     {
@@ -593,6 +620,26 @@
             Number("vs", ValueLog ? null : ValueStep);
             w.WriteBoolean("lg", ValueLog);
             w.WriteBoolean("gl", GridLines != ChartGridLines.None);
+            // With a ValueFormatter, the server's value axis as drawn: its range and ticks.
+            if (ValueFormatter is not null && Stacked != ChartStack.Full)
+            {
+                w.WriteNumber("rl", model.ValueRange.Min);
+                w.WriteNumber("rh", model.ValueRange.Max);
+                w.WriteStartArray("tk");
+                var lines = model.Grid.Where(g => !g.Argument).ToList();
+                for (var t = 0; t < model.ValueLabels.Count; t++)
+                {
+                    var label = model.ValueLabels[t];
+                    w.WriteStartArray();
+                    w.WriteNumberValue(Math.Round(label.Pos, 6));
+                    w.WriteStringValue(label.Text);
+                    w.WriteNumberValue(label.From);
+                    w.WriteBooleanValue(t < lines.Count && lines[t].Zero);
+                    w.WriteEndArray();
+                }
+
+                w.WriteEndArray();
+            }
             w.WriteStartObject("f");
             w.WriteString("p", shape.Prefix);
             w.WriteString("s", shape.Suffix);
