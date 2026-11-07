@@ -1,6 +1,15 @@
-@* A server's load. The fill turns amber and red as memory and disk fill up, and the labels say so. *@
+@* A server's load against the same two bands: past 70% is high, past 90% critical. Each gauge fills
+   in the color of the band its value is in, and names the band under the value. *@
 <Row Gap="8" Wrap Justify="Justify.Center">
-    <Gauge Label="CPU" Value="0.42" ValueFormat="P0" />
-    <Gauge Label="Memory, high" Value="0.78" ValueFormat="P0" Accent="Accent.From(Color.Warning)" />
-    <Gauge Label="Disk, nearly full" Value="0.93" ValueFormat="P0" Accent="Accent.Danger" />
+    @foreach (var (label, value) in _load)
+    {
+        <Gauge Label="@label" Value="value" ValueFormat="P0">
+            <GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" />
+            <GaugeBand From="0.9" To="1" Accent="Accent.Danger" Label="Critical" />
+        </Gauge>
+    }
 </Row>
+
+@code {
+    private readonly (string Label, double Value)[] _load = [("CPU", 0.42), ("Memory", 0.78), ("Disk", 0.93)];
+}

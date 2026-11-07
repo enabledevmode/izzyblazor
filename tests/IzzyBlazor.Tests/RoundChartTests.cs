@@ -102,5 +102,15 @@ public class RoundChartTests : BunitContext
         Assert.Equal("1", meter.GetAttribute("aria-valuenow"));
         Assert.Equal("120%", meter.GetAttribute("aria-valuetext"));
         Assert.Equal(ChartShapes.GaugeArc(0, 1, 0.88), cut.Find("path.ib-gauge-fill").GetAttribute("d"));
+
+        // In a band: the band's label is shown and read with the value, and the target after it.
+        var banded = Render<Gauge>(p => p
+            .Add(c => c.Label, "Memory")
+            .Add(c => c.Value, 0.78)
+            .Add(c => c.ValueFormat, "P0")
+            .Add(c => c.Target, 0.8)
+            .AddChildContent<GaugeBand>(b => b.Add(x => x.From, 0.7).Add(x => x.To, 0.9).Add(x => x.Accent, Accent.Danger).Add(x => x.Label, "High")));
+        Assert.Equal("78%, High, target 80%", banded.Find("[role=meter]").GetAttribute("aria-valuetext"));
+        Assert.Equal("High", banded.Find(".ib-gauge-state").TextContent);
     }
 }

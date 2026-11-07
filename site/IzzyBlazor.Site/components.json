@@ -2279,12 +2279,13 @@
       "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "keywords": ["meter", "dial", "speedometer", "radial progress"],
       "features": [
         { "feature": "A 240° dial with the value in the middle and the ends under it" },
-        { "feature": "A status color for the fill" },
+        { "feature": "Bands along the dial that color the fill and name the value's range" },
+        { "feature": "A target tick" },
         { "feature": "Read as a meter, with its value in words" }
       ],
       "examples": [
-        { "id": "gauge-usage", "title": "Server load", "lead": "Give `Gauge` a `Value` and a `Label`. The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. `Accent` colors the fill, here as memory and disk fill up; the color isn't read, so the labels say it too. A gauge is 12rem wide; `Width` sets another." },
-        { "id": "gauge-range", "title": "Another range", "lead": "To measure on another scale, set `Min` and `Max`. A value past either end fills none or all of the dial, and still shows as it is." }
+        { "id": "gauge-usage", "title": "Server load in bands", "lead": "Give `Gauge` a `Value` and a `Label`. The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. A dial alone is a number in a ring; what makes it worth the room is something to read the value against. Each `GaugeBand` marks a range along the dial's edge in its `Accent`: a value in it fills in that color, and the band's `Label` shows under the value and is read with it, so the color isn't the only cue. A gauge is 12rem wide; `Width` sets another." },
+        { "id": "gauge-range", "title": "Another range, and a target", "lead": "To measure on another scale, set `Min` and `Max`. `Target` marks a goal with a tick across the dial, read with the value as \"target 50\". A value past either end fills none or all of the dial, and still shows as it is." }
       ]
     },
     {

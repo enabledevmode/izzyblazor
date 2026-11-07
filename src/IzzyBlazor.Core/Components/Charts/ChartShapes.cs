@@ -97,6 +97,15 @@ internal static class ChartShapes
         return $"M{N(x0)},{N(y0)}A{N(r)},{N(r)} 0 {large},1 {N(x1)},{N(y1)}";
     }
 
+    /// <summary>A tick across a gauge's track at <paramref name="at"/> (a share of the track), from radius <paramref name="r0"/> out to <paramref name="r1"/>.</summary>
+    public static string GaugeTick(double at, double r0, double r1)
+    {
+        var a = -GaugeSweep / 2 + Math.Clamp(at, 0, 1) * GaugeSweep;
+        var (x0, y0) = At(a, r0);
+        var (x1, y1) = At(a, r1);
+        return $"M{N(x0)},{N(y0)}L{N(x1)},{N(y1)}";
+    }
+
     /// <summary>
     /// A sparkline's line (and, for an area, its fill down to the bottom), in a 1000 by 1000 box
     /// that stretches. Missing values break the line. The values span the box's height.

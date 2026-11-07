@@ -1229,6 +1229,9 @@ public class IzzyText
     /// <summary>A bubble's size, in the tooltip and data table, when its Size isn't a property.</summary>
     public virtual string ChartSize { get; set; } = "Size";
 
+    /// <summary>A Gauge's target, read after its value: "target {0}".</summary>
+    public virtual string GaugeTarget { get; set; } = "target {0}";
+
     /// <summary>A waterfall chart's legend: the key for bars that add to the running total.</summary>
     public virtual string ChartIncrease { get; set; } = "Increase";
 
