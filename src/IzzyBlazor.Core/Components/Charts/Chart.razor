@@ -718,6 +718,7 @@
     {
         "up" => "ib-chart-up",
         "down" => "ib-chart-down",
+        "total" => "ib-chart-total",
         _ => null,
     };
 
@@ -832,13 +833,14 @@
         return Trend(s).Length > 0 ? $"color-mix(in oklab, {color} 60%, var(--ib-color-on-surface))" : color;
     }
 
-    // A waterfall's color for one item: a rise's, a fall's, or the series' own for a total.
-    private static string ItemColor(SeriesShape s, int index) =>
-        s.Data.Totals is not { } totals || totals[index] || s.Data.Values[index] is null
-            ? SeriesColor(s)
-            : s.Bars.FirstOrDefault(b => b.Index == index)?.Change == "down"
-            ? "var(--ib-chart-decrease, var(--ib-chart-8))"
-            : "var(--ib-chart-increase, var(--ib-chart-2))";
+    // A waterfall's color for one item: a rise's, a fall's, or a total's (chart.css's ib-chart-up, -down, -total).
+    private static string ItemColor(SeriesShape s, int index) => s.Bars.FirstOrDefault(b => b.Index == index)?.Change switch
+    {
+        "up" => "var(--ib-chart-increase, var(--ib-chart-1))",
+        "down" => "var(--ib-chart-decrease, var(--ib-chart-8))",
+        "total" => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-color-neutral)",
+        _ => SeriesColor(s),
+    };
 
     private static string KeyStyle(ChartTooltipPoint point) => "background:" + point.Color;
 

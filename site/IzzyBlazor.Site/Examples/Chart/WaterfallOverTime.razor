@@ -1,0 +1,28 @@
+@* A year's cash, month by month: changes over time read left to right as columns, from the
+   opening balance to the closing one. *@
+<Chart Items="_months" Argument="m => m.Name" Title="Cash on hand, 2026">
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartWaterfallSeries Value="m => m.Change" Total="m => m.IsTotal" Labels="ChartLabels.Auto" LabelFormat="$#,##0,K" />
+</Chart>
+
+@code {
+    private record CashMonth(string Name, decimal Change, bool IsTotal = false);
+
+    private readonly CashMonth[] _months =
+    [
+        new("Opening", 420_000),
+        new("Jan", -38_000),
+        new("Feb", -22_000),
+        new("Mar", 64_000),
+        new("Apr", 18_000),
+        new("May", -51_000),
+        new("Jun", 87_000),
+        new("Jul", -12_000),
+        new("Aug", -44_000),
+        new("Sep", 73_000),
+        new("Oct", 29_000),
+        new("Nov", -16_000),
+        new("Dec", 95_000),
+        new("Closing", 0, IsTotal: true),
+    ];
+}

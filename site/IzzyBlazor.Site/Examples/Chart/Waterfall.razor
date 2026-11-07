@@ -1,8 +1,8 @@
-@* A quarter's profit and loss: from revenue, through costs, to net profit. *@
-<Chart Items="_lines" Argument="l => l.Name" Title="Profit and loss, Q3 2026">
-    <ChartValueAxis Format="$#,##0,K" />
-    <ChartArgumentAxis LabelFit="ChartLabelFit.Rotate" />
-    <ChartWaterfallSeries Value="l => l.Amount" Total="l => l.IsTotal" Labels="ChartLabels.Auto" LabelFormat="$#,##0,K" />
+@* A quarter's profit and loss, line by line from revenue to net profit: bars across, so each line's
+   name reads flat, and every bar labeled, so the value axis and its grid lines step aside. *@
+<Chart Items="_lines" Argument="l => l.Name" Title="Profit and loss, Q3 2026" Orientation="Orientation.Horizontal">
+    <ChartValueAxis Format="$#,##0,K" HideLabels GridLines="false" />
+    <ChartWaterfallSeries Value="l => l.Amount" Total="l => l.IsTotal" Labels="ChartLabels.Auto" />
 </Chart>
 
 @code {

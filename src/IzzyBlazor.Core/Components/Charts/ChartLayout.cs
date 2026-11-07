@@ -503,7 +503,8 @@ internal static class ChartLayout
 
                     if (data.Totals is { } totals)
                     {
-                        rect = rect with { Change = totals[i] ? "total" : top < (lows[s][i] ?? 0) ? "down" : "up" };
+                        // The first bar is the amount the waterfall starts from: a total, on the baseline.
+                        rect = rect with { Change = totals[i] || steps.Count == 0 ? "total" : top < (lows[s][i] ?? 0) ? "down" : "up" };
                         steps.Add((a0, a0 + width, v1));
                     }
 
