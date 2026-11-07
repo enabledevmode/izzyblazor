@@ -51,6 +51,9 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     border-radius: var(--ib-radius-md);
+    /* The library's thin scrollbar, as its other scroll areas have. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--ib-color-scrollbar, color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent)) transparent;
   }
 
   .ib-chat-log:focus-visible {
@@ -123,13 +126,18 @@
   .ib-chat-bubble { min-inline-size: 0; max-inline-size: 100%; }
 
   /* Yours: a bubble tinted with the accent. Others', in a conversation: a neutral one. */
+  /* In dark mode the fills are stronger: the subtle ones barely part from the surface there. */
   :is(.ib-chat-mine, .ib-chat-conversation .ib-chat-other) .ib-chat-bubble {
     padding: var(--ib-space-2) var(--ib-space-3);
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-fill-subtle);
+    background-color: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill-strong));
   }
 
-  .ib-chat-entry.ib-chat-mine .ib-chat-bubble { background-color: color-mix(in oklab, var(--ib-color-primary) 14%, var(--ib-color-surface)); }
+  .ib-chat-entry.ib-chat-mine .ib-chat-bubble {
+    background-color: light-dark(
+      color-mix(in oklab, var(--ib-color-primary) 14%, var(--ib-color-surface)),
+      color-mix(in oklab, var(--ib-color-primary) 30%, var(--ib-color-surface)));
+  }
 
   .ib-chat-conversation .ib-chat-other { max-inline-size: min(80%, 40rem); }
   .ib-chat-conversation .ib-chat-other .ib-chat-body { flex: 0 1 auto; }
@@ -217,8 +225,8 @@
   /* The box looks like a field; the text area in it has no frame of its own. */
   .ib-chat-box {
     display: flex;
-    align-items: flex-end;
-    gap: var(--ib-space-2);
+    flex-direction: column;
+    gap: var(--ib-space-1);
     padding: var(--ib-space-2);
     border: 1px solid var(--ib-color-outline);
     border-radius: var(--ib-radius-lg);
@@ -247,6 +255,14 @@
     field-sizing: content;
   }
 
+  /* The row under the text: attach at the start; your own tools, then Send (or Stop), at the end. */
+  .ib-chat-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+  }
+
+  .ib-chat-spacer { flex: 1 1 auto; }
   .ib-chat-action { flex: none; }
 
   /* Send's arrow and Stop's square, heavier than the library's 1.5 line: they're the box's one action. */

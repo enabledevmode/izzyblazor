@@ -1,0 +1,83 @@
+@* A microphone of your own in the box, dictating into the message with the browser's speech
+   recognition (wwwroot/examples/dictation.js, a few lines). Chrome, Edge and Safari have it;
+   elsewhere the button doesn't show. *@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<Chat Label="Trip notes" FormName="trip-notes" OnSend="Send" @bind-Draft="_draft" Height="Length.Rem(20)"
+      Appearance="ChatAppearance.Conversation" Placeholder="Dictate or type a note">
+    <ComposerActions>
+        @if (_supported)
+        {
+            <IconButton Icon="@(_listening ? Lucide.MicOff : Lucide.Mic)" Label="@(_listening ? "Stop dictating" : "Dictate")"
+                        Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" OnClick="ToggleAsync" />
+        }
+    </ComposerActions>
+    <ChildContent>
+        @foreach (var note in _notes)
+        {
+            <ChatEntry Mine Text="@note" Initials="IB" />
+        }
+    </ChildContent>
+</Chat>
+
+@* hide *@
+@code {
+    private readonly List<string> _notes = ["Book the ferry to Naxos for the 14th."];
+    private string? _draft;
+    private bool _supported;
+    private bool _listening;
+    private IJSObjectReference? _speech;
+    private DotNetObjectReference<Dictation>? _self;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _speech = await JS.InvokeAsync<IJSObjectReference>("import", "./examples/dictation.js");
+        _supported = await _speech.InvokeAsync<bool>("supported");
+        StateHasChanged();
+    }
+
+    private async Task ToggleAsync()
+    {
+        if (_speech is null) return;
+        if (_listening)
+        {
+            await _speech.InvokeVoidAsync("stop");
+            return;
+        }
+
+        _listening = true;
+        _self ??= DotNetObjectReference.Create(this);
+        await _speech.InvokeVoidAsync("start", _self);
+    }
+
+    [JSInvokable]
+    public void Heard(string text)
+    {
+        _draft = text;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void Ended()
+    {
+        _listening = false;
+        StateHasChanged();
+    }
+
+    private void Send(ChatSendArgs message) => _notes.Add(message.Text);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_speech is not null)
+        {
+            await _speech.InvokeVoidAsync("stop");
+            await _speech.DisposeAsync();
+        }
+
+        _self?.Dispose();
+    }
+}
+@* /hide *@
