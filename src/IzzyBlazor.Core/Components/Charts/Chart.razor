@@ -672,7 +672,13 @@
     private static string? LabelClass(DataLabel label, SeriesShape owner) =>
         ((label.Inside ? $"ib-chart-dl-in ib-chart-s{owner.Slot}" : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
 
-    private static string SeriesColor(SeriesShape s) => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-chart-" + s.Slot + ")";
+    private static string SeriesColor(SeriesShape s)
+    {
+        var color = s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-chart-" + s.Slot + ")";
+
+        // A trend's own shade (chart.css's ib-chart-trend), so its tooltip key matches its line.
+        return Trend(s).Length > 0 ? $"color-mix(in oklab, {color} 60%, var(--ib-color-on-surface))" : color;
+    }
 
     private static string KeyStyle(ChartTooltipPoint point) => "background:" + point.Color;
 
