@@ -7,31 +7,28 @@
     A value on a dial: a 240° track filled up to the value, with the value in the middle and the
     label under it. 12rem wide unless Width says otherwise, and never wider than its container.
 
-    <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" />
+    <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" Target="0.8">
+        <GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" />
+        <GaugeBand From="0.9" To="1" Accent="Accent.Danger" Label="Critical" />
+    </Gauge>
+
+    Bands mark ranges along the dial's outer edge; a value in one fills in its color and shows its
+    label. Target marks a goal with a tick across the track.
 
     Accessibility:
     - role="meter", named by Label, which is required, with aria-valuenow, -min and -max, and the
-      formatted value as aria-valuetext, so a screen reader hears "Disk used, 72%".
-    - Accent colors the fill; the color isn't read, so say what it means in the label or nearby.
+      formatted value as aria-valuetext with its band's label and the target, so a screen reader
+      hears "Disk used, 72%, High, target 80%".
+    - Colors aren't read: a band's Label says what its color means, on screen and to screen readers.
     See also: Progress, Stat.
 *@
 
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="meter"
-     aria-labelledby="@_labelId"
-     aria-valuenow="@Num(Math.Clamp(_value, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@_text">
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
-    <div class="ib-gauge-dial">
-        <svg class="ib-gauge-svg" viewBox="-1 -1 2 1.56" aria-hidden="true">
-            <path class="ib-gauge-track" d="@ChartShapes.GaugeArc(0, 1, Radius)" />
-            @if (_share > 0)
-            {
-                <path class="ib-gauge-fill" d="@ChartShapes.GaugeArc(0, _share, Radius)" />
-            }
-        </svg>
-        <span class="ib-gauge-value" aria-hidden="true">@_text</span>
-        <span class="ib-gauge-end" aria-hidden="true">@Text(Min)</span>
-        <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
-    </div>
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+        @_dialFragment
+    </CascadingValue>
     <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-gauge-label")">@Label</span>
 </div>
 
@@ -53,25 +50,88 @@
     /// <summary>Hides the label, which still names the gauge for screen readers.</summary>
     [Parameter] public bool HideLabel { get; set; }
 
-    /// <summary>A .NET format string for the value and the ends, such as <c>P0</c>, <c>N0</c> or <c>C0</c>.</summary>
+    /// <summary>A .NET format string for the value, the ends and the target, such as <c>P0</c>, <c>N0</c> or <c>C0</c>.</summary>
     [Parameter] public string? ValueFormat { get; set; }
 
+    /// <summary>A goal to read the value against, such as <c>0.8</c>: a tick across the dial, read with the value.</summary>
+    [Parameter] public double? Target { get; set; }
+
     /// <summary>
-    /// The fill's color, such as <c>Accent.From(Color.Warning)</c> when the value is
-    /// high, <c>Accent.Danger</c> or <c>Accent.Of("#0d9488")</c>. Defaults to the primary color.
+    /// The fill's color, such as <c>Accent.Of("#0d9488")</c>. Defaults to the color of the
+    /// <see cref="GaugeBand"/> the value is in, or the primary color.
     /// </summary>
     [Parameter] public Accent? Accent { get; set; }
 
+    /// <summary>The <see cref="GaugeBand"/>s: ranges along the dial, such as where a load turns high.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
     private readonly string _labelId = IdGenerator.Next("ib-gauge");
+    private readonly GaugeContext _context = new();
     private double _value;
     private double _share;
     private string _text = "";
     private string? _class;
     private string? _style;
+    private RenderFragment _dialFragment = null!;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The dial draws after the bands inside the gauge have said they're there.
+        _dialFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderDial);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Dial = plot));
+            builder.CloseComponent();
+        };
+        base.OnInitialized();
+    }
 
     private static string Num(double value) => value.ToString("0.######", CultureInfo.InvariantCulture);
 
     private string Text(double value) => value.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    private double Share(double value) => Math.Clamp((value - Min) / (Max - Min), 0, 1);
+
+    private static string BandColor(GaugeBand band) => StyleValues.Color(band.Accent.ToColor());
+
+    private void RenderDial(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var bands = _context.Bands.Items;
+
+        // The band the value is in: the last that holds it, so a later band wins where two meet.
+        var current = bands.LastOrDefault(b => _value >= b.From && _value <= b.To);
+        var fill = Accent is null && current is not null ? $"stroke:{BandColor(current)}" : null;
+        var target = Target is { } t ? string.Format(CultureInfo.CurrentCulture, TextDefaults.GaugeTarget, Text(t)) : null;
+        var words = string.Join(", ", new[] { _text, current?.Label, target }.Where(w => !string.IsNullOrEmpty(w)));
+        <div class="ib-gauge-dial" role="meter" aria-labelledby="@_labelId"
+             aria-valuenow="@Num(Math.Clamp(_value, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@words">
+            <svg class="ib-gauge-svg" viewBox="-1 -1 2 1.56" aria-hidden="true">
+                <path class="ib-gauge-track" d="@ChartShapes.GaugeArc(0, 1, Radius)" />
+                @foreach (var band in bands)
+                {
+                    if (!(Share(band.To) > Share(band.From))) continue;
+                    <path class="ib-gauge-band" style="stroke:@BandColor(band)" d="@ChartShapes.GaugeArc(Share(band.From), Share(band.To), 1.01)" />
+                }
+                @if (_share > 0)
+                {
+                    <path class="ib-gauge-fill" style="@fill" d="@ChartShapes.GaugeArc(0, _share, Radius)" />
+                }
+                @if (Target is { } goal)
+                {
+                    <path class="ib-gauge-target" d="@ChartShapes.GaugeTick(Share(goal), Radius - 0.13, 1.04)" />
+                }
+            </svg>
+            <span class="ib-gauge-value" aria-hidden="true">@_text</span>
+            @if (current?.Label is { Length: > 0 } state)
+            {
+                <span class="ib-gauge-state" style="--ib-gauge-state:@BandColor(current)" aria-hidden="true">@state</span>
+            }
+            <span class="ib-gauge-end" aria-hidden="true">@Text(Min)</span>
+            <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
+        </div>
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -99,8 +159,9 @@
         }
 
         _value = double.IsFinite(Value) ? Value : Min;
-        _share = Math.Clamp((_value - Min) / (Max - Min), 0, 1);
+        _share = Share(_value);
         _text = Text(_value);
+        _context.Bands.BeginPass();
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
     }
