@@ -20,11 +20,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="10.11.0" />
     <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
     <!-- Built first, run by GenerateApiMetadata below; not referenced as code. It runs on the build
          machine, so it's built without the site's runtime (dotnet publish -r linux-x64 on Windows). -->
-    <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false"
-                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
+    <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
     <!-- The MCP server at /mcp (Services/Mcp). -->
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
   </ItemGroup>
@@ -45,16 +45,14 @@
   </ItemGroup>
 
   <!-- Not in design-time builds (IntelliSense), where DocsGen may not be built: the last file is used. -->
-  <Target Name="GenerateApiMetadata" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareResources"
-          Condition="'$(DesignTimeBuild)' != 'true'">
+  <Target Name="GenerateApiMetadata" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareResources" Condition="'$(DesignTimeBuild)' != 'true'">
     <!-- Without the site's runtime too, to find the DocsGen the reference above built. -->
-    <MSBuild Projects="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)"
-             RemoveProperties="RuntimeIdentifier;SelfContained">
+    <MSBuild Projects="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)" RemoveProperties="RuntimeIdentifier;SelfContained">
       <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
     </MSBuild>
     <!-- DocsGen only rewrites the file when the API changed, so an unchanged API rebuilds nothing. -->
     <PropertyGroup>
-      <DocsGenPrevious Condition="Exists('$(ApiReleasedFile)')">--previous &quot;$(ApiReleasedFile)&quot;</DocsGenPrevious>
+      <DocsGenPrevious Condition="Exists('$(ApiReleasedFile)')">--previous "$(ApiReleasedFile)"</DocsGenPrevious>
     </PropertyGroup>
     <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(ApiMetadataFile)&quot; --source &quot;$(MSBuildThisFileDirectory)..\..\src&quot; $(DocsGenPrevious)" />
   </Target>

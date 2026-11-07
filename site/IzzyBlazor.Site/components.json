@@ -2470,6 +2470,19 @@
             "noscript": "Send posts the form, and the page comes back with the whole reply: `CanStream` is false. Enter adds a line.",
             "static": "The form posts without reloading the page. With `[StreamRendering]` on the page, the reply streams as it does interactively: `OnSend`'s `CanStream` is true when the post came with script. Keep the conversation yourself between posts, under an id: this example sets `FormAction` to an address with the conversation's id, so each post goes there."
           } }
+      ],
+      "topics": [
+        {
+          "id": "streaming", "title": "Streaming from a model", "summary": "Stream a model's reply into the last entry, with Stop and Retry.", "members": ["Status", "OnStop", "OnSend", "ChatEntry.Pending", "ChatEntry.Failed", "ChatEntry.OnRetry"],
+          "intro": [
+            "Chat takes plain values, so it works with any model client, and with no dependency of its own. With Microsoft.Extensions.AI, keep the conversation as `ChatMessage` items and map each to a `ChatEntry`: `Mine` for the user's, `Markdown` for the assistant's. Send the history to `IChatClient.GetStreamingResponseAsync` and append each update's text to the last message.",
+            "Set `Status` to `Waiting` until the first piece, then `Streaming`, and `Pending` on the entry being written. Render at most every 50 milliseconds or so (each render on an interactive page crosses the circuit), and once more at the end. Stop cancels the request through a `CancellationToken`; what arrived stays. On an error, set `Failed` on the entry and `Status` to `Failed`; `OnRetry` asks again.",
+            "On a static page, put `[StreamRendering]` on the page and stream only when `OnSend`'s `CanStream` is true; with JavaScript off, send the reply whole."
+          ],
+          "examples": [
+            { "id": "chat-streaming", "title": "A cooking assistant", "modes": ["interactive"], "lead": "This site's `IChatClient` is a stand-in with canned answers; register your own (OpenAI, Azure OpenAI, Ollama) and the page stays the same." }
+          ]
+        }
       ]
     },
     {
