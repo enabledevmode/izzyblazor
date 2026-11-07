@@ -84,6 +84,10 @@ class Chart extends IzzyElement {
       const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
       if (same || !data || !jsSvg || !jsLabels) {
         this.removeAttribute("data-ib-redrawn");
+        for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-v]")) {
+          mark.style.removeProperty("--jp");
+          mark.style.removeProperty("--jq");
+        }
         return;
       }
       const draw = await loadDraw();
@@ -92,6 +96,11 @@ class Chart extends IzzyElement {
       jsSvg.innerHTML = out.svg;
       jsLabels.innerHTML = out.labels;
       if (jsDl) jsDl.innerHTML = out.dl;
+      // Reference marks on the value axis move to the new scale.
+      for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-v]")) {
+        mark.style.setProperty("--jp", String(out.pos(Number(mark.dataset.ibV))));
+        if (mark.dataset.ibVto) mark.style.setProperty("--jq", String(out.pos(Number(mark.dataset.ibVto))));
+      }
       this.setAttribute("data-ib-redrawn", "");
       if (bottom) this.fit(bottom);
       refresh();
@@ -503,14 +512,17 @@ class Chart extends IzzyElement {
     frame.tabIndex = 0;
     frame.setAttribute("role", "application");
     const hint = this.querySelector<HTMLElement>("[data-ib-keys]");
+    // The server's description (the reference marks) stays, with the keys' hint after it.
+    const described = frame.getAttribute("aria-describedby");
     if (hint) {
       frame.setAttribute("aria-roledescription", hint.dataset.ibKeys!);
-      frame.setAttribute("aria-describedby", hint.id);
+      frame.setAttribute("aria-describedby", described ? `${described} ${hint.id}` : hint.id);
     }
     signal.addEventListener("abort", () => {
       frame.setAttribute("role", "img");
       frame.removeAttribute("aria-roledescription");
-      frame.removeAttribute("aria-describedby");
+      if (described) frame.setAttribute("aria-describedby", described);
+      else frame.removeAttribute("aria-describedby");
       frame.removeAttribute("tabindex");
     });
   }

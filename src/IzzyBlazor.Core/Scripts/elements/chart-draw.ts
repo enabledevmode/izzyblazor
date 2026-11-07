@@ -39,6 +39,7 @@ export interface DrawData {
   lo: number | null; // ValueMin
   hi: number | null; // ValueMax
   vs: number | null; // ValueStep
+  rv?: number[]; // the reference marks' values, which the value axis always takes in
   lg: boolean; // ValueLog
   gl: boolean; // grid lines at the values
   // With a ValueFormatter, the server's axis as drawn, kept as it is: its range, and each tick's
@@ -233,6 +234,7 @@ export interface Drawing {
   svg: string;
   labels: string;
   dl: string; // the value labels' HTML
+  pos: (v: number) => number; // a value's place on the new value axis, 0 to 1
 }
 
 // ---- Value labels (ChartLayout.PlaceLabels), placed at the plot's real size. ----
@@ -326,6 +328,11 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         }
       }
     }
+  }
+  for (const v of d.rv ?? []) {
+    if (!isFinite(v) || (log && v <= 0)) continue;
+    min = Math.min(min, v);
+    max = Math.max(max, v);
   }
   if (!log && visible.some((s) => d.s[s].t === 0 || d.s[s].t === 2)) {
     min = Math.min(min, 0);
@@ -489,5 +496,5 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
 
   const paths = (inner: string) => (inner ? `<svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">${inner}</svg>` : "");
   svg += paths(areas) + barSvg + paths(lines) + marks;
-  return { svg, labels, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
+  return { svg, labels, pos: scale, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
 }

@@ -1,0 +1,18 @@
+@* Daily signups over a quarter, with notes at a price change and a launch. *@
+<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Title="Daily signups, Q3 2026">
+    <ChartSeries Value="d => d.Signups" Markers="false" />
+    <ChartReferenceLine Axis="ChartAxis.Argument" At="@(new DateOnly(2026, 8, 18))" Label="Mobile app launch" />
+    <ChartAnnotation Argument="@(new DateOnly(2026, 7, 21))" Value="94" Text="Price change" />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, int Signups);
+
+    private readonly Day[] _days = Enumerable.Range(0, 92).Select(i =>
+    {
+        var date = new DateOnly(2026, 7, 1).AddDays(i);
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+        var level = i < 20 ? 140 : i < 48 ? 100 : 175;
+        return new Day(date, level + (int)(12 * Math.Sin(i / 2.5)) - (weekend ? 30 : 0));
+    }).ToArray();
+}

@@ -1,0 +1,18 @@
+@* Monthly revenue against the year's target and its own average, with the holiday season shaded. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue against target, 2026" ValueFormat="C0">
+    <ChartSeries Value="m => m.Revenue" Name="Revenue" />
+    <ChartReferenceLine Value="150_000" Label="Target $150K" />
+    <ChartReferenceLine Statistic="ChartStatistic.Average" Series="Revenue" />
+    <ChartReferenceBand Axis="ChartAxis.Argument" From="@("Nov")" To="@("Dec")" Label="Holiday season" />
+</Chart>
+
+@code {
+    private record MonthRevenue(string Month, decimal Revenue);
+
+    private readonly MonthRevenue[] _months =
+    [
+        new("Jan", 84_200), new("Feb", 91_500), new("Mar", 102_300), new("Apr", 98_700),
+        new("May", 110_400), new("Jun", 121_900), new("Jul", 117_600), new("Aug", 126_300),
+        new("Sep", 133_800), new("Oct", 141_200), new("Nov", 156_900), new("Dec", 172_400),
+    ];
+}

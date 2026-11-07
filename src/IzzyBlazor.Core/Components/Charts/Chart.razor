@@ -331,6 +331,8 @@
             ArgumentFormatter = ArgumentFormatter,
             HideValueAxis = HideValueAxis,
             HideArgumentAxis = HideArgumentAxis,
+            Marks = _context.Marks.Select(m => m.Read()).ToList(),
+            Text = TextDefaults,
         });
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
@@ -353,7 +355,7 @@
                   data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@NameId" style="@FrameStyle(model)">
+        <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@NameId" aria-describedby="@(model.MarkTexts.Count > 0 ? $"{_labelId}-marks" : null)" style="@FrameStyle(model)">
             @if (sideTitle is not null)
             {
                 <div class="ib-chart-title ib-chart-title-side">@sideTitle</div>
@@ -376,6 +378,16 @@
                 {
                     @* The band or line under the pointer: the script places it. *@
                     <div class="ib-chart-hover" hidden></div>
+                }
+                @if (model.Marks.Any(m => m.Kind == ChartMarkKind.Band))
+                {
+                    @* Reference bands, under the series. *@
+                    <div class="ib-chart-under" aria-hidden="true">
+                        @foreach (var mark in model.Marks.Where(m => m.Kind == ChartMarkKind.Band))
+                        {
+                            @MarkElement(mark, horizontal)
+                        }
+                    </div>
                 }
                 <svg class="ib-chart-svg">
                     <defs>
@@ -432,6 +444,16 @@
                 {
                     @* The plot the script draws when the legend hides a series. *@
                     <svg class="ib-chart-svg ib-chart-js"></svg>
+                }
+                @if (model.Marks.Any(m => m.Kind != ChartMarkKind.Band))
+                {
+                    @* Reference lines and notes, over the series; the description says them. *@
+                    <div class="ib-chart-over" aria-hidden="true">
+                        @foreach (var mark in model.Marks.Where(m => m.Kind != ChartMarkKind.Band))
+                        {
+                            @MarkElement(mark, horizontal)
+                        }
+                    </div>
                 }
                 @if (model.DataLabels.Count > 0 || model.LabelTexts.Any(t => t is not null))
                 {
@@ -537,6 +559,10 @@
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
             <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
         }
+        @if (model.MarkTexts.Count > 0)
+        {
+            <span id="@(_labelId)-marks" class="ib-visually-hidden">@string.Join("; ", model.MarkTexts)</span>
+        }
         </ib-chart>
 
         @if (DataTable != ChartDataTable.None)
@@ -604,6 +630,34 @@
 
     private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
 
+    // A reference line, band or note. Each runs along an axis: "y" places it up from the bottom
+    // (values on an upright chart, names on bars across), "x" across from the left. --p and --q
+    // are its ends; a note's --n is its argument. data-ib-v holds the value the script rescales.
+    private static RenderFragment MarkElement(MarkShape mark, bool horizontal) => builder =>
+    {
+        var y = (mark.Axis == ChartAxis.Value) != horizontal;
+        var (p, q) = !y || mark.Axis == ChartAxis.Value || mark.Kind == ChartMarkKind.Note ? (mark.P, mark.Q) : (1 - mark.Q, 1 - mark.P);
+        if (mark.Kind == ChartMarkKind.Line && mark.Axis == ChartAxis.Argument && y) (p, q) = (1 - mark.P, 0);
+        var style = mark.Kind switch
+        {
+            ChartMarkKind.Band => $"--p:{Num(p)};--q:{Num(q)}",
+            ChartMarkKind.Note => $"--p:{Num(mark.P)};--n:{Num(horizontal ? 1 - mark.A : mark.A)}",
+            _ => $"--p:{Num(p)}",
+        };
+        var kind = mark.Kind switch { ChartMarkKind.Band => "ib-chart-band", ChartMarkKind.Note => "ib-chart-note", _ => "ib-chart-rule" };
+        var axis = mark.Kind == ChartMarkKind.Note ? (horizontal ? " ib-chart-note-h" : "") : y ? " ib-chart-mk-y" : " ib-chart-mk-x";
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", kind + axis);
+        builder.AddAttribute(2, "style", style);
+        builder.AddAttribute(3, "data-ib-v", mark.V is { } v && (mark.Axis == ChartAxis.Value) ? v.ToString("R", CultureInfo.InvariantCulture) : null);
+        builder.AddAttribute(4, "data-ib-vto", mark.VTo is { } vt ? vt.ToString("R", CultureInfo.InvariantCulture) : null);
+        builder.AddAttribute(5, "data-ib-series", mark.Series >= 0 ? mark.Series.ToString(CultureInfo.InvariantCulture) : null);
+        builder.OpenElement(6, "span");
+        builder.AddContent(7, mark.Text);
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
     // A label's center across, kept its half width from the plot's sides when it's justified.
     private static string LabelLeft(DataLabel label) => label.Justify > 0
         ? $"clamp({Num(label.Justify)}px,{Pct(label.AX)},calc(100% - {Num(label.Justify)}px))"
@@ -646,6 +700,13 @@
             Number("lo", ValueMin);
             Number("hi", ValueMax);
             Number("vs", ValueLog ? null : ValueStep);
+            // The marks' values, which the value axis always takes in.
+            if (model.MarkValues.Count > 0)
+            {
+                w.WriteStartArray("rv");
+                foreach (var v in model.MarkValues) w.WriteNumberValue(v);
+                w.WriteEndArray();
+            }
             w.WriteBoolean("lg", ValueLog);
             w.WriteBoolean("gl", GridLines != ChartGridLines.None);
             // With a ValueFormatter, the server's value axis as drawn: its range and ticks.

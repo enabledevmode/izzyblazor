@@ -38,6 +38,8 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public Func<object?, string>? ArgumentFormatter { get; init; }
     public bool HideValueAxis { get; init; }
     public bool HideArgumentAxis { get; init; }
+    public IReadOnlyList<ChartMarkInput> Marks { get; init; } = [];
+    public IzzyText Text { get; init; } = new();
     public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
 }
 
@@ -111,6 +113,13 @@ internal sealed class ChartModel
     public List<GridLine> Grid { get; } = [];
     public List<SeriesShape> Series { get; } = [];
     public List<DataLabel> DataLabels { get; } = [];
+    public List<MarkShape> Marks { get; } = [];
+
+    /// <summary>Each mark in words, such as "Target: $150,000", for the chart's description.</summary>
+    public List<string> MarkTexts { get; } = [];
+
+    /// <summary>The value-axis marks' values, which the value axis always takes in.</summary>
+    public List<double> MarkValues { get; } = [];
 
     /// <summary>Each series' label texts by item (null with no labels), for the script's redraw.</summary>
     public string?[]?[] LabelTexts { get; set; } = [];
@@ -207,6 +216,20 @@ internal static class ChartLayout
             }
         }
 
+        // Marks on the value axis are always in view: a target above every value still shows.
+        var marks = ResolveMarks(input);
+        foreach (var m in marks)
+        {
+            if (m.Axis != ChartAxis.Value) continue;
+            foreach (var v in new[] { m.Value, m.To })
+            {
+                if (v is not { } x || !double.IsFinite(x) || (log && x <= 0)) continue;
+                min = Math.Min(min, x);
+                max = Math.Max(max, x);
+                model.MarkValues.Add(x);
+            }
+        }
+
         if (!log && input.Series.Any(s => !s.Hidden && s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
@@ -276,6 +299,7 @@ internal static class ChartLayout
 
         // The argument axis.
         double[] positions;
+        double argMin = 0, argMax = 1;
         if (kind == ArgumentKind.Category)
         {
             positions = Enumerable.Range(0, n).Select(i => (i + 0.5) / Math.Max(1, n)).ToArray();
@@ -310,6 +334,7 @@ internal static class ChartLayout
             }
 
             positions = values.Select(v => v is { } x ? (x - amin) / (amax - amin) : double.NaN).ToArray();
+            (argMin, argMax) = (amin, amax);
             if (kind == ArgumentKind.Number)
             {
                 NumberLabels(model.ArgumentLabels, amin, amax, count, input.ArgumentFormat, culture, argumentRoomPx, grid: null,
@@ -454,8 +479,113 @@ internal static class ChartLayout
             }
         }
 
+        PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale);
         PlaceLabels(input, model, argumentRoomPx, plotHeight);
         return model;
+    }
+
+    // ---- Reference lines, bands and notes. ----
+
+    /// <summary>The marks with each statistic worked out from its series.</summary>
+    private static List<ChartMarkInput> ResolveMarks(ChartInput input) => input.Marks.Select(m =>
+    {
+        if (m.Statistic is not { } stat) return m;
+        var series = input.Series.FirstOrDefault(s => s.Name == m.Series)
+            ?? throw new InvalidOperationException($"ChartReferenceLine's Series \"{m.Series}\" isn't a series on the chart: use a series' Name.");
+        var values = series.Values.Where(v => v is { } x && double.IsFinite(x)).Select(v => v!.Value).Order().ToArray();
+        double? value = values.Length == 0 ? null : stat == ChartStatistic.Average
+            ? values.Average()
+            : values.Length % 2 == 1 ? values[values.Length / 2] : (values[values.Length / 2 - 1] + values[values.Length / 2]) / 2;
+        return m with { Value = value };
+    }).ToList();
+
+    /// <summary>
+    /// Places the marks: value-axis ones by the scale, argument ones at their argument (a name's
+    /// band, or a number or date on the scale). A mark at an argument the chart doesn't have is
+    /// left out. Each is put in words for the chart's description.
+    /// </summary>
+    private static void PlaceMarks(ChartInput input, ChartModel model, List<ChartMarkInput> marks, ArgumentKind kind, double[] positions, double argMin, double argMax, Func<double, double> scale)
+    {
+        var culture = input.Culture;
+        var n = input.Arguments.Count;
+        string ValueText(double v) => input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", culture);
+        string ArgText(object? a) => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture);
+
+        // A name's index, or a number or date's place on the scale.
+        int IndexOf(object? a)
+        {
+            for (var i = 0; i < n; i++)
+            {
+                if (Equals(input.Arguments[i], a) || model.ArgumentTexts[i] == ArgText(a)) return i;
+            }
+
+            return -1;
+        }
+
+        double? At(object? a) => kind == ArgumentKind.Category
+            ? IndexOf(a) is var i and >= 0 ? positions[i] : null
+            : ToDouble(a, kind) is { } x ? Math.Clamp((x - argMin) / (argMax - argMin), 0, 1) : null;
+
+        foreach (var m in marks)
+        {
+            var series = m.Statistic is not null ? input.Series.ToList().FindIndex(s => s.Name == m.Series) : -1;
+            switch (m.Kind, m.Axis)
+            {
+                case (ChartMarkKind.Line, ChartAxis.Value) when m.Value is { } v:
+                {
+                    var value = ValueText(v);
+                    var name = m.Statistic is { } st ? st == ChartStatistic.Average ? input.Text.ChartAverage : input.Text.ChartMedian : null;
+                    var text = m.Label ?? (name is not null ? $"{name}: {value}" : value);
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, scale(v), 0, 0, text) { V = v, Series = series });
+                    model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {value}" : text);
+                    break;
+                }
+
+                case (ChartMarkKind.Line, ChartAxis.Argument) when At(m.At) is { } p:
+                {
+                    var at = ArgText(m.At);
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, 0, 0, m.Label ?? at));
+                    model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {at}" : at);
+                    break;
+                }
+
+                case (ChartMarkKind.Band, ChartAxis.Value) when m.Value is { } from && m.To is { } to:
+                {
+                    var range = $"{ValueText(Math.Min(from, to))} {input.Text.ChartRangeTo} {ValueText(Math.Max(from, to))}";
+                    var (p, q) = (scale(Math.Min(from, to)), scale(Math.Max(from, to)));
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, q, 0, m.Label ?? range) { V = Math.Min(from, to), VTo = Math.Max(from, to) });
+                    model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {range}" : range);
+                    break;
+                }
+
+                case (ChartMarkKind.Band, ChartAxis.Argument):
+                {
+                    double? p, q;
+                    if (kind == ArgumentKind.Category)
+                    {
+                        var (i0, i1) = (IndexOf(m.At), IndexOf(m.AtTo));
+                        if (i0 < 0 || i1 < 0) break;
+                        (p, q) = ((double)Math.Min(i0, i1) / n, (double)(Math.Max(i0, i1) + 1) / n);
+                    }
+                    else
+                    {
+                        (p, q) = (At(m.At), At(m.AtTo));
+                        if (p is null || q is null) break;
+                        (p, q) = (Math.Min(p.Value, q.Value), Math.Max(p.Value, q.Value));
+                    }
+
+                    var range = $"{ArgText(m.At)} {input.Text.ChartRangeTo} {ArgText(m.AtTo)}";
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p!.Value, q!.Value, 0, m.Label ?? range));
+                    model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {range}" : range);
+                    break;
+                }
+
+                case (ChartMarkKind.Note, _) when m.Value is { } v && At(m.At) is { } a:
+                    model.Marks.Add(new MarkShape(m.Kind, ChartAxis.Value, scale(v), 0, a, m.Label ?? "") { V = v });
+                    model.MarkTexts.Add($"{m.Label}: {ArgText(m.At)}, {ValueText(v)}");
+                    break;
+            }
+        }
     }
 
     // ---- Data labels. ----
