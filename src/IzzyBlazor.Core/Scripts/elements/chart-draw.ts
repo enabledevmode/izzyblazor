@@ -30,6 +30,7 @@ export interface DrawSeries {
   col?: string; // the series' own color
   lm?: number; // value labels: 1 auto, 2 inside, 3 outside
   lt?: (string | null)[]; // each item's label text
+  lo?: boolean; // labels show even when they overlap (LabelOverlap.Show)
 }
 
 export interface DrawData {
@@ -239,26 +240,31 @@ export interface Drawing {
 const GAP = 4, PAD = 2, LINE = 16;
 
 /** A spot: the label's center in pixels, and the bar it must stay inside, if any. */
-type Spot = [number, number, [number, number, number, number] | null];
+type Spot = [number, number, [number, number, number, number] | null, boolean?];
 
 interface LabelAt {
   s: number;
   text: string;
   w: number;
   spots: Spot[];
+  force: boolean; // shows even when it overlaps
 }
 
 function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => number, color: (s: number) => string): string {
   const boxes: [number, number, number, number][] = [];
   let html = "";
-  for (const { s, text, w, spots } of all) {
-    for (const [cx, cy, bar] of spots) {
+  // Labels that show overlapping or not go first, so the others step around them.
+  const order = [...all.filter((l) => l.force), ...all.filter((l) => !l.force)];
+  for (const { s, text, w, spots, force } of order) {
+    for (const [x, cy, bar, slide] of spots) {
+      // Above or below its mark, a label near a side slides in to stay in the plot.
+      const cx = slide ? Math.min(Math.max(x, w / 2 + PAD), Math.max(w / 2 + PAD, W - w / 2 - PAD)) : x;
       const box: [number, number, number, number] = [cx - w / 2 - PAD, cy - LINE / 2, cx + w / 2 + PAD, cy + LINE / 2];
       const room = bar
         ? box[0] >= bar[0] && box[2] <= bar[2] && box[1] >= bar[1] - 0.5 && box[3] <= bar[3] + 0.5
         : box[0] >= 0 && box[2] <= W && box[1] >= 0 && box[3] <= H;
       if (!room) continue;
-      if (boxes.some((o) => box[0] < o[2] && o[0] < box[2] && box[1] < o[3] && o[1] < box[3])) break;
+      if (!force && boxes.some((o) => box[0] < o[2] && o[0] < box[2] && box[1] < o[3] && o[1] < box[3])) break;
       boxes.push(box);
       html += `<span${bar ? ` class="ib-chart-dl-in ib-chart-s${slot(s)}"` : ""} style="left:${Math.round(cx * 10) / 10}px;top:${Math.round(cy * 10) / 10}px;${color(s)}" data-ib-series="${s}">${esc(text)}</span>`;
       break;
@@ -423,10 +429,10 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const b: [number, number, number, number] = [x * W, y * H, (x + w) * W, (y + h) * H];
         const mx = (b[0] + b[2]) / 2, my = (b[1] + b[3]) / 2, dw = GAP + tw / 2, dh = GAP + LINE / 2;
         const dir = d.h ? (below ? "l" : "r") : below ? "b" : "t";
-        const out: Spot = dir === "t" ? [mx, b[1] - dh, null] : dir === "b" ? [mx, b[3] + dh, null] : dir === "r" ? [b[2] + dw, my, null] : [b[0] - dw, my, null];
+        const out: Spot = dir === "t" ? [mx, b[1] - dh, null, true] : dir === "b" ? [mx, b[3] + dh, null, true] : dir === "r" ? [b[2] + dw, my, null] : [b[0] - dw, my, null];
         const end: Spot = dir === "t" ? [mx, b[1] + dh, b] : dir === "b" ? [mx, b[3] - dh, b] : dir === "r" ? [b[2] - dw, my, b] : [b[0] + dw, my, b];
         const mode = d.s[s].lm;
-        labelsAt.push({ s, text, w: tw, spots: stacked && mode !== 3 ? [[mx, my, b]] : mode === 2 ? [end] : [out, end] });
+        labelsAt.push({ s, text, w: tw, force: !!d.s[s].lo, spots: stacked && mode !== 3 ? [[mx, my, b]] : mode === 2 ? [end] : [out, end] });
       }
     }
     barSvg += "</g>";
@@ -473,8 +479,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const text = data.lt?.[p[2]];
         if (data.lm && text != null) {
           const dy = 6 + GAP + LINE / 2;
-          const above: Spot = [x * W, y * H - dy, null], under: Spot = [x * W, y * H + dy, null];
-          labelsAt.push({ s, text, w: widthOf(text), spots: data.lm === 2 ? [under, above] : [above, under] });
+          const above: Spot = [x * W, y * H - dy, null, true], under: Spot = [x * W, y * H + dy, null, true];
+          labelsAt.push({ s, text, w: widthOf(text), force: !!data.lo, spots: data.lm === 2 ? [under, above] : [above, under] });
         }
       }
       marks += "</g>";

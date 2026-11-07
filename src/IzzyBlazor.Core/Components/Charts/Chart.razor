@@ -440,7 +440,7 @@
                         @foreach (var label in model.DataLabels)
                         {
                             var owner = model.Series[label.Series];
-                            <span class="@LabelClass(label, owner)" style="left:calc(@Pct(label.AX) + @Num(label.DX)px);top:calc(@Pct(label.AY) + @Num(label.DY)px);@ColorStyle(owner)" data-ib-series="@label.Series">@label.Text</span>
+                            <span class="@LabelClass(label, owner)" style="left:@LabelLeft(label);top:calc(@Pct(label.AY) + @Num(label.DY)px);@ColorStyle(owner)" data-ib-series="@label.Series">@label.Text</span>
                         }
                     </div>
                     @if (redraw)
@@ -604,6 +604,11 @@
 
     private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
 
+    // A label's center across, kept its half width from the plot's sides when it's justified.
+    private static string LabelLeft(DataLabel label) => label.Justify > 0
+        ? $"clamp({Num(label.Justify)}px,{Pct(label.AX)},calc(100% - {Num(label.Justify)}px))"
+        : $"calc({Pct(label.AX)} + {Num(label.DX)}px)";
+
     // A label on a bar carries its series' slot, for the fill its text color is picked against.
     private static string? LabelClass(DataLabel label, SeriesShape owner) =>
         ((label.Inside ? $"ib-chart-dl-in ib-chart-s{owner.Slot}" : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
@@ -714,6 +719,7 @@
                 if (model.LabelTexts[s.Index] is { } texts)
                 {
                     w.WriteNumber("lm", (int)d.Labels);
+                    if (d.LabelOverlap == ChartLabelOverlap.Show) w.WriteBoolean("lo", true);
                     w.WriteStartArray("lt");
                     foreach (var text in texts)
                     {

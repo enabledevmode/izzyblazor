@@ -2119,9 +2119,9 @@
           ]
         },
         {
-          "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartSeries.Labels", "ChartSeries.LabelFormat"],
+          "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartSeries.Labels", "ChartSeries.LabelFormat", "ChartSeries.LabelOverlap"],
           "examples": [
-            { "id": "chart-labels", "title": "Labels on bars", "lead": "To write each value beside its bar, set `Labels` on the series to `Auto`: past the end of the bar, or inside it when there's no room above. `LabelFormat` formats the labels apart from the axis. A label that would overlap another is left out at the widths where it would; narrow the window to see them go. Screen readers skip the labels, since Show data has every value. With every series labeled, the chart has no tooltips, which would repeat the labels; set `Tooltip` to true to keep them." },
+            { "id": "chart-labels", "title": "Labels on bars", "lead": "To write each value beside its bar, set `Labels` on the series to `Auto`: past the end of the bar, or inside it when there's no room above. `LabelFormat` formats the labels apart from the axis. A label that would overlap another is left out at the widths where it would; narrow the window to see them go. To show every label, overlapping or not, set `LabelOverlap` to `Show`. Screen readers skip the labels, since Show data has every value. With every series labeled, the chart has no tooltips, which would repeat the labels; set `Tooltip` to true to keep them." },
             { "id": "chart-labels-stacked", "title": "Labels in a stack", "lead": "In a stack, `Auto` puts each label in the middle of its segment, and leaves it out when the segment is too small to hold it. `Inside` puts labels inside the bar at its end, and `Outside` past it." }
           ]
         },
