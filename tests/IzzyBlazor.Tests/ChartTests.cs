@@ -104,8 +104,8 @@ public class ChartLayoutTests
         Assert.Equal("100%", model.ValueLabels[^1].Text.Replace(" ", ""));
 
         // Only the top of each stack has a rounded end.
-        Assert.All(a, bar => Assert.Null(bar.Base));
-        Assert.All(b, bar => Assert.NotNull(bar.Base));
+        Assert.All(a, bar => Assert.Null(bar.End));
+        Assert.All(b, bar => Assert.Equal('t', bar.End));
     }
 
     [Fact]

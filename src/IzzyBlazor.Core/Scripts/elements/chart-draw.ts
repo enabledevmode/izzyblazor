@@ -360,22 +360,15 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       const v0 = scale(lows[s][i] ?? 0), v1 = scale(top);
       const lo = Math.min(v0, v1), hi = Math.max(v0, v1);
       const [x, y, w, h] = d.h ? [lo, a0, hi - lo, width] : [a0, 1 - hi, width, hi - lo];
-      const rect = (rx: number, ry: number, rw: number, rh: number, tip: boolean) =>
-        `<rect${tip ? ' class="ib-chart-tip"' : ""} x="${pct(rx)}" y="${pct(ry)}" width="${pct(rw)}" height="${pct(rh)}"/>`;
+      const rect = (end: string) =>
+        `<rect${end ? ` class="ib-chart-end-${end}"` : ""} x="${pct(x)}" y="${pct(y)}" width="${pct(w)}" height="${pct(h)}"/>`;
       // The value end is rounded on the outermost bar: the last segment of a stack each way.
       const below = v1 < v0;
       const outermost = !stacked || !bars.slice(j + 1).some((o) => {
         const x2 = d.s[o].v[i];
         return x2 !== null && isFinite(x2) && x2 !== 0 && x2 < 0 === (highs[s][i] ?? 0) < (lows[s][i] ?? 0);
       });
-      if (outermost && hi > lo) {
-        barSvg += rect(x, y, w, h, true);
-        barSvg += d.h
-          ? rect(below ? x + w / 2 : x, y, w / 2, h, false)
-          : rect(x, below ? y : y + h / 2, w, h / 2, false);
-      } else {
-        barSvg += rect(x, y, w, h, false);
-      }
+      barSvg += rect(outermost && hi > lo ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
     }
     barSvg += "</g>";
   });
