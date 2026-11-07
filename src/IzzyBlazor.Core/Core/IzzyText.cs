@@ -1217,6 +1217,15 @@ public class IzzyText
     /// <summary>A Chart trend's name, from its series' name: "{0} trend".</summary>
     public virtual string ChartTrendName { get; set; } = "{0} trend";
 
+    /// <summary>A Chart moving average's name, from its series' name and period: "{0}, {1}-point average".</summary>
+    public virtual string ChartAverageName { get; set; } = "{0}, {1}-point average";
+
+    /// <summary>A moving average's name over daily dates: "{0}, {1}-day average".</summary>
+    public virtual string ChartAverageDays { get; set; } = "{0}, {1}-day average";
+
+    /// <summary>A moving average's name over monthly dates: "{0}, {1}-month average".</summary>
+    public virtual string ChartAverageMonths { get; set; } = "{0}, {1}-month average";
+
     /// <summary>A bubble's size, in the tooltip and data table, when its Size isn't a property.</summary>
     public virtual string ChartSize { get; set; } = "Size";
 

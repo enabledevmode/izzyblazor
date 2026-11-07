@@ -18,8 +18,8 @@ public enum ChartTrend
 
 /// <summary>
 /// Trend series, worked out on the server: each series with a <see cref="ChartTrend"/> gets a
-/// dashed line after it in its own color, named "Revenue trend", in the legend, tooltips and data
-/// table like any series.
+/// dashed line after it in its own color, named "Revenue trend" (a moving average "Revenue,
+/// 7-day average"), in the legend, tooltips and data table like any series.
 /// </summary>
 internal static class ChartTrends
 {
@@ -41,7 +41,10 @@ internal static class ChartTrends
             var values = data.Trend == ChartTrend.MovingAverage
                 ? MovingAverage(data.Values, data.TrendPeriod)
                 : Fit(x, data.Values, data.Trend == ChartTrend.Linear ? 1 : data.TrendOrder);
-            result.Add(new ChartSeriesData(string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ChartTrendName, data.Name), ChartType.Line, values)
+            var name = data.Trend == ChartTrend.MovingAverage
+                ? string.Format(System.Globalization.CultureInfo.CurrentCulture, AverageName(arguments, kind, text), data.Name, data.TrendPeriod)
+                : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ChartTrendName, data.Name);
+            result.Add(new ChartSeriesData(name, ChartType.Line, values)
             {
                 Color = data.TrendColor ?? data.Color,
                 TrendColor = data.TrendColor,
@@ -56,6 +59,18 @@ internal static class ChartTrends
         }
 
         return result;
+    }
+
+    /// <summary>A moving average's name: over days or months when the dates are a day or a month apart, else over points.</summary>
+    private static string AverageName(IReadOnlyList<object?> arguments, ArgumentKind kind, IzzyText text)
+    {
+        if (kind != ArgumentKind.Time) return text.ChartAverageName;
+        var dates = arguments.Select(a => ChartLayout.ToDouble(a, kind) is { } t ? new DateTime((long)t) : (DateTime?)null).ToList();
+        if (dates.Count < 2 || dates.Any(d => d is null)) return text.ChartAverageName;
+        var steps = dates.Zip(dates.Skip(1), (a, b) => (A: a!.Value, B: b!.Value)).ToList();
+        if (steps.All(p => p.B - p.A == TimeSpan.FromDays(1))) return text.ChartAverageDays;
+        if (steps.All(p => p.A.AddMonths(1) == p.B)) return text.ChartAverageMonths;
+        return text.ChartAverageName;
     }
 
     /// <summary>The average of each item's window of <paramref name="period"/> items, from when the window is full.</summary>
