@@ -26,9 +26,9 @@
 <article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_headingId"
          data-ib-pending="@(Pending ? "" : null)">
     @Heading
-    @if (Mine ? Avatar is not null : Author is not null || Avatar is not null)
+    @if (Mine ? Avatar is not null || Initials is not null : Author is not null || Avatar is not null || Initials is not null)
     {
-        <Avatar Name="@Author" Src="@Avatar" Size="AvatarSize.Sm" Decorative Class="ib-chat-avatar" />
+        <Avatar Name="@Author" Src="@Avatar" Initials="@Initials" Size="AvatarSize.Sm" Decorative Class="ib-chat-avatar" />
     }
     <div class="ib-chat-body">
         @if ((!Mine && Author is not null) || Time is not null)
@@ -134,8 +134,11 @@
     /// <summary>Who wrote it, such as "Assistant" or "Dana". Shown above it, and its avatar's name.</summary>
     [Parameter] public string? Author { get; set; }
 
-    /// <summary>The address of the author's picture. Without one, others' avatars show the author's initials; yours shows only with one.</summary>
+    /// <summary>The address of the author's picture. Without one, others' avatars show the author's initials; yours shows only with this or <see cref="Initials"/>.</summary>
     [Parameter] public string? Avatar { get; set; }
+
+    /// <summary>The avatar's letters, such as "IB", in place of the author's initials (and without a picture).</summary>
+    [Parameter] public string? Initials { get; set; }
 
     /// <summary>When it was written: the time is shown, and the day above the day's first entry. Both are in the value's own offset, so give it in the reader's (the server can't know their time zone).</summary>
     [Parameter] public DateTimeOffset? Time { get; set; }

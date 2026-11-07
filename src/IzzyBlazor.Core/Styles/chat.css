@@ -3,10 +3,14 @@
  * don't pay for it.
  */
 @layer izzy.components {
+  /* As wide as its container (Width and MaxWidth set another), never sized by what's in it, so
+     a reply that streams in doesn't widen it as it grows. */
   .ib-chat {
     display: flex;
     flex-direction: column;
     gap: var(--ib-space-3);
+    inline-size: 100%;
+    min-inline-size: 0;
     min-block-size: 0;
   }
 

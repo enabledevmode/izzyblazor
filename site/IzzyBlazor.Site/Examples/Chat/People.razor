@@ -1,12 +1,12 @@
 @* A support thread with a customer, as the agent sees it: everyone's messages in bubbles, yours
-   at the end with your team's logo, theirs with their name and initials, the day above each
+   at the end with your team's initials, theirs with their name and initials, the day above each
    day's first message, and messages in a row grouped. *@
 <Chat Label="Conversation with Dana Whitfield" FormName="support-thread" OnSend="Send"
       Appearance="ChatAppearance.Conversation" Height="Length.Rem(30)" Placeholder="Reply to Dana">
     @foreach (var message in _messages)
     {
         <ChatEntry Mine="message.Mine" Author="@(message.Mine ? null : "Dana Whitfield")" Text="@message.Text"
-                   Avatar="@(message.Mine ? "/apple-touch-icon.png" : null)" Time="message.Time" Copyable="false" />
+                   Initials="@(message.Mine ? "IB" : null)" Time="message.Time" Copyable="false" />
     }
 </Chat>
 
