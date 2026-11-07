@@ -1,5 +1,6 @@
-@* The last 30 days of a support queue, drawn three ways. *@
-<Grid Columns="new() { Base = 1, Sm = 3 }" Gap="6" Grow>
+@* The last 30 days of a support queue, drawn four ways. The win-loss bars are how the queue moved
+   each day: up when it shrank, down when it grew. *@
+<Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="6" Grow>
     <Stack Gap="2">
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Open tickets</TextBlock>
         <Sparkline Values="_open" Label="Open tickets, last 30 days" Height="3.Rem" />
@@ -12,10 +13,17 @@
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">New tickets a day</TextBlock>
         <Sparkline Values="_new" Label="New tickets a day, last 30 days" Type="SparklineType.Bar" Height="3.Rem" />
     </Stack>
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Queue shrank or grew</TextBlock>
+        <Sparkline Values="_shrank" Label="Days the queue shrank or grew, last 30 days" Type="SparklineType.WinLoss" Height="3.Rem" />
+    </Stack>
 </Grid>
 
 @code {
-    private readonly double?[] _open = [64, 61, 66, 70, 68, 59, 55, 58, 62, 67, 72, 75, 71, 63, 57, 54, 56, 60, 58, 52, 47, 45, 49, 51, 48, 44, 40, 38, 41, 39];
+    private static readonly double?[] _open = [64, 61, 66, 70, 68, 59, 55, 58, 62, 67, 72, 75, 71, 63, 57, 54, 56, 60, 58, 52, 47, 45, 49, 51, 48, 44, 40, 38, 41, 39];
     private readonly double?[] _reply = [5.2, 4.8, 5.6, 6.1, 5.9, 4.4, 3.9, 4.2, 4.7, 5.3, 6.4, 6.8, 6.0, 4.9, 4.1, 3.8, 4.0, 4.5, 4.3, 3.7, 3.2, 3.0, 3.5, 3.6, 3.3, 2.9, 2.6, 2.5, 2.8, 2.7];
     private readonly double?[] _new = [31, 28, 35, 39, 33, 14, 11, 29, 34, 38, 42, 40, 16, 12, 27, 30, 33, 29, 26, 10, 9, 25, 28, 31, 27, 24, 8, 7, 22, 26];
+
+    // Each day's drop in open tickets: more than 0 when the queue shrank.
+    private readonly double?[] _shrank = _open.Skip(1).Select((open, i) => _open[i] - open).ToArray();
 }
