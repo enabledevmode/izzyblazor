@@ -170,6 +170,12 @@ internal sealed class ChartModel
     public List<LineEndLabel> EndLabels { get; } = [];
 
     public double EndLabelsPx { get; set; }
+
+    /// <summary>
+    /// Room past the plot for labels past their bars' ends, in pixels: beside bars across (X), or
+    /// above upright columns (Y). The chart's frame leaves it, so the longest bar's label fits.
+    /// </summary>
+    public (double X, double Y) OutsideRoom { get; set; }
     public List<MarkShape> Marks { get; } = [];
 
     /// <summary>Each mark in words, such as "Target: $150,000", for the chart's description.</summary>
@@ -261,6 +267,8 @@ internal static class ChartLayout
                 : Change(s, i) ? Signed(x, y => input.ValueFormatter?.Invoke(y) ?? y.ToString(input.ValueFormat ?? "#,##0.##", culture))
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
         };
+        LabelTexts(input, model);
+        model.OutsideRoom = OutsideRoom(input, model);
 
         // Stacks: bars with bars, areas with areas. Each point's base and top, before scaling.
         var lows = new double?[input.Series.Count][];
@@ -851,7 +859,7 @@ internal static class ChartLayout
     /// and clears the labels placed before it. A label shown at a width shows at every wider one,
     /// at the spot it has at the narrowest.
     /// </summary>
-    private static void PlaceLabels(ChartInput input, ChartModel model, double columnPx, double plotH)
+    private static void LabelTexts(ChartInput input, ChartModel model)
     {
         var culture = input.Culture;
         model.LabelTexts = new string?[]?[input.Series.Count];
@@ -863,7 +871,28 @@ internal static class ChartLayout
                 : s.LabelFormat is not { } f ? model.ValueTexts[si][i]
                 : Change(s, i) ? Signed(x, y => y.ToString(f, culture)) : x.ToString(f, culture)).ToArray();
         }
+    }
 
+    /// <summary>
+    /// The room labels past their bars' ends take outside the plot (<see cref="ChartModel.OutsideRoom"/>):
+    /// for bar series whose labels go there first (Outside, or Auto unstacked), the widest label
+    /// beside bars across, or a line above upright columns. Hidden series count, which the legend can show.
+    /// </summary>
+    private static (double X, double Y) OutsideRoom(ChartInput input, ChartModel model)
+    {
+        var stacked = input.Stacked != ChartStacking.None;
+        var texts = Enumerable.Range(0, input.Series.Count)
+            .Where(s => input.Series[s].Type == ChartType.Bar && !input.Series[s].IsWaterfall
+                && (input.Series[s].Labels == ChartLabels.Outside || (input.Series[s].Labels == ChartLabels.Auto && !stacked)))
+            .SelectMany(s => model.LabelTexts[s] ?? []).OfType<string>().ToList();
+        if (texts.Count == 0) return (0, 0);
+        return input.Horizontal
+            ? (Math.Ceiling(texts.Max(t => Width(t) * 1.04) + MarkGapPx + LabelPadPx), 0)
+            : (0, LineHeightPx + MarkGapPx);
+    }
+
+    private static void PlaceLabels(ChartInput input, ChartModel model, double columnPx, double plotH)
+    {
         var stacked = input.Stacked != ChartStacking.None;
         var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots, string? Change)>();
         foreach (var shape in model.Series)
@@ -935,7 +964,7 @@ internal static class ChartLayout
                     var box = (L: cx - w / 2 - LabelPadPx, T: cy - LineHeightPx / 2, R: cx + w / 2 + LabelPadPx, B: cy + LineHeightPx / 2);
                     var room = bar is { } b
                         ? box.L >= b.X0 * plotW && box.R <= b.X1 * plotW && box.T >= b.Y0 * plotH - 0.5 && box.B <= b.Y1 * plotH + 0.5
-                        : box.L >= 0 && box.R <= plotW && box.T >= 0 && box.B <= plotH;
+                        : box.L >= 0 && box.R <= plotW + model.OutsideRoom.X + 0.5 && box.T >= -model.OutsideRoom.Y - 0.5 && box.B <= plotH;
                     if (!room) continue;
                     if (!Forced(c) && boxes.Any(o => box.L < o.R && o.L < box.R && box.T < o.B && o.T < box.B)) break;
                     boxes.Add(box);
@@ -1173,13 +1202,13 @@ internal static class ChartLayout
     {
         if (input.Horizontal ? input.HideArgumentAxis : input.HideValueAxis)
         {
-            return GapPx;
+            return GapPx + model.OutsideRoom.X + (input.Horizontal ? 0 : EndsWidth(input));
         }
 
         if (input.Horizontal)
         {
             var longest = model.ArgumentTexts.Select(t => Width(t)).DefaultIfEmpty(0).Max();
-            return Math.Min(longest, 320) + GapPx;
+            return Math.Min(longest, 320) + GapPx + model.OutsideRoom.X;
         }
 
         // The second axis's column, after the plot, takes room as well.

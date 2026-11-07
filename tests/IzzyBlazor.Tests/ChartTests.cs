@@ -185,15 +185,15 @@ public class ChartLayoutTests
     }
 
     [Fact]
-    public void Value_labels_sit_past_a_bars_end_move_inside_when_clipped_and_center_in_a_stack()
+    public void Value_labels_sit_past_a_bars_end_with_room_left_for_them_and_center_in_a_stack()
     {
         var model = ChartLayout.Build(new ChartInput(["Q1", "Q2"],
             [new ChartSeriesData("Revenue", ChartType.Bar, [100, 40]) { Labels = ChartLabels.Auto }])
         { ValueMax = 100, Culture = CultureInfo.InvariantCulture });
 
-        // Q1 reaches the top, so its label goes inside; Q2's sits above its bar.
-        Assert.Equal([true, false], model.DataLabels.Select(l => l.Inside));
-        Assert.True(model.DataLabels[1].DY < 0);
+        // Q1 reaches the top, and its label still sits above it, in the room left over the plot.
+        Assert.All(model.DataLabels, l => Assert.True(!l.Inside && l.DY < 0));
+        Assert.True(model.OutsideRoom.Y > 0);
 
         var stacked = ChartLayout.Build(new ChartInput(["Q1"],
         [

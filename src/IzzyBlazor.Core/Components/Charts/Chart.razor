@@ -845,8 +845,10 @@
     {
         // End labels sit past the plot, in its padding, or before a second axis's labels.
         var dual = model.SecondaryLabels.Count > 0;
-        var end = dual ? model.EndRoomPx : Math.Max(model.EndRoomPx, model.EndLabelsPx);
+        // Labels past bars' ends have room beside the plot, or above it.
+        var end = Math.Max(dual ? model.EndRoomPx : Math.Max(model.EndRoomPx, model.EndLabelsPx), model.OutsideRoom.X);
         var style = (Height is { } h ? $"--ib-chart-height:{h.Css};" : "")
+            + (model.OutsideRoom.Y > 0 ? $"padding-block-start:max(0.5lh, {Num(model.OutsideRoom.Y)}px);" : "")
             + (model.EndLabelsPx > 0 ? $"--ib-chart-ends:{Num(model.EndLabelsPx)}px;" : "")
             + (end > 0 ? $"padding-inline-end:{Num(end)}px;" : "")
             + (model.FlatFrom > 0 ? $"--ib-chart-th:{Num(model.TurnedPx)}px;--ib-chart-lead:{Num(model.LeadPx)}px" : "");
@@ -978,6 +980,15 @@
                 foreach (var v in model.MarkValues) w.WriteNumberValue(v);
                 w.WriteEndArray();
             }
+            // Room past the plot for labels past bars' ends.
+            if (model.OutsideRoom != (0, 0))
+            {
+                w.WriteStartArray("lr");
+                w.WriteNumberValue(model.OutsideRoom.X);
+                w.WriteNumberValue(model.OutsideRoom.Y);
+                w.WriteEndArray();
+            }
+
             w.WriteBoolean("lg", ValueLog);
             w.WriteBoolean("gl", ValueGrid);
             // With a ValueFormatter, the server's value axis as drawn: its range and ticks.

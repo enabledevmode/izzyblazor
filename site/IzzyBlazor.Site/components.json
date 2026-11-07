@@ -2167,8 +2167,10 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-horizontal", "title": "Bars across", "lead": "`ChartBarSeries` in a `Chart` draws a bar for each item's `Value`. Ranked names read best as bars across, longest first: set `Orientation` to `Horizontal`, and long names have room down the side, ending in an ellipsis past a third of the chart's width. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
-        { "id": "chart-stacked", "title": "Stacked", "lead": "To stack bars and areas, set `Stacking`: `Normal` shows the totals, and `Percent` draws each stack to 100% to compare shares." }
+        { "id": "chart-horizontal", "title": "Ranked bars across", "lead": "`ChartBarSeries` in a `Chart` draws a bar for each item's `Value`. Ranked names read best as bars across, longest first: set `Orientation` to `Horizontal`, and long names have room down the side, ending in an ellipsis past a third of the chart's width. With `Labels` writing each value at its bar's end, the value axis's labels and grid lines (`HideLabels`, `GridLines` on `ChartValueAxis`) only repeat them, so they're left out. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
+        { "id": "chart-grouped", "title": "Grouped columns", "lead": "Two or more `ChartBarSeries` stand side by side in each band, to compare the series name by name. To compare this year with last, draw last year first and in gray with `Color`, so the current year stands out in the chart's first color." },
+        { "id": "chart-stacked", "title": "Stacked", "lead": "`Stacking=\"ChartStacking.Normal\"` stacks the series, so each column's height is the total and each segment one part of it. The bottom segment reads most exactly, since it alone starts at zero: put the largest or most important part first. Keep to a few parts." },
+        { "id": "chart-stacked-percent", "title": "Shares of 100%", "lead": "`Stacking=\"ChartStacking.Percent\"` draws each stack to 100%, to compare how a whole divides rather than how big it is. As bars across, each runs the full width and the shares read left to right." }
       ]
     },
     {

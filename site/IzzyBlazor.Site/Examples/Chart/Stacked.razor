@@ -1,26 +1,19 @@
 @* Sales by region each quarter, stacked so each column's height is the total. *@
-<Grid Columns="new Responsive<int> { Base = 1, Md = 2 }" Gap="8" Grow>
-    <Chart Items="_quarters" Argument="q => q.Quarter" Title="Sales by region" Stacking="ChartStacking.Normal">
-        <ChartValueAxis Format="C0" />
-        <ChartBarSeries Value="q => q.Americas" />
-        <ChartBarSeries Value="q => q.Europe" />
-        <ChartBarSeries Value="q => q.Asia" />
-    </Chart>
-    <Chart Items="_quarters" Argument="q => q.Quarter" Title="Share of sales by region" Stacking="ChartStacking.Percent">
-        <ChartBarSeries Value="q => q.Americas" />
-        <ChartBarSeries Value="q => q.Europe" />
-        <ChartBarSeries Value="q => q.Asia" />
-    </Chart>
-</Grid>
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Sales by region, 2026" Stacking="ChartStacking.Normal">
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartBarSeries Value="q => q.Americas" />
+    <ChartBarSeries Value="q => q.Europe" />
+    <ChartBarSeries Value="q => q.Asia" />
+</Chart>
 
 @code {
     private record QuarterSales(string Quarter, decimal Americas, decimal Europe, decimal Asia);
 
     private readonly QuarterSales[] _quarters =
     [
-        new("Q1 2026", 120_000, 84_000, 51_000),
-        new("Q2 2026", 134_000, 88_000, 63_000),
-        new("Q3 2026", 129_000, 97_000, 78_000),
-        new("Q4 2026", 151_000, 104_000, 92_000),
+        new("Q1", 120_000, 84_000, 51_000),
+        new("Q2", 134_000, 88_000, 63_000),
+        new("Q3", 129_000, 97_000, 78_000),
+        new("Q4", 151_000, 104_000, 92_000),
     ];
 }
