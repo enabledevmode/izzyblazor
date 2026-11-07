@@ -158,6 +158,10 @@ public static class RichTextSanitizer
         public string? Text { get; init; }
         public List<(string Name, string Value)> Attributes { get; } = [];
         public List<Node> Children { get; } = [];
+
+        // The first child that isn't white space: whether a task's box comes first, without
+        // walking thousands of white space runs for every box.
+        public Node? FirstContent { get; set; }
         public Node? Parent { get; set; }
     }
 
@@ -415,16 +419,7 @@ public static class RichTextSanitizer
         }
 
         // Whether a node has nothing but white space before the child given (or at all).
-        private static bool Blank(Node node, Node? until)
-        {
-            foreach (var child in node.Children)
-            {
-                if (child == until) return true;
-                if (child.Name is not null || !string.IsNullOrWhiteSpace(child.Text)) return false;
-            }
-
-            return true;
-        }
+        private static bool Blank(Node node, Node? until) => node.FirstContent is null || node.FirstContent == until;
 
         // Closes what a new block can't sit in. Returns false when the block has no valid place.
         private bool PlaceBlock(string name)
@@ -497,6 +492,7 @@ public static class RichTextSanitizer
         {
             node.Parent = Current;
             Current.Children.Add(node);
+            if (node.Name is not null || !string.IsNullOrWhiteSpace(node.Text)) Current.FirstContent ??= node;
         }
 
         private void AddAttributes(Node node, List<(string Name, string Value)> attributes)

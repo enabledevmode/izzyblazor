@@ -13,6 +13,7 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
     private int _pos;
     private Delimiter? _delimiters;
     private Bracket? _brackets;
+    private (int Gt, int Comment, int Pi, int Cdata) _lastClose;
 
     private sealed class Delimiter
     {
@@ -108,6 +109,7 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
         _pos = 0;
         _delimiters = null;
         _brackets = null;
+        _lastClose = (_subject.LastIndexOf('>'), _subject.LastIndexOf("-->", StringComparison.Ordinal), _subject.LastIndexOf("?>", StringComparison.Ordinal), _subject.LastIndexOf("]]>", StringComparison.Ordinal));
         while (ParseInline(block)) { }
         block.Content.Clear();
         ProcessEmphasis(null);
@@ -500,7 +502,10 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
         {
             for (var earlier = _brackets; earlier is not null; earlier = earlier.Previous)
             {
-                if (!earlier.Image) earlier.Active = false;
+                if (earlier.Image) continue;
+                // Below an inactive link opener, every one is inactive already.
+                if (!earlier.Active) break;
+                earlier.Active = false;
             }
         }
 
@@ -587,6 +592,12 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
 
     private bool ParseHtmlTag(MdNode block)
     {
+        // Each kind of tag needs its closing text after it; when none is left in the text, the
+        // pattern isn't tried (it would scan to the end, again for every <).
+        if (_lastClose.Gt < _pos) return false;
+        if (Starts(_subject, _pos, "<!--") && _lastClose.Comment < _pos + 2 && !Starts(_subject, _pos, "<!-->") && !Starts(_subject, _pos, "<!--->")) return false;
+        if (Starts(_subject, _pos, "<?") && _lastClose.Pi < _pos + 2) return false;
+        if (Starts(_subject, _pos, "<![CDATA[") && _lastClose.Cdata < _pos + 9) return false;
         if (Match(HtmlTagHere()) is not { } tag) return false;
         block.Append(new MdNode(MdType.HtmlInline) { Literal = tag });
         return true;
@@ -752,7 +763,9 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
 
         var domainStart = prefix.Length > 0 ? i : text.IndexOf("://", i, StringComparison.Ordinal) + 3;
         var domainEnd = domainStart;
-        while (domainEnd < text.Length && (char.IsLetterOrDigit(text[domainEnd]) || text[domainEnd] is '-' or '_' or '.')) domainEnd++;
+        // No domain is longer than 253; scanning on would make a run of candidates quadratic.
+        while (domainEnd < text.Length && domainEnd - domainStart <= 253 && (char.IsLetterOrDigit(text[domainEnd]) || text[domainEnd] is '-' or '_' or '.')) domainEnd++;
+        if (domainEnd - domainStart > 253) return (0, 0, null);
         if (!ValidDomain(text[domainStart..domainEnd])) return (0, 0, null);
 
         var end = domainEnd;
@@ -778,6 +791,7 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
     // Trailing punctuation isn't part of a link; nor an unmatched ), nor an entity-like &name;.
     private static int TrimTrailing(string text, int start, int end)
     {
+        (int Open, int Close)? parens = null;
         while (end > start)
         {
             var last = text[end - 1];
@@ -787,10 +801,15 @@ internal sealed partial class MdInlines(Dictionary<string, (string Destination, 
             }
             else if (last == ')')
             {
-                var span = text.AsSpan(start, end - start);
-                var open = span.Count('(');
-                var close = span.Count(')');
-                if (close <= open) break;
+                // Counted once; each ) trimmed is one fewer.
+                if (parens is null)
+                {
+                    var span = text.AsSpan(start, end - start);
+                    parens = (span.Count('('), span.Count(')'));
+                }
+
+                if (parens.Value.Close <= parens.Value.Open) break;
+                parens = (parens.Value.Open, parens.Value.Close - 1);
                 end--;
             }
             else if (last == ';')
