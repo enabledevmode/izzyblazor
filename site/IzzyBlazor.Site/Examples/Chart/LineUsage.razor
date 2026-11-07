@@ -1,9 +1,9 @@
-@* Weekly active users of three apps over two years: a few lines over time, on a date scale. *@
+@* Weekly active users of three apps over two years: a few lines over time, on a date scale, each named where it ends. *@
 <Chart Items="_months" Argument="m => m.Month" Title="Weekly active users by app, 2025–2026">
     <ChartValueAxis Format="#,##0,K" />
-    <ChartLineSeries Value="m => m.Web" Name="Web" />
-    <ChartLineSeries Value="m => m.Ios" Name="iOS" />
-    <ChartLineSeries Value="m => m.Android" Name="Android" />
+    <ChartLineSeries Value="m => m.Web" Name="Web" EndLabel />
+    <ChartLineSeries Value="m => m.Ios" Name="iOS" EndLabel />
+    <ChartLineSeries Value="m => m.Android" Name="Android" EndLabel />
 </Chart>
 
 @code {

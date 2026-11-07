@@ -71,6 +71,7 @@ class Chart extends IzzyElement {
     const jsLabels = this.querySelector<HTMLElement>(".ib-chart-values.ib-chart-js");
     // Value labels, placed again at the plot's size: measured in their own font.
     const jsDl = plot.querySelector<HTMLElement>(".ib-chart-dl.ib-chart-js");
+    const jsEnds = plot.querySelector<HTMLElement>(".ib-chart-ends.ib-chart-js");
     let measure: ((text: string) => number) | undefined;
     if (jsDl) {
       const css = getComputedStyle(jsDl);
@@ -96,6 +97,7 @@ class Chart extends IzzyElement {
       jsSvg.innerHTML = out.svg;
       jsLabels.innerHTML = out.labels;
       if (jsDl) jsDl.innerHTML = out.dl;
+      if (jsEnds) jsEnds.innerHTML = out.ends;
       // Reference marks on the value axis move to the new scale.
       for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-v]")) {
         mark.style.setProperty("--jp", String(out.pos(Number(mark.dataset.ibV))));

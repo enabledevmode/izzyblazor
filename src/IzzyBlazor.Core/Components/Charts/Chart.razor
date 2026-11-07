@@ -342,6 +342,11 @@
                 throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacking off.");
             }
         }
+        if (Orientation == Orientation.Horizontal && series.Any(s => s.EndLabel))
+        {
+            throw new InvalidOperationException("A series' EndLabel needs an upright chart, where lines end at the right: leave Orientation Vertical.");
+        }
+
         var waterfall = series.FirstOrDefault(s => s.IsWaterfall);
         if (waterfall is not null)
         {
@@ -362,7 +367,9 @@
         }
 
         // A waterfall's legend keys its three colors, by default; its keys don't hide anything.
-        var legend = Legend is not (ChartLegend.Auto or ChartLegend.None) || (Legend == ChartLegend.Auto && (series.Count > 1 || waterfall is not null));
+        // Series named at their ends need none.
+        var legend = Legend is not (ChartLegend.Auto or ChartLegend.None)
+            || (Legend == ChartLegend.Auto && (series.Count > 1 || waterfall is not null) && !series.All(s => s.EndLabel));
 
         // Hidden needs a legend to show the series again: with none (or a waterfall's), it's drawn.
         if (!legend || waterfall is not null) series = series.Select(s => s with { Hidden = false }).ToList();
@@ -543,6 +550,22 @@
                     @if (redraw)
                     {
                         <div class="ib-chart-dl ib-chart-js" aria-hidden="true"></div>
+                    }
+                }
+                @if (model.EndLabels.Count > 0 || (redraw && series.Any(s => s.EndLabel)))
+                {
+                    @* Series' names past the plot's end, level with their last values; the legend's
+                       and the data table's names say them to screen readers. *@
+                    <div class="ib-chart-ends" aria-hidden="true">
+                        @foreach (var end in model.EndLabels)
+                        {
+                            var owner = model.Series[end.Series];
+                            <span class="@SeriesClass(owner, null)" style="top:@Pct(end.Pos);@ColorStyle(owner)" data-ib-series="@end.Series">@end.Text</span>
+                        }
+                    </div>
+                    @if (redraw)
+                    {
+                        <div class="ib-chart-ends ib-chart-js" aria-hidden="true"></div>
                     }
                 }
                 @if (tooltip)
@@ -820,8 +843,12 @@
     // turned names' height, and how far the first reaches past the plot's start.
     private string? FrameStyle(ChartModel model)
     {
+        // End labels sit past the plot, in its padding, or before a second axis's labels.
+        var dual = model.SecondaryLabels.Count > 0;
+        var end = dual ? model.EndRoomPx : Math.Max(model.EndRoomPx, model.EndLabelsPx);
         var style = (Height is { } h ? $"--ib-chart-height:{h.Css};" : "")
-            + (model.EndRoomPx > 0 ? $"padding-inline-end:{Num(model.EndRoomPx)}px;" : "")
+            + (model.EndLabelsPx > 0 ? $"--ib-chart-ends:{Num(model.EndLabelsPx)}px;" : "")
+            + (end > 0 ? $"padding-inline-end:{Num(end)}px;" : "")
             + (model.FlatFrom > 0 ? $"--ib-chart-th:{Num(model.TurnedPx)}px;--ib-chart-lead:{Num(model.LeadPx)}px" : "");
         return style.Length > 0 ? style : null;
     }
@@ -1029,6 +1056,7 @@
                 w.WriteNumber("d", s.Dash);
                 if (d.ColorFrom is not null && d.TrendColor is null) w.WriteBoolean("tr", true);
                 if (d.Secondary) w.WriteBoolean("ax", true);
+                if (d.EndLabel) w.WriteString("en", d.Name);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
                 if (d.Opacity is { } op) w.WriteNumber("op", op);
                 // Labels: the mode, and each item's text, which the script can't format itself.
