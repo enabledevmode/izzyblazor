@@ -75,6 +75,18 @@ public class RoundChartTests : BunitContext
     }
 
     [Fact]
+    public void A_win_loss_sparkline_counts_ups_and_downs()
+    {
+        var cut = Render<Sparkline>(p => p
+            .Add(c => c.Values, [3, -1, 0, 2, null, -4])
+            .Add(c => c.Label, "Games this season")
+            .Add(c => c.Type, SparklineType.WinLoss));
+
+        Assert.Equal("Games this season: 2 up, 2 down, 1 even", cut.Find("[role=img]").GetAttribute("aria-label"));
+        Assert.Equal(2, cut.FindAll("rect.ib-sparkline-down").Count);
+    }
+
+    [Fact]
     public void A_stat_draws_its_spark_named_by_its_label()
     {
         var cut = Render<Stat>(p => p

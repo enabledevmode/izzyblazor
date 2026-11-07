@@ -1248,6 +1248,16 @@ public class IzzyText
     /// </summary>
     public virtual string SparklineSummary { get; set; } = "{0}: from {1} to {2}, low {3}, high {4}";
 
+    /// <summary>
+    /// A win-loss Sparkline's accessible name: "Games this season: 9 up, 4 down". {0} is the label;
+    /// {1} and {2} the counts over and under its threshold. <see cref="SparklineEven"/> follows
+    /// when some are at it.
+    /// </summary>
+    public virtual string SparklineWinLossSummary { get; set; } = "{0}: {1} up, {2} down";
+
+    /// <summary>After <see cref="SparklineWinLossSummary"/>, the count at the threshold: ", 1 even".</summary>
+    public virtual string SparklineEven { get; set; } = ", {0} even";
+
     /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
     public virtual string ColorHex { get; set; } = "hex";
 
