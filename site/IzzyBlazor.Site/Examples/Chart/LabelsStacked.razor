@@ -1,0 +1,16 @@
+@* Support tickets by channel each week, stacked, each segment labeled in its middle. *@
+<Chart Items="_weeks" Argument="w => w.Week" Title="Support tickets by channel" Stacked="ChartStack.Stacked">
+    <ChartSeries Value="w => w.Email" Labels="ChartLabels.Auto" />
+    <ChartSeries Value="w => w.Chat" Labels="ChartLabels.Auto" />
+    <ChartSeries Value="w => w.Phone" Labels="ChartLabels.Auto" />
+</Chart>
+
+@code {
+    private record WeekTickets(string Week, int Email, int Chat, int Phone);
+
+    private readonly WeekTickets[] _weeks =
+    [
+        new("Oct 5", 212, 148, 61), new("Oct 12", 198, 171, 58), new("Oct 19", 236, 189, 66),
+        new("Oct 26", 221, 204, 49), new("Nov 2", 247, 226, 57),
+    ];
+}

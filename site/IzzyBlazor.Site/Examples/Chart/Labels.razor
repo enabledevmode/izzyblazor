@@ -1,0 +1,19 @@
+@* Gross state product for the Great Lakes states over three years, each bar labeled. *@
+<Chart Items="_states" Argument="s => s.State" Title="Gross state product, Great Lakes (billions USD)">
+    <ChartSeries Value="s => s.Y2022" Name="2022" Labels="ChartLabels.Auto" LabelFormat="N0" />
+    <ChartSeries Value="s => s.Y2023" Name="2023" Labels="ChartLabels.Auto" LabelFormat="N0" />
+    <ChartSeries Value="s => s.Y2024" Name="2024" Labels="ChartLabels.Auto" LabelFormat="N0" />
+</Chart>
+
+@code {
+    private record StateProduct(string State, decimal Y2022, decimal Y2023, decimal Y2024);
+
+    private readonly StateProduct[] _states =
+    [
+        new("Illinois", 1_040, 1_090, 1_137),
+        new("Indiana", 473, 505, 527),
+        new("Michigan", 627, 675, 705),
+        new("Ohio", 833, 890, 930),
+        new("Wisconsin", 401, 415, 430),
+    ];
+}

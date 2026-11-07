@@ -28,6 +28,8 @@ export interface DrawSeries {
   y: number; // style: dash and marker shape
   d: number; // dash, 0 to 3
   col?: string; // the series' own color
+  lm?: number; // value labels: 1 auto, 2 inside, 3 outside
+  lt?: (string | null)[]; // each item's label text
 }
 
 export interface DrawData {
@@ -229,13 +231,51 @@ const pct = (n: number) => `${Math.round(n * 100000) / 1000}%`;
 export interface Drawing {
   svg: string;
   labels: string;
+  dl: string; // the value labels' HTML
 }
+
+// ---- Value labels (ChartLayout.PlaceLabels), placed at the plot's real size. ----
+
+const GAP = 4, PAD = 2, LINE = 16;
+
+/** A spot: the label's center in pixels, and the bar it must stay inside, if any. */
+type Spot = [number, number, [number, number, number, number] | null];
+
+interface LabelAt {
+  s: number;
+  text: string;
+  w: number;
+  spots: Spot[];
+}
+
+function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => number, color: (s: number) => string): string {
+  const boxes: [number, number, number, number][] = [];
+  let html = "";
+  for (const { s, text, w, spots } of all) {
+    for (const [cx, cy, bar] of spots) {
+      const box: [number, number, number, number] = [cx - w / 2 - PAD, cy - LINE / 2, cx + w / 2 + PAD, cy + LINE / 2];
+      const room = bar
+        ? box[0] >= bar[0] && box[2] <= bar[2] && box[1] >= bar[1] - 0.5 && box[3] <= bar[3] + 0.5
+        : box[0] >= 0 && box[2] <= W && box[1] >= 0 && box[3] <= H;
+      if (!room) continue;
+      if (boxes.some((o) => box[0] < o[2] && o[0] < box[2] && box[1] < o[3] && o[1] < box[3])) break;
+      boxes.push(box);
+      html += `<span${bar ? ` class="ib-chart-dl-in ib-chart-s${slot(s)}"` : ""} style="left:${Math.round(cx * 10) / 10}px;top:${Math.round(cy * 10) / 10}px;${color(s)}" data-ib-series="${s}">${esc(text)}</span>`;
+      break;
+    }
+  }
+  return html;
+}
+
 
 /**
  * The chart with the visible series only. plotPx is the plot's size, for the number of ticks:
  * one per 56px up the side, or per 90px across.
  */
-export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: number }): Drawing {
+export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: number }, measure?: (text: string) => number): Drawing {
+  const W = plotPx.w, H = plotPx.h;
+  const labelsAt: LabelAt[] = [];
+  const widthOf = (text: string) => (measure ? measure(text) : text.length * 7);
   const n = d.a.length;
   const visible = d.s.map((_, i) => i).filter((i) => !hidden.has(i));
   const full = d.st === 2;
@@ -377,6 +417,17 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         return x2 !== null && isFinite(x2) && x2 !== 0 && x2 < 0 === (highs[s][i] ?? 0) < (lows[s][i] ?? 0);
       });
       barSvg += rect(outermost && hi > lo ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
+      const text = d.s[s].lt?.[i];
+      if (d.s[s].lm && text != null) {
+        const tw = widthOf(text);
+        const b: [number, number, number, number] = [x * W, y * H, (x + w) * W, (y + h) * H];
+        const mx = (b[0] + b[2]) / 2, my = (b[1] + b[3]) / 2, dw = GAP + tw / 2, dh = GAP + LINE / 2;
+        const dir = d.h ? (below ? "l" : "r") : below ? "b" : "t";
+        const out: Spot = dir === "t" ? [mx, b[1] - dh, null] : dir === "b" ? [mx, b[3] + dh, null] : dir === "r" ? [b[2] + dw, my, null] : [b[0] - dw, my, null];
+        const end: Spot = dir === "t" ? [mx, b[1] + dh, b] : dir === "b" ? [mx, b[3] - dh, b] : dir === "r" ? [b[2] - dw, my, b] : [b[0] + dw, my, b];
+        const mode = d.s[s].lm;
+        labelsAt.push({ s, text, w: tw, spots: stacked && mode !== 3 ? [[mx, my, b]] : mode === 2 ? [end] : [out, end] });
+      }
     }
     barSvg += "</g>";
   });
@@ -419,6 +470,12 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         if (!p) continue;
         const [x, y] = d.h ? [p[1], p[0]] : [p[0], 1 - p[1]];
         marks += `<use href="#${d.mk}${data.y % 4}" x="${pct(x)}" y="${pct(y)}" data-ib-i="${p[2]}"/>`;
+        const text = data.lt?.[p[2]];
+        if (data.lm && text != null) {
+          const dy = 6 + GAP + LINE / 2;
+          const above: Spot = [x * W, y * H - dy, null], under: Spot = [x * W, y * H + dy, null];
+          labelsAt.push({ s, text, w: widthOf(text), spots: data.lm === 2 ? [under, above] : [above, under] });
+        }
       }
       marks += "</g>";
     }
@@ -426,5 +483,5 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
 
   const paths = (inner: string) => (inner ? `<svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">${inner}</svg>` : "");
   svg += paths(areas) + barSvg + paths(lines) + marks;
-  return { svg, labels };
+  return { svg, labels, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
 }
