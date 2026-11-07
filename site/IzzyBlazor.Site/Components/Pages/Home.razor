@@ -135,7 +135,7 @@
         <Row Gap="2" Wrap>
             @foreach (var component in Registry.Components.Where(c => Featured.Contains(c.Name)))
             {
-                <Tag Href="@Registry.OverviewHref(component)">@component.Name</Tag>
+                <Tag Href="@Registry.OverviewHref(component)">@component.DisplayName</Tag>
             }
         </Row>
     </Stack>

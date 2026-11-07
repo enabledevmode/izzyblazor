@@ -29,7 +29,7 @@
                     {
                         var api = Api.Component(component.Name);
                         <li>
-                            <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.Name</a>
+                            <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.DisplayName</a>
                             @if (component.Preview)
                             {
                                 <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>

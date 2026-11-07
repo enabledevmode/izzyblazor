@@ -28,7 +28,7 @@ public sealed class Registry
         Categories = file.Categories;
         // Groups in the file's order (foundations first); components by name within each, so a
         // reader scanning for one they know finds it, and a new one has an obvious place.
-        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)).ToList();
+        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c).OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)).ToList();
         Components = AllComponents.Where(c => !c.Preview).ToList();
         var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id).ToList();
         if (stray.Count > 0)
@@ -142,6 +142,15 @@ public sealed record RegistryComponent
 
     /// <summary>The component's type name, as in the API metadata.</summary>
     public required string Name { get; init; }
+
+    /// <summary>
+    /// What people call it, when that isn't its type name: "Bar chart" for <c>ChartBarSeries</c>.
+    /// Shown in the navigation, the index, search and page titles.
+    /// </summary>
+    public string? Title { get; init; }
+
+    /// <summary>The name shown to readers: <see cref="Title"/>, or the type name.</summary>
+    public string DisplayName => Title ?? Name;
     public required string Category { get; init; }
 
     /// <summary>A Lucide icon's name (<c>MousePointerClick</c>), the component's pictogram on cards and its page.</summary>

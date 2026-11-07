@@ -28,7 +28,7 @@
                 {
                     @* Text only: a component's picture would repeat on each of its demos' cards. *@
                     <Card Title="@scenario.Title" Href="@Registry.ScenarioHref(component, scenario)" Description="@scenario.Description" Size="ControlSize.Sm">
-                        <CardHeader><Badge Size="BadgeSize.Sm">@component.Name</Badge></CardHeader>
+                        <CardHeader><Badge Size="BadgeSize.Sm">@component.DisplayName</Badge></CardHeader>
                     </Card>
                 }
             }

@@ -226,6 +226,13 @@ public static class SiteApp
                 stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
             .RequireRateLimiting(PagesRateLimit);
+        // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.
+        foreach (var (topic, page) in new[] { ("bars", "bar-chart"), ("lines", "line-chart"), ("scatter", "scatter-chart") })
+        {
+            app.MapGet($"/docs/components/chart/{topic}", () => Results.Redirect($"/docs/components/{page}", permanent: true));
+            app.MapGet($"/docs/components/chart/{topic}/api", () => Results.Redirect($"/docs/components/{page}/api", permanent: true));
+        }
+
         app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
         app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
         app.MapMethods("/izzyblazor.api.json", ["GET", "HEAD"], (ApiMetadata api) => Results.Text(api.Json, "application/json"));

@@ -22,7 +22,7 @@
         {
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">
                 The members for @_topic.Title.ToLowerInvariant(), and the types they use. Every member of
-                <Code>IzzyBlazor.@_api.DisplayName</Code> is on the <Anchor Href="@Registry.ApiPageHref(_component)">@_component.Name API</Anchor>.
+                <Code>IzzyBlazor.@_api.DisplayName</Code> is on the <Anchor Href="@Registry.ApiPageHref(_component)">@_component.DisplayName API</Anchor>.
             </TextBlock>
         }
         else
@@ -130,8 +130,8 @@
 
         @if (_topic is null)
         {
-        <PrevNext PreviousHref="@(_previous is null ? null : Registry.ApiPageHref(_previous))" PreviousTitle="@(_previous is null ? null : $"{_previous.Name} API")"
-                  NextHref="@(_next is null ? null : Registry.ApiPageHref(_next))" NextTitle="@(_next is null ? null : $"{_next.Name} API")" />
+        <PrevNext PreviousHref="@(_previous is null ? null : Registry.ApiPageHref(_previous))" PreviousTitle="@(_previous is null ? null : $"{_previous.DisplayName} API")"
+                  NextHref="@(_next is null ? null : Registry.ApiPageHref(_next))" NextTitle="@(_next is null ? null : $"{_next.DisplayName} API")" />
         }
     </article>
 }

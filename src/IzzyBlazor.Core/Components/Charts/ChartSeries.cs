@@ -267,6 +267,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 /// <c>Orientation="Orientation.Horizontal"</c>. The chart's <c>Stacking</c> stacks bar series.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
 {
     /// <summary>
@@ -282,6 +283,7 @@ public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
 
 /// <summary>A series drawn as a line through each item's value.</summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 {
     /// <summary>
@@ -316,6 +318,7 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 /// area series.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 {
     /// <summary>How the area's line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
@@ -346,6 +349,7 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 /// such as a page's load time and bounce rate, to show how they relate.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 {
     private protected override ChartType Type => ChartType.Scatter;
@@ -356,6 +360,7 @@ public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 /// to its <see cref="Size"/>.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 {
     /// <summary>
@@ -380,6 +385,7 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 /// A waterfall is its chart's only series, and the chart's legend keys its three colors.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+[ModeSupport]
 public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
 {
     private Expression<Func<TItem, bool>>? _lastTotal;

@@ -1,0 +1,19 @@
+@* Weekly active users of three apps over two years: a few lines over time, on a date scale. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Weekly active users by app, 2025–2026">
+    <ChartValueAxis Format="#,##0,K" />
+    <ChartLineSeries Value="m => m.Web" Name="Web" />
+    <ChartLineSeries Value="m => m.Ios" Name="iOS" />
+    <ChartLineSeries Value="m => m.Android" Name="Android" />
+</Chart>
+
+@code {
+    private record AppMonth(DateOnly Month, int Web, int Ios, int Android);
+
+    private static readonly int[] WebUsers = [182_000, 186_000, 191_000, 189_000, 194_000, 198_000, 196_000, 201_000, 205_000, 203_000, 207_000, 211_000, 209_000, 212_000, 214_000, 213_000, 216_000, 219_000, 217_000, 220_000, 222_000, 221_000, 224_000, 226_000];
+    private static readonly int[] IosUsers = [64_000, 69_000, 75_000, 82_000, 88_000, 96_000, 103_000, 109_000, 118_000, 126_000, 131_000, 139_000, 146_000, 152_000, 160_000, 167_000, 171_000, 178_000, 184_000, 190_000, 194_000, 199_000, 205_000, 211_000];
+    private static readonly int[] AndroidUsers = [41_000, 44_000, 46_000, 51_000, 55_000, 58_000, 63_000, 66_000, 72_000, 77_000, 80_000, 86_000, 91_000, 95_000, 101_000, 106_000, 110_000, 117_000, 121_000, 126_000, 133_000, 137_000, 142_000, 149_000];
+
+    private readonly AppMonth[] _months = Enumerable.Range(0, 24)
+        .Select(i => new AppMonth(new DateOnly(2025, 1, 1).AddMonths(i), WebUsers[i], IosUsers[i], AndroidUsers[i]))
+        .ToArray();
+}

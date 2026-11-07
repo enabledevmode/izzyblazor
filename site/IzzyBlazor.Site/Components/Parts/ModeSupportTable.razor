@@ -6,7 +6,7 @@
 @if (_rows.Count > 0)
 {
     <Stack Gap="2">
-        <Table Items="_rows" Caption="@($"What works in each mode, {Component.Name}")" Size="ControlSize.Sm">
+        <Table Items="_rows" Caption="@($"What works in each mode, {Component.DisplayName}")" Size="ControlSize.Sm">
             <Columns>
                 <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
                 <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>

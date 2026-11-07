@@ -253,19 +253,19 @@ public sealed partial class SearchIndex
         foreach (var component in registry.Components)
         {
             var overview = Registry.OverviewHref(component);
-            Add(SearchKind.Component, component.Name, component.Category, component.Summary, overview, component.Keywords);
+            Add(SearchKind.Component, component.DisplayName, component.Category, component.Summary, overview, component.Title is null ? component.Keywords : [.. component.Keywords, component.Name]);
 
             foreach (var part in component.Parts)
             {
                 if (registry.ApiHref(part, null) is { } href)
                 {
-                    Add(SearchKind.Part, part, $"Part of {component.Name}", ApiMetadata.PlainText(api.Component(part)?.Summary), href);
+                    Add(SearchKind.Part, part, $"Part of {component.DisplayName}", ApiMetadata.PlainText(api.Component(part)?.Summary), href);
                 }
             }
 
             if (pages.TryGetValue(overview, out var page))
             {
-                AddSections(page, component.Name, SearchGroup.Components);
+                AddSections(page, component.DisplayName, SearchGroup.Components);
 
                 // @KeyboardTable.Section draws this from the metadata, so the source doesn't have it:
                 // before Parameters, with what comes earlier deciding its id.
@@ -274,14 +274,14 @@ public sealed partial class SearchIndex
                     const string keys = "Keyboard navigation";
                     var before = page.Headings.TakeWhile(h => h.Text != "Parameters").Select(h => (h.Text, (string?)h.Id)).ToList();
                     var keyId = Ids(component.Name, before.Append((keys, (string?)null))).Last();
-                    Add(SearchKind.Section, keys, component.Name, null, $"{overview}#{keyId}", standard: StandardSections.Contains(keys));
+                    Add(SearchKind.Section, keys, component.DisplayName, null, $"{overview}#{keyId}", standard: StandardSections.Contains(keys));
                 }
 
                 foreach (var id in page.Examples)
                 {
                     if (registry.Example(id) is { } found && !page.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))
                     {
-                        Add(SearchKind.Example, found.Example.Title, component.Name, Lead(found.Example.Lead), $"{overview}#ex-{id}");
+                        Add(SearchKind.Example, found.Example.Title, component.DisplayName, Lead(found.Example.Lead), $"{overview}#ex-{id}");
                     }
                 }
             }
@@ -321,22 +321,22 @@ public sealed partial class SearchIndex
                 for (var i = 0; i < headings.Count; i++)
                 {
                     var example = component.Examples.FirstOrDefault(e => e.Title == headings[i]);
-                    Add(SearchKind.Section, headings[i], component.Name, Lead(example?.Lead), $"{overview}#{ids[i]}", standard: StandardSections.Contains(headings[i]));
+                    Add(SearchKind.Section, headings[i], component.DisplayName, Lead(example?.Lead), $"{overview}#{ids[i]}", standard: StandardSections.Contains(headings[i]));
                 }
             }
 
             foreach (var topic in component.Topics)
             {
                 var topicPage = Registry.TopicHref(component, topic);
-                Add(SearchKind.Section, topic.Title, component.Name, topic.Summary, topicPage);
+                Add(SearchKind.Section, topic.Title, component.DisplayName, topic.Summary, topicPage);
                 if (pages.TryGetValue(topicPage, out var written))
                 {
-                    AddSections(written, $"{component.Name}: {topic.Title}", SearchGroup.Components);
+                    AddSections(written, $"{component.DisplayName}: {topic.Title}", SearchGroup.Components);
                     foreach (var id in written.Examples)
                     {
                         if (registry.Example(id) is { } found && !written.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))
                         {
-                            Add(SearchKind.Example, found.Example.Title, $"{component.Name}: {topic.Title}", Lead(found.Example.Lead), $"{topicPage}#ex-{id}");
+                            Add(SearchKind.Example, found.Example.Title, $"{component.DisplayName}: {topic.Title}", Lead(found.Example.Lead), $"{topicPage}#ex-{id}");
                         }
                     }
 
@@ -346,13 +346,13 @@ public sealed partial class SearchIndex
                 var topicIds = Ids(topic.Title, topic.Examples.Select(e => (e.Title, (string?)null)));
                 for (var i = 0; i < topic.Examples.Count; i++)
                 {
-                    Add(SearchKind.Section, topic.Examples[i].Title, $"{component.Name}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}");
+                    Add(SearchKind.Section, topic.Examples[i].Title, $"{component.DisplayName}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}");
                 }
             }
 
             foreach (var scenario in component.Scenarios)
             {
-                Add(SearchKind.Demo, scenario.Title, $"{component.Name} demo", scenario.Description, Registry.ScenarioHref(component, scenario));
+                Add(SearchKind.Demo, scenario.Title, $"{component.DisplayName} demo", scenario.Description, Registry.ScenarioHref(component, scenario));
             }
         }
     }

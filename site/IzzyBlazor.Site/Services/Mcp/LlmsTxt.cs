@@ -36,7 +36,7 @@ public static class LlmsTxt
             text.Append($"\n## Components: {category}\n\n");
             foreach (var component in registry.InCategory(category))
             {
-                text.Append($"- [{component.Name}]({Sitemap.Origin}{Registry.OverviewHref(component)}): {component.Summary}");
+                text.Append($"- [{component.DisplayName}]({Sitemap.Origin}{Registry.OverviewHref(component)}): {component.Summary}");
                 text.Append($" [API]({Sitemap.Origin}{Registry.ApiPageHref(component)})");
                 foreach (var topic in component.Topics)
                 {
