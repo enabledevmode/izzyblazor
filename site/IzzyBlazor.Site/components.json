@@ -2095,6 +2095,7 @@
       "features": [
         { "feature": "Bars, lines and areas, grouped or stacked, upright or across" },
         { "feature": "Fills its container's width, with labels that thin out as it narrows" },
+        { "feature": "Axis titles, set steps, log scales and grid lines" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips from a template, on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
@@ -2114,6 +2115,14 @@
           "id": "lines", "title": "Lines and areas", "summary": "Lines and areas over names, numbers or dates, straight, smooth or stepped, with gaps where values are missing.", "members": ["SeriesType", "ChartSeries.Type", "ChartSeries.Curve", "ChartSeries.LineStyle", "ChartSeries.Markers", "ChartSeries.ConnectNulls", "Height", "ValueMin", "ValueMax"],
           "examples": [
             { "id": "chart-lines", "title": "Lines over dates", "lead": "To draw every series as a line, set `SeriesType` on the chart. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and an `Area` series fills down to zero. Lines differ by dash and marker shape as well as color." }
+          ]
+        },
+        {
+          "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels"],
+          "examples": [
+            { "id": "chart-axes", "title": "Titles, a set step and grid lines", "lead": "`ValueTitle` and `ArgumentTitle` put a title beside each axis; the argument's title also heads the first column of the data table. `ValueStep` sets the gap between the value axis's ticks, here $25,000, and the axis ends on a multiple of it. `GridLines` set to `Both` adds lines between the months; `None` leaves only the zero line." },
+            { "id": "chart-log-scale", "title": "A log scale", "lead": "For values that span several powers of ten, set `ValueLog`: each power of ten is an equal step up, so growth from hundreds to thousands shows as clearly as from hundreds of thousands to millions. A log scale has no zero, so values at or under zero aren't drawn." },
+            { "id": "chart-rotated", "title": "Long names along the bottom", "lead": "Names that don't fit side by side are skipped, every other one first. To turn them 45° before any are skipped, set `ArgumentLabels` to `Rotate`; narrow the window to see them turn. `All` shows every name, wrapped onto more lines in its band, which suits a few long names." }
           ]
         },
         {

@@ -77,6 +77,7 @@
     grid-template-rows: var(--ib-chart-height, 18rem) auto;
     column-gap: var(--ib-space-2);
     padding-block-start: 0.5lh;
+    padding-inline-start: var(--ib-chart-pad, 0);
     font-size: var(--ib-text-xs);
     line-height: 1.3;
     color: var(--ib-color-muted);
@@ -109,6 +110,23 @@
     position: relative;
     min-width: 0;
   }
+
+  /* Axis titles: one in a column of its own beside the side's labels, read bottom to top, and
+     one under the bottom's. */
+  .ib-chart-titled { grid-template-columns: auto auto minmax(0, 1fr); }
+
+  .ib-chart-title {
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-medium);
+    text-align: center;
+  }
+
+  .ib-chart-title-side {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+  }
+
+  .ib-chart-title-bottom { margin-block-start: var(--ib-space-1); }
 
   .ib-chart-svg {
     position: absolute;
@@ -186,7 +204,7 @@
      for the server's plot and value labels, and is empty and out of the way until then. */
   .ib-chart-js,
   ib-chart[data-ib-redrawn] .ib-chart-values:not(.ib-chart-js),
-  ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs) { display: none; }
+  ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs, .ib-chart-agrid) { display: none; }
   ib-chart[data-ib-redrawn] .ib-chart-values.ib-chart-js { display: contents; }
   ib-chart[data-ib-redrawn] svg.ib-chart-js { display: block; }
 
@@ -277,20 +295,37 @@
 
   /* Arguments (or values, for bars across) along the bottom, centered on their place. */
   .ib-chart-bottom {
-    grid-column: 2;
+    grid-column: -2;
     position: relative;
-    height: 1lh;
+    height: var(--ib-chart-bh, 1lh);
     margin-block-start: var(--ib-space-1);
   }
 
+  .ib-chart-title-bottom { grid-column: -2; }
+
   .ib-chart-two-line { height: 2lh; }
 
+  /* Turned 45° (ArgumentLabels Rotate), a name ends at its place: below the first width they fit
+     flat at (ib-chart-rotN, by container queries) or as the script measured (data-ib-turn). */
   .ib-chart-bottom > * > span {
     position: absolute;
     top: 0;
-    translate: -50% 0;
+    translate: var(--ib-chart-tx, -50%) 0;
+    rotate: var(--ib-chart-turn, 0deg);
+    transform-origin: 100% 50%;
     white-space: nowrap;
     text-align: center;
+  }
+
+  .ib-chart-rot8,
+  ib-chart[data-ib-turn] .ib-chart-frame { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); }
+
+  ib-chart[data-ib-fit]:not([data-ib-turn]) .ib-chart-frame {
+    --ib-chart-tx: initial;
+    --ib-chart-turn: initial;
+    --ib-chart-rw: initial;
+    --ib-chart-bh: initial;
+    --ib-chart-pad: initial;
   }
 
   .ib-chart-context {
@@ -300,9 +335,25 @@
 
   /* Names in bands get the room the server worked out for each width, and an ellipsis past it. */
   .ib-chart-bands > * > span {
-    max-width: var(--ib-chart-w, var(--ib-chart-w0));
+    max-width: var(--ib-chart-rw, var(--ib-chart-w, var(--ib-chart-w0)));
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* Every name, wrapped in its band (ArgumentLabels All). */
+  .ib-chart-wrap {
+    display: grid;
+    grid-template-columns: repeat(var(--ib-chart-n), minmax(0, 1fr));
+    height: auto;
+  }
+
+  .ib-chart-wrap > * > span {
+    position: static;
+    translate: none;
+    max-width: none;
+    padding-inline: 2px;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   @container ib-chart (width >= 320px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w1); } }
@@ -313,13 +364,13 @@
   @container ib-chart (width >= 800px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w6); } }
   @container ib-chart (width >= 960px) { .ib-chart-bands { --ib-chart-w: var(--ib-chart-w7); } }
 
-  @container ib-chart (width < 320px) { .ib-chart-from1 { display: none; } }
-  @container ib-chart (width < 400px) { .ib-chart-from2 { display: none; } }
-  @container ib-chart (width < 480px) { .ib-chart-from3 { display: none; } }
-  @container ib-chart (width < 560px) { .ib-chart-from4 { display: none; } }
-  @container ib-chart (width < 640px) { .ib-chart-from5 { display: none; } }
-  @container ib-chart (width < 800px) { .ib-chart-from6 { display: none; } }
-  @container ib-chart (width < 960px) { .ib-chart-from7 { display: none; } }
+  @container ib-chart (width < 320px) { .ib-chart-from1 { display: none; } .ib-chart-rot1 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 400px) { .ib-chart-from2 { display: none; } .ib-chart-rot2 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 480px) { .ib-chart-from3 { display: none; } .ib-chart-rot3 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 560px) { .ib-chart-from4 { display: none; } .ib-chart-rot4 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 640px) { .ib-chart-from5 { display: none; } .ib-chart-rot5 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 800px) { .ib-chart-from6 { display: none; } .ib-chart-rot6 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
+  @container ib-chart (width < 960px) { .ib-chart-from7 { display: none; } .ib-chart-rot7 { --ib-chart-tx: -100%; --ib-chart-turn: -45deg; --ib-chart-rw: 8rem; --ib-chart-bh: var(--ib-chart-th); --ib-chart-pad: var(--ib-chart-lead); } }
 
   .ib-chart-legend {
     display: flex;

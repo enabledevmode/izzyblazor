@@ -97,6 +97,37 @@
     [Parameter] public double? ValueMax { get; set; }
 
     /// <summary>
+    /// The gap between the value axis's ticks, such as <c>25_000</c>. The axis's ends round to it
+    /// unless <see cref="ValueMin"/> and <see cref="ValueMax"/> are set. Defaults to a round step
+    /// for the chart's size; ticks that would crowd still thin out. A step that would make more
+    /// than 500 ticks is ignored.
+    /// </summary>
+    [Parameter] public double? ValueStep { get; set; }
+
+    /// <summary>
+    /// Draws the value axis on a log scale (base 10), for values that span several powers of ten,
+    /// such as company sizes. Values at or under zero have no place on it and aren't drawn; bars
+    /// and areas start at the axis's bottom.
+    /// </summary>
+    [Parameter] public bool ValueLog { get; set; }
+
+    /// <summary>A title beside the value axis, such as "Revenue (USD)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>A title beside the argument axis, such as "Month". It also heads the data table's first column.</summary>
+    [Parameter] public string? ArgumentTitle { get; set; }
+
+    /// <summary>Which grid lines cross the plot: at the values (the default), at the arguments too, or none.</summary>
+    [Parameter] public ChartGridLines GridLines { get; set; }
+
+    /// <summary>
+    /// How names along the bottom fit when they crowd: skipped (the default), turned 45° first, or
+    /// all shown, wrapped. Applies to names in bands on an upright chart; ticks on a number or date
+    /// scale are always chosen to fit.
+    /// </summary>
+    [Parameter] public ChartArgumentLabels ArgumentLabels { get; set; }
+
+    /// <summary>
     /// Shows a tooltip with every series' value for the item under the pointer, or under keyboard
     /// focus on the chart, with script. Defaults to true; turning it off leaves the tooltips out of
     /// the page.
@@ -182,6 +213,29 @@
             throw new ArgumentOutOfRangeException(nameof(ValueMax), hi, "A Chart's ValueMax must be more than its ValueMin.");
         }
 
+        if (ValueStep is { } step && !(step > 0 && double.IsFinite(step)))
+        {
+            throw new ArgumentOutOfRangeException(nameof(ValueStep), step, "A Chart's ValueStep must be more than 0.");
+        }
+
+        if (ValueLog)
+        {
+            if (ValueMin <= 0 || ValueMax <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(ValueMin), "A Chart with ValueLog needs ValueMin and ValueMax over 0: a log scale has no zero.");
+            }
+
+            if (Stacked == ChartStack.Full)
+            {
+                throw new InvalidOperationException("A Chart can't use ValueLog with Stacked=\"ChartStack.Full\": shares of a whole read on a straight scale.");
+            }
+
+            if (ValueStep is not null)
+            {
+                throw new InvalidOperationException("A Chart can't use ValueStep with ValueLog: a log scale's ticks are powers of ten.");
+            }
+        }
+
         if (Argument is null)
         {
             throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month.");
@@ -227,6 +281,10 @@
             ArgumentFormat = ArgumentFormat,
             ValueMin = ValueMin,
             ValueMax = ValueMax,
+            ValueStep = ValueStep,
+            ValueLog = ValueLog,
+            GridLines = GridLines,
+            ArgumentLabels = ArgumentLabels,
         });
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
@@ -234,9 +292,13 @@
         // With a legend, the script draws the chart again without the series it hides.
         var shape = legend ? NumberShape.Of(Stacked == ChartStack.Full ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
-        var room = model.LabelRoom is { } r && !horizontal
+        var room = model.Wrap && !horizontal
+            ? $"--ib-chart-n:{model.ArgumentTexts.Length}"
+            : model.LabelRoom is { } r && !horizontal
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
+        var sideTitle = horizontal ? ArgumentTitle : ValueTitle;
+        var bottomTitle = horizontal ? ValueTitle : ArgumentTitle;
 
         <ib-chart style="@Palette?.Style(model.Series.Count)"
                   data-ib-count="@model.ArgumentTexts.Length"
@@ -245,7 +307,11 @@
                   data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        <div class="ib-chart-frame" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
+        <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
+            @if (sideTitle is not null)
+            {
+                <div class="ib-chart-title ib-chart-title-side">@sideTitle</div>
+            }
             <div class="@(horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side")">
                 <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
                     @foreach (var label in side)
@@ -274,11 +340,14 @@
                         <path id="@(marks)2" d="M0,-6.2L5.8,4.2H-5.8Z" />
                         <path id="@(marks)3" d="M0,-6.2L6.2,0L0,6.2L-6.2,0Z" />
                     </defs>
-                    @foreach (var line in model.Grid)
+                    @foreach (var line in model.Grid.Where(l => GridLines != ChartGridLines.None || l.Zero))
                     {
+                        @* Values run up (or across, for bars across); arguments across (or down from the top). *@
+                        var upright = horizontal != line.Argument;
+                        var y = line.Argument ? Pct(line.Pos) : Pct(1 - line.Pos);
                         <line class="@GridClass(line)"
-                              x1="@(horizontal ? Pct(line.Pos) : "0")" x2="@(horizontal ? Pct(line.Pos) : "100%")"
-                              y1="@(horizontal ? "0" : Pct(1 - line.Pos))" y2="@(horizontal ? "100%" : Pct(1 - line.Pos))" />
+                              x1="@(upright ? Pct(line.Pos) : "0")" x2="@(upright ? Pct(line.Pos) : "100%")"
+                              y1="@(upright ? "0" : y)" y2="@(upright ? "100%" : y)" />
                     }
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Area is not null))
@@ -338,6 +407,10 @@
                     <div class="ib-chart-ticks ib-chart-values ib-chart-js"></div>
                 }
             </div>
+            @if (bottomTitle is not null)
+            {
+                <div class="ib-chart-title ib-chart-title-bottom">@bottomTitle</div>
+            }
         </div>
 
         @if (legend)
@@ -418,7 +491,7 @@
                     <table class="ib-chart-table" aria-labelledby="@_labelId">
                         <thead>
                             <tr>
-                                <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                                <th scope="col">@(ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
                                 @foreach (var s in model.Series)
                                 {
                                     <th scope="col">@s.Data.Name</th>
@@ -444,18 +517,27 @@
         }
     }
 
+    // Argument grid lines stay when the script draws the values again (ib-chart-agrid).
     private static string GridClass(GridLine line) =>
-        (line.Zero ? "ib-chart-grid ib-chart-zero" : "ib-chart-grid") + (line.From > 0 ? $" ib-chart-from{line.From}" : "");
+        (line.Zero ? "ib-chart-grid ib-chart-zero" : line.Argument ? "ib-chart-grid ib-chart-agrid" : "ib-chart-grid") + (line.From > 0 ? $" ib-chart-from{line.From}" : "");
 
-    // Room at the end for half the last label on a scale, which is centered on the plot's edge.
+    // A side title adds a column; names turned below some width carry the first width they're flat at.
+    private static string FrameClass(ChartModel model, string? sideTitle) =>
+        "ib-chart-frame" + (sideTitle is null ? "" : " ib-chart-titled") + (model.FlatFrom > 0 ? $" ib-chart-rot{model.FlatFrom}" : "");
+
+    // Room at the end for half the last label on a scale, which is centered on the plot's edge;
+    // turned names' height, and how far the first reaches past the plot's start.
     private string? FrameStyle(ChartModel model)
     {
-        var style = (Height is { } h ? $"--ib-chart-height:{h.Css};" : "") + (model.EndRoomPx > 0 ? $"padding-inline-end:{Num(model.EndRoomPx)}px" : "");
+        var style = (Height is { } h ? $"--ib-chart-height:{h.Css};" : "")
+            + (model.EndRoomPx > 0 ? $"padding-inline-end:{Num(model.EndRoomPx)}px;" : "")
+            + (model.FlatFrom > 0 ? $"--ib-chart-th:{Num(model.TurnedPx)}px;--ib-chart-lead:{Num(model.LeadPx)}px" : "");
         return style.Length > 0 ? style : null;
     }
 
     private static string BottomClass(ChartModel model, bool horizontal) =>
-        "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "") + (!horizontal && model.Kind == ArgumentKind.Category ? " ib-chart-bands" : "");
+        "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "")
+        + (!horizontal && model.Kind == ArgumentKind.Category ? model.Wrap ? " ib-chart-bands ib-chart-wrap" : " ib-chart-bands" : "");
 
     private static string SeriesClass(SeriesShape s, string? kind) =>
         $"{kind} ib-chart-s{s.Slot}".TrimStart();
@@ -494,6 +576,9 @@
             w.WriteNumber("st", (int)Stacked);
             Number("lo", ValueMin);
             Number("hi", ValueMax);
+            Number("vs", ValueLog ? null : ValueStep);
+            w.WriteBoolean("lg", ValueLog);
+            w.WriteBoolean("gl", GridLines != ChartGridLines.None);
             w.WriteStartObject("f");
             w.WriteString("p", shape.Prefix);
             w.WriteString("s", shape.Suffix);

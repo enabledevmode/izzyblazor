@@ -1,0 +1,20 @@
+@* Active users since launch, which grew from hundreds to millions: on a log scale, each power of
+   ten is an equal step, so the early months' growth shows as clearly as the later ones'. *@
+<Chart Items="_months" Argument="m => m.Month" SeriesType="ChartType.Line" Label="Monthly active users since launch"
+       ValueLog ValueTitle="Active users">
+    <ChartSeries Value="m => m.Users" />
+</Chart>
+
+@code {
+    private record MonthUsers(DateOnly Month, int Users);
+
+    private readonly MonthUsers[] _months =
+    [
+        new(new(2024, 1, 1), 340), new(new(2024, 2, 1), 610), new(new(2024, 3, 1), 1_150), new(new(2024, 4, 1), 2_080),
+        new(new(2024, 5, 1), 3_900), new(new(2024, 6, 1), 6_400), new(new(2024, 7, 1), 9_800), new(new(2024, 8, 1), 15_200),
+        new(new(2024, 9, 1), 22_700), new(new(2024, 10, 1), 34_100), new(new(2024, 11, 1), 48_600), new(new(2024, 12, 1), 69_300),
+        new(new(2025, 1, 1), 94_000), new(new(2025, 2, 1), 121_500), new(new(2025, 3, 1), 158_000), new(new(2025, 4, 1), 204_300),
+        new(new(2025, 5, 1), 251_800), new(new(2025, 6, 1), 312_400), new(new(2025, 7, 1), 371_000), new(new(2025, 8, 1), 446_900),
+        new(new(2025, 9, 1), 529_300), new(new(2025, 10, 1), 618_000), new(new(2025, 11, 1), 724_500), new(new(2025, 12, 1), 851_200),
+    ];
+}

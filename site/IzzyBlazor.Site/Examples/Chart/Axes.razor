@@ -1,0 +1,16 @@
+@* Monthly revenue with titled axes, a tick every $25,000 and lines between the months. *@
+<Chart Items="_months" Argument="m => m.Month" Label="Revenue by month, 2026" ValueFormat="C0"
+       ValueTitle="Revenue (USD)" ArgumentTitle="Month" ValueStep="25_000" GridLines="ChartGridLines.Both">
+    <ChartSeries Value="m => m.Revenue" />
+</Chart>
+
+@code {
+    private record MonthRevenue(string Month, decimal Revenue);
+
+    private readonly MonthRevenue[] _months =
+    [
+        new("Jan", 84_200), new("Feb", 91_500), new("Mar", 102_300), new("Apr", 98_700),
+        new("May", 110_400), new("Jun", 121_900), new("Jul", 117_600), new("Aug", 126_300),
+        new("Sep", 133_800), new("Oct", 141_200), new("Nov", 156_900), new("Dec", 172_400),
+    ];
+}
