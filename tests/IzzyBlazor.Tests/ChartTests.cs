@@ -261,6 +261,8 @@ public class ChartLayoutTests
         Assert.Equal([1, 3, 5, 7, 9], ChartTrends.Fit(x, [1, 3, null, 7, 9], 1).Select(v => Math.Round(v!.Value, 9)));
         Assert.Equal([0, 1, 4, 9, 16], ChartTrends.Fit(x, [0, 1, 4, 9, 16], 2).Select(v => Math.Round(v!.Value, 9)));
         Assert.Equal([null, null, 2, 3, 4], ChartTrends.MovingAverage([1, 2, 3, 4, 5], 3));
+        // A SeriesBy split's other groups are missing values: the window is the series' own last three.
+        Assert.Equal([null, null, null, null, 2, null, 4], ChartTrends.MovingAverage([1, null, 2, null, 3, null, 7], 3));
 
         var series = ChartTrends.Add(
         [

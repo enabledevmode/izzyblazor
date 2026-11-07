@@ -29,6 +29,7 @@ export interface DrawSeries {
   y: number; // style: dash and marker shape
   d: number; // dash, 0 to 3
   tr?: boolean; // a trend, drawn toward the text color
+  so?: boolean; // a trend: its points run in argument order, not item order
   ax?: boolean; // on the second value axis, which keeps the server's range
   col?: string; // the series' own color
   op?: number; // a bar series' own fill strength
@@ -60,7 +61,19 @@ export interface DrawData {
   off: number[]; // the series the server drew hidden
   s: DrawSeries[];
   s2l?: number; // the second value axis's range
+  bp?: [number, number]; // bubbles: the largest radius and the length it's padded against, in pixels
   s2h?: number;
+}
+
+/** Widens a range by a bubble's radius at each end (ChartLayout.PadEnds). */
+function padEnds(min: number, max: number, log: boolean, radius: number, length: number): [number, number] {
+  if (log && !(min > 0)) return [min, max];
+  let [a, b] = log ? [Math.log10(min), Math.log10(max)] : [min, max];
+  let span = b - a;
+  if (!(span > 0)) span = log ? 1 : Math.max(Math.abs(b), 1);
+  const pad = (span * radius) / Math.max(1, length - 2 * radius);
+  [a, b] = [a - pad, b + pad];
+  return log ? [Math.pow(10, a), Math.pow(10, b)] : [a, b];
 }
 
 // ---- Ticks: D3's (ChartScale.cs). ----
@@ -370,6 +383,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     max = Math.max(max, 0);
   }
   if (!isFinite(min)) [min, max] = log ? [1, 10] : [0, 1];
+  // Bubbles keep inside the plot: the scale reaches past the values by the largest radius (ChartLayout.PadEnds).
+  if (d.bp && visible.some((s) => d.s[s].t === 4)) [min, max] = padEnds(min, max, log, d.bp[0], d.bp[1]);
   // A set end the values cross moves the other end past it, so the range never runs backward.
   if (d.lo != null) [min, max] = [d.lo, Math.max(max, d.lo)];
   if (d.hi != null) [min, max] = [Math.min(min, d.hi), d.hi];
@@ -413,13 +428,23 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     ticks = thin(ticks, scale, d.h ? plotPx.w : plotPx.h, d.h ? widest : 20);
   } else {
     const spec = tickSpec(dmin!, dmax!, count);
-    ticks = [];
-    for (let i = spec.i1; i <= spec.i2; i++) ticks.push([tickValue(spec, i), 0]);
     step = tickStep(spec);
+    // Across, every tick, or every 2nd, 10th, 20th… (5th, 10th, 50th… from a step of 2) so the
+    // widest label fits between them (ChartScale.Ladder, ChartLayout.NumberLabels).
+    let every = 1;
+    if (d.h && step > 0) {
+      const widest = Math.max(0, ...Array.from({ length: Math.max(0, spec.i2 - spec.i1 + 1) }, (_, k) =>
+        format(d.f, tickValue(spec, spec.i1 + k), step!).length)) * 7 + 8;
+      const lead = Math.round(step / Math.pow(10, Math.floor(Math.log10(step) + 1e-9)));
+      const [first, second] = lead === 2 ? [5, 2] : [2, 5];
+      for (let k = 0; (every * step) / (dmax! - dmin!) * plotPx.w < widest && every < spec.i2 - spec.i1; k++) every *= k % 2 === 0 ? first : second;
+    }
+    ticks = [];
+    for (let i = spec.i1; i <= spec.i2; i++) if (i % every === 0) ticks.push([tickValue(spec, i), 0]);
   }
   const axisTicks: [number, string, number, boolean][] = d.tk ??
     // Under a format that scales values down (thousands as K), zero reads "0" (ChartLayout.PlainZero).
-    ticks.map(([v]) => [scale(v), v === 0 && d.f.k < 1 && !full ? d.f.p + "0" : format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
+    ticks.map(([v]) => [scale(v), v === 0 && d.f.k < 1 && !full ? d.f.p + "0" : format(d.f, v, log ? v : d.vs != null && step === d.vs ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
   let svg = "";
   let labels = "";
   for (const [pos, raw, from, isZero] of axisTicks) {
@@ -494,6 +519,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       if (v !== null && a !== null) points.push([a, (data.ax ? scale2 : scale)(v), i]);
       else if (!data.j) points.push(null);
     }
+    if (data.so) points.sort((p, q) => p![0] - q![0]);
     if (data.t < 3) {
       const runs: [number, number, number][][] = [];
       let run: [number, number, number][] | null = null;
