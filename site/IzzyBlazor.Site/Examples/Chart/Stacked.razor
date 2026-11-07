@@ -1,11 +1,11 @@
 @* Sales by region each quarter, stacked so each column's height is the total. *@
 <Grid Columns="new Responsive<int> { Base = 1, Md = 2 }" Gap="8" Grow>
-    <Chart Items="_quarters" Argument="q => q.Quarter" Label="Sales by region" ValueFormat="C0" Stacked="ChartStack.Stacked">
+    <Chart Items="_quarters" Argument="q => q.Quarter" Title="Sales by region" ValueFormat="C0" Stacked="ChartStack.Stacked">
         <ChartSeries Value="q => q.Americas" />
         <ChartSeries Value="q => q.Europe" />
         <ChartSeries Value="q => q.Asia" />
     </Chart>
-    <Chart Items="_quarters" Argument="q => q.Quarter" Label="Share of sales by region" Stacked="ChartStack.Full">
+    <Chart Items="_quarters" Argument="q => q.Quarter" Title="Share of sales by region" Stacked="ChartStack.Full">
         <ChartSeries Value="q => q.Americas" />
         <ChartSeries Value="q => q.Europe" />
         <ChartSeries Value="q => q.Asia" />

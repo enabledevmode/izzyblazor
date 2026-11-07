@@ -1,5 +1,5 @@
 @* Revenue each month as columns, against the revenue plan as a line. *@
-<Chart Items="_months" Argument="m => m.Month" Label="Revenue against plan, 2026" ValueFormat="C0">
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue against plan, 2026" ValueFormat="C0">
     <ChartSeries Value="m => m.Revenue" Color="var(--ib-color-primary)" />
     <ChartSeries Value="m => m.Plan" Type="ChartType.Line" Color="var(--ib-color-on-surface)" LineStyle="ChartLineStyle.Dashed" />
 </Chart>

@@ -9,7 +9,7 @@
     Parts of a whole as slices of a circle, or of a ring with Donut, drawn on the server. The
     legend beside it (under it, when narrow) names each slice with its value and share.
 
-    <PieChart Items="plans" Argument="p => p.Plan" Value="p => p.Customers" Label="Customers by plan" Donut>
+    <PieChart Items="plans" Argument="p => p.Plan" Value="p => p.Customers" Title="Customers by plan" Donut>
         <Center><strong>1,240</strong> customers</Center>
     </PieChart>
 
@@ -18,16 +18,20 @@
     slices they get hard to tell apart: group the smallest as "Other", or use a Chart with bars.
 
     Accessibility:
-    - A figure captioned by Label, which is required; the circle is one image named by it.
+    - A figure captioned by Title (or named by a heading on the page, with TitledBy); the circle is
+      one image named by it.
     - The legend is text: each slice's name, value and share, read in order.
     - "Show data" under the chart opens a table of every value and share (DataTable).
     - With script, the circle is one Tab stop: the arrow keys move between slices and say each one.
     See also: Chart, Gauge.
 *@
 
-<figure @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
-    <figcaption id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-chart-label")">@Label</figcaption>
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : "ib-chart-label")">@Title</figcaption>
+    }
     @{
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         var names = items.Select(i => ChartLayout.ArgumentText(_argument!(i), null, CultureInfo.CurrentCulture)).ToArray();
@@ -43,7 +47,7 @@
               data-ib-pos="@string.Join(",", Enumerable.Range(0, items.Count).Select(i => slices.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))">
         <div class="@(Legend == ChartLegend.None ? "ib-pie" : "ib-pie ib-pie-legended")">
             <div class="ib-pie-plot">
-                <div class="ib-pie-frame" role="img" aria-labelledby="@_labelId">
+                <div class="ib-pie-frame" role="img" aria-labelledby="@NameId">
                     <svg class="ib-pie-svg" viewBox="-1 -1 2 2">
                         @if (slices.Count == 0)
                         {
@@ -89,7 +93,7 @@
                         <div class="ib-chart-tooltip-title">@names[i]</div>
                         <div class="ib-chart-tooltip-row">
                             <span class="@($"ib-chart-tooltip-key {Slot(i)}")"></span>
-                            <span>@(_valueName ?? Label)</span>
+                            <span>@(_valueName ?? Title ?? TextDefaults.ChartValue)</span>
                             <span class="ib-chart-tooltip-value">@texts[i]</span>
                         </div>
                         <div class="ib-chart-tooltip-row">
@@ -108,16 +112,17 @@
     @if (DataTable != ChartDataTable.None)
     {
         <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-            <summary class="ib-collapsible-trigger">
+            <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
                 <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
-                <span>@TextDefaults.ChartShowData<span class="ib-visually-hidden">, @Label</span></span>
+                <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                    {<span class="ib-visually-hidden">, @Title</span>}</span>
             </summary>
             <div class="ib-chart-table-scroll">
-                <table class="ib-chart-table" aria-labelledby="@_labelId">
+                <table class="ib-chart-table" aria-labelledby="@NameId">
                     <thead>
                         <tr>
                             <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
-                            <th scope="col">@(_valueName ?? Label)</th>
+                            <th scope="col">@(_valueName ?? Title ?? TextDefaults.ChartValue)</th>
                             <th scope="col">@TextDefaults.ChartShare</th>
                         </tr>
                     </thead>
@@ -147,11 +152,20 @@
     /// <summary>Each slice's size, such as <c>p =&gt; p.Customers</c>: any number. The slices share the circle by their values.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
 
-    /// <summary>What the chart shows, such as "Customers by plan": its caption and accessible name. Required.</summary>
-    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>
+    /// The chart's title, such as "Customers by plan", shown above it as its caption. It also names the chart
+    /// for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
 
-    /// <summary>Hides the caption, which still names the chart for screen readers.</summary>
-    [Parameter] public bool HideLabel { get; set; }
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
 
     /// <summary>Draws a ring with a hole in the middle, for <see cref="Center"/>.</summary>
     [Parameter] public bool Donut { get; set; }
@@ -192,6 +206,9 @@
     [Parameter] public ChartDataTable DataTable { get; set; }
 
     private readonly string _labelId = IdGenerator.Next("ib-chart");
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
     private Expression<Func<TItem, object?>>? _lastArgument;
     private Expression<Func<TItem, object?>>? _lastValue;
     private Func<TItem, object?>? _argument;
@@ -223,9 +240,11 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (string.IsNullOrWhiteSpace(Label))
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
-            throw new InvalidOperationException("PieChart needs a Label, its caption and accessible name, such as \"Customers by plan\".");
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "PieChart needs a Title, such as \"Customers by plan\", or TitledBy, the id of a heading on the page that titles it."
+                : "PieChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
         }
 
         if (Argument is null || Value is null)

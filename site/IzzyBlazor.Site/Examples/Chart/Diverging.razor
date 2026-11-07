@@ -1,5 +1,5 @@
 @* A customer survey: each statement's answers as shares, from disagree to agree. *@
-<Chart Items="_answers" Argument="a => a.Statement" Label="Customer survey, Q3" Stacked="ChartStack.Full"
+<Chart Items="_answers" Argument="a => a.Statement" Title="Customer survey, Q3" Stacked="ChartStack.Full"
        Orientation="Orientation.Horizontal" Palette="ChartPalette.Diverging(Color.Danger, Color.Success)">
     <ChartSeries Value="a => a.StronglyDisagree" Name="Strongly disagree" />
     <ChartSeries Value="a => a.Disagree" />

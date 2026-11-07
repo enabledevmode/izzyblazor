@@ -1,5 +1,5 @@
 @* Daily signups and trials on a date scale, the signups as an area. *@
-<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Label="Signups and trials, last 90 days">
+<Chart Items="_days" Argument="d => d.Date" SeriesType="ChartType.Line" Title="Signups and trials, last 90 days">
     <ChartSeries Value="d => d.Signups" Type="ChartType.Area" Curve="ChartCurve.Smooth" />
     <ChartSeries Value="d => d.Trials" Curve="ChartCurve.Smooth" />
 </Chart>

@@ -1,0 +1,18 @@
+@* A dashboard card whose heading titles the chart: the chart takes its name from it and shows no
+   title of its own. *@
+<Card Title="New signups, last 7 days" TitleId="signups-heading" Description="Trials and paid plans" Width="Length.Full" MaxWidth="32.Rem">
+    <Chart Items="_days" Argument="d => d.Day" TitledBy="signups-heading" Stacked="ChartStack.Stacked" Height="12.Rem">
+        <ChartSeries Value="d => d.Trials" />
+        <ChartSeries Value="d => d.Paid" />
+    </Chart>
+</Card>
+
+@code {
+    private record DaySignups(string Day, int Trials, int Paid);
+
+    private readonly DaySignups[] _days =
+    [
+        new("Mon", 142, 31), new("Tue", 168, 38), new("Wed", 155, 35), new("Thu", 171, 42),
+        new("Fri", 149, 33), new("Sat", 88, 14), new("Sun", 79, 12),
+    ];
+}

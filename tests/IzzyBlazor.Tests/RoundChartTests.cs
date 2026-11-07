@@ -45,7 +45,7 @@ public class RoundChartTests : BunitContext
             .Add(c => c.Items, plans)
             .Add(c => c.Argument, x => x.Name)
             .Add(c => c.Value, x => x.Customers)
-            .Add(c => c.Label, "Customers by plan")
+            .Add(c => c.Title, "Customers by plan")
             .Add(c => c.Donut, true)
             .Add(c => c.Center, b => b.AddContent(0, "1,000 customers")));
 

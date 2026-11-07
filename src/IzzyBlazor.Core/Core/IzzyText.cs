@@ -1193,6 +1193,9 @@ public class IzzyText
     /// <summary>The first column's header in a Chart's data table, when its Argument isn't a property.</summary>
     public virtual string ChartItem { get; set; } = "Item";
 
+    /// <summary>A PieChart's value column header, when its Value isn't a property and it has no Title.</summary>
+    public virtual string ChartValue { get; set; } = "Value";
+
     /// <summary>What screen readers call a chart once its script gives it the keyboard.</summary>
     public virtual string ChartRole { get; set; } = "chart";
 
