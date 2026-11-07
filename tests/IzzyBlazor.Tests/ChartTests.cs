@@ -424,7 +424,10 @@ public class ChartRenderTests : BunitContext
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Labels, ChartLabels.Auto))
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Labels, second)));
 
-        Assert.Empty(Build(null, ChartLabels.Auto).FindAll(".ib-chart-tips"));
+        var labeled = Build(null, ChartLabels.Auto);
+        Assert.Empty(labeled.FindAll(".ib-chart-tips"));
+        // Nor the browser's own: the marks carry no titles.
+        Assert.Empty(labeled.FindAll("rect title, use title"));
         Assert.NotEmpty(Build(null, ChartLabels.None).FindAll(".ib-chart-tips"));
         Assert.NotEmpty(Build(true, ChartLabels.Auto).FindAll(".ib-chart-tips"));
     }

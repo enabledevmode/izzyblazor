@@ -55,7 +55,8 @@
                         }
                         @foreach (var slice in slices)
                         {
-                            <path class="@($"ib-pie-slice {Slot(slice.Index)}")" d="@slice.Path" data-ib-i="@slice.Index"><title>@($"{names[slice.Index]}: {texts[slice.Index]} ({shares[slice.Index]})")</title></path>
+                            <path class="@($"ib-pie-slice {Slot(slice.Index)}")" d="@slice.Path" data-ib-i="@slice.Index">@if (Tooltip)
+                            {<title>@($"{names[slice.Index]}: {texts[slice.Index]} ({shares[slice.Index]})")</title>}</path>
                         }
                     </svg>
                 </div>
