@@ -374,12 +374,12 @@
                    request, which a new post can't reach. *@
                 @if (posted is null)
                 {
-                    <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
+                    <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
                 }
             }
             else
             {
-                <IconButton Submit Icon="Lucide.ArrowUp" Label="@TextDefaults.ChatSend" Size="ControlSize.Sm" Class="ib-chat-action" />
+                <IconButton Submit Icon="Lucide.SendHorizontal" Label="@TextDefaults.ChatSend" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" Class="ib-chat-action" />
             }
         </div>
     </EditForm>;
