@@ -416,7 +416,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     step = tickStep(spec);
   }
   const axisTicks: [number, string, number, boolean][] = d.tk ??
-    ticks.map(([v]) => [scale(v), format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
+    // Under a format that scales values down (thousands as K), zero reads "0" (ChartLayout.PlainZero).
+    ticks.map(([v]) => [scale(v), v === 0 && d.f.k < 1 && !full ? d.f.p + "0" : format(d.f, v, log ? v : d.vs != null ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
   let svg = "";
   let labels = "";
   for (const [pos, raw, from, isZero] of axisTicks) {

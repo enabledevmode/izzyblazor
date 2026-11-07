@@ -366,6 +366,8 @@ internal static class ChartLayout
 
         model.ValueRange = (dmin, dmax);
         var scale2 = SecondaryAxis(input, model, marks, highs, lows, plotHeight);
+        if (tickText is null && !full) PlainZero(model.ValueLabels, input.ValueFormat, culture);
+        PlainZero(model.SecondaryLabels, input.SecondaryFormat, culture);
 
         // The argument axis.
         double[] positions;
@@ -810,6 +812,18 @@ internal static class ChartLayout
 
         var (l2, h2) = model.SecondaryRange;
         return v => Math.Clamp((v - l2) / (h2 - l2), 0, 1);
+    }
+
+    /// <summary>
+    /// Under a format that scales values down, such as thousands as "#,##0,K", the zero tick reads
+    /// "0": nothing has no unit. chart-draw.ts does the same.
+    /// </summary>
+    private static void PlainZero(List<AxisLabel> labels, string? format, CultureInfo culture)
+    {
+        if (format is null || NumberShape.Of(format, culture) is not { Scale: < 1 } shape) return;
+        var zero = 0.0.ToString(format, culture);
+        var i = labels.FindIndex(l => l.Text == zero);
+        if (i >= 0) labels[i] = labels[i] with { Text = shape.Prefix + "0" };
     }
 
     /// <summary>The round step (1, 2 or 5 times a power of ten) at or above <paramref name="raw"/>; with <paramref name="up"/>, the next one past it.</summary>

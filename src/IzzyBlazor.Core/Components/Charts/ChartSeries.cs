@@ -68,7 +68,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// Draws a trend through the values: a dashed line in the series' color, named "Revenue trend"
-    /// in the legend, tooltips and data table. <see cref="ChartTrend.Linear"/>,
+    /// (a moving average "Revenue, 7-day average") in the legend, tooltips and data table. <see cref="ChartTrend.Linear"/>,
     /// <see cref="ChartTrend.Polynomial"/> (of <see cref="TrendOrder"/>) or
     /// <see cref="ChartTrend.MovingAverage"/> (over <see cref="TrendPeriod"/>).
     /// </summary>
