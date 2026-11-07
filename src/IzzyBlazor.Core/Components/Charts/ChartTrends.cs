@@ -1,6 +1,6 @@
 namespace IzzyBlazor;
 
-/// <summary>A trend drawn through a <see cref="ChartSeries{TItem}"/>'s values.</summary>
+/// <summary>A trend drawn through a <see cref="ChartSeriesBase{TItem}"/>'s values.</summary>
 public enum ChartTrend
 {
     /// <summary>No trend.</summary>
@@ -49,7 +49,7 @@ internal static class ChartTrends
                 Curve = data.Trend == ChartTrend.Linear ? ChartCurve.Straight : ChartCurve.Smooth,
                 LineStyle = ChartLineStyle.Dashed,
                 Markers = false,
-                ConnectNulls = true,
+                ConnectGaps = true,
                 Hidden = data.Hidden,
                 Secondary = data.Secondary,
             });

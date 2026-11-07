@@ -1,10 +1,10 @@
 @* Paying subscribers each month by plan, tiers in order: shades of the primary color. *@
-<Chart Items="_months" Argument="m => m.Month" Title="Subscribers by plan, 2026" Stacked="ChartStack.Stacked"
-       Palette="ChartPalette.Shades(Color.Primary)">
-    <ChartSeries Value="m => m.Starter" />
-    <ChartSeries Value="m => m.Pro" />
-    <ChartSeries Value="m => m.Team" />
-    <ChartSeries Value="m => m.Enterprise" />
+<Chart Items="_months" Argument="m => m.Month" Title="Subscribers by plan, 2026"
+       Stacking="ChartStacking.Normal" Palette="ChartPalette.Shades(Color.Primary)">
+    <ChartBarSeries Value="m => m.Starter" />
+    <ChartBarSeries Value="m => m.Pro" />
+    <ChartBarSeries Value="m => m.Team" />
+    <ChartBarSeries Value="m => m.Enterprise" />
 </Chart>
 
 @code {

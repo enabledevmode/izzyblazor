@@ -1,8 +1,8 @@
 @* Quarterly revenue in millions, each quarter named from its start date. *@
-<Chart Items="_quarters" Argument="q => q.Start" Title="Revenue by quarter"
-       ValueFormatter="@(v => v == 0 ? "$0" : $"${v / 1_000_000:0.#}M")"
-       ArgumentFormatter="@(a => a is DateOnly d ? $"Q{(d.Month + 2) / 3} '{d:yy}" : "")">
-    <ChartSeries Value="q => q.Revenue" />
+<Chart Items="_quarters" Argument="q => q.Start" Title="Revenue by quarter">
+    <ChartValueAxis Formatter="@(v => v == 0 ? "$0" : $"${v / 1_000_000:0.#}M")" />
+    <ChartArgumentAxis Formatter="@(a => a is DateOnly d ? $"Q{(d.Month + 2) / 3} '{d:yy}" : "")" />
+    <ChartBarSeries Value="q => q.Revenue" />
 </Chart>
 
 @code {

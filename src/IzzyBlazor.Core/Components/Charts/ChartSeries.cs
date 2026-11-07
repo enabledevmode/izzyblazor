@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// One series of a <see cref="Chart{TItem}"/>: a value from each item, drawn as bars, a line or
-/// an area. It renders nothing itself; the chart draws it.
+/// What every series of a <see cref="Chart{TItem}"/> has: a value from each item, a name, a color,
+/// labels and a trend. Use <see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
+/// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/> or
+/// <see cref="ChartBubbleSeries{TItem}"/>. A series renders nothing itself; the chart draws it.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
+public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 {
     private Expression<Func<TItem, object?>>? _lastValue;
     private Func<TItem, object?>? _compiled;
@@ -22,6 +24,10 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     private string? _memberName;
     private Expression<Func<TItem, object?>>? _lastSeriesBy;
     private Func<TItem, object?>? _seriesBy;
+
+    private protected ChartSeriesBase()
+    {
+    }
 
     /// <summary>The value to draw, such as <c>m =&gt; m.Revenue</c>: any number, or null for none.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
@@ -39,33 +45,11 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public Expression<Func<TItem, object?>>? SeriesBy { get; set; }
 
-    /// <summary>How it's drawn, when that differs from the chart's <see cref="Chart{TItem}.SeriesType"/>.</summary>
-    [Parameter] public ChartType? Type { get; set; }
-
     /// <summary>
     /// A CSS color, such as <c>var(--ib-color-danger)</c> or <c>#0f766e</c>. Defaults to the next
     /// of the chart palette's eight colors (<c>--ib-chart-1</c> to <c>--ib-chart-8</c>).
     /// </summary>
     [Parameter] public string? Color { get; set; }
-
-    /// <summary>
-    /// How a line or area's line is drawn. Defaults to the next of solid, dashed, dotted and
-    /// dash-dot, so lines differ by more than color; set it to mark a line apart, such as a plan
-    /// as <see cref="ChartLineStyle.Dashed"/>.
-    /// </summary>
-    [Parameter] public ChartLineStyle? LineStyle { get; set; }
-
-    /// <summary>A line's or area's shape between values. Defaults to straight.</summary>
-    [Parameter] public ChartCurve Curve { get; set; }
-
-    /// <summary>
-    /// Whether a line or area marks each value. Defaults to marking a line's values when it has
-    /// 40 or fewer, and not an area's.
-    /// </summary>
-    [Parameter] public bool? Markers { get; set; }
-
-    /// <summary>Draws a line or area straight across a missing value, instead of leaving a gap.</summary>
-    [Parameter] public bool ConnectNulls { get; set; }
 
     /// <summary>
     /// Writes each value beside its bar or point. Labels that would overlap others are left out at
@@ -97,25 +81,18 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public int TrendPeriod { get; set; } = 3;
 
     /// <summary>
-    /// A bubble's size, such as <c>d =&gt; d.Customers</c>, with <c>Type="ChartType.Bubble"</c>:
-    /// each circle's area is in proportion to it, the largest capped to the plot. The tooltip and the
-    /// data table give it, named after its property.
-    /// </summary>
-    [Parameter] public Expression<Func<TItem, object?>>? Size { get; set; }
-
-    /// <summary>
-    /// Which value axis the series is read off: <see cref="ChartAxis.Value"/>, the default, or
-    /// <see cref="ChartAxis.Secondary"/>, a second axis at the end side with its own scale, for a
-    /// measure in other units. Two charts side by side usually read better than one with two axes.
-    /// </summary>
-    [Parameter] public ChartAxis Axis { get; set; }
-
-    /// <summary>
     /// The trend's CSS color, such as <c>var(--ib-color-danger)</c>, used as given. Defaults to the
     /// series' color mixed toward the text color (darker in light mode, lighter in dark), so it
     /// reads over the series' own bars.
     /// </summary>
     [Parameter] public string? TrendColor { get; set; }
+
+    /// <summary>
+    /// The <see cref="ChartValueAxis.Name"/> of the value axis the series is read off, for a
+    /// measure in other units on a second axis at the end side, such as <c>"margin"</c>. Defaults
+    /// to the first value axis. Two charts side by side usually read better than one with two axes.
+    /// </summary>
+    [Parameter] public string? ValueAxis { get; set; }
 
     /// <summary>
     /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
@@ -127,45 +104,62 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
 
     internal string DisplayName => Name ?? _memberName ?? "";
 
+    private protected abstract ChartType Type { get; }
+
+    private protected virtual ChartCurve CurveOf => ChartCurve.Straight;
+
+    private protected virtual ChartLineStyle? LineStyleOf => null;
+
+    private protected virtual bool? MarkersOf => null;
+
+    private protected virtual bool ConnectGapsOf => false;
+
+    private protected virtual double? OpacityOf => null;
+
+    private protected virtual Expression<Func<TItem, object?>>? SizeOf => null;
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
         if (Context is null)
         {
-            throw new InvalidOperationException("ChartSeries must be inside a Chart.");
+            throw new InvalidOperationException($"{Kind} must be inside a Chart.");
         }
 
         Context.Register(this);
     }
+
+    private string Kind => GetType().Name.Split('`')[0];
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (Value is null)
         {
-            throw new InvalidOperationException("ChartSeries needs a Value, such as m => m.Revenue.");
-        }
-
-        if (Axis == ChartAxis.Argument)
-        {
-            throw new ArgumentOutOfRangeException(nameof(Axis), Axis, "A ChartSeries is read off a value axis: Value or Secondary.");
+            throw new InvalidOperationException($"{Kind} needs a Value, such as m => m.Revenue.");
         }
 
         if (TrendOrder is < 2 or > 6)
         {
-            throw new ArgumentOutOfRangeException(nameof(TrendOrder), TrendOrder, "A ChartSeries' TrendOrder goes from 2 to 6.");
+            throw new ArgumentOutOfRangeException(nameof(TrendOrder), TrendOrder, $"A {Kind}'s TrendOrder goes from 2 to 6.");
         }
 
         if (TrendPeriod < 2)
         {
-            throw new ArgumentOutOfRangeException(nameof(TrendPeriod), TrendPeriod, "A ChartSeries' TrendPeriod is 2 or more.");
+            throw new ArgumentOutOfRangeException(nameof(TrendPeriod), TrendPeriod, $"A {Kind}'s TrendPeriod is 2 or more.");
         }
 
-        if (!ReferenceEquals(Size, _lastSize))
+        if (OpacityOf is { } opacity && (opacity is < 0 or > 1 || double.IsNaN(opacity)))
         {
-            _lastSize = Size;
-            _size = Size?.Compile();
-            _sizeName = Size is null ? null : ChartMembers.Name(Size);
+            throw new ArgumentOutOfRangeException("Opacity", opacity, $"A {Kind}'s Opacity goes from 0 to 1.");
+        }
+
+        var size = SizeOf;
+        if (!ReferenceEquals(size, _lastSize))
+        {
+            _lastSize = size;
+            _size = size?.Compile();
+            _sizeName = size is null ? null : ChartMembers.Name(size);
         }
 
         if (!ReferenceEquals(Value, _lastValue))
@@ -189,18 +183,19 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     {
     }
 
-    internal IEnumerable<ChartSeriesData> Read(IReadOnlyList<TItem> items, ChartType chartType)
+    internal IEnumerable<ChartSeriesData> Read(IReadOnlyList<TItem> items)
     {
-        var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
-        var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
-        if ((Type ?? chartType) == ChartType.Bubble && sizes is null)
+        // Checked as the chart draws: an exception from a series' own parameters doesn't stop the plot drawing first.
+        if (Type == ChartType.Bubble && _size is null)
         {
-            throw new InvalidOperationException("A bubble ChartSeries needs a Size, such as d => d.Customers.");
+            throw new InvalidOperationException($"{Kind} needs a Size, such as d => d.Customers.");
         }
 
+        var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
         if (_seriesBy is null)
         {
-            yield return Data(DisplayName, values, Color, chartType) with { Sizes = sizes, SizeName = _sizeName };
+            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName };
             yield break;
         }
 
@@ -210,18 +205,19 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
         {
             var own = values.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownSizes = sizes?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
-            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null, chartType) with { Sizes = ownSizes, SizeName = _sizeName };
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName };
         }
     }
 
-    private ChartSeriesData Data(string name, double?[] values, string? color, ChartType chartType) =>
-        new(name, Type ?? chartType, values)
+    private ChartSeriesData Data(string name, double?[] values, string? color) =>
+        new(name, Type, values)
         {
             Color = color,
-            Curve = Curve,
-            LineStyle = LineStyle,
-            Markers = Markers,
-            ConnectNulls = ConnectNulls,
+            Curve = CurveOf,
+            LineStyle = LineStyleOf,
+            Markers = MarkersOf,
+            ConnectGaps = ConnectGapsOf,
+            Opacity = OpacityOf,
             Hidden = Hidden,
             Labels = Labels,
             LabelFormat = LabelFormat,
@@ -230,19 +226,131 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             TrendOrder = TrendOrder,
             TrendPeriod = TrendPeriod,
             TrendColor = TrendColor,
-            Secondary = Axis == ChartAxis.Secondary,
+            ValueAxis = ValueAxis,
         };
 
     /// <inheritdoc />
     public void Dispose() => Context?.Unregister(this);
 }
 
+/// <summary>
+/// A series of bars, one per item: upright, or across with the chart's
+/// <c>Orientation="Orientation.Horizontal"</c>. The chart's <c>Stacking</c> stacks bar series.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
+{
+    /// <summary>
+    /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
+    /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
+    /// </summary>
+    [Parameter] public double? Opacity { get; set; }
+
+    private protected override ChartType Type => ChartType.Bar;
+
+    private protected override double? OpacityOf => Opacity;
+}
+
+/// <summary>A series drawn as a line through each item's value.</summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
+{
+    /// <summary>
+    /// How the line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot, so lines
+    /// differ by more than color; set it to mark a line apart, such as a plan as
+    /// <see cref="ChartLineStyle.Dashed"/>.
+    /// </summary>
+    [Parameter] public ChartLineStyle? LineStyle { get; set; }
+
+    /// <summary>The line's shape between values. Defaults to straight.</summary>
+    [Parameter] public ChartCurve Curve { get; set; }
+
+    /// <summary>Whether each value is marked. Defaults to marking them when there are 40 or fewer.</summary>
+    [Parameter] public bool? Markers { get; set; }
+
+    /// <summary>Draws the line straight across a missing value, instead of leaving a gap.</summary>
+    [Parameter] public bool ConnectGaps { get; set; }
+
+    private protected override ChartType Type => ChartType.Line;
+
+    private protected override ChartCurve CurveOf => Curve;
+
+    private protected override ChartLineStyle? LineStyleOf => LineStyle;
+
+    private protected override bool? MarkersOf => Markers;
+
+    private protected override bool ConnectGapsOf => ConnectGaps;
+}
+
+/// <summary>
+/// A series drawn as a line with the area under it filled. The chart's <c>Stacking</c> stacks
+/// area series.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
+{
+    /// <summary>How the area's line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
+    [Parameter] public ChartLineStyle? LineStyle { get; set; }
+
+    /// <summary>The area's shape between values. Defaults to straight.</summary>
+    [Parameter] public ChartCurve Curve { get; set; }
+
+    /// <summary>Whether each value is marked. Defaults to not.</summary>
+    [Parameter] public bool? Markers { get; set; }
+
+    /// <summary>Draws the area straight across a missing value, instead of leaving a gap.</summary>
+    [Parameter] public bool ConnectGaps { get; set; }
+
+    private protected override ChartType Type => ChartType.Area;
+
+    private protected override ChartCurve CurveOf => Curve;
+
+    private protected override ChartLineStyle? LineStyleOf => LineStyle;
+
+    private protected override bool? MarkersOf => Markers;
+
+    private protected override bool ConnectGapsOf => ConnectGaps;
+}
+
+/// <summary>
+/// A marker for each item at two measures, the chart's <c>Argument</c> and this <c>Value</c>,
+/// such as a page's load time and bounce rate, to show how they relate.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
+{
+    private protected override ChartType Type => ChartType.Scatter;
+}
+
+/// <summary>
+/// A circle for each item at two measures, sized by a third: each circle's area is in proportion
+/// to its <see cref="Size"/>.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
+{
+    /// <summary>
+    /// Each bubble's size, such as <c>d =&gt; d.Customers</c>: its area is in proportion to it,
+    /// on one scale across the chart's bubble series, the largest capped to the plot. The tooltip
+    /// and the data table give it, named after its property.
+    /// </summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Size { get; set; } = default!;
+
+    private protected override ChartType Type => ChartType.Bubble;
+
+    private protected override Expression<Func<TItem, object?>>? SizeOf => Size;
+}
+
+
 /// <summary>What a <see cref="Chart{TItem}"/> shares with its series: the series, in order.</summary>
 internal sealed class ChartContext<TItem> : ChartContextBase
 {
-    private readonly ChildOrder<ChartSeries<TItem>> _series = new();
+    private readonly ChildOrder<ChartSeriesBase<TItem>> _series = new();
 
-    public IReadOnlyList<ChartSeries<TItem>> Series => _series.Items;
+    public IReadOnlyList<ChartSeriesBase<TItem>> Series => _series.Items;
+
+    /// <summary>The <see cref="ChartTooltip{TItem}"/>'s content, if the chart has one.</summary>
+    public RenderFragment<ChartTooltipContext<TItem>>? TooltipTemplate { get; set; }
 
     public override void BeginPass()
     {
@@ -250,7 +358,7 @@ internal sealed class ChartContext<TItem> : ChartContextBase
         _series.BeginPass();
     }
 
-    public void Seen(ChartSeries<TItem> series)
+    public void Seen(ChartSeriesBase<TItem> series)
     {
         _series.Seen(series);
 
@@ -258,9 +366,9 @@ internal sealed class ChartContext<TItem> : ChartContextBase
         Plot?.Refresh();
     }
 
-    public void Register(ChartSeries<TItem> series) => _series.Add(series);
+    public void Register(ChartSeriesBase<TItem> series) => _series.Add(series);
 
-    public void Unregister(ChartSeries<TItem> series)
+    public void Unregister(ChartSeriesBase<TItem> series)
     {
         if (_series.Remove(series))
         {
