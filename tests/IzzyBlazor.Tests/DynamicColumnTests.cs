@@ -52,7 +52,7 @@ public class DynamicColumnTests : BunitContext
             new Dictionary<string, object?> { ["Name"] = name, ["Margin"] = margin, ["Margin %"] = percent };
         var cut = Render<DataGrid<IDictionary<string, object?>>>(p => p
             .Add(x => x.Items, [Row("Bolts", 900, 30.5), Row("Nuts", 200, 45.0), Row("Washers", 500, 12.0)])
-            .Add(x => x.ChildContent, (RenderFragment)(b =>
+            .Add(x => x.Columns, (RenderFragment)(b =>
             {
                 Column<IDictionary<string, object?>>(b, "Name", typeof(string));
                 Column<IDictionary<string, object?>>(b, "Margin", typeof(int));
@@ -85,11 +85,11 @@ public class DynamicColumnTests : BunitContext
         var cut = Render<DataGrid<IDictionary<string, object?>>>(p => p
             .Add(x => x.Items, rows)
             .Add(x => x.InitialSort, "-revenue")
-            .Add(x => x.ChildContent, Quarter("Q1")));
+            .Add(x => x.Columns, Quarter("Q1")));
         Assert.Equal("North", cut.Find("tbody tr").Children[0].TextContent.Trim());
         Assert.Contains("12", cut.Find("tfoot").TextContent);
 
-        cut.Render(p => p.Add(x => x.ChildContent, Quarter("Q2")));
+        cut.Render(p => p.Add(x => x.Columns, Quarter("Q2")));
 
         cut.WaitForAssertion(() =>
         {
@@ -116,7 +116,7 @@ public class DynamicColumnTests : BunitContext
         var cut = Render<DataGrid<T>>(p => p
             .Add(x => x.Items, rows.ToList())
             .Add(x => x.FilterBuilder, true)
-            .Add(x => x.ChildContent, (RenderFragment)(b =>
+            .Add(x => x.Columns, (RenderFragment)(b =>
             {
                 Column<T>(b, "Name", typeof(string));
                 Column<T>(b, "Qty", typeof(int));

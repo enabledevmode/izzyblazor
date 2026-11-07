@@ -46,7 +46,7 @@ public class DataGridFilterTemplateTests : BunitContext
     {
         Services.GetRequiredService<BunitNavigationManager>().NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, row).Add(g => g.ChildContent, columns));
+        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, row).Add(g => g.Columns, columns));
     }
 
     private static string[] Names(IRenderedComponent<DataGrid<Row>> cut) =>
@@ -81,7 +81,7 @@ public class DataGridFilterTemplateTests : BunitContext
         IzzyBlazor.Filter? heard = null;
         var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.Filter, (IzzyBlazor.Filter?)null)
             .Add(g => g.FilterChanged, (IzzyBlazor.Filter? f) => heard = f)
-            .Add(g => g.ChildContent, Columns(Input, operators: [FilterOperator.GreaterThanOrEqual])));
+            .Add(g => g.Columns, Columns(Input, operators: [FilterOperator.GreaterThanOrEqual])));
 
         var input = cut.Find(".ib-table-filter-panel input");
         Assert.False(input.HasAttribute("name"));

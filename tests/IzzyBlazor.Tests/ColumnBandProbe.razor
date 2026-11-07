@@ -1,16 +1,19 @@
 @* Quarters over their revenue and margin, a column outside any band, and a band holding a band and a column; ColumnBandTests renders it. *@
 <DataGrid Items="Rows" TItem="Sales" Layout="Layout">
-    <PropertyColumn Property="r => r.Region" />
-    <ColumnBand Title="Q1">
-        <PropertyColumn Property="r => r.Q1" Title="Revenue" Sortable SortKey="q1" />
-        <PropertyColumn Property="r => r.Q1Margin" Title="Margin" />
-    </ColumnBand>
-    <ColumnBand Title="Year">
-        <ColumnBand Title="H2">
-            <PropertyColumn Property="r => r.Q3" Title="Q3" />
+    <Columns>
+
+        <PropertyColumn Property="r => r.Region" />
+        <ColumnBand Title="Q1">
+            <PropertyColumn Property="r => r.Q1" Title="Revenue" Sortable SortKey="q1" />
+            <PropertyColumn Property="r => r.Q1Margin" Title="Margin" />
         </ColumnBand>
-        <PropertyColumn Property="r => r.Total" />
-    </ColumnBand>
+        <ColumnBand Title="Year">
+            <ColumnBand Title="H2">
+                <PropertyColumn Property="r => r.Q3" Title="Q3" />
+            </ColumnBand>
+            <PropertyColumn Property="r => r.Total" />
+        </ColumnBand>
+    </Columns>
 </DataGrid>
 
 @code {

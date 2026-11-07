@@ -3,9 +3,11 @@
    the row apart from the rows. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders by row filter" QueryPrefix="row-" FilterRow ShadedHeader Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable Width="12.Rem" />
-    <PropertyColumn Property="o => o.Status" Sortable Filterable Width="12.Rem" />
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable Width="12.Rem" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable Width="12.Rem" />
+        <PropertyColumn Property="o => o.Status" Sortable Filterable Width="12.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable Width="12.Rem" />
+    </Columns>
 </DataGrid>

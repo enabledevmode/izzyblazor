@@ -61,7 +61,7 @@ public class TableDataTests : BunitContext
         .Add(t => t.SelectionMode, SelectionMode.Multiple)
         .Add(t => t.Selection, selection)
         .Add(t => t.SelectionChanged, report)
-        .Add(t => t.ChildContent, Columns));
+        .Add(t => t.Columns, Columns));
 
     [Fact]
     public void All_of_another_filter_is_cleared_when_the_rows_load()
@@ -81,7 +81,7 @@ public class TableDataTests : BunitContext
         DataRequest<Row>? seen = null;
         Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, r => { seen = r; return ValueTask.FromResult(r.ToResult(Rows.AsQueryable())); })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         Selection? reported = null;
 
         var cut = SelectAllUnder(Selection.AllOf(seen!), s => reported = s);
@@ -100,7 +100,7 @@ public class TableDataTests : BunitContext
         .Add(t => t.Selection, selection)
         .Add(t => t.SelectionChanged, report ?? (_ => { }))
         .Add(t => t.SelectionActions, s => b => b.AddMarkupContent(0, $"<button class=\"act\">Archive {s.Keys?.Length}</button>"))
-        .Add(t => t.ChildContent, Columns));
+        .Add(t => t.Columns, Columns));
 
     [Fact]
     public void The_footer_counts_the_selection_and_the_bar_holds_the_actions()
@@ -126,7 +126,7 @@ public class TableDataTests : BunitContext
         .Add(t => t.SelectionMode, SelectionMode.Multiple)
         .Add(t => t.SelectAllMode, mode)
         .Add(t => t.SelectionChanged, report)
-        .Add(t => t.ChildContent, Columns));
+        .Add(t => t.Columns, Columns));
 
     [Fact]
     public void SelectAllMode_All_selects_every_match_and_clears()
@@ -173,7 +173,7 @@ public class TableDataTests : BunitContext
                 seen = request;
                 return ValueTask.FromResult(request.ToResult(Rows.AsQueryable()));
             })
-            .Add(t => t.ChildContent, b =>
+            .Add(t => t.Columns, b =>
             {
                 b.AddContent(0, Col<string>(r => r.Name));
                 b.AddContent(1, Col<int>(r => r.Qty, filterable: false));
@@ -214,7 +214,7 @@ public class TableDataTests : BunitContext
                 seen = request;
                 return ValueTask.FromResult(new DataResult<Row>(Rows.Take(2).ToList()));
             })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.False(seen!.NeedsTotal);
         Assert.Equal((0, 2), (seen.Skip, seen.Take));
@@ -227,7 +227,7 @@ public class TableDataTests : BunitContext
         Static("/rows?f-qty=0.2&f-qty-to=0.3");
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, Col<int>(r => r.Qty, filter: f => f.Operator == FilterOperator.Between && f.Value is decimal min && f.Value2 is decimal max
+            .Add(t => t.Columns, Col<int>(r => r.Qty, filter: f => f.Operator == FilterOperator.Between && f.Value is decimal min && f.Value2 is decimal max
                 ? r => r.Qty >= min * 10 && r.Qty <= max * 10
                 : null)));
 
@@ -245,7 +245,7 @@ public class TableDataTests : BunitContext
                 Filter.Where("status", FilterOperator.Equals, "Yes"),
                 Filter.Where("name", FilterOperator.StartsWith, "a")))
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         // Status's list shows Yes; the starts-with condition has no panel, so it's a tag.
         Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
@@ -282,7 +282,7 @@ public class TableDataTests : BunitContext
                 pending.Add((request, answer));
                 return new ValueTask<DataResult<Row>>(answer.Task);
             })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         cut.Find("thead button.ib-table-sort").Click();
         Assert.Equal(2, pending.Count);
@@ -324,7 +324,7 @@ public class TableDataTests : BunitContext
     {
         Static("/rows?sort=name");
         var api = new Flaky();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.PageSize, 2).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.PageSize, 2).Add(t => t.Columns, Columns));
 
         var error = cut.Find("tbody tr.ib-table-error");
         Assert.Equal("Couldn't load the rows.", error.QuerySelector(".ib-data-error-message")!.TextContent.Trim());
@@ -341,7 +341,7 @@ public class TableDataTests : BunitContext
     {
         Interactive();
         var api = new Flaky();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.PageSize, 2).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.PageSize, 2).Add(t => t.Columns, Columns));
 
         var retry = cut.Find(".ib-table-error button");
         Assert.Equal("Retry", retry.TextContent.Trim());
@@ -366,7 +366,7 @@ public class TableDataTests : BunitContext
             .Add(t => t.ItemsProvider, api.Load)
             .Add(t => t.PageSize, 2)
             .Add(t => t.Paging, DataPaging.LoadOnScroll)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Grace" }, Names(cut)));
 
         api.Fail = true;
@@ -390,7 +390,7 @@ public class TableDataTests : BunitContext
     public void A_choice_column_reads_each_of_a_repeated_key()
     {
         Static("/rows?f-status=Yes&f-status=No");
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "Ada", "Grace", "Alan" }, Names(cut));
         Assert.Equal("Filter Status: 2 selected", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));

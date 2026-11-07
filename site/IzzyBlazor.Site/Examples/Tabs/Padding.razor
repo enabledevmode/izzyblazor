@@ -8,9 +8,12 @@
         </Tab>
         <Tab Label="History" Icon="Lucide.Clock" ContentPadding="0">
             <Table Items="Deploys" Caption="Deploys today" Bordered="false">
-                <PropertyColumn Property="d => d.Commit" />
-                <PropertyColumn Property="d => d.Author" />
-                <PropertyColumn Property="d => d.Time" />
+                <Columns>
+                    <PropertyColumn Property="d => d.Commit" />
+                    <PropertyColumn Property="d => d.Author" />
+                    <PropertyColumn Property="d => d.Time" />
+        
+                </Columns>
             </Table>
         </Tab>
     </Tabs>

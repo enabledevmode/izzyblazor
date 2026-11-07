@@ -7,9 +7,12 @@
 {
     <Stack Gap="2">
         <Table Items="_rows" Caption="@($"What works in each mode, {Component.Name}")" Size="ControlSize.Sm">
-            <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
-            <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>
-            <TemplateColumn Title="Interactive" Width="Length.Rem(7)"><ModeMark Level="context!.Interactive" /></TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
+                <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>
+                <TemplateColumn Title="Interactive" Width="Length.Rem(7)"><ModeMark Level="context!.Interactive" /></TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Static: static server-side rendering, with no circuit and no WebAssembly. Interactive: Server, WebAssembly

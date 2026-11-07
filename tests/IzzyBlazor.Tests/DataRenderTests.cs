@@ -38,7 +38,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.PageSize, pageSize)
             .Add(t => t.InitialSort, initialSort)
             .Add(t => t.Caption, "Rows")
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
     private static string[] Column(IRenderedComponent<Table<Row>> cut, int index) =>
         cut.FindAll("tbody tr").Select(r => r.Children[index].TextContent).ToArray();
@@ -54,7 +54,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 2)
             .Add(t => t.PageSizeOptions, new[] { 2, 3 })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(shown, cut.FindAll("tbody tr").Count);
         var items = cut.FindAll(".ib-data-page-size a.ib-menu-item");
@@ -84,7 +84,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.SelectionMode, SelectionMode.Multiple)
             .Add(t => t.ItemKey, r => r.Name)
             .Add(t => t.Selection, Selection.Of("a"))
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         var boxes = cut.FindAll("tbody .ib-table-select");
         Assert.Equal(new[] { "b", "a", "c" }, boxes.Select(b => b.GetAttribute("value")));
@@ -106,7 +106,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.SelectionMode, SelectionMode.Multiple)
             .Add(t => t.ItemKey, r => r.Name)
             .Add(t => t.SelectionChanged, (Selection s) => reported = s)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         cut.FindAll("tbody .ib-table-select")[2].Change(true);
         Assert.Equal(new[] { "c" }, reported!.Keys);
@@ -125,7 +125,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.ItemKey, r => r.Name)
             .Add(t => t.Selection, Selection.Of("a"))
             .Add(t => t.SelectionChanged, (Selection s) => reported = s)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         var radios = cut.FindAll("tbody .ib-table-select");
         Assert.All(radios, r => Assert.Equal("radio", r.GetAttribute("type")));
@@ -146,7 +146,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.SelectionMode, SelectionMode.Multiple)
             .Add(t => t.ItemKey, r => r.Name)
             .Add(t => t.Selection, new Selection { All = true, Keys = ["b"] })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { false, true, true }, cut.FindAll("tbody .ib-table-select").Select(b => b.HasAttribute("checked")));
     }
@@ -158,7 +158,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.RowHref, r => $"/rows/{r.Name}")
             .Add(t => t.RowLabel, r => $"row {r.Name}")
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         var links = cut.FindAll("tbody .ib-table-row-link");
         Assert.Equal(new[] { "/rows/b", "/rows/a", "/rows/c" }, links.Select(a => a.GetAttribute("href")));
@@ -203,7 +203,7 @@ public class DataRenderTests : BunitContext
                 seen = request;
                 return ValueTask.FromResult(new DataResult<Row>(request.Apply(Rows.AsQueryable()).ToList(), Rows.Length));
             })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.NotNull(seen);
         Assert.Equal(new[] { new SortField("name", Descending: true) }, seen!.Sort);

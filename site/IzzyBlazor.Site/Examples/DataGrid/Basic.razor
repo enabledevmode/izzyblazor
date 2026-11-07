@@ -1,8 +1,10 @@
 @* The smallest useful grid: items, a key, columns, sorting and paging. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Recent orders">
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
-    <PropertyColumn Property="o => o.Customer" Sortable Filterable />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    </Columns>
 </DataGrid>

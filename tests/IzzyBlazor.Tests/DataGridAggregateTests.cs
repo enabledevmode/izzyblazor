@@ -38,7 +38,7 @@ public class DataGridAggregateTests : BunitContext
         var cut = Render<DataGrid<Row>>(p => p
             .Add(x => x.Items, Rows)
             .Add(x => x.PageSize, 2)
-            .Add(x => x.ChildContent, Columns));
+            .Add(x => x.Columns, Columns));
 
         var cells = cut.FindAll("tfoot td");
         Assert.Equal(2, cut.FindAll("tbody tr").Count);
@@ -59,7 +59,7 @@ public class DataGridAggregateTests : BunitContext
                 return ValueTask.FromResult(new DataGroupResult([new DataGroup([], 4) { Values = new Dictionary<string, object?> { ["qty:sum"] = JsonSerializer.Deserialize<JsonElement>("99") } }]));
             })
             .Add(x => x.PageSize, 2)
-            .Add(x => x.ChildContent, Columns));
+            .Add(x => x.Columns, Columns));
 
         Assert.Empty(asked!.Keys);
         Assert.Contains(new DataAggregateField("qty", DataAggregate.Sum), asked.Aggregates);
@@ -71,7 +71,7 @@ public class DataGridAggregateTests : BunitContext
     {
         var error = Assert.ThrowsAny<Exception>(() => Render<DataGrid<Row>>(p => p
             .Add(x => x.ItemsProvider, r => ValueTask.FromResult(new DataResult<Row>(Rows, 4)))
-            .Add(x => x.ChildContent, Columns)));
+            .Add(x => x.Columns, Columns)));
 
         Assert.Contains("GroupsProvider", error.GetBaseException().Message);
     }
@@ -95,7 +95,7 @@ public class DataGridAggregateTests : BunitContext
 
         var error = Assert.ThrowsAny<Exception>(() => Render<DataGrid<Row>>(p => p
             .Add(x => x.Items, Rows)
-            .Add(x => x.ChildContent, columns)));
+            .Add(x => x.Columns, columns)));
 
         Assert.Contains(message, error.GetBaseException().Message);
     }

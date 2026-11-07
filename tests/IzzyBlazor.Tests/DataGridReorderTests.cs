@@ -36,7 +36,7 @@ public class DataGridReorderTests : BunitContext
                 .Add(x => x.ItemKey, t => t.Id)
                 .Add(x => x.RowLabel, t => t.Title)
                 .Add(x => x.ReorderableRows, true)
-                .Add(x => x.ChildContent, Columns);
+                .Add(x => x.Columns, Columns);
             more?.Invoke(p);
         });
     }

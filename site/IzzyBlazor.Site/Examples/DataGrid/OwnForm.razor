@@ -4,10 +4,12 @@
    forged, and it says when it has saved. *@
 <DataGrid TItem="Order" Items="_orders" PageSize="5" Caption="Orders with your form" ItemKey="o => o.Number.ToString()" QueryPrefix="own-"
           EditMode="DataGridEditMode.Dialog" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" />
-    <PropertyColumn Property="o => o.Quantity" />
-    <EditFormTemplate Context="edit">
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Quantity" />
+    </Columns>
+    <EditDialogForm Context="edit">
         <Form Model="ModelFor(edit.Item!)" FormName="own-form" OnValidSubmit="() => SaveAsync(edit)">
             <FormErrors />
             <NumberField @bind-Value="Model!.Quantity" />
@@ -16,7 +18,7 @@
                 <Button Submit>Save</Button>
             </DialogFooter>
         </Form>
-    </EditFormTemplate>
+    </EditDialogForm>
 </DataGrid>
 
 @code {

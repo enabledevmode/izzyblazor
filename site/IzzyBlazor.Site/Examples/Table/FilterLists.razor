@@ -1,10 +1,12 @@
 @* An enum or bool column's filter is a list: all ticked is no filter, and none ticked shows no rows.
    A nullable column gets a (Blank) row, and a list of more than ten gets a search. *@
 <Table Items="_tickets" PageSize="5" Caption="Support tickets" QueryPrefix="lists-" Grow>
-    <PropertyColumn Property="t => t.Subject" />
-    <PropertyColumn Property="t => t.Team" Sortable Filterable />
-    <PropertyColumn Property="t => t.Priority" Sortable Filterable />
-    <PropertyColumn Property="t => t.Open" Filterable />
+    <Columns>
+        <PropertyColumn Property="t => t.Subject" />
+        <PropertyColumn Property="t => t.Team" Sortable Filterable />
+        <PropertyColumn Property="t => t.Priority" Sortable Filterable />
+        <PropertyColumn Property="t => t.Open" Filterable />
+    </Columns>
 </Table>
 
 @code {

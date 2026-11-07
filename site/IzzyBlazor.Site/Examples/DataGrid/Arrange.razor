@@ -2,12 +2,14 @@
    hidden: show it from the picker. The layout is kept per person in a cookie, and the server draws it on the first paint: reload to see. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders you arrange" LayoutKey="arrange-example" ResizableColumns ReorderableColumns ColumnPicker Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Resizable="false" Reorderable="false" Pickable="false" />
-    <PropertyColumn Property="o => o.Customer" Width="14.Rem" Sortable MaxWidth="30.Rem" />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Width="9.Rem" Sortable />
-    <TemplateColumn Title="Status" Width="10.Rem">
-        <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
-    </TemplateColumn>
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
-    <PropertyColumn Property="o => o.Date.DayOfWeek" Title="Weekday" Width="8.Rem" Visible="false" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Resizable="false" Reorderable="false" Pickable="false" />
+        <PropertyColumn Property="o => o.Customer" Width="14.Rem" Sortable MaxWidth="30.Rem" />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Width="9.Rem" Sortable />
+        <TemplateColumn Title="Status" Width="10.Rem">
+            <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
+        </TemplateColumn>
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        <PropertyColumn Property="o => o.Date.DayOfWeek" Title="Weekday" Width="8.Rem" Visible="false" />
+    </Columns>
 </DataGrid>

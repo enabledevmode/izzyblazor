@@ -1,15 +1,17 @@
 @* A team's hours for two weeks, planned against what was logged. On a phone each value's title
    names its week: "Week of Oct 27 Planned". Make the window narrower to see it. *@
 <Table Items="Hours" Caption="Hours by week" QueryPrefix="hours-" InitialSort="name" SmallScreen="TableSmallScreen.Stack" StackBelow="28.Rem">
-    <PropertyColumn Property="h => h.Name" Sortable />
-    <ColumnBand Title="Week of Oct 27">
-        <PropertyColumn Property="h => h.FirstPlanned" Title="Planned" Format="0.0" />
-        <PropertyColumn Property="h => h.FirstLogged" Title="Logged" Format="0.0" Sortable />
-    </ColumnBand>
-    <ColumnBand Title="Week of Nov 3">
-        <PropertyColumn Property="h => h.SecondPlanned" Title="Planned" Format="0.0" />
-        <PropertyColumn Property="h => h.SecondLogged" Title="Logged" Format="0.0" Sortable />
-    </ColumnBand>
+    <Columns>
+        <PropertyColumn Property="h => h.Name" Sortable />
+        <ColumnBand Title="Week of Oct 27">
+            <PropertyColumn Property="h => h.FirstPlanned" Title="Planned" Format="0.0" />
+            <PropertyColumn Property="h => h.FirstLogged" Title="Logged" Format="0.0" Sortable />
+        </ColumnBand>
+        <ColumnBand Title="Week of Nov 3">
+            <PropertyColumn Property="h => h.SecondPlanned" Title="Planned" Format="0.0" />
+            <PropertyColumn Property="h => h.SecondLogged" Title="Logged" Format="0.0" Sortable />
+        </ColumnBand>
+    </Columns>
 </Table>
 
 @* hide *@

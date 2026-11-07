@@ -43,7 +43,7 @@ public class DataGridRenderTests : BunitContext
         Render<DataGrid<Row>>(p =>
         {
             p.Add(x => x.Items, Rows);
-            p.Add(x => x.ChildContent, columns);
+            p.Add(x => x.Columns, columns);
             more?.Invoke(p);
         });
 
@@ -429,7 +429,7 @@ public class DataGridRenderTests : BunitContext
         };
         var cut = Render<DataGrid<PostableRow>>(p => p
             .Add(x => x.Items, [new PostableRow { Name = "a" }])
-            .Add(x => x.ChildContent, columns)
+            .Add(x => x.Columns, columns)
             .Add(x => x.ItemKey, r => r.Name)
             .Add(x => x.EditMode, DataGridEditMode.Cell)
             .Add(x => x.OnSave, (DataGridSave<PostableRow> _) => { }));
@@ -445,25 +445,20 @@ public class DataGridRenderTests : BunitContext
     public void A_layout_places_a_field_once_and_a_field_it_leaves_out_after_it()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        RenderFragment columns = builder =>
+        RenderFragment layout = builder =>
         {
-            builder.AddContent(0, NameAndQty);
-            builder.OpenComponent<EditLayout<Row>>(1);
-            builder.AddComponentParameter(2, nameof(EditLayout<Row>.ChildContent), (RenderFragment)(layout =>
+            builder.OpenComponent<Fieldset>(0);
+            builder.AddComponentParameter(1, nameof(Fieldset.Label), "Section");
+            builder.AddComponentParameter(2, nameof(Fieldset.ChildContent), (RenderFragment)(section =>
             {
-                layout.OpenComponent<Fieldset>(0);
-                layout.AddComponentParameter(1, nameof(Fieldset.Label), "Section");
-                layout.AddComponentParameter(2, nameof(Fieldset.ChildContent), (RenderFragment)(section =>
-                {
-                    section.OpenComponent<EditField>(0);
-                    section.AddComponentParameter(1, nameof(EditField.Key), "qty");
-                    section.CloseComponent();
-                }));
-                layout.CloseComponent();
+                section.OpenComponent<EditField>(0);
+                section.AddComponentParameter(1, nameof(EditField.Key), "qty");
+                section.CloseComponent();
             }));
             builder.CloseComponent();
         };
-        var cut = Grid(columns, p => p
+        var cut = Grid(NameAndQty, p => p
+            .Add(x => x.EditDialog, layout)
             .Add(x => x.ItemKey, r => r.Name + r.Qty)
             .Add(x => x.EditMode, DataGridEditMode.Dialog)
             .Add(x => x.OnSave, (DataGridSave<Row> _) => { })
@@ -540,7 +535,7 @@ public class DataGridRenderTests : BunitContext
         JSInterop.Mode = JSRuntimeMode.Loose;
         var asked = new List<DataRequest<Row>>();
         var cut = Render<DataGrid<Row>>(p => p
-            .Add(x => x.ChildContent, NameAndQty)
+            .Add(x => x.Columns, NameAndQty)
             .Add(x => x.Virtualize, true)
             .Add(x => x.MaxHeight, Length.Rem(20))
             .Add(x => x.PageSize, pageSize)
@@ -574,7 +569,7 @@ public class DataGridRenderTests : BunitContext
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var asked = new List<DataRequest<Row>>();
         var cut = Render<DataGrid<Row>>(p => p
-            .Add(x => x.ChildContent, NameAndQty)
+            .Add(x => x.Columns, NameAndQty)
             .Add(x => x.Virtualize, true)
             .Add(x => x.MaxHeight, Length.Rem(20))
             .Add(x => x.PageSize, 500)
@@ -635,7 +630,7 @@ public class DataGridRenderTests : BunitContext
     public void A_table_keeps_one_sort_and_no_add_link()
     {
         Nav.NavigateTo("http://localhost/?sort=name,-qty");
-        var cut = Render<Table<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.ChildContent, NameAndQty));
+        var cut = Render<Table<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.Columns, NameAndQty));
 
         Assert.Empty(cut.FindAll("[data-ib-sort-add]"));
         Assert.All(cut.FindAll("th"), th => Assert.Equal("none", th.GetAttribute("aria-sort")));

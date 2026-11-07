@@ -16,7 +16,7 @@ public class TableStackTests : BunitContext
         var cut = Render<Table<Order>>(p => p
             .Add(x => x.Items, [new Order(1, "Ada \"A\" <b>")])
             .Add(x => x.SmallScreen, TableSmallScreen.Stack)
-            .Add(x => x.ChildContent, (RenderFragment)(builder =>
+            .Add(x => x.Columns, (RenderFragment)(builder =>
             {
                 builder.OpenComponent<PropertyColumn<Order, int>>(0);
                 builder.AddComponentParameter(1, "Property", (Expression<Func<Order, int>>)(o => o.Id));

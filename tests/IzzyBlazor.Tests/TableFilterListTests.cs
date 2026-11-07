@@ -42,7 +42,7 @@ public class TableFilterListTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
     }
 
     private IRenderedComponent<Table<Row>> Bound(Action<Filter?> reported, Filter? filter = null)
@@ -52,7 +52,7 @@ public class TableFilterListTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.Filter, filter)
             .Add(t => t.FilterChanged, reported)
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(30);
         return cut;
     }
@@ -224,7 +224,7 @@ public class TableFilterListTests : BunitContext
             .Add(t => t.Items, Rows)
             .Add(t => t.ItemKey, r => r.Name)
             .Add(t => t.Layout, new DataGridLayout { Columns = [new() { Key = "status", Hidden = true }] })
-            .Add(t => t.ChildContent, Columns));
+            .Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "Ada" }, Names(cut));
         var tags = cut.Find(".ib-table-filter-tags");
@@ -237,14 +237,14 @@ public class TableFilterListTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<DataGrid<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Name).Add(t => t.FilterPanel, filterPanel).Add(t => t.ChildContent, Columns));
+        return Render<DataGrid<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Name).Add(t => t.FilterPanel, filterPanel).Add(t => t.Columns, Columns));
     }
 
     private IRenderedComponent<Table<Row>> WithPanel(string url)
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.FilterPanel, true).Add(t => t.ChildContent, Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.FilterPanel, true).Add(t => t.Columns, Columns));
     }
 
     [Fact]

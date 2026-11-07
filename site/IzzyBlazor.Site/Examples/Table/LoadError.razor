@@ -9,10 +9,14 @@
         <Anchor Href="@Navigation.GetUriWithQueryParameter("flaky-api", Down ? "up" : null)">@(Down ? "Bring it back" : "Take it down")</Anchor>
     </TextBlock>
     <Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" InitialSort="-date" Caption="Orders from a flaky API" QueryPrefix="flaky-">
-        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
-        <PropertyColumn Property="o => o.Customer" Sortable />
-        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
-        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        <Columns>
+
+            <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+
+        </Columns>
     </Table>
 </Stack>
 

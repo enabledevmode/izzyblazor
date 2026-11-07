@@ -1,10 +1,12 @@
 @* FilterList reads a text column's values from Items. FilterValues finds them yourself, as from a
    database: it gets what's typed in the list's box and what the other filters leave. *@
 <Table Items="_orders" PageSize="5" Caption="Orders by customer" QueryPrefix="values-" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" />
-    <PropertyColumn Property="o => o.Customer" Sortable Filterable FilterValues="LoadCustomers" />
-    <PropertyColumn Property="o => o.City" Sortable Filterable FilterList />
-    <PropertyColumn Property="o => o.Region" Filterable />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable FilterValues="LoadCustomers" />
+        <PropertyColumn Property="o => o.City" Sortable Filterable FilterList />
+        <PropertyColumn Property="o => o.Region" Filterable />
+    </Columns>
 </Table>
 
 @code {

@@ -5,11 +5,13 @@
 <DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders edited on a phone" ItemKey="o => o.Number.ToString()" QueryPrefix="phone-"
           RowLabel="@(o => $"Order {o.Number}")" EditMode="DataGridEditMode.Row" OnSave="Save" NewItem="NewOrder"
           SmallScreen="DataGridSmallScreen.HideColumns">
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
-    <PropertyColumn Property="o => o.Customer" MinWidth="9.Rem" Priority="1" />
-    <PropertyColumn Property="o => o.Status" Width="9.Rem" />
-    <PropertyColumn Property="o => o.Date" Width="10.Rem" />
-    <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
+        <PropertyColumn Property="o => o.Customer" MinWidth="9.Rem" Priority="1" />
+        <PropertyColumn Property="o => o.Status" Width="9.Rem" />
+        <PropertyColumn Property="o => o.Date" Width="10.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    </Columns>
 </DataGrid>
 
 @code {

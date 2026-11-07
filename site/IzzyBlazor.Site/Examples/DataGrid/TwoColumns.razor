@@ -3,28 +3,31 @@
 @* The dialog in two columns, with Notes across both, and Status edited by a field of your own. A paid
    order's Delete stays, disabled, and says why. *@
 <DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders in two columns" ItemKey="o => o.Number.ToString()" QueryPrefix="two-"
-          EditMode="DataGridEditMode.Dialog" OnSave="Save" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
-    <PropertyColumn Property="o => o.Customer" />
-    <PropertyColumn Property="o => o.Status">
-        <EditTemplate>
-            <SegmentedControl @bind-Value="context.Item.Status" Items="Enum.GetValues<OrderStatus>()" @attributes="context.Attributes" />
-        </EditTemplate>
-    </PropertyColumn>
-    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
-    <PropertyColumn Property="o => o.Date" Visible="false" />
-    <PropertyColumn Property="o => o.Notes" Visible="false" />
-    <EditLayout Columns="2" Size="DialogSize.Lg">
+          EditMode="DataGridEditMode.Dialog" OnSave="Save" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid" Grow
+          EditColumns="2" EditDialogSize="DialogSize.Lg">
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Status">
+            <EditTemplate>
+                <SegmentedControl @bind-Value="context.Item.Status" Items="Enum.GetValues<OrderStatus>()" @attributes="context.Attributes" />
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Date" Visible="false" />
+        <PropertyColumn Property="o => o.Notes" Visible="false" />
+        <ActionColumn Context="order">
+            <EditAction />
+            <DeleteAction DisabledReason="A paid order can't be deleted." />
+        </ActionColumn>
+    </Columns>
+    <EditDialog>
         <EditField Key="customer" />
         <EditField Key="status" />
         <EditField Key="total" />
         <EditField Key="date" />
         <EditField Key="notes" ColSpan="2" />
-    </EditLayout>
-    <ActionColumn Context="order">
-        <EditAction />
-        <DeleteAction DisabledReason="A paid order can't be deleted." />
-    </ActionColumn>
+    </EditDialog>
 </DataGrid>
 
 @code {

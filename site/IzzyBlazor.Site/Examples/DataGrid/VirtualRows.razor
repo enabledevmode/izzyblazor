@@ -2,9 +2,11 @@
    this page to Interactive to see it; a static page loads more on scroll instead. *@
 @using IzzyBlazor.Site.Examples.Table
 <DataGrid TItem="Order" ItemsProvider="LoadAsync" ItemKey="o => o.Number.ToString()" Caption="Every order" Virtualize RowHeight="40" MaxHeight="24.Rem" PageSize="20" SelectionMode="SelectionMode.Multiple" SelectionName="every" QueryPrefix="every-" Grow>
-    <PropertyColumn Property="o => o.Number" Sortable Align="CellAlign.Start" Width="8.Rem" />
-    <PropertyColumn Property="o => o.Customer" />
-    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Sortable Align="CellAlign.Start" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+    </Columns>
 </DataGrid>
 
 @code {

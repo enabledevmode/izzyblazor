@@ -31,7 +31,7 @@ public class DataGridFilterRowTests : BunitContext
             b.AddComponentParameter(8, "Filterable", true);
             b.CloseComponent();
         };
-        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.FilterBuilder, builder).Add(g => g.ChildContent, columns));
+        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.FilterBuilder, builder).Add(g => g.Columns, columns));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class DataGridFilterRowTests : BunitContext
         };
         var (raised, heard) = (false, (IzzyBlazor.Filter?)Filter.Where("kind", FilterOperator.Equals, "A"));
         var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.Filter, heard)
-            .Add(g => g.FilterChanged, (IzzyBlazor.Filter? f) => { raised = true; heard = f; }).Add(g => g.ChildContent, columns));
+            .Add(g => g.FilterChanged, (IzzyBlazor.Filter? f) => { raised = true; heard = f; }).Add(g => g.Columns, columns));
 
         cut.Find("button.ib-filter-cell-clear").Click();
 

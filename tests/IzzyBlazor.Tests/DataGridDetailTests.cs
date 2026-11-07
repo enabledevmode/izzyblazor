@@ -37,7 +37,7 @@ public class DataGridDetailTests : BunitContext
             p.Add(x => x.Items, Orders);
             p.Add(x => x.ItemKey, o => o.Id.ToString());
             p.Add(x => x.RowLabel, o => $"Order {o.Id}");
-            p.Add(x => x.ChildContent, Columns);
+            p.Add(x => x.Columns, Columns);
             p.Add(x => x.DetailTemplate, o => b => b.AddContent(0, $"Lines of {o.Id}"));
             more?.Invoke(p);
         });
@@ -111,7 +111,7 @@ public class DataGridDetailTests : BunitContext
     {
         var error = Assert.ThrowsAny<Exception>(() => Render<DataGrid<Order>>(p => p
             .Add(x => x.Items, Orders)
-            .Add(x => x.ChildContent, Columns)
+            .Add(x => x.Columns, Columns)
             .Add(x => x.DetailTemplate, o => b => { })));
 
         Assert.Contains("ItemKey", error.GetBaseException().Message);

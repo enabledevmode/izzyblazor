@@ -54,9 +54,12 @@
             them goes away.
         </TextBlock>
         <Table Items="Components" Caption="Radzen components and their IzzyBlazor counterparts" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
-            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
-            <TemplateColumn Title="Notes" Context="row">@Rich(row.Note)</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+                <TemplateColumn Title="Notes" Context="row">@Rich(row.Note)</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>
             See <Anchor Href="docs/components">Components</Anchor> for every component, including ones Radzen doesn't have,
@@ -99,8 +102,11 @@
         </TextBlock>
         @SideBySide(ButtonsRadzen, ButtonsIzzy)
         <Table Items="ButtonRenames" Caption="RadzenButton members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="RadzenButton" Context="row">@Rich(row.Radzen)</TemplateColumn>
-            <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="RadzenButton" Context="row">@Rich(row.Radzen)</TemplateColumn>
+                <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>
             <Code>id</Code>, <Code>aria-label</Code> and other attributes go on the <Code>button</Code> element, as before, so
@@ -119,8 +125,11 @@
         </TextBlock>
         @SideBySide(GridRadzen, GridIzzy)
         <Table Items="GridRenames" Caption="RadzenDataGrid members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="RadzenDataGrid" Context="row">@Rich(row.Radzen)</TemplateColumn>
-            <TemplateColumn Title="DataGrid and Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="RadzenDataGrid" Context="row">@Rich(row.Radzen)</TemplateColumn>
+                <TemplateColumn Title="DataGrid and Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>What behaves differently:</TextBlock>
         <List Gap="2">
@@ -232,8 +241,11 @@
         </TextBlock>
         @SideBySide(ConfirmRadzen, ConfirmIzzy, language: "csharp")
         <Table Items="DialogRenames" Caption="DialogService members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
-            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>What behaves differently:</TextBlock>
         <List Gap="2">
@@ -274,8 +286,11 @@
             with a <Code>ListView</Code> per zone. As in Radzen, the group has one list of items.
         </TextBlock>
         <Table Items="DropRenames" Caption="RadzenDropZoneContainer members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
-            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            <Columns>
+                <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+    
+            </Columns>
         </Table>
         <TextBlock>
             <Code>OnMove</Code> gets <Code>FromZone</Code>, <Code>ToZone</Code> and the item's place in each. The zone shows
@@ -566,21 +581,24 @@
     private const string GridIzzy = """
         <DataGrid Items="members" PageSize="50"
           FilterRow Caption="Members" id="members">
-          <PropertyColumn Property="m => m.Email"
-            Sortable Filterable />
-          <PropertyColumn Property="m => m.AddedBy"
-            Title="Added by" Sortable Filterable />
-          <TemplateColumn Title="Added"
-            Context="member"
-            SortBy="m => m.AddedAt" SortKey="added"
-            Sortable Width="Length.Px(200)">
-            @member.AddedAt.ToString("d")
-          </TemplateColumn>
-          <TemplateColumn Context="member"
-            Width="Length.Px(130)"
-            Align="CellAlign.End">
-            <Button ...>Remove</Button>
-          </TemplateColumn>
+            <Columns>
+              <PropertyColumn Property="m => m.Email"
+                Sortable Filterable />
+              <PropertyColumn Property="m => m.AddedBy"
+                Title="Added by" Sortable Filterable />
+              <TemplateColumn Title="Added"
+                Context="member"
+                SortBy="m => m.AddedAt" SortKey="added"
+                Sortable Width="Length.Px(200)">
+                @member.AddedAt.ToString("d")
+              </TemplateColumn>
+              <TemplateColumn Context="member"
+                Width="Length.Px(130)"
+                Align="CellAlign.End">
+                <Button ...>Remove</Button>
+              </TemplateColumn>
+    
+            </Columns>
         </DataGrid>
         """;
 

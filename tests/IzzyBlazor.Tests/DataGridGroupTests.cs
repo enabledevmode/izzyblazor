@@ -49,7 +49,7 @@ public class DataGridGroupTests : BunitContext
         {
             p.Add(x => x.Items, Sales);
             p.Add(x => x.Groupable, true);
-            p.Add(x => x.ChildContent, columns ?? Columns);
+            p.Add(x => x.Columns, columns ?? Columns);
             more?.Invoke(p);
         });
     }
@@ -127,7 +127,7 @@ public class DataGridGroupTests : BunitContext
         Nav.NavigateTo("/sales?group=region&open=West");
         var cut = Render<DataGrid<Sale>>(p => p
             .Add(x => x.Groupable, true)
-            .Add(x => x.ChildContent, Columns)
+            .Add(x => x.Columns, Columns)
             .Add(x => x.GroupsProvider, r => ValueTask.FromResult(r.ToResult(Sales.AsQueryable(), DataFields.Of<Sale>())))
             .Add(x => x.ItemsProvider, r =>
             {
@@ -235,7 +235,7 @@ public class DataGridGroupTests : BunitContext
         Nav.NavigateTo("/sales?group=region");
         var cut = Render<DataGrid<Sale>>(p => p
             .Add(x => x.Groupable, true)
-            .Add(x => x.ChildContent, b =>
+            .Add(x => x.Columns, b =>
             {
                 b.OpenComponent<PropertyColumn<Sale, string>>(0);
                 b.AddComponentParameter(1, "Property", (Expression<Func<Sale, string>>)(s => s.Region));
@@ -268,7 +268,7 @@ public class DataGridGroupTests : BunitContext
             IRenderedComponent<DataGrid<Dated>> Show(string address)
             {
                 Nav.NavigateTo(address);
-                return Render<DataGrid<Dated>>(p => p.Add(x => x.Items, days).Add(x => x.Groupable, true).Add(x => x.GroupRowLimit, 1).Add(x => x.ChildContent, columns));
+                return Render<DataGrid<Dated>>(p => p.Add(x => x.Items, days).Add(x => x.Groupable, true).Add(x => x.GroupRowLimit, 1).Add(x => x.Columns, columns));
             }
 
             var cut = Show("/days?group=day&open=2026-11-02");

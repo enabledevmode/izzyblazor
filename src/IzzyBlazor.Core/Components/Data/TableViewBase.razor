@@ -185,7 +185,7 @@
     internal RenderFragment Body => __builder =>
     {
             <CascadingValue Value="this" IsFixed="true">
-                @ChildContent
+                @Columns
                 @ColumnsReadyNotifier
             </CascadingValue>
             @AboveGrid
@@ -464,8 +464,8 @@
             @Footer(PagesLabel)
     };
 
-    /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/>, <see cref="TemplateColumn{TItem}"/> and <see cref="DynamicColumn{TItem}"/>.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/>, <see cref="TemplateColumn{TItem}"/> and <see cref="DynamicColumn{TItem}"/>, in <see cref="ColumnBand"/>s if you like.</summary>
+    [Parameter] public RenderFragment? Columns { get; set; }
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending). A DataGrid takes several: <c>"status,-date"</c>.</summary>
     [Parameter] public string? InitialSort { get; set; }
@@ -2419,7 +2419,7 @@
     internal virtual RenderFragment? HeaderHandle(ColumnBase<TItem> column) => null;
 
     /// <summary>The columns as registered, shown or not.</summary>
-    internal IReadOnlyList<ColumnBase<TItem>> Columns => _columns;
+    internal IReadOnlyList<ColumnBase<TItem>> AllColumns => _columns;
 
     /// <summary>The columns drawn, in order.</summary>
     internal virtual IReadOnlyList<ColumnBase<TItem>> Shown => _columns;

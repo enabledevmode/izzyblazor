@@ -3,17 +3,19 @@
    would be listed after the sections that follow them. *@
 
 <Table Items="Group.Rows" Caption="@($"{Name} keys{(Group.Title is null ? "" : $", {Group.Title}")}")">
-    <TemplateColumn Title="Press this key" Width="Length.Rem(19)">
-        @for (var i = 0; i < context!.Keys.Count; i++)
-        {
-            @if (i > 0)
+    <Columns>
+        <TemplateColumn Title="Press this key" Width="Length.Rem(19)">
+            @for (var i = 0; i < context!.Keys.Count; i++)
             {
-                <span class="site-key-or"> or </span>
+                @if (i > 0)
+                {
+                    <span class="site-key-or"> or </span>
+                }
+                <Kbd Keys="@context.Keys[i]" />
             }
-            <Kbd Keys="@context.Keys[i]" />
-        }
-    </TemplateColumn>
-    <TemplateColumn Title="To do this">@context!.Action</TemplateColumn>
+        </TemplateColumn>
+        <TemplateColumn Title="To do this">@context!.Action</TemplateColumn>
+    </Columns>
 </Table>
 
 @code {

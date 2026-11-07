@@ -3,7 +3,9 @@
    in Results.Stream. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders for Excel" ExportExcelHref="/examples/orders.xlsx" QueryPrefix="excel-" Grow>
-    <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" Sortable />
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+    </Columns>
 </DataGrid>

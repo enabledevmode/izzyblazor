@@ -7,18 +7,46 @@
         @* Overview: name, type and default, with the first sentence of each description. The API page
            has the rest. *@
         <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params site-params-compact" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Prop">
+                    <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover" Class="site-member-name"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
+                    @if (FirstSentence(context.Summary) is { } text)
+                    {
+                        <span class="site-param-text">@text</span>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
+                <TemplateColumn Title="Default">
+                    @if (context!.Required)
+                    {
+                        @* A required parameter has no default worth showing: it's set every time. *@
+                        <span class="site-required">Required</span>
+                    }
+                    else if (context.Default is { } value)
+                    {
+                        <code class="site-default">@value</code>
+                    }
+                    else
+                    {
+                        <span aria-hidden="true" class="site-none">–</span>
+                    }
+                </TemplateColumn>
+    
+            </Columns>
+        </Table>
+    }
+    else
+    {
+    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Columns>
             <TemplateColumn Title="Prop">
-                <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover" Class="site-member-name"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
-                @if (FirstSentence(context.Summary) is { } text)
-                {
-                    <span class="site-param-text">@text</span>
-                }
+                <span class="site-member-name">
+                    <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
+                </span>
             </TemplateColumn>
-            <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
             <TemplateColumn Title="Default">
                 @if (context!.Required)
                 {
-                    @* A required parameter has no default worth showing: it's set every time. *@
                     <span class="site-required">Required</span>
                 }
                 else if (context.Default is { } value)
@@ -30,38 +58,16 @@
                     <span aria-hidden="true" class="site-none">–</span>
                 }
             </TemplateColumn>
-        </Table>
-    }
-    else
-    {
-    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-        <TemplateColumn Title="Prop">
-            <span class="site-member-name">
-                <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
-            </span>
-        </TemplateColumn>
-        <TemplateColumn Title="Default">
-            @if (context!.Required)
-            {
-                <span class="site-required">Required</span>
-            }
-            else if (context.Default is { } value)
-            {
-                <code class="site-default">@value</code>
-            }
-            else
-            {
-                <span aria-hidden="true" class="site-none">–</span>
-            }
-        </TemplateColumn>
-        <TemplateColumn Title="Type">
-            <code class="site-type">@context!.Type</code>
-            <DocHtml Html="@context.Summary" Context="Context" Class="site-param-text" />
-            @if (context.Modes is { } modes)
-            {
-                <ModeChips Modes="modes" />
-            }
-        </TemplateColumn>
+            <TemplateColumn Title="Type">
+                <code class="site-type">@context!.Type</code>
+                <DocHtml Html="@context.Summary" Context="Context" Class="site-param-text" />
+                @if (context.Modes is { } modes)
+                {
+                    <ModeChips Modes="modes" />
+                }
+            </TemplateColumn>
+
+        </Columns>
     </Table>
     }
     <InheritedLine ApiComponent="ApiComponent">
