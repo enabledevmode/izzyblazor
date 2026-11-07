@@ -2133,9 +2133,9 @@
           ]
         },
         {
-          "id": "trends", "title": "Trends", "summary": "A dashed line through a series' values: the straight line or curve that fits them best, or a moving average that smooths out the ups and downs.", "members": ["ChartSeries.Trend", "ChartSeries.TrendOrder", "ChartSeries.TrendPeriod"],
+          "id": "trends", "title": "Trends", "summary": "A dashed line through a series' values: the straight line or curve that fits them best, or a moving average that smooths out the ups and downs.", "members": ["ChartSeries.Trend", "ChartSeries.TrendOrder", "ChartSeries.TrendPeriod", "ChartSeries.TrendColor"],
           "examples": [
-            { "id": "chart-trend", "title": "A linear trend", "lead": "Set `Trend` on a series to draw its trend as a dashed line in the series' color: `Linear`, the straight line that fits best, or `Polynomial`, a curve of `TrendOrder` (2, a parabola, by default). The trend is named after the series, here \"Revenue trend\", in the legend, the tooltip and Show data, and the legend hides it like any series." },
+            { "id": "chart-trend", "title": "A linear trend", "lead": "Set `Trend` on a series to draw its trend as a dashed line in the series' color: `Linear`, the straight line that fits best, or `Polynomial`, a curve of `TrendOrder` (2, a parabola, by default). The trend is named after the series, here \"Revenue trend\", in the legend, the tooltip and Show data, and the legend hides it like any series. It's drawn in the series' color mixed toward the text color, so it reads over the series' own bars; `TrendColor` sets a color of your own." },
             { "id": "chart-moving-average", "title": "A moving average", "lead": "`MovingAverage` makes each point the average of the last `TrendPeriod` values, here 7 days, which smooths out the weekend dips. It starts once the first window is full." }
           ]
         },
