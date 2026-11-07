@@ -307,14 +307,15 @@
     private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
-        var series = _context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList();
+        var arguments = items.Select(_argument!).ToList();
+        var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items, SeriesType)).ToList(), arguments, TextDefaults);
         var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None));
         var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
 
         // Hidden needs a legend to show the series again: with none, it's drawn.
         if (!legend) series = series.Select(s => s with { Hidden = false }).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
-        var model = ChartLayout.Build(new ChartInput(items.Select(_argument!).ToList(), series)
+        var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
             Horizontal = horizontal,
@@ -426,7 +427,7 @@
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
-                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Dash}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                            <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Dash}{Trend(s)}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Marks.Count > 0))
@@ -511,7 +512,7 @@
                             {
                                 @if (s.Data.Type != ChartType.Scatter)
                                 {
-                                    <line class="@($"ib-chart-dash{s.Dash}")" x1="0" x2="24" y1="6" y2="6" />
+                                    <line class="@($"ib-chart-dash{s.Dash}{Trend(s)}")" x1="0" x2="24" y1="6" y2="6" />
                                 }
                                 @if (s.Marks.Count > 0)
                                 {
@@ -629,6 +630,9 @@
         $"{kind} ib-chart-s{s.Slot}".TrimStart();
 
     private static string? Off(SeriesShape s) => s.Data.Hidden ? "" : null;
+
+    // A trend's line is its series' color toward the text's, so it reads over the series' bars.
+    private static string Trend(SeriesShape s) => s.Data.ColorFrom is null ? "" : " ib-chart-trend";
 
     // A reference line, band or note. Each runs along an axis: "y" places it up from the bottom
     // (values on an upright chart, names on bars across), "x" across from the left. --p and --q
@@ -775,6 +779,7 @@
                 w.WriteNumber("k", s.Slot);
                 w.WriteNumber("y", s.Style);
                 w.WriteNumber("d", s.Dash);
+                if (d.ColorFrom is not null) w.WriteBoolean("tr", true);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
                 // Labels: the mode, and each item's text, which the script can't format itself.
                 if (model.LabelTexts[s.Index] is { } texts)

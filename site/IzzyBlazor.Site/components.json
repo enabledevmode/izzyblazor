@@ -2133,6 +2133,13 @@
           ]
         },
         {
+          "id": "trends", "title": "Trends", "summary": "A dashed line through a series' values: the straight line or curve that fits them best, or a moving average that smooths out the ups and downs.", "members": ["ChartSeries.Trend", "ChartSeries.TrendOrder", "ChartSeries.TrendPeriod"],
+          "examples": [
+            { "id": "chart-trend", "title": "A linear trend", "lead": "Set `Trend` on a series to draw its trend as a dashed line in the series' color: `Linear`, the straight line that fits best, or `Polynomial`, a curve of `TrendOrder` (2, a parabola, by default). The trend is named after the series, here \"Revenue trend\", in the legend, the tooltip and Show data, and the legend hides it like any series." },
+            { "id": "chart-moving-average", "title": "A moving average", "lead": "`MovingAverage` makes each point the average of the last `TrendPeriod` values, here 7 days, which smooths out the weekend dips. It starts once the first window is full." }
+          ]
+        },
+        {
           "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels", "ValueFormatter", "ArgumentFormatter", "HideValueAxis", "HideArgumentAxis"],
           "examples": [
             { "id": "chart-axes", "title": "Titles, a set step and grid lines", "lead": "`ValueTitle` and `ArgumentTitle` put a title beside each axis; the argument's title also heads the first column of the data table. `ValueStep` sets the gap between the value axis's ticks, here $25,000, and the axis ends on a multiple of it. `GridLines` set to `Both` adds lines between the months; `None` leaves only the zero line." },

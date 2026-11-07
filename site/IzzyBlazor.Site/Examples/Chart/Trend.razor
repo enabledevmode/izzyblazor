@@ -1,0 +1,15 @@
+@* Monthly revenue with its linear trend. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue by month, 2026" ValueFormat="C0">
+    <ChartSeries Value="m => m.Revenue" Name="Revenue" Trend="ChartTrend.Linear" />
+</Chart>
+
+@code {
+    private record MonthRevenue(string Month, decimal Revenue);
+
+    private readonly MonthRevenue[] _months =
+    [
+        new("Jan", 84_200), new("Feb", 91_500), new("Mar", 102_300), new("Apr", 98_700),
+        new("May", 110_400), new("Jun", 121_900), new("Jul", 117_600), new("Aug", 126_300),
+        new("Sep", 133_800), new("Oct", 141_200), new("Nov", 156_900), new("Dec", 172_400),
+    ];
+}

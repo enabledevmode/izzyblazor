@@ -27,6 +27,7 @@ export interface DrawSeries {
   k: number; // palette slot, 1 to 8
   y: number; // style: dash and marker shape
   d: number; // dash, 0 to 3
+  tr?: boolean; // a trend, drawn toward the text color
   col?: string; // the series' own color
   lm?: number; // value labels: 1 auto, 2 inside, 3 outside
   lt?: (string | null)[]; // each item's label text
@@ -475,7 +476,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         }
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
-      if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}`)} d="${line}"/>`;
+      if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
     }
     if (data.m) {
       marks += `<g ${attrs(s, data.t === 3 ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")}>`;

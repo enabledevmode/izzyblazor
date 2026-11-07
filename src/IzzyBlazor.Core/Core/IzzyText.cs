@@ -1214,6 +1214,9 @@ public class IzzyText
     /// <summary>Joins a reference band's two ends in the chart's description, as in "Nov to Dec".</summary>
     public virtual string ChartRangeTo { get; set; } = "to";
 
+    /// <summary>A Chart trend's name, from its series' name: "{0} trend".</summary>
+    public virtual string ChartTrendName { get; set; } = "{0} trend";
+
     /// <summary>
     /// A Sparkline's accessible name, which says what a glance at it shows: "Revenue, last 12 weeks:
     /// from 41 to 48, low 39, high 52". {0} is the label; {1} and {2} the first and last values;

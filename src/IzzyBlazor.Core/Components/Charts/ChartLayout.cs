@@ -18,6 +18,12 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public ChartLabels Labels { get; init; }
     public string? LabelFormat { get; init; }
     public ChartLabelOverlap LabelOverlap { get; init; }
+    public ChartTrend Trend { get; init; }
+    public int TrendOrder { get; init; } = 2;
+    public int TrendPeriod { get; init; } = 3;
+
+    /// <summary>For a trend: the series it's drawn from, whose color it takes.</summary>
+    public int? ColorFrom { get; init; }
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -386,15 +392,19 @@ internal static class ChartLayout
         var bars = input.Series.Where(s => s.Type == ChartType.Bar && !s.Hidden).ToList();
         var band = 1.0 / Math.Max(1, n);
         var lineStyle = 0;
+        var palette = 0;
         for (var s = 0; s < input.Series.Count; s++)
         {
             var data = input.Series[s];
+
+            // A trend takes its series' color and leaves the palette and dashes to the others.
+            var own = data.ColorFrom is null ? palette++ : -1;
             var shape = new SeriesShape
             {
                 Data = data,
-                Slot = s % 8 + 1,
+                Slot = data.ColorFrom is { } from ? model.Series[from].Slot : own % 8 + 1,
                 Index = s,
-                Style = data.Type == ChartType.Bar ? 0 : lineStyle++ + s / 8,
+                Style = data.Type == ChartType.Bar || data.ColorFrom is not null ? 0 : lineStyle++ + own / 8,
             };
             model.Series.Add(shape);
             if (data.Hidden) continue;
@@ -1162,7 +1172,7 @@ internal static class ChartLayout
         };
     }
 
-    private static double? ToDouble(object? value, ArgumentKind kind) => value switch
+    internal static double? ToDouble(object? value, ArgumentKind kind) => value switch
     {
         null => null,
         DateTime d => d.Ticks,

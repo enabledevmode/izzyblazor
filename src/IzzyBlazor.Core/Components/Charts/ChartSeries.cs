@@ -80,6 +80,20 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public ChartLabelOverlap LabelOverlap { get; set; }
 
     /// <summary>
+    /// Draws a trend through the values: a dashed line in the series' color, named "Revenue trend"
+    /// in the legend, tooltips and data table. <see cref="ChartTrend.Linear"/>,
+    /// <see cref="ChartTrend.Polynomial"/> (of <see cref="TrendOrder"/>) or
+    /// <see cref="ChartTrend.MovingAverage"/> (over <see cref="TrendPeriod"/>).
+    /// </summary>
+    [Parameter] public ChartTrend Trend { get; set; }
+
+    /// <summary>A polynomial trend's order, 2 (a parabola) to 6. Defaults to 2.</summary>
+    [Parameter] public int TrendOrder { get; set; } = 2;
+
+    /// <summary>How many values a moving average takes in, 2 or more. Defaults to 3.</summary>
+    [Parameter] public int TrendPeriod { get; set; } = 3;
+
+    /// <summary>
     /// Starts with the series hidden: the chart is drawn as if it weren't there, and it keeps its
     /// place in the legend, to show it again, and in the data table.
     /// </summary>
@@ -106,6 +120,16 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
         if (Value is null)
         {
             throw new InvalidOperationException("ChartSeries needs a Value, such as m => m.Revenue.");
+        }
+
+        if (TrendOrder is < 2 or > 6)
+        {
+            throw new ArgumentOutOfRangeException(nameof(TrendOrder), TrendOrder, "A ChartSeries' TrendOrder goes from 2 to 6.");
+        }
+
+        if (TrendPeriod < 2)
+        {
+            throw new ArgumentOutOfRangeException(nameof(TrendPeriod), TrendPeriod, "A ChartSeries' TrendPeriod is 2 or more.");
         }
 
         if (!ReferenceEquals(Value, _lastValue))
@@ -159,6 +183,9 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             Labels = Labels,
             LabelFormat = LabelFormat,
             LabelOverlap = LabelOverlap,
+            Trend = Trend,
+            TrendOrder = TrendOrder,
+            TrendPeriod = TrendPeriod,
         };
 
     /// <inheritdoc />

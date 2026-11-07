@@ -193,6 +193,9 @@
 
 
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
+
+  /* A trend: its series' color toward the text's, so it reads over the series' own bars. */
+  .ib-chart-trend { stroke: color-mix(in oklab, var(--ib-chart-c) 60%, var(--ib-color-on-surface)); }
   .ib-chart-dash2 { stroke-dasharray: 1 4; }
   .ib-chart-dash3 { stroke-dasharray: 10 4 2 4; }
 
