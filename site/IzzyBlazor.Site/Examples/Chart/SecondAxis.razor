@@ -2,7 +2,7 @@
 <Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue and gross margin" ValueFormat="C0"
        ValueTitle="Revenue" SecondaryTitle="Gross margin" SecondaryFormat="P0">
     <ChartSeries Value="q => q.Revenue" Name="Revenue" />
-    <ChartSeries Value="q => q.Margin" Name="Gross margin" Type="ChartType.Line" Axis="ChartAxis.Secondary" />
+    <ChartSeries Value="q => q.Margin" Name="Gross margin" Type="ChartType.Line" Axis="ChartAxis.Secondary" Color="var(--ib-chart-6)" />
 </Chart>
 
 @code {
