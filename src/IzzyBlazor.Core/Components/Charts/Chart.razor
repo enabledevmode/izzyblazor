@@ -752,7 +752,7 @@
         }
         else
         {
-            <ul class="@(model.SizeKey is null ? LegendListClass : LegendListClass + " ib-chart-legend-sized")">
+            <ul class="@LegendListClass">
                 @foreach (var s in toggles ? model.Series : [])
                 {
                     <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">
@@ -793,7 +793,8 @@
     </text>;
 
     // A bubble chart's size key: what the sizes measure, then reference circles standing on one
-    // base, each value level with its circle's top along a dotted leader.
+    // base, each value level with its circle's top along a dotted leader. chart.css puts it in the
+    // chart's top corner, across from the title.
     private static RenderFragment SizeKeyItem((string Name, List<(string Text, double R)> Circles) key) => @<text>
         @{
             var big = key.Circles.Max(c => c.R);
@@ -848,7 +849,8 @@
     {
         var style = (Palette?.Style(model.Series.Count) ?? "")
             + (waterfall?.IncreaseColor is { } up ? $"--ib-chart-increase:{StyleValues.Raw(up, "color")};" : "")
-            + (waterfall?.DecreaseColor is { } down ? $"--ib-chart-decrease:{StyleValues.Raw(down, "color")};" : "");
+            + (waterfall?.DecreaseColor is { } down ? $"--ib-chart-decrease:{StyleValues.Raw(down, "color")};" : "")
+            + (model.SizeKeyPx > 0 ? $"--ib-chart-key-w:{Num(model.SizeKeyPx)}px;" : "");
         return style.Length > 0 ? style : null;
     }
 

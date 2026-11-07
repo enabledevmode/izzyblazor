@@ -182,6 +182,9 @@ internal sealed class ChartModel
     /// </summary>
     public (string Name, List<(string Text, double R)> Circles)? SizeKey { get; set; }
 
+    /// <summary>The size key's width, estimated, in pixels: the room the title and legend keep clear of it.</summary>
+    public double SizeKeyPx { get; set; }
+
     /// <summary>The series' names past the plot's end (a series' EndLabel), and the room they take, in pixels.</summary>
     public List<LineEndLabel> EndLabels { get; } = [];
 
@@ -539,6 +542,10 @@ internal static class ChartLayout
             var circles = new[] { RoundDown(maxSize), RoundDown(maxSize / 4) }.Where(v => v > 0).Distinct()
                 .Select(v => (v.ToString(bubbles.SizeFormat ?? "#,##0.##", culture), Math.Max(2, Math.Sqrt(v / maxSize) * maxRadius))).ToList();
             model.SizeKey = (bubbles.SizeName ?? input.Text.ChartSize, circles);
+
+            // Its name at the legend's 14px, the circles and their leaders, the widest value, and the gaps.
+            model.SizeKeyPx = Math.Ceiling(Width(model.SizeKey.Value.Name) * 14 / FontPx + circles.Max(c => c.Item2) * 2 + 8
+                + circles.Max(c => Width(c.Item1)) + 12);
         }
 
         var lineStyle = 0;
