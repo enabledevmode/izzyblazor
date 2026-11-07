@@ -73,6 +73,10 @@ class Chat extends IzzyElement {
       }));
     }, { signal });
 
+    this.addEventListener("input", () => this.sendable(), { signal });
+    this.addEventListener("change", () => this.sendable(), { signal });
+    this.sendable();
+
     this.addEventListener("input", (event) => {
       if ((event.target as Element).matches?.(".ib-chat-input")) this.grow(event.target as HTMLTextAreaElement);
     }, { signal });
@@ -107,8 +111,18 @@ class Chat extends IzzyElement {
     if (input.getAttribute("aria-describedby") !== hint.id) input.setAttribute("aria-describedby", hint.id);
   }
 
+  /** A static page's Send is disabled until there's something to send (an interactive page's is by Blazor). */
+  private sendable(): void {
+    const box = this.input;
+    if (!box?.name) return;
+    const files = this.querySelector<HTMLInputElement>(".ib-chat-file[name]");
+    const send = box.form?.querySelector<HTMLButtonElement>("button[type=submit]:not([name])");
+    if (send) send.disabled = !box.value.trim() && !files?.files?.length;
+  }
+
   private changed(): void {
     this.hint();
+    this.sendable();
     if (this.#sent) {
       this.#sent = false;
       this.toEnd();
