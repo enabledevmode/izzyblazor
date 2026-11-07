@@ -49,8 +49,8 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     /// <summary>A .NET format for a bubble series' sizes, in the tooltip, data table and size key.</summary>
     public string? SizeFormat { get; init; }
 
-    /// <summary>Leaves the size key out (a bubble series' HideSizeKey).</summary>
-    public bool HideSizeKey { get; init; }
+    /// <summary>Shows the size key (a bubble series' ShowSizeKey).</summary>
+    public bool ShowSizeKey { get; init; }
 
     /// <summary>A waterfall's totals by item (null for other series); a total's value is everything before it.</summary>
     public bool[]? Totals { get; init; }
@@ -533,7 +533,7 @@ internal static class ChartLayout
         var maxSize = input.Series.Where(s => s.Type == ChartType.Bubble && s.Sizes is not null)
             .SelectMany(s => s.Sizes!).Where(v => v is > 0 && double.IsFinite(v.Value)).Select(v => v!.Value).DefaultIfEmpty(1).Max();
         var maxRadius = BubbleRadius(plotHeight);
-        if (input.Series.FirstOrDefault(s => s.Type == ChartType.Bubble && s.Sizes is not null && s.Sizes.Any(v => v is > 0)) is { HideSizeKey: false } bubbles)
+        if (input.Series.FirstOrDefault(s => s.Type == ChartType.Bubble && s.Sizes is not null && s.Sizes.Any(v => v is > 0)) is { ShowSizeKey: true } bubbles)
         {
             // Round values a reader can take in: near the largest size, and a quarter of it (half the radius).
             var circles = new[] { RoundDown(maxSize), RoundDown(maxSize / 4) }.Where(v => v > 0).Distinct()

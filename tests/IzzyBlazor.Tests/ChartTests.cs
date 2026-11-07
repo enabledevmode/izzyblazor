@@ -298,7 +298,7 @@ public class ChartLayoutTests
     public void Bubbles_are_sized_by_area_on_one_scale_and_a_size_of_zero_draws_none()
     {
         var model = ChartLayout.Build(new ChartInput([10, 20, 30],
-            [new ChartSeriesData("Markets", ChartType.Bubble, [5, 8, 6]) { Sizes = [100, 400, 0], SizeName = "Customers" }])
+            [new ChartSeriesData("Markets", ChartType.Bubble, [5, 8, 6]) { Sizes = [100, 400, 0], SizeName = "Customers", ShowSizeKey = true }])
         { Culture = CultureInfo.InvariantCulture, HeightPx = 320 });
 
         // Largest first, so none covers a smaller one.

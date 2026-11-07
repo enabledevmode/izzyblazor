@@ -4,7 +4,7 @@
 <Chart Items="_countries" Argument="c => c.Income" Title="Income and life expectancy by country, around 2023" Height="Length.Rem(24)">
     <ChartValueAxis Format="0" Title="Life expectancy (years)" />
     <ChartArgumentAxis Format="$#,##0" Title="GDP per person (US$, log scale)" Logarithmic />
-    <ChartBubbleSeries Value="c => c.LifeExpectancy" Size="c => c.Population" SizeFormat="#,##0,,M" SeriesBy="c => c.Region" LabelText="c => c.Name" />
+    <ChartBubbleSeries Value="c => c.LifeExpectancy" Size="c => c.Population" SizeFormat="#,##0,,M" SeriesBy="c => c.Region" LabelText="c => c.Name" ShowSizeKey />
     <ChartTooltip>
         <div class="ib-chart-tooltip-title">@context.Item.Name</div>
         <div>@context.Item.Income.ToString("$#,##0") per person</div>
