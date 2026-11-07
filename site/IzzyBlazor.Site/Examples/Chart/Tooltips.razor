@@ -1,5 +1,5 @@
 @* A tooltip template that adds the margin to each month's revenue and costs. *@
-<Chart Items="_months" Argument="m => m.Month" Label="Revenue and costs, first half" ValueFormat="C0">
+<Chart Items="_months" Argument="m => m.Month" Title="Revenue and costs, first half" ValueFormat="C0">
     <TooltipTemplate>
         <div class="ib-chart-tooltip-title">@context.Argument</div>
         @foreach (var point in context.Points)

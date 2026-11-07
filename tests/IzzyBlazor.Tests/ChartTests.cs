@@ -275,7 +275,7 @@ public class ChartRenderTests : BunitContext
         var cut = Render<Chart<Month>>(p => p
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
-            .Add(c => c.Label, "Revenue and costs")
+            .Add(c => c.Title, "Revenue and costs")
             .Add(c => c.ValueFormat, "N1")
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Line)));
@@ -306,7 +306,7 @@ public class ChartRenderTests : BunitContext
         var cut = Render<Chart<Month>>(p => p
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
-            .Add(c => c.Label, "Revenue")
+            .Add(c => c.Title, "Revenue")
             .Add(c => c.TooltipTemplate, tip => builder => builder.AddContent(0, $"{tip.Argument}: {tip.Item.Revenue - tip.Item.Costs} margin, {tip.Points[0].Series}"))
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
 
@@ -322,7 +322,7 @@ public class ChartRenderTests : BunitContext
         var cut = Render<Chart<Month>>(p => p
             .Add(c => c.Items, months)
             .Add(c => c.Argument, m => m.Name)
-            .Add(c => c.Label, "Revenue by plan")
+            .Add(c => c.Title, "Revenue by plan")
             .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.SeriesBy, m => m.Costs == 1 ? "Basic" : "Pro")));
 
         Assert.Equal(["Basic", "Pro"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
@@ -337,7 +337,7 @@ public class ChartRenderTests : BunitContext
         IRenderedComponent<Chart<Month>> Build(ChartGridLines grid) => Render<Chart<Month>>(p => p
             .Add(c => c.Items, months)
             .Add(c => c.Argument, m => m.Name)
-            .Add(c => c.Label, "Revenue")
+            .Add(c => c.Title, "Revenue")
             .Add(c => c.ValueTitle, "Revenue (USD)")
             .Add(c => c.ArgumentTitle, "Month")
             .Add(c => c.GridLines, grid)
@@ -355,11 +355,31 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
-    public void Needs_a_label()
+    public void Needs_a_title_or_a_heading_that_titles_it()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)));
-        Assert.Contains("Label", error.Message);
+        Assert.Contains("Title", error.Message);
+        Assert.Contains("TitledBy", error.Message);
+    }
+
+    [Fact]
+    public void TitledBy_names_the_chart_and_its_table_from_a_heading_on_the_page()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.TitledBy, "revenue-heading")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
+
+        Assert.Empty(cut.FindAll("figcaption"));
+        Assert.Equal("revenue-heading", cut.Find("figure").GetAttribute("aria-labelledby"));
+        Assert.Equal("revenue-heading", cut.Find("[role=img]").GetAttribute("aria-labelledby"));
+        Assert.Equal("revenue-heading", cut.Find(".ib-chart-table").GetAttribute("aria-labelledby"));
+        // "Show data" is read with the heading, so each chart's is told apart.
+        var summary = cut.Find("details.ib-chart-data > summary");
+        Assert.EndsWith(" revenue-heading", summary.GetAttribute("aria-labelledby"));
+        Assert.Equal("Show data", cut.Find("#" + summary.GetAttribute("aria-labelledby")!.Split(' ')[0]).TextContent);
     }
 }

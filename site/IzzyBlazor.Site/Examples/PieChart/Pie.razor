@@ -1,5 +1,5 @@
 @* Last month's visits by where they came from. *@
-<PieChart Items="_sources" Argument="s => s.Source" Value="s => s.Visits" Label="Visits by source, October" ValueFormat="N0" />
+<PieChart Items="_sources" Argument="s => s.Source" Value="s => s.Visits" Title="Visits by source, October" ValueFormat="N0" />
 
 @code {
     private record TrafficSource(string Source, int Visits);

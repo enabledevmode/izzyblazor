@@ -1,7 +1,7 @@
 @* Each page's load time against its bounce rate, on desktop and on mobile: the slower pages lose
    more visitors, and pages are slower on mobile. *@
 <Chart Items="_pages" Argument="p => p.LoadSeconds" SeriesType="ChartType.Scatter"
-       Label="Load time against bounce rate, by page and device" ArgumentFormat="0.0' s'" ValueFormat="P0">
+       Title="Load time against bounce rate, by page and device" ArgumentFormat="0.0' s'" ValueFormat="P0">
     <TooltipTemplate>
         <div class="ib-chart-tooltip-title">@context.Item.Path</div>
         <div>@context.Item.Device, loads in @context.Argument</div>

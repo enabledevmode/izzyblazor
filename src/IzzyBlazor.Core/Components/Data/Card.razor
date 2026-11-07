@@ -77,6 +77,12 @@
     /// <summary>The heading level of <see cref="Title"/>, 1 to 6. Defaults to 3.</summary>
     [Parameter] public int TitleLevel { get; set; } = 3;
 
+    /// <summary>
+    /// An id for the title's heading, for something in the card to take its name from, such as a
+    /// <c>Chart</c> with <c>TitledBy</c> set to it.
+    /// </summary>
+    [Parameter] public string? TitleId { get; set; }
+
     /// <summary>A muted line under the title.</summary>
     [Parameter] public string? Description { get; set; }
 
@@ -115,17 +121,18 @@
     {
         builder.OpenElement(0, $"h{Math.Clamp(TitleLevel, 1, 6)}");
         builder.AddAttribute(1, "class", "ib-card-title");
+        builder.AddAttribute(2, "id", TitleId);
         if (Href is not null)
         {
-            builder.OpenElement(2, "a");
-            builder.AddAttribute(3, "href", Href);
-            builder.AddAttribute(4, "class", "ib-card-link");
-            builder.AddContent(5, Title);
+            builder.OpenElement(3, "a");
+            builder.AddAttribute(4, "href", Href);
+            builder.AddAttribute(5, "class", "ib-card-link");
+            builder.AddContent(6, Title);
             builder.CloseElement();
         }
         else
         {
-            builder.AddContent(6, Title);
+            builder.AddContent(7, Title);
         }
 
         builder.CloseElement();

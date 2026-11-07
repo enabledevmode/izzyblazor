@@ -1,5 +1,5 @@
 @* Paying subscriptions by plan, with the total in the middle. *@
-<PieChart Items="_plans" Argument="p => p.Plan" Value="p => p.Subscriptions" Label="Subscriptions by plan" Donut>
+<PieChart Items="_plans" Argument="p => p.Plan" Value="p => p.Subscriptions" Title="Subscriptions by plan" Donut>
     <Center>
         <TextBlock Size="TextSize.Xl2" Weight="FontWeight.Semibold" TabularNums>@_plans.Sum(p => p.Subscriptions).ToString("N0")</TextBlock>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">subscriptions</TextBlock>

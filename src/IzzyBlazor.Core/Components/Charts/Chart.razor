@@ -10,7 +10,7 @@
     Bars, lines and areas over a list of items, drawn on the server: the chart is in the page's
     HTML, so it shows with no script and no circuit, prints, and fills its container's width.
 
-    <Chart Items="months" Argument="m => m.Month" Label="Revenue and costs, 2026" ValueFormat="C0">
+    <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026" ValueFormat="C0">
         <ChartSeries Value="m => m.Revenue" />
         <ChartSeries Value="m => m.Costs" />
         <ChartSeries Value="m => m.Target" Type="ChartType.Line" />
@@ -25,8 +25,8 @@
     other label (or every fourth) hides so they don't crowd.
 
     Accessibility:
-    - A figure captioned by Label, which is required. The plot and its axes are one image named by
-      the label, so a screen reader hears the chart, not each tick.
+    - A figure captioned by Title (or named by a heading on the page, with TitledBy). The plot and
+      its axes are one image named by it, so a screen reader hears the chart, not each tick.
     - "Show data" under the chart opens a table of every value (DataTable), with no script.
     - Lines differ by dash and marker shape as well as color; bars keep the legend's order.
     - The palette's colors are 3:1 against the surface in dark mode; in light mode pink, yellow,
@@ -36,9 +36,12 @@
     See also: Stat, Table.
 *@
 
-<figure @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
-    <figcaption id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-chart-label")">@Label</figcaption>
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : "ib-chart-label")">@Title</figcaption>
+    }
     <CascadingValue Value="_context" IsFixed="true">
         @ChildContent
         @PlotFragment
@@ -56,11 +59,20 @@
     /// </summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
 
-    /// <summary>What the chart shows, such as "Revenue by month": its caption and accessible name. Required.</summary>
-    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>
+    /// The chart's title, such as "Revenue by month", shown above it as its caption. It also names the chart
+    /// for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
 
-    /// <summary>Hides the caption, which still names the chart for screen readers.</summary>
-    [Parameter] public bool HideLabel { get; set; }
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
 
     /// <summary>How series draw unless they say otherwise. Defaults to <see cref="ChartType.Bar"/>.</summary>
     [Parameter] public ChartType SeriesType { get; set; }
@@ -158,6 +170,9 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private readonly string _labelId = IdGenerator.Next("ib-chart");
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
     private ChartContext<TItem> _context = null!;
     private Expression<Func<TItem, object?>>? _lastArgument;
     private Func<TItem, object?>? _argument;
@@ -203,9 +218,11 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (string.IsNullOrWhiteSpace(Label))
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
-            throw new InvalidOperationException("Chart needs a Label, its caption and accessible name, such as \"Revenue by month\".");
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "Chart needs a Title, such as \"Revenue by month\", or TitledBy, the id of a heading on the page that titles it."
+                : "Chart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
         }
 
         if (ValueMin is { } lo && ValueMax is { } hi && !(hi > lo))
@@ -307,7 +324,7 @@
                   data-ib-points="@(model.Series.Any(s => s.Data.Type == ChartType.Scatter) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@_labelId" style="@FrameStyle(model)">
+        <div class="@FrameClass(model, sideTitle)" role="img" aria-labelledby="@NameId" style="@FrameStyle(model)">
             @if (sideTitle is not null)
             {
                 <div class="ib-chart-title ib-chart-title-side">@sideTitle</div>
@@ -479,12 +496,13 @@
         @if (DataTable != ChartDataTable.None)
         {
             <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-                <summary class="ib-collapsible-trigger">
+                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
                     <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
-                    <span>@TextDefaults.ChartShowData<span class="ib-visually-hidden">, @Label</span></span>
+                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                    {<span class="ib-visually-hidden">, @Title</span>}</span>
                 </summary>
                 <div class="ib-chart-table-scroll">
-                    <table class="ib-chart-table" aria-labelledby="@_labelId">
+                    <table class="ib-chart-table" aria-labelledby="@NameId">
                         <thead>
                             <tr>
                                 <th scope="col">@(ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
