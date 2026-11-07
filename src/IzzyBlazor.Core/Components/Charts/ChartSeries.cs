@@ -16,6 +16,9 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
 {
     private Expression<Func<TItem, object?>>? _lastValue;
     private Func<TItem, object?>? _compiled;
+    private Expression<Func<TItem, object?>>? _lastSize;
+    private Func<TItem, object?>? _size;
+    private string? _sizeName;
     private string? _memberName;
     private Expression<Func<TItem, object?>>? _lastSeriesBy;
     private Func<TItem, object?>? _seriesBy;
@@ -94,6 +97,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public int TrendPeriod { get; set; } = 3;
 
     /// <summary>
+    /// A bubble's size, such as <c>d =&gt; d.Customers</c>, with <c>Type="ChartType.Bubble"</c>:
+    /// each circle's area is in proportion to it, the largest capped to the plot. The tooltip and the
+    /// data table give it, named after its property.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? Size { get; set; }
+
+    /// <summary>
     /// Which value axis the series is read off: <see cref="ChartAxis.Value"/>, the default, or
     /// <see cref="ChartAxis.Secondary"/>, a second axis at the end side with its own scale, for a
     /// measure in other units. Two charts side by side usually read better than one with two axes.
@@ -151,6 +161,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             throw new ArgumentOutOfRangeException(nameof(TrendPeriod), TrendPeriod, "A ChartSeries' TrendPeriod is 2 or more.");
         }
 
+        if (!ReferenceEquals(Size, _lastSize))
+        {
+            _lastSize = Size;
+            _size = Size?.Compile();
+            _sizeName = Size is null ? null : ChartMembers.Name(Size);
+        }
+
         if (!ReferenceEquals(Value, _lastValue))
         {
             _lastValue = Value;
@@ -175,9 +192,15 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     internal IEnumerable<ChartSeriesData> Read(IReadOnlyList<TItem> items, ChartType chartType)
     {
         var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
+        if ((Type ?? chartType) == ChartType.Bubble && sizes is null)
+        {
+            throw new InvalidOperationException("A bubble ChartSeries needs a Size, such as d => d.Customers.");
+        }
+
         if (_seriesBy is null)
         {
-            yield return Data(DisplayName, values, Color, chartType);
+            yield return Data(DisplayName, values, Color, chartType) with { Sizes = sizes, SizeName = _sizeName };
             yield break;
         }
 
@@ -186,7 +209,8 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
         foreach (var key in keys.Distinct())
         {
             var own = values.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
-            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null, chartType);
+            var ownSizes = sizes?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null, chartType) with { Sizes = ownSizes, SizeName = _sizeName };
         }
     }
 

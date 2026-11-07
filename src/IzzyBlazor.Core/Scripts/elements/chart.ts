@@ -178,14 +178,15 @@ class Chart extends IzzyElement {
     const pointsMode = this.hasAttribute("data-ib-points");
     // The points shown: the server's, or the script's once it has drawn the chart again.
     const marksNow = () =>
-      [...plot.querySelectorAll<SVGUseElement>(this.hasAttribute("data-ib-redrawn") ? "svg.ib-chart-js use[data-ib-i]" : "svg:not(.ib-chart-js) use[data-ib-i]")];
+      [...plot.querySelectorAll<SVGElement>(this.hasAttribute("data-ib-redrawn") ? "svg.ib-chart-js :is(use, circle)[data-ib-i]" : "svg:not(.ib-chart-js) :is(use, circle)[data-ib-i]")];
     const visible = (m: Element) => !m.closest("[data-ib-hidden]");
     const markFor = (index: number) => marksNow().find((m) => m.dataset.ibI === String(index) && visible(m));
-    const at = (m: SVGUseElement) => [
-      (parseFloat(m.getAttribute("x") ?? "0") / 100) * plot.clientWidth,
-      (parseFloat(m.getAttribute("y") ?? "0") / 100) * plot.clientHeight,
+    // A marker's x and y, or a bubble's cx and cy, in percent of the plot.
+    const at = (m: SVGElement) => [
+      (parseFloat(m.getAttribute("x") ?? m.getAttribute("cx") ?? "0") / 100) * plot.clientWidth,
+      (parseFloat(m.getAttribute("y") ?? m.getAttribute("cy") ?? "0") / 100) * plot.clientHeight,
     ];
-    let active: SVGUseElement | undefined;
+    let active: SVGElement | undefined;
 
     // The keyboard's order: the items, or on a scatter chart its points from left to right.
     const order = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
@@ -289,7 +290,7 @@ class Chart extends IzzyElement {
         if (pointsMode) {
           const px = event.clientX - r.left;
           const py = event.clientY - r.top;
-          let best: SVGUseElement | undefined;
+          let best: SVGElement | undefined;
           let distance = Infinity;
           for (const m of marksNow()) {
             if (!visible(m)) continue;

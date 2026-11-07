@@ -295,6 +295,21 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Bubbles_are_sized_by_area_on_one_scale_and_a_size_of_zero_draws_none()
+    {
+        var model = ChartLayout.Build(new ChartInput([10, 20, 30],
+            [new ChartSeriesData("Markets", ChartType.Bubble, [5, 8, 6]) { Sizes = [100, 400, 0], SizeName = "Customers" }])
+        { Culture = CultureInfo.InvariantCulture, HeightPx = 320 });
+
+        var marks = model.Series[0].Marks;
+        Assert.Equal([0, 1], marks.Select(m => m.Index));
+        // Four times the size, twice the radius; the largest is an eighth of the plot's height.
+        Assert.Equal(2, marks[1].R!.Value / marks[0].R!.Value, 6);
+        Assert.Equal(40, marks[1].R!.Value, 6);
+        Assert.Contains("Customers: 400", marks[1].Title);
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
@@ -558,6 +573,25 @@ public class ChartRenderTests : BunitContext
         Assert.NotEmpty(cut.FindAll(".ib-chart-side2 span"));
         Assert.NotNull(cut.Find(".ib-chart-title-side2 .ib-chart-title-key.ib-chart-s2"));
         Assert.Throws<InvalidOperationException>(() => Build(Orientation.Horizontal));
+    }
+
+    [Fact]
+    public void A_bubbles_size_is_in_the_table_and_the_tooltip_and_it_needs_one()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Revenue)
+            .Add(c => c.Title, "Revenue against costs")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Bubble).Add(x => x.Size, m => m.Revenue)));
+
+        Assert.Equal(["Revenue", "Costs", "Revenue"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
+        Assert.Equal(2, cut.FindAll("circle.ib-chart-bubble[data-ib-i]").Count);
+        Assert.Contains("Revenue", cut.FindAll("[data-ib-tip]")[1].TextContent);
+        Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Revenue)
+            .Add(c => c.Title, "Costs")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.Type, ChartType.Bubble))));
     }
 
     [Fact]

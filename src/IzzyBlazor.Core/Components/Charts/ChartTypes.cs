@@ -17,6 +17,12 @@ public enum ChartType
     /// dates as its Argument.
     /// </summary>
     Scatter,
+
+    /// <summary>
+    /// A scatter whose circles are sized by a third measure, the series' <c>Size</c>: by area, so a
+    /// value twice as large is a circle twice the area.
+    /// </summary>
+    Bubble,
 }
 
 /// <summary>Whether a chart's bars and areas sit side by side or on top of each other.</summary>
