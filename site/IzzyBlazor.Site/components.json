@@ -876,9 +876,9 @@
           "examples": []
         },
         {
-          "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["TextSize", "ContentClass", "TopHeading"],
+          "id": "styling", "title": "Styling the content", "summary": "The text uses Prose's styles, so it looks the same in the editor and where it's shown.", "members": ["FontSize", "ContentClass", "TopHeading"],
           "intro": [
-            "The text is part of the page, not a frame, and has `Prose`'s styles: what you edit looks like what `RichText` shows. The theme's tokens reach it as they reach everything else. `TextSize` sets its size, as `Prose`'s `Size` does. For rules of your own, give the editor a `ContentClass` and `RichText` the same `Class`; Prose's rules have the lowest weight, so yours win."
+            "The text is part of the page, not a frame, and has `Prose`'s styles: what you edit looks like what `RichText` shows. The theme's tokens reach it as they reach everything else. `FontSize` sets the text's size, on `Prose`'s scale. For rules of your own, give the editor a `ContentClass` and `RichText` the same `Class`; Prose's rules have the lowest weight, so yours win."
           ],
           "examples": [
             { "id": "rich-text-editor-content-style", "title": "A class on the content", "lead": "This help article is large text, and its headings are the primary color, in the editor and, below it, as `RichText` shows it." }
