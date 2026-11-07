@@ -593,7 +593,7 @@
                 <div class="@(horizontal ? "ib-chart-ticks ib-chart-values" : "ib-chart-ticks")">
                     @foreach (var label in bottom)
                     {
-                        <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(label.Pos)" title="@label.Title">@label.Text@if (label.Context is { } context)
+                        <span class="@BottomLabelClass(label)" style="left:@Pct(label.Pos)" title="@label.Title">@label.Text@if (label.Context is { } context)
                             {<span class="ib-chart-context">@context</span>}</span>
                     }
                 </div>
@@ -852,6 +852,9 @@
             + (model.FlatFrom > 0 ? $"--ib-chart-th:{Num(model.TurnedPx)}px;--ib-chart-lead:{Num(model.LeadPx)}px" : "");
         return style.Length > 0 ? style : null;
     }
+
+    private static string? BottomLabelClass(AxisLabel label) =>
+        ((label.Start ? "ib-chart-start" : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
 
     private static string BottomClass(ChartModel model, bool horizontal) =>
         "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "")

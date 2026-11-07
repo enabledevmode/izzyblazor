@@ -561,6 +561,9 @@
     color: var(--ib-color-subtle);
   }
 
+  /* A scale's label at the plot's start starts there, clear of the value axis's corner. */
+  .ib-chart-bottom > * > .ib-chart-start { --ib-chart-tx: 0%; text-align: start; }
+
   /* Names in bands get the room the server worked out for each width, and an ellipsis past it. */
   .ib-chart-bands > * > span {
     max-width: var(--ib-chart-rw, var(--ib-chart-w, var(--ib-chart-w0)));

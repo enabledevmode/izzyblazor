@@ -563,7 +563,8 @@ class Chart extends IzzyElement {
     const bands = axis.classList.contains("ib-chart-bands");
     const style = getComputedStyle(axis);
     const sizes = labels.map((l) => l.scrollWidth);
-    const centers = labels.map((l) => (parseFloat(l.style.left) / 100) * width);
+    // A label at the plot's start starts there (ib-chart-start): its middle is half its width in.
+    const centers = labels.map((l, i) => (parseFloat(l.style.left) / 100) * width + (l.classList.contains("ib-chart-start") ? sizes[i] / 2 : 0));
 
     let chosen = 0;
     for (let k = 7; k >= 0; k--) {

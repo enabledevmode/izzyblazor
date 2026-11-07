@@ -1,17 +1,15 @@
-@* Daily signups and trials on a date scale, the signups as an area. *@
-<Chart Items="_days" Argument="d => d.Date" Title="Signups and trials, last 90 days">
-    <ChartAreaSeries Value="d => d.Signups" Curve="ChartCurve.Smooth" />
-    <ChartLineSeries Value="d => d.Trials" Curve="ChartCurve.Smooth" />
+@* Daily signups over 90 days, noisy by weekday, with a 7-day moving average that shows the direction. *@
+<Chart Items="_days" Argument="d => d.Date" Title="Daily signups, last 90 days">
+    <ChartLineSeries Value="d => d.Signups" Name="Signups" Trend="ChartTrend.MovingAverage" TrendPeriod="7" />
 </Chart>
 
 @code {
-    private record Day(DateOnly Date, int Signups, int Trials);
+    private record Day(DateOnly Date, int Signups);
 
     private readonly Day[] _days = Enumerable.Range(0, 90).Select(i =>
     {
         var date = new DateOnly(2026, 8, 6).AddDays(i);
         var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-        var signups = 120 + i * 2 + (int)(25 * Math.Sin(i / 4.0)) - (weekend ? 40 : 0);
-        return new Day(date, signups, signups / 3 + (int)(10 * Math.Cos(i / 6.0)));
+        return new Day(date, 140 + i + (int)(18 * Math.Sin(i / 9.0)) + (i * 37 % 23) - (weekend ? 55 : 0));
     }).ToArray();
 }
