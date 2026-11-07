@@ -1,4 +1,5 @@
 @namespace IzzyBlazor
+@using Microsoft.AspNetCore.Components.Forms
 @inherits StyledComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a message posts with the Send button, and Enter adds a line.")]
 
@@ -25,6 +26,9 @@
     A reply streams on a static page too, with [StreamRendering] on the page, when the post came
     with script: OnSend's CanStream says so (with JavaScript off, send the reply whole).
 
+    AllowFiles adds a button to attach files (Accept, MaxFileSize, MaxFiles); they come to OnSend
+    with the text, checked against those limits, and post with the form on a static page.
+
     Accessibility:
     - The log is a `log` named by Label, which is required. It's quiet (aria-live off): a reply
       isn't read word by word as it arrives. A status, polite, says "Replying", then "Reply
@@ -36,6 +40,9 @@
     - The box is a text area named "Message". Send and Stop are labeled buttons; the
       suggestions are a group named "Suggestions".
     - The log can be scrolled with the keyboard: it's in the Tab order.
+    - Attach is a label for the file input, named "Attach files"; the files chosen are a list,
+      each with a Remove button on an interactive page. A file over the limits is named in an
+      error under the box, announced as it appears.
     See also: ChatEntry, RichText, TextArea.
 *@
 
@@ -110,10 +117,24 @@
     /// </summary>
     [Parameter] public string? FormAction { get; set; }
 
+    /// <summary>Adds a button to attach files to a message: they come to <see cref="OnSend"/> as its <c>Files</c>.</summary>
+    [Parameter] public bool AllowFiles { get; set; }
+
+    /// <summary>The file types that can be attached, as a file input's accept: <c>.pdf,image/*</c>.</summary>
+    [Parameter] public string? Accept { get; set; }
+
+    /// <summary>The largest file that can be attached, in bytes. Defaults to 10 MB (10,000,000).</summary>
+    [Parameter] public long MaxFileSize { get; set; } = 10_000_000;
+
+    /// <summary>The most files a message can have. Defaults to 5.</summary>
+    [Parameter] public int MaxFiles { get; set; } = 5;
+
     /// <summary>The level of each entry's hidden heading, 2 to 6. Defaults to 3.</summary>
     [Parameter] public int HeadingLevel { get; set; } = 3;
 
     private readonly Draft _draft = new();
+    private List<IBrowserFile> _files = [];
+    private string? _fileError;
     private ChatContext _context = null!;
     private string? _class;
     private string? _style;
@@ -189,6 +210,8 @@
 
     internal int EntryHeadingLevel => HeadingLevel;
 
+    private string FilesId => _inputId + "-files";
+
     /// <summary>The composer form's id: a static Retry button in an entry submits it.</summary>
     internal string FormId => _inputId + "-form";
 
@@ -213,11 +236,16 @@
             return;
         }
 
-        var text = (posted is null ? _draft.Text : posted.Suggestion ?? posted.Text)?.Trim();
-        if (string.IsNullOrEmpty(text) || Busy) return;
+        var text = (posted is null ? _draft.Text : posted.Suggestion ?? posted.Text)?.Trim() ?? "";
+        var files = AllowFiles && posted?.Suggestion is null ? (posted is null ? _files : posted.Files?.Where(f => f.Size > 0 || f.Name.Length > 0).ToList() ?? []) : [];
+        if ((text.Length == 0 && files.Count == 0) || Busy) return;
+        // The limits, checked here too: a static page's files come with no check before posting.
+        _fileError = FileError(files);
+        if (_fileError is not null) return;
         if (MaxLength is { } max && text.Length > max) text = text[..max];
         _draft.Text = null;
-        await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: posted is null || posted.Script == "1"));
+        _files = [];
+        await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: posted is null || posted.Script == "1") { Files = files });
     }
 
     private async Task SuggestAsync(string text)
@@ -226,13 +254,36 @@
         await OnSend.InvokeAsync(new ChatSendArgs(text, CanStream: true));
     }
 
+    private string? FileError(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files.Count > MaxFiles) return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ChatTooManyFiles, MaxFiles);
+        if (files.FirstOrDefault(f => f.Size > MaxFileSize) is { } large)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FileTooLarge, large.Name, ChatEntry.SizeText(MaxFileSize));
+        }
+
+        return null;
+    }
+
+    private void Chosen(InputFileChangeEventArgs args)
+    {
+        _files = [.. _files, .. args.GetMultipleFiles(MaxFiles + 1)];
+        _fileError = FileError(_files);
+    }
+
+    private void Remove(IBrowserFile file)
+    {
+        _files.Remove(file);
+        _fileError = FileError(_files);
+    }
+
     private async Task StopAsync()
     {
         _stopped = true;
         await OnStop.InvokeAsync();
     }
 
-    private RenderFragment Composer(ChatPost? posted) => @<EditForm id="@FormId" action="@(posted is null ? null : FormAction)" class="ib-chat-composer" Model="_draft" FormName="@(posted is null ? null : "send")" Enhance OnSubmit="@(() => SubmitAsync(posted))">
+    private RenderFragment Composer(ChatPost? posted) => @<EditForm id="@FormId" action="@(posted is null ? null : FormAction)" enctype="@(AllowFiles && posted is not null ? "multipart/form-data" : null)" class="ib-chat-composer" Model="_draft" FormName="@(posted is null ? null : "send")" Enhance OnSubmit="@(() => SubmitAsync(posted))">
         @if (Suggestions is { Count: > 0 } suggestions && !Busy)
         {
             <div class="ib-chat-suggestions" role="group" aria-label="@TextDefaults.ChatSuggestions">
@@ -249,7 +300,39 @@
                 }
             </div>
         }
+        @if (AllowFiles)
+        {
+            @* The files chosen: the script lists them on a static page. *@
+            <ul class="ib-chat-chosen" aria-label="@TextDefaults.ChatAttached" data-ib-chat-chosen>
+                @foreach (var file in _files)
+                {
+                    <li class="ib-chat-file-chip">
+                        <span>@file.Name</span>
+                        <IconButton Icon="Lucide.X" Label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ChatRemoveFile, file.Name)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @onclick="() => Remove(file)" />
+                    </li>
+                }
+            </ul>
+        }
+        @if (_fileError is not null)
+        {
+            <p class="ib-chat-file-error" id="@(_inputId)-error" role="alert">@_fileError</p>
+        }
         <div class="ib-chat-box">
+            @if (AllowFiles)
+            {
+                <label class="ib-btn ib-btn-ghost ib-btn-neutral ib-btn-sm ib-btn-icon-only ib-chat-attach" for="@(_inputId)-files" title="@TextDefaults.ChatAttach">
+                    <Icon Name="Lucide.Paperclip" />
+                    <span class="ib-visually-hidden">@TextDefaults.ChatAttach</span>
+                </label>
+                @if (posted is null)
+                {
+                    <InputFile id="@FilesId" class="ib-chat-file" multiple accept="@Accept" OnChange="Chosen" />
+                }
+                else
+                {
+                    <input type="file" id="@(_inputId)-files" class="ib-chat-file" name="@ChatPost.FilesName" multiple accept="@Accept" />
+                }
+            }
             <label class="ib-visually-hidden" for="@_inputId">@TextDefaults.ChatMessage</label>
             @* Shown (to screen readers) by the script, which makes the keys work. *@
             <span id="@(_inputId)-hint" class="ib-visually-hidden ib-chat-hint" hidden>@TextDefaults.ChatKeys</span>

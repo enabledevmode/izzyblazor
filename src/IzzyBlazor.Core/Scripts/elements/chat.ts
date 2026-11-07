@@ -60,6 +60,19 @@ class Chat extends IzzyElement {
       this.#sent = true;
     }, { signal, capture: true });
 
+    // A static page's files chosen, named under the box (an interactive page renders its own).
+    this.addEventListener("change", (event) => {
+      const files = event.target as HTMLInputElement;
+      const list = this.querySelector<HTMLElement>("[data-ib-chat-chosen]");
+      if (!files.matches?.(".ib-chat-file[name]") || !list) return;
+      list.replaceChildren(...[...(files.files ?? [])].map((file) => {
+        const item = document.createElement("li");
+        item.className = "ib-chat-file-chip";
+        item.textContent = file.name;
+        return item;
+      }));
+    }, { signal });
+
     this.addEventListener("input", (event) => {
       if ((event.target as Element).matches?.(".ib-chat-input")) this.grow(event.target as HTMLTextAreaElement);
     }, { signal });

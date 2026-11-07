@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
@@ -26,7 +27,17 @@ public enum ChatStatus
 /// post came with script (with <c>[StreamRendering]</c> on the page). With JavaScript off it's
 /// false: send the reply whole, since a streamed one would stop at its first piece there.
 /// </param>
-public sealed record ChatSendArgs(string Text, bool CanStream);
+public sealed record ChatSendArgs(string Text, bool CanStream)
+{
+    /// <summary>The files attached (with the chat's <c>AllowFiles</c>), already checked against its limits. Read each with <c>OpenReadStream</c>.</summary>
+    public IReadOnlyList<IBrowserFile> Files { get; init; } = [];
+}
+
+/// <summary>A file shown on a <see cref="ChatEntry"/>: its name, and where to get it.</summary>
+/// <param name="Name">The file's name, such as "invoice.pdf".</param>
+/// <param name="Href">The address it can be opened or downloaded at; without one, it's only named.</param>
+/// <param name="Size">Its size in bytes, shown beside the name.</param>
+public sealed record ChatAttachment(string Name, string? Href = null, long? Size = null);
 
 /// <summary>
 /// A Chat's entries in the order they arrived, which is page order as a conversation only grows:
@@ -61,6 +72,7 @@ internal sealed class ChatPost : ComponentBase
     internal const string StopName = "ib-chat-stop";
     internal const string RetryName = "ib-chat-retry";
     internal const string ScriptName = "ib-chat-script";
+    internal const string FilesName = "ib-chat-files";
 
     [SupplyParameterFromForm(Name = TextName)]
     public string? Text { get; set; }
@@ -77,6 +89,9 @@ internal sealed class ChatPost : ComponentBase
     // Added by the chat's script to what the form posts: the page has script, so it can stream.
     [SupplyParameterFromForm(Name = ScriptName)]
     public string? Script { get; set; }
+
+    [SupplyParameterFromForm(Name = FilesName)]
+    public IReadOnlyList<IBrowserFile>? Files { get; set; }
 
     [Parameter] public RenderFragment<ChatPost>? ChildContent { get; set; }
 

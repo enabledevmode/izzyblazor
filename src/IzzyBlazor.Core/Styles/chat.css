@@ -233,4 +233,59 @@
   }
 
   .ib-chat-action { flex: none; }
+
+  /* Attachments: the paperclip is a label for a file input, out of sight with script (the
+     label shows its focus); with none, the browser's own input shows instead. */
+  .ib-chat-attach { flex: none; cursor: pointer; }
+
+  @media (scripting: enabled) {
+    .ib-chat-file {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      opacity: 0;
+    }
+  }
+
+  @media (scripting: none) {
+    .ib-chat-attach { display: none; }
+    .ib-chat-file { align-self: center; max-inline-size: 12rem; }
+  }
+
+  .ib-chat-box:has(.ib-chat-file:focus-visible) .ib-chat-attach {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-chat-chosen,
+  .ib-chat-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ib-chat-chosen:empty { display: none; }
+  .ib-chat-mine .ib-chat-attachments { justify-content: flex-end; }
+
+  .ib-chat-file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    padding: 0.125rem var(--ib-space-2);
+    border: 1px solid var(--ib-color-outline);
+    border-radius: var(--ib-radius-md);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-chat-file-size { color: var(--ib-color-muted); }
+
+  .ib-chat-file-error {
+    margin: 0;
+    color: var(--ib-color-danger);
+    font-size: var(--ib-text-sm);
+  }
 }

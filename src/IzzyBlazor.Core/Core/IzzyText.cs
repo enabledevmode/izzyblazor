@@ -1581,6 +1581,18 @@ public class IzzyText
     /// <summary>A Chat's message box's description, once its keys work.</summary>
     public virtual string ChatKeys { get; set; } = "Enter sends; Shift+Enter adds a line";
 
+    /// <summary>A Chat's button that attaches files.</summary>
+    public virtual string ChatAttach { get; set; } = "Attach files";
+
+    /// <summary>The list of files attached to a Chat's next message.</summary>
+    public virtual string ChatAttached { get; set; } = "Attached files";
+
+    /// <summary>A Chat's button that removes an attached file: {0} is its name.</summary>
+    public virtual string ChatRemoveFile { get; set; } = "Remove {0}";
+
+    /// <summary>A Chat's error for too many files: {0} is the most allowed.</summary>
+    public virtual string ChatTooManyFiles { get; set; } = "A message can have up to {0} files.";
+
     /// <summary>A Chat's send button.</summary>
     public virtual string ChatSend { get; set; } = "Send";
 
