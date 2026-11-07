@@ -491,12 +491,13 @@ internal static class ChartLayout
                         : new BarRect(a0 * 100, (1 - hi) * 100, width * 100, (hi - lo) * 100, title);
 
                     // The value end is rounded on the outermost bar: every bar side by side, the
-                    // last segment of a stack each way from zero.
+                    // last segment of a stack each way from zero. Not a waterfall's: each bar's
+                    // ends are where the last step ended and the next begins, joined by a line.
                     var below = v1 < v0;
                     rect = rect with { Index = i, Dir = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
                     var outermost = !stacked || !bars.Skip(j + 1).Any(other =>
                         other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
-                    if (outermost && hi > lo)
+                    if (outermost && hi > lo && !data.IsWaterfall)
                     {
                         rect = rect with { End = rect.Dir };
                     }
@@ -647,7 +648,7 @@ internal static class ChartLayout
                     var value = ValueText(v);
                     var name = m.Statistic is { } st ? st == ChartStatistic.Average ? input.Text.ChartAverage : input.Text.ChartMedian : null;
                     var text = m.Label ?? (name is not null ? $"{name}: {value}" : value);
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, scale(v), 0, 0, text) { V = v, Series = series });
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, scale(v), 0, 0, text) { V = v, Series = series, Align = m.Align });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {value}" : text);
                     break;
                 }
@@ -655,7 +656,7 @@ internal static class ChartLayout
                 case (ChartMarkKind.Line, MarkAxis.Argument) when At(m.At) is { } p:
                 {
                     var at = ArgText(m.At);
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, 0, 0, m.Label ?? at));
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, 0, 0, m.Label ?? at) { Align = m.Align });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {at}" : at);
                     break;
                 }

@@ -50,6 +50,9 @@
     color: var(--ib-color-on-surface);
   }
 
+  .ib-chart-label-center { text-align: center; }
+  .ib-chart-label-end { text-align: end; }
+
   .ib-chart-s1 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-1)); }
   .ib-chart-s2 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-2)); }
   .ib-chart-s3 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-3)); }
@@ -335,6 +338,13 @@
   .ib-chart-rule.ib-chart-mk-y > span { right: 0; top: -1px; translate: 0 -50%; }
   .ib-chart-rule.ib-chart-mk-x > span { top: 0; left: -1px; translate: -50% 0; }
 
+  /* A LabelAlign: along a line across, the left, middle or right; along an upright one, the top,
+     middle or bottom. */
+  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-start > span { right: auto; left: 0; }
+  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-center > span { right: auto; left: 50%; translate: -50% -50%; }
+  .ib-chart-rule.ib-chart-mk-x.ib-chart-at-center > span { top: 50%; translate: -50% -50%; }
+  .ib-chart-rule.ib-chart-mk-x.ib-chart-at-end > span { top: auto; bottom: 0; }
+
   /* Bands are shaded with edges, their tag in the top corner. */
   .ib-chart-band {
     background-color: light-dark(
@@ -600,6 +610,12 @@
     font-size: var(--ib-text-sm);
   }
 
+  /* Along its edge: a row's items from the start, center or end; a column (beside the chart, or
+     a pie's legend) at the top, middle or bottom, or left, center or right under a circle. */
+  .ib-chart-legend-start { justify-content: flex-start; justify-self: start; align-self: start; }
+  .ib-chart-legend-center { justify-content: center; justify-self: center; align-self: center; }
+  .ib-chart-legend-end { justify-content: flex-end; justify-self: end; align-self: end; }
+
   :is(.ib-chart-toggle, .ib-chart-entry) {
     display: inline-flex;
     align-items: center;
@@ -666,6 +682,8 @@
     }
 
     .ib-pie-legended.ib-pie-lg-first { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
+    /* Beside the circle, the legend aligns up and down only. */
+    .ib-pie-legended > .ib-pie-legend { justify-self: start; }
   }
 
   .ib-pie-plot {

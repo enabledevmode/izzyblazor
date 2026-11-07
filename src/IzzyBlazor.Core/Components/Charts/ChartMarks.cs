@@ -91,6 +91,14 @@ public sealed class ChartReferenceLine : ChartMark
     /// <summary>The line's label, such as "Target". Defaults to its value (or the statistic's name).</summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>
+    /// Where the label sits along the line: at the end of a line across (the right, in a
+    /// left-to-right page) and the top of an upright one, by default; <see cref="ChartAlign.Start"/>
+    /// for the left or the top, <see cref="ChartAlign.Center"/> for the middle,
+    /// <see cref="ChartAlign.End"/> for the right or the bottom.
+    /// </summary>
+    [Parameter] public ChartAlign? LabelAlign { get; set; }
+
     private protected override void Check()
     {
         var count = (Value is not null ? 1 : 0) + (Argument is not null ? 1 : 0) + (Statistic is not null ? 1 : 0);
@@ -117,6 +125,7 @@ public sealed class ChartReferenceLine : ChartMark
         Statistic = Statistic,
         Series = Series,
         ValueAxis = ValueAxis,
+        Align = LabelAlign,
     };
 }
 
@@ -220,6 +229,7 @@ internal sealed record ChartMarkInput(ChartMarkKind Kind, MarkAxis Axis, string?
     public ChartStatistic? Statistic { get; init; }
     public string? Series { get; init; }
     public string? ValueAxis { get; init; }
+    public ChartAlign? Align { get; init; }
 }
 
 /// <summary>
@@ -233,6 +243,7 @@ internal sealed record MarkShape(ChartMarkKind Kind, MarkAxis Axis, double P, do
     public double? V { get; init; }
     public double? VTo { get; init; }
     public int Series { get; init; } = -1;
+    public ChartAlign? Align { get; init; }
 }
 
 /// <summary>What a chart shares with its series and marks.</summary>

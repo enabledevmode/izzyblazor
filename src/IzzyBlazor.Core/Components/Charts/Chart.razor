@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
     @if (TitledBy is null)
     {
-        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : "ib-chart-label")">@Title</figcaption>
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
     }
     <CascadingValue Value="_context" IsFixed="true">
         @ChildContent
@@ -70,6 +70,12 @@
 
     /// <summary>Hides the title, which still names the chart for screen readers.</summary>
     [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start, over the chart's first label, by default (the left, in
+    /// a left-to-right page); <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
 
     /// <summary>
     /// The id of a heading already on the page that titles the chart, such as a card's, in place of
@@ -117,6 +123,12 @@
     /// or <see cref="ChartLegend.None"/>. Beside the chart, it moves above or below under 30rem.
     /// </summary>
     [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>
+    /// Where the legend sits along its edge: at the start, by default (the left above or below
+    /// the chart, the top beside it); <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign LegendAlign { get; set; }
 
     /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
     [Parameter] public ChartDataTable DataTable { get; set; }
@@ -681,13 +693,20 @@
         _ => null,
     };
 
+    private string LegendListClass => LegendAlign switch
+    {
+        ChartAlign.Center => "ib-chart-legend ib-chart-legend-center",
+        ChartAlign.End => "ib-chart-legend ib-chart-legend-end",
+        _ => "ib-chart-legend ib-chart-legend-start",
+    };
+
     // The legend: a waterfall's keys to its colors, or a toggle for each series.
     private RenderFragment LegendList(ChartModel model, ChartSeriesData? waterfall, string marks) => @<text>
         @if (waterfall is not null)
         {
             @* A waterfall's keys: what each color means. Not toggles: there's one series. *@
             var owner = model.Series[0];
-            <ul class="ib-chart-legend">
+            <ul class="@LegendListClass">
                 @foreach (var (change, name) in WaterfallKeys(owner))
                 {
                     <li class="@SeriesClass(owner, null)" style="@ColorStyle(owner)">
@@ -703,7 +722,7 @@
         }
         else
         {
-            <ul class="ib-chart-legend">
+            <ul class="@LegendListClass">
                 @foreach (var s in model.Series)
                 {
                     <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">
@@ -834,7 +853,8 @@
         var kind = mark.Kind switch { ChartMarkKind.Band => "ib-chart-band", ChartMarkKind.Note => "ib-chart-note", _ => "ib-chart-rule" };
         var axis = mark.Kind == ChartMarkKind.Note ? (horizontal ? " ib-chart-note-h" : "") : y ? " ib-chart-mk-y" : " ib-chart-mk-x";
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", kind + axis);
+        var align = mark.Align switch { ChartAlign.Start => " ib-chart-at-start", ChartAlign.Center => " ib-chart-at-center", ChartAlign.End => " ib-chart-at-end", _ => "" };
+        builder.AddAttribute(1, "class", kind + axis + align);
         builder.AddAttribute(2, "style", style);
         builder.AddAttribute(3, "data-ib-v", mark.V is { } v && (mark.Axis == MarkAxis.Value) ? v.ToString("R", CultureInfo.InvariantCulture) : null);
         builder.AddAttribute(4, "data-ib-vto", mark.VTo is { } vt ? vt.ToString("R", CultureInfo.InvariantCulture) : null);
