@@ -19,7 +19,8 @@ export interface NumberShape {
 }
 
 export interface DrawSeries {
-  t: number; // 0 bar, 1 line, 2 area, 3 scatter
+  t: number; // 0 bar, 1 line, 2 area, 3 scatter, 4 bubble
+  r?: number[]; // a bubble's radius by item, in pixels
   v: (number | null)[];
   c: number; // curve: 0 straight, 1 smooth, 2 step
   j: boolean; // connect nulls
@@ -464,7 +465,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       if (v !== null && a !== null) points.push([a, (data.ax ? scale2 : scale)(v), i]);
       else if (!data.j) points.push(null);
     }
-    if (data.t !== 3) {
+    if (data.t < 3) {
       const runs: [number, number, number][][] = [];
       let run: [number, number, number][] | null = null;
       for (const p of points) {
@@ -487,10 +488,15 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
     }
     if (data.m) {
-      marks += `<g ${attrs(s, data.t === 3 ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")}>`;
+      marks += `<g ${attrs(s, data.t >= 3 ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")}>`;
       for (const p of points) {
         if (!p) continue;
         const [x, y] = d.h ? [p[1], p[0]] : [p[0], 1 - p[1]];
+        const radius = data.r?.[p[2]];
+        if (data.t === 4) {
+          if (radius) marks += `<circle class="ib-chart-bubble" cx="${pct(x)}" cy="${pct(y)}" r="${radius}" data-ib-i="${p[2]}"/>`;
+          continue;
+        }
         marks += `<use href="#${d.mk}${data.y % 4}" x="${pct(x)}" y="${pct(y)}" data-ib-i="${p[2]}"/>`;
         const text = data.lt?.[p[2]];
         if (data.lm && text != null) {

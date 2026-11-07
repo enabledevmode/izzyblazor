@@ -1,0 +1,31 @@
+@* Sales regions by average deal size and win rate, each bubble sized by its open pipeline. *@
+<Chart Items="_regions" Argument="r => r.AverageDeal" SeriesType="ChartType.Bubble"
+       Title="Sales regions: deal size, win rate and pipeline" ArgumentFormat="C0" ValueFormat="P0"
+       ArgumentTitle="Average deal size" ValueTitle="Win rate">
+    <TooltipTemplate>
+        <div class="ib-chart-tooltip-title">@context.Item.Region</div>
+        <div>Average deal @context.Argument</div>
+        <div>Wins @context.Item.WinRate.ToString("P0")</div>
+        <div>Pipeline @context.Item.Pipeline.ToString("C0")</div>
+    </TooltipTemplate>
+    <ChildContent>
+        <ChartSeries Value="r => r.WinRate" Size="r => r.Pipeline" SeriesBy="r => r.Segment" />
+    </ChildContent>
+</Chart>
+
+@code {
+    private record SalesRegion(string Region, string Segment, decimal AverageDeal, double WinRate, decimal Pipeline);
+
+    private readonly SalesRegion[] _regions =
+    [
+        new("North America", "Enterprise", 48_200, 0.24, 6_100_000),
+        new("Western Europe", "Enterprise", 41_500, 0.27, 3_800_000),
+        new("Japan", "Enterprise", 52_900, 0.19, 1_900_000),
+        new("Australia", "Enterprise", 36_400, 0.31, 1_100_000),
+        new("North America", "Mid-market", 14_800, 0.33, 2_700_000),
+        new("Western Europe", "Mid-market", 12_100, 0.36, 1_600_000),
+        new("Latin America", "Mid-market", 9_400, 0.29, 900_000),
+        new("Southeast Asia", "Mid-market", 8_200, 0.41, 650_000),
+        new("Nordics", "Mid-market", 13_600, 0.38, 520_000),
+    ];
+}

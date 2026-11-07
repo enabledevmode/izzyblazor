@@ -236,8 +236,17 @@
     fill: var(--ib-chart-c);
   }
 
-  /* A scatter's points are see-through as bars are, so where they crowd shows darker. */
+  /* A scatter's points are see-through as bars are, so where they crowd shows darker. Bubbles,
+     larger, are lighter still, with an edge in the series' color. */
   .ib-chart-scatter { fill: var(--ib-chart-see); }
+
+  .ib-chart-bubble {
+    fill-opacity: 0.7;
+    stroke: var(--ib-chart-c);
+    stroke-width: 1px;
+  }
+
+  .ib-chart-key .ib-chart-bubble { fill: var(--ib-chart-see); }
 
   /* Value labels (ChartSeries Labels), centered on the spot the server (or the script) worked
      out, in the text color with a halo of the surface so they read on a bar or a grid line. */

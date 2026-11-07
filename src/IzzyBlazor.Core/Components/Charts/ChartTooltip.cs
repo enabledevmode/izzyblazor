@@ -33,4 +33,14 @@ public sealed class ChartTooltip<TItem>
 /// <param name="Value">The value, or null where the item has none.</param>
 /// <param name="Text">The value formatted with the chart's <c>ValueFormat</c>, or null.</param>
 /// <param name="Color">The series' color, as a CSS color, such as <c>var(--ib-chart-1)</c>.</param>
-public sealed record ChartTooltipPoint(string Series, double? Value, string? Text, string Color);
+public sealed record ChartTooltipPoint(string Series, double? Value, string? Text, string Color)
+{
+    /// <summary>A bubble's size (null for other series).</summary>
+    public double? Size { get; init; }
+
+    /// <summary>What a bubble's size measures, such as "Customers": its Size property's name.</summary>
+    public string? SizeName { get; init; }
+
+    /// <summary>A bubble's size as text.</summary>
+    public string? SizeText { get; init; }
+}

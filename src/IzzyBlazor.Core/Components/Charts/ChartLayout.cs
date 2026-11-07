@@ -28,6 +28,13 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     /// <summary>On the second value axis, at the end side.</summary>
     public bool Secondary { get; init; }
+
+    /// <summary>A bubble series' sizes by item, and what they measure (its property's name).</summary>
+    public double?[]? Sizes { get; init; }
+
+    public string? SizeName { get; init; }
+
+    public bool IsPoint => Type is ChartType.Scatter or ChartType.Bubble;
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -90,8 +97,8 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
 /// </summary>
 internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside, double Justify = 0);
 
-/// <summary>A marker at a point, in percent of the plot.</summary>
-internal sealed record PointMark(double X, double Y, string Title, int Index);
+/// <summary>A marker at a point, in percent of the plot; a bubble's has its radius in pixels.</summary>
+internal sealed record PointMark(double X, double Y, string Title, int Index, double? R = null);
 
 /// <summary>A series drawn: bars, or a line and its area in a 1000 by 1000 box that stretches, with markers.</summary>
 internal sealed class SeriesShape
@@ -175,6 +182,9 @@ internal sealed class ChartModel
 
     public required string[] ArgumentTexts { get; init; }
     public required string?[][] ValueTexts { get; init; }
+
+    /// <summary>A bubble series' sizes as text, by item (null for other series).</summary>
+    public string?[]?[] SizeTexts { get; init; } = [];
 }
 
 /// <summary>
@@ -208,6 +218,7 @@ internal static class ChartLayout
             Horizontal = input.Horizontal,
             Kind = kind,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
+            SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString("#,##0.##", culture) : null).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select(v => v is not { } x ? null
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
@@ -349,7 +360,7 @@ internal static class ChartLayout
             var count = Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 90);
 
             // Points have round ends to the scale, so none sits on the plot's edge; lines run edge to edge.
-            if (kind == ArgumentKind.Number && input.Series.Any(s => s.Type == ChartType.Scatter))
+            if (kind == ArgumentKind.Number && input.Series.Any(s => s.IsPoint))
             {
                 (amin, amax) = ChartScale.Nice(amin, amax, (int)count);
             }
@@ -405,6 +416,12 @@ internal static class ChartLayout
             : Math.Clamp((v - dmin) / (dmax - dmin), 0, 1);
         var bars = input.Series.Where(s => s.Type == ChartType.Bar && !s.Hidden).ToList();
         var band = 1.0 / Math.Max(1, n);
+
+        // Bubbles share one size scale, so they compare across series; the largest is an eighth
+        // of the plot's height across, between 12 and 40 pixels in radius.
+        var maxSize = input.Series.Where(s => s.Type == ChartType.Bubble && s.Sizes is not null)
+            .SelectMany(s => s.Sizes!).Where(v => v is > 0 && double.IsFinite(v.Value)).Select(v => v!.Value).DefaultIfEmpty(1).Max();
+        var maxRadius = Math.Clamp(plotHeight / 8, 12, 40);
         var lineStyle = 0;
         var palette = 0;
         for (var s = 0; s < input.Series.Count; s++)
@@ -476,7 +493,7 @@ internal static class ChartLayout
                 }
             }
 
-            var runs = data.Type == ChartType.Scatter ? [] : Runs(points);
+            var runs = data.IsPoint ? [] : Runs(points);
             var line = new StringBuilder();
             var area = new StringBuilder();
             foreach (var run in runs)
@@ -496,13 +513,23 @@ internal static class ChartLayout
             shape.Area = area.Length > 0 ? area.ToString() : null;
 
             var count = points.Count(p => p is not null);
-            if (data.Type == ChartType.Scatter || (data.Markers ?? (data.Type == ChartType.Line && count <= 40)))
+            if (data.IsPoint || (data.Markers ?? (data.Type == ChartType.Line && count <= 40)))
             {
                 foreach (var p in points)
                 {
                     if (p is not { } point) continue;
                     var (x, y) = Map(point.A, point.V, input.Horizontal);
-                    shape.Marks.Add(new PointMark(x * 100, y * 100, $"{model.ArgumentTexts[point.I]}, {data.Name}: {model.ValueTexts[s][point.I]}", point.I));
+                    var title = $"{model.ArgumentTexts[point.I]}, {data.Name}: {model.ValueTexts[s][point.I]}";
+                    if (data.Type == ChartType.Bubble)
+                    {
+                        // By area: the radius goes with the square root of the size.
+                        if (data.Sizes?[point.I] is not { } size || !(size > 0)) continue;
+                        title += $", {data.SizeName ?? input.Text.ChartSize}: {model.SizeTexts[s]![point.I]}";
+                        shape.Marks.Add(new PointMark(x * 100, y * 100, title, point.I, Math.Max(2, Math.Sqrt(size / maxSize) * maxRadius)));
+                        continue;
+                    }
+
+                    shape.Marks.Add(new PointMark(x * 100, y * 100, title, point.I));
                 }
             }
         }
@@ -780,15 +807,12 @@ internal static class ChartLayout
                 candidates.Add((shape.Index, text, w, spots));
             }
 
-            var markR = shape.Marks.Count > 0 ? 6 : 2;
-            var points = shape.Marks.Count > 0
-                ? shape.Marks.Select(m => (m.X / 100, m.Y / 100, m.Index)).ToList()
-                : [];
-            foreach (var (px, py, i) in points)
+            foreach (var mark in shape.Marks)
             {
+                var (px, py, i) = (mark.X / 100, mark.Y / 100, mark.Index);
                 if (texts[i] is not { } text) continue;
                 var w = Width(text) * 1.04;
-                var d = markR + MarkGapPx + LineHeightPx / 2;
+                var d = (mark.R ?? 6) + MarkGapPx + LineHeightPx / 2;
                 (double, double, double, double, (double, double, double, double)?) above = (px, 0, py, -d, null), below = (px, 0, py, d, null);
                 candidates.Add((shape.Index, text, w, data.Labels == ChartLabels.Inside ? [below, above] : [above, below]));
             }
