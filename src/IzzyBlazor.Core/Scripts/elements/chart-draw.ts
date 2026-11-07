@@ -35,6 +35,7 @@ export interface DrawSeries {
   lm?: number; // value labels: 1 auto, 2 inside, 3 outside
   lt?: (string | null)[]; // each item's label text
   lo?: boolean; // labels show even when they overlap (LabelOverlap.Show)
+  en?: string; // the name written past the plot's end (EndLabel)
 }
 
 export interface DrawData {
@@ -240,6 +241,7 @@ export interface Drawing {
   svg: string;
   labels: string;
   dl: string; // the value labels' HTML
+  ends: string; // the end labels' HTML
   pos: (v: number) => number; // a value's place on the new value axis, 0 to 1
 }
 
@@ -281,6 +283,27 @@ function placeLabels(all: LabelAt[], W: number, H: number, slot: (s: number) => 
   return html;
 }
 
+/**
+ * Centers for labels a line tall, each near its target, none overlapping, all within the height:
+ * overlapping ones in a run centered on their targets' average (ChartLayout.Spread).
+ */
+function spread(targets: number[], height: number): number[] {
+  const order = targets.map((_, i) => i).sort((a, b) => targets[a] - targets[b]);
+  const top = (sum: number, n: number) => Math.min(Math.max(sum / n - (n * LINE) / 2, 0), Math.max(0, height - n * LINE));
+  const runs: [number, number, number][] = [];
+  for (const i of order) {
+    let run: [number, number, number] = [targets[i], 1, top(targets[i], 1)];
+    while (runs.length && runs[runs.length - 1][2] + runs[runs.length - 1][1] * LINE > run[2]) {
+      const [sum, n] = runs.pop()!;
+      run = [sum + run[0], n + run[1], top(sum + run[0], n + run[1])];
+    }
+    runs.push(run);
+  }
+  const centers: number[] = [];
+  let k = 0;
+  for (const [, n, t] of runs) for (let j = 0; j < n; j++) centers[order[k++]] = t + j * LINE + LINE / 2;
+  return centers;
+}
 
 /**
  * The chart with the visible series only. plotPx is the plot's size, for the number of ticks:
@@ -458,6 +481,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
 
   // Lines, areas and markers.
   let areas = "", lines = "", marks = "";
+  const ends: [number, number][] = [];
   for (const s of visible) {
     const data = d.s[s];
     if (data.t === 0) continue;
@@ -488,6 +512,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
+      const last = points.filter((p) => p).pop();
+      if (data.en != null && last) ends.push([s, (1 - last[1]) * H]);
     }
     if (data.m) {
       marks += `<g ${attrs(s, data.t >= 3 ? "ib-chart-marks ib-chart-scatter" : "ib-chart-marks")}>`;
@@ -515,5 +541,9 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   // Over bars, lines and markers sit in a group that lifts them off the bars (chart.css).
   const over = paths(lines, " ib-chart-lines") + marks;
   svg += paths(areas) + barSvg + (bars.length > 0 ? `<g class="ib-chart-mixed">${over}</g>` : over);
-  return { svg, labels, pos: scale, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
+  const centers = spread(ends.map((e) => e[1]), H);
+  const endsHtml = ends
+    .map(([s], i) => `<span class="ib-chart-s${d.s[s].k}" style="top:${pct(centers[i] / H)};${d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""}" data-ib-series="${s}">${esc(d.s[s].en!)}</span>`)
+    .join("");
+  return { svg, labels, pos: scale, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
 }

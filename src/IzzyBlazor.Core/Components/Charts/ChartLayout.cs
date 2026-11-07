@@ -15,6 +15,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public bool? Markers { get; init; }
     public bool ConnectGaps { get; init; }
     public bool Hidden { get; init; }
+
+    /// <summary>The series' name written past the plot's end, level with its last value.</summary>
+    public bool EndLabel { get; init; }
     public ChartLabels Labels { get; init; }
     public string? LabelFormat { get; init; }
     public ChartLabelOverlap LabelOverlap { get; init; }
@@ -120,6 +123,9 @@ internal sealed record DataLabel(int Series, string Text, double AX, double DX, 
     public string? Change { get; init; }
 }
 
+/// <summary>A series' name past the plot's end: its center, 0 to 1 down the plot, nudged clear of the others.</summary>
+internal sealed record LineEndLabel(int Series, string Text, double Pos);
+
 /// <summary>A marker at a point, in percent of the plot; a bubble's has its radius in pixels.</summary>
 internal sealed record PointMark(double X, double Y, string Title, int Index, double? R = null);
 
@@ -159,6 +165,11 @@ internal sealed class ChartModel
     public List<GridLine> Grid { get; } = [];
     public List<SeriesShape> Series { get; } = [];
     public List<DataLabel> DataLabels { get; } = [];
+
+    /// <summary>The series' names past the plot's end (a series' EndLabel), and the room they take, in pixels.</summary>
+    public List<LineEndLabel> EndLabels { get; } = [];
+
+    public double EndLabelsPx { get; set; }
     public List<MarkShape> Marks { get; } = [];
 
     /// <summary>Each mark in words, such as "Target: $150,000", for the chart's description.</summary>
@@ -451,6 +462,7 @@ internal static class ChartLayout
         var maxRadius = Math.Clamp(plotHeight / 8, 12, 40);
         var lineStyle = 0;
         var palette = 0;
+        var ends = new List<(int S, double Y)>();
         for (var s = 0; s < input.Series.Count; s++)
         {
             var data = input.Series[s];
@@ -560,6 +572,11 @@ internal static class ChartLayout
             }
 
             shape.Line = line.Length > 0 ? line.ToString() : null;
+            if (data.EndLabel && !data.IsPoint && points.LastOrDefault(p => p is not null) is { } end)
+            {
+                ends.Add((s, (1 - end.V) * plotHeight));
+            }
+
             shape.Area = area.Length > 0 ? area.ToString() : null;
 
             var count = points.Count(p => p is not null);
@@ -584,6 +601,14 @@ internal static class ChartLayout
             }
         }
 
+        // End labels: each level with its line's last value, nudged apart a line each.
+        var centers = Spread(ends.Select(e => e.Y).ToList(), plotHeight, LineHeightPx);
+        for (var e = 0; e < ends.Count; e++)
+        {
+            model.EndLabels.Add(new LineEndLabel(ends[e].S, input.Series[ends[e].S].Name, centers[e] / plotHeight));
+        }
+
+        model.EndLabelsPx = Math.Ceiling(EndsWidth(input));
         PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale, scale2);
         PlaceLabels(input, model, argumentRoomPx, plotHeight);
         return model;
@@ -803,6 +828,9 @@ internal static class ChartLayout
 
     private const double MarkGapPx = 4, LabelPadPx = 2;
 
+    // An end label's start past the plot (chart.css's --ib-space-3), clear of the last marker.
+    private const double EndGapPx = 12;
+
     /// <summary>
     /// Places each series' labels at each of <see cref="Widths"/>, from the widest down: a label
     /// keeps the first spot its mode allows that stays in the plot (in the bar, for one inside)
@@ -914,6 +942,44 @@ internal static class ChartLayout
             model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside, Math.Ceiling(justify)) { Change = candidates[c].Change });
         }
     }
+
+    /// <summary>
+    /// Centers for labels a line tall, each as near its target as it can be with none overlapping
+    /// and all within the height: labels that would overlap are put in a run, centered on their
+    /// targets' average, and runs that then touch join. Returned in the targets' order.
+    /// chart-draw.ts's spread does the same.
+    /// </summary>
+    internal static double[] Spread(IReadOnlyList<double> targets, double height, double line)
+    {
+        var order = Enumerable.Range(0, targets.Count).OrderBy(i => targets[i]).ToArray();
+        var runs = new List<(double Sum, int N, double Top)>();
+        double Top(double sum, int n) => Math.Clamp(sum / n - n * line / 2, 0, Math.Max(0, height - n * line));
+        foreach (var i in order)
+        {
+            var run = (Sum: targets[i], N: 1, Top: Top(targets[i], 1));
+            while (runs.Count > 0 && runs[^1].Top + runs[^1].N * line > run.Top)
+            {
+                var before = runs[^1];
+                runs.RemoveAt(runs.Count - 1);
+                run = (before.Sum + run.Sum, before.N + run.N, Top(before.Sum + run.Sum, before.N + run.N));
+            }
+
+            runs.Add(run);
+        }
+
+        var centers = new double[targets.Count];
+        var k = 0;
+        foreach (var run in runs)
+        {
+            for (var j = 0; j < run.N; j++) centers[order[k++]] = run.Top + j * line + line / 2;
+        }
+
+        return centers;
+    }
+
+    /// <summary>The room end labels take past the plot: the widest name (hidden ones too, which the legend can show), in its medium weight, and a gap.</summary>
+    private static double EndsWidth(ChartInput input) =>
+        input.Series.Where(s => s.EndLabel).Select(s => Width(s.Name) * 1.06 + EndGapPx).DefaultIfEmpty(0).Max();
 
     /// <summary>
     /// Whether a value is a waterfall's change, which reads signed: not a total, and not the first
@@ -1108,7 +1174,7 @@ internal static class ChartLayout
         var all = input.Series.Where(s => !s.Secondary).SelectMany(s => s.Values).Where(v => v is not null).Select(v => v!.Value).DefaultIfEmpty(0).ToArray();
         var widest = Math.Max(Math.Abs(all.Max()), Math.Abs(all.Min()));
         var sample = input.Stacked == ChartStacking.Percent ? "100%" : input.ValueFormatter?.Invoke(widest) ?? widest.ToString(input.ValueFormat ?? "N0", input.Culture);
-        return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx + secondPx;
+        return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx + secondPx + EndsWidth(input);
     }
 
     private static double PlotWidth(int k, double columnPx) => Math.Max(60, FitWidth(k) - columnPx - GapPx * 2);

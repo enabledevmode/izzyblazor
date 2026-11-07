@@ -292,6 +292,28 @@
     .ib-chart-dl > .ib-chart-dl-in { color: contrast-color(var(--ib-chart-fill)); }
   }
 
+  /* End labels (a series' EndLabel): past the plot's end, in the frame's padding (or before a
+     second axis's labels), clear of a line's last marker, each centered on the height worked out for it; in the series' color
+     toward the text's, so the palette's light colors still read. */
+  .ib-chart-ends {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 100%;
+    width: var(--ib-chart-ends);
+    pointer-events: none;
+  }
+
+  .ib-chart-ends > span {
+    position: absolute;
+    inset-inline-start: var(--ib-space-3);
+    translate: 0 -50%;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--ib-chart-c) 70%, var(--ib-color-on-surface));
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-chart-dual .ib-chart-side2 { margin-inline-start: var(--ib-chart-ends, 0); }
+
   /* Reference lines, bands and notes: HTML over the plot (bands under it). Each sits between --p
      and --q, 0 to 1 along its axis: up from the bottom (-y) or across from the left (-x). The
      script's --jp and --jq stand in when the legend rescales the value axis. */
@@ -409,8 +431,8 @@
   .ib-chart-js,
   ib-chart[data-ib-redrawn] .ib-chart-values:not(.ib-chart-js),
   ib-chart[data-ib-redrawn] .ib-chart-svg:not(.ib-chart-js) > :not(defs, .ib-chart-agrid),
-  ib-chart[data-ib-redrawn] .ib-chart-dl:not(.ib-chart-js) { display: none; }
-  ib-chart[data-ib-redrawn] .ib-chart-dl.ib-chart-js { display: block; }
+  ib-chart[data-ib-redrawn] :is(.ib-chart-dl, .ib-chart-ends):not(.ib-chart-js) { display: none; }
+  ib-chart[data-ib-redrawn] :is(.ib-chart-dl, .ib-chart-ends).ib-chart-js { display: block; }
   ib-chart[data-ib-redrawn] .ib-chart-values.ib-chart-js { display: contents; }
   ib-chart[data-ib-redrawn] svg.ib-chart-js { display: block; }
 

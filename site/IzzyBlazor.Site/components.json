@@ -2176,13 +2176,14 @@
       "features": [
         { "feature": "Lines over dates, numbers or names, straight, smooth or stepped" },
         { "feature": "Dashes and marker shapes that tell lines apart besides color" },
+        { "feature": "Each line's name at its end, nudged apart where lines end close together" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-line-usage", "title": "A few lines over time", "lead": "`ChartLineSeries` in a `Chart` draws each item's `Value` as a point on a line. With dates as the `Argument`, the points sit on a date scale, with a tick per month or year as the width allows. Keep to a few lines: each takes the next color and a dash pattern and marker of its own, so they differ by more than color. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
+        { "id": "chart-line-usage", "title": "A few lines over time", "lead": "`ChartLineSeries` in a `Chart` draws each item's `Value` as a point on a line. With dates as the `Argument`, the points sit on a date scale, with a tick per month or year as the width allows. Keep to a few lines: each takes the next color and a dash pattern and marker of its own, so they differ by more than color. `EndLabel` writes each line's name where it ends, so the reader doesn't look across to a legend; with every line named, the chart leaves the legend out. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
         { "id": "chart-lines", "title": "A smooth line and an area", "lead": "`ChartLineSeries` draws a series as a line. With dates or numbers as the `Argument` and no bars, the arguments sit on a scale, with a tick per day, month or year as the width allows. `Curve` smooths a line, and `ChartAreaSeries` fills down to zero. `ConnectGaps` draws across a missing value instead of leaving a gap. Lines differ by dash and marker shape as well as color." }
       ]
     },

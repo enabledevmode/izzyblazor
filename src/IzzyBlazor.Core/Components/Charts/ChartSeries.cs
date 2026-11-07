@@ -114,6 +114,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual bool ConnectGapsOf => false;
 
+    private protected virtual bool EndLabelOf => false;
+
     private protected virtual double? OpacityOf => null;
 
     private protected virtual Expression<Func<TItem, object?>>? SizeOf => null;
@@ -246,6 +248,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             LineStyle = LineStyleOf,
             Markers = MarkersOf,
             ConnectGaps = ConnectGapsOf,
+            EndLabel = EndLabelOf,
             Opacity = OpacityOf,
             Hidden = Hidden,
             Labels = Labels,
@@ -302,6 +305,14 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
     /// <summary>Draws the line straight across a missing value, instead of leaving a gap.</summary>
     [Parameter] public bool ConnectGaps { get; set; }
 
+    /// <summary>
+    /// Writes the series' name just past the plot's end, level with its last value, in its color:
+    /// the reader names the line where it ends, without looking across to a legend. Names that
+    /// would overlap are nudged apart. When every series has one, the chart leaves its legend out
+    /// by default. Upright charts only.
+    /// </summary>
+    [Parameter] public bool EndLabel { get; set; }
+
     private protected override ChartType Type => ChartType.Line;
 
     private protected override ChartCurve CurveOf => Curve;
@@ -311,6 +322,8 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
     private protected override bool? MarkersOf => Markers;
 
     private protected override bool ConnectGapsOf => ConnectGaps;
+
+    private protected override bool EndLabelOf => EndLabel;
 }
 
 /// <summary>
@@ -333,6 +346,14 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
     /// <summary>Draws the area straight across a missing value, instead of leaving a gap.</summary>
     [Parameter] public bool ConnectGaps { get; set; }
 
+    /// <summary>
+    /// Writes the series' name just past the plot's end, level with its last value (the top of its stack, when stacked), in its color:
+    /// the reader names the line where it ends, without looking across to a legend. Names that
+    /// would overlap are nudged apart. When every series has one, the chart leaves its legend out
+    /// by default. Upright charts only.
+    /// </summary>
+    [Parameter] public bool EndLabel { get; set; }
+
     private protected override ChartType Type => ChartType.Area;
 
     private protected override ChartCurve CurveOf => Curve;
@@ -342,6 +363,8 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
     private protected override bool? MarkersOf => Markers;
 
     private protected override bool ConnectGapsOf => ConnectGaps;
+
+    private protected override bool EndLabelOf => EndLabel;
 }
 
 /// <summary>
