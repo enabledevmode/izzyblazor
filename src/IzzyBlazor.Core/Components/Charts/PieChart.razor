@@ -30,7 +30,7 @@
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
     @if (TitledBy is null)
     {
-        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : "ib-chart-label")">@Title</figcaption>
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
     }
     @{
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
@@ -71,7 +71,7 @@
             </div>
             @if (Legend != ChartLegend.None)
             {
-                <ul class="ib-chart-legend ib-pie-legend">
+                <ul class="@LegendListClass">
                     @for (var i = 0; i < items.Count; i++)
                     {
                         <li class="@Slot(i)">
@@ -163,6 +163,12 @@
     [Parameter] public bool HideTitle { get; set; }
 
     /// <summary>
+    /// Where the title sits: at the start, over the chart's first label, by default (the left, in
+    /// a left-to-right page); <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
     /// The id of a heading already on the page that titles the chart, such as a card's, in place of
     /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
     /// </summary>
@@ -204,6 +210,20 @@
     /// hide slices.
     /// </summary>
     [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>
+    /// Where the legend sits along its edge: centered on the circle, by default (beside it or
+    /// under it); <see cref="ChartAlign.Start"/> for the left above or below (in a left-to-right
+    /// page) or the top beside it, <see cref="ChartAlign.End"/> for the right or the bottom.
+    /// </summary>
+    [Parameter] public ChartAlign? LegendAlign { get; set; }
+
+    private string LegendListClass => LegendAlign switch
+    {
+        ChartAlign.Start => "ib-chart-legend ib-pie-legend ib-chart-legend-start",
+        ChartAlign.End => "ib-chart-legend ib-pie-legend ib-chart-legend-end",
+        _ => "ib-chart-legend ib-pie-legend ib-chart-legend-center",
+    };
 
     // The circle and its legend: beside each other when there's room (Auto, Start, End), or one
     // over the other (chart.css).

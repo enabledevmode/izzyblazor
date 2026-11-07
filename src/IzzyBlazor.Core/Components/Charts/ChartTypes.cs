@@ -82,6 +82,23 @@ public enum ChartLegend
     None,
 }
 
+/// <summary>
+/// Where a chart's title or legend sits along its edge: for a title or a legend above or below,
+/// left, center or right (in a left-to-right page); for a legend beside the chart, top, middle or
+/// bottom.
+/// </summary>
+public enum ChartAlign
+{
+    /// <summary>At the start: the left (in a left-to-right page), or the top beside the chart.</summary>
+    Start,
+
+    /// <summary>Centered.</summary>
+    Center,
+
+    /// <summary>At the end: the right (in a left-to-right page), or the bottom beside the chart.</summary>
+    End,
+}
+
 /// <summary>How a chart offers its values as a table.</summary>
 public enum ChartDataTable
 {

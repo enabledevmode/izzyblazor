@@ -324,6 +324,8 @@ public class ChartLayoutTests
         Assert.Equal((0, 40), (Math.Round(bars[1].Y, 6), Math.Round(bars[1].Height, 6)));
         Assert.Equal((40, 60), (Math.Round(bars[2].Y, 6), Math.Round(bars[2].Height, 6)));
         Assert.Equal((40, 10), (Math.Round(bars[3].Y, 6), Math.Round(bars[3].Height, 6)));
+        // Square ends: each is where one step ends and the next begins.
+        Assert.All(bars, b => Assert.Null(b.End));
         // The start and totals read plain, the changes signed with a minus sign.
         Assert.Equal(["100", "−40", "60", "−10"], model.ValueTexts[0].Select(t => t!));
         // A connector from each bar to the next.
@@ -549,7 +551,7 @@ public class ChartRenderTests : BunitContext
             .Add(c => c.Title, "Revenue")
             .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Format, "$#,##0"))
             .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
-            .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target"))
+            .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target").Add(x => x.LabelAlign, ChartAlign.Start))
             .AddChildContent<ChartAnnotation>(a => a.Add(x => x.Argument, "Feb").Add(x => x.Value, 120).Add(x => x.Text, "Price change")));
 
         var frame = cut.Find("[role=img]");
@@ -557,7 +559,7 @@ public class ChartRenderTests : BunitContext
         Assert.Contains("Target: $150", description.TextContent);
         Assert.Contains("Price change: Feb, $120", description.TextContent);
         Assert.Equal("Target", cut.Find(".ib-chart-over .ib-chart-rule > span").TextContent);
-        Assert.NotNull(cut.Find(".ib-chart-over .ib-chart-rule[data-ib-v='150']"));
+        Assert.NotNull(cut.Find(".ib-chart-over .ib-chart-rule.ib-chart-at-start[data-ib-v='150']"));
     }
 
     [Fact]
@@ -650,18 +652,21 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_legend_at_the_top_or_start_comes_before_the_plot_and_shows_for_one_series()
+    public void A_legend_at_the_top_or_start_comes_before_the_plot_shows_for_one_series_and_aligns()
     {
         var cut = Render<Chart<Month>>(p => p
             .Add(c => c.Items, Data)
             .Add(c => c.Argument, m => m.Name)
             .Add(c => c.Title, "Revenue")
+            .Add(c => c.TitleAlign, ChartAlign.Center)
             .Add(c => c.Legend, ChartLegend.Start)
+            .Add(c => c.LegendAlign, ChartAlign.End)
             .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue)));
 
         var chart = cut.Find("ib-chart");
         Assert.Contains("ib-chart-lg-start", chart.ClassName);
-        Assert.Equal(["ib-chart-legend", "ib-chart-main"], chart.Children.Take(2).Select(e => e.ClassName));
+        Assert.Equal(["ib-chart-legend ib-chart-legend-end", "ib-chart-main"], chart.Children.Take(2).Select(e => e.ClassName));
+        Assert.Contains("ib-chart-label-center", cut.Find("figcaption").ClassName);
     }
 
     [Fact]
