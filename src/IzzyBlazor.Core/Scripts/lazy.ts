@@ -19,7 +19,7 @@
 // code), with the first reconnection state (reconnect.ts); announce (Announcer's messages), by
 // index.ts on the first message.
 const lazyNames =
-  "combobox table grid grid-columns col-picker grid-edit filter-form filter-list filter-builder file-upload color-picker color-panel duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tree treeselect pick-list rich-text splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect announce".split(" ");
+  "combobox table grid grid-columns col-picker grid-edit filter-form chat filter-list filter-builder file-upload color-picker color-panel duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tree treeselect pick-list rich-text splitter carousel chart tooltip dismiss banner site-nav scheme-switch password mask reconnect announce".split(" ");
 
 const loading = new Map<string, Promise<unknown>>();
 const failures = new Map<string, number>();
@@ -59,7 +59,7 @@ export function loadElementsIn(root: Element | Document = document): void {
     const tag = `ib-${name}`;
     if (loading.has(tag)) continue;
     if (root instanceof Element ? root.localName === tag || root.querySelector(tag) : root.querySelector(tag)) {
-      load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works as without script until it loads.`, error));
+      load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works as without script until then.`, error));
     }
   }
 }

@@ -1575,6 +1575,12 @@ public class IzzyText
     /// <summary>A Chat's message box.</summary>
     public virtual string ChatMessage { get; set; } = "Message";
 
+    /// <summary>A Chat's button that scrolls back to the newest entry.</summary>
+    public virtual string ChatJumpToLatest { get; set; } = "Jump to latest";
+
+    /// <summary>A Chat's message box's description, once its keys work.</summary>
+    public virtual string ChatKeys { get; set; } = "Enter sends; Shift+Enter adds a line";
+
     /// <summary>A Chat's send button.</summary>
     public virtual string ChatSend { get; set; } = "Send";
 
