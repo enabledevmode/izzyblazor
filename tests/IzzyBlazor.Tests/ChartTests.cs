@@ -318,7 +318,8 @@ public class ChartLayoutTests
         { Culture = CultureInfo.InvariantCulture, ValueMin = 0, ValueMax = 100 });
 
         var bars = model.Series[0].Bars;
-        Assert.Equal(["up", "down", "total", "down"], bars.Select(b => b.Change));
+        // The start stands on the baseline as a total does.
+        Assert.Equal(["total", "down", "total", "down"], bars.Select(b => b.Change));
         // Costs float from 100 down to 60; the total stands from zero to 60; tax from 60 to 50.
         Assert.Equal((0, 40), (Math.Round(bars[1].Y, 6), Math.Round(bars[1].Height, 6)));
         Assert.Equal((40, 60), (Math.Round(bars[2].Y, 6), Math.Round(bars[2].Height, 6)));
@@ -635,7 +636,7 @@ public class ChartRenderTests : BunitContext
             .AddChildContent<ChartWaterfallSeries<Month>>(s => s.Add(x => x.Value, m => m.Name == "Jan" ? m.Revenue : -m.Costs)));
 
         // Jan's 100 starts the run; Feb's 70.5 comes off it.
-        Assert.Equal(["Increase", "Decrease"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
+        Assert.Equal(["Decrease", "Total"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
         Assert.Empty(cut.FindAll(".ib-chart-toggle"));
         Assert.Null(cut.Find("ib-chart").GetAttribute("data-ib-draw"));
         Assert.Single(cut.FindAll(".ib-chart-bars rect.ib-chart-down"));

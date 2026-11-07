@@ -60,17 +60,19 @@
   .ib-chart-s8 { --ib-chart-c: var(--ib-chart-color, var(--ib-chart-8)); }
   /* A pie's ninth slice and on. */
   .ib-chart-s9 { --ib-chart-c: var(--ib-color-neutral); }
-  /* A waterfall's rises and falls; its totals keep the series color. */
-  .ib-chart-up { --ib-chart-c: var(--ib-chart-increase, var(--ib-chart-2)); }
+  /* A waterfall's rises, falls and totals: blue and red, which stay apart for red-green color
+     blindness, and gray (or the series' Color) for totals. */
+  .ib-chart-up { --ib-chart-c: var(--ib-chart-increase, var(--ib-chart-1)); }
   .ib-chart-down { --ib-chart-c: var(--ib-chart-decrease, var(--ib-chart-8)); }
-  .ib-chart-bars > :is(.ib-chart-up, .ib-chart-down) { fill: var(--ib-chart-fill); }
+  .ib-chart-total { --ib-chart-c: var(--ib-chart-color, var(--ib-color-neutral)); }
+  .ib-chart-bars > :is(.ib-chart-up, .ib-chart-down, .ib-chart-total) { fill: var(--ib-chart-fill); }
 
   /* Fills (bars, slices, keys) are a little lighter than the series color: mixed with the
      surface, 0.85 of the color in light mode and 0.9 in dark. --ib-chart-fill-opacity (a bar
      series' Opacity) sets one strength for both. Opaque, so a bar's rounded end and square base can
      overlap without a darker band. A scatter's points (--ib-chart-see) are see-through instead,
      so where they crowd shows darker. */
-  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9, .ib-chart-up, .ib-chart-down) {
+  :is(.ib-chart-s1, .ib-chart-s2, .ib-chart-s3, .ib-chart-s4, .ib-chart-s5, .ib-chart-s6, .ib-chart-s7, .ib-chart-s8, .ib-chart-s9, .ib-chart-up, .ib-chart-down, .ib-chart-total) {
     --ib-chart-fill: light-dark(
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.85) * 100%), var(--ib-color-surface)),
       color-mix(in oklab, var(--ib-chart-c) calc(var(--ib-chart-fill-opacity, 0.9) * 100%), var(--ib-color-surface)));

@@ -373,8 +373,10 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 /// <summary>
 /// A waterfall: each item's <c>Value</c> is a change, drawn as a bar from where the last one
 /// ended, so the bars walk from a starting amount to a result, such as revenue less costs to
-/// profit. An item that's a <see cref="Total"/> is a bar from zero to everything so far. Rises,
-/// falls and totals each take a color, and the values read signed ("+12,000", "−4,500").
+/// profit. The first bar, the starting amount, and each item that's a <see cref="Total"/> stand
+/// on the baseline, a total showing everything so far. Rises, falls and totals each take a color,
+/// and the changes read signed ("+12,000", "−4,500"). Line items such as a profit and loss read
+/// best as bars across (the chart's <c>Orientation.Horizontal</c>); changes over time, as columns.
 /// A waterfall is its chart's only series, and the chart's legend keys its three colors.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
@@ -397,7 +399,8 @@ public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
 
     /// <summary>
     /// The CSS color of bars that add, such as <c>var(--ib-color-success)</c>. Defaults to the
-    /// palette's green (<c>--ib-chart-increase</c>, or <c>--ib-chart-2</c>). <c>Color</c> is the totals'.
+    /// palette's blue (<c>--ib-chart-increase</c>, or <c>--ib-chart-1</c>), which stays apart from
+    /// the red of falls for red-green color blindness. <c>Color</c> is the totals' (gray by default).
     /// </summary>
     [Parameter] public string? IncreaseColor { get; set; }
 
