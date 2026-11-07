@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The CommonMark and GitHub-flavored Markdown spec examples (CC-BY-SA 4.0), for RichTextMarkdownTests. -->
+    <None Update="Markdown\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
   </ItemGroup>
 

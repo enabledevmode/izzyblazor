@@ -30,7 +30,8 @@ namespace IzzyBlazor;
 /// Attributes: <c>href</c> (http, https, mailto, tel or relative) and <c>target="_blank"</c> on
 /// links, which then get <c>rel="noopener noreferrer"</c>; <c>src</c> (http, https or relative),
 /// <c>alt</c>, <c>width</c> and <c>height</c> on images; <c>start</c> on numbered lists;
-/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells. A task is a list item whose
+/// <c>colspan</c>, <c>rowspan</c> and <c>scope</c> on table cells, whose <c>align</c> of center or
+/// right becomes the alignment class. A task is a list item whose
 /// first child is <c>&lt;input type="checkbox"&gt;</c>, as GitHub-flavored Markdown renders it: the
 /// box is kept there only (or first in the item's first paragraph), with <c>checked</c>, and is
 /// always written <c>disabled</c>; any other <c>input</c> is dropped. Classes only from the editor's
@@ -498,9 +499,16 @@ public static class RichTextSanitizer
         private void AddAttributes(Node node, List<(string Name, string Value)> attributes)
         {
             var seen = new HashSet<string>(StringComparer.Ordinal);
+            string? align = null;
             foreach (var (name, value) in attributes)
             {
                 if (!seen.Add(name)) continue; // A browser keeps the first of a repeated attribute.
+                if (name == "align" && node.Name is "td" or "th")
+                {
+                    align = value.Trim().ToLowerInvariant();
+                    continue;
+                }
+
                 var kept = (node.Name, name) switch
                 {
                     ("a", "href") => CleanUrl(value, image: false),
@@ -519,6 +527,12 @@ public static class RichTextSanitizer
                     _ => null,
                 };
                 if (kept is not null) node.Attributes.Add((name, kept));
+            }
+
+            // A cell's align (Markdown's tables, GitHub's HTML) as the editor's alignment class.
+            if (align is "center" or "right" && !node.Attributes.Exists(a => a.Name == "class"))
+            {
+                node.Attributes.Add(("class", align == "center" ? "ib-align-center" : "ib-align-end"));
             }
 
             if (node.Name == "a" && node.Attributes.Exists(a => a.Name == "target"))

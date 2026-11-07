@@ -306,10 +306,11 @@
       ]
     },
     {
-      "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Shows saved rich text, sanitized and styled as Prose.",
-      "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
+      "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Shows saved rich text or Markdown, sanitized and styled as Prose.",
+      "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms", "markdown", "commonmark", "gfm"],
       "examples": [
         { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML. Under the page's own title, set `TopHeading` to 2, as on the editor that wrote it." },
+        { "id": "rich-text-markdown", "title": "Markdown", "lead": "Set `Markdown` instead of `Html` to show Markdown: CommonMark, with GitHub's tables, task lists, strikethrough and links from bare addresses. It becomes HTML on the server and is sanitized the same way, so HTML written in the Markdown can't run script either. A code block's language is highlighted as in an editor's value. To turn Markdown into safe HTML yourself, call `RichTextMarkdown.ToHtml`." },
         { "id": "rich-text-sanitized", "title": "What it removes", "lead": "RichText sanitizes the HTML every time it renders: scripts, event handlers, styles and `javascript:` links go, and other markup becomes the elements a rich text editor makes. HTML saved before you sanitized it can't run script on the page. To clean HTML yourself, call `RichTextSanitizer.Sanitize`." }
       ]
     },

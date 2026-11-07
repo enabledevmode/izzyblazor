@@ -213,3 +213,11 @@ subject to the following conditions:
   out of or in connection with the Software or the use or other dealings in the
   Software.
 ```
+
+## Test data (not shipped)
+
+The repository's Markdown tests (`tests/IzzyBlazor.Tests/Markdown`) use the examples from the
+CommonMark Spec 0.31.2 (https://spec.commonmark.org/0.31.2/, by John MacFarlane) and the GitHub
+Flavored Markdown Spec 0.29 (https://github.github.com/gfm/), both licensed under
+CC-BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). They are not part of the
+IzzyBlazor package.

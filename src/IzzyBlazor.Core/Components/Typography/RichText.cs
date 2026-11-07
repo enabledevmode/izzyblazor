@@ -8,12 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace IzzyBlazor;
 
 /// <summary>
-/// Shows saved rich text, such as a rich text editor's value or HTML from a CMS: sanitized, then
-/// styled as <see cref="Prose"/>.
+/// Shows saved rich text, such as a rich text editor's value, HTML from a CMS or Markdown:
+/// sanitized, then styled as <see cref="Prose"/>.
 /// </summary>
 /// <example>
 /// <code>
 /// &lt;RichText Html="@post.Body" /&gt;
+/// &lt;RichText Markdown="@readme" /&gt;
 /// </code>
 /// </example>
 /// <remarks>
@@ -21,8 +22,10 @@ namespace IzzyBlazor;
 /// saved before you sanitized it, or written by another system, can't run script on the page.
 /// What's kept is listed on <see cref="RichTextSanitizer"/>. A code block with a language
 /// (<c>&lt;code class="language-csharp"&gt;</c>, as the editor writes it) is highlighted on the
-/// server, as <see cref="Code"/> is, by the same highlighter; the saved HTML keeps only the class. For HTML you wrote yourself and
-/// trust, such as rendered Markdown with its own styling, use <see cref="Prose"/>.
+/// server, as <see cref="Code"/> is, by the same highlighter; the saved HTML keeps only the class.
+/// <see cref="Markdown"/> is turned into HTML by <see cref="RichTextMarkdown"/> (CommonMark, with
+/// GitHub's tables, task lists and strikethrough), then sanitized the same way. For HTML you
+/// wrote yourself and trust, use <see cref="Prose"/>.
 /// </remarks>
 /// <accessibility>
 /// <list type="bullet">
@@ -43,6 +46,9 @@ public partial class RichText : Prose
     /// <summary>The HTML to show. It's sanitized first.</summary>
     [Parameter] public string? Html { get; set; }
 
+    /// <summary>Markdown to show instead of <see cref="Html"/>: turned into HTML, then sanitized.</summary>
+    [Parameter] public string? Markdown { get; set; }
+
     /// <summary>The highest heading level shown, 1 to 6: higher headings move down to it. Defaults to 1; set the editor's <c>TopHeading</c> to match.</summary>
     [Parameter] public int TopHeading { get; set; } = 1;
 
@@ -61,7 +67,13 @@ public partial class RichText : Prose
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var html = Highlight(RichTextSanitizer.Sanitize(Html, labelTasks: true, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
+        if (Html is not null && Markdown is not null)
+        {
+            throw new InvalidOperationException("RichText shows Html or Markdown, not both.");
+        }
+
+        var source = Markdown is null ? Html : RichTextMarkdown.Render(Markdown);
+        var html = Highlight(RichTextSanitizer.Sanitize(source, labelTasks: true, TopHeading, Fonts, FontSizes, AllowDataImages, CustomColors));
         // The editor's content classes (alignment, color, size) and task lists have a sheet of their own.
         if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal) || html.Contains("<input", StringComparison.Ordinal))
         {
