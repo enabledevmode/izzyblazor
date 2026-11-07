@@ -752,7 +752,7 @@
         }
         else
         {
-            <ul class="@LegendListClass">
+            <ul class="@(model.SizeKey is null ? LegendListClass : LegendListClass + " ib-chart-legend-sized")">
                 @foreach (var s in toggles ? model.Series : [])
                 {
                     <li class="@SeriesClass(s, null)" style="@ColorStyle(s)">

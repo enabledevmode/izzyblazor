@@ -49,6 +49,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     /// <summary>A .NET format for a bubble series' sizes, in the tooltip, data table and size key.</summary>
     public string? SizeFormat { get; init; }
 
+    /// <summary>Leaves the size key out (a bubble series' HideSizeKey).</summary>
+    public bool HideSizeKey { get; init; }
+
     /// <summary>A waterfall's totals by item (null for other series); a total's value is everything before it.</summary>
     public bool[]? Totals { get; init; }
 
@@ -328,6 +331,13 @@ internal static class ChartLayout
 
         if (!double.IsFinite(min)) { (min, max) = log ? (1, 10) : (0, 1); }
 
+        // Bubbles keep inside the plot: the scale reaches past the values by the largest radius.
+        var bubbleR = input.Series.Any(s => s.Type == ChartType.Bubble && !s.Hidden) ? BubbleRadius(input.HeightPx) : 0;
+        if (bubbleR > 0)
+        {
+            (min, max) = PadEnds(min, max, log, bubbleR, Math.Max(80, input.HeightPx));
+        }
+
         // A set end the values cross moves the other end past it, so the range never runs backward.
         if (input.ValueMin is { } vmin) { min = vmin; max = Math.Max(max, vmin); }
         if (input.ValueMax is { } vmax) { max = vmax; min = Math.Min(min, vmax); }
@@ -431,6 +441,13 @@ internal static class ChartLayout
             if (amin == amax) { amin -= kind == ArgumentKind.Time ? TimeSpan.TicksPerDay : 1; amax += kind == ArgumentKind.Time ? TimeSpan.TicksPerDay : 1; }
             var count = Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 90);
 
+            // Bubbles keep inside the plot, at a middling width (560px) at least.
+            if (kind == ArgumentKind.Number && bubbleR > 0 && finite.Length > 0)
+            {
+                (amin, amax) = PadEnds(amin, amax, input.ArgumentLog, bubbleR, PlotWidth(4, argumentRoomPx));
+                finite = [.. finite, amin, amax];
+            }
+
             // Points have round ends to the scale, so none sits on the plot's edge; lines run edge to edge.
             if (kind == ArgumentKind.Number && input.Series.Any(s => s.IsPoint))
             {
@@ -443,8 +460,10 @@ internal static class ChartLayout
             {
                 // The powers of ten around the arguments; ticks at each, with 2s and 5s when few,
                 // as many as fit each width.
-                var lo = finite.Length > 0 ? Power(1, (int)Math.Floor(Math.Log10(finite.Min()) + 1e-9)) : 1;
-                var hi = finite.Length > 0 ? Power(1, (int)Math.Ceiling(Math.Log10(finite.Max()) - 1e-9)) : 10;
+                // Bubbles' ends are already moved out for their radius: snapped to a power of ten,
+                // they could take in a whole empty one.
+                var lo = finite.Length == 0 ? 1 : bubbleR > 0 ? finite.Min() : Power(1, (int)Math.Floor(Math.Log10(finite.Min()) + 1e-9));
+                var hi = finite.Length == 0 ? 10 : bubbleR > 0 ? finite.Max() : Power(1, (int)Math.Ceiling(Math.Log10(finite.Max()) - 1e-9));
                 if (!(hi > lo)) hi = lo * 10;
                 (argMin, argMax) = (lo, hi);
                 var (g0, g1) = (Math.Log10(lo), Math.Log10(hi));
@@ -513,8 +532,8 @@ internal static class ChartLayout
         // of the plot's height across, between 12 and 40 pixels in radius.
         var maxSize = input.Series.Where(s => s.Type == ChartType.Bubble && s.Sizes is not null)
             .SelectMany(s => s.Sizes!).Where(v => v is > 0 && double.IsFinite(v.Value)).Select(v => v!.Value).DefaultIfEmpty(1).Max();
-        var maxRadius = Math.Clamp(plotHeight / 8, 12, 40);
-        if (input.Series.FirstOrDefault(s => s.Type == ChartType.Bubble && s.Sizes is not null && s.Sizes.Any(v => v is > 0)) is { } bubbles)
+        var maxRadius = BubbleRadius(plotHeight);
+        if (input.Series.FirstOrDefault(s => s.Type == ChartType.Bubble && s.Sizes is not null && s.Sizes.Any(v => v is > 0)) is { HideSizeKey: false } bubbles)
         {
             // Round values a reader can take in: near the largest size, and a quarter of it (half the radius).
             var circles = new[] { RoundDown(maxSize), RoundDown(maxSize / 4) }.Where(v => v > 0).Distinct()
@@ -891,6 +910,24 @@ internal static class ChartLayout
         if (i >= 0) labels[i] = labels[i] with { Text = shape.Prefix + "0" };
     }
 
+    /// <summary>The largest bubble's radius: an eighth of the plot's height, 12 to 40 pixels.</summary>
+    private static double BubbleRadius(double plotHeightPx) => Math.Clamp(Math.Max(80, plotHeightPx) / 8, 12, 40);
+
+    /// <summary>
+    /// A scale's ends moved out so a circle of <paramref name="radiusPx"/> at either end stays on a
+    /// plot <paramref name="lengthPx"/> long; on a log scale, by powers of ten.
+    /// </summary>
+    private static (double Min, double Max) PadEnds(double min, double max, bool log, double radiusPx, double lengthPx)
+    {
+        if (log && !(min > 0)) return (min, max);
+        var (a, b) = log ? (Math.Log10(min), Math.Log10(max)) : (min, max);
+        var span = b - a;
+        if (!(span > 0)) span = log ? 1 : Math.Max(Math.Abs(b), 1);
+        var pad = span * radiusPx / Math.Max(1, lengthPx - 2 * radiusPx);
+        (a, b) = (a - pad, b + pad);
+        return log ? (Math.Pow(10, a), Math.Pow(10, b)) : (a, b);
+    }
+
     /// <summary><paramref name="x"/> rounded down to one significant digit: 46 million is 40 million.</summary>
     private static double RoundDown(double x)
     {
@@ -1140,7 +1177,8 @@ internal static class ChartLayout
     {
         var lo = (int)Math.Floor(Math.Log10(min) + 1e-9);
         var hi = (int)Math.Ceiling(Math.Log10(max) - 1e-9);
-        int[] multiples = (hi - lo) * 3 <= count + 1 ? [1, 2, 5] : [1];
+        // 2s and 5s too when the range spans few powers of ten (measured, not counted whole).
+        int[] multiples = (Math.Log10(max) - Math.Log10(min)) * 3 <= count + 1 ? [1, 2, 5] : [1];
         var ticks = new List<(double, int)>();
         for (var e = lo; e <= hi; e++)
         {

@@ -126,7 +126,7 @@ const power = (m: number, e: number) => Number(`${m}e${e}`);
 
 function logTicks(min: number, max: number, count: number): [number, number][] {
   const lo = Math.floor(Math.log10(min) + 1e-9), hi = Math.ceil(Math.log10(max) - 1e-9);
-  const multiples = (hi - lo) * 3 <= count + 1 ? [1, 2, 5] : [1];
+  const multiples = (Math.log10(max) - Math.log10(min)) * 3 <= count + 1 ? [1, 2, 5] : [1];
   const ticks: [number, number][] = [];
   for (let e = lo; e <= hi; e++) {
     for (const m of multiples) {
