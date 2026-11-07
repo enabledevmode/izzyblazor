@@ -1,0 +1,17 @@
+@* Average temperature by month in two cities: a measure that changes continuously between readings, drawn as smooth lines. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Average high temperature by month (°C)">
+    <ChartValueAxis Format="0'°'" />
+    <ChartLineSeries Value="m => m.Chicago" Name="Chicago" Curve="ChartCurve.Smooth" EndLabel />
+    <ChartLineSeries Value="m => m.Sydney" Name="Sydney" Curve="ChartCurve.Smooth" EndLabel />
+</Chart>
+
+@code {
+    private record MonthTemperature(string Month, double Chicago, double Sydney);
+
+    private readonly MonthTemperature[] _months =
+    [
+        new("Jan", 0, 26), new("Feb", 2, 26), new("Mar", 9, 25), new("Apr", 15, 23),
+        new("May", 21, 20), new("Jun", 27, 18), new("Jul", 29, 17), new("Aug", 28, 18),
+        new("Sep", 24, 20), new("Oct", 17, 22), new("Nov", 9, 24), new("Dec", 3, 25),
+    ];
+}

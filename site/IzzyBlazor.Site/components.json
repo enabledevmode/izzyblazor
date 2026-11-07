@@ -2186,7 +2186,9 @@
       ],
       "examples": [
         { "id": "chart-line-usage", "title": "A few lines over time", "lead": "`ChartLineSeries` in a `Chart` draws each item's `Value` as a point on a line. With dates as the `Argument`, the points sit on a date scale, with a tick per month or year as the width allows. Keep to a few lines: each takes the next color and a dash pattern and marker of its own, so they differ by more than color. `EndLabel` writes each line's name where it ends, so the reader doesn't look across to a legend; with every line named, the chart leaves the legend out. Chart's features (axes, value labels, reference lines, trends, colors, tooltips and the legend) work with every type." },
-        { "id": "chart-lines", "title": "Daily values and a moving average", "lead": "Daily numbers swing with the day of the week, which hides where they're heading. `Trend=\"ChartTrend.MovingAverage\"` with a `TrendPeriod` of 7 draws the average of each week beside the daily line, so the direction reads at a glance and the days stay in view. With this many points, the line has no markers." }
+        { "id": "chart-lines", "title": "Daily values and a moving average", "lead": "Daily numbers swing with the day of the week, which hides where they're heading. `Trend=\"ChartTrend.MovingAverage\"` with a `TrendPeriod` of 7 draws the average of each week beside the daily line, so the direction reads at a glance and the days stay in view. With this many points, the line has no markers." },
+        { "id": "chart-line-smooth", "title": "Smooth lines", "lead": "`Curve=\"ChartCurve.Smooth\"` draws a curve through the values, which suits a measure that changes continuously between readings, such as temperature. The curve never overshoots a value, so it doesn't invent peaks the data doesn't have. Keep straight lines for counts and totals, where a curve suggests values between the points that were never measured." },
+        { "id": "chart-line-step", "title": "Step lines", "lead": "`Curve=\"ChartCurve.Step\"` holds each value flat until the next one's date, then steps: for values that stay put until they change, such as a price, a rate or a plan's tier. Add a last item at today's date so the current value runs to the present." }
       ]
     },
     {
@@ -2214,7 +2216,7 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `ChartTooltip` names the page." }
+        { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. Name both measures with each axis's `Title`, since nothing else says which is which. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape, and `Trend=\"ChartTrend.Linear\"` draws each one's straight line of best fit, so the relationship reads without tracing the cloud. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `ChartTooltip` names the page." }
       ]
     },
     {
