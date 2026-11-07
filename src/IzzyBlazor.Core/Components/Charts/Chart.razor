@@ -7,7 +7,7 @@
 @using System.Linq.Expressions
 
 @*
-    Bars, lines and areas over a list of items, drawn on the server: the chart is in the page's
+    Bars, lines, areas, scatter and bubbles over a list of items, drawn on the server: the chart is in the page's
     HTML, so it shows with no script and no circuit, prints, and fills its container's width.
 
     <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026">
@@ -284,10 +284,17 @@
 
     private ChartSeriesData OnAxis(ChartSeriesData data) => data with { Secondary = IsSecond(data.ValueAxis, $"The series \"{data.Name}\"") };
 
-    private ChartMarkInput OnAxis(ChartMarkInput mark) =>
-        mark.Axis == MarkAxis.Value && mark.Kind != ChartMarkKind.Note && IsSecond(mark.ValueAxis, "A reference mark")
-            ? mark with { Axis = MarkAxis.Secondary }
-            : mark;
+    private ChartMarkInput OnAxis(ChartMarkInput mark)
+    {
+        if (mark.Axis != MarkAxis.Value)
+        {
+            return mark;
+        }
+
+        // A statistic is read on its series' axis unless it says otherwise.
+        var name = mark.ValueAxis ?? (mark.Series is { } series ? _context.Series.FirstOrDefault(s => s.DisplayName == series)?.ValueAxis : null);
+        return IsSecond(name, "A reference mark") ? mark with { Axis = MarkAxis.Secondary } : mark;
+    }
 
     private static double HeightInPixels(Length? height)
     {
@@ -887,6 +894,7 @@
                 if (d.ColorFrom is not null && d.TrendColor is null) w.WriteBoolean("tr", true);
                 if (d.Secondary) w.WriteBoolean("ax", true);
                 if (d.Color is { } c) w.WriteString("col", StyleValues.Raw(c, "color"));
+                if (d.Opacity is { } op) w.WriteNumber("op", op);
                 // Labels: the mode, and each item's text, which the script can't format itself.
                 if (model.LabelTexts[s.Index] is { } texts)
                 {

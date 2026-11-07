@@ -10,7 +10,7 @@ namespace IzzyBlazor;
 /// links). The chart's <c>Tooltip</c> turns tooltips on or off.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-public sealed class ChartTooltip<TItem> : ComponentBase
+public sealed class ChartTooltip<TItem> : ComponentBase, IDisposable
 {
     [CascadingParameter] private ChartContext<TItem>? Context { get; set; }
 
@@ -35,6 +35,17 @@ public sealed class ChartTooltip<TItem> : ComponentBase
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        // Taken out of the chart: its tooltips go back to the default rows.
+        if (Context is not null && ReferenceEquals(Context.TooltipTemplate, ChildContent))
+        {
+            Context.TooltipTemplate = null;
+            Context.Plot?.Refresh();
+        }
     }
 }
 

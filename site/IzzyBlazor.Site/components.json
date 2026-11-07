@@ -2090,10 +2090,10 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines and areas on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart"],
+      "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines, areas, scatter and bubbles on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart", "scatter plot", "bubble chart"],
       "parts": ["ChartBarSeries", "ChartLineSeries", "ChartAreaSeries", "ChartScatterSeries", "ChartBubbleSeries", "ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
-        { "feature": "Bars, lines and areas, grouped or stacked, upright or across" },
+        { "feature": "Bars, lines and areas, grouped or stacked, upright or across; scatter and bubbles" },
         { "feature": "Fills its container's width, with labels that thin out as it narrows" },
         { "feature": "Axis titles, set steps, log scales and grid lines" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
@@ -2101,7 +2101,7 @@
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`, shown above the chart and read as its name by screen readers. Each series draws one `Value` per item: `ChartBarSeries` as bars, `ChartLineSeries` as a line, here the plan each month's revenue is measured against, and `ChartAreaSeries`, `ChartScatterSeries` and `ChartBubbleSeries` as their names say. `Color` sets a series' color in place of the palette's next, here the theme's primary color for the revenue and its text color for the plan, and `LineStyle` dashes the plan's line. A `ChartValueAxis` with a `Format` formats the values on the axis and in the table; leave the axes out and they take their defaults. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." },
+        { "id": "chart-usage", "title": "Bars and a line", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`, shown above the chart and read as its name by screen readers. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against. `Color` sets a series' color in place of the palette's next, here the theme's primary color for the revenue and its text color for the plan, and `LineStyle` dashes the plan's line. A `ChartValueAxis` with a `Format` formats the values on the axis and in the table; leave the axes out and they take their defaults. The chart is drawn on the server, so it's in the page with no script, and \"Show data\" opens a table of every value." },
         { "id": "chart-in-card", "title": "In a card", "lead": "When a heading on the page already says what the chart shows, such as a card's title, set `TitledBy` to the heading's id instead of giving the chart a `Title`: screen readers name the chart, and its Show data, from the heading, and the title isn't written twice. A `Card` gives its heading an id with `TitleId`. `HideTitle` keeps a `Title` for screen readers only, for a chart with no heading near it." }
       ],
       "topics": [
@@ -2119,7 +2119,7 @@
           ]
         },
         {
-          "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartBarSeries.Labels", "ChartBarSeries.LabelFormat", "ChartBarSeries.LabelOverlap"],
+          "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, on any series, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartBarSeries.Labels", "ChartBarSeries.LabelFormat", "ChartBarSeries.LabelOverlap"],
           "examples": [
             { "id": "chart-labels", "title": "Labels on bars", "lead": "To write each value beside its bar, set `Labels` on the series to `Auto`: past the end of the bar, or inside it when there's no room above. `LabelFormat` formats the labels apart from the axis. A label that would overlap another is left out at the widths where it would; narrow the window to see them go. To show every label, overlapping or not, set `LabelOverlap` to `Show`. Screen readers skip the labels, since Show data has every value. With every series labeled, the chart has no tooltips, which would repeat the labels; set `Tooltip` to true to keep them." },
             { "id": "chart-labels-stacked", "title": "Labels in a stack", "lead": "In a stack, `Auto` puts each label in the middle of its segment, and leaves it out when the segment is too small to hold it. `Inside` puts labels inside the bar at its end, and `Outside` past it." }
@@ -2128,12 +2128,12 @@
         {
           "id": "reference", "title": "Reference lines and notes", "summary": "Lines at a target or an average, shaded ranges such as a season, and notes at a point, each labeled in text and said in the chart's description.", "members": ["ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
           "examples": [
-            { "id": "chart-reference", "title": "A target, an average and a season", "lead": "Put marks in the chart with its series. `ChartReferenceLine` draws a dashed line at a `Value`, labeled with its `Label`; the value axis always reaches it, so a target above every value still shows. With `Statistic` and a series' name as `Series`, the line is that series' `Average` or `Median`, worked out for you. `ChartReferenceBand` shades a range from `From` to `To`, here on the argument axis, covering both months. Screen readers hear each mark in the chart's description, such as \"Target $150K: $150,000\"." },
+            { "id": "chart-reference", "title": "A target, an average and a season", "lead": "Put marks in the chart with its series. `ChartReferenceLine` draws a dashed line at a `Value`, labeled with its `Label`; the value axis always reaches it, so a target above every value still shows. With `Statistic` and a series' name as `Series`, the line is that series' `Average` or `Median`, worked out for you. `ChartReferenceBand` shades a range from `From` to `To`, on the value axis by default; here `Axis` is `ChartAxis.Argument`, so it covers both months. Screen readers hear each mark in the chart's description, such as \"Target $150K: $150,000\"." },
             { "id": "chart-annotations", "title": "Notes on a line", "lead": "`ChartAnnotation` puts a short `Text` at an `Argument` and `Value`, with a line down to the point. A `ChartReferenceLine` with an `Argument` in place of a `Value` draws a line at an argument, here the day of a launch. Hiding a series from the legend rescales the chart, and the marks move with it." }
           ]
         },
         {
-          "id": "trends", "title": "Trends", "summary": "A dashed line through a series' values: the straight line or curve that fits them best, or a moving average that smooths out the ups and downs.", "members": ["ChartBarSeries.Trend", "ChartBarSeries.TrendOrder", "ChartBarSeries.TrendPeriod", "ChartBarSeries.TrendColor"],
+          "id": "trends", "title": "Trends", "summary": "A dashed line through any series' values: the straight line or curve that fits them best, or a moving average that smooths out the ups and downs.", "members": ["ChartBarSeries.Trend", "ChartBarSeries.TrendOrder", "ChartBarSeries.TrendPeriod", "ChartBarSeries.TrendColor"],
           "examples": [
             { "id": "chart-trend", "title": "A linear trend", "lead": "Set `Trend` on a series to draw its trend as a dashed line in the series' color: `Linear`, the straight line that fits best, or `Polynomial`, a curve of `TrendOrder` (2, a parabola, by default). The trend is named after the series, here \"Revenue trend\", in the legend, the tooltip and Show data, and the legend hides it like any series. It's drawn in the series' color mixed toward the text color, so it reads over the series' own bars; `TrendColor` sets a color of your own." },
             { "id": "chart-moving-average", "title": "A moving average", "lead": "`MovingAverage` makes each point the average of the last `TrendPeriod` values, here 7 days, which smooths out the weekend dips. It starts once the first window is full." }
@@ -2142,7 +2142,7 @@
         {
           "id": "second-axis", "title": "A second axis", "summary": "A second value axis at the end side, for a measure in other units read against the same arguments, with ticks on the first axis's grid lines.", "members": ["ChartValueAxis.Name", "ChartLineSeries.ValueAxis"],
           "examples": [
-            { "id": "chart-second-axis", "title": "Revenue and margin", "lead": "Two charts side by side usually read better than one with two axes: readers compare the lines' heights, which mean nothing across scales. When one chart is the better fit, such as a margin read against the revenue it comes from, add a second `ChartValueAxis` with a `Name`, here `margin`, and give the series in the other units that name as its `ValueAxis`. The second axis takes its own `Format`, `Min`, `Max` and `Title`; its ticks fall on the first axis's grid lines, each a round step, and each title has a key in its series' color. A stacked chart's bars and areas stay on one axis, and a second axis needs an upright chart. `ChartReferenceLine` and `ChartReferenceBand` take a `ValueAxis` too." }
+            { "id": "chart-second-axis", "title": "Revenue and margin", "lead": "Two charts side by side usually read better than one with two axes: readers compare the lines' heights, which mean nothing across scales. When one chart is the better fit, such as a margin read against the revenue it comes from, add a second `ChartValueAxis` with a `Name`, here `margin`, and give the series in the other units that name as its `ValueAxis`. The second axis has its own `Format`, `Min`, `Max` and `Title`; its ticks fall on the first axis's grid lines, each a round step, and each title has a key in its series' color. A stacked chart's bars and areas stay on one axis, and a second axis needs an upright chart. Reference lines, bands and notes are read on the second axis with the same `ValueAxis`; a statistic line follows its series." }
           ]
         },
         {

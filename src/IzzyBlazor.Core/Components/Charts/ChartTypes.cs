@@ -54,7 +54,7 @@ public enum ChartCurve
 /// <summary>Where a chart's legend goes.</summary>
 public enum ChartLegend
 {
-    /// <summary>Below the chart, when there are two series or more. A single series is named by the chart's label.</summary>
+    /// <summary>Below the chart, when there are two series or more. A single series is named by the chart's title.</summary>
     Auto,
 
     /// <summary>Below the chart, even for one series.</summary>
