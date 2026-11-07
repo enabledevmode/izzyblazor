@@ -279,9 +279,12 @@ class Chart extends IzzyElement {
     this.setAttribute("data-ib-tooltips", "");
     signal.addEventListener("abort", () => this.removeAttribute("data-ib-tooltips"));
 
+    // Who moved the tooltip last: the keys keep it when the pointer leaves; the pointer doesn't.
+    let byKeys = false;
     plot.addEventListener(
       "pointermove",
       (event) => {
+        byKeys = false;
         const r = plot.getBoundingClientRect();
         if (pointsMode) {
           const px = event.clientX - r.left;
@@ -304,7 +307,7 @@ class Chart extends IzzyElement {
     plot.addEventListener(
       "pointerleave",
       () => {
-        if (document.activeElement !== frame) hide();
+        if (!byKeys) hide();
       },
       { signal }
     );
@@ -324,9 +327,12 @@ class Chart extends IzzyElement {
       const k = order.indexOf(current);
       return order[k < 0 ? (by > 0 ? 0 : order.length - 1) : Math.min(order.length - 1, Math.max(0, k + by))];
     };
+    // Focus from the keys shows the tooltip; a click's focus leaves it with the pointer.
     frame.addEventListener(
       "focus",
       () => {
+        if (!frame.matches(":focus-visible")) return;
+        byKeys = true;
         show(current >= 0 ? current : order[0], null);
         announce();
       },
@@ -336,6 +342,7 @@ class Chart extends IzzyElement {
     frame.addEventListener(
       "keydown",
       (event) => {
+        if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
         let next = current;
         switch (event.key) {
           case "ArrowRight":
@@ -423,6 +430,9 @@ class Chart extends IzzyElement {
       for (const s of slices) s.removeAttribute("data-ib-active");
     };
 
+    // Who moved the tooltip last: the keys keep it when the pointer leaves; the pointer doesn't.
+    let byKeys = false;
+
     plot.addEventListener(
       "pointermove",
       (event) => {
@@ -432,8 +442,9 @@ class Chart extends IzzyElement {
         const dx = x - r.width / 2;
         const dy = y - r.height / 2;
         const d = Math.hypot(dx, dy) / (r.width / 2);
+        byKeys = false;
         if (d > 1 || d < hole) {
-          if (document.activeElement !== frame) hide();
+          hide();
           return;
         }
         const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
@@ -445,7 +456,7 @@ class Chart extends IzzyElement {
     plot.addEventListener(
       "pointerleave",
       () => {
-        if (document.activeElement !== frame) hide();
+        if (!byKeys) hide();
       },
       { signal }
     );
@@ -464,6 +475,8 @@ class Chart extends IzzyElement {
     frame.addEventListener(
       "focus",
       () => {
+        if (!frame.matches(":focus-visible")) return;
+        byKeys = true;
         show(current >= 0 ? current : order[0]);
         announce();
       },
@@ -473,6 +486,7 @@ class Chart extends IzzyElement {
     frame.addEventListener(
       "keydown",
       (event) => {
+        if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
         const k = order.indexOf(current);
         let next: number;
         switch (event.key) {
