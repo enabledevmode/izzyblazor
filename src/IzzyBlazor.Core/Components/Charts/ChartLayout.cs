@@ -40,6 +40,15 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public string? SizeName { get; init; }
 
+    /// <summary>A waterfall's totals by item (null for other series); a total's value is everything before it.</summary>
+    public bool[]? Totals { get; init; }
+
+    public string? IncreaseColor { get; init; }
+
+    public string? DecreaseColor { get; init; }
+
+    public bool IsWaterfall => Totals is not null;
+
     public bool IsPoint => Type is ChartType.Scatter or ChartType.Bubble;
 }
 
@@ -93,6 +102,9 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
     public int Index { get; init; }
 
     public char Dir { get; init; } = 't';
+
+    /// <summary>A waterfall bar's kind: "up", "down" or "total" (null for other bars).</summary>
+    public string? Change { get; init; }
 }
 
 /// <summary>
@@ -102,7 +114,11 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
 /// how far its center keeps from the plot's sides, in pixels: a label above or below a point near
 /// an edge slides in rather than being left out.
 /// </summary>
-internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside, double Justify = 0);
+internal sealed record DataLabel(int Series, string Text, double AX, double DX, double AY, double DY, int From, bool Inside, double Justify = 0)
+{
+    /// <summary>On a waterfall's bar: its kind ("up", "down" or "total"), for the fill its text color is picked against.</summary>
+    public string? Change { get; init; }
+}
 
 /// <summary>A marker at a point, in percent of the plot; a bubble's has its radius in pixels.</summary>
 internal sealed record PointMark(double X, double Y, string Title, int Index, double? R = null);
@@ -128,6 +144,9 @@ internal sealed class SeriesShape
 
     public string? Line { get; set; }
     public string? Area { get; set; }
+
+    /// <summary>A waterfall's thin lines from each bar's end across to the next bar, in the 1000 by 1000 box.</summary>
+    public string? Connectors { get; set; }
     public List<PointMark> Marks { get; } = [];
 }
 
@@ -226,8 +245,9 @@ internal static class ChartLayout
             Kind = kind,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
             SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString("#,##0.##", culture) : null).ToArray()).ToArray(),
-            ValueTexts = input.Series.Select(s => s.Values.Select(v => v is not { } x ? null
+            ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
+                : Change(s, i) ? Signed(x, y => input.ValueFormatter?.Invoke(y) ?? y.ToString(input.ValueFormat ?? "#,##0.##", culture))
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
         };
 
@@ -457,6 +477,7 @@ internal static class ChartLayout
                 var j = bars.IndexOf(data);
                 var slot = stacked ? band * 0.8 : band * 0.8 / bars.Count;
                 var width = slot * 0.9;
+                var steps = new List<(double A0, double A1, double V)>();
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
@@ -480,7 +501,27 @@ internal static class ChartLayout
                         rect = rect with { End = rect.Dir };
                     }
 
+                    if (data.Totals is { } totals)
+                    {
+                        rect = rect with { Change = totals[i] ? "total" : top < (lows[s][i] ?? 0) ? "down" : "up" };
+                        steps.Add((a0, a0 + width, v1));
+                    }
+
                     shape.Bars.Add(rect);
+                }
+
+                // A waterfall's connectors: from each bar's end, at the running total, to the next bar.
+                if (steps.Count > 1)
+                {
+                    var path = new StringBuilder();
+                    for (var k = 1; k < steps.Count; k++)
+                    {
+                        var (x0, y0) = Map(steps[k - 1].A1, steps[k - 1].V, input.Horizontal);
+                        var (x1, y1) = Map(steps[k].A0, steps[k - 1].V, input.Horizontal);
+                        path.Append(CultureInfo.InvariantCulture, $"M{x0 * 1000:0.#},{y0 * 1000:0.#}L{x1 * 1000:0.#},{y1 * 1000:0.#}");
+                    }
+
+                    shape.Connectors = path.ToString();
                 }
 
                 continue;
@@ -774,11 +815,13 @@ internal static class ChartLayout
         {
             var s = input.Series[si];
             if (s.Labels == ChartLabels.None) continue;
-            model.LabelTexts[si] = s.Values.Select((v, i) => v is { } x ? s.LabelFormat is { } f ? x.ToString(f, culture) : model.ValueTexts[si][i] : null).ToArray();
+            model.LabelTexts[si] = s.Values.Select((v, i) => v is not { } x ? null
+                : s.LabelFormat is not { } f ? model.ValueTexts[si][i]
+                : Change(s, i) ? Signed(x, y => y.ToString(f, culture)) : x.ToString(f, culture)).ToArray();
         }
 
         var stacked = input.Stacked != ChartStacking.None;
-        var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots)>();
+        var candidates = new List<(int S, string Text, double W, (double AX, double DX, double AY, double DY, (double X0, double Y0, double X1, double Y1)? Bar)[] Spots, string? Change)>();
         foreach (var shape in model.Series)
         {
             var data = shape.Data;
@@ -811,7 +854,7 @@ internal static class ChartLayout
                     (ChartLabels.Inside, false) => [End()],
                     _ => [Out(), End()],
                 };
-                candidates.Add((shape.Index, text, w, spots));
+                candidates.Add((shape.Index, text, w, spots, bar.Change));
             }
 
             foreach (var mark in shape.Marks)
@@ -821,7 +864,7 @@ internal static class ChartLayout
                 var w = Width(text) * 1.04;
                 var d = (mark.R ?? 6) + MarkGapPx + LineHeightPx / 2;
                 (double, double, double, double, (double, double, double, double)?) above = (px, 0, py, -d, null), below = (px, 0, py, d, null);
-                candidates.Add((shape.Index, text, w, data.Labels == ChartLabels.Inside ? [below, above] : [above, below]));
+                candidates.Add((shape.Index, text, w, data.Labels == ChartLabels.Inside ? [below, above] : [above, below], null));
             }
         }
 
@@ -837,7 +880,7 @@ internal static class ChartLayout
             var keep = new List<int>();
             foreach (var c in shown)
             {
-                var (_, _, w, spots) = candidates[c];
+                var (_, _, w, spots, _) = candidates[c];
                 foreach (var (ax, dx, ay, dy, bar) in spots)
                 {
                     var (cx, cy) = (ax * plotW + dx, ay * plotH + dy);
@@ -866,9 +909,20 @@ internal static class ChartLayout
             var from = Enumerable.Range(0, Widths.Length).FirstOrDefault(k => placed[k, c] is not null, -1);
             if (from < 0 || placed[Widths.Length - 1, c] is null) continue;
             var (ax, dx, ay, dy, inside, justify) = placed[from, c]!.Value;
-            model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside, Math.Ceiling(justify)));
+            model.DataLabels.Add(new DataLabel(candidates[c].S, candidates[c].Text, ax, dx, ay, dy, from, inside, Math.Ceiling(justify)) { Change = candidates[c].Change });
         }
     }
+
+    /// <summary>
+    /// Whether a value is a waterfall's change, which reads signed: not a total, and not the first
+    /// bar, which is the amount the waterfall starts from.
+    /// </summary>
+    private static bool Change(ChartSeriesData s, int i) =>
+        s.Totals is { } totals && !totals[i] && Array.FindIndex(s.Values, v => v is not null) != i;
+
+    /// <summary>A change with its sign, as "+12,000" or "−4,500" (a minus sign, not a hyphen).</summary>
+    private static string Signed(double x, Func<double, string> text) =>
+        x > 0 ? "+" + text(x) : x < 0 ? "−" + text(-x) : text(x);
 
     private static (double, double) Nice(double min, double max, int count, ChartInput input)
     {
@@ -981,6 +1035,19 @@ internal static class ChartLayout
         {
             lows[s] = new double?[n];
             highs[s] = input.Series[s].Values.Select(v => v is { } x && double.IsFinite(x) && (!log || x > 0) ? (double?)x : null).ToArray();
+
+            // A waterfall's change starts where the running total was; a total starts from zero.
+            if (input.Series[s].Totals is { } totals)
+            {
+                var sum = 0.0;
+                for (var i = 0; i < n; i++)
+                {
+                    if (highs[s][i] is not { } v) continue;
+                    lows[s][i] = totals[i] ? 0 : sum;
+                    highs[s][i] = totals[i] ? v : sum + v;
+                    sum = highs[s][i]!.Value;
+                }
+            }
         }
 
         if (!stacked)

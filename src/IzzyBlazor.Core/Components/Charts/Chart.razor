@@ -7,7 +7,7 @@
 @using System.Linq.Expressions
 
 @*
-    Bars, lines, areas, scatter and bubbles over a list of items, drawn on the server: the chart is in the page's
+    Bars, lines, areas, scatter, bubbles and waterfalls over a list of items, drawn on the server: the chart is in the page's
     HTML, so it shows with no script and no circuit, prints, and fills its container's width.
 
     <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026">
@@ -119,7 +119,7 @@
     /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
     /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
-    /// <see cref="ChartBubbleSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
+    /// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
     /// <see cref="ChartArgumentAxis"/>), reference marks and a <see cref="ChartTooltip{TItem}"/>.
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -325,10 +325,30 @@
                 throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacking off.");
             }
         }
-        var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && series.Count > 1);
+        var waterfall = series.FirstOrDefault(s => s.IsWaterfall);
+        if (waterfall is not null)
+        {
+            if (series.Count > 1)
+            {
+                throw new InvalidOperationException("A ChartWaterfallSeries is its chart's only series: draw other measures in a chart of their own.");
+            }
 
-        // Hidden needs a legend to show the series again: with none, it's drawn.
-        if (!legend) series = series.Select(s => s with { Hidden = false }).ToList();
+            if (Stacked != ChartStacking.None)
+            {
+                throw new InvalidOperationException("A waterfall doesn't stack: leave the Chart's Stacking off.");
+            }
+
+            if (ValueLog)
+            {
+                throw new InvalidOperationException("A waterfall reads on a straight scale: its changes add up. Leave the ChartValueAxis's Logarithmic off.");
+            }
+        }
+
+        // A waterfall's legend keys its three colors, by default; its keys don't hide anything.
+        var legend = Legend == ChartLegend.Bottom || (Legend == ChartLegend.Auto && (series.Count > 1 || waterfall is not null));
+
+        // Hidden needs a legend to show the series again: with none (or a waterfall's), it's drawn.
+        if (!legend || waterfall is not null) series = series.Select(s => s with { Hidden = false }).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
@@ -358,7 +378,7 @@
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
         // With a legend, the script draws the chart again without the series it hides.
-        var shape = legend ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
+        var shape = legend && waterfall is null ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
         var room = model.Wrap && !horizontal
             ? $"--ib-chart-n:{model.ArgumentTexts.Length}"
@@ -370,7 +390,7 @@
         var mixed = model.Series.Any(s => s.Bars.Count > 0) && model.Series.Any(s => s.Line is not null || s.Marks.Count > 0);
         var bottomTitle = horizontal ? ValueTitle : ArgumentTitle;
 
-        <ib-chart style="@Palette?.Style(model.Series.Count)"
+        <ib-chart style="@RootStyle(model, waterfall)"
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
@@ -434,13 +454,17 @@
                         {
                             <path class="@SeriesClass(s, "ib-chart-area")" style="@ColorStyle(s)" d="@s.Area" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
+                        @foreach (var s in model.Series.Where(s => s.Connectors is not null))
+                        {
+                            <path class="ib-chart-connect" d="@s.Connectors" />
+                        }
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
                         <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars)
                             {
-                                <rect class="@(bar.End is { } end ? $"ib-chart-end-{end}" : null)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
+                                <rect class="@BarClass(bar)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
                                 {<title>@bar.Title</title>}</rect>
                             }
                         </g>
@@ -538,7 +562,25 @@
             }
         </div>
 
-        @if (legend)
+        @if (legend && waterfall is not null)
+        {
+            @* A waterfall's keys: what each color means. Not toggles: there's one series. *@
+            var owner = model.Series[0];
+            <ul class="ib-chart-legend">
+                @foreach (var (change, name) in WaterfallKeys(owner))
+                {
+                    <li class="@SeriesClass(owner, null)" style="@ColorStyle(owner)">
+                        <span class="ib-chart-entry">
+                            <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
+                                <rect class="@ChangeClass(change)" x="6" y="1" width="12" height="10" />
+                            </svg>
+                            @name
+                        </span>
+                    </li>
+                }
+            </ul>
+        }
+        else if (legend)
         {
             <ul class="ib-chart-legend">
                 @foreach (var s in model.Series)
@@ -668,6 +710,38 @@
         }
     }
 
+    // A bar's rounded end, and a waterfall bar's color by whether it adds, takes away or totals.
+    private static string? BarClass(BarRect bar) =>
+        ((bar.End is { } end ? $"ib-chart-end-{end}" : "") + (ChangeClass(bar.Change) is { } change ? " " + change : "")).Trim() is { Length: > 0 } c ? c : null;
+
+    private static string? ChangeClass(string? change) => change switch
+    {
+        "up" => "ib-chart-up",
+        "down" => "ib-chart-down",
+        _ => null,
+    };
+
+    // The keys a waterfall's bars need: rises, falls and totals, each when it has one.
+    private List<(string Change, string Name)> WaterfallKeys(SeriesShape owner)
+    {
+        var keys = new List<(string, string)>();
+        foreach (var (change, name) in new[] { ("up", TextDefaults.ChartIncrease), ("down", TextDefaults.ChartDecrease), ("total", TextDefaults.ChartTotal) })
+        {
+            if (owner.Bars.Any(b => b.Change == change)) keys.Add((change, name));
+        }
+
+        return keys;
+    }
+
+    // The palette, and a waterfall's colors for rises and falls (on the chart, so the tooltips have them).
+    private string? RootStyle(ChartModel model, ChartSeriesData? waterfall)
+    {
+        var style = (Palette?.Style(model.Series.Count) ?? "")
+            + (waterfall?.IncreaseColor is { } up ? $"--ib-chart-increase:{StyleValues.Raw(up, "color")};" : "")
+            + (waterfall?.DecreaseColor is { } down ? $"--ib-chart-decrease:{StyleValues.Raw(down, "color")};" : "");
+        return style.Length > 0 ? style : null;
+    }
+
     // Argument grid lines stay when the script draws the values again (ib-chart-agrid).
     private static string GridClass(GridLine line) =>
         (line.Zero ? "ib-chart-grid ib-chart-zero" : line.Argument ? "ib-chart-grid ib-chart-agrid" : "ib-chart-grid") + (line.From > 0 ? $" ib-chart-from{line.From}" : "");
@@ -748,7 +822,7 @@
 
     // A label on a bar carries its series' slot, for the fill its text color is picked against.
     private static string? LabelClass(DataLabel label, SeriesShape owner) =>
-        ((label.Inside ? $"ib-chart-dl-in ib-chart-s{owner.Slot}" : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
+        ((label.Inside ? $"ib-chart-dl-in ib-chart-s{owner.Slot}" + (ChangeClass(label.Change) is { } change ? " " + change : "") : "") + (label.From > 0 ? $" ib-chart-from{label.From}" : "")).Trim() is { Length: > 0 } c ? c : null;
 
     private static string SeriesColor(SeriesShape s)
     {
@@ -757,6 +831,14 @@
         // A trend's own shade (chart.css's ib-chart-trend), so its tooltip key matches its line.
         return Trend(s).Length > 0 ? $"color-mix(in oklab, {color} 60%, var(--ib-color-on-surface))" : color;
     }
+
+    // A waterfall's color for one item: a rise's, a fall's, or the series' own for a total.
+    private static string ItemColor(SeriesShape s, int index) =>
+        s.Data.Totals is not { } totals || totals[index] || s.Data.Values[index] is null
+            ? SeriesColor(s)
+            : s.Bars.FirstOrDefault(b => b.Index == index)?.Change == "down"
+            ? "var(--ib-chart-decrease, var(--ib-chart-8))"
+            : "var(--ib-chart-increase, var(--ib-chart-2))";
 
     private static string KeyStyle(ChartTooltipPoint point) => "background:" + point.Color;
 
@@ -768,7 +850,7 @@
         items[index],
         index,
         model.ArgumentTexts[index],
-        model.Series.Select(s => new ChartTooltipPoint(s.Data.Name, s.Data.Values[index], model.ValueTexts[s.Index][index], SeriesColor(s))
+        model.Series.Select(s => new ChartTooltipPoint(s.Data.Name, s.Data.Values[index], model.ValueTexts[s.Index][index], ItemColor(s, index))
         {
             Size = s.Data.Sizes?[index],
             SizeName = s.Data.Sizes is null ? null : s.Data.SizeName ?? "Size",

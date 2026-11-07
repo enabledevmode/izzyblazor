@@ -2090,10 +2090,10 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines, areas, scatter and bubbles on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart", "scatter plot", "bubble chart"],
-      "parts": ["ChartBarSeries", "ChartLineSeries", "ChartAreaSeries", "ChartScatterSeries", "ChartBubbleSeries", "ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
+      "id": "chart", "icon": "ChartColumn", "name": "Chart", "category": "Charts", "summary": "Draws bars, lines, areas, scatter, bubbles and waterfalls on the server, with a table of the values.", "keywords": ["graph", "plot", "bar chart", "line chart", "area chart", "column chart", "scatter plot", "bubble chart", "waterfall chart", "bridge chart"],
+      "parts": ["ChartBarSeries", "ChartLineSeries", "ChartAreaSeries", "ChartScatterSeries", "ChartBubbleSeries", "ChartWaterfallSeries", "ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
-        { "feature": "Bars, lines and areas, grouped or stacked, upright or across; scatter and bubbles" },
+        { "feature": "Bars, lines and areas, grouped or stacked, upright or across; scatter, bubbles and waterfalls" },
         { "feature": "Fills its container's width, with labels that thin out as it narrows" },
         { "feature": "Axis titles, set steps, log scales and grid lines" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
@@ -2159,6 +2159,12 @@
           "examples": [
             { "id": "chart-scatter", "title": "Load time against bounce rate", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Each item is a marker, and the scale on both sides starts where the values do rather than at zero. `SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right; here a `ChartTooltip` names the page." },
             { "id": "chart-bubble", "title": "Bubbles for a third measure", "lead": "A bubble chart is a scatter whose circles are sized by a third measure: use `ChartBubbleSeries` and give it a `Size`, here each region's open pipeline. Circles are sized by area, so a pipeline twice as large is a circle twice the area, on one scale across every series, and the largest is capped to the plot. The tooltip and Show data give the size, named after its property." }
+          ]
+        },
+        {
+          "id": "waterfall", "title": "Waterfall", "summary": "Bars that each start where the last ended, walking from a starting amount through rises and falls to a result, with totals along the way.", "members": ["ChartWaterfallSeries", "ChartWaterfallSeries.Total", "ChartWaterfallSeries.IncreaseColor", "ChartWaterfallSeries.DecreaseColor"],
+          "examples": [
+            { "id": "chart-waterfall", "title": "A profit and loss", "lead": "`ChartWaterfallSeries` draws each item's `Value` as a change from where the last bar ended, so the bars walk from revenue to net profit. Items that `Total` picks stand from zero to everything so far, here gross, operating and net profit; their own `Value` isn't used. Rises are green, falls red and totals the series' color, and the legend says which is which. Labels, tooltips and Show data write each change signed, such as −$498K, so color isn't the only cue. `IncreaseColor` and `DecreaseColor` set the colors. A waterfall is its chart's only series." }
           ]
         },
         {

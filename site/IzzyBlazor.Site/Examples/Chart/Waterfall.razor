@@ -1,0 +1,24 @@
+@* A quarter's profit and loss: from revenue, through costs, to net profit. *@
+<Chart Items="_lines" Argument="l => l.Name" Title="Profit and loss, Q3 2026">
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartArgumentAxis LabelFit="ChartLabelFit.Rotate" />
+    <ChartWaterfallSeries Value="l => l.Amount" Total="l => l.IsTotal" Labels="ChartLabels.Auto" LabelFormat="$#,##0,K" />
+</Chart>
+
+@code {
+    private record PnlLine(string Name, decimal Amount, bool IsTotal = false);
+
+    private readonly PnlLine[] _lines =
+    [
+        new("Revenue", 1_240_000),
+        new("Cost of sales", -498_000),
+        new("Gross profit", 0, IsTotal: true),
+        new("Salaries", -312_000),
+        new("Marketing", -96_000),
+        new("Rent", -48_000),
+        new("Operating profit", 0, IsTotal: true),
+        new("Interest", 12_000),
+        new("Tax", -62_000),
+        new("Net profit", 0, IsTotal: true),
+    ];
+}
