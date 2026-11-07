@@ -51,6 +51,7 @@ internal static class ChartTrends
                 Markers = false,
                 ConnectNulls = true,
                 Hidden = data.Hidden,
+                Secondary = data.Secondary,
             });
         }
 

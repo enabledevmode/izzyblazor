@@ -94,6 +94,13 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
     [Parameter] public int TrendPeriod { get; set; } = 3;
 
     /// <summary>
+    /// Which value axis the series is read off: <see cref="ChartAxis.Value"/>, the default, or
+    /// <see cref="ChartAxis.Secondary"/>, a second axis at the end side with its own scale, for a
+    /// measure in other units. Two charts side by side usually read better than one with two axes.
+    /// </summary>
+    [Parameter] public ChartAxis Axis { get; set; }
+
+    /// <summary>
     /// The trend's CSS color, such as <c>var(--ib-color-danger)</c>, used as given. Defaults to the
     /// series' color mixed toward the text color (darker in light mode, lighter in dark), so it
     /// reads over the series' own bars.
@@ -127,6 +134,11 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
         if (Value is null)
         {
             throw new InvalidOperationException("ChartSeries needs a Value, such as m => m.Revenue.");
+        }
+
+        if (Axis == ChartAxis.Argument)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Axis), Axis, "A ChartSeries is read off a value axis: Value or Secondary.");
         }
 
         if (TrendOrder is < 2 or > 6)
@@ -194,6 +206,7 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
             TrendOrder = TrendOrder,
             TrendPeriod = TrendPeriod,
             TrendColor = TrendColor,
+            Secondary = Axis == ChartAxis.Secondary,
         };
 
     /// <inheritdoc />

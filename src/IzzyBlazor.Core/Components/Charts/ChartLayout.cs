@@ -25,6 +25,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     /// <summary>For a trend: the series it's drawn from, whose color it takes.</summary>
     public int? ColorFrom { get; init; }
+
+    /// <summary>On the second value axis, at the end side.</summary>
+    public bool Secondary { get; init; }
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -47,6 +50,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     public bool HideArgumentAxis { get; init; }
     public IReadOnlyList<ChartMarkInput> Marks { get; init; } = [];
     public IzzyText Text { get; init; } = new();
+    public string? SecondaryFormat { get; init; }
+    public double? SecondaryMin { get; init; }
+    public double? SecondaryMax { get; init; }
     public CultureInfo Culture { get; init; } = CultureInfo.CurrentCulture;
 }
 
@@ -153,6 +159,11 @@ internal sealed class ChartModel
     /// <summary>The value axis's ends, as drawn.</summary>
     public (double Min, double Max) ValueRange { get; set; }
 
+    /// <summary>The second value axis's labels (none without one), and its ends.</summary>
+    public List<AxisLabel> SecondaryLabels { get; } = [];
+
+    public (double Min, double Max) SecondaryRange { get; set; } = (0, 1);
+
     /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartArgumentLabels.All"/>).</summary>
     public bool Wrap { get; set; }
 
@@ -197,7 +208,9 @@ internal static class ChartLayout
             Horizontal = input.Horizontal,
             Kind = kind,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
-            ValueTexts = input.Series.Select(s => s.Values.Select(v => v is { } x ? input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
+            ValueTexts = input.Series.Select(s => s.Values.Select(v => v is not { } x ? null
+                : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
+                : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
         };
 
         // Stacks: bars with bars, areas with areas. Each point's base and top, before scaling.
@@ -215,7 +228,7 @@ internal static class ChartLayout
         var max = double.NegativeInfinity;
         for (var s = 0; s < input.Series.Count; s++)
         {
-            if (input.Series[s].Hidden) continue;
+            if (input.Series[s].Hidden || input.Series[s].Secondary) continue;
             for (var i = 0; i < n; i++)
             {
                 if (highs[s][i] is { } h && (!log || h > 0)) { min = Math.Min(min, h); max = Math.Max(max, h); }
@@ -237,7 +250,7 @@ internal static class ChartLayout
             }
         }
 
-        if (!log && input.Series.Any(s => !s.Hidden && s.Type is ChartType.Bar or ChartType.Area))
+        if (!log && input.Series.Any(s => !s.Hidden && !s.Secondary && s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
@@ -303,6 +316,7 @@ internal static class ChartLayout
         }
 
         model.ValueRange = (dmin, dmax);
+        var scale2 = SecondaryAxis(input, model, marks, highs, lows, plotHeight);
 
         // The argument axis.
         double[] positions;
@@ -389,7 +403,6 @@ internal static class ChartLayout
         double Scale(double v) => log
             ? v > 0 ? Math.Clamp((Math.Log10(v) - lmin) / (lmax - lmin), 0, 1) : 0
             : Math.Clamp((v - dmin) / (dmax - dmin), 0, 1);
-        var zero = Scale(0);
         var bars = input.Series.Where(s => s.Type == ChartType.Bar && !s.Hidden).ToList();
         var band = 1.0 / Math.Max(1, n);
         var lineStyle = 0;
@@ -410,6 +423,10 @@ internal static class ChartLayout
             model.Series.Add(shape);
             if (data.Hidden) continue;
 
+            // The second axis's series take its scale.
+            Func<double, double> sc = data.Secondary ? scale2 : Scale;
+            var zero = sc(0);
+
             if (data.Type == ChartType.Bar)
             {
                 // Chart.js's proportions: the group takes 80% of its band, each bar 90% of its share.
@@ -420,8 +437,8 @@ internal static class ChartLayout
                 {
                     if (highs[s][i] is not { } top) continue;
                     var a0 = i * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
-                    var v0 = Scale(lows[s][i] ?? 0);
-                    var v1 = Scale(top);
+                    var v0 = sc(lows[s][i] ?? 0);
+                    var v1 = sc(top);
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
                     var (lo, hi) = (Math.Min(v0, v1), Math.Max(v0, v1));
                     var rect = input.Horizontal
@@ -451,7 +468,7 @@ internal static class ChartLayout
             {
                 if (highs[s][i] is { } v && !double.IsNaN(positions[i]))
                 {
-                    points.Add((positions[i], Scale(v), i));
+                    points.Add((positions[i], sc(v), i));
                 }
                 else if (!data.ConnectNulls)
                 {
@@ -468,7 +485,7 @@ internal static class ChartLayout
                 AppendPath(line, upper, input.Horizontal, move: true);
                 if (data.Type == ChartType.Area)
                 {
-                    var lower = run.Select(p => (p.A, lows[s][p.I] is { } l ? Scale(l) : zero)).ToList();
+                    var lower = run.Select(p => (p.A, lows[s][p.I] is { } l ? sc(l) : zero)).ToList();
                     AppendPath(area, upper, input.Horizontal, move: true);
                     AppendPath(area, Reverse(Curve(lower, stacked ? data.Curve : ChartCurve.Straight)), input.Horizontal, move: false);
                     area.Append('Z');
@@ -490,7 +507,7 @@ internal static class ChartLayout
             }
         }
 
-        PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale);
+        PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale, scale2);
         PlaceLabels(input, model, argumentRoomPx, plotHeight);
         return model;
     }
@@ -515,11 +532,10 @@ internal static class ChartLayout
     /// band, or a number or date on the scale). A mark at an argument the chart doesn't have is
     /// left out. Each is put in words for the chart's description.
     /// </summary>
-    private static void PlaceMarks(ChartInput input, ChartModel model, List<ChartMarkInput> marks, ArgumentKind kind, double[] positions, double argMin, double argMax, Func<double, double> scale)
+    private static void PlaceMarks(ChartInput input, ChartModel model, List<ChartMarkInput> marks, ArgumentKind kind, double[] positions, double argMin, double argMax, Func<double, double> primary, Func<double, double> secondary)
     {
         var culture = input.Culture;
         var n = input.Arguments.Count;
-        string ValueText(double v) => input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", culture);
         string ArgText(object? a) => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture);
 
         // A name's index, or a number or date's place on the scale.
@@ -537,8 +553,16 @@ internal static class ChartLayout
             ? IndexOf(a) is var i and >= 0 ? positions[i] : null
             : ToDouble(a, kind) is { } x ? Math.Clamp((x - argMin) / (argMax - argMin), 0, 1) : null;
 
-        foreach (var m in marks)
+        foreach (var m0 in marks)
         {
+            // A mark on the second axis is placed and written by it, and drawn as a value-axis mark.
+            var on2 = m0.Axis == ChartAxis.Secondary;
+            var m = on2 ? m0 with { Axis = ChartAxis.Value } : m0;
+            var scale = on2 ? secondary : primary;
+            string ValueText(double v) => on2
+                ? v.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
+                : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", culture);
+            var count = model.Marks.Count;
             var series = m.Statistic is not null ? input.Series.ToList().FindIndex(s => s.Name == m.Series) : -1;
             switch (m.Kind, m.Axis)
             {
@@ -596,7 +620,106 @@ internal static class ChartLayout
                     model.MarkTexts.Add($"{m.Label}: {ArgText(m.At)}, {ValueText(v)}");
                     break;
             }
+
+            // The second axis keeps its scale when the script rescales the first: no values to move by.
+            if (on2 && model.Marks.Count > count) model.Marks[^1] = model.Marks[^1] with { V = null, VTo = null };
         }
+    }
+
+    // ---- The second value axis. ----
+
+    /// <summary>
+    /// The second value axis, for series with <see cref="ChartAxis.Secondary"/>: its range from
+    /// those series (and its marks), and ticks at the first axis's grid lines, each a round step,
+    /// so both read off the same lines. With its own SecondaryMin and SecondaryMax, or a first axis
+    /// whose ticks don't reach both ends, it takes its own round ticks instead. Returns its scale.
+    /// </summary>
+    private static Func<double, double> SecondaryAxis(ChartInput input, ChartModel model, List<ChartMarkInput> marks, double?[][] highs, double?[][] lows, double plotHeight)
+    {
+        var on = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Secondary).ToList();
+        if (on.Count == 0) return v => 0;
+        var culture = input.Culture;
+        var min = double.PositiveInfinity;
+        var max = double.NegativeInfinity;
+        foreach (var s in on.Where(s => !input.Series[s].Hidden))
+        {
+            foreach (var v in highs[s].Concat(lows[s]))
+            {
+                if (v is { } x) { min = Math.Min(min, x); max = Math.Max(max, x); }
+            }
+        }
+
+        foreach (var m in marks.Where(m => m.Axis == ChartAxis.Secondary))
+        {
+            foreach (var v in new[] { m.Value, m.To })
+            {
+                if (v is { } x && double.IsFinite(x)) { min = Math.Min(min, x); max = Math.Max(max, x); }
+            }
+        }
+
+        if (on.Any(s => !input.Series[s].Hidden && input.Series[s].Type is ChartType.Bar or ChartType.Area))
+        {
+            min = Math.Min(min, 0);
+            max = Math.Max(max, 0);
+        }
+
+        if (!double.IsFinite(min)) (min, max) = (0, 1);
+        if (input.SecondaryMin is { } smin) { min = smin; max = Math.Max(max, smin); }
+        if (input.SecondaryMax is { } smax) { max = smax; min = Math.Min(min, smax); }
+
+        // The first axis's ticks, if they run evenly from end to end: the steps to match.
+        var first = model.ValueLabels;
+        var steps = first.Count - 1;
+        var even = steps >= 1 && Math.Abs(first[0].Pos) < 1e-9 && Math.Abs(first[^1].Pos - 1) < 1e-9 && input.SecondaryMin is null && input.SecondaryMax is null;
+        double lo, hi;
+        var ticks = new List<double>();
+        if (even)
+        {
+            // The smallest round step (1, 2 or 5 times a power of ten) whose run of steps covers the range.
+            var step = NiceStep(Math.Max(max - min, 1e-12) / steps);
+            for (var tries = 0; ; tries++)
+            {
+                lo = Math.Floor(min / step + 1e-9) * step;
+                if (lo + steps * step >= max - 1e-9 * Math.Abs(max) || tries > 20) break;
+                step = NiceStep(step * 1.0001, up: true);
+            }
+
+            hi = lo + steps * step;
+            for (var i = 0; i <= steps; i++) ticks.Add((double)((decimal)lo + i * (decimal)step));
+            model.SecondaryRange = (lo, hi);
+            var format = input.SecondaryFormat ?? "N" + ChartScale.Decimals(step);
+            foreach (var v in ticks) model.SecondaryLabels.Add(new AxisLabel((v - lo) / (hi - lo), v.ToString(format, culture)));
+        }
+        else
+        {
+            var count = Math.Max(2, (int)Math.Round(plotHeight / 56));
+            (lo, hi) = input.SecondaryMin is not null && input.SecondaryMax is not null ? (min, max) : ChartScale.Nice(min, max, count);
+            if (input.SecondaryMin is { } a) lo = a;
+            if (input.SecondaryMax is { } b) hi = b;
+            var spec = ChartScale.TickSpec(lo, hi, count);
+            var format = input.SecondaryFormat ?? "N" + ChartScale.Decimals(spec.Step);
+            model.SecondaryRange = (lo, hi);
+            for (var i = spec.I1; i <= spec.I2; i++)
+            {
+                var v = spec.Value(i);
+                model.SecondaryLabels.Add(new AxisLabel((v - lo) / (hi - lo), v.ToString(format, culture)));
+            }
+        }
+
+        var (l2, h2) = model.SecondaryRange;
+        return v => Math.Clamp((v - l2) / (h2 - l2), 0, 1);
+    }
+
+    /// <summary>The round step (1, 2 or 5 times a power of ten) at or above <paramref name="raw"/>; with <paramref name="up"/>, the next one past it.</summary>
+    private static double NiceStep(double raw, bool up = false)
+    {
+        var power = Math.Pow(10, Math.Floor(Math.Log10(raw)));
+        foreach (var f in new[] { 1, 2, 5, 10 })
+        {
+            if (f * power >= raw * (1 - 1e-12) && (!up || f * power > raw)) return f * power;
+        }
+
+        return 10 * power;
     }
 
     // ---- Data labels. ----
@@ -879,10 +1002,13 @@ internal static class ChartLayout
             return Math.Min(longest, 320) + GapPx;
         }
 
-        var all = input.Series.SelectMany(s => s.Values).Where(v => v is not null).Select(v => v!.Value).DefaultIfEmpty(0).ToArray();
+        // The second axis's column, after the plot, takes room as well.
+        var second = input.Series.Where(s => s.Secondary).SelectMany(s => s.Values).Where(v => v is not null).Select(v => Math.Abs(v!.Value)).DefaultIfEmpty(-1).Max();
+        var secondPx = second < 0 ? 0 : Width(second.ToString(input.SecondaryFormat ?? "N0", input.Culture)) + GapPx;
+        var all = input.Series.Where(s => !s.Secondary).SelectMany(s => s.Values).Where(v => v is not null).Select(v => v!.Value).DefaultIfEmpty(0).ToArray();
         var widest = Math.Max(Math.Abs(all.Max()), Math.Abs(all.Min()));
         var sample = input.Stacked == ChartStack.Full ? "100%" : input.ValueFormatter?.Invoke(widest) ?? widest.ToString(input.ValueFormat ?? "N0", input.Culture);
-        return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx;
+        return Width(sample) + (all.Min() < 0 ? Width("-") : 0) + GapPx + secondPx;
     }
 
     private static double PlotWidth(int k, double columnPx) => Math.Max(60, FitWidth(k) - columnPx - GapPx * 2);

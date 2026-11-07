@@ -1,0 +1,16 @@
+@* Quarterly revenue in dollars, with the gross margin in percent on a second axis. *@
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue and gross margin" ValueFormat="C0"
+       ValueTitle="Revenue" SecondaryTitle="Gross margin" SecondaryFormat="P0">
+    <ChartSeries Value="q => q.Revenue" Name="Revenue" />
+    <ChartSeries Value="q => q.Margin" Name="Gross margin" Type="ChartType.Line" Axis="ChartAxis.Secondary" />
+</Chart>
+
+@code {
+    private record QuarterResult(string Quarter, decimal Revenue, decimal Margin);
+
+    private readonly QuarterResult[] _quarters =
+    [
+        new("Q1 2025", 3_840_000, 0.41m), new("Q2 2025", 4_120_000, 0.43m), new("Q3 2025", 4_510_000, 0.42m),
+        new("Q4 2025", 5_260_000, 0.46m), new("Q1 2026", 5_030_000, 0.48m), new("Q2 2026", 5_690_000, 0.47m),
+    ];
+}

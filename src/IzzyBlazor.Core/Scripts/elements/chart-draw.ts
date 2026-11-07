@@ -28,6 +28,7 @@ export interface DrawSeries {
   y: number; // style: dash and marker shape
   d: number; // dash, 0 to 3
   tr?: boolean; // a trend, drawn toward the text color
+  ax?: boolean; // on the second value axis, which keeps the server's range
   col?: string; // the series' own color
   lm?: number; // value labels: 1 auto, 2 inside, 3 outside
   lt?: (string | null)[]; // each item's label text
@@ -54,6 +55,8 @@ export interface DrawData {
   vc: number; // the tick count up the side, from the chart's Height
   off: number[]; // the series the server drew hidden
   s: DrawSeries[];
+  s2l?: number; // the second value axis's range
+  s2h?: number;
 }
 
 // ---- Ticks: D3's (ChartScale.cs). ----
@@ -318,9 +321,9 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     }
   }
 
-  // The value domain.
+  // The value domain, from the first axis's series.
   let min = Infinity, max = -Infinity;
-  for (const s of visible) {
+  for (const s of visible.filter((s) => !d.s[s].ax)) {
     for (let i = 0; i < n; i++) {
       for (const x of [highs[s][i], lows[s][i]]) {
         if (x !== null && (!log || x > 0)) {
@@ -335,7 +338,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     min = Math.min(min, v);
     max = Math.max(max, v);
   }
-  if (!log && visible.some((s) => d.s[s].t === 0 || d.s[s].t === 2)) {
+  if (!log && visible.some((s) => !d.s[s].ax && (d.s[s].t === 0 || d.s[s].t === 2))) {
     min = Math.min(min, 0);
     max = Math.max(max, 0);
   }
@@ -372,6 +375,9 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const [l0, l1] = log ? [Math.log10(dmin!), Math.log10(dmax!)] : [0, 1];
   const scale = (v: number) =>
     log ? (v > 0 ? Math.min(1, Math.max(0, (Math.log10(v) - l0) / (l1 - l0))) : 0) : Math.min(1, Math.max(0, (v - dmin!) / span));
+  // The second axis keeps the server's range: its labels are the server's.
+  const [s2l, s2h] = [d.s2l ?? 0, d.s2h ?? 1];
+  const scale2 = (v: number) => Math.min(1, Math.max(0, (v - s2l) / (s2h - s2l || 1)));
 
   // Ticks, labels and grid lines: thinned to a line apart up the side, or to a label's width across.
   if (ticks) {
@@ -419,7 +425,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       const top = highs[s][i];
       if (top === null) continue;
       const a0 = i * band + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
-      const v0 = scale(lows[s][i] ?? 0), v1 = scale(top);
+      const sc = d.s[s].ax ? scale2 : scale;
+      const v0 = sc(lows[s][i] ?? 0), v1 = sc(top);
       const lo = Math.min(v0, v1), hi = Math.max(v0, v1);
       const [x, y, w, h] = d.h ? [lo, a0, hi - lo, width] : [a0, 1 - hi, width, hi - lo];
       const rect = (end: string) =>
@@ -454,7 +461,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     const points: ([number, number, number] | null)[] = [];
     for (let i = 0; i < n; i++) {
       const v = highs[s][i], a = d.a[i];
-      if (v !== null && a !== null) points.push([a, scale(v), i]);
+      if (v !== null && a !== null) points.push([a, (data.ax ? scale2 : scale)(v), i]);
       else if (!data.j) points.push(null);
     }
     if (data.t !== 3) {
@@ -471,11 +478,14 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const upper = curve(r.map((p) => [p[0], p[1]]), data.c);
         line += path(upper, d.h, true);
         if (data.t === 2) {
-          const lower = curve(r.map((p) => [p[0], lows[s][p[2]] !== null ? scale(lows[s][p[2]]!) : scale(0)]), stacked ? data.c : 0);
+          const sc = data.ax ? scale2 : scale;
+          const lower = curve(r.map((p) => [p[0], lows[s][p[2]] !== null ? sc(lows[s][p[2]]!) : sc(0)]), stacked ? data.c : 0);
           area += path(upper, d.h, true) + path(reverse(lower), d.h, false) + "Z";
         }
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
+      // Over bars, a line has a halo of the surface, so it reads on a bar of any color.
+      if (line && bars.length > 0) lines += `<path class="ib-chart-halo" data-ib-series="${s}" d="${line}"/>`;
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
     }
     if (data.m) {
@@ -496,6 +506,6 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   }
 
   const paths = (inner: string) => (inner ? `<svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">${inner}</svg>` : "");
-  svg += paths(areas) + barSvg + paths(lines) + marks;
+  svg += paths(areas) + barSvg + paths(lines) + (bars.length > 0 ? `<g class="ib-chart-mixed">${marks}</g>` : marks);
   return { svg, labels, pos: scale, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
 }
