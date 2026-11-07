@@ -228,6 +228,31 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Reference_marks_stay_in_view_and_a_statistic_comes_from_its_series()
+    {
+        var model = ChartLayout.Build(new ChartInput(["Sep", "Oct", "Nov", "Dec"],
+            [new ChartSeriesData("Revenue", ChartType.Bar, [90, 100, 110, 120])])
+        {
+            Culture = CultureInfo.InvariantCulture,
+            Marks =
+            [
+                new(ChartMarkKind.Line, ChartAxis.Value, "Target") { Value = 150 },
+                new(ChartMarkKind.Line, ChartAxis.Value, null) { Statistic = ChartStatistic.Average, Series = "Revenue" },
+                new(ChartMarkKind.Band, ChartAxis.Argument, "Holiday season") { At = "Nov", AtTo = "Dec" },
+                new(ChartMarkKind.Line, ChartAxis.Argument, "Launch") { At = "Jan" },
+            ],
+        });
+
+        // The target above every value is on the axis; the average is the series'.
+        Assert.True(double.Parse(model.ValueLabels[^1].Text, CultureInfo.InvariantCulture) >= 150, string.Join(" ", model.ValueLabels.Select(l => l.Text)));
+        Assert.Equal(["Target: 150", "Average: 105", "Holiday season: Nov to Dec"], model.MarkTexts);
+        // The band covers Nov's and Dec's bands; a line at an argument the chart hasn't got is left out.
+        var band = model.Marks[2];
+        Assert.Equal((0.5, 1.0), (band.P, band.Q));
+        Assert.Equal(3, model.Marks.Count);
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
@@ -437,6 +462,26 @@ public class ChartRenderTests : BunitContext
         Assert.Empty(labeled.FindAll("rect title, use title"));
         Assert.NotEmpty(Build(null, ChartLabels.None).FindAll(".ib-chart-tips"));
         Assert.NotEmpty(Build(true, ChartLabels.Auto).FindAll(".ib-chart-tips"));
+    }
+
+    [Fact]
+    public void Reference_marks_are_drawn_and_said_in_the_charts_description()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue")
+            .Add(c => c.ValueFormat, "C0")
+            .AddChildContent<ChartSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target"))
+            .AddChildContent<ChartAnnotation>(a => a.Add(x => x.Argument, "Feb").Add(x => x.Value, 120).Add(x => x.Text, "Price change")));
+
+        var frame = cut.Find("[role=img]");
+        var description = cut.Find("#" + frame.GetAttribute("aria-describedby"));
+        Assert.Contains("Target: $150", description.TextContent);
+        Assert.Contains("Price change: Feb, $120", description.TextContent);
+        Assert.Equal("Target", cut.Find(".ib-chart-over .ib-chart-rule > span").TextContent);
+        Assert.NotNull(cut.Find(".ib-chart-over .ib-chart-rule[data-ib-v='150']"));
     }
 
     [Fact]

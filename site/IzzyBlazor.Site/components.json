@@ -2126,6 +2126,13 @@
           ]
         },
         {
+          "id": "reference", "title": "Reference lines and notes", "summary": "Lines at a target or an average, shaded ranges such as a season, and notes at a point, each labeled in text and said in the chart's description.", "members": ["ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
+          "examples": [
+            { "id": "chart-reference", "title": "A target, an average and a season", "lead": "Put marks in the chart with its series. `ChartReferenceLine` draws a dashed line at a `Value`, labeled with its `Label`; the value axis always reaches it, so a target above every value still shows. With `Statistic` and a series' name as `Series`, the line is that series' `Average` or `Median`, worked out for you. `ChartReferenceBand` shades a range from `From` to `To`, here on the argument axis, covering both months. Screen readers hear each mark in the chart's description, such as \"Target $150K: $150,000\"." },
+            { "id": "chart-annotations", "title": "Notes on a line", "lead": "`ChartAnnotation` puts a short `Text` at an `Argument` and `Value`, with a line down to the point. A `ChartReferenceLine` with `Axis` set to `Argument` and `At` draws a line at an argument, here the day of a launch. Hiding a series from the legend rescales the chart, and the marks move with it." }
+          ]
+        },
+        {
           "id": "axes", "title": "Axes", "summary": "Titles beside the axes, a set gap between ticks, a log scale for values across powers of ten, grid lines, and names that turn or wrap when they crowd.", "members": ["ValueTitle", "ArgumentTitle", "ValueStep", "ValueLog", "GridLines", "ArgumentLabels", "ValueFormatter", "ArgumentFormatter", "HideValueAxis", "HideArgumentAxis"],
           "examples": [
             { "id": "chart-axes", "title": "Titles, a set step and grid lines", "lead": "`ValueTitle` and `ArgumentTitle` put a title beside each axis; the argument's title also heads the first column of the data table. `ValueStep` sets the gap between the value axis's ticks, here $25,000, and the axis ends on a multiple of it. `GridLines` set to `Both` adds lines between the months; `None` leaves only the zero line." },

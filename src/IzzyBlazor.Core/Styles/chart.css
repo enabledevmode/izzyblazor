@@ -237,6 +237,92 @@
     .ib-chart-dl > .ib-chart-dl-in { color: contrast-color(var(--ib-chart-fill)); }
   }
 
+  /* Reference lines, bands and notes: HTML over the plot (bands under it). Each sits between --p
+     and --q, 0 to 1 along its axis: up from the bottom (-y) or across from the left (-x). The
+     script's --jp and --jq stand in when the legend rescales the value axis. */
+  .ib-chart-under,
+  .ib-chart-over {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  :is(.ib-chart-mk-y, .ib-chart-mk-x, .ib-chart-note) {
+    --ib-chart-a: var(--jp, var(--p));
+    --ib-chart-b: var(--jq, var(--q, var(--ib-chart-a)));
+    position: absolute;
+  }
+
+  .ib-chart-mk-y {
+    inset-inline: 0;
+    bottom: calc(var(--ib-chart-a) * 100%);
+    top: calc((1 - var(--ib-chart-b)) * 100%);
+  }
+
+  .ib-chart-mk-x {
+    inset-block: 0;
+    left: calc(var(--ib-chart-a) * 100%);
+    right: calc((1 - var(--ib-chart-b)) * 100%);
+  }
+
+  :is(.ib-chart-rule, .ib-chart-band, .ib-chart-note) > span {
+    position: absolute;
+    white-space: nowrap;
+    color: var(--ib-color-on-surface);
+    font-weight: var(--ib-weight-medium);
+    text-shadow: 0 0 2px var(--ib-color-surface), 0 0 2px var(--ib-color-surface), 0 0 1px var(--ib-color-surface);
+  }
+
+  /* Lines are dashed, labeled above their end (or beside their top). */
+  .ib-chart-rule.ib-chart-mk-y { border-top: 1.5px dashed var(--ib-color-muted); translate: 0 -0.75px; }
+  .ib-chart-rule.ib-chart-mk-x { border-left: 1.5px dashed var(--ib-color-muted); translate: -0.75px 0; }
+  .ib-chart-rule.ib-chart-mk-y > span { right: 0; bottom: 2px; }
+  .ib-chart-rule.ib-chart-mk-x > span { top: 0; left: 4px; }
+
+  /* Bands are shaded with edges, labeled in their top corner. */
+  .ib-chart-band { background-color: color-mix(in srgb, var(--ib-color-on-surface) 6%, transparent); }
+  .ib-chart-band.ib-chart-mk-y { border-block: 1px solid var(--ib-color-border); }
+  .ib-chart-band.ib-chart-mk-x { border-inline: 1px solid var(--ib-color-border); }
+  .ib-chart-band > span { top: 2px; left: 4px; }
+
+  /* A note: a dot at its point, a line up from it, and the text above. */
+  .ib-chart-note {
+    left: calc(var(--n) * 100%);
+    bottom: calc(var(--ib-chart-a) * 100%);
+  }
+
+  .ib-chart-note-h {
+    left: calc(var(--ib-chart-a) * 100%);
+    bottom: calc(var(--n) * 100%);
+  }
+
+  .ib-chart-note::before,
+  .ib-chart-note::after {
+    content: "";
+    position: absolute;
+    background-color: var(--ib-color-on-surface);
+  }
+
+  .ib-chart-note::before {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    translate: -50% 50%;
+    bottom: 0;
+  }
+
+  .ib-chart-note::after {
+    width: 1px;
+    height: 16px;
+    bottom: 4px;
+    translate: -50% 0;
+  }
+
+  .ib-chart-note > span {
+    bottom: 22px;
+    translate: -50% 0;
+  }
+
   /* The point the tooltip is for, on a scatter chart. */
   .ib-chart-marks > [data-ib-active] {
     stroke: var(--ib-color-on-surface);

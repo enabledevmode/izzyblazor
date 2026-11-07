@@ -1205,6 +1205,15 @@ public class IzzyText
     /// <summary>A PieChart's data table and tooltip: each slice's share of the whole.</summary>
     public virtual string ChartShare { get; set; } = "Share";
 
+    /// <summary>A Chart reference line's label for <c>ChartStatistic.Average</c>, with no Label of its own.</summary>
+    public virtual string ChartAverage { get; set; } = "Average";
+
+    /// <summary>A Chart reference line's label for <c>ChartStatistic.Median</c>, with no Label of its own.</summary>
+    public virtual string ChartMedian { get; set; } = "Median";
+
+    /// <summary>Joins a reference band's two ends in the chart's description, as in "Nov to Dec".</summary>
+    public virtual string ChartRangeTo { get; set; } = "to";
+
     /// <summary>
     /// A Sparkline's accessible name, which says what a glance at it shows: "Revenue, last 12 weeks:
     /// from 41 to 48, low 39, high 52". {0} is the label; {1} and {2} the first and last values;

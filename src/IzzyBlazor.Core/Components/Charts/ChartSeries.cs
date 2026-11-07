@@ -166,15 +166,17 @@ public sealed class ChartSeries<TItem> : ComponentBase, IDisposable
 }
 
 /// <summary>What a <see cref="Chart{TItem}"/> shares with its series: the series, in order.</summary>
-internal sealed class ChartContext<TItem>
+internal sealed class ChartContext<TItem> : ChartContextBase
 {
     private readonly ChildOrder<ChartSeries<TItem>> _series = new();
 
     public IReadOnlyList<ChartSeries<TItem>> Series => _series.Items;
 
-    public ChartPlot? Plot { get; set; }
-
-    public void BeginPass() => _series.BeginPass();
+    public override void BeginPass()
+    {
+        base.BeginPass();
+        _series.BeginPass();
+    }
 
     public void Seen(ChartSeries<TItem> series)
     {
