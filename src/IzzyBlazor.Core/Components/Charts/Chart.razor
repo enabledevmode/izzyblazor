@@ -453,14 +453,9 @@
                             }
                         </g>
                     }
-                    <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                    <svg class="ib-chart-paths ib-chart-lines" viewBox="0 0 1000 1000" preserveAspectRatio="none">
                         @foreach (var s in model.Series.Where(s => s.Line is not null))
                         {
-                            @if (mixed)
-                            {
-                                @* Over bars, a line has a halo of the surface, so it reads on a bar of any color. *@
-                                <path class="ib-chart-halo" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
-                            }
                             <path class="@SeriesClass(s, $"ib-chart-line ib-chart-dash{s.Dash}{Trend(s)}")" style="@ColorStyle(s)" d="@s.Line" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
                         }
                     </svg>

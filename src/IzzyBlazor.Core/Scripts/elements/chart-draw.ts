@@ -484,8 +484,6 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         }
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
-      // Over bars, a line has a halo of the surface, so it reads on a bar of any color.
-      if (line && bars.length > 0) lines += `<path class="ib-chart-halo" data-ib-series="${s}" d="${line}"/>`;
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
     }
     if (data.m) {
@@ -505,7 +503,9 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     }
   }
 
-  const paths = (inner: string) => (inner ? `<svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">${inner}</svg>` : "");
-  svg += paths(areas) + barSvg + paths(lines) + (bars.length > 0 ? `<g class="ib-chart-mixed">${marks}</g>` : marks);
+  const paths = (inner: string, kind = "") => (inner ? `<svg class="ib-chart-paths${kind}" viewBox="0 0 1000 1000" preserveAspectRatio="none">${inner}</svg>` : "");
+  // Over bars, lines and markers sit in a group that lifts them off the bars (chart.css).
+  const over = paths(lines, " ib-chart-lines") + marks;
+  svg += paths(areas) + barSvg + (bars.length > 0 ? `<g class="ib-chart-mixed">${over}</g>` : over);
   return { svg, labels, pos: scale, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : "")) };
 }
