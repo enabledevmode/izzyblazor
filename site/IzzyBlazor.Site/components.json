@@ -2456,6 +2456,23 @@
       ]
     },
     {
+      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Data display", "summary": "Shows a conversation and a box to write the next message in, for an assistant or for people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
+      "parts": ["ChatEntry"],
+      "features": [
+        { "feature": "A log that starts at its newest entry and stays there as entries arrive" },
+        { "feature": "Entries as text, Markdown or HTML, sanitized; avatars, times and days" },
+        { "feature": "Sends in a plain form post, with suggestions and Stop" },
+        { "feature": "Replies that stream in", "noscript": "none", "static": "none" }
+      ],
+      "examples": [
+        { "id": "chat-assistant", "title": "An assistant", "lead": "Put a `ChatEntry` for each message in a `Chat`, oldest first. `OnSend` gets what was typed, or the suggestion chosen; add it, then the reply. Set `Mine` on yours. An assistant's reply is usually Markdown: set `Markdown`, and it's shown as `RichText` shows it, sanitized, with code highlighted. While the reply is on its way, set `Status` to `Waiting`, then `Streaming`, and the entry's `Pending`: Send becomes Stop (`OnStop`), the entry shows dots and then a caret, and screen readers hear \"Replying\" and then \"Reply complete\". `Suggestions` shows messages to send with one press; `EmptyContent` fills the log before the first entry.",
+          "notes": {
+            "noscript": "Send posts the form, and the page comes back with the reply. Enter adds a line.",
+            "static": "The form posts without reloading the page, and the reply arrives whole. Keep the conversation yourself between posts, under an id, as this example does in its address."
+          } }
+      ]
+    },
+    {
       "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Data display", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
       "parts": ["CarouselItem"],
       "features": [

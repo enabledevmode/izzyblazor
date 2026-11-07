@@ -215,6 +215,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "carousel.css"),
   },
   {
+    // A sheet of its own, linked by Chat.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "chat.css")],
+    outfile: join(lib, "wwwroot", "chat.css"),
+  },
+  {
     // A sheet of its own, linked by Tabs with close or add controls.
     ...common,
     sourcemap: false,

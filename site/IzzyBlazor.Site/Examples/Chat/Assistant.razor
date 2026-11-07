@@ -1,0 +1,143 @@
+@* A help desk assistant. Its answers are canned here; an app streams them from a model
+   (see Streaming a reply). On a static page the conversation is kept under an id in the
+   address, as a chat app keeps it under /chat/{id}. *@
+@using System.Collections.Concurrent
+@inject NavigationManager Navigation
+
+<Chat Label="Help desk assistant" FormName="help-desk" OnSend="SendAsync" OnStop="Stop" Status="_status"
+      Suggestions="@(_turns.Count == 0 ? Ideas : null)" Placeholder="Ask about an order, a refund or shipping">
+    <EmptyContent>
+        <EmptyState Icon="Lucide.MessagesSquare" Title="How can we help?" Description="Ask about an order, a refund or shipping." />
+    </EmptyContent>
+    <ChildContent>
+        @foreach (var turn in _turns)
+        {
+            @if (turn.Mine)
+            {
+                <ChatEntry Mine Text="@turn.Text" Time="turn.Time" />
+            }
+            else
+            {
+                <ChatEntry Author="Assistant" Markdown="@turn.Text" Time="turn.Time" Pending="turn.Pending" />
+            }
+        }
+    </ChildContent>
+</Chat>
+
+@* hide *@
+@code {
+    private static readonly string[] Ideas = ["Where's my order?", "How do refunds work?", "How long does shipping take?"];
+
+    // A static page's conversations, by id (kept short: this is a demo on a public site).
+    private static readonly ConcurrentDictionary<string, List<Turn>> Conversations = new();
+
+    [SupplyParameterFromQuery(Name = "help-desk")] private string? ConversationId { get; set; }
+
+    private List<Turn> _turns = [];
+    private ChatStatus _status;
+    private CancellationTokenSource? _reply;
+
+    private sealed class Turn
+    {
+        public bool Mine { get; init; }
+        public string Text { get; set; } = "";
+        public DateTimeOffset Time { get; init; } = DateTimeOffset.Now;
+        public bool Pending { get; set; }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (ConversationId is { } id && Conversations.TryGetValue(id, out var turns)) _turns = turns;
+    }
+
+    private async Task SendAsync(ChatSendArgs message)
+    {
+        _turns.Add(new Turn { Mine = true, Text = message.Text });
+        var answer = Answer(message.Text);
+
+        if (!RendererInfo.IsInteractive)
+        {
+            // A static page answers at once, and keeps the conversation for the next post.
+            _turns.Add(new Turn { Text = answer });
+            if (Conversations.Count > 500) Conversations.Clear();
+            var id = ConversationId ?? Guid.NewGuid().ToString("N")[..12];
+            Conversations[id] = _turns.TakeLast(20).ToList();
+            if (ConversationId is null) Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("help-desk", id));
+            return;
+        }
+
+        // An interactive page streams it, a few words at a time.
+        var reply = new Turn { Pending = true };
+        _turns.Add(reply);
+        _status = ChatStatus.Waiting;
+        _reply = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(700, _reply.Token);
+            _status = ChatStatus.Streaming;
+            foreach (var words in answer.Split(' ').Chunk(3))
+            {
+                reply.Text += string.Join(' ', words) + " ";
+                StateHasChanged();
+                await Task.Delay(60, _reply.Token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Stopped: what arrived stays.
+        }
+
+        reply.Text = reply.Text.TrimEnd();
+        reply.Pending = false;
+        _status = ChatStatus.Ready;
+    }
+
+    private void Stop() => _reply?.Cancel();
+
+    private static string Answer(string question)
+    {
+        var q = question.ToLowerInvariant();
+        if (q.Contains("refund"))
+        {
+            return """
+                Refunds go back to the card you paid with, **5 to 10 business days** after we receive the return.
+
+                1. Open **Orders** and choose the order.
+                2. Select *Return items* and pick a reason.
+                3. Print the label and drop the parcel at any carrier point.
+
+                Items marked *final sale* can't be returned.
+                """;
+        }
+
+        if (q.Contains("ship") || q.Contains("deliver"))
+        {
+            return """
+                It depends on where it's going:
+
+                | Destination | Standard | Express |
+                | --- | ---: | ---: |
+                | Same country | 3–5 days | 1–2 days |
+                | Europe | 5–8 days | 2–3 days |
+                | Rest of world | 7–14 days | 3–5 days |
+
+                Orders placed before 2 pm ship the same day.
+                """;
+        }
+
+        if (q.Contains("order") || q.Contains("where"))
+        {
+            return """
+                I can't see your account here, but you can track any order:
+
+                - Open **Orders** and choose the order for its tracking link.
+                - Or use the link in your shipping email.
+
+                If tracking hasn't moved in 3 days, write to support@example.com with your order number.
+                """;
+        }
+
+        return "I can help with orders, refunds and shipping. What would you like to know?";
+    }
+}
+@* /hide *@

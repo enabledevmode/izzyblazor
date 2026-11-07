@@ -1,0 +1,267 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a message posts with the Send button, and Enter adds a line.")]
+
+@*
+    A conversation: its entries in a log that scrolls, and a box to write the next message in.
+    For an assistant, or for people talking.
+
+    <Chat Label="Assistant" FormName="assistant" OnSend="SendAsync" OnStop="Stop" Status="_status">
+        @foreach (var turn in _turns)
+        {
+            <ChatEntry Mine="turn.Mine" Author="@(turn.Mine ? null : "Assistant")"
+                       Time="turn.Time" Markdown="@turn.Text" Pending="turn.Pending" />
+        }
+    </Chat>
+
+    The chat is 32rem tall, its log scrolling inside; set Height, or Grow to fill its parent.
+    The app keeps the entries and makes the replies: OnSend gets what was typed, and the app adds
+    it and the reply as ChatEntry items. Status says where the reply is: while it's Waiting or
+    Streaming, Send becomes Stop (OnStop). Suggestions are buttons above the box that send their
+    text. The log starts at its newest entry and stays there as entries arrive, with no script.
+
+    On a static page the box is a form that posts (FormName names it, as with Form), so a
+    message sends with JavaScript off too; with script, Enter sends and Shift+Enter adds a line.
+
+    Accessibility:
+    - The log is a `log` named by Label, which is required. It's quiet (aria-live off): a reply
+      isn't read word by word as it arrives. A status, polite, says "Replying", then "Reply
+      complete", "Stopped" or "Reply failed".
+    - In a conversation between people, an entry from someone else that arrives on an interactive
+      page is announced with its author ("Dana: Sounds good").
+    - Each entry is an article with a heading screen readers can jump between ("You said",
+      "Dana said"), hidden on screen; HeadingLevel sets its level (3 by default).
+    - The box is a text area named "Message". Send and Stop are labeled buttons; the
+      suggestions are a group named "Suggestions".
+    - The log can be scrolled with the keyboard: it's in the Tab order.
+    See also: ChatEntry, RichText, TextArea.
+*@
+
+<ib-chat @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chat.css"]" />
+    @* Reversed, so the log starts at its end and stays there as entries arrive, with no script;
+       the one child keeps the entries in reading order. *@
+    <div class="ib-chat-log" role="log" aria-label="@Label" aria-live="off" tabindex="0">
+        <div class="ib-chat-entries">
+            @if (EmptyContent is not null)
+            {
+                <div class="ib-chat-empty">@EmptyContent</div>
+            }
+            <CascadingValue Value="_context" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </div>
+    </div>
+    <LiveRegion Text="@_announcement" />
+    @if (RendererInfo.IsInteractive)
+    {
+        @Composer(null)
+    }
+    else
+    {
+        @* Named for this chat, so that a post reaches only its own form. *@
+        <FormMappingScope Name="@($"ib-chat-{FormName}")" Context="scope">
+            @StaticComposer
+        </FormMappingScope>
+    }
+</ib-chat>
+
+@code {
+    /// <summary>Names the conversation's log, such as "Assistant" or "Messages with Dana". Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The entries: <see cref="ChatEntry"/> items, oldest first.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Shown in the log before the first entry, such as a greeting.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>Called with what a person sent: the message typed, or a suggestion chosen.</summary>
+    [Parameter, ModeSupport] public EventCallback<ChatSendArgs> OnSend { get; set; }
+
+    /// <summary>Called when a person chooses Stop, shown while <see cref="Status"/> is Waiting or Streaming.</summary>
+    [Parameter, ModeSupport] public EventCallback OnStop { get; set; }
+
+    /// <summary>Where the reply is. While it's Waiting or Streaming, Send becomes Stop and a message can't be sent.</summary>
+    [Parameter] public ChatStatus Status { get; set; }
+
+    /// <summary>Messages a person can send with one press, shown above the box while nothing is on its way.</summary>
+    [Parameter] public IReadOnlyList<string>? Suggestions { get; set; }
+
+    /// <summary>The prompt in the empty box, such as "Ask about your order".</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>The most characters a message can have.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>The form's name on a static page, unique on the page, as a Form's FormName. Defaults to "chat".</summary>
+    [Parameter] public string FormName { get; set; } = "chat";
+
+    /// <summary>The level of each entry's hidden heading, 2 to 6. Defaults to 3.</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 3;
+
+    private readonly Draft _draft = new();
+    private ChatContext _context = null!;
+    private string? _class;
+    private string? _style;
+    private string? _announcement;
+    private ChatStatus? _lastStatus;
+    private bool _stopped;
+    private bool _rendered;
+    private readonly string _inputId = IdGenerator.Next("ib-chat");
+
+    private sealed class Draft
+    {
+        public string? Text { get; set; }
+    }
+
+    private bool Busy => Status is ChatStatus.Waiting or ChatStatus.Streaming;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _context = new ChatContext(this);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Chat needs a Label: it names the conversation's log.");
+        }
+
+        if (HeadingLevel is < 2 or > 6)
+        {
+            throw new InvalidOperationException("Chat's HeadingLevel is 2 to 6.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+
+        // The status says what changed: a reply started, finished, stopped or failed.
+        if (_lastStatus is { } last && last != Status)
+        {
+            _announcement = Status switch
+            {
+                ChatStatus.Waiting or ChatStatus.Streaming when last is ChatStatus.Ready or ChatStatus.Failed => TextDefaults.ChatReplying,
+                ChatStatus.Ready when last is ChatStatus.Waiting or ChatStatus.Streaming => _stopped ? TextDefaults.ChatStopped : TextDefaults.ChatReplied,
+                ChatStatus.Failed => TextDefaults.ChatReplyFailed,
+                _ => _announcement,
+            };
+            if (!Busy) _stopped = false;
+        }
+
+        _lastStatus = Status;
+    }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender) => _rendered = true;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chat");
+        // 32rem tall unless Height says otherwise; with Grow and no Height, it fills its parent.
+        classes.Add("ib-chat-sized", Height.IsEmpty && !Grow);
+        classes.Add("ib-chat-fill", Height.IsEmpty && Grow);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <summary>An entry from someone else arrived after the page did: announced, as people's messages are.</summary>
+    internal void Arrived(ChatEntry entry)
+    {
+        if (!_rendered || entry.Mine || entry.Pending || Busy) return;
+        var text = entry.PlainText();
+        if (text.Length > 100) text = text[..100] + "…";
+        _announcement = string.IsNullOrEmpty(entry.Author) ? text : $"{entry.Author}: {text}";
+        InvokeAsync(StateHasChanged);
+    }
+
+    internal int EntryHeadingLevel => HeadingLevel;
+
+    /// <summary>The composer form's id: a static Retry button in an entry submits it.</summary>
+    internal string FormId => _inputId + "-form";
+
+    private RenderFragment StaticComposer => builder =>
+    {
+        builder.OpenComponent<ChatPost>(0);
+        builder.AddComponentParameter(1, nameof(ChatPost.ChildContent), (RenderFragment<ChatPost>)(posted => Composer(posted)));
+        builder.CloseComponent();
+    };
+
+    private async Task SubmitAsync(ChatPost? posted)
+    {
+        if (posted?.Stop is not null)
+        {
+            await StopAsync();
+            return;
+        }
+
+        if (posted?.Retry is { } retry)
+        {
+            if (_context.At(retry) is { } entry) await entry.RetryAsync();
+            return;
+        }
+
+        var text = (posted is null ? _draft.Text : posted.Suggestion ?? posted.Text)?.Trim();
+        if (string.IsNullOrEmpty(text) || Busy) return;
+        if (MaxLength is { } max && text.Length > max) text = text[..max];
+        _draft.Text = null;
+        await OnSend.InvokeAsync(new ChatSendArgs(text));
+    }
+
+    private async Task SuggestAsync(string text)
+    {
+        if (Busy) return;
+        await OnSend.InvokeAsync(new ChatSendArgs(text));
+    }
+
+    private async Task StopAsync()
+    {
+        _stopped = true;
+        await OnStop.InvokeAsync();
+    }
+
+    private RenderFragment Composer(ChatPost? posted) => @<EditForm id="@FormId" class="ib-chat-composer" Model="_draft" FormName="@(posted is null ? null : "send")" Enhance OnSubmit="@(() => SubmitAsync(posted))">
+        @if (Suggestions is { Count: > 0 } suggestions && !Busy)
+        {
+            <div class="ib-chat-suggestions" role="group" aria-label="@TextDefaults.ChatSuggestions">
+                @foreach (var suggestion in suggestions)
+                {
+                    @if (posted is null)
+                    {
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" @onclick="@(() => SuggestAsync(suggestion))">@suggestion</Button>
+                    }
+                    else
+                    {
+                        <Button Submit Name="@ChatPost.SuggestionName" Value="@suggestion" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">@suggestion</Button>
+                    }
+                }
+            </div>
+        }
+        <div class="ib-chat-box">
+            <label class="ib-visually-hidden" for="@_inputId">@TextDefaults.ChatMessage</label>
+            @if (posted is null)
+            {
+                <textarea id="@_inputId" class="ib-chat-input" rows="1" placeholder="@Placeholder" maxlength="@MaxLength"
+                          @bind="_draft.Text" @bind:event="oninput"></textarea>
+            }
+            else
+            {
+                <textarea id="@_inputId" class="ib-chat-input" name="@ChatPost.TextName" rows="1" placeholder="@Placeholder" maxlength="@MaxLength"></textarea>
+            }
+            @if (Busy)
+            {
+                @if (posted is null)
+                {
+                    <IconButton Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" @onclick="StopAsync" />
+                }
+                else
+                {
+                    <IconButton Submit Name="@ChatPost.StopName" Value="stop" Icon="Lucide.Square" Label="@TextDefaults.ChatStop" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-chat-action" />
+                }
+            }
+            else
+            {
+                <IconButton Submit Icon="Lucide.ArrowUp" Label="@TextDefaults.ChatSend" Size="ControlSize.Sm" Class="ib-chat-action" />
+            }
+        </div>
+    </EditForm>;
+}
