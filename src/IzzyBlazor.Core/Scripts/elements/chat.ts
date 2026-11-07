@@ -97,7 +97,9 @@ class Chat extends IzzyElement {
 
     // New entries, a reply growing, the form rendered again after a post.
     const observer = new MutationObserver(() => this.changed());
-    observer.observe(this, { childList: true, subtree: true, characterData: true });
+    // Attributes too: a static page's post sets every chat's markup back to the server's, Send
+    // enabled, though nothing else in it changed.
+    observer.observe(this, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["disabled"] });
     signal.addEventListener("abort", () => observer.disconnect());
     this.away();
   }
@@ -117,7 +119,9 @@ class Chat extends IzzyElement {
     if (!box?.name) return;
     const files = this.querySelector<HTMLInputElement>(".ib-chat-file[name]");
     const send = box.form?.querySelector<HTMLButtonElement>("button[type=submit]:not([name])");
-    if (send) send.disabled = !box.value.trim() && !files?.files?.length;
+    const empty = !box.value.trim() && !files?.files?.length;
+    // Only a change: setting it would be seen by the observer, again and again.
+    if (send && send.disabled !== empty) send.disabled = empty;
   }
 
   private changed(): void {
