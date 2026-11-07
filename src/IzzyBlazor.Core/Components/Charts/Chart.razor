@@ -795,10 +795,13 @@
     // A bubble chart's size key: what the sizes measure, then reference circles standing on one
     // base, each value level with its circle's top along a dotted leader. chart.css puts it in the
     // chart's top corner, across from the title.
+    // The size key's drawing: the largest circle, standing on the base line.
+    private static double SizeKeyHeight(List<(string Text, double R)> circles) => Math.Ceiling(circles.Max(c => c.R) * 2 + 2);
+
     private static RenderFragment SizeKeyItem((string Name, List<(string Text, double R)> Circles) key) => @<text>
         @{
             var big = key.Circles.Max(c => c.R);
-            var height = Math.Ceiling(big * 2 + 2);
+            var height = SizeKeyHeight(key.Circles);
             var width = Math.Ceiling(big * 2 + 8);
         }
         <li class="ib-chart-size-key">
@@ -850,7 +853,8 @@
         var style = (Palette?.Style(model.Series.Count) ?? "")
             + (waterfall?.IncreaseColor is { } up ? $"--ib-chart-increase:{StyleValues.Raw(up, "color")};" : "")
             + (waterfall?.DecreaseColor is { } down ? $"--ib-chart-decrease:{StyleValues.Raw(down, "color")};" : "")
-            + (model.SizeKeyPx > 0 ? $"--ib-chart-key-w:{Num(model.SizeKeyPx)}px;" : "");
+            + (model.SizeKeyPx > 0 ? $"--ib-chart-key-w:{Num(model.SizeKeyPx)}px;" : "")
+            + (model.SizeKey is { } key ? $"--ib-chart-key-h:{Num(SizeKeyHeight(key.Circles))}px;" : "");
         return style.Length > 0 ? style : null;
     }
 

@@ -267,14 +267,29 @@
   /* A bubble chart's size key: outlined circles on one base, each value level with its top. In
      a chart 40rem wide or more with a title, it sits in the top corner across from the title, so
      it doesn't push the legend down; the title and the legend's keys keep clear of it. Narrower,
-     or with the legend beside the chart, it's one more item in the legend (beside the chart, the first). */
-  .ib-chart-size-key { display: inline-flex; align-items: center; gap: var(--ib-space-2); }
+     or with the legend beside the chart, it's one more item in the legend (beside the chart, the first).
+     Padded on top by half its top value's height, which sits centered on the largest circle's top. */
+  .ib-chart-size-key { display: inline-flex; align-items: center; gap: var(--ib-space-2); padding-block-start: calc(var(--ib-text-xs) / 2); }
   .ib-chart:has(> .ib-chart-label):has(.ib-chart-size-key) { position: relative; }
 
   @container ib-chart (width >= 40rem) {
     .ib-chart:has(> ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key) > .ib-chart-label { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
     ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) > .ib-chart-legend:has(.ib-chart-size-key) { padding-inline-end: calc(var(--ib-chart-key-w, 12rem) + var(--ib-space-4)); }
     .ib-chart:has(> .ib-chart-label) ib-chart:not(.ib-chart-lg-start, .ib-chart-lg-end) .ib-chart-size-key { position: absolute; top: 0; inset-inline-end: 0; }
+
+    /* The corner key is out of the flow, so the rows above the plot (the title's line, and a
+       legend above) are made at least as tall as it: a legend above grows, or with the legend
+       below, the chart steps down. A title on more lines only adds room. */
+    .ib-chart:has(> .ib-chart-label) > ib-chart {
+      --ib-chart-key-room: calc(var(--ib-chart-key-h, 0px) + var(--ib-text-xs) / 2 - var(--ib-text-lg) * var(--ib-leading-snug));
+    }
+    .ib-chart:has(> .ib-chart-label) > .ib-chart-lg-top > .ib-chart-legend:has(.ib-chart-size-key) {
+      align-content: flex-start;
+      min-height: max(0px, calc(var(--ib-chart-key-room) - var(--ib-space-3) - var(--ib-space-4)));
+    }
+    .ib-chart:has(> .ib-chart-label) > ib-chart:not(.ib-chart-lg-top, .ib-chart-lg-start, .ib-chart-lg-end):has(.ib-chart-size-key) {
+      padding-block-start: max(0px, calc(var(--ib-chart-key-room) - var(--ib-space-5)));
+    }
   }
 
   .ib-chart-size-key circle { fill: none; stroke: var(--ib-color-muted); }
