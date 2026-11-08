@@ -8,8 +8,10 @@
     takes a typed date, and the library's calendar to choose from. Bind it to DateOnly,
     DateTime or DateTimeOffset, or a nullable one.
     <DateField @bind-Value="Model.Due" />
-    <DateField @bind-Value="Model.From" Max="@DateOnly.FromDateTime(DateTime.UtcNow)" />
-    <DateField @bind-Value="Model.Due" DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
+    <DateField @bind-Value="Model.From"
+               Max="@DateOnly.FromDateTime(DateTime.UtcNow)" />
+    <DateField @bind-Value="Model.Due"
+               DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
     <DateField @bind-Value="Model.Due" UseNative />
     <DateField @bind-Value="Model.StartsAt" TimeZone="@zone" />
 

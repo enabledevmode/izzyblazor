@@ -8,8 +8,14 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty"&gt;...&lt;/TextBlock&gt;
-/// &lt;TextBlock As="span" Size="TextSize.Xs" Weight="FontWeight.Semibold" Transform="TextTransform.Uppercase" LetterSpacing="LetterSpacing.Wider"&gt;New&lt;/TextBlock&gt;
+/// &lt;TextBlock Size="TextSize.Lg"
+///            Color="Color.Muted"
+///            Wrap="TextWrap.Pretty"&gt;...&lt;/TextBlock&gt;
+/// &lt;TextBlock As="span"
+///            Size="TextSize.Xs"
+///            Weight="FontWeight.Semibold"
+///            Transform="TextTransform.Uppercase"
+///            LetterSpacing="LetterSpacing.Wider"&gt;New&lt;/TextBlock&gt;
 /// </code>
 /// </example>
 /// <accessibility>

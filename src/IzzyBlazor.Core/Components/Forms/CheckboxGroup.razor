@@ -10,8 +10,13 @@
     property and from Items; for an enum, pass its values.
 
     <CheckboxGroup @bind-Value="Model.Toppings" Items="Toppings" />
-    <CheckboxGroup @bind-Value="Model.Days" Items="Enum.GetValues<DayOfWeek>()" Orientation="Orientation.Horizontal" />
-    <CheckboxGroup @bind-Value="Model.Notify" Items="Topics" SelectAll SelectAllText="Everything" />
+    <CheckboxGroup @bind-Value="Model.Days"
+                   Items="Enum.GetValues<DayOfWeek>()"
+                   Orientation="Orientation.Horizontal" />
+    <CheckboxGroup @bind-Value="Model.Notify"
+                   Items="Topics"
+                   SelectAll
+                   SelectAllText="Everything" />
     <CheckboxGroup @bind-Value="Model.Cuisines" Items="Cuisines" Chips />
 
     Posting: each checked box posts the field's name with its value, and Blazor binds the

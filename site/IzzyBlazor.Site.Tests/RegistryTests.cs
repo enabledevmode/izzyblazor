@@ -20,6 +20,17 @@ public class RegistryTests
         Assert.True(unknown.Count == 0, $"Not public components: {string.Join(", ", unknown)}");
     }
 
+    // A Usage snippet is read at a glance: a tag that won't fit puts one attribute on each line.
+    [Fact]
+    public void Usage_snippets_fit_without_scrolling()
+    {
+        var wide = Api.File.Components
+            .SelectMany(c => (c.Examples ?? []).SelectMany(e => e.Split('\n')).Where(l => l.TrimEnd().Length > 80).Select(l => $"{c.Name}: {l.Trim()}"))
+            .ToList();
+
+        Assert.True(wide.Count == 0, $"Usage lines over 80 characters:\n{string.Join("\n", wide)}");
+    }
+
     [Fact]
     public void Every_example_has_a_file_and_every_file_is_registered()
     {

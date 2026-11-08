@@ -52,7 +52,9 @@ public enum RowActionOverflow
 /// <code>
 /// &lt;ActionColumn Context="o"&gt;
 ///     &lt;EditAction /&gt;
-///     &lt;RowAction Icon="Lucide.Copy" Label="Duplicate" Href="@($"/orders/new?from={o.Id}")" /&gt;
+///     &lt;RowAction Icon="Lucide.Copy"
+///                Label="Duplicate"
+///                Href="@($"/orders/new?from={o.Id}")" /&gt;
 ///     &lt;DeleteAction /&gt;
 /// &lt;/ActionColumn&gt;
 /// </code>
@@ -336,7 +338,13 @@ public sealed class EditField : ComponentBase
 }
 
 /// <summary>An action of your own on a row: an icon button with a tooltip, or an item in its menu.</summary>
-/// <example><code>&lt;RowAction Icon="Lucide.Copy" Label="@($"Duplicate {o.Id}")" Href="@($"/orders/new?from={o.Id}")" /&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;RowAction Icon="Lucide.Copy"
+///            Label="@($"Duplicate {o.Id}")"
+///            Href="@($"/orders/new?from={o.Id}")" /&gt;
+/// </code>
+/// </example>
 public sealed class RowAction : RowActionBase
 {
     /// <summary>Its icon.</summary>

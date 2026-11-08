@@ -8,9 +8,17 @@
     and Home/End, and needs no script. With JavaScript the track fills up to the thumb and a value
     tooltip follows as you drag.
     <Slider @bind-Value="Model.Volume" ValueTooltip="SliderTooltip.Active" />
-    <Slider @bind-Value="Model.Discount" Max="50" Step="5" ValueFormat="{0}%" ShowEnds ShowStepMarks />
-    <Slider @bind-Value="Model.Temperature" Marks="@(new SliderMark[] { new(0, "0°C"), new(37, "37°C"), new(100, "100°C") })" />
-    <Slider @bind-Value="Model.Microphone" Orientation="Orientation.Vertical" ValueTooltip="SliderTooltip.Always" />
+    <Slider @bind-Value="Model.Discount"
+            Max="50"
+            Step="5"
+            ValueFormat="{0}%"
+            ShowEnds
+            ShowStepMarks />
+    <Slider @bind-Value="Model.Temperature"
+            Marks="@([new(0, "0°C"), new(37, "37°C"), new(100, "100°C")])" />
+    <Slider @bind-Value="Model.Microphone"
+            Orientation="Orientation.Vertical"
+            ValueTooltip="SliderTooltip.Always" />
 
     Accessibility:
     - It renders a native range `input` (a slider to screen readers): arrow keys, Page Up/Down and

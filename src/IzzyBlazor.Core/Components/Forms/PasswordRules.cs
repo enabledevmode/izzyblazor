@@ -11,7 +11,8 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;PasswordField @bind-Value="Model.Password" Requirements="new PasswordRules { RequiredLength = 12 }" /&gt;
+/// &lt;PasswordField @bind-Value="Model.Password"
+///                Requirements="new PasswordRules { RequiredLength = 12 }" /&gt;
 ///
 /// @* From Identity's options: *@
 /// Requirements="new PasswordRules { RequiredLength = o.RequiredLength, RequireDigit = o.RequireDigit, ... }"

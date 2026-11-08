@@ -8,7 +8,10 @@
     label under it. 12rem wide unless Width says otherwise, and never wider than its container.
 
     <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" Target="0.8">
-        <GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" />
+        <GaugeBand From="0.7"
+                   To="0.9"
+                   Accent="Accent.From(Color.Warning)"
+                   Label="High" />
         <GaugeBand From="0.9" To="1" Accent="Accent.Danger" Label="Critical" />
     </Gauge>
 

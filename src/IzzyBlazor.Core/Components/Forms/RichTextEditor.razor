@@ -11,7 +11,10 @@
     time it binds, with no styles or classes, so it shows the same anywhere (show it with RichText).
 
     <RichTextEditor @bind-Value="Model.Body" Label="Message" />
-    <RichTextEditor @bind-Value="Model.Notes" Label="Notes" Tools="RichTextTools.Basic" Rows="4" />
+    <RichTextEditor @bind-Value="Model.Notes"
+                    Label="Notes"
+                    Tools="RichTextTools.Basic"
+                    Rows="4" />
 
     The page renders the formatted text before any script runs, and a text box beside it, hidden
     with script, holds the HTML: the script keeps it current as you type, so the field posts in a

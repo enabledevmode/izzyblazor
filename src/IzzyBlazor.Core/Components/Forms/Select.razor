@@ -9,7 +9,10 @@
     A native select. Options come from Items, or from an enum's values when the bound property is
     an enum (Model.Plan here).
     <Select @bind-Value="Model.Plan" />
-    <Select @bind-Value="Model.CountryId" Items="Countries" ItemText="c => Names[c]" Placeholder="Choose a country" />
+    <Select @bind-Value="Model.CountryId"
+            Items="Countries"
+            ItemText="c => Names[c]"
+            Placeholder="Choose a country" />
 
     Where the browser supports the customizable select (appearance: base-select), the open list
     is themed and ItemTemplate's markup is shown in it and in the closed field. Elsewhere the

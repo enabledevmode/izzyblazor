@@ -9,7 +9,13 @@ namespace IzzyBlazor;
 /// an <see cref="AppBrand"/>'s name hides by itself; mark other text with
 /// <c>class="ib-collapsed-hide"</c>. Write it directly in the sidebar.
 /// </summary>
-/// <example><code>&lt;SidebarHeader&gt;&lt;AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" /&gt;&lt;/SidebarHeader&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;SidebarHeader&gt;
+///     &lt;AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" /&gt;
+/// &lt;/SidebarHeader&gt;
+/// </code>
+/// </example>
 public sealed class SidebarHeader : ComponentPart
 {
     internal override Type HostType => typeof(AppSidebar);

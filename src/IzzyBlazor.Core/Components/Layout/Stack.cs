@@ -50,7 +50,9 @@ public abstract class FlexBase : Box
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="Align.Center"&gt;
+/// &lt;Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }"
+///        Gap="4"
+///        Align="Align.Center"&gt;
 /// </code>
 /// </example>
 /// <accessibility>

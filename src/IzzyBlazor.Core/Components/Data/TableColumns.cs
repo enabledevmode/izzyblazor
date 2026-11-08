@@ -857,7 +857,13 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
 /// A column with any content per item, such as a badge or buttons. Give it <see cref="SortBy"/>
 /// to make it sortable.
 /// </summary>
-/// <example><code>&lt;TemplateColumn Title="Status" SortBy="o =&gt; o.Status" Sortable&gt;&lt;Badge&gt;@context.Status&lt;/Badge&gt;&lt;/TemplateColumn&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;TemplateColumn Title="Status" SortBy="o =&gt; o.Status" Sortable&gt;
+///     &lt;Badge&gt;@context.Status&lt;/Badge&gt;
+/// &lt;/TemplateColumn&gt;
+/// </code>
+/// </example>
 public class TemplateColumn<TItem> : ColumnBase<TItem>
 {
     /// <summary>The cell content; <c>context</c> is the item.</summary>
