@@ -74,6 +74,7 @@ jobs:
           chart=$(gzip -c src/IzzyBlazor.Core/wwwroot/chart.css | wc -c)
           heatmap=$(gzip -c src/IzzyBlazor.Core/wwwroot/heatmap.css | wc -c)
           radar=$(gzip -c src/IzzyBlazor.Core/wwwroot/radar.css | wc -c)
+          sankey=$(gzip -c src/IzzyBlazor.Core/wwwroot/sankey.css | wc -c)
           tabsedit=$(gzip -c src/IzzyBlazor.Core/wwwroot/tabs-edit.css | wc -c)
           echo "CSS gzip: $css bytes (budget 51500)"
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
@@ -81,6 +82,7 @@ jobs:
           echo "chart.css gzip: $chart bytes (budget 6144; only pages with a chart load it)"
           echo "heatmap.css gzip: $heatmap bytes (budget 2048; only pages with a HeatmapChart load it)"
           echo "radar.css gzip: $radar bytes (budget 1024; only pages with a RadarChart load it)"
+          echo "sankey.css gzip: $sankey bytes (budget 1024; only pages with a SankeyChart load it)"
           echo "tabs-edit.css gzip: $tabsedit bytes (budget 1024; only tabs with close or add controls load it)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
@@ -97,7 +99,7 @@ jobs:
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
           echo "Largest on-demand element: $big bytes (budget 6144)"
-          test "$css" -le 51500 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6144 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$tabsedit" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
+          test "$css" -le 51500 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6144 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$tabsedit" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
 
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts

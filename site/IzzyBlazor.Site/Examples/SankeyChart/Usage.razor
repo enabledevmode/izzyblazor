@@ -1,0 +1,24 @@
+@* A household's take-home pay for October, through its budget into what it went on. *@
+<SankeyChart Items="_flows"
+             From="f => f.From"
+             To="f => f.To"
+             Value="f => f.Amount"
+             ValueFormat="C0"
+             LinkColor="SankeyLinkColor.Gradient"
+             Title="October's budget" />
+
+@code {
+    private record Flow(string From, string To, decimal Amount);
+
+    private readonly Flow[] _flows =
+    [
+        new("Salary", "Budget", 4200),
+        new("Freelance", "Budget", 800),
+        new("Budget", "Housing", 1700),
+        new("Budget", "Savings", 1000),
+        new("Budget", "Food", 800),
+        new("Budget", "Leisure", 750),
+        new("Budget", "Transport", 450),
+        new("Budget", "Utilities", 300),
+    ];
+}

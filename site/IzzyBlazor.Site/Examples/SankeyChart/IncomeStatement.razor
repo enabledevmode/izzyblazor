@@ -1,0 +1,49 @@
+@* A software company's year, in millions: revenue by segment, through costs, to net profit. *@
+<SankeyChart Items="_flows"
+             From="f => f.From"
+             To="f => f.To"
+             Value="f => f.Millions"
+             ValueFormat="$#,##0M"
+             LinkColor="SankeyLinkColor.Target"
+             Height="Length.Rem(22)"
+             Title="Income statement, 2025">
+    @foreach (var name in _segments)
+    {
+        <SankeyNode Name="@name" Color="var(--ib-color-neutral)" />
+    }
+    @foreach (var name in _profit)
+    {
+        <SankeyNode Name="@name" Color="var(--ib-color-success)" />
+    }
+    @foreach (var name in _costs)
+    {
+        <SankeyNode Name="@name" Color="var(--ib-color-danger)" />
+    }
+</SankeyChart>
+
+@code {
+    private record Flow(string From, string To, decimal Millions);
+
+    private readonly string[] _segments = ["Licenses", "Subscriptions", "Services", "Revenue"];
+    private readonly string[] _profit = ["Gross profit", "Operating profit", "Net profit"];
+    private readonly string[] _costs =
+        ["Cost of revenue", "Hosting", "Support", "Operating expenses", "R&D", "Sales & marketing", "Admin", "Tax"];
+
+    private readonly Flow[] _flows =
+    [
+        new("Licenses", "Revenue", 420),
+        new("Subscriptions", "Revenue", 260),
+        new("Services", "Revenue", 180),
+        new("Revenue", "Gross profit", 520),
+        new("Revenue", "Cost of revenue", 340),
+        new("Cost of revenue", "Hosting", 220),
+        new("Cost of revenue", "Support", 120),
+        new("Gross profit", "Operating profit", 210),
+        new("Gross profit", "Operating expenses", 310),
+        new("Operating expenses", "R&D", 140),
+        new("Operating expenses", "Sales & marketing", 120),
+        new("Operating expenses", "Admin", 50),
+        new("Operating profit", "Net profit", 165),
+        new("Operating profit", "Tax", 45),
+    ];
+}

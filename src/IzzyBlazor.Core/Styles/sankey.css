@@ -1,0 +1,121 @@
+/*
+ * SankeyChart's styles, built to wwwroot/sankey.css and linked by it beside chart.css (whose
+ * figure, title, palette, tooltip and data table it uses).
+ *
+ * The plot is as wide as its container and --ib-chart-height tall. The flows are filled bands in
+ * a 1000 × 1000 SVG box stretched to the plot (a band has no stroke, so stretching keeps its
+ * width true), inset by half a node's width at either side so a band starts at its node's middle.
+ * Nodes are HTML bars 12px wide over it: --x is a node's column as a share of the width, 0 the
+ * first and 1 the last. Labels are HTML beside their bars, the last column's turned inward.
+ * --ib-sankey-cols is the number of gaps between columns, for the labels' widest.
+ */
+
+@layer izzy.components {
+  .ib-sankey {
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-sankey-plot {
+    --w: var(--ib-sankey-node-width, 12px);
+    position: relative;
+    height: var(--ib-chart-height, 18rem);
+  }
+
+  .ib-sankey-plot:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 4px;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-sankey-links {
+    position: absolute;
+    inset: 0 calc(var(--w) / 2);
+    width: calc(100% - var(--w));
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* See-through, so crossing flows show; stronger on a dark surface, where 40% reads murky. */
+  .ib-sankey-link {
+    fill: light-dark(
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.4) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.6) * 100%), transparent));
+    transition: fill-opacity 0.15s;
+  }
+
+  .ib-sankey-neutral { --ib-chart-c: var(--ib-color-neutral); }
+
+  /* A gradient flow's two ends, mixed as a flow's color is. */
+  .ib-sankey-stop {
+    stop-color: light-dark(
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.4) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.6) * 100%), transparent));
+  }
+
+  :is(.ib-sankey-nodes, .ib-sankey-labels) {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .ib-sankey-node {
+    position: absolute;
+    left: calc(var(--x) * (100% - var(--w)));
+    width: var(--w);
+    min-height: 1px;
+    border-radius: 2px;
+    background-color: var(--ib-chart-c);
+    pointer-events: auto;
+  }
+
+  /* Beside its bar at its middle, on a pill of the surface so it reads over the bands. Physical
+     sides, as the columns are: the plot doesn't turn for a right-to-left page. */
+  .ib-sankey-label {
+    position: absolute;
+    left: calc(var(--x) * (100% - var(--w)) + var(--w) + 4px);
+    max-width: calc((100% - var(--w)) / var(--ib-sankey-cols, 1) - var(--w) - 12px);
+    translate: 0 -50%;
+    padding: 1px 5px;
+    overflow: hidden;
+    border-radius: var(--ib-radius-sm);
+    background-color: color-mix(in srgb, var(--ib-color-surface) 85%, transparent);
+    color: var(--ib-color-on-surface);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    pointer-events: auto;
+  }
+
+  /* Facing a label across the last gap at the same height: half the gap each. */
+  .ib-sankey-half { max-width: calc(((100% - var(--w)) / var(--ib-sankey-cols, 1) - var(--w)) / 2 - 8px); }
+
+  .ib-sankey-label-end {
+    left: auto;
+    right: calc(var(--w) + 4px);
+    text-align: right;
+  }
+
+  .ib-sankey-value {
+    margin-inline-start: 0.35em;
+    color: var(--ib-color-muted);
+  }
+
+  /* While a flow or node is pointed at (or the keys are on a node): the rest fade. */
+  .ib-sankey-plot[data-ib-focus] .ib-sankey-link:not([data-ib-active]) { fill-opacity: 0.25; }
+  .ib-sankey-plot[data-ib-focus] .ib-sankey-link[data-ib-active] { --ib-sankey-link-opacity: 0.75; }
+  .ib-sankey-plot[data-ib-focus] :is(.ib-sankey-node, .ib-sankey-label):not([data-ib-active]) { opacity: 0.3; }
+
+  /* The plot's shapes leave the pointer to the script, whose tooltip stands in for their titles. */
+  ib-chart[data-ib-tooltips] :is(.ib-sankey-links, .ib-sankey-node, .ib-sankey-label) { pointer-events: none; }
+
+  /* On a phone, names only: the tooltip and the table still have the values. */
+  @container ib-chart (width < 30rem) { .ib-sankey-value { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) { .ib-sankey-link { transition: none; } }
+
+  @media (forced-colors: active) {
+    .ib-sankey-links { forced-color-adjust: none; }
+    .ib-sankey-node { forced-color-adjust: none; outline: 1px solid CanvasText; }
+  }
+}

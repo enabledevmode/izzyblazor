@@ -2,6 +2,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
 import type { DrawData, PieDrawData, draw as Draw, drawPie as DrawPie } from "./chart-draw";
 import type { heat as Heat } from "./chart-heat";
 import type { radar as Radar } from "./chart-radar";
+import type { sankey as Sankey } from "./chart-sankey";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
 type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie };
@@ -55,6 +56,14 @@ class Chart extends IzzyElement {
     if (this.hasAttribute("data-ib-radar")) {
       (import("./parts/chart-radar.js" as string) as Promise<{ radar: typeof Radar }>).then((m) => {
         if (!signal.aborted) m.radar(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
+      });
+      return;
+    }
+
+    // A SankeyChart: its own part (chart-sankey.ts), loaded when one is on the page.
+    if (this.hasAttribute("data-ib-sankey")) {
+      (import("./parts/chart-sankey.js" as string) as Promise<{ sankey: typeof Sankey }>).then((m) => {
+        if (!signal.aborted) m.sankey(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
       });
       return;
     }

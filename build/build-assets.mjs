@@ -229,6 +229,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "radar.css"),
   },
   {
+    // A sheet of its own, linked by SankeyChart beside chart.css.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "sankey.css")],
+    outfile: join(lib, "wwwroot", "sankey.css"),
+  },
+  {
     // A sheet of its own, linked by Chat.
     ...common,
     sourcemap: false,
@@ -353,6 +360,8 @@ const builds = [
       "elements/parts/chart-heat": join(lib, "Scripts", "elements", "chart-heat.ts"),
       // RadarChart's tooltip, keys and legend, loaded where there's a radar.
       "elements/parts/chart-radar": join(lib, "Scripts", "elements", "chart-radar.ts"),
+      // SankeyChart's tooltip, fading and keys, loaded where there's a Sankey.
+      "elements/parts/chart-sankey": join(lib, "Scripts", "elements", "chart-sankey.ts"),
       // RichTextEditor's alignment and span formats, for editors that use them.
       "elements/parts/rich-text-format": join(lib, "Scripts", "elements", "rich-text-format.ts"),
       // Its link dialog, loaded when the dialog first opens.
