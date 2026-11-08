@@ -86,7 +86,7 @@
 
   .ib-chart-frame {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto [plot] minmax(0, 1fr);
     grid-template-rows: var(--ib-chart-height, 18rem) auto;
     column-gap: var(--ib-space-2);
     padding-block-start: 0.5lh;
@@ -141,7 +141,7 @@
   /* Axis titles: one in a column of its own beside the side's labels, read bottom to top, and
      one under the bottom's, each a little further from its labels than they are from the plot,
      and in the text color, so neither reads as one more label. */
-  .ib-chart-titled { grid-template-columns: auto auto minmax(0, 1fr); }
+  .ib-chart-titled { grid-template-columns: auto auto [plot] minmax(0, 1fr); }
 
   .ib-chart-title {
     color: var(--ib-color-on-surface);
@@ -157,10 +157,8 @@
 
   .ib-chart-title-bottom { margin-block-start: var(--ib-space-2); }
 
-  /* A second value axis: its labels and title after the plot, the bottom axis kept under it. */
-  .ib-chart-dual { grid-template-columns: auto minmax(0, 1fr) auto auto; }
-  .ib-chart-titled.ib-chart-dual { grid-template-columns: auto auto minmax(0, 1fr) auto auto; }
-  .ib-chart-dual > :is(.ib-chart-bottom, .ib-chart-title-bottom) { grid-column: -4; }
+  /* An axis at the right (a second value axis, or the first one's Position): its labels and
+     title after the plot, in columns the frame's style adds. */
   .ib-chart-side2 > * > span { text-align: start; }
 
   .ib-chart-title-side2 {
@@ -344,7 +342,7 @@
     font-weight: var(--ib-weight-medium);
   }
 
-  .ib-chart-dual .ib-chart-side2 { margin-inline-start: var(--ib-chart-ends, 0); }
+  .ib-chart-side2 { margin-inline-start: var(--ib-chart-ends, 0); }
 
   /* Reference lines, bands and notes: HTML over the plot (bands under it). Each sits between --p
      and --q, 0 to 1 along its axis: up from the bottom (-y) or across from the left (-x). The
@@ -555,7 +553,7 @@
 
   /* Arguments (or values, for bars across) along the bottom, centered on their place. */
   .ib-chart-bottom {
-    grid-column: -2;
+    grid-column: plot;
     position: relative;
     height: var(--ib-chart-bh, 1lh);
     /* Clear of the lowest value label, which is centered on the plot's bottom edge: the first
@@ -563,7 +561,14 @@
     margin-block-start: var(--ib-space-2);
   }
 
-  .ib-chart-title-bottom { grid-column: -2; }
+  .ib-chart-title-bottom { grid-column: plot; }
+
+  /* Values along the top of bars across (the value axis's Position Top): its title, then its
+     labels, then the plot's row. */
+  .ib-chart-vt { grid-template-rows: auto auto var(--ib-chart-height, 18rem); }
+  .ib-chart-vt > * { grid-row: 3; }
+  .ib-chart-vt > .ib-chart-bottom { grid-row: 2; margin-block: 0 var(--ib-space-2); }
+  .ib-chart-vt > .ib-chart-title-bottom { grid-row: 1; margin-block: 0 var(--ib-space-2); }
 
   .ib-chart-two-line { height: 2lh; }
 

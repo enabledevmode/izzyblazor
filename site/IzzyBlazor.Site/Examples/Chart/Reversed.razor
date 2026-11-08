@@ -1,6 +1,6 @@
-@* An Arabic store's monthly sales, right to left: the months run backward, January at the right. *@
+@* An Arabic store's monthly sales, right to left: the months run backward, January at the right, with the values beside it. *@
 <Chart Items="_months" Argument="m => m.Month" Title="المبيعات الشهرية، 2026" dir="rtl" lang="ar">
-    <ChartValueAxis Format="N0" Title="ألف ريال" />
+    <ChartValueAxis Format="N0" Title="ألف ريال" Position="ChartAxisPosition.Right" />
     <ChartArgumentAxis Title="الشهر" Reverse />
     <ChartBarSeries Value="m => m.Sales" Name="المبيعات" />
 </Chart>

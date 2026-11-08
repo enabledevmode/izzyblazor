@@ -82,6 +82,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 
     /// <summary>Whether the arguments run backward: right to left, or bottom to top across.</summary>
     public bool ArgumentReverse { get; init; }
+
+    /// <summary>The first value axis at the right: no column at the left for the first name, turned, to reach into.</summary>
+    public bool ValueRight { get; init; }
     public ChartLabelFit ArgumentLabels { get; init; }
     public Func<double, string>? ValueFormatter { get; init; }
     public Func<object?, string>? ArgumentFormatter { get; init; }
@@ -450,7 +453,7 @@ internal static class ChartLayout
             }
             else
             {
-                CategoryLabels(model, positions, argumentRoomPx, input.ArgumentLabels, input.ArgumentReverse);
+                CategoryLabels(model, positions, argumentRoomPx, input.ArgumentLabels, input.ArgumentReverse, input.ValueRight);
             }
         }
         else
@@ -1401,7 +1404,7 @@ internal static class ChartLayout
 
     // Bands: label i shows at stride 1, 2, 4… when i is a multiple of it.
     // Reversed, the strides count from the last name, which then sits at the start (the left).
-    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartLabelFit mode, bool reverse)
+    private static void CategoryLabels(ChartModel model, double[] positions, double columnPx, ChartLabelFit mode, bool reverse, bool valueRight)
     {
         var n = positions.Length;
         if (n == 0) return;
@@ -1445,7 +1448,7 @@ internal static class ChartLayout
 
             var turned = model.ArgumentTexts.Select(t => Math.Min(Width(t), TurnedMaxPx)).Max();
             model.TurnedPx = Math.Ceiling((turned + LineHeightPx / 2) * Math.Sqrt(0.5) + LineHeightPx / 2);
-            model.LeadPx = Math.Ceiling(Math.Max(0, Math.Min(Width(model.ArgumentTexts[reverse ? n - 1 : 0]), TurnedMaxPx) * Math.Sqrt(0.5) - columnPx));
+            model.LeadPx = Math.Ceiling(Math.Max(0, Math.Min(Width(model.ArgumentTexts[reverse ? n - 1 : 0]), TurnedMaxPx) * Math.Sqrt(0.5) - (valueRight ? 0 : columnPx)));
         }
 
         for (var i = 0; i < n; i++)

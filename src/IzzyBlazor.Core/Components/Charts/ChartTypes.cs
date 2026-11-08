@@ -51,6 +51,25 @@ public enum ChartCurve
     Step,
 }
 
+/// <summary>The side of the plot a value axis is drawn at.</summary>
+public enum ChartAxisPosition
+{
+    /// <summary>At the left on an upright chart, along the bottom on a horizontal one.</summary>
+    Auto,
+
+    /// <summary>At the left of an upright chart.</summary>
+    Left,
+
+    /// <summary>At the right of an upright chart, as in a chart that reads right to left, with the values beside its first argument.</summary>
+    Right,
+
+    /// <summary>Along the bottom of a horizontal chart.</summary>
+    Bottom,
+
+    /// <summary>Along the top of a horizontal chart, so the values read before a long list of bars.</summary>
+    Top,
+}
+
 /// <summary>Whether a chart has a legend, and where it goes.</summary>
 public enum ChartLegend
 {

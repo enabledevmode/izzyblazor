@@ -54,15 +54,15 @@ public abstract class ChartAxisBase : ComponentBase, IDisposable
 }
 
 /// <summary>
-/// A chart's value axis: its range, ticks, format and title. A second
-/// <c>ChartValueAxis</c> with a <see cref="Name"/> is drawn at the end side, for series in other
+/// A chart's value axis: its range, ticks, format, title and side. A second
+/// <c>ChartValueAxis</c> with a <see cref="Name"/> is drawn at the other side, for series in other
 /// units that name it as their <c>ValueAxis</c>:
 /// <c>&lt;ChartValueAxis Name="margin" Format="P0" Title="Margin" /&gt;</c>.
 /// </summary>
 public sealed class ChartValueAxis : ChartAxisBase
 {
     /// <summary>
-    /// The axis's name, which makes it the second value axis, at the end side: series and
+    /// The axis's name, which makes it the second value axis, at the side across from the first: series and
     /// reference marks with this as their <c>ValueAxis</c> are read off it. The first value axis
     /// has none. A second axis has a <see cref="Format"/>, <see cref="Min"/>, <see cref="Max"/> and
     /// <see cref="ChartAxisBase.Title"/>; its ticks fall on the first axis's grid lines.
@@ -113,8 +113,21 @@ public sealed class ChartValueAxis : ChartAxisBase
     /// </summary>
     [Parameter] public bool GridLines { get; set; } = true;
 
+    /// <summary>
+    /// The side the axis is drawn at: <see cref="ChartAxisPosition.Left"/> (the default) or
+    /// <see cref="ChartAxisPosition.Right"/> on an upright chart, <see cref="ChartAxisPosition.Bottom"/>
+    /// (the default) or <see cref="ChartAxisPosition.Top"/> on a horizontal one. Sides are physical:
+    /// a right-to-left page doesn't move the axis. A second axis takes the other side. First axis only.
+    /// </summary>
+    [Parameter] public ChartAxisPosition Position { get; set; }
+
     private protected override void Check()
     {
+        if (Name is not null && Position != ChartAxisPosition.Auto)
+        {
+            throw new InvalidOperationException("A second ChartValueAxis takes the side across from the first: set Position on the first axis.");
+        }
+
         if (Min is { } lo && Max is { } hi && !(hi > lo))
         {
             throw new ArgumentOutOfRangeException(nameof(Max), hi, "A ChartValueAxis's Max must be more than its Min.");
