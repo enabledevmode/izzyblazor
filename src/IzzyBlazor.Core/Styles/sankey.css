@@ -110,6 +110,9 @@
       color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, transparent));
   }
 
+  /* The flow's copy over the rest, shown only while it's marked. */
+  .ib-sankey-raise:not([data-ib-active]) { display: none; }
+
   linearGradient[data-ib-active] > .ib-sankey-stop {
     stop-color: light-dark(
       color-mix(in srgb, var(--ib-chart-c) 30%, transparent),

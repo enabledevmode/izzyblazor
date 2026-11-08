@@ -349,8 +349,14 @@
                         }
                         @foreach (var l in model.Links.OrderByDescending(l => l.Width))
                         {
-                            <path class="@LinkClass(l)" style="@LinkStyle(l)" d="@l.Path" data-ib-link="@l.Index" data-ib-from="@l.Source" data-ib-to="@l.Target">@if (tooltip)
+                            <path id="@($"{_labelId}-l{l.Index}")" class="@LinkClass(l)" style="@LinkStyle(l)" d="@l.Path" data-ib-link="@l.Index" data-ib-from="@l.Source" data-ib-to="@l.Target">@if (tooltip)
                             {<title>@($"{Arrow(l)}: {Format(l.Value)}")</title>}</path>
+                        }
+                        @* A copy of each flow over the rest, shown while it's pointed at, so it comes to the
+                           front: the script marks these rather than move what Blazor drew. *@
+                        @foreach (var l in model.Links)
+                        {
+                            <use class="ib-sankey-raise" href="@($"#{_labelId}-l{l.Index}")" data-ib-raise="@l.Index" />
                         }
                     </svg>
                     <div class="ib-sankey-nodes" aria-hidden="true">
