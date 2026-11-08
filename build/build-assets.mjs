@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "heatmap.css"),
   },
   {
+    // A sheet of its own, linked by RadarChart beside chart.css.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "radar.css")],
+    outfile: join(lib, "wwwroot", "radar.css"),
+  },
+  {
     // A sheet of its own, linked by Chat.
     ...common,
     sourcemap: false,
@@ -344,6 +351,8 @@ const builds = [
       "elements/parts/chart-draw": join(lib, "Scripts", "elements", "chart-draw.ts"),
       // HeatmapChart's tooltip, keys, legend and fitting, loaded where there's a heatmap.
       "elements/parts/chart-heat": join(lib, "Scripts", "elements", "chart-heat.ts"),
+      // RadarChart's tooltip, keys and legend, loaded where there's a radar.
+      "elements/parts/chart-radar": join(lib, "Scripts", "elements", "chart-radar.ts"),
       // RichTextEditor's alignment and span formats, for editors that use them.
       "elements/parts/rich-text-format": join(lib, "Scripts", "elements", "rich-text-format.ts"),
       // Its link dialog, loaded when the dialog first opens.

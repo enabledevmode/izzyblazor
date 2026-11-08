@@ -1,0 +1,21 @@
+@* A hiring panel's average ratings, 1 to 5, for three candidates in six competencies. *@
+<RadarChart Items="_ratings" Argument="r => r.Competency" Max="5" ValueFormat="0.0"
+            Title="Panel ratings, senior engineer">
+    <RadarSeries Value="r => r.Rating" SeriesBy="r => r.Candidate" />
+</RadarChart>
+
+@code {
+    private record PanelRating(string Candidate, string Competency, double Rating);
+
+    private static readonly string[] Competencies = ["Problem solving", "Technical depth", "Ownership", "Leadership", "Communication", "Collaboration"];
+
+    private static readonly (string Candidate, double[] Ratings)[] Panel =
+    [
+        ("Ana", [4.5, 4.7, 4.0, 3.2, 3.8, 4.2]),
+        ("Ben", [3.6, 3.4, 3.9, 4.1, 4.6, 4.4]),
+        ("Chen", [4.1, 4.4, 4.6, 3.8, 3.5, 3.7]),
+    ];
+
+    private readonly PanelRating[] _ratings =
+        [.. Panel.SelectMany(p => Competencies.Select((c, i) => new PanelRating(p.Candidate, c, p.Ratings[i])))];
+}

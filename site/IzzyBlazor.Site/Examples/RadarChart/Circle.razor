@@ -1,0 +1,17 @@
+@* Average daily highs by month, in °F (1991–2020 normals). *@
+<RadarChart Items="_months" Argument="m => m.Month" Grid="RadarGrid.Circle" ValueFormat="0°"
+            Title="Average daily high (°F)">
+    <RadarSeries Value="m => m.Phoenix" Fill="true" />
+    <RadarSeries Value="m => m.Seattle" Fill="true" />
+</RadarChart>
+
+@code {
+    private record MonthHighs(string Month, double Phoenix, double Seattle);
+
+    private readonly MonthHighs[] _months =
+    [
+        new("Jan", 67, 48), new("Feb", 71, 50), new("Mar", 77, 54), new("Apr", 85, 59),
+        new("May", 95, 65), new("Jun", 104, 70), new("Jul", 106, 76), new("Aug", 104, 76),
+        new("Sep", 100, 71), new("Oct", 89, 60), new("Nov", 76, 52), new("Dec", 66, 47),
+    ];
+}
