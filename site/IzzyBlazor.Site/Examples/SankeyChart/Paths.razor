@@ -8,7 +8,7 @@
              LinkColor="SankeyLinkColor.Neutral"
              Title="Visits to sign-ups, October">
     <SankeyNode Name="Signed up" Color="var(--ib-color-success)" />
-    <SankeyNode Name="Left" Color="var(--ib-color-neutral)" />
+    <SankeyNode Name="Didn't sign up" Color="var(--ib-color-neutral)" />
 </SankeyChart>
 
 @code {
@@ -26,10 +26,10 @@
         new("Referral", "Pricing", 900),
         new("Referral", "Home page", 600),
         new("Home page", "Signed up", 1100),
-        new("Home page", "Left", 8200),
+        new("Home page", "Didn't sign up", 8200),
         new("Pricing", "Signed up", 1300),
-        new("Pricing", "Left", 3200),
+        new("Pricing", "Didn't sign up", 3200),
         new("Blog", "Signed up", 300),
-        new("Blog", "Left", 5700),
+        new("Blog", "Didn't sign up", 5700),
     ];
 }

@@ -38,6 +38,7 @@ public class SankeyChartTests : BunitContext
             .Add(c => c.To, f => f.To)
             .Add(c => c.Value, f => f.Amount)
             .Add(c => c.Title, "Budget")
+            .Add(c => c.Values, true)
             .AddChildContent<SankeyNode>(n => n.Add(x => x.Name, "Rainy day").Add(x => x.Label, "Emergency fund")));
 
         // Seven nodes (no Gifts), each labeled with its value; Rent ends in the last column with Pension.

@@ -22,7 +22,8 @@
     add up; zero, negative and missing values are left out. A node is as tall as the larger of what
     flows in and out of it. Flows can't loop back to a node they came from. Columns follow the
     flows (NodeAlign); within a column the nodes move to cross as few flows as they can, or keep
-    the items' order (NodeOrder). A Sankey reads best with a few stages and up to about 30 nodes;
+    the items' order (NodeOrder). Each node's name sits beside its bar; Values adds what flows
+    through it. A Sankey reads best with a few stages and up to about 30 nodes;
     when the flows are of similar sizes, or only their totals matter, a stacked bar chart reads
     better.
 
@@ -32,8 +33,8 @@
     - "Show data" under the chart opens a table of every flow: from, to, value and its share of
       what leaves its node (DataTable).
     - Nodes are told apart by their labels and places, not only by color.
-    - With script, the diagram is one Tab stop: the arrow keys move from node to node and say
-      each one's flows in and out.
+    - With IzzyBlazor's script, the diagram is one Tab stop: the arrow keys move from
+      node to node and say each one's flows in and out.
 
     Keyboard:
     On the diagram
@@ -63,7 +64,11 @@
     /// <summary>The flows, one item each: where it comes from, where it goes and how much.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
-    /// <summary>The node each flow comes from, such as <c>f =&gt; f.From</c>. Nodes keep the order the items first name them in.</summary>
+    /// <summary>
+    /// The node each flow comes from, such as <c>f =&gt; f.From</c>. Nodes take the palette's
+    /// colors, and with <see cref="SankeyOrder.Data"/> their order, in the order the items first
+    /// name them.
+    /// </summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> From { get; set; } = default!;
 
     /// <summary>The node each flow goes to, such as <c>f =&gt; f.To</c>.</summary>
@@ -100,7 +105,8 @@
     /// Which column each node goes in: <see cref="SankeyAlign.Justify"/> (the default) puts every
     /// node with no flows out in the last column; <see cref="SankeyAlign.Start"/> keeps each as
     /// far left as it can, <see cref="SankeyAlign.End"/> as far right, and
-    /// <see cref="SankeyAlign.Center"/> puts a node with no flows in just before where it flows.
+    /// <see cref="SankeyAlign.Center"/> puts a node with no flows in just before where it flows, and
+    /// the rest as Start does.
     /// </summary>
     [Parameter] public SankeyAlign NodeAlign { get; set; }
 
@@ -119,8 +125,11 @@
     /// </summary>
     [Parameter] public SankeyLinkColor LinkColor { get; set; }
 
-    /// <summary>Writes each node's value after its name. On by default; the tooltips and the table still have the values when it's off.</summary>
-    [Parameter] public bool NodeValues { get; set; } = true;
+    /// <summary>Writes each node's name beside its bar, inside the diagram. On by default; <c>false</c> leaves only the bars and flows.</summary>
+    [Parameter] public bool Labels { get; set; } = true;
+
+    /// <summary>Writes each node's value after its name, such as "Housing $1,700". Off by default; the tooltips and the table have the values.</summary>
+    [Parameter] public bool Values { get; set; }
 
     /// <summary>The diagram's height. Defaults to 18rem.</summary>
     [Parameter] public Length? Height { get; set; }
@@ -133,10 +142,13 @@
     [Parameter] public ChartPalette? Palette { get; set; }
 
     /// <summary>
-    /// The tooltip for the flow or node under the pointer, or the node the keyboard is on (with
-    /// script). On by default; <c>false</c> leaves it out, with no keys either.
+    /// A tooltip for the flow or node under the pointer, and the arrow keys from node to node,
+    /// each saying its flows (with IzzyBlazor's script; with JavaScript off, a hover title). On by
+    /// default; <c>false</c> leaves them out, and pointing at a flow or node only strengthens its flows.
+    /// A <see cref="ChartTooltip{TItem}"/>'s context for flows that add up is the first of their
+    /// items, with the sum as its one point's value.
     /// </summary>
-    [Parameter] public bool? Tooltip { get; set; }
+    [Parameter] public bool Tooltip { get; set; } = true;
 
     /// <summary>The flows as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
     [Parameter] public ChartDataTable DataTable { get; set; }
@@ -246,11 +258,13 @@
         string Label(int k) => options.TryGetValue(nodeNames[k], out var o) && o.Label is { } l ? l : nodeNames[k];
         string? Custom(int k) => options.TryGetValue(nodeNames[k], out var o) && o.Color is { } c ? StyleValues.Raw(c, "color") : null;
 
-        var height = HeightInPixels(Height);
+        // Below 40px there's no room for a label; the layout keeps that as its least.
+        var height = Math.Max(40, HeightInPixels(Height));
         var model = SankeyLayout.Build(nodeNames.Length, flows.Select(f => new SankeyLinkInput(f.From, f.To, f.Value)).ToList(),
             nodeNames.Select((_, k) => Label(k)).ToList(), NodeAlign, NodeOrder, height);
         var last = Math.Max(1, model.Columns - 1);
-        var tooltip = (Tooltip ?? true) && model.Nodes.Count > 0;
+        var tooltip = Tooltip && model.Nodes.Count > 0;
+        var labels = Labels;
         var template = _tooltips.TooltipTemplate;
         var gradients = _labelId + "-g";
 
@@ -272,6 +286,9 @@
             _ => ColorStyle(By(l)),
         };
 
+        // A flow's color in its tooltip: the gray of a neutral flow, or the node it takes its color from.
+        string FlowColor(SankeyLinkBand l) => LinkColor == SankeyLinkColor.Neutral ? "var(--ib-color-neutral)" : Color(By(l));
+
         // Each node's share of what leaves it, and the texts every part says.
         string Arrow(SankeyLinkBand l) => $"{Label(l.Source)} → {Label(l.Target)}";
         string? ShareOf(SankeyLinkBand l) => model.Nodes[l.Source].Out is > 0 and var total
@@ -285,7 +302,7 @@
         foreach (var column in model.Nodes.GroupBy(n => n.Column))
         {
             var placed = new List<double>();
-            foreach (var node in column.OrderByDescending(n => n.Value).ThenBy(n => n.Index))
+            foreach (var node in labels ? column.OrderByDescending(n => n.Value).ThenBy(n => n.Index) : Enumerable.Empty<SankeyNodeBox>())
             {
                 var y = Math.Clamp((node.Top + node.Bottom) / 2 / 100 * height, LinePx / 2, height - LinePx / 2);
                 centers[node.Index] = y / height * 100;
@@ -323,7 +340,7 @@
                             <defs>
                                 @foreach (var l in model.Links)
                                 {
-                                    <linearGradient id="@($"{gradients}{l.Index}")" gradientUnits="userSpaceOnUse" x1="@Num(1000.0 * model.Nodes[l.Source].Column / last)" x2="@Num(1000.0 * model.Nodes[l.Target].Column / last)" y1="0" y2="0">
+                                    <linearGradient id="@($"{gradients}{l.Index}")" data-ib-grad="@l.Index" gradientUnits="userSpaceOnUse" x1="@Num(1000.0 * model.Nodes[l.Source].Column / last)" x2="@Num(1000.0 * model.Nodes[l.Target].Column / last)" y1="0" y2="0">
                                         <stop class="ib-sankey-stop" offset="0" style="@($"--ib-chart-c:{Color(l.Source)}")" />
                                         <stop class="ib-sankey-stop" offset="1" style="@($"--ib-chart-c:{Color(l.Target)}")" />
                                     </linearGradient>
@@ -345,7 +362,7 @@
                     <div class="ib-sankey-labels" aria-hidden="true">
                         @foreach (var node in model.Nodes.Where(n => shown[n.Index]))
                         {
-                            <span class="@($"ib-sankey-label{(node.Column == model.Columns - 1 && model.Columns > 1 ? " ib-sankey-label-end" : "")}{(half[node.Index] ? " ib-sankey-half" : "")}")" style="@($"--x:{Num((double)node.Column / last)};top:{Num(centers[node.Index])}%")" data-ib-node="@node.Index">@Label(node.Index)@if (NodeValues)
+                            <span class="@($"ib-sankey-label{(node.Column == model.Columns - 1 && model.Columns > 1 ? " ib-sankey-label-end" : "")}{(half[node.Index] ? " ib-sankey-half" : "")}")" style="@($"--x:{Num((double)node.Column / last)};top:{Num(centers[node.Index])}%")" data-ib-node="@node.Index">@Label(node.Index)@if (Values)
                                 {<span class="ib-sankey-value">@Format(node.Value)</span>}</span>
                         }
                     </div>
@@ -392,13 +409,13 @@
                         <div data-ib-tip="@($"l{l.Index}")">
                             @if (template is not null)
                             {
-                                @template(new ChartTooltipContext<TItem>(items[flow.Item], flow.Item, Arrow(l), [new ChartTooltipPoint(_valueName ?? TextDefaults.ChartValue, l.Value, Format(l.Value), Color(By(l)))]))
+                                @template(new ChartTooltipContext<TItem>(items[flow.Item], flow.Item, Arrow(l), [new ChartTooltipPoint(_valueName ?? TextDefaults.ChartValue, l.Value, Format(l.Value), FlowColor(l))]))
                             }
                             else
                             {
                                 <div class="ib-chart-tooltip-title">@Arrow(l)</div>
                                 <div class="ib-chart-tooltip-row">
-                                    <span class="ib-chart-tooltip-key" style="@("background:" + Color(By(l)))"></span>
+                                    <span class="ib-chart-tooltip-key" style="@("background:" + FlowColor(l))"></span>
                                     <span>@ShareOf(l)</span>
                                     <span class="ib-chart-tooltip-value">@Format(l.Value)</span>
                                 </div>

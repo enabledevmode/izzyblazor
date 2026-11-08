@@ -5,6 +5,7 @@
              Value="f => f.Millions"
              ValueFormat="$#,##0M"
              LinkColor="SankeyLinkColor.Target"
+             Values="true"
              Height="Length.Rem(22)"
              Title="Income statement, 2025">
     @foreach (var name in _segments)
@@ -34,16 +35,16 @@
         new("Licenses", "Revenue", 420),
         new("Subscriptions", "Revenue", 260),
         new("Services", "Revenue", 180),
-        new("Revenue", "Gross profit", 520),
-        new("Revenue", "Cost of revenue", 340),
-        new("Cost of revenue", "Hosting", 220),
-        new("Cost of revenue", "Support", 120),
-        new("Gross profit", "Operating profit", 210),
-        new("Gross profit", "Operating expenses", 310),
-        new("Operating expenses", "R&D", 140),
-        new("Operating expenses", "Sales & marketing", 120),
-        new("Operating expenses", "Admin", 50),
-        new("Operating profit", "Net profit", 165),
-        new("Operating profit", "Tax", 45),
+        new("Revenue", "Gross profit", 660),
+        new("Revenue", "Cost of revenue", 200),
+        new("Cost of revenue", "Hosting", 130),
+        new("Cost of revenue", "Support", 70),
+        new("Gross profit", "Operating profit", 260),
+        new("Gross profit", "Operating expenses", 400),
+        new("Operating expenses", "R&D", 180),
+        new("Operating expenses", "Sales & marketing", 160),
+        new("Operating expenses", "Admin", 60),
+        new("Operating profit", "Net profit", 205),
+        new("Operating profit", "Tax", 55),
     ];
 }
