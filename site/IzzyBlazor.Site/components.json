@@ -2272,14 +2272,15 @@
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
         { "feature": "A legend with each slice's value and share, beside the circle or under it" },
-        { "feature": "Slices named beside the circle with leader lines, or shares in the slices" },
+        { "feature": "Labels by their slices with short lines, or in the slices, beside a legend or in its place" },
+        { "feature": "Labels you write with a template" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
         { "id": "pie-chart-usage", "title": "A donut with the total", "lead": "Give `PieChart` the `Items`, each slice's name as `Argument`, its size as `Value`, and a `Title`, shown above the chart and read as its name by screen readers. `Donut` cuts a hole in the middle, and `Center` fills it, here with the total. The legend names each slice with its value and share, beside the ring when there's room and under it when there isn't. Point at a slice, or Tab to the chart and use the arrow keys, for its tooltip.",
           "notes": { "noscript": "There are no tooltips. Each slice still shows its value on hover, and the legend lists them all." } },
-        { "id": "pie-chart-pie", "title": "A pie with its slices named", "lead": "Without `Donut`, the slices meet in the middle. They run clockwise from the top in item order, so sort the items largest first; `StartAngle` turns the circle, here by 180° so the largest slice fills the left half and the small ones start at the top right. `Labels=\"ChartLabels.Outside\"` names each slice with its share in a column beside the circle, joined to it by a line, so the eye doesn't travel to a legend; names that would collide are nudged apart, and under 40rem, with no room beside the circle, the legend stands in. `ChartLabels.Inside` writes each share in its slice instead, beside the legend; a slice too thin for its share gets its name and share beside the circle, with a line. Past about six slices they're hard to tell apart: group the smallest as \"Other\", or use a `Chart` with bars across. `ValueFormat` formats the values in the tooltip and the table." }
+        { "id": "pie-chart-pie", "title": "A pie with its slices named", "lead": "Without `Donut`, the slices meet in the middle. They run clockwise from the top in item order, so sort the items largest first; `StartAngle` turns the circle, here by 180° so the largest slice fills the left half. `Labels=\"ChartLabels.Outside\"` writes each label just outside its slice, joined to it by a short line, and nudges apart labels that would collide. A label is the slice's share, with the legend naming the slices; here `Legend=\"ChartLegend.None\"`, so each label names its slice too. `ChartLabels.Inside` writes each share in its slice instead, and a slice too thin for it gets its label outside. `LabelTemplate` writes the labels yourself, such as \"English: 56%\" beside a legend. Under 30rem there's no room outside the circle, so the labels are left out and the legend names the slices. Past about six slices they're hard to tell apart: group the smallest as \"Other\", or use a `Chart` with bars across." }
       ]
     },
     {

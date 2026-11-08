@@ -162,7 +162,7 @@ public class RoundChartTests : BunitContext
     }
 
     [Fact]
-    public void Pie_labels_sit_in_columns_either_side_and_never_overlap()
+    public void Pie_labels_sit_outside_their_slices_and_never_overlap()
     {
         // Two slices on the right (their middles before half a turn), three small ones bunched at
         // the left's top, which the spread pulls a line apart.
@@ -173,15 +173,22 @@ public class RoundChartTests : BunitContext
         Assert.Equal([true, true, false, false, false], labels.Select(l => l.End));
         foreach (var side in labels.GroupBy(l => l.End))
         {
-            var px = side.Select(l => l.Pos * 256).Order().ToArray();
+            var px = side.Select(l => l.Y * 256).Order().ToArray();
             for (var i = 1; i < px.Length; i++) Assert.True(px[i] - px[i - 1] >= 20 - 1e-6, $"{px[i - 1]} and {px[i]}");
         }
 
-        // Each leader runs from the slice's edge out to its column, level with the label.
-        Assert.EndsWith($"L1.07,{(labels[0].Pos * 2 - 1).ToString("0.####", CultureInfo.InvariantCulture)}", labels[0].Leader);
+        // Just outside the circle, on their own side: not in a column far off.
+        Assert.All(labels, l =>
+        {
+            var r = Math.Sqrt(Math.Pow(l.X * 2 - 1, 2) + Math.Pow(l.Y * 2 - 1, 2));
+            Assert.True(r > 1 && r < 1.35 && l.X * 2 - 1 > 0 == l.End, $"{l.Index} at {l.X}, {l.Y}");
+        });
+        // The leader runs from the slice's edge out, then level to the label.
+        Assert.StartsWith("M0.809,-0.5878L", labels[0].Leader);
+        Assert.Contains("H", labels[0].Leader);
     }
 
-        [Fact]
+    [Fact]
     public void A_gauge_is_a_meter_with_its_value_in_words()
     {
         var cut = Render<Gauge>(p => p
