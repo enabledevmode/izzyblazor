@@ -9,8 +9,13 @@
  * data-ib-active, role, tabindex, aria-pressed) and the tooltip's and live region's contents.
  */
 
-// The series a chart's legend hides, kept when the server draws the same chart again.
-const hiddenBy = new WeakMap<HTMLElement, Set<number>>();
+// What a chart keeps when the server draws it again (an interactive page's new data): the series
+// its legend hides, as long as the server's own Hidden choice hasn't changed, and the spoke the
+// tooltip was on and whether the plot had focus. Only a restart from this chart's own observer
+// keeps them; enhanced navigation may reuse the element for another chart, which starts over.
+type Kept = { off: string; hidden: Set<number>; spoke: number; focused: boolean };
+const keptBy = new WeakMap<HTMLElement, Kept>();
+const keeping = new WeakSet<HTMLElement>();
 
 export function radar(chart: HTMLElement, signal: AbortSignal, keyboard: (frame: HTMLElement) => void, restart: () => void): void {
   const plot = chart.querySelector<HTMLElement>(".ib-radar-plot");
@@ -19,20 +24,30 @@ export function radar(chart: HTMLElement, signal: AbortSignal, keyboard: (frame:
   const n = Number(chart.dataset.ibRadar) || 0;
   const start = Number(chart.dataset.ibStart) || 0;
 
-  // A new draw from the server (an interactive page's new data) sets up again.
-  const changed = new MutationObserver(restart);
+  const toggles = [...chart.querySelectorAll<HTMLElement>(".ib-chart-toggle")];
+  const keep = keeping.delete(chart);
+  const kept = keep ? keptBy.get(chart) : undefined;
+
+  // A new draw from the server (new data, or the app setting a series' Hidden) sets up again.
+  const changed = new MutationObserver(() => {
+    keeping.add(chart);
+    restart();
+  });
   const svg = frame.querySelector(".ib-radar-svg");
   if (svg) changed.observe(svg, { childList: true, subtree: true, attributeFilter: ["d", "x", "y"] });
+  for (const t of toggles) changed.observe(t, { attributeFilter: ["data-ib-hidden"] });
   signal.addEventListener("abort", () => changed.disconnect());
 
-  // Legend: each item hides and shows its series. The server says which it drew hidden.
-  const toggles = [...chart.querySelectorAll<HTMLElement>(".ib-chart-toggle")];
+  // Legend: each item hides and shows its series. The server says which it drew hidden; the
+  // legend's own choice carries over a new draw until that changes.
   const drawn = toggles.filter((t) => t.hasAttribute("data-ib-hidden")).map((t) => Number(t.dataset.ibSeries));
-  const hidden = hiddenBy.get(chart) ?? new Set<number>(drawn);
-  hiddenBy.set(chart, hidden);
+  const off = drawn.join();
+  const hidden = kept && kept.off === off ? kept.hidden : new Set<number>(drawn);
+  const state: Kept = { off, hidden, spoke: -1, focused: false };
+  keptBy.set(chart, state);
   let refresh = () => {};
   const apply = () => {
-    for (const el of frame.querySelectorAll<Element>("[data-ib-series]")) el.toggleAttribute("data-ib-hidden", hidden.has(Number((el as HTMLElement).dataset.ibSeries)));
+    for (const el of frame.querySelectorAll<Element>("[data-ib-series]:not(.ib-chart-tooltip-row)")) el.toggleAttribute("data-ib-hidden", hidden.has(Number((el as HTMLElement).dataset.ibSeries)));
     for (const t of toggles) t.setAttribute("aria-pressed", String(!hidden.has(Number(t.dataset.ibSeries))));
     refresh();
   };
@@ -107,6 +122,12 @@ export function radar(chart: HTMLElement, signal: AbortSignal, keyboard: (frame:
     tooltip.hidden = true;
     for (const el of active.splice(0)) el.removeAttribute("data-ib-active");
   };
+  // Before a new draw: nothing left highlighted, and where the tooltip and focus were, to restore.
+  signal.addEventListener("abort", () => {
+    state.spoke = tooltip.hidden ? -1 : current;
+    state.focused = document.activeElement === frame;
+    hide();
+  });
   refresh = () => {
     if (current >= 0 && !tooltip.hidden) show(current);
   };
@@ -152,6 +173,11 @@ export function radar(chart: HTMLElement, signal: AbortSignal, keyboard: (frame:
     { signal }
   );
   frame.addEventListener("blur", hide, { signal });
+  if (kept?.focused) {
+    byKeys = true;
+    frame.focus();
+  }
+  if (kept && kept.spoke >= 0 && kept.spoke < n) show(kept.spoke);
   frame.addEventListener(
     "keydown",
     (event) => {

@@ -1,17 +1,17 @@
-@* Average daily highs by month, in °F (1991–2020 normals). *@
-<RadarChart Items="_months" Argument="m => m.Month" Grid="RadarGrid.Circle" ValueFormat="0°"
-            Title="Average daily high (°F)">
-    <RadarSeries Value="m => m.Phoenix" Fill="true" />
+@* Average rainfall by month, in inches (1991–2020 normals). *@
+<RadarChart Items="_months" Argument="m => m.Month" Grid="RadarGrid.Circle" ValueFormat="0.0"
+            Title="Average rainfall (inches)">
     <RadarSeries Value="m => m.Seattle" Fill="true" />
+    <RadarSeries Value="m => m.Phoenix" Fill="true" />
 </RadarChart>
 
 @code {
-    private record MonthHighs(string Month, double Phoenix, double Seattle);
+    private record MonthRain(string Month, double Seattle, double Phoenix);
 
-    private readonly MonthHighs[] _months =
+    private readonly MonthRain[] _months =
     [
-        new("Jan", 67, 48), new("Feb", 71, 50), new("Mar", 77, 54), new("Apr", 85, 59),
-        new("May", 95, 65), new("Jun", 104, 70), new("Jul", 106, 76), new("Aug", 104, 76),
-        new("Sep", 100, 71), new("Oct", 89, 60), new("Nov", 76, 52), new("Dec", 66, 47),
+        new("Jan", 5.78, 0.87), new("Feb", 3.76, 0.87), new("Mar", 4.17, 0.83), new("Apr", 3.18, 0.25),
+        new("May", 1.89, 0.16), new("Jun", 1.49, 0.02), new("Jul", 0.57, 1.05), new("Aug", 0.97, 1.00),
+        new("Sep", 1.58, 0.64), new("Oct", 3.86, 0.58), new("Nov", 6.31, 0.65), new("Dec", 5.94, 0.88),
     ];
 }

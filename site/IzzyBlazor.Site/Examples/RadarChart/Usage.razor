@@ -1,11 +1,11 @@
 @* Two phones' review scores, out of 10, in six qualities. *@
 <RadarChart Items="_scores" Argument="s => s.Quality" Max="10" Title="Review scores, out of 10">
-    <RadarSeries Value="s => s.Pixel" Name="Pixel 10" />
-    <RadarSeries Value="s => s.Galaxy" Name="Galaxy A56" />
+    <RadarSeries Value="s => s.PhoneA" Name="Phone A" />
+    <RadarSeries Value="s => s.PhoneB" Name="Phone B" />
 </RadarChart>
 
 @code {
-    private record Score(string Quality, double Pixel, double Galaxy);
+    private record Score(string Quality, double PhoneA, double PhoneB);
 
     private readonly Score[] _scores =
     [
@@ -13,7 +13,7 @@
         new("Display", 8.8, 8.0),
         new("Speed", 9.0, 7.8),
         new("Build", 8.7, 7.5),
-        new("Price", 6.0, 8.9),
+        new("Value", 6.0, 8.9),
         new("Battery", 8.5, 9.1),
     ];
 }

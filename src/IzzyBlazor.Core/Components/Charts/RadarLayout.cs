@@ -72,7 +72,9 @@ internal static class RadarLayout
     {
         var n = input.Spokes.Length;
         var values = input.Series.SelectMany(s => s.Values).OfType<double>().ToList();
-        var min = input.Min ?? Math.Min(0, values.DefaultIfEmpty(0).Min());
+        var low = values.DefaultIfEmpty(0).Min();
+        // Below 0, the center is the round tick at or below the lowest value.
+        var min = input.Min ?? (low < 0 ? ChartScale.Nice(low, Math.Max(0, values.Max()), 4).Min : 0);
         var top = input.Max ?? Math.Max(min, values.DefaultIfEmpty(min).Max());
         double max;
         if (input.Max is { } fixedMax)
@@ -83,6 +85,11 @@ internal static class RadarLayout
         {
             // The round tick at or above the largest value, from Min.
             max = ChartScale.Nice(min, top > min ? top : min + 1, 4).Max;
+        }
+
+        if (!(max > min))
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), max, $"A RadarChart's Max ({max}) must be more than the value at its center ({min}).");
         }
 
         var start = (input.StartAngle % 360 + 360) % 360 / 360;
@@ -98,6 +105,13 @@ internal static class RadarLayout
             var v = spec.Value(i);
             if (v <= min) continue;
             rings.Add(new RadarRing(v, Radius(v), Format(v, input.ValueFormat, decimals)));
+        }
+
+        // A Max that isn't a tick gets a ring of its own; a tick within half a step under it goes,
+        // so their values don't crowd.
+        if (rings.Count > 0 && rings[^1].Value < max && max - rings[^1].Value < spec.Step / 2)
+        {
+            rings.RemoveAt(rings.Count - 1);
         }
 
         if (rings.Count == 0 || rings[^1].Value < max)
