@@ -1,6 +1,6 @@
 @namespace IzzyBlazor
 @typeparam TItem
-@inherits LayoutItemBase
+@inherits PieChartBase<TItem>
 @attribute [ModeSupport]
 @using System.Globalization
 @using System.Linq.Expressions
@@ -30,15 +30,14 @@
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
     @if (TitledBy is null)
     {
-        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+        <figcaption id="@_labelId" class="@TitleClass">@Title</figcaption>
     }
     @{
-        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
-        var names = items.Select(i => ChartLayout.ArgumentText(_argument!(i), null, CultureInfo.CurrentCulture)).ToArray();
+        var (items, names) = ReadItems();
         var values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
-        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, (StartAngle % 360 + 360) % 360 / 360);
-        var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
+        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, StartTurn);
+        var texts = values.Select(FormatValue).ToArray();
         var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
         var outside = Labels is ChartLabels.Outside or ChartLabels.Auto;
         // Inside, a slice too thin for its share gets a label beside the circle instead.
@@ -197,103 +196,14 @@
 </figure>
 
 @code {
-    /// <summary>The items, one slice each.</summary>
-    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
-
-    /// <summary>Each slice's name, such as <c>p =&gt; p.Plan</c>.</summary>
-    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
-
     /// <summary>Each slice's size, such as <c>p =&gt; p.Customers</c>: any number. The slices share the circle by their values.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
-
-    /// <summary>
-    /// The chart's title, such as "Customers by plan", shown above it as its caption. It also names the chart
-    /// for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
-    /// </summary>
-    [Parameter] public string? Title { get; set; }
-
-    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
-    [Parameter] public bool HideTitle { get; set; }
-
-    /// <summary>
-    /// Where the title sits: at the start, over the chart's first label, by default (the left, in
-    /// a left-to-right page); <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
-    /// </summary>
-    [Parameter] public ChartAlign TitleAlign { get; set; }
-
-    /// <summary>
-    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
-    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
-    /// </summary>
-    [Parameter] public string? TitledBy { get; set; }
 
     /// <summary>Draws a ring with a hole in the middle, for <see cref="Center"/>.</summary>
     [Parameter] public bool Donut { get; set; }
 
-    /// <summary>
-    /// Where the first slice starts, in degrees clockwise from the top: 90 starts it at the right,
-    /// so it runs down that side. 0 by default.
-    /// </summary>
-    [Parameter] public double StartAngle { get; set; }
-
     /// <summary>Content in a donut's hole, such as the total. Not drawn without <see cref="Donut"/>.</summary>
     [Parameter] public RenderFragment? Center { get; set; }
-
-    /// <summary>
-    /// The circle's largest size. Defaults to 16rem; it's smaller when its container is narrower.
-    /// </summary>
-    [Parameter] public Length? Size { get; set; }
-
-    /// <summary>A .NET format string for the values, such as <c>C0</c> or <c>N0</c>.</summary>
-    [Parameter] public string? ValueFormat { get; set; }
-
-    /// <summary>
-    /// Shows a tooltip with the slice's value and share under the pointer or keyboard focus, with
-    /// script. Defaults to true.
-    /// </summary>
-    [Parameter] public bool Tooltip { get; set; } = true;
-
-    /// <summary>
-    /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
-    /// <see cref="ChartPalette.Shades"/> of one color for slices in an order,
-    /// <see cref="ChartPalette.Diverging"/> for slices either side of a middle, or your own with
-    /// <see cref="ChartPalette.Of"/>.
-    /// </summary>
-    [Parameter] public ChartPalette? Palette { get; set; }
-
-    /// <summary>
-    /// The legend: each slice's name, value and share, with or without labels on the chart. By
-    /// default it's beside the circle, at the end side, when there's room (30rem, or 44rem with
-    /// labels outside the circle) and under it otherwise; <see cref="ChartLegend.Start"/>
-    /// puts it at the start side, <see cref="ChartLegend.Top"/> and <see cref="ChartLegend.Bottom"/>
-    /// always above or below, and <see cref="ChartLegend.None"/> leaves it out. Its items don't
-    /// hide slices.
-    /// </summary>
-    [Parameter] public ChartLegend Legend { get; set; }
-
-    /// <summary>
-    /// Where the legend sits along its edge: centered on the circle, by default (beside it or
-    /// under it); <see cref="ChartAlign.Start"/> for the left above or below (in a left-to-right
-    /// page) or the top beside it, <see cref="ChartAlign.End"/> for the right or the bottom.
-    /// </summary>
-    [Parameter] public ChartAlign? LegendAlign { get; set; }
-
-    private string LegendListClass => LegendAlign switch
-    {
-        ChartAlign.Start => "ib-chart-legend ib-pie-legend ib-chart-legend-start",
-        ChartAlign.End => "ib-chart-legend ib-pie-legend ib-chart-legend-end",
-        _ => "ib-chart-legend ib-pie-legend ib-chart-legend-center",
-    };
-
-    // The circle and its legend: beside each other when there's room (Auto, Start, End), or one
-    // over the other (chart.css).
-    private string PieClass => Legend switch
-    {
-        ChartLegend.None or ChartLegend.Bottom => "ib-pie",
-        ChartLegend.Top => "ib-pie ib-pie-lg-first",
-        ChartLegend.Start => "ib-pie ib-pie-legended ib-pie-lg-first",
-        _ => "ib-pie ib-pie-legended",
-    };
 
     /// <summary>
     /// Labels each slice on the chart. <see cref="ChartLabels.Outside"/> (or <see cref="ChartLabels.Auto"/>)
@@ -313,67 +223,21 @@
     /// </summary>
     [Parameter] public RenderFragment<PieLabelContext<TItem>>? LabelTemplate { get; set; }
 
-    // The circle's size the labels are spread for: Size in pixels or rems, or 16rem.
-    private double SizeInPixels => Size?.Css is { } css && System.Text.RegularExpressions.Regex.Match(css, @"^([\d.]+)(px|rem)$") is { Success: true } m
-        && double.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? m.Groups[2].Value == "rem" ? v * 16 : v : 256;
-
     // The smallest slice a share is written in (Labels Inside): 6% of the turn.
     private const double InsideMin = 0.06;
 
-
-    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
-    [Parameter] public ChartDataTable DataTable { get; set; }
-
-    private readonly string _labelId = IdGenerator.Next("ib-chart");
-
-    // What names the chart: its own caption, or the heading TitledBy points at.
-    private string NameId => TitledBy ?? _labelId;
-    private Expression<Func<TItem, object?>>? _lastArgument;
     private Expression<Func<TItem, object?>>? _lastValue;
-    private Func<TItem, object?>? _argument;
     private Func<TItem, object?>? _value;
-    private string? _argumentName;
     private string? _valueName;
-    private string? _class;
-    private string? _style;
 
-    private static string Num(double value) => value.ToString("0.#####", CultureInfo.InvariantCulture);
-
-    // The palette's eight colors, then a neutral one for the rest: a ninth slice in the first
-    // color would sit beside the first.
-    private static string Slot(int i) => i < 8 ? $"ib-chart-s{i + 1}" : "ib-chart-s9";
-
-    private static string Share(double share) => ChartMembers.Share(share);
-
-    /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
-    {
-        classes.Add("ib-chart");
-        classes.Add("ib-pie-chart");
-        if (Size is { } size) styles.AddVar("pie-size", size.Css);
-        base.BuildAttributes(classes, styles);
-    }
+    private protected override string ComponentName => "PieChart";
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        if (Value is null)
         {
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
-                ? "PieChart needs a Title, such as \"Customers by plan\", or TitledBy, the id of a heading on the page that titles it."
-                : "PieChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
-        }
-
-        if (Argument is null || Value is null)
-        {
-            throw new InvalidOperationException("PieChart needs an Argument, each slice's name, and a Value, its size, such as p => p.Plan and p => p.Customers.");
-        }
-
-        if (!ReferenceEquals(Argument, _lastArgument))
-        {
-            _lastArgument = Argument;
-            _argument = Argument.Compile();
-            _argumentName = ChartMembers.Name(Argument);
+            throw new InvalidOperationException("PieChart needs a Value, each slice's size, such as p => p.Customers.");
         }
 
         if (!ReferenceEquals(Value, _lastValue))
@@ -384,6 +248,5 @@
         }
 
         base.OnParametersSet();
-        (_class, _style) = BuildRootAttributes();
     }
 }

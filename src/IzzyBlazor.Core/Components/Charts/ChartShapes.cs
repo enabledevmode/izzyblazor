@@ -44,8 +44,9 @@ internal static class ChartShapes
     /// The slices for the values, clockwise from <paramref name="from"/> (a share of the turn, 0 at
     /// the top), in a viewBox of -1 -1 2 2. A slice's Start and End can pass 1 when it crosses the
     /// top. Missing, zero and negative values get no slice; a single slice is a whole circle (or ring).
+    /// <paramref name="outer"/> is the slices' outer radius (under 1 for a nested donut's inner rings).
     /// </summary>
-    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole, double from = 0)
+    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole, double from = 0, double outer = 1)
     {
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
         var slices = new List<PieSlice>();
@@ -56,20 +57,21 @@ internal static class ChartShapes
         {
             if (values[i] is not > 0) continue;
             var end = Math.Min(from + 1, start + values[i]!.Value / total);
-            slices.Add(new PieSlice(i, start, end, Slice(start, end, hole)));
+            slices.Add(new PieSlice(i, start, end, Slice(start, end, hole, outer)));
             start = end;
         }
 
         return slices;
     }
 
-    private static string Slice(double start, double end, double hole)
+    private static string Slice(double start, double end, double hole, double outer)
     {
         var sb = new StringBuilder();
+        var o = N(outer);
         if (end - start >= 0.99999)
         {
             // A whole circle: two half arcs, and the hole the other way round so it stays empty.
-            sb.Append("M0,-1A1,1 0 1,1 0,1A1,1 0 1,1 0,-1Z");
+            sb.Append($"M0,-{o}A{o},{o} 0 1,1 0,{o}A{o},{o} 0 1,1 0,-{o}Z");
             if (hole > 0)
             {
                 sb.Append($"M0,{N(-hole)}A{N(hole)},{N(hole)} 0 1,0 0,{N(hole)}A{N(hole)},{N(hole)} 0 1,0 0,{N(-hole)}Z");
@@ -79,9 +81,9 @@ internal static class ChartShapes
         }
 
         var large = end - start > 0.5 ? 1 : 0;
-        var (x0, y0) = At(start, 1);
-        var (x1, y1) = At(end, 1);
-        sb.Append($"M{N(x0)},{N(y0)}A1,1 0 {large},1 {N(x1)},{N(y1)}");
+        var (x0, y0) = At(start, outer);
+        var (x1, y1) = At(end, outer);
+        sb.Append($"M{N(x0)},{N(y0)}A{o},{o} 0 {large},1 {N(x1)},{N(y1)}");
         if (hole > 0)
         {
             var (ix1, iy1) = At(end, hole);

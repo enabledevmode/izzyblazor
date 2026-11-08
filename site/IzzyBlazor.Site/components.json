@@ -2284,6 +2284,20 @@
       ]
     },
     {
+      "id": "nested-donut-chart", "icon": "Donut", "name": "NestedDonutChart", "title": "Nested donut chart", "category": "Charts", "summary": "Shows how the same items split two or three wholes, as rings of one donut, one ring per measure.", "keywords": ["donut", "doughnut", "rings", "multi-series pie", "nested pie", "share"],
+      "parts": ["DonutRing"],
+      "features": [
+        { "feature": "A ring for each measure, the first outside, with the rings named under the title" },
+        { "feature": "One color and one legend row per item, in every ring" },
+        { "feature": "A table of each ring's values and shares in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard, along a ring and between rings", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "nested-donut-chart-usage", "title": "This year against last", "lead": "Rings compare poorly: the same share is a longer arc on the outer ring than on the inner one. To compare how two wholes split, a `Chart` with `Stacking=\"ChartStacking.Percent\"` and bars across reads better. Use rings when the donut's look matters more, for two measures, at most three. Give `NestedDonutChart` the `Items`, each slice's name as `Argument`, and a `DonutRing` for each measure, with its `Value` and `Name`. The first ring is the outer one, and the line under the title names each ring by its place. Each item keeps its color in every ring. Point at a slice, or Tab to the chart: Left and Right move along a ring, and Up and Down move between rings.",
+          "notes": { "noscript": "There are no tooltips. Each slice still shows its ring, value and share on hover, and Show data lists them all." } }
+      ]
+    },
+    {
       "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Draws a run of values as a small line, area or bars, with no axes, to show a trend at a glance.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
       "features": [
         { "feature": "A line, an area, bars or win-loss bars, as wide as its container" },

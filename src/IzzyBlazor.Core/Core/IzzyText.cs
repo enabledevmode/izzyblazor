@@ -1205,6 +1205,21 @@ public class IzzyText
     /// <summary>A PieChart's data table and tooltip: each slice's share of the whole.</summary>
     public virtual string ChartShare { get; set; } = "Share";
 
+    /// <summary>A NestedDonutChart's outer ring, named under its title: "Outside: {0}".</summary>
+    public virtual string ChartRingOutside { get; set; } = "Outside: {0}";
+
+    /// <summary>A NestedDonutChart's inner ring, named under its title: "Inside: {0}".</summary>
+    public virtual string ChartRingInside { get; set; } = "Inside: {0}";
+
+    /// <summary>The ring between the outer and inner ones of three: "Middle: {0}".</summary>
+    public virtual string ChartRingMiddle { get; set; } = "Middle: {0}";
+
+    /// <summary>A ring by its place from the outside, with four or more: "Ring {0}: {1}".</summary>
+    public virtual string ChartRingNumber { get; set; } = "Ring {0}: {1}";
+
+    /// <summary>How the keyboard moves through a NestedDonutChart, read after its name.</summary>
+    public virtual string ChartRingKeys { get; set; } = "Left and Right move along a ring, Up and Down between rings; Escape hides the tooltip.";
+
     /// <summary>A Chart reference line's label for <c>ChartStatistic.Average</c>, with no Label of its own.</summary>
     public virtual string ChartAverage { get; set; } = "Average";
 

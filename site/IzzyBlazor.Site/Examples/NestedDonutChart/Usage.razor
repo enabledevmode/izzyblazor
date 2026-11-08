@@ -1,0 +1,17 @@
+@* A company's revenue by region this year, outside, against last year, inside. *@
+<NestedDonutChart Items="_regions" Argument="r => r.Region" Title="Revenue by region" ValueFormat="C0">
+    <DonutRing Value="r => r.ThisYear" Name="2025" />
+    <DonutRing Value="r => r.LastYear" Name="2024" />
+</NestedDonutChart>
+
+@code {
+    private record RegionRevenue(string Region, decimal ThisYear, decimal LastYear);
+
+    private readonly RegionRevenue[] _regions =
+    [
+        new("North America", 18_400_000, 17_900_000),
+        new("Europe", 11_200_000, 12_600_000),
+        new("Asia Pacific", 9_700_000, 6_800_000),
+        new("Latin America", 3_100_000, 2_900_000),
+    ];
+}
