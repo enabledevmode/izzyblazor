@@ -1030,10 +1030,45 @@ class Chart extends IzzyElement {
     // Beside a plot, it's lined up with it (it sits outside the frame, whose img role would hide
     // its sliders).
     const line = () => {
-      if (!plot) return;
+      if (!plot) {
+        flags();
+        return;
+      }
       const main = sel.parentElement!.getBoundingClientRect(), r = plot.getBoundingClientRect();
       sel.style.setProperty("--ib-chart-sel-x", `${r.left - main.left}px`);
       sel.style.setProperty("--ib-chart-sel-w", `${r.width}px`);
+      flags();
+    };
+    // The flags: each centered over its handle but kept over the strip; when they'd overlap (a
+    // narrow window), one flag over the window says both ends.
+    const flags = () => {
+      const strip = track.getBoundingClientRect();
+      const tags = handles.map((h) => h.querySelector<HTMLElement>(".ib-chart-sel-flag.ib-chart-js"));
+      if (!strip.width || tags.some((t) => !t)) return;
+      const [a, b] = tags as HTMLElement[];
+      const texts = [a.dataset.ibText ?? "", b.dataset.ibText ?? ""];
+      a.textContent = texts[0];
+      b.textContent = texts[1];
+      b.style.display = "";
+      const center = (k: number) => {
+        const r = handles[k].getBoundingClientRect();
+        return r.left + r.width / 2 - strip.left;
+      };
+      const put = (tag: HTMLElement, k: number, middle: number) => {
+        const w = Math.ceil(tag.getBoundingClientRect().width);
+        const left = Math.min(Math.max(middle - w / 2, 0), Math.max(0, strip.width - w));
+        // From the handle's padding edge, inside its border.
+        tag.style.left = `${left - (handles[k].getBoundingClientRect().left + handles[k].clientLeft - strip.left)}px`;
+        tag.style.right = "auto";
+        return [left, left + w];
+      };
+      const [x, y] = [put(a, 0, center(0)), put(b, 1, center(1))];
+      const [left, right] = x[0] <= y[0] ? [x, y] : [y, x];
+      if (left[1] + 4 > right[0]) {
+        a.textContent = `${texts[0]} – ${texts[1]}`;
+        b.style.display = "none";
+        put(a, 0, (center(0) + center(1)) / 2);
+      }
     };
     const show = () => {
       const placed = (share: number) => String(data.ar ? 1 - share : share);
@@ -1044,8 +1079,9 @@ class Chart extends IzzyElement {
         h.setAttribute("aria-valuenow", String(i));
         h.setAttribute("aria-valuetext", names[i] ?? "");
         const flag = h.querySelector(".ib-chart-sel-flag.ib-chart-js");
-        if (flag) flag.textContent = names[i] ?? "";
+        if (flag) flag.setAttribute("data-ib-text", names[i] ?? "");
       });
+      flags();
       for (const b of sel.querySelectorAll<HTMLElement>("[data-ib-range]")) {
         const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
         b.setAttribute("aria-pressed", String(Math.abs(a - at()[0]) < 1e-3 && Math.abs(c - at()[1]) < 1e-3));

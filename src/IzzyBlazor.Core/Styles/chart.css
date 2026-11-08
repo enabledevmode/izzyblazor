@@ -582,19 +582,26 @@
     position: absolute;
     inset-block-start: 50%;
     z-index: 1;
-    inline-size: 0.75rem;
-    block-size: 1.75rem;
+    /* In pixels, so the grips stay centered at any root font size. */
+    inline-size: 12px;
+    block-size: 28px;
     margin-inline-start: -0.375rem;
     translate: 0 -50%;
     border: 1px solid var(--ib-color-outline);
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-surface);
+    /* Two grip lines, so the handle reads as something to drag: whole pixels, centered both
+       ways in its 10 by 26 inside (3px either side, 8px above and below). */
+    background:
+      linear-gradient(var(--ib-color-muted, var(--ib-color-outline)), var(--ib-color-muted, var(--ib-color-outline))) 3px 8px / 1px 10px no-repeat,
+      linear-gradient(var(--ib-color-muted, var(--ib-color-outline)), var(--ib-color-muted, var(--ib-color-outline))) 6px 8px / 1px 10px no-repeat,
+      var(--ib-color-surface);
     cursor: ew-resize;
   }
+  .ib-chart-sel-handle:hover { border-color: var(--ib-color-on-surface); }
   /* Each handle inside the window's edge it moves, so neither reaches past the strip's ends. */
   .ib-chart-sel-start { left: calc(var(--ib-sel-js, var(--ib-sel-s)) * 100%); margin-inline-start: 0; }
-  .ib-chart-sel-end { left: calc(var(--ib-sel-je, var(--ib-sel-e)) * 100%); margin-inline-start: -0.75rem; }
-  ib-chart[data-ib-reverse] .ib-chart-sel-start { margin-inline-start: -0.75rem; }
+  .ib-chart-sel-end { left: calc(var(--ib-sel-je, var(--ib-sel-e)) * 100%); margin-inline-start: -12px; }
+  ib-chart[data-ib-reverse] .ib-chart-sel-start { margin-inline-start: -12px; }
   ib-chart[data-ib-reverse] .ib-chart-sel-end { margin-inline-start: 0; }
   .ib-chart-sel-handle:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
