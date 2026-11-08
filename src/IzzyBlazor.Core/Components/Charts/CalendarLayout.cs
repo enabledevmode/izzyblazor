@@ -81,7 +81,12 @@ internal static class CalendarLayout
 
         var from = input.From ?? (byDay.Count > 0 ? byDay.Keys.Min() : DateOnly.FromDateTime(DateTime.Today));
         var to = input.To ?? (byDay.Count > 0 ? byDay.Keys.Max() : from);
-        if (to < from) to = from;
+        // A To before the items' first day (or today, with none) moves the start back to it.
+        if (to < from)
+        {
+            if (input.From is null) from = to;
+            else to = from;
+        }
         var start = from.AddDays(-(((int)from.DayOfWeek - (int)firstDay + 7) % 7));
         var weeks = (to.DayNumber - start.DayNumber) / 7 + 1;
 
@@ -176,7 +181,8 @@ internal static class CalendarLayout
         {
             var first = new DateOnly(month.Year, month.Month, 1);
             var week = first <= model.Start ? 0 : (first.DayNumber - model.Start.DayNumber + 6) / 7;
-            if (week >= weeks - 1 && weeks > 1) continue;
+            // No room for a name in the last column (or past the grid).
+            if (week >= weeks || (week == weeks - 1 && weeks > 1)) continue;
             marks.Add((week, first));
         }
 

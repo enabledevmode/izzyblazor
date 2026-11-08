@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A class of values on a <see cref="HeatmapChart{TItem}"/>'s scale, with its own color and name,
+/// A class of values on a <see cref="HeatmapChart{TItem}"/>'s or <see cref="CalendarHeatmap{TItem}"/>'s scale, with its own color and name,
 /// in place of the chart's even steps:
 /// <c>&lt;HeatmapRange From="0" To="10" Color="Color.Of(&quot;#dbeafe&quot;)" Label="Quiet" /&gt;</c>.
 /// A value is in the first range whose <see cref="From"/> it reaches and whose <see cref="To"/>
@@ -21,7 +21,12 @@ public sealed class HeatmapRange : ComponentBase, IDisposable
     /// <summary>Where it ends: values under it are in the range.</summary>
     [Parameter, EditorRequired] public double To { get; set; }
 
-    /// <summary>The cells' color, such as <c>Color.Of("#dbeafe")</c>. Order the ranges' colors light to dark (or dark to light in dark mode, with <c>light-dark()</c>).</summary>
+    /// <summary>
+    /// The cells' color, such as <c>Color.Of("#dbeafe")</c>. Order the ranges' colors light to
+    /// dark (or dark to light in dark mode, with <c>light-dark()</c>). Values in cells take black
+    /// or white by <c>contrast-color()</c>; in a browser without it, the stronger half of the
+    /// ranges take white, so keep the light colors first.
+    /// </summary>
     [Parameter, EditorRequired] public Color? Color { get; set; }
 
     /// <summary>What a value in the range means, such as "Quiet": the legend shows it with the range's bounds.</summary>
@@ -71,7 +76,7 @@ public sealed class HeatmapRange : ComponentBase, IDisposable
 }
 
 /// <summary>
-/// A <see cref="HeatmapChart{TItem}"/>'s tooltip content, in place of the cell's row, column and
+/// A <see cref="HeatmapChart{TItem}"/>'s or <see cref="CalendarHeatmap{TItem}"/>'s tooltip content, in place of the cell's row, column and
 /// value: <c>&lt;HeatmapTooltip Context="c"&gt;@c.Row, @c.Column: @c.Text orders&lt;/HeatmapTooltip&gt;</c>.
 /// It's drawn on the server for each cell that has an item, so keep it to text and inline
 /// content (no buttons or links), and on a large grid (thousands of cells) leave the default,
@@ -120,8 +125,9 @@ public sealed class HeatmapTooltip<TItem> : ComponentBase, IDisposable
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 public sealed class HeatmapCellContext<TItem>
 {
-    internal HeatmapCellContext(TItem item, int index, string column, string row, double? value, string? text)
+    internal HeatmapCellContext(TItem item, int index, string column, string row, double? value, string? text, DateOnly? date = null)
     {
+        Date = date;
         Item = item;
         Index = index;
         Column = column;
@@ -144,6 +150,9 @@ public sealed class HeatmapCellContext<TItem>
 
     /// <summary>The value, or null for none.</summary>
     public double? Value { get; }
+
+    /// <summary>On a <see cref="CalendarHeatmap{TItem}"/>, the cell's day; null on a HeatmapChart.</summary>
+    public DateOnly? Date { get; }
 
     /// <summary>The value as text, formatted by the chart's <c>ValueFormat</c>, or null.</summary>
     public string? Text { get; }

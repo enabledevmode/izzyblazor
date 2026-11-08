@@ -151,8 +151,8 @@
     /// <summary>
     /// The tooltip for the cell under the pointer or the keyboard (with script), beside the cell.
     /// Unset, it shows only while the values aren't in the cells (when they don't fit, or with
-    /// <see cref="ChartLabels.None"/>); <c>true</c> always, <c>false</c> never. Either way, the
-    /// arrow keys move from cell to cell and say each one.
+    /// <see cref="ChartLabels.None"/>), and the arrow keys still move from cell to cell and say
+    /// each one; <c>true</c> always; <c>false</c> never, with no keys either.
     /// </summary>
     [Parameter] public bool? Tooltip { get; set; }
 
@@ -217,6 +217,7 @@
             throw new InvalidOperationException("A HeatmapChart takes up to nine HeatmapRanges: past that, colors are hard to tell apart.");
         }
 
+        HeatmapLayout.CheckScale("HeatmapChart", ranges.Count, Palette, Steps, Min, Max, Midpoint);
         var palette = Palette ?? ChartPalette.Shades(Color.Primary);
         var model = HeatmapLayout.Build(new HeatmapInput
         {
@@ -369,7 +370,7 @@
         {
             <div class="@($"{listClass} ib-heat-legend")">
                 <div class="ib-heat-scale" style="@room">
-                    <div class="@(diverging ? "ib-heat-bar ib-heat-bar-div" : "ib-heat-bar")" role="img" aria-label="@($"{text.HeatmapScale}: {range(model.LowText, model.HighText)}")"></div>
+                    <div class="@(diverging ? "ib-heat-bar ib-heat-bar-div" : "ib-heat-bar")" role="img" aria-label="@($"{text.HeatmapScale}: {range(model.LowText, model.HighText)}{(model.MidText is null ? null : ", " + string.Format(CultureInfo.CurrentCulture, text.HeatmapMiddleText, model.MidText))}")"></div>
                     <div class="ib-heat-bounds" aria-hidden="true">
                         <span style="--p:0">@model.LowText</span>
                         @if (model.MidText is not null)
