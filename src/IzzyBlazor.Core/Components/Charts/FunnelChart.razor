@@ -9,7 +9,10 @@
     The stages of a process that people drop out of, such as visits, sign-ups and purchases, as a
     funnel; or, with Pyramid, levels of a hierarchy.
 
-    <FunnelChart Items="stages" Argument="s => s.Stage" Value="s => s.People" Title="Sign-ups, October" />
+    <FunnelChart Items="stages"
+                 Argument="s => s.Stage"
+                 Value="s => s.People"
+                 Title="Sign-ups, October" />
 
     Stages keep the items' order, unsorted: the order is the process. A missing, zero or negative
     value gets no stage in the shape but keeps its label and its row in the table, and the stage

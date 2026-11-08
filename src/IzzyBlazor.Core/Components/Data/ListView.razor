@@ -11,7 +11,10 @@
     The list sibling of Table: the same Items or ItemsProvider, ItemKey and paging, with one
     template per item instead of columns.
 
-    <ListView Items="people" ItemKey="p => p.Id" ItemHref="@(p => $"/people/{p.Id}")" Context="person">
+    <ListView Items="people"
+              ItemKey="p => p.Id"
+              ItemHref="@(p => $"/people/{p.Id}")"
+              Context="person">
         <Avatar Name="@person.Name" /> @person.Name
     </ListView>
 
@@ -23,10 +26,19 @@
     ItemActions puts content at each item's end (icon buttons, a switch, a badge), and ItemMenu
     gives each item a ⋯ menu of MenuItems:
 
-    <ListView Items="files" ItemKey="f => f.Id" ItemLabel="f => f.Name" Context="file">
+    <ListView Items="files"
+              ItemKey="f => f.Id"
+              ItemLabel="f => f.Name"
+              Context="file">
         <ChildContent>@file.Name</ChildContent>
-        <ItemActions><IconButton Icon="Lucide.Star" Label="@($"Star {file.Name}")" OnClick="() => Star(file)" /></ItemActions>
-        <ItemMenu><MenuItem Submit Name="delete" Value="@file.Id">Delete</MenuItem></ItemMenu>
+        <ItemActions>
+            <IconButton Icon="Lucide.Star"
+                        Label="@($"Star {file.Name}")"
+                        OnClick="() => Star(file)" />
+        </ItemActions>
+        <ItemMenu>
+            <MenuItem Submit Name="delete" Value="@file.Id">Delete</MenuItem>
+        </ItemMenu>
     </ListView>
 
     PageSize pages the items as Table does: numbered pages or First/Previous/Next by cursor, in the

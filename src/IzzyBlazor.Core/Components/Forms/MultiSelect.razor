@@ -9,7 +9,9 @@
     HashSet<T> or an interface they implement. Both types are inferred, from the bound property
     and from Items; for an enum, pass its values (Items="Enum.GetValues<Skill>()").
 
-    <MultiSelect @bind-Value="Model.Skills" Items="AllSkills" Placeholder="Add skills" />
+    <MultiSelect @bind-Value="Model.Skills"
+                 Items="AllSkills"
+                 Placeholder="Add skills" />
 
     How it works three ways:
     - No script: a native <select multiple> holds and posts the values (repeated form fields,
@@ -22,7 +24,10 @@
     AllowCustom takes typed values too, for string collections (labels, email recipients), with
     or without Items as suggestions:
 
-    <MultiSelect @bind-Value="Model.Labels" Items="KnownLabels" AllowCustom Label="Labels" />
+    <MultiSelect @bind-Value="Model.Labels"
+                 Items="KnownLabels"
+                 AllowCustom
+                 Label="Labels" />
 
     Enter, a comma or a semicolon adds the typed text, as does leaving the field; a paste splits
     on commas, semicolons and line breaks. Text matching an option (ignoring case) chooses it, and

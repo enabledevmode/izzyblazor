@@ -11,7 +11,8 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;Heading Level="1"&gt;Build a multi-step wizard&lt;/Heading&gt;
-/// &lt;Heading Level="2" Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }"&gt;...&lt;/Heading&gt;
+/// &lt;Heading Level="2"
+///          Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }"&gt;...&lt;/Heading&gt;
 /// </code>
 /// </example>
 /// <remarks>

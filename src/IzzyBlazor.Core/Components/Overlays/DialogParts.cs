@@ -9,7 +9,13 @@ namespace IzzyBlazor;
 /// dialog draws it in its header row, beside the close button, so a form or cascading value it's
 /// written inside doesn't reach it.
 /// </summary>
-/// <example><code>&lt;DialogHeader&gt;&lt;Row Gap="2"&gt;&lt;Icon Name="Lucide.Users" /&gt;Invite people&lt;/Row&gt;&lt;/DialogHeader&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;DialogHeader&gt;
+///     &lt;Row Gap="2"&gt;&lt;Icon Name="Lucide.Users" /&gt;Invite people&lt;/Row&gt;
+/// &lt;/DialogHeader&gt;
+/// </code>
+/// </example>
 public sealed class DialogHeader : ComponentPart
 {
     internal override Type HostType => typeof(Dialog);

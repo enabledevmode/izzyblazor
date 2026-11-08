@@ -21,7 +21,8 @@
 
     DateDisabled turns days off, with a line through them, and is checked again on the server.
     DayClass gives days a class of your own.
-    <Calendar @bind-Value="Model.Day" DateDisabled="d => d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday" />
+    <Calendar @bind-Value="Model.Day"
+              DateDisabled="d => d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday" />
     <Calendar @bind-Value="Model.Day" DayClass="d => holidays.Contains(d) ? "holiday" : null" />
 
     The script can't call C#, so the server calls these for every day in a window and writes down the

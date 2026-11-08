@@ -31,9 +31,18 @@
 
     <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
         <Columns>
-            <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" Frozen="ColumnFrozen.Start" />
-            <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
-            <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
+            <PropertyColumn Property="o => o.Id"
+                            Title="Order"
+                            Width="8.Rem"
+                            Frozen="ColumnFrozen.Start" />
+            <PropertyColumn Property="o => o.Customer"
+                            Sortable
+                            Filterable
+                            MinWidth="12.Rem" />
+            <PropertyColumn Property="o => o.Total"
+                            Format="C"
+                            Sortable
+                            Width="10.Rem" />
         </Columns>
     </DataGrid>
 
@@ -95,7 +104,10 @@
     with editing can't be inside another form, as forms can't nest. It needs an ItemKey, and on a
     static page, a row type Blazor can fill from a form: public settable properties.
 
-    <DataGrid Items="orders" ItemKey="o => o.Id.ToString()" EditMode="DataGridEditMode.Dialog" OnSave="SaveAsync">
+    <DataGrid Items="orders"
+              ItemKey="o => o.Id.ToString()"
+              EditMode="DataGridEditMode.Dialog"
+              OnSave="SaveAsync">
         <Columns>
             <PropertyColumn Property="o => o.Id" Editable="false" />
             <PropertyColumn Property="o => o.Customer" />

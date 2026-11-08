@@ -8,8 +8,12 @@
     input that holds the value and posts it. Bind it to TimeSpan or TimeSpan?. For a time of day, use
     TimeField. With JavaScript off the text input shows in place of the boxes.
     <DurationField @bind-Value="Model.Timeout" />
-    <DurationField @bind-Value="Model.Runtime" SmallestUnit="DurationUnit.Minutes" />
-    <DurationField @bind-Value="Model.Retention" LargestUnit="DurationUnit.Days" SmallestUnit="DurationUnit.Hours" Max="TimeSpan.FromDays(90)" />
+    <DurationField @bind-Value="Model.Runtime"
+                   SmallestUnit="DurationUnit.Minutes" />
+    <DurationField @bind-Value="Model.Retention"
+                   LargestUnit="DurationUnit.Days"
+                   SmallestUnit="DurationUnit.Hours"
+                   Max="TimeSpan.FromDays(90)" />
 
     A value past LargestUnit shows in that unit, so 26 hours shows 26 in Hours. Typing 90 in Minutes
     becomes 1 hour and 30 minutes when the box is left. A value has whole seconds: anything finer is

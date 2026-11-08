@@ -7,7 +7,8 @@
     off, shows its state from :checked and posts with a form like any checkbox.
     <ToggleButton @bind-Value="_starred" Icon="Lucide.Star">Starred</ToggleButton>
     <ToggleButton @bind-Value="_muted" Icon="Lucide.MicOff" Label="Mute" IconOnly />
-    <ToggleButton @bind-Value="Model.Unread">Unread</ToggleButton>      (in a Form: posts "true" or "false")
+    <!-- In a Form: posts "true" or "false" -->
+    <ToggleButton @bind-Value="Model.Unread">Unread</ToggleButton>
 
     Bound to a model property in a Form it posts like a Checkbox: a hidden "false" follows it, so an
     off toggle posts "false". On interactive pages ValueChanged runs C# at once; on static pages it

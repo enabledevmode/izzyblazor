@@ -11,11 +11,22 @@
     placed anywhere in the group's content, which shows the group's items in that zone and
     keeps every ListView option (a template, ItemMenu, ItemActions, ItemHref).
 
-    <DropZoneGroup @bind-Items="tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" OnMove="Moved">
+    <DropZoneGroup @bind-Items="tasks"
+                   ItemKey="t => t.Id"
+                   ZoneOf="t => t.Status"
+                   OnMove="Moved">
         <Grid Columns="3">
-            <ListView Zone="todo" Label="To do" Context="task">@task.Title</ListView>
-            <ListView Zone="doing" Label="Doing" MaxItems="3" Context="task">@task.Title</ListView>
-            <ListView Zone="done" Label="Done" Accepts="t => t.Reviewed" Context="task">@task.Title</ListView>
+            <ListView Zone="todo"
+                      Label="To do"
+                      Context="task">@task.Title</ListView>
+            <ListView Zone="doing"
+                      Label="Doing"
+                      MaxItems="3"
+                      Context="task">@task.Title</ListView>
+            <ListView Zone="done"
+                      Label="Done"
+                      Accepts="t => t.Reviewed"
+                      Context="task">@task.Title</ListView>
         </Grid>
     </DropZoneGroup>
 

@@ -11,7 +11,10 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;ToolbarButton StartIcon="Lucide.Share2" Priority="1"&gt;Share&lt;/ToolbarButton&gt;
-/// &lt;ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Accent="Accent.Primary" Variant="ButtonVariant.Solid"&gt;Publish&lt;/ToolbarButton&gt;
+/// &lt;ToolbarButton Position="ToolbarPosition.End"
+///                Overflow="ToolbarOverflow.Never"
+///                Accent="Accent.Primary"
+///                Variant="ButtonVariant.Solid"&gt;Publish&lt;/ToolbarButton&gt;
 /// </code>
 /// </example>
 /// <seealso cref="Toolbar"/>
@@ -379,7 +382,11 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit MenuLabel="More save options" Priority="1"&gt;
+/// &lt;ToolbarSplitButton Label="Save"
+///                     StartIcon="Lucide.Save"
+///                     Submit
+///                     MenuLabel="More save options"
+///                     Priority="1"&gt;
 ///     &lt;MenuItem Submit Name="intent" Value="draft"&gt;Save as draft&lt;/MenuItem&gt;
 /// &lt;/ToolbarSplitButton&gt;
 /// </code>
