@@ -1,0 +1,21 @@
+@* An API's requests and response time by hour: pointing at an hour in one chart shows it in both. *@
+<Chart Items="_hours" Argument="h => h.Hour" Title="Requests per hour" Sync="api" Height="Length.Rem(12)">
+    <ChartValueAxis Format="N0" />
+    <ChartBarSeries Value="h => h.Requests" Name="Requests" />
+</Chart>
+
+<Chart Items="_hours" Argument="h => h.Hour" Title="Response time, 95th percentile (ms)" Sync="api" Height="Length.Rem(12)">
+    <ChartLineSeries Value="h => h.P95" Name="95th percentile" />
+</Chart>
+
+@code {
+    private record Load(string Hour, int Requests, int P95);
+
+    // A working day: traffic peaks late morning and mid-afternoon, and response time climbs with it.
+    private readonly Load[] _hours = Enumerable.Range(0, 24).Select(h =>
+    {
+        var load = Math.Max(0, Math.Sin((h - 6) / 14.0 * Math.PI)) + (h is 10 or 11 or 14 or 15 ? 0.25 : 0);
+        var requests = (int)(1_800 + 21_000 * load);
+        return new Load($"{h:00}:00", requests, (int)(140 + 0.000018 * requests * requests / 10 + h % 3 * 9));
+    }).ToArray();
+}
