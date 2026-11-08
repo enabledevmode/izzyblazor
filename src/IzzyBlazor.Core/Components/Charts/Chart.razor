@@ -168,6 +168,21 @@
     public EventCallback<ChartView?> ViewChanged { get; set; }
 
     /// <summary>
+    /// A name the charts it links share, such as <c>Sync="sales"</c>: zooming one zooms the others
+    /// to the same arguments, and pointing at an item shows the item at the same argument (date,
+    /// number or name) in each, with its tooltip. A <see cref="RangeSelector{TItem}"/> with the
+    /// name zooms them all. The charts match by argument, so they can cover different spans.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? Sync { get; set; }
+
+    /// <summary>With <see cref="Sync"/>, the chart zooms with the others (and, without its own <see cref="ChartArgumentAxis.Zoom"/>, only follows them). On by default.</summary>
+    [Parameter] public bool SyncView { get; set; } = true;
+
+    /// <summary>With <see cref="Sync"/>, the item pointed at (or chosen by the keys) in another chart shows here too. On by default.</summary>
+    [Parameter] public bool SyncHover { get; set; } = true;
+
+    /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
     /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
     /// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
@@ -438,7 +453,9 @@
             throw new InvalidOperationException("A RangeSelector goes under an upright chart's plot: leave the Chart's Orientation vertical.");
         }
 
-        var zoom = (_argumentAxis?.Zoom == true || selector is not null) && waterfall is null && arguments.Count > 1;
+        // A chart synced by view follows the others' zoom; it takes gestures only with its own Zoom.
+        var gestures = (_argumentAxis?.Zoom == true || selector is not null) && waterfall is null && arguments.Count > 1;
+        var zoom = gestures || (Sync is not null && SyncView && waterfall is null && arguments.Count > 1);
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
@@ -470,7 +487,7 @@
             Text = TextDefaults,
         });
         (_drawnArguments, _drawnKind) = (arguments, model.Kind);
-        _zoomOn = model.ZoomPositions is not null;
+        _zoomOn = model.ZoomPositions is not null && gestures;
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
@@ -498,6 +515,11 @@
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-reverse="@(_argumentAxis?.Reverse == true ? "" : null)"
                   data-ib-zoom="@(model.ZoomPositions is not null ? "" : null)"
+                  data-ib-follow="@(model.ZoomPositions is not null && !gestures ? "" : null)"
+                  data-ib-sync="@Sync"
+                  data-ib-sync-view="@(Sync is not null && SyncView && model.ZoomPositions is not null ? "" : null)"
+                  data-ib-sync-hover="@(Sync is not null && SyncHover ? "" : null)"
+                  data-ib-sync-at="@(Sync is not null ? SyncKeys(model) : null)"
                   data-ib-interactive="@(model.ZoomPositions is not null && RendererInfo.IsInteractive ? "" : null)"
                   @oniblayout="OnView" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive"
                   data-ib-view="@(model.View?.Share is { } share ? $"{Num(share.F0)} {Num(share.F1)}" : null)"
@@ -762,7 +784,7 @@
                 }
             </div>
         }
-        @if (tooltip || model.ZoomPositions is not null)
+        @if (tooltip || _zoomOn)
         {
             @* What the keys say and do; a chart that zooms has them with no tooltips too. *@
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
@@ -1374,6 +1396,43 @@
 
     // What the script needs to draw the chart again without a series (chart-draw.ts): each
     // series' values and look, the stacking, the value range and how values read.
+    // What synced charts match by: each item's argument (dates as ticks, numbers as themselves,
+    // names as text) and, zooming on a scale, the axis's ends in its units and whether it's a log.
+    private string SyncKeys(ChartModel model)
+    {
+        using var stream = new MemoryStream();
+        using (var w = new System.Text.Json.Utf8JsonWriter(stream))
+        {
+            // Bars over dates are bands, but they still match a line over the same dates by value.
+            static bool IsValue(object? a) => a is DateTime or DateOnly or DateTimeOffset or byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
+            var text = model.Kind == ArgumentKind.Category && !_drawnArguments.Where(a => a is not null).All(IsValue);
+            w.WriteStartObject();
+            w.WriteBoolean("c", model.Kind == ArgumentKind.Category);
+            w.WriteBoolean("t", text);
+            w.WriteStartArray("k");
+            foreach (var a in _drawnArguments)
+            {
+                if (text) w.WriteStringValue(Convert.ToString(a, CultureInfo.InvariantCulture) ?? "");
+                else if (ChartLayout.ToDouble(a, a is DateTime or DateOnly or DateTimeOffset ? ArgumentKind.Time : ArgumentKind.Number) is { } x) w.WriteNumberValue(x);
+                else w.WriteNullValue();
+            }
+
+            w.WriteEndArray();
+            if (model.ZoomDomain is { } d)
+            {
+                w.WriteStartArray("d");
+                w.WriteNumberValue(d.Lo);
+                w.WriteNumberValue(d.Hi);
+                w.WriteEndArray();
+                if (_argumentAxis?.Logarithmic == true) w.WriteBoolean("g", true);
+            }
+
+            w.WriteEndObject();
+        }
+
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
+
     private string DrawData(ChartModel model, NumberShape shape, bool horizontal, string marks)
     {
         using var stream = new MemoryStream();

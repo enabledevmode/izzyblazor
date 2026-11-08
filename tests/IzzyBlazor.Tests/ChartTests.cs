@@ -524,6 +524,33 @@ public class ChartRenderTests : BunitContext
 
     public ChartRenderTests() => SetRendererInfo(new Microsoft.AspNetCore.Components.RendererInfo("Static", isInteractive: false));
 
+    private record Sale(DateOnly Day, double Orders);
+
+    [Fact]
+    public void Sync_without_its_own_zoom_follows_and_bars_over_dates_match_by_date()
+    {
+        Sale[] days = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7), new(new DateOnly(2026, 1, 3), 6)];
+        var cut = Render<Chart<Sale>>(p => p
+            .Add(c => c.Items, days)
+            .Add(c => c.Argument, d => d.Day)
+            .Add(c => c.Title, "Orders")
+            .Add(c => c.Sync, "sales")
+            .AddChildContent<ChartBarSeries<Sale>>(s => s.Add(x => x.Value, d => d.Orders)));
+
+        // Zoomed with the others, with no gestures, keys or zoom hint of its own.
+        var chart = cut.Find("ib-chart");
+        Assert.Equal("sales", chart.GetAttribute("data-ib-sync"));
+        Assert.True(chart.HasAttribute("data-ib-follow"));
+        Assert.True(chart.HasAttribute("data-ib-sync-view"));
+        Assert.DoesNotContain("zoom", cut.Find("[data-ib-keys]").TextContent, StringComparison.OrdinalIgnoreCase);
+
+        // Bars over days are bands, but they match a line over the same days by date (ticks), not as text.
+        using var at = System.Text.Json.JsonDocument.Parse(chart.GetAttribute("data-ib-sync-at")!);
+        Assert.True(at.RootElement.GetProperty("c").GetBoolean());
+        Assert.False(at.RootElement.GetProperty("t").GetBoolean());
+        Assert.Equal(new DateTime(2026, 1, 2).Ticks, at.RootElement.GetProperty("k")[1].GetDouble());
+    }
+
     [Fact]
     public void Renders_a_captioned_image_with_a_legend_and_a_table_of_the_values()
     {
