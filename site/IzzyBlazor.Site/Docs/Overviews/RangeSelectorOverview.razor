@@ -9,7 +9,8 @@
 <Heading Level="2">A strip under a chart</Heading>
 <TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;RangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
 <ExampleViewer Example="range-selector-strip" />
-<TextBlock>Clicking the strip outside the window moves the window there. The chart's axis names the dates, so the strip's own labels sit inside it, and each handle's flag shows its date only while the handle is pointed at, focused or dragged. <Code>HideFlags</Code> leaves the flags out; screen readers still hear each handle's value.</TextBlock>
+<TextBlock><Code>View</Code> opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time.</TextBlock>
+<TextBlock>Clicking the strip outside the window moves the window there. The chart's axis names the dates, so the strip keeps only its coarsest labels, inside it, and each handle's flag shows its date only while the handle is pointed at, focused or dragged. <Code>HideFlags</Code> leaves the flags out; screen readers still hear each handle's value.</TextBlock>
 
 <Heading Level="2">Range buttons in a chart</Heading>
 <TextBlock>To add buttons for the last 1, 3 and 6 months, the year to date, a year and everything, set <Code>Ranges</Code>. The pressed button is the span in view.</TextBlock>

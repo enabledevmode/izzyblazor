@@ -1,5 +1,6 @@
-@* A year of daily highs, with a plain range selector under the plot: no buttons, just the strip. *@
-<Chart Items="_days" Argument="d => d.Date" Title="Daily high temperature, Chicago, 2025">
+@* Three years of daily highs, opening on the last three months: the plot shows the days, and
+   the strip the seasons around them. *@
+<Chart Items="_days" Argument="d => d.Date" Title="Daily high temperature, Chicago, 2023 to 2025" View="_lastQuarter">
     <ChartValueAxis Format="0'°F'" />
     <ChartLineSeries Value="d => d.High" Name="High" />
     <RangeSelector />
@@ -8,16 +9,23 @@
 @code {
     private record Day(DateOnly Date, double High);
 
+    private readonly ChartView _lastQuarter = new(new DateOnly(2025, 10, 1), null);
+
     private readonly Day[] _days = Highs();
 
-    // A seasonal curve (coldest in late January, warmest in late July) with day-to-day swings.
+    // A seasonal curve (coldest in late January, warmest in late July) and weather that lasts a
+    // few days: each day's departure from normal carries over from the day before.
     private static Day[] Highs()
     {
         var random = new Random(11);
-        return Enumerable.Range(0, 365).Select(i =>
+        var first = new DateOnly(2023, 1, 1);
+        var departure = 0.0;
+        return Enumerable.Range(0, new DateOnly(2025, 12, 31).DayNumber - first.DayNumber + 1).Select(i =>
         {
-            var season = 58 - 27 * Math.Cos((i - 22) / 365.0 * 2 * Math.PI);
-            return new Day(new DateOnly(2025, 1, 1).AddDays(i), Math.Round(season + (random.NextDouble() - 0.5) * 18));
+            var date = first.AddDays(i);
+            var normal = 58 - 27 * Math.Cos((date.DayOfYear - 22) / 365.0 * 2 * Math.PI);
+            departure = departure * 0.75 + (random.NextDouble() - 0.5) * 12;
+            return new Day(date, Math.Round(normal + departure));
         }).ToArray();
     }
 }

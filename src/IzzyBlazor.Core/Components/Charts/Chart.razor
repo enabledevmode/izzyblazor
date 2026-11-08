@@ -1190,10 +1190,12 @@
                 </svg>
                 @if (inChart)
                 {
+                    @* Only the coarsest labels (those shown at every width), so the strip stays quiet
+                       beside the chart's own axis: years over a few years, quarters over one. *@
                     <div class="ib-chart-sel-labels" aria-hidden="true">
-                        @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
+                        @foreach (var label in (model.ZoomTiers.FirstOrDefault()?.Labels ?? []).Where(l => l.From == 0))
                         {
-                            <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(place(label.Pos))">@label.Text@(label.Context is { } context ? $" {context}" : "")</span>
+                            <span style="left:@Pct(place(label.Pos))">@label.Text@(label.Context is { } context ? $" {context}" : "")</span>
                         }
                     </div>
                 }
