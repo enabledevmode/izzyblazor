@@ -1,0 +1,20 @@
+@* An API's response time every 5 minutes for a day, with a slowdown in the afternoon to zoom into. *@
+<Chart Items="_readings" Argument="r => r.Time" Title="API response time (p95), November 5">
+    <ChartArgumentAxis Zoom />
+    <ChartValueAxis Format="#,##0' ms'" />
+    <ChartLineSeries Value="r => r.Milliseconds" Name="p95" />
+    <ChartReferenceLine Value="400" Label="Target 400 ms" />
+</Chart>
+
+@code {
+    private record Reading(DateTime Time, int Milliseconds);
+
+    // 288 readings: quiet overnight, busier by day, and a slowdown from 2:35 to 3:10 PM.
+    private readonly Reading[] _readings = Enumerable.Range(0, 288).Select(i =>
+    {
+        var time = new DateTime(2026, 11, 5).AddMinutes(i * 5);
+        var load = 60 * Math.Max(0, Math.Sin((time.Hour + time.Minute / 60.0 - 6) / 16 * Math.PI));
+        var slowdown = i is >= 175 and <= 182 ? new[] { 240, 520, 780, 910, 860, 640, 380, 160 }[i - 175] : 0;
+        return new Reading(time, 180 + (int)load + (i * 37 % 29) + slowdown);
+    }).ToArray();
+}

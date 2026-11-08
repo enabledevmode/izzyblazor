@@ -33,6 +33,7 @@ internal sealed class RangeSelectorHost;
 /// </summary>
 /// <typeparam name="TItem">The items it draws: inside a Chart, the chart's.</typeparam>
 [CascadingTypeParameter(nameof(TItem))]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
 public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDisposable
 {
     private readonly RangeSelectorHost _host = new();
@@ -54,7 +55,8 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
     [Parameter] public ChartView? View { get; set; }
 
     /// <summary>On its own, on an interactive page: raised with the range chosen as each drag or key settles (<c>@bind-View</c>).</summary>
-    [Parameter] public EventCallback<ChartView?> ViewChanged { get; set; }
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<ChartView?> ViewChanged { get; set; }
 
     /// <summary>On its own: the series it draws, such as <c>&lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;</c>. None draws only the scale.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

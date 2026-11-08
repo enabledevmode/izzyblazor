@@ -591,8 +591,11 @@
     background-color: var(--ib-color-surface);
     cursor: ew-resize;
   }
-  .ib-chart-sel-start { left: calc(var(--ib-sel-js, var(--ib-sel-s)) * 100%); }
-  .ib-chart-sel-end { left: calc(var(--ib-sel-je, var(--ib-sel-e)) * 100%); }
+  /* Each handle inside the window's edge it moves, so neither reaches past the strip's ends. */
+  .ib-chart-sel-start { left: calc(var(--ib-sel-js, var(--ib-sel-s)) * 100%); margin-inline-start: 0; }
+  .ib-chart-sel-end { left: calc(var(--ib-sel-je, var(--ib-sel-e)) * 100%); margin-inline-start: -0.75rem; }
+  ib-chart[data-ib-reverse] .ib-chart-sel-start { margin-inline-start: -0.75rem; }
+  ib-chart[data-ib-reverse] .ib-chart-sel-end { margin-inline-start: 0; }
   .ib-chart-sel-handle:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
@@ -629,6 +632,9 @@
     translate: -50% 0;
     white-space: nowrap;
   }
+  /* At the strip's ends, a label opens inward rather than hanging past it. */
+  .ib-chart-sel-axis .ib-chart-sel-first { translate: 0 0; }
+  .ib-chart-sel-axis .ib-chart-sel-last { translate: -100% 0; text-align: end; }
   .ib-chart-sel-axis .ib-chart-context {
     display: block;
     translate: none;

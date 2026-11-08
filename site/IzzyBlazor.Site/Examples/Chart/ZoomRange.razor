@@ -1,0 +1,26 @@
+@* A year of daily visits, opened on the last three months, with a range selector under the plot
+   and buttons for common spans. *@
+<Chart Items="_days" Argument="d => d.Date" Title="Daily visits, last 12 months" View="_lastQuarter">
+    <ChartValueAxis Format="N0" />
+    <ChartLineSeries Value="d => d.Visits" Name="Visits" />
+    <RangeSelector Ranges />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, int Visits);
+
+    private static readonly DateOnly Last = new(2026, 10, 31);
+
+    // The last three months, as the 3M button shows them: null is the data's own end.
+    private readonly ChartView _lastQuarter = new(Last.AddMonths(-3).AddDays(1), null);
+
+    // A year of visits to a store's site: lower at weekends, growing through the year, with a
+    // peak around Black Friday.
+    private readonly Day[] _days = Enumerable.Range(0, 365).Select(i =>
+    {
+        var date = Last.AddDays(i - 364);
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+        var holiday = date.Month == 11 && date.Day is >= 26 and <= 30 ? 2_600 : date.Month == 12 && date.Day < 22 ? 900 : 0;
+        return new Day(date, 3_200 + i * 6 + (int)(260 * Math.Sin(i / 11.0)) + (i * 37 % 23) * 12 - (weekend ? 900 : 0) + holiday);
+    }).ToArray();
+}
