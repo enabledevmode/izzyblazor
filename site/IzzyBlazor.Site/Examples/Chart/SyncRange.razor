@@ -1,0 +1,35 @@
+@* A store's revenue and orders by day, one range selector zooming both, opened on the last quarter. *@
+<RangeSelector Items="_days" Argument="d => d.Date" Sync="store" View="_lastQuarter" Ranges Label="Days shown">
+    <ChartAreaSeries Value="d => d.Revenue" />
+</RangeSelector>
+
+<Chart Items="_days" Argument="d => d.Date" Title="Revenue" Sync="store" View="_lastQuarter">
+    <ChartValueAxis Format="C0" />
+    <ChartLineSeries Value="d => d.Revenue" Name="Revenue" />
+</Chart>
+
+<Chart Items="_days" Argument="d => d.Date" Title="Orders" Sync="store" View="_lastQuarter" Height="Length.Rem(12)">
+    <ChartArgumentAxis Format="MMM d" />
+    <ChartValueAxis Format="N0" />
+    <ChartBarSeries Value="d => d.Orders" Name="Orders" />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, decimal Revenue, int Orders);
+
+    private static readonly DateOnly Last = new(2026, 10, 31);
+
+    // The last three months, as the 3M button shows them: null is the data's own end.
+    private readonly ChartView _lastQuarter = new(Last.AddMonths(-3).AddDays(1), null);
+
+    // A year of a web store's days: fewer orders at weekends, growing through the year, with a
+    // bigger basket in the run-up to the holidays.
+    private readonly Day[] _days = Enumerable.Range(0, 365).Select(i =>
+    {
+        var date = Last.AddDays(i - 364);
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+        var orders = 120 + i / 4 + (int)(14 * Math.Sin(i / 9.0)) + i * 31 % 17 - (weekend ? 35 : 0);
+        var basket = 58m + (date.Month >= 10 ? 9m : 0m) + i * 13 % 7;
+        return new Day(date, orders * basket, orders);
+    }).ToArray();
+}

@@ -2096,7 +2096,7 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom"],
+      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip"],
       "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
@@ -2108,6 +2108,7 @@
         { "feature": "Zoom and pan by dragging, Ctrl+wheel, a pinch or the keys, with no round trip", "noscript": "none" },
         { "feature": "Opening zoomed into part of the arguments, such as the last quarter", "member": "View" },
         { "feature": "The part in view reported to C# as each zoom ends", "noscript": "none", "static": "none" },
+        { "feature": "Synchronized charts: a shared `Sync` name zooms them together and shows the same item in each", "member": "Sync", "noscript": "none" },
         { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page; `Reverse` on `ChartArgumentAxis` runs the arguments right to left" }
       ],
       "examples": [
@@ -2174,6 +2175,17 @@
             { "id": "chart-zoom-box", "title": "Zoom to a box", "lead": "To zoom with no range selector, set `Zoom` on the `ChartArgumentAxis`. Drag across the plot to zoom into that span, here the afternoon slowdown, and select Reset zoom to see the whole day again.",
               "after": ["Hold Ctrl (⌘ on a Mac) and turn the wheel, or pinch on a trackpad, to zoom at the pointer; Shift and the wheel pan. On a touch screen, two fingers pinch and pan. One finger and the plain wheel still scroll the page.", "From the keyboard, Tab to the chart: + and − zoom around the item shown, 0 zooms out, and an arrow key pans to an item out of view. Screen readers hear the range now in view after each zoom.", "A zoom stops at 2 items; `MinZoomSpan` sets another least span. Bars across zoom down the side. Waterfall charts don't zoom in the browser, but `View` works on them."],
               "notes": { "noscript": "The chart doesn't zoom." } }
+          ]
+        },
+        {
+          "id": "sync", "title": "Synchronized charts", "summary": "Charts that share a Sync name zoom together and show the same date, number or name when one is pointed at, with no round trip.", "members": ["Sync", "SyncView", "SyncHover", "RangeSelector.Sync"],
+          "examples": [
+            { "id": "chart-sync-range", "title": "One range selector for several charts", "lead": "To zoom several charts together, give each the same `Sync` name, and a `RangeSelector` on its own the name too. Here one strip zooms the revenue and orders charts, which open on the last quarter.",
+              "after": ["The charts match by argument, not by position, so a bar chart of days follows a line over the same days, and a chart that covers only part of the range shows its part.", "A chart needs no `Zoom` of its own to follow the others. With `Zoom` on its `ChartArgumentAxis`, dragging or pinching it zooms the whole group too, and Reset zoom on any of them resets them all. To start them on the same part, give each the same `View`.", "On interactive pages each chart reports `@bind-View` as a zoom ends. To keep a chart out of the zooming but still show the hovered item, set `SyncView` to false."],
+              "notes": { "noscript": "Each chart opens on its `View`, and nothing zooms or moves together." } },
+            { "id": "chart-sync-hover", "title": "The same hour in two charts", "lead": "Point at an hour in either chart to see that hour's tooltip in both, here requests and response time, which read together explain a slow afternoon.",
+              "after": ["Arrow keys on a focused chart move the other charts too. Screen readers hear only the focused chart; the others' tooltips are hidden from them.", "Charts match items by name, or by the nearest date or number within their range, and show nothing where they have no item. To keep a chart's tooltip to itself, set `SyncHover` to false."],
+              "notes": { "noscript": "There are no tooltips. Each bar and marker still shows its value on hover." } }
           ]
         }
       ]
@@ -2451,7 +2463,8 @@
         { "feature": "A window with two handles, each with its value in a flag (under a chart, while the handle is in use), and the rest shaded" },
         { "feature": "Buttons for the last 1, 3 and 6 months, the year to date, a year and everything, or spans of your own", "noscript": "none" },
         { "feature": "Dragging the window or a handle, a click on the strip, and the keys on each handle", "noscript": "none" },
-        { "feature": "The range chosen reported to C# (@bind-View)", "noscript": "none", "static": "none" }
+        { "feature": "The range chosen reported to C# (@bind-View)", "noscript": "none", "static": "none" },
+        { "feature": "On its own, zooming several charts at once by their `Sync` name", "member": "Sync", "noscript": "none" }
       ],
       "examples": [
         { "id": "range-selector-strip", "title": "A strip under a chart", "lead": "Put `RangeSelector` in an upright `Chart`, after its series, to zoom the chart from a strip under the plot. Drag the window to pan, or a handle to widen or narrow it.", "after": ["`View` opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time."] },
