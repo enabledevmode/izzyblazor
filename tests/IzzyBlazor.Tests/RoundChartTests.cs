@@ -44,8 +44,11 @@ public class RoundChartTests : BunitContext
         var funnel = ChartShapes.Funnel([1000, 500, null, 250], pyramid: false);
         Assert.Equal([0, 1, 3], funnel.Select(s => s.Index));
         Assert.Equal("0,0 100,0 75,25 25,25", funnel[0].Points);
-        Assert.Equal("25,25 75,25 50,50 50,50", funnel[1].Points);
+        // A stage before a missing one keeps its width, as the last does.
+        Assert.Equal("25,25 75,25 75,50 25,50", funnel[1].Points);
         Assert.Equal("37.5,75 62.5,75 62.5,100 37.5,100", funnel[2].Points);
+
+        Assert.Empty(ChartShapes.Funnel([], pyramid: false));
 
         // The first item is the base; each level as tall as its share of the total.
         var pyramid = ChartShapes.Funnel([75, 25], pyramid: true);
