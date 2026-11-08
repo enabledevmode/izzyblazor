@@ -2332,6 +2332,25 @@
       ]
     },
     {
+      "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows amounts moving through stages, such as income through a budget, as bands as wide as each flow between columns of nodes.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
+      "features": [
+        { "feature": "Nodes worked out from the flows' names, with no list of nodes to keep" },
+        { "feature": "Columns by the flows, with every end node in the last column, or each node as far left or right as it can go" },
+        { "feature": "Nodes ordered to cross as few flows as they can, or kept in the items' order" },
+        { "feature": "Flows colored by where they start, where they end, a blend of the two, or one gray" },
+        { "feature": "Each node's name and value beside its bar, inside the plot at every width" },
+        { "feature": "A node's own color or label with SankeyNode" },
+        { "feature": "A table of every flow and its share of its node, in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on flows and nodes, with the rest faded, on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "sankey-chart-usage", "title": "A month's budget", "lead": "A Sankey chart shows amounts moving through stages, such as a household's pay through its budget. Give `SankeyChart` the flows as `Items`, with `From`, `To` and `Value` for each, and a `Title`.", "after": ["Nodes come from the names in `From` and `To`, and each is as tall as what flows through it. A flow takes the color of the node it starts from; `LinkColor=\"SankeyLinkColor.Gradient\"` blends it into the color of where it goes.", "Point at a flow or a node for its values, or move from node to node with the arrow keys."],
+          "notes": { "noscript": "There are no tooltips. Each flow and node shows its value on hover, and \"Show data\" lists every flow." } },
+        { "id": "sankey-chart-income-statement", "title": "An income statement", "lead": "Color a node by what it means with a `SankeyNode`, such as profit in green and costs in red. `LinkColor=\"SankeyLinkColor.Target\"` colors each flow by where it goes.", "after": ["Every node with no flows out sits in the last column, so Hosting and Support end beside Net profit. `NodeAlign` changes that: `Start` keeps each node as far left as its flows allow."] },
+        { "id": "sankey-chart-paths", "title": "Visits to sign-ups", "lead": "To keep nodes in the order the items name them, set `NodeOrder` to `Data`: here Signed up stays above Left. `LinkColor=\"SankeyLinkColor.Neutral\"` draws every flow in one gray.", "after": ["Gray flows keep a diagram with many nodes calm, and leave color for the nodes that matter."] }
+      ]
+    },
+    {
       "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },

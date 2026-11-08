@@ -1,0 +1,35 @@
+@* A month of visits to a product's site: where they came from, the page they landed on, and
+   whether they signed up. *@
+<SankeyChart Items="_paths"
+             From="p => p.From"
+             To="p => p.To"
+             Value="p => p.Visits"
+             NodeOrder="SankeyOrder.Data"
+             LinkColor="SankeyLinkColor.Neutral"
+             Title="Visits to sign-ups, October">
+    <SankeyNode Name="Signed up" Color="var(--ib-color-success)" />
+    <SankeyNode Name="Left" Color="var(--ib-color-neutral)" />
+</SankeyChart>
+
+@code {
+    private record Visit(string From, string To, int Visits);
+
+    private readonly Visit[] _paths =
+    [
+        new("Search", "Home page", 6200),
+        new("Search", "Pricing", 2100),
+        new("Search", "Blog", 3400),
+        new("Social", "Home page", 1800),
+        new("Social", "Blog", 2600),
+        new("Email", "Pricing", 1500),
+        new("Email", "Home page", 700),
+        new("Referral", "Pricing", 900),
+        new("Referral", "Home page", 600),
+        new("Home page", "Signed up", 1100),
+        new("Home page", "Left", 8200),
+        new("Pricing", "Signed up", 1300),
+        new("Pricing", "Left", 3200),
+        new("Blog", "Signed up", 300),
+        new("Blog", "Left", 5700),
+    ];
+}

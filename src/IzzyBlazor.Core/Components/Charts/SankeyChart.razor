@@ -1,0 +1,499 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    Amounts moving through stages, such as a household's income through its budget into what it
+    was spent on: a column of nodes per stage, each as tall as what flows through it, joined by
+    bands as wide as each flow.
+
+    <SankeyChart Items="flows"
+                 From="f => f.From"
+                 To="f => f.To"
+                 Value="f => f.Amount"
+                 Title="October's budget" />
+
+    Each item is one flow. Nodes come from the flows' names, so there's no list of them; a
+    SankeyNode inside the chart gives one its own color or label. Flows between the same two nodes
+    add up; zero, negative and missing values are left out. A node is as tall as the larger of what
+    flows in and out of it. Flows can't loop back to a node they came from. Columns follow the
+    flows (NodeAlign); within a column the nodes move to cross as few flows as they can, or keep
+    the items' order (NodeOrder). A Sankey reads best with a few stages and up to about 30 nodes;
+    when the flows are of similar sizes, or only their totals matter, a stacked bar chart reads
+    better.
+
+    Accessibility:
+    - The chart is a figure captioned by Title, or named by a heading on the page with TitledBy.
+    - The diagram is one image named by the caption, described by its count of flows and nodes.
+    - "Show data" under the chart opens a table of every flow: from, to, value and its share of
+      what leaves its node (DataTable).
+    - Nodes are told apart by their labels and places, not only by color.
+    - With script, the diagram is one Tab stop: the arrow keys move from node to node and say
+      each one's flows in and out.
+
+    Keyboard:
+    On the diagram
+    - Down, Up | Move to the next or previous node in the column
+    - Right, Left | Move to the nearest node in the next or previous column
+    - Home, End | Go to the first or last node
+    - Escape | Hide the tooltip
+    See also: FunnelChart, Chart.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/sankey.css"]" />
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+    }
+    <CascadingValue Value="_nodes" IsFixed="true">
+        <CascadingValue Value="_tooltips" IsFixed="true">
+            @ChildContent
+            @_plotFragment
+        </CascadingValue>
+    </CascadingValue>
+</figure>
+
+@code {
+    /// <summary>The flows, one item each: where it comes from, where it goes and how much.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>The node each flow comes from, such as <c>f =&gt; f.From</c>. Nodes keep the order the items first name them in.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> From { get; set; } = default!;
+
+    /// <summary>The node each flow goes to, such as <c>f =&gt; f.To</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> To { get; set; } = default!;
+
+    /// <summary>How much each flow carries, such as <c>f =&gt; f.Amount</c>: any number. Its band is as wide as its share.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>
+    /// The chart's title, such as "October's budget", shown above it as its caption. It also names
+    /// the chart for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start by default (the left, in a left-to-right page);
+    /// <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
+
+    /// <summary>A .NET format string for the values, such as <c>C0</c> or <c>N0</c>: on the labels, in the tooltips and the table.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>
+    /// Which column each node goes in: <see cref="SankeyAlign.Justify"/> (the default) puts every
+    /// node with no flows out in the last column; <see cref="SankeyAlign.Start"/> keeps each as
+    /// far left as it can, <see cref="SankeyAlign.End"/> as far right, and
+    /// <see cref="SankeyAlign.Center"/> puts a node with no flows in just before where it flows.
+    /// </summary>
+    [Parameter] public SankeyAlign NodeAlign { get; set; }
+
+    /// <summary>
+    /// The nodes' order in each column: <see cref="SankeyOrder.Auto"/> (the default) moves them to
+    /// cross as few flows as it can; <see cref="SankeyOrder.Data"/> keeps the order the items
+    /// first name them in, top to bottom.
+    /// </summary>
+    [Parameter] public SankeyOrder NodeOrder { get; set; }
+
+    /// <summary>
+    /// What colors each flow: <see cref="SankeyLinkColor.Source"/>, the node it comes from (the
+    /// default); <see cref="SankeyLinkColor.Target"/>, the node it goes to;
+    /// <see cref="SankeyLinkColor.Gradient"/>, a blend of the two; or
+    /// <see cref="SankeyLinkColor.Neutral"/>, one gray.
+    /// </summary>
+    [Parameter] public SankeyLinkColor LinkColor { get; set; }
+
+    /// <summary>Writes each node's value after its name. On by default; the tooltips and the table still have the values when it's off.</summary>
+    [Parameter] public bool NodeValues { get; set; } = true;
+
+    /// <summary>The diagram's height. Defaults to 18rem.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>
+    /// The nodes' colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the
+    /// default, repeating past eight), <see cref="ChartPalette.Shades"/> of one color, or your own
+    /// with <see cref="ChartPalette.Of"/>.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
+    /// <summary>
+    /// The tooltip for the flow or node under the pointer, or the node the keyboard is on (with
+    /// script). On by default; <c>false</c> leaves it out, with no keys either.
+    /// </summary>
+    [Parameter] public bool? Tooltip { get; set; }
+
+    /// <summary>The flows as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    /// <summary><see cref="SankeyNode"/>s for nodes that need their own color or label, and a <see cref="ChartTooltip{TItem}"/> for your own flow tooltips.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // A label's line (0.75rem text on a pill) at a 16px root: labels closer than this in a column
+    // hide, the smaller node's first.
+    private const double LinePx = 20;
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private readonly SankeyNodes _nodes = new();
+
+    // Only for ChartTooltip, which a Sankey shares with Chart: its context is one flow.
+    private readonly ChartContext<TItem> _tooltips = new();
+    private RenderFragment _plotFragment = null!;
+    private Expression<Func<TItem, object?>>? _lastFrom;
+    private Expression<Func<TItem, object?>>? _lastTo;
+    private Expression<Func<TItem, object?>>? _lastValue;
+    private Func<TItem, object?>? _from;
+    private Func<TItem, object?>? _to;
+    private Func<TItem, object?>? _value;
+    private string? _fromName;
+    private string? _toName;
+    private string? _valueName;
+    private string? _class;
+    private string? _style;
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    private string Format(double value) => value.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    private static double HeightInPixels(Length? height)
+    {
+        var css = height?.Css;
+        if (css is null) return 288;
+        var match = System.Text.RegularExpressions.Regex.Match(css, @"^([\d.]+)(px|rem)$");
+        return match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v)
+            ? match.Groups[2].Value == "rem" ? v * 16 : v
+            : 288;
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The diagram draws after the SankeyNodes inside the chart have said they're there.
+        _plotFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderPlot);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _nodes.Plot = _tooltips.Plot = plot));
+            builder.CloseComponent();
+        };
+        base.OnInitialized();
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+
+        // Nodes in the order the flows first name them; flows between the same two added up.
+        var names = new List<string>();
+        var nodeOf = new Dictionary<string, int>();
+        int NodeOf(string name)
+        {
+            if (!nodeOf.TryGetValue(name, out var k))
+            {
+                k = names.Count;
+                names.Add(name);
+                nodeOf[name] = k;
+            }
+
+            return k;
+        }
+
+        var flows = new List<(int From, int To, double Value, int Item)>();
+        var flowOf = new Dictionary<(int, int), int>();
+        for (var i = 0; i < items.Count; i++)
+        {
+            var from = NodeOf(ChartLayout.ArgumentText(_from!(items[i]), null, CultureInfo.CurrentCulture));
+            var to = NodeOf(ChartLayout.ArgumentText(_to!(items[i]), null, CultureInfo.CurrentCulture));
+            if (ChartMembers.ToNumber(_value!(items[i])) is not (> 0 and var value) || double.IsInfinity(value)) continue;
+            if (flowOf.TryGetValue((from, to), out var f))
+            {
+                flows[f] = flows[f] with { Value = flows[f].Value + value };
+            }
+            else
+            {
+                flowOf[(from, to)] = flows.Count;
+                flows.Add((from, to, value, i));
+            }
+        }
+
+        // Only nodes with a flow are drawn; the rest (every flow of theirs zero) are left out.
+        var used = names.Select((_, k) => flows.Any(f => f.From == k || f.To == k)).ToArray();
+        var keep = Enumerable.Range(0, names.Count).Where(k => used[k]).ToArray();
+        var index = new int[names.Count];
+        for (var k = 0; k < keep.Length; k++) index[keep[k]] = k;
+        var nodeNames = keep.Select(k => names[k]).ToArray();
+        flows = flows.Select(f => f with { From = index[f.From], To = index[f.To] }).ToList();
+
+        var options = _nodes.Items.GroupBy(n => n.Name).ToDictionary(g => g.Key, g => g.Last());
+        string Label(int k) => options.TryGetValue(nodeNames[k], out var o) && o.Label is { } l ? l : nodeNames[k];
+        string? Custom(int k) => options.TryGetValue(nodeNames[k], out var o) && o.Color is { } c ? StyleValues.Raw(c, "color") : null;
+
+        var height = HeightInPixels(Height);
+        var model = SankeyLayout.Build(nodeNames.Length, flows.Select(f => new SankeyLinkInput(f.From, f.To, f.Value)).ToList(),
+            nodeNames.Select((_, k) => Label(k)).ToList(), NodeAlign, NodeOrder, height);
+        var last = Math.Max(1, model.Columns - 1);
+        var tooltip = (Tooltip ?? true) && model.Nodes.Count > 0;
+        var template = _tooltips.TooltipTemplate;
+        var gradients = _labelId + "-g";
+
+        // Colors: the palette's eight, repeating, unless a SankeyNode sets one.
+        string Slot(int k) => $"ib-chart-s{k % 8 + 1}";
+        string Color(int k) => Custom(k) ?? $"var(--ib-chart-{k % 8 + 1})";
+        string? ColorStyle(int k) => Custom(k) is { } c ? $"--ib-chart-color:{c}" : null;
+        int By(SankeyLinkBand l) => LinkColor == SankeyLinkColor.Target ? l.Target : l.Source;
+        string LinkClass(SankeyLinkBand l) => LinkColor switch
+        {
+            SankeyLinkColor.Neutral => "ib-sankey-link ib-sankey-neutral",
+            SankeyLinkColor.Gradient => "ib-sankey-link",
+            _ => $"ib-sankey-link {Slot(By(l))}",
+        };
+        string? LinkStyle(SankeyLinkBand l) => LinkColor switch
+        {
+            SankeyLinkColor.Neutral => null,
+            SankeyLinkColor.Gradient => $"fill:url(#{gradients}{l.Index})",
+            _ => ColorStyle(By(l)),
+        };
+
+        // Each node's share of what leaves it, and the texts every part says.
+        string Arrow(SankeyLinkBand l) => $"{Label(l.Source)} → {Label(l.Target)}";
+        string? ShareOf(SankeyLinkBand l) => model.Nodes[l.Source].Out is > 0 and var total
+            ? string.Format(CultureInfo.CurrentCulture, TextDefaults.SankeyOfText, ChartMembers.Share(l.Value / total), Label(l.Source))
+            : null;
+
+        // Labels: beside each node at its middle, kept inside the plot; in a column, any that would
+        // touch a larger node's label hide.
+        var shown = new bool[model.Nodes.Count];
+        var centers = new double[model.Nodes.Count];
+        foreach (var column in model.Nodes.GroupBy(n => n.Column))
+        {
+            var placed = new List<double>();
+            foreach (var node in column.OrderByDescending(n => n.Value).ThenBy(n => n.Index))
+            {
+                var y = Math.Clamp((node.Top + node.Bottom) / 2 / 100 * height, LinePx / 2, height - LinePx / 2);
+                centers[node.Index] = y / height * 100;
+                if (placed.Any(p => Math.Abs(p - y) < LinePx)) continue;
+                placed.Add(y);
+                shown[node.Index] = true;
+            }
+        }
+
+        // The last column's labels face the column before's across one gap: two at the same height
+        // each take half of it.
+        var half = new bool[model.Nodes.Count];
+        if (model.Columns > 1)
+        {
+            var facing = model.Nodes.Where(n => shown[n.Index] && n.Column == model.Columns - 2).ToList();
+            foreach (var end in model.Nodes.Where(n => shown[n.Index] && n.Column == model.Columns - 1))
+            {
+                foreach (var node in facing.Where(n => Math.Abs(centers[n.Index] - centers[end.Index]) / 100 * height < LinePx))
+                {
+                    half[node.Index] = half[end.Index] = true;
+                }
+            }
+        }
+
+        // Nodes the keys visit: column by column, top to bottom.
+        var order = model.Nodes.OrderBy(n => n.Column).ThenBy(n => n.Top).Select(n => n.Index).ToArray();
+        var style = $"--ib-sankey-cols:{last};{(Height is { } h ? $"--ib-chart-height:{h.Css};" : "")}{Palette?.Style(Math.Min(8, nodeNames.Length))}";
+
+        <ib-chart style="@style" data-ib-sankey="@string.Join(" ", order)">
+            <div class="ib-chart-main ib-sankey">
+                <div class="ib-sankey-plot" role="img" aria-labelledby="@NameId" aria-describedby="@(_labelId)-desc">
+                    <svg class="ib-sankey-links" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+                        @if (LinkColor == SankeyLinkColor.Gradient)
+                        {
+                            <defs>
+                                @foreach (var l in model.Links)
+                                {
+                                    <linearGradient id="@($"{gradients}{l.Index}")" gradientUnits="userSpaceOnUse" x1="@Num(1000.0 * model.Nodes[l.Source].Column / last)" x2="@Num(1000.0 * model.Nodes[l.Target].Column / last)" y1="0" y2="0">
+                                        <stop class="ib-sankey-stop" offset="0" style="@($"--ib-chart-c:{Color(l.Source)}")" />
+                                        <stop class="ib-sankey-stop" offset="1" style="@($"--ib-chart-c:{Color(l.Target)}")" />
+                                    </linearGradient>
+                                }
+                            </defs>
+                        }
+                        @foreach (var l in model.Links.OrderByDescending(l => l.Width))
+                        {
+                            <path class="@LinkClass(l)" style="@LinkStyle(l)" d="@l.Path" data-ib-link="@l.Index" data-ib-from="@l.Source" data-ib-to="@l.Target">@if (tooltip)
+                            {<title>@($"{Arrow(l)}: {Format(l.Value)}")</title>}</path>
+                        }
+                    </svg>
+                    <div class="ib-sankey-nodes" aria-hidden="true">
+                        @foreach (var node in model.Nodes)
+                        {
+                            <span class="@($"ib-sankey-node {Slot(node.Index)}")" style="@($"--x:{Num((double)node.Column / last)};top:{Num(node.Top)}%;height:{Num(node.Bottom - node.Top)}%;{ColorStyle(node.Index)}")" data-ib-node="@node.Index" title="@(tooltip ? $"{Label(node.Index)}: {Format(node.Value)}" : null)"></span>
+                        }
+                    </div>
+                    <div class="ib-sankey-labels" aria-hidden="true">
+                        @foreach (var node in model.Nodes.Where(n => shown[n.Index]))
+                        {
+                            <span class="@($"ib-sankey-label{(node.Column == model.Columns - 1 && model.Columns > 1 ? " ib-sankey-label-end" : "")}{(half[node.Index] ? " ib-sankey-half" : "")}")" style="@($"--x:{Num((double)node.Column / last)};top:{Num(centers[node.Index])}%")" data-ib-node="@node.Index">@Label(node.Index)@if (NodeValues)
+                                {<span class="ib-sankey-value">@Format(node.Value)</span>}</span>
+                        }
+                    </div>
+                    @if (tooltip)
+                    {
+                        <div class="ib-chart-tooltip" hidden></div>
+                    }
+                </div>
+            </div>
+            @if (tooltip)
+            {
+                @* Each node's and flow's tooltip, drawn here so a template is real Razor; the script
+                   shows the one under the pointer or keyboard focus, and says it in the live region. *@
+                <div class="ib-chart-tips" hidden>
+                    @foreach (var node in model.Nodes)
+                    {
+                        var k = node.Index;
+                        <div data-ib-tip="@($"n{k}")">
+                            <div class="ib-chart-tooltip-title">
+                                <span>@Label(k)</span>
+                                <span class="ib-chart-tooltip-value">@Format(node.Value)</span>
+                            </div>
+                            @foreach (var l in model.Links.Where(l => l.Target == k).OrderBy(l => model.Nodes[l.Source].Top))
+                            {
+                                <div class="ib-chart-tooltip-row">
+                                    <span class="ib-chart-tooltip-key" style="@("background:" + Color(l.Source))"></span>
+                                    <span>@string.Format(CultureInfo.CurrentCulture, TextDefaults.SankeyFromText, Label(l.Source))</span>
+                                    <span class="ib-chart-tooltip-value">@Format(l.Value)</span>
+                                </div>
+                            }
+                            @foreach (var l in model.Links.Where(l => l.Source == k).OrderBy(l => model.Nodes[l.Target].Top))
+                            {
+                                <div class="ib-chart-tooltip-row">
+                                    <span class="ib-chart-tooltip-key" style="@("background:" + Color(l.Target))"></span>
+                                    <span>@string.Format(CultureInfo.CurrentCulture, TextDefaults.SankeyToText, Label(l.Target))</span>
+                                    <span class="ib-chart-tooltip-value">@Format(l.Value)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    @foreach (var l in model.Links)
+                    {
+                        var flow = flows[l.Index];
+                        <div data-ib-tip="@($"l{l.Index}")">
+                            @if (template is not null)
+                            {
+                                @template(new ChartTooltipContext<TItem>(items[flow.Item], flow.Item, Arrow(l), [new ChartTooltipPoint(_valueName ?? TextDefaults.ChartValue, l.Value, Format(l.Value), Color(By(l)))]))
+                            }
+                            else
+                            {
+                                <div class="ib-chart-tooltip-title">@Arrow(l)</div>
+                                <div class="ib-chart-tooltip-row">
+                                    <span class="ib-chart-tooltip-key" style="@("background:" + Color(By(l)))"></span>
+                                    <span>@ShareOf(l)</span>
+                                    <span class="ib-chart-tooltip-value">@Format(l.Value)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.SankeyKeys</span>
+            }
+            <span id="@(_labelId)-desc" class="ib-visually-hidden">@string.Format(CultureInfo.CurrentCulture, TextDefaults.SankeyDescription, model.Links.Count, model.Nodes.Count)</span>
+        </ib-chart>
+
+        @if (DataTable != ChartDataTable.None)
+        {
+            var fromHeader = _fromName ?? TextDefaults.SankeyFrom;
+            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
+                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
+                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                        {<span class="ib-visually-hidden">, @Title</span>}</span>
+                </summary>
+                <div class="ib-chart-table-scroll">
+                    <table class="ib-chart-table" aria-labelledby="@NameId">
+                        <thead>
+                            <tr>
+                                <th scope="col">@fromHeader</th>
+                                <th scope="col">@(_toName ?? TextDefaults.SankeyTo)</th>
+                                <th scope="col">@(_valueName ?? TextDefaults.ChartValue)</th>
+                                <th scope="col">@string.Format(CultureInfo.CurrentCulture, TextDefaults.SankeyShare, fromHeader)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var l in model.Links)
+                            {
+                                <tr>
+                                    <th scope="row">@Label(l.Source)</th>
+                                    <td>@Label(l.Target)</td>
+                                    <td>@Format(l.Value)</td>
+                                    <td>@ChartMembers.Share(l.Value / model.Nodes[l.Source].Out)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-sankey-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "SankeyChart needs a Title, such as \"October's budget\", or TitledBy, the id of a heading on the page that titles it."
+                : "SankeyChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (From is null || To is null || Value is null)
+        {
+            throw new InvalidOperationException("SankeyChart needs From, To and Value: where each flow comes from, where it goes and how much, such as f => f.From, f => f.To and f => f.Amount.");
+        }
+
+        if (!ReferenceEquals(From, _lastFrom))
+        {
+            _lastFrom = From;
+            _from = From.Compile();
+            _fromName = ChartMembers.Name(From);
+        }
+
+        if (!ReferenceEquals(To, _lastTo))
+        {
+            _lastTo = To;
+            _to = To.Compile();
+            _toName = ChartMembers.Name(To);
+        }
+
+        if (!ReferenceEquals(Value, _lastValue))
+        {
+            _lastValue = Value;
+            _value = Value.Compile();
+            _valueName = ChartMembers.Name(Value);
+        }
+
+        _nodes.BeginPass();
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

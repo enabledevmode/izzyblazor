@@ -1283,6 +1283,30 @@ public class IzzyText
     /// <summary>A RadarChart's scale, in its description: "Scale {0} at the center to {1} at the edge".</summary>
     public virtual string RadarScaleText { get; set; } = "Scale {0} at the center to {1} at the edge";
 
+    /// <summary>A SankeyChart's description: "{0} flows between {1} nodes, left to right".</summary>
+    public virtual string SankeyDescription { get; set; } = "{0} flows between {1} nodes, left to right";
+
+    /// <summary>A SankeyChart node's tooltip: a flow into it, "from {0}".</summary>
+    public virtual string SankeyFromText { get; set; } = "from {0}";
+
+    /// <summary>A SankeyChart node's tooltip: a flow out of it, "to {0}".</summary>
+    public virtual string SankeyToText { get; set; } = "to {0}";
+
+    /// <summary>A SankeyChart flow's tooltip: its share of what leaves its node, "{0} of {1}" (such as "40% of Salary").</summary>
+    public virtual string SankeyOfText { get; set; } = "{0} of {1}";
+
+    /// <summary>A SankeyChart's data table: the heading over where each flow comes from, when From isn't a property.</summary>
+    public virtual string SankeyFrom { get; set; } = "From";
+
+    /// <summary>A SankeyChart's data table: the heading over where each flow goes, when To isn't a property.</summary>
+    public virtual string SankeyTo { get; set; } = "To";
+
+    /// <summary>A SankeyChart's data table: the heading over each flow's share of its node, "Share of {0}" with the From column's heading.</summary>
+    public virtual string SankeyShare { get; set; } = "Share of {0}";
+
+    /// <summary>A SankeyChart's keyboard hint.</summary>
+    public virtual string SankeyKeys { get; set; } = "Arrow keys move between nodes; Escape hides the tooltip.";
+
     /// <summary>A CalendarHeatmap's data table: the heading over its column of days of the month.</summary>
     public virtual string CalendarHeatmapDay { get; set; } = "Day";
 
