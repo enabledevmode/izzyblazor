@@ -17,6 +17,69 @@ const clampView = (from: number, to: number, least: number): View => {
 
 const loadModule = () => (drawing ??= import("./parts/chart-draw.js" as string) as Promise<DrawModule>);
 
+// Synced charts (Chart Sync): what they match by (data-ib-sync-at): bands or a scale, names (text)
+// or values, each item's argument (names as text, dates as ticks, numbers), and zooming on a
+// scale its ends in its units, a log axis's as powers of ten.
+type SyncAt = { c: boolean; t: boolean; k: (number | string | null)[]; d?: [number, number]; g?: boolean };
+// A view passed between them: its first and last arguments (names or values), or null for everything.
+type SyncView = { t: boolean; a: number | string; b: number | string } | null;
+type Peer = { view?: (m: SyncView) => void; settle?: () => void; hover?: (t: boolean, at: number | string | null) => void };
+const groups = new Map<string, Set<Peer>>();
+/** Joins the charts named alike on the page; returns a call to each of the others. */
+const joinSync = (name: string, peer: Peer, signal: AbortSignal) => {
+  const group = groups.get(name) ?? new Set<Peer>();
+  groups.set(name, group);
+  group.add(peer);
+  signal.addEventListener("abort", () => {
+    group.delete(peer);
+    if (group.size === 0) groups.delete(name);
+  });
+  return (call: (p: Peer) => void) => {
+    for (const p of [...group]) if (p !== peer) call(p);
+  };
+};
+const scaleShare = (s: SyncAt, x: number) => ((s.g ? Math.log10(x) : x) - s.d![0]) / (s.d![1] - s.d![0] || 1);
+const scaleValue = (s: SyncAt, f: number) => ((c) => (s.g ? 10 ** c : c))(s.d![0] + f * (s.d![1] - s.d![0]));
+/** A chart's view as arguments; undefined when it can't say (a scale with no zoom). */
+const viewOut = (s: SyncAt, v: View): SyncView | undefined => {
+  if (v[0] <= 1e-6 && v[1] >= 1 - 1e-6) return null;
+  if (s.c) {
+    const n = s.k.length;
+    const i = Math.min(n - 1, Math.max(0, Math.floor(v[0] * n + 1e-6)));
+    const j = Math.min(n - 1, Math.max(i, Math.ceil(v[1] * n - 1e-6) - 1));
+    return s.k[i] === null || s.k[j] === null ? undefined : { t: s.t, a: s.k[i]!, b: s.k[j]! };
+  }
+  return s.d ? { t: false, a: scaleValue(s, v[0]), b: scaleValue(s, v[1]) } : undefined;
+};
+/** Another chart's view on this one's axis, cut to its ends; undefined when they don't meet. */
+const viewIn = (s: SyncAt, m: SyncView): View | undefined => {
+  if (m === null) return [0, 1];
+  if (m.t !== s.t) return;
+  const n = s.k.length;
+  if (s.c) {
+    // Bands: from the first item in the range to the last, by name or by value.
+    const [lo, hi] = m.t ? [m.a, m.b] : [Math.min(m.a as number, m.b as number), Math.max(m.a as number, m.b as number)];
+    const inside = s.k.flatMap((k, i) => (m.t ? k === lo || k === hi : typeof k === "number" && k >= (lo as number) && k <= (hi as number)) ? [i] : []);
+    return inside.length === 0 ? undefined : [Math.min(...inside) / n, (Math.max(...inside) + 1) / n];
+  }
+  if (!s.d) return;
+  const [a, b] = [scaleShare(s, m.a as number), scaleShare(s, m.b as number)].sort((x, y) => x - y);
+  return Math.min(1, b) - Math.max(0, a) > 1e-9 ? [Math.max(0, a), Math.min(1, b)] : undefined;
+};
+/** The item at another chart's argument: the same name, or by value the nearest within its ends. */
+const itemAt = (s: SyncAt, t: boolean, at: number | string | null) => {
+  if (at === null || t !== s.t) return -1;
+  if (s.t) return s.k.indexOf(at);
+  let best = -1;
+  let [lo, hi] = [Infinity, -Infinity];
+  s.k.forEach((k, i) => {
+    if (typeof k !== "number") return;
+    [lo, hi] = [Math.min(lo, k), Math.max(hi, k)];
+    if (best < 0 || Math.abs(k - (at as number)) < Math.abs((s.k[best] as number) - (at as number))) best = i;
+  });
+  return (at as number) < lo || (at as number) > hi ? -1 : best;
+};
+
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
  * keyboard (the plot is one Tab stop; the arrow keys move between items and the tooltip's text
@@ -96,19 +159,41 @@ class Chart extends IzzyElement {
       const d: DrawData = JSON.parse(this.dataset.ibDraw);
       let v: View = d.zv ?? [0, 1];
       let timer = 0;
+      // Synced (Sync): it zooms the charts named alike, and follows them.
+      const at: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
+      const peer: Peer = {};
+      const others = at && this.dataset.ibSync && this.hasAttribute("data-ib-sync-view") ? joinSync(this.dataset.ibSync, peer, signal) : null;
+      let synced = false;
       const report = () => {
         clearTimeout(timer);
         timer = window.setTimeout(() => {
-          if (signal.aborted || !this.hasAttribute("data-ib-interactive")) return;
+          if (signal.aborted) return;
+          if (!synced) others?.((p) => p.settle?.());
+          synced = false;
+          if (!this.hasAttribute("data-ib-interactive")) return;
           const all = v[0] <= 1e-6 && v[1] >= 1 - 1e-6;
           this.emit("iblayout", { layout: all ? "" : `${Math.round(v[0] * 1e6) / 1e6} ${Math.round(v[1] * 1e6) / 1e6}` });
         }, 0);
       };
       let show = () => {};
-      const set = (from: number, to: number, settle = true) => {
+      const set = (from: number, to: number, settle = true, share = true) => {
         v = clampView(from, to, d.zl ?? 0);
         show();
+        if (share && at) {
+          const m = viewOut(at, v);
+          if (m !== undefined) others?.((p) => p.view?.(m));
+        }
         if (settle) report();
+      };
+      peer.view = (m) => {
+        const nv = viewIn(at!, m);
+        if (!nv) return;
+        synced = true;
+        set(nv[0], nv[1], false, false);
+      };
+      peer.settle = () => {
+        synced = true;
+        report();
       };
       show = this.selector(lone, d, () => v, set, report, signal, null);
       return;
@@ -150,6 +235,13 @@ class Chart extends IzzyElement {
     // Zoom (ChartArgumentAxis Zoom): the view the server drew, and the one shown, as shares of the
     // whole argument axis. The script draws any other view itself (chart-draw.ts).
     const zoomOn = !!data?.za && this.hasAttribute("data-ib-zoom");
+    // Synced by view with no Zoom of its own, it follows the others and takes no gestures.
+    const gestures = zoomOn && !this.hasAttribute("data-ib-follow");
+    // Synced (Sync): the charts named alike, which it zooms and hovers with.
+    const syncAt: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
+    const peer: Peer = {};
+    const others = syncAt && this.dataset.ibSync ? joinSync(this.dataset.ibSync, peer, signal) : null;
+    const syncView = !!others && zoomOn && this.hasAttribute("data-ib-sync-view");
     const drawnView: View = data?.zv ?? [0, 1];
     let view: View = [drawnView[0], drawnView[1]];
     const zargs = this.querySelector<HTMLElement>(".ib-chart-zargs");
@@ -282,28 +374,57 @@ class Chart extends IzzyElement {
     // settles, says the range and (interactive) reports it to .NET for ViewChanged.
     const zoomLive = this.querySelector<HTMLElement>("[data-ib-live]");
     let settle = 0;
+    // The view came from another synced chart: it isn't said here, nor passed on.
+    let synced = false;
     const settled = (wait = 0) => {
       clearTimeout(settle);
       settle = window.setTimeout(() => {
         if (signal.aborted) return;
         const inView = (data!.za ?? []).map((p, i) => [p, i] as const).filter(([p]) => p !== null && p >= view[0] - 1e-9 && p <= view[1] + 1e-9).sort((a, b) => a[0]! - b[0]!);
-        if (zoomLive && data!.zs && data!.zn && inView.length > 0) {
+        if (!synced && zoomLive && data!.zs && data!.zn && inView.length > 0) {
           const range = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
           zoomLive.textContent = joinNext && zoomLive.textContent ? `${zoomLive.textContent}. ${range}` : range;
         }
+        if (!synced && syncView) others!((p) => p.settle?.());
+        synced = false;
         joinNext = false;
         if (this.hasAttribute("data-ib-interactive")) {
           this.emit("iblayout", { layout: isZoomed() ? `${Math.round(view[0] * 1e6) / 1e6} ${Math.round(view[1] * 1e6) / 1e6}` : "" });
         }
       }, wait);
     };
-    const setView = (from: number, to: number, report = true) => {
+    const setView = (from: number, to: number, report = true, share = true) => {
       view = clampView(from, to, data?.zl ?? 0);
       this.toggleAttribute("data-ib-zoomed", isZoomed());
       redraw();
       showSelector();
+      if (share && syncView) {
+        const m = viewOut(syncAt!, view);
+        if (m !== undefined) others!((p) => p.view?.(m));
+      }
       if (report) settled();
     };
+    if (syncView) {
+      peer.view = (m) => {
+        const v = viewIn(syncAt!, m);
+        if (!v) return;
+        synced = true;
+        setView(v[0], v[1], false, false);
+      };
+      peer.settle = () => {
+        synced = true;
+        settled();
+      };
+    }
+    // Reset zoom (a chart that only follows has it too: it resets the group).
+    this.querySelector(".ib-chart-reset")?.addEventListener(
+      "click",
+      () => {
+        setView(0, 1);
+        frame.focus();
+      },
+      { signal }
+    );
     const zoomTo = (from: number, to: number) => setView(from, to);
     const zoomAround = (at: number, factor: number, report = true) => {
       const span = Math.min(1, Math.max(data?.zl ?? 0, (view[1] - view[0]) * factor));
@@ -356,7 +477,7 @@ class Chart extends IzzyElement {
     const live = this.querySelector<HTMLElement>("[data-ib-live]");
     // With no tooltips (every series labeled), a chart that zooms still takes its keys and gestures.
     const tipsOn = !!tooltip && !!hover && tips.length > 0;
-    if (!tipsOn && !zoomOn) return;
+    if (!tipsOn && !gestures) return;
 
     const count = Number(this.dataset.ibCount) || tips.length;
     const scale = this.hasAttribute("data-ib-scale");
@@ -390,6 +511,9 @@ class Chart extends IzzyElement {
       (parseFloat(m.getAttribute("y") ?? m.getAttribute("cy") ?? "0") / 100) * plot.clientHeight,
     ];
     let active: SVGElement | undefined;
+    // Showing an item for another synced chart (byPeer, during show), and whether the one shown is.
+    let byPeer = false;
+    let peerShown = false;
 
     // The keyboard's order: the items, or on a scatter chart its points from left to right;
     // reversed, the items from the last, so Right still moves right.
@@ -433,6 +557,10 @@ class Chart extends IzzyElement {
       current = this.#current = index;
       lastY = pointerY;
       if (!tipsOn) return;
+      // Shown for another synced chart, screen readers leave it to that one.
+      if (byPeer) tooltip.setAttribute("aria-hidden", "true");
+      else tooltip.removeAttribute("aria-hidden");
+      peerShown = byPeer;
       tooltip.innerHTML = tips[index].innerHTML;
       for (const row of tooltip.querySelectorAll<HTMLElement>("[data-ib-series]")) {
         if (hidden.has(Number(row.dataset.ibSeries))) row.remove();
@@ -487,7 +615,10 @@ class Chart extends IzzyElement {
     };
 
     refresh = () => {
-      if (tipsOn && current >= 0 && !tooltip.hidden) show(current, lastY);
+      if (!tipsOn || current < 0 || tooltip.hidden) return;
+      byPeer = peerShown;
+      show(current, lastY);
+      byPeer = false;
     };
 
     const hide = () => {
@@ -497,6 +628,36 @@ class Chart extends IzzyElement {
       active?.removeAttribute("data-ib-active");
       active = undefined;
     };
+
+    // Synced hover (Sync): the item shown here shows in the charts named alike, at its argument.
+    const syncHover = !!others && tipsOn && this.hasAttribute("data-ib-sync-hover");
+    let told: number | string | null = null;
+    const tellHover = () => {
+      if (!syncHover) return;
+      const at = !tooltip.hidden && current >= 0 ? (syncAt!.k[current] ?? null) : null;
+      if (at === told) return;
+      told = at;
+      others!((p) => p.hover?.(syncAt!.t, at));
+    };
+    // Hidden here by the reader: hidden in the others too.
+    const drop = () => {
+      hide();
+      tellHover();
+    };
+    if (syncHover) {
+      peer.hover = (t, at) => {
+        const i = itemAt(syncAt!, t, at);
+        // The reader's own item (by the keys) stays; one shown for another chart follows it.
+        if (byKeys && document.activeElement === frame) return;
+        if (i < 0) {
+          if (peerShown) hide();
+          return;
+        }
+        byPeer = true;
+        show(i, null);
+        byPeer = false;
+      };
+    }
 
     // The plot's shapes stop taking the pointer (chart.css), so their native <title> tips, there
     // for when there's no script, don't show over this one.
@@ -527,16 +688,18 @@ class Chart extends IzzyElement {
             if (d < distance) [best, distance] = [m, d];
           }
           if (best) show(Number(best.dataset.ibI), null);
+          tellHover();
           return;
         }
         show(nearest(along(event)), horizontal ? event.clientX - r.left : event.clientY - r.top);
+        tellHover();
       },
       { signal }
     );
     plot.addEventListener(
       "pointerleave",
       () => {
-        if (!byKeys) hide();
+        if (!byKeys) drop();
       },
       { signal }
     );
@@ -544,7 +707,7 @@ class Chart extends IzzyElement {
     // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
     // not an image, so the frame becomes one, described by the keys' hint.
     this.keyboard(frame, signal);
-    document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && hide(), { signal });
+    document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && drop(), { signal });
     const announce = () => {
       if (!live || !tipsOn) return;
       live.textContent = [...tooltip.children]
@@ -565,10 +728,11 @@ class Chart extends IzzyElement {
         byKeys = true;
         show(current >= 0 ? current : keys()[0], null);
         announce();
+        tellHover();
       },
       { signal }
     );
-    frame.addEventListener("blur", hide, { signal });
+    frame.addEventListener("blur", drop, { signal });
     // Drawn again (an interactive page after a zoom) with the keys on an item: it stays shown.
     if (kept && byKeys && current >= 0 && document.activeElement === frame) show(current, null);
     frame.addEventListener(
@@ -598,14 +762,14 @@ class Chart extends IzzyElement {
             next = keys().slice(-1)[0];
             break;
           case "Escape":
-            hide();
+            drop();
             return;
           case "+":
           case "=":
           case "-":
           case "_":
           case "0":
-            if (!zoomOn) return;
+            if (!gestures) return;
             event.preventDefault();
             if (event.key === "0") setView(0, 1);
             else {
@@ -626,6 +790,7 @@ class Chart extends IzzyElement {
         }
         show(next, null);
         announce();
+        tellHover();
       },
       { signal }
     );
@@ -633,8 +798,8 @@ class Chart extends IzzyElement {
     // Zoom's gestures: a drag across the plot draws a box to zoom into, Ctrl (⌘) and the wheel or
     // a trackpad's pinch zoom at the pointer, Shift and the wheel pan; on touch two fingers pinch
     // and pan, and one still scrolls the page.
-    if (!zoomOn) return;
-    const brush = plot.querySelector<HTMLElement>(".ib-chart-brush");
+    if (!gestures) return;
+    const brush =plot.querySelector<HTMLElement>(".ib-chart-brush");
     const length = () => (horizontal ? plot.clientHeight : plot.clientWidth);
     const fracOf = (x: number, y: number) => {
       const r = plot.getBoundingClientRect();
@@ -658,7 +823,7 @@ class Chart extends IzzyElement {
             const { mid, dist } = pinchState();
             pinch = { share: shareAt(mid), span: view[1] - view[0], dist };
             gesturing = true;
-            hide();
+            drop();
           }
           return;
         }
@@ -691,7 +856,7 @@ class Chart extends IzzyElement {
           plot.setPointerCapture(event.pointerId);
           this.setAttribute("data-ib-brushing", "");
           gesturing = true;
-          hide();
+          drop();
         }
         const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
         const [a, b] = [Math.min(box.from, to), Math.max(box.from, to)];
@@ -724,7 +889,7 @@ class Chart extends IzzyElement {
       (event) => {
         if (event.ctrlKey || event.metaKey) {
           event.preventDefault();
-          hide();
+          drop();
           zoomAround(shareAt(fracOf(event.clientX, event.clientY)), Math.exp(event.deltaY * 0.002), false);
           settled(300);
         } else if (isZoomed() && (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))) {
@@ -735,14 +900,6 @@ class Chart extends IzzyElement {
         }
       },
       { signal, passive: false }
-    );
-    this.querySelector(".ib-chart-reset")?.addEventListener(
-      "click",
-      () => {
-        setView(0, 1);
-        frame.focus();
-      },
-      { signal }
     );
   }
 

@@ -85,13 +85,20 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
     /// </summary>
     [Parameter] public bool HideFlags { get; set; }
 
+    /// <summary>
+    /// On its own: the <see cref="Chart{TItem}.Sync"/> name of the charts it zooms, such as
+    /// <c>Sync="sales"</c>, with no round trip, on a static page too. Inside a Chart, set the chart's.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? Sync { get; set; }
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
         if (Context is null) return;
-        if (Items is not null || Argument is not null || View is not null || ViewChanged.HasDelegate || ChildContent is not null)
+        if (Items is not null || Argument is not null || View is not null || ViewChanged.HasDelegate || ChildContent is not null || Sync is not null)
         {
-            throw new InvalidOperationException("Inside a Chart, RangeSelector draws the chart's items and series: leave out Items, Argument and series, and set the chart's View.");
+            throw new InvalidOperationException("Inside a Chart, RangeSelector draws the chart's items and series: leave out Items, Argument, series and Sync, and set the chart's View and Sync.");
         }
 
         Context.Selector = this;
@@ -132,6 +139,8 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
             b.AddComponentParameter(6, nameof(Chart<TItem>.DataTable), ChartDataTable.None);
             b.AddComponentParameter(7, nameof(Chart<TItem>.View), View);
             b.AddComponentParameter(8, nameof(Chart<TItem>.ViewChanged), ViewChanged);
+            b.AddComponentParameter(10, nameof(Chart<TItem>.Sync), Sync);
+            b.AddComponentParameter(11, nameof(Chart<TItem>.SyncHover), false);
             b.AddComponentParameter(9, nameof(Chart<TItem>.ChildContent), (RenderFragment)(c =>
             {
                 c.AddContent(0, ChildContent);

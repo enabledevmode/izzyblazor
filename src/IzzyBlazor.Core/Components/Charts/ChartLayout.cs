@@ -301,6 +301,9 @@ internal sealed class ChartModel
 
     public double ZoomLeast { get; set; }
 
+    /// <summary>Zoom on a scale: the axis's ends in its own units (a log axis's powers of ten), which shares are of.</summary>
+    public (double Lo, double Hi)? ZoomDomain { get; set; }
+
     public List<ZoomTier> ZoomTiers { get; } = [];
 
     public required string[] ArgumentTexts { get; init; }
@@ -1526,6 +1529,7 @@ internal static class ChartLayout
             if (finite.Length < 2 || finite.Min() == finite.Max()) return;
             (lo, hi) = (finite.Min(), finite.Max());
             model.ZoomPositions = at.Select(x => x is { } v ? (v - lo) / (hi - lo) : double.NaN).ToArray();
+            model.ZoomDomain = (lo, hi);
             model.ZoomLeast = Math.Max(1, Math.Min(least, finite.Length) - 1) / (double)(finite.Length - 1);
         }
 
