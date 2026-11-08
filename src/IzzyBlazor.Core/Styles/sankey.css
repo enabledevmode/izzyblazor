@@ -102,12 +102,13 @@
   }
 
   /* The flow pointed at, or a node's flows (pointer or keys), washed out: paler on a light
-     surface, toward white on a dark one (less opacity would only darken it there). Nothing else
+     surface, toward white on a dark one (less opacity would only darken it there), and solid, so
+     its copy over the rest hides what it crosses. Nothing else
      changes, so nothing flashes. A gradient flow's color is its gradient's, marked with it. */
   .ib-sankey-link[data-ib-active] {
     fill: light-dark(
-      color-mix(in srgb, var(--ib-chart-c) 30%, transparent),
-      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, transparent));
+      color-mix(in srgb, var(--ib-chart-c) 30%, var(--ib-color-surface)),
+      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, var(--ib-color-surface)));
   }
 
   /* The flow's copy over the rest, shown only while it's marked. */
@@ -115,8 +116,8 @@
 
   linearGradient[data-ib-active] > .ib-sankey-stop {
     stop-color: light-dark(
-      color-mix(in srgb, var(--ib-chart-c) 30%, transparent),
-      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, transparent));
+      color-mix(in srgb, var(--ib-chart-c) 30%, var(--ib-color-surface)),
+      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, var(--ib-color-surface)));
   }
 
   /* The plot's shapes leave the pointer to the script, whose tooltip stands in for their titles. */
