@@ -496,7 +496,8 @@
 
   /* Zoom: one finger still scrolls the page (two pinch and pan); a drag across the plot draws a
      box to zoom into; Reset zoom shows while zoomed in. */
-  ib-chart[data-ib-zoom] .ib-chart-plot {
+  /* A chart that only follows others (Sync) takes no gestures. */
+  ib-chart[data-ib-zoom]:not([data-ib-follow]) .ib-chart-plot {
     touch-action: pan-y;
     cursor: crosshair;
   }

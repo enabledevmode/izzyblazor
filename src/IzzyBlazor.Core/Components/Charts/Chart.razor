@@ -1394,8 +1394,6 @@
         return new ChartView(Arg(f0), Arg(f1));
     }
 
-    // What the script needs to draw the chart again without a series (chart-draw.ts): each
-    // series' values and look, the stacking, the value range and how values read.
     // What synced charts match by: each item's argument (dates as ticks, numbers as themselves,
     // names as text) and, zooming on a scale, the axis's ends in its units and whether it's a log.
     private string SyncKeys(ChartModel model)
@@ -1433,6 +1431,8 @@
         return System.Text.Encoding.UTF8.GetString(stream.ToArray());
     }
 
+    // What the script needs to draw the chart again without a series (chart-draw.ts): each
+    // series' values and look, the stacking, the value range and how values read.
     private string DrawData(ChartModel model, NumberShape shape, bool horizontal, string marks)
     {
         using var stream = new MemoryStream();

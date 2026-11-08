@@ -40,9 +40,8 @@ const joinSync = (name: string, peer: Peer, signal: AbortSignal) => {
 };
 const scaleShare = (s: SyncAt, x: number) => ((s.g ? Math.log10(x) : x) - s.d![0]) / (s.d![1] - s.d![0] || 1);
 const scaleValue = (s: SyncAt, f: number) => ((c) => (s.g ? 10 ** c : c))(s.d![0] + f * (s.d![1] - s.d![0]));
-/** A chart's view as arguments; undefined when it can't say (a scale with no zoom). */
+/** A chart's view as its first and last arguments; undefined when it can't say (a scale with no zoom). */
 const viewOut = (s: SyncAt, v: View): SyncView | undefined => {
-  if (v[0] <= 1e-6 && v[1] >= 1 - 1e-6) return null;
   if (s.c) {
     const n = s.k.length;
     const i = Math.min(n - 1, Math.max(0, Math.floor(v[0] * n + 1e-6)));
@@ -58,12 +57,17 @@ const viewIn = (s: SyncAt, m: SyncView): View | undefined => {
   const n = s.k.length;
   if (s.c) {
     // Bands: from the first item in the range to the last, by name or by value.
-    const [lo, hi] = m.t ? [m.a, m.b] : [Math.min(m.a as number, m.b as number), Math.max(m.a as number, m.b as number)];
+    // By value, with room for rounding: dates as ticks come back from shares a little off.
+    const values = s.k.filter((k): k is number => typeof k === "number");
+    const eps = values.length > 1 ? 1e-6 * (Math.max(...values) - Math.min(...values)) : 0;
+    const [lo, hi] = m.t ? [m.a, m.b] : [Math.min(m.a as number, m.b as number) - eps, Math.max(m.a as number, m.b as number) + eps];
     const inside = s.k.flatMap((k, i) => (m.t ? k === lo || k === hi : typeof k === "number" && k >= (lo as number) && k <= (hi as number)) ? [i] : []);
     return inside.length === 0 ? undefined : [Math.min(...inside) / n, (Math.max(...inside) + 1) / n];
   }
   if (!s.d) return;
-  const [a, b] = [scaleShare(s, m.a as number), scaleShare(s, m.b as number)].sort((x, y) => x - y);
+  // On a log axis, a value at or below zero is before its start.
+  const share = (x: number) => (s.g && x <= 0 ? -Infinity : scaleShare(s, x));
+  const [a, b] = [share(m.a as number), share(m.b as number)].sort((x, y) => x - y);
   return Math.min(1, b) - Math.max(0, a) > 1e-9 ? [Math.max(0, a), Math.min(1, b)] : undefined;
 };
 /** The item at another chart's argument: the same name, or by value the nearest within its ends. */
@@ -109,7 +113,7 @@ class Chart extends IzzyElement {
       this.#keep = true;
       this.connectedCallback();
     });
-    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap"] });
+    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap", "data-ib-sync", "data-ib-sync-at", "data-ib-sync-view", "data-ib-sync-hover", "data-ib-follow"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
     if (this.hasAttribute("data-ib-pie")) {
@@ -163,13 +167,17 @@ class Chart extends IzzyElement {
       const at: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
       const peer: Peer = {};
       const others = at && this.dataset.ibSync && this.hasAttribute("data-ib-sync-view") ? joinSync(this.dataset.ibSync, peer, signal) : null;
-      let synced = false;
+      // Moved here since the last settle (not only by another chart), and a settle on its way.
+      let local = false;
+      let pending = false;
       const report = () => {
         clearTimeout(timer);
+        pending = true;
         timer = window.setTimeout(() => {
+          pending = false;
           if (signal.aborted) return;
-          if (!synced) others?.((p) => p.settle?.());
-          synced = false;
+          if (local) others?.((p) => p.settle?.());
+          local = false;
           if (!this.hasAttribute("data-ib-interactive")) return;
           const all = v[0] <= 1e-6 && v[1] >= 1 - 1e-6;
           this.emit("iblayout", { layout: all ? "" : `${Math.round(v[0] * 1e6) / 1e6} ${Math.round(v[1] * 1e6) / 1e6}` });
@@ -179,6 +187,7 @@ class Chart extends IzzyElement {
       const set = (from: number, to: number, settle = true, share = true) => {
         v = clampView(from, to, d.zl ?? 0);
         show();
+        if (share) local = true;
         if (share && at) {
           const m = viewOut(at, v);
           if (m !== undefined) others?.((p) => p.view?.(m));
@@ -187,13 +196,11 @@ class Chart extends IzzyElement {
       };
       peer.view = (m) => {
         const nv = viewIn(at!, m);
-        if (!nv) return;
-        synced = true;
-        set(nv[0], nv[1], false, false);
+        if (nv) set(nv[0], nv[1], false, false);
       };
+      // Its own settle on the way says it all.
       peer.settle = () => {
-        synced = true;
-        report();
+        if (!(pending && local)) report();
       };
       show = this.selector(lone, d, () => v, set, report, signal, null);
       return;
@@ -374,19 +381,24 @@ class Chart extends IzzyElement {
     // settles, says the range and (interactive) reports it to .NET for ViewChanged.
     const zoomLive = this.querySelector<HTMLElement>("[data-ib-live]");
     let settle = 0;
-    // The view came from another synced chart: it isn't said here, nor passed on.
-    let synced = false;
+    // Moved here since the last settle, not only by another synced chart: said, and passed on.
+    let local = false;
+    let pending = false;
+    // Reset zoom: the others show everything too, not this chart's ends.
+    let resetting = false;
     const settled = (wait = 0) => {
       clearTimeout(settle);
+      pending = true;
       settle = window.setTimeout(() => {
+        pending = false;
         if (signal.aborted) return;
         const inView = (data!.za ?? []).map((p, i) => [p, i] as const).filter(([p]) => p !== null && p >= view[0] - 1e-9 && p <= view[1] + 1e-9).sort((a, b) => a[0]! - b[0]!);
-        if (!synced && zoomLive && data!.zs && data!.zn && inView.length > 0) {
+        if (local && zoomLive && data!.zs && data!.zn && inView.length > 0) {
           const range = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
           zoomLive.textContent = joinNext && zoomLive.textContent ? `${zoomLive.textContent}. ${range}` : range;
         }
-        if (!synced && syncView) others!((p) => p.settle?.());
-        synced = false;
+        if (local && syncView) others!((p) => p.settle?.());
+        local = false;
         joinNext = false;
         if (this.hasAttribute("data-ib-interactive")) {
           this.emit("iblayout", { layout: isZoomed() ? `${Math.round(view[0] * 1e6) / 1e6} ${Math.round(view[1] * 1e6) / 1e6}` : "" });
@@ -398,8 +410,9 @@ class Chart extends IzzyElement {
       this.toggleAttribute("data-ib-zoomed", isZoomed());
       redraw();
       showSelector();
+      if (share) local = true;
       if (share && syncView) {
-        const m = viewOut(syncAt!, view);
+        const m = resetting ? null : viewOut(syncAt!, view);
         if (m !== undefined) others!((p) => p.view?.(m));
       }
       if (report) settled();
@@ -407,21 +420,25 @@ class Chart extends IzzyElement {
     if (syncView) {
       peer.view = (m) => {
         const v = viewIn(syncAt!, m);
-        if (!v) return;
-        synced = true;
-        setView(v[0], v[1], false, false);
+        if (v) setView(v[0], v[1], false, false);
       };
+      // Its own settle on the way says it all.
       peer.settle = () => {
-        synced = true;
-        settled();
+        if (!(pending && local)) settled();
       };
     }
+    const resetAll = () => {
+      resetting = true;
+      setView(0, 1);
+      resetting = false;
+    };
     // Reset zoom (a chart that only follows has it too: it resets the group).
     this.querySelector(".ib-chart-reset")?.addEventListener(
       "click",
       () => {
-        setView(0, 1);
-        frame.focus();
+        resetAll();
+        // The button hides once reset: focus goes to the plot, when the keys can reach it.
+        if (frame.hasAttribute("tabindex")) frame.focus();
       },
       { signal }
     );
@@ -631,7 +648,7 @@ class Chart extends IzzyElement {
 
     // Synced hover (Sync): the item shown here shows in the charts named alike, at its argument.
     const syncHover = !!others && tipsOn && this.hasAttribute("data-ib-sync-hover");
-    let told: number | string | null = null;
+    let told: number | string | null | undefined;
     const tellHover = () => {
       if (!syncHover) return;
       const at = !tooltip.hidden && current >= 0 ? (syncAt!.k[current] ?? null) : null;
@@ -646,6 +663,8 @@ class Chart extends IzzyElement {
     };
     if (syncHover) {
       peer.hover = (t, at) => {
+        // Another chart has the pointer now: this one tells again next time, even the same item.
+        told = undefined;
         const i = itemAt(syncAt!, t, at);
         // The reader's own item (by the keys) stays; one shown for another chart follows it.
         if (byKeys && document.activeElement === frame) return;
@@ -771,7 +790,7 @@ class Chart extends IzzyElement {
           case "0":
             if (!gestures) return;
             event.preventDefault();
-            if (event.key === "0") setView(0, 1);
+            if (event.key === "0") resetAll();
             else {
               const at = current >= 0 && shown(current) ? shareAt(positions[current]) : (view[0] + view[1]) / 2;
               zoomAround(at, event.key === "+" || event.key === "=" ? 0.5 : 2);
