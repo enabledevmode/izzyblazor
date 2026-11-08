@@ -207,7 +207,9 @@ internal static class HeatmapLayout
         // Where contrast-color() isn't supported: inked light where the shade is strong (light
         // mode, from a little under the middle), and dark in dark mode only at the strongest,
         // where the shades turn light.
-        static int Ink(double strength) => strength >= 0.65 ? 2 : strength >= 0.4 ? 1 : 0;
+        // A diverging scale's ends stay the full color in dark mode (Shades turn light there), mid
+        // tones such as blue that light text reads better on, so it never takes dark ink.
+        int Ink(double strength) => strength >= 0.65 && !input.Diverging ? 2 : strength >= 0.4 ? 1 : 0;
 
         if (input.Ranges is { Count: > 0 } ranges)
         {
