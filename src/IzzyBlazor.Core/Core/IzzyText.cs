@@ -1317,6 +1317,33 @@ public class IzzyText
     /// <summary>A SankeyChart's keyboard hint.</summary>
     public virtual string SankeyKeys { get; set; } = "Arrow keys move between nodes; Escape hides the tooltip.";
 
+    /// <summary>A TreemapChart's description with groups: "{0} tiles in {1} groups, the largest {2}".</summary>
+    public virtual string TreemapDescription { get; set; } = "{0} tiles in {1} groups, the largest {2}";
+
+    /// <summary>A TreemapChart's description without groups: "{0} tiles, the largest {1}".</summary>
+    public virtual string TreemapDescriptionFlat { get; set; } = "{0} tiles, the largest {1}";
+
+    /// <summary>A TreemapChart tile's tooltip: its share of its group, "{0} of {1}" (such as "31% of Asia").</summary>
+    public virtual string TreemapOfText { get; set; } = "{0} of {1}";
+
+    /// <summary>A TreemapChart tile's tooltip: its share of the whole, "{0} of all".</summary>
+    public virtual string TreemapOfAllText { get; set; } = "{0} of all";
+
+    /// <summary>A TreemapChart's data table: the heading over each tile's group, when Group isn't a property.</summary>
+    public virtual string TreemapGroup { get; set; } = "Group";
+
+    /// <summary>A TreemapChart's data table: the heading over each tile's name, when Name isn't a property.</summary>
+    public virtual string TreemapName { get; set; } = "Name";
+
+    /// <summary>A TreemapChart's data table: the heading over each tile's share of its group.</summary>
+    public virtual string TreemapShareOfGroup { get; set; } = "Share of group";
+
+    /// <summary>A TreemapChart's data table: the heading over each tile's share of the whole.</summary>
+    public virtual string TreemapShareOfAll { get; set; } = "Share of all";
+
+    /// <summary>A TreemapChart's keyboard hint.</summary>
+    public virtual string TreemapKeys { get; set; } = "Arrow keys move between tiles; Escape hides the tooltip.";
+
     /// <summary>A CalendarHeatmap's data table: the heading over its column of days of the month.</summary>
     public virtual string CalendarHeatmapDay { get; set; } = "Day";
 

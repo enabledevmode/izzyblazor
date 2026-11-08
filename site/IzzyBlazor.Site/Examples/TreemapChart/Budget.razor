@@ -1,0 +1,24 @@
+@* A city's general fund for the year, by department: one level, a color per tile. *@
+<TreemapChart Items="_departments"
+              Name="d => d.Name"
+              Value="d => d.Budget"
+              ValueFormat="$#,##0,,.#M"
+              Values
+              AspectRatio="2.5"
+              Title="General fund by department" />
+
+@code {
+    private record Department(string Name, decimal Budget);
+
+    private readonly Department[] _departments =
+    [
+        new("Police", 148_000_000),
+        new("Fire", 96_000_000),
+        new("Public works", 71_000_000),
+        new("Parks and recreation", 44_000_000),
+        new("Libraries", 22_000_000),
+        new("Planning", 15_000_000),
+        new("Administration", 31_000_000),
+        new("Housing", 18_000_000),
+    ];
+}

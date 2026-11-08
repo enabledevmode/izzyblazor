@@ -1,0 +1,31 @@
+@* A software company's cloud bill for October, by service, grouped by what each service is for. *@
+<TreemapChart Items="_costs"
+              Name="c => c.Service"
+              Value="c => c.Amount"
+              Group="c => c.Category"
+              ValueFormat="C0"
+              Values
+              Title="Cloud costs in October" />
+
+@code {
+    private record Cost(string Category, string Service, decimal Amount);
+
+    private readonly Cost[] _costs =
+    [
+        new("Compute", "App servers", 18400),
+        new("Compute", "Background jobs", 7200),
+        new("Compute", "Build runners", 3100),
+        new("Database", "Primary database", 12600),
+        new("Database", "Read replicas", 6300),
+        new("Database", "Cache", 2400),
+        new("Storage", "Object storage", 5200),
+        new("Storage", "Backups", 2900),
+        new("Storage", "Block volumes", 1800),
+        new("Network", "Data transfer", 6100),
+        new("Network", "Load balancers", 1500),
+        new("Network", "CDN", 1200),
+        new("Monitoring", "Logs", 3800),
+        new("Monitoring", "Metrics", 1400),
+        new("Monitoring", "Tracing", 700),
+    ];
+}
