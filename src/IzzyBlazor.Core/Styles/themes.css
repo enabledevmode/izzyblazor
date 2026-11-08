@@ -109,6 +109,8 @@
     --ib-color-on-primary: var(--ib-color-surface);
     --ib-color-primary-text: var(--ib-color-on-surface);
     --ib-color-primary-soft: light-dark(color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent), color-mix(in oklab, var(--ib-color-on-surface) 12%, transparent));
+    /* Highlighted code lines: a lighter tint, since the text color at 12% leaves syntax colors under 4.5:1. */
+    --ib-code-hl-strength: 7%;
   }
 
   :root[data-ib-preset="standard"],

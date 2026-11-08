@@ -254,13 +254,16 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
 
     // ---- C# and JavaScript/TypeScript ----
 
-    private static void CLike(Output o, int start, int end, bool csharp)
+    // memberFirst: the first name is a member, as after Razor's "@" ("@title"). path: it starts in a
+    // namespace ("@using System.Text"), whose parts aren't members.
+    private static void CLike(Output o, int start, int end, bool csharp, bool memberFirst = false, bool path = false)
     {
         var s = o.Code;
         var keywords = csharp ? CSharpKeywords : JsKeywords;
         var i = start;
         string? lastWord = null;
         var lastChar = '\0';
+        var first = true;
         while (i < end)
         {
             var c = s[i];
@@ -357,7 +360,18 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
                 {
                     kind = CodeTokenKind.Type;
                 }
+                // Not after a spread or range ("...items", "[..count]").
+                else if (!path && ((afterDot && !(i >= 2 && s[i - 1] == '.' && s[i - 2] == '.')) || (first && memberFirst)))
+                {
+                    kind = CodeTokenKind.Member;
+                }
 
+                if (kind == CodeTokenKind.Keyword && word is "using" or "namespace")
+                {
+                    path = true;
+                }
+
+                first = false;
                 o.Add(kind, i, j);
                 lastWord = word;
                 lastChar = s[j - 1];
@@ -366,6 +380,11 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
             }
 
             o.Add(CodeTokenKind.Text, i, i + 1);
+            if (c is ';' or '{' or '=' or '\n')
+            {
+                path = false;
+            }
+
             if (!char.IsWhiteSpace(c))
             {
                 lastChar = c;
@@ -623,7 +642,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
         {
             o.Add(CodeTokenKind.Meta, i, w);
             var j = LineEnd(s, w, end);
-            CLike(o, w, j, csharp: true);
+            CLike(o, w, j, csharp: true, path: word is "using" or "namespace");
             return j;
         }
 
@@ -666,7 +685,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
         }
 
         o.Add(CodeTokenKind.Meta, i, i + 1);
-        CLike(o, i + 1, e, csharp: true);
+        CLike(o, i + 1, e, csharp: true, memberFirst: true);
         return e;
     }
 
@@ -687,7 +706,9 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
         }
 
         var name = s[nameStart..j];
-        o.Add(CodeTokenKind.Tag, nameStart, j);
+        var component = razor && name.Length > 0 && char.IsUpper(name[0]) && s[i + 1] is not ('!' or '?');
+        o.Add(component ? CodeTokenKind.Component : CodeTokenKind.Tag, nameStart, j);
+        var attribute = "";
         while (j < end)
         {
             var c = s[j];
@@ -710,7 +731,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
                 j++;
                 if (c == '=' && j < end)
                 {
-                    j = AttributeValue(o, j, end, razor);
+                    j = AttributeValue(o, j, end, razor, component, attribute);
                 }
 
                 continue;
@@ -741,6 +762,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
             }
 
             o.Add(CodeTokenKind.Attribute, j, a);
+            attribute = s[j..a];
             j = a;
         }
 
@@ -764,11 +786,24 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
         return j;
     }
 
-    private static int AttributeValue(Output o, int j, int end, bool razor)
+    private static int AttributeValue(Output o, int j, int end, bool razor, bool component, string attribute)
     {
         var s = o.Code;
         if (s[j] == '"' || s[j] == '\'')
         {
+            // A value that reads as C#, such as "c => c.Day" or "Color.Muted" on a component.
+            if (razor && j + 1 < end && s[j + 1] != '@')
+            {
+                var close = s.IndexOf(s[j], j + 1, end - j - 1);
+                if (close > j && IsCodeValue(s.AsSpan(j + 1, close - j - 1), attribute, component, out var member))
+                {
+                    o.Add(CodeTokenKind.String, j, j + 1);
+                    CLike(o, j + 1, close, csharp: true, memberFirst: member);
+                    o.Add(CodeTokenKind.String, close, close + 1);
+                    return close + 1;
+                }
+            }
+
             // A Razor value starting with an expression ("@Url("x")", "@(a + b)") colors it as code;
             // the expression may itself contain quotes, so it's read before looking for the close.
             if (razor && j + 1 < end && s[j + 1] == '@' && (j + 2 >= end || s[j + 2] != '@'))
@@ -794,6 +829,130 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
 
         o.Add(CodeTokenKind.String, j, u);
         return u;
+    }
+
+    /// <summary>
+    /// Whether a Razor attribute value is C#: a directive attribute's ("@onclick", "@bind-Value"),
+    /// or, on a component, a lambda, a literal, "new ...", a field ("_items"), a member path
+    /// ("Color.Muted", "order.Total"), a call, or an event handler's. Anything else reads as
+    /// text, since without the parameter's type "Save" may be either. <c>member</c>: the value is a
+    /// lone name or path, whose first name is a member.
+    /// </summary>
+    private static bool IsCodeValue(ReadOnlySpan<char> v, string attribute, bool component, out bool member)
+    {
+        member = false;
+        var value = v.Trim();
+        if (value.IsEmpty || value.Contains('\n'))
+        {
+            return false;
+        }
+
+        if (attribute.StartsWith('@'))
+        {
+            // "@bind-Value:format", "@bind:event" and "@formname" take text.
+            var colon = attribute.IndexOf(':');
+            if ((colon >= 0 && attribute[(colon + 1)..] is "format" or "event") || attribute == "@formname")
+            {
+                return false;
+            }
+
+            member = IsNamePath(value);
+            return true;
+        }
+
+        if (!component)
+        {
+            return false;
+        }
+
+        if (value.Contains("=>", StringComparison.Ordinal) || value.Contains("==", StringComparison.Ordinal) ||
+            value.Contains("!=", StringComparison.Ordinal) || value is "true" or "false" or "null" or "this" or "default" ||
+            value.StartsWith("new ", StringComparison.Ordinal) || value.StartsWith("new(", StringComparison.Ordinal) ||
+            (value[0] == '[' && value[^1] == ']') || IsNumber(value))
+        {
+            return true;
+        }
+
+        // An event handler: OnClick="SaveAsync", ValueChanged="Changed".
+        if (IsNamePath(value) && ((attribute.Length > 2 && attribute.StartsWith("On", StringComparison.Ordinal) && char.IsUpper(attribute[2])) ||
+                                  attribute.EndsWith("Changed", StringComparison.Ordinal)))
+        {
+            member = true;
+            return true;
+        }
+
+        // A call: "GetItems()", "Format(x)", "Enum.GetValues<Topping>()", "typeof(App).Assembly".
+        var paren = value.IndexOf('(');
+        var close = value.LastIndexOf(')');
+        var name = paren > 0 && close > paren && (close == value.Length - 1 || (value[close + 1] == '.' && IsNamePath(value[(close + 2)..])))
+            ? value[..paren] : value;
+        if (name.Length < value.Length && name.IndexOf('<') is > 0 and var lt && name[^1] == '>')
+        {
+            name = name[..lt];
+        }
+
+        if (!IsNamePath(name))
+        {
+            return false;
+        }
+
+        if (paren > 0 || name[0] == '_')
+        {
+            member = paren < 0;
+            return true;
+        }
+
+        // "Color.Muted", "order.Total": a C# member is capitalized; "report.csv" isn't.
+        var dot = name.IndexOf('.');
+        member = dot > 0;
+        return dot > 0 && char.IsUpper(name[dot + 1]);
+    }
+
+    /// <summary>A name or dotted names: "items", "Color.Muted", "_model.Name", "Model!.CheckIn".</summary>
+    private static bool IsNamePath(ReadOnlySpan<char> s)
+    {
+        var start = true;
+        for (var i = 0; i < s.Length; i++)
+        {
+            var c = s[i];
+            if (start ? !IsIdentStart(c) : !(IsIdent(c) || c == '.' || (c == '!' && i + 1 < s.Length && s[i + 1] == '.')))
+            {
+                return false;
+            }
+
+            start = c == '.';
+        }
+
+        return !s.IsEmpty && !start;
+    }
+
+    /// <summary>A C# number, on its own or with a member: "300", "-1.5", "10m", "12.Rem".</summary>
+    private static bool IsNumber(ReadOnlySpan<char> s)
+    {
+        var i = s[0] == '-' ? 1 : 0;
+        var digits = i;
+        while (i < s.Length && (char.IsAsciiDigit(s[i]) || (s[i] == '_' && i > digits)))
+        {
+            i++;
+        }
+
+        if (i == digits)
+        {
+            return false;
+        }
+
+        if (i + 1 < s.Length && s[i] == '.' && char.IsAsciiDigit(s[i + 1]))
+        {
+            i++;
+            while (i < s.Length && char.IsAsciiDigit(s[i]))
+            {
+                i++;
+            }
+        }
+
+        var rest = s[i..];
+        return rest.IsEmpty || rest is "m" or "M" or "f" or "F" or "d" or "D" or "L" or "u" or "U" or "UL" or "ul" ||
+               (rest[0] == '.' && IsNamePath(rest[1..]) && char.IsUpper(rest[1]));
     }
 
     // ---- CSS ----

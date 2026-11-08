@@ -201,13 +201,15 @@
    *   --ib-color-scrollbar      scrollbar thumb (the text color at 26%), --ib-color-scrollbar-hover (42%)
    */
   :root {
-    /* Syntax colors for Code: each at least 4.5:1 on the code block's fill, in light
-       and dark, for every gray set. */
-    --ib-code-comment: light-dark(#5f6670, #9198a1);
+    /* Syntax colors for Code: each at least 4.5:1 on the code block's fill and on its
+       highlighted lines, in light and dark, for every gray set and accent. Components and
+       members fall back to the type and attribute colors where they're used
+       (--ib-code-component, --ib-code-member). */
+    --ib-code-comment: light-dark(#575e68, #9198a1);
     --ib-code-keyword: light-dark(#b8202a, #ff8a80);
-    --ib-code-string: light-dark(#0a3d75, #a5d6ff);
-    --ib-code-number: light-dark(#0550ae, #79c0ff);
-    --ib-code-type: light-dark(#8a3d08, #f0b27a);
+    --ib-code-string: light-dark(#9a4a0b, #f0b27a);
+    --ib-code-number: light-dark(#5d6300, #cfd36a);
+    --ib-code-type: light-dark(#0c6b62, #5fd4c2);
     --ib-code-function: light-dark(#6f42c1, #d2a8ff);
     --ib-code-tag: light-dark(#116329, #7ee787);
     --ib-code-attr: light-dark(#0b5cad, #9ecbff);

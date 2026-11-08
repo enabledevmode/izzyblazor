@@ -24,7 +24,7 @@ public enum CodeTokenKind
     /// <summary>A function or method name, or a shell command.</summary>
     Function,
 
-    /// <summary>A markup tag or component name, or a CSS selector.</summary>
+    /// <summary>An HTML or XML tag name, or a CSS selector.</summary>
     Tag,
 
     /// <summary>An attribute or parameter name, a CSS property, a JSON key or a command-line flag.</summary>
@@ -32,6 +32,12 @@ public enum CodeTokenKind
 
     /// <summary>Directives and transitions: Razor's <c>@</c>, C# preprocessor lines, CSS at-rules, shell variables.</summary>
     Meta,
+
+    /// <summary>A component's tag in Razor, such as <c>Button</c> in <c>&lt;Button&gt;</c>.</summary>
+    Component,
+
+    /// <summary>A member, variable or handler name: a name after <c>.</c> in code, after Razor's <c>@</c>, or a component parameter's handler.</summary>
+    Member,
 }
 
 /// <summary>One run of highlighted code.</summary>
