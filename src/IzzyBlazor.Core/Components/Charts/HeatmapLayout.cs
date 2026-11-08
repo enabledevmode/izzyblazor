@@ -41,7 +41,8 @@ internal sealed class HeatmapInput
 /// <param name="T">On a continuous scale, 0 to 1 along it (a diverging one's side: <see cref="Low"/>).</param>
 /// <param name="Low">On a diverging scale, below the midpoint.</param>
 /// <param name="Ink">0 for the usual text, 1 for light text in light mode, 2 for light in light mode and dark in dark.</param>
-internal readonly record struct HeatmapCell(int Item, double? Value, string? Text, int Class, double T, bool Low, int Ink);
+/// <param name="Out">On a calendar, a day outside its range in the first or last week: not drawn.</param>
+internal readonly record struct HeatmapCell(int Item, double? Value, string? Text, int Class, double T, bool Low, int Ink, bool Out = false);
 
 /// <summary>A column name along the bottom: its place (0 to 1, the cell's middle) and the narrowest width it shows at.</summary>
 internal readonly record struct HeatmapTick(double Pos, string Text, int From);
@@ -88,7 +89,7 @@ internal sealed class HeatmapModel
 /// </summary>
 internal static class HeatmapLayout
 {
-    private const double FontPx = 12, LabelGapPx = 8, GapPx = 2, CellPadPx = 8, LinePx = 16, DenseCellPx = 6;
+    internal const double FontPx = 12, LabelGapPx = 8, GapPx = 2, CellPadPx = 8, LinePx = 16, DenseCellPx = 6;
 
     public static HeatmapModel Build(HeatmapInput input)
     {
@@ -155,7 +156,7 @@ internal static class HeatmapLayout
         return model;
     }
 
-    private static int FirstFit(Func<int, bool> fits)
+    internal static int FirstFit(Func<int, bool> fits)
     {
         for (var k = 0; k < ChartLayout.Widths.Length; k++)
         {
@@ -166,17 +167,17 @@ internal static class HeatmapLayout
     }
 
     // A cell's width at each fitted width: the grid is the chart less the row names.
-    private static double CellPx(int k, int cols, double rowColumnPx) =>
+    internal static double CellPx(int k, int cols, double rowColumnPx) =>
         cols == 0 ? 0 : (Math.Max(60, (k == 0 ? 280 : ChartLayout.Widths[k]) - rowColumnPx) - GapPx * (cols - 1)) / cols;
 
-    private static double Width(string text) => TextWidths.AtSize(text, FontPx);
+    internal static double Width(string text) => TextWidths.AtSize(text, FontPx);
 
     /// <summary>
     /// The color scale, and a function that gives each value its cell. Classes are equal steps
     /// from round bounds (a diverging scale's centered on the midpoint, as wide on both sides), or
     /// the ranges given; a continuous scale is a place along the same span.
     /// </summary>
-    private static Func<int, double, string?, HeatmapCell> Scale(HeatmapInput input, HeatmapModel model, double[] values)
+    internal static Func<int, double, string?, HeatmapCell> Scale(HeatmapInput input, HeatmapModel model, double[] values)
     {
         var culture = input.Culture;
         string Text(double v) => v.ToString(input.ValueFormat ?? "#,##0.##", culture);

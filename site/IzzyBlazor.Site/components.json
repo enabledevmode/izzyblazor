@@ -2295,6 +2295,24 @@
       ]
     },
     {
+      "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a value for each day, such as commits or orders, as a calendar of colored cells: a column per week, a row per weekday.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "features": [
+        { "feature": "A column per week and a row per weekday, from the culture's first day or one you choose" },
+        { "feature": "Months named along the top, thinning as the calendar narrows" },
+        { "feature": "Days with no data told apart from zeros, and days outside the range left out" },
+        { "feature": "A HeatmapChart's colors: even steps, a diverging scale, named ranges or a blend" },
+        { "feature": "Square days that fit the width" },
+        { "feature": "Legend keys that hide and show the days in their class", "noscript": "none" },
+        { "feature": "A table of the values, a column per month, in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard, day by day", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "calendar-heatmap-usage", "title": "Commits over a year", "lead": "A calendar heatmap shows a value for each day, so weekly and seasonal patterns stand out. Give `CalendarHeatmap` the `Items`, each one's `Date` and `Value`, and a `Title`.", "after": ["The calendar runs from the first item's day to the last's; `From` and `To` set the range yourself, such as the last twelve months. Weeks start on the culture's first day, Sunday here, or `FirstDayOfWeek`.", "A day with no value is gray, not the lightest shade: an empty day isn't a zero. Here days without commits aren't in the items, so the shades start at one commit and the quiet days read as gaps. To shade zeros instead, include them.", "Point at a day, or move with the arrow keys, for its date and value."],
+          "notes": { "noscript": "There are no tooltips, and the legend keys don't hide days. \"Show data\" lists every value." } },
+        { "id": "calendar-heatmap-diverging", "title": "Above and below normal", "lead": "For values on either side of a meaningful middle, such as each day's temperature against the normal, set `Palette` to `ChartPalette.Diverging`. The scale turns gray at `Midpoint` (0 by default).", "after": ["Here the weeks start on Monday (`FirstDayOfWeek`). To compare years, draw one calendar per year with the same `Min` and `Max`, so their colors mean the same values."] }
+      ]
+    },
+    {
       "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },

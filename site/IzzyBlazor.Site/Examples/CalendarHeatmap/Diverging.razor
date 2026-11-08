@@ -1,0 +1,30 @@
+@* How far each day's average temperature in Chicago was from its 1991–2020 normal, in °C: a warm spell, a cold snap. *@
+<CalendarHeatmap Items="_days" Date="d => d.Day" Value="d => d.Difference"
+                 Palette="ChartPalette.Diverging(Color.Primary, Color.Danger)"
+                 ValueFormat="+0.0;−0.0;0.0" FirstDayOfWeek="DayOfWeek.Monday"
+                 Title="Chicago against normal, 2025 (°C)" />
+
+@code {
+    private record DayTemperature(DateOnly Day, double Difference);
+
+    private readonly DayTemperature[] _days = Build();
+
+    private static DayTemperature[] Build()
+    {
+        var start = new DateOnly(2025, 1, 1);
+        var days = new List<DayTemperature>();
+        var drift = 0.0;
+        for (var d = 0; d < 365; d++)
+        {
+            // Weather comes in spells: each day keeps most of the day before's difference.
+            var hash = Math.Sin(d * 12.9898) * 43758.5453;
+            var kick = (hash - Math.Floor(hash) - 0.5) * 3.5;
+            drift = 0.8 * drift + kick;
+            // A cold snap in late January, a hot spell in July.
+            var spell = d is >= 20 and < 30 ? -9 : d is >= 185 and < 196 ? 6 : 0;
+            days.Add(new DayTemperature(start.AddDays(d), Math.Round(drift + spell + 0.6, 1)));
+        }
+
+        return [.. days];
+    }
+}

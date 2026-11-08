@@ -5,6 +5,10 @@
  * that hide and show the cells in their class, and the values in cells and the gaps between them
  * fitted to the width the grid really has (the server's container queries only estimate it).
  *
+ * A CalendarHeatmap (data-ib-cal) is the same grid, a row per weekday and a column per week:
+ * days outside its range (ib-heat-out) are skipped, the tooltip names the day (data-ib-dates),
+ * Up and Down move a day and Left and Right a week.
+ *
  * The cells are the grid's children in row order. Nothing Blazor renders is changed but
  * attributes Blazor doesn't set (data-ib-hidden, data-ib-active, data-ib-labels, data-ib-gaps,
  * role, tabindex, aria-pressed) and the tooltip's and live region's contents.
@@ -32,6 +36,9 @@ export function heat(
   const rows = [...chart.querySelectorAll<HTMLElement>(".ib-heat-rows > span")].map((r) => r.textContent ?? "");
   const columns: string[] = chart.dataset.ibColumns ? JSON.parse(chart.dataset.ibColumns) : [];
   const auto = chart.hasAttribute("data-ib-auto");
+  const calendar = chart.hasAttribute("data-ib-cal");
+  const dates: (string | null)[] = chart.dataset.ibDates ? JSON.parse(chart.dataset.ibDates) : [];
+  const out = (i: number) => !cells[i] || cells[i].classList.contains("ib-heat-out");
 
   // A new draw from the server (an interactive page's new data) sets up again.
   const changed = new MutationObserver(restart);
@@ -43,8 +50,14 @@ export function heat(
   const measure = () => {
     const width = grid.clientWidth;
     if (width === 0) return;
+    // From the grid's width, not a cell's (which the gaps set here change); a calendar's grid
+    // already stops growing where its days reach --ib-cal-max.
     const cell = (width - 2 * (cols - 1)) / cols;
     chart.dataset.ibGaps = cell >= 6 ? "1" : "0";
+    // Every weekday's name where a row is a line tall, else Monday, Wednesday and Friday where
+    // two rows are, else none.
+    const pitch = cell + (cell >= 6 ? 2 : 0);
+    if (calendar) chart.dataset.ibRows = pitch >= 16 ? "1" : 2 * pitch >= 13 ? "0" : "-1";
     if (bottom) fit(bottom);
     if (!auto || !canvas) return;
     const style = getComputedStyle(chart.querySelector(".ib-heat-rows") ?? grid);
@@ -58,7 +71,7 @@ export function heat(
   resized.observe(grid);
   signal.addEventListener("abort", () => {
     resized.disconnect();
-    for (const name of ["data-ib-gaps", "data-ib-labels", "data-ib-fit", "data-ib-turn"]) chart.removeAttribute(name);
+    for (const name of ["data-ib-gaps", "data-ib-labels", "data-ib-rows", "data-ib-fit", "data-ib-turn"]) chart.removeAttribute(name);
   });
 
   // Legend: each class's key hides and shows its cells.
@@ -121,7 +134,7 @@ export function heat(
     const cell = cells[i];
     const title = document.createElement("div");
     title.className = "ib-chart-tooltip-title";
-    title.textContent = [rows[Math.floor(i / cols)], columns[i % cols]].filter(Boolean).join(", ");
+    title.textContent = calendar ? (dates[i] ?? "") : [rows[Math.floor(i / cols)], columns[i % cols]].filter(Boolean).join(", ");
     const row = document.createElement("div");
     row.className = "ib-chart-tooltip-row";
     const key = document.createElement("span");
@@ -191,7 +204,7 @@ export function heat(
       // Only a new cell redraws the tooltip.
       const i = indexOf.get(event.target as Element) ?? -1;
       if (i === current && !tooltip.hidden) return;
-      if (i < 0 || !wanted()) return hide();
+      if (i < 0 || out(i) || !wanted()) return hide();
       show(i);
     },
     { signal }
@@ -205,17 +218,41 @@ export function heat(
     () => {
       if (!frame.matches(":focus-visible")) return;
       byKeys = true;
-      show(current >= 0 ? current : 0);
+      show(current >= 0 ? current : first());
       announce();
     },
     { signal }
   );
   frame.addEventListener("blur", hide, { signal });
+
+  // A calendar's days in date order: down each week's column, then the next week's.
+  const day = (i: number) => (i % cols) * 7 + Math.floor(i / cols);
+  const cellOf = (d: number) => (d % 7) * cols + Math.floor(d / 7);
+  const first = () => {
+    if (!calendar) return 0;
+    for (let d = 0; d < cells.length; d++) if (!out(cellOf(d))) return cellOf(d);
+    return 0;
+  };
+  const last = () => {
+    if (!calendar) return cells.length - 1;
+    for (let d = cells.length - 1; d >= 0; d--) if (!out(cellOf(d))) return cellOf(d);
+    return cells.length - 1;
+  };
+  // The row's first or last day in range.
+  const rowEnd = (i: number, end: boolean) => {
+    const start = i - (i % cols);
+    if (end) {
+      for (let j = start + cols - 1; j > start; j--) if (!out(j)) return j;
+      return start;
+    }
+    for (let j = start; j < start + cols - 1; j++) if (!out(j)) return j;
+    return start + cols - 1;
+  };
   frame.addEventListener(
     "keydown",
     (event) => {
       const rtl = getComputedStyle(chart).direction === "rtl";
-      const i = Math.max(0, current);
+      const i = current >= 0 ? current : first();
       const col = i % cols;
       let next: number;
       switch (event.key) {
@@ -224,16 +261,16 @@ export function heat(
           next = (event.key === "ArrowRight") !== rtl ? (col < cols - 1 ? i + 1 : i) : col > 0 ? i - 1 : i;
           break;
         case "ArrowDown":
-          next = i + cols < cells.length ? i + cols : i;
+          next = calendar ? (day(i) + 1 < cells.length ? cellOf(day(i) + 1) : i) : i + cols < cells.length ? i + cols : i;
           break;
         case "ArrowUp":
-          next = i - cols >= 0 ? i - cols : i;
+          next = calendar ? (day(i) > 0 ? cellOf(day(i) - 1) : i) : i - cols >= 0 ? i - cols : i;
           break;
         case "Home":
-          next = event.ctrlKey ? 0 : i - col;
+          next = event.ctrlKey ? first() : calendar ? rowEnd(i, false) : i - col;
           break;
         case "End":
-          next = event.ctrlKey ? cells.length - 1 : i - col + cols - 1;
+          next = event.ctrlKey ? last() : calendar ? rowEnd(i, true) : i - col + cols - 1;
           break;
         case "Escape":
           hide();
@@ -242,6 +279,8 @@ export function heat(
           return;
       }
       event.preventDefault();
+      // Days outside a calendar's range aren't there to move to.
+      if (out(next)) next = i;
       byKeys = true;
       show(next);
       announce();
