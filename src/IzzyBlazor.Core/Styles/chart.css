@@ -393,16 +393,17 @@
     font-weight: var(--ib-weight-medium);
   }
 
-  /* Lines are dashed in the text color, their tag on the line at its end (or its top). */
+  /* Lines are dashed in the text color. Across, the tag sits just above the line at its start
+     (the left), so it doesn't cover the line's value or the last bars; upright, on it at its top. */
   .ib-chart-rule.ib-chart-mk-y { border-top: 2px dashed var(--ib-color-on-surface); translate: 0 -1px; }
   .ib-chart-rule.ib-chart-mk-x { border-left: 2px dashed var(--ib-color-on-surface); translate: -1px 0; }
-  .ib-chart-rule.ib-chart-mk-y > span { right: 0; top: -1px; translate: 0 -50%; }
+  .ib-chart-rule.ib-chart-mk-y > span { left: 0; top: -1px; translate: 0 calc(-100% - 4px); }
   .ib-chart-rule.ib-chart-mk-x > span { top: 0; left: -1px; translate: -50% 0; }
 
   /* A LabelAlign: along a line across, the left, middle or right; along an upright one, the top,
      middle or bottom. */
-  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-start > span { right: auto; left: 0; }
-  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-center > span { right: auto; left: 50%; translate: -50% -50%; }
+  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-center > span { left: 50%; translate: -50% calc(-100% - 4px); }
+  .ib-chart-rule.ib-chart-mk-y.ib-chart-at-end > span { left: auto; right: 0; }
   .ib-chart-rule.ib-chart-mk-x.ib-chart-at-center > span { top: 50%; translate: -50% -50%; }
   .ib-chart-rule.ib-chart-mk-x.ib-chart-at-end > span { top: auto; bottom: 0; }
 
@@ -620,6 +621,10 @@
   /* Marks wholly out of view: the server's, until the script draws another view; then its own. */
   ib-chart:not([data-ib-zargs]) [data-ib-out],
   ib-chart[data-ib-zargs] [data-ib-zout] { display: none; }
+  /* An outline button on the plot: the surface under it, so the series don't show through. */
+  .ib-chart-reset { background-color: var(--ib-color-surface); }
+  .ib-chart-reset:hover { background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface)); }
+  .ib-chart-reset:active { background-color: color-mix(in oklab, var(--ib-accent) 18%, var(--ib-color-surface)); }
   ib-chart[data-ib-zoomed] .ib-chart-reset {
     display: inline-flex;
     position: absolute;

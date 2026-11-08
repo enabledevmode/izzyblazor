@@ -92,10 +92,10 @@ public sealed class ChartReferenceLine : ChartMark
     [Parameter] public string? Label { get; set; }
 
     /// <summary>
-    /// Where the label sits along the line: at the end of a line across (the right, in a
-    /// left-to-right page) and the top of an upright one, by default; <see cref="ChartAlign.Start"/>
-    /// for the left or the top, <see cref="ChartAlign.Center"/> for the middle,
-    /// <see cref="ChartAlign.End"/> for the right or the bottom.
+    /// Where the label sits along the line. On a line across it sits just above the line, at the
+    /// left by default; on an upright line it sits on the line, at the top by default.
+    /// <see cref="ChartAlign.Start"/> is the left or the top, <see cref="ChartAlign.Center"/> the
+    /// middle, <see cref="ChartAlign.End"/> the right or the bottom.
     /// </summary>
     [Parameter] public ChartAlign? LabelAlign { get; set; }
 
