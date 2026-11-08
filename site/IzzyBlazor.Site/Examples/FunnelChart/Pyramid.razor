@@ -1,0 +1,14 @@
+@* An engineering team by level, the most junior as the base. *@
+<FunnelChart Items="_levels" Argument="l => l.Level" Value="l => l.People" Title="Engineering team by level" Pyramid />
+
+@code {
+    private record TeamLevel(string Level, int People);
+
+    private readonly TeamLevel[] _levels =
+    [
+        new("Engineer", 64),
+        new("Senior engineer", 41),
+        new("Staff engineer", 14),
+        new("Principal engineer", 5),
+    ];
+}

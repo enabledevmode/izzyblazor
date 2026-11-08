@@ -2253,6 +2253,19 @@
       ]
     },
     {
+      "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows the stages of a process that people drop out of, such as sign-ups, as a funnel, or levels of a hierarchy as a pyramid.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
+      "features": [
+        { "feature": "A funnel, each stage as wide as its value and sloping to the next" },
+        { "feature": "A pyramid, each level as tall as its share of the total" },
+        { "feature": "Each stage named beside the shape with its value and share, joined by a line" },
+        { "feature": "A table of the values, with each stage's share of the one before, in a \"Show data\" disclosure" }
+      ],
+      "examples": [
+        { "id": "funnel-chart-usage", "title": "A sign-up funnel", "lead": "A funnel chart shows the stages of a process that people drop out of, such as visits, sign-ups and purchases. Give `FunnelChart` the `Items` in the order of the process, each stage's name as `Argument`, its count as `Value`, and a `Title`. Each stage's top is as wide as its value, the largest the full width, and slopes to the next stage's width. Beside the funnel, each stage's name, value and share of the first are joined to it by a line; \"Show data\" adds each stage's share of the one before. Each stage takes the palette's next color; `Palette` changes them. Under 28rem, the labels move under the funnel." },
+        { "id": "funnel-chart-pyramid", "title": "A pyramid", "lead": "A pyramid shows levels of a hierarchy, such as a team by seniority. Set `Pyramid`: the shape is a triangle on its base, the first item at the bottom, and each level is as tall as its share of the total, which its label shows." }
+      ]
+    },
+    {
       "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
