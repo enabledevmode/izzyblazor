@@ -625,6 +625,25 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void The_value_axis_at_the_right_swaps_sides_with_a_second_axis()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue and costs")
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Format, "C0").Add(x => x.Position, ChartAxisPosition.Right))
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Name, "costs").Add(x => x.Format, "N0"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartLineSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs).Add(x => x.ValueAxis, "costs")));
+
+        var sides = cut.Find(".ib-chart-frame").Children.Where(e => e.ClassList.Contains("ib-chart-side")).ToList();
+        Assert.Equal(2, sides.Count);
+        Assert.DoesNotContain("$", sides[0].TextContent);
+        Assert.Contains("ib-chart-side2", sides[1].ClassName);
+        Assert.Contains("$", sides[1].TextContent);
+    }
+
+    [Fact]
     public void A_value_axis_name_no_axis_has_is_an_error()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
