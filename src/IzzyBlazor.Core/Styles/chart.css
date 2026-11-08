@@ -827,6 +827,26 @@
     margin: 0;
   }
 
+  /* An item's row: with script, a button that hides and shows its slices (chart.ts), dimmed
+     while they're hidden. */
+  .ib-pie-toggle {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-pie-toggle[role="button"] { cursor: pointer; }
+  .ib-pie-toggle[aria-pressed="false"] { opacity: 0.45; }
+
+  .ib-pie-toggle:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-pie-plot [data-ib-hidden] { display: none; }
+
   /* A nested donut's legend: names only. */
   .ib-pie-legend.ib-pie-names { grid-template-columns: auto minmax(0, max-content); }
 

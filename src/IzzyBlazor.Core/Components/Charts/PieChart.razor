@@ -59,6 +59,7 @@
     <ib-chart style="@Palette?.Style(items.Count)"
               data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
+              data-ib-draw="@(Legend != ChartLegend.None ? DrawData([values], [(Donut ? ChartShapes.DonutHole : 0, 1)], Labels switch { ChartLabels.None => 0, ChartLabels.Inside => 2, _ => 1 }) : null)"
               data-ib-pos="@string.Join(",", Enumerable.Range(0, items.Count).Select(i => slices.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))">
         <div class="@pieClass">
             @* With labels beside it, the circle keeps room around it for them (chart.css); without,
@@ -78,7 +79,7 @@
                         }
                         @foreach (var label in beside)
                         {
-                            <path class="ib-pie-leader" d="@label.Leader" />
+                            <path class="ib-pie-leader" d="@label.Leader" data-ib-l="@label.Index" />
                         }
                     </svg>
                 </div>
@@ -89,10 +90,10 @@
                         @foreach (var slice in slices.Where(s => s.End - s.Start >= InsideMin))
                         {
                             var (x, y) = ChartShapes.PieInside(slice, Donut ? ChartShapes.DonutHole : 0);
-                            <span class="@Slot(slice.Index)" style="left:@(Num(x * 100))%;top:@(Num(y * 100))%">@if (LabelTemplate is not null)
+                            <span class="@Slot(slice.Index)" style="left:@(Num(x * 100))%;top:@(Num(y * 100))%" data-ib-in="@slice.Index">@if (LabelTemplate is not null)
                                 {@LabelTemplate(Context(slice.Index, true))}
                                 else
-                                {@shares[slice.Index]}</span>
+                                {<span data-ib-share="@slice.Index">@shares[slice.Index]</span>}</span>
                         }
                     </div>
                 }
@@ -102,12 +103,12 @@
                     <div class="ib-pie-labels" aria-hidden="true">
                         @foreach (var label in beside)
                         {
-                            <span class="@(label.End ? Slot(label.Index) : $"{Slot(label.Index)} ib-pie-label-start")" style="left:@(Num(label.X * 100))%;top:@(Num(label.Y * 100))%">@if (LabelTemplate is not null)
+                            <span class="@(label.End ? Slot(label.Index) : $"{Slot(label.Index)} ib-pie-label-start")" style="left:@(Num(label.X * 100))%;top:@(Num(label.Y * 100))%" data-ib-l="@label.Index">@if (LabelTemplate is not null)
                                 {@LabelTemplate(Context(label.Index, false))}
                                 else if (named)
-                                {@names[label.Index] <span class="ib-pie-label-share">@shares[label.Index]</span>}
+                                {@names[label.Index] <span class="ib-pie-label-share" data-ib-share="@label.Index">@shares[label.Index]</span>}
                                 else
-                                {@shares[label.Index]}</span>
+                                {<span data-ib-share="@label.Index">@shares[label.Index]</span>}</span>
                         }
                     </div>
                 }
@@ -127,10 +128,13 @@
                     @for (var i = 0; i < items.Count; i++)
                     {
                         <li class="@Slot(i)">
-                            <span class="ib-pie-key" aria-hidden="true"></span>
-                            <span class="ib-pie-name">@names[i]</span>
-                            <span class="ib-pie-number">@texts[i]</span>
-                            <span class="ib-pie-number ib-pie-share">@shares[i]</span>
+                            @* With script, a button that hides and shows the slice. *@
+                            <span class="ib-pie-toggle" data-ib-series="@i">
+                                <span class="ib-pie-key" aria-hidden="true"></span>
+                                <span class="ib-pie-name">@names[i]</span>
+                                <span class="ib-pie-number">@texts[i]</span>
+                                <span class="ib-pie-number ib-pie-share" data-ib-share="@i">@shares[i]</span>
+                            </span>
                         </li>
                     }
                 </ul>
@@ -152,7 +156,7 @@
                         <div class="ib-chart-tooltip-row">
                             <span class="ib-chart-tooltip-key ib-pie-blank"></span>
                             <span>@TextDefaults.ChartShare</span>
-                            <span class="ib-chart-tooltip-value">@shares[i]</span>
+                            <span class="ib-chart-tooltip-value" data-ib-share="@i">@shares[i]</span>
                         </div>
                     </div>
                 }

@@ -141,7 +141,7 @@ public class RoundChartTests : BunitContext
 
         // A sliver keeps a tenth, and a zero keeps its row with no share.
         Assert.Equal(["Free", "600", "60%", "Team", "20", "2.0%", "Legacy", "0", ""],
-            cut.FindAll(".ib-pie-legend li").Where((_, i) => i != 1).SelectMany(li => li.Children.Skip(1).Select(c => c.TextContent)));
+            cut.FindAll(".ib-pie-legend .ib-pie-toggle").Where((_, i) => i != 1).SelectMany(li => li.Children.Skip(1).Select(c => c.TextContent)));
         Assert.Equal(["Name", "Customers", "Share"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
         Assert.Equal("0 0.6,0.6 0.98,0.98 1,", cut.Find("ib-chart").GetAttribute("data-ib-pos"));
     }

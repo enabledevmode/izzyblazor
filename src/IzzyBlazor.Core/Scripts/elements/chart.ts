@@ -1,9 +1,11 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import type { DrawData, draw as Draw } from "./chart-draw";
+import type { DrawData, PieDrawData, draw as Draw, drawPie as DrawPie } from "./chart-draw";
 
-// The redraw (chart-draw.ts), loaded the first time a legend hides a series.
-let drawing: Promise<typeof Draw> | undefined;
-const loadDraw = () => (drawing ??= import("./parts/chart-draw.js" as string).then((m: { draw: typeof Draw }) => m.draw));
+// The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
+type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie };
+let drawing: Promise<DrawModule> | undefined;
+const loadModule = () => (drawing ??= import("./parts/chart-draw.js" as string) as Promise<DrawModule>);
+const loadDraw = () => loadModule().then((m) => m.draw);
 
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
@@ -401,7 +403,7 @@ class Chart extends IzzyElement {
     const tooltip = this.querySelector<HTMLElement>(".ib-chart-tooltip");
     const tips = this.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]");
     const live = this.querySelector<HTMLElement>("[data-ib-live]");
-    if (!plot || !frame || !tooltip || tips.length === 0) return;
+    if (!plot || !frame) return;
 
     const hole = Number(this.dataset.ibPie) || 0;
     // A nested donut's rings, outer first, each as thick as the next; its slices are numbered
@@ -409,11 +411,86 @@ class Chart extends IzzyElement {
     const rings = Number(this.dataset.ibRings) || 1;
     const count = Number(this.dataset.ibCount) || 0;
     const thick = (1 - hole) / rings;
-    const spans = (this.dataset.ibPos ?? "").split(";").flatMap((ring) => ring.split(",").map((p) => (p ? p.split(" ").map(Number) : null)));
-    const order = spans.flatMap((s, i) => (s ? [i] : []));
+    let spans = (this.dataset.ibPos ?? "").split(";").flatMap((ring) => ring.split(",").map((p) => (p ? p.split(" ").map(Number) : null)));
+    let order = spans.flatMap((s, i) => (s ? [i] : []));
     const ringOf = (index: number) => (rings > 1 && count ? Math.floor(index / count) : 0);
     const slices = plot.querySelectorAll<SVGPathElement>("path[data-ib-i]");
     let current = -1;
+    // Set once the tooltip is: hides it when the legend hides its slice.
+    let redrawn = () => {};
+
+    // Legend: each item hides and shows its slices; the rest close up and their shares are of
+    // what's shown, drawn here (chart-draw.ts drawPie).
+    const data: PieDrawData | null = this.dataset.ibDraw ? JSON.parse(this.dataset.ibDraw) : null;
+    const toggles = [...this.querySelectorAll<HTMLElement>(".ib-pie-toggle")];
+    const hidden = new Set<number>();
+    const labeled = [...plot.querySelectorAll<HTMLElement>("span[data-ib-l]")].map((l) => Number(l.dataset.ibL));
+    const redraw = async () => {
+      if (!data) return;
+      const out = (await loadModule()).drawPie(data, hidden, labeled);
+      if (signal.aborted) return;
+      for (const path of slices) {
+        const slice = out.slices[Number(path.dataset.ibI)];
+        path.toggleAttribute("data-ib-hidden", !slice);
+        if (slice) path.setAttribute("d", slice.d);
+      }
+      spans = out.slices.map((s) => (s ? [s.start, s.end] : null));
+      order = spans.flatMap((s, i) => (s ? [i] : []));
+      // Hidden items' shares go blank: the legend still names them, dimmed.
+      for (const el of this.querySelectorAll<HTMLElement>("[data-ib-share]")) el.textContent = out.shares[Number(el.dataset.ibShare)] ?? "";
+      for (const el of plot.querySelectorAll<HTMLElement | SVGPathElement>("[data-ib-l]")) {
+        const label = out.labels.get(Number(el.dataset.ibL));
+        el.toggleAttribute("data-ib-hidden", !label);
+        if (!label) continue;
+        if (el instanceof SVGPathElement) el.setAttribute("d", label.leader);
+        else {
+          el.style.left = `${label.x * 100}%`;
+          el.style.top = `${label.y * 100}%`;
+          el.classList.toggle("ib-pie-label-start", !label.end);
+        }
+      }
+      for (const el of plot.querySelectorAll<HTMLElement>("[data-ib-in]")) {
+        const at = out.inside.get(Number(el.dataset.ibIn));
+        el.toggleAttribute("data-ib-hidden", !at);
+        if (!at) continue;
+        el.style.left = `${at.x * 100}%`;
+        el.style.top = `${at.y * 100}%`;
+      }
+      redrawn();
+    };
+    if (data) {
+      const toggle = (el: HTMLElement) => {
+        const item = Number(el.dataset.ibSeries);
+        if (hidden.has(item)) hidden.delete(item);
+        else hidden.add(item);
+        el.setAttribute("aria-pressed", String(!hidden.has(item)));
+        redraw();
+      };
+      for (const el of toggles) {
+        el.setAttribute("role", "button");
+        el.tabIndex = 0;
+        el.setAttribute("aria-pressed", "true");
+        el.addEventListener("click", () => toggle(el), { signal });
+        el.addEventListener(
+          "keydown",
+          (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            toggle(el);
+          },
+          { signal }
+        );
+      }
+      signal.addEventListener("abort", () => {
+        for (const el of toggles) {
+          el.removeAttribute("role");
+          el.removeAttribute("tabindex");
+          el.removeAttribute("aria-pressed");
+        }
+      });
+    }
+
+    if (!tooltip || tips.length === 0) return;
 
     this.setAttribute("data-ib-tooltips", "");
     signal.addEventListener("abort", () => this.removeAttribute("data-ib-tooltips"));
@@ -447,6 +524,13 @@ class Chart extends IzzyElement {
     const hide = () => {
       tooltip.hidden = true;
       for (const s of slices) s.removeAttribute("data-ib-active");
+    };
+    // The legend hid the slice the tooltip is for: nothing to show, and the keys start again.
+    redrawn = () => {
+      if (current >= 0 && !spans[current]) {
+        hide();
+        current = -1;
+      }
     };
 
     // Who moved the tooltip last: the keys keep it when the pointer leaves; the pointer doesn't.
