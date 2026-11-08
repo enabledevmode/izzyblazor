@@ -3,7 +3,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A QR code shows text, such as a link, for a phone's camera to read. It renders on the server as an SVG, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, scales without blurring, and prints. It's dark on light in both color schemes, since not every scanner reads light on dark. For a product or shipping number read by a barcode scanner, see <Anchor Href="docs/components/barcode">Barcode</Anchor>.</TextBlock>
+<TextBlock>A QR code shows text, such as a link, for a phone's camera to read. It renders on the server as an SVG, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, scales without blurring, and prints.</TextBlock>
+<TextBlock>It's dark on light in both color schemes, since not every scanner reads light on dark. For a product or shipping number read by a barcode scanner, see <Anchor Href="docs/components/barcode">Barcode</Anchor>.</TextBlock>
 
 <Heading Level="2">A link to scan</Heading>
 <TextBlock>Set <Code>Value</Code> to the text, and <Code>Label</Code> to what scanning it does, such as "QR code for this page". Screen readers hear the label, never the value. Beside the code, write what a user without a camera needs, such as the link.</TextBlock>
@@ -12,7 +13,8 @@
 <Heading Level="2">Setting up two-factor sign-in</Heading>
 <TextBlock>An authenticator app scans an <Code>otpauth://totp/</Code> link that contains a secret key, then shows a new six-digit code every 30 seconds. Show the key beside the QR code, in groups of four, for a user who types it in instead. Then ask for the first code in a <Anchor Href="docs/components/pin-field">PinField</Anchor>, to confirm the app has the key.</TextBlock>
 <ExampleViewer Example="qr-code-two-factor" />
-<TextBlock>The link contains the secret, so don't log it or put it in a URL. With ASP.NET Core Identity, <Code>UserManager.ResetAuthenticatorKeyAsync</Code> makes the key, <Code>GetAuthenticatorKeyAsync</Code> reads it, and <Code>VerifyTwoFactorTokenAsync</Code>, with the authenticator token provider, checks the code. The link is <Code>otpauth://totp/Issuer:account?secret=KEY&amp;issuer=Issuer</Code>, with your site's name as the issuer in both places and the issuer and account URL-encoded. A real check also rejects a code that was already used, so a code seen over a shoulder can't be used again.</TextBlock>
+<TextBlock>The link contains the secret, so don't log it or put it in a URL. The link is <Code>otpauth://totp/Issuer:account?secret=KEY&amp;issuer=Issuer</Code>, with your site's name as the issuer in both places and the issuer and account URL-encoded.</TextBlock>
+<TextBlock>With ASP.NET Core Identity, <Code>UserManager.ResetAuthenticatorKeyAsync</Code> makes the key, <Code>GetAuthenticatorKeyAsync</Code> reads it, and <Code>VerifyTwoFactorTokenAsync</Code>, with the authenticator token provider, checks the code. A real check also rejects a code that was already used, so a code seen over a shoulder can't be used again.</TextBlock>
 
 <Heading Level="2">Size and error correction</Heading>
 <TextBlock>To set the width and height, set <Code>Size</Code>; it's 10rem by default, and the code scales to fit. Scanners look for the light border around the code, 4 modules (squares) wide by default (<Code>QuietZone</Code>), so keep it. Longer text makes a denser code with smaller modules, so keep links short.</TextBlock>

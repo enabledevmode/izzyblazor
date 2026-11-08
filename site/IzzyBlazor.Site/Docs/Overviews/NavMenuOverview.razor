@@ -9,9 +9,9 @@
 <TextBlock>A nav menu is a list of links that marks the link to the current page. It suits a sidebar or a row of section links. The server works out the current page from the URL, so the menu works the same on <Anchor Href="docs/common/render-modes">static and interactive pages</Anchor>, and with JavaScript off.</TextBlock>
 
 <Heading Level="2">Organizing a sidebar</Heading>
-<TextBlock>A sidebar's links can be organized into sections. To name a section, add a <Code>NavLabel</Code>. To fold some links away, put them in a <Code>NavGroup</Code>. For a line between sections, add a <Code>NavDivider</Code>. To show a count or a label on an item, set its <Code>Badge</Code>.</TextBlock>
+<TextBlock>A sidebar's links can be organized into sections. To name a section, add a <Code>NavLabel</Code>; for a line between sections, add a <Code>NavDivider</Code>. To fold some links away, put them in a <Code>NavGroup</Code>.</TextBlock>
 <ExampleViewer Example="nav-menu-sidebar" />
-<TextBlock>A group is a native <Code>details</Code> element, so it opens and closes with JavaScript off. To start a group open, set <Code>Open</Code>. To open it on the pages at or below a path, such as <Code>/projects</Code>, set <Code>ActivePrefix</Code>. With IzzyBlazor's script, a group that contains the current page also opens itself.</TextBlock>
+<TextBlock>A group is a native <Code>details</Code> element, so it opens and closes with JavaScript off. To start a group open, set <Code>Open</Code>; to open it on the pages at or below a path, such as <Code>/projects</Code>, set <Code>ActivePrefix</Code>. With IzzyBlazor's script, a group that contains the current page also opens itself.</TextBlock>
 
 <Heading Level="2">The current page</Heading>
 <TextBlock>By default, an item is current on its own page and the pages below it. To make an item current on its own page only, set <Code>Match="NavLinkMatch.All"</Code>.</TextBlock>
@@ -23,8 +23,9 @@
 </List>
 
 <Heading Level="2">Badges and counts</Heading>
-<TextBlock>A badge on an item shows a count or a short label beside its text. Set <Code>Badge</Code> on the <Code>NavItem</Code> to add one. For quiet totals with no fill, as docs and mail sidebars show them, set <Code>BadgeVariant.Plain</Code>. To give a badge a color of its own, such as <Code>Accent.Primary</Code> for an unread count, set <Code>BadgeAccent</Code>. For a status's color, set <Code>BadgeStatus</Code>.</TextBlock>
+<TextBlock>A badge on an item shows a count or a short label beside its text. Set <Code>Badge</Code> on the <Code>NavItem</Code> to add one.</TextBlock>
 <ExampleViewer Example="nav-menu-counts" />
+<TextBlock>For quiet totals with no fill, as docs and mail sidebars show them, set <Code>BadgeVariant.Plain</Code>. To give a badge a color of its own, such as <Code>Accent.Primary</Code> for an unread count, set <Code>BadgeAccent</Code>; for a status's color, set <Code>BadgeStatus</Code>.</TextBlock>
 <TextBlock>Long labels wrap rather than being cut off.</TextBlock>
 
 <Heading Level="2">A row of links</Heading>

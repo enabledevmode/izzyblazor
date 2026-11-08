@@ -7,13 +7,14 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It suits a list the user narrows by searching and choosing. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself. The page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
+<TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself: the page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
 <TextBlock>To filter a table by its columns instead, use the <Anchor Href="docs/components/table">Table</Anchor>'s own column filters.</TextBlock>
 
 <Heading Level="2">Search, select and checkbox</Heading>
-<TextBlock>A filter form has three kinds of plain filter field: a search box, a select, and a checkbox. Add a <Code>FilterSearch</Code> for a search box; it writes <Code>?q=</Code> unless you set its <Code>Name</Code>. Add a <Code>FilterSelect</Code> for a choice with "All" first. Add a <Code>FilterCheckbox</Code> for a filter that's on or off, such as <Code>?mine=true</Code>.</TextBlock>
+<TextBlock>A filter form has three kinds of plain filter field. Add a <Code>FilterSearch</Code> for a search box, a <Code>FilterSelect</Code> for a choice with "All" first, and a <Code>FilterCheckbox</Code> for a filter that's on or off, such as <Code>?mine=true</Code>.</TextBlock>
 <ExampleViewer Example="filter-form-issues" />
 <List>
+    <ListItem>A <Code>FilterSearch</Code> writes <Code>?q=</Code> unless you set its <Code>Name</Code>.</ListItem>
     <ListItem>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the search applies after a pause in typing, and the other fields as they change. Each applies without a full reload, and focus stays where it was.</ListItem>
     <ListItem>A <Code>FilterSelect</Code>'s options come from <Code>Items</Code>, or from an enum set in <Code>EnumType</Code>.</ListItem>
     <ListItem>The URL stores each option's value. To show the user other text, set <Code>ItemText</Code>.</ListItem>
@@ -30,8 +31,9 @@
 </List>
 
 <Heading Level="2">Filtering on demand</Heading>
-<TextBlock>An on-demand form applies nothing until the user presses Apply or Enter. It suits filters that are slow to apply, such as a search against a large database, or forms where the user sets several filters before looking at the results. Set <Code>Live="false"</Code> to keep the Apply button with IzzyBlazor's script too. To rename the button, set <Code>ApplyText</Code>.</TextBlock>
+<TextBlock>An on-demand form applies nothing until the user presses Apply or Enter. It suits filters that are slow to apply, such as a search against a large database, or forms where the user sets several filters before looking at the results. To keep the Apply button with IzzyBlazor's script too, set <Code>Live="false"</Code>.</TextBlock>
 <ExampleViewer Example="filter-form-apply-button" />
+<TextBlock>To rename the button, set <Code>ApplyText</Code>.</TextBlock>
 
 <Heading Level="2">With a table</Heading>
 <TextBlock>A filter form above a <Anchor Href="docs/components/table">Table</Anchor> filters the rows by values that aren't tied to a column. Give the table the filtered rows. The form keeps the rest of the URL, such as the table's sort, and removes the page number, so filtering goes back to page 1.</TextBlock>

@@ -4,15 +4,16 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A progress bar shows how far along a task is. It suits work with a length you can measure, such as an upload or an import. Without a value, it shows that the task is still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
+<TextBlock>A progress bar shows how far along a task is, such as an upload or an import. Without a value, it shows that the task is still working.</TextBlock>
+<TextBlock>For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
 
 <Heading Level="2">Value and label</Heading>
-<TextBlock>The bar fills to its <Code>Value</Code>, out of <Code>Max</Code>, which is 100 by default. Its <Code>Label</Code> is the line above the bar, and also its name for screen readers. To show the percentage at the end of that line, set <Code>ShowValue</Code>. To show your own text there instead, such as "3 of 5 files", set <Code>ValueText</Code>.</TextBlock>
+<TextBlock>The bar fills to its <Code>Value</Code>, out of <Code>Max</Code> (100 by default). Its <Code>Label</Code> is the line above the bar, and also its name for screen readers. To show the percentage at the end of that line, set <Code>ShowValue</Code>, or for your own text, such as "3 of 5 files", set <Code>ValueText</Code>.</TextBlock>
 <ExampleViewer Example="progress-values" />
 <TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value below 0 or above <Code>Max</Code> shows as the nearest end.</TextBlock>
 
 <Heading Level="2">Sizes and colors</Heading>
-<TextBlock>The size sets the bar's thickness: Sm, Md or Lg, to sit with controls of that size. Set <Code>Size</Code> to choose one. The bar uses the primary color by default. To change it, set <Code>Accent</Code>, such as <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<TextBlock>To match the bar's thickness to the controls around it, set <Code>Size</Code> to Sm, Md or Lg. The bar uses the primary color by default. To change it, set <Code>Accent</Code>, such as <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
 <ExampleViewer Example="progress-sizes" />
 <TextBlock>The color doesn't reach screen readers. When the color means a warning, say so in the label or the value text too, such as "almost full".</TextBlock>
 

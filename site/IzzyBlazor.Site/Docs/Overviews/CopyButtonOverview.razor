@@ -12,9 +12,11 @@
 <TextBlock>After a copy, the icon turns to a check for a moment, and screen readers hear "Copied". The button keeps its name.</TextBlock>
 
 <Heading Level="2">Copying a field's value</Heading>
-<TextBlock>A copy button can copy what another element contains at the moment it's pressed, such as a field's value. Set <Code>For</Code> to the element's id. It copies an input's or a text area's value, or any other element's text. If you give the button content, such as "Copy", it shows the text after the icon and is named by it.</TextBlock>
+<TextBlock>A copy button can copy what another element contains at the moment it's pressed, such as a field's value. Set <Code>For</Code> to the element's id.</TextBlock>
 <ExampleViewer Example="copy-button-from-field" />
 <List>
+    <ListItem>It copies an input's or a text area's value, or any other element's text.</ListItem>
+    <ListItem>If you give the button content, such as "Copy", it shows the text after the icon and is named by it.</ListItem>
     <ListItem>Set exactly one of <Code>Text</Code> and <Code>For</Code>. With both, or neither, the button throws.</ListItem>
     <ListItem>The button shows its own icons, so it also throws on <Code>StartIcon</Code>, <Code>EndIcon</Code>, <Code>Loading</Code> and <Code>LoadingLabel</Code>.</ListItem>
     <ListItem><Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code> work as on a <Anchor Href="docs/components/button">Button</Anchor>.</ListItem>

@@ -4,7 +4,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A combobox is a text field with a list of options under it: the user types to narrow the list, then picks one. It suits long lists the user finds an option in by typing. For a short list, see <Anchor Href="docs/components/select">Select</Anchor>, which is simpler. For several choices, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
+<TextBlock>A combobox is a text field with a list of options under it: the user types to narrow the list, then picks one. It suits long lists the user finds an option in by typing.</TextBlock>
+<TextBlock>For a short list, see <Anchor Href="docs/components/select">Select</Anchor>, which is simpler. For several choices, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Typing to filter</Heading>
 <TextBlock>As the user types, the list shows only the options that contain the text, ignoring case and accents. Pass the options to <Code>Items</Code>, and set <Code>ItemText</Code> to the text shown for each.</TextBlock>
@@ -12,8 +13,9 @@
 <TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. When you bind an enum, its values are the options, named by their <Code>[Display(Name)]</Code>, and <Code>Items</Code> isn't needed.</TextBlock>
 
 <Heading Level="2">Groups</Heading>
-<TextBlock>To list the options under headings, set <Code>ItemGroup</Code> to each option's group, such as a person's team. The groups show in the order they first appear, with options that have no group first. As the user types, a group with no match is hidden, heading and all; the arrow keys move between options and skip the headings. An enum's options group by their <Code>[Display(GroupName)]</Code>, and <Code>Search</Code> results are grouped the same way.</TextBlock>
+<TextBlock>To list the options under headings, set <Code>ItemGroup</Code> to each option's group, such as a person's team. An enum's options group by their <Code>[Display(GroupName)]</Code>, and <Code>Search</Code> results are grouped the same way.</TextBlock>
 <ExampleViewer Example="combobox-groups" />
+<TextBlock>The groups show in the order they first appear, with options that have no group first. As the user types, a group with no match is hidden, heading and all.</TextBlock>
 
 <Heading Level="2">Searching a long list</Heading>
 <TextBlock>For a list too long to send to the browser whole, the combobox can ask your code for the options that match what's typed. Set <Code>Search</Code> to a method that receives the typed text and returns the first matching values, of the bound type. To add markup to each option, such as an avatar, set <Code>ItemTemplate</Code>.</TextBlock>

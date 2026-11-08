@@ -7,7 +7,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="MainLayout.razor">@Usage</Code>
-<TextBlock>An app shell is the frame around every page of an app. It has a header, a sidebar and the main area, and it can have an aside and a footer. It suits apps whose pages share the same navigation. Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so <Anchor Href="docs/common/render-modes">static pages</Anchor> arrive laid out and work with JavaScript off.</TextBlock>
+<TextBlock>An app shell is the frame around every page of an app: a header, a sidebar and the main area, and optionally an aside and a footer. It suits apps whose pages share the same navigation.</TextBlock>
+<TextBlock>Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so <Anchor Href="docs/common/render-modes">static pages</Anchor> arrive laid out and work with JavaScript off.</TextBlock>
 <TextBlock>The shell starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>. To change the id, set <Code>MainId</Code> on the shell.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
@@ -35,12 +36,13 @@
 <TextBlock>On a <Code>Canvas</Code> page, put content in <Anchor Href="docs/components/card">Cards</Anchor>. A filled area placed directly on the tinted background looks like a hole in the page. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
 
 <Heading Level="2">Bars and colors</Heading>
-<TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part. The header stays in view as the page scrolls and the footer scrolls away; set <Code>Sticky</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code> to change either. The header stays in view by default; the footer doesn't.</TextBlock>
+<TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part.</TextBlock>
 <Code Block Language="razor">@Bars</Code>
+<TextBlock>The header stays in view as the page scrolls, and the footer scrolls away. To change either, set <Code>Sticky</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code>.</TextBlock>
 <TextBlock>Text on a <Code>Bg</Code> uses the color's matching text color when it has one. Everything inside a part with a <Code>ColorScheme</Code> follows that scheme, its menus included. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
 
 <Heading Level="2">The brand</Heading>
-<TextBlock>The brand is the app's name in the header, with an icon or logo before it. Add an <Code>AppBrand</Code> and set <Code>Icon</Code> or <Code>Logo</Code>. To link it home, set <Code>Href</Code>. To show only a logo that already spells the name, set <Code>HideLabel</Code>.</TextBlock>
+<TextBlock>The brand is the app's name in the header, with an icon or logo before it. Add an <Code>AppBrand</Code> and set <Code>Icon</Code> or <Code>Logo</Code>. To link it home, set <Code>Href</Code>; to show only a logo that already spells the name, set <Code>HideLabel</Code>.</TextBlock>
 <Code Block Language="razor">@Brand</Code>
 <TextBlock>The name stays on one line. On a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
 

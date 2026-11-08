@@ -6,7 +6,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A form is a set of fields bound to a model, which it validates and submits to your handler. It suits any data the user enters and saves. It works the same on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
+<TextBlock>A form is a set of fields bound to a model, which it validates and submits to your handler, for any data the user enters and saves. It works the same on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
 
 <Heading Level="2">Fields</Heading>
 <TextBlock>Each field in a form is bound to a property of the model, and gets its label, required mark, type and limits from the property's attributes. Bind each field with <Code>@@bind-Value</Code>. The fields post with the form.</TextBlock>
@@ -32,9 +32,9 @@
 </List>
 
 <Heading Level="2">Errors</Heading>
-<TextBlock>An error summary lists every message at the top of the form after a failed submit. It receives focus, so keyboard and screen reader users start there. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
+<TextBlock>An error summary lists every message at the top of the form after a failed submit. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
 <ExampleViewer Example="form-errors" />
-<TextBlock>Each field shows its own messages under it too. To show one property's messages beside an input of your own, add <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>, and set the input's <Code>aria-describedby</Code> to that <Code>Id</Code>.</TextBlock>
+<TextBlock>The summary receives focus, so keyboard and screen reader users start there. Each field shows its own messages under it too. To show one property's messages beside an input of your own, add <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>, and set the input's <Code>aria-describedby</Code> to that <Code>Id</Code>.</TextBlock>
 
 <Heading Level="2">Columns</Heading>
 <TextBlock>A form can lay its fields out in columns that fit the form's own width, so one form works on a page, in a dialog and in a drawer. Set <Code>Columns</Code>, up to 4. To give a field the whole row, set <Code>ColSpan="GridSpan.Full"</Code> on it.</TextBlock>
@@ -46,7 +46,7 @@
 <ExampleViewer Example="form-horizontal" />
 
 <Heading Level="2">Read-only and disabled</Heading>
-<TextBlock>A read-only form shows a record that posts but can't change, and a disabled form turns every field off. Set <Code>ReadOnly</Code> or <Code>Disabled</Code>. Disabled fields don't post. Neither changes the buttons, so show the ones that fit.</TextBlock>
+<TextBlock>A read-only form shows a record that posts but can't change, and a disabled form turns every field off, so nothing posts. Set <Code>ReadOnly</Code> or <Code>Disabled</Code>. Neither changes the buttons, so show the ones that fit.</TextBlock>
 <ExampleViewer Example="form-read-only" />
 <List>
     <ListItem>HTML has no read-only select, checkbox, radio or range. A read-only select shows its value in a read-only text field. Checkboxes, switches, radios, segments and sliders are disabled, and hidden fields post their values.</ListItem>

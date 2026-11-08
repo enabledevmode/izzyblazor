@@ -40,6 +40,10 @@
                     <TextBlock><InlineCode Text="@lead" /></TextBlock>
                 }
                 <ExampleViewer Example="@example.Id" />
+                @foreach (var paragraph in example.After)
+                {
+                    <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
+                }
             }
         }
 

@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them. It suits a form that sends a file, such as a photo or a document. The zone is a real file input with a label that opens the picker, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off. The file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
+<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them, such as a photo or a document for a form. The zone is a real file input, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off: the file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
 
 <Heading Level="2">Types, size and posting</Heading>
 <TextBlock>The zone can limit the file types it offers and the largest file it accepts, and it shows both under the prompt ("PNG or JPEG · up to 2 MB"). Set <Code>Accept</Code> to the types, and <Code>MaxFileSize</Code> to the largest size in bytes. On static pages, bind the file to an <Code>IFormFile</Code> property with <Code>[SupplyParameterFromForm]</Code>, named like the field.</TextBlock>

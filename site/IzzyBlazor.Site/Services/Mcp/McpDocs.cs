@@ -409,6 +409,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 text.Append($"\n{lead}\n");
             }
 
+            foreach (var paragraph in example.After)
+            {
+                text.Append($"\n{paragraph}\n");
+            }
+
             if (ModeSwitch.Offered.Where(example.Modes.Contains).ToList() is { } offered && offered.Count < ModeSwitch.Offered.Length)
             {
                 text.Append($"\nShown in {string.Join(" and ", offered.Select(ModeChip.Name))} only.\n");

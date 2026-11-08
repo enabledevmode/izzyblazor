@@ -5,7 +5,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A confirm button is a button that asks before it acts. It suits actions that are hard to undo, such as deleting. It opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. The dialog sits beside the button, inside the form it submits.</TextBlock>
+<TextBlock>A confirm button is a button that asks before it acts, for actions that are hard to undo, such as deleting. It opens a small alert dialog, and only the dialog's confirm button carries the action out.</TextBlock>
+<TextBlock>Inside a form, confirming submits the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. The dialog sits beside the button, inside the form it submits.</TextBlock>
 <TextBlock>To ask a question from C# on interactive pages, use <Code>DialogService.ConfirmAsync</Code>; see <Anchor Href="docs/components/dialog#dialogs-from-code">Dialog</Anchor>.</TextBlock>
 
 <Heading Level="2">Confirming a form post</Heading>
@@ -23,7 +24,7 @@
 <TextBlock>Name the action on the confirm button ("Delete files", not "OK"), so the choice is clear on its own.</TextBlock>
 
 <Heading Level="2">Other ways to confirm</Heading>
-<TextBlock>Confirming can follow a link or submit a different form, instead of the form the button is in. To follow a link when confirmed, set <Code>Href</Code>. To submit a form elsewhere on the page, set <Code>Form</Code> to that form's id. To post the button's own form to another URL, set <Code>FormAction</Code>.</TextBlock>
+<TextBlock>Confirming can follow a link or submit a different form, instead of the form the button is in. To follow a link when confirmed, set <Code>Href</Code>; to submit a form elsewhere on the page, set <Code>Form</Code> to that form's id. To post the button's own form to another URL, set <Code>FormAction</Code>.</TextBlock>
 <Code Block Language="razor">@Others</Code>
 
 <Heading Level="2">Opening the dialog</Heading>

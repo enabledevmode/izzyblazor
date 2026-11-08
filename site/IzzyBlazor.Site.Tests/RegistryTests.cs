@@ -101,4 +101,49 @@ public class RegistryTests
         Assert.Empty(Registry.AllComponents.Select(c => c.Id).Except(Pictures.ById.Keys));
         Assert.Empty(Pictures.ById.Keys.Except(Registry.AllComponents.Select(c => c.Id)));
     }
+
+    [Fact]
+    public void Example_leads_and_topic_intros_stay_short()
+    {
+        // CONTRIBUTING's writing style: a sentence or two before an example, details after it.
+        var long_ = new List<string>();
+        void Check(string where, string text, int words, int sentences)
+        {
+            var (w, s) = (Words(text), Sentences(text));
+            if (w > words || s > sentences)
+            {
+                long_.Add($"{where} ({w} words, {s} sentences)");
+            }
+        }
+
+        foreach (var component in Registry.AllComponents)
+        {
+            foreach (var topic in component.Topics)
+            {
+                topic.Intro.ForEach(p => Check($"{component.Id}/{topic.Id} intro", p, 80, 4));
+            }
+
+            foreach (var example in component.Examples.Concat(component.Topics.SelectMany(t => t.Examples)))
+            {
+                if (example.Lead is { } lead)
+                {
+                    Check($"{component.Id}: {example.Id} lead", lead, 60, 3);
+                }
+
+                example.After.ForEach(p => Check($"{component.Id}: {example.Id} after", p, 60, 3));
+            }
+        }
+
+        Assert.True(long_.Count == 0, $"Too long (a lead or after paragraph: 60 words, 3 sentences; an intro: 80 words, 4 sentences); move details under the example:\n{string.Join("\n", long_)}");
+    }
+
+    private static int Words(string text) => text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+
+    // Sentences, not counting the dots inside `code` or in "e.g.".
+    private static int Sentences(string text)
+    {
+        var plain = System.Text.RegularExpressions.Regex.Replace(text, "`[^`]*`", "x");
+        plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\b(e\.g|i\.e|etc|vs)\.", "x");
+        return System.Text.RegularExpressions.Regex.Split(plain.Trim(), @"(?<=[.!?])\s+(?=[A-Z(""x])").Length;
+    }
 }

@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor" Title="App.razor">@Usage</Code>
-<TextBlock>A theme is the app's colors, shape, spacing and fonts, and IzzyTheme sets it. Put one IzzyTheme in the <Code>head</Code> to theme the app. It sets the theme on the server, so the theme is in place on first paint, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
+<TextBlock>A theme is the app's colors, shape, spacing and fonts; to set it, put one IzzyTheme in the <Code>head</Code>. It sets the theme on the server, so the theme is in place on first paint, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
 
 <Heading Level="2">Presets</Heading>
 <TextBlock>A preset sets the starting density, shape and type: <Code>Standard</Code> (the default), <Code>Compact</Code>, <Code>Soft</Code> or <Code>Editorial</Code>. Set <Code>Preset</Code> to choose one. A setting you set yourself overrides the preset's value.</TextBlock>
@@ -32,7 +32,7 @@
 <TextBlock>Inter comes with IzzyBlazor. Load any other font yourself, and end each list with a generic family so text shows while the font loads.</TextBlock>
 
 <Heading Level="2">Light and dark</Heading>
-<TextBlock>The color scheme a page starts in is light, dark, or the device's. Set <Code>ColorScheme</Code> to choose; unset, it follows the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user choose, and their choice overrides this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
+<TextBlock>The color scheme a page starts in is light, dark, or the device's: set <Code>ColorScheme</Code> to choose, or leave it unset to follow the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user choose, and their choice overrides this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
 
 <Heading Level="2">Part of a page</Heading>
 <TextBlock>To theme only part of a page, such as a dark panel in a light page, use a <Anchor Href="docs/components/theme-scope">ThemeScope</Anchor>. Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are the app's, set here. For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</TextBlock>

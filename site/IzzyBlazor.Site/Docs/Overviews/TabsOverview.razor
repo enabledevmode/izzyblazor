@@ -5,11 +5,12 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>Tabs are a row of labels over panels of content, and the user picks a tab to show its panel. They suit views the user switches between, such as a record's details and its history. They switch <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For sections the user opens one by one, see <Anchor Href="docs/components/accordion">Accordion</Anchor>.</TextBlock>
+<TextBlock>Tabs are a row of labels over panels of content, such as a record's details and its history; the user picks a tab to show its panel. They switch <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For sections the user opens one by one, see <Anchor Href="docs/components/accordion">Accordion</Anchor>.</TextBlock>
 
 <Heading Level="2">Picking a tab</Heading>
-<TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>. A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
+<TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>.</TextBlock>
 <ExampleViewer Example="tabs-modes" />
+<TextBlock>A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
 <TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tab-nav">TabNav</Anchor> link.</TextBlock>
 
 <Heading Level="2">Variants, icons and badges</Heading>
@@ -29,9 +30,11 @@
 <ExampleViewer Example="tabs-url" />
 
 <Heading Level="2">Closing and adding tabs</Heading>
-<TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. The tab stays until it leaves the list, so to ask first, as here for an unsaved draft, await a confirmation and remove it only on yes. Handle <Code>OnAdd</Code> to show an add button after the tabs. <Code>Closable="false"</Code> keeps one tab without a close button.</TextBlock>
+<TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. Handle <Code>OnAdd</Code> to show an add button after the tabs.</TextBlock>
 <ExampleViewer Example="tabs-closable" />
 <List Gap="2">
+    <ListItem>The tab stays until it leaves the list. To ask first, as here for an unsaved draft, await a confirmation and remove it only on yes.</ListItem>
+    <ListItem><Code>Closable="false"</Code> keeps one tab without a close button.</ListItem>
     <ListItem>When the selected tab closes, the tab after it opens, or the one before when it was last.</ListItem>
     <ListItem>Delete or Backspace on a tab closes it, with script.</ListItem>
     <ListItem>When the tabs don't fit, they scroll and the add button stays at the end of the row.</ListItem>

@@ -1,8 +1,9 @@
 @* DataGrid's Reordering rows page: the example, then why a reorderable grid shouldn't sort or filter. *@
 
 <Heading Level="2">Reordering rows, and saving the order</Heading>
-<TextBlock>Each row gets a drag handle at its start, which also opens a menu of moves. Set <Code>ReorderableRows</Code> and an <Code>ItemKey</Code>, and give the grid every row in <Code>Items</Code>. On static pages, give the grid an <Code>OrderName</Code> inside a form and pass the posted <Code>ListOrder</Code> back as <Code>Order</Code>; <Code>Order.Arrange</Code> puts your rows in the posted order. On interactive pages, bind <Code>@@bind-Items</Code> to keep the new order.</TextBlock>
+<TextBlock>Each row gets a drag handle at its start, which also opens a menu of moves. Set <Code>ReorderableRows</Code> and an <Code>ItemKey</Code>, and give the grid every row in <Code>Items</Code>.</TextBlock>
 <ExampleViewer Example="data-grid-reorder-rows" />
+<TextBlock>On static pages, give the grid an <Code>OrderName</Code> inside a form and pass the posted <Code>ListOrder</Code> back as <Code>Order</Code>; <Code>Order.Arrange</Code> puts your rows in the posted order. On interactive pages, bind <Code>@@bind-Items</Code> to keep the new order.</TextBlock>
 
 <Alert Status="Status.Warning" Title="Don't sort or filter a reorderable grid">
     In a reorderable grid, the order is the data. A sort shows the rows in another order and a filter shows only some
