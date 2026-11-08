@@ -237,6 +237,9 @@
     private ArgumentKind _drawnKind;
     private bool _zoomOn;
 
+    // A RangeSelector on its own draws its chart as the strip only.
+    [CascadingParameter] private RangeSelectorHost? SelectorHost { get; set; }
+
     // The view drawn: View, or on an interactive page where the reader zoomed to since it was set.
     private ChartView? _view;
     private ChartView? _viewSet;
@@ -502,6 +505,8 @@
         }
         @* Its own size container, so the labels fit the plot's width with a legend beside it. *@
         <div class="ib-chart-main">
+        @if (SelectorHost is null)
+        {
         <div class="@FrameClass(model, sideTitle, horizontal && _valueAxis?.Position == ChartAxisPosition.Top)" role="img" aria-labelledby="@NameId" aria-describedby="@(model.MarkTexts.Count > 0 ? $"{_labelId}-marks" : null)" style="@FrameStyle(model, sideTitle is not null, valueRight)">
             @if (valueRight)
             {
@@ -697,6 +702,7 @@
                 <div class="ib-chart-title ib-chart-title-bottom">@bottomTitle</div>
             }
         </div>
+        }
         @if (selector is not null && model.ZoomPositions is not null)
         {
             @Selector(model, selector)
@@ -1131,7 +1137,7 @@
     // the series drawn small over the whole range, a window over the view with a slider at each
     // end, the rest shaded, range buttons, and the whole range's labels. The script lines it up
     // with the plot and makes it move.
-    private RenderFragment Selector(ChartModel model, RangeSelector selector) => __builder =>
+    private RenderFragment Selector(ChartModel model, IRangeSelector selector) => __builder =>
     {
         var reverse = _argumentAxis?.Reverse == true;
         var (f0, f1) = model.View?.Share ?? (0, 1);
@@ -1142,7 +1148,7 @@
         var (i0, i1) = (Nearest(f0), Nearest(f1));
         var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
         var ranges = SelectorRanges(model, selector);
-        <div class="ib-chart-sel" role="group" aria-label="@TextDefaults.RangeSelectorName"
+        <div class="ib-chart-sel" role="group" aria-label="@(selector.Label ?? TextDefaults.RangeSelectorName)"
              style="@($"--ib-sel-s:{Num(place(f0))};--ib-sel-e:{Num(place(f1))};{height}")">
             @if (ranges.Count > 0)
             {
@@ -1238,7 +1244,7 @@
 
     // A date chart's range buttons, as shares of the whole axis: the common spans back from the
     // last date (Ranges), then the app's own (Presets); spans the data doesn't reach are left out.
-    private List<(string Text, string Name, double From, double To)> SelectorRanges(ChartModel model, RangeSelector selector)
+    private List<(string Text, string Name, double From, double To)> SelectorRanges(ChartModel model, IRangeSelector selector)
     {
         var list = new List<(string, string, double, double)>();
         if (model.Kind != ArgumentKind.Time || (!selector.Ranges && selector.Presets is null)) return list;
@@ -1313,7 +1319,8 @@
             var t = new DateTime(Math.Clamp((long)Math.Round(x), DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks));
             return arguments.FirstOrDefault(a => a is not null) switch
             {
-                DateOnly => DateOnly.FromDateTime(t),
+                // Days: the nearest, as a share's rounding can fall just before midnight.
+                DateOnly => DateOnly.FromDateTime(t.AddTicks(TimeSpan.TicksPerDay / 2)),
                 DateTimeOffset o => new DateTimeOffset(t, o.Offset),
                 _ => t,
             };
