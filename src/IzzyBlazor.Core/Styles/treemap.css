@@ -50,7 +50,8 @@
     flex: none;
     gap: 0.35em;
     margin: 1px;
-    padding-inline: 6px;
+    /* Its text in line with the tiles' below (a group's 1px padding, its own 1px margin). */
+    padding-inline: 7px;
     overflow: hidden;
     /* A band clear of the surface: in dark mode the subtle fill is all but the surface itself. */
     background: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill-strong));
@@ -78,28 +79,26 @@
     overflow: hidden;
     border-radius: 3px;
     box-shadow: inset 0 0 0 1px var(--ib-color-surface);
-    /* Large areas, so the palette's colors softened toward the surface: 70% in light mode, 50% in
-       dark. The text's color clears every one of the eight (5.7:1 light, 5.6:1 dark). */
-    --ib-treemap-fill: light-dark(
-      color-mix(in oklab, var(--ib-chart-c, transparent) 70%, var(--ib-color-surface)),
-      color-mix(in oklab, var(--ib-chart-c, transparent) 50%, var(--ib-color-surface)));
+    /* Large areas, so the palette's colors half mixed with the surface: the text's color clears
+       every one of the eight, by APCA as well as WCAG (light Lc 61+, 9.7:1; dark Lc 88+, 6.6:1). */
+    --ib-treemap-fill: color-mix(in oklab, var(--ib-chart-c, transparent) 50%, var(--ib-color-surface));
     background: var(--ib-heat-bg, var(--ib-treemap-fill));
     color: var(--ib-color-on-surface);
     container: ib-treemap-tile / size;
   }
 
   .ib-treemap-tile > span {
-    margin-inline: 6px;
+    margin-inline: 8px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  .ib-treemap-tile > .ib-treemap-name { margin-top: 4px; font-weight: var(--ib-weight-medium); }
+  .ib-treemap-tile > .ib-treemap-name { margin-top: 6px; font-weight: var(--ib-weight-medium); }
 
   /* Too small for a readable name, or for its value under it: left to the tooltip and table. */
-  @container ib-treemap-tile (width < 2.5rem) or (height < 1.5rem) { .ib-treemap-tile > span { visibility: hidden; } }
-  @container ib-treemap-tile (height < 2.6rem) { .ib-treemap-tile > .ib-treemap-value { visibility: hidden; } }
+  @container ib-treemap-tile (width < 2.5rem) or (height < 1.6rem) { .ib-treemap-tile > span { visibility: hidden; } }
+  @container ib-treemap-tile (height < 2.7rem) { .ib-treemap-tile > .ib-treemap-value { visibility: hidden; } }
 
   /* Colored by a value (ColorValue): heatmap.css's classes set --ib-heat-bg; a continuous scale
      blends it at --t. The scale's shades run light to dark, so the usual ink, light on strong
@@ -114,11 +113,12 @@
     .ib-treemap-tile:is(*, .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-treemap-fill))); }
   }
 
-  /* The tile or group the tooltip (or the keyboard) is on, outlined and washed toward the surface,
-     which only raises the text's contrast. On a ColorValue scale, whose ink flips light on strong
-     shades, a step toward the text's color instead, as HeatmapChart's cells. */
+  /* The tile or group the tooltip (or the keyboard) is on, outlined and lighter: a third white in light
+     mode, which only raises dark text's contrast; 13% in dark, where white text keeps 4.9:1. On a
+     ColorValue scale, whose ink flips light on strong shades, a step toward the text's color
+     instead, as HeatmapChart's cells. */
   :is(.ib-treemap-tile, .ib-treemap-head)[data-ib-active] {
-    box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-surface) 35%, transparent);
+    box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax light-dark(#fff5, #fff2);
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
