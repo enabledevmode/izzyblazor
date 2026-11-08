@@ -827,6 +827,23 @@
     margin: 0;
   }
 
+  /* A nested donut's legend: names only. */
+  .ib-pie-legend.ib-pie-names { grid-template-columns: auto minmax(0, max-content); }
+
+  /* A nested donut's line naming its rings, under the title, aligned as it is. */
+  .ib-pie-rings {
+    margin: 0 0 var(--ib-space-5);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-chart-label:has(+ .ib-pie-rings) { margin-block-end: var(--ib-space-1); }
+  .ib-chart-label-center + .ib-pie-rings { text-align: center; }
+  .ib-chart-label-end + .ib-pie-rings { text-align: end; }
+
+  /* Its hole is wider than a donut's (half the radius): the square inside it. */
+  .ib-pie-center-nested { inset: 32%; }
+
   .ib-pie-legend > li {
     display: grid;
     grid-column: 1 / -1;

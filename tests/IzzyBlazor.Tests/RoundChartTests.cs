@@ -20,6 +20,29 @@ public class RoundChartTests : BunitContext
         base.Dispose(disposing);
     }
 
+    private record Trade(string Country, int Exports, int Imports);
+
+    [Fact]
+    public void A_nested_donut_draws_a_ring_per_measure_names_them_and_tables_each()
+    {
+        Trade[] partners = [new("Canada", 300, 100), new("Mexico", 100, 300)];
+        var cut = Render<NestedDonutChart<Trade>>(p => p
+            .Add(c => c.Items, partners)
+            .Add(c => c.Argument, t => t.Country)
+            .Add(c => c.Title, "Trade by partner")
+            .AddChildContent<DonutRing<Trade>>(r => r.Add(x => x.Value, t => t.Exports))
+            .AddChildContent<DonutRing<Trade>>(r => r.Add(x => x.Value, t => t.Imports).Add(x => x.Name, "Imports")));
+
+        Assert.Equal("Outside: Exports · Inside: Imports", cut.Find(".ib-pie-rings").TextContent.Trim());
+        // Slices numbered ring by ring; each item keeps its color in both.
+        var slices = cut.FindAll("path.ib-pie-slice");
+        Assert.Equal(["0", "1", "2", "3"], slices.Select(s => s.GetAttribute("data-ib-i")));
+        Assert.Contains("ib-chart-s1", slices[2].ClassName);
+        Assert.Equal("Canada, Imports: 100 (25%)", slices[2].QuerySelector("title")!.TextContent);
+        Assert.Equal(["Country", "Exports", "Share, Exports", "Imports", "Share, Imports"], cut.FindAll("thead th").Select(th => th.TextContent));
+        Assert.Equal(["300", "75%", "100", "25%"], cut.FindAll("tbody tr")[0].QuerySelectorAll("td").Select(td => td.TextContent));
+    }
+
     [Fact]
     public void Pie_slices_share_the_turn_and_skip_missing_or_negative_values()
     {

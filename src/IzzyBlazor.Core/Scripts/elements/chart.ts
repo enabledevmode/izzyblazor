@@ -404,8 +404,14 @@ class Chart extends IzzyElement {
     if (!plot || !frame || !tooltip || tips.length === 0) return;
 
     const hole = Number(this.dataset.ibPie) || 0;
-    const spans = (this.dataset.ibPos ?? "").split(",").map((p) => (p ? p.split(" ").map(Number) : null));
+    // A nested donut's rings, outer first, each as thick as the next; its slices are numbered
+    // ring by ring (ring * count + item), and its positions come ring by ring, split by ";".
+    const rings = Number(this.dataset.ibRings) || 1;
+    const count = Number(this.dataset.ibCount) || 0;
+    const thick = (1 - hole) / rings;
+    const spans = (this.dataset.ibPos ?? "").split(";").flatMap((ring) => ring.split(",").map((p) => (p ? p.split(" ").map(Number) : null)));
     const order = spans.flatMap((s, i) => (s ? [i] : []));
+    const ringOf = (index: number) => (rings > 1 && count ? Math.floor(index / count) : 0);
     const slices = plot.querySelectorAll<SVGPathElement>("path[data-ib-i]");
     let current = -1;
 
@@ -424,7 +430,7 @@ class Chart extends IzzyElement {
       const size = plot.clientWidth;
       if (x === undefined || y === undefined) {
         const turn = ((span[0] + span[1]) / 2) * 2 * Math.PI;
-        const r = (size / 2) * (hole ? (1 + hole) / 2 : 0.6);
+        const r = (size / 2) * (rings > 1 ? 1 - (ringOf(index) + 0.5) * thick : hole ? (1 + hole) / 2 : 0.6);
         x = size / 2 + r * Math.sin(turn);
         y = size / 2 - r * Math.cos(turn);
       }
@@ -461,8 +467,9 @@ class Chart extends IzzyElement {
           return;
         }
         const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+        const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
         // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
-        const index = spans.findIndex((s) => s !== null && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
+        const index = spans.findIndex((s, i) => s !== null && ringOf(i) === ring && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
         if (index >= 0) show(index, x, y);
       },
       { signal }
@@ -501,22 +508,36 @@ class Chart extends IzzyElement {
       "keydown",
       (event) => {
         if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
-        const k = order.indexOf(current);
+        // With rings, Left and Right keep to the current one; Up and Down move out and in to
+        // the same item (or the nearest one that has a slice there).
+        const ring = current >= 0 ? ringOf(current) : 0;
+        const along = rings > 1 ? order.filter((i) => ringOf(i) === ring) : order;
+        const k = along.indexOf(current);
+        const across = (step: number) => {
+          const to = Math.max(0, Math.min(rings - 1, ring + step));
+          const item = current - ring * count;
+          const there = order.filter((i) => ringOf(i) === to);
+          return there.reduce((best, i) => (Math.abs(i - to * count - item) < Math.abs(best - to * count - item) ? i : best), there[0] ?? current);
+        };
         let next: number;
         switch (event.key) {
           case "ArrowRight":
+            next = along[Math.min(along.length - 1, k + 1)];
+            break;
           case "ArrowDown":
-            next = order[Math.min(order.length - 1, k + 1)];
+            next = rings > 1 ? across(1) : along[Math.min(along.length - 1, k + 1)];
             break;
           case "ArrowLeft":
+            next = along[Math.max(0, k - 1)];
+            break;
           case "ArrowUp":
-            next = order[Math.max(0, k - 1)];
+            next = rings > 1 ? across(-1) : along[Math.max(0, k - 1)];
             break;
           case "Home":
-            next = order[0];
+            next = along[0];
             break;
           case "End":
-            next = order[order.length - 1];
+            next = along[along.length - 1];
             break;
           case "Escape":
             hide();
