@@ -2454,7 +2454,7 @@
         { "feature": "The range chosen reported to C# (@bind-View)", "noscript": "none", "static": "none" }
       ],
       "examples": [
-        { "id": "range-selector-strip", "title": "A strip under a chart", "lead": "Put `RangeSelector` in an upright `Chart`, after its series, to zoom the chart from a strip under the plot. Drag the window to pan, or a handle to widen or narrow it." },
+        { "id": "range-selector-strip", "title": "A strip under a chart", "lead": "Put `RangeSelector` in an upright `Chart`, after its series, to zoom the chart from a strip under the plot. Drag the window to pan, or a handle to widen or narrow it.", "after": ["`View` opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time."] },
         { "id": "range-selector-in-chart", "title": "Range buttons in a chart", "lead": "To add buttons for common spans back from the last date, set `Ranges` on the `RangeSelector`.",
           "notes": { "noscript": "The strip shows the part in view, and nothing moves." } },
         { "id": "range-selector-filter", "title": "Filtering by a date range", "lead": "On its own, give `RangeSelector` the `Items`, an `Argument`, a `Label` and a series to draw. `@bind-View` is the range chosen, here the dates whose orders the grid lists.", "modes": ["interactive"] }
