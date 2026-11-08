@@ -79,8 +79,9 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>
-    /// Leaves out the flags over the handles that say where the range starts and ends, for a chart
-    /// whose own axis already shows what's in view. Screen readers still hear each handle's value.
+    /// Leaves out the flags over the handles that say where the range starts and ends. Under a
+    /// chart they show only while a handle is pointed at, focused or dragged; on their own, always.
+    /// Screen readers still hear each handle's value.
     /// </summary>
     [Parameter] public bool HideFlags { get; set; }
 

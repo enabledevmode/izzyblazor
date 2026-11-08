@@ -1165,7 +1165,10 @@
         var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
         var ranges = SelectorRanges(model, selector);
         @* On its own, the figure's caption names it already. *@
-        <div class="@(selector.HideFlags ? "ib-chart-sel ib-chart-sel-noflags" : "ib-chart-sel")" role="group" aria-label="@(SelectorHost is null ? selector.Label ?? TextDefaults.RangeSelectorName : null)"
+        @* Under a chart, whose axis already names the dates, its labels sit inside the strip and
+           its flags show only while a handle is in use; on its own, a scale under it and flags. *@
+        var inChart = SelectorHost is null;
+        <div class="@("ib-chart-sel" + (inChart ? " ib-chart-sel-inner" : "") + (selector.HideFlags ? " ib-chart-sel-noflags" : ""))" role="group" aria-label="@(SelectorHost is null ? selector.Label ?? TextDefaults.RangeSelectorName : null)"
              style="@($"--ib-sel-s:{Num(place(f0))};--ib-sel-e:{Num(place(f1))};{height}")">
             @if (ranges.Count > 0)
             {
@@ -1185,6 +1188,15 @@
                         <path class="@SeriesClass(shape, "ib-chart-sel-area")" style="@ColorStyle(shape)" d="@d" />
                     }
                 </svg>
+                @if (inChart)
+                {
+                    <div class="ib-chart-sel-labels" aria-hidden="true">
+                        @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
+                        {
+                            <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(place(label.Pos))">@label.Text@(label.Context is { } context ? $" {context}" : "")</span>
+                        }
+                    </div>
+                }
                 <div class="ib-chart-sel-shade ib-chart-sel-before"></div>
                 <div class="ib-chart-sel-shade ib-chart-sel-after"></div>
                 <div class="ib-chart-sel-window"></div>
@@ -1200,17 +1212,20 @@
                     </div>
                 }
             </div>
-            <div class="ib-chart-sel-axis" aria-hidden="true">
-                <div class="ib-chart-ticks">
-                    @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
-                    {
-                        var at = place(label.Pos);
-                        var edge = at < 0.04 ? " ib-chart-sel-first" : at > 0.96 ? " ib-chart-sel-last" : "";
-                        <span class="@((label.From > 0 ? $"ib-chart-from{label.From}" : "") + edge)" style="left:@Pct(at)">@label.Text@if (label.Context is { } context)
-                            {<span class="ib-chart-context">@context</span>}</span>
-                    }
+            @if (!inChart)
+            {
+                <div class="ib-chart-sel-axis" aria-hidden="true">
+                    <div class="ib-chart-ticks">
+                        @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
+                        {
+                            var at = place(label.Pos);
+                            var edge = at < 0.04 ? " ib-chart-sel-first" : at > 0.96 ? " ib-chart-sel-last" : "";
+                            <span class="@((label.From > 0 ? $"ib-chart-from{label.From}" : "") + edge)" style="left:@Pct(at)">@label.Text@if (label.Context is { } context)
+                                {<span class="ib-chart-context">@context</span>}</span>
+                        }
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     };
 

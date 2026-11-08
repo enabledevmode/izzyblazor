@@ -543,6 +543,32 @@
     cursor: pointer;
   }
   .ib-chart-sel-noflags .ib-chart-sel-track { margin-block-start: 0; }
+
+  /* Under a chart: the strip's labels inside it, each at its period's start by a faint line,
+     shaded outside the window with the rest; flags only while a handle is pointed at, focused or
+     dragged, over the chart's axis (they take no room of their own). */
+  .ib-chart-sel-inner { margin-block-start: var(--ib-space-3); }
+  .ib-chart-sel-inner .ib-chart-sel-track { margin-block-start: 0; }
+  .ib-chart-sel-labels {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-text-xs);
+    line-height: 1.25;
+    pointer-events: none;
+  }
+  .ib-chart-sel-labels > span {
+    position: absolute;
+    inset-block: 0;
+    padding: 2px 0 0 4px;
+    border-inline-start: 1px solid var(--ib-color-border);
+    white-space: nowrap;
+  }
+  .ib-chart-sel-inner .ib-chart-sel-flag { visibility: hidden; }
+  .ib-chart-sel-inner .ib-chart-sel-track:has(.ib-chart-sel-handle:is(:hover, :focus-visible)) .ib-chart-sel-flag,
+  ib-chart[data-ib-sel-drag] .ib-chart-sel-inner .ib-chart-sel-flag { visibility: visible; }
   .ib-chart-sel-series {
     position: absolute;
     inset: 0;
