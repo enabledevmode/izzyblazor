@@ -45,10 +45,12 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
   const tips = new Map<string, HTMLElement>();
   for (const tip of chart.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]")) tips.set(tip.dataset.ibTip!, tip);
   const links = [...svg.querySelectorAll<SVGPathElement>("[data-ib-link]")];
-  // A flow and its gradient (LinkColor Gradient), which holds its color.
+  // A flow, its gradient (LinkColor Gradient), which holds its color, and its copy over the rest.
   const band = (link: Element | undefined) => {
+    const i = (link as SVGElement | undefined)?.dataset.ibLink;
     mark(link);
-    mark(svg.querySelector(`[data-ib-grad="${(link as SVGElement | undefined)?.dataset.ibLink}"]`) ?? undefined);
+    mark(svg.querySelector(`[data-ib-grad="${i}"]`) ?? undefined);
+    mark(svg.querySelector(`[data-ib-raise="${i}"]`) ?? undefined);
   };
   const nodes = new Map<number, HTMLElement>();
   for (const el of frame.querySelectorAll<HTMLElement>(".ib-sankey-node")) nodes.set(Number(el.dataset.ibNode), el);
