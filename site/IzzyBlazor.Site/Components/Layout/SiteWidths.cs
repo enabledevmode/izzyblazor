@@ -8,7 +8,8 @@ namespace IzzyBlazor.Site.Components.Layout;
 public static class SiteWidths
 {
     public const double Sidebar = 16;
-    public const double Main = 58;
+    /// <summary>The content column: text and examples fill it, as on MudBlazor's and Radzen's docs, if a little narrower.</summary>
+    public const double Main = 72;
     public const double Aside = 15;
 
     /// <summary>The docs: sidebar, content and outline, in rem.</summary>

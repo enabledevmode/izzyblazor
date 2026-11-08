@@ -10,7 +10,8 @@
     <AppMain>
         @Body
     </AppMain>
-    <AppAside>
+    @* "On this page" from 1280px: below, its room goes to the content. *@
+    <AppAside Breakpoint="Breakpoint.Xl">
         @* The page's Static · Interactive, from a component page with examples (SectionContent). *@
         <SectionOutlet SectionName="@ModeSwitch.AsideSection" />
         <OnThisPage />
