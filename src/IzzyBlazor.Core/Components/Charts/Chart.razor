@@ -424,7 +424,13 @@
         if (!legend || waterfall is not null) series = series.Select(s => s with { Hidden = false }).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
         // The reader zooms in the script, which draws the chart again for each view; not a waterfall.
-        var zoom = _argumentAxis?.Zoom == true && waterfall is null && arguments.Count > 1;
+        var selector = _context.Selector;
+        if (selector is not null && horizontal)
+        {
+            throw new InvalidOperationException("A RangeSelector goes under an upright chart's plot: leave the Chart's Orientation vertical.");
+        }
+
+        var zoom = (_argumentAxis?.Zoom == true || selector is not null) && waterfall is null && arguments.Count > 1;
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
@@ -691,6 +697,10 @@
                 <div class="ib-chart-title ib-chart-title-bottom">@bottomTitle</div>
             }
         </div>
+        @if (selector is not null && model.ZoomPositions is not null)
+        {
+            @Selector(model, selector)
+        }
         </div>
         @if (keyed && Place is not (ChartLegend.Top or ChartLegend.Start))
         {
@@ -1115,6 +1125,154 @@
     {
         var name = s.Data.SizeName ?? TextDefaults.ChartSize;
         return model.Series.Count(o => o.Data.Sizes is not null) > 1 ? $"{s.Data.Name}: {name}" : name;
+    }
+
+    // A RangeSelector under the plot (outside the frame, whose img role would hide its sliders):
+    // the series drawn small over the whole range, a window over the view with a slider at each
+    // end, the rest shaded, range buttons, and the whole range's labels. The script lines it up
+    // with the plot and makes it move.
+    private RenderFragment Selector(ChartModel model, RangeSelector selector) => __builder =>
+    {
+        var reverse = _argumentAxis?.Reverse == true;
+        var (f0, f1) = model.View?.Share ?? (0, 1);
+        var place = (double f) => reverse ? 1 - f : f;
+        var n = model.ArgumentTexts.Length;
+        int Nearest(double share) => Enumerable.Range(0, n).Where(i => !double.IsNaN(model.ZoomPositions![i]))
+            .MinBy(i => Math.Abs(model.ZoomPositions![i] - share));
+        var (i0, i1) = (Nearest(f0), Nearest(f1));
+        var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
+        var ranges = SelectorRanges(model, selector);
+        <div class="ib-chart-sel" role="group" aria-label="@TextDefaults.RangeSelectorName"
+             style="@($"--ib-sel-s:{Num(place(f0))};--ib-sel-e:{Num(place(f1))};{height}")">
+            @if (ranges.Count > 0)
+            {
+                <div class="ib-chart-sel-ranges">
+                    @foreach (var r in ranges)
+                    {
+                        var on = Math.Abs(r.From - f0) < 1e-3 && Math.Abs(r.To - f1) < 1e-3;
+                        <button type="button" class="ib-btn ib-btn-ghost ib-btn-sm" aria-label="@r.Name" aria-pressed="@(on ? "true" : "false")"
+                                data-ib-range="@($"{Num(r.From)} {Num(r.To)}")">@r.Text</button>
+                    }
+                </div>
+            }
+            <div class="ib-chart-sel-track">
+                <svg class="ib-chart-sel-series" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+                    @foreach (var (shape, d) in SelectorAreas(model, reverse))
+                    {
+                        <path class="@SeriesClass(shape, "ib-chart-sel-area")" style="@ColorStyle(shape)" d="@d" />
+                    }
+                </svg>
+                <div class="ib-chart-sel-shade ib-chart-sel-before"></div>
+                <div class="ib-chart-sel-shade ib-chart-sel-after"></div>
+                <div class="ib-chart-sel-window"></div>
+                @foreach (var (end, i, label) in new[] { ("start", i0, TextDefaults.RangeSelectorStart), ("end", i1, TextDefaults.RangeSelectorEnd) })
+                {
+                    <div class="@($"ib-chart-sel-handle ib-chart-sel-{end}")" role="slider" tabindex="0" aria-label="@label"
+                         aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="@(n - 1)" aria-valuenow="@i" aria-valuetext="@model.ArgumentTexts[i]">
+                        <span class="ib-chart-sel-flag" aria-hidden="true">@model.ArgumentTexts[i]</span>
+                        <span class="ib-chart-sel-flag ib-chart-js" aria-hidden="true"></span>
+                    </div>
+                }
+            </div>
+            <div class="ib-chart-sel-axis" aria-hidden="true">
+                <div class="ib-chart-ticks">
+                    @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
+                    {
+                        <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(place(label.Pos))">@label.Text@if (label.Context is { } context)
+                            {<span class="ib-chart-context">@context</span>}</span>
+                    }
+                </div>
+            </div>
+        </div>
+    };
+
+    // The chart's series, drawn small over the whole range as soft areas on a scale of their own
+    // (zero and every value), in a 1000 by 1000 box; split where a value is missing.
+    private static List<(SeriesShape Shape, string D)> SelectorAreas(ChartModel model, bool reverse)
+    {
+        var at = model.ZoomPositions!;
+        var shown = model.Series.Where(s => !s.Data.Hidden && s.Data.ColorFrom is null).ToList();
+        var values = shown.SelectMany(s => s.Data.Values).Where(v => v is { } x && double.IsFinite(x)).Select(v => v!.Value).ToList();
+        if (values.Count == 0) return [];
+        var (lo, hi) = (Math.Min(0, values.Min()), Math.Max(0, values.Max()));
+        if (hi <= lo) hi = lo + 1;
+        string P(double x) => x.ToString("0.#", CultureInfo.InvariantCulture);
+        var y0 = 1000 - (0 - lo) / (hi - lo) * 1000;
+        var order = Enumerable.Range(0, at.Length).Where(i => !double.IsNaN(at[i])).OrderBy(i => at[i]).ToList();
+        var areas = new List<(SeriesShape, string)>();
+        foreach (var shape in shown)
+        {
+            var d = new System.Text.StringBuilder();
+            var run = new List<(double X, double Y)>();
+            void Flush()
+            {
+                if (run.Count > 0)
+                {
+                    d.Append($"M{P(run[0].X)},{P(y0)}");
+                    foreach (var (x, y) in run) d.Append($"L{P(x)},{P(y)}");
+                    d.Append($"L{P(run[^1].X)},{P(y0)}Z");
+                }
+
+                run.Clear();
+            }
+
+            foreach (var i in order)
+            {
+                if (shape.Data.Values[i] is { } v && double.IsFinite(v))
+                {
+                    var x = (reverse ? 1 - at[i] : at[i]) * 1000;
+                    run.Add((x, 1000 - (v - lo) / (hi - lo) * 1000));
+                }
+                else if (!shape.Data.ConnectGaps)
+                {
+                    Flush();
+                }
+            }
+
+            Flush();
+            if (d.Length > 0) areas.Add((shape, d.ToString()));
+        }
+
+        return areas;
+    }
+
+    // A date chart's range buttons, as shares of the whole axis: the common spans back from the
+    // last date (Ranges), then the app's own (Presets); spans the data doesn't reach are left out.
+    private List<(string Text, string Name, double From, double To)> SelectorRanges(ChartModel model, RangeSelector selector)
+    {
+        var list = new List<(string, string, double, double)>();
+        if (model.Kind != ArgumentKind.Time || (!selector.Ranges && selector.Presets is null)) return list;
+        var ticks = _drawnArguments.Select(a => ChartLayout.ToDouble(a, ArgumentKind.Time)).Where(x => x is not null).Select(x => (long)x!.Value).ToList();
+        if (ticks.Count < 2) return list;
+        var (lo, hi) = (ticks.Min(), ticks.Max());
+        if (hi <= lo) return list;
+        var last = new DateTime(hi);
+        double Share(DateTime t) => Math.Clamp((t.Ticks - lo) / (double)(hi - lo), 0, 1);
+        void Add(string text, string name, DateTime from, DateTime to)
+        {
+            if (from.Ticks <= lo && to.Ticks >= hi && text != TextDefaults.RangeAll) return;
+            list.Add((text, name, Share(from), Share(to)));
+        }
+
+        if (selector.Ranges)
+        {
+            Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, 1), TextDefaults.RangeMonthName, last.AddMonths(-1), last);
+            foreach (var m in new[] { 3, 6 })
+            {
+                Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, m), string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonthsName, m), last.AddMonths(-m), last);
+            }
+
+            Add(TextDefaults.RangeYearToDate, TextDefaults.RangeYearToDateName, new DateTime(last.Year, 1, 1), last);
+            Add(TextDefaults.RangeYear, TextDefaults.RangeYearName, last.AddYears(-1), last);
+        }
+
+        foreach (var preset in selector.Presets ?? [])
+        {
+            Add(preset.Label, preset.Label, preset.Start.ToDateTime(TimeOnly.MinValue), preset.End.ToDateTime(TimeOnly.MinValue));
+        }
+
+        if (selector.Ranges) list.Add((TextDefaults.RangeAll, TextDefaults.RangeAll, 0, 1));
+        return list;
     }
 
     // The script reports where the reader zoomed to, as shares of the whole axis ("0.25 0.5"), or

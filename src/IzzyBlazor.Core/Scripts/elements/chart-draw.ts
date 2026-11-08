@@ -668,7 +668,8 @@ export function zoomArgs(d: DrawData, view: View, plotLength: number): ZoomArgs 
 
   const zoom = 1 / span;
   const tiers = d.zt ?? [];
-  const tier = tiers.filter((t) => t[0] <= zoom * 1.0001).pop() ?? tiers[0];
+  // The finest tier laid out for about this zoom (a little past it is fine: the fit thins it).
+  const tier = tiers.filter((t) => t[0] <= zoom * 1.25).pop() ?? tiers[0];
   if (!tier) return { labels, grid, room };
   const shown = tier[1].map((l) => ({ l, p: place(l[0]) })).filter((x) => inView(x.p)).sort((x, y) => x.l[0] - y.l[0]);
   // A date's second line when it's the first shown (data-ib-lead): the script's fit adds it to

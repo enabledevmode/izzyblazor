@@ -1239,6 +1239,39 @@ public class IzzyText
     /// <summary>Said when a Chart zooms or pans: its first and last arguments in view, "Showing {0} to {1}".</summary>
     public virtual string ChartShowing { get; set; } = "Showing {0} to {1}";
 
+    /// <summary>A RangeSelector's name: the strip that chooses the part of a chart in view.</summary>
+    public virtual string RangeSelectorName { get; set; } = "Range in view";
+
+    /// <summary>A RangeSelector's start handle.</summary>
+    public virtual string RangeSelectorStart { get; set; } = "Start";
+
+    /// <summary>A RangeSelector's end handle.</summary>
+    public virtual string RangeSelectorEnd { get; set; } = "End";
+
+    /// <summary>A RangeSelector's button for the last few months, as shown: "{0}M".</summary>
+    public virtual string RangeMonths { get; set; } = "{0}M";
+
+    /// <summary>A RangeSelector's button for the last few months, as read: "Last {0} months".</summary>
+    public virtual string RangeMonthsName { get; set; } = "Last {0} months";
+
+    /// <summary>A RangeSelector's button for the last month, as read.</summary>
+    public virtual string RangeMonthName { get; set; } = "Last month";
+
+    /// <summary>A RangeSelector's button for the year to date, as shown.</summary>
+    public virtual string RangeYearToDate { get; set; } = "YTD";
+
+    /// <summary>A RangeSelector's button for the year to date, as read.</summary>
+    public virtual string RangeYearToDateName { get; set; } = "Year to date";
+
+    /// <summary>A RangeSelector's button for the last year, as shown.</summary>
+    public virtual string RangeYear { get; set; } = "1Y";
+
+    /// <summary>A RangeSelector's button for the last year, as read.</summary>
+    public virtual string RangeYearName { get; set; } = "Last year";
+
+    /// <summary>A RangeSelector's button that shows everything.</summary>
+    public virtual string RangeAll { get; set; } = "All";
+
     /// <summary>A Chart reference line's label for <c>ChartStatistic.Average</c>, with no Label of its own.</summary>
     public virtual string ChartAverage { get; set; } = "Average";
 
