@@ -1,0 +1,476 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    A few things compared across several measures on one scale, such as two phones' review
+    scores for battery, camera, screen, speed, price and build: a spoke per measure, an outline per
+    series.
+
+    <RadarChart Items="scores" Argument="s => s.Quality" Title="Review scores">
+        <RadarSeries Value="s => s.PhoneA" Name="Phone A" />
+        <RadarSeries Value="s => s.PhoneB" Name="Phone B" />
+    </RadarChart>
+
+    Spokes keep the order the items first name them in, the first at the top and the rest
+    clockwise (StartAngle turns them): the shape depends on that order, so put related measures
+    side by side. Items can each be a spoke with a value per series, as above, or each hold one
+    value, with SeriesBy splitting them into a series per key. Every spoke shares one scale from
+    Min (0 by default) to a round Max; for measures in different units, scale them to the same
+    range first. A missing value leaves a gap in its outline, never a point at the center. A radar
+    reads best with 4 to 8 spokes and a few series; for one or two series a bar chart says the
+    same more exactly.
+
+    Accessibility:
+    - The chart is a figure captioned by Title, or named by a heading on the page with TitledBy.
+    - The plot is one image named by the caption, described by its scale.
+    - "Show data" under the chart opens a table of every value, spokes by series (DataTable).
+    - Outlines differ by marker shape as well as color.
+    - With script, the plot is one Tab stop: the arrow keys move from spoke to spoke and say
+      every series' value there.
+
+    Keyboard:
+    On the plot
+    - Right, Down | Move to the next spoke, clockwise
+    - Left, Up | Move to the spoke before
+    - Home, End | Go to the first or last spoke
+    - Escape | Hide the tooltip
+    See also: Chart, PieChart.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/radar.css"]" />
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+    }
+    <CascadingValue Value="_context" IsFixed="true">
+        <CascadingValue Value="_tooltips" IsFixed="true">
+            @ChildContent
+            @_plotFragment
+        </CascadingValue>
+    </CascadingValue>
+</figure>
+
+@code {
+    /// <summary>The items: each a spoke with a value per series, or with <c>SeriesBy</c> one value each.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each item's spoke, such as <c>s =&gt; s.Quality</c>. Spokes keep the order the items first name them in.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+
+    /// <summary>
+    /// The chart's title, such as "Review scores", shown above it as its caption. It also names the
+    /// chart for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start by default (the left, in a left-to-right page);
+    /// <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
+
+    /// <summary>A .NET format string for the values, such as <c>N0</c> or <c>P0</c>: on the rings, in the tooltips and the table.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>A .NET format string for the spokes' names, when they're numbers or dates.</summary>
+    [Parameter] public string? ArgumentFormat { get; set; }
+
+    /// <summary>The value at the center: 0 by default, or the lowest value when that's below 0.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>
+    /// The value at the outer ring: the round number at or above the largest value by default. Set
+    /// it to the scale's real top, such as 100 for scores out of 100, so the outline's size means
+    /// something.
+    /// </summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>
+    /// The rings' shape: <see cref="RadarGrid.Polygon"/> (the default), straight between spokes as
+    /// the outlines are, or <see cref="RadarGrid.Circle"/>.
+    /// </summary>
+    [Parameter] public RadarGrid Grid { get; set; }
+
+    /// <summary>Turns the first spoke clockwise from the top, in degrees.</summary>
+    [Parameter] public double StartAngle { get; set; }
+
+    /// <summary>The plot's largest size: <c>20rem</c> by default. It shrinks to fit narrower containers, with the spokes' names around it.</summary>
+    [Parameter] public Length? Size { get; set; }
+
+    /// <summary>
+    /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
+    /// <see cref="ChartPalette.Shades"/> of one color, or your own with <see cref="ChartPalette.Of"/>.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
+    /// <summary>
+    /// Where the legend goes: above the plot with two or more series by default
+    /// (<see cref="ChartLegend.Auto"/>), <see cref="ChartLegend.Top"/>, <see cref="ChartLegend.Bottom"/>,
+    /// beside it with <see cref="ChartLegend.Start"/> or <see cref="ChartLegend.End"/>, or
+    /// <see cref="ChartLegend.None"/>. With script, each item hides and shows its series.
+    /// </summary>
+    [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>The legend's place along its edge: the start by default, the center or the end.</summary>
+    [Parameter] public ChartAlign LegendAlign { get; set; }
+
+    /// <summary>
+    /// The tooltip for the spoke under the pointer or the keyboard, with every series' value there
+    /// (with script). On by default; <c>false</c> turns it and the keys off.
+    /// </summary>
+    [Parameter] public bool? Tooltip { get; set; }
+
+    /// <summary>The values as a table, spokes by series: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    /// <summary><see cref="RadarSeries{TItem}"/>s, and a <see cref="ChartTooltip{TItem}"/> for your own tooltip.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private readonly RadarContext<TItem> _context = new();
+
+    // Only for ChartTooltip, which a radar shares with Chart: its context is a spoke and every series' value there.
+    private readonly ChartContext<TItem> _tooltips = new();
+    private RenderFragment _plotFragment = null!;
+    private Expression<Func<TItem, object?>>? _lastArgument;
+    private Func<TItem, object?>? _argument;
+    private string? _argumentName;
+    private string? _class;
+    private string? _style;
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
+
+    private ChartLegend Place => Legend == ChartLegend.Auto ? ChartLegend.Top : Legend;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The plot draws after the series inside the chart have said they're there.
+        _plotFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderPlot);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Plot = _tooltips.Plot = plot));
+            builder.CloseComponent();
+        };
+        base.OnInitialized();
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var registered = _context.Series.Items;
+        if (registered.Count == 0)
+        {
+            throw new InvalidOperationException("RadarChart needs a RadarSeries, such as <RadarSeries Value=\"s => s.Score\" />.");
+        }
+
+        // Spokes in the order the items first name them.
+        var spokeTexts = new List<string>();
+        var spokeOf = new int[items.Count];
+        var firstItem = new List<int>();
+        for (var i = 0; i < items.Count; i++)
+        {
+            var text = ChartLayout.ArgumentText(_argument!(items[i]), ArgumentFormat, CultureInfo.CurrentCulture);
+            var k = spokeTexts.IndexOf(text);
+            if (k < 0)
+            {
+                k = spokeTexts.Count;
+                spokeTexts.Add(text);
+                firstItem.Add(i);
+            }
+
+            spokeOf[i] = k;
+        }
+
+        var n = spokeTexts.Count;
+        if (n is > 0 and < 3)
+        {
+            throw new InvalidOperationException($"A RadarChart needs at least three spokes (it has {n}): with fewer, a bar chart shows the same.");
+        }
+
+        var series = registered.SelectMany(s => s.Read(items, spokeOf, n)).ToList();
+        var legend = Legend != ChartLegend.None && (Legend != ChartLegend.Auto || series.Count > 1);
+        if (!legend) series = series.Select(s => s with { Hidden = false }).ToList();
+        var model = RadarLayout.Build(new RadarInput(spokeTexts.ToArray(), series)
+        {
+            Min = Min,
+            Max = Max,
+            StartAngle = StartAngle,
+            ValueFormat = ValueFormat,
+        });
+        var tooltip = Tooltip != false && n > 0;
+        var marks = _labelId + "-m";
+        var template = _tooltips.TooltipTemplate;
+
+        // Room around the plot for the names: the longest, up to 6rem, past which they wrap.
+        var widest = spokeTexts.Select(t => TextWidths.AtSize(t, 12)).DefaultIfEmpty(0).Max();
+        var roomX = Math.Min(96, Math.Ceiling(widest) + 2);
+        // On a phone names wrap sooner, but never inside a word.
+        var word = spokeTexts.SelectMany(t => t.Split(' ')).Select(w => TextWidths.AtSize(w, 12)).DefaultIfEmpty(0).Max();
+        var style = $"--ib-radar-rx:{Num(roomX)}px;--ib-radar-rw:{Num(Math.Min(roomX, Math.Ceiling(word) + 2))}px;--ib-radar-size:{Size?.Css ?? "20rem"};{Palette?.Style(series.Count)}";
+        var legendClass = Place switch
+        {
+            ChartLegend.Top => "ib-chart-lg-top",
+            ChartLegend.Start => "ib-chart-lg-start",
+            ChartLegend.End => "ib-chart-lg-end",
+            _ => null,
+        };
+        var first = Place is ChartLegend.Top or ChartLegend.Start;
+        string Color(RadarShape s) => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : s.Slot < 9 ? $"var(--ib-chart-{s.Slot})" : "var(--ib-color-neutral)";
+        string? ColorStyle(RadarShape s) => s.Data.Color is { } c ? $"--ib-chart-color:{StyleValues.Raw(c, "color")}" : null;
+        string? Off(RadarShape s) => s.Data.Hidden ? "" : null;
+        string Name(RadarSpoke s, int k) => $"ib-radar-x{s.Side + 1} ib-radar-y{s.Level + 1}{(n > 12 && k % 2 == 1 ? " ib-radar-thin" : "")}";
+
+        <ib-chart class="@legendClass" style="@style" data-ib-radar="@n" data-ib-start="@Num(model.Start)">
+            @if (legend && first)
+            {
+                @LegendList(model, marks)
+            }
+            <div class="ib-chart-main ib-radar">
+                <div class="ib-radar-plot">
+                    <div class="ib-radar-frame" role="img" aria-labelledby="@NameId" aria-describedby="@(_labelId)-scale">
+                        <svg class="ib-radar-svg" aria-hidden="true">
+                            <defs>
+                                <path id="@(marks)0" d="M-4,0a4,4 0 1,0 8,0a4,4 0 1,0 -8,0" />
+                                <path id="@(marks)1" d="M-3.6,-3.6h7.2v7.2h-7.2z" />
+                                <path id="@(marks)2" d="M0,-5L4.7,3.4H-4.7Z" />
+                                <path id="@(marks)3" d="M0,-5L5,0L0,5L-5,0Z" />
+                            </defs>
+                            <svg class="ib-radar-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                                @foreach (var ring in model.Rings)
+                                {
+                                    @if (Grid == RadarGrid.Circle)
+                                    {
+                                        <circle class="ib-radar-ring" cx="500" cy="500" r="@Num(500 * ring.R)" />
+                                    }
+                                    else
+                                    {
+                                        <path class="ib-radar-ring" d="@RadarLayout.Ring(n, model.Start, ring.R)" />
+                                    }
+                                }
+                                @for (var k = 0; k < n; k++)
+                                {
+                                    var (x, y) = RadarLayout.SpokeEnd(n, model.Start, k);
+                                    <line class="ib-radar-spoke" x1="500" y1="500" x2="@x" y2="@y" data-ib-i="@k" />
+                                }
+                                @foreach (var s in model.Series.Where(s => s.Area is not null))
+                                {
+                                    <path class="@($"ib-radar-area ib-chart-s{s.Slot}")" style="@ColorStyle(s)" d="@s.Area" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                                }
+                                @foreach (var s in model.Series)
+                                {
+                                    <path class="@($"ib-radar-line ib-chart-s{s.Slot}")" style="@ColorStyle(s)" d="@s.Outline" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                                }
+                            </svg>
+                            @foreach (var s in model.Series)
+                            {
+                                <g class="@($"ib-radar-marks ib-chart-s{s.Slot}")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                                    @foreach (var mark in s.Marks)
+                                    {
+                                        <use href="@($"#{marks}{s.Index % 4}")" x="@Num(mark.X)%" y="@Num(mark.Y)%" data-ib-i="@mark.Spoke">@if (tooltip)
+                                        {<title>@($"{s.Data.Name}, {spokeTexts[mark.Spoke]}: {mark.Text}")</title>}</use>
+                                    }
+                                </g>
+                            }
+                        </svg>
+                        <div class="ib-radar-values" aria-hidden="true">
+                            @{
+                                var (sin0, cos0) = Math.SinCos(model.Start * 2 * Math.PI);
+                            }
+                            @for (var r = 0; r < model.Rings.Count; r++)
+                            {
+                                var ring = model.Rings[r];
+                                @* On a phone, every second value from the outer ring. *@
+                                <span class="@((model.Rings.Count - 1 - r) % 2 == 1 ? "ib-radar-thin" : null)" style="@($"left:{Num(50 + 50 * ring.R * sin0)}%;top:{Num(50 - 50 * ring.R * cos0)}%")">@ring.Text</span>
+                            }
+                        </div>
+                        @if (model.Series.Any(s => s.Data.Labels != ChartLabels.None))
+                        {
+                            <div class="ib-radar-dl" aria-hidden="true">
+                                @foreach (var s in model.Series.Where(s => s.Data.Labels != ChartLabels.None))
+                                {
+                                    @foreach (var mark in s.Marks)
+                                    {
+                                        var (sin, cos) = Math.SinCos((model.Start + (double)mark.Spoke / n) * 2 * Math.PI);
+                                        <span class="@($"ib-chart-s{s.Slot}")" style="@($"left:{Num(mark.X)}%;top:{Num(mark.Y)}%;--dx:{Num(sin)};--dy:{Num(-cos)};{ColorStyle(s)}")" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">@s.Texts[mark.Spoke]</span>
+                                    }
+                                }
+                            </div>
+                        }
+                        @if (tooltip)
+                        {
+                            <div class="ib-chart-tooltip" hidden></div>
+                        }
+                    </div>
+                    <div class="ib-radar-names" aria-hidden="true">
+                        @for (var k = 0; k < n; k++)
+                        {
+                            var spoke = model.Spokes[k];
+                            <span class="@Name(spoke, k)" style="@($"left:{Num(spoke.X)}%;top:{Num(spoke.Y)}%")">@spoke.Text</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            @if (legend && !first)
+            {
+                @LegendList(model, marks)
+            }
+            @if (tooltip)
+            {
+                @* Each spoke's tooltip, drawn here so a template is real Razor; the script shows the
+                   one under the pointer or keyboard focus, and says it in the live region. *@
+                <div class="ib-chart-tips" hidden>
+                    @for (var k = 0; k < n; k++)
+                    {
+                        var spoke = k;
+                        var points = model.Series.Select(s => new ChartTooltipPoint(s.Data.Name, s.Data.Values[spoke], s.Data.Values[spoke] is { } v ? v.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null, Color(s))).ToList();
+                        <div data-ib-tip="@k">
+                            @if (template is not null)
+                            {
+                                @template(new ChartTooltipContext<TItem>(items[firstItem[spoke]], firstItem[spoke], spokeTexts[spoke], points))
+                            }
+                            else
+                            {
+                                <div class="ib-chart-tooltip-title">@spokeTexts[spoke]</div>
+                                @for (var p = 0; p < points.Count; p++)
+                                {
+                                    if (points[p].Text is null) continue;
+                                    <div class="ib-chart-tooltip-row" data-ib-series="@p">
+                                        <span class="ib-chart-tooltip-key" style="@("background:" + points[p].Color)"></span>
+                                        <span>@points[p].Series</span>
+                                        <span class="ib-chart-tooltip-value">@points[p].Text</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
+            }
+            <span id="@(_labelId)-scale" class="ib-visually-hidden">@string.Format(CultureInfo.CurrentCulture, TextDefaults.RadarScaleText, Format(model.Min), Format(model.Max))</span>
+        </ib-chart>
+
+        @if (DataTable != ChartDataTable.None)
+        {
+            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
+                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
+                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                        {<span class="ib-visually-hidden">, @Title</span>}</span>
+                </summary>
+                <div class="ib-chart-table-scroll">
+                    <table class="ib-chart-table" aria-labelledby="@NameId">
+                        <thead>
+                            <tr>
+                                <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                                @foreach (var s in model.Series)
+                                {
+                                    <th scope="col">@s.Data.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var k = 0; k < n; k++)
+                            {
+                                var spoke = k;
+                                <tr>
+                                    <th scope="row">@spokeTexts[spoke]</th>
+                                    @foreach (var s in model.Series)
+                                    {
+                                        <td>@(s.Data.Values[spoke] is { } v ? Format(v) : null)</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+    }
+
+    private string Format(double value) => value.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    private string LegendListClass => LegendAlign switch
+    {
+        ChartAlign.Center => "ib-chart-legend ib-chart-legend-center",
+        ChartAlign.End => "ib-chart-legend ib-chart-legend-end",
+        _ => "ib-chart-legend ib-chart-legend-start",
+    };
+
+    // A toggle for each series: with script, a button that hides and shows it.
+    private RenderFragment LegendList(RadarModel model, string marks) => @<ul class="@LegendListClass">
+        @foreach (var s in model.Series)
+        {
+            <li class="@($"ib-chart-s{s.Slot}")" style="@(s.Data.Color is { } c ? $"--ib-chart-color:{StyleValues.Raw(c, "color")}" : null)">
+                <span class="ib-chart-toggle" data-ib-series="@s.Index" data-ib-hidden="@(s.Data.Hidden ? "" : null)">
+                    <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
+                        <line x1="0" x2="24" y1="6" y2="6" />
+                        <use href="@($"#{marks}{s.Index % 4}")" x="12" y="6" />
+                    </svg>
+                    @s.Data.Name
+                </span>
+            </li>
+        }
+    </ul>;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-radar-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "RadarChart needs a Title, such as \"Review scores\", or TitledBy, the id of a heading on the page that titles it."
+                : "RadarChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (Argument is null)
+        {
+            throw new InvalidOperationException("RadarChart needs an Argument, each item's spoke, such as s => s.Quality.");
+        }
+
+        if (Min is { } min && Max is { } max && !(max > min))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Max), Max, "A RadarChart's Max must be more than its Min.");
+        }
+
+        if (!ReferenceEquals(Argument, _lastArgument))
+        {
+            _lastArgument = Argument;
+            _argument = Argument.Compile();
+            _argumentName = ChartMembers.Name(Argument);
+        }
+
+        _context.Series.BeginPass();
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

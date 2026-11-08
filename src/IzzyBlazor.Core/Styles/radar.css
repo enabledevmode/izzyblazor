@@ -1,0 +1,141 @@
+/*
+ * RadarChart's styles, built to wwwroot/radar.css and linked by it beside chart.css (whose
+ * figure, title, series colors, legend, tooltip and data table it uses).
+ *
+ * The plot is a square: an SVG with the rings, spokes, outlines and fills in a 1000-unit box
+ * (strokes don't scale), markers placed in percent over it, and the HTML text around it, so text
+ * keeps its size. --ib-radar-rx is the room beside the square for the longest name (worked out
+ * on the server, at most 6rem; longer names wrap), --ib-radar-size its largest size.
+ */
+
+@layer izzy.components {
+  .ib-radar {
+    display: grid;
+    justify-items: center;
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
+    line-height: 1.3;
+    color: var(--ib-chart-tick-color, var(--ib-color-muted));
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-radar-plot {
+    --ib-radar-room: var(--ib-radar-rx);
+    position: relative;
+    width: min(var(--ib-radar-size, 20rem), 100cqi - 2 * var(--ib-radar-room) - 1rem);
+    min-width: 8rem;
+    aspect-ratio: 1;
+    margin: 2.25rem 0;
+  }
+
+  .ib-radar-frame {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .ib-radar-frame:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2rem;
+  }
+
+  .ib-radar-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .ib-radar-paths { overflow: visible; }
+
+  :is(.ib-radar-ring, .ib-radar-spoke) {
+    fill: none;
+    stroke: var(--ib-color-border);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* The spoke the tooltip is for. */
+  .ib-radar-spoke[data-ib-active] { stroke: var(--ib-color-outline); stroke-width: 2px; }
+
+  .ib-radar-line {
+    fill: none;
+    stroke: var(--ib-chart-c);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ib-radar-area {
+    fill: var(--ib-chart-c);
+    fill-opacity: 0.2;
+  }
+
+  .ib-radar-marks { fill: var(--ib-chart-c); }
+
+  /* The values at the spoke the tooltip is for: ringed in the text color. */
+  .ib-radar-marks > [data-ib-active] {
+    stroke: var(--ib-color-on-surface);
+    stroke-width: 2px;
+  }
+
+  /* The plot's shapes leave the pointer to the script, whose tooltip stands in for their titles. */
+  ib-chart[data-ib-tooltips] .ib-radar-svg { pointer-events: none; }
+
+  /* Hidden by the legend (or by Hidden). */
+  .ib-radar [data-ib-hidden] { display: none; }
+
+  /* The rings' values up the first spoke, haloed so they read over the outlines. */
+  :is(.ib-radar-values, .ib-radar-dl, .ib-radar-names) {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  :is(.ib-radar-values, .ib-radar-dl) > span {
+    position: absolute;
+    white-space: nowrap;
+    text-shadow: 0 0 2px var(--ib-color-surface), 0 0 2px var(--ib-color-surface), 0 0 1px var(--ib-color-surface);
+  }
+
+  .ib-radar-values > span {
+    translate: 4px -50%;
+    font-size: 0.6875rem;
+  }
+
+  /* A series' values beside its markers, pushed out along their spokes. */
+  .ib-radar-dl > span {
+    translate: calc(-50% + var(--dx) * 0.875rem) calc(-50% + var(--dy) * 0.875rem);
+    color: var(--ib-color-on-surface);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  /* The spokes' names just past the outer ring, reading away from it: ib-radar-x0 toward the
+     start (the left half), x2 toward the end, x1 centered; y0 above its point, y2 below. */
+  .ib-radar-names > span {
+    position: absolute;
+    width: max-content;
+    max-width: var(--ib-radar-room);
+    translate: var(--tx, -50%) var(--ty, -50%);
+    color: var(--ib-color-on-surface);
+    overflow-wrap: break-word;
+  }
+
+  .ib-radar-x0 { --tx: -100%; text-align: end; }
+  .ib-radar-x1 { max-width: 8rem !important; text-align: center; }
+  .ib-radar-x2 { --tx: 0%; }
+  .ib-radar-y0 { --ty: -100%; }
+  .ib-radar-y2 { --ty: 0%; }
+
+  /* On a phone, long names wrap sooner, so the plot keeps its size. */
+  @container ib-chart (width < 30rem) { .ib-radar-plot { --ib-radar-room: max(var(--ib-radar-rw), min(var(--ib-radar-rx), 4.5rem)); } .ib-radar-values > .ib-radar-thin { display: none; } }
+
+  /* Past 12 spokes, every second name goes under 40rem. */
+  @container ib-chart (width < 40rem) { .ib-radar-names > .ib-radar-thin { display: none; } }
+
+  @media (forced-colors: active) {
+    .ib-radar-svg { forced-color-adjust: none; }
+    :is(.ib-radar-ring, .ib-radar-spoke) { stroke: GrayText; }
+    .ib-radar-marks > [data-ib-active] { stroke: CanvasText; }
+  }
+}

@@ -1280,6 +1280,9 @@ public class IzzyText
     /// <summary>A diverging heatmap legend's middle value, read after its range: "middle {0}".</summary>
     public virtual string HeatmapMiddleText { get; set; } = "middle {0}";
 
+    /// <summary>A RadarChart's scale, in its description: "Scale {0} at the center to {1} at the edge".</summary>
+    public virtual string RadarScaleText { get; set; } = "Scale {0} at the center to {1} at the edge";
+
     /// <summary>A CalendarHeatmap's data table: the heading over its column of days of the month.</summary>
     public virtual string CalendarHeatmapDay { get; set; } = "Day";
 
