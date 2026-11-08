@@ -22,8 +22,8 @@
     value, with SeriesBy splitting them into a series per key. Every spoke shares one scale from
     Min (0 by default) to a round Max; for measures in different units, scale them to the same
     range first. A missing value leaves a gap in its outline, never a point at the center. A radar
-    reads best with 4 to 8 spokes and a few series; for one or two series a bar chart says the
-    same more exactly.
+    reads best with 4 to 8 spokes and up to three series; for one series, or to compare exact
+    values, a bar chart reads better.
 
     Accessibility:
     - The chart is a figure captioned by Title, or named by a heading on the page with TitledBy.
@@ -91,7 +91,10 @@
     /// <summary>A .NET format string for the spokes' names, when they're numbers or dates.</summary>
     [Parameter] public string? ArgumentFormat { get; set; }
 
-    /// <summary>The value at the center: 0 by default, or the lowest value when that's below 0.</summary>
+    /// <summary>
+    /// The value at the center: 0 by default, or the round tick at or below the lowest value when
+    /// that's below 0. Set it to the scale's real bottom, such as 1 for ratings from 1 to 5.
+    /// </summary>
     [Parameter] public double? Min { get; set; }
 
     /// <summary>
@@ -107,10 +110,10 @@
     /// </summary>
     [Parameter] public RadarGrid Grid { get; set; }
 
-    /// <summary>Turns the first spoke clockwise from the top, in degrees.</summary>
+    /// <summary>Where the first spoke points, in degrees clockwise from the top: 90 points it right. 0 by default.</summary>
     [Parameter] public double StartAngle { get; set; }
 
-    /// <summary>The plot's largest size: <c>20rem</c> by default. It shrinks to fit narrower containers, with the spokes' names around it.</summary>
+    /// <summary>The circle's largest size. Defaults to 20rem; it's smaller when its container is narrower, with room kept for the names around it.</summary>
     [Parameter] public Length? Size { get; set; }
 
     /// <summary>
@@ -132,7 +135,8 @@
 
     /// <summary>
     /// The tooltip for the spoke under the pointer or the keyboard, with every series' value there
-    /// (with script). On by default; <c>false</c> turns it and the keys off.
+    /// (with script). By default it's on unless every series writes its values (<c>Labels</c>);
+    /// <c>true</c> always; <c>false</c> never, with no keys either.
     /// </summary>
     [Parameter] public bool? Tooltip { get; set; }
 
@@ -218,7 +222,7 @@
             StartAngle = StartAngle,
             ValueFormat = ValueFormat,
         });
-        var tooltip = Tooltip != false && n > 0;
+        var tooltip = (Tooltip ?? !series.All(s => s.Labels != ChartLabels.None)) && n > 0;
         var marks = _labelId + "-m";
         var template = _tooltips.TooltipTemplate;
 

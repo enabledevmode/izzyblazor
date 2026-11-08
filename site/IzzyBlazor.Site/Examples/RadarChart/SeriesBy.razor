@@ -1,5 +1,5 @@
 @* A hiring panel's average ratings, 1 to 5, for three candidates in six competencies. *@
-<RadarChart Items="_ratings" Argument="r => r.Competency" Max="5" ValueFormat="0.0"
+<RadarChart Items="_ratings" Argument="r => r.Competency" Min="1" Max="5" ValueFormat="0.0"
             Title="Panel ratings, senior engineer">
     <RadarSeries Value="r => r.Rating" SeriesBy="r => r.Candidate" />
 </RadarChart>

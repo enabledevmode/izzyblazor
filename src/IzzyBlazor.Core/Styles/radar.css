@@ -22,7 +22,7 @@
     --ib-radar-room: var(--ib-radar-rx);
     position: relative;
     width: min(var(--ib-radar-size, 20rem), 100cqi - 2 * var(--ib-radar-room) - 1rem);
-    min-width: 8rem;
+    min-width: 4rem;
     aspect-ratio: 1;
     margin: 2.25rem 0;
   }
@@ -121,9 +121,11 @@
     overflow-wrap: break-word;
   }
 
-  .ib-radar-x0 { --tx: -100%; text-align: end; }
-  .ib-radar-x1 { max-width: 8rem !important; text-align: center; }
-  .ib-radar-x2 { --tx: 0%; }
+  /* Physical sides, as the places are, so right-to-left pages wrap names toward the circle too.
+     Names at the top and bottom keep to one line, within the room above and below the plot. */
+  .ib-radar-x0 { --tx: -100%; text-align: right; }
+  .ib-radar-x1 { max-width: 12rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+  .ib-radar-x2 { --tx: 0%; text-align: left; }
   .ib-radar-y0 { --ty: -100%; }
   .ib-radar-y2 { --ty: 0%; }
 

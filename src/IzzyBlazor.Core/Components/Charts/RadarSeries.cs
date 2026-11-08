@@ -51,7 +51,12 @@ public sealed class RadarSeries<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public bool Fill { get; set; }
 
-    /// <summary>Writes each value beside its marker. Screen readers skip them: the data table has every value.</summary>
+    /// <summary>
+    /// Writes each value beside its marker, pushed out along its spoke: <see cref="ChartLabels.Auto"/>
+    /// (or Outside); <see cref="ChartLabels.None"/> by default. Labels aren't thinned where they
+    /// overlap, so use them with one or two series. Screen readers skip them: the data table has
+    /// every value.
+    /// </summary>
     [Parameter] public ChartLabels Labels { get; set; }
 
     /// <summary>A .NET format string for this series' labels, such as <c>N0</c>. Defaults to the chart's <c>ValueFormat</c>.</summary>
