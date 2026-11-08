@@ -7,19 +7,19 @@
 
 @*
     The stages of a process that people drop out of, such as visits, sign-ups and purchases, as a
-    funnel drawn on the server, with no script; or, with Pyramid, levels of a hierarchy.
+    funnel; or, with Pyramid, levels of a hierarchy.
 
     <FunnelChart Items="stages" Argument="s => s.Stage" Value="s => s.People" Title="Sign-ups, October" />
 
     Stages keep the items' order, unsorted: the order is the process. A missing, zero or negative
     value gets no stage in the shape but keeps its label and its row in the table, and the stage
-    after it has no share of the one before. Each stage takes the palette's next color, as a
+    after it has no share of the one before. Each stage has the palette's next color, as a
     PieChart's slices do.
 
     Accessibility:
     - A figure captioned by Title (or named by a heading on the page, with TitledBy).
-    - The labels are a list, named by the title: each reads its name, value, share of the first,
-      and share of the stage before. The shape is hidden from screen readers.
+    - The labels are a list, named by the title: each reads its name, value, and share of the first
+      and of the stage before (a pyramid's: of the total). The shape is hidden from screen readers.
     - "Show data" under the chart opens the same numbers as a table (DataTable).
     See also: Chart, PieChart.
 *@
@@ -60,7 +60,7 @@
         <svg class="ib-funnel-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             @foreach (var stage in stages)
             {
-                <polygon class="@($"ib-funnel-stage {Slot(stage.Index)}")" points="@stage.Points"><title>@($"{names[stage.Index]}: {texts[stage.Index]} ({shares[stage.Index]})")</title></polygon>
+                <polygon class="@($"ib-funnel-stage {Slot(stage.Index)}")" points="@stage.Points"><title>@($"{names[stage.Index]}: {texts[stage.Index]}{(shares[stage.Index] is { } s ? $" ({s})" : "")}")</title></polygon>
             }
             @foreach (var stage in stages)
             {
@@ -73,9 +73,9 @@
             {
                 <li class="@Slot(i)" style="top:@(Num(places[i]))%">
                     <span class="ib-funnel-key" aria-hidden="true"></span>
-                    <span>@names[i]</span>
+                    <span class="ib-funnel-name">@names[i]</span>
                     <span class="ib-funnel-value">@texts[i]</span>@if (shares[i] is { } share)
-                    {<span class="ib-funnel-share" aria-hidden="true">@share</span><span class="ib-visually-hidden">, @(Pyramid ? share : string.Format(CultureInfo.CurrentCulture, TextDefaults.FunnelOfFirstText, share))</span>}@if (steps[i] is { } step)
+                    {<span class="ib-funnel-share" aria-hidden="true">@share</span><span class="ib-visually-hidden">@(i == 0 && !Pyramid ? null : ", " + string.Format(CultureInfo.CurrentCulture, Pyramid ? TextDefaults.FunnelOfTotalText : TextDefaults.FunnelOfFirstText, share))</span>}@if (steps[i] is { } step)
                     {<span class="ib-visually-hidden">, @string.Format(CultureInfo.CurrentCulture, TextDefaults.FunnelOfPreviousText, step)</span>}
                 </li>
             }
@@ -176,7 +176,8 @@
     /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
     [Parameter] public ChartDataTable DataTable { get; set; }
 
-    // The shape's height (chart.css's 18rem), which the labels are spread over.
+    // The shape's height (chart.css's 18rem) and a label's line (1.25rem), at a 16px root: the
+    // labels are spread over it, so only their ratio counts.
     private const double HeightPx = 288;
 
     private readonly string _labelId = IdGenerator.Next("ib-chart");

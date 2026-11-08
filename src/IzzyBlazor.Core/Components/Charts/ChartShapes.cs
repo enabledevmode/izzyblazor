@@ -292,7 +292,7 @@ internal static class ChartShapes
     /// <summary>
     /// A funnel's stages, as DevExtreme's (its "dynamicSlope"): each as tall as the others, its top
     /// as wide as its value (the largest's the full width), sloping to the next stage's width; the
-    /// last is as wide at the bottom as at the top. A pyramid's: a triangle on its base, the first
+    /// last, and a stage before one with no value, is as wide at the bottom as at the top. A pyramid's: a triangle on its base, the first
     /// item at the bottom, each level as tall as its share of the total.
     /// </summary>
     public static List<FunnelStage> Funnel(IReadOnlyList<double?> values, bool pyramid)
@@ -318,13 +318,15 @@ internal static class ChartShapes
             return stages;
         }
 
-        var max = values.Max(v => v is > 0 ? v.Value : 0);
+        var max = values.Select(v => v is > 0 ? v.Value : 0).DefaultIfEmpty(0).Max();
         double Width(int i) => i < n && values[i] is > 0 && max > 0 ? values[i]!.Value / max * 100 : 0;
         for (var i = 0; i < n; i++)
         {
             if (values[i] is not > 0) continue;
             var (top, bottom) = (i * 100.0 / n, (i + 1) * 100.0 / n);
-            var below = i == n - 1 ? Width(i) : Width(i + 1);
+            // The last stage, and one before a stage with no value, keep their width to the bottom:
+            // narrowing to nothing would show a drop the data doesn't have.
+            var below = i == n - 1 || Width(i + 1) == 0 ? Width(i) : Width(i + 1);
             stages.Add(new FunnelStage(i, Points(top, Width(i), bottom, below), 50 + (Width(i) + below) / 4, (top + bottom) / 2));
         }
 

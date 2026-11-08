@@ -100,8 +100,8 @@
   /* Right to left, the plot keeps its direction, as Material and AG Charts keep a chart's:
      arguments left to right, values on the left, end labels where the lines end. Its text still
      reads in its own direction, and the tooltip, legend and title follow the page. */
-  .ib-chart-frame, .ib-pie-ring { direction: ltr; }
-  :is(.ib-chart-frame, .ib-pie-ring) :is(span, .ib-chart-title):dir(rtl) { unicode-bidi: plaintext; }
+  .ib-chart-frame, .ib-pie-ring, .ib-funnel { direction: ltr; }
+  :is(.ib-chart-frame, .ib-pie-ring, .ib-funnel) :is(span, .ib-chart-title):dir(rtl) { unicode-bidi: plaintext; }
   .ib-chart-tooltip:dir(rtl) { direction: rtl; }
 
   /* Values up the side (or names, for bars across): all in one cell, so the column is as wide as
@@ -1043,11 +1043,11 @@
      labels are a list under the shape. */
   .ib-funnel {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, max-content);
     grid-template-rows: minmax(0, 1fr);
     height: 18rem;
     font-size: var(--ib-text-sm);
-    line-height: 20px;
+    line-height: 1.25rem;
   }
 
   .ib-funnel-svg {
@@ -1098,6 +1098,7 @@
     background: var(--ib-chart-fill);
   }
 
+  .ib-funnel-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .ib-funnel-value { font-variant-numeric: tabular-nums; }
   .ib-funnel-share { color: var(--ib-color-muted); font-variant-numeric: tabular-nums; }
 
@@ -1106,6 +1107,9 @@
     .ib-funnel-svg { height: 14rem; }
     .ib-funnel-leader { display: none; }
     .ib-funnel-labels { gap: var(--ib-space-1); }
+    /* A pyramid's base is drawn at the bottom: its labels list from the top level down, as drawn. */
+    .ib-funnel-pyramid .ib-funnel-labels { display: flex; flex-direction: column-reverse; }
+    .ib-funnel-labels:dir(rtl) { direction: rtl; }
     .ib-funnel-labels > li { grid-area: auto; top: auto !important; translate: none; padding: 0; white-space: normal; }
   }
 
@@ -1115,7 +1119,8 @@
     :is(.ib-chart-svg, .ib-chart-key, .ib-chart-tooltip-key, .ib-pie-svg, .ib-pie-key, .ib-sparkline-svg, .ib-gauge-svg, .ib-funnel-svg, .ib-funnel-key) { forced-color-adjust: none; }
     .ib-chart-grid { stroke: GrayText; }
     .ib-chart-zero { stroke: CanvasText; }
-    .ib-pie-slice { stroke: Canvas; }
+    .ib-pie-slice, .ib-funnel-stage { stroke: Canvas; }
+    .ib-funnel-leader { stroke: CanvasText; }
     .ib-gauge-track { stroke: GrayText; }
     .ib-gauge-fill { stroke: Highlight; }
     .ib-chart-marks > [data-ib-active] { stroke: CanvasText; }
