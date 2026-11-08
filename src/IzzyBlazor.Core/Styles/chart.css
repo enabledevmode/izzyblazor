@@ -738,15 +738,26 @@
   /* A legend above, or at the start side. */
   .ib-pie-lg-first > .ib-pie-legend { order: -1; }
 
+  /* Beside the circle from 30rem, or 44rem with labels outside it. */
   @container ib-chart (width >= 30rem) {
-    .ib-pie-legended {
+    .ib-pie-legended:not(.ib-pie-labeled) {
       grid-template-columns: auto minmax(0, 1fr);
       justify-items: start;
     }
 
-    .ib-pie-legended.ib-pie-lg-first { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
+    .ib-pie-legended.ib-pie-lg-first:not(.ib-pie-labeled) { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
     /* Beside the circle, the legend aligns up and down only. */
-    .ib-pie-legended > .ib-pie-legend { justify-self: start; }
+    .ib-pie-legended:not(.ib-pie-labeled) > .ib-pie-legend { justify-self: start; }
+  }
+
+  @container ib-chart (width >= 44rem) {
+    .ib-pie-legended.ib-pie-labeled {
+      grid-template-columns: auto minmax(0, 1fr);
+      justify-items: start;
+    }
+
+    .ib-pie-legended.ib-pie-lg-first.ib-pie-labeled { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
+    .ib-pie-legended.ib-pie-labeled > .ib-pie-legend { justify-self: start; }
   }
 
   .ib-pie-plot {
@@ -837,36 +848,41 @@
 
   .ib-pie-share { color: var(--ib-color-muted); }
 
-  /* Labels beside the circle (PieChart Labels Outside): two columns either side, each label
-     centered on the height worked out for it, in its slice's color toward the text's, joined to
-     its slice by a thin line. Under 40rem the circle would shrink to fit them: the legend stands in. */
+  /* Labels outside the circle (PieChart Labels Outside, or thin slices Inside): the circle keeps
+     room around it for them (--ib-pie-room-x and -y, worked out on the server), and each label
+     sits past the end of its slice's line, placed by percent of the circle's box, in its slice's
+     color toward the text's. Under 30rem there's no room: the labels go, and the legend names
+     the slices. */
   .ib-pie-unringed { display: contents; }
 
   .ib-pie-ring {
     display: grid;
-    grid-template-columns: max-content minmax(0, var(--ib-pie-size, 16rem)) max-content;
-    justify-content: center;
-    width: 100%;
+    justify-items: center;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: var(--ib-pie-room-y) var(--ib-pie-room-x);
   }
 
+  .ib-pie-ring > .ib-pie-plot { width: min(100%, var(--ib-pie-size, 16rem)); }
+
   .ib-pie-labels {
-    display: grid;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     font-size: var(--ib-text-sm);
     line-height: 20px;
   }
 
   .ib-pie-labels > span {
-    grid-area: 1 / 1;
-    align-self: start;
-    position: relative;
+    position: absolute;
     translate: 0 -50%;
-    padding-inline-start: var(--ib-space-3);
+    padding-inline-start: var(--ib-space-1);
     white-space: nowrap;
     font-weight: var(--ib-weight-medium);
     color: color-mix(in oklab, var(--ib-chart-c) 70%, var(--ib-color-on-surface));
   }
 
-  .ib-pie-labels-start > span { padding-inline: 0 var(--ib-space-3); text-align: end; }
+  .ib-pie-labels > .ib-pie-label-start { translate: -100% -50%; padding-inline: 0 var(--ib-space-1); }
 
   .ib-pie-label-share { color: var(--ib-color-muted); }
 
@@ -877,12 +893,9 @@
     vector-effect: non-scaling-stroke;
   }
 
-  .ib-pie-legend-narrow { display: none; }
-
-  @container ib-chart (width < 40rem) {
-    .ib-pie-ring { display: contents; }
+  @container ib-chart (width < 30rem) {
+    .ib-pie-ring { padding: 0; }
     .ib-pie-labels, .ib-pie-leader { display: none; }
-    .ib-pie-legend-narrow { display: grid; }
   }
 
   /* Shares in their slices (PieChart Labels Inside): dark ink, or black or white for the fill

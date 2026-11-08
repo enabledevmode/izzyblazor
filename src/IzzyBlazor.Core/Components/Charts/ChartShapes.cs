@@ -12,10 +12,10 @@ internal sealed record PieSlice(int Index, double Start, double End, string Path
 
 /// <summary>
 /// A slice's label beside a pie: on the end side (the right, for slices whose middle is on the
-/// right half) or the start side; its center, 0 to 1 down the circle's box; and its leader line,
-/// from the slice's edge out and across to the label, in the pie's viewBox.
+/// right half) or the start side; where it starts (X) and its middle (Y), in shares of the circle's
+/// box; and its leader line, from the slice's edge out to the label, in the pie's viewBox.
 /// </summary>
-internal sealed record PieLabel(int Index, bool End, double Pos, string Leader);
+internal sealed record PieLabel(int Index, bool End, double X, double Y, string Leader);
 
 /// <summary>
 /// A FunnelChart stage in a 100 by 100 box: its outline, the height of its middle (Y, top down),
@@ -97,25 +97,33 @@ internal static class ChartShapes
     }
 
     /// <summary>
-    /// Labels for the slices in two columns beside the circle, as DevExtreme's columns and
-    /// Datawrapper's lines: each level with its slice's middle, nudged apart a line each
-    /// (<see cref="ChartLayout.Spread"/>) on a circle <paramref name="sizePx"/> across, with a
-    /// leader from the slice's edge out to the column. In item order.
+    /// Labels for the slices just outside the circle, each by its slice, as DevExtreme's and
+    /// Highcharts' outside labels: level with a point a little out from the slice's middle, nudged
+    /// apart a line each on its side (<see cref="ChartLayout.Spread"/>) over a circle
+    /// <paramref name="sizePx"/> across, at the distance from the middle a circle 1.15 times the
+    /// pie's has at that height (and no nearer than the line's bend). The leader runs from the
+    /// slice's edge out to the bend, then to the label. X and Y are where the label starts, in
+    /// shares of the circle's box (past 0 and 1 outside it). In item order.
     /// </summary>
     public static List<PieLabel> PieLabels(IReadOnlyList<PieSlice> slices, double sizePx, double linePx)
     {
+        // The labels spread over the circle's height and a little above and below it.
+        const double reach = 1.3;
+        var span = sizePx * reach;
         var labels = new List<PieLabel>();
         foreach (var end in new[] { true, false })
         {
             var side = slices.Where(s => s.Middle % 1 < 0.5 == end).ToList();
-            var centers = ChartLayout.Spread(side.Select(s => (At(s.Middle, 1.05).Y + 1) / 2 * sizePx).ToList(), sizePx, linePx);
+            var centers = ChartLayout.Spread(side.Select(s => (At(s.Middle, 1.12).Y + reach) / (2 * reach) * span).ToList(), span, linePx);
             for (var k = 0; k < side.Count; k++)
             {
                 var (ex, ey) = At(side[k].Middle, 1);
-                var (bx, by) = At(side[k].Middle, 1.05);
-                var y = centers[k] / sizePx * 2 - 1;
-                labels.Add(new PieLabel(side[k].Index, end, centers[k] / sizePx,
-                    $"M{N(ex)},{N(ey)}L{N(bx)},{N(by)}L{N(end ? 1.07 : -1.07)},{N(y)}"));
+                var (bx, by) = At(side[k].Middle, 1.08);
+                var y = centers[k] / span * 2 * reach - reach;
+                var x = Math.Max(Math.Sqrt(Math.Max(0, 1.15 * 1.15 - y * y)), Math.Abs(bx)) * (end ? 1 : -1);
+                var tip = x + (end ? 0.06 : -0.06);
+                labels.Add(new PieLabel(side[k].Index, end, (tip + 1) / 2, (y + 1) / 2,
+                    $"M{N(ex)},{N(ey)}L{N(bx)},{N(by)}L{N(x)},{N(y)}H{N(tip)}"));
             }
         }
 

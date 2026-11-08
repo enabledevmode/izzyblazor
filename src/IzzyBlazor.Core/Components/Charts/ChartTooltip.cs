@@ -137,3 +137,40 @@ public sealed class FunnelLabelContext<TItem>
     /// <summary>Whether the label is drawn in its stage, or beside the shape because it doesn't fit there.</summary>
     public bool Inside { get; }
 }
+
+/// <summary>What a PieChart's <c>LabelTemplate</c> draws from: one slice, with its value and share written as the chart writes them.</summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class PieLabelContext<TItem>
+{
+    internal PieLabelContext(TItem item, int index, string name, double? value, string? valueText, string? share, bool inside)
+    {
+        Item = item;
+        Index = index;
+        Name = name;
+        Value = value;
+        ValueText = valueText;
+        Share = share;
+        Inside = inside;
+    }
+
+    /// <summary>The item.</summary>
+    public TItem Item { get; }
+
+    /// <summary>The item's place in the chart's <c>Items</c>, from 0.</summary>
+    public int Index { get; }
+
+    /// <summary>The slice's name, from <c>Argument</c>.</summary>
+    public string Name { get; }
+
+    /// <summary>The slice's value.</summary>
+    public double? Value { get; }
+
+    /// <summary>The value written with the chart's <c>ValueFormat</c>, such as "1,013".</summary>
+    public string? ValueText { get; }
+
+    /// <summary>The slice's share of the circle, such as "56%".</summary>
+    public string? Share { get; }
+
+    /// <summary>Whether the label is drawn in its slice, or outside it.</summary>
+    public bool Inside { get; }
+}
