@@ -207,7 +207,7 @@ public class TableFilterRenderTests : BunitContext
 
         Assert.Equal(new[] { "Grace" }, Names(cut));
         Assert.Equal("2026-01-02", cut.Find("input[type=date]").GetAttribute("value"));
-        Assert.Equal("Filter When: 2026-01-02", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+        Assert.Equal("Filter When: 2026-01-02", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("title"));
     }
 
     [Theory]
@@ -335,7 +335,7 @@ public class TableFilterRenderTests : BunitContext
         {
             Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 2, 2), reported!.Find("qty"));
             Assert.Equal(new[] { "Ada" }, Names(cut));
-            Assert.Equal("Filter Qty: 2", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+            Assert.Equal("Filter Qty: 2", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("title"));
         }, Timer);
     }
 
@@ -354,7 +354,7 @@ public class TableFilterRenderTests : BunitContext
         var cut = RenderStatic("/orders" + query);
 
         Assert.Equal(expected, Names(cut));
-        Assert.Equal(summary == "All" ? "Filter Status" : $"Filter Status: {summary}", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
+        Assert.Equal(summary == "All" ? "Filter Status" : $"Filter Status: {summary}", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("title"));
     }
 
     [Fact]
@@ -375,8 +375,8 @@ public class TableFilterRenderTests : BunitContext
         Assert.Empty(Names(cut));
         var name = cut.FindAll(".ib-table-filter-button")[0];
         Assert.True(name.HasAttribute("data-active"));
-        Assert.Equal("Filter Name: ad", name.GetAttribute("aria-label"));
-        Assert.Equal("Filter Status: No", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
+        Assert.Equal("Filter Name: ad", name.GetAttribute("title"));
+        Assert.Equal("Filter Status: No", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("title"));
 
         var hrefs = cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")).ToList();
         Assert.Contains("http://localhost/orders?f-status=No&sort=name", hrefs);
@@ -391,7 +391,7 @@ public class TableFilterRenderTests : BunitContext
     {
         var cut = RenderHeader("/orders" + query + "&sort=name");
 
-        Assert.Equal($"Filter Qty: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+        Assert.Equal($"Filter Qty: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("title"));
         Assert.Contains("http://localhost/orders?sort=name", cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")));
     }
 

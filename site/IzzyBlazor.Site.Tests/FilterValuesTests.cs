@@ -21,7 +21,7 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
 
     private static async Task<ILocator> OpenPanelAsync(IPage page, ILocator table, string column)
     {
-        await table.Locator($"th .ib-table-filter-button[aria-label^='Filter {column}']").ClickAsync();
+        await table.Locator($"th .ib-table-filter-button[title^='Filter {column}']").ClickAsync();
         var panel = page.Locator("[popover]:popover-open .ib-table-filter-panel:visible");
         await panel.WaitForAsync();
         return panel;
@@ -192,7 +192,7 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
 
         await page.Keyboard.PressAsync("Escape");
         await panel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
-        Assert.True(await table.Locator("th .ib-table-filter-button[aria-label^='Filter Customer']").EvaluateAsync<bool>("b => document.activeElement === b"));
+        Assert.True(await table.Locator("th .ib-table-filter-button[title^='Filter Customer']").EvaluateAsync<bool>("b => document.activeElement === b"));
     }
 
     [Fact]
@@ -226,8 +226,8 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page, table) = await OpenAsync("static", script: false, query: "&values-f-customer-op=notin&values-f-customer=Customer%20001");
         await using var _ = browser;
 
-        var button = table.Locator("th .ib-table-filter-button[aria-label^='Filter Customer']");
-        Assert.Contains("All but Customer 001", await button.GetAttributeAsync("aria-label") ?? "", StringComparison.Ordinal);
+        var button = table.Locator("th .ib-table-filter-button[title^='Filter Customer']");
+        Assert.Contains("All but Customer 001", await button.GetAttributeAsync("title") ?? "", StringComparison.Ordinal);
 
         // Applying another column keeps it.
         var panel = await OpenPanelAsync(page, table, "City");

@@ -59,8 +59,15 @@ public class IzzyText
     /// </summary>
     public virtual string ColumnInBand { get; set; } = "{0} {1}";
 
-    /// <summary>A DataGrid header's menu button: "Options for Customer". {0} is the column's title.</summary>
+    /// <summary>
+    /// A DataGrid header's menu button, its hover text and description: "Options for Customer". {0}
+    /// is the column's title. Its name is <see cref="ColumnOptionsButton"/>, short, since it's read
+    /// as part of the header for every cell in the column.
+    /// </summary>
     public virtual string ColumnOptions { get; set; } = "Options for {0}";
+
+    /// <summary>A DataGrid header's menu button's name: "Options" (the column's name is the header's own).</summary>
+    public virtual string ColumnOptionsButton { get; set; } = "Options";
 
     /// <summary>A DataGrid column menu: moves the column one place toward the start.</summary>
     public virtual string ColumnMoveStart { get; set; } = "Move left";
@@ -158,8 +165,11 @@ public class IzzyText
     /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
     public virtual string ColumnsReset { get; set; } = "Reset columns";
 
-    /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
+    /// <summary>A Table filter's panel name and its button's hover text and description: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";
+
+    /// <summary>A header's filter button's name: "Filter". Its hover text and description say the column and what it's set to ("Filter Status: 2 selected").</summary>
+    public virtual string FilterButton { get; set; } = "Filter";
 
     /// <summary>A Table filter menu with several values chosen: "2 selected".</summary>
     public virtual string FilterSelected { get; set; } = "{0} selected";

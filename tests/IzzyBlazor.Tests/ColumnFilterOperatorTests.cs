@@ -69,7 +69,7 @@ public class ColumnFilterOperatorTests : BunitContext
 
     // What the marked funnels say is filtered, and the tags of what no panel shows.
     private static string[] Tags<T>(IRenderedComponent<T> cut) where T : IComponent =>
-        cut.FindAll(".ib-table-filter-button[data-active]").Select(b => b.GetAttribute("aria-label")!["Filter ".Length..])
+        cut.FindAll(".ib-table-filter-button[data-active]").Select(b => b.GetAttribute("title")!["Filter ".Length..])
             .Concat(cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim())).ToArray();
 
     private static readonly string[] TextWords = ["Contains", "Does not contain", "Equals", "Does not equal", "Starts with", "Ends with", "Is empty", "Is not empty"];
@@ -459,7 +459,7 @@ public class ColumnFilterOperatorTests : BunitContext
 
         var panel = cut.FindAll(".ib-table-filter-panel").Single(p => p.QuerySelector("select")?.GetAttribute("value") == word || p.QuerySelector($"option[value='{word}'][selected]") is not null);
         Assert.NotNull(panel);
-        Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("aria-label") == name);
+        Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("title") == name);
         Assert.DoesNotContain(Tags(cut), t => t.Contains('(', StringComparison.Ordinal));
     }
 }

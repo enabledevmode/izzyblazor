@@ -978,7 +978,7 @@
         <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" data-ib-user-controlled OpenChanged="toggled">
             <Trigger>
                 @* With a row of filters the row is the way in, so the panel stays for it and the button goes. *@
-                <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
+                <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@TextDefaults.FilterButton" title="@name" @attributes="context">
                     <Icon Purpose="IconPurpose.Filter" />
                 </button>
             </Trigger>

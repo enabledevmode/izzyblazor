@@ -249,7 +249,7 @@ public class TableDataTests : BunitContext
 
         // Status's list shows Yes; the starts-with condition has no panel, so it's a tag.
         Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
-        Assert.Equal("Filter Status: Yes", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
+        Assert.Equal("Filter Status: Yes", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("title"));
         var tags = cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim()).ToArray();
         Assert.DoesNotContain(tags, t => t.Contains("Status", StringComparison.Ordinal));
         Assert.Contains(tags, t => t.Contains("startswith(name,'a')", StringComparison.Ordinal));
@@ -262,7 +262,7 @@ public class TableDataTests : BunitContext
         // A new filter from the parent replaces it.
         cut.Render(p => p.Add(t => t.Filter, Filter.Where("qty", FilterOperator.GreaterThanOrEqual, 3)));
         Assert.Equal(new[] { "Grace", "Alan" }, Names(cut));
-        Assert.Equal("Filter Qty: 3 or more", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+        Assert.Equal("Filter Qty: 3 or more", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("title"));
 
         cut.Render(p => p.Add(t => t.Filter, null));
         Assert.Equal(4, Names(cut).Length);
@@ -393,6 +393,6 @@ public class TableDataTests : BunitContext
         var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Columns, Columns));
 
         Assert.Equal(new[] { "Ada", "Grace", "Alan" }, Names(cut));
-        Assert.Equal("Filter Status: 2 selected", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
+        Assert.Equal("Filter Status: 2 selected", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("title"));
     }
 }

@@ -1981,7 +1981,7 @@
         var zone = SiblingBlocks(column.Band, frozen);
         <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
-                <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
+                <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@TextDefaults.ColumnOptionsButton" title="@label" @attributes="context">
                     <Icon Purpose="IconPurpose.MoreVertical" />
                 </button>
             </Trigger>
@@ -2147,7 +2147,7 @@
             <span class="ib-table-title" style="@(band.Align switch { CellAlign.Center => "margin-inline:auto", CellAlign.End => "margin-inline-start:auto", _ => null })">@BandLabel(band)</span>
             <Menu Class="ib-col-menu" data-ib-user-controlled>
                 <Trigger>
-                    <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
+                    <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@TextDefaults.ColumnOptionsButton" title="@label" @attributes="context">
                         <Icon Purpose="IconPurpose.MoreVertical" />
                     </button>
                 </Trigger>

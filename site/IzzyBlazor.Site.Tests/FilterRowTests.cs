@@ -115,8 +115,8 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.WaitForURLAsync("**/*row-f-customer=ada*");
         await Assertions.Expect(grid.Locator("tbody tr").First).ToContainTextAsync("Ada");
         await Assertions.Expect(field).ToHaveValueAsync("ada");
-        await Assertions.Expect(grid.Locator("th .ib-table-filter-button[aria-label^='Filter']:visible")).ToHaveCountAsync(0);
-        await grid.Locator(".ib-filter-cell .ib-table-filter-button[aria-label^='Filter Customer']").ClickAsync();
+        await Assertions.Expect(grid.Locator("th .ib-table-filter-button[title^='Filter']:visible")).ToHaveCountAsync(0);
+        await grid.Locator(".ib-filter-cell .ib-table-filter-button[title^='Filter Customer']").ClickAsync();
         await Assertions.Expect(page.Locator("[popover]:popover-open input[name='row-f-customer']")).ToHaveValueAsync("ada");
     }
 

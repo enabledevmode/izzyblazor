@@ -22,7 +22,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
 
     private static async Task<ILocator> OpenPanelAsync(IPage page, ILocator table, string column)
     {
-        await table.Locator($"th .ib-table-filter-button[aria-label^='Filter {column}']").ClickAsync();
+        await table.Locator($"th .ib-table-filter-button[title^='Filter {column}']").ClickAsync();
         var panel = page.Locator("[popover]:popover-open .ib-table-filter-panel");
         await panel.WaitForAsync();
         return panel;
@@ -98,7 +98,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await panel.GetByRole(AriaRole.Button, new() { Name = "Apply" }).ClickAsync();
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await RowsAreAsync(table, 5);
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Priority: 3 selected']")).ToBeVisibleAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[title='Filter Priority: 3 selected']")).ToBeVisibleAsync();
             await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(1);
             Assert.DoesNotContain("f-priority=Low", page.Url, StringComparison.Ordinal);
 
@@ -127,13 +127,13 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             var all = Box(panel, "(Select all)");
 
             await Box(panel, "Refunded").UncheckAsync();
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: 3 selected']")).ToBeVisibleAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[title='Filter Status: 3 selected']")).ToBeVisibleAsync();
             Assert.True(await all.EvaluateAsync<bool>("b => b.indeterminate"));
 
             await all.ClickAsync();
             await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
             await all.ClickAsync();
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: none']")).ToBeVisibleAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[title='Filter Status: none']")).ToBeVisibleAsync();
             await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToContainTextAsync("Nothing is selected under Status.");
             Assert.Equal(url, page.Url);
         }
