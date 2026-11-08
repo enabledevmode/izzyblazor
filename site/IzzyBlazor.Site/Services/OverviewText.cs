@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace IzzyBlazor.Site.Services;
@@ -7,6 +8,35 @@ public static partial class OverviewText
 {
     /// <summary>The first sentence of a doc comment's text.</summary>
     public static string? FirstSentence(string? html) => Sentence(ApiMetadata.PlainText(html), int.MaxValue);
+
+    /// <summary>
+    /// The first sentence of a doc comment with its code kept in backticks, for <c>InlineCode</c>: a
+    /// part's line or a parameter's description, where <c>&lt;Tag Context="c"&gt;</c> must read as code.
+    /// </summary>
+    public static string? FirstSentenceWithCode(string? html)
+    {
+        if (html is null)
+        {
+            return null;
+        }
+
+        var text = WebUtility.HtmlDecode(Tags().Replace(CodeSpan().Replace(html, m => $"`{m.Groups[1].Value.Replace("`", "", StringComparison.Ordinal)}`"), "")).Trim();
+        if (text.Length == 0)
+        {
+            return null;
+        }
+
+        // The first end outside code: a dot followed by a space inside `a. b` isn't one.
+        foreach (Match end in SentenceEnd().Matches(text))
+        {
+            if (text.AsSpan(0, end.Index).Count('`') % 2 == 0)
+            {
+                return text[..(end.Index + 1)];
+            }
+        }
+
+        return text;
+    }
 
     /// <summary>
     /// The first sentence of plain text, cut to <paramref name="max"/> characters with an ellipsis:
@@ -39,6 +69,12 @@ public static partial class OverviewText
         var name = word.Skip(1).Any(char.IsUpper) || api.Component(word) is not null || api.Type(word) is not null;
         return name ? text : char.ToLowerInvariant(text[0]) + text[1..];
     }
+
+    [GeneratedRegex("<code>(.*?)</code>", RegexOptions.Singleline)]
+    private static partial Regex CodeSpan();
+
+    [GeneratedRegex("<[^>]+>")]
+    private static partial Regex Tags();
 
     [GeneratedRegex(@"[.!?](?=\s|$)")]
     private static partial Regex SentenceEnd();

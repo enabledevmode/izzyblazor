@@ -23,7 +23,7 @@
                 }
                 @if (text is not null)
                 {
-                    <text>: @text</text>
+                    <text>: </text><InlineCode Text="@text" />
                 }
             </ListItem>
         }
@@ -60,6 +60,6 @@
         }
 
         var summary = Api.Component(name)?.Summary;
-        return (name, Registry.ApiHref(name, null), summary is null ? null : OverviewText.Lower(Api, OverviewText.FirstSentence(summary)));
+        return (name, Registry.ApiHref(name, null), summary is null ? null : OverviewText.Lower(Api, OverviewText.FirstSentenceWithCode(summary)));
     }
 }
