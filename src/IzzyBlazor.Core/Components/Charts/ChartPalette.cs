@@ -73,6 +73,43 @@ public sealed class ChartPalette
         return sb.ToString();
     }
 
+    /// <summary>The theme's distinct colors, which say which, not how much: no use on a heatmap.</summary>
+    internal bool IsCategorical => _kind == Kind.Colors;
+
+    internal bool IsDiverging => _kind == Kind.Diverging;
+
+    /// <summary>Your own colors' count (<see cref="Of"/>), or null.</summary>
+    internal int? FixedCount => _kind == Kind.Of ? _colors.Length : null;
+
+    /// <summary>
+    /// A heatmap's colors: <c>--ib-heat-1</c> onward for <paramref name="classes"/> classes, or
+    /// for a continuous scale (0) its ends, <c>--ib-heat-a</c> (the lightest, or a diverging
+    /// scale's middle), <c>--ib-heat-b</c> (the strongest) and <c>--ib-heat-c</c> (a diverging
+    /// scale's strongest low).
+    /// </summary>
+    internal string HeatStyle(int classes)
+    {
+        var sb = new StringBuilder();
+        void Set(string name, string value) => sb.Append("--ib-heat-").Append(name).Append(':').Append(value).Append(';');
+        if (classes > 0)
+        {
+            for (var i = 0; i < classes; i++) Set((i + 1).ToString(CultureInfo.InvariantCulture), Color(i, classes));
+        }
+        else if (_kind == Kind.Diverging)
+        {
+            Set("a", Color(1, 3));
+            Set("b", Color(2, 3));
+            Set("c", Color(0, 3));
+        }
+        else
+        {
+            Set("a", _kind == Kind.Of ? _colors[0] : Color(0, 2));
+            Set("b", _kind == Kind.Of ? _colors[^1] : Color(1, 2));
+        }
+
+        return sb.ToString();
+    }
+
     internal string Color(int i, int n) => _kind switch
     {
         Kind.Shades => Shade(_colors[0], n == 1 ? 0.5 : (double)i / (n - 1)),

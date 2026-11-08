@@ -1268,6 +1268,15 @@ public class IzzyText
     /// <summary>A FunnelChart stage's share of the stage before, read after its value: "{0} of the stage before".</summary>
     public virtual string FunnelOfPreviousText { get; set; } = "{0} of the stage before";
 
+    /// <summary>A HeatmapChart cell with no value: in its tooltip, what screen readers hear, and the data table.</summary>
+    public virtual string HeatmapNoData { get; set; } = "No data";
+
+    /// <summary>A HeatmapChart's legend: the name of its color scale, for screen readers.</summary>
+    public virtual string HeatmapScale { get; set; } = "Color scale";
+
+    /// <summary>A HeatmapChart's legend: one class of values, "{0} to {1}".</summary>
+    public virtual string HeatmapRangeText { get; set; } = "{0} to {1}";
+
     /// <summary>A pyramid level's share of the total (FunnelChart Pyramid), read after its value: "{0} of the total".</summary>
     public virtual string FunnelOfTotalText { get; set; } = "{0} of the total";
 

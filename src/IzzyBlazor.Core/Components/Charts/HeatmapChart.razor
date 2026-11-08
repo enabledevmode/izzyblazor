@@ -1,0 +1,484 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+@using System.Text.Json
+
+@*
+    Values over two dimensions, such as orders by weekday and hour, as a grid of cells whose color
+    grows with the value.
+
+    <HeatmapChart Items="orders" Column="o => o.Hour" Row="o => o.Day" Value="o => o.Orders" Title="Orders by hour" />
+
+    Columns and rows keep the order the items first name them in, the first row at the top. A
+    cell with no item, or a null value, is drawn as no data, never as a zero. Colors are classes:
+    five even steps from round bounds, light to dark, by default (Steps, Min, Max), a diverging
+    palette's two sides of Midpoint, your own HeatmapRange children, or a continuous blend
+    (Steps 0). The legend is the scale.
+
+    Accessibility:
+    - A figure captioned by Title (or named by a heading on the page, with TitledBy); the grid is
+      one image named by it, and the legend lists the scale's classes.
+    - "Show data" under the chart opens the same values as a table, rows by columns (DataTable).
+    - With script, the grid is one Tab stop: the arrow keys move from cell to cell and say each
+      one's row, column and value.
+    See also: Chart, CalendarHeatmap.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/heatmap.css"]" />
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+    }
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+        @_plotFragment
+    </CascadingValue>
+</figure>
+
+@code {
+    /// <summary>The items, one cell each: each names its column, its row and its value.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Each item's column, such as <c>o =&gt; o.Hour</c>: text, a number or a date. Columns keep
+    /// the order the items first name them in. Dates a day or a week apart are named by month
+    /// along the bottom.
+    /// </summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Column { get; set; } = default!;
+
+    /// <summary>Each item's row, such as <c>o =&gt; o.Day</c>. Rows keep the order the items first name them in, the first at the top.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Row { get; set; } = default!;
+
+    /// <summary>Each item's value, such as <c>o =&gt; o.Orders</c>: any number, or null for no data.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>
+    /// The chart's title, such as "Orders by hour", shown above it as its caption. It also names
+    /// the chart for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start by default (the left, in a left-to-right page);
+    /// <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
+
+    /// <summary>A .NET format string for the values, such as <c>N0</c> or <c>P0</c>: in the cells, the legend, the tooltips and the table.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>A .NET format string for the column names, such as <c>htt</c> for hours or <c>MMM d</c> for dates.</summary>
+    [Parameter] public string? ColumnFormat { get; set; }
+
+    /// <summary>A .NET format string for the row names.</summary>
+    [Parameter] public string? RowFormat { get; set; }
+
+    /// <summary>
+    /// The colors: <see cref="ChartPalette.Shades"/> of the primary color by default, light to
+    /// dark for low to high; <see cref="ChartPalette.Shades"/> of another color;
+    /// <see cref="ChartPalette.Diverging"/> for values above and below <see cref="Midpoint"/>,
+    /// such as change from last year; or your own ramp with <see cref="ChartPalette.Of"/>, one
+    /// class per color. <see cref="ChartPalette.Colors"/> (distinct colors, which say which, not
+    /// how much) throws.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
+    /// <summary>
+    /// How many classes the values fall into, each a shade: 5 by default, 2 to 9. The classes are
+    /// even steps between round bounds around the values (or from <see cref="Min"/> to
+    /// <see cref="Max"/>). <c>0</c> blends the color continuously instead, with the legend a
+    /// gradient: finer, but harder to read a value from.
+    /// </summary>
+    [Parameter] public int Steps { get; set; } = 5;
+
+    /// <summary>
+    /// The value a <see cref="ChartPalette.Diverging"/> scale turns at, gray in the middle: 0 by
+    /// default; a target or an average otherwise. The scale reaches as far on both sides, so
+    /// colors of the same strength mean the same distance from it.
+    /// </summary>
+    [Parameter] public double? Midpoint { get; set; }
+
+    /// <summary>The scale's low end, so heatmaps side by side share a scale. Lower values take the first class.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>The scale's high end. Higher values take the last class.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>
+    /// The values in the cells: with <see cref="ChartLabels.Auto"/> (the default) when every
+    /// value fits its cell, coming and going with the width; <see cref="ChartLabels.Inside"/>
+    /// always; <see cref="ChartLabels.None"/> never (the tooltip and "Show data" still give them).
+    /// </summary>
+    [Parameter] public ChartLabels Labels { get; set; } = ChartLabels.Auto;
+
+    /// <summary>Each row's height: <c>2rem</c> by default. Shorter than a line, cells show no values and row names thin out.</summary>
+    [Parameter] public Length? CellHeight { get; set; }
+
+    /// <summary>
+    /// Where the legend, the color scale, goes: above the grid by default (<see cref="ChartLegend.Auto"/>
+    /// or <see cref="ChartLegend.Top"/>), <see cref="ChartLegend.Bottom"/>, or upright beside it with
+    /// <see cref="ChartLegend.Start"/> or <see cref="ChartLegend.End"/> (above it under 30rem);
+    /// <see cref="ChartLegend.None"/> leaves it out. With script, each class's key hides and shows
+    /// the cells in it.
+    /// </summary>
+    [Parameter] public ChartLegend Legend { get; set; }
+
+    /// <summary>The legend's place along its edge: the start by default, the center or the end.</summary>
+    [Parameter] public ChartAlign? LegendAlign { get; set; }
+
+    /// <summary>
+    /// The tooltip for the cell under the pointer or the keyboard (with script), beside the cell.
+    /// Unset, it shows only while the values aren't in the cells (when they don't fit, or with
+    /// <see cref="ChartLabels.None"/>); <c>true</c> always, <c>false</c> never. Either way, the
+    /// arrow keys move from cell to cell and say each one.
+    /// </summary>
+    [Parameter] public bool? Tooltip { get; set; }
+
+    /// <summary>The values as a table, rows by columns: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    /// <summary><see cref="HeatmapRange"/>s, your own classes, and a <see cref="HeatmapTooltip{TItem}"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private readonly HeatmapContext _context = new();
+    private RenderFragment _plotFragment = null!;
+    private Expression<Func<TItem, object?>>? _lastColumn, _lastRow, _lastValue;
+    private Func<TItem, object?>? _column, _row, _value;
+    private string? _rowName, _valueName;
+    private string? _class;
+    private string? _style;
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The grid draws after the ranges inside the chart have said they're there.
+        _plotFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderPlot);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Plot = plot));
+            builder.CloseComponent();
+        };
+        base.OnInitialized();
+    }
+
+    private ChartLegend Place => Legend == ChartLegend.Auto ? ChartLegend.Top : Legend;
+
+    private string LegendListClass => LegendAlign switch
+    {
+        ChartAlign.Center => "ib-chart-legend ib-chart-legend-center",
+        ChartAlign.End => "ib-chart-legend ib-chart-legend-end",
+        _ => "ib-chart-legend ib-chart-legend-start",
+    };
+
+    // A length's pixels at a 16px root, where it's in px or rem; 32 otherwise.
+    private static double Pixels(Length? length)
+    {
+        var css = length?.Css ?? "2rem";
+        if (css.EndsWith("rem", StringComparison.Ordinal) && double.TryParse(css[..^3], NumberStyles.Float, CultureInfo.InvariantCulture, out var rem)) return rem * 16;
+        if (css.EndsWith("px", StringComparison.Ordinal) && double.TryParse(css[..^2], NumberStyles.Float, CultureInfo.InvariantCulture, out var px)) return px;
+        return 32;
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var ranges = _context.Ranges.Items;
+        if (ranges.Count > 9)
+        {
+            throw new InvalidOperationException("A HeatmapChart takes up to nine HeatmapRanges: past that, colors are hard to tell apart.");
+        }
+
+        var palette = Palette ?? ChartPalette.Shades(Color.Primary);
+        var model = HeatmapLayout.Build(new HeatmapInput
+        {
+            Columns = items.Select(i => _column!(i)).ToArray(),
+            Rows = items.Select(i => _row!(i)).ToArray(),
+            Values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray(),
+            ColumnFormat = ColumnFormat,
+            RowFormat = RowFormat,
+            ValueFormat = ValueFormat,
+            Steps = Steps,
+            FixedColors = palette.FixedCount,
+            Diverging = palette.IsDiverging,
+            Midpoint = Midpoint ?? 0,
+            Min = Min,
+            Max = Max,
+            Ranges = ranges.Count > 0 ? ranges.Select(r => (r.From, r.To)).ToArray() : null,
+            Labels = Labels,
+            CellHeightPx = Pixels(CellHeight),
+        });
+
+        var cols = model.ColumnTexts.Length;
+        var colors = ranges.Count > 0
+            ? string.Concat(ranges.Select((r, k) => $"--ib-heat-{k + 1}:{StyleValues.Color(r.Color!.Value)};"))
+            : palette.HeatStyle(model.ClassCount);
+        var style = $"{colors}--ib-heat-cols:{cols};--ib-heat-h:{CellHeight?.Css ?? "2rem"}";
+        var tooltip = _context.Tooltip as RenderFragment<HeatmapCellContext<TItem>>;
+        var legendClass = Place switch
+        {
+            ChartLegend.Top => "ib-chart-lg-top ib-heatmap",
+            ChartLegend.Start => "ib-chart-lg-start ib-heatmap",
+            ChartLegend.End => "ib-chart-lg-end ib-heatmap",
+            _ => "ib-heatmap",
+        };
+        var legendFirst = Place is ChartLegend.Top or ChartLegend.Start;
+        string Range(string? from, string? to) => string.Format(CultureInfo.CurrentCulture, TextDefaults.HeatmapRangeText, from, to);
+        string Cell(HeatmapCell c) => c.Class < 0 ? "" : (model.Continuous ? (c.Low ? "ib-lo " : "") : $"ib-k{c.Class + 1} ") + (c.Ink > 0 ? $"ib-i{c.Ink}" : "");
+
+        <ib-chart class="@legendClass" style="@style"
+                  data-ib-heat="@cols"
+                  data-ib-auto="@(Labels == ChartLabels.Auto && Pixels(CellHeight) >= 16)"
+                  data-ib-tips="@(Tooltip is null ? "auto" : null)"
+                  data-ib-columns="@(Tooltip != false ? JsonSerializer.Serialize(model.ColumnTexts, PersistedStateJson.Default.StringArray) : null)"
+                  data-ib-value="@(_valueName ?? TextDefaults.ChartValue)"
+                  data-ib-none="@TextDefaults.HeatmapNoData">
+            @if (legendFirst && Place != ChartLegend.None)
+            {
+                @LegendFragment(model, Range)
+            }
+            <div class="@($"ib-chart-main ib-heat ib-heat-l{model.LabelFrom} ib-heat-g{model.GapFrom}{(model.Continuous ? " ib-heat-blend" : "")}")">
+                <div class="ib-heat-rows" aria-hidden="true">
+                    @for (var r = 0; r < model.RowTexts.Length; r++)
+                    {
+                        <span class="@(model.RowShown[r] ? null : "ib-heat-skip")">@model.RowTexts[r]</span>
+                    }
+                </div>
+                <div class="ib-heat-frame" role="img" aria-labelledby="@NameId">
+                    <div class="ib-heat-grid">
+                        @foreach (var c in model.Cells)
+                        {
+                            <div class="@(Cell(c) is { Length: > 0 } k ? k.TrimEnd() : null)" style="@(model.Continuous && c.Class >= 0 ? $"--t:{Num(c.T * 100)}%" : null)">@c.Text</div>
+                        }
+                    </div>
+                    @if (Tooltip != false)
+                    {
+                        <div class="ib-chart-tooltip" hidden></div>
+                    }
+                </div>
+                <div class="ib-chart-bottom" aria-hidden="true">
+                    <div class="ib-chart-ticks">
+                        @foreach (var tick in model.Ticks)
+                        {
+                            <span class="@(tick.From > 0 ? $"ib-chart-from{tick.From}" : null)" style="left:@Num(tick.Pos * 100)%">@tick.Text</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            @if (!legendFirst && Place != ChartLegend.None)
+            {
+                @LegendFragment(model, Range)
+            }
+            @if (Tooltip != false)
+            {
+                @if (tooltip is not null)
+                {
+                    <div class="ib-chart-tips" hidden>
+                        @for (var c = 0; c < model.Cells.Length; c++)
+                        {
+                            var cell = model.Cells[c];
+                            if (cell.Item < 0) continue;
+                            <div data-ib-tip="@c">@tooltip(new HeatmapCellContext<TItem>(items[cell.Item], cell.Item, model.ColumnTexts[c % cols], model.RowTexts[c / cols], cell.Value, cell.Text))</div>
+                        }
+                    </div>
+                }
+                <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
+                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
+            }
+        </ib-chart>
+
+        @if (DataTable != ChartDataTable.None)
+        {
+            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
+                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
+                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                        {<span class="ib-visually-hidden">, @Title</span>}</span>
+                </summary>
+                <div class="ib-chart-table-scroll">
+                    <table class="ib-chart-table" aria-labelledby="@NameId">
+                        <thead>
+                            <tr>
+                                <th scope="col">@_rowName</th>
+                                @foreach (var column in model.ColumnTexts)
+                                {
+                                    <th scope="col">@column</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var r = 0; r < model.RowTexts.Length; r++)
+                            {
+                                <tr>
+                                    <th scope="row">@model.RowTexts[r]</th>
+                                    @for (var c = 0; c < cols; c++)
+                                    {
+                                        <td>@(model.Cells[r * cols + c].Text ?? TextDefaults.HeatmapNoData)</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+    }
+
+    // The color scale: a key per class, each a button with script that hides its cells; or a
+    // gradient for a continuous scale. Bounds sit between the keys, under them (beside, upright).
+    private RenderFragment LegendFragment(HeatmapModel model, Func<string?, string?, string> range) => __builder =>
+    {
+        var ranges = _context.Ranges.Items;
+        // The widest bound, so an upright scale keeps room for its labels beside it.
+        var bounds = model.Continuous ? new[] { model.LowText, model.MidText, model.HighText } : model.Bounds.ToArray();
+        var room = $"--ib-heat-bw:{Num(Math.Ceiling(bounds.Select(b => b is null ? 0 : TextWidths.AtSize(b, 12)).DefaultIfEmpty(0).Max() + 2))}px";
+        if (model.Continuous)
+        {
+            <div class="@($"{LegendListClass} ib-heat-legend")">
+                <div class="ib-heat-scale" style="@room">
+                    <div class="@(Palette?.IsDiverging == true ? "ib-heat-bar ib-heat-bar-div" : "ib-heat-bar")" role="img" aria-label="@($"{TextDefaults.HeatmapScale}: {range(model.LowText, model.HighText)}")"></div>
+                    <div class="ib-heat-bounds" aria-hidden="true">
+                        <span style="--p:0">@model.LowText</span>
+                        @if (model.MidText is not null)
+                        {
+                            <span style="--p:0.5">@model.MidText</span>
+                        }
+                        <span style="--p:1">@model.HighText</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (ranges.Count > 0)
+        {
+            <ul class="@($"{LegendListClass} ib-heat-legend ib-heat-named")" aria-label="@TextDefaults.HeatmapScale">
+                @for (var k = 0; k < model.ClassCount; k++)
+                {
+                    var c = model.Classes[k];
+                    <li>
+                        <span class="ib-chart-toggle" data-ib-class="@k">
+                            <span class="@($"ib-heat-key ib-k{k + 1}")" aria-hidden="true"></span>
+                            @if (ranges[k].Label is { } label)
+                            {
+                                <span>@label</span>
+                            }
+                            <span class="ib-heat-range" aria-hidden="true">@c.From–@c.To</span>
+                            <span class="ib-visually-hidden">@range(c.From, c.To)</span>
+                        </span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="@($"{LegendListClass} ib-heat-legend")">
+                <div class="ib-heat-scale" style="--n:@model.ClassCount;@room">
+                    <ul class="ib-heat-steps" aria-label="@TextDefaults.HeatmapScale">
+                        @for (var k = 0; k < model.ClassCount; k++)
+                        {
+                            <li><span class="@($"ib-chart-toggle ib-heat-key ib-k{k + 1}")" data-ib-class="@k"><span class="ib-visually-hidden">@range(model.Classes[k].From, model.Classes[k].To)</span></span></li>
+                        }
+                    </ul>
+                    <div class="ib-heat-bounds" aria-hidden="true">
+                        @for (var i = 0; i < model.Bounds.Count; i++)
+                        {
+                            <span style="--p:@Num((double)i / model.ClassCount)">@model.Bounds[i]</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-heatmap-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "HeatmapChart needs a Title, such as \"Orders by hour\", or TitledBy, the id of a heading on the page that titles it."
+                : "HeatmapChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (Column is null || Row is null || Value is null)
+        {
+            throw new InvalidOperationException("HeatmapChart needs a Column, a Row and a Value for each item, such as o => o.Hour, o => o.Day and o => o.Orders.");
+        }
+
+        if (Steps != 0 && Steps is < 2 or > 9)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Steps), Steps, "A HeatmapChart's Steps is 2 to 9, or 0 for a continuous blend.");
+        }
+
+        if (Palette?.IsCategorical == true)
+        {
+            throw new InvalidOperationException("A HeatmapChart's colors show how much, not which: use ChartPalette.Shades, ChartPalette.Diverging or ChartPalette.Of, not ChartPalette.Colors.");
+        }
+
+        if (Midpoint is not null && Palette?.IsDiverging != true)
+        {
+            throw new InvalidOperationException("A HeatmapChart's Midpoint is where a ChartPalette.Diverging scale turns: set Palette to one, or leave Midpoint out.");
+        }
+
+        if (Min is { } min && Max is { } max && !(max > min))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Max), Max, "A HeatmapChart's Max must be more than its Min.");
+        }
+
+        if (Labels == ChartLabels.Outside)
+        {
+            throw new InvalidOperationException("A HeatmapChart's values go in their cells: Labels takes Auto, Inside or None.");
+        }
+
+        if (!ReferenceEquals(Column, _lastColumn))
+        {
+            _lastColumn = Column;
+            _column = Column.Compile();
+        }
+
+        if (!ReferenceEquals(Row, _lastRow))
+        {
+            _lastRow = Row;
+            _row = Row.Compile();
+            _rowName = ChartMembers.Name(Row);
+        }
+
+        if (!ReferenceEquals(Value, _lastValue))
+        {
+            _lastValue = Value;
+            _value = Value.Compile();
+            _valueName = ChartMembers.Name(Value);
+        }
+
+        _context.Ranges.BeginPass();
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

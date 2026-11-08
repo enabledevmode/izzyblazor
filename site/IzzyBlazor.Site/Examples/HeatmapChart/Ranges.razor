@@ -1,0 +1,33 @@
+@* Tickets waiting in a support queue at the top of each hour, with the team's own levels. *@
+<HeatmapChart Items="_queue" Column="q => q.Hour" Row="q => q.Day" Value="q => q.Waiting"
+              ColumnFormat="h tt" Title="Support queue, tickets waiting">
+    <HeatmapRange From="0" To="10" Color="Quiet" Label="Quiet" />
+    <HeatmapRange From="10" To="25" Color="Steady" Label="Steady" />
+    <HeatmapRange From="25" To="40" Color="Busy" Label="Busy" />
+    <HeatmapRange From="40" To="100" Color="Overloaded" Label="Overloaded" />
+</HeatmapChart>
+
+@code {
+    // Light to dark for the levels; in dark mode, dark to light.
+    private static readonly Color Quiet = Color.Of("light-dark(#dbeafe, #1e3a5f)");
+    private static readonly Color Steady = Color.Of("light-dark(#93c5fd, #2f5f9e)");
+    private static readonly Color Busy = Color.Of("light-dark(#3b82f6, #5b93e6)");
+    private static readonly Color Overloaded = Color.Of("light-dark(#1e40af, #a8c8ff)");
+
+    private record QueueHour(string Day, TimeOnly Hour, int Waiting);
+
+    private static readonly string[] Days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+    // Tickets waiting from 8 AM to 5 PM, a row per weekday.
+    private static readonly int[][] Waiting =
+    [
+        [34, 46, 41, 30, 22, 26, 24, 19, 14, 9],
+        [21, 28, 26, 20, 15, 18, 17, 13, 10, 7],
+        [18, 24, 22, 17, 13, 16, 15, 12, 9, 6],
+        [17, 23, 21, 16, 12, 14, 14, 11, 8, 6],
+        [15, 19, 18, 14, 11, 9, 8, 6, 4, 3],
+    ];
+
+    private readonly QueueHour[] _queue =
+        [.. Days.SelectMany((day, d) => Waiting[d].Select((n, h) => new QueueHour(day, new TimeOnly(8 + h, 0), n)))];
+}

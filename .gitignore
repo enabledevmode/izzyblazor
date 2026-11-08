@@ -13,6 +13,7 @@ src/IzzyBlazor.Core/wwwroot/izzyblazor.css
 src/IzzyBlazor.Core/wwwroot/date.css
 src/IzzyBlazor.Core/wwwroot/carousel.css
 src/IzzyBlazor.Core/wwwroot/chart.css
+src/IzzyBlazor.Core/wwwroot/heatmap.css
 src/IzzyBlazor.Core/wwwroot/tabs-edit.css
 src/IzzyBlazor.Core/wwwroot/speed-dial.css
 src/IzzyBlazor.Core/wwwroot/treeselect.css

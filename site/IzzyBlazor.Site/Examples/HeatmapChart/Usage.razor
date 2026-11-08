@@ -1,0 +1,24 @@
+@* A shop's online orders over the last four weeks, by weekday and hour. *@
+<HeatmapChart Items="_orders" Column="o => o.Hour" Row="o => o.Day" Value="o => o.Orders"
+              ColumnFormat="h tt" Title="Orders by hour, last 4 weeks" />
+
+@code {
+    private record HourlyOrders(string Day, TimeOnly Hour, int Orders);
+
+    private static readonly string[] Days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    // Orders from 8 AM to 7 PM, a row per day.
+    private static readonly int[][] Counts =
+    [
+        [12, 18, 26, 31, 38, 44, 35, 29, 27, 33, 40, 36],
+        [14, 20, 27, 34, 41, 46, 37, 31, 28, 35, 42, 39],
+        [13, 21, 29, 35, 43, 49, 39, 33, 30, 36, 44, 41],
+        [15, 22, 30, 36, 42, 48, 38, 32, 31, 38, 47, 45],
+        [16, 23, 28, 33, 39, 41, 34, 30, 33, 41, 52, 55],
+        [9, 14, 22, 30, 37, 40, 42, 44, 43, 46, 49, 47],
+        [6, 10, 17, 25, 31, 35, 38, 40, 39, 41, 38, 30],
+    ];
+
+    private readonly HourlyOrders[] _orders =
+        [.. Days.SelectMany((day, d) => Counts[d].Select((n, h) => new HourlyOrders(day, new TimeOnly(8 + h, 0), n)))];
+}

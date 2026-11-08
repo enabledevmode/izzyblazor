@@ -1007,7 +1007,7 @@ internal static class ChartLayout
     }
 
     /// <summary>The round step (1, 2 or 5 times a power of ten) at or above <paramref name="raw"/>; with <paramref name="up"/>, the next one past it.</summary>
-    private static double NiceStep(double raw, bool up = false)
+    internal static double NiceStep(double raw, bool up = false)
     {
         var power = Math.Pow(10, Math.Floor(Math.Log10(raw)));
         foreach (var f in new[] { 1, 2, 5, 10 })
