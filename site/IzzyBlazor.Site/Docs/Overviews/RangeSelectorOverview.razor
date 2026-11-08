@@ -6,8 +6,13 @@
 <Code Block Language="razor">@Usage</Code>
 <TextBlock>A range selector is a strip that draws a whole range small, such as a year of days, with a window over the part chosen. It suits long runs of dates, where the reader looks closer at a month and needs to see where it sits in the year. To pick a range of plain numbers, such as prices, use a <Anchor Href="docs/components/range-slider">RangeSlider</Anchor>; for two dates typed or picked from a calendar, a <Anchor Href="docs/components/date-range-field">DateRangeField</Anchor>.</TextBlock>
 
+<Heading Level="2">A strip under a chart</Heading>
+<TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;RangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
+<ExampleViewer Example="range-selector-strip" />
+<TextBlock>Clicking the strip outside the window moves the window there. Each handle's flag says where it is, and the two merge into one when the window is narrow.</TextBlock>
+
 <Heading Level="2">Range buttons in a chart</Heading>
-<TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;RangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series as soft areas, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it. To add buttons for the last 1, 3 and 6 months, the year to date, a year and everything, set <Code>Ranges</Code>.</TextBlock>
+<TextBlock>To add buttons for the last 1, 3 and 6 months, the year to date, a year and everything, set <Code>Ranges</Code>. The pressed button is the span in view.</TextBlock>
 <ExampleViewer Example="range-selector-in-chart" />
 <TextBlock>A button whose span would show everything is left out, so a chart of four months has no 6M or 1Y. A range selector turns on the chart's zoom, so the plot zooms by dragging, the wheel and the keys too. To open the chart on part of its arguments, or to learn in C# what's in view, set the chart's <Code>View</Code>; see <Anchor Href="docs/components/chart/zoom">Zoom</Anchor>.</TextBlock>
 <TextBlock>The strip moves with <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, with no round trip, on static pages too. With JavaScript off, it shows the part in view and nothing moves. A range selector needs an upright chart; in a chart with bars across, it throws.</TextBlock>
@@ -82,7 +87,7 @@
         @* In a chart: a strip under the plot that zooms it. *@
         <Chart Items="days" Argument="d => d.Date" Title="Daily visits">
             <ChartLineSeries Value="d => d.Visits" />
-            <RangeSelector Ranges />
+            <RangeSelector />
         </Chart>
 
         @* On its own: range is the ChartView chosen. *@

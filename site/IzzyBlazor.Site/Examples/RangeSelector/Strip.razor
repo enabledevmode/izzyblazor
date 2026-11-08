@@ -1,0 +1,23 @@
+@* A year of daily highs, with a plain range selector under the plot: no buttons, just the strip. *@
+<Chart Items="_days" Argument="d => d.Date" Title="Daily high temperature, Chicago, 2025">
+    <ChartValueAxis Format="0'°F'" />
+    <ChartLineSeries Value="d => d.High" Name="High" />
+    <RangeSelector />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, double High);
+
+    private readonly Day[] _days = Highs();
+
+    // A seasonal curve (coldest in late January, warmest in late July) with day-to-day swings.
+    private static Day[] Highs()
+    {
+        var random = new Random(11);
+        return Enumerable.Range(0, 365).Select(i =>
+        {
+            var season = 58 - 27 * Math.Cos((i - 22) / 365.0 * 2 * Math.PI);
+            return new Day(new DateOnly(2025, 1, 1).AddDays(i), Math.Round(season + (random.NextDouble() - 0.5) * 18));
+        }).ToArray();
+    }
+}
