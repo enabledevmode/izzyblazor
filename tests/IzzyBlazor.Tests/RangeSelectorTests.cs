@@ -35,7 +35,7 @@ public class RangeSelectorTests : BunitContext
 
         // The strip only: no plot, a named group, its series drawn small.
         Assert.Empty(selector.FindAll(".ib-chart-frame"));
-        Assert.Equal("Days to count", selector.Find(".ib-chart-sel").GetAttribute("aria-label"));
+        Assert.Equal("Days to count", selector.Find("figcaption").TextContent);
         Assert.Single(selector.FindAll(".ib-chart-sel-area"));
 
         // A slider at each end, saying the range's first and last days.
