@@ -2257,11 +2257,13 @@
       "features": [
         { "feature": "A funnel, each stage as wide as its value and sloping to the next" },
         { "feature": "A pyramid, each level as tall as its share of the total" },
-        { "feature": "Each stage named beside the shape with its value and share, joined by a line" },
+        { "feature": "Each stage named beside the shape with its value and share, joined by a line, or in its stage where it fits" },
+        { "feature": "Labels you write with a template" },
         { "feature": "A table of the values, with each stage's share of the one before, in a \"Show data\" disclosure" }
       ],
       "examples": [
         { "id": "funnel-chart-usage", "title": "A sign-up funnel", "lead": "A funnel chart shows the stages of a process that people drop out of, such as visits, sign-ups and purchases. Give `FunnelChart` the `Items` in the order of the process, each stage's name as `Argument`, its count as `Value`, and a `Title`. Each stage's top is as wide as its value, so the largest is the full width, and its sides slope to the next stage's width. Beside the funnel, a line joins each stage to its name, value and share of the first; \"Show data\" adds each stage's share of the one before." },
+        { "id": "funnel-chart-inside", "title": "Labels in the stages", "lead": "To write each stage's label in it, as its share over its name, set `Labels=\"ChartLabels.Inside\"`. A label that doesn't fit its stage, such as a narrow last stage's, sits beside the shape with a line instead. `LabelTemplate` replaces the labels with your own, inside or beside, built from each stage's `Name`, `ValueText`, `Share` and `ShareOfPrevious`; screen readers still hear the name, value and shares. `ChartLabels.None` leaves the labels out." },
         { "id": "funnel-chart-pyramid", "title": "A pyramid", "lead": "A pyramid shows levels of a hierarchy, such as a team by seniority. Set `Pyramid`: the shape is a triangle on its base, with the first item at the bottom, and each level is as tall as its share of the total, which its label shows. The wide base gives the first level more area than its share, so to compare levels exactly, use a `Chart` with bars across." }
       ]
     },

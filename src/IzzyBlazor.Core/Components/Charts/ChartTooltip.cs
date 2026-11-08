@@ -93,3 +93,47 @@ public sealed record ChartTooltipPoint(string Series, double? Value, string? Tex
     /// <summary>A bubble's size as text.</summary>
     public string? SizeText { get; init; }
 }
+
+/// <summary>
+/// What a FunnelChart's <c>LabelTemplate</c> draws from: one stage, with its value and shares
+/// written as the chart writes them.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public sealed class FunnelLabelContext<TItem>
+{
+    internal FunnelLabelContext(TItem item, int index, string name, double? value, string? valueText, string? share, string? shareOfPrevious, bool inside)
+    {
+        Item = item;
+        Index = index;
+        Name = name;
+        Value = value;
+        ValueText = valueText;
+        Share = share;
+        ShareOfPrevious = shareOfPrevious;
+        Inside = inside;
+    }
+
+    /// <summary>The item.</summary>
+    public TItem Item { get; }
+
+    /// <summary>The item's place in the chart's <c>Items</c>, from 0.</summary>
+    public int Index { get; }
+
+    /// <summary>The stage's name, from <c>Argument</c>.</summary>
+    public string Name { get; }
+
+    /// <summary>The stage's value, or null when it has none.</summary>
+    public double? Value { get; }
+
+    /// <summary>The value written with the chart's <c>ValueFormat</c>, such as "7,900".</summary>
+    public string? ValueText { get; }
+
+    /// <summary>The stage's share of the first, such as "64%"; a pyramid level's, of the total.</summary>
+    public string? Share { get; }
+
+    /// <summary>The stage's share of the stage before it, such as "71%". Null for the first stage and in a pyramid.</summary>
+    public string? ShareOfPrevious { get; }
+
+    /// <summary>Whether the label is drawn in its stage, or beside the shape because it doesn't fit there.</summary>
+    public bool Inside { get; }
+}

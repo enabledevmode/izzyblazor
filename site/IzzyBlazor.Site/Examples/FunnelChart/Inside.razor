@@ -1,0 +1,15 @@
+@* A quarter's sales pipeline, each stage's share written in it; the last stage is too narrow, so its label sits beside. *@
+<FunnelChart Items="_stages" Argument="s => s.Stage" Value="s => s.Deals" Title="Sales pipeline, Q3" Labels="ChartLabels.Inside" />
+
+@code {
+    private record PipelineStage(string Stage, int Deals);
+
+    private readonly PipelineStage[] _stages =
+    [
+        new("Leads", 1_840),
+        new("Qualified", 1_290),
+        new("Proposal sent", 760),
+        new("Negotiating", 410),
+        new("Won", 180),
+    ];
+}

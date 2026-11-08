@@ -1050,12 +1050,34 @@
     line-height: 1.25rem;
   }
 
+  .ib-funnel-plot { position: relative; min-width: 0; }
+
   .ib-funnel-svg {
     display: block;
     width: 100%;
     height: 100%;
     overflow: visible;
   }
+
+  /* Labels in their stages (Labels Inside): centered on the stage's middle, no wider than it is
+     there, in dark ink, as a pie's shares in its slices. */
+  .ib-funnel-inside { position: absolute; inset: 0; }
+
+  .ib-funnel-inside > div {
+    position: absolute;
+    left: 50%;
+    display: grid;
+    justify-items: center;
+    translate: -50% -50%;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
+  }
+
+  .ib-funnel-inside > div > * { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .ib-funnel-inside strong { font-size: var(--ib-text-md); font-weight: var(--ib-weight-semibold); font-variant-numeric: tabular-nums; }
+  .ib-funnel-inside span { font-size: var(--ib-text-xs); }
 
   .ib-funnel-stage {
     fill: var(--ib-chart-fill);
@@ -1090,6 +1112,18 @@
     white-space: nowrap;
   }
 
+  .ib-funnel-text { display: flex; align-items: center; gap: var(--ib-space-2); min-width: 0; }
+
+  /* A label inside its stage, or left out: in the list only for screen readers. */
+  .ib-funnel-labels > .ib-funnel-in {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   .ib-funnel-key {
     flex: none;
     width: 0.625rem;
@@ -1104,7 +1138,7 @@
 
   @container ib-chart (width < 28rem) {
     .ib-funnel { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; row-gap: var(--ib-space-4); }
-    .ib-funnel-svg { height: 14rem; }
+    .ib-funnel-plot { height: 14rem; }
     .ib-funnel-leader { display: none; }
     .ib-funnel-labels { gap: var(--ib-space-1); }
     /* A pyramid's base is drawn at the bottom: its labels list from the top level down, as drawn. */
