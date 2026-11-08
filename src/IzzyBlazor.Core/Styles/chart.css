@@ -509,8 +509,7 @@
     background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
     pointer-events: none;
   }
-  /* RangeSelector: a strip under the plot, lined up with it by the script (--ib-chart-sel-x and
-     -w); the series small over the whole range, a window over the view between two handles,
+  /* RangeSelector: a strip the chart's width under the plot; the series small over the whole range, a window over the view between two handles,
      the rest shaded. --ib-sel-s and -e are the view's ends (the script's -js and -je while it
      moves). */
   .ib-chart-sel {
@@ -520,8 +519,6 @@
     direction: ltr;
     gap: var(--ib-space-1);
     margin-block-start: var(--ib-space-4);
-    margin-inline-start: var(--ib-chart-sel-x, 0);
-    inline-size: var(--ib-chart-sel-w, auto);
   }
   .ib-chart-sel-ranges {
     display: flex;
