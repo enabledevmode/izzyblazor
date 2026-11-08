@@ -20,7 +20,8 @@
 <Heading Level="2">Announcing an action</Heading>
 <TextBlock>To tell screen reader users what just happened, call <Code>Announce</Code> on the injected <Code>Announcer</Code>. Revoking an invite marks its row and turns the button into Undo. The button keeps focus, but screen readers don't read a focused button's new name, so the announcement says what happened:</TextBlock>
 <ExampleViewer Example="live-region-announce" />
-<TextBlock>Every call is read, the same words twice included. On interactive pages, the message goes to the browser at once. On static pages, it renders in the response, so put an <Code>AnnouncerRegion</Code> in your layout. A <Code>ToastRegion</Code> already includes one, so a layout with toasts needs nothing more. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
+<TextBlock>Every call is read, the same words twice included. <Code>AddIzzyBlazor()</Code> registers the service.</TextBlock>
+<TextBlock>On interactive pages, the message goes to the browser at once. On static pages, it renders in the response, so put an <Code>AnnouncerRegion</Code> in your layout. A <Code>ToastRegion</Code> already includes one, so a layout with toasts needs nothing more.</TextBlock>
 <TextBlock>A redirect drops the message. To tell users something after post-redirect-get, show a <Anchor Href="docs/components/toast-region">toast</Anchor>, which follows them to the next page.</TextBlock>
 <TextBlock>With JavaScript off, messages aren't read. Put the outcome where focus lands instead: a <Anchor Href="docs/components/form">Form</Anchor>'s errors take focus after a failed post.</TextBlock>
 <TextBlock>Announce in response to an action, not in <Code>OnInitialized</Code>, which runs twice on a prerendered interactive page.</TextBlock>

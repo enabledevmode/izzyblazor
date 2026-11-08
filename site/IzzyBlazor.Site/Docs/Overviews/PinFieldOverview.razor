@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A pin field accepts a short code, with a box for each character. It suits one-time codes from an authenticator app, a text message or an email, and PINs. The boxes sit under a single text input, so pasting a whole code, a phone's autofill and screen readers work as in any text field. To show the QR code that sets up an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
+<TextBlock>A pin field accepts a short code, with a box for each character, such as a one-time code from an authenticator app, a text message or an email, or a PIN. The boxes sit under a single text input, so pasting a whole code, a phone's autofill and screen readers work as in any text field. To show the QR code that sets up an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
 
 <Heading Level="2">A one-time code</Heading>
 <TextBlock>A pin field binds to a string and accepts six digits by default. Phones offer a code that just arrived by text message or email (<Code>autocomplete="one-time-code"</Code>), and show the number keyboard.</TextBlock>
@@ -13,9 +13,10 @@
 <TextBlock>The form doesn't submit when the last digit is entered, since a user who pastes a code or corrects a digit may not be done. Add a button that submits it.</TextBlock>
 
 <Heading Level="2">PINs and codes with letters</Heading>
-<TextBlock>To hide a PIN, set <Code>Secret</Code>. The boxes show dots, and the input becomes a password input, so screen readers don't read it out and a static page doesn't fill it in again after a form post. Set <Code>AutoComplete</Code> to <Code>current-password</Code> or <Code>new-password</Code>, so password managers save it and phones don't offer a texted code. <Code>Length</Code> sets how many boxes there are, from 2 to 32; on a narrow screen they shrink to fit.</TextBlock>
+<TextBlock>To hide a PIN, set <Code>Secret</Code>. The boxes show dots, and the input becomes a password input, so screen readers don't read it out and a static page doesn't fill it in again after a form post. Set <Code>AutoComplete</Code> to <Code>current-password</Code> or <Code>new-password</Code>, so password managers save it and phones don't offer a texted code.</TextBlock>
 <TextBlock>For a code with letters, such as a pairing code, set <Code>Letters</Code>. Letters are upper-cased as they're typed, and phones show the full keyboard.</TextBlock>
 <ExampleViewer Example="pin-field-pin" />
+<TextBlock><Code>Length</Code> sets how many boxes there are, from 2 to 32; on a narrow screen they shrink to fit.</TextBlock>
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The message for a code that's too short comes from the app's text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>

@@ -7,7 +7,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A stepper shows where the user is in a process. It suits a checkout or a setup wizard. It's an ordered list that works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
+<TextBlock>A stepper shows where the user is in a process, such as a checkout or a setup wizard. It's an ordered list that works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
 
 <Heading Level="2">Steps of a checkout</Heading>
 <TextBlock>The current step is the one the user is on, counting from 1, and the steps before it show as done. Set <Code>Current</Code>. To make a step's label a link, such as back to a finished step, set the <Code>Step</Code>'s <Code>Href</Code>.</TextBlock>
@@ -16,7 +16,7 @@
 <TextBlock>Below 640px, the steps stay a row of markers, and only the current step's label shows. A finished step's link is still there, on its marker.</TextBlock>
 
 <Heading Level="2">Vertical, with descriptions</Heading>
-<TextBlock>A vertical stepper keeps the steps in a column on every screen. Set <Code>Orientation="Orientation.Vertical"</Code>. To add a line under a step's label, set the <Code>Step</Code>'s <Code>Description</Code>. To show an icon in its marker until the step is done, set its <Code>Icon</Code>.</TextBlock>
+<TextBlock>A vertical stepper keeps the steps in a column on every screen. Set <Code>Orientation="Orientation.Vertical"</Code>. To add a line under a step's label, set the <Code>Step</Code>'s <Code>Description</Code>; to show an icon in its marker until the step is done, set its <Code>Icon</Code>.</TextBlock>
 <ExampleViewer Example="stepper-vertical" />
 
 <Heading Level="2">A step that only sometimes applies</Heading>

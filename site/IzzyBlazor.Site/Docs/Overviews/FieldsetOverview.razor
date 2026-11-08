@@ -4,7 +4,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A fieldset is a group of fields under a heading, in one part of a form. It suits an address or a set of notification settings. Screen readers announce that heading as the group's name when focus moves into it. A <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> is a group already, so it needs no Fieldset of its own. For a part of a page that isn't a form, see <Anchor Href="docs/components/card">Card</Anchor> or <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
+<TextBlock>A fieldset is a group of fields under a heading, in one part of a form, such as an address or a set of notification settings. Screen readers announce that heading as the group's name when focus moves into it.</TextBlock>
+<TextBlock>A <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> is a group already, so it needs no Fieldset of its own. For a part of a page that isn't a form, see <Anchor Href="docs/components/card">Card</Anchor> or <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
 
 <Heading Level="2">Label and description</Heading>
 <TextBlock>A fieldset has a heading, and can have a short line of description under it. Set <Code>Label</Code> to the heading; every fieldset needs one. To add a description, set <Code>Description</Code>.</TextBlock>
@@ -20,13 +21,14 @@
 </List>
 
 <Heading Level="2">A list of settings</Heading>
-<TextBlock>A fieldset can show its rows as a list with a line between each, as in a list of settings. Set <Code>Dividers</Code> to turn it on. To set the space above and below each line, set <Code>Gap</Code>. The default is 4.</TextBlock>
+<TextBlock>A fieldset can show its rows as a list with a line between each, as in a list of settings. Set <Code>Dividers</Code> to turn it on. To set the space above and below each line, set <Code>Gap</Code> (4 by default).</TextBlock>
 <ExampleViewer Example="fieldset-dividers" />
 <TextBlock>Each direct child is a row, so <Code>Dividers</Code> replaces <Code>Divider</Code> components between them. It's ignored with more than one column.</TextBlock>
 
 <Heading Level="2">Icons on sections</Heading>
-<TextBlock>On a page of several groups, an icon at the start of each heading helps the user tell the sections apart at a glance. Set <Code>Icon</Code> to add one. The icon sits beside the label and description, and is decorative. Put icons on the sections or on the rows inside them, not both.</TextBlock>
+<TextBlock>On a page of several groups, an icon at the start of each heading helps the user tell the sections apart at a glance. Set <Code>Icon</Code> to add one.</TextBlock>
 <ExampleViewer Example="fieldset-icons" />
+<TextBlock>The icon is decorative. Put icons on the sections or on the rows inside them, not both.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

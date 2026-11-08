@@ -4,7 +4,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A badge is a small label next to something. It suits a status ("Paid"), a category ("Beta") or a count. It's text, not a control. For a keyword that's a link or can be removed, see <Anchor Href="docs/components/tag">Tag</Anchor>. For a message about something, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+<TextBlock>A badge is a small label next to something. It suits a status ("Paid"), a category ("Beta") or a count. It's text, not a control.</TextBlock>
+<TextBlock>For a keyword that's a link or can be removed, see <Anchor Href="docs/components/tag">Tag</Anchor>. For a message about something, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status</Heading>
 <TextBlock>The status is what the badge means, and it sets the badge's color: Neutral (the default), Info, Success, Warning or Danger. Set <Code>Status</Code> to choose one. For a color of your own, set <Code>Accent</Code> instead, such as <Code>Accent.Primary</Code> for a brand-colored label or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
@@ -15,7 +16,7 @@
 <ExampleViewer Example="badge-variants" />
 
 <Heading Level="2">Dots, counts and icons</Heading>
-<TextBlock>A badge can show a colored dot or an icon before its text, and a count can have fully rounded ends. To show a dot before a status, set <Code>Dot</Code>. To round a count's ends, set <Code>Pill</Code>. To show an icon before the text, set <Code>StartIcon</Code>; with <Code>Dot</Code> set too, only the dot shows.</TextBlock>
+<TextBlock>A badge can show a colored dot or an icon before its text, and a count can have fully rounded ends. To show a dot before a status, set <Code>Dot</Code>; to round a count's ends, set <Code>Pill</Code>. To show an icon before the text, set <Code>StartIcon</Code>; with <Code>Dot</Code> set too, only the dot shows.</TextBlock>
 <ExampleViewer Example="badge-dots-counts" />
 <TextBlock>For a compact badge for counts, set <Code>Size="BadgeSize.Sm"</Code>. The color, the dot and the icon don't reach screen readers, so the text has to say what it means: "Overdue", not a red badge reading "3 days".</TextBlock>
 

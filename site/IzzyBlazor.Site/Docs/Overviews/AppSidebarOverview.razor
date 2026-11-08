@@ -7,16 +7,16 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A sidebar is the column of links beside the page in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>. It suits an app's main navigation. On phones it becomes a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
+<TextBlock>A sidebar is the column of links beside the page in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, for an app's main navigation. On phones it becomes a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">A drawer on phones</Heading>
-<TextBlock>On narrow screens the sidebar becomes a drawer, and a menu button in the header opens it. To set the width below which this happens, set <Code>Breakpoint</Code>. The default is 768px. The menu button shows only below it.</TextBlock>
+<TextBlock>On narrow screens the sidebar becomes a drawer, and a menu button in the header opens it. To set the width below which this happens, set <Code>Breakpoint</Code> (768px by default); the menu button shows only below it.</TextBlock>
 <ExampleViewer Example="app-sidebar-drawer" WidthSwitch />
-<TextBlock>To open the drawer from the right, with the menu button at the right of the header as content sites do, set <Code>DrawerPosition="SidebarPosition.End"</Code>. To move the whole sidebar to the right, set <Code>Position</Code>. To set the sidebar's width, set <Code>Width</Code>. The default is 16rem.</TextBlock>
+<TextBlock>To open the drawer from the right, with the menu button at the right of the header as content sites do, set <Code>DrawerPosition="SidebarPosition.End"</Code>. To move the whole sidebar to the right, set <Code>Position</Code>. To set the sidebar's width, set <Code>Width</Code> (16rem by default).</TextBlock>
 <Code Block Language="razor">@FromTheRight</Code>
 
 <Heading Level="2">Pinned at the top and bottom</Heading>
-<TextBlock>A sidebar can pin content at its top and bottom while the links between them scroll. Put what stays at the top, such as a workspace, in a <Code>SidebarHeader</Code>. Put what stays at the bottom, such as the account, in a <Code>SidebarFooter</Code>. Write both directly in the sidebar.</TextBlock>
+<TextBlock>A sidebar can pin content at its top and bottom while the links between them scroll. Put what stays at the top, such as a workspace, in a <Code>SidebarHeader</Code>, and what stays at the bottom, such as the account, in a <Code>SidebarFooter</Code>. Write both directly in the sidebar.</TextBlock>
 <Code Block Language="razor">@Pinned</Code>
 <TextBlock>In the drawer, the header shares the top row with the close button. With no <Code>SidebarHeader</Code>, the drawer's top row shows the shell's <Code>AppBrand</Code>. Links written straight in the sidebar are its body, so use <Code>SidebarBody</Code> only for spacing, such as a <Code>Gap</Code> between two lists.</TextBlock>
 

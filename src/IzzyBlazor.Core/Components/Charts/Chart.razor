@@ -36,6 +36,19 @@
       aqua and orange are lighter than that, which the legend, tooltips and table make up for.
       Palette's shades and diverging ramps keep their lightest step at about 2:1, so the data
       table matters more with them.
+    - Reference lines and bands are read in the chart's description, such as "Target $150K:
+      $150,000". Value labels are hidden from screen readers, since "Show data" has every value.
+    - With script, the plot is one Tab stop that keeps the arrow keys, with a screen reader too:
+      each move shows that item's tooltip and says its values.
+
+    Keyboard:
+    On the plot
+    - Right, Down | Show the next item's values in the order shown, so Right moves right on a reversed
+      axis too (on a scatter chart, the next point to the right)
+    - Left, Up | Show the item before
+    - Page Down, Page Up | Move a tenth of the items forward or back
+    - Home, End | Go to the first or last item
+    - Escape | Hide the tooltip
     See also: Stat, Table.
 *@
 

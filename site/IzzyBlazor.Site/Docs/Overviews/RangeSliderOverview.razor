@@ -4,12 +4,13 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A range slider picks a span, such as a price filter's lowest and highest prices. It's two native range inputs on one track, so both ends post with the form, and each thumb moves with the arrow keys, Page Up and Page Down, and Home and End, with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor> too. When the exact numbers matter, use two <Anchor Href="docs/components/number-field">NumberFields</Anchor>.</TextBlock>
+<TextBlock>A range slider picks a span, such as a price filter's lowest and highest prices. It's two native range inputs on one track, so both ends post with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. When the exact numbers matter, use two <Anchor Href="docs/components/number-field">NumberFields</Anchor>.</TextBlock>
 
 <Heading Level="2">Filtering by a range</Heading>
 <TextBlock>Bind the slider to a <Code>NumberRange</Code> of any number type, such as <Code>NumberRange&lt;int&gt;</Code> or <Code>NumberRange&lt;decimal&gt;</Code>. It holds <Code>Start</Code> and <Code>End</Code>, both included, and <Code>Contains</Code> tests a value against them. The ends post as <Code>Price.Start</Code> and <Code>Price.End</Code>, so a <Code>[SupplyParameterFromForm]</Code> model binds them on a static page.</TextBlock>
-<TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>. To show each thumb's value in a tooltip over it, set <Code>ValueTooltip</Code> to <Code>SliderTooltip.Active</Code> (while it's hovered, focused or dragged) or <Code>SliderTooltip.Always</Code>. To label the ends of the track, set <Code>ShowEnds</Code>; for marks, set <Code>Marks</Code> or <Code>ShowStepMarks</Code>, as on <Anchor Href="docs/components/slider">Slider</Anchor>. To set how values read, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
+<TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>.</TextBlock>
 <ExampleViewer Example="range-slider-price" />
+<TextBlock>To show each thumb's value in a tooltip over it, set <Code>ValueTooltip</Code> to <Code>SliderTooltip.Active</Code> (while it's hovered, focused or dragged) or <Code>SliderTooltip.Always</Code>. To label the ends of the track, set <Code>ShowEnds</Code>; for marks, set <Code>Marks</Code> or <Code>ShowStepMarks</Code>, as on <Anchor Href="docs/components/slider">Slider</Anchor>. To set how values read, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
 <TextBlock>With no value, the thumbs sit at the ends of the scale, as a filter that hasn't narrowed anything.</TextBlock>
 
 <Heading Level="2">Naming the thumbs</Heading>
@@ -17,7 +18,8 @@
 <ExampleViewer Example="range-slider-window" />
 
 <Heading Level="2">When the thumbs meet</Heading>
-<TextBlock>With script, a thumb stops at the other, so the ends can be equal but never cross, and a click on the track moves the nearer thumb there. Without script, the thumbs can pass each other; when the form posts, the server binds the lower value as <Code>Start</Code>. The server also turns away an end outside <Code>Min</Code> and <Code>Max</Code>, so a crafted post can't widen the range. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+<TextBlock>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, a thumb stops at the other, so the ends can be equal but never cross, and a click on the track moves the nearer thumb there. With JavaScript off, the thumbs can pass each other; when the form posts, the server binds the lower value as <Code>Start</Code>.</TextBlock>
+<TextBlock>The server rejects an end outside <Code>Min</Code> and <Code>Max</Code>, so a crafted post can't widen the range. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Vertical, live and disabled</Heading>
 <TextBlock>To stand the slider upright, set <Code>Orientation</Code> to <Code>Orientation.Vertical</Code>; the lowest value is at the bottom, and <Code>Height</Code> sets the track's length, 10rem by default. On interactive pages, to update the bound value as a thumb moves, set <Code>Live</Code>; each move is a round trip. <Code>Size</Code> and <Code>Disabled</Code> work as on <Anchor Href="docs/components/slider">Slider</Anchor>, and so does a read-only <Anchor Href="docs/components/form">Form</Anchor>: the slider is disabled, and hidden fields post both ends.</TextBlock>

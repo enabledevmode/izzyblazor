@@ -17,7 +17,7 @@
 </List>
 
 <Heading Level="2">Groups, shortcuts and colors</Heading>
-<TextBlock>A long menu reads better in labeled sections, with icons and keyboard shortcuts beside its items. For a labeled section, add a <Code>MenuGroup</Code>. For a line between items, add a <Code>MenuDivider</Code>. On an item, <Code>Icon</Code> adds an icon, <Code>Shortcut</Code> shows a key, and <Code>Accent="Accent.Danger"</Code> marks an item that destroys something.</TextBlock>
+<TextBlock>A long menu reads better in labeled sections, with icons and keyboard shortcuts beside its items. For a labeled section, add a <Code>MenuGroup</Code>; for a line between items, add a <Code>MenuDivider</Code>. On an item, <Code>Icon</Code> adds an icon, <Code>Shortcut</Code> shows a key, and <Code>Accent="Accent.Danger"</Code> marks an item that destroys something.</TextBlock>
 <ExampleViewer Example="menu-groups" />
 <TextBlock>A shortcut is only shown; the app handles the keys.</TextBlock>
 
@@ -27,7 +27,7 @@
 <TextBlock>The panel fits its items, from 10rem to 24rem wide. To set a width of your own, set <Code>PanelWidth</Code>. Without a <Code>Trigger</Code>, <Code>Label</Code>, <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style the default button.</TextBlock>
 
 <Heading Level="2">Checked items</Heading>
-<TextBlock>A menu can contain options the user checks, such as a sort order or a view setting. For a set of options kept in the URL, such as a sort, add a <Code>MenuRadioGroup</Code> and set its <Code>QueryKey</Code>. For an on/off item, set <Code>Checked</Code> and an <Code>Href</Code>. Both are links, so they work on static pages.</TextBlock>
+<TextBlock>A menu can contain options the user checks, such as a sort order or a view setting. For a set of options kept in the URL, such as a sort, add a <Code>MenuRadioGroup</Code> and set its <Code>QueryKey</Code>. For an on/off item, set <Code>Checked</Code> and an <Code>Href</Code>; both are links, so they work on static pages.</TextBlock>
 <ExampleViewer Example="menu-checked" />
 <List>
     <ListItem>On interactive pages, to keep them in C# instead, set <Code>@@bind-Value</Code> on the group and <Code>@@bind-Checked</Code> on an item.</ListItem>
@@ -38,7 +38,8 @@
 <Heading Level="2">Right-click menus</Heading>
 <TextBlock>A menu can also open where the user right-clicks, such as on a file or a card. Set <Code>ContextFor</Code> to the id of the element: right-click, a long press on touch, the menu key or Shift+F10 in it opens the menu at the pointer. Links, fields and selected text keep the browser's menu, as does Shift+right-click.</TextBlock>
 <ExampleViewer Example="menu-context" />
-<TextBlock>Right-click can't be seen, so the menu keeps its button, as each card's ⋮ does here. For a menu with no button, see <Anchor Href="docs/components/context-menu">ContextMenu</Anchor>. Each card has its own menu, so its items already know which file they act on. It needs script: with JavaScript off, right-click shows the browser's menu.</TextBlock>
+<TextBlock>Right-click can't be seen, so the menu keeps its button, as each card's ⋮ does here. Each card has its own menu, so its items already know which file they act on.</TextBlock>
+<TextBlock>Right-click needs IzzyBlazor's script: with JavaScript off, it shows the browser's menu. For a menu with no button, see <Anchor Href="docs/components/context-menu">ContextMenu</Anchor>.</TextBlock>
 
 <Heading Level="2">Submenus</Heading>
 <TextBlock>A submenu is an item that opens another menu beside it. Add a <Code>MenuSub</Code>. Choosing an item in it closes the whole menu.</TextBlock>

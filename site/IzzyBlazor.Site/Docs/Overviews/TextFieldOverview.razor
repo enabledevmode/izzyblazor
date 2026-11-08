@@ -4,19 +4,22 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A text field is a field for one line of text, such as a name or an email address. It suits short text. It's a native input, so it posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For several lines, see <Anchor Href="docs/components/text-area">TextArea</Anchor>. For numbers, see <Anchor Href="docs/components/number-field">NumberField</Anchor>. For a password, see <Anchor Href="docs/components/password-field">PasswordField</Anchor>.</TextBlock>
+<TextBlock>A text field is a field for one line of text, such as a name or an email address. It's a native input, so it posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For several lines, a number or a password, see <Anchor Href="docs/components/text-area">TextArea</Anchor>, <Anchor Href="docs/components/number-field">NumberField</Anchor> or <Anchor Href="docs/components/password-field">PasswordField</Anchor>.</TextBlock>
 
 <Heading Level="2">Labels and hints</Heading>
 <TextBlock>A field's label comes from the model: its <Code>[Display(Name)]</Code>, or the property name in words. <Code>[Required]</Code> adds a required mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
 <ExampleViewer Example="text-field-labels" />
 
 <Heading Level="2">Types</Heading>
-<TextBlock>A field's type sets the on-screen keyboard, and for email and URL, the browser's check. To make the field an email, phone, URL or search field, set <Code>Type</Code>. The type defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code> and <Code>[Url]</Code>. A <Code>[DataType(DataType.Password)]</Code> property needs a <Anchor Href="docs/components/password-field">PasswordField</Anchor>.</TextBlock>
+<TextBlock>A field's type sets the on-screen keyboard, and for email and URL, the browser's check. To make the field an email, phone, URL or search field, set <Code>Type</Code>.</TextBlock>
 <Code Block Language="razor">@Types</Code>
+<TextBlock>The type defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code> and <Code>[Url]</Code>. A <Code>[DataType(DataType.Password)]</Code> property needs a <Anchor Href="docs/components/password-field">PasswordField</Anchor>.</TextBlock>
 
 <Heading Level="2">Masks</Heading>
-<TextBlock>A mask gives the text a fixed form, such as a phone number or a postal code. Set <Code>Mask</Code>. As the user types or pastes, the field drops characters that don't fit and adds the mask's own, such as the brackets and the dash in <Code>(000) 000-0000</Code>. The server does the same when the form posts, so <Code>416.555.0199</Code> posted with JavaScript off binds as <Code>(416) 555-0199</Code>. A value with an empty slot is invalid. Show the format in <Code>Placeholder</Code>, such as <Code>(000) 000-0000</Code>. Screen readers don't hear the mask, and some don't read a placeholder, so when the label doesn't make the format plain, say it in the <Code>Hint</Code> too.</TextBlock>
+<TextBlock>A mask gives the text a fixed form, such as a phone number or a postal code. Set <Code>Mask</Code>. As the user types or pastes, the field drops characters that don't fit and adds the mask's own, such as the brackets and the dash in <Code>(000) 000-0000</Code>.</TextBlock>
 <ExampleViewer Example="text-field-masks" />
+<TextBlock>The server does the same when the form posts, so <Code>416.555.0199</Code> posted with JavaScript off binds as <Code>(416) 555-0199</Code>. A value with an empty slot is invalid.</TextBlock>
+<TextBlock>Show the format in <Code>Placeholder</Code>, such as <Code>(000) 000-0000</Code>. Screen readers don't hear the mask, and some don't read a placeholder, so when the label doesn't make the format plain, say it in the <Code>Hint</Code> too.</TextBlock>
 <Prose Class="site-table ib-scroll">
     <table>
         <thead><tr><th>In the mask</th><th>Takes</th></tr></thead>
@@ -31,7 +34,8 @@
         </tbody>
     </table>
 </Prose>
-<TextBlock>The value binds as shown, <Code>(416) 555-0199</Code>. To bind only the typed characters, <Code>4165550199</Code>, set <Code>RawValue</Code>. To add mask characters of your own, set <Code>MaskRules</Code> to each character and the class it takes, as <Code>new() { ['X'] = "[A-HJ-NP-Z]" }</Code>. A field whose mask has only digits gets the number keyboard on phones.</TextBlock>
+<TextBlock>The value binds as shown, <Code>(416) 555-0199</Code>. To bind only the typed characters, <Code>4165550199</Code>, set <Code>RawValue</Code>.</TextBlock>
+<TextBlock>To add mask characters of your own, set <Code>MaskRules</Code> to each character and the class it takes, as <Code>new() { ['X'] = "[A-HJ-NP-Z]" }</Code>. A field whose mask has only digits gets the number keyboard on phones.</TextBlock>
 
 <Heading Level="2">Icons</Heading>
 <TextBlock>A field can show an icon inside it, such as a search icon. Set <Code>StartIcon</Code> or <Code>EndIcon</Code>.</TextBlock>

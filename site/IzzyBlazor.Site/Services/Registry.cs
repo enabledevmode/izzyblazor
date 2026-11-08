@@ -243,10 +243,16 @@ public sealed record RegistryExample
     public required string Title { get; init; }
 
     /// <summary>
-    /// One sentence a generated Overview shows above the example, leading with the prop ("Use
+    /// One or two sentences a generated Overview shows above the example, leading with the prop ("Use
     /// `Status` for the meaning."). Backticks mark code. Hand-written Overviews write their own.
     /// </summary>
     public string? Lead { get; init; }
+
+    /// <summary>
+    /// Short paragraphs a generated Overview or topic page shows under the example: the details,
+    /// caveats and mode differences that would make the lead long. Backticks mark code.
+    /// </summary>
+    public List<string> After { get; init; } = [];
 
     /// <summary>
     /// A caveat a generated Overview shows under the lead, as an info Alert: a title and a

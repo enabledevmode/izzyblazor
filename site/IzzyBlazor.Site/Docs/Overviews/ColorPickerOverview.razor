@@ -4,8 +4,8 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A color picker is a field for choosing a color: a swatch and a hex box. The swatch opens a <Anchor Href="docs/components/color-panel">ColorPanel</Anchor> in a popover, with swatches, a picker and fields; changes apply at once, and Escape or a click outside closes it. Its value is a hex string such as <Code>#2563eb</Code>. To show the colors without a popover, use a ColorPanel.</TextBlock>
-<TextBlock>Underneath is a native color input, so the field posts with the form and opens the browser's own picker <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
+<TextBlock>A color picker is a field for choosing a color: a swatch and a hex box. The swatch opens a <Anchor Href="docs/components/color-panel">ColorPanel</Anchor> in a popover, with swatches, a picker and fields; changes apply at once. Its value is a hex string such as <Code>#2563eb</Code>.</TextBlock>
+<TextBlock>Underneath is a native color input, so the field posts with the form and opens the browser's own picker <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. To show the colors without a popover, use a ColorPanel.</TextBlock>
 
 <Heading Level="2">Swatches</Heading>
 <TextBlock>The panel offers 21 colors by default. Set <Code>Swatches</Code> to offer your own, and <Code>SwatchText</Code> to name them: screen readers hear "Teal" rather than "dark cyan", and the name is the swatch's tooltip. An empty list shows none.</TextBlock>
@@ -36,7 +36,7 @@
 <TextBlock>To keep the browser's own picker, set <Code>UseNative</Code>. It looks different in each browser and has no opacity. Swatches show under the field, and Chrome and Edge also list them in their picker.</TextBlock>
 
 <Heading Level="2">Sizes, swatch only and locked</Heading>
-<TextBlock>The size lines the picker up with other fields; set <Code>Size</Code> to choose one. To show the swatch alone, set <Code>ShowHex="false"</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
+<TextBlock>To line the picker up with other fields, set <Code>Size</Code>, and to show the swatch alone, set <Code>ShowHex="false"</Code>. For a value the user can see but not change, set <Code>ReadOnly</Code>; it still posts. For a value that doesn't post, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="color-picker-states" />
 <List>
     <ListItem>A read-only picker still shows its hex box, because that's the part that can be focused.</ListItem>

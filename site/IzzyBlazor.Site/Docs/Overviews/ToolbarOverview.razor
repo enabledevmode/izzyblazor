@@ -5,18 +5,18 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A toolbar is a row of controls that stays on one line. It suits a set of actions, such as an editor's. What doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. The toolbar works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, so a phone on a slow connection gets the same toolbar.</TextBlock>
+<TextBlock>A toolbar is a row of controls that stays on one line, such as an editor's actions. What doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. The toolbar works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, so a phone on a slow connection gets the same toolbar.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
 <OverviewTopics Component="Component" />
 
 <Heading Level="2">An editor toolbar</Heading>
-<TextBlock>A toolbar has its own versions of <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>: <Code>ToolbarButton</Code>, <Code>ToolbarIconButton</Code>, <Code>ToolbarButtonGroup</Code> and <Code>ToolbarMenu</Code>. They accept the same parameters, and they move into the … menu when the toolbar runs out of room. A group moves as one. Narrow the window to see them move.</TextBlock>
+<TextBlock>A toolbar has its own versions of <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>: <Code>ToolbarButton</Code>, <Code>ToolbarIconButton</Code>, <Code>ToolbarButtonGroup</Code> and <Code>ToolbarMenu</Code>. They accept the same parameters, and they move into the … menu when the toolbar runs out of room; a group moves as one. Narrow the window to see them move.</TextBlock>
 <ExampleViewer Example="toolbar-editor" />
 <TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out. Put any other control in a <Code>ToolbarItem</Code>. Placed directly in the toolbar, it throws.</TextBlock>
 
 <Heading Level="2">Start, center and end</Heading>
-<TextBlock>A toolbar has three regions: the start, the center and the end. Items sit at the start by default. To put an item in the center or at the end, set its <Code>Position</Code>. For text that stays in the bar, such as a document's name, use <Code>ToolbarText</Code>.</TextBlock>
+<TextBlock>A toolbar has three regions: the start, the center and the end. Items sit at the start by default; to put an item in the center or at the end, set its <Code>Position</Code>. For text that stays in the bar, such as a document's name, use <Code>ToolbarText</Code>.</TextBlock>
 <ExampleViewer Example="toolbar-regions" />
 <TextBlock>The center stays centered, so the start and the end each get half of the room around it. When room runs out, the wider of the two moves its controls into the menu first.</TextBlock>
 
@@ -29,7 +29,7 @@
 </List>
 
 <Heading Level="2">In an app header</Heading>
-<TextBlock>A toolbar in an app header contains the header's actions, after the brand. On phones, the actions move into the … menu. Set <Code>Grow</Code> on the toolbar so it fills the rest of the header, and put its items at the end. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
+<TextBlock>A toolbar in an app header contains the header's actions, after the brand, and on phones they move into the … menu. Set <Code>Grow</Code> on the toolbar so it fills the rest of the header, and put its items at the end. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
 <Code Block Language="razor">@InHeader</Code>
 <TextBlock>The header stays the page's banner landmark. Navigation links belong in a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>, because a toolbar is for controls.</TextBlock>
 

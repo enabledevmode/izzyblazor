@@ -38,6 +38,10 @@
         <Alert Status="Status.Info" Title="@info.Title"><InlineCode Text="@info.Text" /></Alert>
     }
     <ExampleViewer Example="@example.Id" />
+    @foreach (var paragraph in example.After)
+    {
+        <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
+    }
 }
 
 @if (ApiComponent.Remarks is not null)

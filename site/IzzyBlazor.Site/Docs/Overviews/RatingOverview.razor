@@ -4,7 +4,7 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A rating is a radio button for each star in a fieldset. It posts with the form, the arrow keys move it, and screen readers hear "3 stars, radio button, 3 of 5". Hovering fills the stars up to the pointer. For a score on a longer scale, use a <Anchor Href="docs/components/slider">Slider</Anchor> or a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
+<TextBlock>A rating is a radio button for each star in a fieldset. It posts with the form, and hovering fills the stars up to the pointer. For a score on a longer scale, use a <Anchor Href="docs/components/slider">Slider</Anchor> or a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
 
 <Heading Level="2">Saving a rating</Heading>
 <TextBlock>A rating binds to <Code>int</Code> or <Code>int?</Code>, from 1 to <Code>Max</Code> (5 by default). The value posts as a number with the form.</TextBlock>
@@ -16,9 +16,10 @@
 <TextBlock>Bound to <Code>int</Code>, a rating starts with no star chosen when the value is 0, and can't be cleared once one is.</TextBlock>
 
 <Heading Level="2">Showing a rating</Heading>
-<TextBlock>To show a rating someone can't change, such as an average, set <Code>ReadOnly</Code>. It takes any number, <Code>double</Code> too, and fills the stars to the exact fraction: 4.3 fills 86%. Screen readers hear one image, "4.3 out of 5 stars". In a <Anchor Href="docs/components/form">Form</Anchor>, it posts its value.</TextBlock>
+<TextBlock>To show a rating someone can't change, such as an average, set <Code>ReadOnly</Code>. It takes any number, <Code>double</Code> too, and fills the stars to the exact fraction: 4.3 fills 86%.</TextBlock>
 <TextBlock><Code>Icon</Code> changes the star, <Code>Accent</Code> its color, and <Code>Max</Code> how many there are.</TextBlock>
 <ExampleViewer Example="rating-display" />
+<TextBlock>Screen readers hear one image, "4.3 out of 5 stars". In a <Anchor Href="docs/components/form">Form</Anchor>, a read-only rating posts its value.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
 <TextBlock>To line a rating up with other fields, set <Code>Size</Code>. A <Code>Disabled</Code> rating can't be changed and doesn't post. In a read-only Form, a rating shows as a display.</TextBlock>

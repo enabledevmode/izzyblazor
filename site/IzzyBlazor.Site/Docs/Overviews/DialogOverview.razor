@@ -6,10 +6,11 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>A dialog is a window over the page that the user deals with before going back to it. It suits a short form or a question. For a panel that slides in from an edge, see <Anchor Href="docs/components/drawer">Drawer</Anchor>. For a small panel next to a button that doesn't block the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+<TextBlock>A dialog is a window over the page that the user deals with before going back to it. It suits a short form or a question.</TextBlock>
+<TextBlock>For a panel that slides in from an edge, see <Anchor Href="docs/components/drawer">Drawer</Anchor>. For a small panel next to a button that doesn't block the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
 <Heading Level="2">Opening the dialog</Heading>
-<TextBlock>A dialog opens three ways: from a button, from a link, or from C#. For a button, add a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>. For a link, add <Code>?dialog=</Code> and the id to the URL. From C#, set <Code>@@bind-Open</Code>.</TextBlock>
+<TextBlock>A dialog opens three ways: from a button, from a link, or from C#. For a button, add a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>; for a link, add <Code>?dialog=</Code> and the id to the URL. From C#, set <Code>@@bind-Open</Code>.</TextBlock>
 <ExampleViewer Example="dialog-open" />
 <List>
     <ListItem>The trigger and the link work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too.</ListItem>
@@ -18,7 +19,7 @@
 </List>
 
 <Heading Level="2">Header, body and footer</Heading>
-<TextBlock>A dialog has a heading, a body, and a footer of buttons. For a plain heading, set <Code>Title</Code>. For a heading with an icon or a badge, add a <Code>DialogHeader</Code>. To lay out the body, put it in a <Code>DialogBody</Code> and set <Code>Gap</Code> and the other layout parameters. Put the buttons in a <Code>DialogFooter</Code>.</TextBlock>
+<TextBlock>A dialog has a heading, a body, and a footer of buttons. For a plain heading, set <Code>Title</Code>; for a heading with an icon or a badge, add a <Code>DialogHeader</Code>. To lay out the body, put it in a <Code>DialogBody</Code> and set <Code>Gap</Code> and the other layout parameters; put the buttons in a <Code>DialogFooter</Code>.</TextBlock>
 <ExampleViewer Example="dialog-parts" />
 <TextBlock>The footer stays in view when the body scrolls. To run a table or list to the edges, set <Code>ContentPadding="0"</Code> on the dialog or <Code>Flush</Code> on its <Code>DialogBody</Code>.</TextBlock>
 
@@ -28,7 +29,7 @@
 <TextBlock>A <Anchor Href="docs/components/drawer">Drawer</Anchor> is a dialog that opens at an edge: the end edge by default, or another edge set by its <Code>Placement</Code>.</TextBlock>
 
 <Heading Level="2">Closing</Heading>
-<TextBlock>The user closes a dialog with Escape, the close button, a <Code>DialogClose</Code>, or a click on the backdrop. For a form the user could lose with a stray click, set <Code>CloseOnBackdrop="false"</Code> to keep the dialog open when the backdrop is clicked. When the footer's buttons are enough, set <Code>ShowCloseButton="false"</Code>. Escape, the close button and a <Code>DialogClose</Code> still close it.</TextBlock>
+<TextBlock>The user closes a dialog with Escape, the close button, a <Code>DialogClose</Code>, or a click on the backdrop. For a form the user could lose with a stray click, set <Code>CloseOnBackdrop="false"</Code>; Escape, the close button and a <Code>DialogClose</Code> still close it. When the footer's buttons are enough, set <Code>ShowCloseButton="false"</Code>.</TextBlock>
 
 <Heading Level="2">A form in a dialog</Heading>
 <TextBlock>A dialog often contains a short form, such as renaming a file, with its buttons in the dialog's footer. Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog, with its <Code>FormActions</Code> last. The buttons become the dialog's footer and still submit the form.</TextBlock>
@@ -45,7 +46,7 @@
 <TextBlock><Anchor Href="docs/components/confirm-button">ConfirmButton</Anchor> does this in one component.</TextBlock>
 
 <Heading Level="2">Dialogs from code</Heading>
-<TextBlock>On interactive pages, you can open a dialog from C# and wait for how it ends, such as asking a question before deleting. Inject <Code>DialogService</Code>. <Code>ConfirmAsync</Code> asks a question, and <Code>OpenAsync</Code> shows a component of yours. A <Code>DialogHost</Code> on the page or its layout shows them.</TextBlock>
+<TextBlock>On interactive pages, you can open a dialog from C# and wait for how it ends, such as asking a question before deleting. Inject <Code>DialogService</Code>: <Code>ConfirmAsync</Code> asks a question, and <Code>OpenAsync</Code> shows a component of yours. A <Code>DialogHost</Code> on the page or its layout shows them.</TextBlock>
 <ExampleViewer Example="dialog-service" />
 <TextBlock>The page awaits the result:</TextBlock>
 <Code Block Language="razor" Title="EditPage.razor">@FromCode</Code>

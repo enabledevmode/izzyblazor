@@ -6,12 +6,14 @@
 <TextBlock>A barcode shows a value as bars for a scanner, with the value printed under them. It renders on the server as an SVG, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, scales without blurring, and prints. For a link or longer text, see <Anchor Href="docs/components/qr-code">QrCode</Anchor>.</TextBlock>
 
 <Heading Level="2">A shipping or order number</Heading>
-<TextBlock>The default type, Code 128, accepts any ASCII text, such as letters, digits, dashes and spaces. Set <Code>Value</Code> to the text. Digits take half the room of letters, so a mostly numeric value makes a shorter barcode. With no value yet, such as while the page loads it, nothing renders.</TextBlock>
+<TextBlock>The default type, Code 128, accepts any ASCII text, such as letters, digits, dashes and spaces. Set <Code>Value</Code> to the text.</TextBlock>
 <ExampleViewer Example="barcode-shipping" />
+<TextBlock>Digits take half the room of letters, so a mostly numeric value makes a shorter barcode. With no value yet, such as while the page loads it, nothing renders.</TextBlock>
 
 <Heading Level="2">Products</Heading>
-<TextBlock>For a retail product, set <Code>Type</Code> to <Code>Ean13</Code>, <Code>UpcA</Code> or <Code>Ean8</Code>. Without the check digit, the barcode adds it. With it, the barcode checks it and throws if it's wrong, since a mistyped code would scan as another product. The digits print in the standard layout, between the guard bars.</TextBlock>
+<TextBlock>For a retail product, set <Code>Type</Code> to <Code>Ean13</Code>, <Code>UpcA</Code> or <Code>Ean8</Code>. The digits print in the standard layout, between the guard bars.</TextBlock>
 <ExampleViewer Example="barcode-product" />
+<TextBlock>Without the check digit, the barcode adds it. With it, the barcode checks it and throws if it's wrong, since a mistyped code would scan as another product.</TextBlock>
 
 <Heading Level="2">Size and print</Heading>
 <TextBlock><Code>BarWidth</Code> sets the width of the narrowest bar, 2px by default, and the barcode is as wide as its bars need. <Code>BarHeight</Code> sets the bars' height in the same units, 50 by default. The blank margins on either side are part of the barcode: scanners need them, so keep other content out of them.</TextBlock>
