@@ -28,8 +28,8 @@
     Accessibility:
     - The chart is a figure captioned by Title, or named by a heading on the page with TitledBy.
     - The tiles are one image named by the caption, described by their count and the largest.
-    - "Show data" under the chart opens a table of every tile: its group, name, value and shares
-      (DataTable).
+    - "Show data" under the chart opens a table of every tile: its group, name, value and shares,
+      and its ColorValue (DataTable).
     - Tiles are told apart by their names and places, not only by color.
     - With IzzyBlazor's script, the tiles are one Tab stop: the arrow keys move from tile to tile
       and say each one's value and shares.
@@ -78,7 +78,7 @@
     /// <summary>
     /// A second measure that colors the tiles, such as <c>s =&gt; s.Change</c> on a market map
     /// whose tiles are sized by market value: a scale of <see cref="Palette"/>'s shades, as a
-    /// <see cref="HeatmapChart{TItem}"/>'s, with a legend. Set, <see cref="Colors"/> doesn't apply.
+    /// <see cref="HeatmapChart{TItem}"/>'s, with a legend. <see cref="Colors"/> set with it throws.
     /// </summary>
     [Parameter] public Expression<Func<TItem, object?>>? ColorValue { get; set; }
 
@@ -106,25 +106,31 @@
     /// <summary>A .NET format string for the values, such as <c>C0</c> or <c>N0</c>: on the tiles, in the tooltips and the table.</summary>
     [Parameter] public string? ValueFormat { get; set; }
 
-    /// <summary>A .NET format string for <see cref="ColorValue"/>, such as <c>+0.0%;-0.0%</c>: in the legend, the tooltips and the table.</summary>
+    /// <summary>A .NET format string for <see cref="ColorValue"/>, such as <c>+0.0%;−0.0%;0.0%</c>: in the legend, the tooltips and the table.</summary>
     [Parameter] public string? ColorFormat { get; set; }
 
     /// <summary>
     /// What colors the tiles: <see cref="TreemapColors.Auto"/> (the default) colors them by group
     /// with <see cref="Group"/> set, or each tile its own color without; <see cref="TreemapColors.Group"/>
-    /// or <see cref="TreemapColors.Item"/> chooses. <see cref="ColorValue"/> colors them by a value instead.
+    /// or <see cref="TreemapColors.Item"/> chooses (Group needs <see cref="Group"/>). <see cref="ColorValue"/>
+    /// colors them by a value instead, and throws with Colors set.
     /// </summary>
     [Parameter] public TreemapColors Colors { get; set; }
 
     /// <summary>
     /// The colors: the theme's eight by default, repeating past eight, or your own with
-    /// <see cref="ChartPalette.Of"/>. With <see cref="ColorValue"/>, the scale:
-    /// <see cref="ChartPalette.Shades"/> of the primary color by default, or
-    /// <see cref="ChartPalette.Diverging"/> for values above and below <see cref="Midpoint"/>.
+    /// <see cref="ChartPalette.Of"/>; <see cref="ChartPalette.Shades"/> and
+    /// <see cref="ChartPalette.Diverging"/> throw. With <see cref="ColorValue"/>, the scale:
+    /// <see cref="ChartPalette.Shades"/> of the primary color by default,
+    /// <see cref="ChartPalette.Diverging"/> for values above and below <see cref="Midpoint"/>, or
+    /// your own ramp with <see cref="ChartPalette.Of"/>; <see cref="ChartPalette.Colors"/> throws.
     /// </summary>
     [Parameter] public ChartPalette? Palette { get; set; }
 
-    /// <summary>With <see cref="ColorValue"/>, how many classes its values fall into: 5 by default, 2 to 9, or 0 for a continuous blend.</summary>
+    /// <summary>
+    /// With <see cref="ColorValue"/>, about how many classes its values fall into, each a shade: 5 by
+    /// default, 2 to 9 (the scale rounds its bounds, so one more or fewer), or 0 for a continuous blend.
+    /// </summary>
     [Parameter] public int Steps { get; set; } = 5;
 
     /// <summary>With <see cref="ColorValue"/> and a <see cref="ChartPalette.Diverging"/> palette, the value the scale turns at: 0 by default.</summary>
@@ -143,10 +149,10 @@
     /// </summary>
     [Parameter] public double AspectRatio { get; set; } = 2;
 
-    /// <summary>Writes each tile's name at its top left, where it fits. On by default; <c>false</c> leaves only the tiles (and the groups' names).</summary>
+    /// <summary>Writes each tile's name at its top left, where it fits. On by default; <c>false</c> leaves only the tiles (and the groups' strips).</summary>
     [Parameter] public bool Labels { get; set; } = true;
 
-    /// <summary>Writes each tile's value under its name, and each group's total beside its name. Off by default; the tooltips and the table have the values.</summary>
+    /// <summary>Writes each tile's value under its name (with <see cref="Labels"/>), and each group's total beside its name. Off by default; the tooltips and the table have the values.</summary>
     [Parameter] public bool Values { get; set; }
 
     /// <summary>
@@ -156,7 +162,7 @@
     /// </summary>
     [Parameter] public ChartLegend Legend { get; set; }
 
-    /// <summary>The legend's place along its edge: the start by default, the center or the end.</summary>
+    /// <summary>With <see cref="ColorValue"/>, the legend's place along its edge: the start by default, the center or the end.</summary>
     [Parameter] public ChartAlign? LegendAlign { get; set; }
 
     /// <summary>
@@ -255,11 +261,13 @@
         // items' order, starting again in each group).
         var byValue = _color is not null;
         var byGroup = !byValue && (Colors == TreemapColors.Group || Colors == TreemapColors.Auto && grouped);
+        // Groups take the palette in the order the items first name them, counting only groups drawn.
+        var groupSlot = model.Groups.Select(g => g.Index).Order().Select((g, k) => (g, k)).ToDictionary(p => p.g, p => p.k);
         var slotOf = new Dictionary<int, int>();
         foreach (var group in model.Groups)
         {
             var k = 0;
-            foreach (var tile in group.Tiles.OrderBy(t => t.Item)) slotOf[tile.Item] = byGroup ? group.Index : k++;
+            foreach (var tile in group.Tiles.OrderBy(t => t.Item)) slotOf[tile.Item] = byGroup ? groupSlot[group.Index] : k++;
         }
 
         HeatmapModel? scaleModel = null;
@@ -339,7 +347,7 @@
                 <div class="ib-treemap-plot" role="img" aria-labelledby="@NameId" aria-describedby="@(_labelId)-desc">
                     @foreach (var group in model.Groups)
                     {
-                        <div class="@(grouped ? "ib-treemap-group" : "ib-treemap-group ib-treemap-flat")" style="@Box(group.Wide, group.Narrow)">
+                        <div class="@(grouped ? $"ib-treemap-group{(group.HeadWide ? " ib-treemap-hw" : "")}{(group.HeadNarrow ? " ib-treemap-hn" : "")}" : "ib-treemap-group ib-treemap-flat")" style="@Box(group.Wide, group.Narrow)">
                             @if (grouped)
                             {
                                 <div class="ib-treemap-head" data-ib-group="@group.Index" title="@(tooltip ? $"{GroupName(group)}: {Format(group.Total)}" : null)">
@@ -518,9 +526,14 @@
 
         if (ColorValue is null)
         {
-            if (Steps != 5 || Min is not null || Max is not null || Midpoint is not null || ColorFormat is not null || Legend != ChartLegend.Auto)
+            if (Steps != 5 || Min is not null || Max is not null || Midpoint is not null || ColorFormat is not null || Legend != ChartLegend.Auto || LegendAlign is not null)
             {
-                throw new InvalidOperationException("A TreemapChart's Steps, Min, Max, Midpoint, ColorFormat and Legend are for a scale of ColorValue: set ColorValue, or leave them out.");
+                throw new InvalidOperationException("A TreemapChart's Steps, Min, Max, Midpoint, ColorFormat, Legend and LegendAlign are for a scale of ColorValue: set ColorValue, or leave them out.");
+            }
+
+            if (Colors == TreemapColors.Group && Group is null)
+            {
+                throw new InvalidOperationException("A TreemapChart colored by group needs Group, each tile's group, such as c => c.Category; without groups, leave Colors out.");
             }
 
             if (Palette is not null && (Palette.IsDiverging || !Palette.IsCategorical && Palette.FixedCount is null))

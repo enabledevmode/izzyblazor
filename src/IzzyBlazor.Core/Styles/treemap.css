@@ -6,8 +6,8 @@
  * The plot keeps --ib-treemap-ratio (width over height; square under 30rem), the shape the server
  * laid it out for, so boxes in percent stay as square as they were laid out. Each group and tile
  * carries its box twice: --x, --y, --w, --h wide and --nx, --ny, --nw, --nh narrow, in percent of
- * the plot (groups) or of the group's body (tiles). A group is its header strip over its body.
- * Tiles and groups are size containers, so a name shows only where it fits.
+ * the plot (groups) or of the group's body (tiles). A group is its header strip (where the server
+ * laid it out with one) over its body. Tiles are size containers, so a name shows only where it fits.
  */
 
 @layer izzy.components {
@@ -41,13 +41,13 @@
     display: flex;
     flex-direction: column;
     padding: 1px;
-    container: ib-treemap-group / size;
   }
 
   .ib-treemap-flat { padding: 0; }
 
+  /* The name strip, where the server laid the group out with one (ib-treemap-hw wide, -hn narrow). */
   .ib-treemap-head {
-    display: flex;
+    display: none;
     flex: none;
     gap: 0.35em;
     height: 22px;
@@ -64,22 +64,21 @@
   .ib-treemap-head > .ib-treemap-name { overflow: hidden; text-overflow: ellipsis; }
   .ib-treemap-head > .ib-treemap-value { color: var(--ib-color-muted); }
 
-  /* A group too short for its name: its tiles take all of it (the tooltip and table name it). */
-  @container ib-treemap-group (height < 3rem) or (width < 2.5rem) { .ib-treemap-head { display: none; } }
+  .ib-treemap-hw > .ib-treemap-head { display: flex; }
 
   .ib-treemap-body {
     position: relative;
     flex: 1;
   }
 
-  /* A tile: its fill inside 1px of the surface (2px between tiles), its name at the top left. */
+  /* A tile: exactly its box (no padding or border, which a box can't be smaller than), its fill
+     inside 1px of the surface (2px between tiles), its name at the top left. */
   .ib-treemap-tile {
     display: flex;
     flex-direction: column;
-    padding: 4px 6px;
     overflow: hidden;
-    border: 1px solid var(--ib-color-surface);
     border-radius: 3px;
+    box-shadow: inset 0 0 0 1px var(--ib-color-surface);
     background: var(--ib-heat-bg, var(--ib-chart-fill, var(--ib-color-fill-subtle)));
     /* Dark ink, which the palette's fills (mid-tone in light mode, bright in dark) clear, as on bars. */
     color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
@@ -87,13 +86,13 @@
   }
 
   .ib-treemap-tile > span {
+    margin-inline: 6px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  .ib-treemap-tile > .ib-treemap-name { font-weight: var(--ib-weight-medium); }
-  .ib-treemap-tile > .ib-treemap-value { opacity: 0.85; }
+  .ib-treemap-tile > .ib-treemap-name { margin-top: 4px; font-weight: var(--ib-weight-medium); }
 
   /* Too small for a readable name, or for its value under it: left to the tooltip and table. */
   @container ib-treemap-tile (width < 2.5rem) or (height < 1.5rem) { .ib-treemap-tile > span { visibility: hidden; } }
@@ -115,7 +114,7 @@
 
   /* The tile or group the tooltip (or the keyboard) is on: a step toward the text's color, outlined. */
   :is(.ib-treemap-tile, .ib-treemap-head)[data-ib-active] {
-    box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 18%, transparent);
+    box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 18%, transparent);
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
@@ -126,6 +125,8 @@
   /* A phone: square, with the narrow layout. */
   @container ib-chart (width < 30rem) {
     .ib-treemap-plot { aspect-ratio: 1; }
+    .ib-treemap-group > .ib-treemap-head { display: none; }
+    .ib-treemap-hn > .ib-treemap-head { display: flex; }
 
     :is(.ib-treemap-group, .ib-treemap-tile) {
       left: var(--nx);

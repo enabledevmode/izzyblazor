@@ -1,24 +1,38 @@
-@* A city's general fund for the year, by department: one level, a color per tile. *@
-<TreemapChart Items="_departments"
-              Name="d => d.Name"
-              Value="d => d.Budget"
+@* A city's general fund for the year, by program: one level of tiles. *@
+<TreemapChart Items="_programs"
+              Name="p => p.Name"
+              Value="p => p.Budget"
               ValueFormat="$#,##0,,.#M"
               Values
               AspectRatio="2.5"
-              Title="General fund by department" />
+              Title="General fund by program" />
 
 @code {
-    private record Department(string Name, decimal Budget);
+    private record BudgetLine(string Name, decimal Budget);
 
-    private readonly Department[] _departments =
+    private readonly BudgetLine[] _programs =
     [
-        new("Police", 148_000_000),
-        new("Fire", 96_000_000),
-        new("Public works", 71_000_000),
-        new("Parks and recreation", 44_000_000),
-        new("Libraries", 22_000_000),
-        new("Planning", 15_000_000),
-        new("Administration", 31_000_000),
-        new("Housing", 18_000_000),
+        new("Patrol", 92_000_000),
+        new("Fire suppression", 61_000_000),
+        new("Street maintenance", 38_000_000),
+        new("Investigations", 31_000_000),
+        new("Emergency medical", 27_000_000),
+        new("Parks maintenance", 24_000_000),
+        new("Solid waste", 21_000_000),
+        new("Libraries", 18_500_000),
+        new("Recreation centers", 15_500_000),
+        new("Affordable housing", 14_000_000),
+        new("Information technology", 12_500_000),
+        new("Building inspections", 9_800_000),
+        new("Finance", 9_200_000),
+        new("Traffic signals", 8_400_000),
+        new("City attorney", 7_100_000),
+        new("Human resources", 6_300_000),
+        new("Planning", 5_900_000),
+        new("Code enforcement", 4_700_000),
+        new("Animal services", 4_200_000),
+        new("Emergency management", 2_600_000),
+        new("City clerk", 2_100_000),
+        new("Arts and culture", 1_800_000),
     ];
 }

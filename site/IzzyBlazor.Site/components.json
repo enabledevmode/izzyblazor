@@ -2351,7 +2351,7 @@
       ]
     },
     {
-      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows parts of a whole, such as a cloud bill by service, as tiles that fill a rectangle, each as large as its share, grouped under their groups' names.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
+      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows parts of a whole, such as a cloud bill by service, as tiles that fill a rectangle, each as large as its share, optionally in groups under their names.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
       "features": [
         { "feature": "Tiles as near square as they can be, the largest at the top left" },
         { "feature": "Groups of tiles, each under a strip with its name" },
@@ -2365,8 +2365,8 @@
       "examples": [
         { "id": "treemap-chart-usage", "title": "Tiles in groups", "lead": "A treemap shows the parts of a whole as tiles, each as large as its share. Give `TreemapChart` the `Items`, with a `Name` and a `Value` for each, a `Group` to sort them under, and a `Title`.", "after": ["Each group takes a color, its tiles sit together under its name, and the largest sit at the top left. `Values` writes each tile's amount under its name, and a group's total beside its own.", "A name shows only where it fits its tile: hover a tile for its value and shares, or Tab to the chart and move between tiles with the arrow keys."],
           "notes": { "noscript": "There are no tooltips. Each tile and group name shows its value on hover, and \"Show data\" lists every tile." } },
-        { "id": "treemap-chart-change", "title": "Colors by a second value", "lead": "To color the tiles by a second measure, set `ColorValue`: here each product's size is its revenue and its color the change from last year. A `ChartPalette.Diverging` palette turns at `Midpoint`, with growth in blue and decline in red.", "after": ["The colors fall into steps, as a `HeatmapChart`'s do, and the legend above the tiles is the scale. `Steps`, `Min` and `Max` set it, and `ColorFormat` writes its values."] },
-        { "id": "treemap-chart-budget", "title": "One level of tiles", "lead": "Without `Group`, the tiles are one level, each in its own color. `AspectRatio` sets the chart's shape, here 2.5 times as wide as tall.", "after": ["The chart keeps its shape at every width, so the tiles stay as square as they were laid out. Under 30rem wide it's square."] }
+        { "id": "treemap-chart-change", "title": "Colors by a second value", "lead": "To color the tiles by a second measure, set `ColorValue`: here each product's size is its revenue and its color the change from last year. A `ChartPalette.Diverging` palette turns at `Midpoint` (0 by default), here with growth in blue and decline in red.", "after": ["The colors fall into steps, as a `HeatmapChart`'s do, and the legend above the tiles is the scale. `Steps`, `Min` and `Max` set it, and `ColorFormat` writes its values."] },
+        { "id": "treemap-chart-budget", "title": "One level of tiles", "lead": "Without `Group`, the tiles are one level, each in its own color so neighbors stand apart. `AspectRatio` sets the chart's shape, here 2.5 times as wide as tall.", "after": ["The chart keeps its shape at every width, so the tiles stay as square as they were laid out. Under 30rem wide it's square.", "A treemap suits many parts, as the 22 programs here; with a handful, bars compare them better."] }
       ]
     },
     {
