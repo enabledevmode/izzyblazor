@@ -66,13 +66,15 @@ else
     <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 }
 
-@if (ApiComponent.Accessibility is not null)
+@if (ApiComponent.Accessibility is not null || ApiComponent.Keyboard is { Count: > 0 })
 {
     <Heading Level="2">Accessibility</Heading>
-    <DocHtml Html="@ApiComponent.Accessibility" Context="_prose" Size="ProseSize.Md" />
+    @if (ApiComponent.Accessibility is not null)
+    {
+        <DocHtml Html="@ApiComponent.Accessibility" Context="_prose" Size="ProseSize.Md" />
+    }
+    @KeyboardTable.Section(ApiComponent)
 }
-
-@KeyboardTable.Section(ApiComponent)
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

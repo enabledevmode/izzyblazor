@@ -268,14 +268,12 @@ public sealed partial class SearchIndex
             {
                 AddSections(page, component.DisplayName, SearchGroup.Components);
 
-                // @KeyboardTable.Section draws this from the metadata, so the source doesn't have it:
-                // before Parameters, with what comes earlier deciding its id.
+                // @KeyboardTable.Section draws this from the metadata, so the source doesn't have it;
+                // its heading has a fixed id, being left out of the page's outline.
                 if (api.Component(component.Name)?.Keyboard is { Count: > 0 })
                 {
                     const string keys = "Keyboard navigation";
-                    var before = page.Headings.TakeWhile(h => h.Text != "Parameters").Select(h => (h.Text, (string?)h.Id)).ToList();
-                    var keyId = Ids(component.Name, before.Append((keys, (string?)null))).Last();
-                    Add(SearchKind.Section, keys, component.DisplayName, null, $"{overview}#{keyId}", standard: StandardSections.Contains(keys));
+                    Add(SearchKind.Section, keys, component.DisplayName, null, $"{overview}#keyboard-navigation", standard: StandardSections.Contains(keys));
                 }
 
                 foreach (var id in page.Examples)
@@ -307,7 +305,7 @@ public sealed partial class SearchIndex
                 }
 
                 headings.Add("Mode support");
-                if (apiComponent.Accessibility is not null)
+                if (apiComponent.Accessibility is not null || apiComponent.Keyboard is { Count: > 0 })
                 {
                     headings.Add("Accessibility");
                 }

@@ -23,20 +23,23 @@
 
     [Parameter, EditorRequired] public string Name { get; set; } = "";
 
-    /// <summary>The Keyboard navigation section of a page, if the component has keys: <c>@KeyboardTable.Section(ApiComponent)</c>.</summary>
+    /// <summary>
+    /// The keys, if the component has any: <c>@KeyboardTable.Section(ApiComponent)</c>, inside the
+    /// Accessibility section, beside the bullet that introduces them.
+    /// </summary>
     public static RenderFragment Section(ApiComponent api) => __builder =>
     {
         if (api.Keyboard is { Count: > 0 } groups)
         {
-            <Heading Level="2">Keyboard navigation</Heading>
+            @* Under Accessibility, and not in "On this page", which lists Accessibility. *@
+            <Heading Level="3" OnThisPage="false" id="keyboard-navigation">Keyboard navigation</Heading>
             <div class="site-key-groups">
                 @foreach (var group in groups)
                 {
                     <div class="site-key-group">
                         @if (group.Title is not null)
                         {
-                            @* Only the section is listed in "On this page": some have nine of these. *@
-                            <Heading Level="3" Size="TextSize.Md" OnThisPage="false">@group.Title</Heading>
+                            <Heading Level="4" Size="TextSize.Md" OnThisPage="false">@group.Title</Heading>
                         }
                         <KeyboardTable Group="group" Name="@api.Name" />
                     </div>
