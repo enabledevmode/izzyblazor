@@ -41,11 +41,12 @@
   }
 
   /* The caption, a title as a card's is: the heading font at the card title's size. */
+  /* The title: --ib-chart-title-size and --ib-chart-title-weight restyle every chart's. */
   .ib-chart-label {
     margin-block-end: var(--ib-space-5);
     font-family: var(--ib-font-heading);
-    font-size: var(--ib-text-lg);
-    font-weight: var(--ib-weight-semibold);
+    font-size: var(--ib-chart-title-size, var(--ib-text-lg));
+    font-weight: var(--ib-chart-title-weight, var(--ib-weight-semibold));
     line-height: var(--ib-leading-snug);
     color: var(--ib-color-on-surface);
   }
