@@ -1,0 +1,143 @@
+/*
+ * TreemapChart's styles, built to wwwroot/treemap.css and linked by it beside chart.css (whose
+ * figure, title, palette, tooltip and data table it uses) and, with ColorValue, heatmap.css (its
+ * scale's classes and legend).
+ *
+ * The plot keeps --ib-treemap-ratio (width over height; square under 30rem), the shape the server
+ * laid it out for, so boxes in percent stay as square as they were laid out. Each group and tile
+ * carries its box twice: --x, --y, --w, --h wide and --nx, --ny, --nw, --nh narrow, in percent of
+ * the plot (groups) or of the group's body (tiles). A group is its header strip over its body.
+ * Tiles and groups are size containers, so a name shows only where it fits.
+ */
+
+@layer izzy.components {
+  .ib-treemap {
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-treemap-plot {
+    position: relative;
+    aspect-ratio: var(--ib-treemap-ratio, 2);
+  }
+
+  .ib-treemap-plot:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 4px;
+  }
+
+  :is(.ib-treemap-group, .ib-treemap-tile) {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    height: var(--h);
+    box-sizing: border-box;
+  }
+
+  /* A group: 1px of the surface at each edge (2px between groups), its name over its tiles. */
+  .ib-treemap-group {
+    display: flex;
+    flex-direction: column;
+    padding: 1px;
+    container: ib-treemap-group / size;
+  }
+
+  .ib-treemap-flat { padding: 0; }
+
+  .ib-treemap-head {
+    display: flex;
+    flex: none;
+    gap: 0.35em;
+    height: 22px;
+    margin: 1px;
+    padding-inline: 6px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--ib-color-fill-subtle);
+    color: var(--ib-color-on-surface);
+    line-height: 22px;
+    white-space: nowrap;
+  }
+
+  .ib-treemap-head > .ib-treemap-name { overflow: hidden; text-overflow: ellipsis; }
+  .ib-treemap-head > .ib-treemap-value { color: var(--ib-color-muted); }
+
+  /* A group too short for its name: its tiles take all of it (the tooltip and table name it). */
+  @container ib-treemap-group (height < 3rem) or (width < 2.5rem) { .ib-treemap-head { display: none; } }
+
+  .ib-treemap-body {
+    position: relative;
+    flex: 1;
+  }
+
+  /* A tile: its fill inside 1px of the surface (2px between tiles), its name at the top left. */
+  .ib-treemap-tile {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 6px;
+    overflow: hidden;
+    border: 1px solid var(--ib-color-surface);
+    border-radius: 3px;
+    background: var(--ib-heat-bg, var(--ib-chart-fill, var(--ib-color-fill-subtle)));
+    /* Dark ink, which the palette's fills (mid-tone in light mode, bright in dark) clear, as on bars. */
+    color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
+    container: ib-treemap-tile / size;
+  }
+
+  .ib-treemap-tile > span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ib-treemap-tile > .ib-treemap-name { font-weight: var(--ib-weight-medium); }
+  .ib-treemap-tile > .ib-treemap-value { opacity: 0.85; }
+
+  /* Too small for a readable name, or for its value under it: left to the tooltip and table. */
+  @container ib-treemap-tile (width < 2.5rem) or (height < 1.5rem) { .ib-treemap-tile > span { visibility: hidden; } }
+  @container ib-treemap-tile (height < 2.6rem) { .ib-treemap-tile > .ib-treemap-value { visibility: hidden; } }
+
+  /* Colored by a value (ColorValue): heatmap.css's classes set --ib-heat-bg; a continuous scale
+     blends it at --t. The scale's shades run light to dark, so the usual ink, light on strong. */
+  .ib-treemap-blend .ib-treemap-tile:not(.ib-treemap-none) { --ib-heat-bg: color-mix(in oklab, var(--ib-heat-b) var(--t), var(--ib-heat-a)); }
+  .ib-treemap-blend .ib-treemap-tile.ib-lo { --ib-heat-b: var(--ib-heat-c); }
+  .ib-heatmap .ib-treemap-tile { color: var(--ib-color-on-surface); }
+  .ib-heatmap .ib-treemap-tile.ib-i1 { color: light-dark(#fff, var(--ib-color-on-surface)); }
+  .ib-heatmap .ib-treemap-tile.ib-i2 { color: light-dark(#fff, #111); }
+
+  /* Where the browser can, black or white, whichever reads best on the tile's own color. */
+  @supports (color: contrast-color(red)) {
+    .ib-treemap-tile { color: contrast-color(var(--ib-heat-bg, var(--ib-chart-fill, var(--ib-color-fill-subtle)))); }
+    .ib-heatmap .ib-treemap-tile:is(*, .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-color-fill-subtle))); }
+  }
+
+  /* The tile or group the tooltip (or the keyboard) is on: a step toward the text's color, outlined. */
+  :is(.ib-treemap-tile, .ib-treemap-head)[data-ib-active] {
+    box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 18%, transparent);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  /* The plot's boxes leave the pointer to the script, whose tooltip stands in for their titles. */
+  ib-chart[data-ib-tooltips] :is(.ib-treemap-tile, .ib-treemap-head) { pointer-events: none; }
+
+  /* A phone: square, with the narrow layout. */
+  @container ib-chart (width < 30rem) {
+    .ib-treemap-plot { aspect-ratio: 1; }
+
+    :is(.ib-treemap-group, .ib-treemap-tile) {
+      left: var(--nx);
+      top: var(--ny);
+      width: var(--nw);
+      height: var(--nh);
+    }
+  }
+
+  @media (forced-colors: active) {
+    /* The colors are the data, so they stay, each tile outlined. */
+    .ib-treemap-tile { forced-color-adjust: none; outline: 1px solid CanvasText; outline-offset: -1px; }
+    .ib-treemap-tile[data-ib-active] { outline: 2px solid Highlight; outline-offset: -2px; }
+  }
+}

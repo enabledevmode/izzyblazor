@@ -1,0 +1,36 @@
+@* An outdoor store's sales this year by product, sized by revenue and colored by the change from last year. *@
+<TreemapChart Items="_sales"
+              Name="s => s.Product"
+              Value="s => s.Revenue"
+              Group="s => s.Department"
+              ColorValue="s => s.Change"
+              Palette="ChartPalette.Diverging(Color.Danger, Color.Primary)"
+              Midpoint="0"
+              Steps="6"
+              ValueFormat="C0"
+              ColorFormat="+0%;−0%;0%"
+              Title="Sales by product, change from last year" />
+
+@code {
+    private record Sale(string Department, string Product, decimal Revenue, double Change);
+
+    private readonly Sale[] _sales =
+    [
+        new("Camping", "Tents", 412000, 0.08),
+        new("Camping", "Sleeping bags", 236000, 0.03),
+        new("Camping", "Stoves", 98000, -0.06),
+        new("Camping", "Lanterns", 54000, -0.14),
+        new("Footwear", "Hiking boots", 388000, 0.12),
+        new("Footwear", "Trail runners", 301000, 0.27),
+        new("Footwear", "Sandals", 87000, -0.09),
+        new("Clothing", "Rain jackets", 274000, 0.05),
+        new("Clothing", "Fleece", 166000, -0.11),
+        new("Clothing", "Base layers", 121000, 0.18),
+        new("Clothing", "Hats", 46000, 0.01),
+        new("Climbing", "Ropes", 142000, -0.03),
+        new("Climbing", "Harnesses", 88000, 0.06),
+        new("Climbing", "Chalk", 21000, 0.22),
+        new("Water", "Kayaks", 158000, -0.19),
+        new("Water", "Paddles", 39000, -0.07),
+    ];
+}

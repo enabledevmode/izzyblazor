@@ -3,6 +3,7 @@ import type { DrawData, PieDrawData, draw as Draw, drawPie as DrawPie } from "./
 import type { heat as Heat } from "./chart-heat";
 import type { radar as Radar } from "./chart-radar";
 import type { sankey as Sankey } from "./chart-sankey";
+import type { treemap as Treemap } from "./chart-treemap";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
 type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie };
@@ -36,7 +37,7 @@ class Chart extends IzzyElement {
       this.#keep = true;
       this.connectedCallback();
     });
-    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey"] });
+    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
     if (this.hasAttribute("data-ib-pie")) {
@@ -64,6 +65,14 @@ class Chart extends IzzyElement {
     if (this.hasAttribute("data-ib-sankey")) {
       (import("./parts/chart-sankey.js" as string) as Promise<{ sankey: typeof Sankey }>).then((m) => {
         if (!signal.aborted) m.sankey(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
+      });
+      return;
+    }
+
+    // A TreemapChart: its own part (chart-treemap.ts), loaded when one is on the page.
+    if (this.hasAttribute("data-ib-treemap")) {
+      (import("./parts/chart-treemap.js" as string) as Promise<{ treemap: typeof Treemap }>).then((m) => {
+        if (!signal.aborted) m.treemap(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
       });
       return;
     }
