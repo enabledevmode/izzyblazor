@@ -470,7 +470,9 @@ class Chart extends IzzyElement {
         const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
         // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
         const index = spans.findIndex((s, i) => s !== null && ringOf(i) === ring && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
+        // An empty ring (every value zero) has no slice to show.
         if (index >= 0) show(index, x, y);
+        else hide();
       },
       { signal }
     );
@@ -508,6 +510,16 @@ class Chart extends IzzyElement {
       "keydown",
       (event) => {
         if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
+        // No slice yet (focus without a visible ring, or the pointer in the hole): any arrow
+        // starts at the first slice, as keyboard focus does.
+        const moves = event.key.startsWith("Arrow") || event.key === "Home" || event.key === "End";
+        if (moves && order.length === 0) return;
+        if (moves && current < 0) {
+          event.preventDefault();
+          show(order[0]);
+          announce();
+          return;
+        }
         // With rings, Left and Right keep to the current one; Up and Down move out and in to
         // the same item (or the nearest one that has a slice there).
         const ring = current >= 0 ? ringOf(current) : 0;

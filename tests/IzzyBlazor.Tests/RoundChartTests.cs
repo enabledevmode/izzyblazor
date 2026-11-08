@@ -33,7 +33,8 @@ public class RoundChartTests : BunitContext
             .AddChildContent<DonutRing<Trade>>(r => r.Add(x => x.Value, t => t.Exports))
             .AddChildContent<DonutRing<Trade>>(r => r.Add(x => x.Value, t => t.Imports).Add(x => x.Name, "Imports")));
 
-        Assert.Equal("Outside: Exports · Inside: Imports", cut.Find(".ib-pie-rings").TextContent.Trim());
+        // A comma between the names for screen readers, the dot only seen.
+        Assert.Equal("Outside: Exports · , Inside: Imports", cut.Find(".ib-pie-rings").TextContent.Trim());
         // Slices numbered ring by ring; each item keeps its color in both.
         var slices = cut.FindAll("path.ib-pie-slice");
         Assert.Equal(["0", "1", "2", "3"], slices.Select(s => s.GetAttribute("data-ib-i")));
