@@ -294,6 +294,14 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 /// <c>Orientation="Orientation.Horizontal"</c>. The chart's <c>Stacking</c> stacks bar series.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="months" Argument="m =&gt; m.Month" Title="Revenue by month, 2026"&gt;
+///     &lt;ChartValueAxis Format="C0" /&gt;
+///     &lt;ChartBarSeries Value="m =&gt; m.Revenue" Name="Revenue" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
 {
@@ -310,6 +318,14 @@ public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
 
 /// <summary>A series drawn as a line through each item's value.</summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="months" Argument="m =&gt; m.Month" Title="Weekly active users by app, 2026"&gt;
+///     &lt;ChartLineSeries Value="m =&gt; m.Web" Name="Web" EndLabel /&gt;
+///     &lt;ChartLineSeries Value="m =&gt; m.Ios" Name="iOS" EndLabel /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 {
@@ -355,6 +371,17 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 /// area series.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="months"
+///        Argument="m =&gt; m.Month"
+///        Title="Visits by channel, 2026"
+///        Stacking="ChartStacking.Normal"&gt;
+///     &lt;ChartAreaSeries Value="m =&gt; m.Search" Name="Search" /&gt;
+///     &lt;ChartAreaSeries Value="m =&gt; m.Direct" Name="Direct" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 {
@@ -396,6 +423,15 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 /// such as a page's load time and bounce rate, to show how they relate.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="pages" Argument="p =&gt; p.LoadSeconds" Title="Load time against bounce rate"&gt;
+///     &lt;ChartValueAxis Format="P0" Title="Bounce rate" /&gt;
+///     &lt;ChartArgumentAxis Title="Load time (s)" /&gt;
+///     &lt;ChartScatterSeries Value="p =&gt; p.BounceRate" Name="Pages" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 {
@@ -407,6 +443,15 @@ public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 /// to its <see cref="Size"/>.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="products" Argument="p =&gt; p.Growth" Title="Growth, margin and revenue, 2026"&gt;
+///     &lt;ChartValueAxis Format="P0" Title="Gross margin" /&gt;
+///     &lt;ChartArgumentAxis Format="P0" Title="Revenue growth" /&gt;
+///     &lt;ChartBubbleSeries Value="p =&gt; p.Margin" Size="p =&gt; p.Revenue" Name="Products" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 {
@@ -448,6 +493,14 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 /// A waterfall is its chart's only series, and the chart's legend keys its three colors.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="lines" Argument="l =&gt; l.Name" Title="Profit and loss, Q3 2026"&gt;
+///     &lt;ChartValueAxis Format="C0" /&gt;
+///     &lt;ChartWaterfallSeries Value="l =&gt; l.Amount" Total="l =&gt; l.IsTotal" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
 [ModeSupport]
 public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
 {
