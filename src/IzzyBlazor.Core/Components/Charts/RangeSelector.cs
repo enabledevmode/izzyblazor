@@ -14,6 +14,8 @@ internal interface IRangeSelector
     Length? Height { get; }
 
     string? Label { get; }
+
+    bool HideFlags { get; }
 }
 
 /// <summary>Tells a Chart it's a RangeSelector on its own: the strip only, no plot.</summary>
@@ -76,6 +78,12 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
     /// <summary>The strip's height. 4rem by default.</summary>
     [Parameter] public Length? Height { get; set; }
 
+    /// <summary>
+    /// Leaves out the flags over the handles that say where the range starts and ends, for a chart
+    /// whose own axis already shows what's in view. Screen readers still hear each handle's value.
+    /// </summary>
+    [Parameter] public bool HideFlags { get; set; }
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -131,6 +139,7 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
                 c.AddComponentParameter(3, nameof(Presets), Presets);
                 c.AddComponentParameter(4, nameof(Height), Height);
                 c.AddComponentParameter(5, nameof(Label), Label);
+                c.AddComponentParameter(6, nameof(HideFlags), HideFlags);
                 c.CloseComponent();
             }));
             b.CloseComponent();
