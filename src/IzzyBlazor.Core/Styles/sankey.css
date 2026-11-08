@@ -101,9 +101,20 @@
     color: var(--ib-color-muted);
   }
 
-  /* The flow pointed at, or a node's flows (pointer or keys), lighter; nothing else changes, so
-     nothing flashes. A gradient flow's color is its gradient's, marked with it. */
-  :is(.ib-sankey-link, linearGradient)[data-ib-active] { --ib-sankey-link-opacity: 0.3; }
+  /* The flow pointed at, or a node's flows (pointer or keys), washed out: paler on a light
+     surface, toward white on a dark one (less opacity would only darken it there). Nothing else
+     changes, so nothing flashes. A gradient flow's color is its gradient's, marked with it. */
+  .ib-sankey-link[data-ib-active] {
+    fill: light-dark(
+      color-mix(in srgb, var(--ib-chart-c) 30%, transparent),
+      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, transparent));
+  }
+
+  linearGradient[data-ib-active] > .ib-sankey-stop {
+    stop-color: light-dark(
+      color-mix(in srgb, var(--ib-chart-c) 30%, transparent),
+      color-mix(in srgb, color-mix(in srgb, var(--ib-chart-c) 50%, white) 80%, transparent));
+  }
 
   /* The plot's shapes leave the pointer to the script, whose tooltip stands in for their titles. */
   ib-chart[data-ib-tooltips] :is(.ib-sankey-links, .ib-sankey-node, .ib-sankey-label) { pointer-events: none; }
