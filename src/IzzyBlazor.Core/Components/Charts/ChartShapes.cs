@@ -19,10 +19,13 @@ internal sealed record PieLabel(int Index, bool End, double Pos, string Leader);
 
 /// <summary>
 /// A FunnelChart stage in a 100 by 100 box: its outline, the height of its middle (Y, top down),
-/// and how far right its edge reaches there (X), where its label's line starts. None for a stage
-/// with no value.
+/// how far right its edge reaches there (X), where its label's line starts, and how tall it is.
+/// Its width at the middle is <c>(X - 50) * 2</c>. None for a stage with no value.
 /// </summary>
-internal sealed record FunnelStage(int Index, string Points, double X, double Y);
+internal sealed record FunnelStage(int Index, string Points, double X, double Y, double Height)
+{
+    public double MiddleWidth => (X - 50) * 2;
+}
 
 /// <summary>The geometry of the round charts and sparklines, as SVG paths. Pure, so tested alone.</summary>
 internal static class ChartShapes
@@ -311,7 +314,7 @@ internal static class ChartShapes
                 if (values[i] is not > 0 || total <= 0) continue;
                 var to = from + values[i]!.Value / total * 100;
                 var mid = (from + to) / 2;
-                stages.Add(new FunnelStage(i, Points(100 - to, 100 - to, 100 - from, 100 - from), 50 + (100 - mid) / 2, 100 - mid));
+                stages.Add(new FunnelStage(i, Points(100 - to, 100 - to, 100 - from, 100 - from), 50 + (100 - mid) / 2, 100 - mid, to - from));
                 from = to;
             }
 
@@ -327,7 +330,7 @@ internal static class ChartShapes
             // The last stage, and one before a stage with no value, keep their width to the bottom:
             // narrowing to nothing would show a drop the data doesn't have.
             var below = i == n - 1 || Width(i + 1) == 0 ? Width(i) : Width(i + 1);
-            stages.Add(new FunnelStage(i, Points(top, Width(i), bottom, below), 50 + (Width(i) + below) / 4, (top + bottom) / 2));
+            stages.Add(new FunnelStage(i, Points(top, Width(i), bottom, below), 50 + (Width(i) + below) / 4, (top + bottom) / 2, bottom - top));
         }
 
         return stages;

@@ -68,9 +68,29 @@ public class RoundChartTests : BunitContext
 
         Assert.Equal(3, cut.FindAll("polygon.ib-funnel-stage").Count);
         Assert.Equal(cut.Find("figcaption").Id, cut.Find("ol.ib-funnel-labels").GetAttribute("aria-labelledby"));
-        Assert.Equal(["10%", ", 10% of the first", ", 25% of the stage before"],
-            cut.FindAll(".ib-funnel-labels > li")[2].QuerySelectorAll(".ib-funnel-share, .ib-visually-hidden").Select(s => s.TextContent));
+        // Shown, the share; heard, what each share is of.
+        var paid = cut.FindAll(".ib-funnel-labels > li")[2];
+        Assert.Equal("10%", paid.QuerySelector(".ib-funnel-share")!.TextContent);
+        Assert.Equal("Paid, 100, 10% of the first, 25% of the stage before", paid.QuerySelector(".ib-visually-hidden")!.TextContent);
         Assert.Equal(["Name", "Customers", "Of the first", "Of the stage before"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
+    }
+
+    [Fact]
+    public void Inside_labels_that_dont_fit_their_stage_sit_beside_it()
+    {
+        Plan[] stages = [new("Visited", 1000), new("Signed up", 900), new("Paid", 30)];
+        var cut = Render<FunnelChart<Plan>>(p => p
+            .Add(c => c.Items, stages)
+            .Add(c => c.Argument, x => x.Name)
+            .Add(c => c.Value, x => x.Customers)
+            .Add(c => c.Title, "Sign-ups")
+            .Add(c => c.Labels, ChartLabels.Inside));
+
+        Assert.Equal(["100%", "90%"], cut.FindAll(".ib-funnel-inside strong").Select(s => s.TextContent));
+        Assert.Equal(["Visited", "Signed up"], cut.FindAll(".ib-funnel-inside span").Select(s => s.TextContent));
+        // The narrow stage's label is beside, with its line; every stage is still in the list.
+        Assert.Single(cut.FindAll(".ib-funnel-leader"));
+        Assert.Equal(["ib-funnel-in", "ib-funnel-in", "ib-chart-s3"], cut.FindAll(".ib-funnel-labels > li").Select(li => li.ClassName));
     }
 
     [Fact]
