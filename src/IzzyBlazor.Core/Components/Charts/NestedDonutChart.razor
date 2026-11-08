@@ -87,9 +87,10 @@
     private void RenderCircle(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
         var rings = _rings.Items;
+        // No rings (yet, or none left): only the title, as a Chart with no series.
         if (rings.Count == 0)
         {
-            throw new InvalidOperationException("A NestedDonutChart needs a DonutRing for each ring, such as <DonutRing Value=\"c => c.Exports\" Name=\"Exports\" />.");
+            return;
         }
 
         var (items, names) = ReadItems();
@@ -111,7 +112,7 @@
             {
                 @if (r > 0)
                 {
-                    <span class="ib-pie-rings-sep" aria-hidden="true"> · </span>
+                    <span class="ib-pie-rings-sep" aria-hidden="true"> · </span><span class="ib-visually-hidden">, </span>
                 }
                 <span>@RingName(r, rings.Count, rings[r].DisplayName)</span>
             }
@@ -189,7 +190,7 @@
                     }
                 </div>
                 <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
-                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartRingKeys</span>
+                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(rings.Count > 1 ? TextDefaults.ChartRingKeys : TextDefaults.ChartKeys)</span>
             }
         </ib-chart>
 

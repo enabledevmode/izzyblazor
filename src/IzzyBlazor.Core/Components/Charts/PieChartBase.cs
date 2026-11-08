@@ -14,7 +14,7 @@ public abstract class PieChartBase<TItem> : LayoutItemBase
     {
     }
 
-    /// <summary>The items, one slice each.</summary>
+    /// <summary>The items, one slice each (in each ring, on a <see cref="NestedDonutChart{TItem}"/>).</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
     /// <summary>Each slice's name, such as <c>p =&gt; p.Plan</c>.</summary>
@@ -70,8 +70,10 @@ public abstract class PieChartBase<TItem> : LayoutItemBase
     [Parameter] public ChartPalette? Palette { get; set; }
 
     /// <summary>
-    /// The legend, naming each slice by its color. By default it's beside the circle, at the end
-    /// side, when there's room and under it otherwise; <see cref="ChartLegend.Start"/> puts it at
+    /// The legend: each slice's name by its color, with its value and share on a
+    /// <see cref="PieChart{TItem}"/> (names only on a <see cref="NestedDonutChart{TItem}"/>, whose
+    /// values differ ring by ring). By default it's beside the circle, at the end side, when there's
+    /// room (30rem, or 44rem with a PieChart's labels outside the circle) and under it otherwise; <see cref="ChartLegend.Start"/> puts it at
     /// the start side, <see cref="ChartLegend.Top"/> and <see cref="ChartLegend.Bottom"/> always
     /// above or below, and <see cref="ChartLegend.None"/> leaves it out. Its items don't hide slices.
     /// </summary>

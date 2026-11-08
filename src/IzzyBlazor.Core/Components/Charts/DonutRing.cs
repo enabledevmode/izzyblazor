@@ -9,6 +9,7 @@ namespace IzzyBlazor;
 /// <c>&lt;DonutRing Value="c =&gt; c.Exports" Name="Exports" /&gt;</c>. The first ring is the
 /// outer one. It renders nothing itself.
 /// </summary>
+[ModeSupport]
 public sealed class DonutRing<TItem> : ComponentBase, IDisposable
 {
     [CascadingParameter] private DonutRings<TItem>? Rings { get; set; }
