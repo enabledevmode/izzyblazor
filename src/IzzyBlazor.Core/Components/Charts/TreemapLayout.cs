@@ -19,8 +19,11 @@ internal readonly record struct TreemapBox(double X, double Y, double W, double 
 /// <summary>A tile: the item it draws, its group, its value and its box in its group's body, wide and narrow.</summary>
 internal sealed record TreemapTile(int Item, int Group, double Value, TreemapBox Wide, TreemapBox Narrow);
 
-/// <summary>A group: its total, its box in the plot (wide and narrow), and its tiles, largest first.</summary>
-internal sealed record TreemapGroup(int Index, double Total, TreemapBox Wide, TreemapBox Narrow, IReadOnlyList<TreemapTile> Tiles);
+/// <summary>
+/// A group: its total, its box in the plot (wide and narrow), whether its header shows in each
+/// layout, and its tiles, largest first.
+/// </summary>
+internal sealed record TreemapGroup(int Index, double Total, TreemapBox Wide, TreemapBox Narrow, bool HeadWide, bool HeadNarrow, IReadOnlyList<TreemapTile> Tiles);
 
 internal sealed class TreemapModel
 {
@@ -42,8 +45,13 @@ internal sealed class TreemapModel
 /// </summary>
 internal static class TreemapLayout
 {
-    /// <summary>The widths each layout is worked out at, in px: the header's share of a group depends on it.</summary>
-    internal const double WidePx = 720, NarrowPx = 360, HeaderPx = 22;
+    /// <summary>
+    /// The widths each layout is worked out at, in px: the header's share of a group depends on
+    /// it. A group's header and its margin take <see cref="HeaderPx"/> of its height, and its
+    /// padding <see cref="PadPx"/> at each edge (treemap.css). A group shorter than
+    /// <see cref="MinHeadHeightPx"/> or narrower than <see cref="MinHeadWidthPx"/> has none.
+    /// </summary>
+    internal const double WidePx = 720, NarrowPx = 360, HeaderPx = 24, PadPx = 1, MinHeadHeightPx = 64, MinHeadWidthPx = 48;
 
     private static readonly double Phi = (1 + Math.Sqrt(5)) / 2;
 
@@ -75,21 +83,30 @@ internal static class TreemapLayout
         {
             var (g, total) = order[k];
             var values = members[g].Select(m => m.Value).ToList();
-            var w = Body(wide[k], headers);
-            var n = Body(narrow[k], headers);
+            var headWide = headers && Head(wide[k]);
+            var headNarrow = headers && Head(narrow[k]);
+            var w = Body(wide[k], headers, headWide);
+            var n = Body(narrow[k], headers, headNarrow);
             var tilesWide = Squarify(values, w.W, w.H);
             var tilesNarrow = Squarify(values, n.W, n.H);
             var tiles = members[g].Select((m, j) => new TreemapTile(m.Item, g, m.Value, Percent(tilesWide[j], w.W, w.H), Percent(tilesNarrow[j], n.W, n.H))).ToList();
-            model.Groups.Add(new TreemapGroup(g, total, Percent(wide[k], WidePx, WidePx / ratio), Percent(narrow[k], NarrowPx, NarrowPx), tiles));
+            model.Groups.Add(new TreemapGroup(g, total, Percent(wide[k], WidePx, WidePx / ratio), Percent(narrow[k], NarrowPx, NarrowPx), headWide, headNarrow, tiles));
         }
 
         return model;
     }
 
-    // A group's body in px: the group less its header, where the header shows (treemap.css hides it
-    // in a group under 3rem tall, so a short group's tiles take all of it).
-    private static (double W, double H) Body(TreemapBox group, bool headers) =>
-        (group.W, headers && group.H >= 48 ? group.H - HeaderPx : group.H);
+    // Whether a group has room for its header, decided here once per layout so the tiles are laid
+    // out for the body treemap.css draws (it shows a header only where the server says).
+    private static bool Head(TreemapBox group) => group.H >= MinHeadHeightPx && group.W >= MinHeadWidthPx;
+
+    // A group's body in px: inside its padding (groups have it only on a grouped chart), less its
+    // header where it has one.
+    private static (double W, double H) Body(TreemapBox group, bool grouped, bool head)
+    {
+        var pad = grouped ? 2 * PadPx : 0;
+        return (Math.Max(0, group.W - pad), Math.Max(0, group.H - pad - (head ? HeaderPx : 0)));
+    }
 
     private static TreemapBox Percent(TreemapBox px, double w, double h) =>
         w <= 0 || h <= 0 ? new(0, 0, 0, 0) : new(px.X / w * 100, px.Y / h * 100, px.W / w * 100, px.H / h * 100);
