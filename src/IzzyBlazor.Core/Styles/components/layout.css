@@ -163,11 +163,13 @@
   @media (width >= 768px) { .ib-hidden-from-md { display: none !important; } }
   @media (width >= 1024px) { .ib-hidden-from-lg { display: none !important; } }
   @media (width >= 1280px) { .ib-hidden-from-xl { display: none !important; } }
+  @media (width >= 1536px) { .ib-hidden-from-xxl { display: none !important; } }
 
   @media (width < 640px) { .ib-visible-from-sm { display: none !important; } }
   @media (width < 768px) { .ib-visible-from-md { display: none !important; } }
   @media (width < 1024px) { .ib-visible-from-lg { display: none !important; } }
   @media (width < 1280px) { .ib-visible-from-xl { display: none !important; } }
+  @media (width < 1536px) { .ib-visible-from-xxl { display: none !important; } }
 }
 
 /*

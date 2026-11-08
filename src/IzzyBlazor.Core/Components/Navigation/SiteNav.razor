@@ -130,6 +130,11 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (Breakpoint == Breakpoint.Xxl)
+        {
+            throw new InvalidOperationException("SiteNav's Breakpoint goes up to Breakpoint.Xl (1280px); Xxl is for AppAside and HiddenFrom/VisibleFrom.");
+        }
+
         (_class, _style) = BuildRootAttributes();
         ShellLinks?.Set(ChildContent, Breakpoint);
     }
