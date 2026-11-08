@@ -500,8 +500,7 @@
     touch-action: pan-y;
     cursor: crosshair;
   }
-  .ib-chart-brush,
-  .ib-chart-reset { display: none; }
+  .ib-chart-brush { display: none; }
   ib-chart[data-ib-brushing] .ib-chart-brush {
     display: block;
     position: absolute;
@@ -639,18 +638,34 @@
   /* Marks wholly out of view: the server's, until the script draws another view; then its own. */
   ib-chart:not([data-ib-zargs]) [data-ib-out],
   ib-chart[data-ib-zargs] [data-ib-zout] { display: none; }
-  /* An outline button on the plot: the surface under it, so the series don't show through. */
-  .ib-chart-reset { background-color: var(--ib-color-surface); }
-  .ib-chart-reset:hover { background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface)); }
-  .ib-chart-reset:active { background-color: color-mix(in oklab, var(--ib-accent) 18%, var(--ib-color-surface)); }
-  ib-chart[data-ib-zoomed] .ib-chart-reset {
-    display: inline-flex;
+  /* Reset zoom: in the title's row, across from it (at the start when the title is at the end,
+     so it flips with the page's direction too), or in a row of its own with no title shown. Its
+     room is kept, so the chart doesn't move as it shows; hidden, it isn't a Tab stop. */
+  .ib-chart:has(.ib-chart-reset) {
+    --ib-chart-reset-room: 8rem;
+    position: relative;
+  }
+  .ib-chart-reset {
     position: absolute;
     z-index: 6;
-    inset-block-start: var(--ib-space-1);
-    inset-inline-end: var(--ib-space-1);
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    visibility: hidden;
+    background-color: var(--ib-color-surface);
     cursor: pointer;
   }
+  ib-chart[data-ib-zoomed] .ib-chart-reset { visibility: visible; }
+  .ib-chart:has(> .ib-chart-label-end) .ib-chart-reset { inset-inline-end: auto; inset-inline-start: 0; }
+  .ib-chart:has(.ib-chart-reset) > .ib-chart-label {
+    min-block-size: 2rem;
+    align-content: center;
+    padding-inline-end: var(--ib-chart-reset-room);
+  }
+  .ib-chart:has(.ib-chart-reset) > .ib-chart-label-end { padding-inline: var(--ib-chart-reset-room) 0; }
+  .ib-chart:has(.ib-chart-reset) > .ib-chart-label-center { padding-inline: var(--ib-chart-reset-room); }
+  .ib-chart:has(.ib-chart-reset):not(:has(> .ib-chart-label)) ib-chart { padding-block-start: 2.75rem; }
+  .ib-chart-reset:hover { background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface)); }
+  .ib-chart-reset:active { background-color: color-mix(in oklab, var(--ib-accent) 18%, var(--ib-color-surface)); }
 
   /* A series hidden from the legend (or by Hidden). */
   ib-chart .ib-chart-frame [data-ib-hidden] { display: none; }
