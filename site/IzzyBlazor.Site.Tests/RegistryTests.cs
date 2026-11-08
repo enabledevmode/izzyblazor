@@ -59,10 +59,24 @@ public class RegistryTests
         Assert.True(missing.Count == 0, $"Add an <example><code> to: {string.Join(", ", missing)}");
     }
 
+    private static IEnumerable<string> Ancestors(string start)
+    {
+        for (var dir = new DirectoryInfo(Path.GetFullPath(start)); dir is not null; dir = dir.Parent)
+        {
+            yield return dir.FullName;
+        }
+    }
+
     // Each hand-written Overview's `const string Usage = """…"""`, dedented as C# does.
     private static IEnumerable<(string Name, string Code)> HandWrittenUsage([System.Runtime.CompilerServices.CallerFilePath] string here = "")
     {
-        var folder = Path.Combine(Path.GetDirectoryName(here)!, "..", "IzzyBlazor.Site", "Docs", "Overviews");
+        // The source path where the build keeps it; CI's deterministic build maps it to "/_/", so
+        // then the repository is found above the test's output or the working directory.
+        var inRepo = Path.Combine("site", "IzzyBlazor.Site", "Docs", "Overviews");
+        var folder = new[] { Path.Combine(Path.GetDirectoryName(here)!, "..", "..") , AppContext.BaseDirectory, Environment.CurrentDirectory }
+            .SelectMany(start => Ancestors(start))
+            .Select(dir => Path.Combine(dir, inRepo))
+            .FirstOrDefault(Directory.Exists) ?? throw new DirectoryNotFoundException($"No {inRepo} above the tests.");
         foreach (var file in Directory.GetFiles(folder, "*.razor"))
         {
             foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(file), "const string Usage = \"\"\"\\r?\\n(.*?)\\r?\\n([ \\t]*)\"\"\"", System.Text.RegularExpressions.RegexOptions.Singleline))
