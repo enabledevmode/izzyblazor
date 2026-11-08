@@ -1573,7 +1573,15 @@ internal static class ChartLayout
                 TimeLabels(tier, new DateTime((long)lo), new DateTime((long)hi), count * z, input.ArgumentFormat, culture, columnPx, timeText, stretch: z);
             }
 
-            model.ZoomTiers.Add(new ZoomTier(z, tier.ArgumentLabels));
+            // A tier like the one before adds nothing; one with a label for every item is as fine
+            // as the data, so the tiers stop there.
+            var last = model.ZoomTiers.LastOrDefault();
+            if (last is null || !last.Labels.Select(l => (l.Pos, l.Text)).SequenceEqual(tier.ArgumentLabels.Select(l => (l.Pos, l.Text))))
+            {
+                model.ZoomTiers.Add(new ZoomTier(z, tier.ArgumentLabels));
+            }
+
+            if (tier.ArgumentLabels.Count >= n) break;
         }
     }
 
