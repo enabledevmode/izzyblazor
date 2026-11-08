@@ -35,14 +35,8 @@
                             Title="Order"
                             Width="8.Rem"
                             Frozen="ColumnFrozen.Start" />
-            <PropertyColumn Property="o => o.Customer"
-                            Sortable
-                            Filterable
-                            MinWidth="12.Rem" />
-            <PropertyColumn Property="o => o.Total"
-                            Format="C"
-                            Sortable
-                            Width="10.Rem" />
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
         </Columns>
     </DataGrid>
 

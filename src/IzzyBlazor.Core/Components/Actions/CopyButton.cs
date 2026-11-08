@@ -15,8 +15,7 @@ namespace IzzyBlazor;
 ///
 /// &lt;TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly&gt;
 ///     &lt;EndAddon&gt;
-///         &lt;CopyButton For="api-key"
-///                     Variant="ButtonVariant.Outline"&gt;Copy&lt;/CopyButton&gt;
+///         &lt;CopyButton For="api-key" Variant="ButtonVariant.Outline"&gt;Copy&lt;/CopyButton&gt;
 ///     &lt;/EndAddon&gt;
 /// &lt;/TextField&gt;
 /// </code>

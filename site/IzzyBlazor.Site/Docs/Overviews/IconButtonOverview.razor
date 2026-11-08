@@ -60,7 +60,10 @@
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
     private const string Usage = """
-        <IconButton Icon="Lucide.Pencil" Label="Edit" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Lucide.Pencil"
+                    Label="Edit"
+                    Variant="ButtonVariant.Ghost"
+                    Accent="Accent.Neutral" />
 
         @* A link. *@
         <IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" />

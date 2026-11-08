@@ -25,7 +25,13 @@ public sealed class SidebarHeader : ComponentPart
 /// Pinned to the bottom of an <see cref="AppSidebar"/>, below the scrolling content: an account menu
 /// or settings. Write it directly in the sidebar.
 /// </summary>
-/// <example><code>&lt;SidebarFooter&gt;&lt;Menu ...&gt;...&lt;/Menu&gt;&lt;/SidebarFooter&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;SidebarFooter&gt;
+///     &lt;Menu ...&gt;...&lt;/Menu&gt;
+/// &lt;/SidebarFooter&gt;
+/// </code>
+/// </example>
 public sealed class SidebarFooter : ComponentPart
 {
     internal override Type HostType => typeof(AppSidebar);
@@ -36,7 +42,14 @@ public sealed class SidebarFooter : ComponentPart
 /// <c>Align</c> and <c>Justify</c>, like <see cref="Stack"/>. Optional: content written straight in
 /// the sidebar is its body too.
 /// </summary>
-/// <example><code>&lt;SidebarBody Gap="4"&gt;&lt;NavMenu&gt;...&lt;/NavMenu&gt;&lt;NavMenu&gt;...&lt;/NavMenu&gt;&lt;/SidebarBody&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;SidebarBody Gap="4"&gt;
+///     &lt;NavMenu&gt;...&lt;/NavMenu&gt;
+///     &lt;NavMenu&gt;...&lt;/NavMenu&gt;
+/// &lt;/SidebarBody&gt;
+/// </code>
+/// </example>
 public class SidebarBody : FlexBase
 {
     /// <inheritdoc />

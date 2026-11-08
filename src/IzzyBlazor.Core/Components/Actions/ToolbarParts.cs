@@ -133,8 +133,7 @@ public sealed class ToolbarItem : LayoutItemBase, IToolbarItem, IDisposable
 /// <example>
 /// <code>
 /// &lt;ToolbarText&gt;3 selected&lt;/ToolbarText&gt;
-/// &lt;ToolbarText Position="ToolbarPosition.Center"
-///              Width="Length.Rem(9)"&gt;Q3 report.pdf&lt;/ToolbarText&gt;
+/// &lt;ToolbarText Position="ToolbarPosition.Center" Width="Length.Rem(9)"&gt;Q3 report.pdf&lt;/ToolbarText&gt;
 /// </code>
 /// </example>
 public sealed class ToolbarText : LayoutItemBase, IToolbarItem, IDisposable

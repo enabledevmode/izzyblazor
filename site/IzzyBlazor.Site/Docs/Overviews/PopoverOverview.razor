@@ -71,7 +71,9 @@
         <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues">
             <Form Model="Filters" FormName="filters" OnValidSubmit="ApplyAsync">
                 <Checkbox @bind-Value="Filters!.Mine" />
-                <FormActions><Button Submit Size="ControlSize.Sm">Apply</Button></FormActions>
+                <FormActions>
+                    <Button Submit Size="ControlSize.Sm">Apply</Button>
+                </FormActions>
             </Form>
         </Popover>
 

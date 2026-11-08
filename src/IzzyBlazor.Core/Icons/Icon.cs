@@ -11,10 +11,7 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;Icon Name="Lucide.House" /&gt;
-/// &lt;Icon Name="Lucide.TriangleAlert"
-///       Size="IconSize.Lg"
-///       Color="Color.WarningText"
-///       Label="Warning" /&gt;
+/// &lt;Icon Name="Lucide.TriangleAlert" Size="IconSize.Lg" Color="Color.WarningText" Label="Warning" /&gt;
 /// &lt;Icon Purpose="IconPurpose.Close" /&gt;
 /// </code>
 /// </example>

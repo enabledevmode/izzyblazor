@@ -17,11 +17,8 @@ namespace IzzyBlazor;
 ///         Variant="ButtonVariant.Outline"
 ///         StartIcon="Lucide.Trash"&gt;Delete&lt;/Button&gt;
 /// &lt;Button Submit Name="intent" Value="publish"&gt;Publish&lt;/Button&gt;
-/// &lt;Button Href="/courses/wizard"
-///         EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/Button&gt;
-/// &lt;Button Href="https://github.com/..."
-///         External
-///         Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
+/// &lt;Button Href="/courses/wizard" EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/Button&gt;
+/// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
 /// </code>
 /// </example>
 /// <accessibility>

@@ -14,9 +14,7 @@ namespace IzzyBlazor;
 ///             Label="Edit"
 ///             Variant="ButtonVariant.Ghost"
 ///             Accent="Accent.Neutral" /&gt;
-/// &lt;IconButton Icon="Lucide.ExternalLink"
-///             Label="Open the docs"
-///             Href="https://example.com/docs" /&gt;
+/// &lt;IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
 /// </code>
 /// </example>
 /// <accessibility>

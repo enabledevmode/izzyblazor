@@ -5,10 +5,7 @@
 @*
     Validation messages for one model property, for fields that are not IzzyBlazor fields.
     IzzyBlazor fields show their own errors.
-    <input id="email"
-           @bind="Model.Email"
-           aria-describedby="email-error"
-           aria-invalid="@emailInvalid" />
+    <input id="email" @bind="Model.Email" aria-describedby="email-error" aria-invalid="@emailInvalid" />
     <FieldError For="() => Model.Email" Id="email-error" />
 
     Accessibility:

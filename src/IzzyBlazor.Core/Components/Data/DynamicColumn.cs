@@ -17,11 +17,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example><code>@foreach (var (name, type) in columns)
 /// {
-///     &lt;DynamicColumn @key="name"
-///                    Field="@name"
-///                    Type="type"
-///                    Sortable
-///                    Filterable /&gt;
+///     &lt;DynamicColumn @key="name" Field="@name" Type="type" Sortable Filterable /&gt;
 /// }</code></example>
 public class DynamicColumn<TItem> : ColumnBase<TItem>
 {

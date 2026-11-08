@@ -173,7 +173,15 @@ public class Center : Box
 }
 
 /// <summary>Takes up the free space in a <see cref="Stack"/> or <see cref="Row"/>, pushing what follows to the end.</summary>
-/// <example><code>&lt;Row&gt;&lt;Logo /&gt;&lt;Spacer /&gt;&lt;Button&gt;Sign in&lt;/Button&gt;&lt;/Row&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;Row&gt;
+///     &lt;Logo /&gt;
+///     &lt;Spacer /&gt;
+///     &lt;Button&gt;Sign in&lt;/Button&gt;
+/// &lt;/Row&gt;
+/// </code>
+/// </example>
 /// <seealso cref="Row"/>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Box"/>
@@ -188,7 +196,13 @@ public class Spacer : Box
 /// Keeps its content at a fixed shape, such as 16:9 for a video or 1:1 for an avatar. Images
 /// and videos inside fill it and are cropped to fit.
 /// </summary>
-/// <example><code>&lt;AspectRatio Ratio="16 / 9.0"&gt;&lt;img src="..." alt="..." /&gt;&lt;/AspectRatio&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;AspectRatio Ratio="16 / 9.0"&gt;
+///     &lt;img src="..." alt="..." /&gt;
+/// &lt;/AspectRatio&gt;
+/// </code>
+/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It adds no name or role: an <c>img</c> inside still needs its <c>alt</c>, an <c>iframe</c> its <c>title</c>.</item>

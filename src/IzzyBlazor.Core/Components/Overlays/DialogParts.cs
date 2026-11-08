@@ -69,7 +69,9 @@ public class DialogFooter : FlexBase
 /// <code>
 /// &lt;Drawer Id="details" Title="Project details"&gt;
 ///     &lt;DialogBody Gap="4"&gt;...&lt;/DialogBody&gt;
-///     &lt;DialogFooter&gt;&lt;DialogClose&gt;Close&lt;/DialogClose&gt;&lt;/DialogFooter&gt;
+///     &lt;DialogFooter&gt;
+///         &lt;DialogClose&gt;Close&lt;/DialogClose&gt;
+///     &lt;/DialogFooter&gt;
 /// &lt;/Drawer&gt;
 /// </code>
 /// </example>

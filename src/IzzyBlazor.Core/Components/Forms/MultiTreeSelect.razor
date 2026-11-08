@@ -10,12 +10,8 @@
     with a checkbox on each item. Bind it to a collection (an array, List<T> or HashSet<T>);
     ItemValue is what each item adds to it, and all three types are inferred.
 
-    <MultiTreeSelect @bind-Value="Model.TeamIds"
-                     Items="Departments"
-                     ItemChildren="d => d.Teams"
-                     ItemValue="d => d.Id"
-                     ItemText="d => d.Name"
-                     Label="Visible to" />
+    <MultiTreeSelect @bind-Value="Model.TeamIds" Items="Departments" ItemChildren="d => d.Teams"
+                     ItemValue="d => d.Id" ItemText="d => d.Name" Label="Visible to" />
 
     Checking a parent checks its branch, and a parent with part of its branch checked shows a mixed
     box; Cascade="false" makes each box its own. The value contains every checked item, parents

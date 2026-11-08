@@ -24,10 +24,7 @@ public enum TagVariant
 /// <example>
 /// <code>
 /// &lt;Tag Label="Blazor" Href="/topics/blazor" /&gt;
-/// &lt;Tag Label="Status: Paid"
-///      Status="Status.Success"
-///      RemoveHref="/invoices"
-///      OnRemove="ClearStatus" /&gt;
+/// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
 /// </code>
 /// </example>
 /// <accessibility>

@@ -10,7 +10,9 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;Banner Status="Status.Warning"&gt;
 ///     Maintenance on Sunday.
-///     &lt;BannerActions&gt;&lt;Anchor Href="/status"&gt;Details&lt;/Anchor&gt;&lt;/BannerActions&gt;
+///     &lt;BannerActions&gt;
+///         &lt;Anchor Href="/status"&gt;Details&lt;/Anchor&gt;
+///     &lt;/BannerActions&gt;
 /// &lt;/Banner&gt;
 /// </code>
 /// </example>

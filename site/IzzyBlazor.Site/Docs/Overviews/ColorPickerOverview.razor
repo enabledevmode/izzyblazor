@@ -81,7 +81,10 @@
         <ColorPicker @bind-Value="Model!.Brand" />
 
         @* A few colors, and nothing else. *@
-        <ColorPicker @bind-Value="Model!.Tag" Swatches="@(["#2563eb", "#0f766e", "#be123c"])" ShowPicker="false" ShowFields="false" />
+        <ColorPicker @bind-Value="Model!.Tag"
+                     Swatches="@(["#2563eb", "#0f766e", "#be123c"])"
+                     ShowPicker="false"
+                     ShowFields="false" />
 
         @* Any color, with opacity: "#2563ebcc". *@
         <ColorPicker @bind-Value="Model!.Overlay" Swatches="[]" ShowAlpha />
