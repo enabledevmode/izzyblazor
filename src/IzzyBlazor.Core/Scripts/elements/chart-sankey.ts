@@ -1,14 +1,14 @@
 /**
  * A SankeyChart's script, loaded by <ib-chart> when it holds one (data-ib-sankey, the nodes in
  * the order the keys visit them: column by column, top to bottom): the tooltip for the flow or
- * node under the pointer, with the rest faded; and the keyboard (the diagram is one Tab stop; the
+ * node under the pointer, with its flows stronger; and the keyboard (the diagram is one Tab stop; the
  * arrow keys move from node to node and the tooltip's text goes to a live region).
  *
  * The shapes take no pointer events while this runs (sankey.css), so their own hover titles stay
  * quiet: flows are found under the pointer by their fill, nodes and labels by their boxes.
  *
  * Nothing Blazor renders is changed but attributes Blazor doesn't set (data-ib-active,
- * data-ib-focus, role, tabindex) and the tooltip's and live region's contents.
+ * role, tabindex) and the tooltip's and live region's contents.
  */
 
 // What a chart keeps when the server draws it again (an interactive page's new data): the node
@@ -23,7 +23,7 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
   const svg = frame?.querySelector<SVGSVGElement>(".ib-sankey-links");
   const tooltip = frame?.querySelector<HTMLElement>(".ib-chart-tooltip");
   const live = chart.querySelector<HTMLElement>("[data-ib-live]");
-  if (!frame || !svg || !tooltip) return;
+  if (!frame || !svg) return;
   const kept = keeping.delete(chart) ? keptBy.get(chart) : undefined;
   const state: Kept = { node: -1, focused: false };
   keptBy.set(chart, state);
@@ -33,14 +33,23 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
     keeping.add(chart);
     restart();
   });
-  // Only what the server draws: the tooltip's own moves (its style) mustn't count.
+  // Only what the server draws (the tooltip's own moves, its style, mustn't count): the flows, the
+  // bars and labels, their text, the tooltips' contents, and parts that come and go (a chart drawn
+  // empty first, or Tooltip turned on).
+  changed.observe(chart, { childList: true });
+  changed.observe(frame, { childList: true });
   changed.observe(svg, { childList: true, subtree: true, attributeFilter: ["d"] });
-  for (const part of frame.querySelectorAll(".ib-sankey-nodes, .ib-sankey-labels")) changed.observe(part, { childList: true, subtree: true, attributeFilter: ["style"] });
+  for (const part of chart.querySelectorAll(".ib-sankey-nodes, .ib-sankey-labels, .ib-chart-tips")) changed.observe(part, { childList: true, subtree: true, characterData: true, attributeFilter: ["style"] });
   signal.addEventListener("abort", () => changed.disconnect());
 
   const tips = new Map<string, HTMLElement>();
   for (const tip of chart.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]")) tips.set(tip.dataset.ibTip!, tip);
   const links = [...svg.querySelectorAll<SVGPathElement>("[data-ib-link]")];
+  // A flow and its gradient (LinkColor Gradient), which holds its color.
+  const band = (link: Element | undefined) => {
+    mark(link);
+    mark(svg.querySelector(`[data-ib-grad="${(link as SVGElement | undefined)?.dataset.ibLink}"]`) ?? undefined);
+  };
   const nodes = new Map<number, HTMLElement>();
   for (const el of frame.querySelectorAll<HTMLElement>(".ib-sankey-node")) nodes.set(Number(el.dataset.ibNode), el);
   const labels = new Map<number, HTMLElement>();
@@ -59,43 +68,26 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
   let current = "";
   const hide = () => {
     current = "";
-    tooltip.hidden = true;
-    frame.removeAttribute("data-ib-focus");
+    if (tooltip) tooltip.hidden = true;
     for (const el of active.splice(0)) el.removeAttribute("data-ib-active");
   };
 
-  // Shows a node's ("n3") or a flow's ("l5") tooltip, with it and what it joins in full color,
-  // at (x, y) in the plot, on the side with room.
+  // Strengthens a node's ("n3") flows or a flow ("l5"), and shows its tooltip, if the chart has
+  // them, at (x, y) in the plot, on the side with room.
   const show = (key: string, x: number, y: number, before = false) => {
     const tip = tips.get(key);
-    if (!tip) return hide();
     if (key !== current) {
       current = key;
-      tooltip.innerHTML = tip.innerHTML;
+      if (tooltip && tip) tooltip.innerHTML = tip.innerHTML;
       for (const el of active.splice(0)) el.removeAttribute("data-ib-active");
       const i = Number(key.slice(1));
       if (key[0] === "l") {
-        const link = links.find((l) => l.dataset.ibLink === String(i));
-        mark(link);
-        for (const end of [link?.dataset.ibFrom, link?.dataset.ibTo].map(Number)) {
-          mark(nodes.get(end));
-          mark(labels.get(end));
-        }
+        band(links.find((l) => l.dataset.ibLink === String(i)));
       } else {
-        mark(nodes.get(i));
-        mark(labels.get(i));
-        for (const link of links) {
-          const from = Number(link.dataset.ibFrom);
-          const to = Number(link.dataset.ibTo);
-          if (from !== i && to !== i) continue;
-          mark(link);
-          const other = from === i ? to : from;
-          mark(nodes.get(other));
-          mark(labels.get(other));
-        }
+        for (const link of links) if (link.dataset.ibFrom === String(i) || link.dataset.ibTo === String(i)) band(link);
       }
-      frame.setAttribute("data-ib-focus", "");
     }
+    if (!tooltip || !tip) return;
     tooltip.hidden = false;
     const gap = 14;
     const width = frame.clientWidth;
@@ -136,7 +128,11 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
   );
   frame.addEventListener("pointerleave", () => byKeys || hide(), { signal });
 
-  // The keys: a node at a time, its tooltip beside its bar.
+  // The keys come with the tooltips: a node at a time, its tooltip beside its bar.
+  if (!tooltip) {
+    signal.addEventListener("abort", hide);
+    return;
+  }
   let at = -1;
   const column = (i: number) => Math.round(nodes.get(i)?.getBoundingClientRect().left ?? 0);
   const middle = (i: number) => {
@@ -152,7 +148,7 @@ export function sankey(chart: HTMLElement, signal: AbortSignal, keyboard: (frame
     const last = column(i) === Math.max(...order.map(column));
     show(`n${i}`, (last ? r.left : r.right) - box.left, r.top + r.height / 2 - box.top, last);
     if (live) {
-      // "Rent, 1,200, from Salary, 1,200": what the tooltip says.
+      // "Housing, $1,700, from Budget, $1,700": what the tooltip says.
       live.textContent = [...tooltip.querySelectorAll("*")]
         .filter((e) => e.children.length === 0)
         .map((e) => (e.textContent ?? "").trim())

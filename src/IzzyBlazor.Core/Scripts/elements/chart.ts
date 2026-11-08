@@ -36,7 +36,7 @@ class Chart extends IzzyElement {
       this.#keep = true;
       this.connectedCallback();
     });
-    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie"] });
+    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
     if (this.hasAttribute("data-ib-pie")) {

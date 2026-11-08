@@ -37,11 +37,11 @@
     overflow: visible;
   }
 
-  /* See-through, so crossing flows show; stronger on a dark surface, where 40% reads murky. */
+  /* See-through, so crossing flows show; stronger on a dark surface, where a light mix reads murky. */
   .ib-sankey-link {
     fill: light-dark(
-      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.4) * 100%), transparent),
-      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.6) * 100%), transparent));
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.55) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.75) * 100%), transparent));
     transition: fill-opacity 0.15s;
   }
 
@@ -50,8 +50,8 @@
   /* A gradient flow's two ends, mixed as a flow's color is. */
   .ib-sankey-stop {
     stop-color: light-dark(
-      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.4) * 100%), transparent),
-      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.6) * 100%), transparent));
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.55) * 100%), transparent),
+      color-mix(in srgb, var(--ib-chart-c) calc(var(--ib-sankey-link-opacity, 0.75) * 100%), transparent));
   }
 
   :is(.ib-sankey-nodes, .ib-sankey-labels) {
@@ -101,10 +101,9 @@
     color: var(--ib-color-muted);
   }
 
-  /* While a flow or node is pointed at (or the keys are on a node): the rest fade. */
-  .ib-sankey-plot[data-ib-focus] .ib-sankey-link:not([data-ib-active]) { fill-opacity: 0.25; }
-  .ib-sankey-plot[data-ib-focus] .ib-sankey-link[data-ib-active] { --ib-sankey-link-opacity: 0.75; }
-  .ib-sankey-plot[data-ib-focus] :is(.ib-sankey-node, .ib-sankey-label):not([data-ib-active]) { opacity: 0.3; }
+  /* The flow pointed at, or a node's flows (pointer or keys), lighter; nothing else changes, so
+     nothing flashes. A gradient flow's color is its gradient's, marked with it. */
+  :is(.ib-sankey-link, linearGradient)[data-ib-active] { --ib-sankey-link-opacity: 0.3; }
 
   /* The plot's shapes leave the pointer to the script, whose tooltip stands in for their titles. */
   ib-chart[data-ib-tooltips] :is(.ib-sankey-links, .ib-sankey-node, .ib-sankey-label) { pointer-events: none; }
