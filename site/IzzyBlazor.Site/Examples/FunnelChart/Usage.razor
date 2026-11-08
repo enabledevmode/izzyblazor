@@ -1,0 +1,15 @@
+@* A month's trial sign-ups, from the pricing page to a paid plan. *@
+<FunnelChart Items="_stages" Argument="s => s.Stage" Value="s => s.People" Title="Trial sign-ups, October" />
+
+@code {
+    private record SignupStage(string Stage, int People);
+
+    private readonly SignupStage[] _stages =
+    [
+        new("Viewed pricing", 12_400),
+        new("Started sign-up", 7_900),
+        new("Created an account", 5_600),
+        new("Started a trial", 3_700),
+        new("Became a customer", 1_450),
+    ];
+}

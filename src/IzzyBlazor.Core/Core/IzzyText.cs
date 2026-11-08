@@ -1241,6 +1241,18 @@ public class IzzyText
     /// <summary>A waterfall chart's legend: the key for total bars, which show everything so far.</summary>
     public virtual string ChartTotal { get; set; } = "Total";
 
+    /// <summary>A FunnelChart's data table: the column of each stage's share of the first stage.</summary>
+    public virtual string FunnelOfFirst { get; set; } = "Of the first";
+
+    /// <summary>A FunnelChart's data table: the column of each stage's share of the stage before it.</summary>
+    public virtual string FunnelOfPrevious { get; set; } = "Of the stage before";
+
+    /// <summary>A FunnelChart stage's share of the first, read after its value: "{0} of the first".</summary>
+    public virtual string FunnelOfFirstText { get; set; } = "{0} of the first";
+
+    /// <summary>A FunnelChart stage's share of the stage before, read after its value: "{0} of the stage before".</summary>
+    public virtual string FunnelOfPreviousText { get; set; } = "{0} of the stage before";
+
     /// <summary>
     /// A Sparkline's accessible name, which says what a glance at it shows: "Revenue, last 12 weeks:
     /// from 41 to 48, low 39, high 52". {0} is the label; {1} and {2} the first and last values;

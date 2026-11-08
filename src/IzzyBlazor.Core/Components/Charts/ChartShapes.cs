@@ -17,6 +17,13 @@ internal sealed record PieSlice(int Index, double Start, double End, string Path
 /// </summary>
 internal sealed record PieLabel(int Index, bool End, double Pos, string Leader);
 
+/// <summary>
+/// A FunnelChart stage in a 100 by 100 box: its outline, the height of its middle (Y, top down),
+/// and how far right its edge reaches there (X), where its label's line starts. None for a stage
+/// with no value.
+/// </summary>
+internal sealed record FunnelStage(int Index, string Points, double X, double Y);
+
 /// <summary>The geometry of the round charts and sparklines, as SVG paths. Pure, so tested alone.</summary>
 internal static class ChartShapes
 {
@@ -280,5 +287,47 @@ internal static class ChartShapes
         var (min, max) = (present.Min(), present.Max());
         // All equal: a flat line through the middle.
         return min == max ? (min - 1, max + 1) : (min, max);
+    }
+
+    /// <summary>
+    /// A funnel's stages, as DevExtreme's (its "dynamicSlope"): each as tall as the others, its top
+    /// as wide as its value (the largest's the full width), sloping to the next stage's width; the
+    /// last is as wide at the bottom as at the top. A pyramid's: a triangle on its base, the first
+    /// item at the bottom, each level as tall as its share of the total.
+    /// </summary>
+    public static List<FunnelStage> Funnel(IReadOnlyList<double?> values, bool pyramid)
+    {
+        var stages = new List<FunnelStage>();
+        var n = values.Count;
+        string Points(double top, double wTop, double bottom, double wBottom) =>
+            $"{N(50 - wTop / 2)},{N(top)} {N(50 + wTop / 2)},{N(top)} {N(50 + wBottom / 2)},{N(bottom)} {N(50 - wBottom / 2)},{N(bottom)}";
+
+        if (pyramid)
+        {
+            var total = values.Sum(v => v is > 0 ? v.Value : 0);
+            var from = 0.0;
+            for (var i = 0; i < n; i++)
+            {
+                if (values[i] is not > 0 || total <= 0) continue;
+                var to = from + values[i]!.Value / total * 100;
+                var mid = (from + to) / 2;
+                stages.Add(new FunnelStage(i, Points(100 - to, 100 - to, 100 - from, 100 - from), 50 + (100 - mid) / 2, 100 - mid));
+                from = to;
+            }
+
+            return stages;
+        }
+
+        var max = values.Max(v => v is > 0 ? v.Value : 0);
+        double Width(int i) => i < n && values[i] is > 0 && max > 0 ? values[i]!.Value / max * 100 : 0;
+        for (var i = 0; i < n; i++)
+        {
+            if (values[i] is not > 0) continue;
+            var (top, bottom) = (i * 100.0 / n, (i + 1) * 100.0 / n);
+            var below = i == n - 1 ? Width(i) : Width(i + 1);
+            stages.Add(new FunnelStage(i, Points(top, Width(i), bottom, below), 50 + (Width(i) + below) / 4, (top + bottom) / 2));
+        }
+
+        return stages;
     }
 }

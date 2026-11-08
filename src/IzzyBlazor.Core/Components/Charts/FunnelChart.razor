@@ -1,0 +1,240 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    The stages of a process that people drop out of, such as visits, sign-ups and purchases, as a
+    funnel drawn on the server, with no script; or, with Pyramid, levels of a hierarchy.
+
+    <FunnelChart Items="stages" Argument="s => s.Stage" Value="s => s.People" Title="Sign-ups, October" />
+
+    Stages keep the items' order, unsorted: the order is the process. A missing, zero or negative
+    value gets no stage in the shape but keeps its label and its row in the table, and the stage
+    after it has no share of the one before. Each stage takes the palette's next color, as a
+    PieChart's slices do.
+
+    Accessibility:
+    - A figure captioned by Title (or named by a heading on the page, with TitledBy).
+    - The labels are a list, named by the title: each reads its name, value, share of the first,
+      and share of the stage before. The shape is hidden from screen readers.
+    - "Show data" under the chart opens the same numbers as a table (DataTable).
+    See also: Chart, PieChart.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+    }
+    @{
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var names = items.Select(i => ChartLayout.ArgumentText(_argument!(i), null, CultureInfo.CurrentCulture)).ToArray();
+        var values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
+        var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
+        var first = values.Length > 0 ? values[0] : null;
+        var total = values.Sum(v => v is > 0 ? v.Value : 0);
+        var stages = ChartShapes.Funnel(values, Pyramid);
+
+        // A funnel's shares are of the first stage, and of the one before; a pyramid's, of the total.
+        string? Of(double? value, double? whole) => value is >= 0 && whole is > 0 ? ChartMembers.Share(value.Value / whole.Value) : null;
+        var shares = values.Select(v => Pyramid ? Of(v, total) : Of(v, first)).ToArray();
+        var steps = values.Select((v, i) => Pyramid || i == 0 ? null : Of(v, values[i - 1])).ToArray();
+
+        // Each label level with its stage's middle, nudged apart a line each; one with no stage
+        // sits where it would be (a funnel's), or with the level below it (a pyramid's).
+        var targets = new double[items.Count];
+        var last = 100.0;
+        for (var i = 0; i < items.Count; i++)
+        {
+            targets[i] = stages.FirstOrDefault(s => s.Index == i)?.Y ?? (Pyramid ? last : (i + 0.5) * 100 / items.Count);
+            last = targets[i];
+        }
+
+        var places = ChartLayout.Spread(targets.Select(t => t / 100 * HeightPx).ToList(), HeightPx, 20).Select(c => c / HeightPx * 100).ToArray();
+    }
+    <div class="@(Pyramid ? "ib-funnel ib-funnel-pyramid" : "ib-funnel")" style="@Palette?.Style(items.Count)">
+        <svg class="ib-funnel-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            @foreach (var stage in stages)
+            {
+                <polygon class="@($"ib-funnel-stage {Slot(stage.Index)}")" points="@stage.Points"><title>@($"{names[stage.Index]}: {texts[stage.Index]} ({shares[stage.Index]})")</title></polygon>
+            }
+            @foreach (var stage in stages)
+            {
+                @* Level with the stage, then, for a label nudged apart from its neighbors, a short bend to it. *@
+                <path class="ib-funnel-leader" d="@($"M{Num(stage.X)},{Num(stage.Y)}H{Num(Math.Max(stage.X, 96))}L100,{Num(places[stage.Index])}")" />
+            }
+        </svg>
+        <ol class="ib-funnel-labels" aria-labelledby="@NameId">
+            @for (var i = 0; i < items.Count; i++)
+            {
+                <li class="@Slot(i)" style="top:@(Num(places[i]))%">
+                    <span class="ib-funnel-key" aria-hidden="true"></span>
+                    <span>@names[i]</span>
+                    <span class="ib-funnel-value">@texts[i]</span>@if (shares[i] is { } share)
+                    {<span class="ib-funnel-share" aria-hidden="true">@share</span><span class="ib-visually-hidden">, @(Pyramid ? share : string.Format(CultureInfo.CurrentCulture, TextDefaults.FunnelOfFirstText, share))</span>}@if (steps[i] is { } step)
+                    {<span class="ib-visually-hidden">, @string.Format(CultureInfo.CurrentCulture, TextDefaults.FunnelOfPreviousText, step)</span>}
+                </li>
+            }
+        </ol>
+    </div>
+
+    @if (DataTable != ChartDataTable.None)
+    {
+        <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+            <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
+                <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
+                <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                    {<span class="ib-visually-hidden">, @Title</span>}</span>
+            </summary>
+            <div class="ib-chart-table-scroll">
+                <table class="ib-chart-table" aria-labelledby="@NameId">
+                    <thead>
+                        <tr>
+                            <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                            <th scope="col">@(_valueName ?? TextDefaults.ChartValue)</th>
+                            <th scope="col">@(Pyramid ? TextDefaults.ChartShare : TextDefaults.FunnelOfFirst)</th>
+                            @if (!Pyramid)
+                            {
+                                <th scope="col">@TextDefaults.FunnelOfPrevious</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < items.Count; i++)
+                        {
+                            <tr>
+                                <th scope="row">@names[i]</th>
+                                <td>@texts[i]</td>
+                                <td>@shares[i]</td>
+                                @if (!Pyramid)
+                                {
+                                    <td>@steps[i]</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    }
+</figure>
+
+@code {
+    /// <summary>The items, one stage each, in the order of the process.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each stage's name, such as <c>s =&gt; s.Stage</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+
+    /// <summary>
+    /// Each stage's value, such as <c>s =&gt; s.People</c>: any number. A funnel stage's top is as
+    /// wide as its share of the largest; a pyramid level is as tall as its share of the total.
+    /// </summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>
+    /// The chart's title, such as "Sign-ups, October", shown above it as its caption. It also names the chart
+    /// for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start by default (the left, in a left-to-right page);
+    /// <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
+
+    /// <summary>A .NET format string for the values, such as <c>C0</c> or <c>N0</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>
+    /// The colors in order: <see cref="ChartPalette.Colors"/> (the theme's eight, the default),
+    /// <see cref="ChartPalette.Shades"/> of one color, or your own with <see cref="ChartPalette.Of"/>.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
+    /// <summary>
+    /// Draws a pyramid: a triangle on its base, the first item at the bottom, each level as tall as
+    /// its share of the total, for levels of a hierarchy such as a team's seniority. Each shows its
+    /// share of the total in place of the first's and the one before's.
+    /// </summary>
+    [Parameter] public bool Pyramid { get; set; }
+
+    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    // The shape's height (chart.css's 18rem), which the labels are spread over.
+    private const double HeightPx = 288;
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+
+    // What names the chart: its own caption, or the heading TitledBy points at.
+    private string NameId => TitledBy ?? _labelId;
+    private Expression<Func<TItem, object?>>? _lastArgument;
+    private Expression<Func<TItem, object?>>? _lastValue;
+    private Func<TItem, object?>? _argument;
+    private Func<TItem, object?>? _value;
+    private string? _argumentName;
+    private string? _valueName;
+    private string? _class;
+    private string? _style;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    // The palette's eight colors, then a neutral one for the rest, as PieChart's slices.
+    private static string Slot(int i) => i < 8 ? $"ib-chart-s{i + 1}" : "ib-chart-s9";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-funnel-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "FunnelChart needs a Title, such as \"Sign-ups, October\", or TitledBy, the id of a heading on the page that titles it."
+                : "FunnelChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (Argument is null || Value is null)
+        {
+            throw new InvalidOperationException("FunnelChart needs an Argument, each stage's name, and a Value, its size, such as s => s.Stage and s => s.People.");
+        }
+
+        if (!ReferenceEquals(Argument, _lastArgument))
+        {
+            _lastArgument = Argument;
+            _argument = Argument.Compile();
+            _argumentName = ChartMembers.Name(Argument);
+        }
+
+        if (!ReferenceEquals(Value, _lastValue))
+        {
+            _lastValue = Value;
+            _value = Value.Compile();
+            _valueName = ChartMembers.Name(Value);
+        }
+
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

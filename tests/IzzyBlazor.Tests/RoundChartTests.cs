@@ -38,6 +38,39 @@ public class RoundChartTests : BunitContext
     }
 
     [Fact]
+    public void Funnel_stages_slope_from_their_value_to_the_next_and_a_pyramid_stands_on_its_base()
+    {
+        // Equal heights; each top as wide as its value against the largest, down to the next's.
+        var funnel = ChartShapes.Funnel([1000, 500, null, 250], pyramid: false);
+        Assert.Equal([0, 1, 3], funnel.Select(s => s.Index));
+        Assert.Equal("0,0 100,0 75,25 25,25", funnel[0].Points);
+        Assert.Equal("25,25 75,25 50,50 50,50", funnel[1].Points);
+        Assert.Equal("37.5,75 62.5,75 62.5,100 37.5,100", funnel[2].Points);
+
+        // The first item is the base; each level as tall as its share of the total.
+        var pyramid = ChartShapes.Funnel([75, 25], pyramid: true);
+        Assert.Equal("37.5,25 62.5,25 100,100 0,100", pyramid[0].Points);
+        Assert.Equal("50,0 50,0 62.5,25 37.5,25", pyramid[1].Points);
+    }
+
+    [Fact]
+    public void A_funnel_labels_each_stage_with_its_share_of_the_first_and_of_the_one_before()
+    {
+        Plan[] stages = [new("Visited", 1000), new("Signed up", 400), new("Paid", 100)];
+        var cut = Render<FunnelChart<Plan>>(p => p
+            .Add(c => c.Items, stages)
+            .Add(c => c.Argument, x => x.Name)
+            .Add(c => c.Value, x => x.Customers)
+            .Add(c => c.Title, "Sign-ups"));
+
+        Assert.Equal(3, cut.FindAll("polygon.ib-funnel-stage").Count);
+        Assert.Equal(cut.Find("figcaption").Id, cut.Find("ol.ib-funnel-labels").GetAttribute("aria-labelledby"));
+        Assert.Equal(["10%", ", 10% of the first", ", 25% of the stage before"],
+            cut.FindAll(".ib-funnel-labels > li")[2].QuerySelectorAll(".ib-funnel-share, .ib-visually-hidden").Select(s => s.TextContent));
+        Assert.Equal(["Name", "Customers", "Of the first", "Of the stage before"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
+    }
+
+    [Fact]
     public void A_pie_chart_lists_each_slice_with_its_value_and_share()
     {
         Plan[] plans = [new("Free", 600), new("Pro", 380), new("Team", 20), new("Legacy", 0)];

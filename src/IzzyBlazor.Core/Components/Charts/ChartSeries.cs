@@ -594,4 +594,15 @@ internal static class ChartMembers
         IConvertible c when value is byte or sbyte or short or ushort or int or uint or long or ulong => c.ToDouble(CultureInfo.InvariantCulture),
         _ => throw new InvalidOperationException($"A chart value must be a number; this one is a {value.GetType().Name}."),
     };
+
+    /// <summary>
+    /// A share as a percent: whole, with a tenth under 9.5%, and "&lt;0.1%" for less, so a small
+    /// share doesn't read as 0%.
+    /// </summary>
+    public static string Share(double share) => share switch
+    {
+        > 0 and < 0.0005 => "<" + 0.001.ToString("P1", CultureInfo.CurrentCulture),
+        > 0 and < 0.095 => share.ToString("P1", CultureInfo.CurrentCulture),
+        _ => share.ToString("P0", CultureInfo.CurrentCulture),
+    };
 }
