@@ -34,6 +34,9 @@ class Chart extends IzzyElement {
   // The series the server drew hidden, as last read: when they change, the app set Hidden.
   #off = "";
   #keep = false;
+  // The item the keys were on, and whether the tooltip was theirs, kept over a new draw of the same chart.
+  #current = -1;
+  #byKeys = false;
 
   protected setup(signal: AbortSignal): void {
     // An interactive page can draw the chart again with new data in this same element: set up
@@ -120,6 +123,7 @@ class Chart extends IzzyElement {
     const drawn = new Set(data?.off ?? toggles.filter((t) => t.hasAttribute("data-ib-hidden")).map((t) => Number(t.dataset.ibSeries)));
     const off = [...drawn].join();
     if (!this.#keep || !this.#hidden || this.#off !== off) this.#hidden = new Set(drawn);
+    const kept = this.#keep;
     this.#keep = false;
     this.#off = off;
     const hidden = this.#hidden;
@@ -266,6 +270,11 @@ class Chart extends IzzyElement {
     // Draws the open tooltip again once it's set up below (a chart can have no tooltips).
     let refresh = () => {};
 
+    // A drag box or a pinch under way: the tooltip doesn't follow it.
+    let gesturing = false;
+    // Said after the next settled view, joined to it (an arrow that panned says the item, then the range).
+    let joinNext = false;
+
     // The RangeSelector, if any, kept on the view (set up below).
     let showSelector = () => {};
 
@@ -279,8 +288,10 @@ class Chart extends IzzyElement {
         if (signal.aborted) return;
         const inView = (data!.za ?? []).map((p, i) => [p, i] as const).filter(([p]) => p !== null && p >= view[0] - 1e-9 && p <= view[1] + 1e-9).sort((a, b) => a[0]! - b[0]!);
         if (zoomLive && data!.zs && data!.zn && inView.length > 0) {
-          zoomLive.textContent = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
+          const range = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
+          zoomLive.textContent = joinNext && zoomLive.textContent ? `${zoomLive.textContent}. ${range}` : range;
         }
+        joinNext = false;
         if (this.hasAttribute("data-ib-interactive")) {
           this.emit("iblayout", { layout: isZoomed() ? `${Math.round(view[0] * 1e6) / 1e6} ${Math.round(view[1] * 1e6) / 1e6}` : "" });
         }
@@ -339,11 +350,13 @@ class Chart extends IzzyElement {
     );
 
     // Tooltips.
-    const tooltip = plot.querySelector<HTMLElement>(".ib-chart-tooltip");
-    const hover = plot.querySelector<HTMLElement>(".ib-chart-hover");
+    const tooltip = plot.querySelector<HTMLElement>(".ib-chart-tooltip")!;
+    const hover = plot.querySelector<HTMLElement>(".ib-chart-hover")!;
     const tips = this.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]");
     const live = this.querySelector<HTMLElement>("[data-ib-live]");
-    if (!tooltip || !hover || tips.length === 0) return;
+    // With no tooltips (every series labeled), a chart that zooms still takes its keys and gestures.
+    const tipsOn = !!tooltip && !!hover && tips.length > 0;
+    if (!tipsOn && !zoomOn) return;
 
     const count = Number(this.dataset.ibCount) || tips.length;
     const scale = this.hasAttribute("data-ib-scale");
@@ -389,7 +402,7 @@ class Chart extends IzzyElement {
     // A point of a series the legend hid isn't a stop, nor (zoomed) one out of view.
     const keys = () => (pointsMode ? items().filter((i) => shown(i) && markFor(i)) : items());
 
-    let current = -1;
+    let current = kept ? this.#current : -1;
     let lastY: number | null = null;
 
     const along = (event: PointerEvent) => {
@@ -417,8 +430,9 @@ class Chart extends IzzyElement {
         hide();
         return;
       }
-      current = index;
+      current = this.#current = index;
       lastY = pointerY;
+      if (!tipsOn) return;
       tooltip.innerHTML = tips[index].innerHTML;
       for (const row of tooltip.querySelectorAll<HTMLElement>("[data-ib-series]")) {
         if (hidden.has(Number(row.dataset.ibSeries))) row.remove();
@@ -431,11 +445,13 @@ class Chart extends IzzyElement {
       // The band (or, on a scale, a line) under the item.
       const pos = positions[index];
       const size = bandSize;
-      const start = scale ? pos : pos - size / 2;
+      // Zoomed, an item at the view's edge has its band cut there.
+      const start = Math.max(0, scale ? pos : pos - size / 2);
+      const length = scale ? 0 : Math.min(1, pos + size / 2) - start;
       hover.classList.toggle("ib-chart-hover-line", scale);
       hover.style.cssText = horizontal
-        ? `top:${start * 100}%;height:${size * 100}%;left:0;width:100%`
-        : `left:${start * 100}%;width:${size * 100}%;top:0;height:100%`;
+        ? `top:${start * 100}%;height:${length * 100}%;left:0;width:100%`
+        : `left:${start * 100}%;width:${length * 100}%;top:0;height:100%`;
       hover.hidden = pointsMode;
       tooltip.hidden = false;
 
@@ -471,10 +487,11 @@ class Chart extends IzzyElement {
     };
 
     refresh = () => {
-      if (current >= 0 && !tooltip.hidden) show(current, lastY);
+      if (tipsOn && current >= 0 && !tooltip.hidden) show(current, lastY);
     };
 
     const hide = () => {
+      if (!tipsOn) return;
       tooltip.hidden = true;
       hover.hidden = true;
       active?.removeAttribute("data-ib-active");
@@ -483,14 +500,19 @@ class Chart extends IzzyElement {
 
     // The plot's shapes stop taking the pointer (chart.css), so their native <title> tips, there
     // for when there's no script, don't show over this one.
-    this.setAttribute("data-ib-tooltips", "");
-    signal.addEventListener("abort", () => this.removeAttribute("data-ib-tooltips"));
+    if (tipsOn) this.setAttribute("data-ib-tooltips", "");
+    signal.addEventListener("abort", () => {
+      this.removeAttribute("data-ib-tooltips");
+      this.#byKeys = byKeys;
+      hide();
+    });
 
     // Who moved the tooltip last: the keys keep it when the pointer leaves; the pointer doesn't.
-    let byKeys = false;
+    let byKeys = kept && this.#byKeys;
     plot.addEventListener(
       "pointermove",
       (event) => {
+        if (!tipsOn || gesturing) return;
         byKeys = false;
         const r = plot.getBoundingClientRect();
         if (pointsMode) {
@@ -522,9 +544,9 @@ class Chart extends IzzyElement {
     // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
     // not an image, so the frame becomes one, described by the keys' hint.
     this.keyboard(frame, signal);
-    document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
+    document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && hide(), { signal });
     const announce = () => {
-      if (!live) return;
+      if (!live || !tipsOn) return;
       live.textContent = [...tooltip.children]
         .map((c) => (c.textContent ?? "").replace(/\s+/g, " ").trim())
         .filter(Boolean)
@@ -547,10 +569,14 @@ class Chart extends IzzyElement {
       { signal }
     );
     frame.addEventListener("blur", hide, { signal });
+    // Drawn again (an interactive page after a zoom) with the keys on an item: it stays shown.
+    if (kept && byKeys && current >= 0 && document.activeElement === frame) show(current, null);
     frame.addEventListener(
       "keydown",
       (event) => {
         if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
+        // With no tooltips there's no item to move to: only the zoom's keys.
+        if (!tipsOn && !["+", "=", "-", "_", "0"].includes(event.key)) return;
         let next = current;
         switch (event.key) {
           case "ArrowRight":
@@ -594,6 +620,7 @@ class Chart extends IzzyElement {
         // Zoomed, an item out of view comes into the middle of it.
         if (zoomOn && next !== undefined && next >= 0 && !shown(next) && data!.za![next] !== null) {
           const at = data!.za![next]!, span = view[1] - view[0];
+          joinNext = true;
           setView(at - span / 2, at + span / 2);
           placed();
         }
@@ -630,6 +657,7 @@ class Chart extends IzzyElement {
           if (touches.size === 2) {
             const { mid, dist } = pinchState();
             pinch = { share: shareAt(mid), span: view[1] - view[0], dist };
+            gesturing = true;
             hide();
           }
           return;
@@ -653,10 +681,16 @@ class Chart extends IzzyElement {
           return;
         }
         if (!box || event.pointerId !== box.id) return;
+        // Released outside the plot before it was captured: no box.
+        if ((event.buttons & 1) === 0) {
+          box = null;
+          return;
+        }
         if (!this.hasAttribute("data-ib-brushing")) {
           if (Math.hypot(event.clientX - box.x, event.clientY - box.y) < 4) return;
           plot.setPointerCapture(event.pointerId);
           this.setAttribute("data-ib-brushing", "");
+          gesturing = true;
           hide();
         }
         const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
@@ -668,6 +702,7 @@ class Chart extends IzzyElement {
     const release = (event: PointerEvent) => {
       if (touches.delete(event.pointerId) && pinch) {
         pinch = null;
+        gesturing = false;
         settled();
         return;
       }
@@ -676,6 +711,7 @@ class Chart extends IzzyElement {
       box = null;
       if (!this.hasAttribute("data-ib-brushing")) return;
       this.removeAttribute("data-ib-brushing");
+      gesturing = false;
       const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
       if (Math.abs(to - from) * length() < 6) return;
       const [a, b] = [shareAt(from), shareAt(to)].sort((x, y) => x - y);
@@ -700,7 +736,14 @@ class Chart extends IzzyElement {
       },
       { signal, passive: false }
     );
-    this.querySelector(".ib-chart-reset")?.addEventListener("click", () => setView(0, 1), { signal });
+    this.querySelector(".ib-chart-reset")?.addEventListener(
+      "click",
+      () => {
+        setView(0, 1);
+        frame.focus();
+      },
+      { signal }
+    );
   }
 
   /**
@@ -971,7 +1014,8 @@ class Chart extends IzzyElement {
     const names = data.zn ?? [];
     const least = data.zl ?? 0;
     const handles = [...sel.querySelectorAll<HTMLElement>(".ib-chart-sel-handle")];
-    const nearest = (share: number) => {
+    const nearest = (share: number, end = false) => {
+      if (data.zc) return Math.min(za.length - 1, Math.max(0, Math.round(share * za.length) - (end ? 1 : 0)));
       let best = 0;
       za.forEach((p, i) => {
         if (p !== null && (za[best] === null || Math.abs(p - share) < Math.abs(za[best]! - share))) best = i;
@@ -988,10 +1032,10 @@ class Chart extends IzzyElement {
     };
     const show = () => {
       const placed = (share: number) => String(data.ar ? 1 - share : share);
-      sel.style.setProperty("--ib-sel-js", placed(at()[0]));
-      sel.style.setProperty("--ib-sel-je", placed(at()[1]));
+      track.style.setProperty("--ib-sel-js", placed(at()[0]));
+      track.style.setProperty("--ib-sel-je", placed(at()[1]));
       handles.forEach((h, k) => {
-        const i = nearest(at()[k]);
+        const i = nearest(at()[k], k === 1);
         h.setAttribute("aria-valuenow", String(i));
         h.setAttribute("aria-valuetext", names[i] ?? "");
         const flag = h.querySelector(".ib-chart-sel-flag.ib-chart-js");
@@ -1106,9 +1150,13 @@ class Chart extends IzzyElement {
     const described = frame.getAttribute("aria-describedby");
     if (hint) {
       frame.setAttribute("aria-roledescription", hint.dataset.ibKeys!);
-      frame.setAttribute("aria-describedby", described ? `${described} ${hint.id}` : hint.id);
+      const rest = (described ?? "").split(" ").filter((id) => id && id !== hint.id);
+      frame.setAttribute("aria-describedby", [...rest, hint.id].join(" "));
     }
     signal.addEventListener("abort", () => {
+      // Set up again for new data from the server (an interactive page, after each zoom): the
+      // frame keeps its Tab stop, so a focused chart keeps its focus.
+      if (this.#keep) return;
       frame.setAttribute("role", "img");
       frame.removeAttribute("aria-roledescription");
       // Only the hint comes off: a render since may have changed the server's part.
@@ -1136,7 +1184,9 @@ class Chart extends IzzyElement {
     this.dataset.ibFit = "7";
     this.removeAttribute("data-ib-turn");
     const bands = axis.classList.contains("ib-chart-bands");
-    const style = getComputedStyle(axis);
+    // Zoomed by the script, names have the room and band count of the view (on .ib-chart-zargs).
+    const zoomed = this.hasAttribute("data-ib-zargs") ? axis.querySelector<HTMLElement>(".ib-chart-zargs") : null;
+    const style = getComputedStyle(zoomed ?? axis);
     const sizes = labels.map((l) => l.scrollWidth);
     const centers = labels.map((l) => (parseFloat(l.style.left) / 100) * width);
 
@@ -1159,7 +1209,7 @@ class Chart extends IzzyElement {
     // Names that turn (LabelFit Rotate) stay flat only when every one fits its band; the
     // server's sets are for turned names below that. Turned 45°, each needs about a line and a
     // half along the axis.
-    const band = width / Math.max(1, Number(this.dataset.ibCount) || labels.length);
+    const band = width / Math.max(1, (zoomed ? parseFloat(style.getPropertyValue("--ib-chart-n")) : Number(this.dataset.ibCount)) || labels.length);
     if (/ib-chart-rot\d/.test(axis.parentElement!.className) && sizes.some((s) => s > band - 6)) {
       this.setAttribute("data-ib-turn", "");
       const pitch = 1.5 * (parseFloat(style.lineHeight) || 16);
