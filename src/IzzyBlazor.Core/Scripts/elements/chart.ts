@@ -1027,18 +1027,9 @@ class Chart extends IzzyElement {
       });
       return best;
     };
-    // Beside a plot, it's lined up with it (it sits outside the frame, whose img role would hide
-    // its sliders).
-    const line = () => {
-      if (!plot) {
-        flags();
-        return;
-      }
-      const main = sel.parentElement!.getBoundingClientRect(), r = plot.getBoundingClientRect();
-      sel.style.setProperty("--ib-chart-sel-x", `${r.left - main.left}px`);
-      sel.style.setProperty("--ib-chart-sel-w", `${r.width}px`);
-      flags();
-    };
+    // The strip spans the chart's width (Israel, Nov 8: lined up with the plot, it looked
+    // indented and its labels, which start at their periods, looked shifted from the axis's).
+    const line = () => flags();
     // The flags: each centered over its handle but kept over the strip; when they'd overlap (a
     // narrow window), one flag over the window says both ends.
     const flags = () => {
