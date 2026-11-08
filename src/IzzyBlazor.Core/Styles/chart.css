@@ -578,7 +578,10 @@
     border-inline: 1px solid var(--ib-color-outline);
     cursor: grab;
   }
-  ib-chart[data-ib-sel-drag] .ib-chart-sel-window { cursor: grabbing; }
+  /* While dragging, one cursor whatever is under the pointer: grabbing for the window, the
+     resize cursor for a handle. */
+  ib-chart[data-ib-sel-drag="pan"] :is(.ib-chart-sel-track, .ib-chart-sel-track *) { cursor: grabbing; }
+  ib-chart[data-ib-sel-drag="handle"] :is(.ib-chart-sel-track, .ib-chart-sel-track *) { cursor: ew-resize; }
   .ib-chart-sel-handle {
     position: absolute;
     inset-block-start: 50%;

@@ -1119,8 +1119,13 @@ class Chart extends IzzyElement {
         }
         const kind = handle ? (handle.classList.contains("ib-chart-sel-start") ? "start" : "end") : "pan";
         drag = { kind, at: share, from: [at()[0], at()[1]], id: event.pointerId };
-        track.setPointerCapture(event.pointerId);
-        this.setAttribute("data-ib-sel-drag", "");
+        // What's dragged sets the cursor for the whole drag (chart.css), wherever the pointer goes.
+        this.setAttribute("data-ib-sel-drag", kind === "pan" ? "pan" : "handle");
+        try {
+          track.setPointerCapture(event.pointerId);
+        } catch {
+          // A pointer already gone (released as it went down): the drag ends at pointerup anyway.
+        }
         if (handle) (handle as HTMLElement).focus();
         event.preventDefault();
       },
