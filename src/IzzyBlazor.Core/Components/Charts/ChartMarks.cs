@@ -244,6 +244,15 @@ internal sealed record MarkShape(ChartMarkKind Kind, MarkAxis Axis, double P, do
     public double? VTo { get; init; }
     public int Series { get; init; } = -1;
     public ChartAlign? Align { get; init; }
+
+    /// <summary>
+    /// With zoom on, an argument mark's place (a band's two ends; a note's argument) as shares of
+    /// the whole axis, before any reversal, for the script to place it in a view.
+    /// </summary>
+    public (double P, double Q)? Zoom { get; init; }
+
+    /// <summary>With zoom on, wholly out of view: drawn hidden, for the script to bring into another view.</summary>
+    public bool Out { get; init; }
 }
 
 /// <summary>What a chart shares with its series and marks.</summary>

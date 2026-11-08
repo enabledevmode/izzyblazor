@@ -1230,6 +1230,15 @@ public class IzzyText
     /// <summary>How the keyboard moves through a NestedDonutChart, read after its name.</summary>
     public virtual string ChartRingKeys { get; set; } = "Left and Right move along a ring, Up and Down between rings; Escape hides the tooltip.";
 
+    /// <summary>How the keyboard moves through a Chart that zooms, read after its name.</summary>
+    public virtual string ChartZoomKeys { get; set; } = "Arrow keys move between values; plus and minus zoom, 0 zooms out; Escape hides the tooltip.";
+
+    /// <summary>The button that zooms a Chart all the way out.</summary>
+    public virtual string ChartResetZoom { get; set; } = "Reset zoom";
+
+    /// <summary>Said when a Chart zooms or pans: its first and last arguments in view, "Showing {0} to {1}".</summary>
+    public virtual string ChartShowing { get; set; } = "Showing {0} to {1}";
+
     /// <summary>A Chart reference line's label for <c>ChartStatistic.Average</c>, with no Label of its own.</summary>
     public virtual string ChartAverage { get; set; } = "Average";
 

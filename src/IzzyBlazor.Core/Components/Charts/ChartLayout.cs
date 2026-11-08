@@ -102,6 +102,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 
     /// <summary>The fewest items a view comes down to (ChartArgumentAxis's MinZoomSpan).</summary>
     public int MinZoomSpan { get; init; } = 2;
+
+    /// <summary>The reader can zoom (ChartArgumentAxis's Zoom): the model carries what the script needs.</summary>
+    public bool Zoom { get; init; }
 }
 
 /// <summary>
@@ -120,7 +123,17 @@ internal sealed record ArgumentView(double Lo, double Hi, double FullLo, double 
 /// arguments of a horizontal chart; bottom for upright values). <c>From</c> is the narrowest
 /// container width, as an index into <see cref="ChartLayout.Widths"/>, at which it shows.
 /// </summary>
-internal sealed record AxisLabel(double Pos, string Text, string? Context = null, int From = 0, string? Title = null);
+internal sealed record AxisLabel(double Pos, string Text, string? Context = null, int From = 0, string? Title = null)
+{
+    /// <summary>For a zoom tier's dates: the second line it takes when it's the first in view.</summary>
+    public string? Lead { get; init; }
+}
+
+/// <summary>
+/// The argument labels the script shows zoomed in by about <c>Zoom</c>: the whole axis laid out as
+/// if the plot were that many times wider. Places are shares of the whole axis, before any reversal.
+/// </summary>
+internal sealed record ZoomTier(double Zoom, List<AxisLabel> Labels);
 
 /// <summary>
 /// A grid line across the plot, shown from a container width as its label is: at a value, or
@@ -279,6 +292,16 @@ internal sealed class ChartModel
 
     /// <summary>How many bands of names the plot holds: every item's, or fewer zoomed in.</summary>
     public double BandCount { get; set; }
+
+    /// <summary>
+    /// With zoom on: each item's place as a share of the whole axis (the data's ends, before any
+    /// reversal; NaN where it has none), the fewest items' span as a share, and the label tiers.
+    /// </summary>
+    public double[]? ZoomPositions { get; set; }
+
+    public double ZoomLeast { get; set; }
+
+    public List<ZoomTier> ZoomTiers { get; } = [];
 
     public required string[] ArgumentTexts { get; init; }
     public required string?[][] ValueTexts { get; init; }
@@ -517,7 +540,7 @@ internal static class ChartLayout
             var count = Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 90);
 
             // Zoomed, the scale runs between the view's ends, as they are.
-            if (view is not null)
+            if (view is not null && !input.ArgumentLog)
             {
                 (amin, amax) = (view.Lo, view.Hi);
             }
@@ -543,8 +566,8 @@ internal static class ChartLayout
                 // as many as fit each width.
                 // Bubbles' ends are already moved out for their radius: snapped to a power of ten,
                 // they could take in a whole empty one.
-                var lo = view?.Lo ?? (finite.Length == 0 ? 1 : bubbleR > 0 ? finite.Min() : Power(1, (int)Math.Floor(Math.Log10(finite.Min()) + 1e-9)));
-                var hi = view?.Hi ?? (finite.Length == 0 ? 10 : bubbleR > 0 ? finite.Max() : Power(1, (int)Math.Ceiling(Math.Log10(finite.Max()) - 1e-9)));
+                var lo = view is not null ? Math.Pow(10, view.Lo) : (finite.Length == 0 ? 1 : bubbleR > 0 ? finite.Min() : Power(1, (int)Math.Floor(Math.Log10(finite.Min()) + 1e-9)));
+                var hi = view is not null ? Math.Pow(10, view.Hi) : (finite.Length == 0 ? 10 : bubbleR > 0 ? finite.Max() : Power(1, (int)Math.Ceiling(Math.Log10(finite.Max()) - 1e-9)));
                 if (!(hi > lo)) hi = lo * 10;
                 (argMin, argMax) = (lo, hi);
                 var (g0, g1) = (Math.Log10(lo), Math.Log10(hi));
@@ -805,6 +828,7 @@ internal static class ChartLayout
         model.EndLabelsPx = Math.Ceiling(EndsWidth(input));
         PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale, scale2, view);
         PlaceLabels(input, model, argumentRoomPx, plotHeight);
+        if (input.Zoom) ZoomData(input, model, kind, argumentRoomPx);
         return model;
     }
 
@@ -845,8 +869,16 @@ internal static class ChartLayout
             return -1;
         }
 
-        // Zoomed, a mark out of view isn't drawn (Raw gives its place past the plot's ends).
-        double? At(object? a) => Raw(a) is not { } p ? null : view is null ? Flip(Math.Clamp(p, 0, 1)) : InView(p) ? Flip(Math.Clamp(p, 0, 1)) : null;
+        // Zoomed, a mark out of view isn't drawn (Raw gives its place past the plot's ends). With
+        // zoom on, it's drawn where it falls, cut off by the plot, so the script can bring it in.
+        double? At(object? a) => Raw(a) is not { } p ? null : input.Zoom ? Flip(p) : view is null ? Flip(Math.Clamp(p, 0, 1)) : InView(p) ? Flip(Math.Clamp(p, 0, 1)) : null;
+
+        // Its place on the whole axis, for the script's zoom.
+        var (zlo, zhi) = kind == ArgumentKind.Category ? (0.0, n) : FullRange(input, kind);
+        double? Share(object? a, double edge = 0.5) => !input.Zoom || zhi <= zlo ? null
+            : kind == ArgumentKind.Category ? IndexOf(a) is var i and >= 0 ? (i + edge) / n : null
+            : Coord(input, ToDouble(a, kind)) is { } x ? (x - zlo) / (zhi - zlo) : null;
+        (double, double)? Shares(double? p, double? q) => p is { } x && q is { } y ? (x, y) : null;
         double? Raw(object? a) => kind == ArgumentKind.Category
             ? IndexOf(a) is var i and >= 0 ? input.ArgumentReverse ? 1 - positions[i] : positions[i] : null
             : ToDouble(a, kind) is not { } x ? null
@@ -880,7 +912,7 @@ internal static class ChartLayout
                 case (ChartMarkKind.Line, MarkAxis.Argument) when At(m.At) is { } p:
                 {
                     var at = ArgText(m.At);
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p, 0, 0, m.Label ?? at) { Align = m.Align });
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, Math.Clamp(p, 0, 1), 0, 0, m.Label ?? at) { Align = m.Align, Zoom = Shares(Share(m.At), Share(m.At)), Out = !InView(p) });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {at}" : at);
                     break;
                 }
@@ -903,8 +935,8 @@ internal static class ChartLayout
                         if (i0 < 0 || i1 < 0) break;
                         var (first, bands) = (view?.Lo ?? 0, Math.Max(1, model.BandCount));
                         (p, q) = ((Math.Min(i0, i1) - first) / bands, (Math.Max(i0, i1) + 1 - first) / bands);
-                        if (q <= 0 || p >= 1) break;
-                        (p, q) = (Math.Max(0, p.Value), Math.Min(1, q.Value));
+                        if (!input.Zoom && (q <= 0 || p >= 1)) break;
+                        if (!input.Zoom) (p, q) = (Math.Max(0, p.Value), Math.Min(1, q.Value));
                         if (input.ArgumentReverse) (p, q) = (1 - q, 1 - p);
                     }
                     else
@@ -913,19 +945,26 @@ internal static class ChartLayout
                         var (r0, r1) = (Raw(m.At), Raw(m.AtTo));
                         if (r0 is null || r1 is null) break;
                         (r0, r1) = (Math.Min(r0.Value, r1.Value), Math.Max(r0.Value, r1.Value));
-                        if (view is not null && (r1 <= 0 || r0 >= 1)) break;
-                        (p, q) = (Flip(Math.Clamp(r0.Value, 0, 1)), Flip(Math.Clamp(r1.Value, 0, 1)));
+                        if (view is not null && !input.Zoom && (r1 <= 0 || r0 >= 1)) break;
+                        (p, q) = input.Zoom ? (Flip(r0.Value), Flip(r1.Value)) : (Flip(Math.Clamp(r0.Value, 0, 1)), Flip(Math.Clamp(r1.Value, 0, 1)));
                         (p, q) = (Math.Min(p.Value, q.Value), Math.Max(p.Value, q.Value));
                     }
 
                     var range = $"{ArgText(m.At)} {input.Text.ChartRangeTo} {ArgText(m.AtTo)}";
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, p!.Value, q!.Value, 0, m.Label ?? range));
+                    var shares = kind == ArgumentKind.Category
+                        ? Shares(Math.Min(Share(m.At, 0) ?? 0, Share(m.AtTo, 0) ?? 0), Math.Max(Share(m.At, 1) ?? 0, Share(m.AtTo, 1) ?? 0))
+                        : Shares(Share(m.At), Share(m.AtTo)) is { } z ? (Math.Min(z.Item1, z.Item2), Math.Max(z.Item1, z.Item2)) : null;
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, Math.Clamp(p!.Value, 0, 1), Math.Clamp(q!.Value, 0, 1), 0, m.Label ?? range)
+                    {
+                        Zoom = input.Zoom ? shares : null,
+                        Out = q <= 0 || p >= 1,
+                    });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {range}" : range);
                     break;
                 }
 
                 case (ChartMarkKind.Note, _) when m.Value is { } v && At(m.At) is { } a:
-                    model.Marks.Add(new MarkShape(m.Kind, MarkAxis.Value, scale(v), 0, a, m.Label ?? "") { V = v });
+                    model.Marks.Add(new MarkShape(m.Kind, MarkAxis.Value, scale(v), 0, Math.Clamp(a, 0, 1), m.Label ?? "") { V = v, Zoom = Shares(Share(m.At), Share(m.At)), Out = !InView(a) });
                     model.MarkTexts.Add($"{m.Label}: {ArgText(m.At)}, {ValueText(v)}");
                     break;
             }
@@ -1464,6 +1503,80 @@ internal static class ChartLayout
 
     // ---- Zoom: the arguments in view. ----
 
+    /// <summary>
+    /// What the script zooms with: each item's place on the whole axis, the fewest items' span,
+    /// and the argument labels at zoom tiers 1, 2, 4… up to where the fewest items fill the plot.
+    /// </summary>
+    private static void ZoomData(ChartInput input, ChartModel model, ArgumentKind kind, double columnPx)
+    {
+        var n = input.Arguments.Count;
+        if (n < 2) return;
+        var least = Math.Clamp(input.MinZoomSpan, 1, n);
+        double lo, hi;
+        if (kind == ArgumentKind.Category)
+        {
+            (lo, hi) = (0, n);
+            model.ZoomPositions = Enumerable.Range(0, n).Select(i => (i + 0.5) / n).ToArray();
+            model.ZoomLeast = (double)least / n;
+        }
+        else
+        {
+            var at = input.Arguments.Select(a => Coord(input, ToDouble(a, kind))).ToArray();
+            var finite = at.Where(x => x is not null).Select(x => x!.Value).ToArray();
+            if (finite.Length < 2 || finite.Min() == finite.Max()) return;
+            (lo, hi) = (finite.Min(), finite.Max());
+            model.ZoomPositions = at.Select(x => x is { } v ? (v - lo) / (hi - lo) : double.NaN).ToArray();
+            model.ZoomLeast = Math.Max(1, least - 1) / (double)(finite.Length - 1);
+        }
+
+        // Down the side of a horizontal chart, names are thinned by the script, by the plot's height.
+        if (kind == ArgumentKind.Category && input.Horizontal) return;
+
+        var count = Math.Max(2, PlotWidth(Widths.Length - 1, columnPx) / 90);
+        var culture = input.Culture;
+        for (var z = 1.0; z <= 2 / model.ZoomLeast && model.ZoomTiers.Count < 16; z *= 2)
+        {
+            var tier = new ChartModel { Horizontal = input.Horizontal, Kind = kind, ArgumentTexts = model.ArgumentTexts, ValueTexts = model.ValueTexts };
+            if (kind == ArgumentKind.Category)
+            {
+                CategoryLabels(tier, model.ZoomPositions!, n / z, columnPx, input.ArgumentLabels == ChartLabelFit.Wrap ? ChartLabelFit.Wrap : ChartLabelFit.Skip, input.ArgumentReverse, input.ValueRight);
+            }
+            else if (input.ArgumentLog)
+            {
+                var (l0, l1) = (Math.Pow(10, lo), Math.Pow(10, hi));
+                var ticks = LogTicks(l0, l1, count * z);
+                var placed = ticks.Select(t => (Pos: (Math.Log10(t.V) - lo) / (hi - lo), t.Level,
+                    Text: input.ArgumentFormatter?.Invoke(t.V) ?? t.V.ToString(input.ArgumentFormat ?? "#,##0.##########", culture))).ToList();
+                var froms = FitLevels(placed.Select(t => (t.Pos, t.Level)).ToList(), Widths.Length, k => PlotWidth(k, columnPx) * z,
+                    placed.Select(t => Width(t.Text)).DefaultIfEmpty(0).Max() + LabelGapPx);
+                for (var j = 0; j < placed.Count; j++)
+                {
+                    if (froms[j] >= 0 && InView(placed[j].Pos)) tier.ArgumentLabels.Add(new AxisLabel(placed[j].Pos, placed[j].Text, From: froms[j]));
+                }
+            }
+            else if (kind == ArgumentKind.Number)
+            {
+                NumberLabels(tier.ArgumentLabels, lo, hi, count * z, input.ArgumentFormat, culture, columnPx, grid: null,
+                    input.ArgumentFormatter is { } af ? v => af(v) : null, stretch: z);
+            }
+            else
+            {
+                var first = input.Arguments.FirstOrDefault(a => a is not null);
+                Func<DateTime, string>? timeText = input.ArgumentFormatter is { } tf
+                    ? t => tf(first switch
+                    {
+                        DateOnly => DateOnly.FromDateTime(t),
+                        DateTimeOffset o => new DateTimeOffset(t, o.Offset),
+                        _ => t,
+                    })
+                    : null;
+                TimeLabels(tier, new DateTime((long)lo), new DateTime((long)hi), count * z, input.ArgumentFormat, culture, columnPx, timeText, stretch: z);
+            }
+
+            model.ZoomTiers.Add(new ZoomTier(z, tier.ArgumentLabels));
+        }
+    }
+
     /// <summary>Whether a place along the arguments is in the plot (zoomed, the rest run past it).</summary>
     private static bool InView(double p) => p >= -1e-9 && p <= 1 + 1e-9;
 
@@ -1504,12 +1617,12 @@ internal static class ChartLayout
             return i0 == 0 && i1 == n - 1 ? null : new ArgumentView(i0, i1 + 1, 0, n);
         }
 
-        var values = input.Arguments.Select(a => ToDouble(a, kind)).Where(x => x is { } y && (!input.ArgumentLog || y > 0)).Select(x => x!.Value).ToArray();
+        var values = input.Arguments.Select(a => Coord(input, ToDouble(a, kind))).Where(x => x is not null).Select(x => x!.Value).ToArray();
         if (values.Length < 2) return null;
         var (min, max) = (values.Min(), values.Max());
         if (min == max) return null;
         double End(object? a, double fallback) => a is null ? fallback
-            : ToDouble(a, kind) ?? throw new InvalidOperationException($"The Chart's View ends at \"{a}\", which has no place on its {(kind == ArgumentKind.Time ? "dates" : "numbers")}: give From and To of the arguments' own kind.");
+            : Coord(input, ToDouble(a, kind)) ?? throw new InvalidOperationException($"The Chart's View ends at \"{a}\", which has no place on its {(kind == ArgumentKind.Time ? "dates" : "numbers")}: give From and To of the arguments' own kind.");
         var (lo, hi) = (Math.Clamp(End(v.From, min), min, max), Math.Clamp(End(v.To, max), min, max));
         if (lo > hi) (lo, hi) = (hi, lo);
 
@@ -1534,7 +1647,7 @@ internal static class ChartLayout
         var n = input.Arguments.Count;
         var at = kind == ArgumentKind.Category
             ? Enumerable.Range(0, n).Select(i => (double?)i + 0.5).ToArray()
-            : input.Arguments.Select(a => ToDouble(a, kind)).ToArray();
+            : input.Arguments.Select(a => Coord(input, ToDouble(a, kind))).ToArray();
         var mask = at.Select(x => x is { } y && y >= view.Lo && y <= view.Hi).ToArray();
         if (!input.Series.Any(s => s.Type is ChartType.Line or ChartType.Area)) return mask;
         var order = Enumerable.Range(0, n).Where(i => at[i] is not null).OrderBy(i => at[i]).ToArray();
@@ -1548,6 +1661,16 @@ internal static class ChartLayout
 
         return near;
     }
+
+    /// <summary>The whole argument scale's ends, in the view's units (<see cref="Coord"/>): the data's own.</summary>
+    internal static (double Lo, double Hi) FullRange(ChartInput input, ArgumentKind kind)
+    {
+        var finite = input.Arguments.Select(a => Coord(input, ToDouble(a, kind))).Where(x => x is not null).Select(x => x!.Value).ToArray();
+        return finite.Length < 2 ? (0, 0) : (finite.Min(), finite.Max());
+    }
+
+    /// <summary>A place on the argument scale in the view's units: the number, or on a log scale its power of ten.</summary>
+    internal static double? Coord(ChartInput input, double? x) => x is not { } v ? null : !input.ArgumentLog ? v : v > 0 ? Math.Log10(v) : null;
 
     private static double?[][] Masked(double?[][] values, bool[] mask) =>
         values.Select(row => row?.Select((v, i) => mask[i] ? v : null).ToArray()!).ToArray();
@@ -1619,7 +1742,7 @@ internal static class ChartLayout
     }
 
     // Numbers: D3 ticks at the widest fit, and coarser multiples of the step at narrower ones.
-    private static void NumberLabels(List<AxisLabel> labels, double min, double max, double count, string? format, CultureInfo culture, double columnPx, List<GridLine>? grid, Func<double, string>? tickText = null)
+    private static void NumberLabels(List<AxisLabel> labels, double min, double max, double count, string? format, CultureInfo culture, double columnPx, List<GridLine>? grid, Func<double, string>? tickText = null, double stretch = 1)
     {
         var spec = ChartScale.TickSpec(min, max, count);
         format ??= "N" + ChartScale.Decimals(spec.Step);
@@ -1638,7 +1761,7 @@ internal static class ChartLayout
         for (var k = 0; k < Widths.Length; k++)
         {
             var level = 0;
-            while (level < ladder.Count - 1 && ladder[level] * spec.Step / span * PlotWidth(k, columnPx) < widest + LabelGapPx) level++;
+            while (level < ladder.Count - 1 && ladder[level] * spec.Step / span * PlotWidth(k, columnPx) * stretch < widest + LabelGapPx) level++;
             needed[k] = level;
         }
 
@@ -1654,7 +1777,7 @@ internal static class ChartLayout
         }
     }
 
-    private static void TimeLabels(ChartModel model, DateTime min, DateTime max, double count, string? format, CultureInfo culture, double columnPx, Func<DateTime, string>? text = null)
+    private static void TimeLabels(ChartModel model, DateTime min, DateTime max, double count, string? format, CultureInfo culture, double columnPx, Func<DateTime, string>? text = null, double stretch = 1)
     {
         var b = ChartTime.BaseIndex((max - min).Ticks, count);
         var unit = ChartTime.Ladder[b].Unit;
@@ -1694,7 +1817,7 @@ internal static class ChartLayout
         for (var k = 0; k < Widths.Length; k++)
         {
             var level = 0;
-            while (b + level + 1 < ChartTime.Ladder.Length && ChartTime.Ladder[b + level].ApproxTicks / span * PlotWidth(k, columnPx) < widest + LabelGapPx) level++;
+            while (b + level + 1 < ChartTime.Ladder.Length && ChartTime.Ladder[b + level].ApproxTicks / span * PlotWidth(k, columnPx) * stretch < widest + LabelGapPx) level++;
             needed[k] = level;
         }
 
@@ -1713,7 +1836,7 @@ internal static class ChartLayout
 
             var context = Context(ticks[i], previous);
             model.TwoLine |= context is not null;
-            model.ArgumentLabels.Add(new AxisLabel((ticks[i] - min).Ticks / span, texts[i], context, from));
+            model.ArgumentLabels.Add(new AxisLabel((ticks[i] - min).Ticks / span, texts[i], context, from) { Lead = stretch == 1 ? null : Context(ticks[i], null) });
         }
     }
 

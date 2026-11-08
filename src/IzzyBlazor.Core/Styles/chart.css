@@ -190,10 +190,10 @@
   }
   /* Zoomed in, what lies past the plot's ends along the arguments is cut off; across them,
      markers and bubbles at the top and bottom still show whole. */
-  ib-chart[data-ib-view] .ib-chart-svg {
+  ib-chart:is([data-ib-view], [data-ib-zoomed]) :is(.ib-chart-svg, .ib-chart-under, .ib-chart-over) {
     clip-path: inset(-3rem 0);
   }
-  ib-chart[data-ib-view][data-ib-horizontal] .ib-chart-svg {
+  ib-chart:is([data-ib-view], [data-ib-zoomed])[data-ib-horizontal] :is(.ib-chart-svg, .ib-chart-under, .ib-chart-over) {
     clip-path: inset(0 -3rem);
   }
 
@@ -418,13 +418,13 @@
 
   /* A note: a dot at its point, a line up from it, and the text above. */
   .ib-chart-note {
-    left: calc(var(--n) * 100%);
+    left: calc(var(--jn, var(--n)) * 100%);
     bottom: calc(var(--ib-chart-a) * 100%);
   }
 
   .ib-chart-note-h {
     left: calc(var(--ib-chart-a) * 100%);
-    bottom: calc(var(--n) * 100%);
+    bottom: calc(var(--jn, var(--n)) * 100%);
   }
 
   .ib-chart-note::before,
@@ -474,6 +474,39 @@
   ib-chart[data-ib-redrawn] :is(.ib-chart-dl, .ib-chart-ends).ib-chart-js { display: block; }
   ib-chart[data-ib-redrawn] .ib-chart-values.ib-chart-js { display: contents; }
   ib-chart[data-ib-redrawn] svg.ib-chart-js { display: block; }
+
+  /* Zoomed by the script: its argument labels and grid lines stand in for the server's. */
+  ib-chart[data-ib-zargs] :is(.ib-chart-bottom, .ib-chart-names) > .ib-chart-ticks:not(.ib-chart-js, .ib-chart-values),
+  ib-chart[data-ib-zargs] .ib-chart-svg:not(.ib-chart-js) > .ib-chart-agrid { display: none; }
+  ib-chart[data-ib-zargs] .ib-chart-zargs { display: contents; }
+
+  /* Zoom: one finger still scrolls the page (two pinch and pan); a drag across the plot draws a
+     box to zoom into; Reset zoom shows while zoomed in. */
+  ib-chart[data-ib-zoom] .ib-chart-plot {
+    touch-action: pan-y;
+    cursor: crosshair;
+  }
+  .ib-chart-brush,
+  .ib-chart-reset { display: none; }
+  ib-chart[data-ib-brushing] .ib-chart-brush {
+    display: block;
+    position: absolute;
+    z-index: 4;
+    border: 1px solid var(--ib-color-primary);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    pointer-events: none;
+  }
+  /* Marks wholly out of view: the server's, until the script draws another view; then its own. */
+  ib-chart:not([data-ib-zargs]) [data-ib-out],
+  ib-chart[data-ib-zargs] [data-ib-zout] { display: none; }
+  ib-chart[data-ib-zoomed] .ib-chart-reset {
+    display: inline-flex;
+    position: absolute;
+    z-index: 6;
+    inset-block-start: var(--ib-space-1);
+    inset-inline-end: var(--ib-space-1);
+    cursor: pointer;
+  }
 
   /* A series hidden from the legend (or by Hidden). */
   ib-chart .ib-chart-frame [data-ib-hidden] { display: none; }
