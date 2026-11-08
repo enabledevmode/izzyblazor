@@ -738,25 +738,27 @@
   /* A legend above, or at the start side. */
   .ib-pie-lg-first > .ib-pie-legend { order: -1; }
 
-  /* Beside the circle from 30rem, or 44rem with labels outside it. */
+  /* Beside the circle from 30rem, or 44rem with labels outside it: the two centered as a pair. */
   @container ib-chart (width >= 30rem) {
     .ib-pie-legended:not(.ib-pie-labeled) {
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, max-content);
+      justify-content: center;
       justify-items: start;
     }
 
-    .ib-pie-legended.ib-pie-lg-first:not(.ib-pie-labeled) { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
+    .ib-pie-legended.ib-pie-lg-first:not(.ib-pie-labeled) { grid-template-columns: minmax(0, max-content) auto; }
     /* Beside the circle, the legend aligns up and down only. */
     .ib-pie-legended:not(.ib-pie-labeled) > .ib-pie-legend { justify-self: start; }
   }
 
   @container ib-chart (width >= 44rem) {
     .ib-pie-legended.ib-pie-labeled {
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, max-content);
+      justify-content: center;
       justify-items: start;
     }
 
-    .ib-pie-legended.ib-pie-lg-first.ib-pie-labeled { grid-template-columns: minmax(0, max-content) auto; justify-content: start; }
+    .ib-pie-legended.ib-pie-lg-first.ib-pie-labeled { grid-template-columns: minmax(0, max-content) auto; }
     .ib-pie-legended.ib-pie-labeled > .ib-pie-legend { justify-self: start; }
   }
 
