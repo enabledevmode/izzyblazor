@@ -281,7 +281,7 @@
   /* On the block, where the stops are declared: a custom property resolves the ones it uses there. */
   .ib-code-has-hl {
     --ib-code-pad-top: var(--ib-space-4);
-    --ib-code-hl: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    --ib-code-hl: color-mix(in oklab, var(--ib-color-primary) var(--ib-code-hl-strength, 12%), transparent);
     --ib-code-hl-bar: var(--ib-color-primary);
   }
 
@@ -338,6 +338,8 @@
   .ib-tok-tag { color: var(--ib-code-tag); }
   .ib-tok-attr { color: var(--ib-code-attr); }
   .ib-tok-meta { color: var(--ib-code-meta); }
+  .ib-tok-component { color: var(--ib-code-component, var(--ib-code-type)); }
+  .ib-tok-member { color: var(--ib-code-member, var(--ib-code-attr)); }
 
   /* The copy button needs script: shown where the browser runs it, from the first paint, so the
      block doesn't change when IzzyBlazor's script arrives. The icons are scoped to the button so

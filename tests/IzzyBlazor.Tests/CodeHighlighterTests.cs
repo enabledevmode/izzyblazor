@@ -32,7 +32,47 @@ public class CodeHighlighterTests : BunitContext
         Assert.Equal("Type", KindOf(t, "Rule"));
         Assert.Equal("Function", KindOf(t, "WriteLine"));
         Assert.Equal("Number", KindOf(t, "1"));
-        Assert.True(IsPlain(t, "Count"));
+        Assert.Equal("Member", KindOf(t, "Count"));
+        Assert.True(IsPlain(t, "x"));
+    }
+
+    [Fact]
+    public void Razor_components_members_and_code_in_attribute_values()
+    {
+        var t = Lex("razor", "@using System.Text\n<div class=\"row\"><LineChart Items=\"_sales\" Date=\"s => s.Month\" Fill=\"Color.Muted\" Title=\"Revenue\" Height=\"300\" OnClick=\"SaveAsync\" />@context.Name <input @bind=\"_query\" /></div>");
+
+        Assert.Equal("Component", KindOf(t, "LineChart"));
+        Assert.Equal("Tag", KindOf(t, "div"));
+        Assert.Equal("String", KindOf(t, "\"row\""));
+        Assert.Equal("String", KindOf(t, "\"Revenue\""));
+        Assert.Equal("Member", KindOf(t, "_sales"));
+        Assert.Equal("Member", KindOf(t, "Month"));
+        Assert.Equal("Type", KindOf(t, "Color"));
+        Assert.Equal("Member", KindOf(t, "Muted"));
+        Assert.Equal("Number", KindOf(t, "300"));
+        Assert.Equal("Member", KindOf(t, "SaveAsync"));
+        Assert.Equal("Member", KindOf(t, "context"));
+        Assert.Equal("Member", KindOf(t, "Name"));
+        Assert.Equal("Member", KindOf(t, "_query"));
+        Assert.True(IsPlain(t, "Text"));
+    }
+
+    [Fact]
+    public void Razor_attribute_values_that_read_as_text_stay_strings()
+    {
+        var t = Lex("razor", "<!DOCTYPE html>\n<Stat Value=\"18 ms\" Format=\"0.0' s'\" Height=\"300px\" />\n" +
+                             "<CheckboxGroup Items=\"Enum.GetValues<Topping>()\" Disabled=\"card.Owner == Me\" Min=\"Model!.CheckIn\" Size=\"12.Rem\" />\n" +
+                             "<form @formname=\"contact\"></form>");
+
+        Assert.Equal("Tag", KindOf(t, "DOCTYPE"));
+        Assert.Equal("String", KindOf(t, "\"18 ms\""));
+        Assert.Equal("String", KindOf(t, "\"0.0' s'\""));
+        Assert.Equal("String", KindOf(t, "\"300px\""));
+        Assert.Equal("String", KindOf(t, "\"contact\""));
+        Assert.Equal("Type", KindOf(t, "Topping"));
+        Assert.Equal("Member", KindOf(t, "Owner"));
+        Assert.Equal("Member", KindOf(t, "CheckIn"));
+        Assert.Equal("Number", KindOf(t, "12"));
     }
 
     [Fact]
