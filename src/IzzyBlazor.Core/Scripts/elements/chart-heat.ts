@@ -43,6 +43,10 @@ export function heat(
   // A new draw from the server (an interactive page's new data) sets up again.
   const changed = new MutationObserver(restart);
   changed.observe(grid, { childList: true, subtree: true, characterData: true, attributeFilter: ["class", "style"] });
+  // New names (ColumnFormat, RowFormat) leave the cells alone but change what the tooltip says.
+  changed.observe(chart, { attributeFilter: ["data-ib-columns", "data-ib-dates"] });
+  const rowNames = chart.querySelector(".ib-heat-rows");
+  if (rowNames) changed.observe(rowNames, { childList: true, subtree: true, characterData: true });
   signal.addEventListener("abort", () => changed.disconnect());
 
   // Values in cells where the widest fits its cell, and gaps where cells are 6px or wider.
@@ -117,6 +121,8 @@ export function heat(
   signal.addEventListener("abort", () => chart.removeAttribute("data-ib-tooltips"));
 
   let current = -1;
+  // Whether the tooltip holds your HeatmapTooltip's content.
+  let custom = false;
   // With Tooltip unset, the tooltip shows only while the values aren't in the cells (too narrow,
   // or Labels None); the keys still move from cell to cell and say each one.
   const autoTips = chart.dataset.ibTips === "auto";
@@ -127,6 +133,7 @@ export function heat(
   // "Tuesday, 2 PM" over "Orders 32" (or your HeatmapTooltip's content).
   const fill = (i: number) => {
     const tip = chart.querySelector(`.ib-chart-tips > [data-ib-tip="${i}"]`);
+    custom = !!tip;
     if (tip) {
       tooltip.innerHTML = tip.innerHTML;
       return;
@@ -189,6 +196,11 @@ export function heat(
 
   const announce = () => {
     if (!live) return;
+    // Your own tooltip as its text reads, inline elements and all.
+    if (custom) {
+      live.textContent = (tooltip.textContent ?? "").replace(/\s+/g, " ").trim();
+      return;
+    }
     // "Tuesday, 2 PM, Orders, 32": what the tooltip says.
     live.textContent = [...tooltip.querySelectorAll("*")]
       .filter((e) => e.children.length === 0)

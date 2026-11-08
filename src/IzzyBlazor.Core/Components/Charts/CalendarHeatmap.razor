@@ -144,14 +144,14 @@
 
     /// <summary>
     /// The tooltip for the day under the pointer or the keyboard (with script), beside its cell:
-    /// shown unless <c>false</c>. With <c>false</c>, there are no tooltips and no keys.
+    /// on by default. With <c>false</c>, there are no tooltips and no keys.
     /// </summary>
-    [Parameter] public bool? Tooltip { get; set; }
+    [Parameter] public bool Tooltip { get; set; } = true;
 
     /// <summary>The values as a table, a column per month and a row per day of the month: in a closed "Show data" disclosure under the chart, by default.</summary>
     [Parameter] public ChartDataTable DataTable { get; set; }
 
-    /// <summary><see cref="HeatmapRange"/>s, your own classes, and a <see cref="HeatmapTooltip{TItem}"/> (its Column is the date, its Row the weekday).</summary>
+    /// <summary><see cref="HeatmapRange"/>s, your own classes, and a <see cref="HeatmapTooltip{TItem}"/> (its Date the day, Column the day as text, Row the weekday).</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private readonly string _labelId = IdGenerator.Next("ib-chart");
@@ -216,6 +216,7 @@
             throw new InvalidOperationException("A CalendarHeatmap takes up to nine HeatmapRanges: past that, colors are hard to tell apart.");
         }
 
+        HeatmapLayout.CheckScale("CalendarHeatmap", ranges.Count, Palette, Steps, Min, Max, Midpoint);
         var palette = Palette ?? ChartPalette.Shades(Color.Primary);
         var model = CalendarLayout.Build(new CalendarInput
         {
@@ -261,7 +262,7 @@
         <ib-chart class="@legendClass" style="@style"
                   data-ib-heat="@cols"
                   data-ib-cal
-                  data-ib-dates="@(Tooltip != false ? JsonSerializer.Serialize(model.DateTexts, PersistedStateJson.Default.StringArray) : null)"
+                  data-ib-dates="@(Tooltip ? JsonSerializer.Serialize(model.DateTexts, PersistedStateJson.Default.StringArray) : null)"
                   data-ib-value="@(_valueName ?? TextDefaults.ChartValue)"
                   data-ib-none="@TextDefaults.HeatmapNoData">
             @if (legendFirst && Place != ChartLegend.None)
@@ -290,7 +291,7 @@
                             <div class="@(Cell(c) is { Length: > 0 } k ? k : null)" style="@(heat.Continuous && c.Class >= 0 ? $"--t:{Num(c.T * 100)}%" : null)">@c.Text</div>
                         }
                     </div>
-                    @if (Tooltip != false)
+                    @if (Tooltip)
                     {
                         <div class="ib-chart-tooltip" hidden></div>
                     }
@@ -300,7 +301,7 @@
             {
                 @(HeatmapChart<TItem>.ScaleLegend(heat, ranges, palette.IsDiverging, LegendListClass, TextDefaults))
             }
-            @if (Tooltip != false)
+            @if (Tooltip)
             {
                 @if (tooltip is not null)
                 {
@@ -309,7 +310,7 @@
                         {
                             var cell = heat.Cells[c];
                             if (cell.Item < 0) continue;
-                            <div data-ib-tip="@c">@tooltip(new HeatmapCellContext<TItem>(items[cell.Item], cell.Item, model.DateTexts[c]!, heat.RowTexts[c / cols], cell.Value, cell.Text))</div>
+                            <div data-ib-tip="@c">@tooltip(new HeatmapCellContext<TItem>(items[cell.Item], cell.Item, model.DateTexts[c]!, heat.RowTexts[c / cols], cell.Value, cell.Text, model.DateOf(c)))</div>
                         }
                     </div>
                 }

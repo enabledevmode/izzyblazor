@@ -156,6 +156,28 @@ internal static class HeatmapLayout
         return model;
     }
 
+    /// <summary>
+    /// Throws for settings a heatmap would ignore: HeatmapRanges set their own colors and bounds,
+    /// and ChartPalette.Of's colors set how many classes there are.
+    /// </summary>
+    internal static void CheckScale(string chart, int ranges, ChartPalette? palette, int steps, double? min, double? max, double? midpoint)
+    {
+        if (ranges > 0 && (palette is not null || steps != 5 || min is not null || max is not null || midpoint is not null))
+        {
+            throw new InvalidOperationException($"A {chart}'s HeatmapRanges set their own colors and bounds: leave out Palette, Steps, Min, Max and Midpoint.");
+        }
+
+        if (palette?.FixedCount > 9)
+        {
+            throw new InvalidOperationException($"A {chart}'s ChartPalette.Of takes up to nine colors: past that, they're hard to tell apart.");
+        }
+
+        if (palette?.FixedCount is { } count && steps != 5)
+        {
+            throw new InvalidOperationException($"A {chart} with ChartPalette.Of has a class per color ({count} here): leave out Steps.");
+        }
+    }
+
     internal static int FirstFit(Func<int, bool> fits)
     {
         for (var k = 0; k < ChartLayout.Widths.Length; k++)
@@ -234,9 +256,16 @@ internal static class HeatmapLayout
             hi = input.Max ?? dataMax;
             if (!(hi > lo))
             {
-                // One value (or none): a span around it, so it takes the middle of the scale.
-                lo -= 1;
-                hi += 1;
+                // Only Min, with every value at or under it: they all take the first class.
+                // Only Max, with every value at or over it: the last. One value (or none) with
+                // neither: a span around it, so it takes the middle of the scale.
+                if (input.Min is not null && input.Max is null) hi = lo + 1;
+                else if (input.Max is not null && input.Min is null) lo = hi - 1;
+                else
+                {
+                    lo -= 1;
+                    hi += 1;
+                }
             }
             else if (n > 0 && input.Min is null && input.Max is null && input.FixedColors is null)
             {
@@ -350,7 +379,9 @@ internal static class HeatmapLayout
     private static void DateTicks(HeatmapModel model, DateTime[] dates, double rowColumnPx)
     {
         var n = dates.Length;
-        var daily = n > 31 && n > 1 && (dates[^1] - dates[0]).TotalDays / (n - 1) <= 7.5;
+        // Hours over two days are many columns but not a month: they're named as times.
+        var span = (dates[^1] - dates[0]).TotalDays;
+        var daily = n > 31 && span > 31 && span / (n - 1) <= 7.5;
         if (!daily)
         {
             CategoryTicks(model, rowColumnPx);

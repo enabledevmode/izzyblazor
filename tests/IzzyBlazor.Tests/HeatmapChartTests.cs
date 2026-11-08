@@ -49,6 +49,24 @@ public class HeatmapChartTests : BunitContext
     }
 
     [Fact]
+    public void Min_or_Max_alone_past_every_value_puts_them_in_the_end_class()
+    {
+        // Only Min, above every value (it once threw while rendering): all in the first class.
+        HeatmapModel Scale(double? min, double? max, int steps) => HeatmapLayout.Build(new HeatmapInput
+        {
+            Columns = [0, 1],
+            Rows = ["r", "r"],
+            Values = [-5, -3],
+            Min = min,
+            Max = max,
+            Steps = steps,
+        });
+        Assert.All(Scale(0, null, 5).Cells, c => Assert.Equal(0, c.Class));
+        Assert.All(Scale(0, null, 0).Cells, c => Assert.Equal(0, c.T));
+        Assert.All(Scale(null, -10, 5).Cells, c => Assert.Equal(4, c.Class));
+    }
+
+    [Fact]
     public void Cells_go_in_first_seen_order_with_gaps_as_no_data_and_the_table_is_rows_by_columns()
     {
         Orders[] orders =

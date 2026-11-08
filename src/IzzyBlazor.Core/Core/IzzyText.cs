@@ -1277,6 +1277,9 @@ public class IzzyText
     /// <summary>A HeatmapChart's legend: one class of values, "{0} to {1}".</summary>
     public virtual string HeatmapRangeText { get; set; } = "{0} to {1}";
 
+    /// <summary>A diverging heatmap legend's middle value, read after its range: "middle {0}".</summary>
+    public virtual string HeatmapMiddleText { get; set; } = "middle {0}";
+
     /// <summary>A CalendarHeatmap's data table: the heading over its column of days of the month.</summary>
     public virtual string CalendarHeatmapDay { get; set; } = "Day";
 

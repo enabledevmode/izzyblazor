@@ -92,7 +92,11 @@
   /* The cell the tooltip is for. */
   /* The cell the tooltip (or the keyboard) is on: its color a step toward the text's, darker in
      light mode and lighter in dark, under its value. */
-  .ib-heat-grid > [data-ib-active] { box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 22%, transparent); }
+  .ib-heat-grid > [data-ib-active] {
+    box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 22%, transparent);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
 
   .ib-heat-frame:focus-visible { outline: 2px solid var(--ib-color-focus, var(--ib-color-primary)); outline-offset: 2px; }
 
@@ -252,10 +256,11 @@
   ib-chart[data-ib-rows="0"] .ib-cal .ib-cal-thin { visibility: hidden; }
   ib-chart[data-ib-rows="1"] .ib-cal .ib-cal-thin { visibility: visible; }
 
-  /* Forced colors: no fills, so each cell keeps an outline and its value. */
+  /* Forced colors. */
   @media (forced-colors: active) {
+    /* The colors are the data, so they stay (as chart keys and plots do), each cell outlined. */
+    .ib-heat-grid > div, .ib-heat-key, .ib-heat-bar { forced-color-adjust: none; }
     .ib-heat-grid > div:not(.ib-heat-out) { outline: 1px solid CanvasText; outline-offset: -1px; }
-    .ib-heat-grid { font-size: var(--ib-text-xs) }
-    .ib-cal .ib-heat-grid { font-size: 0; }
+    .ib-heat-grid > [data-ib-active]:not(.ib-heat-out) { outline: 2px solid Highlight; outline-offset: -2px; }
   }
 }
