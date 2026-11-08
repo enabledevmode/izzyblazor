@@ -16,9 +16,9 @@
         @foreach (var part in _parts)
         {
             <ListItem>
-                <Anchor Href="@Registry.ApiHref(part.Name, null)"><Code>@part.DisplayName</Code></Anchor>@if (OverviewText.FirstSentence(part.Summary) is { } text)
+                <Anchor Href="@Registry.ApiHref(part.Name, null)"><Code>@part.DisplayName</Code></Anchor>@if (OverviewText.FirstSentenceWithCode(part.Summary) is { } text)
                 {
-                    <text>: @OverviewText.Lower(Api, text)</text>
+                    <text>: </text><InlineCode Text="@OverviewText.Lower(Api, text)" />
                 }
             </ListItem>
         }
