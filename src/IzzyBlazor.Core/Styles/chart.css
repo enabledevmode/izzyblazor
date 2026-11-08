@@ -188,6 +188,14 @@
   .ib-chart-paths {
     overflow: visible;
   }
+  /* Zoomed in, what lies past the plot's ends along the arguments is cut off; across them,
+     markers and bubbles at the top and bottom still show whole. */
+  ib-chart[data-ib-view] .ib-chart-svg {
+    clip-path: inset(-3rem 0);
+  }
+  ib-chart[data-ib-view][data-ib-horizontal] .ib-chart-svg {
+    clip-path: inset(0 -3rem);
+  }
 
   .ib-chart-grid {
     stroke: var(--ib-color-border);
