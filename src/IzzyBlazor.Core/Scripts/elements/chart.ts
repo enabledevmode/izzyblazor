@@ -8,6 +8,13 @@ import type { treemap as Treemap } from "./chart-treemap";
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
 type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie; zoomArgs: typeof ZoomArgs };
 let drawing: Promise<DrawModule> | undefined;
+/** A view kept within the whole axis and at least `least` wide; too narrow or wide, it keeps its middle. */
+const clampView = (from: number, to: number, least: number): View => {
+  const span = Math.min(1, Math.max(least, to - from));
+  const start = Math.min(Math.max(0, to - from === span ? from : (from + to) / 2 - span / 2), 1 - span);
+  return [start, start + span];
+};
+
 const loadModule = () => (drawing ??= import("./parts/chart-draw.js" as string) as Promise<DrawModule>);
 
 /**
@@ -79,6 +86,31 @@ class Chart extends IzzyElement {
     const frame = this.querySelector<HTMLElement>(".ib-chart-frame");
     const plot = this.querySelector<HTMLElement>(".ib-chart-plot");
     const bottom = this.querySelector<HTMLElement>(".ib-chart-bottom");
+    // A RangeSelector on its own: the strip only, its view kept here and, on an interactive
+    // page, reported to .NET as it settles.
+    const lone = this.querySelector<HTMLElement>(".ib-chart-sel");
+    if (!plot && lone && this.dataset.ibDraw) {
+      const d: DrawData = JSON.parse(this.dataset.ibDraw);
+      let v: View = d.zv ?? [0, 1];
+      let timer = 0;
+      const report = () => {
+        clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          if (signal.aborted || !this.hasAttribute("data-ib-interactive")) return;
+          const all = v[0] <= 1e-6 && v[1] >= 1 - 1e-6;
+          this.emit("iblayout", { layout: all ? "" : `${Math.round(v[0] * 1e6) / 1e6} ${Math.round(v[1] * 1e6) / 1e6}` });
+        }, 0);
+      };
+      let show = () => {};
+      const set = (from: number, to: number, settle = true) => {
+        v = clampView(from, to, d.zl ?? 0);
+        show();
+        if (settle) report();
+      };
+      show = this.selector(lone, d, () => v, set, report, signal, null);
+      return;
+    }
+
     if (!frame || !plot) return;
 
     // Legend: each item hides and shows its series. The server says which it drew hidden; the
@@ -255,10 +287,7 @@ class Chart extends IzzyElement {
       }, wait);
     };
     const setView = (from: number, to: number, report = true) => {
-      // Too narrow or wide, it keeps its middle; then it's kept within the axis.
-      const span = Math.min(1, Math.max(data?.zl ?? 0, to - from));
-      const start = Math.min(Math.max(0, to - from === span ? from : (from + to) / 2 - span / 2), 1 - span);
-      view = [start, start + span];
+      view = clampView(from, to, data?.zl ?? 0);
       this.toggleAttribute("data-ib-zoomed", isZoomed());
       redraw();
       showSelector();
@@ -271,134 +300,9 @@ class Chart extends IzzyElement {
       setView(at - k * span, at - k * span + span, report);
     };
 
-    // A RangeSelector: lined up with the plot (it sits outside the frame, whose img role would
-    // hide its sliders), kept on the view, and moved by its handles, its window, a click on the
-    // strip, the keys on a handle and its range buttons.
+    // A RangeSelector under the plot.
     const sel = this.querySelector<HTMLElement>(".ib-chart-sel");
-    const track = sel?.querySelector<HTMLElement>(".ib-chart-sel-track");
-    if (zoomOn && sel && track && data) {
-      const za = data.za!;
-      const names = data.zn ?? [];
-      const least = data.zl ?? 0;
-      const handles = [...sel.querySelectorAll<HTMLElement>(".ib-chart-sel-handle")];
-      const nearest = (share: number) => {
-        let best = 0;
-        za.forEach((p, i) => {
-          if (p !== null && (za[best] === null || Math.abs(p - share) < Math.abs(za[best]! - share))) best = i;
-        });
-        return best;
-      };
-      const line = () => {
-        const main = sel.parentElement!.getBoundingClientRect(), r = plot.getBoundingClientRect();
-        sel.style.setProperty("--ib-chart-sel-x", `${r.left - main.left}px`);
-        sel.style.setProperty("--ib-chart-sel-w", `${r.width}px`);
-      };
-      showSelector = () => {
-        const placed = (share: number) => String(data.ar ? 1 - share : share);
-        sel.style.setProperty("--ib-sel-js", placed(view[0]));
-        sel.style.setProperty("--ib-sel-je", placed(view[1]));
-        handles.forEach((h, k) => {
-          const i = nearest(view[k]);
-          h.setAttribute("aria-valuenow", String(i));
-          h.setAttribute("aria-valuetext", names[i] ?? "");
-          const flag = h.querySelector(".ib-chart-sel-flag.ib-chart-js");
-          if (flag) flag.textContent = names[i] ?? "";
-        });
-        for (const b of sel.querySelectorAll<HTMLElement>("[data-ib-range]")) {
-          const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
-          b.setAttribute("aria-pressed", String(Math.abs(a - view[0]) < 1e-3 && Math.abs(c - view[1]) < 1e-3));
-        }
-        this.setAttribute("data-ib-sel", "");
-      };
-      showSelector();
-      line();
-      const lining = new ResizeObserver(line);
-      lining.observe(plot);
-      lining.observe(sel.parentElement!);
-      signal.addEventListener("abort", () => {
-        lining.disconnect();
-        this.removeAttribute("data-ib-sel");
-        this.removeAttribute("data-ib-sel-drag");
-      });
-
-      // A place on the strip, as a share of the whole axis.
-      const shareOf = (x: number) => {
-        const r = track.getBoundingClientRect();
-        const f = Math.min(1, Math.max(0, (x - r.left) / r.width));
-        return data.ar ? 1 - f : f;
-      };
-      let drag: { kind: "start" | "end" | "pan"; at: number; from: View; id: number } | null = null;
-      track.addEventListener(
-        "pointerdown",
-        (event) => {
-          if (event.pointerType === "mouse" && event.button !== 0) return;
-          const handle = (event.target as Element).closest(".ib-chart-sel-handle");
-          const at = shareOf(event.clientX);
-          if (!handle && (at < view[0] || at > view[1])) {
-            // Outside the window: it moves there, centered, and can be dragged on.
-            const span = view[1] - view[0];
-            setView(at - span / 2, at + span / 2, false);
-          }
-          const kind = handle ? (handle.classList.contains("ib-chart-sel-start") ? "start" : "end") : "pan";
-          drag = { kind, at, from: [view[0], view[1]], id: event.pointerId };
-          track.setPointerCapture(event.pointerId);
-          this.setAttribute("data-ib-sel-drag", "");
-          if (handle) (handle as HTMLElement).focus();
-          event.preventDefault();
-        },
-        { signal }
-      );
-      track.addEventListener(
-        "pointermove",
-        (event) => {
-          if (!drag || event.pointerId !== drag.id) return;
-          const at = shareOf(event.clientX);
-          if (drag.kind === "start") setView(Math.min(at, view[1] - least), view[1], false);
-          else if (drag.kind === "end") setView(view[0], Math.max(at, view[0] + least), false);
-          else setView(drag.from[0] + at - drag.at, drag.from[1] + at - drag.at, false);
-        },
-        { signal }
-      );
-      const drop = (event: PointerEvent) => {
-        if (!drag || event.pointerId !== drag.id) return;
-        drag = null;
-        this.removeAttribute("data-ib-sel-drag");
-        settled();
-      };
-      track.addEventListener("pointerup", drop, { signal });
-      track.addEventListener("pointercancel", drop, { signal });
-
-      // Keys on a handle: by one item, a tenth, or to its furthest; the other end stays.
-      const step = 1 / Math.max(1, data.zc ? za.length : za.length - 1);
-      handles.forEach((h, k) =>
-        h.addEventListener(
-          "keydown",
-          (event) => {
-            const back = data.ar ? -1 : 1;
-            const by: Record<string, number> = { ArrowRight: step * back, ArrowUp: step, ArrowLeft: -step * back, ArrowDown: -step, PageUp: 0.1, PageDown: -0.1 };
-            let to: number;
-            if (event.key in by) to = view[k] + by[event.key];
-            else if (event.key === "Home") to = k === 0 ? 0 : view[0] + least;
-            else if (event.key === "End") to = k === 0 ? view[1] - least : 1;
-            else return;
-            event.preventDefault();
-            if (k === 0) setView(Math.max(0, Math.min(to, view[1] - least)), view[1]);
-            else setView(view[0], Math.min(1, Math.max(to, view[0] + least)));
-          },
-          { signal }
-        )
-      );
-      sel.addEventListener(
-        "click",
-        (event) => {
-          const b = (event.target as Element).closest<HTMLElement>("[data-ib-range]");
-          if (!b) return;
-          const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
-          setView(a, c);
-        },
-        { signal }
-      );
-    }
+    if (zoomOn && sel && data) showSelector = this.selector(sel, data, () => view, setView, settled, signal, plot);
     const setHidden = (series: number, isOff: boolean) => {
       if (isOff) hidden.add(series);
       else hidden.delete(series);
@@ -1054,6 +958,140 @@ class Chart extends IzzyElement {
       },
       { signal }
     );
+  }
+
+  /**
+   * A RangeSelector's strip: kept on the view (at), moved by its handles, its window, a click on
+   * the strip, the keys on a handle and its range buttons, all through setView. Returns what
+   * draws it again for a new view.
+   */
+  private selector(sel: HTMLElement, data: DrawData, at: () => View, setView: (from: number, to: number, report?: boolean) => void, settled: () => void, signal: AbortSignal, plot: HTMLElement | null): () => void {
+    const track = sel.querySelector<HTMLElement>(".ib-chart-sel-track")!;
+    const za = data.za!;
+    const names = data.zn ?? [];
+    const least = data.zl ?? 0;
+    const handles = [...sel.querySelectorAll<HTMLElement>(".ib-chart-sel-handle")];
+    const nearest = (share: number) => {
+      let best = 0;
+      za.forEach((p, i) => {
+        if (p !== null && (za[best] === null || Math.abs(p - share) < Math.abs(za[best]! - share))) best = i;
+      });
+      return best;
+    };
+    // Beside a plot, it's lined up with it (it sits outside the frame, whose img role would hide
+    // its sliders).
+    const line = () => {
+      if (!plot) return;
+      const main = sel.parentElement!.getBoundingClientRect(), r = plot.getBoundingClientRect();
+      sel.style.setProperty("--ib-chart-sel-x", `${r.left - main.left}px`);
+      sel.style.setProperty("--ib-chart-sel-w", `${r.width}px`);
+    };
+    const show = () => {
+      const placed = (share: number) => String(data.ar ? 1 - share : share);
+      sel.style.setProperty("--ib-sel-js", placed(at()[0]));
+      sel.style.setProperty("--ib-sel-je", placed(at()[1]));
+      handles.forEach((h, k) => {
+        const i = nearest(at()[k]);
+        h.setAttribute("aria-valuenow", String(i));
+        h.setAttribute("aria-valuetext", names[i] ?? "");
+        const flag = h.querySelector(".ib-chart-sel-flag.ib-chart-js");
+        if (flag) flag.textContent = names[i] ?? "";
+      });
+      for (const b of sel.querySelectorAll<HTMLElement>("[data-ib-range]")) {
+        const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
+        b.setAttribute("aria-pressed", String(Math.abs(a - at()[0]) < 1e-3 && Math.abs(c - at()[1]) < 1e-3));
+      }
+      this.setAttribute("data-ib-sel", "");
+    };
+    show();
+    line();
+    const lining = new ResizeObserver(line);
+    if (plot) lining.observe(plot);
+    lining.observe(sel.parentElement!);
+    signal.addEventListener("abort", () => {
+      lining.disconnect();
+      this.removeAttribute("data-ib-sel");
+      this.removeAttribute("data-ib-sel-drag");
+    });
+
+    // A place on the strip, as a share of the whole axis.
+    const shareOf = (x: number) => {
+      const r = track.getBoundingClientRect();
+      const f = Math.min(1, Math.max(0, (x - r.left) / r.width));
+      return data.ar ? 1 - f : f;
+    };
+    let drag: { kind: "start" | "end" | "pan"; at: number; from: View; id: number } | null = null;
+    track.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        const handle = (event.target as Element).closest(".ib-chart-sel-handle");
+        const share = shareOf(event.clientX);
+        if (!handle && (share < at()[0] || share > at()[1])) {
+          // Outside the window: it moves there, centered, and can be dragged on.
+          const span = at()[1] - at()[0];
+          setView(share - span / 2, share + span / 2, false);
+        }
+        const kind = handle ? (handle.classList.contains("ib-chart-sel-start") ? "start" : "end") : "pan";
+        drag = { kind, at: share, from: [at()[0], at()[1]], id: event.pointerId };
+        track.setPointerCapture(event.pointerId);
+        this.setAttribute("data-ib-sel-drag", "");
+        if (handle) (handle as HTMLElement).focus();
+        event.preventDefault();
+      },
+      { signal }
+    );
+    track.addEventListener(
+      "pointermove",
+      (event) => {
+        if (!drag || event.pointerId !== drag.id) return;
+        const share = shareOf(event.clientX);
+        if (drag.kind === "start") setView(Math.min(share, at()[1] - least), at()[1], false);
+        else if (drag.kind === "end") setView(at()[0], Math.max(share, at()[0] + least), false);
+        else setView(drag.from[0] + share - drag.at, drag.from[1] + share - drag.at, false);
+      },
+      { signal }
+    );
+    const drop = (event: PointerEvent) => {
+      if (!drag || event.pointerId !== drag.id) return;
+      drag = null;
+      this.removeAttribute("data-ib-sel-drag");
+      settled();
+    };
+    track.addEventListener("pointerup", drop, { signal });
+    track.addEventListener("pointercancel", drop, { signal });
+
+    // Keys on a handle: by one item, a tenth, or to its furthest; the other end stays.
+    const step = 1 / Math.max(1, data.zc ? za.length : za.length - 1);
+    handles.forEach((h, k) =>
+      h.addEventListener(
+        "keydown",
+        (event) => {
+          const back = data.ar ? -1 : 1;
+          const by: Record<string, number> = { ArrowRight: step * back, ArrowUp: step, ArrowLeft: -step * back, ArrowDown: -step, PageUp: 0.1, PageDown: -0.1 };
+          let to: number;
+          if (event.key in by) to = at()[k] + by[event.key];
+          else if (event.key === "Home") to = k === 0 ? 0 : at()[0] + least;
+          else if (event.key === "End") to = k === 0 ? at()[1] - least : 1;
+          else return;
+          event.preventDefault();
+          if (k === 0) setView(Math.max(0, Math.min(to, at()[1] - least)), at()[1]);
+          else setView(at()[0], Math.min(1, Math.max(to, at()[0] + least)));
+        },
+        { signal }
+      )
+    );
+    sel.addEventListener(
+      "click",
+      (event) => {
+        const b = (event.target as Element).closest<HTMLElement>("[data-ib-range]");
+        if (!b) return;
+        const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
+        setView(a, c);
+      },
+      { signal }
+    );
+    return show;
   }
 
   /**
