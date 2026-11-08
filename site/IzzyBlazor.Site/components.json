@@ -2268,6 +2268,27 @@
       ]
     },
     {
+      "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows values over two dimensions, such as orders by weekday and hour, as a grid of cells whose color grows with the value.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "features": [
+        { "feature": "Cells colored in even steps from round bounds, light to dark, or blended continuously" },
+        { "feature": "A diverging scale for values above and below a midpoint" },
+        { "feature": "Named ranges with your own colors" },
+        { "feature": "Values in the cells where they fit, in ink that reads on the shade" },
+        { "feature": "Names along the bottom that thin out as the grid narrows, by month for dates" },
+        { "feature": "A legend that is the color scale, beside or above the grid" },
+        { "feature": "Legend keys that hide and show the cells in their class", "noscript": "none" },
+        { "feature": "A table of the values, rows by columns, in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard, cell by cell", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "heatmap-chart-usage", "title": "Orders by weekday and hour", "lead": "A heatmap shows values over two dimensions as a grid, so a pattern across both stands out, such as a shop's busiest hours. Give `HeatmapChart` the `Items`, each one's `Column`, `Row` and `Value`, and a `Title`. Columns and rows keep the order the items first name them in, the first row at the top. The values fall into about five classes between round bounds (here six, of 10 orders each), each a shade from light to dark, and the legend above the grid is that scale. `ColumnFormat` formats the column names, here hours as \"8 AM\". The values show in the cells while every one fits; narrower, they go, and pointing at a cell shows its tooltip instead.",
+          "notes": { "noscript": "The legend keys don't hide cells, and narrow grids have no tooltips. \"Show data\" lists every value." } },
+        { "id": "heatmap-chart-diverging", "title": "Above and below normal", "lead": "For values on either side of a meaningful middle, such as each month's temperature against the normal, set `Palette` to `ChartPalette.Diverging` with a color for each side. The scale turns gray at `Midpoint` (0 by default) and reaches as far on both sides, so colors of the same strength mean the same distance from it. Here the bounds round to four classes of 2°C, two on each side; `Steps` sets about how many there are (5 by default). `Legend=\"ChartLegend.End\"` stands the scale upright beside the grid, with the high end at the top." },
+        { "id": "heatmap-chart-ranges", "title": "Named levels", "lead": "When the values have levels with names of their own, such as a support team's \"Quiet\" to \"Overloaded\", give each a `HeatmapRange` with its `From`, `To`, `Color` and `Label` in place of even steps. The legend names each level with its bounds. Order the colors light to dark, with `light-dark()` for dark mode, where the strongest shade is the lightest. With script, each legend key hides and shows the cells at its level." },
+        { "id": "heatmap-chart-year", "title": "A year, hour by hour", "lead": "A heatmap holds thousands of cells: here a site's visitors in each hour of each day of a year, 365 columns by 24 rows. Dates a day apart are named by month along the bottom, and rows shorter than a line (`CellHeight`) show every second name. Cells narrower than 6px lose their gaps and corners, so the grid reads as one surface. `Steps=\"0\"` blends the color continuously, with a gradient for the legend. The cells are too small for values, so point at one, or use the arrow keys, for its tooltip." }
+      ]
+    },
+    {
       "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },

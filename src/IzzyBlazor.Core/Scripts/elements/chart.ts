@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import type { DrawData, PieDrawData, draw as Draw, drawPie as DrawPie } from "./chart-draw";
+import type { heat as Heat } from "./chart-heat";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
 type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie };
@@ -38,6 +39,14 @@ class Chart extends IzzyElement {
 
     if (this.hasAttribute("data-ib-pie")) {
       this.pie(signal);
+      return;
+    }
+
+    // A HeatmapChart: its own part (chart-heat.ts), loaded when one is on the page.
+    if (this.hasAttribute("data-ib-heat")) {
+      (import("./parts/chart-heat.js" as string) as Promise<{ heat: typeof Heat }>).then((m) => {
+        if (!signal.aborted) m.heat(this, signal, (frame) => this.keyboard(frame, signal), (axis) => this.fit(axis), () => this.connectedCallback());
+      });
       return;
     }
 
