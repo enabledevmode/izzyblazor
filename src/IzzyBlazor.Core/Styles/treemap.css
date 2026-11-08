@@ -49,14 +49,13 @@
     display: none;
     flex: none;
     gap: 0.35em;
-    height: 22px;
     margin: 1px;
     padding-inline: 6px;
     overflow: hidden;
-    border-radius: 2px;
     /* A band clear of the surface: in dark mode the subtle fill is all but the surface itself. */
     background: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill-strong));
     color: var(--ib-color-on-surface);
+    /* One line, so 22px tall (TreemapLayout counts it, with the margin, as 24). */
     line-height: 22px;
     white-space: nowrap;
   }
@@ -79,9 +78,13 @@
     overflow: hidden;
     border-radius: 3px;
     box-shadow: inset 0 0 0 1px var(--ib-color-surface);
-    background: var(--ib-heat-bg, var(--ib-chart-fill, var(--ib-color-fill-subtle)));
-    /* Dark ink, which the palette's fills (mid-tone in light mode, bright in dark) clear, as on bars. */
-    color: light-dark(var(--ib-color-on-surface), var(--ib-color-surface));
+    /* Large areas, so the palette's colors softened toward the surface: 70% in light mode, 50% in
+       dark. The text's color clears every one of the eight (5.7:1 light, 5.6:1 dark). */
+    --ib-treemap-fill: light-dark(
+      color-mix(in oklab, var(--ib-chart-c, transparent) 70%, var(--ib-color-surface)),
+      color-mix(in oklab, var(--ib-chart-c, transparent) 50%, var(--ib-color-surface)));
+    background: var(--ib-heat-bg, var(--ib-treemap-fill));
+    color: var(--ib-color-on-surface);
     container: ib-treemap-tile / size;
   }
 
@@ -99,25 +102,28 @@
   @container ib-treemap-tile (height < 2.6rem) { .ib-treemap-tile > .ib-treemap-value { visibility: hidden; } }
 
   /* Colored by a value (ColorValue): heatmap.css's classes set --ib-heat-bg; a continuous scale
-     blends it at --t. The scale's shades run light to dark, so the usual ink, light on strong. */
+     blends it at --t. The scale's shades run light to dark, so the usual ink, light on strong
+     (as HeatmapChart's cells). */
   .ib-treemap-blend .ib-treemap-tile:not(.ib-treemap-none) { --ib-heat-bg: color-mix(in oklab, var(--ib-heat-b) var(--t), var(--ib-heat-a)); }
   .ib-treemap-blend .ib-treemap-tile.ib-lo { --ib-heat-b: var(--ib-heat-c); }
-  .ib-heatmap .ib-treemap-tile { color: var(--ib-color-on-surface); }
   .ib-heatmap .ib-treemap-tile.ib-i1 { color: light-dark(#fff, var(--ib-color-on-surface)); }
   .ib-heatmap .ib-treemap-tile.ib-i2 { color: light-dark(#fff, #111); }
 
   /* Where the browser can, black or white, whichever reads best on the tile's own color. */
   @supports (color: contrast-color(red)) {
-    .ib-treemap-tile { color: contrast-color(var(--ib-heat-bg, var(--ib-chart-fill, var(--ib-color-fill-subtle)))); }
-    .ib-heatmap .ib-treemap-tile:is(*, .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-color-fill-subtle))); }
+    .ib-treemap-tile:is(*, .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-treemap-fill))); }
   }
 
-  /* The tile or group the tooltip (or the keyboard) is on: a step toward the text's color, outlined. */
+  /* The tile or group the tooltip (or the keyboard) is on, outlined and washed toward the surface,
+     which only raises the text's contrast. On a ColorValue scale, whose ink flips light on strong
+     shades, a step toward the text's color instead, as HeatmapChart's cells. */
   :is(.ib-treemap-tile, .ib-treemap-head)[data-ib-active] {
-    box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 18%, transparent);
+    box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-surface) 35%, transparent);
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
+
+  .ib-heatmap .ib-treemap-tile[data-ib-active] { box-shadow: inset 0 0 0 1px var(--ib-color-surface), inset 0 0 0 100vmax color-mix(in srgb, var(--ib-color-on-surface) 18%, transparent); }
 
   /* The plot's boxes leave the pointer to the script, whose tooltip stands in for their titles. */
   ib-chart[data-ib-tooltips] :is(.ib-treemap-tile, .ib-treemap-head) { pointer-events: none; }
