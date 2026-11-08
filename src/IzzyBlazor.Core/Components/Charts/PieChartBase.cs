@@ -75,7 +75,8 @@ public abstract class PieChartBase<TItem> : LayoutItemBase
     /// values differ ring by ring). By default it's beside the circle, at the end side, when there's
     /// room (30rem, or 44rem with a PieChart's labels outside the circle) and under it otherwise; <see cref="ChartLegend.Start"/> puts it at
     /// the start side, <see cref="ChartLegend.Top"/> and <see cref="ChartLegend.Bottom"/> always
-    /// above or below, and <see cref="ChartLegend.None"/> leaves it out. Its items don't hide slices.
+    /// above or below, and <see cref="ChartLegend.None"/> leaves it out. With script, each item hides and
+    /// shows its slices, and the rest close up and share the circle.
     /// </summary>
     [Parameter] public ChartLegend Legend { get; set; }
 
@@ -141,6 +142,67 @@ public abstract class PieChartBase<TItem> : LayoutItemBase
     private protected double StartTurn => (StartAngle % 360 + 360) % 360 / 360;
 
     private protected string? FormatValue(double? value) => value?.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    /// <summary>
+    /// What the script draws the circle again from when the legend hides slices: each ring's
+    /// values, its inner and outer radius, the start, the shares' formats (P0 and P1 in the page's
+    /// culture), how the slices are labeled (0 none, 1 outside, 2 inside) and the circle's size.
+    /// </summary>
+    private protected string DrawData(double?[][] values, (double Inner, double Outer)[] radii, int labels)
+    {
+        using var stream = new MemoryStream();
+        using (var w = new System.Text.Json.Utf8JsonWriter(stream))
+        {
+            w.WriteStartObject();
+            w.WriteStartArray("v");
+            foreach (var ring in values)
+            {
+                w.WriteStartArray();
+                foreach (var v in ring)
+                {
+                    if (v is { } x && double.IsFinite(x)) w.WriteNumberValue(x);
+                    else w.WriteNullValue();
+                }
+
+                w.WriteEndArray();
+            }
+
+            w.WriteEndArray();
+            w.WriteStartArray("r");
+            foreach (var (inner, outer) in radii)
+            {
+                w.WriteStartArray();
+                w.WriteNumberValue(Math.Round(inner, 4));
+                w.WriteNumberValue(Math.Round(outer, 4));
+                w.WriteEndArray();
+            }
+
+            w.WriteEndArray();
+            w.WriteNumber("f", StartTurn);
+            WriteShape(w, "p0", NumberShape.Of("P0", CultureInfo.CurrentCulture)!);
+            WriteShape(w, "p1", NumberShape.Of("P1", CultureInfo.CurrentCulture)!);
+            w.WriteNumber("l", labels);
+            w.WriteNumber("s", SizeInPixels);
+            w.WriteEndObject();
+        }
+
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static void WriteShape(System.Text.Json.Utf8JsonWriter w, string name, NumberShape shape)
+    {
+        w.WriteStartObject(name);
+        w.WriteString("p", shape.Prefix);
+        w.WriteString("s", shape.Suffix);
+        w.WriteString("np", shape.NegativePrefix);
+        w.WriteString("ns", shape.NegativeSuffix);
+        w.WriteString("g", shape.Group);
+        w.WriteString("d", shape.Decimal);
+        w.WriteNumber("n", shape.Decimals);
+        w.WriteNumber("t", shape.MinDecimals);
+        w.WriteNumber("k", shape.Scale);
+        w.WriteEndObject();
+    }
 
     private protected static string Num(double value) => value.ToString("0.#####", CultureInfo.InvariantCulture);
 

@@ -2272,6 +2272,7 @@
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
         { "feature": "A legend with each slice's value and share, beside the circle or under it" },
+        { "feature": "Legend items that hide and show slices, the rest closing up", "noscript": "none" },
         { "feature": "Labels by their slices with short lines, or in the slices, beside a legend or in its place" },
         { "feature": "Labels you write with a template" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
@@ -2289,6 +2290,7 @@
       "features": [
         { "feature": "A ring for each measure, the first outside, with the rings named under the title" },
         { "feature": "One color and one legend row per item, in every ring" },
+        { "feature": "Legend items that hide and show an item's slices in every ring", "noscript": "none" },
         { "feature": "A table of each ring's values and shares in a \"Show data\" disclosure" },
         { "feature": "Tooltips on hover and from the keyboard, along a ring and between rings", "noscript": "none" }
       ],

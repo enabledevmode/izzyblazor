@@ -121,6 +121,7 @@
                   data-ib-pie="@Num(Hole)"
                   data-ib-rings="@rings.Count"
                   data-ib-count="@n"
+                  data-ib-draw="@(Legend != ChartLegend.None ? DrawData(values, Enumerable.Range(0, rings.Count).Select(r => (1 - (r + 1) * thickness, 1 - r * thickness)).ToArray(), 0) : null)"
                   data-ib-pos="@string.Join(";", slices.Select(ring => string.Join(",", Enumerable.Range(0, n).Select(i => ring.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))))">
             <div class="@PieClass">
                 <div class="ib-pie-unringed">
@@ -158,8 +159,11 @@
                         @for (var i = 0; i < n; i++)
                         {
                             <li class="@Slot(i)">
-                                <span class="ib-pie-key" aria-hidden="true"></span>
-                                <span class="ib-pie-name">@names[i]</span>
+                                @* With script, a button that hides and shows the item's slices. *@
+                                <span class="ib-pie-toggle" data-ib-series="@i">
+                                    <span class="ib-pie-key" aria-hidden="true"></span>
+                                    <span class="ib-pie-name">@names[i]</span>
+                                </span>
                             </li>
                         }
                     </ul>
@@ -183,7 +187,7 @@
                                 <div class="ib-chart-tooltip-row">
                                     <span class="ib-chart-tooltip-key ib-pie-blank"></span>
                                     <span>@TextDefaults.ChartShare</span>
-                                    <span class="ib-chart-tooltip-value">@shares[r][i]</span>
+                                    <span class="ib-chart-tooltip-value" data-ib-share="@(r * n + i)">@shares[r][i]</span>
                                 </div>
                             </div>
                         }
