@@ -136,10 +136,11 @@ parameter tables and defaults are never written by hand.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its
-  title and `lead` (one or two sentences: what the feature is for and the parameter that turns it
+  title and `lead` (one or two sentences: what the feature does and the parameter that turns it
   on; backticks mark code), then `after`, a list of short paragraphs under the example for the
   details, caveats and mode differences (a site test keeps a lead or an `after` paragraph to 60
-  words and 3 sentences, a topic intro's paragraph to 80 words and 4), with an
+  words and 3 sentences, a topic intro's paragraph to 80 words and 4; on a hand-written page
+  both are for search and MCP only, so they say what the page says), with an
   optional `info` (`title` and `text`) shown as an info Alert under the lead, only for a caveat readers
   would otherwise trip on, the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
   The API page is always generated.

@@ -240,9 +240,10 @@ public sealed partial class SearchIndex
 
     // ---- Building ----
 
-    private void Add(SearchKind kind, string title, string? context, string? summary, string href, IReadOnlyList<string>? keywords = null, bool standard = false) =>
+    private void Add(SearchKind kind, string title, string? context, string? summary, string href, IReadOnlyList<string>? keywords = null, bool standard = false, string? details = null) =>
         _entries.Add(new SearchEntry(kind, title, context, OverviewText.Sentence(summary, 180), href)
         {
+            Details = details,
             Keywords = keywords ?? [],
             Standard = standard,
             Order = _entries.Count,
@@ -281,7 +282,7 @@ public sealed partial class SearchIndex
                 {
                     if (registry.Example(id) is { } found && !page.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))
                     {
-                        Add(SearchKind.Example, found.Example.Title, component.DisplayName, Lead(found.Example.Lead), $"{overview}#ex-{id}");
+                        Add(SearchKind.Example, found.Example.Title, component.DisplayName, Lead(found.Example.Lead), $"{overview}#ex-{id}", details: Details(found.Example));
                     }
                 }
             }
@@ -321,7 +322,7 @@ public sealed partial class SearchIndex
                 for (var i = 0; i < headings.Count; i++)
                 {
                     var example = component.Examples.FirstOrDefault(e => e.Title == headings[i]);
-                    Add(SearchKind.Section, headings[i], component.DisplayName, Lead(example?.Lead), $"{overview}#{ids[i]}", standard: StandardSections.Contains(headings[i]));
+                    Add(SearchKind.Section, headings[i], component.DisplayName, Lead(example?.Lead), $"{overview}#{ids[i]}", standard: StandardSections.Contains(headings[i]), details: Details(example));
                 }
             }
 
@@ -336,7 +337,7 @@ public sealed partial class SearchIndex
                     {
                         if (registry.Example(id) is { } found && !written.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))
                         {
-                            Add(SearchKind.Example, found.Example.Title, $"{component.DisplayName}: {topic.Title}", Lead(found.Example.Lead), $"{topicPage}#ex-{id}");
+                            Add(SearchKind.Example, found.Example.Title, $"{component.DisplayName}: {topic.Title}", Lead(found.Example.Lead), $"{topicPage}#ex-{id}", details: Details(found.Example));
                         }
                     }
 
@@ -346,7 +347,7 @@ public sealed partial class SearchIndex
                 var topicIds = Ids(topic.Title, topic.Examples.Select(e => (e.Title, (string?)null)));
                 for (var i = 0; i < topic.Examples.Count; i++)
                 {
-                    Add(SearchKind.Section, topic.Examples[i].Title, $"{component.DisplayName}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}");
+                    Add(SearchKind.Section, topic.Examples[i].Title, $"{component.DisplayName}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}", details: Details(topic.Examples[i]));
                 }
             }
 
@@ -472,6 +473,10 @@ public sealed partial class SearchIndex
 
     // An example's lead without its code marks.
     private static string? Lead(string? lead) => lead?.Replace("`", "", StringComparison.Ordinal);
+
+    // All of an example's text, lead and after, matched as its summary is (the summary shows only the first sentence).
+    private static string? Details(RegistryExample? example) =>
+        example is null ? null : Lead(string.Join(" ", example.After.Prepend(example.Lead ?? "")));
 
     // ---- Reading the docs pages' sources ----
 
@@ -685,7 +690,10 @@ public sealed record SearchEntry(SearchKind Kind, string Title, string? Context,
 
     internal IReadOnlyList<string> KeywordWords => _keywordWords ??= Keywords.SelectMany(SearchIndex.Words).ToList();
 
-    internal IReadOnlyList<string> SummaryWords => _summaryWords ??= SearchIndex.Words(Summary);
+    /// <summary>More text matched like the summary but not shown: an example's whole lead and after paragraphs.</summary>
+    public string? Details { get; init; }
+
+    internal IReadOnlyList<string> SummaryWords => _summaryWords ??= SearchIndex.Words(Details is null ? Summary : $"{Summary} {Details}");
 
     private string? _squashedTitle;
     private IReadOnlyList<string>? _squashedKeywords;
