@@ -251,7 +251,6 @@
             _ => "ib-heatmap",
         };
         var legendFirst = Place is ChartLegend.Top or ChartLegend.Start;
-        string Range(string? from, string? to) => string.Format(CultureInfo.CurrentCulture, TextDefaults.HeatmapRangeText, from, to);
         string Cell(HeatmapCell c) => c.Class < 0 ? "" : (model.Continuous ? (c.Low ? "ib-lo " : "") : $"ib-k{c.Class + 1} ") + (c.Ink > 0 ? $"ib-i{c.Ink}" : "");
 
         <ib-chart class="@legendClass" style="@style"
@@ -263,7 +262,7 @@
                   data-ib-none="@TextDefaults.HeatmapNoData">
             @if (legendFirst && Place != ChartLegend.None)
             {
-                @LegendFragment(model, Range)
+                @ScaleLegend(model, _context.Ranges.Items, palette.IsDiverging, LegendListClass, TextDefaults)
             }
             <div class="@($"ib-chart-main ib-heat ib-heat-l{model.LabelFrom} ib-heat-g{model.GapFrom}{(model.Continuous ? " ib-heat-blend" : "")}")">
                 <div class="ib-heat-rows" aria-hidden="true">
@@ -295,7 +294,7 @@
             </div>
             @if (!legendFirst && Place != ChartLegend.None)
             {
-                @LegendFragment(model, Range)
+                @ScaleLegend(model, _context.Ranges.Items, palette.IsDiverging, LegendListClass, TextDefaults)
             }
             @if (Tooltip != false)
             {
@@ -354,17 +353,23 @@
 
     // The color scale: a key per class, each a button with script that hides its cells; or a
     // gradient for a continuous scale. Bounds sit between the keys, under them (beside, upright).
-    private RenderFragment LegendFragment(HeatmapModel model, Func<string?, string?, string> range) => __builder =>
+    // Shared with CalendarHeatmap.
+    internal static RenderFragment ScaleLegend(HeatmapModel model, IReadOnlyList<HeatmapRange> ranges, bool diverging, string listClass, IzzyText text) => __builder =>
     {
-        var ranges = _context.Ranges.Items;
+        string range(string? from, string? to) => string.Format(CultureInfo.CurrentCulture, text.HeatmapRangeText, from, to);
         // The widest bound, so an upright scale keeps room for its labels beside it.
         var bounds = model.Continuous ? new[] { model.LowText, model.MidText, model.HighText } : model.Bounds.ToArray();
-        var room = $"--ib-heat-bw:{Num(Math.Ceiling(bounds.Select(b => b is null ? 0 : TextWidths.AtSize(b, 12)).DefaultIfEmpty(0).Max() + 2))}px";
+        var bw = Math.Ceiling(bounds.Select(b => b is null ? 0 : TextWidths.AtSize(b, 12)).DefaultIfEmpty(0).Max() + 2);
+        var room = $"--ib-heat-bw:{Num(bw)}px";
+        // Below the width the keys have room for every bound at (a bound and a half each, plus a
+        // gap, as heatmap.css sizes them), only the ends and the middle show: ib-heat-bN.
+        var need = model.ClassCount * Math.Max(40, bw * 1.5 + 8);
+        var thin = HeatmapLayout.FirstFit(k => (k == 0 ? 280 : ChartLayout.Widths[k]) >= need);
         if (model.Continuous)
         {
-            <div class="@($"{LegendListClass} ib-heat-legend")">
+            <div class="@($"{listClass} ib-heat-legend")">
                 <div class="ib-heat-scale" style="@room">
-                    <div class="@(Palette?.IsDiverging == true ? "ib-heat-bar ib-heat-bar-div" : "ib-heat-bar")" role="img" aria-label="@($"{TextDefaults.HeatmapScale}: {range(model.LowText, model.HighText)}")"></div>
+                    <div class="@(diverging ? "ib-heat-bar ib-heat-bar-div" : "ib-heat-bar")" role="img" aria-label="@($"{text.HeatmapScale}: {range(model.LowText, model.HighText)}")"></div>
                     <div class="ib-heat-bounds" aria-hidden="true">
                         <span style="--p:0">@model.LowText</span>
                         @if (model.MidText is not null)
@@ -378,7 +383,7 @@
         }
         else if (ranges.Count > 0)
         {
-            <ul class="@($"{LegendListClass} ib-heat-legend ib-heat-named")" aria-label="@TextDefaults.HeatmapScale">
+            <ul class="@($"{listClass} ib-heat-legend ib-heat-named")" aria-label="@text.HeatmapScale">
                 @for (var k = 0; k < model.ClassCount; k++)
                 {
                     var c = model.Classes[k];
@@ -398,9 +403,9 @@
         }
         else
         {
-            <div class="@($"{LegendListClass} ib-heat-legend")">
-                <div class="ib-heat-scale" style="--n:@model.ClassCount;@room">
-                    <ul class="ib-heat-steps" aria-label="@TextDefaults.HeatmapScale">
+            <div class="@($"{listClass} ib-heat-legend")">
+                <div class="@($"ib-heat-scale ib-heat-b{thin}")" style="--n:@model.ClassCount;@room">
+                    <ul class="ib-heat-steps" aria-label="@text.HeatmapScale">
                         @for (var k = 0; k < model.ClassCount; k++)
                         {
                             <li><span class="@($"ib-chart-toggle ib-heat-key ib-k{k + 1}")" data-ib-class="@k"><span class="ib-visually-hidden">@range(model.Classes[k].From, model.Classes[k].To)</span></span></li>
@@ -409,7 +414,7 @@
                     <div class="ib-heat-bounds" aria-hidden="true">
                         @for (var i = 0; i < model.Bounds.Count; i++)
                         {
-                            <span style="--p:@Num((double)i / model.ClassCount)">@model.Bounds[i]</span>
+                            <span class="@(i > 0 && i < model.ClassCount && 2 * i != model.ClassCount ? "ib-heat-inner" : null)" style="--p:@Num((double)i / model.ClassCount)">@model.Bounds[i]</span>
                         }
                     </div>
                 </div>

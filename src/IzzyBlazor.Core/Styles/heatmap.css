@@ -116,12 +116,13 @@
      or named ranges. */
   .ib-heat-scale {
     display: grid;
-    width: calc(var(--n, 5) * max(2.5rem, var(--ib-heat-bw, 0px) + 0.75rem));
+    /* The end bounds sit flush with the ends, so a key is a bound and a half wide, plus a gap. */
+    width: calc(var(--n, 5) * max(2.5rem, var(--ib-heat-bw, 0px) * 1.5 + 0.5rem));
     max-width: 100%;
     gap: var(--ib-space-1);
   }
 
-  .ib-heat-legend:not(ul) { display: block; }
+  .ib-heat-legend:not(ul) { display: block; max-width: 100%; }
 
   .ib-heat-steps {
     display: grid;
@@ -170,6 +171,16 @@
   .ib-heat-bounds > :first-child { translate: 0 0; }
   .ib-heat-bounds > :last-child { translate: -100% 0; }
 
+  /* Where the keys are too narrow for every bound: the ends and the middle. */
+  .ib-heat-b8 .ib-heat-inner { display: none; }
+  @container ib-chart (width < 320px) { .ib-heat-b1 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 400px) { .ib-heat-b2 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 480px) { .ib-heat-b3 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 560px) { .ib-heat-b4 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 640px) { .ib-heat-b5 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 800px) { .ib-heat-b6 .ib-heat-inner { display: none; } }
+  @container ib-chart (width < 960px) { .ib-heat-b7 .ib-heat-inner { display: none; } }
+
   .ib-heat-range { color: var(--ib-color-muted); font-variant-numeric: tabular-nums; }
 
   .ib-heat-legend .ib-chart-toggle[aria-pressed="false"] { opacity: 0.3; }
@@ -197,11 +208,54 @@
     :is(.ib-chart-lg-start, .ib-chart-lg-end) .ib-heat-bounds > :first-child { translate: 0 0; }
     :is(.ib-chart-lg-start, .ib-chart-lg-end) .ib-heat-bounds > :last-child { translate: 0 100%; }
     :is(.ib-chart-lg-start, .ib-chart-lg-end) .ib-heat-named { flex-direction: column-reverse; }
+    /* Upright, every bound has a row of its own. */
+    :is(.ib-chart-lg-start, .ib-chart-lg-end) .ib-heat-inner { display: inline; }
   }
+
+  /* CalendarHeatmap: months along the top, weekday names beside, square days at most
+     --ib-cal-max wide (CellSize, 2rem by default). Days outside the range in the first and last weeks aren't drawn.
+     Weekday names other than Monday, Wednesday and Friday (ib-cal-thin) go where a row is shorter
+     than a line: below the width ib-cal-rN marks, or as the script measures (data-ib-rows). */
+  .ib-cal {
+    grid-template-columns: auto minmax(0, calc(var(--ib-heat-cols) * (var(--ib-cal-max, 2rem) + var(--ib-heat-gap)) - var(--ib-heat-gap)));
+    grid-template-rows: auto auto;
+    /* Days at their largest leave room over: keep it at the end, not in the names' column. */
+    justify-content: start;
+  }
+
+  .ib-cal > .ib-cal-months { grid-area: 1 / 2; margin-block: 0 var(--ib-space-1); --ib-chart-tx: 0; }
+  /* The names follow the days' height and never set it: no taller than the grid, overflowing when a row is shorter than a line. */
+  .ib-cal > .ib-heat-rows { grid-area: 2 / 1; height: 0; min-height: 100%; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-rows: initial; }
+  .ib-cal > .ib-heat-frame { grid-area: 2 / 2; }
+  .ib-cal .ib-heat-grid { grid-auto-rows: auto; }
+  .ib-cal .ib-heat-grid > div { aspect-ratio: 1; }
+  .ib-heat-grid > .ib-heat-out { background: none; }
+
+  .ib-cal-r8 .ib-cal-thin { visibility: hidden; }
+  @container ib-chart (width < 320px) { .ib-cal-r1 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 400px) { .ib-cal-r2 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 480px) { .ib-cal-r3 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 560px) { .ib-cal-r4 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 640px) { .ib-cal-r5 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 800px) { .ib-cal-r6 .ib-cal-thin { visibility: hidden; } }
+  @container ib-chart (width < 960px) { .ib-cal-r7 .ib-cal-thin { visibility: hidden; } }
+  .ib-cal-n8 > .ib-heat-rows { visibility: hidden; }
+  @container ib-chart (width < 320px) { .ib-cal-n1 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 400px) { .ib-cal-n2 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 480px) { .ib-cal-n3 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 560px) { .ib-cal-n4 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 640px) { .ib-cal-n5 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 800px) { .ib-cal-n6 > .ib-heat-rows { visibility: hidden; } }
+  @container ib-chart (width < 960px) { .ib-cal-n7 > .ib-heat-rows { visibility: hidden; } }
+  ib-chart[data-ib-rows="-1"] .ib-cal > .ib-heat-rows { visibility: hidden; }
+  ib-chart:is([data-ib-rows="0"], [data-ib-rows="1"]) .ib-cal > .ib-heat-rows { visibility: visible; }
+  ib-chart[data-ib-rows="0"] .ib-cal .ib-cal-thin { visibility: hidden; }
+  ib-chart[data-ib-rows="1"] .ib-cal .ib-cal-thin { visibility: visible; }
 
   /* Forced colors: no fills, so each cell keeps an outline and its value. */
   @media (forced-colors: active) {
-    .ib-heat-grid > div { outline: 1px solid CanvasText; outline-offset: -1px; }
+    .ib-heat-grid > div:not(.ib-heat-out) { outline: 1px solid CanvasText; outline-offset: -1px; }
     .ib-heat-grid { font-size: var(--ib-text-xs) }
+    .ib-cal .ib-heat-grid { font-size: 0; }
   }
 }

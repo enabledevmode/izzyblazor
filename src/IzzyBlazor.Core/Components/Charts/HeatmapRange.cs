@@ -32,7 +32,7 @@ public sealed class HeatmapRange : ComponentBase, IDisposable
     {
         if (Context is null)
         {
-            throw new InvalidOperationException("HeatmapRange must be inside a HeatmapChart.");
+            throw new InvalidOperationException("HeatmapRange must be inside a HeatmapChart or a CalendarHeatmap.");
         }
 
         Context.Ranges.Add(this);
@@ -90,7 +90,7 @@ public sealed class HeatmapTooltip<TItem> : ComponentBase, IDisposable
     {
         if (Context is null)
         {
-            throw new InvalidOperationException("HeatmapTooltip must be inside a HeatmapChart.");
+            throw new InvalidOperationException("HeatmapTooltip must be inside a HeatmapChart or a CalendarHeatmap.");
         }
 
         if (!ReferenceEquals(Context.Tooltip, ChildContent))

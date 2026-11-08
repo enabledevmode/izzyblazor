@@ -59,7 +59,7 @@ jobs:
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
           echo "carousel.css gzip: $carousel bytes (budget 2048; only pages with a carousel load it)"
           echo "chart.css gzip: $chart bytes (budget 6144; only pages with a chart load it)"
-          echo "heatmap.css gzip: $heatmap bytes (budget 2048; only pages with a HeatmapChart load it)"
+          echo "heatmap.css gzip: $heatmap bytes (budget 2048; only pages with a HeatmapChart or CalendarHeatmap load it)"
           echo "tabs-edit.css gzip: $tabsedit bytes (budget 1024; only tabs with close or add controls load it)"
           echo "speed-dial.css gzip: $speeddial bytes (budget 1024; only pages with a SpeedDial load it)"
           echo "treeselect.css gzip: $treeselect bytes (budget 1024; only pages with a TreeSelect load it)"
