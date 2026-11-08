@@ -13,7 +13,7 @@
         <Center><strong>1,240</strong> customers</Center>
     </PieChart>
 
-    Slices go clockwise from the top in item order, in the palette's eight colors, then gray. Missing, zero and
+    Slices go clockwise from the top (or StartAngle) in item order, in the palette's eight colors, then gray. Missing, zero and
     negative values get no slice but keep their row in the legend and the table. Past about six
     slices they get hard to tell apart: group the smallest as "Other", or use a Chart with bars.
 
@@ -37,7 +37,7 @@
         var names = items.Select(i => ChartLayout.ArgumentText(_argument!(i), null, CultureInfo.CurrentCulture)).ToArray();
         var values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
-        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0);
+        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, (StartAngle % 360 + 360) % 360 / 360);
         var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
         var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
         var outside = Labels is ChartLabels.Outside or ChartLabels.Auto;
@@ -221,6 +221,12 @@
 
     /// <summary>Draws a ring with a hole in the middle, for <see cref="Center"/>.</summary>
     [Parameter] public bool Donut { get; set; }
+
+    /// <summary>
+    /// Where the first slice starts, in degrees clockwise from the top: 90 starts it at the right,
+    /// so it runs down that side. 0 by default.
+    /// </summary>
+    [Parameter] public double StartAngle { get; set; }
 
     /// <summary>Content in a donut's hole, such as the total. Not drawn without <see cref="Donut"/>.</summary>
     [Parameter] public RenderFragment? Center { get; set; }
