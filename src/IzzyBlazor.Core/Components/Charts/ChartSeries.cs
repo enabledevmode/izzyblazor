@@ -290,8 +290,10 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 }
 
 /// <summary>
-/// A series of bars, one per item: upright, or across with the chart's
-/// <c>Orientation="Orientation.Horizontal"</c>. The chart's <c>Stacking</c> stacks bar series.
+/// A bar chart's bars, one per item, to compare values across names such as products or
+/// regions. Bars stand upright, or lie across with the chart's
+/// <c>Orientation="Orientation.Horizontal"</c>, which suits long names and rankings. Several bar
+/// series sit side by side, or stack with the chart's <c>Stacking</c>.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -316,7 +318,10 @@ public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
     private protected override double? OpacityOf => Opacity;
 }
 
-/// <summary>A series drawn as a line through each item's value.</summary>
+/// <summary>
+/// A line chart's line through each item's value, to show how a measure changes over time. Each
+/// line series is one line, and several lines differ by dash as well as by color.
+/// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
 /// <code>
@@ -367,8 +372,9 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// A series drawn as a line with the area under it filled. The chart's <c>Stacking</c> stacks
-/// area series.
+/// An area chart's filled area under a line through each item's value, to show a quantity over
+/// time. The chart's <c>Stacking</c> stacks area series, so the parts add up to the whole, such as
+/// visits by channel.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -419,8 +425,8 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// A marker for each item at two measures, the chart's <c>Argument</c> and this <c>Value</c>,
-/// such as a page's load time and bounce rate, to show how they relate.
+/// A scatter chart's markers, one per item at two measures, the chart's <c>Argument</c> and this
+/// <c>Value</c>, to show how they relate, such as a page's load time and bounce rate.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -439,8 +445,9 @@ public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// A circle for each item at two measures, sized by a third: each circle's area is in proportion
-/// to its <see cref="Size"/>.
+/// A bubble chart's circles, one per item at two measures and sized by a third, such as products
+/// by growth and margin, sized by revenue. Each circle's area is in proportion to its
+/// <see cref="Size"/>.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -484,7 +491,7 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// A waterfall: each item's <c>Value</c> is a change, drawn as a bar from where the last one
+/// A waterfall chart: each item's <c>Value</c> is a change, drawn as a bar from where the last one
 /// ended, so the bars walk from a starting amount to a result, such as revenue less costs to
 /// profit. The first bar, the starting amount, and each item that's a <see cref="Total"/> stand
 /// on the baseline, a total showing everything so far. Rises, falls and totals each take a color,
