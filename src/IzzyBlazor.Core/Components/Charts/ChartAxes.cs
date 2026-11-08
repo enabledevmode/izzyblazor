@@ -192,4 +192,15 @@ public sealed class ChartArgumentAxis : ChartAxisBase
     /// reverse a chart.
     /// </summary>
     [Parameter] public bool Reverse { get; set; }
+
+    /// <summary>
+    /// Lets the reader zoom into part of the arguments and pan along them: a drag across the plot,
+    /// Ctrl (⌘ on a Mac) and the wheel, a pinch, or + and − on the focused chart. The page still
+    /// scrolls under the plain wheel and one finger. A <c>RangeSelector</c> in the chart
+    /// turns it on by itself. The chart's <c>View</c> and <c>ViewChanged</c> say what's in view.
+    /// </summary>
+    [Parameter] public bool Zoom { get; set; }
+
+    /// <summary>The fewest items a zoom can come down to. 2 by default.</summary>
+    [Parameter] public int MinZoomSpan { get; set; } = 2;
 }

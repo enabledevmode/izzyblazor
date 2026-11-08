@@ -85,6 +85,61 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_view_of_names_fills_the_plot_with_its_bands_and_fits_the_values_in_view()
+    {
+        var input = new ChartInput(
+            Months,
+            [new ChartSeriesData("Revenue", ChartType.Bar, [.. Enumerable.Range(1, 12).Select(i => (double?)i * 1000)])])
+        { Culture = CultureInfo.InvariantCulture, View = new ChartView("March", "May") };
+        var model = ChartLayout.Build(input);
+
+        // Three bands fill the plot: March's bar starts in the first third, and only March to May are drawn and named.
+        Assert.Equal(3, model.BandCount);
+        Assert.Equal(["March", "April", "May"], model.ArgumentLabels.Select(l => l.Text));
+        Assert.Equal([2, 3, 4], model.Series[0].Bars.Select(b => b.Index));
+        Assert.InRange(model.Series[0].Bars[0].X, 0, 100 / 3.0);
+
+        // The value axis reaches May's 5,000, not December's 12,000.
+        Assert.InRange(model.ValueRange.Max, 5000, 6000);
+
+        // Too narrow a view grows to MinZoomSpan items.
+        var one = ChartLayout.Build(input with { View = new ChartView("March", "March"), MinZoomSpan = 4 });
+        Assert.Equal(4, one.BandCount);
+    }
+
+    [Fact]
+    public void A_view_of_dates_runs_the_scale_between_its_ends_with_finer_ticks()
+    {
+        var days = Enumerable.Range(0, 365).Select(i => (object?)new DateOnly(2026, 1, 1).AddDays(i)).ToList();
+        var input = new ChartInput(
+            days,
+            [new ChartSeriesData("Visits", ChartType.Line, [.. Enumerable.Range(0, 365).Select(i => (double?)(i < 300 ? 100 : 1000))]) { Markers = true }])
+        { Culture = CultureInfo.InvariantCulture };
+        var whole = ChartLayout.Build(input);
+        var march = ChartLayout.Build(input with { View = new ChartView(new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 31)) });
+
+        // March 1 at the plot's start and March 31 at its end; April lies past it.
+        Assert.Equal(0, march.ArgumentPositions[59], 6);
+        Assert.Equal(1, march.ArgumentPositions[89], 6);
+        Assert.True(march.ArgumentPositions[100] > 1);
+
+        // Days along the bottom, where the whole year had months; only March's points are marked.
+        Assert.DoesNotContain(whole.ArgumentLabels, l => l.Text == "16");
+        Assert.Contains(march.ArgumentLabels, l => l.Text == "16");
+        Assert.All(march.Series[0].Marks, m => Assert.InRange(m.Index, 59, 89));
+
+        // The value axis fits March's 100s, not the 1,000s of the year's end.
+        Assert.True(march.ValueRange.Max < 1000);
+        Assert.Equal((59 / 364.0, 89 / 364.0), (Math.Round(march.View!.Share.F0, 6), Math.Round(march.View.Share.F1, 6)), new ShareComparer());
+    }
+
+    private sealed class ShareComparer : IEqualityComparer<(double, double)>
+    {
+        public bool Equals((double, double) a, (double, double) b) => Math.Abs(a.Item1 - b.Item1) < 1e-6 && Math.Abs(a.Item2 - b.Item2) < 1e-6;
+        public int GetHashCode((double, double) v) => 0;
+    }
+
+    [Fact]
     public void Reversed_arguments_mirror_the_bars_and_labels_and_keep_the_leftmost_label()
     {
         var input = new ChartInput(

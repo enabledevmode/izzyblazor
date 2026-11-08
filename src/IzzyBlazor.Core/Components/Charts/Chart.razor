@@ -150,6 +150,19 @@
     [Parameter] public ChartDataTable DataTable { get; set; }
 
     /// <summary>
+    /// The part of the arguments in view, such as the last 30 days: the chart opens zoomed into
+    /// it. Null (the default) shows every item. With <see cref="ChartArgumentAxis.Zoom"/> the
+    /// reader zooms from there, and <see cref="ViewChanged"/> says where to (<c>@bind-View</c>).
+    /// </summary>
+    [Parameter] public ChartView? View { get; set; }
+
+    /// <summary>
+    /// Raised on an interactive page when the reader zooms or pans, as each gesture ends (not
+    /// while dragging), with the arguments now in view; null when zoomed all the way out.
+    /// </summary>
+    [Parameter] public EventCallback<ChartView?> ViewChanged { get; set; }
+
+    /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
     /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
     /// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
@@ -412,6 +425,8 @@
             ValueLog = ValueLog,
             ArgumentLog = _argumentAxis?.Logarithmic ?? false,
             ArgumentReverse = _argumentAxis?.Reverse ?? false,
+            View = View,
+            MinZoomSpan = Math.Max(1, _argumentAxis?.MinZoomSpan ?? 2),
             ValueRight = !horizontal && _valueAxis?.Position == ChartAxisPosition.Right,
             ValueGrid = ValueGrid,
             ArgumentGrid = ArgumentGrid,
@@ -433,7 +448,7 @@
         var shape = legend && waterfall is null ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
         var room = model.Wrap && !horizontal
-            ? $"--ib-chart-n:{model.ArgumentTexts.Length}"
+            ? $"--ib-chart-n:{Num(model.BandCount)}"
             : model.LabelRoom is { } r && !horizontal
             ? string.Concat(r.Select((w, k) => $"--ib-chart-w{k}:{Num(w)}%;"))
             : null;
@@ -452,6 +467,7 @@
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-reverse="@(_argumentAxis?.Reverse == true ? "" : null)"
+                  data-ib-view="@(model.View?.Share is { } share ? $"{Num(share.F0)} {Num(share.F1)}" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
