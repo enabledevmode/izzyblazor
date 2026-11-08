@@ -1233,6 +1233,9 @@ public class IzzyText
     /// <summary>How the keyboard moves through a Chart that zooms, read after its name.</summary>
     public virtual string ChartZoomKeys { get; set; } = "Arrow keys move between values; plus and minus zoom, 0 zooms out; Escape hides the tooltip.";
 
+    /// <summary>How the keyboard zooms a Chart that has no tooltips, read after its name.</summary>
+    public virtual string ChartZoomOnlyKeys { get; set; } = "Plus and minus zoom, 0 zooms out.";
+
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 

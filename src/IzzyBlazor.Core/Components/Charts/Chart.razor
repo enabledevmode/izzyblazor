@@ -752,8 +752,12 @@
                     </div>
                 }
             </div>
+        }
+        @if (tooltip || model.ZoomPositions is not null)
+        {
+            @* What the keys say and do; a chart that zooms has them with no tooltips too. *@
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
-            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(_zoomOn ? TextDefaults.ChartZoomKeys : TextDefaults.ChartKeys)</span>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(!tooltip ? TextDefaults.ChartZoomOnlyKeys : _zoomOn ? TextDefaults.ChartZoomKeys : TextDefaults.ChartKeys)</span>
         }
         @if (model.MarkTexts.Count > 0)
         {

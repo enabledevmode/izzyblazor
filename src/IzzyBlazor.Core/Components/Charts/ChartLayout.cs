@@ -1583,6 +1583,9 @@ internal static class ChartLayout
 
             if (tier.ArgumentLabels.Count >= n) break;
         }
+
+        // Zoomed in, dates take a second line (a month under days): the axis keeps room for it.
+        model.TwoLine |= model.ZoomTiers.Any(t => t.Labels.Any(l => l.Context is not null || l.Lead is not null));
     }
 
     /// <summary>Whether a place along the arguments is in the plot (zoomed, the rest run past it).</summary>
