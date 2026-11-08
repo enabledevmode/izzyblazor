@@ -52,6 +52,10 @@
     - Page Down, Page Up | Move a tenth of the items forward or back
     - Home, End | Go to the first or last item
     - Escape | Hide the tooltip
+    - Plus, Equals | Zoom in around the item shown (with ChartArgumentAxis Zoom); zoomed in, an arrow
+      key to an item out of view pans to it
+    - Minus | Zoom out
+    - 0 | Zoom all the way out
     See also: Stat, Table.
 *@
 
@@ -160,7 +164,8 @@
     /// Raised on an interactive page when the reader zooms or pans, as each gesture ends (not
     /// while dragging), with the arguments now in view; null when zoomed all the way out.
     /// </summary>
-    [Parameter] public EventCallback<ChartView?> ViewChanged { get; set; }
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<ChartView?> ViewChanged { get; set; }
 
     /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
@@ -381,7 +386,7 @@
         ReadAxes();
         var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items)).Select(OnAxis).ToList(), arguments, TextDefaults);
         // Off by default when every series writes its values beside them; labels of other text keep it.
-        var tooltip = Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null));
+        var tooltip = SelectorHost is null && (Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null)));
         if (series.Any(s => s.Secondary))
         {
             if (Orientation == Orientation.Horizontal)
@@ -1159,7 +1164,8 @@
             : (Nearest(f0), Nearest(f1));
         var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
         var ranges = SelectorRanges(model, selector);
-        <div class="ib-chart-sel" role="group" aria-label="@(selector.Label ?? TextDefaults.RangeSelectorName)"
+        @* On its own, the figure's caption names it already. *@
+        <div class="ib-chart-sel" role="group" aria-label="@(SelectorHost is null ? selector.Label ?? TextDefaults.RangeSelectorName : null)"
              style="@($"--ib-sel-s:{Num(place(f0))};--ib-sel-e:{Num(place(f1))};{height}")">
             @if (ranges.Count > 0)
             {
@@ -1184,7 +1190,7 @@
                 <div class="ib-chart-sel-window"></div>
                 @foreach (var (end, i, label) in new[] { ("start", i0, TextDefaults.RangeSelectorStart), ("end", i1, TextDefaults.RangeSelectorEnd) })
                 {
-                    <div class="@($"ib-chart-sel-handle ib-chart-sel-{end}")" role="slider" tabindex="0" aria-label="@label"
+                    <div class="@($"ib-chart-sel-handle ib-chart-sel-{end}")" role="slider" aria-label="@label"
                          aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="@(n - 1)" aria-valuenow="@i" aria-valuetext="@model.ArgumentTexts[i]">
                         <span class="ib-chart-sel-flag" aria-hidden="true">@model.ArgumentTexts[i]</span>
                         <span class="ib-chart-sel-flag ib-chart-js" aria-hidden="true"></span>
@@ -1195,7 +1201,9 @@
                 <div class="ib-chart-ticks">
                     @foreach (var label in model.ZoomTiers.FirstOrDefault()?.Labels ?? [])
                     {
-                        <span class="@(label.From > 0 ? $"ib-chart-from{label.From}" : null)" style="left:@Pct(place(label.Pos))">@label.Text@if (label.Context is { } context)
+                        var at = place(label.Pos);
+                        var edge = at < 0.04 ? " ib-chart-sel-first" : at > 0.96 ? " ib-chart-sel-last" : "";
+                        <span class="@((label.From > 0 ? $"ib-chart-from{label.From}" : "") + edge)" style="left:@Pct(at)">@label.Text@if (label.Context is { } context)
                             {<span class="ib-chart-context">@context</span>}</span>
                     }
                 </div>
@@ -1211,10 +1219,12 @@
         var shown = model.Series.Where(s => !s.Data.Hidden && s.Data.ColorFrom is null).ToList();
         var values = shown.SelectMany(s => s.Data.Values).Where(v => v is { } x && double.IsFinite(x)).Select(v => v!.Value).ToList();
         if (values.Count == 0) return [];
-        var (lo, hi) = (Math.Min(0, values.Min()), Math.Max(0, values.Max()));
+        var fromZero = shown.Any(s => s.Data.Type is ChartType.Bar or ChartType.Area);
+        var (lo, hi) = fromZero ? (Math.Min(0, values.Min()), Math.Max(0, values.Max())) : (values.Min(), values.Max());
         if (hi <= lo) hi = lo + 1;
+        if (!fromZero) (lo, hi) = (lo - (hi - lo) * 0.1, hi + (hi - lo) * 0.1);
         string P(double x) => x.ToString("0.#", CultureInfo.InvariantCulture);
-        var y0 = 1000 - (0 - lo) / (hi - lo) * 1000;
+        var y0 = fromZero ? 1000 - (0 - lo) / (hi - lo) * 1000 : 1000;
         var order = Enumerable.Range(0, at.Length).Where(i => !double.IsNaN(at[i])).OrderBy(i => at[i]).ToList();
         var areas = new List<(SeriesShape, string)>();
         foreach (var shape in shown)
@@ -1264,6 +1274,8 @@
         var (lo, hi) = (ticks.Min(), ticks.Max());
         if (hi <= lo) return list;
         var last = new DateTime(hi);
+        // Whole days: a span back from the last day starts the day after (1M of Oct 31 is Oct 1 on).
+        DateTime Back(DateTime from) => last.TimeOfDay == TimeSpan.Zero ? from.AddDays(1) : from;
         double Share(DateTime t) => Math.Clamp((t.Ticks - lo) / (double)(hi - lo), 0, 1);
         void Add(string text, string name, DateTime from, DateTime to)
         {
@@ -1273,14 +1285,14 @@
 
         if (selector.Ranges)
         {
-            Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, 1), TextDefaults.RangeMonthName, last.AddMonths(-1), last);
+            Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, 1), TextDefaults.RangeMonthName, Back(last.AddMonths(-1)), last);
             foreach (var m in new[] { 3, 6 })
             {
-                Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, m), string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonthsName, m), last.AddMonths(-m), last);
+                Add(string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonths, m), string.Format(CultureInfo.CurrentCulture, TextDefaults.RangeMonthsName, m), Back(last.AddMonths(-m)), last);
             }
 
             Add(TextDefaults.RangeYearToDate, TextDefaults.RangeYearToDateName, new DateTime(last.Year, 1, 1), last);
-            Add(TextDefaults.RangeYear, TextDefaults.RangeYearName, last.AddYears(-1), last);
+            Add(TextDefaults.RangeYear, TextDefaults.RangeYearName, Back(last.AddYears(-1)), last);
         }
 
         foreach (var preset in selector.Presets ?? [])

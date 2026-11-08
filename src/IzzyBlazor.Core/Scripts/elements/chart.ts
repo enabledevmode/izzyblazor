@@ -1014,6 +1014,11 @@ class Chart extends IzzyElement {
     const names = data.zn ?? [];
     const least = data.zl ?? 0;
     const handles = [...sel.querySelectorAll<HTMLElement>(".ib-chart-sel-handle")];
+    // Tab stops now that they move (with no script they'd do nothing).
+    for (const h of handles) h.tabIndex = 0;
+    signal.addEventListener("abort", () => {
+      for (const h of handles) h.removeAttribute("tabindex");
+    });
     const nearest = (share: number, end = false) => {
       if (data.zc) return Math.min(za.length - 1, Math.max(0, Math.round(share * za.length) - (end ? 1 : 0)));
       let best = 0;

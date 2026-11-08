@@ -1,0 +1,54 @@
+@* A range selector on its own over six months of daily revenue, filtering the orders below to
+   the dates chosen. *@
+<RangeSelector Items="Days" Argument="d => d.Date" Label="Order dates" Ranges
+               @bind-View="_range" @bind-View:after="Narrow">
+    <ChartAreaSeries Value="d => d.Revenue" Name="Revenue" />
+</RangeSelector>
+
+<TextBlock Size="TextSize.Sm" Color="Color.Muted">
+    @_shown.Length orders from @First.ToString("MMM d") to @Last.ToString("MMM d"), @_shown.Sum(o => o.Total).ToString("C0")
+</TextBlock>
+
+<DataGrid Items="_shown" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Orders in range">
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    </Columns>
+</DataGrid>
+
+@code {
+    private record Order(int Number, string Customer, DateOnly Date, decimal Total);
+
+    private record Day(DateOnly Date, decimal Revenue);
+
+    private static readonly string[] Customers =
+        ["Northwind Traders", "Contoso Ltd.", "Fabrikam Inc.", "Tailspin Toys", "Litware Inc.", "Adventure Works", "Wide World Importers"];
+
+    // About 4 orders a day from May through October, fewer at weekends.
+    private static readonly Order[] Orders = Enumerable.Range(0, 184)
+        .SelectMany(day =>
+        {
+            var date = new DateOnly(2026, 5, 1).AddDays(day);
+            var count = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? 1 + day % 2 : 3 + day * 7 % 4;
+            return Enumerable.Range(0, count).Select(n => (Date: date, Seed: day * 5 + n));
+        })
+        .Select((o, i) => new Order(24_001 + i, Customers[o.Seed * 3 % Customers.Length], o.Date, Math.Round(80m + o.Seed * 53.7m % 640m, 2)))
+        .ToArray();
+
+    private static readonly Day[] Days = Orders.GroupBy(o => o.Date).Select(g => new Day(g.Key, g.Sum(o => o.Total))).ToArray();
+
+    // Opens on the last month, as the 1M button shows it: null is the data's own end.
+    private ChartView? _range = new(new DateOnly(2026, 10, 1), null);
+
+    private DateOnly First => _range?.From as DateOnly? ?? Days[0].Date;
+
+    private DateOnly Last => _range?.To as DateOnly? ?? Days[^1].Date;
+
+    private Order[] _shown = [];
+
+    protected override void OnInitialized() => Narrow();
+
+    private void Narrow() => _shown = Orders.Where(o => o.Date >= First && o.Date <= Last).ToArray();
+}
