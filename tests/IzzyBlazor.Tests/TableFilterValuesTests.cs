@@ -222,7 +222,7 @@ public class TableFilterValuesTests : BunitContext
 
         cut.WaitForAssertion(() => Assert.Equal(FilterOperator.NotIn, (reported as FieldFilter)?.Operator ?? Assert.IsType<FilterGroup>(reported).Filters.OfType<FieldFilter>().Single().Operator), Timer);
         cut.WaitForAssertion(() => Assert.DoesNotContain("Ada", Names(cut)), Timer);
-        Assert.Contains("Filter Name: All but Ada", cut.FindAll(".ib-table-filter-button")[0].GetAttribute("aria-label"));
+        Assert.Contains("Filter Name: All but Ada", cut.FindAll(".ib-table-filter-button")[0].GetAttribute("title"));
     }
 
     [Fact]

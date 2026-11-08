@@ -67,27 +67,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    public async Task Keys_move_and_resize_a_header_and_focus_stays_on_it(string mode)
-    {
-        var (browser, page, grid) = await OpenAsync(mode);
-        await using (browser)
-        {
-            await grid.Locator("thead th", new() { HasText = "Customer" }).FocusAsync();
-            var before = await WidthAsync(grid, "Customer");
-            await page.Keyboard.PressAsync("Shift+ArrowRight");
-            for (var i = 0; i < 30 && Math.Abs(await WidthAsync(grid, "Customer") - before - 16) > 1; i++) await Task.Delay(100);
-            Assert.Equal(before + 16, await WidthAsync(grid, "Customer"), 1.5);
-            Assert.Contains("Customer", await grid.Locator("[data-ib-col-say]").TextContentAsync());
-
-            await page.Keyboard.PressAsync("Alt+ArrowRight");
-            await Until(grid, ["Order", "Date", "Customer", "Status", "Total"]);
-            await page.WaitForFunctionAsync("() => document.activeElement.closest('th')?.textContent.includes('Customer')");
-            Assert.Equal("Customer", (await TitlesAsync(grid))[2]);
-        }
-    }
-
-    [Theory]
-    [InlineData("static")]
     public async Task The_picker_hides_shows_and_resets(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);

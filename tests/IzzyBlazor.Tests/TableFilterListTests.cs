@@ -60,7 +60,7 @@ public class TableFilterListTests : BunitContext
     private static string[] Names<T>(IRenderedComponent<T> cut) where T : IComponent =>
         cut.FindAll("tbody tr:not(.ib-table-empty) td:first-child").Select(c => c.TextContent.Trim()).ToArray();
 
-    private static string Label(IRenderedComponent<Table<Row>> cut) => cut.FindAll(".ib-table-filter-button")[0].GetAttribute("aria-label")!;
+    private static string Label(IRenderedComponent<Table<Row>> cut) => cut.FindAll(".ib-table-filter-button")[0].GetAttribute("title")!;
 
     // Again if it fails: the filter applies on a timer, and its render can land between finding the box and ticking it.
     private static void Tick(IRenderedComponent<Table<Row>> cut, string row, bool on) => cut.WaitForAssertion(

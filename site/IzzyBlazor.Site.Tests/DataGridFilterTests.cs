@@ -23,7 +23,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     private static async Task<ILocator> OpenPanelAsync(IPage page, ILocator grid, string column)
     {
-        await grid.Locator($"th .ib-table-filter-button[aria-label^='Filter {column}']").ClickAsync();
+        await grid.Locator($"th .ib-table-filter-button[title^='Filter {column}']").ClickAsync();
         var panel = page.Locator("[popover]:popover-open .ib-table-filter-panel");
         await panel.WaitForAsync();
         return panel;
