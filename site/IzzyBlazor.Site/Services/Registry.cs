@@ -243,14 +243,16 @@ public sealed record RegistryExample
     public required string Title { get; init; }
 
     /// <summary>
-    /// One or two sentences a generated Overview shows above the example, leading with the prop ("Use
-    /// `Status` for the meaning."). Backticks mark code. Hand-written Overviews write their own.
+    /// One or two sentences a generated Overview or topic page shows above the example: what the
+    /// feature does and the parameter that turns it on ("To mark the meaning, set `Status`."). Backticks
+    /// mark code. Hand-written pages write their own; there it's for search and MCP, and matches the page.
     /// </summary>
     public string? Lead { get; init; }
 
     /// <summary>
     /// Short paragraphs a generated Overview or topic page shows under the example: the details,
-    /// caveats and mode differences that would make the lead long. Backticks mark code.
+    /// caveats and mode differences that would make the lead long. Backticks mark code. On a
+    /// hand-written page it's for search and MCP only, so it says what the page says.
     /// </summary>
     public List<string> After { get; init; } = [];
 

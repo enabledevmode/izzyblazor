@@ -409,6 +409,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 text.Append($"\n{lead}\n");
             }
 
+            if (example.Info is { } info)
+            {
+                text.Append($"\n{info.Title}: {info.Text}\n");
+            }
+
             foreach (var paragraph in example.After)
             {
                 text.Append($"\n{paragraph}\n");
