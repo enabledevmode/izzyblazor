@@ -316,6 +316,11 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
+        if (Breakpoint == Breakpoint.Xxl)
+        {
+            throw new InvalidOperationException("AppSidebar's Breakpoint goes up to Breakpoint.Xl (1280px); Xxl is for AppAside and HiddenFrom/VisibleFrom.");
+        }
+
         classes.Add($"ib-shell-sidebar-bp-{Breakpoint.Name()}");
         classes.Add("ib-shell-sidebar-end", Position == SidebarPosition.End);
         classes.Add("ib-shell-drawer-end", (DrawerPosition ?? Position) == SidebarPosition.End);
