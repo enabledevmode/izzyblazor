@@ -232,9 +232,20 @@
         base.BuildAttributes(classes, styles);
     }
 
+    // The arguments last drawn and what they are, which the script's view is a share of.
+    private IReadOnlyList<object?> _drawnArguments = [];
+    private ArgumentKind _drawnKind;
+    private bool _zoomOn;
+
+    // The view drawn: View, or on an interactive page where the reader zoomed to since it was set.
+    private ChartView? _view;
+    private ChartView? _viewSet;
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (!Equals(View, _viewSet)) (_view, _viewSet) = (View, View);
+
         if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
@@ -412,6 +423,8 @@
         // Hidden needs a legend to show the series again: with none (or a waterfall's), it's drawn.
         if (!legend || waterfall is not null) series = series.Select(s => s with { Hidden = false }).ToList();
         var horizontal = Orientation == Orientation.Horizontal;
+        // The reader zooms in the script, which draws the chart again for each view; not a waterfall.
+        var zoom = _argumentAxis?.Zoom == true && waterfall is null && arguments.Count > 1;
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
@@ -425,8 +438,9 @@
             ValueLog = ValueLog,
             ArgumentLog = _argumentAxis?.Logarithmic ?? false,
             ArgumentReverse = _argumentAxis?.Reverse ?? false,
-            View = View,
+            View = _view,
             MinZoomSpan = Math.Max(1, _argumentAxis?.MinZoomSpan ?? 2),
+            Zoom = zoom,
             ValueRight = !horizontal && _valueAxis?.Position == ChartAxisPosition.Right,
             ValueGrid = ValueGrid,
             ArgumentGrid = ArgumentGrid,
@@ -441,11 +455,13 @@
             SecondaryMax = SecondaryMax,
             Text = TextDefaults,
         });
+        (_drawnArguments, _drawnKind) = (arguments, model.Kind);
+        _zoomOn = model.ZoomPositions is not null;
         var side = horizontal ? model.ArgumentLabels : model.ValueLabels;
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
         // With a legend, the script draws the chart again without the series it hides.
-        var shape = legend && waterfall is null ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
+        var shape = (legend || zoom) && waterfall is null ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
         var room = model.Wrap && !horizontal
             ? $"--ib-chart-n:{Num(model.BandCount)}"
@@ -467,6 +483,9 @@
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
                   data-ib-reverse="@(_argumentAxis?.Reverse == true ? "" : null)"
+                  data-ib-zoom="@(model.ZoomPositions is not null ? "" : null)"
+                  data-ib-interactive="@(model.ZoomPositions is not null && RendererInfo.IsInteractive ? "" : null)"
+                  @oniblayout="OnView" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive"
                   data-ib-view="@(model.View?.Share is { } share ? $"{Num(share.F0)} {Num(share.F1)}" : null)"
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
@@ -496,7 +515,7 @@
                 {
                     <div class="ib-chart-title ib-chart-title-side">@TitleKey(model, dual, secondary: false)@sideTitle</div>
                 }
-                @FirstSide(side, horizontal, redraw, right: false)
+                @FirstSide(side, horizontal, redraw, right: false, zoom: model.ZoomPositions is not null)
             }
             <div class="ib-chart-plot">
                 @if (tooltip)
@@ -625,10 +644,16 @@
                 {
                     <div class="ib-chart-tooltip" hidden></div>
                 }
+                @if (model.ZoomPositions is not null)
+                {
+                    @* The box a drag draws, and the button shown while zoomed in (chart.css). *@
+                    <div class="ib-chart-brush" aria-hidden="true"></div>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
+                }
             </div>
             @if (valueRight)
             {
-                @FirstSide(side, horizontal, redraw, right: true)
+                @FirstSide(side, horizontal, redraw, right: true, zoom: model.ZoomPositions is not null)
                 @if (sideTitle is not null)
                 {
                     <div class="ib-chart-title ib-chart-title-side2">@TitleKey(model, dual, secondary: false)@sideTitle</div>
@@ -654,6 +679,11 @@
                 @if (redraw && horizontal)
                 {
                     <div class="ib-chart-ticks ib-chart-values ib-chart-js"></div>
+                }
+                @if (model.ZoomPositions is not null && !horizontal)
+                {
+                    @* The argument labels the script draws zoomed in. *@
+                    <div class="ib-chart-ticks ib-chart-js ib-chart-zargs"></div>
                 }
             </div>
             @if (bottomTitle is not null)
@@ -707,7 +737,7 @@
                 }
             </div>
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
-            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(_zoomOn ? TextDefaults.ChartZoomKeys : TextDefaults.ChartKeys)</span>
         }
         @if (model.MarkTexts.Count > 0)
         {
@@ -957,7 +987,7 @@
     }
 
     // The side labels: values up an upright chart (or names, for bars across), at the left or the right.
-    private RenderFragment FirstSide(List<AxisLabel> side, bool horizontal, bool redraw, bool right) => __builder =>
+    private RenderFragment FirstSide(List<AxisLabel> side, bool horizontal, bool redraw, bool right, bool zoom) => __builder =>
     {
         <div class="@((horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side") + (right ? " ib-chart-side2" : "") + ((horizontal ? HideArgumentAxis : HideValueAxis) ? " ib-chart-off" : ""))">
             <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
@@ -970,6 +1000,11 @@
             {
                 @* The value labels the script draws when the legend hides a series. *@
                 <div class="ib-chart-ticks ib-chart-values ib-chart-js"></div>
+            }
+            @if (zoom && horizontal)
+            {
+                @* The names the script draws zoomed in. *@
+                <div class="ib-chart-ticks ib-chart-js ib-chart-zargs"></div>
             }
         </div>
     };
@@ -1023,8 +1058,11 @@
         builder.AddAttribute(3, "data-ib-v", mark.V is { } v && (mark.Axis == MarkAxis.Value) ? v.ToString("R", CultureInfo.InvariantCulture) : null);
         builder.AddAttribute(4, "data-ib-vto", mark.VTo is { } vt ? vt.ToString("R", CultureInfo.InvariantCulture) : null);
         builder.AddAttribute(5, "data-ib-series", mark.Series >= 0 ? mark.Series.ToString(CultureInfo.InvariantCulture) : null);
-        builder.OpenElement(6, "span");
-        builder.AddContent(7, mark.Text);
+        // Zoom: its place on the whole axis, which the script maps into each view.
+        builder.AddAttribute(6, "data-ib-za", mark.Zoom is { } z ? $"{z.P.ToString("R", CultureInfo.InvariantCulture)} {z.Q.ToString("R", CultureInfo.InvariantCulture)}" : null);
+        builder.AddAttribute(7, "data-ib-out", mark.Out ? "" : null);
+        builder.OpenElement(8, "span");
+        builder.AddContent(9, mark.Text);
         builder.CloseElement();
         builder.CloseElement();
     };
@@ -1077,6 +1115,53 @@
     {
         var name = s.Data.SizeName ?? TextDefaults.ChartSize;
         return model.Series.Count(o => o.Data.Sizes is not null) > 1 ? $"{s.Data.Name}: {name}" : name;
+    }
+
+    // The script reports where the reader zoomed to, as shares of the whole axis ("0.25 0.5"), or
+    // "" zoomed all the way out; on an interactive page this keeps it and raises ViewChanged.
+    private async Task OnView(IzzyLayoutEventArgs e)
+    {
+        var view = ViewAt(e.Layout);
+        if (Equals(view, _view)) return;
+        _view = view;
+        if (ViewChanged.HasDelegate) await ViewChanged.InvokeAsync(view);
+    }
+
+    // A view from shares of the whole axis: the names it takes in, or the scale's ends as arguments
+    // of the chart's own type.
+    private ChartView? ViewAt(string? layout)
+    {
+        var parts = (layout ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !double.TryParse(parts[0], CultureInfo.InvariantCulture, out var f0) || !double.TryParse(parts[1], CultureInfo.InvariantCulture, out var f1)) return null;
+        if (f0 <= 1e-6 && f1 >= 1 - 1e-6) return null;
+        var (arguments, kind) = (_drawnArguments, _drawnKind);
+        if (arguments.Count < 2) return null;
+        if (kind == ArgumentKind.Category)
+        {
+            var n = arguments.Count;
+            var (i0, i1) = ((int)Math.Clamp(Math.Round(f0 * n), 0, n - 1), (int)Math.Clamp(Math.Round(f1 * n) - 1, 0, n - 1));
+            return new ChartView(arguments[i0], arguments[Math.Max(i0, i1)]);
+        }
+
+        var log = _argumentAxis?.Logarithmic == true;
+        var at = arguments.Select(a => ChartLayout.ToDouble(a, kind)).Where(x => x is { } v && (!log || v > 0)).Select(x => log ? Math.Log10(x!.Value) : x!.Value).ToList();
+        if (at.Count < 2) return null;
+        var (lo, hi) = (at.Min(), at.Max());
+        object? Arg(double share)
+        {
+            var x = lo + share * (hi - lo);
+            if (log) x = Math.Pow(10, x);
+            if (kind == ArgumentKind.Number) return x;
+            var t = new DateTime(Math.Clamp((long)Math.Round(x), DateTime.MinValue.Ticks, DateTime.MaxValue.Ticks));
+            return arguments.FirstOrDefault(a => a is not null) switch
+            {
+                DateOnly => DateOnly.FromDateTime(t),
+                DateTimeOffset o => new DateTimeOffset(t, o.Offset),
+                _ => t,
+            };
+        }
+
+        return new ChartView(Arg(f0), Arg(f1));
     }
 
     // What the script needs to draw the chart again without a series (chart-draw.ts): each
@@ -1164,6 +1249,63 @@
 
             w.WriteEndArray();
             w.WriteString("mk", marks);
+            if (model.ZoomPositions is { } zp)
+            {
+                // Zoom: each item's place on the whole axis, the fewest items' span, the view drawn,
+                // argument grid lines, the label tiers (place, text, second line, first width,
+                // second line when first in view) or, down the side, the names.
+                w.WriteStartArray("za");
+                foreach (var p in zp)
+                {
+                    if (double.IsNaN(p)) w.WriteNullValue();
+                    else w.WriteNumberValue(Math.Round(p, 6));
+                }
+
+                w.WriteEndArray();
+                w.WriteNumber("zl", Math.Round(model.ZoomLeast, 6));
+                w.WriteBoolean("zc", model.Kind == ArgumentKind.Category);
+                w.WriteBoolean("ag", ArgumentGrid);
+                w.WriteString("zs", TextDefaults.ChartShowing);
+                w.WriteStartArray("zn");
+                foreach (var t in model.ArgumentTexts) w.WriteStringValue(t);
+                w.WriteEndArray();
+                if (model.View?.Share is { } share)
+                {
+                    w.WriteStartArray("zv");
+                    w.WriteNumberValue(Math.Round(share.F0, 6));
+                    w.WriteNumberValue(Math.Round(share.F1, 6));
+                    w.WriteEndArray();
+                }
+
+                w.WriteStartArray("zt");
+                foreach (var tier in model.ZoomTiers)
+                {
+                    w.WriteStartArray();
+                    w.WriteNumberValue(tier.Zoom);
+                    w.WriteStartArray();
+                    foreach (var label in tier.Labels)
+                    {
+                        w.WriteStartArray();
+                        w.WriteNumberValue(Math.Round(label.Pos, 6));
+                        w.WriteStringValue(label.Text);
+                        if (label.Context is null) w.WriteNullValue(); else w.WriteStringValue(label.Context);
+                        w.WriteNumberValue(label.From);
+                        if (label.Lead is null) w.WriteNullValue(); else w.WriteStringValue(label.Lead);
+                        w.WriteEndArray();
+                    }
+
+                    w.WriteEndArray();
+                    w.WriteEndArray();
+                }
+
+                w.WriteEndArray();
+                if (horizontal && model.Kind == ArgumentKind.Category)
+                {
+                    w.WriteStartArray("zx");
+                    foreach (var t in model.ArgumentTexts) w.WriteStringValue(t);
+                    w.WriteEndArray();
+                }
+            }
             // The tick count up the side, as the server worked it out from Height.
             w.WriteNumber("vc", Math.Max(2, (int)Math.Round(Math.Max(80, HeightInPixels(Height)) / 56)));
             // Bubbles pad the value axis by their largest radius (ChartLayout.PadEnds).

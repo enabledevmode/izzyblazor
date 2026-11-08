@@ -133,6 +133,27 @@ public class ChartLayoutTests
         Assert.Equal((59 / 364.0, 89 / 364.0), (Math.Round(march.View!.Share.F0, 6), Math.Round(march.View.Share.F1, 6)), new ShareComparer());
     }
 
+    [Fact]
+    public void Zoom_sends_places_on_the_whole_axis_and_finer_labels_at_each_tier()
+    {
+        var days = Enumerable.Range(0, 365).Select(i => (object?)new DateOnly(2026, 1, 1).AddDays(i)).ToList();
+        var model = ChartLayout.Build(new ChartInput(
+            days,
+            [new ChartSeriesData("Visits", ChartType.Line, [.. Enumerable.Range(0, 365).Select(i => (double?)i)])])
+        { Culture = CultureInfo.InvariantCulture, Zoom = true, View = new ChartView(new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 31)) });
+
+        // Places on the whole year, whatever the view drawn; the fewest items (2) are a day's share.
+        Assert.Equal(0, model.ZoomPositions![0], 6);
+        Assert.Equal(1, model.ZoomPositions[364], 6);
+        Assert.Equal(1 / 364.0, model.ZoomLeast, 6);
+
+        // Tiers double until two days fill the plot: the first in months or quarters, deeper ones in days (then hours).
+        Assert.Equal([1, 2, 4], model.ZoomTiers.Take(3).Select(t => t.Zoom));
+        Assert.DoesNotContain(model.ZoomTiers[0].Labels, l => l.Text == "16");
+        Assert.Contains(model.ZoomTiers, t => t.Labels.Any(l => l.Text == "16" && l.Lead is not null));
+        Assert.All(model.ZoomTiers.SelectMany(t => t.Labels), l => Assert.InRange(l.Pos, 0, 1));
+    }
+
     private sealed class ShareComparer : IEqualityComparer<(double, double)>
     {
         public bool Equals((double, double) a, (double, double) b) => Math.Abs(a.Item1 - b.Item1) < 1e-6 && Math.Abs(a.Item2 - b.Item2) < 1e-6;

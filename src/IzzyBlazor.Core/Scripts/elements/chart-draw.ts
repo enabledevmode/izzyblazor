@@ -64,7 +64,30 @@ export interface DrawData {
   s2l?: number; // the second value axis's range
   bp?: [number, number]; // bubbles: the largest radius and the length it's padded against, in pixels
   s2h?: number;
+  // Zoom (ChartArgumentAxis Zoom): each item's place on the whole axis (0 to 1, before any
+  // reversal), the fewest items' span as a share, names in bands or a scale, argument grid lines,
+  // the view the server drew, and the argument label tiers.
+  za?: (number | null)[];
+  zl?: number;
+  zc?: boolean;
+  ag?: boolean;
+  zv?: [number, number];
+  zt?: [number, [number, string, string | null, number, string | null][]][];
+  zx?: string[]; // names down the side of a horizontal chart, which the script thins
+  zs?: string; // what's said on a zoom, "Showing {0} to {1}"
+  zn?: string[]; // each item's argument as text, for it
 }
+
+/** A view of the arguments: from and to, as shares of the whole axis. */
+export type View = [number, number];
+
+/** Each item's place in the plot for a view (0 to 1 in view, past either end out of it), reversed when the arguments are. */
+export function placesIn(d: DrawData, view: View): (number | null)[] {
+  const span = view[1] - view[0] || 1;
+  return (d.za ?? d.a).map((p) => (p === null ? null : ((q) => (d.ar ? 1 - q : q))((p - view[0]) / span)));
+}
+
+const inView = (p: number | null) => p !== null && p >= -1e-9 && p <= 1 + 1e-9;
 
 /** Widens a range by a bubble's radius at each end (ChartLayout.PadEnds). */
 function padEnds(min: number, max: number, log: boolean, radius: number, length: number): [number, number] {
@@ -325,12 +348,29 @@ function spread(targets: number[], height: number, line = LINE): number[] {
  * The chart with the visible series only. plotPx is the plot's size, for the number of ticks:
  * one per 56px up the side, or per 90px across.
  */
-export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: number }, measure?: (text: string) => number): Drawing {
+export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: number }, measure?: (text: string) => number, view?: View): Drawing {
   const W = plotPx.w, H = plotPx.h;
   const labelsAt: LabelAt[] = [];
   const widthOf = (text: string) => (measure ? measure(text) : text.length * 7);
   const n = d.a.length;
   const visible = d.s.map((_, i) => i).filter((i) => !hidden.has(i));
+  // Zoomed: the items' places in view, and the items the value axis fits (those in view, and for
+  // lines and areas the ones just past each end, so a line leaves the plot at its true slope).
+  const zoomed = !!(view && d.za);
+  const a = zoomed ? placesIn(d, view!) : d.a;
+  let fits: boolean[] | null = null;
+  if (zoomed) {
+    const shown = a.map(inView);
+    fits = [...shown];
+    if (d.s.some((s) => s.t === 1 || s.t === 2)) {
+      const order = a.map((p, i) => i).filter((i) => a[i] !== null).sort((x, y) => a[x]! - a[y]!);
+      order.forEach((i, k) => {
+        if (!shown[i]) return;
+        if (k > 0) fits![order[k - 1]] = true;
+        if (k < order.length - 1) fits![order[k + 1]] = true;
+      });
+    }
+  }
   const full = d.st === 2;
   const stacked = d.st !== 0;
 
@@ -366,6 +406,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   let min = Infinity, max = -Infinity;
   for (const s of visible.filter((s) => !d.s[s].ax)) {
     for (let i = 0; i < n; i++) {
+      if (fits && !fits[i]) continue;
       for (const x of [highs[s][i], lows[s][i]]) {
         if (x !== null && (!log || x > 0)) {
           min = Math.min(min, x);
@@ -470,7 +511,10 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
 
   // Bars: Chart.js's proportions, the group 80% of its band and each bar 90% of its share.
   const bars = visible.filter((s) => d.s[s].t === 0);
-  const band = 1 / Math.max(1, n);
+  // Zoomed, the bands in view fill the plot.
+  const vspan = zoomed && d.zc ? view![1] - view![0] || 1 : 1;
+  const vfrom = zoomed && d.zc ? view![0] : 0;
+  const band = 1 / Math.max(1, n) / vspan;
   const slotWidth = stacked ? band * 0.8 : (band * 0.8) / Math.max(1, bars.length);
   const width = slotWidth * 0.9;
   let barSvg = "";
@@ -479,7 +523,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     for (let i = 0; i < n; i++) {
       const top = highs[s][i];
       if (top === null) continue;
-      let a0 = i * band + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
+      let a0 = (i / Math.max(1, n) - vfrom) / vspan + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
+      if (a0 + width <= 0 || a0 >= 1) continue;
       if (d.ar) a0 = 1 - a0 - width;
       const sc = d.s[s].ax ? scale2 : scale;
       const v0 = sc(lows[s][i] ?? 0), v1 = sc(top);
@@ -517,8 +562,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     if (data.t === 0) continue;
     const points: ([number, number, number] | null)[] = [];
     for (let i = 0; i < n; i++) {
-      const v = highs[s][i], a = d.a[i];
-      if (v !== null && a !== null) points.push([a, (data.ax ? scale2 : scale)(v), i]);
+      const v = highs[s][i], at = a[i];
+      if (v !== null && at !== null) points.push([at, (data.ax ? scale2 : scale)(v), i]);
       else if (!data.j) points.push(null);
     }
     if (data.so) points.sort((p, q) => p![0] - q![0]);
@@ -544,7 +589,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;
       if (line) lines += `<path ${attrs(s, `ib-chart-line ib-chart-dash${data.d}${data.tr ? " ib-chart-trend" : ""}`)} d="${line}"/>`;
       // The point at the plot's right edge, beside the end label: the first when reversed.
-      const last = d.ar ? points.find((p) => p) : points.filter((p) => p).pop();
+      const inPlot = points.filter((p) => p && inView(p[0]));
+      const last = d.ar ? inPlot[0] : inPlot.pop();
       if (data.en != null && last) ends.push([s, (1 - last[1]) * H]);
     }
     if (data.m) {
@@ -552,7 +598,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       // Larger bubbles first, so none covers a smaller one of its series.
       const drawn = data.t === 4 ? points.filter((p) => p).sort((a, b) => (data.r?.[b![2]] ?? 0) - (data.r?.[a![2]] ?? 0)) : points;
       for (const p of drawn) {
-        if (!p) continue;
+        if (!p || !inView(p[0])) continue;
         const [x, y] = d.h ? [p[1], p[0]] : [p[0], 1 - p[1]];
         const radius = data.r?.[p[2]];
         if (data.t === 4) {
@@ -581,6 +627,75 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     .map(([s], i) => `<span class="ib-chart-s${d.s[s].k}" style="top:${pct(centers[i] / H)};${d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""}" data-ib-series="${s}">${esc(d.s[s].en!)}</span>`)
     .join("");
   return { svg, labels, pos: scale, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""), d.lr) };
+}
+
+// ---- Zoom: the argument labels and grid lines for a view. ----
+
+export interface ZoomArgs {
+  labels: string; // the labels' HTML, placed along the axis
+  grid: string; // argument grid lines, for the plot's SVG
+  room: string; // for names in bands: each width's room for a label (--ib-chart-wN), and the band count
+}
+
+/**
+ * The argument labels for a view, from the server's tier for about this zoom (laid out for a plot
+ * that much wider, so the right ones show at each width), or down the side of a horizontal chart
+ * the names in view, thinned by the plot's height. The first label in view takes its second line.
+ */
+export function zoomArgs(d: DrawData, view: View, plotLength: number): ZoomArgs {
+  const span = view[1] - view[0] || 1;
+  const place = (p: number) => ((q) => (d.ar ? 1 - q : q))((p - view[0]) / span);
+  const pct = (n: number) => `${Math.round(n * 100000) / 1000}%`;
+  const at = (p: number) => (d.h ? `top:${pct(p)}` : `left:${pct(p)}`);
+  let labels = "", grid = "", room = "";
+  const gridAt = (p: number) => {
+    if (!d.ag || p <= 1e-9 || p >= 1 - 1e-9) return;
+    grid += d.h ? `<line class="ib-chart-grid ib-chart-agrid" x1="0" x2="100%" y1="${pct(p)}" y2="${pct(p)}"/>` : `<line class="ib-chart-grid ib-chart-agrid" x1="${pct(p)}" x2="${pct(p)}" y1="0" y2="100%"/>`;
+  };
+
+  if (d.zx) {
+    // Down the side: one line each, every 1st, 2nd, 4th… name as the bands narrow.
+    const n = d.zx.length, bands = n * span;
+    let stride = 1;
+    while (bands / stride > 1 && (plotLength / bands) * stride < 18) stride *= 2;
+    for (let i = 0; i < n; i += stride) {
+      const p = place((i + 0.5) / n);
+      if (inView(p)) labels += `<span style="${at(p)}" title="${esc(d.zx[i])}">${esc(d.zx[i])}</span>`;
+    }
+    for (let i = 1; i < n; i++) gridAt(place(i / n));
+    return { labels, grid, room };
+  }
+
+  const zoom = 1 / span;
+  const tiers = d.zt ?? [];
+  const tier = tiers.filter((t) => t[0] <= zoom * 1.0001).pop() ?? tiers[0];
+  if (!tier) return { labels, grid, room };
+  const shown = tier[1].map((l) => ({ l, p: place(l[0]) })).filter((x) => inView(x.p)).sort((x, y) => x.l[0] - y.l[0]);
+  // A date's second line when it's the first shown (data-ib-lead): the script's fit adds it to
+  // whichever label that is at the width it picks.
+  for (const x of shown) {
+    const [, text, context, from, first] = x.l;
+    const cls = from > 0 ? ` class="ib-chart-from${from}"` : "";
+    const lead = !context && first ? ` data-ib-lead="${esc(first)}"` : "";
+    labels += `<span${cls}${lead} style="${at(x.p)}" title="${d.zc ? esc(text) : ""}">${esc(text)}${context ? `<span class="ib-chart-context">${esc(context)}</span>` : ""}</span>`;
+  }
+
+  if (d.zc) {
+    // Names in bands: grid lines between bands, and each width's room, the gap between the names
+    // shown there, for the script's fit; wrapped names take a band each.
+    const n = d.za?.length ?? 1;
+    for (let i = 1; i < n; i++) gridAt(place(i / n));
+    for (let k = 0; k < 8; k++) {
+      const ps = shown.filter((x) => x.l[3] <= k).map((x) => x.l[0]);
+      let gap = 1;
+      for (let j = 1; j < ps.length; j++) gap = Math.min(gap, ps[j] - ps[j - 1]);
+      room += `--ib-chart-w${k}:${pct(Math.min(1, (ps.length > 1 ? gap : 1 / n) / span))};`;
+    }
+    room += `--ib-chart-n:${Math.round(n * span * 1000) / 1000}`;
+  } else {
+    for (const x of shown) gridAt(x.p);
+  }
+  return { labels, grid, room };
 }
 
 // ---- Pies (ChartShapes.Pie, PieLabels, PieInside), drawn again without the slices the legend hides. ----

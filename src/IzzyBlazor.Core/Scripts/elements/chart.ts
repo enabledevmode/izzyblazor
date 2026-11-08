@@ -1,15 +1,14 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import type { DrawData, PieDrawData, draw as Draw, drawPie as DrawPie } from "./chart-draw";
+import type { DrawData, PieDrawData, View, draw as Draw, drawPie as DrawPie, zoomArgs as ZoomArgs } from "./chart-draw";
 import type { heat as Heat } from "./chart-heat";
 import type { radar as Radar } from "./chart-radar";
 import type { sankey as Sankey } from "./chart-sankey";
 import type { treemap as Treemap } from "./chart-treemap";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
-type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie };
+type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie; zoomArgs: typeof ZoomArgs };
 let drawing: Promise<DrawModule> | undefined;
 const loadModule = () => (drawing ??= import("./parts/chart-draw.js" as string) as Promise<DrawModule>);
-const loadDraw = () => loadModule().then((m) => m.draw);
 
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
@@ -110,6 +109,52 @@ class Chart extends IzzyElement {
     // Value labels, placed again at the plot's size: measured in their own font.
     const jsDl = plot.querySelector<HTMLElement>(".ib-chart-dl.ib-chart-js");
     const jsEnds = plot.querySelector<HTMLElement>(".ib-chart-ends.ib-chart-js");
+    const horizontal = this.hasAttribute("data-ib-horizontal");
+
+    // Zoom (ChartArgumentAxis Zoom): the view the server drew, and the one shown, as shares of the
+    // whole argument axis. The script draws any other view itself (chart-draw.ts).
+    const zoomOn = !!data?.za && this.hasAttribute("data-ib-zoom");
+    const drawnView: View = data?.zv ?? [0, 1];
+    let view: View = [drawnView[0], drawnView[1]];
+    const zargs = this.querySelector<HTMLElement>(".ib-chart-zargs");
+    const sameView = () => Math.abs(view[0] - drawnView[0]) < 1e-6 && Math.abs(view[1] - drawnView[1]) < 1e-6;
+    const isZoomed = () => view[0] > 1e-6 || view[1] < 1 - 1e-6;
+    // A share of the whole axis at a place in the plot (0 to 1 along it), and the other way.
+    const shareAt = (f: number) => view[0] + (data?.ar ? 1 - f : f) * (view[1] - view[0]);
+    const placeOf = (share: number) => ((q) => (data?.ar ? 1 - q : q))((share - view[0]) / (view[1] - view[0] || 1));
+    this.toggleAttribute("data-ib-zoomed", zoomOn && isZoomed());
+    signal.addEventListener("abort", () => {
+      for (const a of ["data-ib-zoomed", "data-ib-zargs", "data-ib-brushing"]) this.removeAttribute(a);
+    });
+    // The argument marks' places in the view the script draws (with none, the server's).
+    const placeMarks = (on: boolean) => {
+      for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-za]")) {
+        for (const v of ["--jn", ...(mark.dataset.ibV ? [] : ["--jp", "--jq"])]) mark.style.removeProperty(v);
+        mark.removeAttribute("data-ib-zout");
+        if (!on) continue;
+        const [zp, zq] = mark.dataset.ibZa!.split(" ").map(Number);
+        const out = (p: number) => p < -1e-9 || p > 1 + 1e-9;
+        if (mark.classList.contains("ib-chart-note")) {
+          const at = placeOf(zp);
+          mark.toggleAttribute("data-ib-zout", out(at));
+          mark.style.setProperty("--jn", String(horizontal ? 1 - at : at));
+          continue;
+        }
+        let [p, q] = [placeOf(zp), placeOf(zq)];
+        if (p > q) [p, q] = [q, p];
+        // Out of view, a mark is hidden; a band across an end is cut there.
+        const band = mark.classList.contains("ib-chart-band");
+        mark.toggleAttribute("data-ib-zout", band ? q <= 0 || p >= 1 : out(p));
+        if (band) {
+          [p, q] = [Math.max(0, p), Math.min(1, q)];
+          if (horizontal) [p, q] = [1 - q, 1 - p];
+          mark.style.setProperty("--jp", String(p));
+          mark.style.setProperty("--jq", String(q));
+        } else mark.style.setProperty("--jp", String(horizontal ? 1 - p : p));
+      }
+    };
+    // The tooltip's places for the items, set once the tooltip is (below).
+    let placed = () => {};
     let measure: ((text: string) => number) | undefined;
     if (jsDl) {
       const css = getComputedStyle(jsDl);
@@ -121,18 +166,39 @@ class Chart extends IzzyElement {
     }
     const redraw = async () => {
       const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
-      if (same || !data || !jsSvg || !jsLabels) {
+      if ((same && (!zoomOn || sameView())) || !data || !jsSvg || !jsLabels) {
         this.removeAttribute("data-ib-redrawn");
+        this.removeAttribute("data-ib-zargs");
         for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-v]")) {
           mark.style.removeProperty("--jp");
           mark.style.removeProperty("--jq");
         }
+        placeMarks(false);
+        if (zargs) {
+          zargs.innerHTML = "";
+          zargs.removeAttribute("style");
+        }
+        placed();
+        if (bottom) this.fit(bottom);
         return;
       }
-      const draw = await loadDraw();
+      const module = await loadModule();
       if (signal.aborted) return;
-      const out = draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight }, measure);
-      jsSvg.innerHTML = out.svg;
+      const out = module.draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight }, measure, zoomOn ? view : undefined);
+      // Another view than the server's: argument labels, grid lines and marks for it too.
+      let grid = "";
+      const own = zoomOn && !sameView();
+      if (own) {
+        const args = module.zoomArgs(data, view, horizontal ? plot.clientHeight : plot.clientWidth);
+        grid = args.grid;
+        if (zargs) {
+          zargs.innerHTML = args.labels;
+          zargs.setAttribute("style", args.room);
+        }
+      }
+      this.toggleAttribute("data-ib-zargs", own);
+      placeMarks(own);
+      jsSvg.innerHTML = grid + out.svg;
       jsLabels.innerHTML = out.labels;
       if (jsDl) jsDl.innerHTML = out.dl;
       if (jsEnds) jsEnds.innerHTML = out.ends;
@@ -142,6 +208,7 @@ class Chart extends IzzyElement {
         if (mark.dataset.ibVto) mark.style.setProperty("--jq", String(out.pos(Number(mark.dataset.ibVto))));
       }
       this.setAttribute("data-ib-redrawn", "");
+      placed();
       if (bottom) this.fit(bottom);
       refresh();
     };
@@ -152,7 +219,7 @@ class Chart extends IzzyElement {
     const refit = () => {
       cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
-        if (this.hasAttribute("data-ib-redrawn") && (jsDl || this.hasAttribute("data-ib-horizontal"))) redraw();
+        if (this.hasAttribute("data-ib-redrawn") && (jsDl || horizontal || zoomOn)) redraw();
         if (bottom) this.fit(bottom);
       });
     };
@@ -166,6 +233,39 @@ class Chart extends IzzyElement {
 
     // Draws the open tooltip again once it's set up below (a chart can have no tooltips).
     let refresh = () => {};
+
+    // Sets the view, kept to the whole axis and the fewest items' span, and draws it; once it
+    // settles, says the range and (interactive) reports it to .NET for ViewChanged.
+    const zoomLive = this.querySelector<HTMLElement>("[data-ib-live]");
+    let settle = 0;
+    const settled = (wait = 0) => {
+      clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        if (signal.aborted) return;
+        const inView = (data!.za ?? []).map((p, i) => [p, i] as const).filter(([p]) => p !== null && p >= view[0] - 1e-9 && p <= view[1] + 1e-9).sort((a, b) => a[0]! - b[0]!);
+        if (zoomLive && data!.zs && data!.zn && inView.length > 0) {
+          zoomLive.textContent = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
+        }
+        if (this.hasAttribute("data-ib-interactive")) {
+          this.emit("iblayout", { layout: isZoomed() ? `${Math.round(view[0] * 1e6) / 1e6} ${Math.round(view[1] * 1e6) / 1e6}` : "" });
+        }
+      }, wait);
+    };
+    const setView = (from: number, to: number, report = true) => {
+      // Too narrow or wide, it keeps its middle; then it's kept within the axis.
+      const span = Math.min(1, Math.max(data?.zl ?? 0, to - from));
+      const start = Math.min(Math.max(0, to - from === span ? from : (from + to) / 2 - span / 2), 1 - span);
+      view = [start, start + span];
+      this.toggleAttribute("data-ib-zoomed", isZoomed());
+      redraw();
+      if (report) settled();
+    };
+    const zoomTo = (from: number, to: number) => setView(from, to);
+    const zoomAround = (at: number, factor: number, report = true) => {
+      const span = Math.min(1, Math.max(data?.zl ?? 0, (view[1] - view[0]) * factor));
+      const k = (at - view[0]) / (view[1] - view[0] || 1);
+      setView(at - k * span, at - k * span + span, report);
+    };
     const setHidden = (series: number, isOff: boolean) => {
       if (isOff) hidden.add(series);
       else hidden.delete(series);
@@ -209,12 +309,24 @@ class Chart extends IzzyElement {
     if (!tooltip || !hover || tips.length === 0) return;
 
     const count = Number(this.dataset.ibCount) || tips.length;
-    const horizontal = this.hasAttribute("data-ib-horizontal");
     const scale = this.hasAttribute("data-ib-scale");
     const reverse = this.hasAttribute("data-ib-reverse");
-    const positions = scale
-      ? (this.dataset.ibPos ?? "").split(",").map((p) => (p === "" ? NaN : Number(p)))
-      : Array.from({ length: count }, (_, i) => (reverse ? count - i - 0.5 : i + 0.5) / count);
+    // Each item's place along the plot, and a band's width: the server's, or zoomed the view's.
+    let positions: number[] = [];
+    let bandSize = 0;
+    placed = () => {
+      if (zoomOn) {
+        positions = data!.za!.map((p) => (p === null ? NaN : placeOf(p)));
+        bandSize = scale ? 0 : 1 / count / (view[1] - view[0] || 1);
+      } else {
+        positions = scale
+          ? (this.dataset.ibPos ?? "").split(",").map((p) => (p === "" ? NaN : Number(p)))
+          : Array.from({ length: count }, (_, i) => (reverse ? count - i - 0.5 : i + 0.5) / count);
+        bandSize = scale ? 0 : 1 / count;
+      }
+    };
+    placed();
+    const shown = (i: number) => positions[i] >= -1e-9 && positions[i] <= 1 + 1e-9;
     // A scatter chart's tooltip is for the point nearest the pointer, not the band under it.
     const pointsMode = this.hasAttribute("data-ib-points");
     // The points shown: the server's, or the script's once it has drawn the chart again.
@@ -231,11 +343,14 @@ class Chart extends IzzyElement {
 
     // The keyboard's order: the items, or on a scatter chart its points from left to right;
     // reversed, the items from the last, so Right still moves right.
-    const items = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
-    if (pointsMode) items.sort((a, b) => positions[a] - positions[b]);
-    else if (reverse) items.reverse();
-    // A point of a series the legend hid isn't a stop.
-    const keys = () => (pointsMode ? items.filter((i) => markFor(i)) : items);
+    const items = () => {
+      const all = Array.from({ length: count }, (_, i) => i).filter((i) => !Number.isNaN(positions[i]));
+      if (pointsMode || zoomOn) all.sort((a, b) => positions[a] - positions[b]);
+      else if (reverse) all.reverse();
+      return all;
+    };
+    // A point of a series the legend hid isn't a stop, nor (zoomed) one out of view.
+    const keys = () => (pointsMode ? items().filter((i) => shown(i) && markFor(i)) : items());
 
     let current = -1;
     let lastY: number | null = null;
@@ -246,13 +361,13 @@ class Chart extends IzzyElement {
     };
 
     const nearest = (f: number) => {
-      if (!scale) {
+      if (!scale && !zoomOn) {
         const i = Math.min(count - 1, Math.max(0, Math.floor(f * count)));
         return reverse ? count - 1 - i : i;
       }
       let best = -1;
       for (let i = 0; i < positions.length; i++) {
-        if (!Number.isNaN(positions[i]) && (best < 0 || Math.abs(positions[i] - f) < Math.abs(positions[best] - f))) best = i;
+        if (!Number.isNaN(positions[i]) && shown(i) && (best < 0 || Math.abs(positions[i] - f) < Math.abs(positions[best] - f))) best = i;
       }
       return best;
     };
@@ -260,6 +375,11 @@ class Chart extends IzzyElement {
     const show = (index: number, pointerY: number | null) => {
       // Not a number: no stop left (the legend hid every series).
       if (!(index >= 0) || index >= tips.length) return;
+      // Zoomed out of view, it has no tooltip.
+      if (zoomOn && !shown(index)) {
+        hide();
+        return;
+      }
       current = index;
       lastY = pointerY;
       tooltip.innerHTML = tips[index].innerHTML;
@@ -273,7 +393,7 @@ class Chart extends IzzyElement {
 
       // The band (or, on a scale, a line) under the item.
       const pos = positions[index];
-      const size = scale ? 0 : 1 / count;
+      const size = bandSize;
       const start = scale ? pos : pos - size / 2;
       hover.classList.toggle("ib-chart-hover-line", scale);
       hover.style.cssText = horizontal
@@ -417,15 +537,133 @@ class Chart extends IzzyElement {
           case "Escape":
             hide();
             return;
+          case "+":
+          case "=":
+          case "-":
+          case "_":
+          case "0":
+            if (!zoomOn) return;
+            event.preventDefault();
+            if (event.key === "0") setView(0, 1);
+            else {
+              const at = current >= 0 && shown(current) ? shareAt(positions[current]) : (view[0] + view[1]) / 2;
+              zoomAround(at, event.key === "+" || event.key === "=" ? 0.5 : 2);
+            }
+            return;
           default:
             return;
         }
         event.preventDefault();
+        // Zoomed, an item out of view comes into the middle of it.
+        if (zoomOn && next !== undefined && next >= 0 && !shown(next) && data!.za![next] !== null) {
+          const at = data!.za![next]!, span = view[1] - view[0];
+          setView(at - span / 2, at + span / 2);
+          placed();
+        }
         show(next, null);
         announce();
       },
       { signal }
     );
+
+    // Zoom's gestures: a drag across the plot draws a box to zoom into, Ctrl (⌘) and the wheel or
+    // a trackpad's pinch zoom at the pointer, Shift and the wheel pan; on touch two fingers pinch
+    // and pan, and one still scrolls the page.
+    if (!zoomOn) return;
+    const brush = plot.querySelector<HTMLElement>(".ib-chart-brush");
+    const length = () => (horizontal ? plot.clientHeight : plot.clientWidth);
+    const fracOf = (x: number, y: number) => {
+      const r = plot.getBoundingClientRect();
+      return horizontal ? (y - r.top) / r.height : (x - r.left) / r.width;
+    };
+    const touches = new Map<number, [number, number]>();
+    let pinch: { share: number; span: number; dist: number } | null = null;
+    let box: { from: number; x: number; y: number; id: number } | null = null;
+    const two = () => [...touches.values()];
+    const pinchState = () => {
+      const [a, b] = two();
+      return { mid: fracOf((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), dist: Math.hypot(a[0] - b[0], a[1] - b[1]) };
+    };
+    plot.addEventListener(
+      "pointerdown",
+      (event) => {
+        if ((event.target as Element).closest(".ib-chart-reset")) return;
+        if (event.pointerType === "touch") {
+          touches.set(event.pointerId, [event.clientX, event.clientY]);
+          if (touches.size === 2) {
+            const { mid, dist } = pinchState();
+            pinch = { share: shareAt(mid), span: view[1] - view[0], dist };
+            hide();
+          }
+          return;
+        }
+        if (event.button !== 0) return;
+        box = { from: fracOf(event.clientX, event.clientY), x: event.clientX, y: event.clientY, id: event.pointerId };
+      },
+      { signal }
+    );
+    plot.addEventListener(
+      "pointermove",
+      (event) => {
+        if (touches.has(event.pointerId)) {
+          touches.set(event.pointerId, [event.clientX, event.clientY]);
+          if (pinch && touches.size === 2) {
+            const { mid, dist } = pinchState();
+            const span = Math.min(1, Math.max(data!.zl ?? 0, (pinch.span * pinch.dist) / Math.max(1, dist)));
+            const f = data!.ar ? 1 - mid : mid;
+            setView(pinch.share - f * span, pinch.share - f * span + span, false);
+          }
+          return;
+        }
+        if (!box || event.pointerId !== box.id) return;
+        if (!this.hasAttribute("data-ib-brushing")) {
+          if (Math.hypot(event.clientX - box.x, event.clientY - box.y) < 4) return;
+          plot.setPointerCapture(event.pointerId);
+          this.setAttribute("data-ib-brushing", "");
+          hide();
+        }
+        const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
+        const [a, b] = [Math.min(box.from, to), Math.max(box.from, to)];
+        if (brush) brush.style.cssText = horizontal ? `top:${a * 100}%;height:${(b - a) * 100}%;left:0;width:100%` : `left:${a * 100}%;width:${(b - a) * 100}%;top:0;height:100%`;
+      },
+      { signal }
+    );
+    const release = (event: PointerEvent) => {
+      if (touches.delete(event.pointerId) && pinch) {
+        pinch = null;
+        settled();
+        return;
+      }
+      if (!box || event.pointerId !== box.id) return;
+      const from = box.from;
+      box = null;
+      if (!this.hasAttribute("data-ib-brushing")) return;
+      this.removeAttribute("data-ib-brushing");
+      const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
+      if (Math.abs(to - from) * length() < 6) return;
+      const [a, b] = [shareAt(from), shareAt(to)].sort((x, y) => x - y);
+      zoomTo(a, b);
+    };
+    plot.addEventListener("pointerup", release, { signal });
+    plot.addEventListener("pointercancel", release, { signal });
+    plot.addEventListener(
+      "wheel",
+      (event) => {
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          hide();
+          zoomAround(shareAt(fracOf(event.clientX, event.clientY)), Math.exp(event.deltaY * 0.002), false);
+          settled(300);
+        } else if (isZoomed() && (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))) {
+          event.preventDefault();
+          const by = ((event.shiftKey ? event.deltaY || event.deltaX : event.deltaX) / length()) * (view[1] - view[0]) * (data!.ar ? -1 : 1);
+          setView(view[0] + by, view[1] + by, false);
+          settled(300);
+        }
+      },
+      { signal, passive: false }
+    );
+    this.querySelector(".ib-chart-reset")?.addEventListener("click", () => setView(0, 1), { signal });
   }
 
   /**
@@ -765,6 +1003,16 @@ class Chart extends IzzyElement {
     }
 
     this.dataset.ibFit = String(chosen);
+
+    // Zoomed by the script: the first date shown says its month (or year) if it doesn't already.
+    for (const lead of axis.querySelectorAll(".ib-chart-zargs .ib-chart-lead")) lead.remove();
+    const first = labels.find((l) => from(l) <= chosen && l.parentElement?.classList.contains("ib-chart-zargs"));
+    if (first?.dataset.ibLead) {
+      const line = document.createElement("span");
+      line.className = "ib-chart-context ib-chart-lead";
+      line.textContent = first.dataset.ibLead;
+      first.append(line);
+    }
   }
 }
 
