@@ -11,14 +11,8 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;ToolbarButtonGroup Label="Text style"&gt;
-///     &lt;ToolbarToggleButton @bind-Value="_bold"
-///                          Icon="Lucide.Bold"
-///                          Label="Bold"
-///                          IconOnly /&gt;
-///     &lt;ToolbarToggleButton @bind-Value="_italic"
-///                          Icon="Lucide.Italic"
-///                          Label="Italic"
-///                          IconOnly /&gt;
+///     &lt;ToolbarToggleButton @bind-Value="_bold" Icon="Lucide.Bold" Label="Bold" IconOnly /&gt;
+///     &lt;ToolbarToggleButton @bind-Value="_italic" Icon="Lucide.Italic" Label="Italic" IconOnly /&gt;
 /// &lt;/ToolbarButtonGroup&gt;
 /// </code>
 /// </example>

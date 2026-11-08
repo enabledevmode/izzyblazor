@@ -20,15 +20,44 @@ public class RegistryTests
         Assert.True(unknown.Count == 0, $"Not public components: {string.Join(", ", unknown)}");
     }
 
-    // A Usage snippet is read at a glance: a tag that won't fit puts one attribute on each line.
+    // A Usage snippet is read at a glance, with no sideways scrolling on a laptop: the code column
+    // holds about 105 characters at a 1280px window. A tag that won't fit puts one attribute on
+    // each line. Both the doc comments' snippets and the hand-written Overviews' Usage are checked.
     [Fact]
     public void Usage_snippets_fit_without_scrolling()
     {
-        var wide = Api.File.Components
-            .SelectMany(c => (c.Examples ?? []).SelectMany(e => e.Split('\n')).Where(l => l.TrimEnd().Length > 80).Select(l => $"{c.Name}: {l.Trim()}"))
+        var snippets = Api.File.Components.SelectMany(c => (c.Examples ?? []).Select(e => (c.Name, Code: e)))
+            .Concat(HandWrittenUsage());
+        var wide = snippets
+            .SelectMany(s => s.Code.Split('\n').Where(l => l.TrimEnd().Length > 100).Select(l => $"{s.Name}: {l.Trim()}"))
             .ToList();
 
-        Assert.True(wide.Count == 0, $"Usage lines over 80 characters:\n{string.Join("\n", wide)}");
+        Assert.True(wide.Count == 0, $"Usage lines over 100 characters:\n{string.Join("\n", wide)}");
+
+        // A child element starts its own line: no "<FormActions><Button>" or "<A /><B />" on one line
+        // (text with an element in it, "Read the <Anchor>docs</Anchor>.", is fine).
+        var nested = snippets
+            .SelectMany(s => s.Code.Split('\n')
+                .Where(l => System.Text.RegularExpressions.Regex.IsMatch(l, @"(<[A-Za-z][^<>]*[^/<>]|/|</[\w.]+)>\s*<[A-Za-z]") &&
+                            System.Text.RegularExpressions.Regex.Replace(l, "<[^>]*>", "").Trim().Length == 0)
+                .Select(l => $"{s.Name}: {l.Trim()}"))
+            .ToList();
+        Assert.True(nested.Count == 0, $"Usage lines with a child element on the same line:\n{string.Join("\n", nested)}");
+    }
+
+    // Each hand-written Overview's `const string Usage = """…"""`, dedented as C# does.
+    private static IEnumerable<(string Name, string Code)> HandWrittenUsage([System.Runtime.CompilerServices.CallerFilePath] string here = "")
+    {
+        var folder = Path.Combine(Path.GetDirectoryName(here)!, "..", "IzzyBlazor.Site", "Docs", "Overviews");
+        foreach (var file in Directory.GetFiles(folder, "*.razor"))
+        {
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(file), "const string Usage = \"\"\"\\r?\\n(.*?)\\r?\\n([ \\t]*)\"\"\"", System.Text.RegularExpressions.RegexOptions.Singleline))
+            {
+                var indent = m.Groups[2].Value.Length;
+                var code = string.Join('\n', m.Groups[1].Value.Split('\n').Select(l => l.Length > indent ? l[indent..] : l.TrimStart()));
+                yield return (Path.GetFileNameWithoutExtension(file), code);
+            }
+        }
     }
 
     [Fact]

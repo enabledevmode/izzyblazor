@@ -14,7 +14,9 @@
     <Form Model="Model" FormName="profile" OnValidSubmit="Save">
         <TextField @bind-Value="Model.Name" />
         <TextField @bind-Value="Model.Email" />
-        <FormActions><Button Submit>Save</Button></FormActions>
+        <FormActions>
+            <Button Submit>Save</Button>
+        </FormActions>
     </Form>
 
     Accessibility:

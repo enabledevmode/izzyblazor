@@ -16,15 +16,9 @@
       - Interactive page: OnChange gets the chosen files as IBrowserFile, to read as streams.
 
     <Form Model="Model" FormName="profile" Multipart>
-        <FileUpload Name="Avatar"
-                    Label="Profile photo"
-                    Accept=".png,.jpg"
-                    MaxFileSize="2_000_000" />
+        <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
     </Form>
-    @code {
-        [SupplyParameterFromForm(FormName = "profile")]
-        public IFormFile? Avatar { get; set; }
-    }
+    @code { [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; } }
 
     Accessibility:
     - It renders a real file `input`, out of sight but focusable once scripts run: Tab reaches it,

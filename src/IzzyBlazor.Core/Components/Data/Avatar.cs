@@ -42,14 +42,8 @@ public enum AvatarVariant
 /// <example>
 /// <code>
 /// &lt;Avatar Name="Grace Hopper" Src="/img/grace.jpg" /&gt;
-/// &lt;Avatar Name="Ada Lovelace"
-///         Size="AvatarSize.Lg"
-///         Status="Status.Success"
-///         StatusLabel="Online" /&gt;
-/// &lt;Avatar Name="Acme Corp"
-///         Square
-///         Accent="Accent.Primary"
-///         Variant="AvatarVariant.Solid" /&gt;
+/// &lt;Avatar Name="Ada Lovelace" Size="AvatarSize.Lg" Status="Status.Success" StatusLabel="Online" /&gt;
+/// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
 /// </code>
 /// </example>
 /// <accessibility>

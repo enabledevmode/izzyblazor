@@ -9,13 +9,8 @@
     tree. Items are the top level and ItemChildren gives each item's own; ItemValue is what's
     bound and posted, and both types are inferred.
 
-    <TreeSelect @bind-Value="Model.CategoryId"
-                Items="Categories"
-                ItemChildren="c => c.Children"
-                ItemValue="c => c.Id"
-                ItemText="c => c.Name"
-                Label="Category"
-                Searchable />
+    <TreeSelect @bind-Value="Model.CategoryId" Items="Categories" ItemChildren="c => c.Children"
+                ItemValue="c => c.Id" ItemText="c => c.Name" Label="Category" Searchable />
 
     Any item can be chosen, a parent too; ItemSelectable makes parents labels for their branches,
     which open and close when clicked:

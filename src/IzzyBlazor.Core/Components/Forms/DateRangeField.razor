@@ -9,8 +9,7 @@
     <DateRangeField @bind-Value="Model.Period" />
     <DateRangeField @bind-Value="Model.Period" Min="@today" MaxDays="90" />
     <DateRangeField @bind-Value="Model.Period" DisplayMonths="1" />
-    <DateRangeField @bind-Value="Model.Period"
-                    Presets="DateRangePreset.Common(today)" />
+    <DateRangeField @bind-Value="Model.Period" Presets="DateRangePreset.Common(today)" />
     <DateRangeField @bind-Value="Model.Period" UseNative />
 
     The months write the inputs when the second day is chosen, so anything else that closes them

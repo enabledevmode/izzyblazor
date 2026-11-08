@@ -6,7 +6,13 @@ namespace IzzyBlazor;
 /// <summary>
 /// An image or video at the top of a <see cref="Card"/>, edge to edge. Write it directly in the card.
 /// </summary>
-/// <example><code>&lt;CardMedia&gt;&lt;img src="cover.jpg" alt="" /&gt;&lt;/CardMedia&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;CardMedia&gt;
+///     &lt;img src="cover.jpg" alt="" /&gt;
+/// &lt;/CardMedia&gt;
+/// </code>
+/// </example>
 public sealed class CardMedia : ComponentPart
 {
     internal override Type HostType => typeof(Card);
@@ -16,7 +22,13 @@ public sealed class CardMedia : ComponentPart
 /// Custom heading content in a <see cref="Card"/>, above its <c>Title</c>, such as an avatar row,
 /// beside any <see cref="CardActions"/>. Write it directly in the card.
 /// </summary>
-/// <example><code>&lt;CardHeader&gt;&lt;Avatar Name="Maya Reyes" /&gt;&lt;/CardHeader&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;CardHeader&gt;
+///     &lt;Avatar Name="Maya Reyes" /&gt;
+/// &lt;/CardHeader&gt;
+/// </code>
+/// </example>
 public sealed class CardHeader : ComponentPart
 {
     internal override Type HostType => typeof(Card);
@@ -26,7 +38,13 @@ public sealed class CardHeader : ComponentPart
 /// Buttons at the end of a <see cref="Card"/>'s heading row, such as a menu. They stay clickable on
 /// a linked card. Write it directly in the card.
 /// </summary>
-/// <example><code>&lt;CardActions&gt;&lt;IconButton Icon="Lucide.Ellipsis" Label="More" /&gt;&lt;/CardActions&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;CardActions&gt;
+///     &lt;IconButton Icon="Lucide.Ellipsis" Label="More" /&gt;
+/// &lt;/CardActions&gt;
+/// </code>
+/// </example>
 public sealed class CardActions : ComponentPart
 {
     internal override Type HostType => typeof(Card);
@@ -64,7 +82,13 @@ public class CardBody : FlexBase
 /// with <c>Gap</c>, <c>Align</c>, <c>Justify</c> and <c>Wrap</c>. Write it directly in the card; it's
 /// drawn last. It spans the card's width and bottom edge, so a <c>Bg</c> or <c>BorderTop</c> makes it a bar.
 /// </summary>
-/// <example><code>&lt;CardFooter Justify="Justify.End"&gt;&lt;Button&gt;Cancel&lt;/Button&gt;&lt;/CardFooter&gt;</code></example>
+/// <example>
+/// <code>
+/// &lt;CardFooter Justify="Justify.End"&gt;
+///     &lt;Button&gt;Cancel&lt;/Button&gt;
+/// &lt;/CardFooter&gt;
+/// </code>
+/// </example>
 public class CardFooter : FlexBase
 {
     /// <inheritdoc />

@@ -10,14 +10,8 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;ToggleGroup Label="Text style"&gt;
-///     &lt;ToggleButton @bind-Value="_bold"
-///                   Icon="Lucide.Bold"
-///                   Label="Bold"
-///                   IconOnly /&gt;
-///     &lt;ToggleButton @bind-Value="_italic"
-///                   Icon="Lucide.Italic"
-///                   Label="Italic"
-///                   IconOnly /&gt;
+///     &lt;ToggleButton @bind-Value="_bold" Icon="Lucide.Bold" Label="Bold" IconOnly /&gt;
+///     &lt;ToggleButton @bind-Value="_italic" Icon="Lucide.Italic" Label="Italic" IconOnly /&gt;
 /// &lt;/ToggleGroup&gt;
 /// </code>
 /// </example>

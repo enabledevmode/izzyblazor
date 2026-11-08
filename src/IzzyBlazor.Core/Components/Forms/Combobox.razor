@@ -11,9 +11,7 @@
               Items="CountryIds"
               ItemText="id => Countries[id]"
               Placeholder="Search countries" />
-    <Combobox @bind-Value="Model.OwnerId"
-              Search="FindPeople"
-              ItemText="id => People[id].Name">
+    <Combobox @bind-Value="Model.OwnerId" Search="FindPeople" ItemText="id => People[id].Name">
         <ItemTemplate Context="id"><Avatar ... /> @People[id].Name</ItemTemplate>
     </Combobox>
 

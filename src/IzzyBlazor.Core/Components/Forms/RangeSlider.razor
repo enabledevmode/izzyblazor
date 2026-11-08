@@ -13,10 +13,7 @@
                  ValueFormat="${0}"
                  ValueTooltip="SliderTooltip.Active"
                  ShowEnds />
-    <RangeSlider @bind-Value="Model.Hours"
-                 Min="0"
-                 Max="24"
-                 Orientation="Orientation.Vertical" />
+    <RangeSlider @bind-Value="Model.Hours" Min="0" Max="24" Orientation="Orientation.Vertical" />
 
     With script the thumbs stop at each other, so the ends can be equal but never cross, the track
     fills between them, and a click on the track moves the nearer thumb. Without it they can pass

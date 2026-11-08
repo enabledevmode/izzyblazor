@@ -10,9 +10,7 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;Highlight Text="@product.Name" Query="@Query" /&gt;
-/// &lt;Highlight Text="@product.Description"
-///            Query="@Query"
-///            Match="HighlightMatch.Anywhere" /&gt;
+/// &lt;Highlight Text="@product.Description" Query="@Query" Match="HighlightMatch.Anywhere" /&gt;
 /// </code>
 /// </example>
 /// <remarks>

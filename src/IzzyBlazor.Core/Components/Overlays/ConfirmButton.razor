@@ -8,11 +8,8 @@
 
       - Inside a form (the usual case): submits that form, with Name=Value if given, so one
         handler can tell which action was confirmed. Works with JavaScript off.
-        <ConfirmButton Title="Delete this project?"
-                       Message="This can't be undone."
-                       Accent="Accent.Danger"
-                       Name="intent"
-                       Value="delete">Delete</ConfirmButton>
+        <ConfirmButton Title="Delete this project?" Message="This can't be undone."
+                       Accent="Accent.Danger" Name="intent" Value="delete">Delete</ConfirmButton>
       - Form="id": submits a form elsewhere on the page instead.
       - `Href`: follows a link.
       - OnConfirm: runs C# on an interactive page.

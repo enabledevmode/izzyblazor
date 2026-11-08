@@ -11,7 +11,9 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;Alert Status="Status.Danger" Title="Couldn't save"&gt;
 ///     The server didn't answer.
-///     &lt;AlertActions&gt;&lt;Button Size="ControlSize.Sm"&gt;Retry&lt;/Button&gt;&lt;/AlertActions&gt;
+///     &lt;AlertActions&gt;
+///         &lt;Button Size="ControlSize.Sm"&gt;Retry&lt;/Button&gt;
+///     &lt;/AlertActions&gt;
 /// &lt;/Alert&gt;
 /// </code>
 /// </example>

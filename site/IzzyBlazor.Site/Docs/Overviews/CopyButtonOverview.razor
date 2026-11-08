@@ -65,7 +65,9 @@
 
         @* Copies the field's value when pressed. *@
         <TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly>
-            <EndAddon><CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton></EndAddon>
+            <EndAddon>
+                <CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton>
+            </EndAddon>
         </TextField>
         """;
 }

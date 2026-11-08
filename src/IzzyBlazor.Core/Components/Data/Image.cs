@@ -21,12 +21,7 @@ public enum ImageFit
 /// <c>figure</c>.
 /// </summary>
 /// <example>
-/// <code>
-/// &lt;Image Src="/shots/console.png"
-///        Alt="The rules list"
-///        Ratio="16 / 9.0"
-///        Radius="Radius.Lg" /&gt;
-/// </code>
+/// <code>&lt;Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" /&gt;</code>
 /// </example>
 /// <accessibility>
 /// <list type="bullet">
