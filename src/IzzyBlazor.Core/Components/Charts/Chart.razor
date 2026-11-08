@@ -1165,7 +1165,7 @@
         var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
         var ranges = SelectorRanges(model, selector);
         @* On its own, the figure's caption names it already. *@
-        <div class="ib-chart-sel" role="group" aria-label="@(SelectorHost is null ? selector.Label ?? TextDefaults.RangeSelectorName : null)"
+        <div class="@(selector.HideFlags ? "ib-chart-sel ib-chart-sel-noflags" : "ib-chart-sel")" role="group" aria-label="@(SelectorHost is null ? selector.Label ?? TextDefaults.RangeSelectorName : null)"
              style="@($"--ib-sel-s:{Num(place(f0))};--ib-sel-e:{Num(place(f1))};{height}")">
             @if (ranges.Count > 0)
             {
@@ -1192,8 +1192,11 @@
                 {
                     <div class="@($"ib-chart-sel-handle ib-chart-sel-{end}")" role="slider" aria-label="@label"
                          aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="@(n - 1)" aria-valuenow="@i" aria-valuetext="@model.ArgumentTexts[i]">
-                        <span class="ib-chart-sel-flag" aria-hidden="true">@model.ArgumentTexts[i]</span>
-                        <span class="ib-chart-sel-flag ib-chart-js" aria-hidden="true"></span>
+                        @if (!selector.HideFlags)
+                        {
+                            <span class="ib-chart-sel-flag" aria-hidden="true">@model.ArgumentTexts[i]</span>
+                            <span class="ib-chart-sel-flag ib-chart-js" aria-hidden="true"></span>
+                        }
                     </div>
                 }
             </div>

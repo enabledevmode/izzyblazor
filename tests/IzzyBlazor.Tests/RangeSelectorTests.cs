@@ -59,5 +59,10 @@ public class RangeSelectorTests : BunitContext
             .Add(c => c.Argument, m => m)
             .Add(c => c.View, new ChartView("Feb", "May")));
         Assert.Equal(["Feb", "May"], selector.FindAll("[role=slider]").Select(h => h.GetAttribute("aria-valuetext")));
+
+        // HideFlags leaves out the flags over the handles; the handles still say their values.
+        selector.Render(p => p.Add(c => c.HideFlags, true));
+        Assert.Empty(selector.FindAll(".ib-chart-sel-flag"));
+        Assert.Equal("Feb", selector.Find("[role=slider]").GetAttribute("aria-valuetext"));
     }
 }

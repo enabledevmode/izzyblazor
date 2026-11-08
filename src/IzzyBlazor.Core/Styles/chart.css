@@ -542,6 +542,7 @@
     touch-action: none;
     cursor: pointer;
   }
+  .ib-chart-sel-noflags .ib-chart-sel-track { margin-block-start: 0; }
   .ib-chart-sel-series {
     position: absolute;
     inset: 0;

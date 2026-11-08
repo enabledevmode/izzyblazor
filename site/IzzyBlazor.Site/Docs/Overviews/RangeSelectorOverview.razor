@@ -9,7 +9,7 @@
 <Heading Level="2">A strip under a chart</Heading>
 <TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;RangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
 <ExampleViewer Example="range-selector-strip" />
-<TextBlock>Clicking the strip outside the window moves the window there. Each handle's flag says where it is, and the two merge into one when the window is narrow.</TextBlock>
+<TextBlock>Clicking the strip outside the window moves the window there. Each handle's flag says where it is, and the two merge into one when the window is narrow. When the chart's own axis already shows what's in view, <Code>HideFlags</Code> leaves the flags out; screen readers still hear each handle's value.</TextBlock>
 
 <Heading Level="2">Range buttons in a chart</Heading>
 <TextBlock>To add buttons for the last 1, 3 and 6 months, the year to date, a year and everything, set <Code>Ranges</Code>. The pressed button is the span in view.</TextBlock>
