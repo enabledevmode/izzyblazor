@@ -461,7 +461,8 @@ class Chart extends IzzyElement {
           return;
         }
         const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
-        const index = spans.findIndex((s) => s !== null && turn >= s[0] && turn < s[1]);
+        // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
+        const index = spans.findIndex((s) => s !== null && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
         if (index >= 0) show(index, x, y);
       },
       { signal }

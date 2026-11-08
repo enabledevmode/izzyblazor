@@ -41,20 +41,21 @@ internal static class ChartShapes
         (r * Math.Sin(turn * 2 * Math.PI), -r * Math.Cos(turn * 2 * Math.PI));
 
     /// <summary>
-    /// The slices for the values, clockwise from the top, in a viewBox of -1 -1 2 2. Missing, zero
-    /// and negative values get no slice; a single slice is a whole circle (or ring).
+    /// The slices for the values, clockwise from <paramref name="from"/> (a share of the turn, 0 at
+    /// the top), in a viewBox of -1 -1 2 2. A slice's Start and End can pass 1 when it crosses the
+    /// top. Missing, zero and negative values get no slice; a single slice is a whole circle (or ring).
     /// </summary>
-    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole)
+    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole, double from = 0)
     {
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
         var slices = new List<PieSlice>();
         if (total <= 0) return slices;
 
-        var start = 0.0;
+        var start = from;
         for (var i = 0; i < values.Count; i++)
         {
             if (values[i] is not > 0) continue;
-            var end = Math.Min(1, start + values[i]!.Value / total);
+            var end = Math.Min(from + 1, start + values[i]!.Value / total);
             slices.Add(new PieSlice(i, start, end, Slice(start, end, hole)));
             start = end;
         }
@@ -106,7 +107,7 @@ internal static class ChartShapes
         var labels = new List<PieLabel>();
         foreach (var end in new[] { true, false })
         {
-            var side = slices.Where(s => s.Middle < 0.5 == end).ToList();
+            var side = slices.Where(s => s.Middle % 1 < 0.5 == end).ToList();
             var centers = ChartLayout.Spread(side.Select(s => (At(s.Middle, 1.05).Y + 1) / 2 * sizePx).ToList(), sizePx, linePx);
             for (var k = 0; k < side.Count; k++)
             {

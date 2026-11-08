@@ -32,6 +32,11 @@ public class RoundChartTests : BunitContext
         Assert.StartsWith("M0,-1A1,1 0 0,1 1,0", slices[0].Path);
         Assert.Contains("A1,1 0 1,1", slices[1].Path);
 
+        // Turned a quarter (StartAngle 90), the first slice starts at the right; the last crosses the top.
+        var turned = ChartShapes.Pie([1, 2, 1], hole: 0, from: 0.25);
+        Assert.Equal([(0.25, 0.5), (0.5, 1), (1, 1.25)], turned.Select(s => (Math.Round(s.Start, 6), Math.Round(s.End, 6))));
+        Assert.StartsWith("M1,0", turned[0].Path);
+
         // One slice is a whole ring, its hole drawn the other way.
         var ring = Assert.Single(ChartShapes.Pie([5], hole: 0.5));
         Assert.Equal("M0,-1A1,1 0 1,1 0,1A1,1 0 1,1 0,-1ZM0,-0.5A0.5,0.5 0 1,0 0,0.5A0.5,0.5 0 1,0 0,-0.5Z", ring.Path);
