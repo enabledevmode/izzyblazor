@@ -1526,7 +1526,7 @@ internal static class ChartLayout
             if (finite.Length < 2 || finite.Min() == finite.Max()) return;
             (lo, hi) = (finite.Min(), finite.Max());
             model.ZoomPositions = at.Select(x => x is { } v ? (v - lo) / (hi - lo) : double.NaN).ToArray();
-            model.ZoomLeast = Math.Max(1, least - 1) / (double)(finite.Length - 1);
+            model.ZoomLeast = Math.Max(1, Math.Min(least, finite.Length) - 1) / (double)(finite.Length - 1);
         }
 
         // Down the side of a horizontal chart, names are thinned by the script, by the plot's height.
@@ -1609,7 +1609,8 @@ internal static class ChartLayout
                     if (Equals(input.Arguments[i], a) || texts[i] == text) return i;
                 }
 
-                throw new InvalidOperationException($"The Chart's View names \"{text}\", which isn't one of its arguments: give From and To as arguments the chart has.");
+                // Not among them (the items changed since the reader zoomed): that end is open.
+                return fallback;
             }
 
             var (i0, i1) = (Index(v.From, 0), Index(v.To, n - 1));
@@ -1635,7 +1636,8 @@ internal static class ChartLayout
         if (lo > hi) (lo, hi) = (hi, lo);
 
         // Too narrow: the fewest items' span at the data's average spacing, around its middle.
-        var span = (max - min) * Math.Max(1, least - 1) / (values.Length - 1);
+        // (Of the items that have a place: some may have none.)
+        var span = (max - min) * Math.Max(1, Math.Min(least, values.Length) - 1) / (values.Length - 1);
         if (hi - lo < span)
         {
             lo = Math.Clamp((lo + hi - span) / 2, min, max - span);

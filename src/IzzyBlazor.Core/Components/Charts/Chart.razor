@@ -1145,7 +1145,10 @@
         var n = model.ArgumentTexts.Length;
         int Nearest(double share) => Enumerable.Range(0, n).Where(i => !double.IsNaN(model.ZoomPositions![i]))
             .MinBy(i => Math.Abs(model.ZoomPositions![i] - share));
-        var (i0, i1) = (Nearest(f0), Nearest(f1));
+        // Names: the view's ends are band edges, so its first and last items are by index.
+        var (i0, i1) = model.Kind == ArgumentKind.Category
+            ? model.View is { } v ? ((int)v.Lo, (int)v.Hi - 1) : (0, n - 1)
+            : (Nearest(f0), Nearest(f1));
         var height = selector.Height is { } h ? $"--ib-chart-sel-h:{h.Css};" : "";
         var ranges = SelectorRanges(model, selector);
         <div class="ib-chart-sel" role="group" aria-label="@(selector.Label ?? TextDefaults.RangeSelectorName)"
@@ -1464,12 +1467,8 @@
                 }
 
                 w.WriteEndArray();
-                if (horizontal && model.Kind == ArgumentKind.Category)
-                {
-                    w.WriteStartArray("zx");
-                    foreach (var t in model.ArgumentTexts) w.WriteStringValue(t);
-                    w.WriteEndArray();
-                }
+                // Names down the side of a horizontal chart, which the script thins (from zn).
+                if (horizontal && model.Kind == ArgumentKind.Category) w.WriteBoolean("zx", true);
             }
             // The tick count up the side, as the server worked it out from Height.
             w.WriteNumber("vc", Math.Max(2, (int)Math.Round(Math.Max(80, HeightInPixels(Height)) / 56)));

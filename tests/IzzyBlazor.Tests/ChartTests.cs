@@ -105,6 +105,9 @@ public class ChartLayoutTests
         // Too narrow a view grows to MinZoomSpan items.
         var one = ChartLayout.Build(input with { View = new ChartView("March", "March"), MinZoomSpan = 4 });
         Assert.Equal(4, one.BandCount);
+
+        // A name the items no longer have (they changed since the reader zoomed) leaves that end open.
+        Assert.Equal(5, ChartLayout.Build(input with { View = new ChartView("Smarch", "May") }).BandCount);
     }
 
     [Fact]

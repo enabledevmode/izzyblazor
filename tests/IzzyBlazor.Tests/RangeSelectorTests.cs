@@ -49,4 +49,15 @@ public class RangeSelectorTests : BunitContext
         Assert.Equal(1, three[1], 6);
         Assert.InRange(three[0], 0.74, 0.76);
     }
+
+    [Fact]
+    public void On_names_the_handles_name_the_first_and_last_in_view()
+    {
+        string[] months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var selector = Render<RangeSelector<string>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m)
+            .Add(c => c.View, new ChartView("Feb", "May")));
+        Assert.Equal(["Feb", "May"], selector.FindAll("[role=slider]").Select(h => h.GetAttribute("aria-valuetext")));
+    }
 }

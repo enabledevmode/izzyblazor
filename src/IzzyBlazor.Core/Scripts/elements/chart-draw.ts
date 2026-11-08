@@ -73,7 +73,7 @@ export interface DrawData {
   ag?: boolean;
   zv?: [number, number];
   zt?: [number, [number, string, string | null, number, string | null][]][];
-  zx?: string[]; // names down the side of a horizontal chart, which the script thins
+  zx?: boolean; // names down the side of a horizontal chart (zn), which the script thins
   zs?: string; // what's said on a zoom, "Showing {0} to {1}"
   zn?: string[]; // each item's argument as text, for it
 }
@@ -655,12 +655,13 @@ export function zoomArgs(d: DrawData, view: View, plotLength: number): ZoomArgs 
 
   if (d.zx) {
     // Down the side: one line each, every 1st, 2nd, 4th… name as the bands narrow.
-    const n = d.zx.length, bands = n * span;
+    const names = d.zn ?? [];
+    const n = names.length, bands = n * span;
     let stride = 1;
     while (bands / stride > 1 && (plotLength / bands) * stride < 18) stride *= 2;
     for (let i = 0; i < n; i += stride) {
       const p = place((i + 0.5) / n);
-      if (inView(p)) labels += `<span style="${at(p)}" title="${esc(d.zx[i])}">${esc(d.zx[i])}</span>`;
+      if (inView(p)) labels += `<span style="${at(p)}" title="${esc(names[i])}">${esc(names[i])}</span>`;
     }
     for (let i = 1; i < n; i++) gridAt(place(i / n));
     return { labels, grid, room };
