@@ -41,7 +41,10 @@
         var texts = values.Select(v => v is { } x ? x.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture) : null).ToArray();
         var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
         var outside = Labels is ChartLabels.Outside or ChartLabels.Auto;
-        var beside = outside ? ChartShapes.PieLabels(slices, SizeInPixels, 20) : [];
+        // Inside, a slice too thin for its share gets a label beside the circle instead.
+        var thin = Labels == ChartLabels.Inside ? slices.Where(s => s.End - s.Start < InsideMin).ToList() : [];
+        var ringed = outside || thin.Count > 0;
+        var beside = outside ? ChartShapes.PieLabels(slices, SizeInPixels, 20) : ChartShapes.PieLabels(thin, SizeInPixels, 20);
         // Labels beside the circle take the legend's place: the circle centers between them.
         var pieClass = outside && Legend == ChartLegend.Auto ? "ib-pie ib-pie-labeled" : outside ? PieClass + " ib-pie-labeled" : PieClass;
     }
@@ -53,8 +56,8 @@
             @* With labels beside it, the circle sits between two columns of them, each slice's name
                and share joined to it by a line; the legend stands in when there's no room (chart.css).
                Without, this wrapper has no box of its own. *@
-            <div class="@(outside ? "ib-pie-ring" : "ib-pie-unringed")">
-            @if (outside)
+            <div class="@(ringed ? "ib-pie-ring" : "ib-pie-unringed")">
+            @if (ringed)
             {
                 <div class="ib-pie-labels ib-pie-labels-start" aria-hidden="true">
                     @foreach (var label in beside.Where(l => !l.End))
@@ -85,7 +88,7 @@
                 {
                     @* Each share in its slice, where it fits; the legend names them. *@
                     <div class="ib-pie-inside" aria-hidden="true">
-                        @foreach (var slice in slices.Where(s => s.End - s.Start >= 0.06))
+                        @foreach (var slice in slices.Where(s => s.End - s.Start >= InsideMin))
                         {
                             var (x, y) = ChartShapes.PieInside(slice, Donut ? ChartShapes.DonutHole : 0);
                             <span class="@Slot(slice.Index)" style="left:@(Num(x * 100))%;top:@(Num(y * 100))%">@shares[slice.Index]</span>
@@ -101,7 +104,7 @@
                     <div class="ib-chart-tooltip" hidden></div>
                 }
             </div>
-            @if (outside)
+            @if (ringed)
             {
                 <div class="ib-pie-labels" aria-hidden="true">
                     @foreach (var label in beside.Where(l => l.End))
@@ -281,14 +284,18 @@
     /// Labels each slice on the chart. <see cref="ChartLabels.Outside"/> (or <see cref="ChartLabels.Auto"/>)
     /// writes each slice's name and share in a column beside the circle, joined to it by a line,
     /// and leaves the legend out; when there's no room beside the circle (under 40rem), the legend
-    /// stands in. <see cref="ChartLabels.Inside"/> writes each share in its slice, where it fits,
-    /// with the legend naming them. None by default.
+    /// stands in. <see cref="ChartLabels.Inside"/> writes each share in its slice, with the legend
+    /// naming them; a slice too thin for it (under 6% of the circle) gets its name and share beside
+    /// the circle, joined by a line, where there's room. None by default.
     /// </summary>
     [Parameter] public ChartLabels Labels { get; set; }
 
     // The circle's size the labels are spread for: Size in pixels or rems, or 16rem.
     private double SizeInPixels => Size?.Css is { } css && System.Text.RegularExpressions.Regex.Match(css, @"^([\d.]+)(px|rem)$") is { Success: true } m
         && double.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? m.Groups[2].Value == "rem" ? v * 16 : v : 256;
+
+    // The smallest slice a share is written in (Labels Inside): 6% of the turn.
+    private const double InsideMin = 0.06;
 
     // A label beside the circle: the slice's name and share, level with where it's placed.
     private static RenderFragment PieLabelText(PieLabel label, string[] names, string?[] shares) => @<span class="@Slot(label.Index)" style="top:@(Num(label.Pos * 100))%">@names[label.Index] <span class="ib-pie-label-share">@shares[label.Index]</span></span>;
