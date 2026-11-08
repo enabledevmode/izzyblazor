@@ -14,7 +14,6 @@
   .ib-treemap {
     font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
     line-height: 1.25;
-    font-variant-numeric: tabular-nums;
   }
 
   .ib-treemap-plot {
@@ -55,7 +54,8 @@
     padding-inline: 6px;
     overflow: hidden;
     border-radius: 2px;
-    background: var(--ib-color-fill-subtle);
+    /* A band clear of the surface: in dark mode the subtle fill is all but the surface itself. */
+    background: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill-strong));
     color: var(--ib-color-on-surface);
     line-height: 22px;
     white-space: nowrap;
