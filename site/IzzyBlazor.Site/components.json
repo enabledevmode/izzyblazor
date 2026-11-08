@@ -2448,7 +2448,7 @@
       "features": [
         { "feature": "Under a chart's plot, the chart's series drawn small, zooming the chart" },
         { "feature": "On its own, a range over its own items, to filter a grid or sum a total" },
-        { "feature": "A window with two handles, each with its value in a flag, and the rest shaded" },
+        { "feature": "A window with two handles, each with its value in a flag (under a chart, while the handle is in use), and the rest shaded" },
         { "feature": "Buttons for the last 1, 3 and 6 months, the year to date, a year and everything, or spans of your own", "noscript": "none" },
         { "feature": "Dragging the window or a handle, a click on the strip, and the keys on each handle", "noscript": "none" },
         { "feature": "The range chosen reported to C# (@bind-View)", "noscript": "none", "static": "none" }
