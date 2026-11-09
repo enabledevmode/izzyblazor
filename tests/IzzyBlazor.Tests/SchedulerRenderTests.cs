@@ -13,7 +13,20 @@ public class SchedulerRenderTests : BunitContext
         public DateTime End { get; set; }
     }
 
-    public SchedulerRenderTests() => SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+    private readonly System.Globalization.CultureInfo _culture = System.Globalization.CultureInfo.CurrentCulture;
+
+    // The names and times read in US English, whatever the machine's culture (CI's is invariant).
+    public SchedulerRenderTests()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        System.Globalization.CultureInfo.CurrentCulture = _culture;
+        base.Dispose(disposing);
+    }
 
     [Fact]
     public void An_appointment_opens_in_the_form_and_a_save_copies_its_new_times_to_it()
