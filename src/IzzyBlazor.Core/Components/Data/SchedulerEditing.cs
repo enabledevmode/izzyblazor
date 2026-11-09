@@ -35,6 +35,9 @@ public sealed class SchedulerEditFields
     /// <summary>The description, when the Scheduler has one.</summary>
     public string? Description { get; set; }
 
+    /// <summary>The category, when the Scheduler has categories: a <c>SchedulerCategory</c>'s <c>Value</c>.</summary>
+    public string? Category { get; set; }
+
     /// <summary>Set by the form's Delete button.</summary>
     public bool Remove { get; set; }
 
@@ -85,11 +88,14 @@ public sealed class SchedulerSave<TItem>
     /// <summary>The description, when the Scheduler has one.</summary>
     public string? Description => Fields.Description;
 
+    /// <summary>The category, when the Scheduler has categories.</summary>
+    public string? Category => Fields.Category;
+
     internal bool HasErrors { get; private set; }
 
     /// <summary>
-    /// Sets the Scheduler's <c>Start</c>, <c>End</c>, <c>Title</c>, <c>AllDay</c> and
-    /// <c>Description</c> properties on <paramref name="target"/> from the form, such as a new
+    /// Sets the Scheduler's <c>Start</c>, <c>End</c>, <c>Title</c>, <c>AllDay</c>,
+    /// <c>Description</c> and <c>Category</c> properties on <paramref name="target"/> from the form, such as a new
     /// appointment or one just read from the database, and leaves the rest of it alone.
     /// </summary>
     public void CopyTo(TItem target) => _copy(target);

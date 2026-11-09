@@ -30,6 +30,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--ib-space-3);
+    box-sizing: border-box;
+    /* As wide as its container, in a flex or grid parent too: the views don't size to their content. */
+    width: 100%;
     min-width: 0;
     color: var(--ib-color-on-surface);
   }
@@ -73,8 +76,6 @@
   .ib-sched-name { font-weight: var(--ib-weight-semibold); }
   .ib-sched-time { color: color-mix(in oklab, var(--ib-color-on-surface) 75%, var(--ib-sched-color)); }
 
-  ib-scheduler { display: flex; }
-
   /* With script: an empty time takes a click (a new appointment), a box a drag or its bottom edge. */
   ib-scheduler[data-ib-new][data-ib-ready] :is(.ib-sched-col, .ib-sched-cell) { cursor: copy; }
   ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event { cursor: grab; touch-action: none; }
@@ -108,6 +109,9 @@
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: var(--ib-space-3);
   }
+  /* All day: the days only, with no script too. */
+  form:has(.ib-sched-allday-field input:checked) .ib-sched-when { grid-template-columns: minmax(0, 1fr); }
+  form:has(.ib-sched-allday-field input:checked) .ib-sched-time-field { display: none; }
 
   /* ---- Day, week, work week ---- */
   .ib-sched-cols {
@@ -122,6 +126,14 @@
   .ib-sched-grid {
     display: grid;
     grid-template-columns: var(--ib-sched-columns);
+  }
+  /* The hours' scrollbar takes room from their columns: the header and the all-day row keep the
+     same room, so the columns line up above and below it. */
+  .ib-sched-head,
+  .ib-sched-allday,
+  .ib-sched-scroll {
+    overflow-y: hidden;
+    scrollbar-gutter: stable;
   }
   .ib-sched-head { border-block-end: 1px solid var(--ib-color-border); }
   .ib-sched-day-head {
@@ -171,6 +183,11 @@
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  .ib-sched-bar-event > .ib-sched-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .ib-sched-cont-start { margin-inline-start: 0; border-start-start-radius: 0; border-end-start-radius: 0; }
   .ib-sched-cont-end { margin-inline-end: 0; border-start-end-radius: 0; border-end-end-radius: 0; }
 
@@ -198,12 +215,37 @@
   :is(.ib-sched-col, .ib-sched-allday-cell, .ib-sched-cell).ib-sched-weekend { background-color: var(--ib-color-surface-sunken); }
   .ib-sched-col .ib-sched-event {
     position: absolute;
+    border-radius: var(--ib-radius-md);
     padding: 0.125rem 0.375rem;
     border: 1px solid var(--ib-color-surface);
     border-inline-start: 3px solid var(--ib-sched-color);
   }
   .ib-sched-col .ib-sched-event > span > span { display: block; }
-  .ib-sched-short > span > .ib-sched-time { display: none; }
+  /* Under 45 minutes: one line, the title then its start (MUI's), centered in the box. */
+  .ib-sched-col .ib-sched-short {
+    /* Never under a quarter hour's height, so ten minutes still reads. */
+    min-height: calc(var(--ib-sched-hour) / 4 - 1px);
+    display: flex;
+    align-items: center;
+    padding-block: 0;
+    /* Small enough to fit a quarter hour. */
+    font-size: 0.6875rem;
+    line-height: 1.1;
+  }
+  .ib-sched-col .ib-sched-short > span[aria-hidden] {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .ib-sched-col .ib-sched-short > span > span { display: inline; }
+  .ib-sched-col .ib-sched-short .ib-sched-name { flex: none; }
+  .ib-sched-col .ib-sched-short .ib-sched-time {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   /* Now, across today's column. */
   .ib-sched-now {
     position: absolute;
