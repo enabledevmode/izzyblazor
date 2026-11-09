@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits PieChartBase<TItem>
 @attribute [ModeSupport]
 @using System.Globalization
@@ -43,9 +44,31 @@
     {
         <figcaption id="@_labelId" class="@TitleClass">@Title</figcaption>
     }
+    <CascadingValue Value="_drill" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
     @{
-        var (items, names) = ReadItems();
-        var values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
+        // Drill-down: the level in the address, its groups as the slices, their values added up.
+        // Until the levels have registered (the first pass), a chart with no Argument draws nothing.
+        var drilled = _drill.Levels.Count > 0 ? ChartDrill.At(Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [], _drill.Levels, Navigation, ChartDrill.KeyOf(Drill), AdditionalAttributes, TextDefaults) : null;
+        IReadOnlyList<TItem> items;
+        string[] names;
+        double?[] values;
+        if (drilled is not null)
+        {
+            items = drilled.Firsts;
+            names = drilled.Arguments.Select(a => ChartLayout.ArgumentText(a, null, CultureInfo.CurrentCulture)).ToArray();
+            values = drilled.Total(drilled.Rows.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray(), Aggregate);
+        }
+        else if (_argument is not null)
+        {
+            (items, names) = ReadItems();
+            values = items.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray();
+        }
+        else
+        {
+            (items, names, values) = ([], [], []);
+        }
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
         var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, StartTurn);
         var texts = values.Select(FormatValue).ToArray();
@@ -67,7 +90,12 @@
             : TextWidths.AtSize(named ? $"{names[l.Index]} {shares[l.Index]}" : shares[l.Index] ?? "", 14)).DefaultIfEmpty(0).Max();
         var room = $"--ib-pie-room-x:{Num(Math.Ceiling(widest + SizeInPixels * 0.11 + 8))}px;--ib-pie-room-y:{Num(Math.Ceiling(SizeInPixels * 0.15 + 10))}px";
     }
+    @if (drilled is { Depth: > 0 } && !HideBreadcrumb)
+    {
+        @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop)
+    }
     <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
+              data-ib-drilled="@drilled?.Said" data-ib-drill="@drilled?.Key" data-ib-deeper="@(drilled?.Hrefs is not null ? "" : null)"
               data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
               data-ib-draw="@(Legend != ChartLegend.None ? DrawData([values], [(Donut ? ChartShapes.DonutHole : 0, 1)], Labels switch { ChartLabels.None => 0, ChartLabels.Inside => 2, _ => 1 }) : null)"
@@ -169,6 +197,10 @@
                             <span>@TextDefaults.ChartShare</span>
                             <span class="ib-chart-tooltip-value" data-ib-share="@i">@shares[i]</span>
                         </div>
+                        @if (drilled?.Hint is { } hint && drilled.Hrefs![i] is not null)
+                        {
+                            <div class="ib-chart-tooltip-hint">@hint</div>
+                        }
                     </div>
                 }
             </div>
@@ -198,7 +230,10 @@
                         @for (var i = 0; i < items.Count; i++)
                         {
                             <tr>
-                                <th scope="row">@names[i]</th>
+                                <th scope="row">@if (drilled?.Hrefs?[i] is { } href)
+                                {<a href="@href" data-ib-drill="@i">@names[i]</a>}
+                                else
+                                {@names[i]}</th>
                                 <td>@texts[i]</td>
                                 <td>@shares[i]</td>
                             </tr>
@@ -211,6 +246,45 @@
 </figure>
 
 @code {
+    /// <summary>
+    /// <see cref="ChartDrillLevel{TItem}"/>s, from the top, for slices that drill down: each level's
+    /// groups are the slices (the level's argument in place of <see cref="PieChartBase{TItem}.Argument"/>),
+    /// their values added up by <see cref="Aggregate"/>, and selecting one shows the next level.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>With drill-down levels: the page address's query value that holds the level ("drill" by default; give each chart that drills on a page its own).</summary>
+    [Parameter] public string? Drill { get; set; }
+
+    /// <summary>With drill-down levels: leaves out the breadcrumb above the chart.</summary>
+    [Parameter] public bool HideBreadcrumb { get; set; }
+
+    /// <summary>With drill-down levels, how each slice adds up its items' values: Sum by default, or Avg, Min, Max or Count.</summary>
+    [Parameter] public DataAggregate Aggregate { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private ChartDrillLevels<TItem>? _drillLevels;
+
+    private ChartDrillLevels<TItem> _drill => _drillLevels ??= new ChartDrillLevels<TItem>(StateHasChanged);
+
+    private protected override bool Drills => ChildContent is not null;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (RendererInfo.IsInteractive) Navigation.LocationChanged += Moved;
+    }
+
+    // Interactive: the address changed (a drill link or Back): draw the level it names.
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (_drillLevels is { Levels.Count: > 0 }) _ = InvokeAsync(StateHasChanged);
+    }
+
+    private protected override void Disposing() => Navigation.LocationChanged -= Moved;
+
     /// <summary>Each slice's size, such as <c>p =&gt; p.Customers</c>: any number. The slices share the circle by their values.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
 

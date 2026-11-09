@@ -611,6 +611,7 @@
      and the breadcrumb above the chart. */
   .ib-chart-drills > a { position: absolute; z-index: 1; }
   ib-chart[data-ib-zargs] .ib-chart-drills { display: none; }
+  ib-chart[data-ib-deeper] :is(.ib-pie-slice, .ib-treemap-tile) { cursor: pointer; }
   .ib-chart-crumbs { margin-block-end: var(--ib-space-2); }
 
   .ib-chart-tooltip-row {
