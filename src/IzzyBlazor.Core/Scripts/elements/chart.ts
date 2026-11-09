@@ -1,12 +1,17 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import type { DrawData, PieDrawData, View, draw as Draw, drawPie as DrawPie, zoomArgs as ZoomArgs } from "./chart-draw";
+import type { DrawData, View, draw as Draw, zoomArgs as ZoomArgs } from "./chart-draw";
+import type { drawPie as DrawPie } from "./chart-draw-pie";
 import type { heat as Heat } from "./chart-heat";
+import type { pie as Pie } from "./chart-pie";
+import type { gestures as Gestures } from "./chart-gesture";
+import type { selector as Selector } from "./chart-select";
+import type { Peer, SyncAt } from "./chart-sync";
 import type { radar as Radar } from "./chart-radar";
 import type { sankey as Sankey } from "./chart-sankey";
 import type { treemap as Treemap } from "./chart-treemap";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
-type DrawModule = { draw: typeof Draw; drawPie: typeof DrawPie; zoomArgs: typeof ZoomArgs };
+type DrawModule = { draw: typeof Draw; zoomArgs: typeof ZoomArgs };
 let drawing: Promise<DrawModule> | undefined;
 /** A view kept within the whole axis and at least `least` wide; too narrow or wide, it keeps its middle. */
 const clampView = (from: number, to: number, least: number): View => {
@@ -16,73 +21,13 @@ const clampView = (from: number, to: number, least: number): View => {
 };
 
 const loadModule = () => (drawing ??= import("./parts/chart-draw.js" as string) as Promise<DrawModule>);
+// The RangeSelector's part (chart-select.ts), loaded where there's one.
+const loadSelector = () => import("./parts/chart-select.js" as string) as Promise<{ selector: typeof Selector }>;
 
-// Synced charts (Chart Sync): what they match by (data-ib-sync-at): bands or a scale, names (text)
-// or values, each item's argument (names as text, dates as ticks, numbers), and zooming on a
-// scale its ends in its units, a log axis's as powers of ten.
-type SyncAt = { c: boolean; t: boolean; k: (number | string | null)[]; d?: [number, number]; g?: boolean };
-// A view passed between them: its first and last arguments (names or values), or null for everything.
-type SyncView = { t: boolean; a: number | string; b: number | string } | null;
-type Peer = { view?: (m: SyncView) => void; settle?: () => void; hover?: (t: boolean, at: number | string | null) => void };
-const groups = new Map<string, Set<Peer>>();
-/** Joins the charts named alike on the page; returns a call to each of the others. */
-const joinSync = (name: string, peer: Peer, signal: AbortSignal) => {
-  const group = groups.get(name) ?? new Set<Peer>();
-  groups.set(name, group);
-  group.add(peer);
-  signal.addEventListener("abort", () => {
-    group.delete(peer);
-    if (group.size === 0) groups.delete(name);
-  });
-  return (call: (p: Peer) => void) => {
-    for (const p of [...group]) if (p !== peer) call(p);
-  };
-};
-const scaleShare = (s: SyncAt, x: number) => ((s.g ? Math.log10(x) : x) - s.d![0]) / (s.d![1] - s.d![0] || 1);
-const scaleValue = (s: SyncAt, f: number) => ((c) => (s.g ? 10 ** c : c))(s.d![0] + f * (s.d![1] - s.d![0]));
-/** A chart's view as its first and last arguments; undefined when it can't say (a scale with no zoom). */
-const viewOut = (s: SyncAt, v: View): SyncView | undefined => {
-  if (s.c) {
-    const n = s.k.length;
-    const i = Math.min(n - 1, Math.max(0, Math.floor(v[0] * n + 1e-6)));
-    const j = Math.min(n - 1, Math.max(i, Math.ceil(v[1] * n - 1e-6) - 1));
-    return s.k[i] === null || s.k[j] === null ? undefined : { t: s.t, a: s.k[i]!, b: s.k[j]! };
-  }
-  return s.d ? { t: false, a: scaleValue(s, v[0]), b: scaleValue(s, v[1]) } : undefined;
-};
-/** Another chart's view on this one's axis, cut to its ends; undefined when they don't meet. */
-const viewIn = (s: SyncAt, m: SyncView): View | undefined => {
-  if (m === null) return [0, 1];
-  if (m.t !== s.t) return;
-  const n = s.k.length;
-  if (s.c) {
-    // Bands: from the first item in the range to the last, by name or by value.
-    // By value, with room for rounding: dates as ticks come back from shares a little off.
-    const values = s.k.filter((k): k is number => typeof k === "number");
-    const eps = values.length > 1 ? 1e-6 * (Math.max(...values) - Math.min(...values)) : 0;
-    const [lo, hi] = m.t ? [m.a, m.b] : [Math.min(m.a as number, m.b as number) - eps, Math.max(m.a as number, m.b as number) + eps];
-    const inside = s.k.flatMap((k, i) => (m.t ? k === lo || k === hi : typeof k === "number" && k >= (lo as number) && k <= (hi as number)) ? [i] : []);
-    return inside.length === 0 ? undefined : [Math.min(...inside) / n, (Math.max(...inside) + 1) / n];
-  }
-  if (!s.d) return;
-  // On a log axis, a value at or below zero is before its start.
-  const share = (x: number) => (s.g && x <= 0 ? -Infinity : scaleShare(s, x));
-  const [a, b] = [share(m.a as number), share(m.b as number)].sort((x, y) => x - y);
-  return Math.min(1, b) - Math.max(0, a) > 1e-9 ? [Math.max(0, a), Math.min(1, b)] : undefined;
-};
-/** The item at another chart's argument: the same name, or by value the nearest within its ends. */
-const itemAt = (s: SyncAt, t: boolean, at: number | string | null) => {
-  if (at === null || t !== s.t) return -1;
-  if (s.t) return s.k.indexOf(at);
-  let best = -1;
-  let [lo, hi] = [Infinity, -Infinity];
-  s.k.forEach((k, i) => {
-    if (typeof k !== "number") return;
-    [lo, hi] = [Math.min(lo, k), Math.max(hi, k)];
-    if (best < 0 || Math.abs(k - (at as number)) < Math.abs((s.k[best] as number) - (at as number))) best = i;
-  });
-  return (at as number) < lo || (at as number) > hi ? -1 : best;
-};
+// Synced charts (Chart Sync): their part (chart-sync.ts), loaded where a chart has a Sync name.
+type SyncModule = typeof import("./chart-sync");
+let syncing: Promise<SyncModule> | undefined;
+const loadSync = () => (syncing ??= import("./parts/chart-sync.js" as string) as Promise<SyncModule>);
 
 /**
  * <ib-chart> adds to a Chart the server drew: a tooltip for the item under the pointer, the
@@ -117,7 +62,10 @@ class Chart extends IzzyElement {
     signal.addEventListener("abort", () => changed.disconnect());
 
     if (this.hasAttribute("data-ib-pie")) {
-      this.pie(signal);
+      // A PieChart or NestedDonutChart: its own part (chart-pie.ts).
+      (import("./parts/chart-pie.js" as string) as Promise<{ pie: typeof Pie }>).then((m) => {
+        if (!signal.aborted) m.pie(this, signal, (frame) => this.keyboard(frame, signal), () => import("./parts/chart-draw-pie.js" as string) as Promise<{ drawPie: typeof DrawPie }>);
+      });
       return;
     }
 
@@ -166,7 +114,16 @@ class Chart extends IzzyElement {
       // Synced (Sync): it zooms the charts named alike, and follows them.
       const at: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
       const peer: Peer = {};
-      const others = at && this.dataset.ibSync && this.hasAttribute("data-ib-sync-view") ? joinSync(this.dataset.ibSync, peer, signal) : null;
+      let sync: SyncModule | undefined;
+      let others: ((call: (p: Peer) => void) => void) | null = null;
+      if (at && this.dataset.ibSync && this.hasAttribute("data-ib-sync-view")) {
+        const name = this.dataset.ibSync;
+        loadSync().then((m) => {
+          if (signal.aborted) return;
+          sync = m;
+          others = m.joinSync(name, peer, signal);
+        });
+      }
       // Moved here since the last settle (not only by another chart), and a settle on its way.
       let local = false;
       let pending = false;
@@ -188,21 +145,23 @@ class Chart extends IzzyElement {
         v = clampView(from, to, d.zl ?? 0);
         show();
         if (share) local = true;
-        if (share && at) {
-          const m = viewOut(at, v);
+        if (share && at && sync) {
+          const m = sync.viewOut(at, v);
           if (m !== undefined) others?.((p) => p.view?.(m));
         }
         if (settle) report();
       };
       peer.view = (m) => {
-        const nv = viewIn(at!, m);
+        const nv = sync!.viewIn(at!, m);
         if (nv) set(nv[0], nv[1], false, false);
       };
       // Its own settle on the way says it all.
       peer.settle = () => {
         if (!(pending && local)) report();
       };
-      show = this.selector(lone, d, () => v, set, report, signal, null);
+      loadSelector().then((m) => {
+        if (!signal.aborted) show = m.selector(this, lone, d, () => v, set, report, signal, null);
+      });
       return;
     }
 
@@ -247,8 +206,17 @@ class Chart extends IzzyElement {
     // Synced (Sync): the charts named alike, which it zooms and hovers with.
     const syncAt: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
     const peer: Peer = {};
-    const others = syncAt && this.dataset.ibSync ? joinSync(this.dataset.ibSync, peer, signal) : null;
-    const syncView = !!others && zoomOn && this.hasAttribute("data-ib-sync-view");
+    let sync: SyncModule | undefined;
+    let others: ((call: (p: Peer) => void) => void) | null = null;
+    const syncName = syncAt ? this.dataset.ibSync : undefined;
+    if (syncName) {
+      loadSync().then((m) => {
+        if (signal.aborted) return;
+        sync = m;
+        others = m.joinSync(syncName, peer, signal);
+      });
+    }
+    const syncView = !!syncName && zoomOn && this.hasAttribute("data-ib-sync-view");
     const drawnView: View = data?.zv ?? [0, 1];
     let view: View = [drawnView[0], drawnView[1]];
     const zargs = this.querySelector<HTMLElement>(".ib-chart-zargs");
@@ -397,7 +365,7 @@ class Chart extends IzzyElement {
           const range = data!.zs.replace("{0}", data!.zn[inView[0][1]]).replace("{1}", data!.zn[inView[inView.length - 1][1]]);
           zoomLive.textContent = joinNext && zoomLive.textContent ? `${zoomLive.textContent}. ${range}` : range;
         }
-        if (local && syncView) others!((p) => p.settle?.());
+        if (local && syncView) others?.((p) => p.settle?.());
         local = false;
         joinNext = false;
         if (this.hasAttribute("data-ib-interactive")) {
@@ -411,15 +379,15 @@ class Chart extends IzzyElement {
       redraw();
       showSelector();
       if (share) local = true;
-      if (share && syncView) {
-        const m = resetting ? null : viewOut(syncAt!, view);
-        if (m !== undefined) others!((p) => p.view?.(m));
+      if (share && syncView && sync) {
+        const m = resetting ? null : sync.viewOut(syncAt!, view);
+        if (m !== undefined) others?.((p) => p.view?.(m));
       }
       if (report) settled();
     };
     if (syncView) {
       peer.view = (m) => {
-        const v = viewIn(syncAt!, m);
+        const v = sync!.viewIn(syncAt!, m);
         if (v) setView(v[0], v[1], false, false);
       };
       // Its own settle on the way says it all.
@@ -451,7 +419,14 @@ class Chart extends IzzyElement {
 
     // A RangeSelector under the plot.
     const sel = this.querySelector<HTMLElement>(".ib-chart-sel");
-    if (zoomOn && sel && data) showSelector = this.selector(sel, data, () => view, setView, settled, signal, plot);
+    if (zoomOn && sel && data) {
+      loadSelector().then((m) => {
+        if (signal.aborted) return;
+        showSelector = m.selector(this, sel, data, () => view, setView, settled, signal, plot);
+        // A view taken in while it loaded.
+        if (!sameView()) showSelector();
+      });
+    }
     const setHidden = (series: number, isOff: boolean) => {
       if (isOff) hidden.add(series);
       else hidden.delete(series);
@@ -647,14 +622,14 @@ class Chart extends IzzyElement {
     };
 
     // Synced hover (Sync): the item shown here shows in the charts named alike, at its argument.
-    const syncHover = !!others && tipsOn && this.hasAttribute("data-ib-sync-hover");
+    const syncHover = !!syncName && tipsOn && this.hasAttribute("data-ib-sync-hover");
     let told: number | string | null | undefined;
     const tellHover = () => {
       if (!syncHover) return;
       const at = !tooltip.hidden && current >= 0 ? (syncAt!.k[current] ?? null) : null;
       if (at === told) return;
       told = at;
-      others!((p) => p.hover?.(syncAt!.t, at));
+      others?.((p) => p.hover?.(syncAt!.t, at));
     };
     // Hidden here by the reader: hidden in the others too.
     const drop = () => {
@@ -665,7 +640,7 @@ class Chart extends IzzyElement {
       peer.hover = (t, at) => {
         // Another chart has the pointer now: this one tells again next time, even the same item.
         told = undefined;
-        const i = itemAt(syncAt!, t, at);
+        const i = sync!.itemAt(syncAt!, t, at);
         // The reader's own item (by the keys) stays; one shown for another chart follows it.
         if (byKeys && document.activeElement === frame) return;
         if (i < 0) {
@@ -814,541 +789,16 @@ class Chart extends IzzyElement {
       { signal }
     );
 
-    // Zoom's gestures: a drag across the plot draws a box to zoom into, Ctrl (⌘) and the wheel or
-    // a trackpad's pinch zoom at the pointer, Shift and the wheel pan; on touch two fingers pinch
-    // and pan, and one still scrolls the page.
+    // Zoom's gestures: their part (chart-gesture.ts), loaded where a chart zooms.
     if (!gestures) return;
-    const brush =plot.querySelector<HTMLElement>(".ib-chart-brush");
-    const length = () => (horizontal ? plot.clientHeight : plot.clientWidth);
-    const fracOf = (x: number, y: number) => {
-      const r = plot.getBoundingClientRect();
-      return horizontal ? (y - r.top) / r.height : (x - r.left) / r.width;
-    };
-    const touches = new Map<number, [number, number]>();
-    let pinch: { share: number; span: number; dist: number } | null = null;
-    let box: { from: number; x: number; y: number; id: number } | null = null;
-    const two = () => [...touches.values()];
-    const pinchState = () => {
-      const [a, b] = two();
-      return { mid: fracOf((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), dist: Math.hypot(a[0] - b[0], a[1] - b[1]) };
-    };
-    plot.addEventListener(
-      "pointerdown",
-      (event) => {
-        if ((event.target as Element).closest(".ib-chart-reset")) return;
-        if (event.pointerType === "touch") {
-          touches.set(event.pointerId, [event.clientX, event.clientY]);
-          if (touches.size === 2) {
-            const { mid, dist } = pinchState();
-            pinch = { share: shareAt(mid), span: view[1] - view[0], dist };
-            gesturing = true;
-            drop();
-          }
-          return;
-        }
-        if (event.button !== 0) return;
-        box = { from: fracOf(event.clientX, event.clientY), x: event.clientX, y: event.clientY, id: event.pointerId };
-      },
-      { signal }
-    );
-    plot.addEventListener(
-      "pointermove",
-      (event) => {
-        if (touches.has(event.pointerId)) {
-          touches.set(event.pointerId, [event.clientX, event.clientY]);
-          if (pinch && touches.size === 2) {
-            const { mid, dist } = pinchState();
-            const span = Math.min(1, Math.max(data!.zl ?? 0, (pinch.span * pinch.dist) / Math.max(1, dist)));
-            const f = data!.ar ? 1 - mid : mid;
-            setView(pinch.share - f * span, pinch.share - f * span + span, false);
-          }
-          return;
-        }
-        if (!box || event.pointerId !== box.id) return;
-        // Released outside the plot before it was captured: no box.
-        if ((event.buttons & 1) === 0) {
-          box = null;
-          return;
-        }
-        if (!this.hasAttribute("data-ib-brushing")) {
-          if (Math.hypot(event.clientX - box.x, event.clientY - box.y) < 4) return;
-          plot.setPointerCapture(event.pointerId);
-          this.setAttribute("data-ib-brushing", "");
-          gesturing = true;
-          drop();
-        }
-        const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
-        const [a, b] = [Math.min(box.from, to), Math.max(box.from, to)];
-        if (brush) brush.style.cssText = horizontal ? `top:${a * 100}%;height:${(b - a) * 100}%;left:0;width:100%` : `left:${a * 100}%;width:${(b - a) * 100}%;top:0;height:100%`;
-      },
-      { signal }
-    );
-    const release = (event: PointerEvent) => {
-      if (touches.delete(event.pointerId) && pinch) {
-        pinch = null;
-        gesturing = false;
-        settled();
-        return;
-      }
-      if (!box || event.pointerId !== box.id) return;
-      const from = box.from;
-      box = null;
-      if (!this.hasAttribute("data-ib-brushing")) return;
-      this.removeAttribute("data-ib-brushing");
-      gesturing = false;
-      const to = Math.min(1, Math.max(0, fracOf(event.clientX, event.clientY)));
-      if (Math.abs(to - from) * length() < 6) return;
-      const [a, b] = [shareAt(from), shareAt(to)].sort((x, y) => x - y);
-      zoomTo(a, b);
-    };
-    plot.addEventListener("pointerup", release, { signal });
-    plot.addEventListener("pointercancel", release, { signal });
-    plot.addEventListener(
-      "wheel",
-      (event) => {
-        if (event.ctrlKey || event.metaKey) {
-          event.preventDefault();
-          drop();
-          zoomAround(shareAt(fracOf(event.clientX, event.clientY)), Math.exp(event.deltaY * 0.002), false);
-          settled(300);
-        } else if (isZoomed() && (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY))) {
-          event.preventDefault();
-          const by = ((event.shiftKey ? event.deltaY || event.deltaX : event.deltaX) / length()) * (view[1] - view[0]) * (data!.ar ? -1 : 1);
-          setView(view[0] + by, view[1] + by, false);
-          settled(300);
-        }
-      },
-      { signal, passive: false }
-    );
-  }
-
-  /**
-   * A PieChart: the tooltip is for the slice under the pointer, found from its angle and distance
-   * from the middle (data-ib-pos holds each slice's start and end as shares of the turn); the arrow
-   * keys move between slices.
-   */
-  private pie(signal: AbortSignal): void {
-    const plot = this.querySelector<HTMLElement>(".ib-pie-plot");
-    const frame = this.querySelector<HTMLElement>(".ib-pie-frame");
-    const tooltip = this.querySelector<HTMLElement>(".ib-chart-tooltip");
-    const tips = this.querySelectorAll<HTMLElement>(".ib-chart-tips > [data-ib-tip]");
-    const live = this.querySelector<HTMLElement>("[data-ib-live]");
-    if (!plot || !frame) return;
-
-    const hole = Number(this.dataset.ibPie) || 0;
-    // A nested donut's rings, outer first, each as thick as the next; its slices are numbered
-    // ring by ring (ring * count + item), and its positions come ring by ring, split by ";".
-    const rings = Number(this.dataset.ibRings) || 1;
-    const count = Number(this.dataset.ibCount) || 0;
-    const thick = (1 - hole) / rings;
-    let spans = (this.dataset.ibPos ?? "").split(";").flatMap((ring) => ring.split(",").map((p) => (p ? p.split(" ").map(Number) : null)));
-    let order = spans.flatMap((s, i) => (s ? [i] : []));
-    const ringOf = (index: number) => (rings > 1 && count ? Math.floor(index / count) : 0);
-    const slices = plot.querySelectorAll<SVGPathElement>("path[data-ib-i]");
-    let current = -1;
-    // Set once the tooltip is: hides it when the legend hides its slice.
-    let redrawn = () => {};
-
-    // Legend: each item hides and shows its slices; the rest close up and their shares are of
-    // what's shown, drawn here (chart-draw.ts drawPie).
-    const data: PieDrawData | null = this.dataset.ibDraw ? JSON.parse(this.dataset.ibDraw) : null;
-    const toggles = [...this.querySelectorAll<HTMLElement>(".ib-pie-toggle")];
-    const hidden = new Set<number>();
-    const labeled = [...plot.querySelectorAll<HTMLElement>("span[data-ib-l]")].map((l) => Number(l.dataset.ibL));
-    const redraw = async () => {
-      if (!data) return;
-      const out = (await loadModule()).drawPie(data, hidden, labeled);
+    (import("./parts/chart-gesture.js" as string) as Promise<{ gestures: typeof Gestures }>).then((m) => {
       if (signal.aborted) return;
-      for (const path of slices) {
-        const slice = out.slices[Number(path.dataset.ibI)];
-        path.toggleAttribute("data-ib-hidden", !slice);
-        if (slice) path.setAttribute("d", slice.d);
-      }
-      spans = out.slices.map((s) => (s ? [s.start, s.end] : null));
-      order = spans.flatMap((s, i) => (s ? [i] : []));
-      // Hidden items' shares go blank: the legend still names them, dimmed.
-      for (const el of this.querySelectorAll<HTMLElement>("[data-ib-share]")) el.textContent = out.shares[Number(el.dataset.ibShare)] ?? "";
-      for (const el of plot.querySelectorAll<HTMLElement | SVGPathElement>("[data-ib-l]")) {
-        const label = out.labels.get(Number(el.dataset.ibL));
-        el.toggleAttribute("data-ib-hidden", !label);
-        if (!label) continue;
-        if (el instanceof SVGPathElement) el.setAttribute("d", label.leader);
-        else {
-          el.style.left = `${label.x * 100}%`;
-          el.style.top = `${label.y * 100}%`;
-          el.classList.toggle("ib-pie-label-start", !label.end);
-        }
-      }
-      for (const el of plot.querySelectorAll<HTMLElement>("[data-ib-in]")) {
-        const at = out.inside.get(Number(el.dataset.ibIn));
-        el.toggleAttribute("data-ib-hidden", !at);
-        if (!at) continue;
-        el.style.left = `${at.x * 100}%`;
-        el.style.top = `${at.y * 100}%`;
-      }
-      redrawn();
-    };
-    if (data) {
-      const toggle = (el: HTMLElement) => {
-        const item = Number(el.dataset.ibSeries);
-        if (hidden.has(item)) hidden.delete(item);
-        else hidden.add(item);
-        el.setAttribute("aria-pressed", String(!hidden.has(item)));
-        redraw();
-      };
-      for (const el of toggles) {
-        el.setAttribute("role", "button");
-        el.tabIndex = 0;
-        el.setAttribute("aria-pressed", "true");
-        el.addEventListener("click", () => toggle(el), { signal });
-        el.addEventListener(
-          "keydown",
-          (event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            toggle(el);
-          },
-          { signal }
-        );
-      }
-      signal.addEventListener("abort", () => {
-        for (const el of toggles) {
-          el.removeAttribute("role");
-          el.removeAttribute("tabindex");
-          el.removeAttribute("aria-pressed");
-        }
+      m.gestures({
+        el: this, plot, data: data!, horizontal, signal,
+        view: () => view, isZoomed, shareAt, setView, zoomTo, zoomAround, settled, drop,
+        gesture: (on) => (gesturing = on),
       });
-    }
-
-    if (!tooltip || tips.length === 0) return;
-
-    this.setAttribute("data-ib-tooltips", "");
-    signal.addEventListener("abort", () => this.removeAttribute("data-ib-tooltips"));
-
-    const show = (index: number, x?: number, y?: number) => {
-      const span = spans[index];
-      if (!span) return;
-      current = index;
-      tooltip.innerHTML = tips[index].innerHTML;
-      tooltip.hidden = false;
-      for (const s of slices) s.toggleAttribute("data-ib-active", s.dataset.ibI === String(index));
-
-      // Beside the pointer, or for the keyboard beside the slice's middle; kept inside the chart.
-      const size = plot.clientWidth;
-      if (x === undefined || y === undefined) {
-        const turn = ((span[0] + span[1]) / 2) * 2 * Math.PI;
-        const r = (size / 2) * (rings > 1 ? 1 - (ringOf(index) + 0.5) * thick : hole ? (1 + hole) / 2 : 0.6);
-        x = size / 2 + r * Math.sin(turn);
-        y = size / 2 - r * Math.cos(turn);
-      }
-      const gap = 12;
-      const tw = tooltip.offsetWidth;
-      const th = tooltip.offsetHeight;
-      const box = this.getBoundingClientRect();
-      const offset = plot.getBoundingClientRect().left - box.left;
-      const left = x + gap + tw <= box.width - offset ? x + gap : x - gap - tw;
-      tooltip.style.left = `${Math.max(-offset, Math.min(left, box.width - offset - tw))}px`;
-      tooltip.style.top = `${Math.min(Math.max(y - th / 2, 0), Math.max(0, size - th))}px`;
-    };
-
-    const hide = () => {
-      tooltip.hidden = true;
-      for (const s of slices) s.removeAttribute("data-ib-active");
-    };
-    // The legend hid the slice the tooltip is for: nothing to show, and the keys start again.
-    redrawn = () => {
-      if (current >= 0 && !spans[current]) {
-        hide();
-        current = -1;
-      }
-    };
-
-    // Who moved the tooltip last: the keys keep it when the pointer leaves; the pointer doesn't.
-    let byKeys = false;
-
-    plot.addEventListener(
-      "pointermove",
-      (event) => {
-        const r = plot.getBoundingClientRect();
-        const x = event.clientX - r.left;
-        const y = event.clientY - r.top;
-        const dx = x - r.width / 2;
-        const dy = y - r.height / 2;
-        const d = Math.hypot(dx, dy) / (r.width / 2);
-        byKeys = false;
-        if (d > 1 || d < hole) {
-          hide();
-          return;
-        }
-        const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
-        const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
-        // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
-        const index = spans.findIndex((s, i) => s !== null && ringOf(i) === ring && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
-        // An empty ring (every value zero) has no slice to show.
-        if (index >= 0) show(index, x, y);
-        else hide();
-      },
-      { signal }
-    );
-    plot.addEventListener(
-      "pointerleave",
-      () => {
-        if (!byKeys) hide();
-      },
-      { signal }
-    );
-
-    this.keyboard(frame, signal);
-    document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
-    const announce = () => {
-      if (!live) return;
-      // "Pro, 412, 33%": the name, the value and the share.
-      live.textContent = [...tooltip.querySelectorAll("*")]
-        .filter((e) => e.children.length === 0)
-        .map((e) => (e.textContent ?? "").trim())
-        .filter(Boolean)
-        .join(", ");
-    };
-    frame.addEventListener(
-      "focus",
-      () => {
-        if (!frame.matches(":focus-visible")) return;
-        byKeys = true;
-        show(current >= 0 ? current : order[0]);
-        announce();
-      },
-      { signal }
-    );
-    frame.addEventListener("blur", hide, { signal });
-    frame.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
-        // No slice yet (focus without a visible ring, or the pointer in the hole): any arrow
-        // starts at the first slice, as keyboard focus does.
-        const moves = event.key.startsWith("Arrow") || event.key === "Home" || event.key === "End";
-        if (moves && order.length === 0) return;
-        if (moves && current < 0) {
-          event.preventDefault();
-          show(order[0]);
-          announce();
-          return;
-        }
-        // With rings, Left and Right keep to the current one; Up and Down move out and in to
-        // the same item (or the nearest one that has a slice there).
-        const ring = current >= 0 ? ringOf(current) : 0;
-        const along = rings > 1 ? order.filter((i) => ringOf(i) === ring) : order;
-        const k = along.indexOf(current);
-        const across = (step: number) => {
-          const to = Math.max(0, Math.min(rings - 1, ring + step));
-          const item = current - ring * count;
-          const there = order.filter((i) => ringOf(i) === to);
-          return there.reduce((best, i) => (Math.abs(i - to * count - item) < Math.abs(best - to * count - item) ? i : best), there[0] ?? current);
-        };
-        let next: number;
-        switch (event.key) {
-          case "ArrowRight":
-            next = along[Math.min(along.length - 1, k + 1)];
-            break;
-          case "ArrowDown":
-            next = rings > 1 ? across(1) : along[Math.min(along.length - 1, k + 1)];
-            break;
-          case "ArrowLeft":
-            next = along[Math.max(0, k - 1)];
-            break;
-          case "ArrowUp":
-            next = rings > 1 ? across(-1) : along[Math.max(0, k - 1)];
-            break;
-          case "Home":
-            next = along[0];
-            break;
-          case "End":
-            next = along[along.length - 1];
-            break;
-          case "Escape":
-            hide();
-            return;
-          default:
-            return;
-        }
-        event.preventDefault();
-        show(next);
-        announce();
-      },
-      { signal }
-    );
-  }
-
-  /**
-   * A RangeSelector's strip: kept on the view (at), moved by its handles, its window, a click on
-   * the strip, the keys on a handle and its range buttons, all through setView. Returns what
-   * draws it again for a new view.
-   */
-  private selector(sel: HTMLElement, data: DrawData, at: () => View, setView: (from: number, to: number, report?: boolean) => void, settled: () => void, signal: AbortSignal, plot: HTMLElement | null): () => void {
-    const track = sel.querySelector<HTMLElement>(".ib-chart-sel-track")!;
-    const za = data.za!;
-    const names = data.zn ?? [];
-    const least = data.zl ?? 0;
-    const handles = [...sel.querySelectorAll<HTMLElement>(".ib-chart-sel-handle")];
-    // Tab stops now that they move (with no script they'd do nothing).
-    for (const h of handles) h.tabIndex = 0;
-    signal.addEventListener("abort", () => {
-      for (const h of handles) h.removeAttribute("tabindex");
     });
-    const nearest = (share: number, end = false) => {
-      if (data.zc) return Math.min(za.length - 1, Math.max(0, Math.round(share * za.length) - (end ? 1 : 0)));
-      let best = 0;
-      za.forEach((p, i) => {
-        if (p !== null && (za[best] === null || Math.abs(p - share) < Math.abs(za[best]! - share))) best = i;
-      });
-      return best;
-    };
-    // The strip spans the chart's width (Israel, Nov 8: lined up with the plot, it looked
-    // indented and its labels, which start at their periods, looked shifted from the axis's).
-    const line = () => flags();
-    // The flags: each centered over its handle but kept over the strip; when they'd overlap (a
-    // narrow window), one flag over the window says both ends.
-    const flags = () => {
-      const strip = track.getBoundingClientRect();
-      const tags = handles.map((h) => h.querySelector<HTMLElement>(".ib-chart-sel-flag.ib-chart-js"));
-      if (!strip.width || tags.some((t) => !t)) return;
-      const [a, b] = tags as HTMLElement[];
-      const texts = [a.dataset.ibText ?? "", b.dataset.ibText ?? ""];
-      a.textContent = texts[0];
-      b.textContent = texts[1];
-      b.style.display = "";
-      const center = (k: number) => {
-        const r = handles[k].getBoundingClientRect();
-        return r.left + r.width / 2 - strip.left;
-      };
-      const put = (tag: HTMLElement, k: number, middle: number) => {
-        const w = Math.ceil(tag.getBoundingClientRect().width);
-        const left = Math.min(Math.max(middle - w / 2, 0), Math.max(0, strip.width - w));
-        // From the handle's padding edge, inside its border.
-        tag.style.left = `${left - (handles[k].getBoundingClientRect().left + handles[k].clientLeft - strip.left)}px`;
-        tag.style.right = "auto";
-        return [left, left + w];
-      };
-      const [x, y] = [put(a, 0, center(0)), put(b, 1, center(1))];
-      const [left, right] = x[0] <= y[0] ? [x, y] : [y, x];
-      if (left[1] + 4 > right[0]) {
-        a.textContent = `${texts[0]} – ${texts[1]}`;
-        b.style.display = "none";
-        put(a, 0, (center(0) + center(1)) / 2);
-      }
-    };
-    const show = () => {
-      const placed = (share: number) => String(data.ar ? 1 - share : share);
-      track.style.setProperty("--ib-sel-js", placed(at()[0]));
-      track.style.setProperty("--ib-sel-je", placed(at()[1]));
-      handles.forEach((h, k) => {
-        const i = nearest(at()[k], k === 1);
-        h.setAttribute("aria-valuenow", String(i));
-        h.setAttribute("aria-valuetext", names[i] ?? "");
-        const flag = h.querySelector(".ib-chart-sel-flag.ib-chart-js");
-        if (flag) flag.setAttribute("data-ib-text", names[i] ?? "");
-      });
-      flags();
-      for (const b of sel.querySelectorAll<HTMLElement>("[data-ib-range]")) {
-        const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
-        b.setAttribute("aria-pressed", String(Math.abs(a - at()[0]) < 1e-3 && Math.abs(c - at()[1]) < 1e-3));
-      }
-      this.setAttribute("data-ib-sel", "");
-    };
-    show();
-    line();
-    const lining = new ResizeObserver(line);
-    if (plot) lining.observe(plot);
-    lining.observe(sel.parentElement!);
-    signal.addEventListener("abort", () => {
-      lining.disconnect();
-      this.removeAttribute("data-ib-sel");
-      this.removeAttribute("data-ib-sel-drag");
-    });
-
-    // A place on the strip, as a share of the whole axis.
-    const shareOf = (x: number) => {
-      const r = track.getBoundingClientRect();
-      const f = Math.min(1, Math.max(0, (x - r.left) / r.width));
-      return data.ar ? 1 - f : f;
-    };
-    let drag: { kind: "start" | "end" | "pan"; at: number; from: View; id: number } | null = null;
-    track.addEventListener(
-      "pointerdown",
-      (event) => {
-        if (event.pointerType === "mouse" && event.button !== 0) return;
-        const handle = (event.target as Element).closest(".ib-chart-sel-handle");
-        const share = shareOf(event.clientX);
-        if (!handle && (share < at()[0] || share > at()[1])) {
-          // Outside the window: it moves there, centered, and can be dragged on.
-          const span = at()[1] - at()[0];
-          setView(share - span / 2, share + span / 2, false);
-        }
-        const kind = handle ? (handle.classList.contains("ib-chart-sel-start") ? "start" : "end") : "pan";
-        drag = { kind, at: share, from: [at()[0], at()[1]], id: event.pointerId };
-        // What's dragged sets the cursor for the whole drag (chart.css), wherever the pointer goes.
-        this.setAttribute("data-ib-sel-drag", kind === "pan" ? "pan" : "handle");
-        try {
-          track.setPointerCapture(event.pointerId);
-        } catch {
-          // A pointer already gone (released as it went down): the drag ends at pointerup anyway.
-        }
-        if (handle) (handle as HTMLElement).focus();
-        event.preventDefault();
-      },
-      { signal }
-    );
-    track.addEventListener(
-      "pointermove",
-      (event) => {
-        if (!drag || event.pointerId !== drag.id) return;
-        const share = shareOf(event.clientX);
-        if (drag.kind === "start") setView(Math.min(share, at()[1] - least), at()[1], false);
-        else if (drag.kind === "end") setView(at()[0], Math.max(share, at()[0] + least), false);
-        else setView(drag.from[0] + share - drag.at, drag.from[1] + share - drag.at, false);
-      },
-      { signal }
-    );
-    const drop = (event: PointerEvent) => {
-      if (!drag || event.pointerId !== drag.id) return;
-      drag = null;
-      this.removeAttribute("data-ib-sel-drag");
-      settled();
-    };
-    track.addEventListener("pointerup", drop, { signal });
-    track.addEventListener("pointercancel", drop, { signal });
-
-    // Keys on a handle: by one item, a tenth, or to its furthest; the other end stays.
-    const step = 1 / Math.max(1, data.zc ? za.length : za.length - 1);
-    handles.forEach((h, k) =>
-      h.addEventListener(
-        "keydown",
-        (event) => {
-          const back = data.ar ? -1 : 1;
-          const by: Record<string, number> = { ArrowRight: step * back, ArrowUp: step, ArrowLeft: -step * back, ArrowDown: -step, PageUp: 0.1, PageDown: -0.1 };
-          let to: number;
-          if (event.key in by) to = at()[k] + by[event.key];
-          else if (event.key === "Home") to = k === 0 ? 0 : at()[0] + least;
-          else if (event.key === "End") to = k === 0 ? at()[1] - least : 1;
-          else return;
-          event.preventDefault();
-          if (k === 0) setView(Math.max(0, Math.min(to, at()[1] - least)), at()[1]);
-          else setView(at()[0], Math.min(1, Math.max(to, at()[0] + least)));
-        },
-        { signal }
-      )
-    );
-    sel.addEventListener(
-      "click",
-      (event) => {
-        const b = (event.target as Element).closest<HTMLElement>("[data-ib-range]");
-        if (!b) return;
-        const [a, c] = b.dataset.ibRange!.split(" ").map(Number);
-        setView(a, c);
-      },
-      { signal }
-    );
-    return show;
   }
 
   /**

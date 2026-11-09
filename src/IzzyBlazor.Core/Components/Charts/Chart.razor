@@ -736,6 +736,8 @@
         }
         @if (selector is not null && model.ZoomPositions is not null)
         {
+            @* Its own sheet, linked here, where the chart knows it has one. *@
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/range-selector.css"]" />
             @Selector(model, selector)
         }
         </div>
