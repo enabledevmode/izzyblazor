@@ -102,4 +102,22 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(page.Locator("dialog[open]")).ToBeVisibleAsync();
         await Assertions.Expect(card).ToHaveCountAsync(0);
     }
+
+    [Fact]
+    public async Task A_form_of_your_own_books_a_visit_on_a_static_page()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/scheduler?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var example = page.Locator("[data-ex='scheduler-own-form']");
+
+        await example.GetByRole(AriaRole.Link, new() { Name = "New appointment" }).ClickAsync();
+        var dialog = page.Locator("dialog[open]");
+        await dialog.GetByLabel("Patient").FillAsync("K. Ito");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+
+        await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
+        await Assertions.Expect(example.Locator(".ib-sched-event", new() { HasText = "K. Ito" })).ToHaveCountAsync(1);
+    }
 }

@@ -86,7 +86,8 @@
   /* With script: an empty time takes a click (a new appointment), a box a drag or its bottom edge. */
   ib-scheduler[data-ib-new][data-ib-ready] :is(.ib-sched-col, .ib-sched-cell) { cursor: copy; }
   /* A pointer, not a hand: a click (the form) is what most people do; a drag shows the closed hand. */
-  ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event { cursor: pointer; touch-action: none; }
+  ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event { cursor: pointer; }
+  ib-scheduler[data-ib-movable][data-ib-ready] .ib-sched-col .ib-sched-event { touch-action: none; }
   .ib-sched-col .ib-sched-event::after {
     content: "";
     position: absolute;
@@ -94,7 +95,7 @@
     bottom: 0;
     height: 6px;
   }
-  ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event:not([data-ib-cut])::after { cursor: ns-resize; }
+  ib-scheduler[data-ib-movable][data-ib-ready] .ib-sched-col .ib-sched-event:not([data-ib-cut])::after { cursor: ns-resize; }
   .ib-sched-col .ib-sched-event[data-ib-dragging] {
     z-index: 4;
     opacity: 0.85;

@@ -43,7 +43,8 @@
     With no OnSave, an appointment opens a card beside it: its whole time, Detail, category and
     Description. With a mouse, hovering any appointment shows its card too. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
     has a New button, and with script a click on empty time adds one there and a drag moves or
-    resizes one. The form posts on a static page too, and OnSave saves it either way.
+    resizes one. The form posts on a static page too, and OnSave saves it either way. An
+    EditDialogForm puts a form of your own in the dialog instead, for what a use case needs.
 
     Accessibility:
     - It's a region named by Label ("Schedule"); the toolbar's links say where they go
@@ -80,7 +81,7 @@
 *@
 
 <ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
-              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
+              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-movable="@(Movable ? "" : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     @{
         var culture = CultureInfo.CurrentCulture;
@@ -167,7 +168,7 @@
             break;
     }
     @Editor
-    @if (Editable)
+    @if (Movable)
     {
         @MoveForm
     }
@@ -383,10 +384,25 @@
     /// </summary>
     [Parameter, ModeSupport] public EventCallback<SchedulerSave<TItem>> OnSave { get; set; }
 
+    /// <summary>
+    /// Your own form in the edit dialog, in place of the generated one, for what a use case needs:
+    /// a patient and a reason, a room's attendees, what to show beside the fields. The Scheduler
+    /// opens the dialog as before (an appointment, New, a click on empty time) and closes it; the
+    /// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so
+    /// is guarding against forged fields, with a view model. The context has the appointment (none
+    /// for a new one) and its times (the time clicked for a new one); call
+    /// <c>context.CloseAsync()</c> when it has saved. Needs <see cref="ItemKey"/>. Dragging to new
+    /// times still saves through <see cref="OnSave"/>, and is off without it.
+    /// </summary>
+    [Parameter] public RenderFragment<SchedulerEditFormContext<TItem>>? EditDialogForm { get; set; }
+
     /// <summary>Deletes an appointment: with it, the form has a Delete button.</summary>
     [Parameter, ModeSupport] public EventCallback<SchedulerDelete<TItem>> OnDelete { get; set; }
 
-    private bool Editable => OnSave.HasDelegate && ItemKey is not null;
+    private bool Editable => (OnSave.HasDelegate || EditDialogForm is not null) && ItemKey is not null;
+
+    // Dragging saves new times through OnSave, so it needs one.
+    private bool Movable => OnSave.HasDelegate && ItemKey is not null;
 
     private string EditKey => Prefix + "appointment";
 
@@ -513,6 +529,11 @@
                 if (string.IsNullOrWhiteSpace(k.Value)) throw new InvalidOperationException("A SchedulerCategory needs a Value, what an appointment's Category gives for it, such as \"work\".");
                 if (!values.Add(k.Value)) throw new InvalidOperationException($"Two SchedulerCategories have the Value \"{k.Value}\"; each needs its own.");
             }
+        }
+
+        if (EditDialogForm is not null && ItemKey is null)
+        {
+            throw new InvalidOperationException("A Scheduler with an EditDialogForm needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
         }
 
         if (OnSave.HasDelegate && ItemKey is null)
@@ -1212,7 +1233,11 @@
 
     private RenderFragment? Editor => CurrentEdit is not { Length: > 0 } key ? null : __builder =>
     {
-        if (RendererInfo.IsInteractive)
+        if (EditDialogForm is not null)
+        {
+            @OwnDialog(key)
+        }
+        else if (RendererInfo.IsInteractive)
         {
             @EditDialog(key, null)
         }
@@ -1231,6 +1256,54 @@
         builder.AddComponentParameter(1, nameof(SchedulerEditBinding.ChildContent), (RenderFragment<SchedulerEditFields?>)(posted => EditDialog(key, posted)));
         builder.CloseComponent();
     };
+
+    // The app's own form in the dialog: the Scheduler opens and closes it, the form is the app's.
+    private RenderFragment OwnDialog(string key) => __builder =>
+    {
+        var isNew = key == NewKey;
+        var item = isNew ? default : _items.FirstOrDefault(i => ItemKey!(i) == key);
+        DateTime start, end;
+        if (isNew)
+        {
+            start = Query(StartKey) is { } at && DateTime.TryParseExact(at, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t)
+                ? t : CurrentDate.ToDateTime(new TimeOnly(Math.Clamp(DayStart, 0, 23), 0));
+            end = start.AddHours(1);
+        }
+        else
+        {
+            (start, end) = item is null ? (default, default) : (_start!(item), _end!(item));
+        }
+
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.SchedulerNew : TextDefaults.SchedulerEdit)" Size="DialogSize.Md" CloseOnBackdrop="false">
+            @if (!isNew && item is null)
+            {
+                if (!_loading)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.SchedulerGone</Alert>
+                }
+            }
+            else
+            {
+                @* A drag to new times OnSave refused opens the form: why, above it. *@
+                @if (_refused == key && _refusedMessages is { Count: > 0 } why)
+                {
+                    <Alert Status="Status.Danger">
+                        @foreach (var m in why)
+                        {
+                            <div>@m</div>
+                        }
+                    </Alert>
+                }
+                @EditDialogForm!(new SchedulerEditFormContext<TItem>(item, isNew, start, end, () =>
+                {
+                    EndEdit();
+                    return Task.CompletedTask;
+                }))
+            }
+        </Dialog>
+    };
+
+    private List<string>? _refusedMessages;
 
     // The form's model: the appointment's values, a new one's at the time asked, or what was posted.
     private void SyncEdit(string key, SchedulerEditFields? posted)
@@ -1427,7 +1500,7 @@
     // Closes the form: the address without its keys (on a static page, the post's answer is a redirect there).
     private void EndEdit()
     {
-        (_editFor, _editItem, _model, _context, _messages, _refused) = (null, default, null, null, null, null);
+        (_editFor, _editItem, _model, _context, _messages, _refused, _refusedMessages) = (null, default, null, null, null, null, null);
         _ending = true;
         Navigation.NavigateTo(ClosedHref);
     }
@@ -1538,7 +1611,7 @@
             _context = new EditContext(_model);
             _messages = new ValidationMessageStore(_context);
             foreach (var m in messages) _messages.Add(new FieldIdentifier(_model, ""), m);
-            _refused = key;
+            (_refused, _refusedMessages) = (key, messages);
             return;
         }
 
