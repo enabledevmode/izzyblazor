@@ -59,9 +59,11 @@ const holdsList = (element: HTMLElement): boolean => element.dataset.ibDates !==
 
 class Calendar extends IzzyElement {
   protected setup(signal: AbortSignal): void {
-    const panel = this.closest<HTMLElement>("[popover]");
+    // A date field's panel, in its control: not a Popover of the page's that a Calendar sits in.
+    const outer = this.closest<HTMLElement>("[popover]");
+    const control = outer?.closest(".ib-field-control");
+    const panel = control ? outer : null;
     const toggle = panel?.previousElementSibling as HTMLButtonElement | null | undefined;
-    const control = panel?.closest(".ib-field-control");
     const text = (control ?? this).querySelector<HTMLInputElement>("input");
     const time = panel?.querySelector(".ib-calendar-time");
     const many = holdsList(this);

@@ -17,6 +17,9 @@
     the rest are boxes in their day's column, side by side where they overlap. Times are shown as
     given, in the app's time zone; today and the now line are the server's clock.
 
+    A box shows its title and Detail (such as where it is), not its times: the hours beside it say
+    when, as in Outlook. ShowTime adds them. A month's day lists each appointment with its start.
+
     With Category and a SchedulerCategory for each kind, appointments take their category's color,
     and a Categories menu shows or hides each kind.
 
@@ -47,7 +50,7 @@
 *@
 
 <ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
-              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-day-start="@DayStart">
+              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     <CascadingValue Value="Categories" IsFixed="true">@ChildContent</CascadingValue>
     @{
@@ -60,7 +63,30 @@
         var period = PeriodOf(view).ToLower(culture);
     }
     <div class="ib-sched-bar">
-        <span class="ib-sched-title" aria-live="polite">@TitleOf(view, date, first, last, culture)</span>
+        @* The period, a button to a month to go to any date (Outlook's). *@
+        <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
+            <Trigger>
+                <button type="button" class="ib-sched-title" @attributes="context">
+                    <span aria-live="polite">@TitleOf(view, date, first, last, culture)</span>
+                    <Icon Purpose="IconPurpose.ChevronDown" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@
+                <form method="get" action="@(new Uri(Navigation.Uri).AbsolutePath)" class="ib-sched-jump-form" data-ib-date-key="@DateKey">
+                    @foreach (var (key, values) in QueryString.Of(Navigation.Uri))
+                    {
+                        if (key == DateKey || key == EditKey || key == StartKey) continue;
+                        foreach (var v in values)
+                        {
+                            <input type="hidden" name="@key" value="@v" />
+                        }
+                    }
+                    <Calendar TValue="DateOnly" @bind-Value="_jump" @bind-Value:after="JumpTo" name="@DateKey" Label="@TextDefaults.SchedulerGoTo" HideLabel />
+                    <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-sched-jump-go">@TextDefaults.SchedulerGo</button>
+                </form>
+            </ChildContent>
+        </Popover>
         <div class="ib-sched-nav">
             <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
                 <Icon Purpose="IconPurpose.ChevronLeft" />
@@ -130,6 +156,18 @@
     /// <summary>Each appointment's title, such as <c>b =&gt; b.Subject</c>.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Title { get; set; } = default!;
 
+    /// <summary>
+    /// A line of detail after each appointment's title, such as <c>b =&gt; b.Location</c>: on its
+    /// line in the day and week views, wrapping when the box has room, and in the agenda.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? Detail { get; set; }
+
+    /// <summary>
+    /// Shows each appointment's times in its box in the day and week views. Off by default: the
+    /// hours beside it say when (Outlook's way), and screen readers hear the whole time either way.
+    /// </summary>
+    [Parameter] public bool ShowTime { get; set; }
+
     /// <summary>Whether an appointment is all day, such as <c>b =&gt; b.AllDay</c>: a bar over its days, with no times. Appointments a day long or more are bars too.</summary>
     [Parameter] public Expression<Func<TItem, bool>>? AllDay { get; set; }
 
@@ -170,7 +208,7 @@
     /// <summary>The hour the day and week views open scrolled to (with script). 8 by default.</summary>
     [Parameter] public int DayStart { get; set; } = 8;
 
-    /// <summary>The height of the day and week views' hours, which scroll inside it. 36rem by default.</summary>
+    /// <summary>The height of the day and week views' hours, which scroll inside it. 40rem by default.</summary>
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>Its name for screen readers. "Schedule" by default.</summary>
@@ -240,6 +278,15 @@
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private static readonly SchedulerView[] AllViews = [SchedulerView.Day, SchedulerView.Week, SchedulerView.WorkWeek, SchedulerView.Month, SchedulerView.Agenda];
+
+    // The date in the title's calendar.
+    private DateOnly _jump;
+
+    // Interactive: a day chosen in the title's calendar (static pages go there by script).
+    private void JumpTo()
+    {
+        if (_jump != CurrentDate) Navigation.NavigateTo(Href(CurrentView, _jump));
+    }
 
     private Func<TItem, DateTime>? _start, _end;
     private Func<TItem, object?>? _title;
@@ -351,6 +398,7 @@
             }
         }
         _items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        _jump = CurrentDate;
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
     }
@@ -359,6 +407,7 @@
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         (_ending, _refused) = (false, null);
+        _jump = CurrentDate;
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -476,10 +525,25 @@
             when = $"{day(e.Start)}, {string.Format(culture, TextDefaults.SchedulerTimeRange, Time(e.Start, culture), end)}";
         }
 
-        return CategoryLabel(e) is { } kind ? $"{TitleText(e)}, {kind}, {when}" : $"{TitleText(e)}, {when}";
+        return string.Join(", ", new[] { TitleText(e), DetailText(e), CategoryLabel(e), when }.Where(s => s is not null));
+    }
+
+    // A start for a month's day: "11 AM" on the hour where the culture's clock is twelve-hour
+    // (Outlook's), "10:30 AM" off it; a 24-hour clock keeps its minutes ("11:00").
+    private static string StartOf(DateTime t, CultureInfo culture)
+    {
+        var pattern = culture.DateTimeFormat.ShortTimePattern;
+        return t.Minute == 0 && pattern.Contains('t') && pattern.Contains(":mm")
+            ? Whole(t.ToString(pattern.Replace(":mm", ""), culture))
+            : Whole(Time(t, culture));
     }
 
     private static string Pct(double v) => (v * 100).ToString("0.###", CultureInfo.InvariantCulture) + "%";
+
+    // Across a day's column, leaving room at its end to click beside the appointments (Outlook's).
+    private static string Across(double v) => $"calc((100% - var(--ib-sched-gap)) * {v.ToString("0.#####", CultureInfo.InvariantCulture)})";
+
+    private string? DetailText(SchedulerEntry e) => Detail?.Invoke(_items[e.Index]) is { Length: > 0 } d ? d : null;
 
     // ---- Day, week and work week: a column of hours for each day. ----
 
@@ -511,8 +575,7 @@
                 {
                     var e = entries.First(x => x.Index == bar.Index);
                     <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 2) / @(bar.ToDay + 3);grid-row:@(bar.Lane + 1);@ColorStyle(e)">
-                        <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
-                        <span class="ib-visually-hidden">@Said(e, culture)</span>
+                        @BarContent(e, bar.StartsBefore, culture)
                     </a>
                 }
             </div>
@@ -522,7 +585,7 @@
                     <div class="ib-sched-hours" aria-hidden="true">
                         @for (var h = 1; h < 24; h++)
                         {
-                            <span style="top:@Pct(h / 24.0)">@(new DateTime(2000, 1, 1, h, 0, 0).ToString("t", culture))</span>
+                            <span style="top:@Pct(h / 24.0)">@StartOf(new DateTime(2000, 1, 1, h, 0, 0), culture)</span>
                         }
                     </div>
                     @for (var d = 0; d < days; d++)
@@ -538,10 +601,18 @@
                             {
                                 var e = entries.First(x => x.Index == box.Index);
                                 var isShort = box.Height < 45.0 / 1440;
-                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-item="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
+                                var detail = DetailText(e);
+                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-item="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Across(box.Left);width:@Across(box.Width);@ColorStyle(e)">
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
-                                        <span class="ib-sched-time">@(isShort ? Whole(Time(e.Start, culture)) : $"{Whole(Time(e.Start, culture))} – {Whole(Time(e.End, culture))}")</span>
+                                        @if (detail is not null)
+                                        {
+                                            @(" ")<span class="ib-sched-detail">@detail</span>
+                                        }
+                                        @if (ShowTime)
+                                        {
+                                            @(" ")<span class="ib-sched-time">@(isShort ? Whole(Time(e.Start, culture)) : $"{Whole(Time(e.Start, culture))} – {Whole(Time(e.End, culture))}")</span>
+                                        }
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
                                 </a>
@@ -555,6 +626,19 @@
 
     private static string DayClass(string name, DateOnly day, DateOnly today) =>
         name + (day == today ? " ib-sched-today" : "") + (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? " ib-sched-weekend" : "");
+
+    // A bar's title, centered; one that began before the days shown says when it began (Outlook's "‹ Nov 17").
+    private RenderFragment BarContent(SchedulerEntry e, bool startsBefore, CultureInfo culture) => __builder =>
+    {
+        <span aria-hidden="true" class="ib-sched-bar-text">
+            @if (startsBefore)
+            {
+                <span class="ib-sched-from"><Icon Purpose="IconPurpose.ChevronLeft" />@e.FirstDay.ToString("MMM d", culture)</span>
+            }
+            <span class="ib-sched-name">@TitleText(e)</span>
+        </span>
+        <span class="ib-visually-hidden">@Said(e, culture)</span>
+    };
 
     private static string BarClass(bool before, bool after) =>
         "ib-sched-event ib-sched-bar-event" + (before ? " ib-sched-cont-start" : "") + (after ? " ib-sched-cont-end" : "");
@@ -591,7 +675,7 @@
                                 @foreach (var e in shown)
                                 {
                                     <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
-                                        <span aria-hidden="true"><span class="ib-sched-time">@Time(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
+                                        <span aria-hidden="true"><span class="ib-sched-time">@StartOf(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
                                         <span class="ib-visually-hidden">@Said(e, culture)</span>
                                     </a></li>
                                 }
@@ -606,8 +690,7 @@
                     {
                         var e = entries.First(x => x.Index == bar.Index);
                         <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 1) / @(bar.ToDay + 2);grid-row:@(bar.Lane + 2);@ColorStyle(e)">
-                            <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
-                            <span class="ib-visually-hidden">@Said(e, culture)</span>
+                            @BarContent(e, bar.StartsBefore, culture)
                         </a>
                     }
                 </div>
@@ -638,6 +721,10 @@
                             <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
                                 <span class="ib-sched-time" aria-hidden="true">@(e.IsBar ? TextDefaults.SchedulerAllDay : $"{Time(e.Start, culture)} – {Time(e.End, culture)}")</span>
                                 <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
+                                @if (DetailText(e) is { } detail)
+                                {
+                                    <span class="ib-sched-detail" aria-hidden="true">@detail</span>
+                                }
                                 <span class="ib-visually-hidden">@Said(e, culture)</span>
                             </a></li>
                         }
