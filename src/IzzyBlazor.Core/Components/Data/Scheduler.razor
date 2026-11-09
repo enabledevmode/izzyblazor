@@ -46,6 +46,12 @@
             <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
                 <Icon Purpose="IconPurpose.ChevronRight" />
             </a>
+            @if (Editable)
+            {
+                <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@NewHref(date)" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
+                    <Icon Purpose="IconPurpose.Plus" />
+                </a>
+            }
             <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, null)">@TextDefaults.SchedulerToday</a>
             <Menu Label="@ViewName(view)" Placement="Placement.BottomEnd" Class="ib-sched-views">
                 <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
@@ -70,6 +76,7 @@
             @Columns(entries, first, days, today, culture)
             break;
     }
+    @Editor
 </section>
 
 @code {
@@ -127,6 +134,34 @@
     /// <summary>Its name for screen readers. "Schedule" by default.</summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>
+    /// Each appointment's key, such as <c>b =&gt; b.Id.ToString()</c>: with <see cref="OnSave"/>, it
+    /// names the appointment a link opens in the form (<c>?appointment=42</c>).
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemKey { get; set; }
+
+    /// <summary>Each appointment's description, such as <c>b =&gt; b.Notes</c>: a field in the form.</summary>
+    [Parameter] public Expression<Func<TItem, string?>>? Description { get; set; }
+
+    /// <summary>
+    /// Saves an appointment from the form, new or changed, on a static page too (the form posts):
+    /// with it and <see cref="ItemKey"/>, appointments are links that open the form, and the toolbar
+    /// has a New button. <c>save.CopyTo(item)</c> sets the mapped properties; <c>save.AddError</c>
+    /// keeps the form open with a message.
+    /// </summary>
+    [Parameter, ModeSupport] public EventCallback<SchedulerSave<TItem>> OnSave { get; set; }
+
+    /// <summary>Deletes an appointment: with it, the form has a Delete button.</summary>
+    [Parameter, ModeSupport] public EventCallback<SchedulerDelete<TItem>> OnDelete { get; set; }
+
+    private bool Editable => OnSave.HasDelegate && ItemKey is not null;
+
+    private string EditKey => Prefix + "appointment";
+
+    private string StartKey => Prefix + "start";
+
+    private const string NewKey = "new";
+
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private static readonly SchedulerView[] AllViews = [SchedulerView.Day, SchedulerView.Week, SchedulerView.WorkWeek, SchedulerView.Month, SchedulerView.Agenda];
@@ -134,7 +169,8 @@
     private Func<TItem, DateTime>? _start, _end;
     private Func<TItem, object?>? _title;
     private Func<TItem, bool>? _allDay;
-    private Expression? _lastStart, _lastEnd, _lastTitle, _lastAllDay;
+    private Func<TItem, string?>? _description;
+    private Expression? _lastStart, _lastEnd, _lastTitle, _lastAllDay, _lastDescription;
     private IReadOnlyList<TItem> _items = [];
     private string? _class;
     private string? _style;
@@ -216,13 +252,22 @@
         if (!ReferenceEquals(End, _lastEnd)) (_lastEnd, _end) = (End, End.Compile());
         if (!ReferenceEquals(Title, _lastTitle)) (_lastTitle, _title) = (Title, Title.Compile());
         if (!ReferenceEquals(AllDay, _lastAllDay)) (_lastAllDay, _allDay) = (AllDay, AllDay?.Compile());
+        if (!ReferenceEquals(Description, _lastDescription)) (_lastDescription, _description) = (Description, Description?.Compile());
+        if (OnSave.HasDelegate && ItemKey is null)
+        {
+            throw new InvalidOperationException("A Scheduler with OnSave needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
+        }
         _items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
     }
 
     // Interactive: the address changed (a toolbar link or Back): draw the page it names.
-    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _ending = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     /// <inheritdoc />
     public void Dispose() => Navigation.LocationChanged -= Moved;
@@ -263,8 +308,33 @@
         {
             [ViewKey] = ViewValue(view),
             [DateKey] = date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            [EditKey] = null,
+            [StartKey] = null,
         }));
         return uri.AbsolutePath + uri.Query;
+    }
+
+    // This page with the form open: for an appointment, or a new one at a time.
+    private string EditHref(string key, DateTime? start = null)
+    {
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [EditKey] = key,
+            [StartKey] = start?.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture),
+        }));
+        return uri.AbsolutePath + uri.Query;
+    }
+
+    private string NewHref(DateOnly day) => EditHref(NewKey, day.ToDateTime(new TimeOnly(Math.Clamp(DayStart, 0, 23), 0)));
+
+    // This page with the form closed.
+    private string ClosedHref
+    {
+        get
+        {
+            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [StartKey] = null }));
+            return uri.AbsolutePath + uri.Query;
+        }
     }
 
     // "November 2026"; across two months "Oct – Nov 2026"; across two years "Dec 2026 – Jan 2027".
@@ -334,10 +404,10 @@
                 @foreach (var bar in bars)
                 {
                     var e = entries.First(x => x.Index == bar.Index);
-                    <div class="@BarClass(bar.StartsBefore, bar.EndsAfter)" style="grid-column:@(bar.FromDay + 2) / @(bar.ToDay + 3);grid-row:@(bar.Lane + 1);@ColorStyle(e)">
+                    <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 2) / @(bar.ToDay + 3);grid-row:@(bar.Lane + 1);@ColorStyle(e)">
                         <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
                         <span class="ib-visually-hidden">@Said(e, culture)</span>
-                    </div>
+                    </a>
                 }
             </div>
             <div class="ib-sched-scroll" tabindex="-1">
@@ -360,13 +430,13 @@
                             @foreach (var box in own)
                             {
                                 var e = entries.First(x => x.Index == box.Index);
-                                <div class="@(box.Height < 1.0 / 48 ? "ib-sched-event ib-sched-short" : "ib-sched-event")" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
+                                <a class="@(box.Height < 1.0 / 48 ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
                                         <span class="ib-sched-time">@Time(e.Start, culture) – @Time(e.End, culture)</span>
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
-                                </div>
+                                </a>
                             }
                         </div>
                     }
@@ -412,10 +482,10 @@
                             <ul class="ib-sched-pills">
                                 @foreach (var e in shown)
                                 {
-                                    <li class="ib-sched-event ib-sched-pill" style="@ColorStyle(e)">
+                                    <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
                                         <span aria-hidden="true"><span class="ib-sched-time">@Time(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
                                         <span class="ib-visually-hidden">@Said(e, culture)</span>
-                                    </li>
+                                    </a></li>
                                 }
                                 @if (hidden > 0)
                                 {
@@ -427,10 +497,10 @@
                     @foreach (var bar in bars)
                     {
                         var e = entries.First(x => x.Index == bar.Index);
-                        <div class="@BarClass(bar.StartsBefore, bar.EndsAfter)" style="grid-column:@(bar.FromDay + 1) / @(bar.ToDay + 2);grid-row:@(bar.Lane + 2);@ColorStyle(e)">
+                        <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 1) / @(bar.ToDay + 2);grid-row:@(bar.Lane + 2);@ColorStyle(e)">
                             <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
                             <span class="ib-visually-hidden">@Said(e, culture)</span>
-                        </div>
+                        </a>
                     }
                 </div>
             }
@@ -457,11 +527,11 @@
                     <ul>
                         @foreach (var e in own)
                         {
-                            <li class="ib-sched-event ib-sched-pill" style="@ColorStyle(e)">
+                            <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
                                 <span class="ib-sched-time" aria-hidden="true">@(e.IsBar ? TextDefaults.SchedulerAllDay : $"{Time(e.Start, culture)} – {Time(e.End, culture)}")</span>
                                 <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
                                 <span class="ib-visually-hidden">@Said(e, culture)</span>
-                            </li>
+                            </a></li>
                         }
                     </ul>
                 </li>
@@ -472,4 +542,220 @@
             <p class="ib-sched-empty">@TextDefaults.SchedulerEmpty</p>
         }
     };
+
+    // An appointment's link to the form; with no form, none (an <a> with no href is plain text).
+    private string? LinkOf(SchedulerEntry e) => Editable ? EditHref(ItemKey!(_items[e.Index])) : null;
+
+    // ---- The form: an appointment's, or a new one's. ----
+
+    private string? _editFor;
+    private TItem? _editItem;
+    private SchedulerEditFields? _model;
+    private EditContext? _context;
+    private ValidationMessageStore? _messages;
+    private bool _saving;
+    private bool _ending;
+
+    private string? CurrentEdit => Editable && !_ending ? Query(EditKey) : null;
+
+    private RenderFragment? Editor => CurrentEdit is not { Length: > 0 } key ? null : __builder =>
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            @EditDialog(key, null)
+        }
+        else
+        {
+            @* Named for this Scheduler, so that a post reaches only its own form. *@
+            <FormMappingScope Name="@($"ib-sched-{Prefix}")">
+                @Binding(key)
+            </FormMappingScope>
+        }
+    };
+
+    private RenderFragment Binding(string key) => builder =>
+    {
+        builder.OpenComponent<SchedulerEditBinding>(0);
+        builder.AddComponentParameter(1, nameof(SchedulerEditBinding.ChildContent), (RenderFragment<SchedulerEditFields?>)(posted => EditDialog(key, posted)));
+        builder.CloseComponent();
+    };
+
+    // The form's model: the appointment's values, a new one's at the time asked, or what was posted.
+    private void SyncEdit(string key, SchedulerEditFields? posted)
+    {
+        // The same form drawn again (after a save's errors, or any render): it keeps its model and messages.
+        if (_editFor == key && _model is not null && (posted is null || ReferenceEquals(posted, _model))) return;
+        _editFor = key;
+        _editItem = key == NewKey ? default : _items.FirstOrDefault(i => ItemKey!(i) == key);
+        if (posted is not null)
+        {
+            _model = posted;
+        }
+        else if (key == NewKey)
+        {
+            var start = Query(StartKey) is { } at && DateTime.TryParseExact(at, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t)
+                ? t : CurrentDate.ToDateTime(new TimeOnly(Math.Clamp(DayStart, 0, 23), 0));
+            var end = start.AddHours(1);
+            _model = new SchedulerEditFields { StartDate = DateOnly.FromDateTime(start), StartTime = TimeOnly.FromDateTime(start), EndDate = DateOnly.FromDateTime(end), EndTime = TimeOnly.FromDateTime(end) };
+        }
+        else if (_editItem is { } item)
+        {
+            var (s, e) = (_start!(item), _end!(item));
+            var entry = new SchedulerEntry(0, s, e < s ? s : e, _allDay?.Invoke(item) ?? false);
+            _model = new SchedulerEditFields
+            {
+                Title = _title!(item)?.ToString(),
+                StartDate = entry.FirstDay,
+                StartTime = TimeOnly.FromDateTime(s),
+                EndDate = entry.AllDay ? entry.LastDay : DateOnly.FromDateTime(entry.End),
+                EndTime = TimeOnly.FromDateTime(entry.End),
+                AllDay = entry.AllDay,
+                Description = _description?.Invoke(item),
+            };
+        }
+        else
+        {
+            _model = null;
+        }
+
+        _context = _model is null ? null : new EditContext(_model);
+        _messages = _context is null ? null : new ValidationMessageStore(_context);
+    }
+
+    private RenderFragment EditDialog(string key, SchedulerEditFields? posted) => __builder =>
+    {
+        SyncEdit(key, posted);
+        var isNew = key == NewKey;
+        var name = SchedulerEditBinding.Prefix;
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.SchedulerNew : TextDefaults.SchedulerEdit)" Size="DialogSize.Md" CloseOnBackdrop="false">
+            @if (_model is null || _context is null)
+            {
+                <Alert Status="Status.Warning">@TextDefaults.SchedulerGone</Alert>
+            }
+            else
+            {
+                <Form EditContext="_context" FormName="@(RendererInfo.IsInteractive ? null : SchedulerEditBinding.FormName)" OnSubmit="SubmitAsync">
+                    <FormErrors />
+                    <TextField @bind-Value="_model.Title" name="@($"{name}.Title")" Label="@TextDefaults.SchedulerTitleField" autofocus />
+                    @* Each day beside its time, as one row (MUI's form). *@
+                    <div class="ib-sched-when">
+                        <DateField @bind-Value="_model.StartDate" name="@($"{name}.StartDate")" Label="@TextDefaults.SchedulerStartDate" />
+                        <TimeField @bind-Value="_model.StartTime" name="@($"{name}.StartTime")" Label="@TextDefaults.SchedulerStartTime" Step="TimeSpan.FromMinutes(15)" />
+                    </div>
+                    <div class="ib-sched-when">
+                        <DateField @bind-Value="_model.EndDate" name="@($"{name}.EndDate")" Label="@TextDefaults.SchedulerEndDate" />
+                        <TimeField @bind-Value="_model.EndTime" name="@($"{name}.EndTime")" Label="@TextDefaults.SchedulerEndTime" Step="TimeSpan.FromMinutes(15)" />
+                    </div>
+                    <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" />
+                    @if (Description is not null)
+                    {
+                        <TextArea @bind-Value="_model.Description" name="@($"{name}.Description")" Label="@TextDefaults.SchedulerDescription" />
+                    }
+                    <DialogFooter>
+                        @if (!isNew && OnDelete.HasDelegate && _editItem is not null)
+                        {
+                            @if (RendererInfo.IsInteractive)
+                            {
+                                <Button Accent="Accent.Danger" Variant="ButtonVariant.Ghost" OnClick="DeleteAsync" Class="ib-sched-delete">@TextDefaults.Delete</Button>
+                            }
+                            else
+                            {
+                                <Button Submit Name="@($"{name}.Remove")" Value="true" Accent="Accent.Danger" Variant="ButtonVariant.Ghost" formnovalidate Class="ib-sched-delete">@TextDefaults.Delete</Button>
+                            }
+                        }
+                        @if (RendererInfo.IsInteractive)
+                        {
+                            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="@(() => EndEdit())">@TextDefaults.Cancel</Button>
+                        }
+                        else
+                        {
+                            <Button Href="@ClosedHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">@TextDefaults.Cancel</Button>
+                        }
+                        <Button Submit>@TextDefaults.Save</Button>
+                    </DialogFooter>
+                </Form>
+            }
+        </Dialog>
+    };
+
+    private void OnDialogChanged(bool open)
+    {
+        if (!open) EndEdit();
+    }
+
+    private async Task SubmitAsync(EditContext context)
+    {
+        if (_model is null || _messages is null || _saving) return;
+        _messages.Clear();
+        if (_model.Remove)
+        {
+            await DeleteAsync();
+            return;
+        }
+
+        if (!context.Validate()) return;
+        if (!_model.AllDay && _model.End < _model.Start || _model.AllDay && _model.EndDate < _model.StartDate)
+        {
+            Error(TextDefaults.SchedulerEndBeforeStart);
+            return;
+        }
+
+        if (_editFor != NewKey && _editItem is null)
+        {
+            Error(TextDefaults.SchedulerGone);
+            return;
+        }
+
+        var fields = _model;
+        var save = new SchedulerSave<TItem>(_editItem, fields, target =>
+        {
+            SchedulerMembers.Set(Start, target!, fields.Start);
+            SchedulerMembers.Set(End, target!, fields.End);
+            SchedulerMembers.Set(Title, target!, fields.Title);
+            SchedulerMembers.Set(AllDay, target!, fields.AllDay);
+            SchedulerMembers.Set(Description, target!, fields.Description);
+        }, Error);
+        _saving = true;
+        try
+        {
+            await OnSave.InvokeAsync(save);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!save.HasErrors) EndEdit();
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_editItem is not { } item || _saving) return;
+        var delete = new SchedulerDelete<TItem>(item, Error);
+        _saving = true;
+        try
+        {
+            await OnDelete.InvokeAsync(delete);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!delete.HasErrors) EndEdit();
+    }
+
+    private void Error(string message)
+    {
+        _messages?.Add(new FieldIdentifier(_model!, ""), message);
+        _context?.NotifyValidationStateChanged();
+    }
+
+    // Closes the form: the address without its keys (on a static page, the post's answer is a redirect there).
+    private void EndEdit()
+    {
+        (_editFor, _editItem, _model, _context, _messages) = (null, default, null, null, null);
+        _ending = true;
+        Navigation.NavigateTo(ClosedHref);
+    }
 }
