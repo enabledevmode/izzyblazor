@@ -5,7 +5,7 @@
 //
 // An example's id names its file: "button-multi-submit" is Examples/Button/MultiSubmit.razor.
 {
-  "categories": ["Layout", "App shell", "Typography", "Actions", "Forms", "Selection", "Overlays", "Navigation", "Feedback", "Data display", "Charts"],
+  "categories": ["Layout", "App shell", "Typography", "Actions", "Forms", "Inputs", "Date & time", "Selection", "Overlays", "Navigation", "Feedback", "Data", "Display", "Charts"],
   "components": [
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "Renders a block that accepts every style prop.",
@@ -718,7 +718,7 @@
       ]
     },
     {
-      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "Lets the user enter a line of text, with a label, add-ons and masks.", "keywords": ["input", "textbox", "input mask"],
+      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Inputs", "summary": "Lets the user enter a line of text, with a label, add-ons and masks.", "keywords": ["input", "textbox", "input mask"],
       "features": [
         { "feature": "Label, hint, type and limits from the model" },
         { "feature": "Icons and add-ons" },
@@ -749,7 +749,7 @@
       ]
     },
     {
-      "id": "password-field", "icon": "KeyRound", "name": "PasswordField", "category": "Forms", "summary": "Lets the user enter a password, show it, and see a new one's requirements.", "keywords": ["password", "password input", "show password", "password strength", "password rules"],
+      "id": "password-field", "icon": "KeyRound", "name": "PasswordField", "category": "Inputs", "summary": "Lets the user enter a password, show it, and see a new one's requirements.", "keywords": ["password", "password input", "show password", "password strength", "password rules"],
       "features": [
         { "feature": "Label, hint and limits from the model" },
         { "feature": "Show/hide button", "noscript": "none", "static": "full", "interactive": "full" },
@@ -777,7 +777,7 @@
       ]
     },
     {
-      "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Forms", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text", "checklist", "task list"],
+      "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Inputs", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text", "checklist", "task list"],
       "features": [
         { "feature": "Label, hint and errors from the model" },
         { "feature": "Posts in a plain form; sanitized on the server" },
@@ -900,7 +900,7 @@
       ]
     },
     {
-      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Lets the user enter several lines of text, and can grow and count them.", "keywords": ["textarea", "multiline"],
+      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Inputs", "summary": "Lets the user enter several lines of text, and can grow and count them.", "keywords": ["textarea", "multiline"],
       "features": [
         { "feature": "Label, hint and length limits from the model" },
         { "feature": "Checks before posting, server messages under the field" },
@@ -924,7 +924,7 @@
       ]
     },
     {
-      "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "Lets the user enter a number, with step buttons.", "keywords": ["numeric input"],
+      "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Inputs", "summary": "Lets the user enter a number, with step buttons.", "keywords": ["numeric input"],
       "features": [
         { "feature": "Typing and arrow keys, with Min, Max and Step checked before posting" },
         { "feature": "A number keyboard on phones" },
@@ -950,35 +950,7 @@
       ]
     },
     {
-      "id": "month-field", "icon": "CalendarFold", "name": "MonthField", "category": "Forms", "summary": "Lets the user choose a month, such as a card's expiry, from a page of twelve.", "keywords": ["month picker", "month input", "expiry date"],
-      "features": [
-        { "feature": "A page of twelve months to choose from", "noscript": "partial" },
-        { "feature": "Binds the 1st of the month, in a DateOnly or DateTime" },
-        { "feature": "Min and Max compare whole months, and are checked again on the server" }
-      ],
-      "examples": [
-        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
-          "notes": {
-            "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
-            "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
-          } }
-      ]
-    },
-    {
-      "id": "year-field", "icon": "Calendar1", "name": "YearField", "category": "Forms", "summary": "Lets the user type a year, or choose it from a page of twelve.", "keywords": ["year picker", "year input"],
-      "features": [
-        { "feature": "A page of twelve years beside the input", "noscript": "partial" },
-        { "feature": "Binds an int" }
-      ],
-      "examples": [
-        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
-          "notes": {
-            "noscript": "A number input, with no page of years."
-          } }
-      ]
-    },
-    {
-      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "Lets the user type a date, or a date and time, or choose it from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
+      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Date & time", "summary": "Lets the user type a date, or a date and time, or choose it from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
         { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
         { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
@@ -1006,7 +978,7 @@
       ]
     },
     {
-      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Forms", "summary": "Lets the user type a time of day or choose one from a list.", "keywords": ["time picker", "clock", "hours"],
+      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Date & time", "summary": "Lets the user type a time of day or choose one from a list.", "keywords": ["time picker", "clock", "hours"],
       "features": [
         { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
         { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
@@ -1025,7 +997,7 @@
       ]
     },
     {
-      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Forms", "summary": "Lets the user choose a range of whole days, both ends included.", "keywords": ["date range", "date range picker", "from to", "period"],
+      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Date & time", "summary": "Lets the user choose a range of whole days, both ends included.", "keywords": ["date range", "date range picker", "from to", "period"],
       "features": [
         { "feature": "Two date inputs in one field, posting each end, with the end's minimum following the start" },
         { "feature": "Months side by side to choose from, and presets beside them", "noscript": "none" },
@@ -1045,7 +1017,7 @@
       ]
     },
     {
-      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Forms", "summary": "Lets the user choose several separate days from a month.", "keywords": ["multiple dates", "date picker", "several dates"],
+      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Date & time", "summary": "Lets the user choose several separate days from a month.", "keywords": ["multiple dates", "date picker", "several dates"],
       "features": [
         { "feature": "A month where each day toggles, in a panel or on the page", "noscript": "partial" },
         { "feature": "Min, Max and DateDisabled checked for each date on the server" },
@@ -1060,7 +1032,35 @@
       ]
     },
     {
-      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Forms", "summary": "Shows a month on the page for the user to choose a day from.", "keywords": ["month", "date", "inline calendar", "week numbers"],
+      "id": "month-field", "icon": "CalendarFold", "name": "MonthField", "category": "Date & time", "summary": "Lets the user choose a month, such as a card's expiry, from a page of twelve.", "keywords": ["month picker", "month input", "expiry date"],
+      "features": [
+        { "feature": "A page of twelve months to choose from", "noscript": "partial" },
+        { "feature": "Binds the 1st of the month, in a DateOnly or DateTime" },
+        { "feature": "Min and Max compare whole months, and are checked again on the server" }
+      ],
+      "examples": [
+        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
+          "notes": {
+            "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
+            "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
+          } }
+      ]
+    },
+    {
+      "id": "year-field", "icon": "Calendar1", "name": "YearField", "category": "Date & time", "summary": "Lets the user type a year, or choose it from a page of twelve.", "keywords": ["year picker", "year input"],
+      "features": [
+        { "feature": "A page of twelve years beside the input", "noscript": "partial" },
+        { "feature": "Binds an int" }
+      ],
+      "examples": [
+        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
+          "notes": {
+            "noscript": "A number input, with no page of years."
+          } }
+      ]
+    },
+    {
+      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Date & time", "summary": "Shows a month on the page for the user to choose a day from.", "keywords": ["month", "date", "inline calendar", "week numbers"],
       "features": [
         { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
         { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
@@ -1081,7 +1081,7 @@
       ]
     },
     {
-      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Forms", "summary": "Lets the user enter a length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
+      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Date & time", "summary": "Lets the user enter a length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
       "features": [
         { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
         { "feature": "Min and Max checked on the server" },
@@ -1096,7 +1096,7 @@
       ]
     },
     {
-      "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "Lets the user pick a number by dragging along a range.", "keywords": ["range"],
+      "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Inputs", "summary": "Lets the user pick a number by dragging along a range.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
         { "feature": "The track fills to the thumb, and the value tooltip follows", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1131,7 +1131,7 @@
       ]
     },
     {
-      "id": "range-slider", "icon": "SlidersHorizontal", "name": "RangeSlider", "category": "Forms", "summary": "Lets the user pick a span of numbers with two thumbs on one track.", "keywords": ["range", "two thumbs", "dual slider", "price filter", "min max"],
+      "id": "range-slider", "icon": "SlidersHorizontal", "name": "RangeSlider", "category": "Inputs", "summary": "Lets the user pick a span of numbers with two thumbs on one track.", "keywords": ["range", "two thumbs", "dual slider", "price filter", "min max"],
       "features": [
         { "feature": "Two native range inputs on one track: drag, arrow keys, Page Up/Down and Home/End; both ends posted with the form" },
         { "feature": "The thumbs stop at each other", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1154,7 +1154,7 @@
       ]
     },
     {
-      "id": "rating", "icon": "Star", "name": "Rating", "category": "Forms", "summary": "Lets the user rate with stars, and shows a rating.", "keywords": ["stars", "review", "score"],
+      "id": "rating", "icon": "Star", "name": "Rating", "category": "Inputs", "summary": "Lets the user rate with stars, and shows a rating.", "keywords": ["stars", "review", "score"],
       "features": [
         { "feature": "A radio for each star: arrow keys, posted with the form" },
         { "feature": "Clicking the chosen star clears it", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1171,7 +1171,7 @@
       ]
     },
     {
-      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Forms", "summary": "Accepts a one-time code or a PIN, with a box for each character.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code", "pin input", "code input", "authenticator"],
+      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Inputs", "summary": "Accepts a one-time code or a PIN, with a box for each character.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code", "pin input", "code input", "authenticator"],
       "features": [
         { "feature": "Pasting, autofill and screen readers work as in a text field" },
         { "feature": "A box per character", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1188,7 +1188,7 @@
       ]
     },
     {
-      "id": "color-panel", "icon": "Palette", "name": "ColorPanel", "category": "Forms", "summary": "Lets the user choose a color inline: swatches, a picker, or both.", "keywords": ["color picker", "swatches", "palette", "hex", "rgb", "opacity", "eyedropper"],
+      "id": "color-panel", "icon": "Palette", "name": "ColorPanel", "category": "Inputs", "summary": "Lets the user choose a color inline: swatches, a picker, or both.", "keywords": ["color picker", "swatches", "palette", "hex", "rgb", "opacity", "eyedropper"],
       "features": [
         { "feature": "Swatches that post with the form" },
         { "feature": "Picker, opacity slider and number fields", "noscript": "none" }
@@ -1204,7 +1204,7 @@
       ]
     },
     {
-      "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "A swatch and a hex box; the swatch opens a color panel.",
+      "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Inputs", "summary": "A swatch and a hex box; the swatch opens a color panel.",
       "features": [
         { "feature": "Pick a color; posted with the form" },
         { "feature": "A panel with swatches, a picker, opacity and fields", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1230,7 +1230,7 @@
       ]
     },
     {
-      "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "Lets the user choose or drop files, with a real file input inside.", "keywords": ["dropzone", "file input"],
+      "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Inputs", "summary": "Lets the user choose or drop files, with a real file input inside.", "keywords": ["dropzone", "file input"],
       "features": [
         { "feature": "Choose files with the picker, posted with the form" },
         { "feature": "Drop files on the zone; the wrong type refused", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1978,7 +1978,7 @@
     },
 
     {
-      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Displays rows of data users can sort, filter, page and select, with the state in the URL.", "keywords": ["column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"], "parts": ["PropertyColumn", "TemplateColumn", "DynamicColumn", "ColumnBand"],
+      "id": "table", "icon": "Table", "name": "Table", "category": "Data", "summary": "Displays rows of data users can sort, filter, page and select, with the state in the URL.", "keywords": ["column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"], "parts": ["PropertyColumn", "TemplateColumn", "DynamicColumn", "ColumnBand"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Selected rows post with a form" },
@@ -2067,7 +2067,7 @@
       ]
     },
     {
-      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Groups media, a header, body sections, actions and a footer in a box.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
+      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Display", "summary": "Groups media, a header, body sections, actions and a footer in a box.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
       "examples": [
         { "id": "card-variants", "title": "Variants", "lead": "A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`. To give the card a header, set `Title` and `Description`." },
         { "id": "card-sizes", "title": "Sizes", "lead": "A card's size sets its padding and its title's size. To change it, set `Size`." },
@@ -2090,7 +2090,7 @@
       ]
     },
     {
-      "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Data display", "summary": "Shows a figure with its trend, read as words.",
+      "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Display", "summary": "Shows a figure with its trend, read as words.",
       "examples": [
         { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
         { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
@@ -2502,7 +2502,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditField", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject", "column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditField", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject", "column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
@@ -2618,7 +2618,7 @@
       ]
     },
     {
-      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Displays a list of items users can open, select, page through and reorder.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
+      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data", "summary": "Displays a list of items users can open, select, page through and reorder.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
         { "feature": "Links, the current item, actions and a ⋯ menu on each item" },
         { "feature": "Selection that posts with a form or binds in C#" },
@@ -2662,7 +2662,7 @@
       ]
     },
     {
-      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data display", "summary": "Moves items between lists, such as a board's columns; each zone is a ListView.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
+      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Moves items between lists, such as a board's columns; each zone is a ListView.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
       "features": [
         { "feature": "Moving between zones from each handle's menu (with JavaScript off, each move posts the form)" },
         { "feature": "Dragging between zones and announcements", "noscript": "none" },
@@ -2683,14 +2683,14 @@
       ]
     },
     {
-      "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
+      "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
         { "id": "description-list-divided", "title": "Terms beside details", "lead": "To add lines between items, set `Dividers`. Terms sit beside their details from 640px up, and above them on phones." },
         { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`." }
       ]
     },
     {
-      "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Data display", "summary": "Shows a photo, initials or an icon for a person or thing.",
+      "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Display", "summary": "Shows a photo, initials or an icon for a person or thing.",
       "examples": [
         { "id": "avatar-basics", "title": "Initials and icons", "lead": "To show a name's initials, in a color picked from the name, set `Name`. Without a name, the avatar shows a person icon.", "after": ["For teams and companies, set `Square`."] },
         { "id": "avatar-variants", "title": "Colors and variants", "lead": "A variant sets the avatar's fill, `Soft` or `Solid`. To choose one, set `Variant`. For a color other than the one picked from `Name`, set `Accent`." },
@@ -2699,14 +2699,14 @@
       ]
     },
     {
-      "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Data display", "summary": "Overlaps avatars and counts the rest.",
+      "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Display", "summary": "Overlaps avatars and counts the rest.",
       "examples": [
         { "id": "avatar-group-max", "title": "Counting the rest", "lead": "To show the first few avatars and count the rest in a +N avatar, set `Max`." },
         { "id": "avatar-group-sizes", "title": "Sizes", "lead": "To set the size of every avatar in a group, set `Size` on the group." }
       ]
     },
     {
-      "id": "tree-view", "icon": "ListTree", "name": "TreeView", "category": "Data display", "summary": "Shows items nested in items, such as folders, as branches that open and close.", "keywords": ["tree", "treeview", "hierarchy", "folders", "nested list", "file browser"],
+      "id": "tree-view", "icon": "ListTree", "name": "TreeView", "category": "Data", "summary": "Shows items nested in items, such as folders, as branches that open and close.", "keywords": ["tree", "treeview", "hierarchy", "folders", "nested list", "file browser"],
       "features": [
         { "feature": "Links, the current item, and branches that open" },
         { "feature": "Branches opened by hand stay open across pages", "noscript": "none" },
@@ -2739,14 +2739,14 @@
       ]
     },
     {
-      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Data display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
+      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
       "examples": [
         { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
         { "id": "barcode-product", "title": "Products", "lead": "For a retail product, set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit, the barcode adds it; with it, the barcode checks it." }
       ]
     },
     {
-      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Data display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
+      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
       "examples": [
         { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code renders on the server as an SVG and works with JavaScript off. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for a user without a camera." },
         { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
@@ -2758,14 +2758,14 @@
       ]
     },
     {
-      "id": "image", "icon": "Image", "name": "Image", "category": "Data display", "summary": "Loads an image lazily and keeps its space.",
+      "id": "image", "icon": "Image", "name": "Image", "category": "Display", "summary": "Loads an image lazily and keeps its space.",
       "examples": [
         { "id": "image-fit", "title": "Ratio and fit", "lead": "A ratio gives the image a fixed shape, whatever the picture's own. Set `Ratio`. To choose whether the image fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
         { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." }
       ]
     },
     {
-      "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Data display", "summary": "Shows a YouTube video that loads when played.",
+      "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Display", "summary": "Shows a YouTube video that loads when played.",
       "examples": [
         { "id": "video-embed-play", "title": "Playing a video", "lead": "The poster shows first, and YouTube's player loads only when the user plays the video. Set `YouTubeId` and `Label`.",
           "notes": {
@@ -2776,14 +2776,14 @@
       ]
     },
     {
-      "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Data display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
+      "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
       "examples": [
         { "id": "timeline-commits", "title": "Links and the current item", "lead": "To make an item's title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
         { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
       ]
     },
     {
-      "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data display", "parts": ["SchedulerToday", "SchedulerArrows", "SchedulerPeriod", "SchedulerCategories", "SchedulerViews", "SchedulerNew"], "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
+      "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data", "parts": ["SchedulerToday", "SchedulerArrows", "SchedulerPeriod", "SchedulerCategories", "SchedulerViews", "SchedulerNew"], "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
       "features": [
         { "feature": "Day, week, work week, month and agenda views" },
         { "feature": "All-day and several-day appointments as bars across their days" },
@@ -2824,7 +2824,7 @@
       ]
     },
     {
-      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Data display", "summary": "Shows a conversation and a box to write the next message in, for an assistant or for people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
+      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Display", "summary": "Shows a conversation and a box to write the next message in, for an assistant or for people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
       "parts": ["ChatEntry"],
       "features": [
         { "feature": "A log that starts at its newest entry and stays there as entries arrive" },
@@ -2857,7 +2857,7 @@
       ]
     },
     {
-      "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Data display", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
+      "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Navigation", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
       "parts": ["CarouselItem"],
       "features": [
         { "feature": "Slides that swipe and scroll a slide at a time, several at once per breakpoint" },
@@ -2876,7 +2876,7 @@
       ]
     },
     {
-      "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Shows sections that open and close, even with JavaScript off.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
+      "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Navigation", "summary": "Shows sections that open and close, even with JavaScript off.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
         { "feature": "Items open and close, one at a time with Exclusive" },
         { "feature": "An item's Open bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
@@ -2901,7 +2901,7 @@
       ]
     },
     {
-      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Data display", "summary": "Hides a section behind a \"show more\" toggle.", "keywords": ["details", "disclosure"],
+      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a \"show more\" toggle.", "keywords": ["details", "disclosure"],
       "features": [
         { "feature": "Opens and closes" },
         { "feature": "Open bound to C#", "member": "Open" }

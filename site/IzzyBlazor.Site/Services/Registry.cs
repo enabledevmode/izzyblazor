@@ -97,6 +97,10 @@ public sealed class Registry
             ? TopicHref(component, topic) : OverviewHref(component);
 
     /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
+    /// <summary>A category's anchor on the components page, such as <c>date-time</c> for "Date &amp; time".</summary>
+    public static string CategoryAnchor(string category) =>
+        System.Text.RegularExpressions.Regex.Replace(category.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
+
     public static string DemosHref(RegistryComponent component) => ScenarioHref(component, component.Scenarios[0]);
 
     public static string ScenarioHref(RegistryComponent component, RegistryScenario scenario) => $"demos/{component.Id}/{scenario.Id}";
