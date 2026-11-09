@@ -127,6 +127,40 @@
     cursor: grabbing;
   }
 
+  /* Read-only: an appointment is a button that opens its card. */
+  button.ib-sched-event {
+    border-width: 0;
+    padding-block: 0;
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  button.ib-sched-event:hover { background-color: color-mix(in oklab, var(--ib-sched-color) 28%, var(--ib-color-surface)); }
+  button.ib-sched-bar-event:hover { background-color: color-mix(in oklab, var(--ib-sched-color) 60%, var(--ib-color-surface)); }
+  button.ib-sched-event:focus-visible {
+    z-index: 3;
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 1px;
+  }
+  button.ib-sched-pill { width: 100%; }
+  .ib-sched-card { width: 20rem; }
+  .ib-sched-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    margin-bottom: var(--ib-space-2);
+  }
+  .ib-sched-card .ib-sched-swatch {
+    margin: 0;
+    background-color: var(--ib-sched-color);
+  }
+  .ib-sched-card p { margin: var(--ib-space-1) 0 0; font-size: var(--ib-text-sm); }
+  .ib-sched-card-muted { color: var(--ib-color-muted); }
+  .ib-sched-card .ib-sched-card-notes {
+    margin-top: var(--ib-space-3);
+    white-space: pre-line;
+  }
+
   /* A category's color in its menu item. */
   .ib-sched-swatch {
     display: inline-block;

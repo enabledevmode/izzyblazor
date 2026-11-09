@@ -61,6 +61,7 @@
         var entries = Read(first, last);
         var today = DateOnly.FromDateTime(DateTime.Now);
         var period = PeriodOf(view).ToLower(culture);
+        _cards = 0;
     }
     <div class="ib-sched-bar">
         @* The period, a button to a month to go to any date (Outlook's). *@
@@ -509,7 +510,11 @@
         _category?.Invoke(_items[e.Index]) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : null;
 
     // What a screen reader hears for an appointment: its title, then its whole time.
-    private string Said(SchedulerEntry e, CultureInfo culture)
+    private string Said(SchedulerEntry e, CultureInfo culture) =>
+        string.Join(", ", new[] { TitleText(e), DetailText(e), CategoryLabel(e), WhenOf(e, culture) }.Where(s => s is not null));
+
+    // An appointment's whole time: "Monday, November 9, 2026, 9:30 AM to 10:30 AM".
+    private string WhenOf(SchedulerEntry e, CultureInfo culture)
     {
         var day = (DateTime t) => t.ToString("D", culture);
         string when;
@@ -525,7 +530,7 @@
             when = $"{day(e.Start)}, {string.Format(culture, TextDefaults.SchedulerTimeRange, Time(e.Start, culture), end)}";
         }
 
-        return string.Join(", ", new[] { TitleText(e), DetailText(e), CategoryLabel(e), when }.Where(s => s is not null));
+        return when;
     }
 
     // A start for a month's day: "11 AM" on the hour where the culture's clock is twelve-hour
@@ -574,9 +579,7 @@
                 @foreach (var bar in bars)
                 {
                     var e = entries.First(x => x.Index == bar.Index);
-                    <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 2) / @(bar.ToDay + 3);grid-row:@(bar.Lane + 1);@ColorStyle(e)">
-                        @BarContent(e, bar.StartsBefore, culture)
-                    </a>
+                    @Appointment(e, BarClass(bar.StartsBefore, bar.EndsAfter), $"grid-column:{bar.FromDay + 2} / {bar.ToDay + 3};grid-row:{bar.Lane + 1};{ColorStyle(e)}", BarContent(e, bar.StartsBefore, culture), culture)
                 }
             </div>
             @* With no links in it, the scroller itself takes focus, so the keys can scroll the hours. *@
@@ -602,7 +605,10 @@
                                 var e = entries.First(x => x.Index == box.Index);
                                 var isShort = box.Height < 45.0 / 1440;
                                 var detail = DetailText(e);
-                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-item="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Across(box.Left);width:@Across(box.Width);@ColorStyle(e)">
+                                var boxData = Editable
+                                    ? new Dictionary<string, object?> { ["draggable"] = "false", ["data-ib-item"] = ItemKey!(_items[e.Index]), ["data-ib-start"] = Iso(e.Start), ["data-ib-end"] = Iso(e.End), ["data-ib-cut"] = box.StartsBefore || box.EndsAfter ? "" : null }
+                                    : null;
+                                RenderFragment boxContent = @<text>
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
                                         @if (detail is not null)
@@ -615,7 +621,8 @@
                                         }
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
-                                </a>
+                                </text>;
+                                @Appointment(e, isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event", $"top:{Pct(box.Top)};height:{Pct(box.Height)};left:{Across(box.Left)};width:{Across(box.Width)};{ColorStyle(e)}", boxContent, culture, boxData)
                             }
                         </div>
                     }
@@ -674,10 +681,10 @@
                             <ul class="ib-sched-pills">
                                 @foreach (var e in shown)
                                 {
-                                    <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
+                                    <li>@Appointment(e, "ib-sched-event ib-sched-pill", ColorStyle(e), @<text>
                                         <span aria-hidden="true"><span class="ib-sched-time">@StartOf(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
                                         <span class="ib-visually-hidden">@Said(e, culture)</span>
-                                    </a></li>
+                                    </text>, culture)</li>
                                 }
                                 @if (hidden > 0)
                                 {
@@ -689,9 +696,7 @@
                     @foreach (var bar in bars)
                     {
                         var e = entries.First(x => x.Index == bar.Index);
-                        <a class="@BarClass(bar.StartsBefore, bar.EndsAfter)" href="@LinkOf(e)" style="grid-column:@(bar.FromDay + 1) / @(bar.ToDay + 2);grid-row:@(bar.Lane + 2);@ColorStyle(e)">
-                            @BarContent(e, bar.StartsBefore, culture)
-                        </a>
+                        @Appointment(e, BarClass(bar.StartsBefore, bar.EndsAfter), $"grid-column:{bar.FromDay + 1} / {bar.ToDay + 2};grid-row:{bar.Lane + 2};{ColorStyle(e)}", BarContent(e, bar.StartsBefore, culture), culture)
                     }
                 </div>
             }
@@ -718,7 +723,7 @@
                     <ul>
                         @foreach (var e in own)
                         {
-                            <li><a class="ib-sched-event ib-sched-pill" href="@LinkOf(e)" style="@ColorStyle(e)">
+                            <li>@Appointment(e, "ib-sched-event ib-sched-pill", ColorStyle(e), @<text>
                                 <span class="ib-sched-time" aria-hidden="true">@(e.IsBar ? TextDefaults.SchedulerAllDay : $"{Time(e.Start, culture)} – {Time(e.End, culture)}")</span>
                                 <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
                                 @if (DetailText(e) is { } detail)
@@ -726,7 +731,7 @@
                                     <span class="ib-sched-detail" aria-hidden="true">@detail</span>
                                 }
                                 <span class="ib-visually-hidden">@Said(e, culture)</span>
-                            </a></li>
+                            </text>, culture)</li>
                         }
                     </ul>
                 </li>
@@ -738,8 +743,47 @@
         }
     };
 
-    // An appointment's link to the form; with no form, none (an <a> with no href is plain text).
+    // An appointment's link to its form.
     private string? LinkOf(SchedulerEntry e) => Editable ? EditHref(ItemKey!(_items[e.Index])) : null;
+
+    // Ids for the read-only cards, counted from 0 each render (an appointment can show twice).
+    private readonly string _cardPrefix = IdGenerator.Next("ib-sched");
+    private int _cards;
+
+    // An appointment: with a form, a link to it; read-only, a button that opens a card about it
+    // beside it (Outlook's and MUI's), a popover that works with no script.
+    private RenderFragment Appointment(SchedulerEntry e, string cls, string style, RenderFragment content, CultureInfo culture, Dictionary<string, object?>? data = null) => __builder =>
+    {
+        if (Editable)
+        {
+            <a class="@cls" href="@LinkOf(e)" style="@style" @attributes="data">@content</a>
+        }
+        else
+        {
+            var id = $"{_cardPrefix}-{_cards++}";
+            var anchor = StyleValues.AnchorName(id);
+            <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id">@content</button>
+            <div popover id="@id" role="dialog" aria-labelledby="@($"{id}-t")" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
+                <div class="ib-sched-card-head">
+                    <span class="ib-sched-swatch" aria-hidden="true"></span>
+                    <span class="ib-popover-title" id="@($"{id}-t")">@TitleText(e)</span>
+                </div>
+                <p>@WhenOf(e, culture)</p>
+                @if (DetailText(e) is { } detail)
+                {
+                    <p>@detail</p>
+                }
+                @if (CategoryLabel(e) is { } kind)
+                {
+                    <p class="ib-sched-card-muted">@kind</p>
+                }
+                @if (_description?.Invoke(_items[e.Index]) is { Length: > 0 } notes)
+                {
+                    <p class="ib-sched-card-notes">@notes</p>
+                }
+            </div>
+        }
+    };
 
     // ---- The form: an appointment's, or a new one's. ----
 
