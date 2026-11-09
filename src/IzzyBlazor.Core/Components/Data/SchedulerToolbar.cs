@@ -22,8 +22,8 @@ internal interface ISchedulerToolbar
 /// <summary>
 /// One of a <c>Scheduler</c>'s own toolbar parts, written in its <c>ToolbarContent</c> to put it
 /// among your items, in the order they're written: <see cref="SchedulerToday"/>,
-/// <see cref="SchedulerArrows"/>, <see cref="SchedulerPeriod"/>, <see cref="SchedulerCategoryMenu"/>,
-/// <see cref="SchedulerViewMenu"/>, <see cref="SchedulerNewButton"/>. A part you don't write keeps
+/// <see cref="SchedulerArrows"/>, <see cref="SchedulerPeriod"/>, <see cref="SchedulerCategories"/>,
+/// <see cref="SchedulerViews"/>, <see cref="SchedulerNew"/>. A part you don't write keeps
 /// its usual place. The Scheduler still decides whether a part shows (Categories with categories,
 /// the view menu with more than one view, New with OnSave). Write them directly in
 /// <c>ToolbarContent</c>: inside a component of your own the Scheduler can't see them, and draws
@@ -56,6 +56,10 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
 
     bool IToolbarItem.Separator => false;
 
+    // Off (no categories yet, one view, no OnSave), it keeps its place, so turned on later it
+    // comes back where it was.
+    bool IToolbarItem.Hidden => Part(Scheduler) is null;
+
     RenderFragment IToolbarItem.Bar => Part(Scheduler) ?? (_ => { });
 
     RenderFragment? IToolbarItem.Menu => null;
@@ -63,17 +67,7 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
     double? IToolbarItem.Width => null;
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        if (Part(Scheduler) is not null)
-        {
-            _slot.Join(Toolbar);
-        }
-        else
-        {
-            _slot.Dispose();
-        }
-    }
+    protected override void OnParametersSet() => _slot.Join(Toolbar);
 
     /// <inheritdoc />
     protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => _slot.Rendered();
@@ -132,7 +126,7 @@ public sealed class SchedulerPeriod : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's Categories menu, placed in its <c>ToolbarContent</c>; it shows when the Scheduler has categories.</summary>
-public sealed class SchedulerCategoryMenu : SchedulerToolbarItem
+public sealed class SchedulerCategories : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
 
@@ -140,7 +134,7 @@ public sealed class SchedulerCategoryMenu : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's view menu, placed in its <c>ToolbarContent</c>; it shows when there's more than one view.</summary>
-public sealed class SchedulerViewMenu : SchedulerToolbarItem
+public sealed class SchedulerViews : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
 
@@ -148,7 +142,7 @@ public sealed class SchedulerViewMenu : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's New button, placed in its <c>ToolbarContent</c>; it shows with OnSave.</summary>
-public sealed class SchedulerNewButton : SchedulerToolbarItem
+public sealed class SchedulerNew : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
 

@@ -4,7 +4,7 @@
 <Scheduler TItem="Session" Items="Shown" Start="s => s.Start" End="s => s.End" Title="s => s.Client" Detail="s => s.Studio"
            ItemKey="s => s.Id.ToString()" OnSave="Save" View="SchedulerView.WorkWeek" QueryPrefix="studio-">
     <ToolbarContent>
-        <SchedulerNewButton Position="ToolbarPosition.Start" />
+        <SchedulerNew Position="ToolbarPosition.Start" />
         <SchedulerToday />
         <SchedulerArrows />
         <SchedulerPeriod />
