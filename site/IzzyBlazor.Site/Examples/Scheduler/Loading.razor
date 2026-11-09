@@ -1,39 +1,70 @@
-@* A support team's on-call shifts, a year of them in a store that's asked by date range: the
-   Scheduler asks only for the days shown, and again as you move through the weeks. *@
-<Scheduler TItem="Shift" ItemsProvider="LoadAsync" Start="s => s.Start" End="s => s.End" Title="s => s.Engineer"
-           Detail="s => s.Rotation" Color="s => s.Rotation == Primary ? Navy : Sky" QueryPrefix="oncall-" />
+@* A dental clinic's year of appointments, kept where a database would keep them: the Scheduler
+   asks only for the days shown, and asks again as you move through the weeks. The count in the
+   toolbar is what it was given. *@
+<Scheduler TItem="Visit" ItemsProvider="LoadAsync" Start="v => v.Start" End="v => v.End" Title="v => v.Patient"
+           Detail="v => v.Dentist" Category="v => v.Kind" Categories="Kinds" View="SchedulerView.WorkWeek" QueryPrefix="clinic-load-">
+    <ToolbarContent>
+        <ToolbarText Position="ToolbarPosition.End">@($"Loaded {_loaded} of {Clinic.Count:N0} appointments")</ToolbarText>
+    </ToolbarContent>
+</Scheduler>
 
 @code {
-    private record Shift(string Engineer, string Rotation, DateTime Start, DateTime End);
+    private record Visit(string Patient, string Dentist, string Kind, DateTime Start, DateTime End);
 
-    private const string Primary = "Primary", Backup = "Backup";
-    private const string Navy = "var(--ib-chart-7)", Sky = "var(--ib-chart-1)";
+    private static readonly SchedulerCategory[] Kinds =
+    [
+        new("checkup", "Check-up"), new("cleaning", "Cleaning"), new("filling", "Filling"),
+    ];
 
-    // Only the shifts that touch the days shown; an app asks its database or API the same way.
-    private static async ValueTask<IEnumerable<Shift>> LoadAsync(SchedulerRequest request) =>
-        await OnCall.BetweenAsync(request.Start, request.End, request.CancellationToken);
+    private int _loaded;
 
-    // Stands in for a service: eight-hour shifts around the clock for a year, made as they're asked for.
-    private static class OnCall
+    // Only the visits that touch the days shown, and none of a hidden kind: an app asks its
+    // database or API the same way.
+    private async ValueTask<IEnumerable<Visit>> LoadAsync(SchedulerRequest request)
     {
-        private static readonly string[] Engineers = ["Amara", "Bo", "Chen", "Dita", "Emil", "Farah"];
+        var visits = await Clinic.BetweenAsync(request.Start, request.End, request.HiddenCategories, request.CancellationToken);
+        _loaded = visits.Count;
+        return visits;
+    }
 
-        public static Task<IEnumerable<Shift>> BetweenAsync(DateTime from, DateTime to, CancellationToken cancel)
+    // Stands in for the clinic's database: a year of visits around today, made once.
+    private static class Clinic
+    {
+        private static readonly string[] Patients =
+            ["M. Alvarez", "J. Chen", "R. Okafor", "S. Novak", "T. Brooks", "A. Haddad", "L. Moreau", "K. Ito", "P. Singh", "E. Rossi", "D. Kowalski", "N. Mensah"];
+
+        private static readonly List<Visit> All = Make();
+
+        public static int Count => All.Count;
+
+        public static Task<List<Visit>> BetweenAsync(DateTime from, DateTime to, IReadOnlyCollection<string> hidden, CancellationToken cancel) =>
+            Task.FromResult(All.Where(v => v.Start < to && v.End > from && !hidden.Contains(v.Kind)).ToList());
+
+        private static List<Visit> Make()
         {
-            var shifts = new List<Shift>();
-            for (var day = from.Date; day < to; day = day.AddDays(1))
+            var visits = new List<Visit>();
+            var first = DateOnly.FromDateTime(DateTime.Today).AddDays(-182);
+            for (var d = 0; d < 365; d++)
             {
-                var n = day.DayOfYear;
-                for (var block = 0; block < 3; block++)
+                var day = first.AddDays(d);
+                if (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday) continue;
+                // The same day always has the same visits.
+                var random = new Random(day.DayNumber);
+                foreach (var dentist in new[] { "Dr. Patel", "Dr. Moreno" })
                 {
-                    var start = day.AddHours(block * 8);
-                    shifts.Add(new(Engineers[(n * 3 + block) % Engineers.Length], Primary, start, start.AddHours(8)));
+                    var at = day.ToDateTime(new TimeOnly(8, 30)).AddMinutes(random.Next(0, 4) * 30);
+                    while (at.Hour < 16)
+                    {
+                        var kind = random.Next(10) switch { < 5 => "checkup", < 8 => "cleaning", _ => "filling" };
+                        var minutes = kind == "filling" ? 60 : 30;
+                        visits.Add(new(Patients[random.Next(Patients.Length)], dentist, kind, at, at.AddMinutes(minutes)));
+                        // A gap now and then: a free slot, or lunch.
+                        at = at.AddMinutes(minutes + random.Next(0, 3) * 30 + (at.Hour == 12 ? 60 : 0));
+                    }
                 }
-
-                shifts.Add(new(Engineers[(n + 2) % Engineers.Length], Backup, day.AddHours(9), day.AddHours(17)));
             }
 
-            return Task.FromResult<IEnumerable<Shift>>(shifts);
+            return visits;
         }
     }
 }
