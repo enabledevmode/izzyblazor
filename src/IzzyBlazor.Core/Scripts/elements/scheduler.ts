@@ -48,6 +48,10 @@ class Scheduler extends IzzyElement {
     });
     this.setAttribute("data-ib-ready", "");
     watch.observe(this, { attributes: true, attributeFilter: ["data-ib-ready"], childList: true });
+    // Another week drawn in place (interactive): its columns' days change, not this element's children.
+    const days = new MutationObserver(() => this.#scroll());
+    days.observe(this, { subtree: true, attributes: true, attributeFilter: ["data-ib-day"] });
+    signal.addEventListener("abort", () => days.disconnect());
     this.addEventListener("scroll", (e) => {
       if ((e.target as Element).classList?.contains("ib-sched-scroll")) this.#scrollTop = (e.target as HTMLElement).scrollTop;
     }, { capture: true, signal });
@@ -126,7 +130,7 @@ class Scheduler extends IzzyElement {
   #key(e: KeyboardEvent): void {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
     const t = e.target as Element;
-    if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]")) return;
+    if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]:not(.ib-sched-event)")) return;
     const link = this.querySelector<HTMLElement>(`[data-ib-key="${e.key.toLowerCase()}"]`);
     if (!link) return;
     e.preventDefault();
@@ -169,7 +173,7 @@ class Scheduler extends IzzyElement {
     if (card.matches(":popover-open")) return;
     this.#timer = window.setTimeout(() => {
       // Not over a menu or another popover the reader opened (showing this one would close it).
-      if (!card.isConnected || card.matches(":popover-open") || this.querySelector("[data-ib-dragging]") || document.querySelector(":popover-open:not(.ib-sched-card)")) return;
+      if (!card.isConnected || card.matches(":popover-open") || this.querySelector("[data-ib-dragging]") || document.querySelector(":popover-open:not(.ib-sched-card)") || [...this.querySelectorAll(".ib-sched-card:popover-open")].some((c) => c !== this.#hovered)) return;
       this.#hovered = card;
       card.showPopover();
     }, 500);
@@ -205,6 +209,8 @@ class Scheduler extends IzzyElement {
     clearTimeout(this.#timer);
     if (this.#hovered?.matches(":popover-open") && !(e.target as Element).closest(".ib-sched-card")) this.#hovered.hidePopover();
     const target = e.target as HTMLElement;
+    // A press in a card (selecting its text) isn't a press on the time under it.
+    if (target.closest(".ib-sched-card")) return;
     const box = target.closest<HTMLElement>(".ib-sched-col .ib-sched-event[data-ib-item]");
     const col = target.closest<HTMLElement>(".ib-sched-col");
     const cell = target.closest<HTMLElement>(".ib-sched-cell");

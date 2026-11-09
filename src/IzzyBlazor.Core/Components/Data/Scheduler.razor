@@ -18,7 +18,13 @@
     <Scheduler Items="bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Room" />
 
     Only the days shown are read: an IQueryable (an EF Core query) is filtered by the database, and
-    ItemsProvider is asked for them from anywhere else.
+    ItemsProvider is asked for them from anywhere else. On an interactive page, @bind-View and
+    @bind-Date keep the view and date in the component instead of the address.
+
+    ToolbarContent adds the page's own toolbar items, and places the toolbar's parts
+    (SchedulerToday, SchedulerArrows, SchedulerPeriod, SchedulerCategoryMenu, SchedulerViewMenu,
+    SchedulerNewButton) among them. AppointmentTemplate draws each appointment's text, and
+    DayHeaderTemplate adds to each day's header.
 
     Appointments a day long or more, and all-day ones (AllDay), are bars across their days;
     the rest are boxes in their day's column, side by side where they overlap. Times are shown as
@@ -35,7 +41,7 @@
                Categories="@([new("work", "Work"), new("family", "Family")])" />
 
     With no OnSave, an appointment opens a card beside it: its whole time, Detail, category and
-    Description. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
+    Description. With a mouse, hovering any appointment shows its card too. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
     has a New button, and with script a click on empty time adds one there and a drag moves or
     resizes one. The form posts on a static page too, and OnSave saves it either way.
 
@@ -49,6 +55,12 @@
       "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With OnSave each is a
       link to its form; without, a button that opens its card (a dialog, which takes focus).
     - Today is marked with aria-current, not only by its color.
+    - A hover's card is the mouse's alone: it stays while the pointer is on the appointment or the
+      card, Escape closes it, and an editable one's card is hidden from screen readers (its link
+      opens the form). A press opens a read-only one's card, which takes focus.
+    - While a provider loads, the view is aria-busy; a failure is an alert with Retry, which puts
+      focus on the view when the appointments come.
+    - A DayHeaderTemplate's content is read, after its date.
     - The form is the way to add, move and resize from the keyboard and with no script; a drag
       does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
@@ -64,7 +76,7 @@
     See also: Calendar, DateRangeField.
 *@
 
-<ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)" aria-busy="@(_loading ? "true" : null)"
+<ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
               data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     @{
@@ -120,7 +132,14 @@
     {
         @* What was shown stays out: an empty view under the message. Retry asks again. *@
         <div class="ib-sched-error" role="alert">
-            <span>@TextDefaults.SchedulerLoadFailed</span>
+            @if (ErrorContent is not null)
+            {
+                @ErrorContent
+            }
+            else
+            {
+                <span>@TextDefaults.SchedulerLoadFailed</span>
+            }
             @if (RendererInfo.IsInteractive)
             {
                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" @onclick="RetryAsync">@TextDefaults.Retry</button>
@@ -178,8 +197,8 @@
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Title { get; set; } = default!;
 
     /// <summary>
-    /// A line of detail after each appointment's title, such as <c>b =&gt; b.Location</c>: on its
-    /// line in the day and week views, wrapping when the box has room, in the agenda and the card.
+    /// A line of detail with each appointment's title, such as <c>b =&gt; b.Location</c>: under it
+    /// in the day and week views' taller boxes, after it in a short one, in the agenda and the card.
     /// Shown only: the form has no field for it, so it can be worked out from other values.
     /// </summary>
     [Parameter] public Func<TItem, string?>? Detail { get; set; }
@@ -193,6 +212,9 @@
     /// their places. The Scheduler reads this once more on each render, to see which parts are here.
     /// </summary>
     [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    /// <summary>Shown in place of "Couldn't load the appointments." when loading fails, before the Retry button.</summary>
+    [Parameter] public RenderFragment? ErrorContent { get; set; }
 
     /// <summary>
     /// Draws each appointment's text yourself, in place of its title and <see cref="Detail"/>: an
@@ -511,7 +533,7 @@
     }
 
     /// <inheritdoc />
-    protected override Task OnParametersSetAsync() => LoadAsync();
+    protected override Task OnParametersSetAsync() => LoadAsync(force: false);
 
     // Interactive: the address changed (a toolbar link, Back, or a save): load and draw the page it names.
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -536,20 +558,41 @@
 
     [Inject] private IServiceProvider Services { get; set; } = default!;
 
+    // What was last loaded: the range, the view, the hidden categories and the source.
+    private object? _loadedKey;
+
     // The appointments for the days shown: a list as it is, an IQueryable filtered by the database,
-    // or the provider's. A slower, older load never overwrites a newer one.
-    private async Task LoadAsync()
+    // or the provider's. A query or provider is asked again only when what it's asked for changes
+    // (a parent's render alone doesn't), or when forced: a navigation, a save, a move, Retry. A
+    // slower, older load never overwrites a newer one.
+    private async Task LoadAsync(bool force = true)
     {
         var (first, days) = SchedulerLayout.Range(CurrentView, CurrentDate, FirstDay, AgendaDays);
         var from = first.ToDateTime(TimeOnly.MinValue);
         var to = first.AddDays(days).ToDateTime(TimeOnly.MinValue);
         IReadOnlyCollection<string> hidden = _category is null ? [] : Hidden;
+        if (ItemsProvider is null && Items is not IQueryable<TItem>)
+        {
+            // A list costs nothing to read again, and may have changed in place.
+            (_items, _loadError) = (Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [], null);
+            return;
+        }
+
+        var key = (from, to, CurrentView, string.Join(",", hidden.Order(StringComparer.Ordinal)), (object?)ItemsProvider ?? Items);
+        if (!force && _loadError is null && Equals(key, _loadedKey)) return;
+        _loadedKey = key;
         if (ItemsProvider is null)
         {
-            _items = Items is IQueryable<TItem> query
-                ? SchedulerQuery.InRange(query, Start, End, Category, from, to, hidden).ToList()
-                : Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
-            _loadError = null;
+            try
+            {
+                (_items, _loadError) = (SchedulerQuery.InRange((IQueryable<TItem>)Items!, Start, End, Category, from, to, hidden).ToList(), null);
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "The Scheduler's appointments failed to load.");
+                (_items, _loadError, _loadedKey) = ([], ex, null);
+            }
+
             return;
         }
 
@@ -572,7 +615,7 @@
         {
             if (version != _loadVersion) return;
             Logger?.LogError(ex, "The Scheduler's appointments failed to load.");
-            (_items, _loadError) = ([], ex);
+            (_items, _loadError, _loadedKey) = ([], ex, null);
         }
         finally
         {
@@ -580,10 +623,23 @@
         }
     }
 
+    // The view, which takes focus when Retry has brought the appointments (its button is gone).
+    private ElementReference _view;
+    private bool _focusView;
+
     private async Task RetryAsync()
     {
         await LoadAsync();
+        _focusView = _loadError is null;
         StateHasChanged();
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusView) return;
+        _focusView = false;
+        await _view.FocusAsync();
     }
 
     /// <inheritdoc />
@@ -736,7 +792,7 @@
         var boxes = SchedulerLayout.Boxes(entries, first, days);
         var lanes = bars.Count == 0 ? 0 : bars.Max(b => b.Lane) + 1;
         var now = DateTime.Now;
-        <div class="ib-sched-cols" style="--ib-sched-days:@days" data-ib-day-start="@DayStart">
+        <div class="ib-sched-cols" style="--ib-sched-days:@days" data-ib-day-start="@DayStart" tabindex="-1" aria-busy="@(_loading ? "true" : null)" @ref="_view">
             <div class="ib-sched-head" aria-hidden="@(DayHeaderTemplate is null ? "true" : null)">
                 <span class="ib-sched-gutter" aria-hidden="true"></span>
                 @for (var d = 0; d < days; d++)
@@ -745,6 +801,11 @@
                     <span class="@DayClass("ib-sched-day-head", day, today)">
                         <span class="ib-sched-num" aria-hidden="true">@day.Day</span>
                         <span class="ib-sched-dow" aria-hidden="true"><span class="ib-sched-dow-long">@day.ToString("dddd", culture)</span><span class="ib-sched-dow-short">@culture.DateTimeFormat.GetShortestDayName(day.DayOfWeek)</span></span>
+                        @if (DayHeaderTemplate is not null)
+                        {
+                            @* What the template adds is read after its date (the columns below name theirs). *@
+                            <span class="ib-visually-hidden">@day.ToString("D", culture)</span>
+                        }
                         @DayExtra(day)
                     </span>
                 }
@@ -843,7 +904,7 @@
 
     private RenderFragment Month(List<SchedulerEntry> entries, DateOnly first, DateOnly date, DateOnly today, CultureInfo culture) => __builder =>
     {
-        <div class="ib-sched-month">
+        <div class="ib-sched-month" tabindex="-1" aria-busy="@(_loading ? "true" : null)" @ref="_view">
             <div class="ib-sched-week ib-sched-dows" aria-hidden="true">
                 @for (var d = 0; d < 7; d++)
                 {
@@ -907,7 +968,7 @@
     private RenderFragment Agenda(List<SchedulerEntry> entries, DateOnly first, int days, DateOnly today, CultureInfo culture) => __builder =>
     {
         var any = false;
-        <ol class="ib-sched-agenda">
+        <ol class="ib-sched-agenda" tabindex="-1" aria-busy="@(_loading ? "true" : null)" @ref="_view">
             @for (var d = 0; d < days; d++)
             {
                 var day = first.AddDays(d);
@@ -974,7 +1035,8 @@
         {
             <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id" aria-haspopup="dialog" aria-controls="@id">@content</button>
         }
-        @* Editable, the card only repeats the link's name, so screen readers aren't sent to it. *@
+        @* Editable, the card is a mouse's peek: screen readers hear the link's name, and the form it
+           opens has the rest (the description too), so they aren't sent to it. *@
         <div popover id="@id" role="@(Editable ? null : "dialog")" tabindex="-1" aria-labelledby="@(Editable ? null : $"{id}-t")" aria-hidden="@(Editable ? "true" : null)" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
                 <div class="ib-sched-card-head">
                     <span class="ib-sched-swatch" aria-hidden="true"></span>
@@ -1217,7 +1279,11 @@
         <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.SchedulerNew : TextDefaults.SchedulerEdit)" Size="DialogSize.Md" CloseOnBackdrop="false">
             @if (_model is null || _context is null)
             {
-                <Alert Status="Status.Warning">@TextDefaults.SchedulerGone</Alert>
+                @* Not "gone" while the appointments are still coming. *@
+                if (!_loading)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.SchedulerGone</Alert>
+                }
             }
             else
             {
@@ -1408,11 +1474,18 @@
     private async Task MoveAsync(EditContext context)
     {
         var move = (SchedulerMoveFields)context.Model;
-        if (_saving || move.Key is not { } key || _items.FirstOrDefault(i => ItemKey!(i) == key) is not { } item) return;
+        // A move that isn't made (another still saving, gone, unreadable) draws the box back too.
+        if (_saving || move.Key is not { } key || _items.FirstOrDefault(i => ItemKey!(i) == key) is not { } item)
+        {
+            _moves++;
+            return;
+        }
+
         if (!DateTime.TryParseExact(move.Start, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start)
             || !DateTime.TryParseExact(move.End, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var end)
             || end < start)
         {
+            _moves++;
             return;
         }
 
@@ -1444,10 +1517,11 @@
 
         (_move.Key, _move.Start, _move.End) = (null, null, null);
         // The boxes' style changes with each move, so a box the script left where it was dropped is
-        // drawn again where the server has it, refused moves too.
-        _moves++;
+        // drawn again where the server has it: refused at once, made once the new times have loaded
+        // (sooner, a provider's load would draw it at its old time first).
         if (save.HasErrors)
         {
+            _moves++;
             // The form, open at the new times, says why.
             (_editFor, _editItem, _model) = (key, item, fields);
             _context = new EditContext(_model);
@@ -1457,8 +1531,14 @@
             return;
         }
 
-        if (!RendererInfo.IsInteractive) Navigation.NavigateTo(Navigation.Uri);
-        else await LoadAsync();
+        if (!RendererInfo.IsInteractive)
+        {
+            Navigation.NavigateTo(Navigation.Uri);
+            return;
+        }
+
+        await LoadAsync();
+        _moves++;
     }
 
     // A move refused: its form shows though the address doesn't name it.

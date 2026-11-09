@@ -1,11 +1,11 @@
 @* A team's week: who's out shows in each day's header, and each meeting marks whether it
-   repeats or is private at the end of its row, as Outlook does. *@
+   repeats or is private at the end of its row, with its room under its title, as Outlook does. *@
 <Scheduler Items="_meetings" Start="m => m.Start" End="m => m.End" Title="m => m.Title"
            Detail="m => m.Detail" View="SchedulerView.WorkWeek" QueryPrefix="team-">
     <DayHeaderTemplate>
         @if (Out(context) is { Length: > 0 } people)
         {
-            <AvatarGroup Size="AvatarSize.Xxs" Max="3" Label="@($"Out on {context:dddd}")">
+            <AvatarGroup Size="AvatarSize.Xxs" Max="2" Label="@($"Out on {context:dddd}")">
                 @foreach (var name in people)
                 {
                     <Avatar Name="@name" />
@@ -14,7 +14,13 @@
         }
     </DayHeaderTemplate>
     <AppointmentTemplate>
-        <span><strong>@context.Item.Title</strong>@(context.OneLine || context.Item.Room is null ? "" : $" {context.Item.Room}")</span>
+        <span>
+            <strong>@context.Item.Title</strong>
+            @if (!context.OneLine && context.Item.Room is { } room)
+            {
+                <br />@room
+            }
+        </span>
         <Box Grow />
         @if (context.Item.Repeats)
         {
