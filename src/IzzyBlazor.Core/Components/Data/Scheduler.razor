@@ -843,7 +843,7 @@
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
                                 </text>;
-                                @Appointment(e, isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event", $"top:{Pct(box.Top)};height:{Pct(box.Height)};inset-inline-start:{Across(box.Left)};width:{Across(box.Width)};{ColorStyle(e)}", boxContent, culture, boxData)
+                                @Appointment(e, isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event", $"top:{Pct(box.Top)};height:{Pct(box.Height)};inset-inline-start:{Across(box.Left)};width:{Across(box.Width)};--ib-sched-moves:{_moves};{ColorStyle(e)}", boxContent, culture, boxData)
                             }
                         </div>
                     }
@@ -1315,7 +1315,7 @@
     {
         var model = posted ?? _move;
         var name = SchedulerMoveBinding.Prefix;
-        <EditForm Model="model" FormName="@(RendererInfo.IsInteractive ? null : SchedulerMoveBinding.FormName)" OnSubmit="MoveAsync" class="ib-sched-move" hidden>
+        <EditForm Model="model" FormName="@(RendererInfo.IsInteractive ? null : SchedulerMoveBinding.FormName)" OnSubmit="MoveAsync" Enhance class="ib-sched-move" hidden>
             <input type="hidden" name="@($"{name}.Key")" @bind="model.Key" />
             <input type="hidden" name="@($"{name}.Start")" @bind="model.Start" />
             <input type="hidden" name="@($"{name}.End")" @bind="model.End" />
@@ -1362,6 +1362,9 @@
         }
 
         (_move.Key, _move.Start, _move.End) = (null, null, null);
+        // The boxes' style changes with each move, so a box the script left where it was dropped is
+        // drawn again where the server has it, refused moves too.
+        _moves++;
         if (save.HasErrors)
         {
             // The form, open at the new times, says why.
@@ -1379,4 +1382,6 @@
 
     // A move refused: its form shows though the address doesn't name it.
     private string? _refused;
+
+    private int _moves;
 }
