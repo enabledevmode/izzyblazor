@@ -1186,7 +1186,8 @@
     // The side labels: values up an upright chart (or names, for bars across), at the left or the right.
     private RenderFragment FirstSide(List<AxisLabel> side, bool horizontal, bool redraw, bool right, bool zoom) => __builder =>
     {
-        <div class="@((horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side") + (right ? " ib-chart-side2" : "") + ((horizontal ? HideArgumentAxis : HideValueAxis) ? " ib-chart-off" : ""))">
+        <div class="@((horizontal ? "ib-chart-side ib-chart-names" : "ib-chart-side") + (right ? " ib-chart-side2" : "") + ((horizontal ? HideArgumentAxis : HideValueAxis) ? " ib-chart-off" : ""))"
+             style="@(!horizontal && _valueAxis?.LabelWidth is { } w ? $"min-inline-size:{w.Css}" : null)">
             <div class="@(horizontal ? "ib-chart-ticks" : "ib-chart-ticks ib-chart-values")">
                 @foreach (var label in side)
                 {
@@ -1207,9 +1208,9 @@
     };
 
     // The second value axis's labels, across the plot from the first's.
-    private static RenderFragment SecondSide(ChartModel model, bool right) => __builder =>
+    private RenderFragment SecondSide(ChartModel model, bool right) => __builder =>
     {
-        <div class="@(right ? "ib-chart-side ib-chart-side2" : "ib-chart-side")">
+        <div class="@(right ? "ib-chart-side ib-chart-side2" : "ib-chart-side")" style="@(_secondAxis?.LabelWidth is { } w ? $"min-inline-size:{w.Css}" : null)">
             <div class="ib-chart-ticks">
                 @foreach (var label in model.SecondaryLabels)
                 {

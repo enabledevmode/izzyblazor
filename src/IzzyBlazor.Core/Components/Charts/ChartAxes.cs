@@ -121,6 +121,13 @@ public sealed class ChartValueAxis : ChartAxisBase
     /// </summary>
     [Parameter] public ChartAxisPosition Position { get; set; }
 
+    /// <summary>
+    /// The least room for the axis's labels beside the plot, such as <c>LabelWidth="Length.Rem(4)"</c>,
+    /// on an upright chart. Give charts stacked over each other the same, such as synced ones
+    /// (<c>Sync</c>), so their plots line up whatever their values' widths. Wider labels still fit.
+    /// </summary>
+    [Parameter] public Length? LabelWidth { get; set; }
+
     private protected override void Check()
     {
         if (Name is not null && Position != ChartAxisPosition.Auto)

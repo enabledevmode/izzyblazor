@@ -4,13 +4,13 @@
 </RangeSelector>
 
 <Chart Items="_days" Argument="d => d.Date" Title="Revenue" Sync="store" View="_lastQuarter">
-    <ChartValueAxis Format="C0" />
+    <ChartValueAxis Format="C0" LabelWidth="Length.Rem(4)" />
     <ChartLineSeries Value="d => d.Revenue" Name="Revenue" />
 </Chart>
 
 <Chart Items="_days" Argument="d => d.Date" Title="Orders" Sync="store" View="_lastQuarter" Height="Length.Rem(12)">
     <ChartArgumentAxis Format="MMM d" />
-    <ChartValueAxis Format="N0" />
+    <ChartValueAxis Format="N0" LabelWidth="Length.Rem(4)" />
     <ChartBarSeries Value="d => d.Orders" Name="Orders" />
 </Chart>
 
