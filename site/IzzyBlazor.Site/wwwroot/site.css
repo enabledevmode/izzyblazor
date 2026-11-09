@@ -43,18 +43,18 @@
   gap: var(--ib-space-12);
   align-items: center;
 }
-/* The knob as a faint watermark centered above the wordmark, its rings spreading under the text
-   and off the band's edge; faint enough that the headline keeps its contrast. */
+/* The knob as a watermark: Ember alone, each ring a little stronger toward the center, centered
+   to the start of the text and above the wordmark, so its core clears the text and only the faint
+   outer rings run under it. */
 .site-hero-intro { position: relative; }
 .site-hero-glow {
   position: absolute;
   z-index: -1;
-  top: -1rem;
-  left: 3rem;
+  top: -2rem;
+  left: -8rem;
   width: 44rem;
   height: 44rem;
   translate: -50% -50%;
-  opacity: 0.16;
   pointer-events: none;
 }
 .site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
