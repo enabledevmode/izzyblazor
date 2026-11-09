@@ -15,7 +15,10 @@
 
     Appointments a day long or more, and all-day ones (AllDay), are bars across their days;
     the rest are boxes in their day's column, side by side where they overlap. Times are shown as
-    given, in the app's time zone.
+    given, in the app's time zone; today and the now line are the server's clock.
+
+    With Category and a SchedulerCategory for each kind, appointments take their category's color,
+    and a Categories menu shows or hides each kind.
 
     With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar has a New
     button, and with script a click on empty time adds one there and a drag moves or resizes one.
@@ -24,14 +27,18 @@
     Accessibility:
     - It's a region named by Label ("Schedule"); the toolbar's links say where they go
       ("Previous week"), and the view menu is a radio group of links.
-    - Each day's appointments come in time order, each a link with its whole time said:
-      "Team meeting, Monday, November 9, 9:30 AM to 10:30 AM".
+    - Each day's appointments come in time order, each with its category and whole time said:
+      "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With OnSave each is a
+      link to its form; without, the hours can be scrolled from the keyboard.
+    - The period's title is a polite live region, and today is marked with aria-current.
     - The form is the way to add, move and resize from the keyboard and with no script; a drag
       does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
+    - Delete asks first.
+    - The shortcuts are announced with aria-keyshortcuts; Shortcuts="false" turns them off.
 
     Keyboard:
-    While focus is in the Scheduler (Google Calendar's letters)
+    While focus is in the Scheduler, outside its menus and form (Google Calendar's letters)
     - T | Go to today
     - N, P | Go to the next or the previous day, week or month
     - D, W, X, M, A | Show the day, the week, the work week, the month or the agenda
@@ -53,21 +60,21 @@
         var period = PeriodOf(view).ToLower(culture);
     }
     <div class="ib-sched-bar">
-        <span class="ib-sched-title">@TitleOf(view, date, first, last, culture)</span>
+        <span class="ib-sched-title" aria-live="polite">@TitleOf(view, date, first, last, culture)</span>
         <div class="ib-sched-nav">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" data-ib-key="p" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
                 <Icon Purpose="IconPurpose.ChevronLeft" />
             </a>
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" data-ib-key="n" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
                 <Icon Purpose="IconPurpose.ChevronRight" />
             </a>
             @if (Editable)
             {
-                <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@NewHref(date)" data-ib-key="c" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
+                <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
                     <Icon Purpose="IconPurpose.Plus" />
                 </a>
             }
-            <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, null)" data-ib-key="t">@TextDefaults.SchedulerToday</a>
+            <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
             @if (Categories.Items.Count > 0)
             {
                 @* Each category shows or hides its appointments: a link with it in or out of the address. *@
@@ -75,7 +82,7 @@
                     @foreach (var c in Categories.Items)
                     {
                         <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
-                            <span class="ib-sched-swatch" style="background:@Categories.ColorOf(c)"></span>@(c.Title ?? c.Value)
+                            <span class="ib-sched-swatch" style="background:@Categories.ColorOf(c)"></span>@(c.Label ?? c.Value)
                         </MenuItem>
                     }
                 </Menu>
@@ -84,7 +91,7 @@
                 <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
                     @foreach (var v in Views)
                     {
-                        <MenuItem Value="@ViewValue(v)" data-ib-key="@ShortcutOf(v)">@ViewName(v)</MenuItem>
+                        <MenuItem Value="@ViewValue(v)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
                     }
                 </MenuRadioGroup>
             </Menu>
@@ -142,10 +149,14 @@
     [Parameter] public DateOnly? Date { get; set; }
 
     /// <summary>
-    /// A name for its keys in the page's address (<c>?rooms-view=month&amp;rooms-date=2026-11-09</c>),
-    /// for a page with more than one; none by default (<c>?view=…&amp;date=…</c>).
+    /// Prefix for its keys in the page's address, so several can share a page:
+    /// <c>QueryPrefix="rooms-"</c> uses <c>?rooms-view=month&amp;rooms-date=2026-11-09</c>.
+    /// None by default (<c>?view=…&amp;date=…</c>).
     /// </summary>
-    [Parameter] public string? Name { get; set; }
+    [Parameter] public string QueryPrefix { get; set; } = "";
+
+    /// <summary>The keyboard shortcuts (T, N, P, the views' letters and C) while focus is in it. On by default.</summary>
+    [Parameter] public bool Shortcuts { get; set; } = true;
 
     /// <summary>The week's first day: the culture's by default.</summary>
     [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; }
@@ -243,7 +254,10 @@
 
     private DayOfWeek FirstDay => FirstDayOfWeek ?? CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
 
-    private string Prefix => string.IsNullOrWhiteSpace(Name) ? "" : Name + "-";
+    private string Prefix => QueryPrefix ?? "";
+
+    // A shortcut's letter, or nothing with Shortcuts off.
+    private string? Key(string letter) => Shortcuts ? letter : null;
 
     private string ViewKey => Prefix + "view";
 
@@ -262,8 +276,11 @@
 
     private DateOnly CurrentDate =>
         Query(DateKey) is { } d && DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
-            ? parsed
-            : Date ?? DateOnly.FromDateTime(DateTime.Now);
+            ? Clamp(parsed)
+            : Date is { } date ? Clamp(date) : DateOnly.FromDateTime(DateTime.Now);
+
+    // Weeks and months around a date at DateOnly's ends would run past them.
+    private static DateOnly Clamp(DateOnly date) => date < new DateOnly(2, 1, 1) ? new DateOnly(2, 1, 1) : date > new DateOnly(9998, 12, 31) ? new DateOnly(9998, 12, 31) : date;
 
     private static string ViewValue(SchedulerView view) => view switch
     {
@@ -322,6 +339,17 @@
         {
             throw new InvalidOperationException("A Scheduler with OnSave needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
         }
+
+        if (OnSave.HasDelegate)
+        {
+            foreach (var (name, read) in new (string, LambdaExpression?)[] { ("Start", Start), ("End", End), ("Title", Title), ("AllDay", AllDay), ("Description", Description), ("Category", Category) })
+            {
+                if (read is not null && !SchedulerMembers.CanSet(read))
+                {
+                    throw new InvalidOperationException($"A Scheduler with OnSave saves {name} through its lambda, so it must read a settable property, such as b => b.{name}; \"{read}\" isn't one.");
+                }
+            }
+        }
         _items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
@@ -330,7 +358,7 @@
     // Interactive: the address changed (a toolbar link or Back): draw the page it names.
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        _ending = false;
+        (_ending, _refused) = (false, null);
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -427,6 +455,10 @@
 
     private static string Time(DateTime t, CultureInfo culture) => t.ToString("t", culture);
 
+    // An appointment's category name, when it has one: said with it, since its color can't be.
+    private string? CategoryLabel(SchedulerEntry e) =>
+        _category?.Invoke(_items[e.Index]) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : null;
+
     // What a screen reader hears for an appointment: its title, then its whole time.
     private string Said(SchedulerEntry e, CultureInfo culture)
     {
@@ -444,7 +476,7 @@
             when = $"{day(e.Start)}, {string.Format(culture, TextDefaults.SchedulerTimeRange, Time(e.Start, culture), end)}";
         }
 
-        return $"{TitleText(e)}, {when}";
+        return CategoryLabel(e) is { } kind ? $"{TitleText(e)}, {kind}, {when}" : $"{TitleText(e)}, {when}";
     }
 
     private static string Pct(double v) => (v * 100).ToString("0.###", CultureInfo.InvariantCulture) + "%";
@@ -484,7 +516,8 @@
                     </a>
                 }
             </div>
-            <div class="ib-sched-scroll" tabindex="-1">
+            @* With no links in it, the scroller itself takes focus, so the keys can scroll the hours. *@
+            <div class="ib-sched-scroll" tabindex="@(Editable ? "-1" : "0")" role="@(Editable ? null : "group")" aria-label="@(Editable ? null : TextDefaults.SchedulerHours)">
                 <div class="ib-sched-grid">
                     <div class="ib-sched-hours" aria-hidden="true">
                         @for (var h = 1; h < 24; h++)
@@ -496,7 +529,7 @@
                     {
                         var day = first.AddDays(d);
                         var own = boxes.Where(b => b.Day == d).OrderBy(b => b.Top).ThenBy(b => b.Left).ToList();
-                        <div class="@DayClass("ib-sched-col", day, today)" role="group" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
+                        <div class="@DayClass("ib-sched-col", day, today)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                             @if (day == today)
                             {
                                 <span class="ib-sched-now" aria-hidden="true" style="top:@Pct((now - now.Date).TotalMinutes / 1440)"></span>
@@ -505,7 +538,7 @@
                             {
                                 var e = entries.First(x => x.Index == box.Index);
                                 var isShort = box.Height < 45.0 / 1440;
-                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-key="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
+                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-item="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
                                         <span class="ib-sched-time">@(isShort ? Whole(Time(e.Start, culture)) : $"{Whole(Time(e.Start, culture))} – {Whole(Time(e.End, culture))}")</span>
@@ -552,7 +585,7 @@
                         var hidden = timed.Count > room ? timed.Count - Math.Max(0, room - 1) : 0;
                         var shown = hidden > 0 ? timed.Take(Math.Max(0, room - 1)) : timed;
                         var outside = day.Month != date.Month;
-                        <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
+                        <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                             <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
                             <ul class="ib-sched-pills">
                                 @foreach (var e in shown)
@@ -564,7 +597,7 @@
                                 }
                                 @if (hidden > 0)
                                 {
-                                    <li><a class="ib-sched-more" href="@Href(SchedulerView.Day, day)">@string.Format(culture, TextDefaults.SchedulerMore, hidden)</a></li>
+                                    <li><a class="ib-sched-more" href="@Href(SchedulerView.Day, day)">@string.Format(culture, TextDefaults.SchedulerMore, hidden)<span class="ib-visually-hidden">, @day.ToString("D", culture)</span></a></li>
                                 }
                             </ul>
                         </div>
@@ -594,8 +627,8 @@
                 var own = SchedulerLayout.OnDay(entries, day, withBars: true);
                 if (own.Count == 0) continue;
                 any = true;
-                <li class="@DayClass("ib-sched-agenda-day", day, today)">
-                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)">
+                <li class="@DayClass("ib-sched-agenda-day", day, today)" aria-current="@(day == today ? "date" : null)">
+                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" aria-label="@day.ToString("D", culture)">
                         <span class="ib-sched-num">@day.Day</span>
                         <span>@day.ToString("ddd, MMM", culture)</span>
                     </a>
@@ -709,6 +742,8 @@
     {
         SyncEdit(key, posted);
         var isNew = key == NewKey;
+        // The categories register after the first render: a new appointment takes the first then.
+        if (isNew && _model is { Category: null } && _category is not null) _model.Category = Categories.Items.FirstOrDefault()?.Value;
         var name = SchedulerEditBinding.Prefix;
         <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.SchedulerNew : TextDefaults.SchedulerEdit)" Size="DialogSize.Md" CloseOnBackdrop="false">
             @if (_model is null || _context is null)
@@ -717,7 +752,7 @@
             }
             else
             {
-                <Form EditContext="_context" FormName="@(RendererInfo.IsInteractive ? null : SchedulerEditBinding.FormName)" OnSubmit="SubmitAsync">
+                <Form EditContext="_context" FormName="@(RendererInfo.IsInteractive ? null : SchedulerEditBinding.FormName)" OnSubmit="SubmitAsync" action="@(_refused is not null && !RendererInfo.IsInteractive ? EditHref(_refused) : null)">
                     <FormErrors />
                     <TextField @bind-Value="_model.Title" name="@($"{name}.Title")" Label="@TextDefaults.SchedulerTitleField" autofocus />
                     @* Each day beside its time, as one row (MUI's form). *@
@@ -729,7 +764,10 @@
                         <DateField @bind-Value="_model.EndDate" name="@($"{name}.EndDate")" Label="@TextDefaults.SchedulerEndDate" />
                         <TimeField @bind-Value="_model.EndTime" name="@($"{name}.EndTime")" Label="@TextDefaults.SchedulerEndTime" Class="ib-sched-time-field" Step="TimeSpan.FromMinutes(15)" />
                     </div>
-                    <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" Class="ib-sched-allday-field" />
+                    @if (AllDay is not null)
+                    {
+                        <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" Class="ib-sched-allday-field" />
+                    }
                     @if (_category is not null && Categories.Items.Count > 0)
                     {
                         @* The category sets the appointment's color, as MUI's form sets its resource. *@
@@ -744,14 +782,10 @@
                     <DialogFooter>
                         @if (!isNew && OnDelete.HasDelegate && _editItem is not null)
                         {
-                            @if (RendererInfo.IsInteractive)
-                            {
-                                <Button Accent="Accent.Danger" Variant="ButtonVariant.Ghost" OnClick="DeleteAsync" Class="ib-sched-delete">@TextDefaults.Delete</Button>
-                            }
-                            else
-                            {
-                                <Button Submit Name="@($"{name}.Remove")" Value="true" Accent="Accent.Danger" Variant="ButtonVariant.Ghost" formnovalidate Class="ib-sched-delete">@TextDefaults.Delete</Button>
-                            }
+                            @* Asks first: the footer has no Cancel beside it to pause on. *@
+                            <ConfirmButton Title="@TextDefaults.SchedulerDeleteTitle" Message="@_model.Title" ConfirmText="@TextDefaults.Delete"
+                                           Accent="Accent.Danger" Variant="ButtonVariant.Ghost" Class="ib-sched-delete"
+                                           OnConfirm="DeleteAsync" Name="@(RendererInfo.IsInteractive ? null : $"{name}.Remove")" Value="@(RendererInfo.IsInteractive ? null : "true")" formnovalidate>@TextDefaults.Delete</ConfirmButton>
                         }
                         <Button Submit>@TextDefaults.Save</Button>
                     </DialogFooter>
@@ -763,7 +797,7 @@
     // A time that a narrow column wraps after its dash, never inside it ("11:30 / AM").
     private static string Whole(string time) => time.Replace(' ', ' ');
 
-    private string CategoryTitle(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Title ?? c.Value : value;
+    private string CategoryTitle(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : value;
 
     private string? CategoryColor(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? Categories.ColorOf(c) : null;
 
@@ -799,7 +833,7 @@
         }
 
         var fields = _model;
-        var save = new SchedulerSave<TItem>(_editItem, fields, target =>
+        var save = new SchedulerSave<TItem>(_editItem, _editFor == NewKey, fields, target =>
         {
             SchedulerMembers.Set(Start, target!, fields.Start);
             SchedulerMembers.Set(End, target!, fields.End);
@@ -924,7 +958,7 @@
             Category = _category?.Invoke(item),
         };
         var messages = new List<string>();
-        var save = new SchedulerSave<TItem>(item, fields, target =>
+        var save = new SchedulerSave<TItem>(item, false, fields, target =>
         {
             SchedulerMembers.Set(Start, target!, fields.Start);
             SchedulerMembers.Set(End, target!, fields.End);

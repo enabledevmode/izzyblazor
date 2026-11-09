@@ -1,11 +1,11 @@
 @* A family's month: school, work, sport and birthdays, each category in its color. The
    Categories menu hides one, and a busy day's "+N more" opens the day. *@
 <Scheduler Items="_events" Start="e => e.Start" End="e => e.End" Title="e => e.Title" AllDay="e => e.AllDay"
-           Category="e => e.Kind" View="SchedulerView.Month" Name="family">
-    <SchedulerCategory Value="school" Title="School" />
-    <SchedulerCategory Value="work" Title="Work" />
-    <SchedulerCategory Value="sport" Title="Sport" />
-    <SchedulerCategory Value="family" Title="Family" />
+           Category="e => e.Kind" View="SchedulerView.Month" QueryPrefix="family-">
+    <SchedulerCategory Value="school" Label="School" />
+    <SchedulerCategory Value="work" Label="Work" />
+    <SchedulerCategory Value="sport" Label="Sport" />
+    <SchedulerCategory Value="family" Label="Family" />
 </Scheduler>
 
 @code {

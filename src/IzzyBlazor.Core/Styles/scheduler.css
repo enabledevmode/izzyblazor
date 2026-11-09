@@ -418,6 +418,9 @@
 
   @media (forced-colors: active) {
     .ib-sched-event { border: 1px solid CanvasText; }
+    /* Categories' colors stay: they're what the dots and swatches are for. */
+    .ib-sched-swatch,
+    .ib-sched-pill::before { forced-color-adjust: none; }
     .ib-sched-day-head.ib-sched-today .ib-sched-num,
     .ib-sched-cell.ib-sched-today .ib-sched-day-link { outline: 2px solid Highlight; }
   }

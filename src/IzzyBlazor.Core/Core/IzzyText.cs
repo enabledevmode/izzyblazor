@@ -1269,6 +1269,12 @@ public class IzzyText
     /// <summary>A Scheduler's form for an appointment that's gone (deleted, or a link made by hand).</summary>
     public virtual string SchedulerGone { get; set; } = "This appointment isn't there any more.";
 
+    /// <summary>A Scheduler's hours, for screen readers, when they scroll with no appointment links in them.</summary>
+    public virtual string SchedulerHours { get; set; } = "Hours";
+
+    /// <summary>A Scheduler's question before it deletes an appointment.</summary>
+    public virtual string SchedulerDeleteTitle { get; set; } = "Delete this appointment?";
+
     /// <summary>A Scheduler's edit form: the appointment's category, which sets its color.</summary>
     public virtual string SchedulerCategory { get; set; } = "Category";
 

@@ -1,10 +1,10 @@
 @* A clinic's coming two weeks of appointments as a list by day: the agenda leaves out empty days,
    and each day links to its day view. *@
 <Scheduler Items="_visits" Start="v => v.Start" End="v => v.End" Title="v => v.Patient" Category="v => v.Kind"
-           View="SchedulerView.Agenda" AgendaDays="14" ViewOptions="[SchedulerView.Day, SchedulerView.Week, SchedulerView.Agenda]" Name="clinic">
-    <SchedulerCategory Value="checkup" Title="Checkup" />
-    <SchedulerCategory Value="followup" Title="Follow-up" />
-    <SchedulerCategory Value="new" Title="New patient" />
+           View="SchedulerView.Agenda" AgendaDays="14" ViewOptions="[SchedulerView.Day, SchedulerView.Week, SchedulerView.Agenda]" QueryPrefix="clinic-">
+    <SchedulerCategory Value="checkup" Label="Checkup" />
+    <SchedulerCategory Value="followup" Label="Follow-up" />
+    <SchedulerCategory Value="new" Label="New patient" />
 </Scheduler>
 
 @code {
@@ -20,10 +20,10 @@
 
     private readonly Visit[] _visits =
     [
-        At(0, 9, 0, 30, "M. Alvarez", "checkup"), At(0, 9, 30, 20, "J. Chen", "followup"), At(0, 11, 0, 45, "R. Okafor", "new"),
-        At(1, 8, 30, 30, "S. Novak", "checkup"), At(1, 14, 0, 20, "T. Brooks", "followup"),
+        At(0, 9, 0, 30, "M. Alvarez", "checkup"), At(0, 9, 30, 30, "J. Chen", "followup"), At(0, 11, 0, 45, "R. Okafor", "new"),
+        At(1, 8, 30, 30, "S. Novak", "checkup"), At(1, 14, 0, 30, "T. Brooks", "followup"),
         At(3, 10, 0, 45, "A. Haddad", "new"), At(3, 10, 45, 30, "L. Moreau", "checkup"),
-        At(6, 9, 0, 20, "J. Chen", "followup"), At(8, 13, 30, 30, "K. Ito", "checkup"),
-        At(9, 15, 0, 45, "P. Singh", "new"), At(12, 9, 30, 20, "S. Novak", "followup"),
+        At(6, 9, 0, 30, "J. Chen", "followup"), At(8, 13, 30, 30, "K. Ito", "checkup"),
+        At(9, 15, 0, 45, "P. Singh", "new"), At(12, 9, 30, 30, "S. Novak", "followup"),
     ];
 }
