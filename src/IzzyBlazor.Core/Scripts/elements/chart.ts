@@ -113,64 +113,10 @@ class Chart extends IzzyElement {
     const frame = this.querySelector<HTMLElement>(".ib-chart-frame");
     const plot = this.querySelector<HTMLElement>(".ib-chart-plot");
     const bottom = this.querySelector<HTMLElement>(".ib-chart-bottom");
-    // A RangeSelector on its own: the strip only, its view kept here and, on an interactive
-    // page, reported to .NET as it settles.
+    // A RangeSelector on its own: the strip only (chart-select.ts).
     const lone = this.querySelector<HTMLElement>(".ib-chart-sel");
     if (!plot && lone && this.dataset.ibDraw) {
-      const d: DrawData = JSON.parse(this.dataset.ibDraw);
-      let v: View = d.zv ?? [0, 1];
-      let timer = 0;
-      // Synced (Sync): it zooms the charts named alike, and follows them.
-      const at: SyncAt | null = this.dataset.ibSyncAt ? JSON.parse(this.dataset.ibSyncAt) : null;
-      const peer: Peer = {};
-      let sync: SyncModule | undefined;
-      let others: ((call: (p: Peer) => void) => void) | null = null;
-      if (at && this.dataset.ibSync && this.hasAttribute("data-ib-sync-view")) {
-        const name = this.dataset.ibSync;
-        loadSync().then((m) => {
-          if (signal.aborted) return;
-          sync = m;
-          others = m.joinSync(name, peer, signal);
-        });
-      }
-      // Moved here since the last settle (not only by another chart), and a settle on its way.
-      let local = false;
-      let pending = false;
-      const report = () => {
-        clearTimeout(timer);
-        pending = true;
-        timer = window.setTimeout(() => {
-          pending = false;
-          if (signal.aborted) return;
-          if (local) others?.((p) => p.settle?.());
-          local = false;
-          if (!this.hasAttribute("data-ib-interactive")) return;
-          const all = v[0] <= 1e-6 && v[1] >= 1 - 1e-6;
-          this.emit("iblayout", { layout: all ? "" : `${Math.round(v[0] * 1e6) / 1e6} ${Math.round(v[1] * 1e6) / 1e6}` });
-        }, 0);
-      };
-      let show = () => {};
-      const set = (from: number, to: number, settle = true, share = true) => {
-        v = clampView(from, to, d.zl ?? 0);
-        show();
-        if (share) local = true;
-        if (share && at && sync) {
-          const m = sync.viewOut(at, v);
-          if (m !== undefined) others?.((p) => p.view?.(m));
-        }
-        if (settle) report();
-      };
-      peer.view = (m) => {
-        const nv = sync!.viewIn(at!, m);
-        if (nv) set(nv[0], nv[1], false, false);
-      };
-      // Its own settle on the way says it all.
-      peer.settle = () => {
-        if (!(pending && local)) report();
-      };
-      loadSelector().then((m) => {
-        if (!signal.aborted) show = m.selector(this, lone, d, () => v, set, report, signal, null);
-      });
+      loadSelector().then((m) => !signal.aborted && m.lone(this, lone, signal, loadSync, (layout) => this.emit("iblayout", { layout })));
       return;
     }
 
