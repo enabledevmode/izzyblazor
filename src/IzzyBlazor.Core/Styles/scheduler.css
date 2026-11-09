@@ -65,8 +65,9 @@
     background: none;
     color: inherit;
     font: inherit;
-    font-size: var(--ib-text-lg);
-    font-weight: var(--ib-weight-semibold);
+    /* As the buttons beside it (Outlook's): one size and weight across the toolbar. */
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
     white-space: nowrap;
     cursor: pointer;
   }
@@ -514,7 +515,9 @@
     /* New keeps its icon; its name is still "New appointment". */
     .ib-sched-new-text { display: none; }
     .ib-sched-bar .ib-btn { --ib-btn-pad: var(--ib-space-2); }
-    .ib-sched-title { margin-inline-start: 0; padding-inline: var(--ib-space-1); font-size: var(--ib-text-md); }
+    .ib-sched-title { margin-inline-start: 0; padding-inline: var(--ib-space-1); }
+    /* The menus keep their words, not their icons; New keeps its icon. */
+    .ib-sched-actions .ib-btn:not(.ib-btn-solid) > svg:first-child { display: none; }
     .ib-sched-actions > .ib-btn-solid { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }

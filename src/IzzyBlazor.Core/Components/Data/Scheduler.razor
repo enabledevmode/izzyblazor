@@ -67,7 +67,7 @@
        categories, the view and New at the end. *@
     <div class="ib-sched-bar">
         <div class="ib-sched-nav">
-            <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
             <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
                 <Icon Purpose="IconPurpose.ChevronLeft" />
             </a>
@@ -103,7 +103,7 @@
             @if (Categories.Items.Count > 0)
             {
                 @* Each category shows or hides its appointments: a link with it in or out of the address. *@
-                <Menu Label="@TextDefaults.SchedulerCategories" Placement="Placement.BottomEnd" Variant="ButtonVariant.Ghost" Class="ib-sched-cats">
+                <Menu Label="@TextDefaults.SchedulerCategories" StartIcon="IconSet.Current.Get(IconPurpose.Filter)" Placement="Placement.BottomEnd" Class="ib-sched-cats">
                     @foreach (var c in Categories.Items)
                     {
                         <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
@@ -114,7 +114,7 @@
             }
             @if (Views.Count > 1)
             {
-                <Menu Label="@ViewName(view)" Placement="Placement.BottomEnd" Class="ib-sched-views">
+                <Menu Label="@ViewName(view)" StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" Placement="Placement.BottomEnd" Class="ib-sched-views">
                     <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
                         @foreach (var v in Views)
                         {
