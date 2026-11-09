@@ -92,6 +92,10 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         var card = page.Locator(".ib-sched-card:popover-open");
         await Assertions.Expect(card).ToHaveCountAsync(1);
 
+        // A press in the card (selecting its text) isn't a press on the time under it.
+        await card.ClickAsync();
+        await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
+
         await booking.ClickAsync();
         await Assertions.Expect(page.Locator("dialog[open]")).ToBeVisibleAsync();
         await Assertions.Expect(card).ToHaveCountAsync(0);

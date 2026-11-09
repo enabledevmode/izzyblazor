@@ -1,18 +1,28 @@
-@* A shared studio calendar with its own tools: subscribe and print at the end, and New moved
-   to the start, where the booking staff look first. *@
-<Scheduler TItem="Session" Items="Store" Start="s => s.Start" End="s => s.End" Title="s => s.Client" Detail="s => s.Studio"
+@* A shared studio calendar with a tool of its own, a menu that shows one studio's sessions (in
+   the address, so it stays as the weeks change), and New moved to the start, where the booking
+   staff look first. *@
+<Scheduler TItem="Session" Items="Shown" Start="s => s.Start" End="s => s.End" Title="s => s.Client" Detail="s => s.Studio"
            ItemKey="s => s.Id.ToString()" OnSave="Save" View="SchedulerView.WorkWeek" QueryPrefix="studio-">
     <ToolbarContent>
         <SchedulerNewButton Position="ToolbarPosition.Start" />
         <SchedulerToday />
         <SchedulerArrows />
         <SchedulerPeriod />
-        <ToolbarButton StartIcon="Lucide.CalendarPlus" Position="ToolbarPosition.End">Subscribe</ToolbarButton>
-        <ToolbarButton StartIcon="Lucide.Printer" Position="ToolbarPosition.End">Print</ToolbarButton>
+        <ToolbarMenu Label="@(string.IsNullOrEmpty(Room) ? "All studios" : Room)" StartIcon="Lucide.Mic" Position="ToolbarPosition.End">
+            <MenuRadioGroup Label="Studio" QueryKey="studio-room" Value="@(Room ?? "")">
+                <MenuItem Value="">All studios</MenuItem>
+                <MenuItem Value="Studio A">Studio A</MenuItem>
+                <MenuItem Value="Studio B">Studio B</MenuItem>
+            </MenuRadioGroup>
+        </ToolbarMenu>
     </ToolbarContent>
 </Scheduler>
 
 @code {
+    [SupplyParameterFromQuery(Name = "studio-room")] private string? Room { get; set; }
+
+    private List<Session> Shown => string.IsNullOrEmpty(Room) ? Store : Store.Where(s => s.Studio == Room).ToList();
+
     private sealed class Session
     {
         public int Id { get; set; }

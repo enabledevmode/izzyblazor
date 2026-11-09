@@ -364,9 +364,9 @@
     border: 1px solid var(--ib-color-surface);
     border-inline-start: 3px solid var(--ib-sched-color);
   }
-  /* The title, then its detail on the same line, wrapping as the box has room (Outlook's);
-     with ShowTime, the times on a line of their own. */
-  .ib-sched-col .ib-sched-event .ib-sched-time { display: block; }
+  /* The title, then its detail and (with ShowTime) its times each on a line of their own in a
+     taller box (Outlook's); a short box has them all on one line. */
+  .ib-sched-col .ib-sched-event:not(.ib-sched-short) :is(.ib-sched-detail, .ib-sched-time) { display: block; }
   /* Under 45 minutes: one line, with ShowTime its start after the title. */
   .ib-sched-col .ib-sched-short {
     /* Never under a quarter hour's height, which holds a line. */

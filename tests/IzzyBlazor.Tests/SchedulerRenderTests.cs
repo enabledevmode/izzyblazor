@@ -74,6 +74,11 @@ public class SchedulerRenderTests : BunitContext
         Assert.Equal((new DateTime(2026, 11, 8), new DateTime(2026, 11, 15), SchedulerView.Week), (asked[^1].Start, asked[^1].End, asked[^1].View));
         Assert.Contains("Room 2", cut.Markup);
 
+        // A parent drawing again asks for nothing new (a save's render mustn't query mid-save).
+        var count = asked.Count;
+        cut.Render();
+        Assert.Equal(count, asked.Count);
+
         Services.GetRequiredService<NavigationManager>().NavigateTo(cut.Find("a[aria-label='Next week']").GetAttribute("href")!);
         cut.WaitForAssertion(() => Assert.Contains("Room 5", cut.Markup));
         Assert.Equal(new DateTime(2026, 11, 15), asked[^1].Start);
