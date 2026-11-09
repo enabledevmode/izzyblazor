@@ -2096,7 +2096,7 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip"],
+      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh"],
       "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
       "features": [
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
@@ -2109,6 +2109,7 @@
         { "feature": "Opening zoomed into part of the arguments, such as the last quarter", "member": "View" },
         { "feature": "The part in view reported to C# as each zoom ends", "noscript": "none", "static": "none" },
         { "feature": "Synchronized charts: a shared `Sync` name zooms them together and shows the same item in each", "member": "Sync", "noscript": "none" },
+        { "feature": "Live data read again on an interval, on a static page too, with a Pause button", "member": "Refresh", "noscript": "none" },
         { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page; `Reverse` on `ChartArgumentAxis` runs the arguments right to left" }
       ],
       "examples": [
@@ -2186,6 +2187,14 @@
             { "id": "chart-sync-hover", "title": "The same hour in two charts", "lead": "Point at an hour in either chart to see that hour's tooltip in both, here requests and response time, which read together explain a slow afternoon.",
               "after": ["Arrow keys on a focused chart move the other charts too. Screen readers hear only the focused chart; the others' tooltips are hidden from them.", "Charts match items by name, or by the nearest date or number within their range, and show nothing where they have no item. To keep a chart's tooltip to itself, set `SyncHover` to false."],
               "notes": { "noscript": "There are no tooltips. Each bar and marker still shows its value on hover." } }
+          ]
+        },
+        {
+          "id": "live", "title": "Live data", "summary": "A chart that reads its data again every few seconds, on a static page with no circuit too, with a Pause button and the item shown kept as data comes and goes.", "members": ["Refresh", "RefreshFrom", "OnRefresh", "Live", "Paused", "HidePause"],
+          "examples": [
+            { "id": "chart-live-refresh", "title": "Requests per second", "lead": "To read a chart's data again on an interval, set `Refresh` and give the chart an `id`. Here the last two minutes of requests come in every 5 seconds.",
+              "after": ["On a static page the page is fetched again and the chart drawn from it, found by its `id`. `RefreshFrom` names a lighter page that renders the same chart, here the example's own frame. Nothing is fetched while the tab is hidden or the chart is off-screen, and a failed fetch keeps the last drawing.", "On an interactive page `Refresh` raises `OnRefresh` instead, for you to load new `Items`. When your app pushes data on its own, from a timer or SignalR, set `Live` and change `Items`.", "Pause updates keeps the chart still while you read it, as WCAG asks of content that updates on its own. `@bind-Paused` starts it paused or pauses it from your own control, with `HidePause`.", "The item you point at or reach with the keys stays the same item as new data arrives. Zoomed in at the latest item, the view moves on with new data; zoomed into the past, it stays there. Screen readers hear nothing on each update."],
+              "notes": { "noscript": "The chart shows the data as the page was rendered, and doesn't update." } }
           ]
         }
       ]

@@ -1,0 +1,30 @@
+@* An API's requests per second over the last two minutes, read again every 5 seconds: on a static
+   page the chart's frame is fetched again, on an interactive one OnRefresh reloads the samples. *@
+<Chart id="api-requests" Items="_samples" Argument="s => s.Time" Title="Requests per second, last 2 minutes"
+       Refresh="TimeSpan.FromSeconds(5)" RefreshFrom="/frame/chart-live-refresh" OnRefresh="Load">
+    <ChartValueAxis Min="0" Format="N0" />
+    <ChartArgumentAxis Zoom Format="h:mm:ss" />
+    <ChartAreaSeries Value="s => s.Requests" Name="Requests" />
+</Chart>
+
+@code {
+    private record Sample(DateTime Time, int Requests);
+
+    private Sample[] _samples = Read();
+
+    private void Load() => _samples = Read();
+
+    // A sample a second, ending now. A real app reads its metrics store; here each second's value
+    // comes from the time itself, so every request sees the same history.
+    private static Sample[] Read()
+    {
+        var now = DateTime.Now;
+        var end = now.AddTicks(-(now.Ticks % TimeSpan.TicksPerSecond));
+        return Enumerable.Range(0, 120).Select(i =>
+        {
+            var time = end.AddSeconds(i - 119);
+            var s = time.Ticks / TimeSpan.TicksPerSecond;
+            return new Sample(time, (int)(820 + 160 * Math.Sin(s / 23.0) + 70 * Math.Sin(s / 5.0) + s * 37 % 41));
+        }).ToArray();
+    }
+}
