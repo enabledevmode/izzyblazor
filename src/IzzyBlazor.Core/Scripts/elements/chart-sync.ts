@@ -22,7 +22,7 @@ export const joinSync = (name: string, peer: Peer, signal: AbortSignal) => {
   };
 };
 const scaleShare = (s: SyncAt, x: number) => ((s.g ? Math.log10(x) : x) - s.d![0]) / (s.d![1] - s.d![0] || 1);
-const scaleValue = (s: SyncAt, f: number) => ((c) => (s.g ? 10 ** c : c))(s.d![0] + f * (s.d![1] - s.d![0]));
+export const scaleValue = (s: SyncAt, f: number) => ((c) => (s.g ? 10 ** c : c))(s.d![0] + f * (s.d![1] - s.d![0]));
 /** A chart's view as its first and last arguments; undefined when it can't say (a scale with no zoom). */
 export const viewOut = (s: SyncAt, v: View): SyncView | undefined => {
   if (s.c) {
