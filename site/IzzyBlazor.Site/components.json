@@ -2097,7 +2097,7 @@
     },
     {
       "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh"],
-      "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
+      "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation", "ChartDrillLevel"],
       "features": [
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
         { "feature": "Axis titles, set steps, log scales, grid lines and a second axis" },

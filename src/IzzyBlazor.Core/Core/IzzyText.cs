@@ -1239,6 +1239,15 @@ public class IzzyText
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 
+    /// <summary>A drilled Chart's breadcrumb: the top level.</summary>
+    public virtual string ChartDrillTop { get; set; } = "All";
+
+    /// <summary>In a drillable item's tooltip: what selecting it shows, "Select to see by {0}" (the next level's name).</summary>
+    public virtual string ChartDrillHint { get; set; } = "Select to see by {0}";
+
+    /// <summary>Said after drilling into a Chart's item: "{0}, by {1}: {2} items" (the path, the level's name, how many).</summary>
+    public virtual string ChartDrilled { get; set; } = "{0}, by {1}: {2} items";
+
     /// <summary>The toggle button that pauses a live Chart's updates (Refresh, Live).</summary>
     public virtual string ChartPauseUpdates { get; set; } = "Pause updates";
 

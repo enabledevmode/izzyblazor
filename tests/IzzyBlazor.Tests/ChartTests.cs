@@ -527,6 +527,34 @@ public class ChartRenderTests : BunitContext
     private record Sale(DateOnly Day, double Orders);
 
     [Fact]
+    public void Drill_levels_add_up_the_level_in_the_address_and_link_each_item_one_level_down()
+    {
+        Sale[] days = [new(new DateOnly(2025, 1, 5), 5), new(new DateOnly(2025, 1, 9), 7), new(new DateOnly(2025, 2, 1), 6), new(new DateOnly(2026, 1, 1), 9)];
+        Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>(Services).NavigateTo("/sales?drill=2025");
+        var cut = Render<Chart<Sale>>(p => p
+            .Add(c => c.Items, days)
+            .Add(c => c.Title, "Orders")
+            .AddChildContent<ChartDrillLevel<Sale>>(l => l.Add(x => x.Argument, d => d.Day.Year).Add(x => x.Name, "Year"))
+            .AddChildContent<ChartDrillLevel<Sale>>(l => l.Add(x => x.Argument, d => d.Day.Month).Add(x => x.Name, "Month"))
+            .AddChildContent<ChartBarSeries<Sale>>(s => s.Add(x => x.Value, d => d.Orders)));
+
+        // 2025 by month: January's two days add up, 2026 is left out.
+        var rows = cut.FindAll(".ib-chart-table tbody tr");
+        Assert.Equal(["1", "2"], rows.Select(r => r.QuerySelector("th")!.TextContent.Trim()));
+        Assert.Equal(["12", "6"], rows.Select(r => r.QuerySelector("td")!.TextContent.Trim()));
+
+        // A breadcrumb back to the top; months are the last level, so they don't link further.
+        Assert.Equal(["All", "2025"], cut.FindAll(".ib-chart-crumbs li").Select(l => l.TextContent.Trim()));
+        Assert.EndsWith("/sales", cut.Find(".ib-chart-crumbs a").GetAttribute("href"));
+        Assert.Empty(cut.FindAll(".ib-chart-table tbody a"));
+
+        // At the top, each year links to its months.
+        Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>(Services).NavigateTo("/sales");
+        cut.Render();
+        Assert.Equal(["/sales?drill=2025", "/sales?drill=2026"], cut.FindAll(".ib-chart-table tbody a").Select(a => new Uri(a.GetAttribute("href")!).PathAndQuery));
+    }
+
+    [Fact]
     public void Refresh_on_a_static_page_needs_an_id_and_gets_a_pause_button()
     {
         Sale[] days = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7)];

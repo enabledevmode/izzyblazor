@@ -79,9 +79,9 @@
     /// <summary>
     /// What each item is plotted at, such as <c>m =&gt; m.Month</c>: text, an enum, a number or a
     /// date. Text and enums are bands in item order; numbers and dates are a scale on a line or
-    /// area chart.
+    /// area chart. Required, unless <see cref="ChartDrillLevel{TItem}"/>s give each level's.
     /// </summary>
-    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+    [Parameter] public Expression<Func<TItem, object?>>? Argument { get; set; }
 
     /// <summary>
     /// The chart's title, such as "Revenue by month", shown above it as its caption. It also names the chart
@@ -220,6 +220,18 @@
     [Parameter] public bool HidePause { get; set; }
 
     /// <summary>
+    /// With <see cref="ChartDrillLevel{TItem}"/>s: the name of the page address's query value that
+    /// holds the level drilled into, such as <c>?drill=2025&amp;drill=Mar</c>. "drill" by default;
+    /// give each chart that drills on a page its own.
+    /// </summary>
+    [Parameter] public string? Drill { get; set; }
+
+    /// <summary>Leaves out a drilled chart's breadcrumb, for a page that shows the level its own way (read it from the address).</summary>
+    [Parameter] public bool HideBreadcrumb { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
     /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
     /// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
@@ -273,6 +285,7 @@
     protected override void OnInitialized()
     {
         _context = new ChartContext<TItem>();
+        if (RendererInfo.IsInteractive) Navigation.LocationChanged += OnLocation;
         PlotFragment = builder =>
         {
             builder.OpenComponent<ChartPlot>(0);
@@ -349,12 +362,7 @@
                 : "Chart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
         }
 
-        if (Argument is null)
-        {
-            throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month.");
-        }
-
-        if (!ReferenceEquals(Argument, _lastArgument))
+        if (Argument is not null && !ReferenceEquals(Argument, _lastArgument))
         {
             _lastArgument = Argument;
             _argument = Argument.Compile();
@@ -417,6 +425,7 @@
     /// <inheritdoc />
     public void Dispose()
     {
+        Navigation.LocationChanged -= OnLocation;
         _refreshing?.Cancel();
         _refreshing?.Dispose();
     }
@@ -527,11 +536,20 @@
         // Paused, a live chart keeps the items it drew (a copy: an app may change its list in place).
         var items = _paused && _lastItems is not null ? _lastItems : Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         if (IsLive && (!_paused || _lastItems is null)) _lastItems = [.. items];
-        var arguments = items.Select(_argument!).ToList();
+        // Drill-down: the level in the address, its groups as the arguments, each series added up.
+        var drill = _context.Levels.Count > 0 ? Drilled(items) : null;
+        if (drill is null && _argument is null)
+        {
+            throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month (or ChartDrillLevels).");
+        }
+
+        var arguments = drill?.Arguments ?? items.Select(_argument!).ToList();
         // A view that reached the latest item follows new data, keeping as many items.
         if (_follow is { } keep && arguments.Count > 0) _view = new ChartView(arguments[Math.Max(0, arguments.Count - keep)], null);
         ReadAxes();
-        var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items)).Select(OnAxis).ToList(), arguments, TextDefaults);
+        var raw = drill is null ? _context.Series.SelectMany(s => s.Read(items)) : _context.Series.SelectMany(s => s.Read(drill.Rows)).Select(d => Totals(d, drill));
+        if (drill is not null) items = drill.Firsts;
+        var series = ChartTrends.Add(raw.Select(OnAxis).ToList(), arguments, TextDefaults);
         // Off by default when every series writes its values beside them; labels of other text keep it.
         var tooltip = SelectorHost is null && (Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null)));
         if (series.Any(s => s.Secondary))
@@ -604,6 +622,7 @@
             View = _view,
             MinZoomSpan = Math.Max(1, _argumentAxis?.MinZoomSpan ?? 2),
             Zoom = zoom,
+            Bands = drill is not null,
             ValueRight = !horizontal && _valueAxis?.Position == ChartAxisPosition.Right,
             ValueGrid = ValueGrid,
             ArgumentGrid = ArgumentGrid,
@@ -652,6 +671,7 @@
                   data-ib-sync-view="@(Sync is not null && SyncView && model.ZoomPositions is not null ? "" : null)"
                   data-ib-sync-hover="@(Sync is not null && SyncHover ? "" : null)"
                   data-ib-sync-at="@(Sync is not null || IsLive ? SyncKeys(model) : null)"
+                  data-ib-drilled="@drill?.Said" data-ib-drill="@(drill is null ? null : DrillKey)"
                   data-ib-refresh="@(Refresh is { } every && StaticPage ? ((long)every.TotalMilliseconds).ToString(CultureInfo.InvariantCulture) : null)"
                   data-ib-refresh-from="@(Refresh is not null && StaticPage ? RefreshFrom : null)"
                   data-ib-paused="@(Refresh is not null && StaticPage && _paused ? "" : null)"
@@ -674,6 +694,17 @@
                 <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
                 <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
             </button>
+        }
+        @if (drill is { Depth: > 0 } && !HideBreadcrumb)
+        {
+            @* The levels above this one, as links; this one as text. *@
+            <Breadcrumb Class="ib-chart-crumbs">
+                @for (var c = 0; c <= drill.Depth; c++)
+                {
+                    var at = c;
+                    <BreadcrumbItem Href="@(at < drill.Depth ? DrillHref(drill.Path.Take(at)) : null)">@(at == 0 ? TextDefaults.ChartDrillTop : drill.Crumbs[at - 1])</BreadcrumbItem>
+                }
+            </Breadcrumb>
         }
         @if (keyed && Place is ChartLegend.Top or ChartLegend.Start)
         {
@@ -827,6 +858,20 @@
                         <div class="ib-chart-ends ib-chart-js" aria-hidden="true"></div>
                     }
                 }
+                @if (drill?.Hrefs is { } hrefs)
+                {
+                    @* For the pointer: a link over each item to the level below (the data table's links are the ones screen readers and the keys use). *@
+                    <div class="ib-chart-drills" aria-hidden="true">
+                        @for (var d = 0; d < hrefs.Count; d++)
+                        {
+                            var place = model.ArgumentPositions[d];
+                            if (hrefs[d] is null || double.IsNaN(place)) continue;
+                            var band = 1.0 / Math.Max(1, hrefs.Count);
+                            var from = Math.Max(0, place - band / 2);
+                            <a href="@hrefs[d]" tabindex="-1" data-ib-drill="@d" style="@(horizontal ? $"top:{Pct(from)};height:{Pct(band)};left:0;right:0" : $"left:{Pct(from)};width:{Pct(band)};top:0;bottom:0")"></a>
+                        }
+                    </div>
+                }
                 @if (tooltip)
                 {
                     <div class="ib-chart-tooltip" hidden></div>
@@ -925,6 +970,10 @@
                                     </div>
                                 }
                             }
+                            @if (drill?.Hint is { } hint && drill.Hrefs![i] is not null)
+                            {
+                                <div class="ib-chart-tooltip-hint">@hint</div>
+                            }
                         }
                     </div>
                 }
@@ -970,7 +1019,10 @@
                             {
                                 var row = i;
                                 <tr>
-                                    <th scope="row">@model.ArgumentTexts[row]</th>
+                                    <th scope="row">@if (drill?.Hrefs?[row] is { } href)
+                                    {<a href="@href">@model.ArgumentTexts[row]</a>}
+                                    else
+                                    {@model.ArgumentTexts[row]}</th>
                                     @for (var s = 0; s < model.Series.Count; s++)
                                     {
                                         <td>@model.ValueTexts[s][row]</td>
@@ -1502,6 +1554,137 @@
         if (Equals(view, _view)) return;
         _view = view;
         if (ViewChanged.HasDelegate) await ViewChanged.InvokeAsync(view);
+    }
+
+    // ---- Drill-down. ----
+
+    // The query value that holds the level.
+    private string DrillKey => string.IsNullOrWhiteSpace(Drill) ? "drill" : Drill;
+
+    private sealed record DrillState(
+        int Depth,
+        IReadOnlyList<string> Path,
+        IReadOnlyList<string> Crumbs,
+        IReadOnlyList<TItem> Rows,
+        int[] GroupOf,
+        IReadOnlyList<object?> Arguments,
+        IReadOnlyList<TItem> Firsts,
+        IReadOnlyList<string?>? Hrefs,
+        string? Hint,
+        string? Said);
+
+    // The level in the address: the items under the path chosen so far (an unknown key stops there),
+    // grouped by the level's argument in the order the groups first appear.
+    private DrillState Drilled(IReadOnlyList<TItem> items)
+    {
+        var levels = _context.Levels;
+        var asked = DrillPath();
+        IReadOnlyList<TItem> rows = items;
+        var crumbs = new List<string>();
+        var depth = 0;
+        while (depth < levels.Count - 1 && depth < asked.Count)
+        {
+            var level = levels[depth];
+            var key = asked[depth];
+            var next = rows.Where(r => ChartDrillKey.Of(level.Of(r)) == key).ToList();
+            if (next.Count == 0) break;
+            crumbs.Add(ChartLayout.ArgumentText(level.Of(next[0]), null, CultureInfo.CurrentCulture));
+            rows = next;
+            depth++;
+        }
+
+        var path = asked.Take(depth).ToList();
+        var at = levels[depth];
+        var index = new Dictionary<string, int>();
+        var arguments = new List<object?>();
+        var firsts = new List<TItem>();
+        var keys = new List<string>();
+        var groupOf = new int[rows.Count];
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var value = at.Of(rows[i]);
+            var key = ChartDrillKey.Of(value);
+            if (!index.TryGetValue(key, out var g))
+            {
+                index[key] = g = arguments.Count;
+                arguments.Add(value);
+                firsts.Add(rows[i]);
+                keys.Add(key);
+            }
+
+            groupOf[i] = g;
+        }
+
+        var deeper = depth < levels.Count - 1;
+        var hrefs = deeper ? keys.Select(k => (string?)DrillHref(path.Append(k))).ToList() : null;
+        var hint = deeper ? string.Format(CultureInfo.CurrentCulture, TextDefaults.ChartDrillHint, levels[depth + 1].DisplayName.ToLower(CultureInfo.CurrentCulture)) : null;
+        var said = depth > 0 ? string.Format(CultureInfo.CurrentCulture, TextDefaults.ChartDrilled, string.Join(", ", crumbs), at.DisplayName.ToLower(CultureInfo.CurrentCulture), arguments.Count) : null;
+        return new DrillState(depth, path, crumbs, rows, groupOf, arguments, firsts, hrefs, hint, said);
+    }
+
+    // The path in the address: each value of the chart's query key, in order.
+    private List<string> DrillPath()
+    {
+        var query = new Uri(Navigation.Uri).Query.TrimStart('?');
+        var name = DrillKey;
+        return query.Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Split('=', 2))
+            .Where(p => Uri.UnescapeDataString(p[0].Replace('+', ' ')) == name)
+            .Select(p => p.Length > 1 ? Uri.UnescapeDataString(p[1].Replace('+', ' ')) : "")
+            .ToList();
+    }
+
+    // This page with the chart's path set (none: the top), back at the chart when it has an id.
+    private string DrillHref(IEnumerable<string> path)
+    {
+        var keys = path.ToArray();
+        var uri = Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [DrillKey] = keys.Length == 0 ? null : keys });
+        var hash = uri.IndexOf('#');
+        if (hash >= 0) uri = uri[..hash];
+        return AdditionalAttributes?.TryGetValue("id", out var id) == true && id?.ToString() is { Length: > 0 } anchor ? $"{uri}#{anchor}" : uri;
+    }
+
+    // A series added up by the level's groups, by its Aggregate.
+    private static ChartSeriesData Totals(ChartSeriesData data, DrillState drill)
+    {
+        if (data.IsPoint || data.IsWaterfall)
+        {
+            throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble and waterfall series.");
+        }
+
+        var groups = drill.Arguments.Count;
+        var values = new double?[groups];
+        for (var g = 0; g < groups; g++)
+        {
+            var own = new List<double>();
+            for (var i = 0; i < drill.GroupOf.Length; i++)
+            {
+                if (drill.GroupOf[i] == g && data.Values[i] is { } v) own.Add(v);
+            }
+
+            values[g] = data.Aggregate switch
+            {
+                DataAggregate.Count => own.Count,
+                _ when own.Count == 0 => null,
+                DataAggregate.Avg => own.Average(),
+                DataAggregate.Min => own.Min(),
+                DataAggregate.Max => own.Max(),
+                _ => own.Sum(),
+            };
+        }
+
+        return data with { Values = values, LabelTexts = null };
+    }
+
+    // Interactive: the address changed (a drill link or Back): draw the level it names.
+    private void OnLocation(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (_context.Levels.Count == 0) return;
+        _ = InvokeAsync(() =>
+        {
+            StateHasChanged();
+            _context.Plot?.Refresh();
+        });
     }
 
     // Live: a view that reaches the latest item follows new data, keeping as many items: their count,

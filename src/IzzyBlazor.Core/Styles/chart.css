@@ -600,6 +600,19 @@
     font-weight: var(--ib-weight-semibold);
   }
 
+  /* Drill-down: what selecting the item shows, under its values. */
+  .ib-chart-tooltip-hint {
+    margin-block-start: var(--ib-space-1);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+  }
+
+  /* Drill-down: a link over each item for the pointer (the script's zoomed view leaves them out),
+     and the breadcrumb above the chart. */
+  .ib-chart-drills > a { position: absolute; z-index: 1; }
+  ib-chart[data-ib-zargs] .ib-chart-drills { display: none; }
+  .ib-chart-crumbs { margin-block-end: var(--ib-space-2); }
+
   .ib-chart-tooltip-row {
     display: flex;
     align-items: center;
