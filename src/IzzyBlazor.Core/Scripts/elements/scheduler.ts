@@ -89,6 +89,9 @@ class Scheduler extends IzzyElement {
     this.addEventListener("pointerout", (e) => this.#leave(e), { signal });
     // A press on a read-only appointment whose card hovering opened keeps it open, and focuses it.
     this.addEventListener("click", (e) => {
+      // A press is the reader's choice: a hover's card still to come doesn't come (it would open
+      // again after Escape closed the one the press opened).
+      clearTimeout(this.#timer);
       const card = (e.target as Element).closest?.("button.ib-sched-event")?.nextElementSibling as HTMLElement | null;
       if (!card || card !== this.#hovered) return;
       e.preventDefault();
