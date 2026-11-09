@@ -77,4 +77,23 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(example.GetByRole(AriaRole.Button, new() { Name = "Week", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
     }
+
+    [Fact]
+    public async Task Hovering_a_booking_shows_its_card_and_a_click_opens_its_form()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/scheduler?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-scheduler')");
+        var booking = page.Locator("[data-ex='scheduler-booking'] .ib-sched-col a.ib-sched-event").First;
+
+        await booking.HoverAsync();
+        var card = page.Locator(".ib-sched-card:popover-open");
+        await Assertions.Expect(card).ToHaveCountAsync(1);
+
+        await booking.ClickAsync();
+        await Assertions.Expect(page.Locator("dialog[open]")).ToBeVisibleAsync();
+        await Assertions.Expect(card).ToHaveCountAsync(0);
+    }
 }
