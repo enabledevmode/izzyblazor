@@ -1,4 +1,5 @@
 @inject ApiMetadata Api
+@inject NavigationManager Navigation
 
 @* The header every page shares: brand, version, the three areas, GitHub and the scheme switch. *@
 
@@ -17,7 +18,7 @@
     @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
        pages have SidebarToggle, so the button doesn't change sides between pages. *@
     <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start">
-        <NavItem Href="docs" Match="NavLinkMatch.All">Docs</NavItem>
+        <NavItem Href="docs" Current="@InDocs">Docs</NavItem>
         <NavItem Href="docs/components">Components</NavItem>
         <NavItem Href="demos">Demos</NavItem>
     </SiteNav>
@@ -36,4 +37,8 @@
 
     /// <summary>Lines the header's content up with the page's centered columns.</summary>
     [Parameter] public Length? ContentWidth { get; set; }
+
+    // Docs is current on the articles (docs/...), Components on docs/components/...; each has its
+    // own sidebar (DocsNav).
+    private bool InDocs => DocsNav.AreaOf(Navigation) == DocsArea.Articles;
 }

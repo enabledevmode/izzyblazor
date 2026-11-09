@@ -2,8 +2,9 @@
 @inject Registry Registry
 @inject ApiMetadata Api
 
-@* Every component by category, from the registry, as one dense list to find a name by eye. The only
-   list with the previews, each marked. *@
+@* Every component by category: a row per category, its picture at the start and its components'
+   links after it, so the library fits on a few screens and a name can be found by eye. A filter
+   at the top (a GET form, ?q=) narrows the links as you type, with JavaScript off too. *@
 
 <PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component, by category. Each one renders on static pages, and a label marks the ones limited in a render mode." />
 
@@ -17,44 +18,89 @@
         </TextBlock>
     </Stack>
 
-    @* Categories flow down columns as one list, so the whole library fits on a screen or two and
-       a name can be found by eye; each link's title is the component's one-line summary. *@
+    <FilterForm Label="Filter the components">
+        <FilterSearch Label="Filter the components" Placeholder="Filter by name or purpose" Grow />
+    </FilterForm>
+    <p role="status" class="site-search-count">@CountText</p>
+
+    @if (_groups.Count == 0)
+    {
+        <EmptyState Icon="Lucide.SearchX" Title="@($"No components match “{_query}”")" TitleLevel="2"
+                    Description="Try a shorter word, or search the whole docs." Bordered>
+            <EmptyStateActions>
+                <Button Href="@($"search?q={Uri.EscapeDataString(_query)}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Search the docs</Button>
+            </EmptyStateActions>
+        </EmptyState>
+    }
+
     <div class="site-index">
         @foreach (var (category, components) in _groups)
         {
-            <section class="site-index-group" aria-labelledby="@Anchor(category)">
-                <h2 class="site-index-heading" id="@Anchor(category)">@category</h2>
-                <ul class="site-index-list">
-                    @foreach (var component in components)
-                    {
-                        var api = Api.Component(component.Name);
-                        <li>
-                            <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.DisplayName</a>
-                            @if (component.Preview)
-                            {
-                                <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>
-                            }
-                            @if (api?.Modes is { } modes)
-                            {
-                                <ModeChips Modes="modes" Compact />
-                            }
-                        </li>
-                    }
-                </ul>
+            <section class="site-index-row" aria-labelledby="@Anchor(category)">
+                <div class="site-index-picture"><ComponentPicture Id="@PictureOf(category)" /></div>
+                <div class="site-index-body">
+                    <h2 class="site-index-heading" id="@Anchor(category)">@category <span class="site-index-count">@components.Count</span></h2>
+                    <ul class="site-index-list">
+                        @foreach (var component in components)
+                        {
+                            var api = Api.Component(component.Name);
+                            <li>
+                                <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.DisplayName</a>
+                                @if (component.Preview)
+                                {
+                                    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>
+                                }
+                                @if (api?.Modes is { } modes)
+                                {
+                                    <ModeChips Modes="modes" Compact />
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
             </section>
         }
     </div>
 </article>
 
 @code {
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
     private List<(string Category, List<RegistryComponent> Components)> _groups = [];
+    private string _query = "";
+    private int _shown;
 
     // The breadcrumb links to docs/components#forms; "Date & time" is date-time.
     private static string Anchor(string category) => Registry.CategoryAnchor(category);
 
-    protected override void OnInitialized() =>
+    // Each category's picture: the pictogram of the component that stands for it.
+    private static readonly Dictionary<string, string> GroupPictures = new()
+    {
+        ["Layout"] = "grid", ["App shell"] = "app-shell", ["Typography"] = "heading", ["Actions"] = "button",
+        ["Forms"] = "form", ["Inputs"] = "text-field", ["Date & time"] = "calendar", ["Selection"] = "select",
+        ["Overlays"] = "dialog", ["Navigation"] = "tabs", ["Feedback"] = "alert", ["Data"] = "data-grid",
+        ["Display"] = "card", ["Charts"] = "bar-chart",
+    };
+
+    private static string PictureOf(string category) => GroupPictures.GetValueOrDefault(category, "box");
+
+    private string CountText => _query.Length == 0 ? "" : $"{_shown} {(_shown == 1 ? "component matches" : "components match")} “{_query}”";
+
+    protected override void OnParametersSet()
+    {
+        _query = Q?.Trim() ?? "";
         _groups = Registry.Categories
-            .Select(c => (Category: c, Components: Registry.AllComponents.Where(x => x.Category == c).ToList()))
+            .Select(c => (Category: c, Components: Registry.AllComponents.Where(x => x.Category == c && Matches(x)).ToList()))
             .Where(g => g.Components.Count > 0)
             .ToList();
+        _shown = _groups.Sum(g => g.Components.Count);
+    }
+
+    // A name, title, summary or keyword containing the filter's text.
+    private bool Matches(RegistryComponent component) =>
+        _query.Length == 0
+        || component.DisplayName.Contains(_query, StringComparison.OrdinalIgnoreCase)
+        || component.Name.Contains(_query, StringComparison.OrdinalIgnoreCase)
+        || component.Summary.Contains(_query, StringComparison.OrdinalIgnoreCase)
+        || component.Keywords.Any(k => k.Contains(_query, StringComparison.OrdinalIgnoreCase));
 }
