@@ -32,7 +32,8 @@ public class SchedulerRenderTests : BunitContext
         // The appointment is a link to its form, named by its title and whole time.
         var link = cut.Find("a.ib-sched-event");
         Assert.Contains("appointment=7", link.GetAttribute("href"));
-        Assert.Contains("Room 2, Monday, November 9, 2026, 9:00 AM to 10:00 AM", link.TextContent);
+        // Linux ICU puts a narrow no-break space before AM.
+        Assert.Contains("Room 2, Monday, November 9, 2026, 9:00 AM to 10:00 AM", link.TextContent.Replace(' ', ' '));
 
         Services.GetRequiredService<NavigationManager>().NavigateTo(link.GetAttribute("href")!);
         cut.Render();
