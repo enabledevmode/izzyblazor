@@ -191,3 +191,28 @@ internal static class SchedulerMembers
         return body is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo { CanWrite: true } property } ? property : null;
     }
 }
+
+/// <summary>What a <c>Scheduler</c>'s <c>EditDialogForm</c> gets.</summary>
+/// <typeparam name="TItem">The type of the appointments.</typeparam>
+public sealed class SchedulerEditFormContext<TItem>
+{
+    private readonly Func<Task> _close;
+
+    internal SchedulerEditFormContext(TItem? item, bool isNew, DateTime start, DateTime end, Func<Task> close) =>
+        (Item, IsNew, Start, End, _close) = (item, isNew, start, end, close);
+
+    /// <summary>The appointment as loaded, which isn't a copy, or the default for a new one.</summary>
+    public TItem? Item { get; }
+
+    /// <summary>Whether it's a new appointment.</summary>
+    public bool IsNew { get; }
+
+    /// <summary>When it starts: the time clicked or asked for a new one, else the appointment's.</summary>
+    public DateTime Start { get; }
+
+    /// <summary>When it ends: an hour after a new one's start, else the appointment's.</summary>
+    public DateTime End { get; }
+
+    /// <summary>Closes the dialog and loads the days shown again, once your form has saved.</summary>
+    public Task CloseAsync() => _close();
+}

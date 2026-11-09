@@ -1,0 +1,98 @@
+@using System.ComponentModel.DataAnnotations
+@* A dental clinic's bookings with its own form: the patient, the reason, how long and whether
+   they're insured, with the patient's last visit beside them. The form's model holds only what it
+   edits, so no other field can be forged, and it says when it has saved. *@
+<Scheduler TItem="Visit" Items="_visits" Start="v => v.Start" End="v => v.End" Title="v => v.Patient" Detail="v => v.Reason"
+           ItemKey="v => v.Id.ToString()" OnSave="Move" View="SchedulerView.WorkWeek" QueryPrefix="dental-">
+    <EditDialogForm Context="edit">
+        <Form Model="ModelFor(edit)" FormName="dental-visit" OnValidSubmit="() => SaveAsync(edit)">
+            <FormErrors />
+            <TextBlock Color="Color.Muted">@($"{edit.Start:dddd, MMMM d, h:mm tt}")</TextBlock>
+            <TextField @bind-Value="Model!.Patient" Label="Patient" autofocus />
+            @if (LastVisit(Model!.Patient, edit.Item) is { } last)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@($"Last visit {last.Start:MMMM d}: {last.Reason}")</TextBlock>
+            }
+            <Select @bind-Value="Model!.Reason" Label="Reason" Items="Reasons" />
+            <Select @bind-Value="Model!.Minutes" Label="Length" Items="Lengths" ItemText="@(m => $"{m} minutes")" />
+            <Checkbox @bind-Value="Model!.Insured" Label="Insured" />
+            <DialogFooter>
+                <Button Submit Accent="Accent.Primary" Variant="ButtonVariant.Solid">Save</Button>
+            </DialogFooter>
+        </Form>
+    </EditDialogForm>
+</Scheduler>
+
+@code {
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    [SupplyParameterFromForm(FormName = "dental-visit")]
+    private VisitEdit? Model { get; set; }
+
+    private static readonly string[] Reasons = ["Check-up", "Cleaning", "Filling", "Toothache"];
+    private static readonly int[] Lengths = [30, 45, 60];
+
+    private List<Visit> _visits = [];
+
+    // Stands in for your database, with a copy of the bookings for each visitor to this site.
+    protected override void OnInitialized() => _visits = IzzyBlazor.Site.Examples.DataGrid.ExampleRows.For(Http, "dental-visit", Seed);
+
+    private VisitEdit ModelFor(SchedulerEditFormContext<Visit> edit) => Model ??= edit.Item is { } v
+        ? new() { Patient = v.Patient, Reason = v.Reason, Minutes = (int)(v.End - v.Start).TotalMinutes, Insured = v.Insured }
+        : new();
+
+    // The patient's visit before this one, if they've been before.
+    private Visit? LastVisit(string? patient, Visit? editing) => string.IsNullOrWhiteSpace(patient) ? null : _visits
+        .Where(v => v != editing && v.Patient.Equals(patient.Trim(), StringComparison.OrdinalIgnoreCase) && v.Start < (editing?.Start ?? DateTime.Now))
+        .MaxBy(v => v.Start);
+
+    private async Task SaveAsync(SchedulerEditFormContext<Visit> edit)
+    {
+        var visit = edit.Item ?? new Visit { Id = _visits.Count == 0 ? 1 : _visits.Max(v => v.Id) + 1, Start = edit.Start };
+        (visit.Patient, visit.Reason, visit.Insured) = (Model!.Patient!.Trim(), Model.Reason, Model.Insured);
+        visit.End = visit.Start.AddMinutes(Model.Minutes);
+        if (edit.IsNew) _visits.Add(visit);
+        await edit.CloseAsync();
+        Model = null;
+    }
+
+    // A booking dragged to a new time: OnSave, as without a form of your own.
+    private static void Move(SchedulerSave<Visit> save) => save.CopyTo(save.Item!);
+
+    private static List<Visit> Seed()
+    {
+        var monday = DateOnly.FromDateTime(DateTime.Today).AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
+        DateTime At(int day, int hour, int minute = 0) => monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
+        return
+        [
+            new() { Id = 1, Patient = "M. Alvarez", Reason = "Cleaning", Start = At(-7, 9), End = At(-7, 9, 30), Insured = true },
+            new() { Id = 2, Patient = "M. Alvarez", Reason = "Filling", Start = At(0, 9), End = At(0, 10), Insured = true },
+            new() { Id = 3, Patient = "J. Chen", Reason = "Check-up", Start = At(0, 11), End = At(0, 11, 30) },
+            new() { Id = 4, Patient = "R. Okafor", Reason = "Toothache", Start = At(1, 8, 30), End = At(1, 9, 15), Insured = true },
+            new() { Id = 5, Patient = "S. Novak", Reason = "Cleaning", Start = At(2, 14), End = At(2, 14, 30) },
+            new() { Id = 6, Patient = "J. Chen", Reason = "Filling", Start = At(3, 10), End = At(3, 11) },
+        ];
+    }
+
+    public sealed class Visit
+    {
+        public int Id { get; set; }
+        public string Patient { get; set; } = "";
+        public string Reason { get; set; } = "Check-up";
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public bool Insured { get; set; }
+    }
+
+    public sealed class VisitEdit
+    {
+        [Required]
+        public string? Patient { get; set; }
+
+        public string Reason { get; set; } = "Check-up";
+
+        public int Minutes { get; set; } = 30;
+
+        public bool Insured { get; set; }
+    }
+}

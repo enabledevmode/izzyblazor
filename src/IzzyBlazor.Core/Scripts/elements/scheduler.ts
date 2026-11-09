@@ -280,8 +280,9 @@ class Scheduler extends IzzyElement {
       return;
     }
 
-    // An appointment: a drag moves it, from its bottom edge resizes it; a click is its link.
-    if (box.hasAttribute("data-ib-cut")) return;
+    // An appointment: a drag moves it, from its bottom edge resizes it; a click is its link. Not
+    // without OnSave (an EditDialogForm alone), or for one cut by the days shown.
+    if (!this.hasAttribute("data-ib-movable") || box.hasAttribute("data-ib-cut")) return;
     const start = box.dataset.ibStart!;
     const finish = box.dataset.ibEnd!;
     const day0 = col!.dataset.ibDay!;
