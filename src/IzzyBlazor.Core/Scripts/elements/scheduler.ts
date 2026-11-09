@@ -6,6 +6,8 @@ import { track } from "../position";
 const SNAP = 15;
 // A press that moves this far is a drag, not a click.
 const DRAG_PX = 4;
+// The session key for the appointment focus goes back to after its form.
+const FOCUS = "ib-sched-focus";
 
 const two = (n: number) => String(n).padStart(2, "0");
 // A day and minutes into it, counted in UTC so a clock change that day can't shift the hour.
@@ -40,7 +42,10 @@ class Scheduler extends IzzyElement {
     // view's hours (interactive pages draw them in place) open on the working day too.
     const watch = new MutationObserver(() => {
       if (!this.hasAttribute("data-ib-ready")) this.connectedCallback();
-      else this.#scroll();
+      else {
+        this.#scroll();
+        this.#refocus();
+      }
     });
     signal.addEventListener("abort", () => {
       watch.disconnect();
@@ -92,17 +97,27 @@ class Scheduler extends IzzyElement {
     }, { capture: true, signal });
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
 
-    // The form's dialog closed in the browser (a static page): out of the address with it, so a
-    // reload doesn't open it again. Interactive pages do this in C#.
+    // The form's dialog closed (or its form sent): focus goes back to the appointment, or New for
+    // a new or deleted one, once the dialog is gone. Kept in the session, since a static page's
+    // save comes back as a new page.
+    this.addEventListener("submit", (e) => {
+      if ((e.target as Element).closest?.("ib-dialog")?.getAttribute("data-query-key") === this.dataset.ibEditKey) this.#remember();
+    }, { capture: true, signal });
+    // On a static page, closing it in the browser also takes it out of the address, so a reload
+    // doesn't open it again. Interactive pages do that in C#.
     this.addEventListener("close", (e) => {
       // The form's own dialog, not Delete's question in it.
       const root = (e.target as Element).parentElement;
-      if (root?.localName !== "ib-dialog" || root.dataset.queryKey !== this.dataset.ibEditKey || root.hasAttribute("data-ib-interactive")) return;
+      if (root?.localName !== "ib-dialog" || root.dataset.queryKey !== this.dataset.ibEditKey) return;
+      this.#remember();
+      requestAnimationFrame(() => this.#refocus());
+      if (root.hasAttribute("data-ib-interactive")) return;
       const url = new URL(location.href);
       url.searchParams.delete(this.dataset.ibEditKey!);
       url.searchParams.delete(this.dataset.ibStartKey!);
       history.replaceState(history.state, "", url);
     }, { capture: true, signal });
+    this.#refocus();
 
     const newHref = this.dataset.ibNew;
     if (!newHref) return;
@@ -151,6 +166,33 @@ class Scheduler extends IzzyElement {
     form.closest<HTMLElement>("[popover]")?.hidePopover();
     // Interactive: C# goes there (the Calendar's bound value), so only one navigation happens.
     if (!form.hasAttribute("data-ib-interactive")) navigateTo(url, false);
+  }
+
+  // Which appointment's form was open: its key, under this Scheduler's key in the address.
+  #remember(): void {
+    const key = new URL(location.href).searchParams.get(this.dataset.ibEditKey!);
+    try {
+      if (key) sessionStorage.setItem(FOCUS, `${this.dataset.ibEditKey}|${key}`);
+    } catch {
+      // No session storage: focus stays where the browser puts it.
+    }
+  }
+
+  // Once the form's dialog is gone: focus on its appointment, or New.
+  #refocus(): void {
+    let saved: string | null = null;
+    try {
+      saved = sessionStorage.getItem(FOCUS);
+    } catch {
+      return;
+    }
+    // "key|appointment": a Scheduler's key in the address has no "|", an appointment's key may.
+    const at = saved?.indexOf("|") ?? -1;
+    const [owner, key] = at < 0 ? [] : [saved!.slice(0, at), saved!.slice(at + 1)];
+    if (owner !== this.dataset.ibEditKey || this.querySelector("dialog[open]")) return;
+    sessionStorage.removeItem(FOCUS);
+    const item = key && key !== "new" ? this.querySelector<HTMLElement>(`[data-ib-item="${CSS.escape(key)}"]`) : null;
+    (item ?? this.querySelector<HTMLElement>(".ib-sched-new"))?.focus();
   }
 
   #hovered: HTMLElement | null = null;

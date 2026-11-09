@@ -69,6 +69,8 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
         await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
         await Assertions.Expect(page).Not.ToHaveURLAsync(new Regex("rooms-appointment="));
+        // Focus goes back to New, where the form was opened from.
+        await Assertions.Expect(example.Locator(".ib-sched-new")).ToBeFocusedAsync();
 
         await example.GetByRole(AriaRole.Button, new() { Name = "Work week" }).ClickAsync();
         await page.GetByRole(AriaRole.Menuitemradio, new() { Name = "Week", Exact = true }).ClickAsync();
