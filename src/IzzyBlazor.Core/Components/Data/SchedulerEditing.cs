@@ -140,6 +140,31 @@ internal sealed class SchedulerEditBinding : ComponentBase
     protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ChildContent, Posted);
 }
 
+/// <summary>A drag's move, which the Scheduler's script posts: the appointment and its new times.</summary>
+internal sealed class SchedulerMoveFields
+{
+    public string? Key { get; set; }
+
+    public string? Start { get; set; }
+
+    public string? End { get; set; }
+}
+
+/// <summary>Gets a static post of a drag's move. A part of its own for <see cref="FormMappingScope"/>.</summary>
+internal sealed class SchedulerMoveBinding : ComponentBase
+{
+    internal const string FormName = "move";
+
+    internal const string Prefix = "ib-sched-move";
+
+    [SupplyParameterFromForm(Name = Prefix)]
+    public SchedulerMoveFields? Posted { get; set; }
+
+    [Parameter] public RenderFragment<SchedulerMoveFields?>? ChildContent { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ChildContent, Posted);
+}
+
 /// <summary>Sets a property a lambda reads, such as <c>b =&gt; b.Start</c>, on an item.</summary>
 internal static class SchedulerMembers
 {
