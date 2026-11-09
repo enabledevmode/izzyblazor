@@ -33,6 +33,12 @@
 
     [SupplyParameterFromQuery(Name = "mode")] public string? Mode { get; set; }
 
+    /// <summary>
+    /// <c>?scrollbar=none</c> hides the page's scrollbar, as a phone's browser does, for the home
+    /// page's phone frame. It still scrolls.
+    /// </summary>
+    [SupplyParameterFromQuery(Name = "scrollbar")] public string? Scrollbar { get; set; }
+
     private Type? _type;
     private string _mode = "static";
     private string _class = "frame";
@@ -51,7 +57,7 @@
         }
 
         _mode = Mode is "noscript" or "static" or "interactive" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
-        _class = entry.Value.Example.Page ? "frame frame-page" : "frame";
+        _class = (entry.Value.Example.Page ? "frame frame-page" : "frame") + (Scrollbar == "none" ? " frame-no-scrollbar" : "");
         _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
     }
 }

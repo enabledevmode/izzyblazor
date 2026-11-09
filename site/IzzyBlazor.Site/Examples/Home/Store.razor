@@ -1,3 +1,4 @@
+@using System.ComponentModel.DataAnnotations
 @inject NavigationManager Navigation
 
 @* An online store's operations dashboard. The range switch, the grid's sorting and paging, and the
@@ -29,10 +30,17 @@
 
     <AppMain>
         <Stack Gap="6" Padding="new() { Base = 4, Md = 6 }">
-            <Stack Gap="1">
-                <Heading Level="1" Size="TextSize.Xl2">Good morning, Ada</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Here's how the store did this week.</TextBlock>
-            </Stack>
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Stack Gap="1" Grow>
+                    <Heading Level="1" Size="TextSize.Xl2">Good morning, Ada</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Here's how the store did this week.</TextBlock>
+                </Stack>
+                <Button Href='@To("view", "products")' StartIcon="Lucide.Plus">Add product</Button>
+            </Row>
+
+            <Alert Status="Status.Warning">
+                3 orders are waiting on stock of the Linen throw. <Anchor Href='@To("view", "orders")'>Review them</Anchor>
+            </Alert>
 
             <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
                 <Card><Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week"
@@ -45,8 +53,8 @@
                             Sparkline="_returns" SparklineLabel="Return rate, last 12 weeks" SparklineFormat="0.0'%'" /></Card>
             </Grid>
 
-            <Grid Columns="new() { Base = 1, Lg = 5 }" Gap="4">
-                <Card TitleLevel="2" Title="Revenue by channel" ColSpan="new() { Lg = 3 }">
+            <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
+                <Card TitleLevel="2" Title="Revenue by channel" ColSpan="new() { Lg = 2 }">
                     <CardActions>
                         <TabNav Label="Revenue range" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
                             @foreach (var months in Ranges)
@@ -56,16 +64,30 @@
                         </TabNav>
                     </CardActions>
                     <Chart Items="Shown" Argument="m => m.Month" Title="@($"Revenue by channel, last {_months} months")" HideTitle
-                           Stacking="ChartStacking.Normal" Height="15.Rem">
+                           Stacking="ChartStacking.Normal" Height="12.Rem">
                         <ChartValueAxis Format="$#,##0,K" />
                         <ChartBarSeries Value="m => m.Online" Name="Online store" />
                         <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
                         <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
                     </Chart>
                 </Card>
-                <Card TitleLevel="2" Title="Coming up" ColSpan="new() { Lg = 2 }">
-                    <Scheduler Items="_events" Start="e => e.Start" End="e => e.End" Title="e => e.Title" Color="e => ColorOf(e.Kind)"
-                               View="SchedulerView.Agenda" AgendaDays="3" ViewOptions="[SchedulerView.Agenda]" QueryPrefix="agenda-" Label="Coming up" />
+                <Card TitleLevel="2" Title="Top products" Description="By units sold this week.">
+                    <Stack Gap="4">
+                        @foreach (var product in _top)
+                        {
+                            <Row Gap="3" Align="Align.Center">
+                                <Avatar Name="@product.Name" Size="AvatarSize.Sm" />
+                                <Stack Gap="1" Grow>
+                                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@product.Name</TextBlock>
+                                    <Rating Value="product.Rating" ReadOnly HideLabel Size="ControlSize.Sm" Label="@($"{product.Name}: rated {product.Rating} of 5")" />
+                                </Stack>
+                                <Stack Gap="0" Align="Align.End">
+                                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums>@product.Sold</TextBlock>
+                                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">sold</TextBlock>
+                                </Stack>
+                            </Row>
+                        }
+                    </Stack>
                 </Card>
             </Grid>
 
@@ -80,6 +102,43 @@
                     <PropertyColumn Property="o => o.Total" Format="C" Sortable />
                 </Columns>
             </DataGrid>
+
+            <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+                <Card TitleLevel="2" Title="Coming up">
+                    <Scheduler Items="_events" Start="e => e.Start" End="e => e.End" Title="e => e.Title" Color="e => ColorOf(e.Kind)"
+                               View="SchedulerView.Agenda" AgendaDays="3" ViewOptions="[SchedulerView.Agenda]" QueryPrefix="agenda-" Label="Coming up" />
+                </Card>
+                <Card TitleLevel="2" Title="Activity">
+                    <Timeline>
+                        <TimelineItem Title="Order #1060 paid" Time="9:42 AM" Icon="Lucide.CreditCard" Status="Status.Success">Contoso Ltd, $412.80</TimelineItem>
+                        <TimelineItem Title="Linen throw low on stock" Time="8:15 AM" Icon="Lucide.TriangleAlert" Status="Status.Warning">12 left, 40 on order.</TimelineItem>
+                        <TimelineItem Title="Review posted" Time="Yesterday" Icon="Lucide.Star">Maya Patel rated the Stoneware mug 5 stars.</TimelineItem>
+                        <TimelineItem Title="Winter sale scheduled" Time="Nov 7" Icon="Lucide.CalendarDays" />
+                    </Timeline>
+                </Card>
+            </Grid>
+
+            <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+                <Card TitleLevel="2" Title="New discount">
+                    <Form Model="Discount" FormName="store-discount" OnValidSubmit="CreateDiscount">
+                        <TextField @bind-Value="Discount!.Code" Size="ControlSize.Sm" />
+                        <SegmentedControl @bind-Value="Discount!.Kind" FullWidth Size="ControlSize.Sm" />
+                        <Slider @bind-Value="Discount!.Amount" Size="ControlSize.Sm" Min="5" Max="50" Step="5" ValueFormat="@(Discount!.Kind == DiscountKind.Percent ? "{0}%" : "${0}")" />
+                        <Row><Button Submit Size="ControlSize.Sm">Create discount</Button></Row>
+                        @if (_created is { } created)
+                        {
+                            <Alert Status="Status.Success">@created is live.</Alert>
+                        }
+                    </Form>
+                </Card>
+                <Card TitleLevel="2" Title="November goal" Description="Revenue so far against the month's $900K target.">
+                    <Center Grow>
+                        <Gauge Label="November revenue" Value="842" Max="1000" Target="900" ValueFormat="$0K" />
+                    </Center>
+                </Card>
+            </Grid>
+
+
         </Stack>
     </AppMain>
 </AppShell>
@@ -95,6 +154,17 @@
 
     private IEnumerable<ChannelMonth> Shown => _channels[^_months..];
 
+    [SupplyParameterFromForm(FormName = "store-discount")]
+    private NewDiscount? Discount { get; set; }
+
+    // The discount just created, described; not the form, which follows each change when interactive.
+    private string? _created;
+
+    protected override void OnInitialized() => Discount ??= new();
+
+    private void CreateDiscount() =>
+        _created = $"{Discount!.Code}, {(Discount.Kind == DiscountKind.Percent ? $"{Discount.Amount}%" : $"${Discount.Amount}")} off,";
+
     // Links within this example: query values in its own address, so they stay here.
     private string To(string name, string? value) => Navigation.GetUriWithQueryParameter(name, value);
 }
@@ -103,8 +173,8 @@
 @code {
     private readonly double?[] _revenue = [68_200, 70_900, 69_400, 72_800, 74_100, 73_300, 76_900, 75_200, 78_600, 79_400, 77_100, 84_320];
     private readonly double?[] _orders = [1_068, 1_102, 1_087, 1_131, 1_150, 1_138, 1_176, 1_160, 1_198, 1_214, 1_210, 1_284];
-    private readonly double?[] _average = [63.86, 64.34, 63.85, 64.37, 64.43, 64.41, 65.39, 64.83, 65.61, 65.40, 63.72, 65.67];
     private readonly double?[] _returns = [3.1, 2.9, 3.0, 2.8, 2.7, 2.8, 2.6, 2.5, 2.6, 2.4, 2.5, 2.1];
+    private readonly double?[] _average = [63.86, 64.34, 63.85, 64.37, 64.43, 64.41, 65.39, 64.83, 65.61, 65.40, 63.72, 65.67];
 
     private record ChannelMonth(string Month, decimal Online, decimal Marketplace, decimal Wholesale);
 
@@ -165,5 +235,30 @@
             i switch { < 4 => OrderStatus.Processing, < 9 => OrderStatus.Shipped, 11 => OrderStatus.Refunded, _ => OrderStatus.Delivered },
             Math.Round(18.4m + i * 37.65m % 310m, 2)))
         .ToArray();
+
+    public enum DiscountKind
+    {
+        [Display(Name = "Percent off")] Percent,
+        [Display(Name = "Amount off")] Amount,
+    }
+
+    public sealed class NewDiscount
+    {
+        [Required, StringLength(20), Display(Name = "Code")]
+        public string Code { get; set; } = "WINTER15";
+
+        [Display(Name = "Type")]
+        public DiscountKind Kind { get; set; }
+
+        [Range(5, 50), Display(Name = "Amount")]
+        public int Amount { get; set; } = 15;
+    }
+
+    private record TopProduct(string Name, int Sold, double Rating);
+
+    private readonly TopProduct[] _top =
+    [
+        new("Stoneware mug", 214, 4.8), new("Linen throw", 167, 4.6), new("Oak serving board", 98, 4.9),
+    ];
 }
 @* /hide *@
