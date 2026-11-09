@@ -41,9 +41,10 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(card).ToBeHiddenAsync();
     }
 
-    // Israel, Nov 9: the appointment stayed in the address, so a reload opened the form again.
+    // Israel, Nov 9: the new appointment stayed in the address, so a reload or another view opened
+    // the form again.
     [Fact]
-    public async Task Closing_a_booking_takes_it_out_of_the_address_on_a_static_page()
+    public async Task A_closed_form_stays_closed_on_a_static_page()
     {
         var browser = await TestBrowser.OpenAsync();
         await using var _ = browser;
@@ -52,7 +53,7 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.WaitForFunctionAsync("() => customElements.get('ib-scheduler')");
         var example = page.Locator("[data-ex='scheduler-booking']");
 
-        await example.Locator("a.ib-sched-event[href*='appointment=']").First.ClickAsync();
+        await example.GetByRole(AriaRole.Link, new() { Name = "New appointment" }).ClickAsync();
         var dialog = page.Locator("dialog[open]");
         await Assertions.Expect(dialog).ToBeVisibleAsync();
         await Assertions.Expect(page).ToHaveURLAsync(new Regex("rooms-appointment="));
@@ -60,5 +61,12 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Close" }).ClickAsync();
         await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
         await Assertions.Expect(page).Not.ToHaveURLAsync(new Regex("rooms-appointment="));
+
+        await example.GetByRole(AriaRole.Button, new() { Name = "Work week" }).ClickAsync();
+        await page.GetByRole(AriaRole.Menuitemradio, new() { Name = "Week", Exact = true }).ClickAsync();
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex("rooms-view=week"));
+        await Assertions.Expect(page).Not.ToHaveURLAsync(new Regex("rooms-appointment="));
+        await Assertions.Expect(example.GetByRole(AriaRole.Button, new() { Name = "Week", Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("dialog[open]")).ToHaveCountAsync(0);
     }
 }

@@ -114,11 +114,13 @@
             }
             @if (Views.Count > 1)
             {
+                @* Each view links by Href, as the arrows do: never with the form's keys, which an
+                   address drawn while the form was open still has after it closes in the browser. *@
                 <Menu Label="@ViewName(view)" StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" Placement="Placement.BottomEnd" Class="ib-sched-views">
                     <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
                         @foreach (var v in Views)
                         {
-                            <MenuItem Value="@ViewValue(v)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
+                            <MenuItem Value="@ViewValue(v)" Href="@Href(v, date)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
                         }
                     </MenuRadioGroup>
                 </Menu>
