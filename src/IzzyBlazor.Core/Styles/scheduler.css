@@ -384,7 +384,8 @@
   }
   .ib-sched-cell:first-child { border-inline-start: 0; }
   .ib-sched-day-link {
-    align-self: flex-end;
+    /* At the start of the cell, as Outlook has it. */
+    align-self: flex-start;
     min-width: 1.5rem;
     padding-inline: 0.25rem;
     border-radius: var(--ib-radius-full);
