@@ -61,6 +61,9 @@
     - While a provider loads, the view is aria-busy; a failure is an alert with Retry, which puts
       focus on the view when the appointments come.
     - A DayHeaderTemplate's content is read, after its date.
+    - A month's day numbers are links to their day ("Show Monday, November 9, 2026").
+    - When the form closes or saves, focus goes back to its appointment, or to New.
+    - A category's edge is 3:1 against its tint and the page, the palette's lighter colors darkened.
     - The form is the way to add, move and resize from the keyboard and with no script; a drag
       does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
@@ -342,7 +345,9 @@
     private string HideKey => Prefix + "hide";
 
     // The categories hidden, from the address.
-    private HashSet<string> Hidden => (Query(HideKey) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+    // Each in a key of its own (?hide=work&hide=family), so a value may hold a comma.
+    private HashSet<string> Hidden =>
+        QueryString.Of(Navigation.Uri).TryGetValue(HideKey, out var values) ? values.Where(v => !string.IsNullOrEmpty(v)).Select(v => v!).ToHashSet() : [];
 
     // This page with a category shown or hidden.
     private string ToggleHref(string value)
@@ -351,7 +356,7 @@
         if (!hidden.Remove(value)) hidden.Add(value);
         var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
         {
-            [HideKey] = hidden.Count == 0 ? null : string.Join(",", Kinds.Select(c => c.Value).Where(hidden.Contains)),
+            [HideKey] = hidden.Count == 0 ? null : Kinds.Select(c => c.Value).Where(hidden.Contains).ToArray(),
             [EditKey] = null,
             [StartKey] = null,
         }));
@@ -931,7 +936,7 @@
                         var outside = day.Month != date.Month;
                         <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                             <div class="ib-sched-cell-head">
-                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@string.Format(culture, TextDefaults.SchedulerShowDay, day.ToString("D", culture))">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
                                 @DayExtra(day)
                             </div>
                             <ul class="ib-sched-pills">
@@ -1032,7 +1037,10 @@
         var anchor = StyleValues.AnchorName(id);
         if (Editable)
         {
-            <a class="@cls" href="@LinkOf(e)" style="@($"{style};anchor-name:{anchor}")" @attributes="data">@content</a>
+            @* Its key in every view, so focus can come back to it when its form closes. *@
+            var attributes = data ?? new Dictionary<string, object?>();
+            attributes["data-ib-item"] = ItemKey!(_items[e.Index]);
+            <a class="@cls" href="@LinkOf(e)" style="@($"{style};anchor-name:{anchor}")" @attributes="attributes">@content</a>
         }
         else
         {

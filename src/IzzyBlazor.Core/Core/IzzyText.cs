@@ -1299,6 +1299,9 @@ public class IzzyText
     /// <summary>A Scheduler's message when its ItemsProvider fails, before the Retry button.</summary>
     public virtual string SchedulerLoadFailed { get; set; } = "Couldn't load the appointments.";
 
+    /// <summary>A month's day number, a link to that day: "Show {0}" (the day's full date).</summary>
+    public virtual string SchedulerShowDay { get; set; } = "Show {0}";
+
     /// <summary>A Scheduler's link back to today.</summary>
     public virtual string SchedulerToday { get; set; } = "Today";
 
