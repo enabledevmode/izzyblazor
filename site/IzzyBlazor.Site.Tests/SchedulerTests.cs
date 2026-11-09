@@ -23,6 +23,24 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(example.Locator(".ib-sched-day-head .ib-sched-num").First).ToHaveTextAsync("22");
     }
 
+    [Fact]
+    public async Task A_read_only_appointment_opens_a_card_about_it()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/scheduler?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var example = page.Locator("[data-ex='scheduler-usage']");
+
+        await example.GetByRole(AriaRole.Button, new() { Name = "Sprint planning", Exact = false }).ClickAsync();
+        var card = page.GetByRole(AriaRole.Dialog, new() { Name = "Sprint planning" });
+        await Assertions.Expect(card).ToBeVisibleAsync();
+        await Assertions.Expect(card).ToContainTextAsync("Room 4");
+
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(card).ToBeHiddenAsync();
+    }
+
     // Israel, Nov 9: the appointment stayed in the address, so a reload opened the form again.
     [Fact]
     public async Task Closing_a_booking_takes_it_out_of_the_address_on_a_static_page()

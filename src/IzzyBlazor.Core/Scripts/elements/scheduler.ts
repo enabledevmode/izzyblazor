@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { navigateTo } from "../filtering";
+import { track } from "../position";
 
 // A drag moves and resizes by quarter hours.
 const SNAP = 15;
@@ -53,6 +54,15 @@ class Scheduler extends IzzyElement {
     // pages too, through Blazor's navigation.
     this.addEventListener("change", (e) => this.#jump(e), { signal });
     this.addEventListener("submit", (e) => this.#jump(e), { signal });
+
+    // A read-only appointment's card: placed beside it where CSS anchor positioning isn't there.
+    let untrack: (() => void) | undefined;
+    this.addEventListener("toggle", (e) => {
+      const card = e.target as HTMLElement;
+      if (!card.classList?.contains("ib-sched-card")) return;
+      untrack?.();
+      untrack = (e as ToggleEvent).newState === "open" ? track(card, card.previousElementSibling!, "bottom-start") : undefined;
+    }, { capture: true, signal });
 
     // The form's dialog closed in the browser (a static page): out of the address with it, so a
     // reload doesn't open it again. Interactive pages do this in C#.
