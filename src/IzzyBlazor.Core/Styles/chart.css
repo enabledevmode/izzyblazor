@@ -611,7 +611,7 @@
      and the breadcrumb above the chart. */
   .ib-chart-drills > a { position: absolute; z-index: 1; }
   ib-chart[data-ib-zargs] .ib-chart-drills { display: none; }
-  ib-chart[data-ib-deeper] :is(.ib-pie-slice, .ib-treemap-tile) { cursor: pointer; }
+  ib-chart[data-ib-deeper][data-ib-tooltips] :is(.ib-pie-plot, .ib-treemap-body) { cursor: pointer; }
   .ib-chart-crumbs { margin-block-end: var(--ib-space-2); }
 
   .ib-chart-tooltip-row {
@@ -1219,7 +1219,8 @@
 
   /* Labels in their stages (Labels Inside): centered on the stage's middle, no wider than it is
      there, in dark ink, as a pie's shares in its slices. */
-  .ib-funnel-inside { position: absolute; inset: 0; }
+  /* Labels over the stages let a click through to its link (drill-down). */
+  .ib-funnel-inside { position: absolute; inset: 0; pointer-events: none; }
 
   .ib-funnel-inside > div {
     position: absolute;

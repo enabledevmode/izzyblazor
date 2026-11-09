@@ -659,14 +659,6 @@ class Chart extends IzzyElement {
     // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
     // not an image, so the frame becomes one, described by the keys' hint.
     this.keyboard(frame, signal);
-    // Arrived by the keys from the level above: the plot has focus, and says where it is.
-    try {
-      if (this.dataset.ibDrilled && sessionStorage.getItem("ib-drill") === this.dataset.ibDrill) {
-        sessionStorage.removeItem("ib-drill");
-        frame.focus();
-        if (live) live.textContent = this.dataset.ibDrilled;
-      }
-    } catch {}
     document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && drop(), { signal });
     const announce = () => {
       if (!live || !tipsOn) return;
@@ -693,6 +685,15 @@ class Chart extends IzzyElement {
       { signal }
     );
     frame.addEventListener("blur", drop, { signal });
+    // Arrived by the keys from the level above: the plot has focus (a new level's first item), and says where it is.
+    try {
+      if (this.dataset.ibDrilled && sessionStorage.getItem("ib-drill") === `${location.pathname} ${this.dataset.ibDrill}`) {
+        sessionStorage.removeItem("ib-drill");
+        current = this.#current = -1;
+        frame.focus();
+        if (live) live.textContent = this.dataset.ibDrilled;
+      }
+    } catch {}
     // Drawn again (an interactive page after a zoom or new data) with the keys or the pointer on an item: it stays shown.
     if (kept && current >= 0 && ((byKeys && document.activeElement === frame) || plot.matches(":hover"))) show(current, null);
     frame.addEventListener(
@@ -729,7 +730,7 @@ class Chart extends IzzyElement {
             const link = this.querySelector<HTMLAnchorElement>(`.ib-chart-drills [data-ib-drill="${current}"]`);
             if (!link) return;
             try {
-              sessionStorage.setItem("ib-drill", this.dataset.ibDrill!);
+              sessionStorage.setItem("ib-drill", `${location.pathname} ${this.dataset.ibDrill}`);
             } catch {}
             link.click();
             return;

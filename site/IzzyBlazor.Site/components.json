@@ -2199,7 +2199,7 @@
           ]
         },
         {
-          "id": "drill", "title": "Drill-down", "summary": "Bars, slices and tiles that open the level below them, such as a year's months, as links that work with no script.", "members": ["ChartDrillLevel", "Drill", "HideBreadcrumb"],
+          "id": "drill", "title": "Drill-down", "summary": "Bars, slices and tiles that open the level below them, such as a year's months, with the level in the page's address.", "members": ["ChartDrillLevel", "Drill", "HideBreadcrumb"],
           "examples": [
             { "id": "chart-drill-revenue", "title": "Revenue by year, month and day", "lead": "To drill into a chart, put a `ChartDrillLevel` in it for each level, from the top, in place of the chart's `Argument`. Select a year's bar to see its months, and a month's to see its days.",
               "after": ["The chart groups its items by each level's argument and adds up every series. `Aggregate` on a series sets how: `Sum` by default, or `Avg`, `Min`, `Max` or `Count`.", "The level is in the page's address, here `?revenue=2025&revenue=Nov`, so a level can be bookmarked and the browser's Back goes up one. `Drill` names the address's key; give each chart that drills on a page its own.", "From the keyboard, move to an item and press Enter: the plot keeps focus and says the new level. The data table's first column links each item to its level, with or without script. The breadcrumb links back up.", "`PieChart`, `FunnelChart` and `TreemapChart` drill the same way."],
@@ -2411,8 +2411,9 @@
           "notes": { "noscript": "There are no tooltips. Each tile and group name shows its value on hover, and \"Show data\" lists every tile." } },
         { "id": "treemap-chart-change", "title": "Colors by a second value", "lead": "To color the tiles by a second measure, set `ColorValue`: here each product's size is its revenue and its color the change from last year. A `ChartPalette.Diverging` palette turns at `Midpoint` (0 by default), here with growth in blue and decline in red.", "after": ["The colors fall into steps, as a `HeatmapChart`'s do, and the legend above the tiles is the scale. `Steps`, `Min` and `Max` set it, and `ColorFormat` writes its values."] },
         { "id": "treemap-chart-budget", "title": "One level of tiles", "lead": "Without `Group`, the tiles are one level, each in its own color so neighbors stand apart. `AspectRatio` sets the chart's shape, here 2.5 times as wide as tall.", "after": ["The chart keeps its shape at every width, so the tiles stay as square as they were laid out. Under 30rem wide it's square.", "A treemap suits many parts, as the 22 programs here; with a handful, bars compare them better."] },
-        { "id": "treemap-chart-drill", "title": "Drilling into tiles", "lead": "To open a tile into what it's made of, put a `ChartDrillLevel` in the chart for each level in place of `Name` and `Group`. Select a category to see its services, laid out again at full size, and a service to see its months.",
-          "after": ["Each tile adds up its items' values (`Aggregate`, `Sum` by default). The breadcrumb above the chart goes back up, and so does the browser's Back: the level is in the page's address, under the `Drill` key.", "From the keyboard, move to a tile and press Enter. The data table's rows link to each tile's level, with no script too."] }
+        { "id": "treemap-chart-drill", "title": "Drilling into tiles", "lead": "To open a tile into what it's made of, put a `ChartDrillLevel` in the chart for each level in place of `Name` and `Group`. Select a category to see its services, laid out again at full size, and a service to see its environments.",
+          "after": ["Each tile adds up its items' values (`Aggregate`, `Sum` by default). The breadcrumb above the chart goes back up, and so does the browser's Back: the level is in the page's address, under the `Drill` key.", "From the keyboard, move to a tile and press Enter. The data table's rows link to each tile's level, with no script too."],
+          "notes": { "noscript": "The tiles don't open, but the data table's rows link to each tile's level." } }
       ]
     },
     {

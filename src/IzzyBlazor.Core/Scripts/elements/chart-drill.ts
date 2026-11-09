@@ -6,24 +6,26 @@
 
 /** Follows item `index`'s link to the level below, if it has one; true when it did. */
 export function followDrill(host: HTMLElement, index: number, byKeys: boolean): boolean {
-  const link = host.closest("figure")?.querySelector<HTMLAnchorElement>(`a[data-ib-drill="${index}"]`);
+  const link = host.querySelector<HTMLAnchorElement>(`.ib-chart-drills a[data-ib-drill="${index}"]`);
   if (!link) return false;
   if (byKeys) {
     try {
-      sessionStorage.setItem("ib-drill", host.dataset.ibDrill!);
+      sessionStorage.setItem("ib-drill", `${location.pathname} ${host.dataset.ibDrill}`);
     } catch {}
   }
   link.click();
   return true;
 }
 
-/** Arrived by the keys from the level above: the plot has focus, and says where it is. */
-export function arrived(host: HTMLElement, frame: HTMLElement, live: HTMLElement | null): void {
+/** Arrived by the keys from the level above: the plot has focus, and says where it is; true when it did. */
+export function arrived(host: HTMLElement, frame: HTMLElement, live: HTMLElement | null): boolean {
   try {
-    if (host.dataset.ibDrilled && sessionStorage.getItem("ib-drill") === host.dataset.ibDrill) {
+    if (host.dataset.ibDrilled && sessionStorage.getItem("ib-drill") === `${location.pathname} ${host.dataset.ibDrill}`) {
       sessionStorage.removeItem("ib-drill");
       frame.focus();
       if (live) live.textContent = host.dataset.ibDrilled;
+      return true;
     }
   } catch {}
+  return false;
 }

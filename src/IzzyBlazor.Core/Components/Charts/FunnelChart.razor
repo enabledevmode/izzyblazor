@@ -112,7 +112,7 @@
     }
     @if (drilled is { Depth: > 0 } && !HideBreadcrumb)
     {
-        @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop)
+        @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop, Title, TextDefaults)
     }
     <div class="@(Pyramid ? "ib-funnel ib-funnel-pyramid" : "ib-funnel")" style="@Palette?.Style(items.Count)">
         <div class="ib-funnel-plot">
@@ -197,7 +197,7 @@
                 <table class="ib-chart-table" aria-labelledby="@NameId">
                     <thead>
                         <tr>
-                            <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                            <th scope="col">@(drilled?.LevelName ?? _argumentName ?? TextDefaults.ChartItem)</th>
                             <th scope="col">@(_valueName ?? TextDefaults.ChartValue)</th>
                             <th scope="col">@(Pyramid ? TextDefaults.ChartShare : TextDefaults.FunnelOfFirst)</th>
                             @if (!Pyramid)
@@ -412,6 +412,7 @@
     protected override void OnParametersSet()
     {
         _refresh.Check("FunnelChart", Refresh, RefreshFrom, RendererInfo, AssignedRenderMode, AdditionalAttributes, OnRefresh.HasDelegate);
+        _drill.BeginPass();
         if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)

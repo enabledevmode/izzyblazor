@@ -23,12 +23,12 @@ public enum ChartTrend
 /// </summary>
 internal static class ChartTrends
 {
-    public static List<ChartSeriesData> Add(List<ChartSeriesData> series, IReadOnlyList<object?> arguments, IzzyText text)
+    public static List<ChartSeriesData> Add(List<ChartSeriesData> series, IReadOnlyList<object?> arguments, IzzyText text, bool bands = false)
     {
         if (series.All(s => s.Trend == ChartTrend.None)) return series;
 
         // Where each item is along the axis: its index in bands, its number or date on a scale.
-        var kind = series.Any(s => s.Type == ChartType.Bar) ? ArgumentKind.Category : ChartLayout.KindOf(arguments);
+        var kind = bands || series.Any(s => s.Type == ChartType.Bar) ? ArgumentKind.Category : ChartLayout.KindOf(arguments);
         var x = arguments.Select((a, i) => kind == ArgumentKind.Category ? i : ChartLayout.ToDouble(a, kind)).ToArray();
 
         var result = new List<ChartSeriesData>();

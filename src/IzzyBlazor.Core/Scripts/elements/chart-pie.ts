@@ -99,6 +99,21 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
     });
   }
 
+  // The slice at a point on the page, or -1: past the circle, in the hole, or an empty ring.
+  const sliceAt = (cx: number, cy: number) => {
+    const r = plot.getBoundingClientRect();
+    const dx = cx - r.left - r.width / 2;
+    const dy = cy - r.top - r.height / 2;
+    const d = Math.hypot(dx, dy) / (r.width / 2);
+    if (d > 1 || d < hole) return -1;
+    const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
+    const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
+    // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
+    return spans.findIndex((s, i) => s !== null && ringOf(i) === ring && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
+  };
+  // Drill-down: the slice clicked or tapped shows the level below it.
+  plot.addEventListener("click", (event) => followDrill(host, sliceAt(event.clientX, event.clientY), false), { signal });
+
   if (!tooltip || tips.length === 0) return;
 
   host.setAttribute("data-ib-tooltips", "");
@@ -151,26 +166,14 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
       const r = plot.getBoundingClientRect();
       const x = event.clientX - r.left;
       const y = event.clientY - r.top;
-      const dx = x - r.width / 2;
-      const dy = y - r.height / 2;
-      const d = Math.hypot(dx, dy) / (r.width / 2);
       byKeys = false;
-      if (d > 1 || d < hole) {
-        hide();
-        return;
-      }
-      const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
-      const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
-      // A slice that crosses the top (StartAngle) ends past 1: measure from its start, round the turn.
-      const index = spans.findIndex((s, i) => s !== null && ringOf(i) === ring && (((turn - s[0]) % 1) + 1) % 1 < s[1] - s[0]);
-      // An empty ring (every value zero) has no slice to show.
+      const index = sliceAt(event.clientX, event.clientY);
+      // Past the circle, in the hole, or an empty ring (every value zero): no slice to show.
       if (index >= 0) show(index, x, y);
       else hide();
     },
     { signal }
   );
-  // Drill-down: a slice selected shows the level below it.
-  plot.addEventListener("click", () => !tooltip.hidden && current >= 0 && followDrill(host, current, false), { signal });
   plot.addEventListener(
     "pointerleave",
     () => {
@@ -180,7 +183,6 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
   );
 
   keyboard(frame);
-  arrived(host, frame, live);
   document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
   const announce = () => {
     if (!live) return;
@@ -202,6 +204,7 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
     { signal }
   );
   frame.addEventListener("blur", hide, { signal });
+  if (arrived(host, frame, live)) current = -1;
   frame.addEventListener(
     "keydown",
     (event) => {
