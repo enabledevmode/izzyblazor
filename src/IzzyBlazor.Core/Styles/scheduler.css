@@ -45,14 +45,8 @@
   .ib-sched > ib-dialog { display: contents; }
   .ib-sched > .ib-sched-move { display: none; }
 
-  /* The toolbar: Today, the arrows and the period at the start; categories, view and New at the end. */
-  .ib-sched-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ib-space-2);
-  }
+  /* The toolbar (a wrapping Toolbar): Today, the arrows and the period at the start; categories,
+     view and New at the end, after the page's own items. */
   /* The period: a ghost button, as Today is, that opens a month to go to any date. */
   .ib-sched-jump-form {
     display: flex;
@@ -62,16 +56,7 @@
   /* With script a day chosen goes there; Go is for none. */
   ib-scheduler[data-ib-ready] .ib-sched-jump-go { display: none; }
   .ib-sched-jump-go { align-self: flex-end; }
-  .ib-sched-nav,
-  .ib-sched-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--ib-space-1);
-  }
-  .ib-sched-actions {
-    flex-wrap: wrap;
-    margin-inline-start: auto;
-  }
+
 
   /* An appointment: its color tints it, and an edge on its leading side says it. */
   .ib-sched-event {
@@ -155,11 +140,11 @@
   }
 
   /* Some categories hidden: the accent, and a dot on the funnel (a DataGrid column filter's look). */
-  .ib-sched-actions .ib-btn[data-active] {
+  .ib-sched-cats-btn[data-active] {
     position: relative;
     color: var(--ib-color-primary-text);
   }
-  .ib-sched-actions .ib-btn[data-active]::after {
+  .ib-sched-cats-btn[data-active]::after {
     content: "";
     position: absolute;
     top: calc(50% - var(--ib-icon-size) / 2 - 2px);
@@ -528,9 +513,9 @@
     .ib-sched-new-text { display: none; }
     .ib-sched-bar .ib-btn { --ib-btn-pad: var(--ib-space-2); }
     /* The menus keep their words, not their icons; New keeps its icon. */
-    .ib-sched-actions .ib-btn:not(.ib-btn-solid) > svg:first-child { display: none; }
-    .ib-sched-actions .ib-btn[data-active]::after { top: 4px; inset-inline: auto 4px; }
-    .ib-sched-actions > .ib-btn-solid { width: var(--ib-btn-h); padding-inline: 0; }
+    :is(.ib-sched-cats-btn, .ib-sched-views-btn) > svg:first-child { display: none; }
+    .ib-sched-cats-btn[data-active]::after { top: 4px; inset-inline: auto 4px; }
+    .ib-sched-new { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
     .ib-sched-agenda-day { grid-template-columns: 1fr; }
@@ -544,6 +529,6 @@
     .ib-sched-pill::before { forced-color-adjust: none; }
     /* Box shadows are gone in forced colors: today's bar is a border then. */
     :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { border-block-start: 3px solid Highlight; }
-    .ib-sched-actions .ib-btn[data-active]::after { forced-color-adjust: none; background-color: Highlight; }
+    .ib-sched-cats-btn[data-active]::after { forced-color-adjust: none; background-color: Highlight; }
   }
 }
