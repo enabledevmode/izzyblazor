@@ -2776,6 +2776,18 @@
       ]
     },
     {
+      "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data display", "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
+      "features": [
+        { "feature": "Day, week, work week, month and agenda views" },
+        { "feature": "All-day and several-day appointments as bars across their days" },
+        { "feature": "Overlapping appointments side by side" },
+        { "feature": "The view and date in the page's address, so the toolbar is links and Back works" }
+      ],
+      "examples": [
+        { "id": "scheduler-usage", "title": "A team's week", "lead": "Give `Scheduler` the `Items` and how to read each one's `Start`, `End` and `Title`. `AllDay` and `Color` are optional." }
+      ]
+    },
+    {
       "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Data display", "summary": "Shows a conversation and a box to write the next message in, for an assistant or for people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
       "parts": ["ChatEntry"],
       "features": [

@@ -1239,6 +1239,45 @@ public class IzzyText
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 
+    /// <summary>A Scheduler's name for screen readers, when it has no Label.</summary>
+    public virtual string SchedulerName { get; set; } = "Schedule";
+
+    /// <summary>A Scheduler's link back to today.</summary>
+    public virtual string SchedulerToday { get; set; } = "Today";
+
+    /// <summary>A Scheduler's link to the page before: "Previous {0}" (the view's period: day, week, month).</summary>
+    public virtual string SchedulerPrevious { get; set; } = "Previous {0}";
+
+    /// <summary>A Scheduler's link to the page after: "Next {0}".</summary>
+    public virtual string SchedulerNext { get; set; } = "Next {0}";
+
+    /// <summary>A Scheduler's Day view, in its view menu; also the period in "Previous day" (lowercased).</summary>
+    public virtual string SchedulerDay { get; set; } = "Day";
+
+    /// <summary>A Scheduler's Week view, in its view menu.</summary>
+    public virtual string SchedulerWeek { get; set; } = "Week";
+
+    /// <summary>A Scheduler's Work week view, in its view menu.</summary>
+    public virtual string SchedulerWorkWeek { get; set; } = "Work week";
+
+    /// <summary>A Scheduler's Month view, in its view menu.</summary>
+    public virtual string SchedulerMonth { get; set; } = "Month";
+
+    /// <summary>A Scheduler's Agenda view, in its view menu.</summary>
+    public virtual string SchedulerAgenda { get; set; } = "Agenda";
+
+    /// <summary>A Scheduler's month cell with more appointments than fit: "+{0} more", a link to the day.</summary>
+    public virtual string SchedulerMore { get; set; } = "+{0} more";
+
+    /// <summary>A Scheduler's agenda with nothing in it.</summary>
+    public virtual string SchedulerEmpty { get; set; } = "No appointments";
+
+    /// <summary>An all-day appointment's time, and the all-day row's label.</summary>
+    public virtual string SchedulerAllDay { get; set; } = "All day";
+
+    /// <summary>An appointment's times for screen readers: "{0} to {1}".</summary>
+    public virtual string SchedulerTimeRange { get; set; } = "{0} to {1}";
+
     /// <summary>A drilled Chart's breadcrumb: the top level.</summary>
     public virtual string ChartDrillTop { get; set; } = "All";
 
