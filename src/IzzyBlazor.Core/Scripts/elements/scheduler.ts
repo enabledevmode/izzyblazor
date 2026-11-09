@@ -55,13 +55,17 @@ class Scheduler extends IzzyElement {
     this.addEventListener("change", (e) => this.#jump(e), { signal });
     this.addEventListener("submit", (e) => this.#jump(e), { signal });
 
-    // A read-only appointment's card: placed beside it where CSS anchor positioning isn't there.
+    // A read-only appointment's card: focus goes to it (a dialog, read by its title; closing it
+    // puts focus back on the appointment), and it's placed beside it where CSS anchor positioning
+    // isn't there.
     let untrack: (() => void) | undefined;
     this.addEventListener("toggle", (e) => {
       const card = e.target as HTMLElement;
       if (!card.classList?.contains("ib-sched-card")) return;
       untrack?.();
-      untrack = (e as ToggleEvent).newState === "open" ? track(card, card.previousElementSibling!, "bottom-start") : undefined;
+      const open = (e as ToggleEvent).newState === "open";
+      untrack = open ? track(card, card.previousElementSibling!, "bottom-start") : undefined;
+      if (open) card.focus();
     }, { capture: true, signal });
 
     // The form's dialog closed in the browser (a static page): out of the address with it, so a
@@ -106,13 +110,16 @@ class Scheduler extends IzzyElement {
   #jump(e: Event): void {
     const form = (e.target as Element).closest?.("form");
     if (!form?.classList.contains("ib-sched-jump-form")) return;
-    if (e.type === "submit") e.preventDefault();
+    // A day chosen, not the month or year picked from the calendar's selects.
+    if (e.type === "change" && (e.target as HTMLInputElement).name !== form.dataset.ibDateKey) return;
     const url = new URL(form.action, location.href);
     for (const [k, v] of new FormData(form)) if (typeof v === "string" && !k.startsWith("__")) url.searchParams.append(k, v);
     // Only a whole date: not a half-typed one with no script's input.
     if (!/^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get(form.dataset.ibDateKey ?? "") ?? "")) return;
+    if (e.type === "submit") e.preventDefault();
     form.closest<HTMLElement>("[popover]")?.hidePopover();
-    navigateTo(url, false);
+    // Interactive: C# goes there (the Calendar's bound value), so only one navigation happens.
+    if (!form.hasAttribute("data-ib-interactive")) navigateTo(url, false);
   }
 
   // A new appointment at a day and minute: the form's link with the start set.

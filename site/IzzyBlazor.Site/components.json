@@ -2785,6 +2785,7 @@
         { "feature": "Adding, editing and deleting in a form, on a static page too", "member": "OnSave" },
         { "feature": "A click on empty time to add, and dragging to move or resize", "member": "OnSave", "noscript": "none" },
         { "feature": "Categories with colors, shown or hidden from a menu", "member": "Category" },
+        { "feature": "A detail after each title, such as where; times in the boxes with ShowTime", "member": "Detail" },
         { "feature": "A card about each appointment when there's no form" },
         { "feature": "Going to any date from the period's title" },
         { "feature": "Google Calendar's keyboard shortcuts", "member": "Shortcuts", "noscript": "none" }

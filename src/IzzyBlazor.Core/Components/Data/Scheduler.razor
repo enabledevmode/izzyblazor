@@ -9,7 +9,8 @@
 @*
     A calendar of appointments: a day, a week, the working week, a month or a list of the coming
     days. Drawn on the server, so it shows with no script and no circuit and prints; the view and
-    the date are in the page's address, so its toolbar is links and Back goes to the page before.
+    the date are in the page's address, so its toolbar's arrows, Today and views are links, and
+    Back goes to the page before. The period's title opens a month to go to any date.
 
     <Scheduler Items="bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Room" />
 
@@ -21,19 +22,23 @@
     when, as in Outlook. ShowTime adds them. A month's day lists each appointment with its start.
 
     With Category and a SchedulerCategory for each kind, appointments take their category's color,
-    and a Categories menu shows or hides each kind.
+    and a Categories menu shows or hides each kind; with any hidden, its button is marked.
 
-    With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar has a New
-    button, and with script a click on empty time adds one there and a drag moves or resizes one.
-    The form posts on a static page too, and OnSave saves it either way.
+    With no OnSave, an appointment opens a card beside it: its whole time, Detail, category and
+    Description. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
+    has a New button, and with script a click on empty time adds one there and a drag moves or
+    resizes one. The form posts on a static page too, and OnSave saves it either way.
 
     Accessibility:
     - It's a region named by Label ("Schedule"); the toolbar's links say where they go
       ("Previous week"), and the view menu is a radio group of links.
+    - The period's title is a button, "November 2026, go to a date", that opens a month (a grid);
+      its period is a polite live region. With no script, a date input and Go do the same.
+    - Categories is named by how many are hidden too: "Categories, 2 of 4 hidden".
     - Each day's appointments come in time order, each with its category and whole time said:
       "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With OnSave each is a
-      link to its form; without, the hours can be scrolled from the keyboard.
-    - The period's title is a polite live region, and today is marked with aria-current.
+      link to its form; without, a button that opens its card (a dialog, which takes focus).
+    - Today is marked with aria-current, not only by its color.
     - The form is the way to add, move and resize from the keyboard and with no script; a drag
       does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
@@ -77,11 +82,11 @@
             @* The period, a button to a month to go to any date (Outlook's). *@
             <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
                 <Trigger>
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span></Button>
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span><span class="ib-visually-hidden">, @TextDefaults.SchedulerGoTo.ToLower(culture)</span></Button>
                 </Trigger>
                 <ChildContent>
                     @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@
-                    <form method="get" action="@(new Uri(Navigation.Uri).AbsolutePath)" class="ib-sched-jump-form" data-ib-date-key="@DateKey">
+                    <form method="get" action="@(new Uri(Navigation.Uri).AbsolutePath)" class="ib-sched-jump-form" data-ib-date-key="@DateKey" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
                         @foreach (var (key, values) in QueryString.Of(Navigation.Uri))
                         {
                             if (key == DateKey || key == EditKey || key == StartKey) continue;
@@ -133,7 +138,7 @@
             }
             @if (Editable)
             {
-                <a class="ib-btn ib-btn-primary ib-btn-solid" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew">
+                <a class="ib-btn ib-btn-primary ib-btn-solid" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
                     <Icon Purpose="IconPurpose.Plus" /><span class="ib-sched-new-text">@TextDefaults.SchedulerNewShort</span>
                 </a>
             }
@@ -174,7 +179,8 @@
 
     /// <summary>
     /// A line of detail after each appointment's title, such as <c>b =&gt; b.Location</c>: on its
-    /// line in the day and week views, wrapping when the box has room, and in the agenda.
+    /// line in the day and week views, wrapping when the box has room, in the agenda and the card.
+    /// Shown only: the form has no field for it, so it can be worked out from other values.
     /// </summary>
     [Parameter] public Func<TItem, string?>? Detail { get; set; }
 
@@ -637,7 +643,7 @@
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
                                 </text>;
-                                @Appointment(e, isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event", $"top:{Pct(box.Top)};height:{Pct(box.Height)};left:{Across(box.Left)};width:{Across(box.Width)};{ColorStyle(e)}", boxContent, culture, boxData)
+                                @Appointment(e, isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event", $"top:{Pct(box.Top)};height:{Pct(box.Height)};inset-inline-start:{Across(box.Left)};width:{Across(box.Width)};{ColorStyle(e)}", boxContent, culture, boxData)
                             }
                         </div>
                     }
@@ -777,8 +783,8 @@
         {
             var id = $"{_cardPrefix}-{_cards++}";
             var anchor = StyleValues.AnchorName(id);
-            <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id">@content</button>
-            <div popover id="@id" role="dialog" aria-labelledby="@($"{id}-t")" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
+            <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id" aria-haspopup="dialog" aria-controls="@id">@content</button>
+            <div popover id="@id" role="dialog" tabindex="-1" aria-labelledby="@($"{id}-t")" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
                 <div class="ib-sched-card-head">
                     <span class="ib-sched-swatch" aria-hidden="true"></span>
                     <span class="ib-popover-title" id="@($"{id}-t")">@TitleText(e)</span>
