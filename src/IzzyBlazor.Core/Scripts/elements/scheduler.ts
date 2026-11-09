@@ -100,7 +100,7 @@ class Scheduler extends IzzyElement {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
     const t = e.target as Element;
     if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]")) return;
-    const link = this.querySelector<HTMLAnchorElement>(`a[data-ib-key="${e.key.toLowerCase()}"]`);
+    const link = this.querySelector<HTMLElement>(`[data-ib-key="${e.key.toLowerCase()}"]`);
     if (!link) return;
     e.preventDefault();
     link.click();

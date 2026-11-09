@@ -80,11 +80,11 @@
        categories, the view and New at the end. *@
     <div class="ib-sched-bar">
         <div class="ib-sched-nav">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" @onclick="() => GoAsync(view, DateOnly.FromDateTime(DateTime.Now))" @onclick:preventDefault="Bound" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
                 <Icon Purpose="IconPurpose.ChevronLeft" />
             </a>
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
                 <Icon Purpose="IconPurpose.ChevronRight" />
             </a>
             @* The period, a button to a month to go to any date (Outlook's). *@
@@ -136,12 +136,24 @@
                 @* Each view links by Href, as the arrows do: never with the form's keys, which an
                    address drawn while the form was open still has after it closes in the browser. *@
                 <Menu Label="@ViewName(view)" StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" Placement="Placement.BottomEnd" Class="ib-sched-views">
-                    <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
-                        @foreach (var v in Views)
-                        {
-                            <MenuItem Value="@ViewValue(v)" Href="@Href(v, date)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
-                        }
-                    </MenuRadioGroup>
+                    @if (Bound)
+                    {
+                        <MenuRadioGroup Value="@ViewValue(view)" ValueChanged="@((string v) => GoAsync(Views.First(x => ViewValue(x) == v), date))">
+                            @foreach (var v in Views)
+                            {
+                                <MenuItem Value="@ViewValue(v)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
+                            }
+                        </MenuRadioGroup>
+                    }
+                    else
+                    {
+                        <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
+                            @foreach (var v in Views)
+                            {
+                                <MenuItem Value="@ViewValue(v)" Href="@Href(v, date)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
+                            }
+                        </MenuRadioGroup>
+                    }
                 </Menu>
             }
             @if (Editable)
@@ -235,15 +247,46 @@
 
     /// <summary>
     /// The view it opens on: <see cref="SchedulerView.Week"/> by default. The reader's choice is in
-    /// the page's address, and wins.
+    /// the page's address, and wins. Bound (<c>@bind-View</c>) on an interactive page, it's the
+    /// view shown, kept in the component instead of the address.
     /// </summary>
     [Parameter] public SchedulerView View { get; set; } = SchedulerView.Week;
+
+    /// <summary>Raised when the reader chooses a view, on interactive pages: binding it (<c>@bind-View</c>) keeps the view in the component.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<SchedulerView> ViewChanged { get; set; }
 
     /// <summary>The views in its menu, in order. All five by default.</summary>
     [Parameter] public IReadOnlyList<SchedulerView>? ViewOptions { get; set; }
 
-    /// <summary>The day it opens on: today by default. The reader's page is in the page's address, and wins.</summary>
+    /// <summary>
+    /// The day it opens on: today by default. The reader's page is in the page's address, and wins.
+    /// Bound (<c>@bind-Date</c>) on an interactive page, it's the day shown, kept in the component
+    /// instead of the address.
+    /// </summary>
     [Parameter] public DateOnly? Date { get; set; }
+
+    /// <summary>Raised when the reader goes to another day, week or month, on interactive pages: binding it (<c>@bind-Date</c>) keeps the date in the component.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<DateOnly?> DateChanged { get; set; }
+
+    // Bound on an interactive page: the component, not the address, holds the view or the date.
+    private bool ViewBound => RendererInfo.IsInteractive && ViewChanged.HasDelegate;
+
+    private bool DateBound => RendererInfo.IsInteractive && DateChanged.HasDelegate;
+
+    private bool Bound => ViewBound || DateBound;
+
+    // Goes to a view and day when either is bound: the events for the bound ones, the address for
+    // the rest. Unbound, the links go there themselves.
+    private async Task GoAsync(SchedulerView view, DateOnly date)
+    {
+        if (!Bound) return;
+        var (wasView, wasDate) = (CurrentView, CurrentDate);
+        if (ViewBound && view != wasView) await ViewChanged.InvokeAsync(view);
+        if (DateBound && date != wasDate) await DateChanged.InvokeAsync(date);
+        if ((!ViewBound && view != wasView) || (!DateBound && date != wasDate)) Navigation.NavigateTo(Href(view, date));
+    }
 
     /// <summary>
     /// Prefix for its keys in the page's address, so several can share a page:
@@ -351,9 +394,11 @@
     private DateOnly _jump;
 
     // Interactive: a day chosen in the title's calendar (static pages go there by script).
-    private void JumpTo()
+    private async Task JumpTo()
     {
-        if (_jump != CurrentDate) Navigation.NavigateTo(Href(CurrentView, _jump));
+        if (_jump == CurrentDate) return;
+        if (Bound) await GoAsync(CurrentView, _jump);
+        else Navigation.NavigateTo(Href(CurrentView, _jump));
     }
 
     private Func<TItem, DateTime>? _start, _end;
@@ -383,6 +428,7 @@
     {
         get
         {
+            if (ViewBound) return Views.Contains(View) ? View : Views[0];
             var asked = Query(ViewKey);
             foreach (var v in Views) if (ViewValue(v) == asked) return v;
             return Views.Contains(View) ? View : Views[0];
@@ -390,7 +436,8 @@
     }
 
     private DateOnly CurrentDate =>
-        Query(DateKey) is { } d && DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+        DateBound ? Clamp(Date ?? DateOnly.FromDateTime(DateTime.Now))
+        : Query(DateKey) is { } d && DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
             ? Clamp(parsed)
             : Date is { } date ? Clamp(date) : DateOnly.FromDateTime(DateTime.Now);
 
@@ -830,7 +877,7 @@
                         var shown = hidden > 0 ? timed.Take(Math.Max(0, room - 1)) : timed;
                         var outside = day.Month != date.Month;
                         <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
-                            <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                            <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
                             <ul class="ib-sched-pills">
                                 @foreach (var e in shown)
                                 {
@@ -841,7 +888,7 @@
                                 }
                                 @if (hidden > 0)
                                 {
-                                    <li><a class="ib-sched-more" href="@Href(SchedulerView.Day, day)">@string.Format(culture, TextDefaults.SchedulerMore, hidden)<span class="ib-visually-hidden">, @day.ToString("D", culture)</span></a></li>
+                                    <li><a class="ib-sched-more" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound">@string.Format(culture, TextDefaults.SchedulerMore, hidden)<span class="ib-visually-hidden">, @day.ToString("D", culture)</span></a></li>
                                 }
                             </ul>
                         </div>
@@ -869,7 +916,7 @@
                 if (own.Count == 0) continue;
                 any = true;
                 <li class="@DayClass("ib-sched-agenda-day", day, today)" aria-current="@(day == today ? "date" : null)">
-                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" aria-label="@day.ToString("D", culture)">
+                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@day.ToString("D", culture)">
                         <span class="ib-sched-num">@day.Day</span>
                         <span>@day.ToString("ddd, MMM", culture)</span>
                     </a>

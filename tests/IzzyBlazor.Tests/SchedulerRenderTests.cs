@@ -117,4 +117,32 @@ public class SchedulerRenderTests : BunitContext
         // In the week: the 9 AM one, one that runs into it, and a moment at its start; not last week's, not a hidden category's.
         Assert.Equal([1, 4, 5], shown.Select(a => a.Id).OrderBy(id => id));
     }
+
+    [Fact]
+    public void A_bound_date_and_view_change_in_the_component_not_the_address()
+    {
+        DateOnly? date = new DateOnly(2026, 11, 9);
+        var view = SchedulerView.Week;
+        var navigation = Services.GetRequiredService<NavigationManager>();
+        var before = navigation.Uri;
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.Items, [new Booking { Id = 1, Room = "Room 5", Start = new DateTime(2026, 11, 17, 9, 0, 0), End = new DateTime(2026, 11, 17, 10, 0, 0) }])
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.FirstDayOfWeek, DayOfWeek.Sunday)
+            .Add(c => c.Date, date)
+            .Add(c => c.DateChanged, d => date = d)
+            .Add(c => c.View, view)
+            .Add(c => c.ViewChanged, v => view = v));
+
+        cut.Find("a[aria-label='Next week']").Click();
+        Assert.Equal(new DateOnly(2026, 11, 16), date);
+        cut.Render(p => p.Add(c => c.Date, date));
+        Assert.Contains("Room 5", cut.Markup);
+
+        cut.FindAll("[role=menuitemradio]").First(i => i.TextContent.Trim().StartsWith("Month")).Click();
+        Assert.Equal(SchedulerView.Month, view);
+        Assert.Equal(before, navigation.Uri);
+    }
 }
