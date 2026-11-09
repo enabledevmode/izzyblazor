@@ -62,8 +62,23 @@
     font-size: var(--ib-text-xs);
     line-height: 1.35;
   }
+  a.ib-sched-event[href] { text-decoration: none; }
+  a.ib-sched-event[href]:hover { background-color: color-mix(in oklab, var(--ib-sched-color) 28%, var(--ib-color-surface)); }
+  a.ib-sched-bar-event[href]:hover { background-color: color-mix(in oklab, var(--ib-sched-color) 60%, var(--ib-color-surface)); }
+  a.ib-sched-event:focus-visible {
+    z-index: 3;
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 1px;
+  }
   .ib-sched-name { font-weight: var(--ib-weight-semibold); }
   .ib-sched-time { color: color-mix(in oklab, var(--ib-color-on-surface) 75%, var(--ib-sched-color)); }
+
+  /* The form: each day beside its time. */
+  .ib-sched-when {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: var(--ib-space-3);
+  }
 
   /* ---- Day, week, work week ---- */
   .ib-sched-cols {

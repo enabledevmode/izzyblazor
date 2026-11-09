@@ -1239,6 +1239,36 @@ public class IzzyText
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 
+    /// <summary>A Scheduler's button for a new appointment, and its form's title.</summary>
+    public virtual string SchedulerNew { get; set; } = "New appointment";
+
+    /// <summary>A Scheduler's form for an appointment that's there.</summary>
+    public virtual string SchedulerEdit { get; set; } = "Edit appointment";
+
+    /// <summary>A Scheduler's form fields.</summary>
+    public virtual string SchedulerTitleField { get; set; } = "Title";
+
+    /// <inheritdoc cref="SchedulerTitleField" />
+    public virtual string SchedulerStartDate { get; set; } = "Start date";
+
+    /// <inheritdoc cref="SchedulerTitleField" />
+    public virtual string SchedulerStartTime { get; set; } = "Start time";
+
+    /// <inheritdoc cref="SchedulerTitleField" />
+    public virtual string SchedulerEndDate { get; set; } = "End date";
+
+    /// <inheritdoc cref="SchedulerTitleField" />
+    public virtual string SchedulerEndTime { get; set; } = "End time";
+
+    /// <inheritdoc cref="SchedulerTitleField" />
+    public virtual string SchedulerDescription { get; set; } = "Description";
+
+    /// <summary>A Scheduler's form whose end comes before its start.</summary>
+    public virtual string SchedulerEndBeforeStart { get; set; } = "The end comes before the start.";
+
+    /// <summary>A Scheduler's form for an appointment that's gone (deleted, or a link made by hand).</summary>
+    public virtual string SchedulerGone { get; set; } = "This appointment isn't there any more.";
+
     /// <summary>A Scheduler's name for screen readers, when it has no Label.</summary>
     public virtual string SchedulerName { get; set; } = "Schedule";
 
