@@ -1,0 +1,39 @@
+@* A support team's on-call shifts, a year of them in a store that's asked by date range: the
+   Scheduler asks only for the days shown, and again as you move through the weeks. *@
+<Scheduler TItem="Shift" ItemsProvider="LoadAsync" Start="s => s.Start" End="s => s.End" Title="s => s.Engineer"
+           Detail="s => s.Rotation" Color="s => s.Rotation == Primary ? Navy : Sky" QueryPrefix="oncall-" />
+
+@code {
+    private record Shift(string Engineer, string Rotation, DateTime Start, DateTime End);
+
+    private const string Primary = "Primary", Backup = "Backup";
+    private const string Navy = "var(--ib-chart-7)", Sky = "var(--ib-chart-1)";
+
+    // Only the shifts that touch the days shown; an app asks its database or API the same way.
+    private static async ValueTask<IEnumerable<Shift>> LoadAsync(SchedulerRequest request) =>
+        await OnCall.BetweenAsync(request.Start, request.End, request.CancellationToken);
+
+    // Stands in for a service: eight-hour shifts around the clock for a year, made as they're asked for.
+    private static class OnCall
+    {
+        private static readonly string[] Engineers = ["Amara", "Bo", "Chen", "Dita", "Emil", "Farah"];
+
+        public static Task<IEnumerable<Shift>> BetweenAsync(DateTime from, DateTime to, CancellationToken cancel)
+        {
+            var shifts = new List<Shift>();
+            for (var day = from.Date; day < to; day = day.AddDays(1))
+            {
+                var n = day.DayOfYear;
+                for (var block = 0; block < 3; block++)
+                {
+                    var start = day.AddHours(block * 8);
+                    shifts.Add(new(Engineers[(n * 3 + block) % Engineers.Length], Primary, start, start.AddHours(8)));
+                }
+
+                shifts.Add(new(Engineers[(n + 2) % Engineers.Length], Backup, day.AddHours(9), day.AddHours(17)));
+            }
+
+            return Task.FromResult<IEnumerable<Shift>>(shifts);
+        }
+    }
+}

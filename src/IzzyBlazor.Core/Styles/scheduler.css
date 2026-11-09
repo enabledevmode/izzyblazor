@@ -209,11 +209,14 @@
     scrollbar-gutter: stable;
   }
   .ib-sched-head { border-block-end: 1px solid var(--ib-color-border); }
-  /* A day: its date over its weekday, at the column's start (Outlook's). */
+  /* A day: its date over its weekday, at the column's start (Outlook's); a DayHeaderTemplate's
+     content at the end of the row. */
   .ib-sched-day-head {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: start;
+    column-gap: var(--ib-space-1);
     min-width: 0;
     padding: var(--ib-space-1) var(--ib-space-2);
     line-height: 1.25;
@@ -227,6 +230,27 @@
     text-overflow: ellipsis;
   }
   .ib-sched-dow-short { display: none; }
+  .ib-sched-day-head > :is(.ib-sched-num, .ib-sched-dow) { grid-column: 1; }
+  .ib-sched-day-head > .ib-sched-day-extra { grid-row: 1 / span 2; grid-column: 2; }
+  .ib-sched-day-extra {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    font-size: var(--ib-text-xs);
+  }
+  .ib-sched-cell-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ib-space-1);
+  }
+  .ib-sched-agenda-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: start;
+    gap: var(--ib-space-1);
+  }
   .ib-sched-day-head .ib-sched-num { font-size: var(--ib-text-lg); }
   /* Today (Outlook's): a bar in the accent along the top of its day, its date and weekday in it. */
   :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { box-shadow: inset 0 3px 0 var(--ib-color-primary); }
