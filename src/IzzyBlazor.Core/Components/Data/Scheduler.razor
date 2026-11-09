@@ -22,8 +22,8 @@
     @bind-Date keep the view and date in the component instead of the address.
 
     ToolbarContent adds the page's own toolbar items, and places the toolbar's parts
-    (SchedulerToday, SchedulerArrows, SchedulerPeriod, SchedulerCategoryMenu, SchedulerViewMenu,
-    SchedulerNewButton) among them. AppointmentTemplate draws each appointment's text, and
+    (SchedulerToday, SchedulerArrows, SchedulerPeriod, SchedulerCategories, SchedulerViews,
+    SchedulerNew) among them. AppointmentTemplate draws each appointment's text, and
     DayHeaderTemplate adds to each day's header.
 
     Appointments a day long or more, and all-day ones (AllDay), are bars across their days;
@@ -112,17 +112,17 @@
                     <SchedulerPeriod />
                 }
                 @ToolbarContent
-                @if (!placed.Contains(typeof(SchedulerCategoryMenu)))
+                @if (!placed.Contains(typeof(SchedulerCategories)))
                 {
-                    <SchedulerCategoryMenu />
+                    <SchedulerCategories />
                 }
-                @if (!placed.Contains(typeof(SchedulerViewMenu)))
+                @if (!placed.Contains(typeof(SchedulerViews)))
                 {
-                    <SchedulerViewMenu />
+                    <SchedulerViews />
                 }
-                @if (!placed.Contains(typeof(SchedulerNewButton)))
+                @if (!placed.Contains(typeof(SchedulerNew)))
                 {
-                    <SchedulerNewButton />
+                    <SchedulerNew />
                 }
             </Toolbar>
         </CascadingValue>
@@ -207,8 +207,8 @@
     /// The page's own controls in the toolbar: <c>ToolbarButton</c>, <c>ToolbarMenu</c> and the
     /// like, at the start after the period, or at the end with <c>Position</c>. Write
     /// <see cref="SchedulerToday"/>, <see cref="SchedulerArrows"/>, <see cref="SchedulerPeriod"/>,
-    /// <see cref="SchedulerCategoryMenu"/>, <see cref="SchedulerViewMenu"/> or
-    /// <see cref="SchedulerNewButton"/> here to place the Scheduler's own among them; the rest keep
+    /// <see cref="SchedulerCategories"/>, <see cref="SchedulerViews"/> or
+    /// <see cref="SchedulerNew"/> here to place the Scheduler's own among them; the rest keep
     /// their places. The Scheduler reads this once more on each render, to see which parts are here.
     /// </summary>
     [Parameter] public RenderFragment? ToolbarContent { get; set; }
@@ -360,7 +360,10 @@
 
     /// <summary>
     /// Each appointment's key, such as <c>b =&gt; b.Id.ToString()</c>: with <see cref="OnSave"/>, it
-    /// names the appointment a link opens in the form (<c>?appointment=42</c>).
+    /// names the appointment a link opens in the form (<c>?appointment=42</c>). With an
+    /// <c>IQueryable</c> or an <see cref="ItemsProvider"/>, only the days shown are loaded, so a
+    /// link of your own (in an email, say) names the appointment's day too, as the Scheduler's do:
+    /// <c>?date=2026-11-17&amp;appointment=42</c>.
     /// </summary>
     [Parameter] public Func<TItem, string>? ItemKey { get; set; }
 

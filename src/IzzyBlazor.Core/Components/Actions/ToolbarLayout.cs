@@ -32,6 +32,12 @@ internal interface IToolbarItem
 
     /// <summary>The estimated width with its labels collapsed (<see cref="Toolbar.CollapseLabels"/>), or null when unknown.</summary>
     double? CollapsedWidth => Width;
+
+    /// <summary>
+    /// Off for now, but keeping its place: a component's own tool that turns itself off and on
+    /// (a DataGrid's export, a Scheduler's Categories) comes back where it was, not at the end.
+    /// </summary>
+    bool Hidden => false;
 }
 
 /// <summary>
@@ -62,9 +68,9 @@ internal sealed class ToolbarContext(string rootId)
     public Action? OnMenuChanged { get; set; }
 
     /// <summary>The items with their ids, start first, then center, then end, each in the order they joined.</summary>
-    public IEnumerable<(IToolbarItem Item, int Id)> Items => _items.OrderBy(i => i.Item.Position);
+    public IEnumerable<(IToolbarItem Item, int Id)> Items => _items.Where(i => !i.Item.Hidden).OrderBy(i => i.Item.Position);
 
-    public bool Has(ToolbarPosition position) => _items.Exists(i => i.Item.Position == position);
+    public bool Has(ToolbarPosition position) => _items.Exists(i => i.Item.Position == position && !i.Item.Hidden);
 
     public void Add(IToolbarItem item)
     {

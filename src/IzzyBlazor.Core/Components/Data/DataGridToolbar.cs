@@ -47,7 +47,7 @@ internal interface IDataGridToolbar
 /// items, in the order they're written. The grid's parameter still turns the tool on; without it this
 /// draws nothing. A tool you don't write keeps its usual place. Write them directly in
 /// <c>ToolbarContent</c>, as inside a component of your own the grid can't see them and draws its own
-/// as well. One turned on later joins the end of its position, as any toolbar item an <c>@if</c> adds.
+/// as well. One turned on later (its grid parameter set) keeps its place among the others.
 /// </summary>
 public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDisposable
 {
@@ -88,6 +88,9 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     bool IToolbarItem.Separator => false;
 
+    // Off, it keeps its place, so turned on later it comes back where it was.
+    bool IToolbarItem.Hidden => !On;
+
     RenderFragment IToolbarItem.Bar => ItemBar;
 
     RenderFragment? IToolbarItem.Menu => ItemMenu;
@@ -95,17 +98,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     double? IToolbarItem.Width => ItemWidth;
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        if (On)
-        {
-            _slot.Join(Toolbar);
-        }
-        else
-        {
-            _slot.Dispose();
-        }
-    }
+    protected override void OnParametersSet() => _slot.Join(Toolbar);
 
     /// <inheritdoc />
     protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => _slot.Rendered();

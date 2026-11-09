@@ -195,4 +195,21 @@ public class SchedulerRenderTests : BunitContext
         Assert.True(start.IndexOf("Print", StringComparison.Ordinal) < start.IndexOf("Today", StringComparison.Ordinal));
         Assert.Single(cut.FindAll("a[data-ib-key='t']"));
     }
+
+    [Fact]
+    public void A_toolbar_part_turned_on_later_comes_back_in_its_place()
+    {
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.Items, [])
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9)));
+        Assert.DoesNotContain("Categories", cut.Find(".ib-toolbar-end").TextContent);
+
+        // Categories that arrive after the first render (loaded, say) go before the view menu, as always.
+        cut.Render(p => p.Add(c => c.Categories, [new SchedulerCategory("work", "Work")]));
+        var end = cut.Find(".ib-toolbar-end").TextContent;
+        Assert.True(end.IndexOf("Categories", StringComparison.Ordinal) < end.IndexOf("Week", StringComparison.Ordinal));
+    }
 }
