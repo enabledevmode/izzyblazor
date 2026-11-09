@@ -42,15 +42,16 @@
     {
         _type = Catalog.TypeOf(ExampleId);
         var entry = Registry.Example(ExampleId);
-        // Only demos have a frame; other examples render in the docs page (ExampleViewer).
-        if (_type is null || entry is null || !entry.Value.Example.Page)
+        // Demos show in a frame (ExampleViewer); other examples render in the docs page, and here
+        // only for what fetches its own example again, such as a live chart's RefreshFrom.
+        if (_type is null || entry is null)
         {
             Navigation.NotFound();
             return;
         }
 
         _mode = Mode is "noscript" or "static" or "interactive" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
-        _class = "frame frame-page";
+        _class = entry.Value.Example.Page ? "frame frame-page" : "frame";
         _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
     }
 }
