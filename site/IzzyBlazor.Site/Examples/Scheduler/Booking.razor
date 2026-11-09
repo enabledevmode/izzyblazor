@@ -2,13 +2,15 @@
    New to add one, or drag a booking to another time. The page saves what the form sends, on a
    static page too. *@
 <Scheduler TItem="RoomBooking" Items="Store" Start="b => b.Start" End="b => b.End" Title="b => b.Title" Description="b => b.Notes"
-           Category="b => b.Room" ItemKey="b => b.Id.ToString()" OnSave="Save" OnDelete="Delete" View="SchedulerView.WorkWeek" QueryPrefix="rooms-">
-    <SchedulerCategory Value="Aspen" Label="Aspen (8)" />
-    <SchedulerCategory Value="Birch" Label="Birch (4)" />
-    <SchedulerCategory Value="Cedar" Label="Cedar (12)" />
-</Scheduler>
+           Category="b => b.Room" ItemKey="b => b.Id.ToString()" OnSave="Save" OnDelete="Delete" View="SchedulerView.WorkWeek" QueryPrefix="rooms-"
+           Categories="_kinds" />
 
 @code {
+    private readonly SchedulerCategory[] _kinds =
+    [
+        new("Aspen", "Aspen (8)"), new("Birch", "Birch (4)"), new("Cedar", "Cedar (12)"),
+    ];
+
     private sealed class RoomBooking
     {
         public int Id { get; set; }

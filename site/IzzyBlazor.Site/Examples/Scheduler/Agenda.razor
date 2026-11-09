@@ -1,13 +1,15 @@
 @* A clinic's coming two weeks of appointments as a list by day: the agenda leaves out empty days,
    and each day links to its day view. *@
 <Scheduler Items="_visits" Start="v => v.Start" End="v => v.End" Title="v => v.Patient" Category="v => v.Kind"
-           View="SchedulerView.Agenda" AgendaDays="14" ViewOptions="[SchedulerView.Day, SchedulerView.Week, SchedulerView.Agenda]" QueryPrefix="clinic-">
-    <SchedulerCategory Value="checkup" Label="Checkup" />
-    <SchedulerCategory Value="followup" Label="Follow-up" />
-    <SchedulerCategory Value="new" Label="New patient" />
-</Scheduler>
+           View="SchedulerView.Agenda" AgendaDays="14" ViewOptions="[SchedulerView.Day, SchedulerView.Week, SchedulerView.Agenda]" QueryPrefix="clinic-"
+           Categories="_kinds" />
 
 @code {
+    private readonly SchedulerCategory[] _kinds =
+    [
+        new("checkup", "Checkup"), new("followup", "Follow-up"), new("new", "New patient"),
+    ];
+
     private record Visit(string Patient, DateTime Start, DateTime End, string Kind);
 
     private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.Today);
