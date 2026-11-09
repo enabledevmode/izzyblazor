@@ -234,6 +234,23 @@
     [Parameter] public Func<TItem, string?>? Detail { get; set; }
 
     /// <summary>
+    /// Draws each appointment's text yourself, in place of its title and <see cref="Detail"/>: an
+    /// icon for a recurring one, a status, an avatar. The context has the item, the view, and
+    /// whether there's one line (a short box, a bar or a month's row) or room to wrap. It's drawn
+    /// inside the appointment's link or button, so no buttons or links of its own; screen readers
+    /// still hear the appointment's title, detail, category and time, so say in <see cref="Detail"/>
+    /// what matters. The month's start time and the agenda's times stay.
+    /// </summary>
+    [Parameter] public RenderFragment<SchedulerAppointmentContext<TItem>>? AppointmentTemplate { get; set; }
+
+    /// <summary>
+    /// Adds to each day's header, after its date: the weather, who's away, a holiday. In the day
+    /// and week views' headers, each month day's top row and beside each agenda date. Read by
+    /// screen readers, and it may hold links or buttons.
+    /// </summary>
+    [Parameter] public RenderFragment<DateOnly>? DayHeaderTemplate { get; set; }
+
+    /// <summary>
     /// Shows each appointment's times in its box in the day and week views. Off by default: the
     /// hours beside it say when (Outlook's way), and screen readers hear the whole time either way.
     /// </summary>
@@ -759,14 +776,15 @@
         var lanes = bars.Count == 0 ? 0 : bars.Max(b => b.Lane) + 1;
         var now = DateTime.Now;
         <div class="ib-sched-cols" style="--ib-sched-days:@days" data-ib-day-start="@DayStart">
-            <div class="ib-sched-head" aria-hidden="true">
-                <span class="ib-sched-gutter"></span>
+            <div class="ib-sched-head" aria-hidden="@(DayHeaderTemplate is null ? "true" : null)">
+                <span class="ib-sched-gutter" aria-hidden="true"></span>
                 @for (var d = 0; d < days; d++)
                 {
                     var day = first.AddDays(d);
                     <span class="@DayClass("ib-sched-day-head", day, today)">
-                        <span class="ib-sched-num">@day.Day</span>
-                        <span class="ib-sched-dow"><span class="ib-sched-dow-long">@day.ToString("dddd", culture)</span><span class="ib-sched-dow-short">@culture.DateTimeFormat.GetShortestDayName(day.DayOfWeek)</span></span>
+                        <span class="ib-sched-num" aria-hidden="true">@day.Day</span>
+                        <span class="ib-sched-dow" aria-hidden="true"><span class="ib-sched-dow-long">@day.ToString("dddd", culture)</span><span class="ib-sched-dow-short">@culture.DateTimeFormat.GetShortestDayName(day.DayOfWeek)</span></span>
+                        @DayExtra(day)
                     </span>
                 }
             </div>
@@ -808,7 +826,10 @@
                                 var boxData = Editable
                                     ? new Dictionary<string, object?> { ["draggable"] = "false", ["data-ib-item"] = ItemKey!(_items[e.Index]), ["data-ib-start"] = Iso(e.Start), ["data-ib-end"] = Iso(e.End), ["data-ib-cut"] = box.StartsBefore || box.EndsAfter ? "" : null }
                                     : null;
-                                RenderFragment boxContent = @<text>
+                                RenderFragment boxContent = AppointmentTemplate is { } boxTemplate ? @<text>
+                                    <span aria-hidden="true" class="ib-sched-own">@boxTemplate(new(_items[e.Index], CurrentView, isShort))</span>
+                                    <span class="ib-visually-hidden">@Said(e, culture)</span>
+                                </text> : @<text>
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
                                         @if (detail is not null)
@@ -842,7 +863,14 @@
             {
                 <span class="ib-sched-from"><Icon Purpose="IconPurpose.ChevronLeft" />@e.FirstDay.ToString("MMM d", culture)</span>
             }
-            <span class="ib-sched-name">@TitleText(e)</span>
+            @if (AppointmentTemplate is { } template)
+            {
+                <span class="ib-sched-own">@template(new(_items[e.Index], CurrentView, true))</span>
+            }
+            else
+            {
+                <span class="ib-sched-name">@TitleText(e)</span>
+            }
         </span>
         <span class="ib-visually-hidden">@Said(e, culture)</span>
     };
@@ -877,12 +905,22 @@
                         var shown = hidden > 0 ? timed.Take(Math.Max(0, room - 1)) : timed;
                         var outside = day.Month != date.Month;
                         <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
-                            <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                            <div class="ib-sched-cell-head">
+                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                                @DayExtra(day)
+                            </div>
                             <ul class="ib-sched-pills">
                                 @foreach (var e in shown)
                                 {
                                     <li>@Appointment(e, "ib-sched-event ib-sched-pill", ColorStyle(e), @<text>
-                                        <span aria-hidden="true"><span class="ib-sched-time">@StartOf(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
+                                        <span aria-hidden="true"><span class="ib-sched-time">@StartOf(e.Start, culture)</span>@(" ")@if (AppointmentTemplate is { } template)
+                                        {
+                                            <span class="ib-sched-own">@template(new(_items[e.Index], SchedulerView.Month, true))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ib-sched-name">@TitleText(e)</span>
+                                        }</span>
                                         <span class="ib-visually-hidden">@Said(e, culture)</span>
                                     </text>, culture)</li>
                                 }
@@ -916,19 +954,29 @@
                 if (own.Count == 0) continue;
                 any = true;
                 <li class="@DayClass("ib-sched-agenda-day", day, today)" aria-current="@(day == today ? "date" : null)">
-                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@day.ToString("D", culture)">
-                        <span class="ib-sched-num">@day.Day</span>
-                        <span>@day.ToString("ddd, MMM", culture)</span>
-                    </a>
+                    <div class="ib-sched-agenda-head">
+                        <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@day.ToString("D", culture)">
+                            <span class="ib-sched-num">@day.Day</span>
+                            <span>@day.ToString("ddd, MMM", culture)</span>
+                        </a>
+                        @DayExtra(day)
+                    </div>
                     <ul>
                         @foreach (var e in own)
                         {
                             <li>@Appointment(e, "ib-sched-event ib-sched-pill", ColorStyle(e), @<text>
                                 <span class="ib-sched-time" aria-hidden="true">@(e.IsBar ? TextDefaults.SchedulerAllDay : $"{Time(e.Start, culture)} – {Time(e.End, culture)}")</span>
-                                <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
-                                @if (DetailText(e) is { } detail)
+                                @if (AppointmentTemplate is { } template)
                                 {
-                                    <span class="ib-sched-detail" aria-hidden="true">@detail</span>
+                                    <span class="ib-sched-own" aria-hidden="true">@template(new(_items[e.Index], SchedulerView.Agenda, false))</span>
+                                }
+                                else
+                                {
+                                    <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
+                                    @if (DetailText(e) is { } detail)
+                                    {
+                                        <span class="ib-sched-detail" aria-hidden="true">@detail</span>
+                                    }
                                 }
                                 <span class="ib-visually-hidden">@Said(e, culture)</span>
                             </text>, culture)</li>
@@ -950,20 +998,23 @@
     private readonly string _cardPrefix = IdGenerator.Next("ib-sched");
     private int _cards;
 
-    // An appointment: with a form, a link to it; read-only, a button that opens a card about it
-    // beside it (Outlook's and MUI's), a popover that works with no script.
+    // An appointment, and a card about it beside it (Outlook's peek): with a form, a link to it
+    // whose card shows on hover (the script); read-only, a button that opens the card, a popover
+    // that works with no script, and on hover too.
     private RenderFragment Appointment(SchedulerEntry e, string cls, string style, RenderFragment content, CultureInfo culture, Dictionary<string, object?>? data = null) => __builder =>
     {
+        var id = $"{_cardPrefix}-{_cards++}";
+        var anchor = StyleValues.AnchorName(id);
         if (Editable)
         {
-            <a class="@cls" href="@LinkOf(e)" style="@style" @attributes="data">@content</a>
+            <a class="@cls" href="@LinkOf(e)" style="@($"{style};anchor-name:{anchor}")" @attributes="data">@content</a>
         }
         else
         {
-            var id = $"{_cardPrefix}-{_cards++}";
-            var anchor = StyleValues.AnchorName(id);
             <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id" aria-haspopup="dialog" aria-controls="@id">@content</button>
-            <div popover id="@id" role="dialog" tabindex="-1" aria-labelledby="@($"{id}-t")" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
+        }
+        @* Editable, the card only repeats the link's name, so screen readers aren't sent to it. *@
+        <div popover id="@id" role="@(Editable ? null : "dialog")" tabindex="-1" aria-labelledby="@(Editable ? null : $"{id}-t")" aria-hidden="@(Editable ? "true" : null)" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
                 <div class="ib-sched-card-head">
                     <span class="ib-sched-swatch" aria-hidden="true"></span>
                     <span class="ib-popover-title" id="@($"{id}-t")">@TitleText(e)</span>
@@ -981,7 +1032,15 @@
                 {
                     <p class="ib-sched-card-notes">@notes</p>
                 }
-            </div>
+        </div>
+    };
+
+    // What the app adds to a day's header: after the date, in each view.
+    private RenderFragment DayExtra(DateOnly day) => __builder =>
+    {
+        if (DayHeaderTemplate is { } template)
+        {
+            <span class="ib-sched-day-extra">@template(day)</span>
         }
     };
 

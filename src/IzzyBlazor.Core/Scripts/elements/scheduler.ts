@@ -55,9 +55,9 @@ class Scheduler extends IzzyElement {
     this.addEventListener("change", (e) => this.#jump(e), { signal });
     this.addEventListener("submit", (e) => this.#jump(e), { signal });
 
-    // A read-only appointment's card: focus goes to it (a dialog, read by its title; closing it
-    // puts focus back on the appointment), and it's placed beside it where CSS anchor positioning
-    // isn't there.
+    // An appointment's card, placed beside it where CSS anchor positioning isn't there. Opened by
+    // a press (read-only), focus goes to it (a dialog, read by its title; closing it puts focus
+    // back); opened by hovering, focus stays where it is.
     let untrack: (() => void) | undefined;
     this.addEventListener("toggle", (e) => {
       const card = e.target as HTMLElement;
@@ -65,8 +65,23 @@ class Scheduler extends IzzyElement {
       untrack?.();
       const open = (e as ToggleEvent).newState === "open";
       untrack = open ? track(card, card.previousElementSibling!, "bottom-start") : undefined;
-      if (open) card.focus();
+      if (open && card !== this.#hovered) card.focus();
+      if (!open && card === this.#hovered) this.#hovered = null;
     }, { capture: true, signal });
+
+    // Hovering an appointment with a mouse shows its card after a moment (Outlook's peek); it
+    // stays while the pointer is on the appointment or the card, and Escape closes it.
+    this.addEventListener("pointerover", (e) => this.#hover(e), { signal });
+    this.addEventListener("pointerout", (e) => this.#leave(e), { signal });
+    // A press on a read-only appointment whose card hovering opened keeps it open, and focuses it.
+    this.addEventListener("click", (e) => {
+      const card = (e.target as Element).closest?.("button.ib-sched-event")?.nextElementSibling as HTMLElement | null;
+      if (!card || card !== this.#hovered) return;
+      e.preventDefault();
+      this.#hovered = null;
+      card.focus();
+    }, { capture: true, signal });
+    signal.addEventListener("abort", () => clearTimeout(this.#timer));
 
     // The form's dialog closed in the browser (a static page): out of the address with it, so a
     // reload doesn't open it again. Interactive pages do this in C#.
@@ -122,6 +137,44 @@ class Scheduler extends IzzyElement {
     if (!form.hasAttribute("data-ib-interactive")) navigateTo(url, false);
   }
 
+  #hovered: HTMLElement | null = null;
+  #timer = 0;
+
+  // The card of the appointment under the pointer (or the card itself), if any.
+  #cardAt(target: EventTarget | null): HTMLElement | null {
+    const el = target as Element | null;
+    const card = el?.closest?.<HTMLElement>(".ib-sched-card");
+    if (card) return card;
+    const next = el?.closest?.(".ib-sched-event")?.nextElementSibling as HTMLElement | null;
+    return next?.classList.contains("ib-sched-card") ? next : null;
+  }
+
+  #hover(e: PointerEvent): void {
+    if (e.pointerType !== "mouse" || e.buttons) return;
+    const card = this.#cardAt(e.target);
+    if (!card) return;
+    clearTimeout(this.#timer);
+    if (card.matches(":popover-open")) return;
+    this.#timer = window.setTimeout(() => {
+      // Not over a menu or another popover the reader opened (showing this one would close it).
+      if (!card.isConnected || card.matches(":popover-open") || this.querySelector("[data-ib-dragging]") || document.querySelector(":popover-open:not(.ib-sched-card)")) return;
+      this.#hovered = card;
+      card.showPopover();
+    }, 500);
+  }
+
+  #leave(e: PointerEvent): void {
+    if (e.pointerType !== "mouse") return;
+    const card = this.#cardAt(e.target);
+    // Still on the same appointment or its card.
+    if (!card || this.#cardAt(e.relatedTarget) === card) return;
+    clearTimeout(this.#timer);
+    if (card !== this.#hovered) return;
+    this.#timer = window.setTimeout(() => {
+      if (card === this.#hovered && card.matches(":popover-open")) card.hidePopover();
+    }, 200);
+  }
+
   // A new appointment at a day and minute: the form's link with the start set.
   #open(day: string, minutes: number): void {
     const url = new URL(this.dataset.ibNew!, location.href);
@@ -136,6 +189,9 @@ class Scheduler extends IzzyElement {
 
   #press(e: PointerEvent, signal: AbortSignal): void {
     if (e.button !== 0) return;
+    // A press ends a hover's card: the form, or a drag, comes next.
+    clearTimeout(this.#timer);
+    if (this.#hovered?.matches(":popover-open") && !(e.target as Element).closest(".ib-sched-card")) this.#hovered.hidePopover();
     const target = e.target as HTMLElement;
     const box = target.closest<HTMLElement>(".ib-sched-col .ib-sched-event[data-ib-item]");
     const col = target.closest<HTMLElement>(".ib-sched-col");

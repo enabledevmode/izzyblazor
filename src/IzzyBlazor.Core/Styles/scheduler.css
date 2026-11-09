@@ -266,7 +266,7 @@
     margin: 1px 0.25rem;
     padding-inline: 0.5rem;
     background-color: color-mix(in oklab, var(--ib-sched-color) 45%, var(--ib-color-surface));
-    font-size: var(--ib-text-sm);
+    font-size: var(--ib-text-xs);
     white-space: nowrap;
     text-overflow: ellipsis;
   }
@@ -434,7 +434,11 @@
     font-size: var(--ib-text-sm);
     white-space: nowrap;
   }
-  .ib-sched-month .ib-sched-pill { height: calc(var(--ib-sched-lane) - 2px); }
+  /* A month's rows and the bars are the size of the day and week views' boxes (Outlook's). */
+  .ib-sched-month .ib-sched-pill {
+    height: calc(var(--ib-sched-lane) - 2px);
+    font-size: var(--ib-text-xs);
+  }
   .ib-sched-pill > span[aria-hidden] {
     overflow: hidden;
     text-overflow: ellipsis;

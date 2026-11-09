@@ -145,4 +145,24 @@ public class SchedulerRenderTests : BunitContext
         Assert.Equal(SchedulerView.Month, view);
         Assert.Equal(before, navigation.Uri);
     }
+
+    [Fact]
+    public void The_templates_draw_an_appointment_and_add_to_each_day_s_header()
+    {
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.Items, [new Booking { Id = 1, Room = "Room 2", Start = new DateTime(2026, 11, 9, 9, 0, 0), End = new DateTime(2026, 11, 9, 9, 15, 0) }])
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9))
+            .Add(c => c.AppointmentTemplate, a => $"{a.Item.Room} ({(a.OneLine ? "one line" : "wrapped")})")
+            .Add(c => c.DayHeaderTemplate, d => $"Sunny {d.Day}"));
+
+        // A quarter hour's box is one line; screen readers still hear the appointment's own name.
+        var box = cut.Find(".ib-sched-col .ib-sched-event");
+        Assert.Equal("Room 2 (one line)", box.QuerySelector(".ib-sched-own")!.TextContent);
+        Assert.StartsWith("Room 2, Monday, November 9, 2026", box.QuerySelector(".ib-visually-hidden")!.TextContent);
+        Assert.Contains("Sunny 9", cut.Find(".ib-sched-day-head.ib-sched-today .ib-sched-day-extra").TextContent);
+        Assert.Null(cut.Find(".ib-sched-head").GetAttribute("aria-hidden"));
+    }
 }
