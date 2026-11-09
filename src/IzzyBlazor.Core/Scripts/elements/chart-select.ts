@@ -1,4 +1,7 @@
 import type { DrawData, View } from "./chart-draw";
+import type { Peer, SyncAt } from "./chart-sync";
+
+type SyncModule = typeof import("./chart-sync");
 
 /**
  * A RangeSelector's strip: kept on the view (at), moved by its handles, its window, a click on
@@ -172,3 +175,69 @@ export function selector(el: HTMLElement, sel: HTMLElement, data: DrawData, at: 
   return show;
 }
 
+/** A view kept within the whole axis and at least `least` wide; too narrow or wide, it keeps its middle (as chart.ts's). */
+const clampView = (from: number, to: number, least: number): View => {
+  const span = Math.min(1, Math.max(least, to - from));
+  const start = Math.min(Math.max(0, to - from === span ? from : (from + to) / 2 - span / 2), 1 - span);
+  return [start, start + span];
+};
+
+/**
+ * A RangeSelector on its own: the strip only, its view kept here and, on an interactive page,
+ * reported to .NET as it settles (emit). Synced (Sync), it zooms the charts named alike and
+ * follows them, through the page's one sync part (loadSync).
+ */
+export function lone(host: HTMLElement, sel: HTMLElement, signal: AbortSignal, loadSync: () => Promise<SyncModule>, emit: (layout: string) => void): void {
+  const d: DrawData = JSON.parse(host.dataset.ibDraw);
+  let v: View = d.zv ?? [0, 1];
+  let timer = 0;
+  // Synced (Sync): it zooms the charts named alike, and follows them.
+  const at: SyncAt | null = host.dataset.ibSyncAt ? JSON.parse(host.dataset.ibSyncAt) : null;
+  const peer: Peer = {};
+  let sync: SyncModule | undefined;
+  let others: ((call: (p: Peer) => void) => void) | null = null;
+  if (at && host.dataset.ibSync && host.hasAttribute("data-ib-sync-view")) {
+    const name = host.dataset.ibSync;
+    loadSync().then((m) => {
+      if (signal.aborted) return;
+      sync = m;
+      others = m.joinSync(name, peer, signal);
+    });
+  }
+  // Moved here since the last settle (not only by another chart), and a settle on its way.
+  let local = false;
+  let pending = false;
+  const report = () => {
+    clearTimeout(timer);
+    pending = true;
+    timer = window.setTimeout(() => {
+      pending = false;
+      if (signal.aborted) return;
+      if (local) others?.((p) => p.settle?.());
+      local = false;
+      if (!host.hasAttribute("data-ib-interactive")) return;
+      const all = v[0] <= 1e-6 && v[1] >= 1 - 1e-6;
+      emit(all ? "" : `${Math.round(v[0] * 1e6) / 1e6} ${Math.round(v[1] * 1e6) / 1e6}`);
+    }, 0);
+  };
+  let show = () => {};
+  const set = (from: number, to: number, settle = true, share = true) => {
+    v = clampView(from, to, d.zl ?? 0);
+    show();
+    if (share) local = true;
+    if (share && at && sync) {
+      const m = sync.viewOut(at, v);
+      if (m !== undefined) others?.((p) => p.view?.(m));
+    }
+    if (settle) report();
+  };
+  peer.view = (m) => {
+    const nv = sync!.viewIn(at!, m);
+    if (nv) set(nv[0], nv[1], false, false);
+  };
+  // Its own settle on the way says it all.
+  peer.settle = () => {
+    if (!(pending && local)) report();
+  };
+  show = selector(host, sel, d, () => v, set, report, signal, null);
+}
