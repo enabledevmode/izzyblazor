@@ -1239,8 +1239,11 @@ public class IzzyText
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 
-    /// <summary>A Scheduler's button for a new appointment, and its form's title.</summary>
+    /// <summary>A Scheduler's form's title for a new appointment, and its toolbar button's name for screen readers.</summary>
     public virtual string SchedulerNew { get; set; } = "New appointment";
+
+    /// <summary>A Scheduler's toolbar button for a new appointment (its name for screen readers is <see cref="SchedulerNew"/>).</summary>
+    public virtual string SchedulerNewShort { get; set; } = "New";
 
     /// <summary>A Scheduler's form for an appointment that's there.</summary>
     public virtual string SchedulerEdit { get; set; } = "Edit appointment";

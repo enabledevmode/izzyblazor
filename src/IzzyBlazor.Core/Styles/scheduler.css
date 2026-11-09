@@ -45,7 +45,7 @@
   .ib-sched > ib-dialog { display: contents; }
   .ib-sched > .ib-sched-move { display: none; }
 
-  /* The toolbar: the period at the start, the arrows, Today and the view menu at the end. */
+  /* The toolbar: Today, the arrows and the period at the start; categories, view and New at the end. */
   .ib-sched-bar {
     display: flex;
     flex-wrap: wrap;
@@ -58,15 +58,16 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ib-space-1);
-    margin-inline-start: calc(-1 * var(--ib-space-2));
+    margin-inline-start: var(--ib-space-1);
     padding: var(--ib-space-1) var(--ib-space-2);
     border: 0;
     border-radius: var(--ib-radius-md);
     background: none;
     color: inherit;
     font: inherit;
-    font-size: var(--ib-text-xl);
+    font-size: var(--ib-text-lg);
     font-weight: var(--ib-weight-semibold);
+    white-space: nowrap;
     cursor: pointer;
   }
   .ib-sched-title:hover { background-color: var(--ib-color-fill-subtle); }
@@ -80,10 +81,15 @@
   /* With script a day chosen goes there; Go is for none. */
   ib-scheduler[data-ib-ready] .ib-sched-jump-go { display: none; }
   .ib-sched-jump-go { align-self: flex-end; }
-  .ib-sched-nav {
+  .ib-sched-nav,
+  .ib-sched-actions {
     display: flex;
     align-items: center;
     gap: var(--ib-space-1);
+  }
+  .ib-sched-actions {
+    flex-wrap: wrap;
+    margin-inline-start: auto;
   }
 
   /* An appointment: its color tints it, a dot or an edge says it. */
@@ -505,6 +511,11 @@
     .ib-sched-day-head .ib-sched-num { font-size: var(--ib-text-md); }
     .ib-sched-dow-long { display: none; }
     .ib-sched-dow-short { display: inline; }
+    /* New keeps its icon; its name is still "New appointment". */
+    .ib-sched-new-text { display: none; }
+    .ib-sched-bar .ib-btn { --ib-btn-pad: var(--ib-space-2); }
+    .ib-sched-title { margin-inline-start: 0; padding-inline: var(--ib-space-1); font-size: var(--ib-text-md); }
+    .ib-sched-actions > .ib-btn-solid { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
     .ib-sched-agenda-day { grid-template-columns: 1fr; }
