@@ -40,10 +40,11 @@
     <Scheduler Items="events" ... Category="e => e.Kind"
                Categories="@([new("work", "Work"), new("family", "Family")])" />
 
-    With no OnSave, an appointment opens a card beside it: its whole time, Detail, category and
-    Description. With a mouse, hovering any appointment shows its card too. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
-    has a New button, and with script a click on empty time adds one there and a drag moves or
-    resizes one. The form posts on a static page too, and OnSave saves it either way. An
+    Read-only (no OnSave or EditDialogForm), an appointment opens a card beside it: its whole time,
+    Detail, category and Description. With a mouse, hovering any appointment shows its card too.
+    With OnSave or an EditDialogForm, and ItemKey, appointments are links to a form in a dialog,
+    the toolbar has a New button, and with script a click on empty time adds one there; with
+    OnSave, a drag moves or resizes one. The form posts on a static page too, and OnSave saves it either way. An
     EditDialogForm puts a form of your own in the dialog instead, for what a use case needs.
 
     Accessibility:
@@ -53,8 +54,8 @@
       its period is a polite live region. With no script, a date input and Go do the same.
     - Categories is named by how many are hidden too: "Categories, 2 of 4 hidden".
     - Each day's appointments come in time order, each with its category and whole time said:
-      "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With OnSave each is a
-      link to its form; without, a button that opens its card (a dialog, which takes focus).
+      "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With a form each is a
+      link to it; read-only, a button that opens its card (a dialog, which takes focus).
     - Today is marked with aria-current, not only by its color.
     - A hover's card is the mouse's alone: it stays while the pointer is on the appointment or the
       card, Escape closes it, and an editable one's card is hidden from screen readers (its link
@@ -64,7 +65,8 @@
     - A DayHeaderTemplate's content is read, after its date.
     - A month's day numbers are links to their day ("Show Monday, November 9, 2026").
     - When the form closes or saves, focus goes back to its appointment, or to New.
-    - A category's edge is 3:1 against its tint and the page, the palette's lighter colors darkened.
+    - A category's edge is the palette's color, a fifth darker in light mode, so it's 3:1 against a
+      box, a month's row and the page; a Color of your own needs that contrast itself.
     - The form is the way to add, move and resize from the keyboard and with no script; a drag
       does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
@@ -76,7 +78,7 @@
     - T | Go to today
     - N, P | Go to the next or the previous day, week or month
     - D, W, X, M, A | Show the day, the week, the work week, the month or the agenda
-    - C | Add an appointment (with OnSave)
+    - C | Add an appointment (with a form)
     See also: Calendar, DateRangeField.
 *@
 
@@ -131,6 +133,16 @@
             </Toolbar>
         </CascadingValue>
     </div>
+
+    @if (_moveRefusal is { Count: > 0 } why)
+    {
+        <div class="ib-sched-error" role="alert">
+            @foreach (var m in why)
+            {
+                <span>@m</span>
+            }
+        </div>
+    }
 
     @if (_loadError is not null)
     {
@@ -391,12 +403,14 @@
     /// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so
     /// is guarding against forged fields, with a view model. The context has the appointment (none
     /// for a new one) and its times (the time clicked for a new one); call
-    /// <c>context.CloseAsync()</c> when it has saved. Needs <see cref="ItemKey"/>. Dragging to new
-    /// times still saves through <see cref="OnSave"/>, and is off without it.
+    /// <c>context.CloseAsync()</c> when it has saved, and put <c>autofocus</c> on its first field.
+    /// Needs <see cref="ItemKey"/>. Dragging to new times still saves through <see cref="OnSave"/>,
+    /// and is off without it: a form with no times leaves OnSave out, so moving stays something
+    /// a keyboard can do too. A drag OnSave refuses says why above the view.
     /// </summary>
     [Parameter] public RenderFragment<SchedulerEditFormContext<TItem>>? EditDialogForm { get; set; }
 
-    /// <summary>Deletes an appointment: with it, the form has a Delete button.</summary>
+    /// <summary>Deletes an appointment: with it, the generated form has a Delete button. Not with an <see cref="EditDialogForm"/>, whose form deletes.</summary>
     [Parameter, ModeSupport] public EventCallback<SchedulerDelete<TItem>> OnDelete { get; set; }
 
     private bool Editable => (OnSave.HasDelegate || EditDialogForm is not null) && ItemKey is not null;
@@ -531,6 +545,11 @@
             }
         }
 
+        if (EditDialogForm is not null && OnDelete.HasDelegate)
+        {
+            throw new InvalidOperationException("A Scheduler with an EditDialogForm deletes in that form, so OnDelete (the generated form's Delete button) has nothing to do; leave it out.");
+        }
+
         if (EditDialogForm is not null && ItemKey is null)
         {
             throw new InvalidOperationException("A Scheduler with an EditDialogForm needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
@@ -567,7 +586,7 @@
     // Interactive: the address changed (a toolbar link, Back, or a save): load and draw the page it names.
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        (_ending, _refused) = (false, null);
+        (_ending, _refused, _moveRefusal) = (false, null, null);
         _jump = CurrentDate;
         _ = InvokeAsync(async () =>
         {
@@ -957,7 +976,7 @@
                         var outside = day.Month != date.Month;
                         <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                             <div class="ib-sched-cell-head">
-                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@string.Format(culture, TextDefaults.SchedulerShowDay, day.ToString("D", culture))">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@string.Format(culture, TextDefaults.SchedulerShowDay, day.ToString("D", culture))">@(day.Day == 1 ? day.ToString("MMMM d", culture) : day.Day.ToString(culture))</a>
                                 @DayExtra(day)
                             </div>
                             <ul class="ib-sched-pills">
@@ -1284,16 +1303,6 @@
             }
             else
             {
-                @* A drag to new times OnSave refused opens the form: why, above it. *@
-                @if (_refused == key && _refusedMessages is { Count: > 0 } why)
-                {
-                    <Alert Status="Status.Danger">
-                        @foreach (var m in why)
-                        {
-                            <div>@m</div>
-                        }
-                    </Alert>
-                }
                 @EditDialogForm!(new SchedulerEditFormContext<TItem>(item, isNew, start, end, () =>
                 {
                     EndEdit();
@@ -1303,7 +1312,8 @@
         </Dialog>
     };
 
-    private List<string>? _refusedMessages;
+    // Why OnSave refused the last drag, with a form of your own: said above the view.
+    private List<string>? _moveRefusal;
 
     // The form's model: the appointment's values, a new one's at the time asked, or what was posted.
     private void SyncEdit(string key, SchedulerEditFields? posted)
@@ -1500,7 +1510,7 @@
     // Closes the form: the address without its keys (on a static page, the post's answer is a redirect there).
     private void EndEdit()
     {
-        (_editFor, _editItem, _model, _context, _messages, _refused, _refusedMessages) = (null, default, null, null, null, null, null);
+        (_editFor, _editItem, _model, _context, _messages, _refused) = (null, default, null, null, null, null);
         _ending = true;
         Navigation.NavigateTo(ClosedHref);
     }
@@ -1558,6 +1568,7 @@
     private async Task MoveAsync(EditContext context)
     {
         var move = (SchedulerMoveFields)context.Model;
+        _moveRefusal = null;
         // A move that isn't made (another still saving, gone, unreadable) draws the box back too.
         if (_saving || move.Key is not { } key || _items.FirstOrDefault(i => ItemKey!(i) == key) is not { } item)
         {
@@ -1603,6 +1614,13 @@
         // The boxes' style changes with each move, so a box the script left where it was dropped is
         // drawn again where the server has it: refused at once, made once the new times have loaded
         // (sooner, a provider's load would draw it at its old time first).
+        if (save.HasErrors && EditDialogForm is not null)
+        {
+            _moves++;
+            _moveRefusal = messages;
+            return;
+        }
+
         if (save.HasErrors)
         {
             _moves++;
@@ -1611,7 +1629,7 @@
             _context = new EditContext(_model);
             _messages = new ValidationMessageStore(_context);
             foreach (var m in messages) _messages.Add(new FieldIdentifier(_model, ""), m);
-            (_refused, _refusedMessages) = (key, messages);
+            _refused = key;
             return;
         }
 

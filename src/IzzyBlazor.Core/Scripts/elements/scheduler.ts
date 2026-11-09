@@ -106,10 +106,15 @@ class Scheduler extends IzzyElement {
     // On a static page, closing it in the browser also takes it out of the address, so a reload
     // doesn't open it again. Interactive pages do that in C#.
     this.addEventListener("close", (e) => {
-      // The form's own dialog, not Delete's question in it.
       const root = (e.target as Element).parentElement;
-      if (root?.localName !== "ib-dialog" || root.dataset.queryKey !== this.dataset.ibEditKey) return;
+      const form = root?.closest<HTMLElement>("ib-dialog");
+      let edit: HTMLElement | null = form ?? null;
+      while (edit && edit.dataset.queryKey !== this.dataset.ibEditKey) edit = edit.parentElement?.closest<HTMLElement>("ib-dialog") ?? null;
+      if (!edit) return;
+      // Delete's question in the form closing (an interactive delete then takes the form away with
+      // no close of its own): remember the appointment, nothing more.
       this.#remember();
+      if (root !== edit) return;
       requestAnimationFrame(() => this.#refocus());
       if (root.hasAttribute("data-ib-interactive")) return;
       const url = new URL(location.href);
@@ -172,7 +177,8 @@ class Scheduler extends IzzyElement {
   #remember(): void {
     const key = new URL(location.href).searchParams.get(this.dataset.ibEditKey!);
     try {
-      if (key) sessionStorage.setItem(FOCUS, `${this.dataset.ibEditKey}|${key}`);
+      // This page and this Scheduler's, so another page (Back, a link) doesn't take it.
+      if (key) sessionStorage.setItem(FOCUS, `${this.dataset.ibEditKey}|${location.pathname}|${key}`);
     } catch {
       // No session storage: focus stays where the browser puts it.
     }
@@ -186,10 +192,14 @@ class Scheduler extends IzzyElement {
     } catch {
       return;
     }
-    // "key|appointment": a Scheduler's key in the address has no "|", an appointment's key may.
-    const at = saved?.indexOf("|") ?? -1;
-    const [owner, key] = at < 0 ? [] : [saved!.slice(0, at), saved!.slice(at + 1)];
+    // "key|path|appointment": the Scheduler's key and the path have no "|"; an appointment's key may.
+    const [owner, path, ...rest] = saved?.split("|") ?? [];
+    const key = rest.join("|");
     if (owner !== this.dataset.ibEditKey || this.querySelector("dialog[open]")) return;
+    if (path !== location.pathname) {
+      sessionStorage.removeItem(FOCUS);
+      return;
+    }
     sessionStorage.removeItem(FOCUS);
     const item = key && key !== "new" ? this.querySelector<HTMLElement>(`[data-ib-item="${CSS.escape(key)}"]`) : null;
     (item ?? this.querySelector<HTMLElement>(".ib-sched-new"))?.focus();

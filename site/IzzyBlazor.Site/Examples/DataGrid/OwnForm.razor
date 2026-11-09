@@ -34,13 +34,22 @@
         .Select(o => new Order { Number = o.Number, Customer = o.Customer })
         .ToList());
 
-    private QuantityEdit ModelFor(Order order) => Model ??= new() { Quantity = order.Quantity };
+    // The row the model was made for: another one opened (after this one was closed unsaved) gets
+    // its own. A static post's model is the one posted.
+    private int? _modelFor;
+
+    private QuantityEdit ModelFor(Order order)
+    {
+        if (Model is null || (_modelFor is { } was && was != order.Number)) Model = new() { Quantity = order.Quantity };
+        _modelFor = order.Number;
+        return Model;
+    }
 
     private async Task SaveAsync(DataGridEditFormContext<Order> edit)
     {
         edit.Item!.Quantity = Model!.Quantity;
         await edit.CloseAsync();
-        Model = null;
+        (Model, _modelFor) = (null, null);
     }
 
     public sealed class Order

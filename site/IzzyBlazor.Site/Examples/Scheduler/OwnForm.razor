@@ -1,18 +1,19 @@
 @using System.ComponentModel.DataAnnotations
-@* A dental clinic's bookings with its own form: the patient, the reason, how long and whether
-   they're insured, with the patient's last visit beside them. The form's model holds only what it
-   edits, so no other field can be forged, and it says when it has saved. *@
+@* A dental clinic's bookings with its own form: the patient, when, the reason, how long and
+   whether they're insured, with the patient's last visit beside them. The form's model holds only
+   what it edits, so no other field can be forged, and it says when it has saved. *@
 <Scheduler TItem="Visit" Items="_visits" Start="v => v.Start" End="v => v.End" Title="v => v.Patient" Detail="v => v.Reason"
            ItemKey="v => v.Id.ToString()" OnSave="Move" View="SchedulerView.WorkWeek" QueryPrefix="dental-">
     <EditDialogForm Context="edit">
         <Form Model="ModelFor(edit)" FormName="dental-visit" OnValidSubmit="() => SaveAsync(edit)">
             <FormErrors />
-            <TextBlock Color="Color.Muted">@($"{edit.Start:dddd, MMMM d, h:mm tt}")</TextBlock>
             <TextField @bind-Value="Model!.Patient" Label="Patient" autofocus />
             @if (LastVisit(Model!.Patient, edit.Item) is { } last)
             {
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">@($"Last visit {last.Start:MMMM d}: {last.Reason}")</TextBlock>
             }
+            <DateField @bind-Value="Model!.Date" Label="Date" />
+            <TimeField @bind-Value="Model!.Time" Label="Time" Step="TimeSpan.FromMinutes(15)" />
             <Select @bind-Value="Model!.Reason" Label="Reason" Items="Reasons" />
             <Select @bind-Value="Model!.Minutes" Label="Length" Items="Lengths" ItemText="@(m => $"{m} minutes")" />
             <Checkbox @bind-Value="Model!.Insured" Label="Insured" />
@@ -37,9 +38,23 @@
     // Stands in for your database, with a copy of the bookings for each visitor to this site.
     protected override void OnInitialized() => _visits = IzzyBlazor.Site.Examples.DataGrid.ExampleRows.For(Http, "dental-visit", Seed);
 
-    private VisitEdit ModelFor(SchedulerEditFormContext<Visit> edit) => Model ??= edit.Item is { } v
-        ? new() { Patient = v.Patient, Reason = v.Reason, Minutes = (int)(v.End - v.Start).TotalMinutes, Insured = v.Insured }
-        : new();
+    // The visit the model was made for: another one opened (after this one was closed unsaved) gets
+    // its own. A static post's model is the one posted.
+    private int? _modelFor;
+
+    private VisitEdit ModelFor(SchedulerEditFormContext<Visit> edit)
+    {
+        var id = edit.Item?.Id ?? 0;
+        if (Model is null || (_modelFor is { } was && was != id))
+        {
+            Model = edit.Item is { } v
+                ? new() { Patient = v.Patient, Date = DateOnly.FromDateTime(v.Start), Time = TimeOnly.FromDateTime(v.Start), Reason = v.Reason, Minutes = (int)(v.End - v.Start).TotalMinutes, Insured = v.Insured }
+                : new() { Date = DateOnly.FromDateTime(edit.Start), Time = TimeOnly.FromDateTime(edit.Start) };
+        }
+
+        _modelFor = id;
+        return Model;
+    }
 
     // The patient's visit before this one, if they've been before.
     private Visit? LastVisit(string? patient, Visit? editing) => string.IsNullOrWhiteSpace(patient) ? null : _visits
@@ -48,12 +63,13 @@
 
     private async Task SaveAsync(SchedulerEditFormContext<Visit> edit)
     {
-        var visit = edit.Item ?? new Visit { Id = _visits.Count == 0 ? 1 : _visits.Max(v => v.Id) + 1, Start = edit.Start };
+        var visit = edit.Item ?? new Visit { Id = _visits.Count == 0 ? 1 : _visits.Max(v => v.Id) + 1 };
         (visit.Patient, visit.Reason, visit.Insured) = (Model!.Patient!.Trim(), Model.Reason, Model.Insured);
+        visit.Start = Model.Date.ToDateTime(Model.Time);
         visit.End = visit.Start.AddMinutes(Model.Minutes);
         if (edit.IsNew) _visits.Add(visit);
         await edit.CloseAsync();
-        Model = null;
+        (Model, _modelFor) = (null, null);
     }
 
     // A booking dragged to a new time: OnSave, as without a form of your own.
@@ -88,6 +104,10 @@
     {
         [Required]
         public string? Patient { get; set; }
+
+        public DateOnly Date { get; set; }
+
+        public TimeOnly Time { get; set; }
 
         public string Reason { get; set; } = "Check-up";
 
