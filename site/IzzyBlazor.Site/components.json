@@ -2781,10 +2781,22 @@
         { "feature": "Day, week, work week, month and agenda views" },
         { "feature": "All-day and several-day appointments as bars across their days" },
         { "feature": "Overlapping appointments side by side" },
-        { "feature": "The view and date in the page's address, so the toolbar is links and Back works" }
+        { "feature": "The view and date in the page's address, so the toolbar is links and Back works" },
+        { "feature": "Adding, editing and deleting in a form, on a static page too", "member": "OnSave" },
+        { "feature": "A click on empty time to add, and dragging to move or resize", "member": "OnSave", "noscript": "none" },
+        { "feature": "Categories with colors, shown or hidden from a menu", "member": "Category" },
+        { "feature": "Google Calendar's keyboard shortcuts", "noscript": "none" }
       ],
       "examples": [
-        { "id": "scheduler-usage", "title": "A team's week", "lead": "Give `Scheduler` the `Items` and how to read each one's `Start`, `End` and `Title`. `AllDay` and `Color` are optional." }
+        { "id": "scheduler-usage", "title": "A team's week", "lead": "Give `Scheduler` the `Items` and how to read each one's `Start`, `End` and `Title`. `AllDay` and `Color` are optional.",
+          "after": ["Overlapping appointments sit side by side, and those a day long or more are bars across their days. The toolbar's arrows, Today and view menu are links, with the view and date in the page's address, so Back goes back.", "The day and week views open scrolled to `DayStart`, 8:00 by default."] },
+        { "id": "scheduler-booking", "title": "Booking rooms", "lead": "To add and change appointments, give an `ItemKey` and handle `OnSave`. Each booking opens a form, and New or a click on empty time adds one.",
+          "after": ["`OnSave` gets the form's values and the booking, none for a new one. `CopyTo` sets the mapped properties, and `AddError` keeps the form open with a message. `OnDelete` adds a Delete button.", "Drag a booking to move it, or its bottom edge to change its end, by quarter hours. The form posts on a static page too, so it all works without a circuit."],
+          "notes": { "noscript": "Bookings open the form and save as with script; a click on empty time and dragging don't." } },
+        { "id": "scheduler-family", "title": "A month in categories", "lead": "To color appointments by what they are, add a `SchedulerCategory` for each and map `Category`. The Categories menu shows or hides each.",
+          "after": ["An appointment's own `Color` comes first, then its category's, then the palette's. A month's day shows `MonthLimit` appointments, then \"+N more\" opens the day."] },
+        { "id": "scheduler-agenda", "title": "An agenda", "lead": "The agenda lists the coming days' appointments by day and leaves out empty days. `AgendaDays` sets how many it covers.",
+          "after": ["`ViewOptions` limits the view menu, here to the day, the week and the agenda."] }
       ]
     },
     {

@@ -7,8 +7,17 @@
 
     private const string Team = "var(--ib-chart-7)", Clients = "var(--ib-chart-6)", Focus = "var(--ib-chart-5)", Away = "var(--ib-chart-3)";
 
-    // This week, from Monday, so the example always has something to show.
-    private static readonly DateOnly Monday = DateOnly.FromDateTime(DateTime.Today).AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
+    // This week's working days, so the example always has something to show.
+    private static readonly DateOnly Monday = WeekMonday();
+
+    // The Monday of the week shown today, whichever day the culture starts its week on.
+    private static DateOnly WeekMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var first = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var start = today.AddDays(-(((int)today.DayOfWeek - (int)first + 7) % 7));
+        return start.AddDays(((int)DayOfWeek.Monday - (int)first + 7) % 7);
+    }
 
     private static DateTime At(int day, int hour, int minute = 0) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
 

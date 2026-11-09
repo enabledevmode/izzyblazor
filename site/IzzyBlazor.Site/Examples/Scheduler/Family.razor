@@ -1,0 +1,38 @@
+@* A family's month: school, work, sport and birthdays, each category in its color. The
+   Categories menu hides one, and a busy day's "+N more" opens the day. *@
+<Scheduler Items="_events" Start="e => e.Start" End="e => e.End" Title="e => e.Title" AllDay="e => e.AllDay"
+           Category="e => e.Kind" View="SchedulerView.Month" Name="family">
+    <SchedulerCategory Value="school" Title="School" />
+    <SchedulerCategory Value="work" Title="Work" />
+    <SchedulerCategory Value="sport" Title="Sport" />
+    <SchedulerCategory Value="family" Title="Family" />
+</Scheduler>
+
+@code {
+    private record Event(string Title, DateTime Start, DateTime End, string Kind, bool AllDay = false);
+
+    private static readonly DateOnly First = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private static DateTime On(int day, int hour = 0, int minute = 0) => First.AddDays(day - 1).ToDateTime(new TimeOnly(hour, minute));
+
+    // The month's weekdays: soccer practice on Tuesdays and Thursdays, piano on Wednesdays.
+    private readonly Event[] _events =
+    [
+        .. Enumerable.Range(1, DateTime.DaysInMonth(First.Year, First.Month))
+            .Select(d => First.AddDays(d - 1))
+            .Where(d => d.DayOfWeek is DayOfWeek.Tuesday or DayOfWeek.Thursday)
+            .Select(d => new Event("Soccer practice", d.ToDateTime(new TimeOnly(17, 30)), d.ToDateTime(new TimeOnly(19, 0)), "sport")),
+        .. Enumerable.Range(1, DateTime.DaysInMonth(First.Year, First.Month))
+            .Select(d => First.AddDays(d - 1))
+            .Where(d => d.DayOfWeek is DayOfWeek.Wednesday)
+            .Select(d => new Event("Piano lesson", d.ToDateTime(new TimeOnly(16, 0)), d.ToDateTime(new TimeOnly(16, 45)), "school")),
+        new("Parent-teacher night", On(6, 18), On(6, 19, 30), "school"),
+        new("Grandma's birthday", On(9), On(10), "family", true),
+        new("Field trip", On(13, 8), On(13, 15), "school"),
+        new("Quarterly review", On(14, 9), On(14, 11), "work"),
+        new("Business trip", On(17), On(20), "work", true),
+        new("Tournament", On(22), On(24), "sport", true),
+        new("Dentist", On(22, 10), On(22, 10, 45), "family"),
+        new("Book fair", On(27, 15), On(27, 17), "school"),
+    ];
+}

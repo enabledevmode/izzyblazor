@@ -31,10 +31,10 @@ class Scheduler extends IzzyElement {
     this.setAttribute("data-ib-ready", "");
     signal.addEventListener("abort", () => this.removeAttribute("data-ib-ready"));
 
-    // Open on the working day.
+    // Open on the working day, with room above for its hour's label.
     const scroll = this.querySelector<HTMLElement>(".ib-sched-scroll");
     const grid = this.querySelector<HTMLElement>(".ib-sched-grid");
-    if (scroll && grid) scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24;
+    if (scroll && grid) scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24 - 12;
 
     this.addEventListener("keydown", (e) => this.#key(e), { signal });
 

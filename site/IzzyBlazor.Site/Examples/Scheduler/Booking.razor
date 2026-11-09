@@ -1,0 +1,71 @@
+@* Meeting rooms booked for the week: open a booking to change or cancel it, select empty time or
+   New to add one, or drag a booking to another time. The page saves what the form sends, on a
+   static page too. *@
+<Scheduler TItem="RoomBooking" Items="Store" Start="b => b.Start" End="b => b.End" Title="b => b.Title" Description="b => b.Notes"
+           Category="b => b.Room" ItemKey="b => b.Id.ToString()" OnSave="Save" OnDelete="Delete" View="SchedulerView.WorkWeek" Name="rooms">
+    <SchedulerCategory Value="Aspen" Title="Aspen (8)" />
+    <SchedulerCategory Value="Birch" Title="Birch (4)" />
+    <SchedulerCategory Value="Cedar" Title="Cedar (12)" />
+</Scheduler>
+
+@code {
+    private sealed class RoomBooking
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Room { get; set; } = "Aspen";
+        public string? Notes { get; set; }
+    }
+
+    private static readonly DateOnly Monday = WeekMonday();
+
+    // The Monday of the week shown today, whichever day the culture starts its week on.
+    private static DateOnly WeekMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var first = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var start = today.AddDays(-(((int)today.DayOfWeek - (int)first + 7) % 7));
+        return start.AddDays(((int)DayOfWeek.Monday - (int)first + 7) % 7);
+    }
+
+    private static DateTime At(int day, int hour, int minute = 0) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
+
+    // An app keeps its bookings in a database; this example keeps them in memory for everyone
+    // reading the page, and starts again past 40.
+    private static readonly List<RoomBooking> Store = Seed();
+
+    private static List<RoomBooking> Seed() =>
+    [
+        new() { Id = 1, Title = "Sprint planning", Start = At(0, 10), End = At(0, 11, 30), Room = "Cedar" },
+        new() { Id = 2, Title = "Interview: frontend", Start = At(0, 14), End = At(0, 15), Room = "Birch" },
+        new() { Id = 3, Title = "Design review", Start = At(1, 11), End = At(1, 12), Room = "Aspen", Notes = "Checkout flow, v2" },
+        new() { Id = 4, Title = "Customer call", Start = At(1, 15), End = At(1, 16), Room = "Birch" },
+        new() { Id = 5, Title = "All hands", Start = At(2, 16), End = At(2, 17), Room = "Cedar" },
+        new() { Id = 6, Title = "1:1 Priya", Start = At(3, 9, 30), End = At(3, 10), Room = "Birch" },
+        new() { Id = 7, Title = "Board prep", Start = At(3, 13), End = At(3, 15), Room = "Aspen" },
+        new() { Id = 8, Title = "Retro", Start = At(4, 15), End = At(4, 16), Room = "Cedar" },
+    ];
+
+    private void Save(SchedulerSave<RoomBooking> save)
+    {
+        lock (Store)
+        {
+            if (save.IsNew && Store.Count >= 40)
+            {
+                Store.Clear();
+                Store.AddRange(Seed());
+            }
+
+            var booking = save.Item ?? new RoomBooking { Id = Store.Count == 0 ? 1 : Store.Max(b => b.Id) + 1 };
+            save.CopyTo(booking);
+            if (save.IsNew) Store.Add(booking);
+        }
+    }
+
+    private void Delete(SchedulerDelete<RoomBooking> delete)
+    {
+        lock (Store) Store.Remove(delete.Item);
+    }
+}

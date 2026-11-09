@@ -17,12 +17,25 @@
     the rest are boxes in their day's column, side by side where they overlap. Times are shown as
     given, in the app's time zone.
 
+    With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar has a New
+    button, and with script a click on empty time adds one there and a drag moves or resizes one.
+    The form posts on a static page too, and OnSave saves it either way.
+
     Accessibility:
     - It's a region named by Label ("Schedule"); the toolbar's links say where they go
       ("Previous week"), and the view menu is a radio group of links.
-    - Each day's appointments come in time order, each with its whole time said:
+    - Each day's appointments come in time order, each a link with its whole time said:
       "Team meeting, Monday, November 9, 9:30 AM to 10:30 AM".
+    - The form is the way to add, move and resize from the keyboard and with no script; a drag
+      does nothing it can't.
     - The hour lines and the now line are hidden from screen readers.
+
+    Keyboard:
+    While focus is in the Scheduler (Google Calendar's letters)
+    - T | Go to today
+    - N, P | Go to the next or the previous day, week or month
+    - D, W, X, M, A | Show the day, the week, the work week, the month or the agenda
+    - C | Add an appointment (with OnSave)
     See also: Calendar, DateRangeField.
 *@
 
@@ -154,10 +167,10 @@
 
     /// <summary>
     /// Each appointment's category, such as <c>b =&gt; b.Kind</c>, matched to a
-    /// <see cref="SchedulerCategory"/>'s <c>Value</c>: its color, and the Categories menu that shows
-    /// or hides it.
+    /// <see cref="SchedulerCategory"/>'s <c>Value</c>: its color, the Categories menu that shows
+    /// or hides it, and a choice in the edit form, which sets it.
     /// </summary>
-    [Parameter] public Func<TItem, string?>? Category { get; set; }
+    [Parameter] public Expression<Func<TItem, string?>>? Category { get; set; }
 
     /// <summary>The <see cref="SchedulerCategory"/>s, in the order of the Categories menu.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -220,8 +233,8 @@
     private Func<TItem, DateTime>? _start, _end;
     private Func<TItem, object?>? _title;
     private Func<TItem, bool>? _allDay;
-    private Func<TItem, string?>? _description;
-    private Expression? _lastStart, _lastEnd, _lastTitle, _lastAllDay, _lastDescription;
+    private Func<TItem, string?>? _description, _category;
+    private Expression? _lastStart, _lastEnd, _lastTitle, _lastAllDay, _lastDescription, _lastCategory;
     private IReadOnlyList<TItem> _items = [];
     private string? _class;
     private string? _style;
@@ -304,6 +317,7 @@
         if (!ReferenceEquals(Title, _lastTitle)) (_lastTitle, _title) = (Title, Title.Compile());
         if (!ReferenceEquals(AllDay, _lastAllDay)) (_lastAllDay, _allDay) = (AllDay, AllDay?.Compile());
         if (!ReferenceEquals(Description, _lastDescription)) (_lastDescription, _description) = (Description, Description?.Compile());
+        if (!ReferenceEquals(Category, _lastCategory)) (_lastCategory, _category) = (Category, Category?.Compile());
         if (OnSave.HasDelegate && ItemKey is null)
         {
             throw new InvalidOperationException("A Scheduler with OnSave needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
@@ -329,10 +343,10 @@
         var from = first.ToDateTime(TimeOnly.MinValue);
         var to = last.AddDays(1).ToDateTime(TimeOnly.MinValue);
         var entries = new List<SchedulerEntry>();
-        var hidden = Category is null ? null : Hidden;
+        var hidden = _category is null ? null : Hidden;
         for (var i = 0; i < _items.Count; i++)
         {
-            if (hidden is { Count: > 0 } && Category!(_items[i]) is { } c && hidden.Contains(c)) continue;
+            if (hidden is { Count: > 0 } && _category!(_items[i]) is { } c && hidden.Contains(c)) continue;
             var (s, e) = (_start!(_items[i]), _end!(_items[i]));
             if (e < s) e = s;
             var entry = new SchedulerEntry(i, s, e, _allDay?.Invoke(_items[i]) ?? false);
@@ -406,7 +420,7 @@
     {
         var item = _items[e.Index];
         var color = Color?.Invoke(item) is { Length: > 0 } own ? own
-            : Category?.Invoke(item) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } category ? Categories.ColorOf(category)
+            : _category?.Invoke(item) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } category ? Categories.ColorOf(category)
             : null;
         return color is null ? "" : $"--ib-sched-color:{color}";
     }
@@ -490,10 +504,11 @@
                             @foreach (var box in own)
                             {
                                 var e = entries.First(x => x.Index == box.Index);
-                                <a class="@(box.Height < 1.0 / 48 ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-key="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
+                                var isShort = box.Height < 45.0 / 1440;
+                                <a class="@(isShort ? "ib-sched-event ib-sched-short" : "ib-sched-event")" href="@LinkOf(e)" draggable="false" data-ib-key="@(Editable ? ItemKey!(_items[e.Index]) : null)" data-ib-start="@Iso(e.Start)" data-ib-end="@Iso(e.End)" data-ib-cut="@(box.StartsBefore || box.EndsAfter ? "" : null)" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
                                     <span aria-hidden="true">
                                         <span class="ib-sched-name">@TitleText(e)</span>
-                                        <span class="ib-sched-time">@Time(e.Start, culture) – @Time(e.End, culture)</span>
+                                        <span class="ib-sched-time">@(isShort ? Whole(Time(e.Start, culture)) : $"{Whole(Time(e.Start, culture))} – {Whole(Time(e.End, culture))}")</span>
                                     </span>
                                     <span class="ib-visually-hidden">@Said(e, culture)</span>
                                 </a>
@@ -656,7 +671,14 @@
             var start = Query(StartKey) is { } at && DateTime.TryParseExact(at, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t)
                 ? t : CurrentDate.ToDateTime(new TimeOnly(Math.Clamp(DayStart, 0, 23), 0));
             var end = start.AddHours(1);
-            _model = new SchedulerEditFields { StartDate = DateOnly.FromDateTime(start), StartTime = TimeOnly.FromDateTime(start), EndDate = DateOnly.FromDateTime(end), EndTime = TimeOnly.FromDateTime(end) };
+            _model = new SchedulerEditFields
+            {
+                StartDate = DateOnly.FromDateTime(start),
+                StartTime = TimeOnly.FromDateTime(start),
+                EndDate = DateOnly.FromDateTime(end),
+                EndTime = TimeOnly.FromDateTime(end),
+                Category = _category is null ? null : Categories.Items.FirstOrDefault()?.Value,
+            };
         }
         else if (_editItem is { } item)
         {
@@ -671,6 +693,7 @@
                 EndTime = TimeOnly.FromDateTime(entry.End),
                 AllDay = entry.AllDay,
                 Description = _description?.Invoke(item),
+                Category = _category?.Invoke(item),
             };
         }
         else
@@ -700,13 +723,20 @@
                     @* Each day beside its time, as one row (MUI's form). *@
                     <div class="ib-sched-when">
                         <DateField @bind-Value="_model.StartDate" name="@($"{name}.StartDate")" Label="@TextDefaults.SchedulerStartDate" />
-                        <TimeField @bind-Value="_model.StartTime" name="@($"{name}.StartTime")" Label="@TextDefaults.SchedulerStartTime" Step="TimeSpan.FromMinutes(15)" />
+                        <TimeField @bind-Value="_model.StartTime" name="@($"{name}.StartTime")" Label="@TextDefaults.SchedulerStartTime" Class="ib-sched-time-field" Step="TimeSpan.FromMinutes(15)" />
                     </div>
                     <div class="ib-sched-when">
                         <DateField @bind-Value="_model.EndDate" name="@($"{name}.EndDate")" Label="@TextDefaults.SchedulerEndDate" />
-                        <TimeField @bind-Value="_model.EndTime" name="@($"{name}.EndTime")" Label="@TextDefaults.SchedulerEndTime" Step="TimeSpan.FromMinutes(15)" />
+                        <TimeField @bind-Value="_model.EndTime" name="@($"{name}.EndTime")" Label="@TextDefaults.SchedulerEndTime" Class="ib-sched-time-field" Step="TimeSpan.FromMinutes(15)" />
                     </div>
-                    <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" />
+                    <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" Class="ib-sched-allday-field" />
+                    @if (_category is not null && Categories.Items.Count > 0)
+                    {
+                        @* The category sets the appointment's color, as MUI's form sets its resource. *@
+                        <Select TValue="string" @bind-Value="_model.Category" name="@($"{name}.Category")" Label="@TextDefaults.SchedulerCategory"
+                                Items="@Categories.Items.Select(c => c.Value)" ItemText="@CategoryTitle"
+                                ItemTemplate="CategoryOption" />
+                    }
                     @if (Description is not null)
                     {
                         <TextArea @bind-Value="_model.Description" name="@($"{name}.Description")" Label="@TextDefaults.SchedulerDescription" />
@@ -723,20 +753,22 @@
                                 <Button Submit Name="@($"{name}.Remove")" Value="true" Accent="Accent.Danger" Variant="ButtonVariant.Ghost" formnovalidate Class="ib-sched-delete">@TextDefaults.Delete</Button>
                             }
                         }
-                        @if (RendererInfo.IsInteractive)
-                        {
-                            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="@(() => EndEdit())">@TextDefaults.Cancel</Button>
-                        }
-                        else
-                        {
-                            <Button Href="@ClosedHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">@TextDefaults.Cancel</Button>
-                        }
                         <Button Submit>@TextDefaults.Save</Button>
                     </DialogFooter>
                 </Form>
             }
         </Dialog>
     };
+
+    // A time that a narrow column wraps after its dash, never inside it ("11:30 / AM").
+    private static string Whole(string time) => time.Replace(' ', ' ');
+
+    private string CategoryTitle(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Title ?? c.Value : value;
+
+    private string? CategoryColor(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? Categories.ColorOf(c) : null;
+
+    // A category in the form's list: its color beside its name.
+    private RenderFragment<string> CategoryOption => value => @<span><span class="ib-sched-swatch" style="background:@CategoryColor(value)"></span>@CategoryTitle(value)</span>;
 
     private void OnDialogChanged(bool open)
     {
@@ -774,6 +806,7 @@
             SchedulerMembers.Set(Title, target!, fields.Title);
             SchedulerMembers.Set(AllDay, target!, fields.AllDay);
             SchedulerMembers.Set(Description, target!, fields.Description);
+            if (_category is not null && Categories.Items.Count > 0) SchedulerMembers.Set(Category, target!, fields.Category);
         }, Error);
         _saving = true;
         try
@@ -888,6 +921,7 @@
             EndDate = DateOnly.FromDateTime(end),
             EndTime = TimeOnly.FromDateTime(end),
             Description = _description?.Invoke(item),
+            Category = _category?.Invoke(item),
         };
         var messages = new List<string>();
         var save = new SchedulerSave<TItem>(item, fields, target =>

@@ -49,7 +49,8 @@ internal static class SchedulerLayout
     {
         SchedulerView.Day => (date, 1),
         SchedulerView.Week => (WeekStart(date, firstDay), 7),
-        SchedulerView.WorkWeek => (WeekStart(date, DayOfWeek.Monday), 5),
+        // The working days of the week the date is in, as the Week view shows it.
+        SchedulerView.WorkWeek => (WeekStart(date, firstDay).AddDays(((int)DayOfWeek.Monday - (int)firstDay + 7) % 7), 5),
         SchedulerView.Month => (WeekStart(new DateOnly(date.Year, date.Month, 1), firstDay), 42),
         _ => (date, Math.Max(1, agendaDays)),
     };
