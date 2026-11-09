@@ -227,24 +227,11 @@
     text-overflow: ellipsis;
   }
   .ib-sched-dow-short { display: none; }
-  .ib-sched-day-head .ib-sched-num {
-    display: grid;
-    place-items: center;
-    min-width: 1.75rem;
-    height: 1.75rem;
-    /* The number lines up with the weekday; today's circle reaches out around it. */
-    margin-inline-start: -0.375rem;
-    padding-inline: 0.375rem;
-    box-sizing: border-box;
-    border-radius: var(--ib-radius-full);
-    font-size: var(--ib-text-lg);
-  }
-  /* Today: its weekday in the accent, its date in a filled circle. */
-  .ib-sched-today .ib-sched-dow { color: var(--ib-color-primary-text); }
-  .ib-sched-day-head.ib-sched-today .ib-sched-num {
-    background-color: var(--ib-color-primary);
-    color: var(--ib-color-on-primary);
-  }
+  .ib-sched-day-head .ib-sched-num { font-size: var(--ib-text-lg); }
+  /* Today (Outlook's): a bar in the accent along the top of its day, its date and weekday in it. */
+  :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { box-shadow: inset 0 3px 0 var(--ib-color-primary); }
+  .ib-sched-today :is(.ib-sched-num, .ib-sched-dow, .ib-sched-day-link) { color: var(--ib-color-primary-text); }
+  .ib-sched-today :is(.ib-sched-num, .ib-sched-day-link) { font-weight: var(--ib-weight-semibold); }
 
   /* All-day and several-day appointments, in lanes over their days. */
   .ib-sched-allday {
@@ -414,10 +401,6 @@
   }
   .ib-sched-day-link:hover { background-color: var(--ib-color-fill-subtle); }
   .ib-sched-outside .ib-sched-day-link { color: var(--ib-color-muted); }
-  .ib-sched-cell.ib-sched-today .ib-sched-day-link {
-    background-color: var(--ib-color-primary);
-    color: var(--ib-color-on-primary);
-  }
   .ib-sched-week > .ib-sched-bar-event { grid-row-end: span 1; }
   .ib-sched-pills {
     display: flex;
@@ -532,7 +515,7 @@
     /* Categories' colors stay: they're what the edges and swatches are for. */
     .ib-sched-swatch,
     .ib-sched-pill::before { forced-color-adjust: none; }
-    .ib-sched-day-head.ib-sched-today .ib-sched-num,
-    .ib-sched-cell.ib-sched-today .ib-sched-day-link { outline: 2px solid Highlight; }
+    /* Box shadows are gone in forced colors: today's bar is a border then. */
+    :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { border-block-start: 3px solid Highlight; }
   }
 }
