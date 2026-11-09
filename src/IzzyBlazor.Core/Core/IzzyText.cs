@@ -1296,6 +1296,9 @@ public class IzzyText
     /// <summary>A Scheduler's button that goes to the date typed, with JavaScript off.</summary>
     public virtual string SchedulerGo { get; set; } = "Go";
 
+    /// <summary>A Scheduler's message when its ItemsProvider fails, before the Retry button.</summary>
+    public virtual string SchedulerLoadFailed { get; set; } = "Couldn't load the appointments.";
+
     /// <summary>A Scheduler's link back to today.</summary>
     public virtual string SchedulerToday { get; set; } = "Today";
 

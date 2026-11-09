@@ -49,4 +49,72 @@ public class SchedulerRenderTests : BunitContext
         Assert.Equal(("Room 3", new DateTime(2026, 11, 9, 10, 0, 0), new DateTime(2026, 11, 9, 11, 0, 0)), (booking.Room, booking.Start, booking.End));
         Assert.Empty(cut.FindAll("dialog[open]"));
     }
+
+    [Fact]
+    public void A_provider_is_asked_for_the_days_shown_and_again_for_the_next_week()
+    {
+        var asked = new List<SchedulerRequest>();
+        var bookings = new[]
+        {
+            new Booking { Id = 1, Room = "Room 2", Start = new DateTime(2026, 11, 10, 9, 0, 0), End = new DateTime(2026, 11, 10, 10, 0, 0) },
+            new Booking { Id = 2, Room = "Room 5", Start = new DateTime(2026, 11, 17, 9, 0, 0), End = new DateTime(2026, 11, 17, 10, 0, 0) },
+        };
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.ItemsProvider, r =>
+            {
+                asked.Add(r);
+                return ValueTask.FromResult(bookings.Where(b => b.Start < r.End && b.End > r.Start));
+            })
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.FirstDayOfWeek, DayOfWeek.Sunday)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9)));
+
+        Assert.Equal((new DateTime(2026, 11, 8), new DateTime(2026, 11, 15), SchedulerView.Week), (asked[^1].Start, asked[^1].End, asked[^1].View));
+        Assert.Contains("Room 2", cut.Markup);
+
+        Services.GetRequiredService<NavigationManager>().NavigateTo(cut.Find("a[aria-label='Next week']").GetAttribute("href")!);
+        cut.WaitForAssertion(() => Assert.Contains("Room 5", cut.Markup));
+        Assert.Equal(new DateTime(2026, 11, 15), asked[^1].Start);
+        Assert.DoesNotContain("Room 2", cut.Markup);
+    }
+
+    [Fact]
+    public void A_provider_that_fails_says_so_and_Retry_loads_again()
+    {
+        var fail = true;
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.ItemsProvider, r => fail
+                ? throw new InvalidOperationException("down")
+                : ValueTask.FromResult<IEnumerable<Booking>>([new Booking { Id = 1, Room = "Room 2", Start = r.Start.AddHours(9), End = r.Start.AddHours(10) }]))
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9)));
+
+        Assert.Contains("Couldn't load the appointments.", cut.Find("[role=alert]").TextContent);
+        fail = false;
+        cut.Find("[role=alert] button").Click();
+        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("[role=alert]")));
+        Assert.Contains("Room 2", cut.Markup);
+    }
+
+    [Fact]
+    public void An_IQueryable_is_filtered_to_the_days_shown_and_the_categories_not_hidden()
+    {
+        var all = new[]
+        {
+            (Id: 1, Start: new DateTime(2026, 11, 9, 9, 0, 0), End: new DateTime(2026, 11, 9, 10, 0, 0), Kind: "work"),
+            (Id: 2, Start: new DateTime(2026, 11, 9, 11, 0, 0), End: new DateTime(2026, 11, 9, 12, 0, 0), Kind: "family"),
+            (Id: 3, Start: new DateTime(2026, 11, 2, 9, 0, 0), End: new DateTime(2026, 11, 3, 9, 0, 0), Kind: "work"),
+            (Id: 4, Start: new DateTime(2026, 11, 7, 0, 0, 0), End: new DateTime(2026, 11, 10, 0, 0, 0), Kind: "work"),
+            (Id: 5, Start: new DateTime(2026, 11, 8, 0, 0, 0), End: new DateTime(2026, 11, 8, 0, 0, 0), Kind: "work"),
+        }.AsQueryable();
+
+        var shown = SchedulerQuery.InRange(all, a => a.Start, a => a.End, a => a.Kind, new DateTime(2026, 11, 8), new DateTime(2026, 11, 15), ["family"]);
+
+        // In the week: the 9 AM one, one that runs into it, and a moment at its start; not last week's, not a hidden category's.
+        Assert.Equal([1, 4, 5], shown.Select(a => a.Id).OrderBy(id => id));
+    }
 }
