@@ -1239,6 +1239,9 @@ public class IzzyText
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
 
+    /// <summary>The toggle button that pauses a live Chart's updates (Refresh, Live).</summary>
+    public virtual string ChartPauseUpdates { get; set; } = "Pause updates";
+
     /// <summary>Said when a Chart zooms or pans: its first and last arguments in view, "Showing {0} to {1}".</summary>
     public virtual string ChartShowing { get; set; } = "Showing {0} to {1}";
 

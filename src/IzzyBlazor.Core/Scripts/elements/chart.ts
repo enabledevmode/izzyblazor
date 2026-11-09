@@ -4,6 +4,7 @@ import type { drawPie as DrawPie } from "./chart-draw-pie";
 import type { heat as Heat } from "./chart-heat";
 import type { pie as Pie } from "./chart-pie";
 import type { gestures as Gestures } from "./chart-gesture";
+import type { live as Live } from "./chart-live";
 import type { selector as Selector } from "./chart-select";
 import type { Peer, SyncAt } from "./chart-sync";
 import type { radar as Radar } from "./chart-radar";
@@ -49,6 +50,10 @@ class Chart extends IzzyElement {
   // The item the keys were on, and whether the tooltip was theirs, kept over a new draw of the same chart.
   #current = -1;
   #byKeys = false;
+  // That item's argument (live and synced charts): new data keeps the item, not its place.
+  #key: unknown;
+  // Live (Refresh): the view and the call that sets it, for the live part across new drawings.
+  ibView?: [() => View, (from: number, to: number, report?: boolean, share?: boolean) => void];
 
   protected setup(signal: AbortSignal): void {
     // An interactive page can draw the chart again with new data in this same element: set up
@@ -58,6 +63,10 @@ class Chart extends IzzyElement {
       this.#keep = true;
       this.connectedCallback();
     });
+    // Live data on a static page (Chart Refresh): its own part (chart-live.ts).
+    if (this.hasAttribute("data-ib-refresh")) {
+      (import("./parts/chart-live.js" as string) as Promise<{ live: typeof Live }>).then((m) => !signal.aborted && m.live(this, signal));
+    }
     changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap", "data-ib-sync", "data-ib-sync-at", "data-ib-sync-view", "data-ib-sync-hover", "data-ib-follow"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
@@ -385,6 +394,7 @@ class Chart extends IzzyElement {
       }
       if (report) settled();
     };
+    this.ibView = [() => view, setView];
     if (syncView) {
       peer.view = (m) => {
         const v = sync!.viewIn(syncAt!, m);
@@ -518,7 +528,7 @@ class Chart extends IzzyElement {
     // A point of a series the legend hid isn't a stop, nor (zoomed) one out of view.
     const keys = () => (pointsMode ? items().filter((i) => shown(i) && markFor(i)) : items());
 
-    let current = kept ? this.#current : -1;
+    let current = kept ? (syncAt && this.#key !== undefined ? syncAt.k.indexOf(this.#key as string) : this.#current) : -1;
     let lastY: number | null = null;
 
     const along = (event: PointerEvent) => {
@@ -547,6 +557,7 @@ class Chart extends IzzyElement {
         return;
       }
       current = this.#current = index;
+      this.#key = syncAt?.k[index];
       lastY = pointerY;
       if (!tipsOn) return;
       // Shown for another synced chart, screen readers leave it to that one.

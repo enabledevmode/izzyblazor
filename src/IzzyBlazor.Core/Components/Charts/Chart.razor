@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits LayoutItemBase
+@implements IDisposable
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
 @using System.Globalization
@@ -183,6 +184,42 @@
     [Parameter] public bool SyncHover { get; set; } = true;
 
     /// <summary>
+    /// How often the chart reads its data again, at least a second, such as
+    /// <c>Refresh="TimeSpan.FromSeconds(5)"</c>. On a static page the page is fetched again and the
+    /// chart drawn from it (set an <c>id</c>, which finds it there); on an interactive page
+    /// <see cref="OnRefresh"/> is raised, for you to load new <see cref="Items"/>. Not while the
+    /// tab is hidden or the chart is off-screen (static), nor while paused. Makes the chart
+    /// <see cref="Live"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public TimeSpan? Refresh { get; set; }
+
+    /// <summary>On a static page with <see cref="Refresh"/>: a lighter page to fetch than this one, which renders the same chart with the same <c>id</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? RefreshFrom { get; set; }
+
+    /// <summary>On an interactive page with <see cref="Refresh"/>: raised at each interval while not paused, to load new <see cref="Items"/>.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback OnRefresh { get; set; }
+
+    /// <summary>
+    /// The data updates on its own, such as from a timer or SignalR on an interactive page: the
+    /// chart gets a Pause button, keeps the item shown and the zoom by argument as items come
+    /// and go, and a view at the latest item follows new data. <see cref="Refresh"/> sets it.
+    /// </summary>
+    [Parameter] public bool Live { get; set; }
+
+    /// <summary>A live chart's updates are paused: it keeps the drawing it has (<c>@bind-Paused</c>).</summary>
+    [Parameter] public bool Paused { get; set; }
+
+    /// <summary>Raised on an interactive page when the reader pauses or resumes updates.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<bool> PausedChanged { get; set; }
+
+    /// <summary>Leaves out a live chart's Pause button, for a page that pauses its updates from its own control (bind <see cref="Paused"/>).</summary>
+    [Parameter] public bool HidePause { get; set; }
+
+    /// <summary>
     /// The series (<see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
     /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
     /// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>), the axes (<see cref="ChartValueAxis"/>,
@@ -264,10 +301,39 @@
     private ChartView? _view;
     private ChartView? _viewSet;
 
+    // Live: paused (Paused, or the reader's button), the items drawn last (kept while paused),
+    // the items in a view that reached the latest (it follows new data), and the refresh timer.
+    private bool _paused;
+    private bool _pausedSet;
+    private IReadOnlyList<TItem>? _lastItems;
+    private int? _follow;
+    private CancellationTokenSource? _refreshing;
+    private TimeSpan? _refreshEvery;
+
+    private bool IsLive => Live || Refresh is not null;
+
+    // Truly static: not interactive, and not prerendering an interactive component.
+    private bool StaticPage => !RendererInfo.IsInteractive && AssignedRenderMode is null;
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (!Equals(View, _viewSet)) (_view, _viewSet) = (View, View);
+        if (!Equals(View, _viewSet)) (_view, _viewSet, _follow) = (View, View, null);
+        if (Paused != _pausedSet) (_paused, _pausedSet) = (Paused, Paused);
+
+        if (Refresh is { } every)
+        {
+            if (every < TimeSpan.FromSeconds(1)) throw new InvalidOperationException("Chart Refresh is at least a second, such as TimeSpan.FromSeconds(5).");
+            if (StaticPage && !(AdditionalAttributes?.TryGetValue("id", out var id) == true && !string.IsNullOrWhiteSpace(id?.ToString())))
+            {
+                throw new InvalidOperationException("Chart Refresh on a static page needs an id, such as id=\"cpu\": the page is fetched again and the chart found in it by its id.");
+            }
+
+            if (RendererInfo.IsInteractive && !OnRefresh.HasDelegate)
+            {
+                throw new InvalidOperationException("Chart Refresh on an interactive page raises OnRefresh: handle it to load new Items, or set Live and update Items yourself.");
+            }
+        }
 
         if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
@@ -291,6 +357,53 @@
         base.OnParametersSet();
         _context.BeginPass();
         (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        // Interactive: OnRefresh at each interval, started again when Refresh changes.
+        if (!RendererInfo.IsInteractive || Refresh == _refreshEvery) return;
+        _refreshing?.Cancel();
+        _refreshEvery = Refresh;
+        if (Refresh is not { } every || !OnRefresh.HasDelegate) return;
+        _refreshing = new CancellationTokenSource();
+        _ = Tick(every, _refreshing.Token);
+    }
+
+    private async Task Tick(TimeSpan every, CancellationToken token)
+    {
+        using var timer = new PeriodicTimer(every);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                if (_paused) continue;
+                await InvokeAsync(async () =>
+                {
+                    try { await OnRefresh.InvokeAsync(); }
+                    catch (Exception ex) { await DispatchExceptionAsync(ex); }
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    // Interactive: the Pause button (static pages' is the script's).
+    private async Task TogglePause()
+    {
+        _paused = !_paused;
+        if (PausedChanged.HasDelegate) await PausedChanged.InvokeAsync(_paused);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _refreshing?.Cancel();
+        _refreshing?.Dispose();
     }
 
     /// <summary>Finds the value axes and the argument axis among the chart's children.</summary>
@@ -396,8 +509,12 @@
 
     private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
-        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        // Paused, a live chart keeps the items it drew (a copy: an app may change its list in place).
+        var items = _paused && _lastItems is not null ? _lastItems : Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        if (IsLive && !_paused) _lastItems = [.. items];
         var arguments = items.Select(_argument!).ToList();
+        // A view that reached the latest item follows new data, keeping as many items.
+        if (_follow is { } keep && arguments.Count > 0) _view = new ChartView(arguments[Math.Max(0, arguments.Count - keep)], null);
         ReadAxes();
         var series = ChartTrends.Add(_context.Series.SelectMany(s => s.Read(items)).Select(OnAxis).ToList(), arguments, TextDefaults);
         // Off by default when every series writes its values beside them; labels of other text keep it.
@@ -519,7 +636,9 @@
                   data-ib-sync="@Sync"
                   data-ib-sync-view="@(Sync is not null && SyncView && model.ZoomPositions is not null ? "" : null)"
                   data-ib-sync-hover="@(Sync is not null && SyncHover ? "" : null)"
-                  data-ib-sync-at="@(Sync is not null ? SyncKeys(model) : null)"
+                  data-ib-sync-at="@(Sync is not null || IsLive ? SyncKeys(model) : null)"
+                  data-ib-refresh="@(Refresh is { } every && StaticPage ? ((long)every.TotalMilliseconds).ToString(CultureInfo.InvariantCulture) : null)"
+                  data-ib-refresh-from="@(Refresh is not null && StaticPage ? RefreshFrom : null)"
                   data-ib-interactive="@(model.ZoomPositions is not null && RendererInfo.IsInteractive ? "" : null)"
                   @oniblayout="OnView" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive"
                   data-ib-view="@(model.View?.Share is { } share ? $"{Num(share.F0)} {Num(share.F1)}" : null)"
@@ -530,6 +649,15 @@
         {
             @* Reset zoom, in the title's row across from the title (chart.css); shown while zoomed in. *@
             <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
+        }
+        @if (IsLive && !HidePause && SelectorHost is null)
+        {
+            @* Pause updates, at the end of the title's row (chart.css); pressed, the chart keeps its drawing. *@
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause"
+                    aria-label="@TextDefaults.ChartPauseUpdates" aria-pressed="@(_paused ? "true" : "false")" @onclick="TogglePause">
+                <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
+                <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
+            </button>
         }
         @if (keyed && Place is ChartLegend.Top or ChartLegend.Start)
         {
@@ -1353,9 +1481,25 @@
     private async Task OnView(IzzyLayoutEventArgs e)
     {
         var view = ViewAt(e.Layout);
+        _follow = IsLive && view is not null ? FollowCount(e.Layout) : null;
         if (Equals(view, _view)) return;
         _view = view;
         if (ViewChanged.HasDelegate) await ViewChanged.InvokeAsync(view);
+    }
+
+    // Live: a view that reaches the latest item follows new data, keeping as many items: their count,
+    // or null for one that ends earlier.
+    private int? FollowCount(string? layout)
+    {
+        var parts = (layout ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2 || !double.TryParse(parts[0], CultureInfo.InvariantCulture, out var f0) || !double.TryParse(parts[1], CultureInfo.InvariantCulture, out var f1) || f1 < 1 - 1e-6) return null;
+        var n = _drawnArguments.Count;
+        if (n < 2) return null;
+        if (_drawnKind == ArgumentKind.Category) return Math.Max(1, (int)Math.Round((f1 - f0) * n));
+        var at = _drawnArguments.Select(a => ChartLayout.ToDouble(a, _drawnKind)).Where(x => x is not null).Select(x => x!.Value).ToList();
+        if (at.Count < 2) return null;
+        var (lo, hi) = (at.Min(), at.Max());
+        return Math.Max(1, at.Count(x => x >= lo + f0 * (hi - lo) - 1e-9 * (hi - lo)));
     }
 
     // A view from shares of the whole axis: the names it takes in, or the scale's ends as arguments

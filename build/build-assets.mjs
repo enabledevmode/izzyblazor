@@ -380,6 +380,8 @@ const builds = [
       "elements/parts/chart-draw-pie": join(lib, "Scripts", "elements", "chart-draw-pie.ts"),
       // PieChart's and NestedDonutChart's tooltip, keys and legend, loaded where there's one.
       "elements/parts/chart-pie": join(lib, "Scripts", "elements", "chart-pie.ts"),
+      // Live data on a static page (Chart Refresh), loaded where a chart refreshes.
+      "elements/parts/chart-live": join(lib, "Scripts", "elements", "chart-live.ts"),
       // Zoom's gestures (box, wheel, pinch), loaded where a chart zooms.
       "elements/parts/chart-gesture": join(lib, "Scripts", "elements", "chart-gesture.ts"),
       // Synced charts' matching by argument, loaded where a chart has a Sync name.

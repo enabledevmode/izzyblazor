@@ -4,8 +4,8 @@
  * the answer arrives in a template after the first flush, so the last streamed match wins. Null when
  * the response isn't OK or holds no match; a network failure or abort throws.
  */
-export async function fetchPart(url: URL, selector: string, signal: AbortSignal): Promise<Element | null> {
-  const response = await fetch(url, { signal });
+export async function fetchPart(url: URL, selector: string, signal: AbortSignal, init?: RequestInit): Promise<Element | null> {
+  const response = await fetch(url, { ...init, signal });
   if (!response.ok) return null;
   const doc = new DOMParser().parseFromString(await response.text(), "text/html");
   const streamed = [...doc.querySelectorAll<HTMLTemplateElement>("blazor-ssr template")].map((t) => t.content.querySelector(selector)).filter(Boolean);

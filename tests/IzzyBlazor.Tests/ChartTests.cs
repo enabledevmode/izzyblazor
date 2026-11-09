@@ -527,6 +527,54 @@ public class ChartRenderTests : BunitContext
     private record Sale(DateOnly Day, double Orders);
 
     [Fact]
+    public void Refresh_on_a_static_page_needs_an_id_and_gets_a_pause_button()
+    {
+        Sale[] days = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7)];
+        Action<ComponentParameterCollectionBuilder<Chart<Sale>>> chart = p => p
+            .Add(c => c.Items, days)
+            .Add(c => c.Argument, d => d.Day)
+            .Add(c => c.Title, "Orders")
+            .Add(c => c.Refresh, TimeSpan.FromSeconds(5))
+            .AddChildContent<ChartLineSeries<Sale>>(s => s.Add(x => x.Value, d => d.Orders));
+
+        // The page is fetched again and the chart found in it by its id: without one, it says so.
+        var error = Assert.Throws<InvalidOperationException>(() => Render(chart));
+        Assert.Contains("needs an id", error.Message);
+
+        // With one, the script refreshes every 5 seconds, and the reader can pause it.
+        var cut = Render<Chart<Sale>>(p => { chart(p); p.AddUnmatched("id", "orders"); });
+        Assert.Equal("5000", cut.Find("ib-chart").GetAttribute("data-ib-refresh"));
+        var pause = cut.Find(".ib-chart-pause");
+        Assert.Equal("Pause updates", pause.GetAttribute("aria-label"));
+        Assert.Equal("false", pause.GetAttribute("aria-pressed"));
+    }
+
+    [Fact]
+    public void Paused_on_an_interactive_page_keeps_the_drawing_while_new_items_arrive()
+    {
+        SetRendererInfo(new Microsoft.AspNetCore.Components.RendererInfo("Server", isInteractive: true));
+        Sale[] first = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7)];
+        Sale[] next = [new(new DateOnly(2026, 1, 2), 7), new(new DateOnly(2026, 1, 3), 9)];
+        var cut = Render<Chart<Sale>>(p => p
+            .Add(c => c.Items, first)
+            .Add(c => c.Argument, d => d.Day)
+            .Add(c => c.Title, "Orders")
+            .Add(c => c.Live, true)
+            .AddChildContent<ChartLineSeries<Sale>>(s => s.Add(x => x.Value, d => d.Orders)));
+        var drawn = cut.Find("ib-chart").GetAttribute("data-ib-sync-at");
+
+        // Paused by the reader: new items wait, and the button says so.
+        cut.Find(".ib-chart-pause").Click();
+        cut.Render(p => p.Add(c => c.Items, next));
+        Assert.Equal(drawn, cut.Find("ib-chart").GetAttribute("data-ib-sync-at"));
+        Assert.Equal("true", cut.Find(".ib-chart-pause").GetAttribute("aria-pressed"));
+
+        // Resumed: the chart catches up.
+        cut.Find(".ib-chart-pause").Click();
+        Assert.NotEqual(drawn, cut.Find("ib-chart").GetAttribute("data-ib-sync-at"));
+    }
+
+    [Fact]
     public void Sync_without_its_own_zoom_follows_and_bars_over_dates_match_by_date()
     {
         Sale[] days = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7), new(new DateOnly(2026, 1, 3), 6)];
