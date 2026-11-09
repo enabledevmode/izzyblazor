@@ -17,10 +17,14 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         var example = page.Locator("[data-ex='scheduler-usage']");
 
         await example.GetByRole(AriaRole.Button, new() { Name = "March 2026" }).ClickAsync();
-        await example.GetByRole(AriaRole.Button, new() { Name = "Tuesday, March 24, 2026" }).ClickAsync();
+        // Picking a month from the calendar's select keeps it open; a day goes there.
+        await example.Locator(".ib-sched-jump-form select").First.SelectOptionAsync(new SelectOptionValue { Label = "April" });
+        var april24 = example.GetByRole(AriaRole.Button, new() { Name = "Friday, April 24, 2026" });
+        await Assertions.Expect(april24).ToBeVisibleAsync();
+        await april24.ClickAsync();
 
-        await Assertions.Expect(page).ToHaveURLAsync(new Regex("date=2026-03-24"));
-        await Assertions.Expect(example.Locator(".ib-sched-day-head .ib-sched-num").First).ToHaveTextAsync("22");
+        await Assertions.Expect(page).ToHaveURLAsync(new Regex("date=2026-04-24"));
+        await Assertions.Expect(example.Locator(".ib-sched-day-head .ib-sched-num").First).ToHaveTextAsync("19");
     }
 
     [Fact]
@@ -32,13 +36,17 @@ public sealed class SchedulerTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/scheduler?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var example = page.Locator("[data-ex='scheduler-usage']");
 
-        await example.GetByRole(AriaRole.Button, new() { Name = "Sprint planning", Exact = false }).ClickAsync();
+        await page.WaitForFunctionAsync("() => customElements.get('ib-scheduler')");
+        var appointment = example.GetByRole(AriaRole.Button, new() { Name = "Sprint planning", Exact = false });
+        await appointment.ClickAsync();
         var card = page.GetByRole(AriaRole.Dialog, new() { Name = "Sprint planning" });
         await Assertions.Expect(card).ToBeVisibleAsync();
         await Assertions.Expect(card).ToContainTextAsync("Room 4");
+        await Assertions.Expect(card).ToBeFocusedAsync();
 
         await page.Keyboard.PressAsync("Escape");
         await Assertions.Expect(card).ToBeHiddenAsync();
+        await Assertions.Expect(appointment).ToBeFocusedAsync();
     }
 
     // Israel, Nov 9: the new appointment stayed in the address, so a reload or another view opened

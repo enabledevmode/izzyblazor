@@ -1,7 +1,7 @@
 /*
  * Scheduler's styles, built to wwwroot/scheduler.css and linked by it, so pages without one don't
  * pay for them. The look follows MUI's Event Calendar (Israel's reference, Nov 8): the period as
- * the title, a quiet toolbar, today's date in a filled circle, all-day and several-day appointments
+ * the title, a quiet toolbar, today marked by an accent bar, all-day and several-day appointments
  * as bars across their days, weekends shaded. From Outlook (Israel, Nov 9): no times in the boxes
  * (the hours say when), a quarter hour tall enough for a line, dashed half hours, room beside the
  * boxes to click, and a month's appointments as even rows that lead with their start.
@@ -73,7 +73,7 @@
     margin-inline-start: auto;
   }
 
-  /* An appointment: its color tints it, a dot or an edge says it. */
+  /* An appointment: its color tints it, and an edge on its leading side says it. */
   .ib-sched-event {
     box-sizing: border-box;
     overflow: hidden;
@@ -501,7 +501,7 @@
     text-align: center;
   }
 
-  /* Narrow: the gutter and the date shrink, a month's pills keep only their dots and titles. */
+  /* Narrow: the gutter and the date shrink, a month's rows keep only their edges and titles. */
   @media (max-width: 40rem) {
     .ib-sched-cols { --ib-sched-columns: 3rem repeat(var(--ib-sched-days), minmax(0, 1fr)); }
     .ib-sched { --ib-sched-gap: 0.25rem; }
@@ -521,7 +521,8 @@
   }
 
   @media (forced-colors: active) {
-    .ib-sched-event { border: 1px solid CanvasText; }
+    /* As specific as a read-only button's border, so bars and month rows keep their edge too. */
+    :is(.ib-sched-event, button.ib-sched-event) { border: 1px solid CanvasText; }
     /* Categories' colors stay: they're what the edges and swatches are for. */
     .ib-sched-swatch,
     .ib-sched-pill::before { forced-color-adjust: none; }
