@@ -43,15 +43,18 @@
   gap: var(--ib-space-12);
   align-items: center;
 }
-/* The knob rises behind the app window's top edge, its rings spreading into the band. */
+/* The knob as a faint watermark centered above the wordmark, its rings spreading under the text
+   and off the band's edge; faint enough that the headline keeps its contrast. */
+.site-hero-intro { position: relative; }
 .site-hero-glow {
   position: absolute;
   z-index: -1;
-  top: 0;
-  left: 64%;
-  width: 46rem;
-  height: 46rem;
+  top: -1rem;
+  left: 3rem;
+  width: 44rem;
+  height: 44rem;
   translate: -50% -50%;
+  opacity: 0.16;
   pointer-events: none;
 }
 .site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
@@ -128,10 +131,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-@media (max-width: 63.98rem) {
-  /* One column: the phone alone, centered under the text, the knob behind its top. */
-  .site-hero-glow { left: 50%; top: 4rem; width: 32rem; height: 32rem; }
 }
 @media (min-width: 64rem) {
   /* Text beside the app: the desktop window, with the phone over its lower start corner. The
