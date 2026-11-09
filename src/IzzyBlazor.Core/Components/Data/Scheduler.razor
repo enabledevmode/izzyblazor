@@ -565,8 +565,8 @@
                 {
                     var day = first.AddDays(d);
                     <span class="@DayClass("ib-sched-day-head", day, today)">
-                        <span class="ib-sched-dow">@day.ToString("ddd", culture)</span>
                         <span class="ib-sched-num">@day.Day</span>
+                        <span class="ib-sched-dow"><span class="ib-sched-dow-long">@day.ToString("dddd", culture)</span><span class="ib-sched-dow-short">@culture.DateTimeFormat.GetShortestDayName(day.DayOfWeek)</span></span>
                     </span>
                 }
             </div>

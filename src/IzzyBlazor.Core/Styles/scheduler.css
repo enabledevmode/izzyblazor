@@ -143,6 +143,12 @@
     outline-offset: 1px;
   }
   button.ib-sched-pill { width: 100%; }
+  /* A box's text from its top, as a link's (a button centers what it holds). */
+  .ib-sched-col button.ib-sched-event:not(.ib-sched-short) {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
   .ib-sched-card { width: 20rem; }
   .ib-sched-card-head {
     display: flex;
@@ -203,24 +209,35 @@
     scrollbar-gutter: stable;
   }
   .ib-sched-head { border-block-end: 1px solid var(--ib-color-border); }
+  /* A day: its date over its weekday, at the column's start (Outlook's). */
   .ib-sched-day-head {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.125rem;
-    padding-block: var(--ib-space-2);
+    align-items: flex-start;
+    min-width: 0;
+    padding: var(--ib-space-1) var(--ib-space-2);
+    line-height: 1.25;
   }
   .ib-sched-dow {
+    max-width: 100%;
+    overflow: hidden;
     color: var(--ib-color-muted);
-    font-size: var(--ib-text-sm);
+    font-size: var(--ib-text-xs);
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
+  .ib-sched-dow-short { display: none; }
   .ib-sched-day-head .ib-sched-num {
     display: grid;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    /* The number lines up with the weekday; today's circle reaches out around it. */
+    margin-inline-start: -0.375rem;
+    padding-inline: 0.375rem;
+    box-sizing: border-box;
     border-radius: var(--ib-radius-full);
-    font-size: var(--ib-text-xl);
+    font-size: var(--ib-text-lg);
   }
   /* Today: its weekday in the accent, its date in a filled circle. */
   .ib-sched-today .ib-sched-dow { color: var(--ib-color-primary-text); }
@@ -502,7 +519,10 @@
   @media (max-width: 40rem) {
     .ib-sched-cols { --ib-sched-columns: 3rem repeat(var(--ib-sched-days), minmax(0, 1fr)); }
     .ib-sched { --ib-sched-gap: 0.25rem; }
-    .ib-sched-day-head .ib-sched-num { width: 2rem; height: 2rem; font-size: var(--ib-text-md); }
+    .ib-sched-day-head .ib-sched-num { font-size: var(--ib-text-md); }
+    .ib-sched-dow-long { display: none; }
+    .ib-sched-dow-short { display: inline; }
+    .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
     .ib-sched-agenda-day { grid-template-columns: 1fr; }
   }
