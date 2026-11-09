@@ -309,6 +309,7 @@
     private int? _follow;
     private CancellationTokenSource? _refreshing;
     private TimeSpan? _refreshEvery;
+    private bool _catchUp;
 
     private bool IsLive => Live || Refresh is not null;
 
@@ -318,8 +319,14 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (!Equals(View, _viewSet)) (_view, _viewSet, _follow) = (View, View, null);
-        if (Paused != _pausedSet) (_paused, _pausedSet) = (Paused, Paused);
+        // A new View from the app stops following, unless it's the view the chart just reported (@bind-View).
+        if (!Equals(View, _viewSet)) (_view, _viewSet, _follow) = (View, View, Equals(View, _view) ? _follow : null);
+        if (Paused != _pausedSet)
+        {
+            // Resumed by the app: an interactive chart catches up at once (OnAfterRender).
+            _catchUp = _paused && !Paused;
+            (_paused, _pausedSet) = (Paused, Paused);
+        }
 
         if (Refresh is { } every)
         {
@@ -363,6 +370,12 @@
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
+        if (_catchUp)
+        {
+            _catchUp = false;
+            if (RendererInfo.IsInteractive && Refresh is not null) _ = InvokeAsync(RefreshNow);
+        }
+
         // Interactive: OnRefresh at each interval, started again when Refresh changes.
         if (!RendererInfo.IsInteractive || Refresh == _refreshEvery) return;
         _refreshing?.Cancel();
@@ -379,12 +392,7 @@
         {
             while (await timer.WaitForNextTickAsync(token))
             {
-                if (_paused) continue;
-                await InvokeAsync(async () =>
-                {
-                    try { await OnRefresh.InvokeAsync(); }
-                    catch (Exception ex) { await DispatchExceptionAsync(ex); }
-                });
+                if (!_paused) await InvokeAsync(RefreshNow);
             }
         }
         catch (OperationCanceledException)
@@ -392,11 +400,18 @@
         }
     }
 
-    // Interactive: the Pause button (static pages' is the script's).
+    private async Task RefreshNow()
+    {
+        try { await OnRefresh.InvokeAsync(); }
+        catch (Exception ex) { await DispatchExceptionAsync(ex); }
+    }
+
+    // Interactive: the Pause button (static pages' is the script's). Resumed, it catches up at once.
     private async Task TogglePause()
     {
         _paused = !_paused;
         if (PausedChanged.HasDelegate) await PausedChanged.InvokeAsync(_paused);
+        if (!_paused && Refresh is not null && OnRefresh.HasDelegate) await RefreshNow();
     }
 
     /// <inheritdoc />
@@ -511,7 +526,7 @@
     {
         // Paused, a live chart keeps the items it drew (a copy: an app may change its list in place).
         var items = _paused && _lastItems is not null ? _lastItems : Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
-        if (IsLive && !_paused) _lastItems = [.. items];
+        if (IsLive && (!_paused || _lastItems is null)) _lastItems = [.. items];
         var arguments = items.Select(_argument!).ToList();
         // A view that reached the latest item follows new data, keeping as many items.
         if (_follow is { } keep && arguments.Count > 0) _view = new ChartView(arguments[Math.Max(0, arguments.Count - keep)], null);
@@ -639,6 +654,7 @@
                   data-ib-sync-at="@(Sync is not null || IsLive ? SyncKeys(model) : null)"
                   data-ib-refresh="@(Refresh is { } every && StaticPage ? ((long)every.TotalMilliseconds).ToString(CultureInfo.InvariantCulture) : null)"
                   data-ib-refresh-from="@(Refresh is not null && StaticPage ? RefreshFrom : null)"
+                  data-ib-paused="@(Refresh is not null && StaticPage && _paused ? "" : null)"
                   data-ib-interactive="@(model.ZoomPositions is not null && RendererInfo.IsInteractive ? "" : null)"
                   @oniblayout="OnView" __internal_stopPropagation_oniblayout="@RendererInfo.IsInteractive"
                   data-ib-view="@(model.View?.Share is { } share ? $"{Num(share.F0)} {Num(share.F1)}" : null)"
@@ -650,10 +666,10 @@
             @* Reset zoom, in the title's row across from the title (chart.css); shown while zoomed in. *@
             <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
         }
-        @if (IsLive && !HidePause && SelectorHost is null)
+        @if (IsLive && !HidePause && SelectorHost is null && (Refresh is not null || !StaticPage))
         {
             @* Pause updates, at the end of the title's row (chart.css); pressed, the chart keeps its drawing. *@
-            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause"
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause" data-ib-script
                     aria-label="@TextDefaults.ChartPauseUpdates" aria-pressed="@(_paused ? "true" : "false")" @onclick="TogglePause">
                 <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
                 <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
