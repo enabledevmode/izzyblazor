@@ -2,6 +2,7 @@
 @typeparam TItem
 @inherits LayoutItemBase
 @implements IDisposable
+@implements ISchedulerToolbar
 @attribute [ModeSupport]
 @using System.Globalization
 @using System.Linq.Expressions
@@ -77,92 +78,42 @@
         _cards = 0;
     }
     @* Outlook's order: Today, the arrows and the period (what they change) at the start; the
-       categories, the view and New at the end. *@
+       categories, the view and New at the end. Each is a toolbar part the page can place among its
+       own items in ToolbarContent; the rest keep these places. *@
+    @{
+        var placed = SchedulerToolbarItem.Placed(ToolbarContent);
+    }
     <div class="ib-sched-bar">
-        <div class="ib-sched-nav">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" @onclick="() => GoAsync(view, DateOnly.FromDateTime(DateTime.Now))" @onclick:preventDefault="Bound" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
-                <Icon Purpose="IconPurpose.ChevronLeft" />
-            </a>
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
-                <Icon Purpose="IconPurpose.ChevronRight" />
-            </a>
-            @* The period, a button to a month to go to any date (Outlook's). *@
-            <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
-                <Trigger>
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span><span class="ib-visually-hidden">, @TextDefaults.SchedulerGoTo.ToLower(culture)</span></Button>
-                </Trigger>
-                <ChildContent>
-                    @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@
-                    <form method="get" action="@(new Uri(Navigation.Uri).AbsolutePath)" class="ib-sched-jump-form" data-ib-date-key="@DateKey" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
-                        @foreach (var (key, values) in QueryString.Of(Navigation.Uri))
-                        {
-                            if (key == DateKey || key == EditKey || key == StartKey) continue;
-                            foreach (var v in values)
-                            {
-                                <input type="hidden" name="@key" value="@v" />
-                            }
-                        }
-                        <Calendar TValue="DateOnly" @bind-Value="_jump" @bind-Value:after="JumpTo" name="@DateKey" Label="@TextDefaults.SchedulerGoTo" HideLabel />
-                        <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-sched-jump-go">@TextDefaults.SchedulerGo</button>
-                    </form>
-                </ChildContent>
-            </Popover>
-        </div>
-        <div class="ib-sched-actions">
-            @if (Kinds.Count > 0)
-            {
-                @* Each category shows or hides its appointments: a link with it in or out of the address. *@
-                @* With some hidden, the button says so as a DataGrid's column filter does: the accent and
-                   a dot on the funnel, and its name gives the count. *@
-                var hiddenCount = Kinds.Count(c => Hidden.Contains(c.Value));
-                <Menu Placement="Placement.BottomEnd" Class="ib-sched-cats">
-                    <Trigger>
-                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
-                                data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Kinds.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
-                    </Trigger>
-                    <ChildContent>
-                    @foreach (var c in Kinds)
-                    {
-                        <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
-                            <span class="ib-sched-swatch" style="background:@ColorOf(c)"></span>@(c.Label ?? c.Value)
-                        </MenuItem>
-                    }
-                    </ChildContent>
-                </Menu>
-            }
-            @if (Views.Count > 1)
-            {
-                @* Each view links by Href, as the arrows do: never with the form's keys, which an
-                   address drawn while the form was open still has after it closes in the browser. *@
-                <Menu Label="@ViewName(view)" StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" Placement="Placement.BottomEnd" Class="ib-sched-views">
-                    @if (Bound)
-                    {
-                        <MenuRadioGroup Value="@ViewValue(view)" ValueChanged="@((string v) => GoAsync(Views.First(x => ViewValue(x) == v), date))">
-                            @foreach (var v in Views)
-                            {
-                                <MenuItem Value="@ViewValue(v)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
-                            }
-                        </MenuRadioGroup>
-                    }
-                    else
-                    {
-                        <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
-                            @foreach (var v in Views)
-                            {
-                                <MenuItem Value="@ViewValue(v)" Href="@Href(v, date)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
-                            }
-                        </MenuRadioGroup>
-                    }
-                </Menu>
-            }
-            @if (Editable)
-            {
-                <a class="ib-btn ib-btn-primary ib-btn-solid" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
-                    <Icon Purpose="IconPurpose.Plus" /><span class="ib-sched-new-text">@TextDefaults.SchedulerNewShort</span>
-                </a>
-            }
-        </div>
+        @* Around the toolbar, not inside it: its items keep the order they join in. *@
+        <CascadingValue TValue="ISchedulerToolbar" Value="this">
+            <Toolbar Label="@($"{Label ?? TextDefaults.SchedulerName}: {TextDefaults.GridToolbar}")" Wrap Size="ControlSize.Md" Gap="1">
+                @if (!placed.Contains(typeof(SchedulerToday)))
+                {
+                    <SchedulerToday />
+                }
+                @if (!placed.Contains(typeof(SchedulerArrows)))
+                {
+                    <SchedulerArrows />
+                }
+                @if (!placed.Contains(typeof(SchedulerPeriod)))
+                {
+                    <SchedulerPeriod />
+                }
+                @ToolbarContent
+                @if (!placed.Contains(typeof(SchedulerCategoryMenu)))
+                {
+                    <SchedulerCategoryMenu />
+                }
+                @if (!placed.Contains(typeof(SchedulerViewMenu)))
+                {
+                    <SchedulerViewMenu />
+                }
+                @if (!placed.Contains(typeof(SchedulerNewButton)))
+                {
+                    <SchedulerNewButton />
+                }
+            </Toolbar>
+        </CascadingValue>
     </div>
 
     @if (_loadError is not null)
@@ -232,6 +183,16 @@
     /// Shown only: the form has no field for it, so it can be worked out from other values.
     /// </summary>
     [Parameter] public Func<TItem, string?>? Detail { get; set; }
+
+    /// <summary>
+    /// The page's own controls in the toolbar: <c>ToolbarButton</c>, <c>ToolbarMenu</c> and the
+    /// like, at the start after the period, or at the end with <c>Position</c>. Write
+    /// <see cref="SchedulerToday"/>, <see cref="SchedulerArrows"/>, <see cref="SchedulerPeriod"/>,
+    /// <see cref="SchedulerCategoryMenu"/>, <see cref="SchedulerViewMenu"/> or
+    /// <see cref="SchedulerNewButton"/> here to place the Scheduler's own among them; the rest keep
+    /// their places. The Scheduler reads this once more on each render, to see which parts are here.
+    /// </summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
 
     /// <summary>
     /// Draws each appointment's text yourself, in place of its title and <see cref="Detail"/>: an
@@ -1042,6 +1003,126 @@
         {
             <span class="ib-sched-day-extra">@template(day)</span>
         }
+    };
+
+    // ---- The toolbar's parts (SchedulerToday and the rest draw these where they're placed). ----
+
+    RenderFragment ISchedulerToolbar.TodayPart => __builder =>
+    {
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var period = PeriodOf(view).ToLower(culture);
+        <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" @onclick="() => GoAsync(view, DateOnly.FromDateTime(DateTime.Now))" @onclick:preventDefault="Bound" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
+    };
+
+    RenderFragment ISchedulerToolbar.ArrowsPart => __builder =>
+    {
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var period = PeriodOf(view).ToLower(culture);
+        <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
+            <Icon Purpose="IconPurpose.ChevronLeft" />
+        </a>
+        <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
+            <Icon Purpose="IconPurpose.ChevronRight" />
+        </a>
+    };
+
+    RenderFragment ISchedulerToolbar.PeriodPart => __builder =>
+    {
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var period = PeriodOf(view).ToLower(culture);
+        var (first, days) = SchedulerLayout.Range(view, date, FirstDay, AgendaDays);
+        var last = first.AddDays(days - 1);
+        @* The period, a button to a month to go to any date (Outlook's). *@
+        <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
+            <Trigger>
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span><span class="ib-visually-hidden">, @TextDefaults.SchedulerGoTo.ToLower(culture)</span></Button>
+            </Trigger>
+            <ChildContent>
+                @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@
+                <form method="get" action="@(new Uri(Navigation.Uri).AbsolutePath)" class="ib-sched-jump-form" data-ib-date-key="@DateKey" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+                    @foreach (var (key, values) in QueryString.Of(Navigation.Uri))
+                    {
+                        if (key == DateKey || key == EditKey || key == StartKey) continue;
+                        foreach (var v in values)
+                        {
+                            <input type="hidden" name="@key" value="@v" />
+                        }
+                    }
+                    <Calendar TValue="DateOnly" @bind-Value="_jump" @bind-Value:after="JumpTo" name="@DateKey" Label="@TextDefaults.SchedulerGoTo" HideLabel />
+                    <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-sched-jump-go">@TextDefaults.SchedulerGo</button>
+                </form>
+            </ChildContent>
+        </Popover>
+    };
+
+    RenderFragment? ISchedulerToolbar.CategoriesPart => Kinds.Count == 0 ? null : __builder =>
+    {
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var period = PeriodOf(view).ToLower(culture);
+            @* Each category shows or hides its appointments: a link with it in or out of the address. *@
+            @* With some hidden, the button says so as a DataGrid's column filter does: the accent and
+               a dot on the funnel, and its name gives the count. *@
+            var hiddenCount = Kinds.Count(c => Hidden.Contains(c.Value));
+            <Menu Placement="Placement.BottomEnd" Class="ib-sched-cats">
+                <Trigger>
+                    <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="ib-sched-cats-btn"
+                            data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Kinds.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
+                </Trigger>
+                <ChildContent>
+                @foreach (var c in Kinds)
+                {
+                    <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
+                        <span class="ib-sched-swatch" style="background:@ColorOf(c)"></span>@(c.Label ?? c.Value)
+                    </MenuItem>
+                }
+                </ChildContent>
+            </Menu>
+    };
+
+    RenderFragment? ISchedulerToolbar.ViewsPart => Views.Count < 2 ? null : __builder =>
+    {
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var period = PeriodOf(view).ToLower(culture);
+            @* Each view links by Href, as the arrows do: never with the form's keys, which an
+               address drawn while the form was open still has after it closes in the browser. *@
+            <Menu Placement="Placement.BottomEnd" Class="ib-sched-views">
+        <Trigger>
+            <Button StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="ib-sched-views-btn" @attributes="context">@ViewName(view)</Button>
+        </Trigger>
+        <ChildContent>
+                @if (Bound)
+                {
+                    <MenuRadioGroup Value="@ViewValue(view)" ValueChanged="@((string v) => GoAsync(Views.First(x => ViewValue(x) == v), date))">
+                        @foreach (var v in Views)
+                        {
+                            <MenuItem Value="@ViewValue(v)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
+                        }
+                    </MenuRadioGroup>
+                }
+                else
+                {
+                    <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
+                        @foreach (var v in Views)
+                        {
+                            <MenuItem Value="@ViewValue(v)" Href="@Href(v, date)" Shortcut="@Key(ShortcutOf(v).ToUpperInvariant())" data-ib-key="@Key(ShortcutOf(v))">@ViewName(v)</MenuItem>
+                        }
+                    </MenuRadioGroup>
+                }
+                </ChildContent>
+        </Menu>
+    };
+
+    RenderFragment? ISchedulerToolbar.NewPart => !Editable ? null : __builder =>
+    {
+        var date = CurrentDate;
+            <a class="ib-btn ib-btn-primary ib-btn-solid ib-sched-new" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
+                <Icon Purpose="IconPurpose.Plus" /><span class="ib-sched-new-text">@TextDefaults.SchedulerNewShort</span>
+            </a>
     };
 
     // ---- The form: an appointment's, or a new one's. ----

@@ -165,4 +165,29 @@ public class SchedulerRenderTests : BunitContext
         Assert.Contains("Sunny 9", cut.Find(".ib-sched-day-head.ib-sched-today .ib-sched-day-extra").TextContent);
         Assert.Null(cut.Find(".ib-sched-head").GetAttribute("aria-hidden"));
     }
+
+    [Fact]
+    public void The_page_s_own_toolbar_items_join_the_toolbar_and_a_placed_part_moves()
+    {
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.Items, [])
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9))
+            .Add(c => c.ToolbarContent, b =>
+            {
+                b.OpenComponent<ToolbarButton>(0);
+                b.AddComponentParameter(1, nameof(ToolbarButton.ChildContent), (RenderFragment)(t => t.AddContent(0, "Print")));
+                b.CloseComponent();
+                b.OpenComponent<SchedulerToday>(2);
+                b.CloseComponent();
+            }));
+
+        // In the order written: the arrows and the period keep their places first, then Print, then Today.
+        var start = cut.Find(".ib-toolbar-start").TextContent;
+        Assert.True(start.IndexOf("November 2026", StringComparison.Ordinal) < start.IndexOf("Print", StringComparison.Ordinal));
+        Assert.True(start.IndexOf("Print", StringComparison.Ordinal) < start.IndexOf("Today", StringComparison.Ordinal));
+        Assert.Single(cut.FindAll("a[data-ib-key='t']"));
+    }
 }
