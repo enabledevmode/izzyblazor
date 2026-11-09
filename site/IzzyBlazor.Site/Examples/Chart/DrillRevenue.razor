@@ -1,0 +1,23 @@
+@* A store's revenue by year, then month, then day: each bar opens the level below it, and the
+   breadcrumb goes back up. The level is in the page's address, so it works with no script. *@
+<Chart id="store-revenue" Items="_orders" Title="Revenue" Drill="revenue">
+    <ChartDrillLevel Argument="o => o.Date.Year" Name="Year" />
+    <ChartDrillLevel Argument='o => o.Date.ToString("MMM")' Name="Month" />
+    <ChartDrillLevel Argument="o => o.Date.Day" Name="Day" />
+    <ChartValueAxis Format="C0" />
+    <ChartBarSeries Value="o => o.Total" Name="Revenue" />
+</Chart>
+
+@code {
+    private record Order(DateOnly Date, decimal Total);
+
+    // Three years of a web store's orders, one row a day: more each year, a summer dip, and the
+    // holidays' peak in late November and December.
+    private static readonly Order[] _orders = Enumerable.Range(0, 3 * 365).Select(i =>
+    {
+        var date = new DateOnly(2024, 1, 1).AddDays(i);
+        var season = date.Month switch { 11 => 1.45m, 12 => 1.6m, 7 or 8 => 0.85m, _ => 1m };
+        var weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? 0.8m : 1m;
+        return new Order(date, Math.Round((4200 + i * 3.1m + i * 37 % 29 * 41) * season * weekend));
+    }).ToArray();
+}

@@ -2096,7 +2096,7 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh"],
+      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh", "drill-down", "drill down", "breadcrumb"],
       "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation", "ChartDrillLevel"],
       "features": [
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
@@ -2110,6 +2110,7 @@
         { "feature": "The part in view reported to C# as each zoom ends", "noscript": "none", "static": "none" },
         { "feature": "Synchronized charts: a shared `Sync` name zooms them together and shows the same item in each", "member": "Sync", "noscript": "none" },
         { "feature": "Live data read again on an interval, on a static page too, with a Pause button", "member": "Refresh", "noscript": "none" },
+        { "feature": "Drill-down by levels, with a breadcrumb back up, from links in the address that work with no script", "member": "ChartDrillLevel" },
         { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page; `Reverse` on `ChartArgumentAxis` runs the arguments right to left" }
       ],
       "examples": [
@@ -2195,6 +2196,14 @@
             { "id": "chart-live-refresh", "title": "Requests per second", "lead": "To read a chart's data again on an interval, set `Refresh` and give the chart an `id`. Here the last two minutes of requests come in every 5 seconds.",
               "after": ["On a static page the page is fetched again and the chart drawn from it, found by its `id`. `RefreshFrom` names a lighter page that renders the same chart, here the example's own frame. A failed fetch keeps the last drawing.", "Nothing is fetched while the tab is hidden or the chart is off-screen. On a static page an update also waits while your pointer or focus is in the chart, so nothing moves while you read it.", "On an interactive page `Refresh` raises `OnRefresh` instead, for you to load new `Items`. When your app pushes data on its own, from a timer or SignalR, set `Live` and change `Items`.", "Pause updates keeps the chart still, as WCAG asks of content that updates on its own. `Paused` starts it paused, and `@bind-Paused` with `HidePause` pauses it from your own control.", "The item you point at or reach with the keys stays the same item as new data arrives. Zoomed in at the latest item, the view moves on with new data; zoomed into the past, it stays there. Screen readers hear nothing on each update.", "The other charts, Sparkline and Gauge take `Refresh`, `RefreshFrom` and `OnRefresh` too, with no Pause button or kept item: on a dashboard, give them the same interval as its charts."],
               "notes": { "noscript": "The chart shows the data as the page was rendered, and doesn't update." } }
+          ]
+        },
+        {
+          "id": "drill", "title": "Drill-down", "summary": "Bars, slices and tiles that open the level below them, such as a year's months, as links that work with no script.", "members": ["ChartDrillLevel", "Drill", "HideBreadcrumb"],
+          "examples": [
+            { "id": "chart-drill-revenue", "title": "Revenue by year, month and day", "lead": "To drill into a chart, put a `ChartDrillLevel` in it for each level, from the top, in place of the chart's `Argument`. Select a year's bar to see its months, and a month's to see its days.",
+              "after": ["The chart groups its items by each level's argument and adds up every series. `Aggregate` on a series sets how: `Sum` by default, or `Avg`, `Min`, `Max` or `Count`.", "The level is in the page's address, here `?revenue=2025&revenue=Nov`, so a level can be bookmarked and the browser's Back goes up one. `Drill` names the address's key; give each chart that drills on a page its own.", "From the keyboard, move to an item and press Enter: the plot keeps focus and says the new level. The data table's first column links each item to its level, with or without script. The breadcrumb links back up.", "`PieChart`, `FunnelChart` and `TreemapChart` drill the same way."],
+              "notes": { "noscript": "Every bar and the data table's rows are links, so drilling works as it does with script, without the Enter key on the plot." } }
           ]
         }
       ]
@@ -2401,7 +2410,9 @@
         { "id": "treemap-chart-usage", "title": "Tiles in groups", "lead": "A treemap shows the parts of a whole as tiles, each as large as its share. Give `TreemapChart` the `Items`, with a `Name` and a `Value` for each, a `Group` to sort them under, and a `Title`.", "after": ["Each group takes a color, its tiles sit together under its name, and the largest sit at the top left. `Values` writes each tile's amount under its name, and a group's total beside its own.", "A name shows only where it fits its tile: hover a tile for its value and shares, or Tab to the chart and move between tiles with the arrow keys."],
           "notes": { "noscript": "There are no tooltips. Each tile and group name shows its value on hover, and \"Show data\" lists every tile." } },
         { "id": "treemap-chart-change", "title": "Colors by a second value", "lead": "To color the tiles by a second measure, set `ColorValue`: here each product's size is its revenue and its color the change from last year. A `ChartPalette.Diverging` palette turns at `Midpoint` (0 by default), here with growth in blue and decline in red.", "after": ["The colors fall into steps, as a `HeatmapChart`'s do, and the legend above the tiles is the scale. `Steps`, `Min` and `Max` set it, and `ColorFormat` writes its values."] },
-        { "id": "treemap-chart-budget", "title": "One level of tiles", "lead": "Without `Group`, the tiles are one level, each in its own color so neighbors stand apart. `AspectRatio` sets the chart's shape, here 2.5 times as wide as tall.", "after": ["The chart keeps its shape at every width, so the tiles stay as square as they were laid out. Under 30rem wide it's square.", "A treemap suits many parts, as the 22 programs here; with a handful, bars compare them better."] }
+        { "id": "treemap-chart-budget", "title": "One level of tiles", "lead": "Without `Group`, the tiles are one level, each in its own color so neighbors stand apart. `AspectRatio` sets the chart's shape, here 2.5 times as wide as tall.", "after": ["The chart keeps its shape at every width, so the tiles stay as square as they were laid out. Under 30rem wide it's square.", "A treemap suits many parts, as the 22 programs here; with a handful, bars compare them better."] },
+        { "id": "treemap-chart-drill", "title": "Drilling into tiles", "lead": "To open a tile into what it's made of, put a `ChartDrillLevel` in the chart for each level in place of `Name` and `Group`. Select a category to see its services, laid out again at full size, and a service to see its months.",
+          "after": ["Each tile adds up its items' values (`Aggregate`, `Sum` by default). The breadcrumb above the chart goes back up, and so does the browser's Back: the level is in the page's address, under the `Drill` key.", "From the keyboard, move to a tile and press Enter. The data table's rows link to each tile's level, with no script too."] }
       ]
     },
     {
