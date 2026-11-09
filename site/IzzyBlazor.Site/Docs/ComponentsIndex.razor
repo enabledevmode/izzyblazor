@@ -2,7 +2,7 @@
 @inject Registry Registry
 @inject ApiMetadata Api
 
-@* Every component by category: a row per category, its picture at the start and its components'
+@* Every component by category: a row per category, its icon at the start and its components'
    links after it, so the library fits on a few screens and a name can be found by eye. A filter
    at the top (a GET form, ?q=) narrows the links as you type, with JavaScript off too. *@
 
@@ -37,7 +37,7 @@
         @foreach (var (category, components) in _groups)
         {
             <section class="site-index-row" aria-labelledby="@Anchor(category)">
-                <div class="site-index-picture"><ComponentPicture Id="@PictureOf(category)" /></div>
+                <Pictogram Name="@Registry.CategoryIcon(category)" Size="ControlSize.Lg" />
                 <div class="site-index-body">
                     <h2 class="site-index-heading" id="@Anchor(category)">@category <span class="site-index-count">@components.Count</span></h2>
                     <ul class="site-index-list">
@@ -72,17 +72,6 @@
 
     // The breadcrumb links to docs/components#forms; "Date & time" is date-time.
     private static string Anchor(string category) => Registry.CategoryAnchor(category);
-
-    // Each category's picture: the pictogram of the component that stands for it.
-    private static readonly Dictionary<string, string> GroupPictures = new()
-    {
-        ["Layout"] = "grid", ["App shell"] = "app-shell", ["Typography"] = "heading", ["Actions"] = "button",
-        ["Forms"] = "form", ["Inputs"] = "text-field", ["Date & time"] = "calendar", ["Selection"] = "select",
-        ["Overlays"] = "dialog", ["Navigation"] = "tabs", ["Feedback"] = "alert", ["Data"] = "data-grid",
-        ["Display"] = "card", ["Charts"] = "bar-chart",
-    };
-
-    private static string PictureOf(string category) => GroupPictures.GetValueOrDefault(category, "box");
 
     private string CountText => _query.Length == 0 ? "" : $"{_shown} {(_shown == 1 ? "component matches" : "components match")} “{_query}”";
 

@@ -97,6 +97,26 @@ public sealed class Registry
             ? TopicHref(component, topic) : OverviewHref(component);
 
     /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
+    /// <summary>A Lucide icon's name for each category, one that stands for the kind of component in it.</summary>
+    public static string CategoryIcon(string category) => category switch
+    {
+        "Layout" => "LayoutGrid",
+        "App shell" => "PanelsTopLeft",
+        "Typography" => "Type",
+        "Actions" => "MousePointerClick",
+        "Forms" => "ClipboardList",
+        "Inputs" => "TextCursorInput",
+        "Date & time" => "CalendarClock",
+        "Selection" => "ListChecks",
+        "Overlays" => "Layers",
+        "Navigation" => "Compass",
+        "Feedback" => "Bell",
+        "Data" => "Table",
+        "Display" => "IdCard",
+        "Charts" => "ChartColumn",
+        _ => "Square",
+    };
+
     /// <summary>A category's anchor on the components page, such as <c>date-time</c> for "Date &amp; time".</summary>
     public static string CategoryAnchor(string category) =>
         System.Text.RegularExpressions.Regex.Replace(category.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
