@@ -93,6 +93,15 @@
     cursor: grabbing;
   }
 
+  /* A category's color in its menu item. */
+  .ib-sched-swatch {
+    display: inline-block;
+    width: 0.625rem;
+    height: 0.625rem;
+    margin-inline-end: var(--ib-space-2);
+    border-radius: var(--ib-radius-full);
+  }
+
   /* The form: each day beside its time. */
   .ib-sched-when {
     display: grid;

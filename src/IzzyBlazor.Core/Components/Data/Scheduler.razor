@@ -29,6 +29,7 @@
 <ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
               data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
+    <CascadingValue Value="Categories" IsFixed="true">@ChildContent</CascadingValue>
     @{
         var culture = CultureInfo.CurrentCulture;
         var (view, date) = (CurrentView, CurrentDate);
@@ -54,6 +55,18 @@
                 </a>
             }
             <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, null)" data-ib-key="t">@TextDefaults.SchedulerToday</a>
+            @if (Categories.Items.Count > 0)
+            {
+                @* Each category shows or hides its appointments: a link with it in or out of the address. *@
+                <Menu Label="@TextDefaults.SchedulerCategories" Placement="Placement.BottomEnd" Variant="ButtonVariant.Ghost" Class="ib-sched-cats">
+                    @foreach (var c in Categories.Items)
+                    {
+                        <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
+                            <span class="ib-sched-swatch" style="background:@Categories.ColorOf(c)"></span>@(c.Title ?? c.Value)
+                        </MenuItem>
+                    }
+                </Menu>
+            }
             <Menu Label="@ViewName(view)" Placement="Placement.BottomEnd" Class="ib-sched-views">
                 <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
                     @foreach (var v in Views)
@@ -138,6 +151,39 @@
 
     /// <summary>Its name for screen readers. "Schedule" by default.</summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Each appointment's category, such as <c>b =&gt; b.Kind</c>, matched to a
+    /// <see cref="SchedulerCategory"/>'s <c>Value</c>: its color, and the Categories menu that shows
+    /// or hides it.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? Category { get; set; }
+
+    /// <summary>The <see cref="SchedulerCategory"/>s, in the order of the Categories menu.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private SchedulerCategories? _categories;
+
+    private SchedulerCategories Categories => _categories ??= new SchedulerCategories(StateHasChanged);
+
+    private string HideKey => Prefix + "hide";
+
+    // The categories hidden, from the address.
+    private HashSet<string> Hidden => (Query(HideKey) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
+
+    // This page with a category shown or hidden.
+    private string ToggleHref(string value)
+    {
+        var hidden = Hidden;
+        if (!hidden.Remove(value)) hidden.Add(value);
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [HideKey] = hidden.Count == 0 ? null : string.Join(",", Categories.Items.Select(c => c.Value).Where(hidden.Contains)),
+            [EditKey] = null,
+            [StartKey] = null,
+        }));
+        return uri.AbsolutePath + uri.Query;
+    }
 
     /// <summary>
     /// Each appointment's key, such as <c>b =&gt; b.Id.ToString()</c>: with <see cref="OnSave"/>, it
@@ -283,8 +329,10 @@
         var from = first.ToDateTime(TimeOnly.MinValue);
         var to = last.AddDays(1).ToDateTime(TimeOnly.MinValue);
         var entries = new List<SchedulerEntry>();
+        var hidden = Category is null ? null : Hidden;
         for (var i = 0; i < _items.Count; i++)
         {
+            if (hidden is { Count: > 0 } && Category!(_items[i]) is { } c && hidden.Contains(c)) continue;
             var (s, e) = (_start!(_items[i]), _end!(_items[i]));
             if (e < s) e = s;
             var entry = new SchedulerEntry(i, s, e, _allDay?.Invoke(_items[i]) ?? false);
@@ -354,7 +402,14 @@
 
     private string TitleText(SchedulerEntry e) => _title!(_items[e.Index])?.ToString() ?? "";
 
-    private string ColorStyle(SchedulerEntry e) => Color?.Invoke(_items[e.Index]) is { Length: > 0 } c ? $"--ib-sched-color:{c}" : "";
+    private string ColorStyle(SchedulerEntry e)
+    {
+        var item = _items[e.Index];
+        var color = Color?.Invoke(item) is { Length: > 0 } own ? own
+            : Category?.Invoke(item) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } category ? Categories.ColorOf(category)
+            : null;
+        return color is null ? "" : $"--ib-sched-color:{color}";
+    }
 
     private static string Time(DateTime t, CultureInfo culture) => t.ToString("t", culture);
 
