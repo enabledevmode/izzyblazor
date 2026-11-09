@@ -31,6 +31,23 @@ public class ShellRenderTests : BunitContext
     }
 
     [Theory]
+    [InlineData("/docs/theming", true, "true")]
+    [InlineData("/docs", true, "page")]
+    [InlineData("/docs/components/button", false, null)]
+    public void NavItem_current_overrides_the_url(string current, bool isCurrent, string? ariaCurrent)
+    {
+        // A "Docs" link current under docs/ except docs/components/, which its Prefix match would include.
+        GoTo(current);
+        var a = Render<NavItem>(p => p
+            .Add(n => n.Href, "/docs")
+            .Add(n => n.Current, isCurrent)
+            .AddChildContent("Docs")).Find("a");
+
+        Assert.Equal(ariaCurrent, a.GetAttribute("aria-current"));
+        Assert.Equal(isCurrent, a.ClassList.Contains("ib-nav-item-active"));
+    }
+
+    [Theory]
     [InlineData("inbox", 0)]
     [InlineData("inbox?view=starred", 1)]
     [InlineData("inbox?view=other", 0)]

@@ -1,10 +1,11 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
 @* /docs: articles, component pages and API reference, with the docs sidebar and "On this page". *@
 
 <AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-docs">
     <SiteHeader Sidebar ContentWidth="Length.Rem(SiteWidths.Bars)" />
-    <AppSidebar Label="Docs">
+    <AppSidebar Label="@(DocsNav.AreaOf(Navigation) == DocsArea.Components ? "Components" : "Docs")">
         <DocsNav />
     </AppSidebar>
     <AppMain>

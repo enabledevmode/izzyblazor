@@ -605,27 +605,37 @@ html:has(> body > .frame) body { margin: 0; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }
 
-/* The components index: categories flowing down columns as one dense list of links (after the
-   indexes on Telerik's and DevExtreme's sites), so the library fits on a screen or two. */
+/* The components index: a row per category, its picture at the start and its links in columns
+   after it (after Ant Design's overview, with one picture a group rather than one a component). */
 .site-index {
-  columns: 9.5rem;
-  column-gap: var(--ib-space-6);
-  margin-block-start: var(--ib-space-2);
+  display: flex;
+  flex-direction: column;
+  margin-block-start: var(--ib-space-4);
 }
-.site-index-group {
-  break-inside: avoid;
-  padding-block-end: var(--ib-space-6);
+.site-index-row {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: var(--ib-space-6);
+  align-items: start;
+  padding-block: var(--ib-space-6);
+  border-block-start: 1px solid var(--ib-color-border);
 }
+.site-index-picture .pg { display: block; width: 100%; height: auto; border-radius: var(--ib-radius-lg); }
 .site-index-heading {
-  margin: 0 0 var(--ib-space-2);
-  font-size: var(--ib-text-xs);
+  display: flex;
+  align-items: baseline;
+  gap: var(--ib-space-2);
+  margin: 0 0 var(--ib-space-3);
+  font-size: var(--ib-text-md);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--ib-color-on-surface);
   scroll-margin-top: 5rem;
 }
+.site-index-count { font-size: var(--ib-text-sm); font-weight: 400; color: var(--ib-color-muted); }
 .site-index-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0 var(--ib-space-6);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -636,6 +646,12 @@ html:has(> body > .frame) body { margin: 0; }
   align-items: center;
   gap: var(--ib-space-1) var(--ib-space-2);
   padding-block: 0.3125rem;
+}
+@media (max-width: 39.98rem) {
+  /* Phones: the text alone, the links in two columns. */
+  .site-index-row { grid-template-columns: minmax(0, 1fr); }
+  .site-index-picture { display: none; }
+  .site-index-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* Names in the muted gray under strong group headings, as in the docs sidebar; full color on
    hover and focus. */

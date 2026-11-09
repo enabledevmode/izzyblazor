@@ -46,6 +46,14 @@
     /// </summary>
     [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 
+    /// <summary>
+    /// Marks the link current (<c>true</c>) or not (<c>false</c>) whatever <see cref="Match"/> finds,
+    /// for a section the page knows better than its URL does, such as a "Docs" link that is current
+    /// under <c>docs/</c> except <c>docs/components/</c>. Unset (the default): from the URL. A link set
+    /// current has <c>aria-current="page"</c> on its own page and <c>"true"</c> below it.
+    /// </summary>
+    [Parameter] public bool? Current { get; set; }
+
     /// <summary>A small count or label after the text, such as "3" or "New".</summary>
     [Parameter] public string? Badge { get; set; }
 
@@ -104,6 +112,11 @@
 
     private (bool Active, bool Exact) State(string uri)
     {
+        if (Current is { } current)
+        {
+            return current ? (true, LinkMatch.Of(Navigation, Href, uri, NavLinkMatch.All).Active) : (false, false);
+        }
+
         var state = LinkMatch.Of(Navigation, Href, uri, Match);
         return state.Active && !HasQuery && _links?.QueriedLinkIsCurrent(uri, Path) == true ? (false, false) : state;
     }
