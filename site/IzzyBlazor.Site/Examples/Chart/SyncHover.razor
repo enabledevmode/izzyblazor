@@ -1,10 +1,11 @@
 @* An API's requests and response time by hour: pointing at an hour in one chart shows it in both. *@
 <Chart Items="_hours" Argument="h => h.Hour" Title="Requests per hour" Sync="api" Height="Length.Rem(12)">
-    <ChartValueAxis Format="N0" />
+    <ChartValueAxis Format="N0" LabelWidth="Length.Rem(3)" />
     <ChartBarSeries Value="h => h.Requests" Name="Requests" />
 </Chart>
 
 <Chart Items="_hours" Argument="h => h.Hour" Title="Response time, 95th percentile (ms)" Sync="api" Height="Length.Rem(12)">
+    <ChartValueAxis Format="N0" LabelWidth="Length.Rem(3)" />
     <ChartLineSeries Value="h => h.P95" Name="95th percentile" />
 </Chart>
 
