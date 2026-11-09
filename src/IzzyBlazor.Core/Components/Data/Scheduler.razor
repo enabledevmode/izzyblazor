@@ -77,10 +77,7 @@
             @* The period, a button to a month to go to any date (Outlook's). *@
             <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
                 <Trigger>
-                    <button type="button" class="ib-sched-title" @attributes="context">
-                        <span aria-live="polite">@TitleOf(view, date, first, last, culture)</span>
-                        <Icon Purpose="IconPurpose.ChevronDown" />
-                    </button>
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span></Button>
                 </Trigger>
                 <ChildContent>
                     @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@
@@ -103,13 +100,22 @@
             @if (Categories.Items.Count > 0)
             {
                 @* Each category shows or hides its appointments: a link with it in or out of the address. *@
-                <Menu Label="@TextDefaults.SchedulerCategories" StartIcon="IconSet.Current.Get(IconPurpose.Filter)" Placement="Placement.BottomEnd" Class="ib-sched-cats">
+                @* With some hidden, the button says so as a DataGrid's column filter does: the accent and
+                   a dot on the funnel, and its name gives the count. *@
+                var hiddenCount = Categories.Items.Count(c => Hidden.Contains(c.Value));
+                <Menu Placement="Placement.BottomEnd" Class="ib-sched-cats">
+                    <Trigger>
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                                data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Categories.Items.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
+                    </Trigger>
+                    <ChildContent>
                     @foreach (var c in Categories.Items)
                     {
                         <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
                             <span class="ib-sched-swatch" style="background:@Categories.ColorOf(c)"></span>@(c.Label ?? c.Value)
                         </MenuItem>
                     }
+                    </ChildContent>
                 </Menu>
             }
             @if (Views.Count > 1)

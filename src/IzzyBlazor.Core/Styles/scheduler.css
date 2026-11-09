@@ -53,27 +53,7 @@
     justify-content: space-between;
     gap: var(--ib-space-2);
   }
-  /* The period: a button to a month to go to any date. */
-  .ib-sched-title {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ib-space-1);
-    margin-inline-start: var(--ib-space-1);
-    padding: var(--ib-space-1) var(--ib-space-2);
-    border: 0;
-    border-radius: var(--ib-radius-md);
-    background: none;
-    color: inherit;
-    font: inherit;
-    /* As the buttons beside it (Outlook's): one size and weight across the toolbar. */
-    font-size: var(--ib-text-sm);
-    font-weight: var(--ib-weight-medium);
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .ib-sched-title:hover { background-color: var(--ib-color-fill-subtle); }
-  .ib-sched-title:focus-visible { outline: 2px solid var(--ib-color-focus, var(--ib-color-primary)); outline-offset: 1px; }
-  .ib-sched-title > svg { width: 1rem; height: 1rem; color: var(--ib-color-muted); }
+  /* The period: a ghost button, as Today is, that opens a month to go to any date. */
   .ib-sched-jump-form {
     display: flex;
     flex-direction: column;
@@ -172,6 +152,22 @@
   .ib-sched-card .ib-sched-card-notes {
     margin-top: var(--ib-space-3);
     white-space: pre-line;
+  }
+
+  /* Some categories hidden: the accent, and a dot on the funnel (a DataGrid column filter's look). */
+  .ib-sched-actions .ib-btn[data-active] {
+    position: relative;
+    color: var(--ib-color-primary-text);
+  }
+  .ib-sched-actions .ib-btn[data-active]::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - var(--ib-icon-size) / 2 - 2px);
+    inset-inline-start: calc(var(--ib-btn-px, var(--ib-btn-pad)) + var(--ib-icon-size) - 4px);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--ib-color-primary);
   }
 
   /* A category's color in its menu item. */
@@ -515,9 +511,9 @@
     /* New keeps its icon; its name is still "New appointment". */
     .ib-sched-new-text { display: none; }
     .ib-sched-bar .ib-btn { --ib-btn-pad: var(--ib-space-2); }
-    .ib-sched-title { margin-inline-start: 0; padding-inline: var(--ib-space-1); }
     /* The menus keep their words, not their icons; New keeps its icon. */
     .ib-sched-actions .ib-btn:not(.ib-btn-solid) > svg:first-child { display: none; }
+    .ib-sched-actions .ib-btn[data-active]::after { top: 4px; inset-inline: auto 4px; }
     .ib-sched-actions > .ib-btn-solid { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
@@ -531,5 +527,6 @@
     .ib-sched-pill::before { forced-color-adjust: none; }
     /* Box shadows are gone in forced colors: today's bar is a border then. */
     :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { border-block-start: 3px solid Highlight; }
+    .ib-sched-actions .ib-btn[data-active]::after { forced-color-adjust: none; background-color: Highlight; }
   }
 }

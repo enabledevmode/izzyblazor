@@ -1284,6 +1284,9 @@ public class IzzyText
     /// <summary>A Scheduler's menu of categories to show or hide.</summary>
     public virtual string SchedulerCategories { get; set; } = "Categories";
 
+    /// <summary>The categories menu's name for screen readers with some hidden: "Categories, {0} of {1} hidden".</summary>
+    public virtual string SchedulerCategoriesHidden { get; set; } = "Categories, {0} of {1} hidden";
+
     /// <summary>A Scheduler's name for screen readers, when it has no Label.</summary>
     public virtual string SchedulerName { get; set; } = "Schedule";
 
