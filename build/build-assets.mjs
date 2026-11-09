@@ -222,6 +222,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "heatmap.css"),
   },
   {
+    // A sheet of its own, linked by a Chart with a RangeSelector beside chart.css.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "range-selector.css")],
+    outfile: join(lib, "wwwroot", "range-selector.css"),
+  },
+  {
     // A sheet of its own, linked by RadarChart beside chart.css.
     ...common,
     sourcemap: false,
@@ -369,6 +376,16 @@ const builds = [
       "elements/parts/chart-radar": join(lib, "Scripts", "elements", "chart-radar.ts"),
       // SankeyChart's tooltip, fading and keys, loaded where there's a Sankey.
       "elements/parts/chart-sankey": join(lib, "Scripts", "elements", "chart-sankey.ts"),
+      // A pie's slices drawn again without those the legend hides, loaded on the first toggle.
+      "elements/parts/chart-draw-pie": join(lib, "Scripts", "elements", "chart-draw-pie.ts"),
+      // PieChart's and NestedDonutChart's tooltip, keys and legend, loaded where there's one.
+      "elements/parts/chart-pie": join(lib, "Scripts", "elements", "chart-pie.ts"),
+      // Zoom's gestures (box, wheel, pinch), loaded where a chart zooms.
+      "elements/parts/chart-gesture": join(lib, "Scripts", "elements", "chart-gesture.ts"),
+      // Synced charts' matching by argument, loaded where a chart has a Sync name.
+      "elements/parts/chart-sync": join(lib, "Scripts", "elements", "chart-sync.ts"),
+      // The RangeSelector's window, handles and buttons, loaded where there's one.
+      "elements/parts/chart-select": join(lib, "Scripts", "elements", "chart-select.ts"),
       // TreemapChart's tooltip and keys, loaded where there's a treemap.
       "elements/parts/chart-treemap": join(lib, "Scripts", "elements", "chart-treemap.ts"),
       // RichTextEditor's alignment and span formats, for editors that use them.
