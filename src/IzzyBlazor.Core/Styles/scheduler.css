@@ -73,6 +73,26 @@
   .ib-sched-name { font-weight: var(--ib-weight-semibold); }
   .ib-sched-time { color: color-mix(in oklab, var(--ib-color-on-surface) 75%, var(--ib-sched-color)); }
 
+  ib-scheduler { display: flex; }
+
+  /* With script: an empty time takes a click (a new appointment), a box a drag or its bottom edge. */
+  ib-scheduler[data-ib-new][data-ib-ready] :is(.ib-sched-col, .ib-sched-cell) { cursor: copy; }
+  ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event { cursor: grab; touch-action: none; }
+  .ib-sched-col .ib-sched-event::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 6px;
+  }
+  ib-scheduler[data-ib-new][data-ib-ready] .ib-sched-col .ib-sched-event:not([data-ib-cut])::after { cursor: ns-resize; }
+  .ib-sched-col .ib-sched-event[data-ib-dragging] {
+    z-index: 4;
+    opacity: 0.85;
+    box-shadow: var(--ib-shadow-md);
+    cursor: grabbing;
+  }
+
   /* The form: each day beside its time. */
   .ib-sched-when {
     display: grid;
