@@ -30,7 +30,10 @@ const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${b.slice(0, 1
  * the form and the toolbar work without this.
  */
 class Scheduler extends IzzyElement {
-  #scrolled: Element | null = null;
+  // The days the hours were last scrolled for, and how far: the same days keep their place
+  // through a render or a static page coming back after a save; other days open on DayStart.
+  #scrollKey = "";
+  #scrollTop = 0;
 
   protected setup(signal: AbortSignal): void {
     // Enhanced navigation keeps this element but resets its attributes: set up again then. A new
@@ -45,7 +48,9 @@ class Scheduler extends IzzyElement {
     });
     this.setAttribute("data-ib-ready", "");
     watch.observe(this, { attributes: true, attributeFilter: ["data-ib-ready"], childList: true });
-    this.#scrolled = null;
+    this.addEventListener("scroll", (e) => {
+      if ((e.target as Element).classList?.contains("ib-sched-scroll")) this.#scrollTop = (e.target as HTMLElement).scrollTop;
+    }, { capture: true, signal });
     this.#scroll();
 
     this.addEventListener("keydown", (e) => this.#key(e), { signal });
@@ -100,13 +105,20 @@ class Scheduler extends IzzyElement {
     this.addEventListener("pointerdown", (e) => this.#press(e, signal), { signal });
   }
 
-  // Opens the day and week views on the working day, with room above for its hour's label.
+  // Opens the day and week views on the working day, with room above for its hour's label; the
+  // same days shown again keep where they were scrolled to.
   #scroll(): void {
     const scroll = this.querySelector<HTMLElement>(".ib-sched-scroll");
     const grid = this.querySelector<HTMLElement>(".ib-sched-grid");
-    if (!scroll || !grid || scroll === this.#scrolled) return;
-    this.#scrolled = scroll;
-    scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24 - 12;
+    if (!scroll || !grid) return;
+    const cols = this.querySelectorAll<HTMLElement>(".ib-sched-col");
+    const key = `${cols[0]?.dataset.ibDay}/${cols.length}`;
+    if (key !== this.#scrollKey) {
+      this.#scrollKey = key;
+      this.#scrollTop = scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24 - 12;
+    } else if (scroll.scrollTop !== this.#scrollTop) {
+      scroll.scrollTop = this.#scrollTop;
+    }
   }
 
   // The toolbar's shortcuts, while focus is in the Scheduler and not in a field, a menu (its
@@ -234,7 +246,7 @@ class Scheduler extends IzzyElement {
     let moved: { day: string; minutes: number; length: number } | null = null;
     const top0 = box.style.top;
     const height0 = box.style.height;
-    const home = box.parentElement!;
+    const home = col!;
 
     // Held from the press, so a drag from the edge that leaves the box at once still reaches it.
     box.setPointerCapture(e.pointerId);
@@ -256,35 +268,38 @@ class Scheduler extends IzzyElement {
       const day = over?.dataset.ibDay ?? moved?.day ?? day0;
       const minutes = Math.max(0, Math.min(1440 - SNAP, from + dy));
       moved = { day, minutes, length };
-      const column = this.querySelector<HTMLElement>(`.ib-sched-col[data-ib-day="${day}"]`);
-      if (column && box.parentElement !== column) {
-        column.append(box);
-        // Moving it can drop the capture; take it again.
-        if (!box.hasPointerCapture(m.pointerId)) box.setPointerCapture(m.pointerId);
-      }
+      // Over another day by an offset: the element stays in the column the server drew it in.
+      const column = this.querySelector<HTMLElement>(`.ib-sched-col[data-ib-day="${day}"]`) ?? home;
+      box.style.translate = `${column.getBoundingClientRect().left - home.getBoundingClientRect().left}px 0`;
       box.style.top = `${(minutes / 1440) * 100}%`;
     };
-    // Back where the server drew it: the server draws where it went (or, refused, it stays).
+    // Back where the server drew it: a canceled drag, or a drop that changed nothing.
     const back = () => {
-      press.abort();
-      // Only after a drag: moving the box under a plain click would cancel the click.
-      if (!dragging) return;
-      box.removeAttribute("data-ib-dragging");
-      if (box.parentElement !== home) home.append(box);
-      [box.style.top, box.style.height] = [top0, height0];
+      [box.style.top, box.style.height, box.style.translate] = [top0, height0, ""];
     };
     const done = () => {
-      back();
-      if (!dragging || !moved) return;
+      press.abort();
+      // Only after a drag: a plain click is the link's.
+      if (!dragging) return;
+      box.removeAttribute("data-ib-dragging");
       // The click that ends a drag isn't the link's.
       box.addEventListener("click", (c) => c.preventDefault(), { once: true, capture: true });
-      const startAt = iso(moved.day, moved.minutes);
-      const endAt = iso(moved.day, moved.minutes + moved.length);
-      if (startAt !== start || endAt !== finish) this.#post(box.dataset.ibItem!, startAt, endAt);
+      const startAt = moved && iso(moved.day, moved.minutes);
+      const endAt = moved && iso(moved.day, moved.minutes + moved.length);
+      if (!moved || (startAt === start && endAt === finish)) return back();
+      // It stays where it was dropped until the server draws it there (or, refused, back: each
+      // move changes the boxes' style, so the server's drawing always replaces this one).
+      this.#post(box.dataset.ibItem!, startAt!, endAt!);
+    };
+    const cancel = () => {
+      press.abort();
+      if (!dragging) return;
+      box.removeAttribute("data-ib-dragging");
+      back();
     };
     box.addEventListener("pointermove", move, end);
     box.addEventListener("pointerup", done, end);
-    box.addEventListener("pointercancel", back, end);
+    box.addEventListener("pointercancel", cancel, end);
   }
 
   // Posts a move through the hidden form: its fields changed as a reader would, so an interactive
