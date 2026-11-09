@@ -144,6 +144,13 @@
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
             } } },
+        { "id": "store-operations", "title": "A store's operations dashboard", "member": "Variant",
+          "description": "The home page's app: stat tiles with sparklines, a stacked bar chart with a range switch, the next three days' agenda and a grid of recent orders. The range switch, sorting, paging and the sidebar are links, so every control works on a static page.",
+          "example": { "id": "home-store", "title": "Northwind store", "height": 720, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. The range switch, sorting and paging are links and work as they are.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. The chart's tooltips and the grid's keyboard handling come from IzzyBlazor's script."
+            } } },
         { "id": "full-width-table", "title": "Full-width table", "member": "Variant",
           "description": "A list page where the table is the page. In Tinted, the default, the sidebar has the page tint and the table sits on white with no card around it. Sorting and paging are links, so they work with JavaScript off.",
           "example": { "id": "app-shell-rules-list", "title": "Rules", "height": 620, "page": true,

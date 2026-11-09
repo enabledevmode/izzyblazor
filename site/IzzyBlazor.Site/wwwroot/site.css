@@ -37,16 +37,53 @@
 .site-hero-glow {
   position: absolute;
   z-index: 0;
-  /* A fixed distance from the top, not the band's middle: the band grows when the example shows
-     its code, and the glow stays put. */
-  top: 22rem;
-  right: -18rem;
+  /* From the band's center, so it sits by the app window's top corner at any width, partly
+     behind it. */
+  top: 20rem;
+  left: calc(50% + 12rem);
   width: 52rem;
   height: 52rem;
   translate: 0 -50%;
   pointer-events: none;
 }
-.site-hero-wordmark { display: block; align-self: flex-start; width: auto; height: 3.5rem; max-width: 100%; margin: 0; }
+.site-hero-intro { text-align: center; }
+.site-hero-wordmark { display: block; width: auto; height: 3.5rem; max-width: 100%; margin: 0; }
+/* The hero's app: a browser-style window set into the Ink band, a lighter edge and a shadow off
+   the glow. The frame is the app's page, so a phone gets the app's phone layout. */
+.site-hero-window {
+  overflow: hidden;
+  border: 1px solid #2c2f36;
+  border-radius: var(--ib-radius-lg);
+  background: #0d0e11;
+  box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.7);
+}
+.site-hero-window-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--ib-space-4);
+  padding: var(--ib-space-2) var(--ib-space-3);
+  border-bottom: 1px solid #2c2f36;
+  background: #1b1d22;
+}
+.site-hero-window-dots { display: flex; gap: 0.375rem; }
+.site-hero-window-dots i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: #3a3e46; }
+.site-hero-window-url {
+  flex: 0 1 22rem;
+  margin-inline: auto;
+  padding: 0.125rem var(--ib-space-3);
+  border-radius: var(--ib-radius-md);
+  background: #0d0e11;
+  color: #9a9ea6;
+  font-size: var(--ib-text-xs);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-hero-window iframe { display: block; width: 100%; height: 45rem; border: 0; background: var(--ib-color-bg); }
+@media (max-width: 47.98rem) {
+  .site-hero-window iframe { height: 36rem; }
+}
 .site-hero-title {
   font-family: "Bricolage Grotesque", var(--ib-font-heading);
   font-weight: 700;
@@ -55,19 +92,12 @@
 }
 .site-hero-title span { color: #f26a1b; }
 @media (max-width: 63.98rem) {
-  /* One column: the glow sits behind the top corner instead of the example. */
-  .site-hero-glow { top: 0; right: -30rem; translate: 0 -45%; opacity: 0.35; }
+  /* Narrow: the glow sits behind the top corner. */
+  .site-hero-glow { top: 0; left: auto; right: -30rem; translate: 0 -45%; opacity: 0.35; }
   .site-hero-wordmark { height: 2.5rem; }
 }
 
 .site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
-/* The hero's example is a near-black window set into the Ink band (ExampleViewer Deep), with a
-   lighter edge and a shadow off the glow. */
-.site-hero .ex-box {
-  background: #0d0e11;
-  border-color: #2c2f36;
-  box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.7);
-}
 .site-install {
   width: fit-content;
   padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
@@ -362,7 +392,6 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
    curve: the box paints the background itself. */
 .ex-theme { background: none; }
 /* The home hero's window: an example, so the library's surface, inside the dark band. */
-.ex-deep .ex-stage { background: var(--ib-color-surface); }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
 .ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
