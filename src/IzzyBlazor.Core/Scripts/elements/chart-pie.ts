@@ -1,3 +1,4 @@
+import { arrived, followDrill } from "./chart-drill";
 import type { PieDrawData, drawPie as DrawPie } from "./chart-draw-pie";
 
 /**
@@ -168,6 +169,8 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
     },
     { signal }
   );
+  // Drill-down: a slice selected shows the level below it.
+  plot.addEventListener("click", () => !tooltip.hidden && current >= 0 && followDrill(host, current, false), { signal });
   plot.addEventListener(
     "pointerleave",
     () => {
@@ -177,6 +180,7 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
   );
 
   keyboard(frame);
+  arrived(host, frame, live);
   document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
   const announce = () => {
     if (!live) return;
@@ -245,6 +249,9 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
           break;
         case "Escape":
           hide();
+          return;
+        case "Enter":
+          if (current >= 0 && followDrill(host, current, true)) event.preventDefault();
           return;
         default:
           return;

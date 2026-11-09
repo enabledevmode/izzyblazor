@@ -18,7 +18,7 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
     /// <summary>Each slice's name, such as <c>p =&gt; p.Plan</c>.</summary>
-    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Argument { get; set; } = default!;
+    [Parameter] public Expression<Func<TItem, object?>>? Argument { get; set; }
 
     /// <summary>
     /// The chart's title, such as "Customers by plan", shown above it as its caption. It also names the chart
@@ -132,6 +132,9 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
         && double.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? m.Groups[2].Value == "rem" ? v * 16 : v : 256;
 
     // The items as a list and each one's name.
+    /// <summary>The chart takes ChartDrillLevels (PieChart), which can give its arguments in place of Argument.</summary>
+    private protected virtual bool Drills => false;
+
     private protected (IReadOnlyList<TItem> Items, string[] Names) ReadItems()
     {
         var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
@@ -250,7 +253,16 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     }
 
     /// <inheritdoc />
-    public void Dispose() => _refresh.Dispose();
+    public void Dispose()
+    {
+        _refresh.Dispose();
+        Disposing();
+    }
+
+    /// <summary>What a chart lets go of besides its refresh timer.</summary>
+    private protected virtual void Disposing()
+    {
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -263,12 +275,12 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
                 : $"{ComponentName} takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
         }
 
-        if (Argument is null)
+        if (Argument is null && !Drills)
         {
             throw new InvalidOperationException($"{ComponentName} needs an Argument, each slice's name, such as p => p.Plan.");
         }
 
-        if (!ReferenceEquals(Argument, _lastArgument))
+        if (Argument is not null && !ReferenceEquals(Argument, _lastArgument))
         {
             _lastArgument = Argument;
             _argument = Argument.Compile();

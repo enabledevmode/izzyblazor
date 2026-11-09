@@ -698,13 +698,7 @@
         @if (drill is { Depth: > 0 } && !HideBreadcrumb)
         {
             @* The levels above this one, as links; this one as text. *@
-            <Breadcrumb Class="ib-chart-crumbs">
-                @for (var c = 0; c <= drill.Depth; c++)
-                {
-                    var at = c;
-                    <BreadcrumbItem Href="@(at < drill.Depth ? DrillHref(drill.Path.Take(at)) : null)">@(at == 0 ? TextDefaults.ChartDrillTop : drill.Crumbs[at - 1])</BreadcrumbItem>
-                }
-            </Breadcrumb>
+            @ChartDrill.Crumbs(drill, TextDefaults.ChartDrillTop)
         }
         @if (keyed && Place is ChartLegend.Top or ChartLegend.Start)
         {
@@ -1556,124 +1550,22 @@
         if (ViewChanged.HasDelegate) await ViewChanged.InvokeAsync(view);
     }
 
-    // ---- Drill-down. ----
+    // ---- Drill-down (ChartDrill). ----
 
-    // The query value that holds the level.
-    private string DrillKey => string.IsNullOrWhiteSpace(Drill) ? "drill" : Drill;
+    private string DrillKey => ChartDrill.KeyOf(Drill);
 
-    private sealed record DrillState(
-        int Depth,
-        IReadOnlyList<string> Path,
-        IReadOnlyList<string> Crumbs,
-        IReadOnlyList<TItem> Rows,
-        int[] GroupOf,
-        IReadOnlyList<object?> Arguments,
-        IReadOnlyList<TItem> Firsts,
-        IReadOnlyList<string?>? Hrefs,
-        string? Hint,
-        string? Said);
-
-    // The level in the address: the items under the path chosen so far (an unknown key stops there),
-    // grouped by the level's argument in the order the groups first appear.
-    private DrillState Drilled(IReadOnlyList<TItem> items)
-    {
-        var levels = _context.Levels;
-        var asked = DrillPath();
-        IReadOnlyList<TItem> rows = items;
-        var crumbs = new List<string>();
-        var depth = 0;
-        while (depth < levels.Count - 1 && depth < asked.Count)
-        {
-            var level = levels[depth];
-            var key = asked[depth];
-            var next = rows.Where(r => ChartDrillKey.Of(level.Of(r)) == key).ToList();
-            if (next.Count == 0) break;
-            crumbs.Add(ChartLayout.ArgumentText(level.Of(next[0]), null, CultureInfo.CurrentCulture));
-            rows = next;
-            depth++;
-        }
-
-        var path = asked.Take(depth).ToList();
-        var at = levels[depth];
-        var index = new Dictionary<string, int>();
-        var arguments = new List<object?>();
-        var firsts = new List<TItem>();
-        var keys = new List<string>();
-        var groupOf = new int[rows.Count];
-        for (var i = 0; i < rows.Count; i++)
-        {
-            var value = at.Of(rows[i]);
-            var key = ChartDrillKey.Of(value);
-            if (!index.TryGetValue(key, out var g))
-            {
-                index[key] = g = arguments.Count;
-                arguments.Add(value);
-                firsts.Add(rows[i]);
-                keys.Add(key);
-            }
-
-            groupOf[i] = g;
-        }
-
-        var deeper = depth < levels.Count - 1;
-        var hrefs = deeper ? keys.Select(k => (string?)DrillHref(path.Append(k))).ToList() : null;
-        var hint = deeper ? string.Format(CultureInfo.CurrentCulture, TextDefaults.ChartDrillHint, levels[depth + 1].DisplayName.ToLower(CultureInfo.CurrentCulture)) : null;
-        var said = depth > 0 ? string.Format(CultureInfo.CurrentCulture, TextDefaults.ChartDrilled, string.Join(", ", crumbs), at.DisplayName.ToLower(CultureInfo.CurrentCulture), arguments.Count) : null;
-        return new DrillState(depth, path, crumbs, rows, groupOf, arguments, firsts, hrefs, hint, said);
-    }
-
-    // The path in the address: each value of the chart's query key, in order.
-    private List<string> DrillPath()
-    {
-        var query = new Uri(Navigation.Uri).Query.TrimStart('?');
-        var name = DrillKey;
-        return query.Split('&', StringSplitOptions.RemoveEmptyEntries)
-            .Select(p => p.Split('=', 2))
-            .Where(p => Uri.UnescapeDataString(p[0].Replace('+', ' ')) == name)
-            .Select(p => p.Length > 1 ? Uri.UnescapeDataString(p[1].Replace('+', ' ')) : "")
-            .ToList();
-    }
-
-    // This page with the chart's path set (none: the top), back at the chart when it has an id.
-    private string DrillHref(IEnumerable<string> path)
-    {
-        var keys = path.ToArray();
-        var uri = Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [DrillKey] = keys.Length == 0 ? null : keys });
-        var hash = uri.IndexOf('#');
-        if (hash >= 0) uri = uri[..hash];
-        return AdditionalAttributes?.TryGetValue("id", out var id) == true && id?.ToString() is { Length: > 0 } anchor ? $"{uri}#{anchor}" : uri;
-    }
+    private ChartDrillState<TItem> Drilled(IReadOnlyList<TItem> items) =>
+        ChartDrill.At(items, _context.Levels, Navigation, DrillKey, AdditionalAttributes, TextDefaults);
 
     // A series added up by the level's groups, by its Aggregate.
-    private static ChartSeriesData Totals(ChartSeriesData data, DrillState drill)
+    private static ChartSeriesData Totals(ChartSeriesData data, ChartDrillState<TItem> drill)
     {
         if (data.IsPoint || data.IsWaterfall)
         {
             throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble and waterfall series.");
         }
 
-        var groups = drill.Arguments.Count;
-        var values = new double?[groups];
-        for (var g = 0; g < groups; g++)
-        {
-            var own = new List<double>();
-            for (var i = 0; i < drill.GroupOf.Length; i++)
-            {
-                if (drill.GroupOf[i] == g && data.Values[i] is { } v) own.Add(v);
-            }
-
-            values[g] = data.Aggregate switch
-            {
-                DataAggregate.Count => own.Count,
-                _ when own.Count == 0 => null,
-                DataAggregate.Avg => own.Average(),
-                DataAggregate.Min => own.Min(),
-                DataAggregate.Max => own.Max(),
-                _ => own.Sum(),
-            };
-        }
-
-        return data with { Values = values, LabelTexts = null };
+        return data with { Values = drill.Total(data.Values, data.Aggregate), LabelTexts = null };
     }
 
     // Interactive: the address changed (a drill link or Back): draw the level it names.

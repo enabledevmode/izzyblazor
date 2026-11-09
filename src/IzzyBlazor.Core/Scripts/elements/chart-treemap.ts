@@ -1,3 +1,5 @@
+import { arrived, followDrill } from "./chart-drill";
+
 /**
  * A TreemapChart's script, loaded by <ib-chart> when it holds one (data-ib-treemap): the tooltip
  * for the tile or group name under the pointer, the tile outlined; and the keyboard (the tiles
@@ -112,6 +114,15 @@ export function treemap(chart: HTMLElement, signal: AbortSignal, keyboard: (fram
     { signal }
   );
   frame.addEventListener("pointerleave", () => byKeys || hide(), { signal });
+  // Drill-down: a tile selected shows the level below it.
+  frame.addEventListener(
+    "click",
+    (event) => {
+      const el = under(event.clientX, event.clientY);
+      if (el) followDrill(chart, Number(el.dataset.ibTile), false);
+    },
+    { signal }
+  );
 
   let at = -1;
   const go = (i: number) => {
@@ -152,6 +163,7 @@ export function treemap(chart: HTMLElement, signal: AbortSignal, keyboard: (fram
   };
 
   keyboard(frame);
+  arrived(chart, frame, live);
   document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
   frame.addEventListener(
     "focus",
@@ -174,7 +186,10 @@ export function treemap(chart: HTMLElement, signal: AbortSignal, keyboard: (fram
       else if (event.key === "Home") next = 0;
       else if (event.key === "End") next = tiles.length - 1;
       else if (event.key === "Escape") return hide();
-      else return;
+      else if (event.key === "Enter") {
+        if (at >= 0 && followDrill(chart, Number(tiles[at].dataset.ibTile), true)) event.preventDefault();
+        return;
+      } else return;
       event.preventDefault();
       byKeys = true;
       go(next >= 0 ? next : i);

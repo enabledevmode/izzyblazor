@@ -90,13 +90,34 @@
     }
 
     /// <inheritdoc />
-    public void Dispose() => _refresh.Dispose();
+    public void Dispose()
+    {
+        _refresh.Dispose();
+        Navigation.LocationChanged -= Moved;
+    }
+
+    /// <summary>With <see cref="ChartDrillLevel{TItem}"/>s (in place of <see cref="Name"/> and <see cref="Group"/>): the page address's query value that holds the level ("drill" by default; give each chart that drills on a page its own).</summary>
+    [Parameter] public string? Drill { get; set; }
+
+    /// <summary>With drill-down levels: leaves out the breadcrumb above the chart.</summary>
+    [Parameter] public bool HideBreadcrumb { get; set; }
+
+    /// <summary>With drill-down levels, how each tile adds up its items' values: Sum by default, or Avg, Min, Max or Count.</summary>
+    [Parameter] public DataAggregate Aggregate { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    // Interactive: the address changed (a drill link or Back): draw the level it names.
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (_tooltips.Levels.Count > 0) _ = InvokeAsync(() => _tooltips.Plot?.Refresh());
+    }
 
     /// <summary>The tiles, one item each: its name, its value and, with <see cref="Group"/>, its group.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
     /// <summary>Each tile's name, such as <c>c =&gt; c.Service</c>, written at its top left where it fits.</summary>
-    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Name { get; set; } = default!;
+    [Parameter] public Expression<Func<TItem, object?>>? Name { get; set; }
 
     /// <summary>Each tile's size, such as <c>c =&gt; c.Amount</c>: any positive number. Its area is its share of the whole.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
@@ -252,13 +273,26 @@
             builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _tooltips.Plot = plot));
             builder.CloseComponent();
         };
+        if (RendererInfo.IsInteractive) Navigation.LocationChanged += Moved;
         base.OnInitialized();
     }
 
     private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
-        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
         var culture = CultureInfo.CurrentCulture;
+        // Drill-down: the level in the address, its groups as the tiles, laid out again at full
+        // size, their values added up.
+        var drilled = _tooltips.Levels.Count > 0
+            ? ChartDrill.At(Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [], _tooltips.Levels, Navigation, ChartDrill.KeyOf(Drill), AdditionalAttributes, TextDefaults)
+            : null;
+        if (drilled is null && _name is null) throw new InvalidOperationException("TreemapChart needs a Name for each tile, such as c => c.Service, or ChartDrillLevels.");
+        if (drilled is not null && (_group is not null || _color is not null))
+        {
+            throw new InvalidOperationException("A TreemapChart that drills down takes its tiles from its ChartDrillLevels: leave out Group and ColorValue.");
+        }
+
+        var items = drilled?.Firsts ?? Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var totals = drilled?.Total(drilled.Rows.Select(i => ChartMembers.ToNumber(_value!(i))).ToArray(), Aggregate);
 
         // Groups in the order the items first name them.
         var grouped = _group is not null;
@@ -280,8 +314,8 @@
                 }
             }
 
-            names[i] = ChartLayout.ArgumentText(_name!(items[i]), null, culture);
-            input.Add((g, ChartMembers.ToNumber(_value!(items[i])) ?? double.NaN));
+            names[i] = ChartLayout.ArgumentText(drilled is not null ? drilled.Arguments[i] : _name!(items[i]), null, culture);
+            input.Add((g, (totals is not null ? totals[i] : ChartMembers.ToNumber(_value!(items[i]))) ?? double.NaN));
         }
 
         var model = TreemapLayout.Build(input, Math.Max(1, groupNames.Count), grouped, AspectRatio);
@@ -370,7 +404,12 @@
                 ? string.Format(culture, TextDefaults.TreemapDescription, tiles.Count, model.Groups.Count, $"{names[largest.Item]}, {Format(largest.Value)}")
                 : string.Format(culture, TextDefaults.TreemapDescriptionFlat, tiles.Count, $"{names[largest.Item]}, {Format(largest.Value)}");
 
-        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" class="@chartClass" style="@style" data-ib-treemap="@tiles.Count">
+        @if (drilled is { Depth: > 0 } && !HideBreadcrumb)
+        {
+            @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop)
+        }
+        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" class="@chartClass" style="@style" data-ib-treemap="@tiles.Count"
+                  data-ib-drilled="@drilled?.Said" data-ib-drill="@drilled?.Key" data-ib-deeper="@(drilled?.Hrefs is not null ? "" : null)">
             @if (placeLegend && Place == ChartLegend.Top)
             {
                 @(HeatmapChart<TItem>.ScaleLegend(scaleModel!, [], Palette?.IsDiverging == true, LegendListClass, TextDefaults))
@@ -507,7 +546,10 @@
                                         {
                                             <td>@GroupName(group)</td>
                                         }
-                                        <th scope="row">@names[tile.Item]</th>
+                                        <th scope="row">@if (drilled?.Hrefs?[tile.Item] is { } href)
+                                        {<a href="@href" data-ib-drill="@tile.Item">@names[tile.Item]</a>}
+                                        else
+                                        {@names[tile.Item]}</th>
                                         <td>@Format(tile.Value)</td>
                                         @if (grouped)
                                         {
@@ -547,7 +589,7 @@
                 : "TreemapChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
         }
 
-        if (Name is null || Value is null)
+        if (Value is null)
         {
             throw new InvalidOperationException("TreemapChart needs a Name and a Value for each tile, such as c => c.Service and c => c.Amount.");
         }
@@ -611,8 +653,8 @@
         if (!ReferenceEquals(Name, _lastName))
         {
             _lastName = Name;
-            _name = Name.Compile();
-            _nameName = ChartMembers.Name(Name);
+            _name = Name?.Compile();
+            _nameName = Name is null ? null : ChartMembers.Name(Name);
         }
 
         if (!ReferenceEquals(Value, _lastValue))
