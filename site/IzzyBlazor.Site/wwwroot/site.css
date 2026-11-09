@@ -8,6 +8,14 @@
 /* Each point's heading and text share rows across the band, so a heading that wraps doesn't push its text below the others'. */
 .site-why > * { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: var(--ib-space-2); }
 
+/* Docs pages always show the page's scrollbar, so moving between a short page and a long one
+   doesn't change the width and shift the centered columns. In the library's base layer, so its
+   page locks (an open dialog, components layer) still hide it; the scrollbar's width then pads
+   the page as usual (scrollbar.ts). */
+@layer izzy.base {
+  :root:has(.site-shell-docs) { overflow-y: scroll; }
+}
+
 /* The home page's band ("Why SSR first"): gray in light mode; in dark mode a shade above the hero's
    Ink, with a hairline, so the two read as separate bands. */
 :root.site .site-band {
