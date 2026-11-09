@@ -1284,6 +1284,12 @@ public class IzzyText
     /// <summary>A Scheduler's name for screen readers, when it has no Label.</summary>
     public virtual string SchedulerName { get; set; } = "Schedule";
 
+    /// <summary>A Scheduler's calendar, opened from its title, that goes to the date chosen.</summary>
+    public virtual string SchedulerGoTo { get; set; } = "Go to a date";
+
+    /// <summary>A Scheduler's button that goes to the date typed, with JavaScript off.</summary>
+    public virtual string SchedulerGo { get; set; } = "Go";
+
     /// <summary>A Scheduler's link back to today.</summary>
     public virtual string SchedulerToday { get; set; } = "Today";
 

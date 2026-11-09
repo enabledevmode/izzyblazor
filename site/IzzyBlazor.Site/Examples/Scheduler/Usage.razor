@@ -1,9 +1,9 @@
 @* A small team's week: meetings, a client call, focus time and an all-day offsite, each in the
-   color of what it's for. The toolbar's links change the week and the view. *@
-<Scheduler Items="_meetings" Start="m => m.Start" End="m => m.End" Title="m => m.Title" AllDay="m => m.AllDay" Color="m => m.Color" />
+   color of what it's for, with where it is after its title. The toolbar's links change the week and the view. *@
+<Scheduler Items="_meetings" Start="m => m.Start" End="m => m.End" Title="m => m.Title" Detail="m => m.Where" AllDay="m => m.AllDay" Color="m => m.Color" />
 
 @code {
-    private record Meeting(string Title, DateTime Start, DateTime End, string Color, bool AllDay = false);
+    private record Meeting(string Title, DateTime Start, DateTime End, string Color, bool AllDay = false, string? Where = null);
 
     private const string Team = "var(--ib-chart-7)", Clients = "var(--ib-chart-6)", Focus = "var(--ib-chart-5)", Away = "var(--ib-chart-3)";
 
@@ -25,10 +25,10 @@
     [
         new("Standup", At(0, 9, 30), At(0, 9, 45), Team), new("Standup", At(1, 9, 30), At(1, 9, 45), Team),
         new("Standup", At(2, 9, 30), At(2, 9, 45), Team), new("Standup", At(3, 9, 30), At(3, 9, 45), Team),
-        new("Sprint planning", At(0, 10), At(0, 11, 30), Team), new("Design review", At(0, 14), At(0, 15), Team),
-        new("Focus: checkout flow", At(1, 10), At(1, 12), Focus), new("Acme renewal call", At(1, 13), At(1, 14), Clients),
+        new("Sprint planning", At(0, 10), At(0, 11, 30), Team, Where: "Room 4"), new("Design review", At(0, 14), At(0, 15), Team, Where: "Room 2"),
+        new("Focus: checkout flow", At(1, 10), At(1, 12), Focus), new("Acme renewal call", At(1, 13), At(1, 14), Clients, Where: "Zoom"),
         new("1:1 Priya", At(1, 15), At(1, 15, 30), Team), new("Offsite", At(2, 0), At(2, 0), Away, true),
-        new("Contoso demo", At(3, 11), At(3, 12), Clients), new("Focus: invoices", At(3, 11), At(3, 13), Focus),
-        new("Retro", At(4, 15), At(4, 16), Team), new("Release", At(4, 16), At(4, 17), Team),
+        new("Contoso demo", At(3, 11), At(3, 12), Clients, Where: "Contoso HQ"), new("Focus: invoices", At(3, 11), At(3, 13), Focus),
+        new("Retro", At(4, 15), At(4, 16), Team, Where: "Room 4"), new("Release", At(4, 16), At(4, 17), Team),
     ];
 }

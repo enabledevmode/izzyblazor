@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { navigateTo } from "../filtering";
 
 // A drag moves and resizes by quarter hours.
 const SNAP = 15;
@@ -48,6 +49,23 @@ class Scheduler extends IzzyElement {
 
     this.addEventListener("keydown", (e) => this.#key(e), { signal });
 
+    // The title's calendar: a day chosen goes there at once (Go is for no script), interactive
+    // pages too, through Blazor's navigation.
+    this.addEventListener("change", (e) => this.#jump(e), { signal });
+    this.addEventListener("submit", (e) => this.#jump(e), { signal });
+
+    // The form's dialog closed in the browser (a static page): out of the address with it, so a
+    // reload doesn't open it again. Interactive pages do this in C#.
+    this.addEventListener("close", (e) => {
+      // The form's own dialog, not Delete's question in it.
+      const root = (e.target as Element).parentElement;
+      if (root?.localName !== "ib-dialog" || root.dataset.queryKey !== this.dataset.ibEditKey || root.hasAttribute("data-ib-interactive")) return;
+      const url = new URL(location.href);
+      url.searchParams.delete(this.dataset.ibEditKey!);
+      url.searchParams.delete(this.dataset.ibStartKey!);
+      history.replaceState(history.state, "", url);
+    }, { capture: true, signal });
+
     const newHref = this.dataset.ibNew;
     if (!newHref) return;
     this.addEventListener("pointerdown", (e) => this.#press(e, signal), { signal });
@@ -72,6 +90,19 @@ class Scheduler extends IzzyElement {
     if (!link) return;
     e.preventDefault();
     link.click();
+  }
+
+  // Goes to the date in the title's calendar, closing it.
+  #jump(e: Event): void {
+    const form = (e.target as Element).closest?.("form");
+    if (!form?.classList.contains("ib-sched-jump-form")) return;
+    if (e.type === "submit") e.preventDefault();
+    const url = new URL(form.action, location.href);
+    for (const [k, v] of new FormData(form)) if (typeof v === "string" && !k.startsWith("__")) url.searchParams.append(k, v);
+    // Only a whole date: not a half-typed one with no script's input.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get(form.dataset.ibDateKey ?? "") ?? "")) return;
+    form.closest<HTMLElement>("[popover]")?.hidePopover();
+    navigateTo(url, false);
   }
 
   // A new appointment at a day and minute: the form's link with the start set.
