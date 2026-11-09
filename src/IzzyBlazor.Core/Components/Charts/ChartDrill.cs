@@ -64,6 +64,7 @@ public sealed class ChartDrillLevel<TItem> : ComponentBase, IDisposable
             return;
         }
 
+        Host!.Seen(this);
         var seen = $"{Argument}|{DisplayName}";
         if (seen == _seen) return;
         var first = _seen is null;
@@ -90,9 +91,9 @@ internal static class ChartDrillKey
     public static string Of(object? value) => value switch
     {
         null => "",
-        DateTime d => d.TimeOfDay == TimeSpan.Zero ? d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : d.ToString("s", CultureInfo.InvariantCulture),
+        DateTime d => d.TimeOfDay == TimeSpan.Zero ? d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : d.ToString("o", CultureInfo.InvariantCulture),
         DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-        DateTimeOffset d => d.ToString("s", CultureInfo.InvariantCulture),
+        DateTimeOffset d => d.UtcDateTime.ToString("o", CultureInfo.InvariantCulture),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => value.ToString() ?? "",
     };
@@ -105,15 +106,21 @@ internal static class ChartDrillKey
 /// </summary>
 internal sealed class ChartDrillLevels<TItem>(Action changed)
 {
-    private readonly List<ChartDrillLevel<TItem>> _levels = [];
+    private readonly ChildOrder<ChartDrillLevel<TItem>> _levels = new();
 
-    public IReadOnlyList<ChartDrillLevel<TItem>> Levels => _levels;
+    /// <summary>The levels in the page's order (a level shown later takes its place among them).</summary>
+    public IReadOnlyList<ChartDrillLevel<TItem>> Levels => _levels.Items;
+
+    /// <summary>A pass of the chart's parameters: the levels say they're still there, in order.</summary>
+    public void BeginPass() => _levels.BeginPass();
 
     public void Register(ChartDrillLevel<TItem> level)
     {
         _levels.Add(level);
         changed();
     }
+
+    public void Seen(ChartDrillLevel<TItem> level) => _levels.Seen(level);
 
     public void Changed() => changed();
 
@@ -136,7 +143,8 @@ internal sealed record ChartDrillState<TItem>(
     IReadOnlyList<string?>? Hrefs,
     string? Hint,
     string? Said,
-    string Key)
+    string Key,
+    string LevelName)
 {
     /// <summary>Each group's values added up from its rows' (null rows left out; Count counts the rest).</summary>
     public double?[] Total(IReadOnlyList<double?> rows, DataAggregate how)
@@ -221,7 +229,7 @@ internal static class ChartDrill
         var up = Enumerable.Range(0, depth).Select(d => Href(navigation, key, path.Take(d), anchor)).ToList();
         var hint = deeper ? string.Format(culture, text.ChartDrillHint, levels[depth + 1].DisplayName.ToLower(culture)) : null;
         var said = depth > 0 ? string.Format(culture, text.ChartDrilled, string.Join(", ", crumbs), at.DisplayName.ToLower(culture), arguments.Count) : null;
-        return new ChartDrillState<TItem>(depth, path, crumbs, up, rows, groupOf, arguments, firsts, hrefs, hint, said, key);
+        return new ChartDrillState<TItem>(depth, path, crumbs, up, rows, groupOf, arguments, firsts, hrefs, hint, said, key, at.DisplayName);
     }
 
     /// <summary>The path in the address: each value of the chart's query key, in order.</summary>
@@ -235,21 +243,49 @@ internal static class ChartDrill
             .ToList();
     }
 
-    /// <summary>This page with the chart's path set (none: the top), back at the chart when it has an id.</summary>
+    /// <summary>
+    /// This page with the chart's path set (none: the top), back at the chart when it has an id: from
+    /// the site's root (a page's base href is usually the root, not the page). A live chart's
+    /// RefreshFrom page draws them for its own address; the script puts the reader's page back.
+    /// </summary>
     public static string Href(NavigationManager navigation, string key, IEnumerable<string> path, string? anchor)
     {
         var keys = path.ToArray();
-        var uri = navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [key] = keys.Length == 0 ? null : keys });
-        var hash = uri.IndexOf('#');
-        if (hash >= 0) uri = uri[..hash];
-        return anchor is { Length: > 0 } ? $"{uri}#{anchor}" : uri;
+        var uri = new Uri(navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [key] = keys.Length == 0 ? null : keys }));
+        var local = uri.AbsolutePath + uri.Query;
+        return anchor is { Length: > 0 } ? $"{local}#{anchor}" : local;
     }
 
+    /// <summary>
+    /// The items' links where the chart's script follows them (a click or Enter on a slice or tile),
+    /// whether or not the chart shows its data table.
+    /// </summary>
+    public static RenderFragment Links<TItem>(ChartDrillState<TItem> state) => builder =>
+    {
+        if (state.Hrefs is not { } hrefs) return;
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "ib-chart-drills");
+        builder.AddAttribute(2, "hidden", true);
+        for (var i = 0; i < hrefs.Count; i++)
+        {
+            if (hrefs[i] is not { } href) continue;
+            builder.OpenElement(3, "a");
+            builder.SetKey(i);
+            builder.AddAttribute(4, "href", href);
+            builder.AddAttribute(5, "data-ib-drill", i);
+            builder.AddAttribute(6, "tabindex", "-1");
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
     /// <summary>The breadcrumb above a drilled chart: the levels above as links, this one as text.</summary>
-    public static RenderFragment Crumbs<TItem>(ChartDrillState<TItem> state, string top) => builder =>
+    public static RenderFragment Crumbs<TItem>(ChartDrillState<TItem> state, string top, string? title, IzzyText text) => builder =>
     {
         builder.OpenComponent<Breadcrumb>(0);
         builder.AddComponentParameter(1, "Class", "ib-chart-crumbs");
+        builder.AddComponentParameter(3, nameof(Breadcrumb.Label), string.Format(CultureInfo.CurrentCulture, text.ChartDrillCrumbs, title ?? "").Trim());
         builder.AddComponentParameter(2, nameof(Breadcrumb.ChildContent), (RenderFragment)(b =>
         {
             for (var c = 0; c <= state.Depth; c++)

@@ -28,6 +28,12 @@ export function live(host: LiveHost, signal: AbortSignal): void {
   const every = Number(host.dataset.ibRefresh);
   if (!figure?.id || !(every >= 1000)) return;
   const url = new URL(host.dataset.ibRefreshFrom || location.href, location.href);
+  // A chart that drills: the level the reader is on, which a RefreshFrom page doesn't have.
+  const drill = host.dataset.ibDrill;
+  if (drill && host.dataset.ibRefreshFrom) {
+    url.searchParams.delete(drill);
+    for (const v of new URLSearchParams(location.search).getAll(drill)) url.searchParams.append(drill, v);
+  }
   const key = `${location.pathname} ${figure.id}`;
   if (!paused.has(key)) paused.set(key, host.hasAttribute("data-ib-paused"));
 
@@ -74,6 +80,10 @@ export function live(host: LiveHost, signal: AbortSignal): void {
     const next = part?.querySelector<HTMLElement>("ib-chart");
     if (!part || !next || paused.get(key)) return tick(every);
     if (busy()) return tick(1000);
+    // Drill-down links drawn for the RefreshFrom page: back to the reader's.
+    if (drill && host.dataset.ibRefreshFrom) {
+      for (const a of part.querySelectorAll<HTMLAnchorElement>("a[href]")) if (a.pathname === url.pathname) a.pathname = location.pathname;
+    }
     swap(host, figure, part, next);
   };
   tick(every);

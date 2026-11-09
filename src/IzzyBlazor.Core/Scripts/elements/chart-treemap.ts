@@ -163,7 +163,6 @@ export function treemap(chart: HTMLElement, signal: AbortSignal, keyboard: (fram
   };
 
   keyboard(frame);
-  arrived(chart, frame, live);
   document.addEventListener("keydown", (event) => event.key === "Escape" && !tooltip.hidden && hide(), { signal });
   frame.addEventListener(
     "focus",
@@ -203,6 +202,8 @@ export function treemap(chart: HTMLElement, signal: AbortSignal, keyboard: (fram
     state.focused = document.activeElement === frame;
     hide();
   });
+  // Arrived by the keys from the level above: focus and the level said, not the tile kept from before.
+  if (arrived(chart, frame, live)) return;
   if (kept?.focused) {
     byKeys = true;
     frame.focus();

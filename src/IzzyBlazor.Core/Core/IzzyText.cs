@@ -1245,6 +1245,12 @@ public class IzzyText
     /// <summary>In a drillable item's tooltip: what selecting it shows, "Select to see by {0}" (the next level's name).</summary>
     public virtual string ChartDrillHint { get; set; } = "Select to see by {0}";
 
+    /// <summary>Added to a drillable chart's keys hint: how the keys open an item's level.</summary>
+    public virtual string ChartDrillKeys { get; set; } = "Enter opens the level below.";
+
+    /// <summary>A drilled chart's breadcrumb's name: "{0} levels" (the chart's title), or "Levels" with none.</summary>
+    public virtual string ChartDrillCrumbs { get; set; } = "{0} levels";
+
     /// <summary>Said after drilling into a Chart's item: "{0}, by {1}: {2} items" (the path, the level's name, how many).</summary>
     public virtual string ChartDrilled { get; set; } = "{0}, by {1}: {2} items";
 

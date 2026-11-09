@@ -545,13 +545,14 @@ public class ChartRenderTests : BunitContext
 
         // A breadcrumb back to the top; months are the last level, so they don't link further.
         Assert.Equal(["All", "2025"], cut.FindAll(".ib-chart-crumbs li").Select(l => l.TextContent.Trim()));
-        Assert.EndsWith("/sales", cut.Find(".ib-chart-crumbs a").GetAttribute("href"));
+        // Links from the site's root: the page, then its level (the top has none).
+        Assert.Equal("/sales", cut.Find(".ib-chart-crumbs a").GetAttribute("href"));
         Assert.Empty(cut.FindAll(".ib-chart-table tbody a"));
 
         // At the top, each year links to its months.
         Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>(Services).NavigateTo("/sales");
         cut.Render();
-        Assert.Equal(["/sales?drill=2025", "/sales?drill=2026"], cut.FindAll(".ib-chart-table tbody a").Select(a => new Uri(a.GetAttribute("href")!).PathAndQuery));
+        Assert.Equal(["/sales?drill=2025", "/sales?drill=2026"], cut.FindAll(".ib-chart-table tbody a").Select(a => a.GetAttribute("href")));
     }
 
     [Fact]

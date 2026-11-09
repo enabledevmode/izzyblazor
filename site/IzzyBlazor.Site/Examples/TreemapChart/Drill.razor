@@ -1,24 +1,29 @@
-@* A software company's cloud bill for the year, by category, then service, then month: each tile
-   opens what it's made of, laid out again at full size. *@
+@* A software company's cloud bill for the year, by category, then service, then environment:
+   each tile opens what it's made of, laid out again at full size. *@
 <TreemapChart id="cloud-drill" Items="_costs" Value="c => c.Amount" ValueFormat="C0" Values Title="Cloud costs, 2026" Drill="cloud">
     <ChartDrillLevel Argument="c => c.Category" Name="Category" />
     <ChartDrillLevel Argument="c => c.Service" Name="Service" />
-    <ChartDrillLevel Argument='c => c.Month.ToString("MMM")' Name="Month" />
+    <ChartDrillLevel Argument="c => c.Environment" Name="Environment" />
 </TreemapChart>
 
 @code {
-    private record Cost(string Category, string Service, DateOnly Month, decimal Amount);
+    private record Cost(string Category, string Service, string Environment, decimal Amount);
 
-    private static readonly (string Category, string Service, decimal Monthly)[] Services =
+    // Each service's bill for the year, split between production and the environments that test it.
+    private static readonly (string Category, string Service, decimal Yearly, decimal Production)[] Services =
     [
-        ("Compute", "App servers", 18400), ("Compute", "Background jobs", 7200), ("Compute", "Build runners", 3100),
-        ("Database", "Primary database", 12600), ("Database", "Read replicas", 6300), ("Database", "Cache", 2400),
-        ("Storage", "Object storage", 5200), ("Storage", "Backups", 2900), ("Storage", "Block volumes", 1800),
-        ("Network", "Data transfer", 6100), ("Network", "Load balancers", 1500), ("Network", "CDN", 1200),
-        ("Monitoring", "Logs", 3800), ("Monitoring", "Metrics", 1400), ("Monitoring", "Tracing", 700),
+        ("Compute", "App servers", 220800, 0.72m), ("Compute", "Background jobs", 86400, 0.81m), ("Compute", "Build runners", 37200, 0.2m),
+        ("Database", "Primary database", 151200, 0.78m), ("Database", "Read replicas", 75600, 1m), ("Database", "Cache", 28800, 0.66m),
+        ("Storage", "Object storage", 62400, 0.85m), ("Storage", "Backups", 34800, 1m), ("Storage", "Block volumes", 21600, 0.6m),
+        ("Network", "Data transfer", 73200, 0.93m), ("Network", "Load balancers", 18000, 0.5m), ("Network", "CDN", 14400, 1m),
+        ("Monitoring", "Logs", 45600, 0.64m), ("Monitoring", "Metrics", 16800, 0.7m), ("Monitoring", "Tracing", 8400, 0.75m),
     ];
 
-    // Each service's bill for each month of the year, growing a little month to month.
-    private static readonly Cost[] _costs = Services.SelectMany(s => Enumerable.Range(1, 12).Select(m =>
-        new Cost(s.Category, s.Service, new DateOnly(2026, m, 1), Math.Round(s.Monthly * (0.9m + m * 0.02m))))).ToArray();
+    // The rest of each bill, two parts staging to one part development; services only in production have no others.
+    private static readonly Cost[] _costs = Services.SelectMany(s => new[]
+    {
+        new Cost(s.Category, s.Service, "Production", Math.Round(s.Yearly * s.Production)),
+        new Cost(s.Category, s.Service, "Staging", Math.Round(s.Yearly * (1 - s.Production) * 2 / 3)),
+        new Cost(s.Category, s.Service, "Development", Math.Round(s.Yearly * (1 - s.Production) / 3)),
+    }.Where(c => c.Amount > 0)).ToArray();
 }

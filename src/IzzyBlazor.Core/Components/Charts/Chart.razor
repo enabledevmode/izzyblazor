@@ -549,9 +549,10 @@
         ReadAxes();
         var raw = drill is null ? _context.Series.SelectMany(s => s.Read(items)) : _context.Series.SelectMany(s => s.Read(drill.Rows)).Select(d => Totals(d, drill));
         if (drill is not null) items = drill.Firsts;
-        var series = ChartTrends.Add(raw.Select(OnAxis).ToList(), arguments, TextDefaults);
+        var series = ChartTrends.Add(raw.Select(OnAxis).ToList(), arguments, TextDefaults, bands: drill is not null);
         // Off by default when every series writes its values beside them; labels of other text keep it.
-        var tooltip = SelectorHost is null && (Tooltip ?? !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null)));
+        // On while drilling, whatever the labels: the keys drill from the item they're on.
+        var tooltip = SelectorHost is null && (Tooltip ?? (drill?.Hrefs is not null || !(series.Count > 0 && series.All(s => s.Labels != ChartLabels.None && s.LabelTexts is null))));
         if (series.Any(s => s.Secondary))
         {
             if (Orientation == Orientation.Horizontal)
@@ -670,7 +671,7 @@
                   data-ib-sync="@Sync"
                   data-ib-sync-view="@(Sync is not null && SyncView && model.ZoomPositions is not null ? "" : null)"
                   data-ib-sync-hover="@(Sync is not null && SyncHover ? "" : null)"
-                  data-ib-sync-at="@(Sync is not null || IsLive ? SyncKeys(model) : null)"
+                  data-ib-sync-at="@(Sync is not null || IsLive || drill is not null ? SyncKeys(model) : null)"
                   data-ib-drilled="@drill?.Said" data-ib-drill="@(drill is null ? null : DrillKey)"
                   data-ib-refresh="@(Refresh is { } every && StaticPage ? ((long)every.TotalMilliseconds).ToString(CultureInfo.InvariantCulture) : null)"
                   data-ib-refresh-from="@(Refresh is not null && StaticPage ? RefreshFrom : null)"
@@ -698,7 +699,7 @@
         @if (drill is { Depth: > 0 } && !HideBreadcrumb)
         {
             @* The levels above this one, as links; this one as text. *@
-            @ChartDrill.Crumbs(drill, TextDefaults.ChartDrillTop)
+            @ChartDrill.Crumbs(drill, TextDefaults.ChartDrillTop, Title, TextDefaults)
         }
         @if (keyed && Place is ChartLegend.Top or ChartLegend.Start)
         {
@@ -856,13 +857,17 @@
                 {
                     @* For the pointer: a link over each item to the level below (the data table's links are the ones screen readers and the keys use). *@
                     <div class="ib-chart-drills" aria-hidden="true">
+                        @{
+                            // Bands across the view drawn (a zoomed view's items are fewer and wider; those out of it have none).
+                            var inView = model.ArgumentPositions.Count(p => p is >= -1e-9 and <= 1 + 1e-9);
+                            var band = 1.0 / Math.Max(1, inView);
+                        }
                         @for (var d = 0; d < hrefs.Count; d++)
                         {
                             var place = model.ArgumentPositions[d];
-                            if (hrefs[d] is null || double.IsNaN(place)) continue;
-                            var band = 1.0 / Math.Max(1, hrefs.Count);
+                            if (hrefs[d] is null || !(place is >= -1e-9 and <= 1 + 1e-9)) continue;
                             var from = Math.Max(0, place - band / 2);
-                            <a href="@hrefs[d]" tabindex="-1" data-ib-drill="@d" style="@(horizontal ? $"top:{Pct(from)};height:{Pct(band)};left:0;right:0" : $"left:{Pct(from)};width:{Pct(band)};top:0;bottom:0")"></a>
+                            <a href="@hrefs[d]" tabindex="-1" draggable="false" data-ib-drill="@d" style="@(horizontal ? $"top:{Pct(from)};height:{Pct(band)};left:0;right:0" : $"left:{Pct(from)};width:{Pct(band)};top:0;bottom:0")"></a>
                         }
                     </div>
                 }
@@ -977,7 +982,7 @@
         {
             @* What the keys say and do; a chart that zooms has them with no tooltips too. *@
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
-            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(!tooltip ? TextDefaults.ChartZoomOnlyKeys : _zoomOn ? TextDefaults.ChartZoomKeys : TextDefaults.ChartKeys)</span>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@(!tooltip ? TextDefaults.ChartZoomOnlyKeys : _zoomOn ? TextDefaults.ChartZoomKeys : TextDefaults.ChartKeys)@(drill?.Hrefs is not null ? " " + TextDefaults.ChartDrillKeys : null)</span>
         }
         @if (model.MarkTexts.Count > 0)
         {
@@ -997,7 +1002,7 @@
                     <table class="ib-chart-table" aria-labelledby="@NameId">
                         <thead>
                             <tr>
-                                <th scope="col">@(ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
+                                <th scope="col">@(drill?.LevelName ?? ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
                                 @foreach (var s in model.Series)
                                 {
                                     <th scope="col">@s.Data.Name</th>
@@ -1554,6 +1559,9 @@
 
     private string DrillKey => ChartDrill.KeyOf(Drill);
 
+    // The path last drawn (interactive): a new one starts unzoomed.
+    private string? _drillPath;
+
     private ChartDrillState<TItem> Drilled(IReadOnlyList<TItem> items) =>
         ChartDrill.At(items, _context.Levels, Navigation, DrillKey, AdditionalAttributes, TextDefaults);
 
@@ -1572,6 +1580,12 @@
     private void OnLocation(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         if (_context.Levels.Count == 0) return;
+        var path = string.Join("/", ChartDrill.PathOf(Navigation, DrillKey));
+        if (path != _drillPath)
+        {
+            (_drillPath, _view, _follow) = (path, View, null);
+        }
+
         _ = InvokeAsync(() =>
         {
             StateHasChanged();

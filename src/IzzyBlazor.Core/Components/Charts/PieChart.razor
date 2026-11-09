@@ -92,7 +92,7 @@
     }
     @if (drilled is { Depth: > 0 } && !HideBreadcrumb)
     {
-        @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop)
+        @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop, Title, TextDefaults)
     }
     <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
               data-ib-drilled="@drilled?.Said" data-ib-drill="@drilled?.Key" data-ib-deeper="@(drilled?.Hrefs is not null ? "" : null)"
@@ -100,6 +100,10 @@
               data-ib-count="@items.Count"
               data-ib-draw="@(Legend != ChartLegend.None ? DrawData([values], [(Donut ? ChartShapes.DonutHole : 0, 1)], Labels switch { ChartLabels.None => 0, ChartLabels.Inside => 2, _ => 1 }) : null)"
               data-ib-pos="@string.Join(",", Enumerable.Range(0, items.Count).Select(i => slices.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))">
+        @if (drilled is not null)
+        {
+            @ChartDrill.Links(drilled)
+        }
         <div class="@pieClass">
             @* With labels beside it, the circle keeps room around it for them (chart.css); without,
                this wrapper has no box of its own. *@
@@ -205,7 +209,7 @@
                 }
             </div>
             <div class="ib-visually-hidden" aria-live="polite" aria-atomic="true" data-ib-live></div>
-            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys</span>
+            <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys="@TextDefaults.ChartRole">@TextDefaults.ChartKeys@(drilled?.Hrefs is not null ? " " + TextDefaults.ChartDrillKeys : null)</span>
         }
     </ib-chart>
 
@@ -221,7 +225,7 @@
                 <table class="ib-chart-table" aria-labelledby="@NameId">
                     <thead>
                         <tr>
-                            <th scope="col">@(_argumentName ?? TextDefaults.ChartItem)</th>
+                            <th scope="col">@(drilled?.LevelName ?? _argumentName ?? TextDefaults.ChartItem)</th>
                             <th scope="col">@(_valueName ?? Title ?? TextDefaults.ChartValue)</th>
                             <th scope="col">@TextDefaults.ChartShare</th>
                         </tr>
@@ -324,6 +328,7 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        _drill.BeginPass();
         if (Value is null)
         {
             throw new InvalidOperationException("PieChart needs a Value, each slice's size, such as p => p.Customers.");
