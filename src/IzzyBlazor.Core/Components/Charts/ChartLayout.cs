@@ -10,6 +10,9 @@ internal enum ArgumentKind { Category, Number, Time }
 internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Values)
 {
     public string? Color { get; init; }
+
+    /// <summary>With drill-down levels, how a level adds up the series' values.</summary>
+    public DataAggregate Aggregate { get; init; }
     public ChartCurve Curve { get; init; }
     public ChartLineStyle? LineStyle { get; init; }
     public bool? Markers { get; init; }
@@ -67,6 +70,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
 internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyList<ChartSeriesData> Series)
 {
+    /// <summary>The arguments sit in bands whatever they are (a drill-down level's groups).</summary>
+    public bool Bands { get; init; }
+
     public ChartStacking Stacked { get; init; }
     public bool Horizontal { get; init; }
     public double HeightPx { get; init; } = 288;
@@ -334,7 +340,7 @@ internal static class ChartLayout
     {
         var n = input.Arguments.Count;
         var hasBars = input.Series.Any(s => s.Type == ChartType.Bar);
-        var kind = hasBars ? ArgumentKind.Category : KindOf(input.Arguments);
+        var kind = hasBars || input.Bands ? ArgumentKind.Category : KindOf(input.Arguments);
         var culture = input.Culture;
         var full = input.Stacked == ChartStacking.Percent;
         var stacked = input.Stacked != ChartStacking.None;

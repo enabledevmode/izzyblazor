@@ -659,6 +659,14 @@ class Chart extends IzzyElement {
     // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
     // not an image, so the frame becomes one, described by the keys' hint.
     this.keyboard(frame, signal);
+    // Arrived by the keys from the level above: the plot has focus, and says where it is.
+    try {
+      if (this.dataset.ibDrilled && sessionStorage.getItem("ib-drill") === this.dataset.ibDrill) {
+        sessionStorage.removeItem("ib-drill");
+        frame.focus();
+        if (live) live.textContent = this.dataset.ibDrilled;
+      }
+    } catch {}
     document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && drop(), { signal });
     const announce = () => {
       if (!live || !tipsOn) return;
@@ -716,6 +724,16 @@ class Chart extends IzzyElement {
           case "Escape":
             drop();
             return;
+          case "Enter": {
+            // Drill-down: the item's level below, back at this chart's plot when it arrives.
+            const link = this.querySelector<HTMLAnchorElement>(`.ib-chart-drills [data-ib-drill="${current}"]`);
+            if (!link) return;
+            try {
+              sessionStorage.setItem("ib-drill", this.dataset.ibDrill!);
+            } catch {}
+            link.click();
+            return;
+          }
           case "+":
           case "=":
           case "-":

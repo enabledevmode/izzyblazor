@@ -36,6 +36,14 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
 
     /// <summary>
+    /// With <see cref="ChartDrillLevel{TItem}"/>s, how each level adds up its items' values:
+    /// <see cref="DataAggregate.Sum"/> (the default), <see cref="DataAggregate.Avg"/>,
+    /// <see cref="DataAggregate.Min"/>, <see cref="DataAggregate.Max"/> or
+    /// <see cref="DataAggregate.Count"/> (the items with a value).
+    /// </summary>
+    [Parameter] public DataAggregate Aggregate { get; set; }
+
+    /// <summary>
     /// The series' name, in the legend, the data table and each value's description. Defaults to
     /// the property's <c>[Display]</c> name, or its name in words.
     /// </summary>
@@ -264,6 +272,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private ChartSeriesData Data(string name, double?[] values, string? color) =>
         new(name, Type, values)
         {
+            Aggregate = Aggregate,
             Color = color,
             Curve = CurveOf,
             LineStyle = LineStyleOf,
@@ -579,8 +588,12 @@ public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
 internal sealed class ChartContext<TItem> : ChartContextBase
 {
     private readonly ChildOrder<ChartSeriesBase<TItem>> _series = new();
+    private readonly ChildOrder<ChartDrillLevel<TItem>> _levels = new();
 
     public IReadOnlyList<ChartSeriesBase<TItem>> Series => _series.Items;
+
+    /// <summary>The chart's drill-down levels, from the top.</summary>
+    public IReadOnlyList<ChartDrillLevel<TItem>> Levels => _levels.Items;
 
     /// <summary>The <see cref="ChartTooltip{TItem}"/>'s content, if the chart has one.</summary>
     public RenderFragment<ChartTooltipContext<TItem>>? TooltipTemplate { get; set; }
@@ -589,6 +602,23 @@ internal sealed class ChartContext<TItem> : ChartContextBase
     {
         base.BeginPass();
         _series.BeginPass();
+        _levels.BeginPass();
+    }
+
+    public void Register(ChartDrillLevel<TItem> level) => _levels.Add(level);
+
+    public void Seen(ChartDrillLevel<TItem> level)
+    {
+        _levels.Seen(level);
+        Plot?.Refresh();
+    }
+
+    public void Unregister(ChartDrillLevel<TItem> level)
+    {
+        if (_levels.Remove(level))
+        {
+            Plot?.Refresh();
+        }
     }
 
     public void Seen(ChartSeriesBase<TItem> series)
