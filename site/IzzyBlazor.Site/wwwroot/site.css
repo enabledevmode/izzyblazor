@@ -43,10 +43,11 @@
   gap: var(--ib-space-12);
   align-items: center;
 }
-/* The knob as a watermark: Ember alone, the rings adding up to about a fifth at the center. Its
-   center sits in the gap between the text and the app, 6rem above the wordmark, so the core clears
-   the text, the app window covers part of the rings, and it lands in the same place at any width.
-   On narrow screens, with the text alone above the phone, it moves to the top end corner. */
+/* The knob as a watermark: Ember alone, the rings adding up to about a quarter at the center in
+   light mode, over a third in dark. Its center sits in the gap between the text and the app, 6rem
+   above the wordmark, so the core clears the text, the app window covers part of the rings, and it
+   lands in the same place at any width. On narrow screens, with the text alone above the phone,
+   it moves to the top end corner. */
 .site-hero-intro { position: relative; }
 .site-hero-glow {
   position: absolute;
@@ -56,7 +57,14 @@
   width: 44rem;
   height: 44rem;
   translate: -50% -50%;
+  /* The rings are drawn at dark mode's strength; on Paper two thirds of it is enough. On Ink, less
+     than that mixes Ember to brown. */
+  opacity: 0.667;
   pointer-events: none;
+}
+:root[data-ib-color-scheme="dark"] .site-hero-glow { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ib-color-scheme="light"]) .site-hero-glow { opacity: 1; }
 }
 @media (max-width: 63.98rem) {
   .site-hero-glow { top: -2rem; left: auto; right: -14rem; width: 32rem; height: 32rem; translate: 0 -50%; }
