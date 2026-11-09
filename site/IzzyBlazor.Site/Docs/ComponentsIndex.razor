@@ -49,8 +49,8 @@
 @code {
     private List<(string Category, List<RegistryComponent> Components)> _groups = [];
 
-    // The breadcrumb links to docs/components#forms; "App shell" is app-shell.
-    private static string Anchor(string category) => category.ToLowerInvariant().Replace(' ', '-');
+    // The breadcrumb links to docs/components#forms; "Date & time" is date-time.
+    private static string Anchor(string category) => Registry.CategoryAnchor(category);
 
     protected override void OnInitialized() =>
         _groups = Registry.Categories

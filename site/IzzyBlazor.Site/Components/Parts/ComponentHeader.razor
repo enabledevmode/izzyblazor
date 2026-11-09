@@ -5,7 +5,7 @@
     <Breadcrumb>
         <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
         <BreadcrumbItem Href="docs/components">Components</BreadcrumbItem>
-        <BreadcrumbItem Href="@($"docs/components#{ApiMetadata.Anchor(Component.Category).Replace(' ', '-')}")">@Component.Category</BreadcrumbItem>
+        <BreadcrumbItem Href="@($"docs/components#{Registry.CategoryAnchor(Component.Category)}")">@Component.Category</BreadcrumbItem>
         @if (Topic is not null)
         {
             <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.DisplayName</BreadcrumbItem>
