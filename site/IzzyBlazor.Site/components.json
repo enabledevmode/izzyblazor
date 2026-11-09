@@ -2776,7 +2776,7 @@
       ]
     },
     {
-      "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data display", "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
+      "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data display", "parts": ["SchedulerToday", "SchedulerArrows", "SchedulerPeriod", "SchedulerCategoryMenu", "SchedulerViewMenu", "SchedulerNewButton"], "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
       "features": [
         { "feature": "Day, week, work week, month and agenda views" },
         { "feature": "All-day and several-day appointments as bars across their days" },
@@ -2788,6 +2788,11 @@
         { "feature": "A detail after each title, such as where; times in the boxes with ShowTime", "member": "Detail" },
         { "feature": "A card about each appointment when there's no form" },
         { "feature": "Going to any date from the period's title" },
+        { "feature": "Only the days shown read: an IQueryable in the database, or an ItemsProvider", "member": "ItemsProvider" },
+        { "feature": "The view and date bindable on interactive pages", "member": "ViewChanged" },
+        { "feature": "Templates for appointments and for each day's header", "member": "AppointmentTemplate" },
+        { "feature": "Your own toolbar items, and the toolbar's parts placed among them", "member": "ToolbarContent" },
+        { "feature": "A card on hover, as Outlook's", "noscript": "none" },
         { "feature": "Google Calendar's keyboard shortcuts", "member": "Shortcuts", "noscript": "none" }
       ],
       "examples": [
@@ -2798,6 +2803,12 @@
           "notes": { "noscript": "Bookings open the form and save as with script; a click on empty time and dragging don't." } },
         { "id": "scheduler-family", "title": "Categories and colors", "lead": "To color appointments by what they are, map `Category` and pass `Categories`, a `SchedulerCategory` for each kind. The Categories menu shows or hides each.",
           "after": ["`Categories` is a list, so it can come from your data: `kinds.Select(k => new SchedulerCategory(k.Id, k.Name, k.Color))`.", "An appointment's own `Color` comes first, then its category's, then the palette's. A month's day shows `MonthLimit` lines, bars and \"+N more\" included, and \"+N more\" opens the day."] },
+        { "id": "scheduler-loading", "title": "Loading by date range", "lead": "To load only the days shown, give an `ItemsProvider`: it gets a `SchedulerRequest` with the range, the view and the hidden categories, and returns the appointments in it.",
+          "after": ["It's asked for each page drawn: another week or view, and after a save or a move. An exception shows \"Couldn't load the appointments.\" with Retry. While it loads on an interactive page, the appointments shown stay, and the Scheduler is `aria-busy`.", "With EF Core there's no provider to write: pass the query as `Items`, and the Scheduler filters it to the days shown in the database.", "`@bind-View` and `@bind-Date` keep the view and date in the component on an interactive page, instead of the address."] },
+        { "id": "scheduler-team", "title": "Templates", "lead": "`DayHeaderTemplate` adds to each day's header after its date: here, who's out. `AppointmentTemplate` draws each appointment's text: here, marks for meetings that repeat or are private.",
+          "after": ["The appointment template gets the item, the view and `OneLine`, true where there's one line: a short box, a bar, a month's row. It's drawn inside the appointment's link or button, so no links or buttons of its own.", "Screen readers hear an appointment's title, `Detail`, category and time, not the template, so `Detail` says what the marks mean. The day header's content is read, and can hold links."] },
+        { "id": "scheduler-toolbar", "title": "Toolbar items", "lead": "`ToolbarContent` adds your own toolbar items. Write the Scheduler's parts there too, such as `SchedulerNewButton`, to place them among yours.",
+          "after": ["The parts are `SchedulerToday`, `SchedulerArrows`, `SchedulerPeriod`, `SchedulerCategoryMenu`, `SchedulerViewMenu` and `SchedulerNewButton`. A part you don't write keeps its place, and the Scheduler still decides whether it shows."] },
         { "id": "scheduler-agenda", "title": "Agenda view", "lead": "The agenda lists the coming days' appointments by day and leaves out empty days. `AgendaDays` sets how many it covers.",
           "after": ["`ViewOptions` limits the view menu, here to the day, the week and the agenda. With one view there's no menu."] }
       ]

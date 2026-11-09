@@ -1,0 +1,64 @@
+@* A shared studio calendar with its own tools: subscribe and print at the end, and New moved
+   to the start, where the booking staff look first. *@
+<Scheduler TItem="Session" Items="Store" Start="s => s.Start" End="s => s.End" Title="s => s.Client" Detail="s => s.Studio"
+           ItemKey="s => s.Id.ToString()" OnSave="Save" View="SchedulerView.WorkWeek" QueryPrefix="studio-">
+    <ToolbarContent>
+        <SchedulerNewButton Position="ToolbarPosition.Start" />
+        <SchedulerToday />
+        <SchedulerArrows />
+        <SchedulerPeriod />
+        <ToolbarButton StartIcon="Lucide.CalendarPlus" Position="ToolbarPosition.End">Subscribe</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Printer" Position="ToolbarPosition.End">Print</ToolbarButton>
+    </ToolbarContent>
+</Scheduler>
+
+@code {
+    private sealed class Session
+    {
+        public int Id { get; set; }
+        public string Client { get; set; } = "";
+        public string Studio { get; set; } = "Studio A";
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+    }
+
+    private static readonly DateOnly Monday = WeekMonday();
+
+    private static DateOnly WeekMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var first = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var start = today.AddDays(-(((int)today.DayOfWeek - (int)first + 7) % 7));
+        return start.AddDays(((int)DayOfWeek.Monday - (int)first + 7) % 7);
+    }
+
+    private static DateTime At(int day, int hour) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, 0));
+
+    // An app keeps its sessions in a database; this example keeps them in memory for everyone
+    // reading the page, and starts again past 30.
+    private static readonly List<Session> Store = Seed();
+
+    private static List<Session> Seed() =>
+    [
+        new() { Id = 1, Client = "Northwind podcast", Start = At(0, 10), End = At(0, 12) },
+        new() { Id = 2, Client = "Lumen Records", Studio = "Studio B", Start = At(1, 13), End = At(1, 17) },
+        new() { Id = 3, Client = "Vox choir", Start = At(2, 9), End = At(2, 11) },
+        new() { Id = 4, Client = "Ad read: Contoso", Studio = "Studio B", Start = At(3, 15), End = At(3, 16) },
+    ];
+
+    private void Save(SchedulerSave<Session> save)
+    {
+        lock (Store)
+        {
+            if (save.IsNew && Store.Count >= 30)
+            {
+                Store.Clear();
+                Store.AddRange(Seed());
+            }
+
+            var target = save.Item ?? new Session { Id = Store.Count == 0 ? 1 : Store.Max(s => s.Id) + 1 };
+            save.CopyTo(target);
+            if (save.IsNew) Store.Add(target);
+        }
+    }
+}

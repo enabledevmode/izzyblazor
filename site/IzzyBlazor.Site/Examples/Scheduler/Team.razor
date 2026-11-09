@@ -1,0 +1,73 @@
+@* A team's week: who's out shows in each day's header, and each meeting marks whether it
+   repeats or is private before its title, with its room when there's room. *@
+<Scheduler Items="_meetings" Start="m => m.Start" End="m => m.End" Title="m => m.Title"
+           Detail="m => m.Detail" View="SchedulerView.WorkWeek" QueryPrefix="team-">
+    <DayHeaderTemplate>
+        @if (Out(context) is { Length: > 0 } people)
+        {
+            <AvatarGroup Size="AvatarSize.Xs" Max="3" Label="@($"Out on {context:dddd}")">
+                @foreach (var name in people)
+                {
+                    <Avatar Name="@name" />
+                }
+            </AvatarGroup>
+        }
+    </DayHeaderTemplate>
+    <AppointmentTemplate>
+        @if (context.Item.Repeats)
+        {
+            <Icon Name="Lucide.Repeat" />@(" ")
+        }
+        @if (context.Item.Private)
+        {
+            <Icon Name="Lucide.Lock" />@(" ")
+        }
+        <strong>@context.Item.Title</strong>
+        @if (!context.OneLine && context.Item.Room is { } room)
+        {
+            @(" ")@room
+        }
+    </AppointmentTemplate>
+</Scheduler>
+
+@code {
+    private record Meeting(string Title, DateTime Start, DateTime End, string? Room = null, bool Repeats = false, bool Private = false)
+    {
+        // Screen readers hear the title and this: say what the marks say.
+        public string Detail => string.Join(", ", new[] { Room, Repeats ? "repeats weekly" : null, Private ? "private" : null }.Where(s => s is not null));
+    }
+
+    // This week's working days, so the example always has something to show.
+    private static readonly DateOnly Monday = WeekMonday();
+
+    private static DateOnly WeekMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var first = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+        var start = today.AddDays(-(((int)today.DayOfWeek - (int)first + 7) % 7));
+        return start.AddDays(((int)DayOfWeek.Monday - (int)first + 7) % 7);
+    }
+
+    private static DateTime At(int day, int hour, int minute = 0) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
+
+    // Who's away, by day: from the team's leave calendar.
+    private static string[] Out(DateOnly day) => (day.DayNumber - Monday.DayNumber) switch
+    {
+        0 => ["Priya Nair"],
+        2 => ["Tomás Ruiz", "Priya Nair"],
+        3 => ["Tomás Ruiz", "Lena Park", "Sam Okoro", "Priya Nair"],
+        _ => [],
+    };
+
+    private readonly Meeting[] _meetings =
+    [
+        new("Standup", At(0, 9, 30), At(0, 9, 45), Repeats: true), new("Standup", At(1, 9, 30), At(1, 9, 45), Repeats: true),
+        new("Standup", At(2, 9, 30), At(2, 9, 45), Repeats: true), new("Standup", At(3, 9, 30), At(3, 9, 45), Repeats: true),
+        new("Sprint planning", At(0, 10), At(0, 11, 30), "Room 4", Repeats: true),
+        new("Salary review", At(1, 11), At(1, 12), "Room 2", Private: true),
+        new("Design critique", At(1, 14), At(1, 15, 30), "Room 4"),
+        new("Doctor", At(2, 13), At(2, 14), Private: true),
+        new("Architecture sync", At(3, 11), At(3, 12), "Room 1", Repeats: true),
+        new("Retro", At(4, 15), At(4, 16), "Room 4", Repeats: true),
+    ];
+}
