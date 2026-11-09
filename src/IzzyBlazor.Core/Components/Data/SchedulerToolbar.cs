@@ -25,7 +25,7 @@ internal interface ISchedulerToolbar
 /// <see cref="SchedulerArrows"/>, <see cref="SchedulerPeriod"/>, <see cref="SchedulerCategories"/>,
 /// <see cref="SchedulerViews"/>, <see cref="SchedulerNew"/>. A part you don't write keeps
 /// its usual place. The Scheduler still decides whether a part shows (Categories with categories,
-/// the view menu with more than one view, New with OnSave). Write them directly in
+/// the view menu with more than one view, New with OnSave or an EditDialogForm). Write them directly in
 /// <c>ToolbarContent</c>: inside a component of your own the Scheduler can't see them, and draws
 /// its own as well.
 /// </summary>
@@ -141,7 +141,7 @@ public sealed class SchedulerViews : SchedulerToolbarItem
     private protected override RenderFragment? Part(ISchedulerToolbar scheduler) => scheduler.ViewsPart;
 }
 
-/// <summary>The Scheduler's New button, placed in its <c>ToolbarContent</c>; it shows with OnSave.</summary>
+/// <summary>The Scheduler's New button, placed in its <c>ToolbarContent</c>; it shows with OnSave or an EditDialogForm.</summary>
 public sealed class SchedulerNew : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
