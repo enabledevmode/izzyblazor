@@ -5,6 +5,8 @@
 @attribute [ModeSupport]
 @using System.Globalization
 @using System.Linq.Expressions
+@using Microsoft.Extensions.Logging
+@using Microsoft.Extensions.DependencyInjection
 
 @*
     A calendar of appointments: a day, a week, the working week, a month or a list of the coming
@@ -13,6 +15,9 @@
     Back goes to the page before. The period's title opens a month to go to any date.
 
     <Scheduler Items="bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Room" />
+
+    Only the days shown are read: an IQueryable (an EF Core query) is filtered by the database, and
+    ItemsProvider is asked for them from anywhere else.
 
     Appointments a day long or more, and all-day ones (AllDay), are bars across their days;
     the rest are boxes in their day's column, side by side where they overlap. Times are shown as
@@ -58,7 +63,7 @@
     See also: Calendar, DateRangeField.
 *@
 
-<ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
+<ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)" aria-busy="@(_loading ? "true" : null)"
               data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     @{
@@ -148,6 +153,22 @@
         </div>
     </div>
 
+    @if (_loadError is not null)
+    {
+        @* What was shown stays out: an empty view under the message. Retry asks again. *@
+        <div class="ib-sched-error" role="alert">
+            <span>@TextDefaults.SchedulerLoadFailed</span>
+            @if (RendererInfo.IsInteractive)
+            {
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" @onclick="RetryAsync">@TextDefaults.Retry</button>
+            }
+            else
+            {
+                <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@(new Uri(Navigation.Uri).PathAndQuery)">@TextDefaults.Retry</a>
+            }
+        </div>
+    }
+
     @switch (view)
     {
         case SchedulerView.Month:
@@ -168,8 +189,21 @@
 </ib-scheduler>
 
 @code {
-    /// <summary>The appointments. Those outside the range shown are left out as it draws.</summary>
-    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+    /// <summary>
+    /// The appointments. A list is read in memory; an <c>IQueryable</c> (such as an EF Core query)
+    /// is filtered by the database to the days shown. For other sources, use
+    /// <see cref="ItemsProvider"/>.
+    /// </summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Loads the appointments for the days shown yourself, in place of <see cref="Items"/>, from a
+    /// web API or a cache: the request has the range, the view and the hidden categories. Asked
+    /// for each page drawn. An exception it throws shows "Couldn't load the appointments." with
+    /// Retry (and is logged); a request that was canceled is ignored. While it loads on an
+    /// interactive page, the appointments shown stay, and the Scheduler is aria-busy.
+    /// </summary>
+    [Parameter] public Func<SchedulerRequest, ValueTask<IEnumerable<TItem>>>? ItemsProvider { get; set; }
 
     /// <summary>When each appointment starts, such as <c>b =&gt; b.Start</c>.</summary>
     [Parameter, EditorRequired] public Expression<Func<TItem, DateTime>> Start { get; set; } = default!;
@@ -441,22 +475,98 @@
                 }
             }
         }
-        _items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        if (Items is not null && ItemsProvider is not null)
+        {
+            throw new InvalidOperationException("A Scheduler takes Items or an ItemsProvider, not both.");
+        }
+
         _jump = CurrentDate;
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
     }
 
-    // Interactive: the address changed (a toolbar link or Back): draw the page it names.
+    /// <inheritdoc />
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    // Interactive: the address changed (a toolbar link, Back, or a save): load and draw the page it names.
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         (_ending, _refused) = (false, null);
         _jump = CurrentDate;
-        _ = InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            await LoadAsync();
+            StateHasChanged();
+        });
+    }
+
+    private bool _loading;
+    private Exception? _loadError;
+    private int _loadVersion;
+    private CancellationTokenSource? _loadCts;
+    private ILogger? _logger;
+
+    private ILogger? Logger => _logger ??= Services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    // The appointments for the days shown: a list as it is, an IQueryable filtered by the database,
+    // or the provider's. A slower, older load never overwrites a newer one.
+    private async Task LoadAsync()
+    {
+        var (first, days) = SchedulerLayout.Range(CurrentView, CurrentDate, FirstDay, AgendaDays);
+        var from = first.ToDateTime(TimeOnly.MinValue);
+        var to = first.AddDays(days).ToDateTime(TimeOnly.MinValue);
+        IReadOnlyCollection<string> hidden = _category is null ? [] : Hidden;
+        if (ItemsProvider is null)
+        {
+            _items = Items is IQueryable<TItem> query
+                ? SchedulerQuery.InRange(query, Start, End, Category, from, to, hidden).ToList()
+                : Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+            _loadError = null;
+            return;
+        }
+
+        var version = ++_loadVersion;
+        _loadCts?.Cancel();
+        var cts = _loadCts = new CancellationTokenSource();
+        _loading = true;
+        if (RendererInfo.IsInteractive) StateHasChanged();
+        try
+        {
+            var items = await ItemsProvider(new SchedulerRequest(from, to, CurrentView, hidden, cts.Token));
+            if (version != _loadVersion) return;
+            (_items, _loadError) = (items as IReadOnlyList<TItem> ?? items.ToList(), null);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // A newer load, or the Scheduler went away.
+        }
+        catch (Exception ex)
+        {
+            if (version != _loadVersion) return;
+            Logger?.LogError(ex, "The Scheduler's appointments failed to load.");
+            (_items, _loadError) = ([], ex);
+        }
+        finally
+        {
+            if (version == _loadVersion) _loading = false;
+        }
+    }
+
+    private async Task RetryAsync()
+    {
+        await LoadAsync();
+        StateHasChanged();
     }
 
     /// <inheritdoc />
-    public void Dispose() => Navigation.LocationChanged -= Moved;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= Moved;
+        _loadCts?.Cancel();
+    }
 
     // The appointments that touch the days shown.
     private List<SchedulerEntry> Read(DateOnly first, DateOnly last)
@@ -1158,6 +1268,7 @@
         }
 
         if (!RendererInfo.IsInteractive) Navigation.NavigateTo(Navigation.Uri);
+        else await LoadAsync();
     }
 
     // A move refused: its form shows though the address doesn't name it.

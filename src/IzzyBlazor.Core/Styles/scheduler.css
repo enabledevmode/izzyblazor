@@ -170,6 +170,18 @@
     background-color: var(--ib-color-primary);
   }
 
+  /* The provider failed: the message and Retry above an empty view. */
+  .ib-sched-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-3);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    color: var(--ib-color-muted);
+  }
+
   /* A category's color in its menu item. */
   .ib-sched-swatch {
     display: inline-block;
