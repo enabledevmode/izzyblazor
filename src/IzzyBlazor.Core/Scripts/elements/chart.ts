@@ -394,7 +394,8 @@ class Chart extends IzzyElement {
       }
       if (report) settled();
     };
-    this.ibView = [() => view, setView];
+    const mine: Chart["ibView"] = (this.ibView = [() => view, setView]);
+    signal.addEventListener("abort", () => this.ibView === mine && (this.ibView = undefined));
     if (syncView) {
       peer.view = (m) => {
         const v = sync!.viewIn(syncAt!, m);
@@ -738,8 +739,8 @@ class Chart extends IzzyElement {
       { signal }
     );
     frame.addEventListener("blur", drop, { signal });
-    // Drawn again (an interactive page after a zoom) with the keys on an item: it stays shown.
-    if (kept && byKeys && current >= 0 && document.activeElement === frame) show(current, null);
+    // Drawn again (an interactive page after a zoom or new data) with the keys or the pointer on an item: it stays shown.
+    if (kept && current >= 0 && ((byKeys && document.activeElement === frame) || plot.matches(":hover"))) show(current, null);
     frame.addEventListener(
       "keydown",
       (event) => {
