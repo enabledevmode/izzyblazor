@@ -25,79 +25,133 @@
 .site-logo-ink { fill: light-dark(#14161a, #f5f4f1); }
 .site-logo-soft { fill: light-dark(#5a6069, #a9aeb6); }
 
-/* The home page's hero, after brand/hero/hero-dark: ink in either scheme, Bricolage Grotesque for
-   the headline, Ember for its second line, and the glowing knob behind the example. */
+/* The home page's hero, after brand/hero/hero-light and hero-dark: Paper in light mode, Ink in
+   dark, Bricolage Grotesque for the headline, Ember for its second line, and beside it the app in a
+   desktop window and a phone, with the glowing knob behind them. */
 .site-hero {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: #14161a;
+  background: light-dark(#f5f4f1, #14161a);
+  border-block-end: 1px solid light-dark(#e4e1da, transparent);
 }
-.site-hero-grid { position: relative; z-index: 1; }
+.site-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ib-space-12);
+  align-items: center;
+}
 .site-hero-glow {
   position: absolute;
   z-index: 0;
-  /* From the band's center, so it sits by the app window's top corner at any width, partly
-     behind it. */
-  top: 20rem;
-  left: calc(50% + 12rem);
+  top: 50%;
+  left: calc(50% + 16rem);
   width: 52rem;
   height: 52rem;
   translate: 0 -50%;
   pointer-events: none;
 }
-.site-hero-intro { text-align: center; }
-.site-hero-wordmark { display: block; width: auto; height: 3.5rem; max-width: 100%; margin: 0; }
-/* The hero's app: a browser-style window set into the Ink band, a lighter edge and a shadow off
-   the glow. The frame is the app's page, so a phone gets the app's phone layout. */
+.site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
+.site-hero-title {
+  font-family: "Bricolage Grotesque", var(--ib-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: light-dark(#14161a, #f5f4f1);
+}
+/* A deeper Ember on Paper, as the brand's light hero has it: Ember itself is too faint there. */
+.site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
+.site-hero .site-install { background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
+
+/* The app's frames lay out at a desktop's and a phone's width and are scaled down by --s, as a
+   picture would be, so the whole app shows and nothing that takes focus is cut off. Negative
+   margins give back the space the scale takes away. */
+.site-hero-stage { --s: 0.75; position: relative; display: flex; justify-content: center; }
+.site-hero-stage iframe {
+  display: block;
+  border: 0;
+  background: var(--ib-color-bg);
+  transform: scale(var(--s));
+  transform-origin: 0 0;
+}
+.site-hero-window { display: none; }
+.site-hero-phone {
+  position: relative;
+  z-index: 1;
+  padding: 0.5rem;
+  border-radius: 2rem;
+  background: light-dark(#14161a, #2c2f36);
+  box-shadow: 0 1.5rem 3rem -1rem light-dark(rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.7));
+}
+.site-hero-phone iframe {
+  width: 390px;
+  height: 780px;
+  margin: 0 calc(390px * (var(--s) - 1)) calc(780px * (var(--s) - 1)) 0;
+  border-radius: calc(1.5rem / var(--s));
+}
 .site-hero-window {
+  position: relative;
   overflow: hidden;
-  border: 1px solid #2c2f36;
+  width: calc(1120px * var(--s) + 2px);
+  border: 1px solid light-dark(#d6d3cc, #2c2f36);
   border-radius: var(--ib-radius-lg);
-  background: #0d0e11;
-  box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.7);
+  background: light-dark(#ebe9e4, #1b1d22);
+  box-shadow: 0 1.5rem 4rem -1rem light-dark(rgb(20 22 26 / 0.18), rgb(0 0 0 / 0.7));
+}
+/* Focus in the desktop window brings it above the phone, so nothing focused there is covered. */
+.site-hero-window:focus-within { z-index: 2; }
+.site-hero-window iframe {
+  width: 1120px;
+  height: 760px;
+  margin: 0 calc(1120px * (var(--s) - 1)) calc(760px * (var(--s) - 1)) 0;
 }
 .site-hero-window-bar {
   display: flex;
   align-items: center;
   gap: var(--ib-space-4);
   padding: var(--ib-space-2) var(--ib-space-3);
-  border-bottom: 1px solid #2c2f36;
-  background: #1b1d22;
+  border-bottom: 1px solid light-dark(#d6d3cc, #2c2f36);
 }
 .site-hero-window-dots { display: flex; gap: 0.375rem; }
-.site-hero-window-dots i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: #3a3e46; }
+.site-hero-window-dots i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: light-dark(#c9c5bd, #3a3e46); }
 .site-hero-window-url {
   flex: 0 1 22rem;
   margin-inline: auto;
   padding: 0.125rem var(--ib-space-3);
   border-radius: var(--ib-radius-md);
-  background: #0d0e11;
-  color: #9a9ea6;
+  background: light-dark(#f5f4f1, #0d0e11);
+  color: light-dark(#5a6069, #9a9ea6);
   font-size: var(--ib-text-xs);
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.site-hero-window iframe { display: block; width: 100%; height: 45rem; border: 0; background: var(--ib-color-bg); }
-@media (max-width: 47.98rem) {
-  .site-hero-window iframe { height: 36rem; }
-}
-.site-hero-title {
-  font-family: "Bricolage Grotesque", var(--ib-font-heading);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #f5f4f1;
-}
-.site-hero-title span { color: #f26a1b; }
 @media (max-width: 63.98rem) {
-  /* Narrow: the glow sits behind the top corner. */
+  /* One column: the phone alone, centered under the text; the glow behind the top corner. */
   .site-hero-glow { top: 0; left: auto; right: -30rem; translate: 0 -45%; opacity: 0.35; }
-  .site-hero-wordmark { height: 2.5rem; }
 }
+@media (min-width: 64rem) {
+  /* Text beside the app: the desktop window, with the phone over its lower start corner. */
+  .site-hero-grid { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: var(--ib-space-12); }
+  .site-hero-stage { --s: 0.5; container: hero-stage / inline-size; display: block; padding-block-end: 5rem; padding-inline-start: 3rem; }
+  .site-hero-window { --s: 0.4; display: block; }
+  .site-hero-phone { position: absolute; left: 0; bottom: 0; }
+}
+@media (min-width: 80rem) {
+  .site-hero-grid { grid-template-columns: minmax(0, 28rem) minmax(0, 1fr); gap: var(--ib-space-16); }
+  .site-hero-stage { --s: 0.62; }
+}
+/* The window as wide as the column lets it be (its 1120px times --s, after the phone's 3rem). */
+@container hero-stage (min-width: 560px) { .site-hero-window { --s: 0.45; } }
+@container hero-stage (min-width: 620px) { .site-hero-window { --s: 0.5; } }
+@container hero-stage (min-width: 680px) { .site-hero-window { --s: 0.56; } }
+@container hero-stage (min-width: 780px) { .site-hero-window { --s: 0.65; } }
+@container hero-stage (min-width: 880px) { .site-hero-window { --s: 0.74; } }
+@container hero-stage (min-width: 980px) { .site-hero-window { --s: 0.82; } }
 
-.site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
+.site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
   width: fit-content;
   padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
