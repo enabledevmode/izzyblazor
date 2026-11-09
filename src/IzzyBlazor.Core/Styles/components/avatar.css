@@ -19,6 +19,7 @@
     user-select: none;
   }
 
+  .ib-avatar-xxs { --ib-avatar-size: 1.25rem; }
   .ib-avatar-xs { --ib-avatar-size: 1.5rem; }
   .ib-avatar-sm { --ib-avatar-size: 2rem; }
   .ib-avatar-lg { --ib-avatar-size: 3rem; }

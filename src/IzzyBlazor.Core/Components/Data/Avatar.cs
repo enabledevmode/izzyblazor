@@ -6,6 +6,9 @@ namespace IzzyBlazor;
 /// <summary>Avatar sizes.</summary>
 public enum AvatarSize
 {
+    /// <summary>1.25rem, for the tightest rows: a calendar's day header, a chip.</summary>
+    Xxs,
+
     /// <summary>1.5rem, for dense lists and inline mentions.</summary>
     Xs,
 
