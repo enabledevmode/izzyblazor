@@ -232,6 +232,27 @@
   .ib-sched-dow-short { display: none; }
   .ib-sched-day-head > :is(.ib-sched-num, .ib-sched-dow) { grid-column: 1; }
   .ib-sched-day-head > .ib-sched-day-extra { grid-row: 1 / span 2; grid-column: 2; }
+  /* An AppointmentTemplate's content: a row, so a <Box Grow /> pushes what follows (an icon) to
+     the end, as Outlook's marks; text shrinks and cuts off before an icon does. */
+  .ib-sched-own {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+  /* A taller box: the row at the top, its height its own (a read-only box is a column). */
+  .ib-sched-col .ib-sched-event:not(.ib-sched-short) > .ib-sched-own { flex: none; align-self: stretch; align-items: flex-start; }
+  /* A month's row: the start, then the template's row in the rest. */
+  .ib-sched-pill > span[aria-hidden]:has(> .ib-sched-own) {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .ib-sched-own > * { min-width: 0; }
+  .ib-sched-own > :not(svg) { overflow: hidden; text-overflow: ellipsis; }
+  .ib-sched-own > svg { flex: none; }
   .ib-sched-day-extra {
     display: inline-flex;
     align-items: center;
