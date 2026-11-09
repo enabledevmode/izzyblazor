@@ -35,7 +35,7 @@
                     <Heading Level="1" Size="TextSize.Xl2">Good morning, Ada</Heading>
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Here's how the store did this week.</TextBlock>
                 </Stack>
-                <Button Href='@To("view", "products")' StartIcon="Lucide.Plus">Add product</Button>
+                <Button Href='@To("view", "products")' StartIcon="Lucide.Plus" VisibleFrom="Breakpoint.Md">Add product</Button>
             </Row>
 
             <Alert Status="Status.Warning">
@@ -113,6 +113,7 @@
                         <TimelineItem Title="Order #1060 paid" Time="9:42 AM" Icon="Lucide.CreditCard" Status="Status.Success">Contoso Ltd, $412.80</TimelineItem>
                         <TimelineItem Title="Linen throw low on stock" Time="8:15 AM" Icon="Lucide.TriangleAlert" Status="Status.Warning">12 left, 40 on order.</TimelineItem>
                         <TimelineItem Title="Review posted" Time="Yesterday" Icon="Lucide.Star">Maya Patel rated the Stoneware mug 5 stars.</TimelineItem>
+                        <TimelineItem Title="Return received" Time="Nov 8" Icon="Lucide.Undo2">Order #1049, a cracked mug; refund sent.</TimelineItem>
                         <TimelineItem Title="Winter sale scheduled" Time="Nov 7" Icon="Lucide.CalendarDays" />
                     </Timeline>
                 </Card>
@@ -140,6 +141,8 @@
 
 
         </Stack>
+        @* On phones the main action floats at the corner instead. *@
+        <FloatingButton Icon="Lucide.Plus" Label="Add product" Href='@To("view", "products")' HiddenFrom="Breakpoint.Md" />
     </AppMain>
 </AppShell>
 
