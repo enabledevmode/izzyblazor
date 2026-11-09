@@ -21,8 +21,12 @@
     A box shows its title and Detail (such as where it is), not its times: the hours beside it say
     when, as in Outlook. ShowTime adds them. A month's day lists each appointment with its start.
 
-    With Category and a SchedulerCategory for each kind, appointments take their category's color,
-    and a Categories menu shows or hides each kind; with any hidden, its button is marked.
+    With Category and Categories, a SchedulerCategory for each kind, appointments take their
+    category's color, and a Categories menu shows or hides each kind; with any hidden, its button
+    is marked.
+
+    <Scheduler Items="events" ... Category="e => e.Kind"
+               Categories="@([new("work", "Work"), new("family", "Family")])" />
 
     With no OnSave, an appointment opens a card beside it: its whole time, Detail, category and
     Description. With OnSave and ItemKey, appointments are links to a form in a dialog, the toolbar
@@ -57,7 +61,6 @@
 <ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
               data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
-    <CascadingValue Value="Categories" IsFixed="true">@ChildContent</CascadingValue>
     @{
         var culture = CultureInfo.CurrentCulture;
         var (view, date) = (CurrentView, CurrentDate);
@@ -102,22 +105,22 @@
             </Popover>
         </div>
         <div class="ib-sched-actions">
-            @if (Categories.Items.Count > 0)
+            @if (Kinds.Count > 0)
             {
                 @* Each category shows or hides its appointments: a link with it in or out of the address. *@
                 @* With some hidden, the button says so as a DataGrid's column filter does: the accent and
                    a dot on the funnel, and its name gives the count. *@
-                var hiddenCount = Categories.Items.Count(c => Hidden.Contains(c.Value));
+                var hiddenCount = Kinds.Count(c => Hidden.Contains(c.Value));
                 <Menu Placement="Placement.BottomEnd" Class="ib-sched-cats">
                     <Trigger>
                         <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
-                                data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Categories.Items.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
+                                data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Kinds.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
                     </Trigger>
                     <ChildContent>
-                    @foreach (var c in Categories.Items)
+                    @foreach (var c in Kinds)
                     {
                         <MenuItem Href="@ToggleHref(c.Value)" Checked="@(!Hidden.Contains(c.Value))" KeepOpen>
-                            <span class="ib-sched-swatch" style="background:@Categories.ColorOf(c)"></span>@(c.Label ?? c.Value)
+                            <span class="ib-sched-swatch" style="background:@ColorOf(c)"></span>@(c.Label ?? c.Value)
                         </MenuItem>
                     }
                     </ChildContent>
@@ -243,12 +246,21 @@
     /// </summary>
     [Parameter] public Expression<Func<TItem, string?>>? Category { get; set; }
 
-    /// <summary>The <see cref="SchedulerCategory"/>s, in the order of the Categories menu.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>
+    /// The kinds of appointment, in the order of the Categories menu: written out, or made from
+    /// your own data, such as <c>kinds.Select(k =&gt; new SchedulerCategory(k.Id, k.Name))</c>.
+    /// </summary>
+    [Parameter] public IReadOnlyList<SchedulerCategory>? Categories { get; set; }
 
-    private SchedulerCategories? _categories;
+    private IReadOnlyList<SchedulerCategory> Kinds => Categories ?? [];
 
-    private SchedulerCategories Categories => _categories ??= new SchedulerCategories(StateHasChanged);
+    // A category's color: its own, or the palette's in the order they're listed.
+    private string ColorOf(SchedulerCategory category)
+    {
+        var at = 0;
+        while (at < Kinds.Count && !ReferenceEquals(Kinds[at], category)) at++;
+        return category.Color ?? $"var(--ib-chart-{at % 8 + 1})";
+    }
 
     private string HideKey => Prefix + "hide";
 
@@ -262,7 +274,7 @@
         if (!hidden.Remove(value)) hidden.Add(value);
         var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
         {
-            [HideKey] = hidden.Count == 0 ? null : string.Join(",", Categories.Items.Select(c => c.Value).Where(hidden.Contains)),
+            [HideKey] = hidden.Count == 0 ? null : string.Join(",", Kinds.Select(c => c.Value).Where(hidden.Contains)),
             [EditKey] = null,
             [StartKey] = null,
         }));
@@ -404,6 +416,16 @@
         if (!ReferenceEquals(AllDay, _lastAllDay)) (_lastAllDay, _allDay) = (AllDay, AllDay?.Compile());
         if (!ReferenceEquals(Description, _lastDescription)) (_lastDescription, _description) = (Description, Description?.Compile());
         if (!ReferenceEquals(Category, _lastCategory)) (_lastCategory, _category) = (Category, Category?.Compile());
+        if (Categories is { } kinds)
+        {
+            var values = new HashSet<string>();
+            foreach (var k in kinds)
+            {
+                if (string.IsNullOrWhiteSpace(k.Value)) throw new InvalidOperationException("A SchedulerCategory needs a Value, what an appointment's Category gives for it, such as \"work\".");
+                if (!values.Add(k.Value)) throw new InvalidOperationException($"Two SchedulerCategories have the Value \"{k.Value}\"; each needs its own.");
+            }
+        }
+
         if (OnSave.HasDelegate && ItemKey is null)
         {
             throw new InvalidOperationException("A Scheduler with OnSave needs an ItemKey, such as b => b.Id.ToString(), which names the appointment a link opens.");
@@ -519,7 +541,7 @@
     {
         var item = _items[e.Index];
         var color = Color?.Invoke(item) is { Length: > 0 } own ? own
-            : _category?.Invoke(item) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } category ? Categories.ColorOf(category)
+            : _category?.Invoke(item) is { } value && Kinds.FirstOrDefault(c => c.Value == value) is { } category ? ColorOf(category)
             : null;
         return color is null ? "" : $"--ib-sched-color:{color}";
     }
@@ -528,7 +550,7 @@
 
     // An appointment's category name, when it has one: said with it, since its color can't be.
     private string? CategoryLabel(SchedulerEntry e) =>
-        _category?.Invoke(_items[e.Index]) is { } value && Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : null;
+        _category?.Invoke(_items[e.Index]) is { } value && Kinds.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : null;
 
     // What a screen reader hears for an appointment: its title, then its whole time.
     private string Said(SchedulerEntry e, CultureInfo culture) =>
@@ -862,7 +884,7 @@
                 StartTime = TimeOnly.FromDateTime(start),
                 EndDate = DateOnly.FromDateTime(end),
                 EndTime = TimeOnly.FromDateTime(end),
-                Category = _category is null ? null : Categories.Items.FirstOrDefault()?.Value,
+                Category = _category is null ? null : Kinds.FirstOrDefault()?.Value,
             };
         }
         else if (_editItem is { } item)
@@ -894,8 +916,6 @@
     {
         SyncEdit(key, posted);
         var isNew = key == NewKey;
-        // The categories register after the first render: a new appointment takes the first then.
-        if (isNew && _model is { Category: null } && _category is not null) _model.Category = Categories.Items.FirstOrDefault()?.Value;
         var name = SchedulerEditBinding.Prefix;
         <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.SchedulerNew : TextDefaults.SchedulerEdit)" Size="DialogSize.Md" CloseOnBackdrop="false">
             @if (_model is null || _context is null)
@@ -920,11 +940,11 @@
                     {
                         <Switch @bind-Value="_model.AllDay" name="@($"{name}.AllDay")" Label="@TextDefaults.SchedulerAllDay" Class="ib-sched-allday-field" />
                     }
-                    @if (_category is not null && Categories.Items.Count > 0)
+                    @if (_category is not null && Kinds.Count > 0)
                     {
                         @* The category sets the appointment's color, as MUI's form sets its resource. *@
                         <Select TValue="string" @bind-Value="_model.Category" name="@($"{name}.Category")" Label="@TextDefaults.SchedulerCategory"
-                                Items="@Categories.Items.Select(c => c.Value)" ItemText="@CategoryTitle"
+                                Items="@Kinds.Select(c => c.Value)" ItemText="@CategoryTitle"
                                 ItemTemplate="CategoryOption" />
                     }
                     @if (Description is not null)
@@ -949,9 +969,9 @@
     // A time that a narrow column wraps after its dash, never inside it ("11:30 / AM").
     private static string Whole(string time) => time.Replace(' ', ' ');
 
-    private string CategoryTitle(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : value;
+    private string CategoryTitle(string value) => Kinds.FirstOrDefault(c => c.Value == value) is { } c ? c.Label ?? c.Value : value;
 
-    private string? CategoryColor(string value) => Categories.Items.FirstOrDefault(c => c.Value == value) is { } c ? Categories.ColorOf(c) : null;
+    private string? CategoryColor(string value) => Kinds.FirstOrDefault(c => c.Value == value) is { } c ? ColorOf(c) : null;
 
     // A category in the form's list: its color beside its name.
     private RenderFragment<string> CategoryOption => value => @<span><span class="ib-sched-swatch" style="background:@CategoryColor(value)"></span>@CategoryTitle(value)</span>;
@@ -992,7 +1012,7 @@
             SchedulerMembers.Set(Title, target!, fields.Title);
             SchedulerMembers.Set(AllDay, target!, fields.AllDay);
             SchedulerMembers.Set(Description, target!, fields.Description);
-            if (_category is not null && Categories.Items.Count > 0) SchedulerMembers.Set(Category, target!, fields.Category);
+            if (_category is not null && Kinds.Count > 0) SchedulerMembers.Set(Category, target!, fields.Category);
         }, Error);
         _saving = true;
         try
