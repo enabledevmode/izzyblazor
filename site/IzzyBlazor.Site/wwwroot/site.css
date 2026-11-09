@@ -43,20 +43,25 @@
   gap: var(--ib-space-12);
   align-items: center;
 }
-/* The knob as a watermark: Ember alone, each ring a little stronger toward the center, centered
-   to the start of the text and above the wordmark, so its core clears the text and only the faint
-   outer rings run under it. */
+/* The knob as a watermark: Ember alone, the rings adding up to about a fifth at the center. Its
+   center sits in the gap between the text and the app, 6rem above the wordmark, so the core clears
+   the text, the app window covers part of the rings, and it lands in the same place at any width.
+   On narrow screens, with the text alone above the phone, it moves to the top end corner. */
 .site-hero-intro { position: relative; }
 .site-hero-glow {
   position: absolute;
   z-index: -1;
-  top: -2rem;
-  left: -8rem;
+  top: -6rem;
+  left: calc(100% + 3rem);
   width: 44rem;
   height: 44rem;
   translate: -50% -50%;
   pointer-events: none;
 }
+@media (max-width: 63.98rem) {
+  .site-hero-glow { top: -2rem; left: auto; right: -14rem; width: 32rem; height: 32rem; translate: 0 -50%; }
+}
+
 .site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
 .site-hero-title {
   font-family: "Bricolage Grotesque", var(--ib-font-heading);
