@@ -4,9 +4,15 @@
 @* A small heading that labels the items below it in a NavMenu: a plain list item, since a list
    holds only items. *@
 
-<li @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</li>
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style">@if (Icon is { } icon)
+{
+    <Icon Name="icon" />
+}@ChildContent</li>
 
 @code {
+    /// <summary>An icon before the text.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
     /// <summary>The heading text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

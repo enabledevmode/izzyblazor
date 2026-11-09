@@ -12,7 +12,7 @@
         <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All components</NavItem>
         @foreach (var category in Registry.Categories)
         {
-            <NavLabel>@category</NavLabel>
+            <NavLabel Icon="@Pictogram.Lookup(Registry.CategoryIcon(category))">@category</NavLabel>
             @* A preview isn't listed, but on its own pages it needs its topics. *@
             @foreach (var component in Registry.InCategory(category).Concat(_current is { Preview: true } && _current.Category == category ? [_current] : []))
             {

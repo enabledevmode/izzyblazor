@@ -605,8 +605,8 @@ html:has(> body > .frame) body { margin: 0; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }
 
-/* The components index: a row per category, its picture at the start and its links in columns
-   after it (after Ant Design's overview, with one picture a group rather than one a component). */
+/* The components index: a row per category, its icon at the start and its links in columns after
+   it (after Ant Design's overview, with an icon a group rather than a picture a component). */
 .site-index {
   display: flex;
   flex-direction: column;
@@ -614,13 +614,12 @@ html:has(> body > .frame) body { margin: 0; }
 }
 .site-index-row {
   display: grid;
-  grid-template-columns: 11rem minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--ib-space-6);
   align-items: start;
   padding-block: var(--ib-space-6);
   border-block-start: 1px solid var(--ib-color-border);
 }
-.site-index-picture .pg { display: block; width: 100%; height: auto; border-radius: var(--ib-radius-lg); }
 .site-index-heading {
   display: flex;
   align-items: baseline;
@@ -650,7 +649,7 @@ html:has(> body > .frame) body { margin: 0; }
 @media (max-width: 39.98rem) {
   /* Phones: the text alone, the links in two columns. */
   .site-index-row { grid-template-columns: minmax(0, 1fr); }
-  .site-index-picture { display: none; }
+  .site-index-row > .site-picto { display: none; }
   .site-index-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* Names in the muted gray under strong group headings, as in the docs sidebar; full color on
