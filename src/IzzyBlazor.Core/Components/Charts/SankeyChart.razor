@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits LayoutItemBase
+@implements IDisposable
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
 @using System.Globalization
@@ -61,6 +62,37 @@
 </figure>
 
 @code {
+    /// <summary>
+    /// How often the chart reads its data again, at least a second, such as
+    /// <c>Refresh="TimeSpan.FromSeconds(30)"</c>. On a static page the page (or
+    /// <see cref="RefreshFrom"/>) is fetched again and the chart drawn from it, found by its
+    /// <c>id</c>, which it then needs; on an interactive page <see cref="OnRefresh"/> is raised, for
+    /// you to load new data. Not while the tab is hidden or the chart is off-screen, nor (static)
+    /// while the pointer or focus is in it. Unlike Chart's, it has no Pause button.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public TimeSpan? Refresh { get; set; }
+
+    /// <summary>On a static page with <see cref="Refresh"/>: a lighter page to fetch than this one, which renders the same chart with the same <c>id</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? RefreshFrom { get; set; }
+
+    /// <summary>On an interactive page with <see cref="Refresh"/>: raised at each interval, to load new data.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback OnRefresh { get; set; }
+
+    private readonly ChartRefresh _refresh = new();
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _refresh.AfterRender(Refresh, RendererInfo, OnRefresh, InvokeAsync, DispatchExceptionAsync);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _refresh.Dispose();
+
     /// <summary>The flows, one item each: where it comes from, where it goes and how much.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
@@ -331,7 +363,7 @@
         var order = model.Nodes.OrderBy(n => n.Column).ThenBy(n => n.Top).Select(n => n.Index).ToArray();
         var style = $"--ib-sankey-cols:{last};{(Height is { } h ? $"--ib-chart-height:{h.Css};" : "")}{Palette?.Style(Math.Min(8, nodeNames.Length))}";
 
-        <ib-chart style="@style" data-ib-sankey="@string.Join(" ", order)">
+        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@style" data-ib-sankey="@string.Join(" ", order)">
             <div class="ib-chart-main ib-sankey">
                 <div class="ib-sankey-plot" role="img" aria-labelledby="@NameId" aria-describedby="@(_labelId)-desc">
                     <svg class="ib-sankey-links" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
@@ -482,6 +514,7 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        _refresh.Check("SankeyChart", Refresh, RefreshFrom, RendererInfo, AssignedRenderMode, AdditionalAttributes, OnRefresh.HasDelegate);
         if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)

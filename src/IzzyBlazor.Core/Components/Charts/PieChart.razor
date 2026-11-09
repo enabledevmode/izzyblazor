@@ -67,7 +67,7 @@
             : TextWidths.AtSize(named ? $"{names[l.Index]} {shares[l.Index]}" : shares[l.Index] ?? "", 14)).DefaultIfEmpty(0).Max();
         var room = $"--ib-pie-room-x:{Num(Math.Ceiling(widest + SizeInPixels * 0.11 + 8))}px;--ib-pie-room-y:{Num(Math.Ceiling(SizeInPixels * 0.15 + 10))}px";
     }
-    <ib-chart style="@Palette?.Style(items.Count)"
+    <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
               data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
               data-ib-draw="@(Legend != ChartLegend.None ? DrawData([values], [(Donut ? ChartShapes.DonutHole : 0, 1)], Labels switch { ChartLabels.None => 0, ChartLabels.Inside => 2, _ => 1 }) : null)"

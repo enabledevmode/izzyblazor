@@ -127,7 +127,7 @@
                 <span>@RingName(r, rings.Count, rings[r].DisplayName)</span>
             }
         </p>
-        <ib-chart style="@Palette?.Style(n)"
+        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(n)"
                   data-ib-pie="@Num(Hole)"
                   data-ib-rings="@rings.Count"
                   data-ib-count="@n"
