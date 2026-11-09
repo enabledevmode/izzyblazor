@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap" />
 </PageMeta>
 
-@* The brand's hero (brand/hero/hero-dark): an ink band in either scheme, the wordmark, the headline
-   with its ember line, and the glowing knob behind the live example. Drawn rather than placed as
-   the image, so the headline stays text and the example stays live. *@
-<Section Spacing="SectionSpacing.Lg" ColorScheme="ColorScheme.Dark" Class="site-hero">
+@* The brand's hero (brand/hero/hero-light and hero-dark): Paper in light mode, Ink in dark, the
+   wordmark, the headline with its ember line, and beside it the app the library builds, live: a
+   desktop window and a phone, each a frame of the same page, scaled down as pictures are. The
+   glowing knob sits behind them. *@
+<Section Spacing="SectionSpacing.Lg" Class="site-hero">
     <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
         <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.05" />
         <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.07" />
@@ -22,16 +23,16 @@
         <circle cx="400" cy="400" r="140" fill="#F26A1B" />
         <circle cx="400" cy="400" r="57.3" fill="#FFB020" />
     </svg>
-    <Stack Gap="10" Class="site-hero-grid">
-        <Stack Gap="6" Align="Align.Center" Class="site-hero-intro">
-            <img class="site-hero-wordmark" src="img/izzyblazor-wordmark-dark.svg" alt="" width="944" height="210" />
+    <div class="site-hero-grid">
+        <Stack Gap="6" Class="site-hero-intro">
+            <SiteLogo />
             <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
                 Rich components for static SSR. C# interactivity when you need it.
             </TextBlock>
-            <Row Gap="3" Wrap Justify="Justify.Center">
+            <Row Gap="3" Wrap>
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </Row>
@@ -40,24 +41,28 @@
                 <Code>@Install</Code>
                 <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
             </Row>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Wrap="TextWrap.Pretty">
+                Beside this: a store's dashboard built with IzzyBlazor, live, not a screenshot. Every
+                control works, and this page holds no circuit.
+                <Anchor Href="demos/app-shell/store-operations">See it interactive, with its code</Anchor>
+            </TextBlock>
         </Stack>
-        @* A store's dashboard built from the library, live in a browser-style window: a frame of
-           its own, so it has an app's page and its phone layout on a phone. Static, as the line
-           under it says; the demo page shows it interactive, with its code. *@
-        <Stack Gap="3">
+        @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
+           lays out as it would there. The desktop window is left out below 1024px, where only the
+           phone fits. *@
+        <div class="site-hero-stage">
             <div class="site-hero-window">
                 <div class="site-hero-window-bar" aria-hidden="true">
                     <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
                     <span class="site-hero-window-url">northwind.example</span>
                 </div>
-                <iframe class="ex-frame" src="frame/home-store?mode=static" title="Northwind, a store's dashboard built with IzzyBlazor"></iframe>
+                <iframe class="ex-frame" src="frame/home-store?mode=static" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe>
             </div>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Balance">
-                Live, not a screenshot: every control works, and this page holds no circuit.
-                <Anchor Href="demos/app-shell/store-operations">See it interactive, with its code</Anchor>
-            </TextBlock>
-        </Stack>
-    </Stack>
+            <div class="site-hero-phone">
+                <iframe class="ex-frame" src="frame/home-store?mode=static" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe>
+            </div>
+        </div>
+    </div>
 </Section>
 
 <Section Bg="Color.FillSubtle" Class="site-band">
