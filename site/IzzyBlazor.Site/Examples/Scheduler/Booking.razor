@@ -1,11 +1,11 @@
-@* Meeting rooms booked for the week: open a booking to change or cancel it, select empty time or
+@* Meeting rooms booked for the week: open a booking to change or delete it, select empty time or
    New to add one, or drag a booking to another time. The page saves what the form sends, on a
    static page too. *@
 <Scheduler TItem="RoomBooking" Items="Store" Start="b => b.Start" End="b => b.End" Title="b => b.Title" Description="b => b.Notes"
-           Category="b => b.Room" ItemKey="b => b.Id.ToString()" OnSave="Save" OnDelete="Delete" View="SchedulerView.WorkWeek" Name="rooms">
-    <SchedulerCategory Value="Aspen" Title="Aspen (8)" />
-    <SchedulerCategory Value="Birch" Title="Birch (4)" />
-    <SchedulerCategory Value="Cedar" Title="Cedar (12)" />
+           Category="b => b.Room" ItemKey="b => b.Id.ToString()" OnSave="Save" OnDelete="Delete" View="SchedulerView.WorkWeek" QueryPrefix="rooms-">
+    <SchedulerCategory Value="Aspen" Label="Aspen (8)" />
+    <SchedulerCategory Value="Birch" Label="Birch (4)" />
+    <SchedulerCategory Value="Cedar" Label="Cedar (12)" />
 </Scheduler>
 
 @code {

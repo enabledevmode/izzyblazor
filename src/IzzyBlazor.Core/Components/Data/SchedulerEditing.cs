@@ -59,16 +59,16 @@ public sealed class SchedulerSave<TItem>
     private readonly Action<string> _error;
     private readonly Action<TItem> _copy;
 
-    internal SchedulerSave(TItem? item, SchedulerEditFields fields, Action<TItem> copy, Action<string> error)
+    internal SchedulerSave(TItem? item, bool isNew, SchedulerEditFields fields, Action<TItem> copy, Action<string> error)
     {
-        (Item, Fields, _copy, _error) = (item, fields, copy, error);
+        (Item, IsNew, Fields, _copy, _error) = (item, isNew, fields, copy, error);
     }
 
     /// <summary>The appointment being edited, or the default for a new one.</summary>
     public TItem? Item { get; }
 
     /// <summary>Whether it's a new appointment.</summary>
-    public bool IsNew => Item is null;
+    public bool IsNew { get; }
 
     /// <summary>The form's values.</summary>
     public SchedulerEditFields Fields { get; }
@@ -174,13 +174,20 @@ internal sealed class SchedulerMoveBinding : ComponentBase
 /// <summary>Sets a property a lambda reads, such as <c>b =&gt; b.Start</c>, on an item.</summary>
 internal static class SchedulerMembers
 {
+    /// <summary>Whether the lambda reads a property that can be set, such as <c>b =&gt; b.Start</c>.</summary>
+    public static bool CanSet(LambdaExpression read) => PropertyOf(read) is not null;
+
     public static void Set(LambdaExpression? read, object target, object? value)
     {
-        if (read is null) return;
-        var body = read.Body;
-        while (body is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert) body = convert.Operand;
-        if (body is not MemberExpression { Expression: ParameterExpression, Member: PropertyInfo { CanWrite: true } property }) return;
+        if (read is null || PropertyOf(read) is not { } property) return;
         var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
         property.SetValue(target, value is null || type.IsInstanceOfType(value) ? value : Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    private static PropertyInfo? PropertyOf(LambdaExpression read)
+    {
+        var body = read.Body;
+        while (body is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert) body = convert.Operand;
+        return body is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo { CanWrite: true } property } ? property : null;
     }
 }

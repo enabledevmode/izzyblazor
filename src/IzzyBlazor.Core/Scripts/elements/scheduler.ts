@@ -6,10 +6,11 @@ const SNAP = 15;
 const DRAG_PX = 4;
 
 const two = (n: number) => String(n).padStart(2, "0");
+// A day and minutes into it, counted in UTC so a clock change that day can't shift the hour.
 const iso = (day: string, minutes: number) => {
-  const d = new Date(`${day}T00:00`);
-  d.setMinutes(minutes);
-  return `${d.getFullYear()}-${two(d.getMonth() + 1)}-${two(d.getDate())}T${two(d.getHours())}:${two(d.getMinutes())}`;
+  const [y, m, d] = day.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d, 0, minutes));
+  return `${t.getUTCFullYear()}-${two(t.getUTCMonth() + 1)}-${two(t.getUTCDate())}T${two(t.getUTCHours())}:${two(t.getUTCMinutes())}`;
 };
 const minutesOf = (at: string) => {
   const [h, m] = at.slice(11, 16).split(":").map(Number);
@@ -27,14 +28,23 @@ const dayDiff = (a: string, b: string) => Math.round((Date.parse(`${b.slice(0, 1
  * the form and the toolbar work without this.
  */
 class Scheduler extends IzzyElement {
-  protected setup(signal: AbortSignal): void {
-    this.setAttribute("data-ib-ready", "");
-    signal.addEventListener("abort", () => this.removeAttribute("data-ib-ready"));
+  #scrolled: Element | null = null;
 
-    // Open on the working day, with room above for its hour's label.
-    const scroll = this.querySelector<HTMLElement>(".ib-sched-scroll");
-    const grid = this.querySelector<HTMLElement>(".ib-sched-grid");
-    if (scroll && grid) scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24 - 12;
+  protected setup(signal: AbortSignal): void {
+    // Enhanced navigation keeps this element but resets its attributes: set up again then. A new
+    // view's hours (interactive pages draw them in place) open on the working day too.
+    const watch = new MutationObserver(() => {
+      if (!this.hasAttribute("data-ib-ready")) this.connectedCallback();
+      else this.#scroll();
+    });
+    signal.addEventListener("abort", () => {
+      watch.disconnect();
+      this.removeAttribute("data-ib-ready");
+    });
+    this.setAttribute("data-ib-ready", "");
+    watch.observe(this, { attributes: true, attributeFilter: ["data-ib-ready"], childList: true });
+    this.#scrolled = null;
+    this.#scroll();
 
     this.addEventListener("keydown", (e) => this.#key(e), { signal });
 
@@ -43,11 +53,21 @@ class Scheduler extends IzzyElement {
     this.addEventListener("pointerdown", (e) => this.#press(e, signal), { signal });
   }
 
-  // The toolbar's shortcuts, while focus is in the Scheduler and not in a field or the form.
+  // Opens the day and week views on the working day, with room above for its hour's label.
+  #scroll(): void {
+    const scroll = this.querySelector<HTMLElement>(".ib-sched-scroll");
+    const grid = this.querySelector<HTMLElement>(".ib-sched-grid");
+    if (!scroll || !grid || scroll === this.#scrolled) return;
+    this.#scrolled = scroll;
+    scroll.scrollTop = (grid.offsetHeight * (Number(this.dataset.ibDayStart) || 0)) / 24 - 12;
+  }
+
+  // The toolbar's shortcuts, while focus is in the Scheduler and not in a field, a menu (its
+  // type-ahead) or the form.
   #key(e: KeyboardEvent): void {
-    if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
     const t = e.target as Element;
-    if (t.closest("input, textarea, select, [contenteditable], dialog")) return;
+    if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]")) return;
     const link = this.querySelector<HTMLAnchorElement>(`a[data-ib-key="${e.key.toLowerCase()}"]`);
     if (!link) return;
     e.preventDefault();
@@ -69,14 +89,20 @@ class Scheduler extends IzzyElement {
   #press(e: PointerEvent, signal: AbortSignal): void {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
-    const box = target.closest<HTMLElement>(".ib-sched-col .ib-sched-event[data-ib-key]");
+    const box = target.closest<HTMLElement>(".ib-sched-col .ib-sched-event[data-ib-item]");
     const col = target.closest<HTMLElement>(".ib-sched-col");
     const cell = target.closest<HTMLElement>(".ib-sched-cell");
+
+    // Each press's listeners end with it.
+    const press = new AbortController();
+    signal.addEventListener("abort", () => press.abort(), { signal: press.signal });
+    const end = { signal: press.signal };
 
     // Empty time: a click opens a new appointment there (to the half hour), a month's day at the working day.
     if (!box) {
       if (target.closest("a, button")) return;
       const up = (u: PointerEvent) => {
+        press.abort();
         if (Math.hypot(u.clientX - e.clientX, u.clientY - e.clientY) > DRAG_PX) return;
         if (col?.dataset.ibDay) {
           const r = col.getBoundingClientRect();
@@ -85,16 +111,17 @@ class Scheduler extends IzzyElement {
           this.#open(cell.dataset.ibDay, (Number(this.dataset.ibDayStart) || 0) * 60);
         }
       };
-      this.addEventListener("pointerup", up, { once: true, signal });
+      document.addEventListener("pointerup", up, end);
+      document.addEventListener("pointercancel", () => press.abort(), end);
       return;
     }
 
     // An appointment: a drag moves it, from its bottom edge resizes it; a click is its link.
     if (box.hasAttribute("data-ib-cut")) return;
     const start = box.dataset.ibStart!;
-    const end = box.dataset.ibEnd!;
+    const finish = box.dataset.ibEnd!;
     const day0 = col!.dataset.ibDay!;
-    const length = dayDiff(start, end) * 1440 + minutesOf(end) - minutesOf(start);
+    const length = dayDiff(start, finish) * 1440 + minutesOf(finish) - minutesOf(start);
     const from = minutesOf(start);
     const rect = box.getBoundingClientRect();
     const resize = e.clientY > rect.bottom - 6;
@@ -126,32 +153,34 @@ class Scheduler extends IzzyElement {
       const minutes = Math.max(0, Math.min(1440 - SNAP, from + dy));
       moved = { day, minutes, length };
       const column = this.querySelector<HTMLElement>(`.ib-sched-col[data-ib-day="${day}"]`);
-      if (column && box.parentElement !== column) column.append(box);
+      if (column && box.parentElement !== column) {
+        column.append(box);
+        // Moving it can drop the capture; take it again.
+        if (!box.hasPointerCapture(m.pointerId)) box.setPointerCapture(m.pointerId);
+      }
       box.style.top = `${(minutes / 1440) * 100}%`;
     };
-    const done = () => {
-      box.removeEventListener("pointermove", move);
-      if (!dragging || !moved) return;
+    // Back where the server drew it: the server draws where it went (or, refused, it stays).
+    const back = () => {
+      press.abort();
+      // Only after a drag: moving the box under a plain click would cancel the click.
+      if (!dragging) return;
       box.removeAttribute("data-ib-dragging");
+      if (box.parentElement !== home) home.append(box);
+      [box.style.top, box.style.height] = [top0, height0];
+    };
+    const done = () => {
+      back();
+      if (!dragging || !moved) return;
       // The click that ends a drag isn't the link's.
       box.addEventListener("click", (c) => c.preventDefault(), { once: true, capture: true });
       const startAt = iso(moved.day, moved.minutes);
       const endAt = iso(moved.day, moved.minutes + moved.length);
-      if (startAt === start && endAt === end) {
-        home.append(box);
-        [box.style.top, box.style.height] = [top0, height0];
-        return;
-      }
-      this.#post(box.dataset.ibKey!, startAt, endAt);
+      if (startAt !== start || endAt !== finish) this.#post(box.dataset.ibItem!, startAt, endAt);
     };
-    box.addEventListener("pointermove", move, { signal });
-    box.addEventListener("pointerup", done, { once: true, signal });
-    box.addEventListener("pointercancel", () => {
-      box.removeEventListener("pointermove", move);
-      box.removeAttribute("data-ib-dragging");
-      home.append(box);
-      [box.style.top, box.style.height] = [top0, height0];
-    }, { once: true, signal });
+    box.addEventListener("pointermove", move, end);
+    box.addEventListener("pointerup", done, end);
+    box.addEventListener("pointercancel", back, end);
   }
 
   // Posts a move through the hidden form: its fields changed as a reader would, so an interactive
