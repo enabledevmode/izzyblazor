@@ -8,7 +8,7 @@ namespace IzzyBlazor;
 /// What <see cref="PieChart{TItem}"/> and <see cref="NestedDonutChart{TItem}"/> share: the items
 /// and their names, the title, the circle's size and start, the colors, the legend and the data table.
 /// </summary>
-public abstract class PieChartBase<TItem> : LayoutItemBase
+public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
 {
     private protected PieChartBase()
     {
@@ -221,9 +221,41 @@ public abstract class PieChartBase<TItem> : LayoutItemBase
         base.BuildAttributes(classes, styles);
     }
 
+    /// <summary>
+    /// How often the chart reads its data again, at least a second, such as
+    /// <c>Refresh="TimeSpan.FromSeconds(30)"</c>. On a static page the page (or
+    /// <see cref="RefreshFrom"/>) is fetched again and the chart drawn from it, found by its
+    /// <c>id</c>, which it then needs; on an interactive page <see cref="OnRefresh"/> is raised, for
+    /// you to load new data. Not while the tab is hidden or the chart is off-screen, nor (static)
+    /// while the pointer or focus is in it. Unlike Chart's, it has no Pause button.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public TimeSpan? Refresh { get; set; }
+
+    /// <summary>On a static page with <see cref="Refresh"/>: a lighter page to fetch than this one, which renders the same chart with the same <c>id</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? RefreshFrom { get; set; }
+
+    /// <summary>On an interactive page with <see cref="Refresh"/>: raised at each interval, to load new data.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback OnRefresh { get; set; }
+
+    private protected readonly ChartRefresh _refresh = new();
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _refresh.AfterRender(Refresh, RendererInfo, OnRefresh, InvokeAsync, DispatchExceptionAsync);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _refresh.Dispose();
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        _refresh.Check(ComponentName, Refresh, RefreshFrom, RendererInfo, AssignedRenderMode, AdditionalAttributes, OnRefresh.HasDelegate);
         if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
         {
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)

@@ -23,7 +23,8 @@ const same = (a: View, b: View) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1]
  * this with it.
  */
 export function live(host: LiveHost, signal: AbortSignal): void {
-  const figure = host.closest("figure");
+  // The chart: its figure, or a Sparkline's or Gauge's own element (with a hidden <ib-chart> in it).
+  const figure = host.parentElement?.closest<HTMLElement>("[id]");
   const every = Number(host.dataset.ibRefresh);
   if (!figure?.id || !(every >= 1000)) return;
   const url = new URL(host.dataset.ibRefreshFrom || location.href, location.href);
@@ -46,7 +47,7 @@ export function live(host: LiveHost, signal: AbortSignal): void {
 
   let onScreen = true;
   const seen = new IntersectionObserver(([e]) => (onScreen = e.isIntersecting));
-  seen.observe(host);
+  seen.observe(figure);
   signal.addEventListener("abort", () => seen.disconnect());
 
   let timer = 0;
@@ -85,8 +86,10 @@ function swap(host: LiveHost, figure: HTMLElement, part: Element, next: HTMLElem
   const view = host.ibView?.[0]();
   const was = drawnView(host);
 
-  // The caption and data table beside the chart, child for child; when the two don't line up
+  // The chart's own attributes (a Sparkline's name says its values), then the caption and data
+  // table beside the chart, child for child; when the two don't line up
   // (the chart elsewhere among them, or a different count), only the chart is drawn again.
+  for (const a of [...part.attributes]) if (a.name !== "id") figure.setAttribute(a.name, a.value);
   const old = [...figure.children];
   const fresh = [...part.children];
   const at = fresh.findIndex((c) => c === next || c.contains(next));
