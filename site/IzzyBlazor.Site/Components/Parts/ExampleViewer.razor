@@ -98,20 +98,6 @@
     /// <summary>The example's id in components.json, such as <c>button-variants</c>.</summary>
     [Parameter, EditorRequired] public string Example { get; set; } = "";
 
-    /// <summary>
-    /// Shows the example in this scheme ("light" or "dark") whatever the page's, for a viewer on a
-    /// band of its own scheme, such as the home page's dark hero. Not for demos, whose frame follows
-    /// the page.
-    /// </summary>
-    [Parameter] public string? Scheme { get; set; }
-
-    /// <summary>
-    /// Puts the example on the site's near-black page color rather than the library's background,
-    /// for a viewer on a band of its own, such as the home page's Ink hero: darker than the band, so
-    /// the window reads as set into it.
-    /// </summary>
-    [Parameter] public bool Deep { get; set; }
-
     /// <summary>Shows the code under the preview, with no Preview · Code tabs, as on demos.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
@@ -120,7 +106,7 @@
 
     /// <summary>
     /// Puts the page's mode switch in this viewer's row, for a page that is this one example (a
-    /// demo, the home page's hero). Elsewhere the page has its own.
+    /// demo, the docs overview). Elsewhere the page has its own.
     /// </summary>
     [Parameter] public bool ModeSwitch { get; set; }
 
@@ -167,7 +153,7 @@
         _source = Catalog.SourceOf(Example);
         _phones = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("phone", out var phones) ? phones.OfType<string>().ToList() : [];
         _phone = (WidthSwitch || _example.WidthSwitch) && _phones.Contains(Example);
-        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "") + (Deep ? " ex-deep" : "") + (_phone ? " ex-phone" : "");
+        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "") + (_phone ? " ex-phone" : "");
         _uid = $"ex-{Example}";
         // A page with the switch shows its mode (?mode=, then the cookie); any other page, Static.
         _pageMode = FollowsModeSwitchAttribute.PageMode(HttpContext, Registry);
@@ -177,13 +163,6 @@
 
     // A no-script page runs no Blazor, so a Interactive-only example can't run on it.
     private bool NeedsLivePage => _mode == "interactive" && _pageMode == "noscript" && !_example!.Page;
-
-    private IzzyBlazor.ColorScheme? FixedScheme => Scheme switch
-    {
-        "light" => IzzyBlazor.ColorScheme.Light,
-        "dark" => IzzyBlazor.ColorScheme.Dark,
-        _ => null,
-    };
 
     private string Src => $"frame/{Example}?mode={_mode}";
 
@@ -220,7 +199,7 @@
         else
         {
             @* The library's own grays (Neutral, its default), not the site's: an example shows what an app gets. *@
-            <ThemeScope Brand="blue" Gray="neutral" ColorScheme="FixedScheme" Class="ex-theme">
+            <ThemeScope Brand="blue" Gray="neutral" Class="ex-theme">
                 <CodeExample Center Class="ex-box ex-stage">
                     @if (_mode == "interactive")
                     {

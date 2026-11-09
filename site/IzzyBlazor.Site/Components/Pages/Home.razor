@@ -1,5 +1,4 @@
 @page "/"
-@attribute [FollowsModeSwitch]
 @layout HomeLayout
 @inject Registry Registry
 
@@ -23,8 +22,8 @@
         <circle cx="400" cy="400" r="140" fill="#F26A1B" />
         <circle cx="400" cy="400" r="57.3" fill="#FFB020" />
     </svg>
-    <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="10" Align="Align.Start" Class="site-hero-grid">
-        <Stack Gap="6">
+    <Stack Gap="10" Class="site-hero-grid">
+        <Stack Gap="6" Align="Align.Center" Class="site-hero-intro">
             <img class="site-hero-wordmark" src="img/izzyblazor-wordmark-dark.svg" alt="" width="944" height="210" />
             <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
@@ -32,7 +31,7 @@
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
                 Rich components for static SSR. C# interactivity when you need it.
             </TextBlock>
-            <Row Gap="3" Wrap>
+            <Row Gap="3" Wrap Justify="Justify.Center">
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </Row>
@@ -42,8 +41,23 @@
                 <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
             </Row>
         </Stack>
-        <ExampleViewer Example="home-settings" Scheme="dark" Deep ModeSwitch />
-    </Grid>
+        @* A store's dashboard built from the library, live in a browser-style window: a frame of
+           its own, so it has an app's page and its phone layout on a phone. Static, as the line
+           under it says; the demo page shows it interactive, with its code. *@
+        <Stack Gap="3">
+            <div class="site-hero-window">
+                <div class="site-hero-window-bar" aria-hidden="true">
+                    <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
+                    <span class="site-hero-window-url">northwind.example</span>
+                </div>
+                <iframe class="ex-frame" src="frame/home-store?mode=static" title="Northwind, a store's dashboard built with IzzyBlazor"></iframe>
+            </div>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Balance">
+                Live, not a screenshot: every control works, and this page holds no circuit.
+                <Anchor Href="demos/app-shell/store-operations">See it interactive, with its code</Anchor>
+            </TextBlock>
+        </Stack>
+    </Stack>
 </Section>
 
 <Section Bg="Color.FillSubtle" Class="site-band">

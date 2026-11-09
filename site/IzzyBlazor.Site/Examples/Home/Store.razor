@@ -1,0 +1,169 @@
+@inject NavigationManager Navigation
+
+@* An online store's operations dashboard. The range switch, the grid's sorting and paging, and the
+   sidebar are links, so all of it works on a static page. Below 768px the sidebar is a drawer
+   behind the menu button. *@
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To("view", null)" Icon="Lucide.Store" Label="Northwind" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Lucide.Bell" Label="Notifications, 3 new" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="@To("view", null)" Icon="Lucide.LayoutDashboard">Dashboard</NavItem>
+            <NavItem Href='@To("view", "orders")' Icon="Lucide.ShoppingCart" Badge="12">Orders</NavItem>
+            <NavItem Href='@To("view", "products")' Icon="Lucide.Package">Products</NavItem>
+            <NavItem Href='@To("view", "customers")' Icon="Lucide.Users">Customers</NavItem>
+            <NavItem Href='@To("view", "calendar")' Icon="Lucide.CalendarDays">Calendar</NavItem>
+            <NavDivider />
+            <NavLabel>Store</NavLabel>
+            <NavItem Href='@To("view", "reports")' Icon="Lucide.ChartColumn">Reports</NavItem>
+            <NavItem Href='@To("view", "settings")' Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="6" Padding="new() { Base = 4, Md = 6 }">
+            <Stack Gap="1">
+                <Heading Level="1" Size="TextSize.Xl2">Good morning, Ada</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Here's how the store did this week.</TextBlock>
+            </Stack>
+
+            <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
+                <Card><Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week"
+                            Sparkline="_revenue" SparklineLabel="Weekly revenue, last 12 weeks" SparklineFormat="C0" /></Card>
+                <Card><Stat Label="Orders" Value="1,284" Change="6.1%" Trend="StatTrend.Up" Description="vs last week"
+                            Sparkline="_orders" SparklineLabel="Weekly orders, last 12 weeks" SparklineType="SparklineType.Bar" SparklineFormat="N0" /></Card>
+                <Card><Stat Label="Average order" Value="$65.67" Change="3.0%" Trend="StatTrend.Up" Description="vs last week"
+                            Sparkline="_average" SparklineLabel="Average order value, last 12 weeks" SparklineType="SparklineType.Area" SparklineFormat="C2" /></Card>
+                <Card><Stat Label="Returns" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week"
+                            Sparkline="_returns" SparklineLabel="Return rate, last 12 weeks" SparklineFormat="0.0'%'" /></Card>
+            </Grid>
+
+            <Grid Columns="new() { Base = 1, Lg = 5 }" Gap="4">
+                <Card TitleLevel="2" Title="Revenue by channel" ColSpan="new() { Lg = 3 }">
+                    <CardActions>
+                        <TabNav Label="Revenue range" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                            @foreach (var months in Ranges)
+                            {
+                                <TabLink Href='@To("range", months == 6 ? null : $"{months}m")' Label="@($"{months}M")" Current="@(months == _months)" />
+                            }
+                        </TabNav>
+                    </CardActions>
+                    <Chart Items="Shown" Argument="m => m.Month" Title="@($"Revenue by channel, last {_months} months")" HideTitle
+                           Stacking="ChartStacking.Normal" Height="15.Rem">
+                        <ChartValueAxis Format="$#,##0,K" />
+                        <ChartBarSeries Value="m => m.Online" Name="Online store" />
+                        <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
+                        <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
+                    </Chart>
+                </Card>
+                <Card TitleLevel="2" Title="Coming up" ColSpan="new() { Lg = 2 }">
+                    <Scheduler Items="_events" Start="e => e.Start" End="e => e.End" Title="e => e.Title" Color="e => ColorOf(e.Kind)"
+                               View="SchedulerView.Agenda" AgendaDays="3" ViewOptions="[SchedulerView.Agenda]" QueryPrefix="agenda-" Label="Coming up" />
+                </Card>
+            </Grid>
+
+            <DataGrid Items="_recent" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Recent orders">
+                <Columns>
+                    <PropertyColumn Property="o => o.Number" Title="Order" Format="'#'0" Align="CellAlign.Start" Sortable />
+                    <PropertyColumn Property="o => o.Customer" Sortable />
+                    <PropertyColumn Property="o => o.Placed" Title="Placed" Format="MMM d" Sortable />
+                    <TemplateColumn Title="Status" Context="order" SortBy="o => o.Status">
+                        <Badge Status="@StatusOf(order.Status)" Variant="BadgeVariant.Soft">@order.Status</Badge>
+                    </TemplateColumn>
+                    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+                </Columns>
+            </DataGrid>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromQuery(Name = "range")] public string? Range { get; set; }
+
+    private static readonly int[] Ranges = [3, 6, 12];
+    private int _months = 6;
+
+    protected override void OnParametersSet() =>
+        _months = Range switch { "3m" => 3, "12m" => 12, _ => 6 };
+
+    private IEnumerable<ChannelMonth> Shown => _channels[^_months..];
+
+    // Links within this example: query values in its own address, so they stay here.
+    private string To(string name, string? value) => Navigation.GetUriWithQueryParameter(name, value);
+}
+@* hide *@
+
+@code {
+    private readonly double?[] _revenue = [68_200, 70_900, 69_400, 72_800, 74_100, 73_300, 76_900, 75_200, 78_600, 79_400, 77_100, 84_320];
+    private readonly double?[] _orders = [1_068, 1_102, 1_087, 1_131, 1_150, 1_138, 1_176, 1_160, 1_198, 1_214, 1_210, 1_284];
+    private readonly double?[] _average = [63.86, 64.34, 63.85, 64.37, 64.43, 64.41, 65.39, 64.83, 65.61, 65.40, 63.72, 65.67];
+    private readonly double?[] _returns = [3.1, 2.9, 3.0, 2.8, 2.7, 2.8, 2.6, 2.5, 2.6, 2.4, 2.5, 2.1];
+
+    private record ChannelMonth(string Month, decimal Online, decimal Marketplace, decimal Wholesale);
+
+    private readonly ChannelMonth[] _channels =
+    [
+        new("Dec", 182_000, 64_000, 41_000), new("Jan", 121_000, 47_000, 38_000), new("Feb", 118_000, 45_000, 39_000),
+        new("Mar", 134_000, 51_000, 42_000), new("Apr", 139_000, 54_000, 40_000), new("May", 146_000, 58_000, 44_000),
+        new("Jun", 151_000, 60_000, 47_000), new("Jul", 149_000, 63_000, 45_000), new("Aug", 157_000, 66_000, 48_000),
+        new("Sep", 162_000, 68_000, 52_000), new("Oct", 171_000, 72_000, 55_000), new("Nov", 178_000, 75_000, 57_000),
+    ];
+
+    private record StoreEvent(string Title, DateTime Start, DateTime End, string Kind);
+
+    private static readonly DateOnly Today = DateOnly.FromDateTime(DateTime.Today);
+
+    private static StoreEvent At(int day, int hour, int minute, int length, string title, string kind)
+    {
+        var start = Today.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
+        return new StoreEvent(title, start, start.AddMinutes(length), kind);
+    }
+
+    // The chart's palette: the team in its first color, suppliers and launches in the next two.
+    private static string ColorOf(string kind) => kind switch
+    {
+        "supplier" => "var(--ib-chart-2)",
+        "launch" => "var(--ib-chart-3)",
+        _ => "var(--ib-chart-1)",
+    };
+
+    private readonly StoreEvent[] _events =
+    [
+        At(0, 9, 0, 15, "Standup", "team"), At(0, 11, 0, 45, "Acme Supply: restock call", "supplier"),
+        At(0, 15, 30, 30, "Holiday banner review", "launch"),
+        At(1, 9, 0, 15, "Standup", "team"), At(1, 13, 0, 60, "Winter collection photo shoot", "launch"),
+        At(2, 9, 0, 15, "Standup", "team"), At(2, 10, 30, 30, "Carrier rates with ShipFast", "supplier"),
+    ];
+
+    private enum OrderStatus { Processing, Shipped, Delivered, Refunded }
+
+    private record StoreOrder(int Number, string Customer, DateOnly Placed, OrderStatus Status, decimal Total);
+
+    private static Status StatusOf(OrderStatus status) => status switch
+    {
+        OrderStatus.Delivered => Status.Success,
+        OrderStatus.Shipped => Status.Info,
+        OrderStatus.Processing => Status.Warning,
+        _ => Status.Neutral,
+    };
+
+    private static readonly string[] Customers =
+        ["Contoso Ltd", "Maya Patel", "Fabrikam Inc", "Liam O'Brien", "Sofia Rossi", "Tailspin Toys", "Kenji Sato", "Wingtip Gifts"];
+
+    private readonly StoreOrder[] _recent = Enumerable.Range(0, 18)
+        .Select(i => new StoreOrder(
+            1060 - i,
+            Customers[i * 3 % Customers.Length],
+            Today.AddDays(-(i / 4)),
+            i switch { < 4 => OrderStatus.Processing, < 9 => OrderStatus.Shipped, 11 => OrderStatus.Refunded, _ => OrderStatus.Delivered },
+            Math.Round(18.4m + i * 37.65m % 310m, 2)))
+        .ToArray();
+}
+@* /hide *@
