@@ -12,17 +12,9 @@
 
 @* The brand's hero (brand/hero/hero-light and hero-dark): Paper in light mode, Ink in dark, the
    wordmark, the headline with its ember line, and beside it the app the library builds, live: a
-   desktop window and a phone, each a frame of the same page, scaled down as pictures are. The
-   glowing knob sits behind them. *@
+   desktop window and a phone, each a frame of the same page, scaled down as pictures are, with
+   the glowing knob rising behind the window. *@
 <Section Spacing="SectionSpacing.Lg" Class="site-hero">
-    <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
-        <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.05" />
-        <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.07" />
-        <circle cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.1" />
-        <circle cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.22" />
-        <circle cx="400" cy="400" r="140" fill="#F26A1B" />
-        <circle cx="400" cy="400" r="57.3" fill="#FFB020" />
-    </svg>
     <div class="site-hero-grid">
         <Stack Gap="6" Class="site-hero-intro">
             <SiteLogo />
@@ -51,6 +43,14 @@
            lays out as it would there. The desktop window is left out below 1024px, where only the
            phone fits. *@
         <div class="site-hero-stage">
+            <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
+                <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.05" />
+                <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.07" />
+                <circle cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.1" />
+                <circle cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.22" />
+                <circle cx="400" cy="400" r="140" fill="#F26A1B" />
+                <circle cx="400" cy="400" r="57.3" fill="#FFB020" />
+            </svg>
             <div class="site-hero-window">
                 <div class="site-hero-window-bar" aria-hidden="true">
                     <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
@@ -59,7 +59,7 @@
                 <iframe class="ex-frame" src="frame/home-store?mode=static" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe>
             </div>
             <div class="site-hero-phone">
-                <iframe class="ex-frame" src="frame/home-store?mode=static" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe>
+                <iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe>
             </div>
         </div>
     </div>

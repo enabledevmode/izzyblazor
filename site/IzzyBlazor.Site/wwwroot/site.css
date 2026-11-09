@@ -43,14 +43,15 @@
   gap: var(--ib-space-12);
   align-items: center;
 }
+/* The knob rises behind the app window's top edge, its rings spreading into the band. */
 .site-hero-glow {
   position: absolute;
-  z-index: 0;
-  top: 50%;
-  left: calc(50% + 16rem);
-  width: 52rem;
-  height: 52rem;
-  translate: 0 -50%;
+  z-index: -1;
+  top: 0;
+  left: 64%;
+  width: 46rem;
+  height: 46rem;
+  translate: -50% -50%;
   pointer-events: none;
 }
 .site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
@@ -93,7 +94,7 @@
 .site-hero-window {
   position: relative;
   overflow: hidden;
-  width: calc(1120px * var(--s) + 2px);
+  width: calc(1280px * var(--s) + 2px);
   border: 1px solid light-dark(#d6d3cc, #2c2f36);
   border-radius: var(--ib-radius-lg);
   background: light-dark(#ebe9e4, #1b1d22);
@@ -102,9 +103,9 @@
 /* Focus in the desktop window brings it above the phone, so nothing focused there is covered. */
 .site-hero-window:focus-within { z-index: 2; }
 .site-hero-window iframe {
-  width: 1120px;
-  height: 760px;
-  margin: 0 calc(1120px * (var(--s) - 1)) calc(760px * (var(--s) - 1)) 0;
+  width: 1280px;
+  height: 940px;
+  margin: 0 calc(1280px * (var(--s) - 1)) calc(940px * (var(--s) - 1)) 0;
 }
 .site-hero-window-bar {
   display: flex;
@@ -129,27 +130,40 @@
   white-space: nowrap;
 }
 @media (max-width: 63.98rem) {
-  /* One column: the phone alone, centered under the text; the glow behind the top corner. */
-  .site-hero-glow { top: 0; left: auto; right: -30rem; translate: 0 -45%; opacity: 0.35; }
+  /* One column: the phone alone, centered under the text, the knob behind its top. */
+  .site-hero-glow { left: 50%; top: 4rem; width: 32rem; height: 32rem; }
 }
 @media (min-width: 64rem) {
-  /* Text beside the app: the desktop window, with the phone over its lower start corner. */
-  .site-hero-grid { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: var(--ib-space-12); }
+  /* Text beside the app: the desktop window, with the phone over its lower start corner. The
+     grid runs past the container to 1.5rem from the window's end, so the app gets the room. */
+  .site-hero-grid {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    gap: var(--ib-space-12);
+    margin-inline-end: min(0px, calc((100% - 100vw) / 2 + 1.5rem));
+  }
   .site-hero-stage { --s: 0.5; container: hero-stage / inline-size; display: block; padding-block-end: 5rem; padding-inline-start: 3rem; }
-  .site-hero-window { --s: 0.4; display: block; }
+  .site-hero-window { --s: 0.3; display: block; }
   .site-hero-phone { position: absolute; left: 0; bottom: 0; }
 }
 @media (min-width: 80rem) {
   .site-hero-grid { grid-template-columns: minmax(0, 28rem) minmax(0, 1fr); gap: var(--ib-space-16); }
   .site-hero-stage { --s: 0.62; }
 }
-/* The window as wide as the column lets it be (its 1120px times --s, after the phone's 3rem). */
-@container hero-stage (min-width: 560px) { .site-hero-window { --s: 0.45; } }
-@container hero-stage (min-width: 620px) { .site-hero-window { --s: 0.5; } }
-@container hero-stage (min-width: 680px) { .site-hero-window { --s: 0.56; } }
-@container hero-stage (min-width: 780px) { .site-hero-window { --s: 0.65; } }
-@container hero-stage (min-width: 880px) { .site-hero-window { --s: 0.74; } }
-@container hero-stage (min-width: 980px) { .site-hero-window { --s: 0.82; } }
+/* The window as wide as the column lets it be: its 1280px times --s (the container is the stage's
+   content box, after the phone's 3rem). */
+@container hero-stage (min-width: 440px) { .site-hero-window { --s: 0.34; } }
+@container hero-stage (min-width: 500px) { .site-hero-window { --s: 0.38; } }
+@container hero-stage (min-width: 560px) { .site-hero-window { --s: 0.43; } }
+@container hero-stage (min-width: 620px) { .site-hero-window { --s: 0.48; } }
+@container hero-stage (min-width: 680px) { .site-hero-window { --s: 0.52; } }
+@container hero-stage (min-width: 740px) { .site-hero-window { --s: 0.57; } }
+@container hero-stage (min-width: 800px) { .site-hero-window { --s: 0.62; } }
+@container hero-stage (min-width: 860px) { .site-hero-window { --s: 0.67; } }
+@container hero-stage (min-width: 920px) { .site-hero-window { --s: 0.71; } }
+@container hero-stage (min-width: 980px) { .site-hero-window { --s: 0.76; } }
+@container hero-stage (min-width: 1040px) { .site-hero-window { --s: 0.81; } }
+@container hero-stage (min-width: 1100px) { .site-hero-window { --s: 0.85; } }
+@container hero-stage (min-width: 1160px) { .site-hero-window { --s: 0.9; } }
 
 .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
@@ -460,6 +474,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   color: var(--ib-color-on-surface);
   font-weight: 500;
 }
+/* The home page's phone frame scrolls with no scrollbar, as a phone's browser does. */
+html:has(.frame-no-scrollbar) { scrollbar-width: none; }
 .ex-frame {
   display: block;
   width: 100%;

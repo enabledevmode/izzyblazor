@@ -145,7 +145,7 @@
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
             } } },
         { "id": "store-operations", "title": "A store's operations dashboard", "member": "Variant",
-          "description": "The home page's app: stat tiles with sparklines, a stacked bar chart with a range switch, the next three days' agenda and a grid of recent orders. The range switch, sorting, paging and the sidebar are links, so every control works on a static page.",
+          "description": "The home page's app: stat tiles with sparklines, a stacked bar chart with a range switch, a discount form, top products with ratings, a grid of recent orders, the next three days' agenda, a goal gauge and an activity timeline. The range switch, sorting, paging and the sidebar are links, so every control works on a static page.",
           "example": { "id": "home-store", "title": "Northwind store", "height": 720, "page": true,
             "notes": {
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. The range switch, sorting and paging are links and work as they are.",
