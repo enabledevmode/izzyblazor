@@ -229,6 +229,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "range-selector.css"),
   },
   {
+    // A sheet of its own, linked by Scheduler.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "scheduler.css")],
+    outfile: join(lib, "wwwroot", "scheduler.css"),
+  },
+  {
     // A sheet of its own, linked by RadarChart beside chart.css.
     ...common,
     sourcemap: false,

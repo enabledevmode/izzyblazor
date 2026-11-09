@@ -1,0 +1,25 @@
+@* A small team's week: meetings, a client call, focus time and an all-day offsite, each in the
+   color of what it's for. The toolbar's links change the week and the view. *@
+<Scheduler Items="_meetings" Start="m => m.Start" End="m => m.End" Title="m => m.Title" AllDay="m => m.AllDay" Color="m => m.Color" />
+
+@code {
+    private record Meeting(string Title, DateTime Start, DateTime End, string Color, bool AllDay = false);
+
+    private const string Team = "var(--ib-chart-7)", Clients = "var(--ib-chart-6)", Focus = "var(--ib-chart-5)", Away = "var(--ib-chart-3)";
+
+    // This week, from Monday, so the example always has something to show.
+    private static readonly DateOnly Monday = DateOnly.FromDateTime(DateTime.Today).AddDays(-(((int)DateTime.Today.DayOfWeek + 6) % 7));
+
+    private static DateTime At(int day, int hour, int minute = 0) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
+
+    private readonly Meeting[] _meetings =
+    [
+        new("Standup", At(0, 9, 30), At(0, 9, 45), Team), new("Standup", At(1, 9, 30), At(1, 9, 45), Team),
+        new("Standup", At(2, 9, 30), At(2, 9, 45), Team), new("Standup", At(3, 9, 30), At(3, 9, 45), Team),
+        new("Sprint planning", At(0, 10), At(0, 11, 30), Team), new("Design review", At(0, 14), At(0, 15), Team),
+        new("Focus: checkout flow", At(1, 10), At(1, 12), Focus), new("Acme renewal call", At(1, 13), At(1, 14), Clients),
+        new("1:1 Priya", At(1, 15), At(1, 15, 30), Team), new("Offsite", At(2, 0), At(2, 0), Away, true),
+        new("Contoso demo", At(3, 11), At(3, 12), Clients), new("Focus: invoices", At(3, 11), At(3, 13), Focus),
+        new("Retro", At(4, 15), At(4, 16), Team), new("Release", At(4, 16), At(4, 17), Team),
+    ];
+}

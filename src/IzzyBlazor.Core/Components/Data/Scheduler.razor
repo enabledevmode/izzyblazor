@@ -1,0 +1,475 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@implements IDisposable
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    A calendar of appointments: a day, a week, the working week, a month or a list of the coming
+    days. Drawn on the server, so it shows with no script and no circuit and prints; the view and
+    the date are in the page's address, so its toolbar is links and Back goes to the page before.
+
+    <Scheduler Items="bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Room" />
+
+    Appointments a day long or more, and all-day ones (AllDay), are bars across their days;
+    the rest are boxes in their day's column, side by side where they overlap. Times are shown as
+    given, in the app's time zone.
+
+    Accessibility:
+    - It's a region named by Label ("Schedule"); the toolbar's links say where they go
+      ("Previous week"), and the view menu is a radio group of links.
+    - Each day's appointments come in time order, each with its whole time said:
+      "Team meeting, Monday, November 9, 9:30 AM to 10:30 AM".
+    - The hour lines and the now line are hidden from screen readers.
+    See also: Calendar, DateRangeField.
+*@
+
+<section @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-label="@(Label ?? TextDefaults.SchedulerName)">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
+    @{
+        var culture = CultureInfo.CurrentCulture;
+        var (view, date) = (CurrentView, CurrentDate);
+        var (first, days) = SchedulerLayout.Range(view, date, FirstDay, AgendaDays);
+        var last = first.AddDays(days - 1);
+        var entries = Read(first, last);
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var period = PeriodOf(view).ToLower(culture);
+    }
+    <div class="ib-sched-bar">
+        <span class="ib-sched-title">@TitleOf(view, date, first, last, culture)</span>
+        <div class="ib-sched-nav">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
+                <Icon Purpose="IconPurpose.ChevronLeft" />
+            </a>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
+                <Icon Purpose="IconPurpose.ChevronRight" />
+            </a>
+            <a class="ib-btn ib-btn-neutral ib-btn-outline" href="@Href(view, null)">@TextDefaults.SchedulerToday</a>
+            <Menu Label="@ViewName(view)" Placement="Placement.BottomEnd" Class="ib-sched-views">
+                <MenuRadioGroup QueryKey="@ViewKey" Value="@ViewValue(view)">
+                    @foreach (var v in Views)
+                    {
+                        <MenuItem Value="@ViewValue(v)">@ViewName(v)</MenuItem>
+                    }
+                </MenuRadioGroup>
+            </Menu>
+        </div>
+    </div>
+
+    @switch (view)
+    {
+        case SchedulerView.Month:
+            @Month(entries, first, date, today, culture)
+            break;
+        case SchedulerView.Agenda:
+            @Agenda(entries, first, days, today, culture)
+            break;
+        default:
+            @Columns(entries, first, days, today, culture)
+            break;
+    }
+</section>
+
+@code {
+    /// <summary>The appointments. Those outside the range shown are left out as it draws.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>When each appointment starts, such as <c>b =&gt; b.Start</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, DateTime>> Start { get; set; } = default!;
+
+    /// <summary>When each appointment ends, such as <c>b =&gt; b.End</c>. An end at midnight is the end of the day before.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, DateTime>> End { get; set; } = default!;
+
+    /// <summary>Each appointment's title, such as <c>b =&gt; b.Subject</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Title { get; set; } = default!;
+
+    /// <summary>Whether an appointment is all day, such as <c>b =&gt; b.AllDay</c>: a bar over its days, with no times. Appointments a day long or more are bars too.</summary>
+    [Parameter] public Expression<Func<TItem, bool>>? AllDay { get; set; }
+
+    /// <summary>Each appointment's color, a CSS color such as <c>var(--ib-color-danger)</c>. Defaults to the palette's first color.</summary>
+    [Parameter] public Func<TItem, string?>? Color { get; set; }
+
+    /// <summary>
+    /// The view it opens on: <see cref="SchedulerView.Week"/> by default. The reader's choice is in
+    /// the page's address, and wins.
+    /// </summary>
+    [Parameter] public SchedulerView View { get; set; } = SchedulerView.Week;
+
+    /// <summary>The views in its menu, in order. All five by default.</summary>
+    [Parameter] public IReadOnlyList<SchedulerView>? ViewOptions { get; set; }
+
+    /// <summary>The day it opens on: today by default. The reader's page is in the page's address, and wins.</summary>
+    [Parameter] public DateOnly? Date { get; set; }
+
+    /// <summary>
+    /// A name for its keys in the page's address (<c>?rooms-view=month&amp;rooms-date=2026-11-09</c>),
+    /// for a page with more than one; none by default (<c>?view=…&amp;date=…</c>).
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The week's first day: the culture's by default.</summary>
+    [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; }
+
+    /// <summary>How many days the agenda lists. 7 by default.</summary>
+    [Parameter] public int AgendaDays { get; set; } = 7;
+
+    /// <summary>How many appointments a month's day shows before "+N more". 3 by default.</summary>
+    [Parameter] public int MonthLimit { get; set; } = 3;
+
+    /// <summary>The hour the day and week views open scrolled to (with script). 8 by default.</summary>
+    [Parameter] public int DayStart { get; set; } = 8;
+
+    /// <summary>The height of the day and week views' hours, which scroll inside it. 36rem by default.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>Its name for screen readers. "Schedule" by default.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private static readonly SchedulerView[] AllViews = [SchedulerView.Day, SchedulerView.Week, SchedulerView.WorkWeek, SchedulerView.Month, SchedulerView.Agenda];
+
+    private Func<TItem, DateTime>? _start, _end;
+    private Func<TItem, object?>? _title;
+    private Func<TItem, bool>? _allDay;
+    private Expression? _lastStart, _lastEnd, _lastTitle, _lastAllDay;
+    private IReadOnlyList<TItem> _items = [];
+    private string? _class;
+    private string? _style;
+
+    private IReadOnlyList<SchedulerView> Views => ViewOptions is { Count: > 0 } v ? v : AllViews;
+
+    private DayOfWeek FirstDay => FirstDayOfWeek ?? CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+
+    private string Prefix => string.IsNullOrWhiteSpace(Name) ? "" : Name + "-";
+
+    private string ViewKey => Prefix + "view";
+
+    private string DateKey => Prefix + "date";
+
+    // The view and date: the address's, else the parameters'.
+    private SchedulerView CurrentView
+    {
+        get
+        {
+            var asked = Query(ViewKey);
+            foreach (var v in Views) if (ViewValue(v) == asked) return v;
+            return Views.Contains(View) ? View : Views[0];
+        }
+    }
+
+    private DateOnly CurrentDate =>
+        Query(DateKey) is { } d && DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+            ? parsed
+            : Date ?? DateOnly.FromDateTime(DateTime.Now);
+
+    private static string ViewValue(SchedulerView view) => view switch
+    {
+        SchedulerView.WorkWeek => "workweek",
+        _ => view.ToString().ToLowerInvariant(),
+    };
+
+    // What one page of a view is, for "Previous week".
+    private string PeriodOf(SchedulerView view) => view switch
+    {
+        SchedulerView.Day => TextDefaults.SchedulerDay,
+        SchedulerView.Month => TextDefaults.SchedulerMonth,
+        SchedulerView.Agenda => TextDefaults.SchedulerAgenda,
+        _ => TextDefaults.SchedulerWeek,
+    };
+
+    private string ViewName(SchedulerView view) => view switch
+    {
+        SchedulerView.Day => TextDefaults.SchedulerDay,
+        SchedulerView.WorkWeek => TextDefaults.SchedulerWorkWeek,
+        SchedulerView.Month => TextDefaults.SchedulerMonth,
+        SchedulerView.Agenda => TextDefaults.SchedulerAgenda,
+        _ => TextDefaults.SchedulerWeek,
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-sched");
+        if (Height is { } h) styles.AddVar("sched-height", h.Css);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (RendererInfo.IsInteractive) Navigation.LocationChanged += Moved;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Start is null || End is null || Title is null)
+        {
+            throw new InvalidOperationException("Scheduler needs a Start, an End and a Title for each appointment, such as b => b.Start, b => b.End and b => b.Subject.");
+        }
+
+        if (!ReferenceEquals(Start, _lastStart)) (_lastStart, _start) = (Start, Start.Compile());
+        if (!ReferenceEquals(End, _lastEnd)) (_lastEnd, _end) = (End, End.Compile());
+        if (!ReferenceEquals(Title, _lastTitle)) (_lastTitle, _title) = (Title, Title.Compile());
+        if (!ReferenceEquals(AllDay, _lastAllDay)) (_lastAllDay, _allDay) = (AllDay, AllDay?.Compile());
+        _items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // Interactive: the address changed (a toolbar link or Back): draw the page it names.
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= Moved;
+
+    // The appointments that touch the days shown.
+    private List<SchedulerEntry> Read(DateOnly first, DateOnly last)
+    {
+        var from = first.ToDateTime(TimeOnly.MinValue);
+        var to = last.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        var entries = new List<SchedulerEntry>();
+        for (var i = 0; i < _items.Count; i++)
+        {
+            var (s, e) = (_start!(_items[i]), _end!(_items[i]));
+            if (e < s) e = s;
+            var entry = new SchedulerEntry(i, s, e, _allDay?.Invoke(_items[i]) ?? false);
+            if (entry.FirstDay <= last && entry.LastDay >= first && (s < to && (e > from || s >= from))) entries.Add(entry);
+        }
+
+        return entries;
+    }
+
+    private string? Query(string key)
+    {
+        var query = new Uri(Navigation.Uri).Query.TrimStart('?');
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var pair = part.Split('=', 2);
+            if (Uri.UnescapeDataString(pair[0].Replace('+', ' ')) == key) return pair.Length > 1 ? Uri.UnescapeDataString(pair[1].Replace('+', ' ')) : "";
+        }
+
+        return null;
+    }
+
+    // This page at a view and date (null: today), from the site's root.
+    private string Href(SchedulerView view, DateOnly? date)
+    {
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [ViewKey] = ViewValue(view),
+            [DateKey] = date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        }));
+        return uri.AbsolutePath + uri.Query;
+    }
+
+    // "November 2026"; across two months "Oct – Nov 2026"; across two years "Dec 2026 – Jan 2027".
+    private static string TitleOf(SchedulerView view, DateOnly date, DateOnly first, DateOnly last, CultureInfo culture)
+    {
+        if (view == SchedulerView.Month) return date.ToString("Y", culture);
+        if (first.Month == last.Month && first.Year == last.Year) return first.ToString("Y", culture);
+        return first.Year == last.Year
+            ? $"{first.ToString("MMM", culture)} – {last.ToString("MMM yyyy", culture)}"
+            : $"{first.ToString("MMM yyyy", culture)} – {last.ToString("MMM yyyy", culture)}";
+    }
+
+    private string TitleText(SchedulerEntry e) => _title!(_items[e.Index])?.ToString() ?? "";
+
+    private string ColorStyle(SchedulerEntry e) => Color?.Invoke(_items[e.Index]) is { Length: > 0 } c ? $"--ib-sched-color:{c}" : "";
+
+    private static string Time(DateTime t, CultureInfo culture) => t.ToString("t", culture);
+
+    // What a screen reader hears for an appointment: its title, then its whole time.
+    private string Said(SchedulerEntry e, CultureInfo culture)
+    {
+        var day = (DateTime t) => t.ToString("D", culture);
+        string when;
+        if (e.AllDay || e.IsBar)
+        {
+            when = e.FirstDay == e.LastDay
+                ? $"{day(e.Start)}, {TextDefaults.SchedulerAllDay}"
+                : string.Format(culture, TextDefaults.SchedulerTimeRange, e.AllDay ? day(e.Start) : $"{day(e.Start)} {Time(e.Start, culture)}", e.AllDay ? e.LastDay.ToString("D", culture) : $"{day(e.End)} {Time(e.End, culture)}");
+        }
+        else
+        {
+            var end = e.End.Date == e.Start.Date ? Time(e.End, culture) : $"{day(e.End)} {Time(e.End, culture)}";
+            when = $"{day(e.Start)}, {string.Format(culture, TextDefaults.SchedulerTimeRange, Time(e.Start, culture), end)}";
+        }
+
+        return $"{TitleText(e)}, {when}";
+    }
+
+    private static string Pct(double v) => (v * 100).ToString("0.###", CultureInfo.InvariantCulture) + "%";
+
+    // ---- Day, week and work week: a column of hours for each day. ----
+
+    private RenderFragment Columns(List<SchedulerEntry> entries, DateOnly first, int days, DateOnly today, CultureInfo culture) => __builder =>
+    {
+        var bars = SchedulerLayout.Bars(entries, first, days);
+        var boxes = SchedulerLayout.Boxes(entries, first, days);
+        var lanes = bars.Count == 0 ? 0 : bars.Max(b => b.Lane) + 1;
+        var now = DateTime.Now;
+        <div class="ib-sched-cols" style="--ib-sched-days:@days" data-ib-day-start="@DayStart">
+            <div class="ib-sched-head" aria-hidden="true">
+                <span class="ib-sched-gutter"></span>
+                @for (var d = 0; d < days; d++)
+                {
+                    var day = first.AddDays(d);
+                    <span class="@DayClass("ib-sched-day-head", day, today)">
+                        <span class="ib-sched-dow">@day.ToString("ddd", culture)</span>
+                        <span class="ib-sched-num">@day.Day</span>
+                    </span>
+                }
+            </div>
+            <div class="ib-sched-allday" style="grid-template-rows:repeat(@Math.Max(1, lanes), var(--ib-sched-lane))">
+                <span class="ib-sched-gutter" aria-hidden="true"></span>
+                @for (var d = 0; d < days; d++)
+                {
+                    <span class="@DayClass("ib-sched-allday-cell", first.AddDays(d), today)" style="grid-column:@(d + 2)"></span>
+                }
+                @foreach (var bar in bars)
+                {
+                    var e = entries.First(x => x.Index == bar.Index);
+                    <div class="@BarClass(bar.StartsBefore, bar.EndsAfter)" style="grid-column:@(bar.FromDay + 2) / @(bar.ToDay + 3);grid-row:@(bar.Lane + 1);@ColorStyle(e)">
+                        <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
+                        <span class="ib-visually-hidden">@Said(e, culture)</span>
+                    </div>
+                }
+            </div>
+            <div class="ib-sched-scroll" tabindex="-1">
+                <div class="ib-sched-grid">
+                    <div class="ib-sched-hours" aria-hidden="true">
+                        @for (var h = 1; h < 24; h++)
+                        {
+                            <span style="top:@Pct(h / 24.0)">@(new DateTime(2000, 1, 1, h, 0, 0).ToString("t", culture))</span>
+                        }
+                    </div>
+                    @for (var d = 0; d < days; d++)
+                    {
+                        var day = first.AddDays(d);
+                        var own = boxes.Where(b => b.Day == d).OrderBy(b => b.Top).ThenBy(b => b.Left).ToList();
+                        <div class="@DayClass("ib-sched-col", day, today)" role="group" aria-label="@day.ToString("D", culture)">
+                            @if (day == today)
+                            {
+                                <span class="ib-sched-now" aria-hidden="true" style="top:@Pct((now - now.Date).TotalMinutes / 1440)"></span>
+                            }
+                            @foreach (var box in own)
+                            {
+                                var e = entries.First(x => x.Index == box.Index);
+                                <div class="@(box.Height < 1.0 / 48 ? "ib-sched-event ib-sched-short" : "ib-sched-event")" style="top:@Pct(box.Top);height:@Pct(box.Height);left:@Pct(box.Left);width:@Pct(box.Width);@ColorStyle(e)">
+                                    <span aria-hidden="true">
+                                        <span class="ib-sched-name">@TitleText(e)</span>
+                                        <span class="ib-sched-time">@Time(e.Start, culture) – @Time(e.End, culture)</span>
+                                    </span>
+                                    <span class="ib-visually-hidden">@Said(e, culture)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    };
+
+    private static string DayClass(string name, DateOnly day, DateOnly today) =>
+        name + (day == today ? " ib-sched-today" : "") + (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? " ib-sched-weekend" : "");
+
+    private static string BarClass(bool before, bool after) =>
+        "ib-sched-event ib-sched-bar-event" + (before ? " ib-sched-cont-start" : "") + (after ? " ib-sched-cont-end" : "");
+
+    // ---- Month: six weeks of days, bars across them and each day's appointments. ----
+
+    private RenderFragment Month(List<SchedulerEntry> entries, DateOnly first, DateOnly date, DateOnly today, CultureInfo culture) => __builder =>
+    {
+        <div class="ib-sched-month">
+            <div class="ib-sched-week ib-sched-dows" aria-hidden="true">
+                @for (var d = 0; d < 7; d++)
+                {
+                    <span>@first.AddDays(d).ToString("ddd", culture)</span>
+                }
+            </div>
+            @for (var w = 0; w < 6; w++)
+            {
+                var weekStart = first.AddDays(w * 7);
+                var bars = SchedulerLayout.Bars(entries, weekStart, 7);
+                var lanes = bars.Count == 0 ? 0 : bars.Max(b => b.Lane) + 1;
+                <div class="ib-sched-week" style="@($"--ib-sched-lanes:{lanes};grid-template-rows:1.75rem {string.Concat(Enumerable.Repeat("var(--ib-sched-lane) ", lanes))}minmax(4.5rem, 1fr)")">
+                    @for (var d = 0; d < 7; d++)
+                    {
+                        var day = weekStart.AddDays(d);
+                        var timed = SchedulerLayout.OnDay(entries, day, withBars: false);
+                        var barsHere = bars.Count(b => b.FromDay <= d && b.ToDay >= d);
+                        var room = Math.Max(0, MonthLimit - barsHere);
+                        var hidden = timed.Count > room ? timed.Count - Math.Max(0, room - 1) : 0;
+                        var shown = hidden > 0 ? timed.Take(Math.Max(0, room - 1)) : timed;
+                        var outside = day.Month != date.Month;
+                        <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-label="@day.ToString("D", culture)">
+                            <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" aria-hidden="true" tabindex="-1">@(day.Day == 1 ? day.ToString("MMM d", culture) : day.Day.ToString(culture))</a>
+                            <ul class="ib-sched-pills">
+                                @foreach (var e in shown)
+                                {
+                                    <li class="ib-sched-event ib-sched-pill" style="@ColorStyle(e)">
+                                        <span aria-hidden="true"><span class="ib-sched-time">@Time(e.Start, culture)</span> <span class="ib-sched-name">@TitleText(e)</span></span>
+                                        <span class="ib-visually-hidden">@Said(e, culture)</span>
+                                    </li>
+                                }
+                                @if (hidden > 0)
+                                {
+                                    <li><a class="ib-sched-more" href="@Href(SchedulerView.Day, day)">@string.Format(culture, TextDefaults.SchedulerMore, hidden)</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    @foreach (var bar in bars)
+                    {
+                        var e = entries.First(x => x.Index == bar.Index);
+                        <div class="@BarClass(bar.StartsBefore, bar.EndsAfter)" style="grid-column:@(bar.FromDay + 1) / @(bar.ToDay + 2);grid-row:@(bar.Lane + 2);@ColorStyle(e)">
+                            <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
+                            <span class="ib-visually-hidden">@Said(e, culture)</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    };
+
+    // ---- Agenda: the coming days' appointments, by day. ----
+
+    private RenderFragment Agenda(List<SchedulerEntry> entries, DateOnly first, int days, DateOnly today, CultureInfo culture) => __builder =>
+    {
+        var any = false;
+        <ol class="ib-sched-agenda">
+            @for (var d = 0; d < days; d++)
+            {
+                var day = first.AddDays(d);
+                var own = SchedulerLayout.OnDay(entries, day, withBars: true);
+                if (own.Count == 0) continue;
+                any = true;
+                <li class="@DayClass("ib-sched-agenda-day", day, today)">
+                    <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)">
+                        <span class="ib-sched-num">@day.Day</span>
+                        <span>@day.ToString("ddd, MMM", culture)</span>
+                    </a>
+                    <ul>
+                        @foreach (var e in own)
+                        {
+                            <li class="ib-sched-event ib-sched-pill" style="@ColorStyle(e)">
+                                <span class="ib-sched-time" aria-hidden="true">@(e.IsBar ? TextDefaults.SchedulerAllDay : $"{Time(e.Start, culture)} – {Time(e.End, culture)}")</span>
+                                <span class="ib-sched-name" aria-hidden="true">@TitleText(e)</span>
+                                <span class="ib-visually-hidden">@Said(e, culture)</span>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
+        </ol>
+        @if (!any)
+        {
+            <p class="ib-sched-empty">@TextDefaults.SchedulerEmpty</p>
+        }
+    };
+}
