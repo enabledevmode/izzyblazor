@@ -1,0 +1,24 @@
+@* A software company's cloud bill for the year, by category, then service, then month: each tile
+   opens what it's made of, laid out again at full size. *@
+<TreemapChart id="cloud-drill" Items="_costs" Value="c => c.Amount" ValueFormat="C0" Values Title="Cloud costs, 2026" Drill="cloud">
+    <ChartDrillLevel Argument="c => c.Category" Name="Category" />
+    <ChartDrillLevel Argument="c => c.Service" Name="Service" />
+    <ChartDrillLevel Argument='c => c.Month.ToString("MMM")' Name="Month" />
+</TreemapChart>
+
+@code {
+    private record Cost(string Category, string Service, DateOnly Month, decimal Amount);
+
+    private static readonly (string Category, string Service, decimal Monthly)[] Services =
+    [
+        ("Compute", "App servers", 18400), ("Compute", "Background jobs", 7200), ("Compute", "Build runners", 3100),
+        ("Database", "Primary database", 12600), ("Database", "Read replicas", 6300), ("Database", "Cache", 2400),
+        ("Storage", "Object storage", 5200), ("Storage", "Backups", 2900), ("Storage", "Block volumes", 1800),
+        ("Network", "Data transfer", 6100), ("Network", "Load balancers", 1500), ("Network", "CDN", 1200),
+        ("Monitoring", "Logs", 3800), ("Monitoring", "Metrics", 1400), ("Monitoring", "Tracing", 700),
+    ];
+
+    // Each service's bill for each month of the year, growing a little month to month.
+    private static readonly Cost[] _costs = Services.SelectMany(s => Enumerable.Range(1, 12).Select(m =>
+        new Cost(s.Category, s.Service, new DateOnly(2026, m, 1), Math.Round(s.Monthly * (0.9m + m * 0.02m))))).ToArray();
+}
