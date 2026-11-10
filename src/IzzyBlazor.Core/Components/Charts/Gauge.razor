@@ -8,13 +8,15 @@
     A value on a dial: a 240° track filled up to the value, with the value in the middle and the
     label under it. 12rem wide unless Width says otherwise, and never wider than its container.
 
-    <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" Target="0.8">
-        <GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" />
-        <GaugeBand From="0.9" To="1" Accent="Accent.Danger" Label="Critical" />
+    <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" Target="0.8"
+           Palette="ChartPalette.Of(Color.Warning, Color.Danger)">
+        <GaugeBand From="0.7" To="0.9" Label="High" />
+        <GaugeBand From="0.9" To="1" Label="Critical" />
     </Gauge>
 
-    Bands mark ranges along the dial's outer edge; a value in one fills in its color and shows its
-    label. Target marks a goal with a tick across the track.
+    Bands mark ranges along the dial's outer edge, in grays (darkest first) unless Palette or a
+    band's Accent colors them; a value in a colored band fills in its color, and shows its label.
+    Target marks a goal with a tick across the track.
 
     Accessibility:
     - role="meter", named by Label, which is required, with aria-valuenow, -min and -max, and the
@@ -99,6 +101,15 @@
     /// </summary>
     [Parameter] public Accent? Accent { get; set; }
 
+    /// <summary>
+    /// The bands' colors, in the order they're written, such as
+    /// <c>ChartPalette.Of(Color.Warning, Color.Danger)</c> or <c>ChartPalette.Shades(Color.Primary)</c>.
+    /// Defaults to grays, darkest first, which mark the ranges without saying good or bad; a value
+    /// in a gray band fills in <see cref="Accent"/> or the primary color. A band's own
+    /// <see cref="GaugeBand.Accent"/> takes the place of its palette color.
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
     /// <summary>The <see cref="GaugeBand"/>s: ranges along the dial, such as where a load turns high.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -131,7 +142,23 @@
 
     private double Share(double value) => Math.Clamp((value - Min) / (Max - Min), 0, 1);
 
-    private static string BandColor(GaugeBand band) => StyleValues.Color(band.Accent.ToColor());
+    // A band's color: its own Accent, else the palette's color for its place, else a gray.
+    private string BandColor(GaugeBand band, IReadOnlyList<GaugeBand> bands)
+    {
+        if (band.Accent is { } accent) return StyleValues.Color(accent.ToColor());
+        var i = IndexOf(bands, band);
+        return Palette is { } palette ? palette.Color(i, bands.Count) : ChartPalette.Gray(i, bands.Count, thin: true);
+    }
+
+    private static int IndexOf(IReadOnlyList<GaugeBand> bands, GaugeBand band)
+    {
+        for (var i = 0; i < bands.Count; i++)
+        {
+            if (ReferenceEquals(bands[i], band)) return i;
+        }
+
+        return 0;
+    }
 
     private void RenderDial(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
@@ -139,7 +166,9 @@
 
         // The band the value is in: the last that holds it, so a later band wins where two meet.
         var current = bands.LastOrDefault(b => _value >= b.From && _value <= b.To);
-        var fill = Accent is null && current is not null ? $"stroke:{BandColor(current)}" : null;
+        // A gray band (no palette, no accent of its own) leaves the fill in the primary color.
+        var colored = current is not null && (current.Accent is not null || Palette is not null);
+        var fill = Accent is null && colored ? $"stroke:{BandColor(current!, bands)}" : null;
         var target = Target is { } t ? string.Format(CultureInfo.CurrentCulture, TextDefaults.GaugeTarget, Text(t)) : null;
         var words = string.Join(", ", new[] { _text, current?.Label, target }.Where(w => !string.IsNullOrEmpty(w)));
         <div class="ib-gauge-dial" role="meter" aria-labelledby="@_labelId"
@@ -149,7 +178,7 @@
                 @foreach (var band in bands)
                 {
                     if (!(Share(band.To) > Share(band.From))) continue;
-                    <path class="ib-gauge-band" style="stroke:@BandColor(band)" d="@ChartShapes.GaugeArc(Share(band.From), Share(band.To), 1.01)" />
+                    <path class="ib-gauge-band" style="stroke:@BandColor(band, bands)" d="@ChartShapes.GaugeArc(Share(band.From), Share(band.To), 1.01)" />
                 }
                 @if (_share > 0)
                 {
@@ -163,7 +192,7 @@
             <span class="ib-gauge-value" aria-hidden="true">@_text</span>
             @if (current?.Label is { Length: > 0 } state)
             {
-                <span class="ib-gauge-state" style="--ib-gauge-state:@BandColor(current)" aria-hidden="true">@state</span>
+                <span class="ib-gauge-state" style="--ib-gauge-state:@BandColor(current, bands)" aria-hidden="true">@state</span>
             }
             <span class="ib-gauge-end" aria-hidden="true">@Text(Min)</span>
             <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
