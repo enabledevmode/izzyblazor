@@ -1,6 +1,5 @@
 @namespace IzzyBlazor
-@inherits LayoutItemBase
-@implements IDisposable
+@inherits GaugeBase
 @attribute [ModeSupport]
 @using System.Globalization
 
@@ -16,108 +15,32 @@
 
     Bands mark ranges along the dial's outer edge, in grays (darkest first) unless Palette or a
     band's Accent colors them; a value in a colored band fills in its color, and shows its label.
-    Target marks a goal with a tick across the track.
+    Target marks a goal with a tick across the track. Each GaugePointer is another value on the
+    same dial, a notch in its color, written under the label: "Dew point 12°".
 
     Accessibility:
     - role="meter", named by Label, which is required, with aria-valuenow, -min and -max, and the
       formatted value as aria-valuetext with its band's label and the target, so a screen reader
       hears "Disk used, 72%, High, target 80%".
     - Colors aren't read: a band's Label says what its color means, on screen and to screen readers.
-    See also: Progress, Stat.
+    - Each GaugePointer is a meter of its own, named by its label, after the gauge's.
+    See also: LinearGauge, Progress, Stat.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
     @* Refresh on a static page: the script that fetches the chart again (chart-live.ts). *@
-    @if (_refresh.Every is not null)
-    {
-        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="display: none"></ib-chart>
-    }
+    @RefreshScript
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
-    <CascadingValue Value="_context" IsFixed="true">
+    <CascadingValue Value="Context" IsFixed="true">
         @ChildContent
         @_dialFragment
     </CascadingValue>
-    <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-gauge-label")">@Label</span>
 </div>
 
 @code {
-    /// <summary>
-    /// How often the chart reads its data again, at least a second, such as
-    /// <c>Refresh="TimeSpan.FromSeconds(30)"</c>. On a static page the page (or
-    /// <see cref="RefreshFrom"/>) is fetched again and the chart drawn from it, found by its
-    /// <c>id</c>, which it then needs; on an interactive page <see cref="OnRefresh"/> is raised, for
-    /// you to load new data. Not while the tab is hidden or the chart is off-screen, nor (static)
-    /// while the pointer or focus is in it. Unlike Chart's, it has no Pause button.
-    /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
-    public TimeSpan? Refresh { get; set; }
-
-    /// <summary>On a static page with <see cref="Refresh"/>: a lighter page to fetch than this one, which renders the same chart with the same <c>id</c>.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
-    public string? RefreshFrom { get; set; }
-
-    /// <summary>On an interactive page with <see cref="Refresh"/>: raised at each interval, to load new data.</summary>
-    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
-    public EventCallback OnRefresh { get; set; }
-
-    private readonly ChartRefresh _refresh = new();
-
-    /// <inheritdoc />
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
-        _refresh.AfterRender(Refresh, RendererInfo, OnRefresh, InvokeAsync, DispatchExceptionAsync);
-    }
-
-    /// <inheritdoc />
-    public void Dispose() => _refresh.Dispose();
-
     private const double Radius = 0.88;
 
-    /// <summary>The value. One outside <see cref="Min"/> and <see cref="Max"/> fills none or all of the dial, and still shows as it is.</summary>
-    [Parameter, EditorRequired] public double Value { get; set; }
-
-    /// <summary>The dial's start. Defaults to 0.</summary>
-    [Parameter] public double Min { get; set; }
-
-    /// <summary>The dial's end. Defaults to 1, for a share shown with <c>ValueFormat="P0"</c>.</summary>
-    [Parameter] public double Max { get; set; } = 1;
-
-    /// <summary>What it measures, such as "Disk used": under the dial, and its accessible name. Required.</summary>
-    [Parameter, EditorRequired] public string Label { get; set; } = "";
-
-    /// <summary>Hides the label, which still names the gauge for screen readers.</summary>
-    [Parameter] public bool HideLabel { get; set; }
-
-    /// <summary>A .NET format string for the value, the ends and the target, such as <c>P0</c>, <c>N0</c> or <c>C0</c>.</summary>
-    [Parameter] public string? ValueFormat { get; set; }
-
-    /// <summary>A goal to read the value against, such as <c>0.8</c>: a tick across the dial, read with the value.</summary>
-    [Parameter] public double? Target { get; set; }
-
-    /// <summary>
-    /// The fill's color, such as <c>Accent.Of("#0d9488")</c>. Defaults to the color of the
-    /// <see cref="GaugeBand"/> the value is in, or the primary color.
-    /// </summary>
-    [Parameter] public Accent? Accent { get; set; }
-
-    /// <summary>
-    /// The bands' colors, in the order they're written, such as
-    /// <c>ChartPalette.Of(Color.Warning, Color.Danger)</c> or <c>ChartPalette.Shades(Color.Primary)</c>.
-    /// Defaults to grays, darkest first, which mark the ranges without saying good or bad; a value
-    /// in a gray band fills in <see cref="Accent"/> or the primary color. A band's own
-    /// <see cref="GaugeBand.Accent"/> takes the place of its palette color.
-    /// </summary>
-    [Parameter] public ChartPalette? Palette { get; set; }
-
-    /// <summary>The <see cref="GaugeBand"/>s: ranges along the dial, such as where a load turns high.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
     private readonly string _labelId = IdGenerator.Next("ib-gauge");
-    private readonly GaugeContext _context = new();
-    private double _value;
-    private double _share;
-    private string _text = "";
     private string? _class;
     private string? _style;
     private RenderFragment _dialFragment = null!;
@@ -125,54 +48,19 @@
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        // The dial draws after the bands inside the gauge have said they're there.
-        _dialFragment = builder =>
-        {
-            builder.OpenComponent<ChartPlot>(0);
-            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderDial);
-            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Dial = plot));
-            builder.CloseComponent();
-        };
+        _dialFragment = Plot(RenderDial);
         base.OnInitialized();
-    }
-
-    private static string Num(double value) => value.ToString("0.######", CultureInfo.InvariantCulture);
-
-    private string Text(double value) => value.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
-
-    private double Share(double value) => Math.Clamp((value - Min) / (Max - Min), 0, 1);
-
-    // A band's color: its own Accent, else the palette's color for its place, else a gray.
-    private string BandColor(GaugeBand band, IReadOnlyList<GaugeBand> bands)
-    {
-        if (band.Accent is { } accent) return StyleValues.Color(accent.ToColor());
-        var i = IndexOf(bands, band);
-        return Palette is { } palette ? palette.Color(i, bands.Count) : ChartPalette.Gray(i, bands.Count, thin: true);
-    }
-
-    private static int IndexOf(IReadOnlyList<GaugeBand> bands, GaugeBand band)
-    {
-        for (var i = 0; i < bands.Count; i++)
-        {
-            if (ReferenceEquals(bands[i], band)) return i;
-        }
-
-        return 0;
     }
 
     private void RenderDial(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
     {
-        var bands = _context.Bands.Items;
-
-        // The band the value is in: the last that holds it, so a later band wins where two meet.
-        var current = bands.LastOrDefault(b => _value >= b.From && _value <= b.To);
-        // A gray band (no palette, no accent of its own) leaves the fill in the primary color.
-        var colored = current is not null && (current.Accent is not null || Palette is not null);
-        var fill = Accent is null && colored ? $"stroke:{BandColor(current!, bands)}" : null;
-        var target = Target is { } t ? string.Format(CultureInfo.CurrentCulture, TextDefaults.GaugeTarget, Text(t)) : null;
-        var words = string.Join(", ", new[] { _text, current?.Label, target }.Where(w => !string.IsNullOrEmpty(w)));
+        var bands = Context.Bands.Items;
+        var pointers = Context.Pointers!.Items;
+        var current = BandOf(Shown, bands);
+        var color = ValueColor(current, bands);
+        var share = Share(Shown);
         <div class="ib-gauge-dial" role="meter" aria-labelledby="@_labelId"
-             aria-valuenow="@Num(Math.Clamp(_value, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@words">
+             aria-valuenow="@Num(Math.Clamp(Shown, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@Words(current)">
             <svg class="ib-gauge-svg" viewBox="-1 -1 2 1.56" aria-hidden="true">
                 <path class="ib-gauge-track" d="@ChartShapes.GaugeArc(0, 1, Radius)" />
                 @foreach (var band in bands)
@@ -180,16 +68,21 @@
                     if (!(Share(band.To) > Share(band.From))) continue;
                     <path class="ib-gauge-band" style="stroke:@BandColor(band, bands)" d="@ChartShapes.GaugeArc(Share(band.From), Share(band.To), 1.01)" />
                 }
-                @if (_share > 0)
+                @if (share > 0)
                 {
-                    <path class="ib-gauge-fill" style="@fill" d="@ChartShapes.GaugeArc(0, _share, Radius)" />
+                    <path class="ib-gauge-fill" style="@(color is null ? null : $"stroke:{color}")" d="@ChartShapes.GaugeArc(0, share, Radius)" />
                 }
                 @if (Target is { } goal)
                 {
                     <path class="ib-gauge-target" d="@ChartShapes.GaugeTick(Share(goal), Radius - 0.13, 1.04)" />
                 }
+                @for (var i = 0; i < pointers.Count; i++)
+                {
+                    @* A notch across the track in the pointer's color, thicker than the target's tick. *@
+                    <path class="ib-gauge-target" style="stroke:@PointerColor(pointers[i], i);stroke-width:0.06" d="@ChartShapes.GaugeTick(Share(PointerValue(pointers[i])), Radius - 0.1, Radius + 0.1)" />
+                }
             </svg>
-            <span class="ib-gauge-value" aria-hidden="true">@_text</span>
+            <span class="ib-gauge-value" aria-hidden="true">@ShownText</span>
             @if (current?.Label is { Length: > 0 } state)
             {
                 <span class="ib-gauge-state" style="--ib-gauge-state:@BandColor(current, bands)" aria-hidden="true">@state</span>
@@ -197,38 +90,24 @@
             <span class="ib-gauge-end" aria-hidden="true">@Text(Min)</span>
             <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
         </div>
+        <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-gauge-label")">@Label</span>
+        @if (pointers.Count > 0)
+        {
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/gauge.css"]" />
+            @Readouts(pointers)
+        }
     }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-gauge");
-        if (Accent is { } accent)
-        {
-            styles.AddVar("gauge-color", StyleValues.Color(accent.ToColor()));
-        }
-
         base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _refresh.Check("Gauge", Refresh, RefreshFrom, RendererInfo, AssignedRenderMode, AdditionalAttributes, OnRefresh.HasDelegate);
-        if (string.IsNullOrWhiteSpace(Label))
-        {
-            throw new InvalidOperationException("Gauge needs a Label, what it measures, such as \"Disk used\".");
-        }
-
-        if (!(Max > Min))
-        {
-            throw new ArgumentOutOfRangeException(nameof(Max), Max, "A Gauge's Max must be more than its Min.");
-        }
-
-        _value = double.IsFinite(Value) ? Value : Min;
-        _share = Share(_value);
-        _text = Text(_value);
-        _context.Bands.BeginPass();
         base.OnParametersSet();
         (_class, _style) = BuildRootAttributes();
     }

@@ -250,6 +250,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "sankey.css"),
   },
   {
+    // A sheet of its own, linked by LinearGauge, and by a Gauge with GaugePointers.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "gauge.css")],
+    outfile: join(lib, "wwwroot", "gauge.css"),
+  },
+  {
     // A sheet of its own, linked by BulletChart beside chart.css.
     ...common,
     sourcemap: false,

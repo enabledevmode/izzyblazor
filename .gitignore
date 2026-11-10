@@ -18,6 +18,7 @@ src/IzzyBlazor.Core/wwwroot/radar.css
 src/IzzyBlazor.Core/wwwroot/sankey.css
 src/IzzyBlazor.Core/wwwroot/treemap.css
 src/IzzyBlazor.Core/wwwroot/bullet.css
+src/IzzyBlazor.Core/wwwroot/gauge.css
 src/IzzyBlazor.Core/wwwroot/tabs-edit.css
 src/IzzyBlazor.Core/wwwroot/speed-dial.css
 src/IzzyBlazor.Core/wwwroot/treeselect.css

@@ -2562,16 +2562,33 @@
       ]
     },
     {
-      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "parts": ["GaugeBand"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
+      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
       "features": [
         { "feature": "A 240° dial with the value in the middle and the ends under it" },
         { "feature": "Bands along the dial that color the fill and name the value's range" },
-        { "feature": "A target tick" },
+        { "feature": "A target tick, and more values as pointers on the same dial" },
         { "feature": "Read as a meter, with its value in words" }
       ],
       "examples": [
         { "id": "gauge-usage", "title": "Bands", "lead": "Give `Gauge` a `Value` and a `Label`. Each `GaugeBand` marks a range along the dial's edge in the next of `Palette`'s colors, and a value in it fills in that color.", "after": ["The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. A gauge is 12rem wide; `Width` sets another.", "A dial alone is a number in a ring; bands give the value something to be read against. A band's `Label` shows under the value, so the color isn't the only cue.", "A band's own `Accent` takes the place of its palette color, such as `Accent=\"Accent.Danger\"` on one band among grays."] },
-        { "id": "gauge-range", "title": "Range and target", "lead": "To measure on another scale, set `Min` and `Max`. `Target` marks a goal with a tick across the dial, read with the value as \"target 50\". A value past either end fills none or all of the dial, and still shows as it is.", "after": ["Without a `Palette`, bands are grays, darkest first: they mark the ranges without calling one good or bad, and the value keeps the primary color. The band's label names where it falls."] }
+        { "id": "gauge-range", "title": "Range and target", "lead": "To measure on another scale, set `Min` and `Max`. `Target` marks a goal with a tick across the dial, read with the value as \"target 50\". A value past either end fills none or all of the dial, and still shows as it is.", "after": ["Without a `Palette`, bands are grays, darkest first: they mark the ranges without calling one good or bad, and the value keeps the primary color. The band's label names where it falls."] },
+        { "id": "gauge-pointers", "title": "Pointers", "lead": "For another value on the same dial, such as the gusts beside the mean wind, write a `GaugePointer` inside the gauge with its `Value` and `Label`. It's a notch across the dial in the next chart color, written under the label as \"Gusts 44 km/h\".", "after": ["The gauge's own `Value` stays the one that fills. Each pointer is a meter of its own, named by its label; its `Accent` sets another color.", "For one goal, `Target` is simpler: a tick in the text color, read with the value."] }
+      ]
+    },
+    {
+      "id": "linear-gauge", "icon": "Ruler", "name": "LinearGauge", "title": "Linear gauge", "category": "Charts", "summary": "Shows a value on a straight scale with ticks, as a bar or a marker, such as a tank's level or the air pressure.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["linear gauge", "meter", "thermometer", "level", "scale", "horizontal gauge", "vertical gauge"],
+      "features": [
+        { "feature": "A bar from the scale's start, or a marker at the value" },
+        { "feature": "Bands along the track that color the value and name its range" },
+        { "feature": "Round ticks by default, or your own step, with minor ticks" },
+        { "feature": "Across or standing up, either way round" },
+        { "feature": "A target tick, and more values as pointers" },
+        { "feature": "Read as a meter, with its value in words" }
+      ],
+      "examples": [
+        { "id": "linear-gauge-usage", "title": "Bands", "lead": "Give `LinearGauge` a `Value` and a `Label`. The scale runs from `Min` to `Max`, 0 to 1 by default, with round ticks; `ValueFormat` formats the value and the ticks. Each `GaugeBand` marks a range on the track, and a value in it colors the bar.", "after": ["`Palette` colors the bands in order; without it they're grays, darkest first, and the bar keeps the primary color. A band's `Label` shows beside the value, so the color isn't the only cue.", "The gauge is as wide as its container."] },
+        { "id": "linear-gauge-marker", "title": "Marker and ticks", "lead": "For a reading that isn't an amount, set `Pointer=\"LinearGaugePointer.Marker\"`: a triangle points at the value in place of a bar from the start. `Step` sets the numbered ticks, and `MinorStep` adds shorter ones between them.", "after": ["`Target` marks a goal with a tick across the track. `Reversed` runs the scale the other way. `HideScale` leaves out the ticks and their numbers, for a gauge small enough for a table cell."] },
+        { "id": "linear-gauge-vertical", "title": "Vertical, with pointers", "lead": "To stand the scale up, low at the bottom, set `Orientation=\"Orientation.Vertical\"`. It's 12rem tall; `Height` sets another.", "after": ["A `GaugePointer` is another value on the same scale: a triangle in the next chart color, written under the gauge as \"Dew point 12°C\". Each pointer is a meter of its own, named by its label."] }
       ]
     },
     {
