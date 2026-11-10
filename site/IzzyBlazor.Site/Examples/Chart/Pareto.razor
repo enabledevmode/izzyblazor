@@ -1,0 +1,28 @@
+@* A month's support tickets by reason, most first, with the running share of all tickets on a
+   second axis: the first three reasons are four in five of them. *@
+<Chart Items="_reasons" Argument="r => r.Reason" Title="Support tickets by reason, October">
+    <ChartValueAxis Title="Tickets" />
+    <ChartValueAxis Name="share" Title="Share of all tickets" Format="P0" Min="0" Max="1" />
+    <ChartBarSeries Value="r => r.Tickets" Name="Tickets" />
+    <ChartLineSeries Value="r => r.Cumulative" Name="Running share" ValueAxis="share" Color="var(--ib-color-on-surface)" />
+</Chart>
+
+@code {
+    private record TicketReason(string Reason, int Tickets, double Cumulative);
+
+    private static readonly (string Reason, int Tickets)[] Counts =
+    [
+        ("Can't sign in", 182), ("Billing", 121), ("Late delivery", 87), ("Damaged item", 41),
+        ("Wrong item", 28), ("Return label", 19), ("Other", 12),
+    ];
+
+    // Sorted largest first, each with the share of all tickets up to and including it.
+    private readonly TicketReason[] _reasons = RunningShares(Counts);
+
+    private static TicketReason[] RunningShares((string Reason, int Tickets)[] counts)
+    {
+        var total = (double)counts.Sum(c => c.Tickets);
+        var sum = 0;
+        return [.. counts.OrderByDescending(c => c.Tickets).Select(c => new TicketReason(c.Reason, c.Tickets, (sum += c.Tickets) / total))];
+    }
+}

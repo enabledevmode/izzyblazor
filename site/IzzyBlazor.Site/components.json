@@ -2255,7 +2255,8 @@
         { "id": "chart-horizontal", "title": "Ranked bars across", "lead": "`ChartBarSeries` in a `Chart` draws a bar for each item's `Value`. Ranked names read best as bars across, longest first: set `Orientation` to `Horizontal`.", "after": ["Long names have room down the side, ending in an ellipsis past a third of the chart's width.", "With `Labels` writing each value at its bar's end, the value axis's labels and grid lines only repeat them. Here `HideLabels` and `GridLines=\"false\"` on `ChartValueAxis` leave them out.", "Everything on the Chart page works with every series type."] },
         { "id": "chart-grouped", "title": "Grouped columns", "lead": "Two or more `ChartBarSeries` stand side by side in each band, to compare the series name by name. To compare this year with last, draw last year first and in gray with `Color`, so the current year stands out in the chart's first color." },
         { "id": "chart-stacked", "title": "Stacked", "lead": "`Stacking=\"ChartStacking.Normal\"` stacks the series, so each column's height is the total and each segment one part of it. The bottom segment reads most exactly, since it alone starts at zero: put the largest or most important part first. Keep to a few parts." },
-        { "id": "chart-stacked-percent", "title": "Shares of 100%", "lead": "`Stacking=\"ChartStacking.Percent\"` draws each stack to 100%, to compare how a whole divides rather than how big it is. As bars across, each runs the full width and the shares read left to right." }
+        { "id": "chart-stacked-percent", "title": "Shares of 100%", "lead": "`Stacking=\"ChartStacking.Percent\"` draws each stack to 100%, to compare how a whole divides rather than how big it is. As bars across, each runs the full width and the shares read left to right." },
+        { "id": "chart-pareto", "title": "A Pareto chart", "lead": "A Pareto chart ranks causes by count, with a line of their running share of the total, so the few that make most of it stand out. Sort the items largest first and work out each running share; draw the counts as `ChartBarSeries` and the share as a `ChartLineSeries` on a second `ChartValueAxis` from 0 to 1." }
       ]
     },
     {
@@ -2348,6 +2349,23 @@
       ],
       "examples": [
         { "id": "chart-range-area", "title": "A band with a line through it", "lead": "`ChartRangeAreaSeries` fills a band between each item's `Low` and `High`, edged on both sides. To show the measure inside it, such as a forecast, add a `ChartLineSeries` after the band, so the line is drawn on top.", "after": ["Say in the band's `Name` what it spans, such as \"80% interval\" or \"Min to max\": a band with no stated meaning reads as a hard limit.", "`Curve` shapes both edges; give the line the same curve so it stays inside."] }
+      ]
+    },
+    {
+      "id": "histogram", "icon": "ChartColumnBig", "name": "ChartHistogramSeries", "title": "Histogram", "category": "Charts", "summary": "Counts numbers or dates in equal bins, to show how they spread.", "keywords": ["histogram", "distribution", "frequency chart", "bins", "binning", "frequency distribution"],
+      "features": [
+        { "feature": "Values cut into round bins: by Sturges' rule, a most count, or a width" },
+        { "feature": "Bars that touch, on an axis that marks the bins' edges" },
+        { "feature": "Numbers or dates, the last bin taking in the largest value" },
+        { "feature": "Split by a group on one set of bins, overlaid or stacked" },
+        { "feature": "Reference lines at a value on the scale, such as a target" },
+        { "feature": "Each bin read \"2 – 2.5: 96\" in tooltips and the table" },
+        { "feature": "A table of the counts in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-histogram", "title": "A histogram", "lead": "`ChartHistogramSeries` cuts each item's `Value` into bins and draws a bar for how many fall in each. The chart takes no `Argument`: the bins are its axis, here a day's page load times.", "after": ["By default the bins are about as many as Sturges' rule gives for the number of values, at a round width on round edges. `Bins` sets them: `ChartBins.Count(20)` for at most 20, or `ChartBins.Width(0.25)` for a quarter second each. The width changes the picture, so try a few.", "A `ChartReferenceLine` with an `Argument` marks a value on the scale, here Google's 2.5-second mark for a good load.", "The last bin takes in the largest value, and an empty bin counts zero. Dates bin by a `TimeSpan`, such as `ChartBins.Width(TimeSpan.FromDays(7))`."] },
+        { "id": "chart-histogram-split", "title": "Split by a group", "lead": "`SeriesBy` splits the counts by a group, here phones and desktops, on one set of bins. A lower `Opacity` lets each group's bars show through the other's.", "after": ["With the chart's `Stacking=\"ChartStacking.Normal\"`, the groups stack instead, so each bar's height is the bin's total.", "A histogram's chart holds only histogram series, upright, and doesn't zoom."] }
       ]
     },
     {

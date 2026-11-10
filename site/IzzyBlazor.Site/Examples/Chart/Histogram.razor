@@ -1,0 +1,25 @@
+@* How long the main content of a store's product pages took to show (Largest Contentful Paint)
+   over a day's 600 visits: most within 2.5 seconds, Google's "good" mark, with a long tail. *@
+<Chart Items="_visits" Title="Product page load time, March 9">
+    <ChartArgumentAxis Title="Largest Contentful Paint (seconds)" />
+    <ChartValueAxis Title="Visits" />
+    <ChartHistogramSeries Value="v => v.Seconds" Name="Visits" />
+    <ChartReferenceLine Argument="@(2.5)" Label="Good: 2.5 s" />
+</Chart>
+
+@code {
+    private record PageVisit(double Seconds);
+
+    // Sample data: a skewed spread around 1.6 seconds, as page timings are.
+    private readonly PageVisit[] _visits = Visits(600, seed: 9);
+
+    private static PageVisit[] Visits(int count, int seed)
+    {
+        var random = new Random(seed);
+        return [.. Enumerable.Range(0, count).Select(_ =>
+        {
+            var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+            return new PageVisit(Math.Round(1.6 * Math.Exp(0.45 * normal), 2));
+        })];
+    }
+}

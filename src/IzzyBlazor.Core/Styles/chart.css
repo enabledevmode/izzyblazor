@@ -212,6 +212,15 @@
     fill: var(--ib-chart-fill);
   }
 
+  /* A histogram's bars touch: a hairline of the surface keeps each bin apart. */
+  .ib-chart-hist rect {
+    stroke: var(--ib-color-surface);
+    stroke-width: 1px;
+  }
+
+  /* With its own Opacity, a histogram's bars are see-through, so overlaid groups show each other. */
+  .ib-chart-hist-see { fill: var(--ib-chart-see); }
+
   .ib-chart-end-t { clip-path: inset(0 round var(--ib-chart-r) var(--ib-chart-r) 0 0); }
   .ib-chart-end-b { clip-path: inset(0 round 0 0 var(--ib-chart-r) var(--ib-chart-r)); }
   .ib-chart-end-r { clip-path: inset(0 round 0 var(--ib-chart-r) var(--ib-chart-r) 0); }

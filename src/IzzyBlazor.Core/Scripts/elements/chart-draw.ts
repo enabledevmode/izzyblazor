@@ -60,6 +60,7 @@ export interface DrawData {
   mk: string; // the marker shapes' id prefix
   lr?: [number, number]; // room past the plot for labels past bars' ends: beside, above
   vc: number; // the tick count up the side, from the chart's Height
+  hb?: boolean; // a histogram: bars fill their bins, square, and counts tick by whole numbers
   off: number[]; // the series the server drew hidden
   s: DrawSeries[];
   s2l?: number; // the second value axis's range
@@ -452,6 +453,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   // A step's decimals, as 10 to minus them, for format to pick.
   const stepDecimals = d.vs != null && d.vs < 1 ? Math.min(10, (String(d.vs).split(".")[1] ?? "").length) : 0;
   let step = d.vs;
+  // A histogram's counts are whole: fewer than a tick apiece, its ticks go up by one (ChartLayout).
+  if (step == null && !log && !full && d.hb && max - min < Math.max(2, d.vc)) step = 1;
   if (log) {
     dmin = d.lo ?? power(1, Math.floor(Math.log10(min) + 1e-9));
     dmax = d.hi ?? power(1, Math.ceil(Math.log10(max) - 1e-9));
@@ -530,15 +533,17 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const vspan = zoomed && d.zc ? view![1] - view![0] || 1 : 1;
   const vfrom = zoomed && d.zc ? view![0] : 0;
   const band = 1 / Math.max(1, n) / vspan;
-  const slotWidth = stacked ? band * 0.8 : (band * 0.8) / Math.max(1, bars.length);
-  const width = slotWidth * 0.9;
+  // A histogram's bars fill their bins, touching; its series overlap, or stack.
+  const hist = !!d.hb;
+  const slotWidth = hist ? band : stacked ? band * 0.8 : (band * 0.8) / Math.max(1, bars.length);
+  const width = hist ? band : slotWidth * 0.9;
   let barSvg = "";
   bars.forEach((s, j) => {
-    barSvg += `<g ${attrs(s, "ib-chart-bars")}>`;
+    barSvg += `<g ${attrs(s, !hist ? "ib-chart-bars" : d.s[s].op == null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")}>`;
     for (let i = 0; i < n; i++) {
       const top = highs[s][i];
       if (top === null) continue;
-      let a0 = (i / Math.max(1, n) - vfrom) / vspan + band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05;
+      let a0 = (i / Math.max(1, n) - vfrom) / vspan + (hist ? 0 : band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05);
       if (a0 + width <= 0 || a0 >= 1) continue;
       if (d.ar) a0 = 1 - a0 - width;
       const sc = d.s[s].ax ? scale2 : scale;
@@ -553,7 +558,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const x2 = d.s[o].v[i];
         return x2 !== null && isFinite(x2) && x2 !== 0 && x2 < 0 === (highs[s][i] ?? 0) < (lows[s][i] ?? 0);
       });
-      barSvg += rect(outermost && hi > lo && !d.s[s].lw ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
+      barSvg += rect(outermost && hi > lo && !d.s[s].lw && !hist ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
       const text = d.s[s].lt?.[i];
       if (d.s[s].lm && text != null) {
         const tw = widthOf(text);

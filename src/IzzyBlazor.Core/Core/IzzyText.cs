@@ -1464,6 +1464,9 @@ public class IzzyText
     /// <summary>A moving average's name over monthly dates: "{0}, {1}-month average".</summary>
     public virtual string ChartAverageMonths { get; set; } = "{0}, {1}-month average";
 
+    /// <summary>A histogram series' name, with no Name of its own: what its bars are, in the tooltip and data table.</summary>
+    public virtual string ChartCount { get; set; } = "Count";
+
     /// <summary>A bubble's size, in the tooltip and data table, when its Size isn't a property.</summary>
     public virtual string ChartSize { get; set; } = "Size";
 

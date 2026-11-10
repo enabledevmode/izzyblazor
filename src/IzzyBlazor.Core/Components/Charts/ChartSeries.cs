@@ -123,6 +123,15 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     internal string DisplayName => Name ?? _memberName ?? "";
 
+    /// <summary>The value's own name, such as "Delivery days" for <c>o =&gt; o.DeliveryDays</c>.</summary>
+    internal string? ValueName => _memberName;
+
+    internal bool Named => Name is not null;
+
+    internal bool Split => SeriesBy is not null;
+
+    internal bool IsHistogram => BinsOf is not null;
+
     private protected abstract ChartType Type { get; }
 
     // The value each item is drawn at (a range's high end), and a range's low end.
@@ -161,6 +170,18 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private protected virtual string? IncreaseColorOf => null;
 
     private protected virtual string? DecreaseColorOf => null;
+
+    // A histogram's: its bins, and one of its dates (null for numbers).
+    private protected virtual ChartBins? BinsOf => null;
+
+    private protected virtual object? DateOf => null;
+
+    // Each value as a number; a histogram reads dates too.
+    private protected virtual double? Number(object? value) => ChartMembers.ToNumber(value);
+
+    private protected virtual void BeginRead()
+    {
+    }
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -246,7 +267,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"{Kind} needs a Size, such as d => d.Customers.");
         }
 
-        var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        BeginRead();
+        var values = items.Select(item => Number(_compiled!(item))).ToArray();
         var lows = _low is null ? null : items.Select(item => ChartMembers.ToNumber(_low(item))).ToArray();
         _labelTexts = _labelText is null ? null : items.Select(item => _labelText(item)?.ToString()).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
@@ -310,6 +332,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             TrendPeriod = TrendPeriod,
             TrendColor = TrendColor,
             ValueAxis = ValueAxis,
+            Bins = BinsOf,
+            Date = DateOf,
         };
 
     /// <inheritdoc />
