@@ -31,7 +31,8 @@
         {
             var collapsed = target.IsCollapsed;
             var name = target.Label ?? "";
-            <button type="button" class="ib-split-collapse" tabindex="-1"
+            @* A bar that moves takes Enter for this; one that doesn't leaves the button as the way in. *@
+            <button type="button" class="ib-split-collapse" tabindex="@(movable ? "-1" : null)"
                     aria-controls="@target.PaneId"
                     aria-label="@string.Format(collapsed ? TextDefaults.ExpandPane : TextDefaults.CollapsePane, name).Trim()"
                     data-ib-collapse-label="@string.Format(TextDefaults.CollapsePane, name).Trim()"

@@ -36,9 +36,9 @@
     Keyboard:
     - Up, Down, Home, End | Move through a list
     - Space | Select or unselect the item
-    - Shift+Up, Shift+Down | Extend the selection
+    - Shift+Up, Shift+Down, Shift+Home, Shift+End | Extend the selection
     - Ctrl+A | Select every item in the list
-    - Enter | Move the selected items to the other list
+    - Enter | Move the selected items, or the focused one, to the other list
     - Alt+Up, Alt+Down | With Reorderable, move the selected chosen items up or down
     See also: MultiSelect, CheckboxGroup.
 *@
@@ -182,6 +182,8 @@
     private RenderFragment Pane(string name, string heading, IEnumerable<TItem> items) => __builder =>
     {
         var headingId = $"{FieldId}-{name}";
+        // Beyond a listbox's keys: Enter moves to the other list, Alt+arrows reorder the chosen.
+        var shortcuts = Reorderable && name == "chosen" ? "Enter Alt+ArrowUp Alt+ArrowDown" : "Enter";
         <div class="ib-pick-list-pane" data-ib-pane="@name">
             <div class="ib-pick-list-heading" id="@headingId">@heading</div>
             @if (Searchable)
@@ -202,7 +204,7 @@
                 {
                     var value = ChoiceOptions.Value(item);
                     <li @key="value" role="option" class="ib-pick-list-option" data-value="@value" data-index="@IndexOf(item)" data-text="@TextOf(item)"
-                        aria-disabled="@(IsItemDisabled(item) ? "true" : null)">
+                        aria-keyshortcuts="@shortcuts" aria-disabled="@(IsItemDisabled(item) ? "true" : null)">
                         @if (ItemTemplate is null)
                         {
                             @TextOf(item)

@@ -232,6 +232,8 @@ class TreeSelect extends IzzyElement {
       },
       { signal }
     );
+    // Backspace takes off the last chip: no pattern has it, so it's announced.
+    button.setAttribute("aria-keyshortcuts", "Backspace");
     button.addEventListener(
       "keydown",
       (event) => {

@@ -87,6 +87,8 @@ class Combobox extends IzzyElement {
     this.#multiple = select!.multiple;
     this.#chips = this.querySelector(".ib-multiselect-chips");
     this.#custom = this.#multiple && this.hasAttribute("data-custom");
+    // Backspace in the empty field takes off the last choice: no pattern has it, so it's announced.
+    if (this.#multiple) input.setAttribute("aria-keyshortcuts", "Backspace");
     if (this.#custom) {
       input.addEventListener(
         "paste",
