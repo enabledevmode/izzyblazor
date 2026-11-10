@@ -41,10 +41,24 @@
 @code {
     /// <summary>
     /// How the value is drawn: <see cref="LinearGaugePointer.Bar"/> (the default), a bar beside the
-    /// track from <see cref="GaugeBase.Min"/>, or <see cref="LinearGaugePointer.Marker"/>, a triangle
-    /// at the value, for a reading that isn't an amount, such as air pressure.
+    /// track from <see cref="GaugeBase.Min"/>; <see cref="LinearGaugePointer.Marker"/>, a triangle
+    /// at the value, for a reading that isn't an amount, such as air pressure; or
+    /// <see cref="LinearGaugePointer.Needle"/>, a needle into a thick track, where the bands are the gauge.
     /// </summary>
     [Parameter] public LinearGaugePointer Pointer { get; set; }
+
+    /// <summary>
+    /// Where the ticks are drawn: <see cref="TickPlacement.Outside"/> the track (the default), or
+    /// <see cref="TickPlacement.Inside"/>, over it, which thickens the track to hold them.
+    /// </summary>
+    [Parameter] public TickPlacement TickPlacement { get; set; }
+
+    /// <summary>
+    /// Which side the numbers are on: <see cref="ScaleSide.Start"/>, above across and left standing
+    /// up, or <see cref="ScaleSide.End"/>, below across and right standing up. Defaults to below
+    /// across, left standing up.
+    /// </summary>
+    [Parameter] public ScaleSide? ScaleSide { get; set; }
 
     /// <summary>
     /// <see cref="Orientation.Horizontal"/> (the default) runs the scale across, the label above it;
@@ -114,6 +128,7 @@
         var current = BandOf(Shown, bands);
         var color = ValueColor(current, bands);
         var marker = Pointer == LinearGaugePointer.Marker;
+        var inside = TickPlacement == TickPlacement.Inside;
         <div class="ib-lgauge-head">
             <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-lgauge-label")">@Label</span>
             <span class="ib-lgauge-value" aria-hidden="true">@ShownText</span>
@@ -142,7 +157,7 @@
             }
             @* The rail: the bar and the track, with the target across both. *@
             <div class="ib-lgauge-rail" aria-hidden="true">
-                @if (!marker)
+                @if (Pointer == LinearGaugePointer.Bar)
                 {
                     var share = Share(Shown);
                     <div class="ib-lgauge-bars">
@@ -160,22 +175,27 @@
                         if (!(to > from)) continue;
                         <span class="ib-lgauge-band" style="--p:@Pct((Reversed ? 1 - to : from) * 100);--l:@Pct((to - from) * 100);background:@BandColor(band, bands)"></span>
                     }
+                    @if (inside)
+                    {
+                        @Lines(ticks, "ib-lgauge-line", minorOnly: false)
+                    }
                 </div>
                 @if (Target is { } goal)
                 {
                     <span class="ib-lgauge-target" style="--p:@Pct(Pos(goal))"></span>
                 }
+                @if (Pointer == LinearGaugePointer.Needle)
+                {
+                    @* On the bands, the needle keeps the gauge's own color (or the text's), not its band's. *@
+                    <span class="ib-lgauge-needle" style="--p:@Pct(Pos(Shown))"></span>
+                }
             </div>
             @if (ticks.Count > 0 || MinorStep is not null && !HideScale)
             {
                 <div class="ib-lgauge-ticks" aria-hidden="true">
-                    @if (MinorStep is { } minor)
+                    @if (!inside)
                     {
-                        foreach (var m in Every(minor))
-                        {
-                            if (ticks.Any(t => Math.Abs(t - m) < minor * 1e-6)) continue;
-                            <span class="ib-lgauge-tick ib-lgauge-minor" style="--p:@Pct(Pos(m))"></span>
-                        }
+                        @Lines(ticks, "ib-lgauge-tick", minorOnly: true)
                     }
                     @for (var k = 0; k < ticks.Count; k++)
                     {
@@ -191,12 +211,37 @@
         @Readouts(pointers)
     }
 
+    // Tick lines: the minor ticks between the numbered ones, and (unless minorOnly) the numbered ones.
+    private RenderFragment Lines(List<double> ticks, string cls, bool minorOnly) => __builder =>
+    {
+        if (MinorStep is { } minor)
+        {
+            foreach (var m in Every(minor))
+            {
+                if (ticks.Any(t => Math.Abs(t - m) < minor * 1e-6)) continue;
+                <span class="@cls ib-lgauge-minor" style="--p:@Pct(Pos(m))"></span>
+            }
+        }
+
+        if (minorOnly) return;
+        foreach (var t in ticks)
+        {
+            <span class="@cls" style="--p:@Pct(Pos(t))"></span>
+        }
+    };
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-lgauge");
         classes.Add("ib-lgauge-v", Orientation == Orientation.Vertical);
         classes.Add("ib-lgauge-marker", Pointer == LinearGaugePointer.Marker);
+        classes.Add("ib-lgauge-needled", Pointer == LinearGaugePointer.Needle);
+        classes.Add("ib-lgauge-thick", Pointer == LinearGaugePointer.Needle || TickPlacement == TickPlacement.Inside);
+        classes.Add("ib-lgauge-inside", TickPlacement == TickPlacement.Inside);
+        // The numbers on the side that isn't the default: above across, right standing up.
+        var flipped = Orientation == Orientation.Vertical ? IzzyBlazor.ScaleSide.End : IzzyBlazor.ScaleSide.Start;
+        classes.Add("ib-lgauge-flip", ScaleSide == flipped);
         if (Height is { } height)
         {
             styles.AddVar("lgauge-h", StyleValues.Length(height));
