@@ -1,7 +1,8 @@
 @page "/docs/{Slug}"
 @inject NavigationManager Navigation
 
-@* A section's articles as cards: the breadcrumb's target for each article. *@
+@* A section's articles: the breadcrumb's target for each article. Cards, or for a growing section
+   (IndexOnly), a filtered list by area. *@
 
 @if (_section is not null)
 {
@@ -14,21 +15,81 @@
             </Breadcrumb>
             <Heading Level="1" Size="TextSize.Xl3">@_section.Title</Heading>
         </Stack>
-        <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="3">
-            @foreach (var article in _section.Articles)
+        @if (_section.IndexOnly)
+        {
+            @* A growing section (Troubleshooting): its articles by area under a filter (a GET form,
+               ?q=), each its title, its one-line fix and the components it's about. *@
+            <FilterForm Label="@($"Filter {_section.Title.ToLowerInvariant()}")">
+                <FilterSearch Label="@($"Filter {_section.Title.ToLowerInvariant()}")" Placeholder="A symptom or a component" Grow />
+            </FilterForm>
+            <p role="status" class="site-search-count">@CountText</p>
+            @if (_areas.Count == 0)
             {
-                <Card Title="@article.Title" Href="@_section.HrefOf(article)" Description="@article.Summary" Size="ControlSize.Sm" Class="site-linkcard">
-                    <CardHeader><Pictogram Name="@article.Icon" /></CardHeader>
-                </Card>
+                <EmptyState Icon="Lucide.SearchX" Title="@($"Nothing matches “{_query}”")" TitleLevel="2"
+                            Description="Try a shorter word, or search the whole docs." Bordered>
+                    <EmptyStateActions>
+                        <Button Href="@($"search?q={Uri.EscapeDataString(_query)}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Search the docs</Button>
+                    </EmptyStateActions>
+                </EmptyState>
             }
-        </Grid>
+            @foreach (var (area, articles) in _areas)
+            {
+                <section class="site-search-group" aria-labelledby="@AreaId(area)">
+                    <Heading Level="2" Size="TextSize.Lg" id="@AreaId(area)">@area</Heading>
+                    <ul class="site-search-list" role="list">
+                        @foreach (var article in articles)
+                        {
+                            <li class="site-search-item">
+                                <a class="site-search-link" href="@_section.HrefOf(article)"><span class="site-search-title">@article.Title</span></a>
+                                <p class="site-search-summary">@article.Summary</p>
+                                @if (article.Components.Count > 0)
+                                {
+                                    <p class="site-search-summary">@string.Join(" · ", article.Components)</p>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        }
+        else
+        {
+            <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="3">
+                @foreach (var article in _section.Articles)
+                {
+                    <Card Title="@article.Title" Href="@_section.HrefOf(article)" Description="@article.Summary" Size="ControlSize.Sm" Class="site-linkcard">
+                        <CardHeader><Pictogram Name="@article.Icon" /></CardHeader>
+                    </Card>
+                }
+            </Grid>
+        }
     </article>
 }
 
 @code {
     [Parameter] public string Slug { get; set; } = "";
 
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
     private ArticleSection? _section;
+    private List<(string Area, List<Article> Articles)> _areas = [];
+    private string _query = "";
+
+    private string CountText
+    {
+        get
+        {
+            if (_query.Length == 0)
+            {
+                return "";
+            }
+
+            var count = _areas.Sum(a => a.Articles.Count);
+            return count == 1 ? $"1 problem matches “{_query}”" : $"{count} problems match “{_query}”";
+        }
+    }
+
+    private static string AreaId(string area) => Registry.CategoryAnchor(area);
 
     protected override void OnParametersSet()
     {
@@ -36,6 +97,21 @@
         if (_section is null)
         {
             Navigation.NotFound();
+            return;
         }
+
+        _query = Q?.Trim() ?? "";
+        _areas = _section.Articles
+            .Where(Matches)
+            .GroupBy(a => a.Area ?? _section.Title)
+            .Select(g => (g.Key, g.ToList()))
+            .ToList();
     }
+
+    // A title, summary or component containing the filter's text.
+    private bool Matches(Article article) =>
+        _query.Length == 0
+        || article.Title.Contains(_query, StringComparison.OrdinalIgnoreCase)
+        || article.Summary.Contains(_query, StringComparison.OrdinalIgnoreCase)
+        || article.Components.Any(c => c.Contains(_query, StringComparison.OrdinalIgnoreCase));
 }

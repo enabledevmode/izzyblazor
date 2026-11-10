@@ -54,29 +54,29 @@ public static class Articles
         [
             new("empty-selection", "An empty selection comes back with its defaults", "ListChecks",
                 "Unchecked boxes post nothing, so after a form post on static pages the model gets its defaults back, or null.")
-                { Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["static"] },
+                { Area = "Forms and posts", Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["static"] },
             new("form-name", "A form's post fails or arrives empty", "ClipboardX",
                 "A form post on static pages finds its form and model by name: FormName on the form, the same name on the model.")
-                { Components = ["Form"], Modes = ["static"] },
+                { Area = "Forms and posts", Components = ["Form"], Modes = ["static"] },
             new("onclick", "OnClick does nothing on a static page", "MousePointerClick",
                 "A static page has no connection to run C# on a click: post a form or follow a link instead.")
-                { Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["static"] },
+                { Area = "Static pages", Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["static"] },
             new("state-between-requests", "A value resets on the next request", "RotateCcw",
                 "A static page is built afresh for every request: keep what it needs in the URL, or post it.")
-                { Modes = ["static"] },
+                { Area = "Static pages", Modes = ["static"] },
             new("password-after-post", "The password is empty after a failed post", "KeyRound",
                 "A static page doesn't write a password back into its HTML, so the user types it again.")
-                { Components = ["PasswordField"], Modes = ["static"] },
+                { Area = "Forms and posts", Components = ["PasswordField"], Modes = ["static"] },
             new("redirect-after-post", "Code runs after NavigateTo, or the post doesn't redirect", "CornerDownRight",
                 "NavigateTo doesn't always stop your code: make it the last line or return after it, and keep it out of try/catch.")
-                { Components = ["Form"], Modes = ["static", "interactive"] },
+                { Area = "Forms and posts", Components = ["Form"], Modes = ["static", "interactive"] },
             new("control-named-action", "A form posts to [object RadioNodeList]", "TriangleAlert",
                 "A control named action, method or enctype hides the form's own property from Blazor's script.")
-                { Components = ["Button", "Form"], Modes = ["static"] },
+                { Area = "Forms and posts", Components = ["Button", "Form"], Modes = ["static"] },
             new("interactive-stops-responding", "Interactive parts stop responding in production", "Unplug",
                 "An interactive page's circuit lives on one server: behind a load balancer, turn on sticky sessions, or run one server.")
-                { Modes = ["interactive"] },
-        ]),
+                { Area = "Interactive and hosting", Modes = ["interactive"] },
+        ]) { IndexOnly = true },
     ];
 
     /// <summary>The troubleshooting articles about a component, for its Overview's See also.</summary>
@@ -100,6 +100,13 @@ public static class Articles
 /// <summary>A docs section of articles, at <c>docs/{Slug}</c>.</summary>
 public sealed record ArticleSection(string Slug, string Title, string Icon, IReadOnlyList<Article> Articles)
 {
+    /// <summary>
+    /// Lists the section in the sidebar as one link to its index, which groups its articles by
+    /// <see cref="Article.Area"/> under a filter: for a section that keeps growing, such as
+    /// Troubleshooting, whose titles are whole symptoms.
+    /// </summary>
+    public bool IndexOnly { get; init; }
+
     public string Href => $"docs/{Slug}";
 
     public string HrefOf(Article article) => $"docs/{Slug}/{article.Slug}";
@@ -113,6 +120,9 @@ public sealed record Article(string Slug, string Title, string Icon, string Summ
     /// title, and the article is listed in their Overviews' See also.
     /// </summary>
     public IReadOnlyList<string> Components { get; init; } = [];
+
+    /// <summary>The group an article is listed under on an <see cref="ArticleSection.IndexOnly"/> section's index, such as "Forms and posts".</summary>
+    public string? Area { get; init; }
 
     /// <summary>The modes the problem happens in (<c>off</c>, <c>static</c>, <c>live</c>), shown under its title.</summary>
     public IReadOnlyList<string> Modes { get; init; } = [];

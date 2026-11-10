@@ -2,7 +2,8 @@
 @inject NavigationManager Navigation
 
 @* The docs sidebar, one of two by the header's area (as ng-zorro's): on the articles, every
-   article under its section's heading; on docs/components/..., every component under its
+   article under its section's heading, except a section that keeps growing, which is one link to
+   its index; on docs/components/..., every component under its
    category's heading. All of it shows, so a page is found without opening anything; a component
    with topics is a group of its own, open on its pages. *@
 
@@ -36,7 +37,12 @@
     else
     {
         <NavItem Href="docs" Icon="Lucide.BookOpen" Match="NavLinkMatch.All">Overview</NavItem>
-        @foreach (var group in Articles.Sections)
+        @* A section that keeps growing (Troubleshooting) is one link to its index, current on its articles too. *@
+        @foreach (var group in Articles.Sections.Where(g => g.IndexOnly))
+        {
+            <NavItem Href="@group.Href" Icon="@Pictogram.Lookup(group.Icon)">@group.Title</NavItem>
+        }
+        @foreach (var group in Articles.Sections.Where(g => !g.IndexOnly))
         {
             <NavLabel>@group.Title</NavLabel>
             @foreach (var article in group.Articles)
@@ -44,6 +50,7 @@
                 <NavItem Href="@group.HrefOf(article)">@article.Title</NavItem>
             }
         }
+
     }
 </NavMenu>
 
