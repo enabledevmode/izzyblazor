@@ -189,6 +189,30 @@ public static class SiteApp
             site.UseStatusCodePagesWithReExecute("/not-found");
         });
         app.UseAntiforgery();
+        // Crawlers that ignore robots.txt, by a piece of their user agent: BlockedAgents, comma
+        // separated (a Fly secret, so a block needs no build). Each client's first page with a query
+        // a minute is logged with its user agent, to find them.
+        var blocked = (app.Configuration["BlockedAgents"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var queryLog = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Crawlers");
+        app.Use((context, next) =>
+        {
+            var agent = context.Request.Headers.UserAgent.ToString();
+            if (blocked.Length > 0 && blocked.Any(b => agent.Contains(b, StringComparison.OrdinalIgnoreCase)))
+            {
+                // With a body, so the status code pages don't render the not-found page for it.
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                return context.Response.WriteAsync("Crawling these pages isn't allowed; see /robots.txt.");
+            }
+
+            if (IsQueryPage(context) && ClientKey(context) is var client && rejectionLog.AttemptAcquire("q " + client).IsAcquired)
+            {
+                queryLog.LogInformation("Query page {Client} ({UserAgent}): {Path}", client, agent, context.Request.Path + context.Request.QueryString);
+            }
+
+            return next(context);
+        });
         app.UseRateLimiter();
 
         // A link that opens a page in a mode (?mode=noscript, the mode switch) keeps it for the next
