@@ -187,7 +187,7 @@
                 @if (Pointer == LinearGaugePointer.Needle)
                 {
                     @* On the bands, the needle keeps the gauge's own color (or the text's), not its band's. *@
-                    <span class="ib-lgauge-needle" style="--p:@Pct(Pos(Shown))"></span>
+                    <span class="ib-lgauge-needle" style="--p:@Pct(Pos(Shown))"><span></span></span>
                 }
             </div>
             @if (ticks.Count > 0 || MinorStep is not null && !HideScale)

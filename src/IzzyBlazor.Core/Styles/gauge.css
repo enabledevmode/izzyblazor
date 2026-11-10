@@ -187,6 +187,15 @@
     left: var(--p);
     inline-size: 0.5rem;
     translate: -50% 0;
+    /* Lifted off the bands: a 1px outline in the surface color, so it parts from a band of its own
+       shade, and a soft shadow. On the wrapper, since the shape's clip-path would cut them off. */
+    --ib-lgauge-o: var(--ib-color-surface);
+    filter: drop-shadow(1px 0 0 var(--ib-lgauge-o)) drop-shadow(-1px 0 0 var(--ib-lgauge-o)) drop-shadow(0 1px 0 var(--ib-lgauge-o)) drop-shadow(0 2px 3px rgb(0 0 0 / 0.45));
+  }
+
+  .ib-lgauge-needle > span {
+    position: absolute;
+    inset: 0;
     background: var(--ib-gauge-color, color-mix(in oklab, var(--ib-color-on-surface) 70%, var(--ib-color-surface)));
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.5rem), 50% 100%, 0 calc(100% - 0.5rem));
   }
@@ -224,8 +233,9 @@
     inline-size: auto;
     block-size: 0.5rem;
     translate: 0 50%;
-    clip-path: polygon(100% 0, 100% 100%, 0.5rem 100%, 0 50%, 0.5rem 0);
   }
+
+  .ib-lgauge-v .ib-lgauge-needle > span { clip-path: polygon(100% 0, 100% 100%, 0.5rem 100%, 0 50%, 0.5rem 0); }
   .ib-lgauge-v .ib-lgauge-line { inset: auto auto var(--p) 0; inline-size: 60%; block-size: 1px; translate: 0 50%; box-shadow: 0 1px color-mix(in oklab, var(--ib-color-surface) 55%, transparent); }
   .ib-lgauge-v .ib-lgauge-line.ib-lgauge-minor { inline-size: 30%; }
   .ib-lgauge-v.ib-lgauge-flip .ib-lgauge-line { left: auto; right: 0; }
@@ -270,7 +280,7 @@
   @media (forced-colors: active) {
     :is(.ib-lgauge-rail, .ib-gauge-readout) { forced-color-adjust: none; }
     .ib-lgauge-track { outline: 1px solid CanvasText; }
-    :is(.ib-lgauge-target, .ib-lgauge-needle, .ib-lgauge-line) { background: CanvasText; }
+    :is(.ib-lgauge-target, .ib-lgauge-needle > span, .ib-lgauge-line) { background: CanvasText; }
   }
 
   @media print {
