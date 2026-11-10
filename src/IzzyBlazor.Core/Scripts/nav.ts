@@ -22,8 +22,13 @@ let leaving = false;
 export function installKeepPlace(): void {
   document.addEventListener(
     "click",
-    () => {
+    (event) => {
       from = { path: location.pathname, y: window.scrollY };
+      // A link on this page to an element it's inside, such as a chart's drill-down and its
+      // breadcrumb: the #fragment brings a full load back to the chart; followed here, the page
+      // stays where it is rather than putting the chart at the top. Before Blazor reads the link.
+      const a = (event.target as Element).closest?.<HTMLAnchorElement>("a[href*='#']");
+      if (a?.pathname === location.pathname && document.getElementById(decodeURIComponent(a.hash.slice(1)))?.contains(a)) a.hash = "";
     },
     true
   );
