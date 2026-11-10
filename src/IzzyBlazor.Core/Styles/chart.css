@@ -534,7 +534,7 @@
   }
   .ib-chart-tools > .ib-btn { background-color: var(--ib-color-surface); cursor: pointer; }
   .ib-chart-reset,
-  ib-chart:not(:defined) [data-ib-zoom] { visibility: hidden; }
+  ib-chart:not(:defined) [data-ib-zoom-by] { visibility: hidden; }
   ib-chart[data-ib-zoomed] .ib-chart-reset { visibility: visible; }
   .ib-chart:has(> .ib-chart-label-end) .ib-chart-tools { inset-inline: 0 auto; flex-direction: row-reverse; }
   .ib-chart:has(.ib-chart-tools) > .ib-chart-label {

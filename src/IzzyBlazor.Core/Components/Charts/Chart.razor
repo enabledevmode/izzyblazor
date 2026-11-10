@@ -698,12 +698,12 @@
                        the box's way for a pointer that doesn't drag (chart-gesture.ts); out waits
                        until there's something to zoom out of. *@
                     <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom="2"
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="2"
                             aria-label="@TextDefaults.ChartZoomOut" title="@TextDefaults.ChartZoomOut" aria-keyshortcuts="-"
                             disabled="@(model.View?.Share is null)">
                         <Icon Name="Lucide.ZoomOut" />
                     </button>
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom="0.5"
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="0.5"
                             aria-label="@TextDefaults.ChartZoomIn" title="@TextDefaults.ChartZoomIn" aria-keyshortcuts="+">
                         <Icon Name="Lucide.ZoomIn" />
                     </button>
