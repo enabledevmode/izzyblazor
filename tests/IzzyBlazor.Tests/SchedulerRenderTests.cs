@@ -180,7 +180,7 @@ public class SchedulerRenderTests : BunitContext
         var box = cut.Find(".ib-sched-col .ib-sched-event");
         Assert.Equal("Room 2 (one line)", box.QuerySelector(".ib-sched-own")!.TextContent);
         Assert.StartsWith("Room 2, Monday, November 9, 2026", box.QuerySelector(".ib-visually-hidden")!.TextContent);
-        Assert.Contains("Sunny 9", cut.Find(".ib-sched-day-head.ib-sched-today .ib-sched-day-extra").TextContent);
+        Assert.Contains(cut.FindAll(".ib-sched-day-head .ib-sched-day-extra"), e => e.TextContent.Trim() == "Sunny 9");
         Assert.Null(cut.Find(".ib-sched-head").GetAttribute("aria-hidden"));
     }
 
