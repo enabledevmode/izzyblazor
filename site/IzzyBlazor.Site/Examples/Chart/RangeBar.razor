@@ -1,0 +1,17 @@
+@* Chicago's average daily low and high by month (1991–2020 normals, rounded): each bar spans the
+   month's typical day, so the year's swing and each month's spread read together. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Average daily low and high, Chicago">
+    <ChartValueAxis Format="0°C" />
+    <ChartRangeBarSeries Low="m => m.Low" High="m => m.High" Name="Low to high" />
+</Chart>
+
+@code {
+    private record Normal(string Month, int Low, int High);
+
+    private readonly Normal[] _months =
+    [
+        new("Jan", -9, -1), new("Feb", -7, 1), new("Mar", -2, 8), new("Apr", 4, 15),
+        new("May", 10, 21), new("Jun", 15, 27), new("Jul", 19, 29), new("Aug", 18, 28),
+        new("Sep", 14, 24), new("Oct", 7, 17), new("Nov", 1, 9), new("Dec", -5, 2),
+    ];
+}

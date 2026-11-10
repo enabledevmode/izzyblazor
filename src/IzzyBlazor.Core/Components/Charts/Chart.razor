@@ -573,6 +573,11 @@
                 throw new InvalidOperationException("A stacked Chart's bars and areas stay on one axis: put a line on the second axis, or leave Stacking off.");
             }
         }
+        if (Stacked != ChartStacking.None && series.Any(s => s.IsRange))
+        {
+            throw new InvalidOperationException("A range series doesn't stack: it runs from its own low to its own high. Leave the Chart's Stacking off.");
+        }
+
         if (Orientation == Orientation.Horizontal && series.Any(s => s.EndLabel))
         {
             throw new InvalidOperationException("A series' EndLabel needs an upright chart, where lines end at the right: leave Orientation Vertical.");
@@ -1606,6 +1611,12 @@
             throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble and waterfall series.");
         }
 
+        // A range's level runs from its items' lowest to their highest.
+        if (data.Lows is { } lows)
+        {
+            return data with { Values = drill.Total(data.Values, DataAggregate.Max), Lows = drill.Total(lows, DataAggregate.Min), LabelTexts = null };
+        }
+
         return data with { Values = drill.Total(data.Values, data.Aggregate), LabelTexts = null };
     }
 
@@ -1882,6 +1893,19 @@
                 }
 
                 w.WriteEndArray();
+                // A range's low ends.
+                if (d.Lows is { } lows)
+                {
+                    w.WriteStartArray("lw");
+                    foreach (var v in lows)
+                    {
+                        if (v is { } x && double.IsFinite(x)) w.WriteNumberValue(x);
+                        else w.WriteNullValue();
+                    }
+
+                    w.WriteEndArray();
+                }
+
                 w.WriteNumber("c", (int)d.Curve);
                 w.WriteBoolean("j", d.ConnectGaps);
                 w.WriteBoolean("m", s.Markers);

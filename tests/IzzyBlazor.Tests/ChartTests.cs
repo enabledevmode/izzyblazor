@@ -440,6 +440,32 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_range_runs_from_its_low_to_its_high_off_zero_and_a_band_is_edged_both_sides()
+    {
+        // Daily lows and highs in °C; Wednesday's low is missing, so it has no range.
+        string[] days = ["Mon", "Tue", "Wed"];
+        var model = ChartLayout.Build(new ChartInput(days,
+            [new ChartSeriesData("Temperature", ChartType.Bar, [14, 18, 20]) { Lows = [10, 12, null] }])
+        { Culture = CultureInfo.InvariantCulture });
+
+        // The scale fits the ranges without reaching down to zero.
+        Assert.True(model.ValueRange.Min > 0);
+        var bars = model.Series[0].Bars;
+        Assert.Equal([0, 1], bars.Select(b => b.Index));
+        // Floating, square at both ends; read low first.
+        Assert.NotEqual(Math.Round(bars[0].Y + bars[0].Height, 6), Math.Round(bars[1].Y + bars[1].Height, 6));
+        Assert.All(bars, b => Assert.Null(b.End));
+        Assert.Equal(["10 – 14", "12 – 18", "-"], model.ValueTexts[0].Select(t => t ?? "-"));
+
+        // A band: the fill closes between the two edges, and its line runs along both.
+        var band = ChartLayout.Build(new ChartInput(days,
+            [new ChartSeriesData("Forecast", ChartType.Area, [14, 18, 20]) { Lows = [10, 12, 15] }])
+        { Culture = CultureInfo.InvariantCulture });
+        Assert.Equal(2, band.Series[0].Line!.Count(c => c == 'M'));
+        Assert.True(band.ValueRange.Min > 0);
+    }
+
+    [Fact]
     public void Dates_on_a_line_chart_are_a_scale_with_the_month_under_the_days()
     {
         var days = Enumerable.Range(0, 30).Select(i => (object?)new DateOnly(2026, 10, 20).AddDays(i)).ToList();
