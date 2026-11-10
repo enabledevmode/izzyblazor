@@ -12,7 +12,8 @@ import { trackDrag } from "../sortable";
  * Each list is a multi-select listbox with one Tab stop (roving tabindex on its options): arrows,
  * Home and End move, Space selects, Shift extends, Ctrl+A selects all, Enter moves the selection
  * across, Alt+Up and Alt+Down reorder the chosen list. Click selects one, Ctrl or Cmd adds, Shift
- * extends; double-click moves one. Items drag between the lists, and within Chosen when it can be
+ * extends; a tap on a touch screen, with no Ctrl to hold, adds or takes out the one item;
+ * double-click moves one. Items drag between the lists, and within Chosen when it can be
  * reordered (sortable.ts). Buttons say there's nothing to move with aria-disabled, so focus can
  * stay on them; after a move focus stays, or goes to the other list when its own has emptied.
  * Each move is announced.
@@ -24,6 +25,8 @@ type Pane = "available" | "chosen";
 
 class PickList extends IzzyElement {
   #anchor: HTMLElement | null = null;
+  /** The last press was a finger or pen, which have no Ctrl or Shift: a tap toggles. */
+  #tap = false;
 
   protected setup(signal: AbortSignal): void {
     const select = this.querySelector<HTMLSelectElement>(":scope > .ib-pick-list-select");
@@ -66,7 +69,10 @@ class PickList extends IzzyElement {
       const option = this.#optionAt(event.target as Element);
       if (option) this.#rove(option);
     });
-    on("pointerdown", (event) => this.#drag(event));
+    on("pointerdown", (event) => {
+      this.#tap = event.pointerType !== "mouse";
+      this.#drag(event);
+    });
     on("input", (event) => {
       const box = event.target as HTMLInputElement;
       if (box.matches("[data-ib-pick-search]")) this.#filter(box);
@@ -164,13 +170,13 @@ class PickList extends IzzyElement {
     }
   }
 
-  /** A click: one item, or Ctrl/Cmd to add it, or Shift for the run from the last one clicked. */
+  /** A click: one item, or Ctrl/Cmd (or a tap) to add it, or Shift for the run from the last one clicked. */
   #choose(option: HTMLElement, event: MouseEvent): void {
     const options = this.#options(this.#paneOf(option), true);
     if (event.shiftKey && this.#anchor && options.includes(this.#anchor)) {
       const [a, b] = [options.indexOf(this.#anchor), options.indexOf(option)].sort((x, y) => x - y);
       options.forEach((o, i) => this.#mark(o, i >= a && i <= b));
-    } else if (event.ctrlKey || event.metaKey) {
+    } else if (event.ctrlKey || event.metaKey || this.#tap) {
       this.#mark(option, option.getAttribute("aria-selected") !== "true");
       this.#anchor = option;
     } else {
