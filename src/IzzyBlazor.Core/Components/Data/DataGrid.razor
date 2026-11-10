@@ -192,7 +192,7 @@
     - Alt+Left, Alt+Right | Move the column, where it can be
     - Page Down | Go to the first row
     In the bar of what's grouped
-    - Alt+Left, Alt+Right | On a chip's remove button, move that level before or after (reversed
+    - Alt+Left, Alt+Right | On a chip's remove control, move that level before or after (reversed
       on right-to-left pages)
     In the footer
     - Tab | Move through the page size button and the pager's links
@@ -2005,7 +2005,7 @@
                     groups.Add(@<text>
                         @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending)
                         @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending)
-                        @if (SortsByOthers(column))
+                        @if (sorted is null && SortsByOthers(column))
                         {
                             @SortItem(column, false, Lucide.ArrowDownNarrowWide, TextDefaults.ColumnSortAddAscending, add: true)
                             @SortItem(column, true, Lucide.ArrowDownWideNarrow, TextDefaults.ColumnSortAddDescending, add: true)
@@ -2074,8 +2074,8 @@
 
     // A column menu's sort item: a link on static pages, as the header's is. The header shows the
     // sort now; Sort ascending and descending sort by this column alone, which changes a sort of
-    // several too. With another column sorted, Add to sort keeps that sort and adds this column (or
-    // turns it where it stands): Shift+click's sort of several, for touch and the keyboard.
+    // several too. With another column sorted and not this one, Add to sort keeps that sort and adds
+    // this column: Shift+click's sort of several, for touch and the keyboard.
     private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text, bool add = false) => __builder =>
     {
         if (UseState)

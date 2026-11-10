@@ -40,6 +40,7 @@ public sealed class DataGridGroupTests(SiteFixture site) : IClassFixture<SiteFix
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/grouping?mode=static&grouped-group=status,customer").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-grid-columns')");
         var remove = page.Locator(Grid).GetByRole(AriaRole.Link, new() { Name = "Remove Status" });
         await remove.FocusAsync();
 

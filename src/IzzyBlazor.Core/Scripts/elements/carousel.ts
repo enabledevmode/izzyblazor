@@ -337,9 +337,12 @@ class Carousel extends IzzyElement {
       x = null;
       if (Math.abs(dx) < SWIPE_PX) return;
       // The drag wins over selecting the slide's text, as in Swiper and Embla; a double-click still
-      // selects a word.
-      if (e.pointerType === "mouse") getSelection()?.removeAllRanges();
-      dragged = true;
+      // selects a word. Only a mouse's drag ends in a click, and only that click is the drag's.
+      if (e.pointerType === "mouse") {
+        getSelection()?.removeAllRanges();
+        dragged = true;
+        setTimeout(() => (dragged = false));
+      }
       this.#step((dx < 0) !== this.#rtl() ? 1 : -1);
     }, { signal });
     track.addEventListener("pointercancel", () => (x = null), { signal });

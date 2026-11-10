@@ -50,7 +50,10 @@ class GridColumns extends IzzyElement {
     host.addEventListener("keydown", (event) => this.#onChipKey(event), { signal });
     host.addEventListener("focusin", (event) => {
       const control = (event.target as Element).closest?.(".ib-grid-group-chip a, .ib-grid-group-chip button");
-      if (this.#mine(control) && this.#chips.length > 1) control!.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
+      if (!this.#mine(control)) return;
+      // Blazor keeps the control when the other levels go: the keys go with them.
+      if (this.#chips.length > 1) control!.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
+      else control!.removeAttribute("aria-keyshortcuts");
     }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
     table.addEventListener("pointerdown", (event) => this.#onPointerDown(event, signal), { signal });
@@ -598,7 +601,7 @@ class GridColumns extends IzzyElement {
   }
 
   // Alt+Left or Alt+Right moves a grouping level one place, then focus follows its chip into the
-  // new render (a navigation's merge, or Blazor's).
+  // new render (a navigation's merge, or Blazor's; a full reload, with no Blazor, starts at the top).
   #onChipKey(event: KeyboardEvent): void {
     if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
