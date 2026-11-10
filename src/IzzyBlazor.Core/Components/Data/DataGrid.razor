@@ -2022,6 +2022,16 @@
                     groups.Add(UseState
                         ? @<MenuItem Icon="Lucide.Rows3" OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
                         : @<MenuItem Icon="Lucide.Rows3" Href="@GroupHref(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>);
+                    // The chips' drag and Alt+arrows, for touch and the pointer: one of several levels moves.
+                    if (grouped && Grouping.Levels.Count > 1)
+                    {
+                        var groupItem = groups[^1];
+                        groups[^1] = @<text>
+                            @groupItem
+                            @GroupMoveItem(column, -1, Lucide.MoveUp, TextDefaults.GroupMoveEarlier)
+                            @GroupMoveItem(column, 1, Lucide.MoveDown, TextDefaults.GroupMoveLater)
+                        </text>;
+                    }
                 }
                 @if (CanMove(column) && RowHref is null)
                 {
@@ -2070,6 +2080,20 @@
                 }
             </ChildContent>
         </Menu>
+    };
+
+    // A column menu's Move group earlier or later: a link on static pages, as Group by is.
+    private RenderFragment GroupMoveItem(ColumnBase<TItem> column, int by, IconData icon, string text) => __builder =>
+    {
+        var moved = GroupTextMoved(column, by);
+        if (UseState)
+        {
+            <MenuItem Icon="icon" Disabled="moved is null" OnClick="() => SetGroupAsync(moved)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="icon" Disabled="moved is null" Href="@(moved is null ? null : GroupHref(moved))">@text</MenuItem>
+        }
     };
 
     // A column menu's sort item: a link on static pages, as the header's is. The header shows the

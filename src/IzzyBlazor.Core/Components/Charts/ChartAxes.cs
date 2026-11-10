@@ -202,7 +202,8 @@ public sealed class ChartArgumentAxis : ChartAxisBase
 
     /// <summary>
     /// Lets the reader zoom into part of the arguments and pan along them: a drag across the plot,
-    /// Ctrl (⌘ on a Mac) and the wheel, a pinch, or + and − on the focused chart. The page still
+    /// Ctrl (⌘ on a Mac) and the wheel, a pinch, + and − on the focused chart, or the Zoom in and
+    /// Zoom out buttons by the title. The page still
     /// scrolls under the plain wheel and one finger. A <see cref="ChartRangeSelector"/> in the chart
     /// turns it on by itself. The chart's <c>View</c> and <c>ViewChanged</c> say what's in view.
     /// </summary>
