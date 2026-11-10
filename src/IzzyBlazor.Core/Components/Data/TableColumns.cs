@@ -121,8 +121,10 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// In a <c>DataGrid</c> with export, whether the file has this column when it's shown, such as false
-    /// for a thumbnail or a notes column. Defaults to true. It leaves the column out of the export
-    /// link's <c>columns</c>; the endpoint's fields decide what can be written.
+    /// for an internal cost or margin. Defaults to true. It leaves the column's key out of the export
+    /// link's <c>columns</c>; the endpoint's fields still decide what can be written. A column with no
+    /// key, such as a <c>TemplateColumn</c>, is never in the file. With no shown column left to export,
+    /// the grid offers no export.
     /// </summary>
     [Parameter] public bool Exportable { get; set; } = true;
 
@@ -576,7 +578,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private protected virtual object? ReadShape => Key;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (Aggregate, GroupAggregate, GroupFooterAggregate, AggregateBy is not null, AggregateFormat, AggregateLabel, Groupable, GroupFormat, GroupBy is not null));
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, Exportable, (Aggregate, GroupAggregate, GroupFooterAggregate, AggregateBy is not null, AggregateFormat, AggregateLabel, Groupable, GroupFormat, GroupBy is not null));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
