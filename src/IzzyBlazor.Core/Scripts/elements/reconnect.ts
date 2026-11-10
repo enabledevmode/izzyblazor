@@ -11,6 +11,8 @@ interface ReconnectState {
   state: "show" | "hide" | "retrying" | "paused" | "failed" | "resume-failed" | "rejected";
   currentAttempt?: number;
   secondsToNextAttempt?: number;
+  /** On "paused": true when the server asked for the pause, false when the page paused itself. */
+  remote?: boolean;
 }
 
 interface BlazorReconnect {
@@ -29,6 +31,10 @@ function show(dialog: HTMLDialogElement, state: string, message: string): void {
   dialog.dataset.ibState = state;
   const text = dialog.querySelector(".ib-reconnect-message");
   if (text) text.textContent = message;
+  // A pause isn't a lost connection: its own title, and back again for any other state.
+  const title = dialog.querySelector(".ib-dialog-title");
+  const titled = (state === "paused" ? dialog.dataset.pausedTitle : dialog.dataset.title) ?? "";
+  if (title && titled && title.textContent !== titled) title.textContent = titled;
   if (!dialog.open) {
     warnIfNotAlone();
     dialog.showModal();
@@ -110,7 +116,7 @@ export function onReconnectState(dialog: HTMLDialogElement, detail: ReconnectSta
       }
       break;
     case "paused":
-      show(dialog, "paused", data.paused ?? "");
+      show(dialog, "paused", (detail?.remote === false ? data.pausedHere : data.paused) ?? "");
       break;
     case "failed":
       failed(dialog);

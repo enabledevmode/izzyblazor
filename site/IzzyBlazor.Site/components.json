@@ -1601,7 +1601,7 @@
       ],
       "examples": [
         { "id": "reconnect-dialog-states", "title": "Connection states", "modes": ["interactive"],
-          "lead": "To tell the user, in your theme, when an interactive server page loses its connection, put a `ReconnectDialog` in App.razor's body, after `Routes`.", "after": ["The dialog shows while Blazor rejoins, retries, fails or is paused. The buttons here send it the events Blazor sends when the connection drops, and each state closes after four seconds."],
+          "lead": "To tell the user, in your theme, when an interactive server page loses its connection, put a `ReconnectDialog` in App.razor's body, after `Routes`.", "after": ["The dialog shows while Blazor rejoins, retries, fails or is paused. The buttons here send it the events Blazor sends when the connection drops, and each state closes after four seconds.", "A paused session, paused by the server or by the page, such as .NET 11's pause in a hidden tab, is titled \"Session paused\", with Resume. The Pause and resume article covers what a resumed page keeps."],
           "notes": {
             "interactive": "A real disconnect, such as stopping the server, shows it until the circuit comes back." } }
       ]

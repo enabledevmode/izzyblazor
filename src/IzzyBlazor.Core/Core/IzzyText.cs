@@ -921,8 +921,17 @@ public class IzzyText
     /// <summary>ReconnectDialog when every attempt failed, above its Retry button.</summary>
     public virtual string ReconnectFailed { get; set; } = "Couldn't rejoin the server. Retry, or reload the page.";
 
+    /// <summary>ReconnectDialog's title while the session is paused, by the server or by the page.</summary>
+    public virtual string ReconnectPausedTitle { get; set; } = "Session paused";
+
     /// <summary>ReconnectDialog when the server paused the session, above its Resume button.</summary>
     public virtual string ReconnectPaused { get; set; } = "The server paused this session.";
+
+    /// <summary>
+    /// ReconnectDialog when the page paused its own session, such as .NET 11's auto-pause while the
+    /// tab is out of view, above its Resume button.
+    /// </summary>
+    public virtual string ReconnectPausedHere { get; set; } = "This session is paused. Resume to go on.";
 
     /// <summary>ReconnectDialog when the session couldn't resume, above its Reload button.</summary>
     public virtual string ReconnectResumeFailed { get; set; } = "Couldn't resume the session. Reload the page to go on.";
@@ -930,7 +939,7 @@ public class IzzyText
     /// <summary>ReconnectDialog's button after it failed to rejoin, and Table's after its rows failed to load.</summary>
     public virtual string Retry { get; set; } = "Retry";
 
-    /// <summary>ReconnectDialog's button for a session the server paused.</summary>
+    /// <summary>ReconnectDialog's button for a paused session.</summary>
     public virtual string Resume { get; set; } = "Resume";
 
     /// <summary>ReconnectDialog's button when the session can't come back.</summary>

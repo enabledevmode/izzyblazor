@@ -39,6 +39,8 @@ public static class Articles
                 "One value per breakpoint, hiding by screen size, and fluid text."),
             new("render-modes", "Render modes", "Layers",
                 "What components do on static pages, with IzzyBlazor's script, and on interactive pages."),
+            new("pause-and-resume", "Pause and resume", "Pause",
+                "What a paused interactive server page keeps when it resumes, and pausing a hidden tab on .NET 11."),
             new("forms", "Forms and validation", "ClipboardCheck",
                 "Forms that post on static pages, rules from your model, columns, read-only forms and errors."),
             new("data", "Data and filters", "Database",
