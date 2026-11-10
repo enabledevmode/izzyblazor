@@ -1,5 +1,5 @@
 // A DataGrid's bar of what's grouped: moving a chip among the others, by dragging it or by Alt+Left
-// and Alt+Right on its remove control; a click opens its menu (Move earlier, Move later, Remove).
+// and Alt+Right on its remove control; a click opens its menu (Move left, Move right, Remove).
 // Loaded by grid-columns.ts on the first press or key on a chip.
 import { openPanelAt } from "../context-menu";
 

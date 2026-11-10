@@ -472,7 +472,7 @@ public partial class DataGrid<TItem>
     }
 
     // The grouping with this column's level swapped with the one before (-1) or after (+1), or
-    // null at that end: the column menu's Move group earlier and later, a chip's drag without one.
+    // null at that end: Move group left and right in a column menu and a chip's, a drag without one.
     private string? GroupTextMoved(ColumnBase<TItem> column, int by)
     {
         var levels = Grouping.Levels.ToList();
