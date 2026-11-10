@@ -1,0 +1,164 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+
+@*
+    Blockquote: a quotation set apart from the text around it, with who said it and where under it.
+    With Author or Source, it's a figure: the quote in a blockquote, the attribution in a figcaption
+    after it, as the HTML spec asks (attribution doesn't go inside the quote). Without either, it's
+    a bare blockquote.
+
+    <Blockquote Author="Ada Lovelace" Source="Notes on the Analytical Engine" Cite="https://…">
+        The Analytical Engine weaves algebraic patterns just as the Jacquard loom weaves flowers.
+    </Blockquote>
+
+    Cite is the address the quote comes from: it goes on the blockquote's cite attribute, which
+    browsers don't show, and links the Source (or the Author when there's no Source) so readers
+    can follow it. Source is the title of a work and renders in a cite element; a person's name
+    never does, so Author is plain text. For quotes inside Markdown or other rich content, Prose
+    styles a raw blockquote the way Bar looks.
+
+    Accessibility:
+    - It renders a `blockquote`; with an attribution, inside a `figure` whose `figcaption` holds it,
+      so the attribution is tied to the quote and isn't read as part of it.
+    - The dash before the attribution and the QuoteMark are decoration, hidden from screen readers.
+    - The bar and tint are decoration too: the quote reads the same without them, also in forced
+      colors.
+    See also: Prose, TextBlock, Card.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/blockquote.css"]" />
+@if (HasAttribution)
+{
+    <figure @attributes="AdditionalAttributes" class="@_class" style="@_style">
+        <blockquote class="ib-blockquote-quote" cite="@Cite">
+            @Mark()
+            @ChildContent
+        </blockquote>
+        <figcaption class="ib-blockquote-caption">
+            <span aria-hidden="true">— </span>@Attribution()
+        </figcaption>
+    </figure>
+}
+else
+{
+    <blockquote @attributes="AdditionalAttributes" class="@_class" style="@_style" cite="@Cite">
+        @Mark()
+        @ChildContent
+    </blockquote>
+}
+
+@code {
+    /// <summary>The quotation: text, or paragraphs for a longer one.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Who said or wrote it, shown under the quote after a dash. Plain text: the HTML spec keeps
+    /// <c>cite</c> for titles, not people.
+    /// </summary>
+    [Parameter] public string? Author { get; set; }
+
+    /// <summary>
+    /// The title of the work it comes from, such as a book, article or talk, shown after the
+    /// <see cref="Author"/> in a <c>cite</c> element.
+    /// </summary>
+    [Parameter] public string? Source { get; set; }
+
+    /// <summary>
+    /// The address the quote comes from. Set as the blockquote's <c>cite</c> attribute, and links
+    /// the <see cref="Source"/>, or the <see cref="Author"/> when there's no Source.
+    /// </summary>
+    [Parameter] public string? Cite { get; set; }
+
+    /// <summary>The look. Defaults to <see cref="BlockquoteVariant.Bar"/>, a line at the start.</summary>
+    [Parameter] public BlockquoteVariant Variant { get; set; } = BlockquoteVariant.Bar;
+
+    /// <summary>
+    /// A color for the bar, the tint and the quote mark, such as <c>Accent.Primary</c> or
+    /// <c>Accent.Of("#0d9488")</c>. Without one, they're neutral.
+    /// </summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>Adds a large quote mark above the quote, as for a pull quote. Decoration only.</summary>
+    [Parameter] public bool QuoteMark { get; set; }
+
+    /// <summary>
+    /// Where the quote and its attribution sit. <see cref="TextAlign.Center"/> drops the bar, as a
+    /// pull quote does; <see cref="TextAlign.End"/> moves it to the end.
+    /// </summary>
+    [Parameter] public TextAlign Align { get; set; } = TextAlign.Start;
+
+    /// <summary>The text size of the quote; the attribution is a step smaller. Inherited when not set.</summary>
+    [Parameter] public TextSize? Size { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    private bool HasAttribution => !string.IsNullOrWhiteSpace(Author) || !string.IsNullOrWhiteSpace(Source);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-blockquote");
+        classes.Add($"ib-blockquote-{Variant.ToString().ToLowerInvariant()}");
+        classes.Add("ib-blockquote-center", Align == TextAlign.Center);
+        classes.Add("ib-blockquote-end", Align == TextAlign.End);
+        if (Accent is { } accent)
+        {
+            classes.Add("ib-blockquote-accent");
+            ColorOverride.Apply(styles, accent.ToColor());
+        }
+
+        if (Size is { } size)
+        {
+            styles.AddVar("quote-fs", StyleValues.TextSize(size));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private RenderFragment? Mark() => QuoteMark
+        ? @<span class="ib-blockquote-mark" aria-hidden="true"><Icon Name="Lucide.Quote" /></span>
+        : null;
+
+    // "Author, Source", the one the Cite links being the Source when there is one.
+    private RenderFragment Attribution() => __builder =>
+    {
+        var author = string.IsNullOrWhiteSpace(Author) ? null : Author;
+        var source = string.IsNullOrWhiteSpace(Source) ? null : Source;
+        var link = string.IsNullOrWhiteSpace(Cite) ? null : Cite;
+        if (author is not null)
+        {
+            if (link is not null && source is null)
+            {
+                <a href="@link">@author</a>
+            }
+            else
+            {
+                @author
+            }
+        }
+
+        if (author is not null && source is not null)
+        {
+            @(", ")
+        }
+
+        if (source is not null)
+        {
+            <cite>
+                @if (link is not null)
+                {
+                    <a href="@link">@source</a>
+                }
+                else
+                {
+                    @source
+                }
+            </cite>
+        }
+    };
+}

@@ -1,0 +1,95 @@
+/*
+ * Blockquote. Built to wwwroot/blockquote.css and linked by Blockquote, so pages without one
+ * don't pay for it. Prose's raw blockquote is styled in typography.css.
+ */
+@layer izzy.components {
+  .ib-blockquote {
+    --ib-quote-line: var(--ib-color-outline);
+    --ib-quote-mark: var(--ib-color-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    margin: 0;
+    font-size: var(--ib-quote-fs, inherit);
+  }
+
+  .ib-blockquote-accent {
+    --ib-quote-line: var(--ib-accent);
+    --ib-quote-mark: var(--ib-accent-text);
+  }
+
+  .ib-blockquote-quote {
+    margin: 0;
+  }
+
+  .ib-blockquote :where(blockquote) > :where(p) {
+    margin: 0;
+  }
+
+  .ib-blockquote :where(blockquote) > :where(p + p) {
+    margin-block-start: var(--ib-space-2);
+  }
+
+  .ib-blockquote:is(.ib-blockquote-bar, .ib-blockquote-subtle) {
+    padding-inline-start: var(--ib-space-4);
+    border-inline-start: 3px solid var(--ib-quote-line);
+  }
+
+  .ib-blockquote-subtle {
+    padding-block: var(--ib-space-3);
+    padding-inline-end: var(--ib-space-4);
+    border-start-end-radius: var(--ib-radius-md);
+    border-end-end-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-fill);
+  }
+
+  .ib-blockquote-subtle.ib-blockquote-accent {
+    background-color: var(--ib-accent-soft);
+  }
+
+  .ib-blockquote-center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .ib-blockquote-center.ib-blockquote-bar {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .ib-blockquote-center.ib-blockquote-subtle {
+    border-inline-start: 0;
+    border-radius: var(--ib-radius-md);
+  }
+
+  .ib-blockquote-end {
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .ib-blockquote-end:is(.ib-blockquote-bar, .ib-blockquote-subtle) {
+    padding-inline: 0 var(--ib-space-4);
+    border-inline: 0 3px solid var(--ib-quote-line);
+  }
+
+  .ib-blockquote-end.ib-blockquote-subtle {
+    padding-inline-start: var(--ib-space-4);
+    border-radius: var(--ib-radius-md) 0 0 var(--ib-radius-md);
+  }
+
+  .ib-blockquote-mark {
+    display: block;
+    margin-block-end: var(--ib-space-1);
+    color: var(--ib-quote-mark);
+    --ib-icon-size: 1.75em;
+  }
+
+  .ib-blockquote-caption {
+    color: var(--ib-color-muted);
+    font-size: 0.875em;
+  }
+
+  .ib-blockquote-caption cite {
+    font-style: italic;
+  }
+}

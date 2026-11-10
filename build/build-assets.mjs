@@ -257,6 +257,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "treemap.css"),
   },
   {
+    // A sheet of its own, linked by Blockquote.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "blockquote.css")],
+    outfile: join(lib, "wwwroot", "blockquote.css"),
+  },
+  {
     // A sheet of its own, linked by Chat.
     ...common,
     sourcemap: false,

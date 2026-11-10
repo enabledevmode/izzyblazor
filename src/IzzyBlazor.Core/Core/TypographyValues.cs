@@ -173,3 +173,16 @@ public enum TextWrap
     /// <summary>Avoids a lone word on the last line; good for paragraphs.</summary>
     Pretty,
 }
+
+/// <summary>A Blockquote's look.</summary>
+public enum BlockquoteVariant
+{
+    /// <summary>A line at the start (the default), as Prose draws a quote.</summary>
+    Bar,
+
+    /// <summary>A tinted panel with the line at the start.</summary>
+    Subtle,
+
+    /// <summary>No line or tint: the quote set apart by its space and attribution alone.</summary>
+    Plain,
+}

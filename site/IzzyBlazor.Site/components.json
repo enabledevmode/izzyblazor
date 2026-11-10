@@ -398,6 +398,14 @@
       ]
     },
     {
+      "id": "blockquote", "icon": "Quote", "name": "Blockquote", "category": "Typography", "summary": "Sets a quotation apart, with who said it and where.", "keywords": ["quote", "pull quote", "citation"],
+      "examples": [
+        { "id": "blockquote-attribution", "title": "Author and source", "lead": "To say who said it, set `Author`; for the work it's from, `Source`. `Cite` links the source." },
+        { "id": "blockquote-looks", "title": "Looks", "lead": "`Variant` sets the look: a line at the start (`Bar`, the default), a tinted panel (`Subtle`) or neither (`Plain`). `Accent` colors the line and the tint." },
+        { "id": "blockquote-pull-quote", "title": "Pull quote", "lead": "For a line lifted out of an article, center it with `Align`, enlarge it with `Size` and add `QuoteMark`." }
+      ]
+    },
+    {
       "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "Shows a key or a key combination.", "keywords": ["keyboard shortcut"],
       "examples": [
         { "id": "kbd-combinations", "title": "Keys and combinations", "lead": "For a combination such as \"Ctrl+K\", set `Keys`. Each key gets its own box." },
