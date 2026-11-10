@@ -51,3 +51,35 @@ jobs:
           path: |
             artifacts/*.nupkg
             **/TestResults/*.trx
+
+  # The library targets net10.0, and apps on .NET 11 run it there: build with the .NET 11 SDK (its
+  # Razor compiler differs) and run every test on the .NET 11 runtime, rolled forward.
+  dotnet-11:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_ROLL_FORWARD: Major
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 11.0.x
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install asset tools
+        run: npm ci
+
+      - name: Build
+        run: dotnet build izzyblazor.sln --configuration Release
+
+      - name: Install Chromium
+        run: pwsh site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      # One test left out: bUnit's net10 build fakes Virtualize's script by calling its internal
+      # OnSpacerBeforeVisible, whose parameters .NET 11 changed (bUnit's net11.0 build has the fix).
+      - name: Unit and render tests
+        run: dotnet test izzyblazor.sln --configuration Release --no-build --filter "FullyQualifiedName!~Virtual_rows_stay_where_they_are_for_a_parents_render"

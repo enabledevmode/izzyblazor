@@ -108,9 +108,20 @@
     /// <inheritdoc />
     private protected override RenderFragment TriggerContent => Trigger is not null ? Trigger(TriggerAttributes) : DefaultTrigger;
 
-    private RenderFragment DefaultTrigger => __builder =>
+    // Built in C#, not markup: with markup in @code, the .NET 11 SDK's Razor compiler doesn't see a C#
+    // subclass (ToolbarMenu) as a component, so <ToolbarMenu> in the library's own .razor files fails.
+    private RenderFragment DefaultTrigger => builder =>
     {
-        <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="@TriggerClass" @attributes="TriggerAttributes">@Label</Button>
+        builder.OpenComponent<Button>(0);
+        builder.AddComponentParameter(1, nameof(Button.Accent), TriggerAccent);
+        builder.AddComponentParameter(2, nameof(Button.Variant), TriggerVariant);
+        builder.AddComponentParameter(3, nameof(Button.Size), TriggerSize);
+        builder.AddComponentParameter(4, nameof(Button.StartIcon), StartIcon);
+        builder.AddComponentParameter(5, nameof(Button.EndIcon), IconSet.Current.Get(IconPurpose.ChevronDown));
+        builder.AddComponentParameter(6, nameof(Button.Class), TriggerClass);
+        builder.AddMultipleAttributes(7, TriggerAttributes);
+        builder.AddComponentParameter(8, nameof(Button.ChildContent), (RenderFragment)(label => label.AddContent(0, Label)));
+        builder.CloseComponent();
     };
 
     /// <inheritdoc />
