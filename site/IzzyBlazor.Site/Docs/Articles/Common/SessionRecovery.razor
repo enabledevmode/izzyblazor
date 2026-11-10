@@ -1,15 +1,18 @@
-@page "/docs/common/pause-and-resume"
+@page "/docs/common/session-recovery"
 
-@* Pausing and resuming an interactive server session (circuit): what IzzyBlazor components keep,
+@* Session recovery: an interactive server session (circuit) holds the page in server memory and
+   ends with a lost connection, a restart or memory pressure. Pausing and resuming it: what IzzyBlazor components keep,
    what the app persists, the reconnect dialog, and .NET 11's pause in a hidden tab. Each claim
    was checked on .NET 11 (Nov 10, 2026) with Blazor.pauseCircuit/resumeCircuit and AddAutoPause. *@
 
-<ArticlePage Section="common" Slug="pause-and-resume">
+<ArticlePage Section="common" Slug="session-recovery">
     <Lead>
         <TextBlock>
-            On an interactive server page, Blazor can pause the session: it saves the page's state in the browser, closes the
-            connection and frees the server's memory. Resuming starts a new session from that state and builds every
-            component again. What lives in the URL, or in a property you mark <Code>[PersistentState]</Code>, comes back.
+            An interactive server page lives in a session on the server, which holds it in memory while the tab is open and
+            ends with a lost connection, a restart or a server short of memory: a fresh page, and the user's work gone.
+            Blazor can pause a session instead: it saves the page's state in the browser and frees the server, then
+            resumes from that state, building every component again. What lives in the URL, or in a property you mark
+            <Code>[PersistentState]</Code>, comes back.
         </TextBlock>
     </Lead>
     <ChildContent>
