@@ -98,6 +98,12 @@
   }
 
   /* Accents: fill, text on it, the accent as text, and its soft tint (16% of the fill on white). */
+  /* A named brand's ring is its own fill, not one a light brand outside it set (BrandPalette.Focus):
+     unset, so each use falls back to the primary where it is. */
+  [data-ib-brand] {
+    --ib-color-focus: initial;
+  }
+
   /* Ink: monochrome. The fill is the gray set's text color, and the soft tint is that ink thinly
      laid over whatever is below (10% light, 12% dark; hover is 6%), so it never takes the gray's
      warm or cool cast. */

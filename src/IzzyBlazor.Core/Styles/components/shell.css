@@ -344,9 +344,15 @@
   }
 
   /* Linked sections (heading anchors, OnThisPage) land below the sticky bars, with some room, and
-     a control that takes focus scrolls out from under them (WCAG 2.4.11). */
-  .ib-shell-scroll-page > .ib-shell-main :is([id], a, button, input, select, textarea, summary, [tabindex]) {
-    scroll-margin-block: calc(var(--ib-shell-top) + var(--ib-space-4)) calc(var(--ib-shell-bottom) + var(--ib-space-4));
+     a control that takes focus scrolls out from under them (WCAG 2.4.11). :where() keeps it under
+     a part's own rule, such as DataGrid's cells. */
+  .ib-shell-scroll-page > .ib-shell-main :where([id], a, button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-top: calc(var(--ib-shell-top) + var(--ib-space-4));
+  }
+
+  /* Above a sticky footer: the page's own padding, which boxes that scroll inside main don't take. */
+  :root:has(.ib-shell-scroll-page > .ib-shell-footer-sticky) {
+    scroll-padding-bottom: calc(var(--ib-shell-footer-h, 3.5rem) + env(safe-area-inset-bottom, 0px) + var(--ib-space-4));
   }
 
   .ib-shell-scroll-main > .ib-shell-main [id] {

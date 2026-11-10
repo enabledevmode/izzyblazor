@@ -71,14 +71,15 @@ public sealed record BrandPalette(
 
     /// <summary>
     /// The four primary tokens as CSS declarations, each a <c>light-dark()</c> pair, and the focus
-    /// color when <see cref="Focus"/> is set.
+    /// color: <see cref="Focus"/>, else unset (<c>initial</c>), so the ring follows the fill where it's
+    /// used and a scope inside a light brand's doesn't keep the outer ring.
     /// </summary>
     public string ToCss() =>
         $"--ib-color-primary: light-dark({Fill}, {DarkFill}); " +
         $"--ib-color-on-primary: light-dark({OnFill}, {DarkOnFill}); " +
         $"--ib-color-primary-text: light-dark({Text}, {DarkText}); " +
         $"--ib-color-primary-soft: light-dark({Soft}, {DarkSoft});" +
-        (Focus is null ? "" : $" --ib-color-focus: light-dark({Focus}, {DarkFill});");
+        (Focus is null ? " --ib-color-focus: initial;" : $" --ib-color-focus: light-dark({Focus}, {DarkFill});");
 
     // Each check is on the color as written (rounded to hex), so rounding can't take it under.
     // White or near-black, whichever reads better; if neither reaches 4.5:1, move the fill's
