@@ -7,6 +7,7 @@ export interface PieDrawData {
   v: (number | null)[][]; // each ring's values, in item order
   r: [number, number][]; // each ring's inner and outer radius
   f: number; // the turn the first slice starts at
+  w: number; // the share of the turn the slices fill (Sweep)
   p0: NumberShape; // shares of 9.5% and up
   p1: NumberShape; // shares under it
   l: number; // labels: 0 none, 1 outside, 2 inside
@@ -59,8 +60,8 @@ function share(d: PieDrawData, x: number): string {
 }
 
 /**
- * The circle without the hidden items' slices: each ring's shown slices share it by their values,
- * clockwise from the start; their shares are of what's shown. Labels beside the circle are spread
+ * The circle without the hidden items' slices: each ring's shown slices share it (or its Sweep) by
+ * their values, clockwise from the start; their shares are of what's shown. Labels beside the circle are spread
  * again for the items in labeled (outer ring only, as a PieChart's).
  */
 export function drawPie(d: PieDrawData, hidden: Set<number>, labeled: number[]): PieDrawing {
@@ -78,7 +79,7 @@ export function drawPie(d: PieDrawData, hidden: Set<number>, labeled: number[]):
         shares.push(null);
         continue;
       }
-      const end = Math.min(d.f + 1, start + shown[i] / total);
+      const end = Math.min(d.f + d.w, start + (shown[i] / total) * d.w);
       slices.push({ start, end, d: slicePath(start, end, hole, outer) });
       shares.push(share(d, shown[i] / total));
       start = end;

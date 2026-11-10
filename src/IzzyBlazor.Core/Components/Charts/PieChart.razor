@@ -71,7 +71,7 @@
             (items, names, values) = ([], [], []);
         }
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
-        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, StartTurn);
+        var slices = ChartShapes.Pie(values, Donut ? ChartShapes.DonutHole : 0, StartTurn, 1, SweepTurn);
         var texts = values.Select(FormatValue).ToArray();
         var shares = values.Select(v => v is > 0 && total > 0 ? Share(v.Value / total) : null).ToArray();
         var outside = Labels is ChartLabels.Outside or ChartLabels.Auto;
@@ -95,7 +95,7 @@
     {
         @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop, Title, TextDefaults)
     }
-    <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
+    <ib-chart data-ib-box="@BoxData" data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
               data-ib-drilled="@drilled?.Said" data-ib-drill="@drilled?.Key" data-ib-deeper="@(drilled?.Hrefs is not null ? "" : null)"
               data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
@@ -109,12 +109,12 @@
             @* With labels beside it, the circle keeps room around it for them (chart.css); without,
                this wrapper has no box of its own. *@
             <div class="@(ringed ? "ib-pie-ring" : "ib-pie-unringed")" style="@(ringed ? room : null)">
-            <div class="ib-pie-plot">
+            <div class="@PlotClass" style="@PlotStyle">
                 <div class="ib-pie-frame" role="img" aria-labelledby="@NameId">
-                    <svg class="ib-pie-svg" viewBox="-1 -1 2 2">
+                    <svg class="ib-pie-svg" viewBox="@ViewBox">
                         @if (slices.Count == 0)
                         {
-                            <path class="ib-pie-empty" d="@ChartShapes.Pie([1], Donut ? ChartShapes.DonutHole : 0)[0].Path" />
+                            <path class="ib-pie-empty" d="@ChartShapes.Pie([1], Donut ? ChartShapes.DonutHole : 0, StartTurn, 1, SweepTurn)[0].Path" />
                         }
                         @foreach (var slice in slices)
                         {
@@ -134,7 +134,7 @@
                         @foreach (var slice in slices.Where(s => s.End - s.Start >= InsideMin))
                         {
                             var (x, y) = ChartShapes.PieInside(slice, Donut ? ChartShapes.DonutHole : 0);
-                            <span class="@Slot(slice.Index)" style="left:@(Num(x * 100))%;top:@(Num(y * 100))%" data-ib-in="@slice.Index">@if (LabelTemplate is not null)
+                            <span class="@Slot(slice.Index)" style="left:@(Left(x))%;top:@(Top(y))%" data-ib-in="@slice.Index">@if (LabelTemplate is not null)
                                 {@LabelTemplate(Context(slice.Index, true))}
                                 else
                                 {<span data-ib-share="@slice.Index">@shares[slice.Index]</span>}</span>
@@ -147,7 +147,7 @@
                     <div class="ib-pie-labels" aria-hidden="true">
                         @foreach (var label in beside)
                         {
-                            <span class="@(label.End ? Slot(label.Index) : $"{Slot(label.Index)} ib-pie-label-start")" style="left:@(Num(label.X * 100))%;top:@(Num(label.Y * 100))%" data-ib-l="@label.Index">@if (LabelTemplate is not null)
+                            <span class="@(label.End ? Slot(label.Index) : $"{Slot(label.Index)} ib-pie-label-start")" style="left:@(Left(label.X))%;top:@(Top(label.Y))%" data-ib-l="@label.Index">@if (LabelTemplate is not null)
                                 {@LabelTemplate(Context(label.Index, false))}
                                 else if (named)
                                 {@names[label.Index] <span class="ib-pie-label-share" data-ib-share="@label.Index">@shares[label.Index]</span>}
@@ -158,7 +158,7 @@
                 }
                 @if (Donut && Center is not null)
                 {
-                    <div class="ib-pie-center">@Center</div>
+                    <div class="@(CenterClass("ib-pie-center"))" style="@CenterStyle(0.22)">@Center</div>
                 }
                 @if (Tooltip)
                 {

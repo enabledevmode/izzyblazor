@@ -45,8 +45,9 @@ internal static class ChartShapes
     /// the top), in a viewBox of -1 -1 2 2. A slice's Start and End can pass 1 when it crosses the
     /// top. Missing, zero and negative values get no slice; a single slice is a whole circle (or ring).
     /// <paramref name="outer"/> is the slices' outer radius (under 1 for a nested donut's inner rings).
+    /// <paramref name="sweep"/> is the share of the turn the slices fill (0.5 for a half circle).
     /// </summary>
-    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole, double from = 0, double outer = 1)
+    public static List<PieSlice> Pie(IReadOnlyList<double?> values, double hole, double from = 0, double outer = 1, double sweep = 1)
     {
         var total = values.Sum(v => v is > 0 ? v.Value : 0);
         var slices = new List<PieSlice>();
@@ -56,12 +57,33 @@ internal static class ChartShapes
         for (var i = 0; i < values.Count; i++)
         {
             if (values[i] is not > 0) continue;
-            var end = Math.Min(from + 1, start + values[i]!.Value / total);
+            var end = Math.Min(from + sweep, start + values[i]!.Value / total * sweep);
             slices.Add(new PieSlice(i, start, end, Slice(start, end, hole, outer)));
             start = end;
         }
 
         return slices;
+    }
+
+    /// <summary>
+    /// The box an arc from <paramref name="from"/> through <paramref name="sweep"/> of the turn
+    /// takes in the -1 -1 2 2 viewBox, with the middle in it (where a donut's Center goes): its
+    /// left, top, width and height. The whole square for a whole turn.
+    /// </summary>
+    public static (double X, double Y, double W, double H) PieBox(double from, double sweep)
+    {
+        if (sweep >= 0.99999) return (-1, -1, 2, 2);
+        var points = new List<(double X, double Y)> { (0, 0), At(from, 1), At(from + sweep, 1) };
+        // The circle's top, right, bottom and left, where the arc passes them.
+        for (var q = 0; q < 4; q++)
+        {
+            var past = ((q * 0.25 - from) % 1 + 1) % 1;
+            if (past <= sweep) points.Add(At(q * 0.25, 1));
+        }
+
+        var (x0, x1) = (Math.Round(points.Min(p => p.X), 4), Math.Round(points.Max(p => p.X), 4));
+        var (y0, y1) = (Math.Round(points.Min(p => p.Y), 4), Math.Round(points.Max(p => p.Y), 4));
+        return (x0, y0, x1 - x0, y1 - y0);
     }
 
     private static string Slice(double start, double end, double hole, double outer)
