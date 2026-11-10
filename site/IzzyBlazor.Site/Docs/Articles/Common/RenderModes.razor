@@ -3,7 +3,7 @@
 
 @* Render modes: the terms every page uses (static, interactive, circuit, IzzyBlazor's script, with
    JavaScript off), one example under its own mode switch, choosing a render mode, mode support on
-   component pages, and state on static pages. From docs/nuget-readme.md, components.md, the
+   component pages, state on static pages, and CacheView on .NET 11 (tested Nov 10, 2026). From docs/nuget-readme.md, components.md, the
    [ModeSupport] metadata and Scripts/index.ts (the script Blazor loads on every page). *@
 
 <ArticlePage Section="common" Slug="render-modes">
@@ -117,9 +117,23 @@
             request</Anchor>.
         </TextBlock>
 
+        <Heading Level="2">Cached parts of a page <Badge Accent="Accent.Primary" Size="BadgeSize.Sm">.NET 11+</Badge></Heading>
+        <TextBlock>
+            .NET 11's <Code>CacheView</Code> keeps the HTML of part of a static page and sends it again without running the
+            components in it. By default it ignores the URL, so a Table or DataGrid inside it shows every visitor the sort,
+            filter and page it had when it was cached. Around a component that keeps its state in the URL, vary the cache by
+            the whole query:
+        </TextBlock>
+        <Code Block Language="razor">@CachedGrid</Code>
+        <TextBlock>
+            Naming only the component's own keys isn't enough: its links carry the whole address as it was when cached, so
+            following one would drop the state of the page's other components.
+        </TextBlock>
+
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: one form for static and interactive pages.</ListItem>
+            <ListItem><Anchor Href="docs/common/session-recovery">Session recovery</Anchor>: what an interactive page keeps when its session pauses and resumes.</ListItem>
             <ListItem><Anchor Href="docs/components">All components</Anchor>: what each one does in each render mode.</ListItem>
         </List>
     </ChildContent>
@@ -129,5 +143,13 @@
     private const string Interactive = """
         @page "/orders/{Id:int}/edit"
         @rendermode InteractiveServer
+        """;
+
+    private const string CachedGrid = """
+        <CacheView VaryByQuery="*" ExpiresAfter="TimeSpan.FromMinutes(5)">
+            <DataGrid Items="Products" PageSize="20">
+                ...
+            </DataGrid>
+        </CacheView>
         """;
 }
