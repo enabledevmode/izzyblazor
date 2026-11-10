@@ -3,10 +3,21 @@
 
 @if (Pictures.ById.TryGetValue(Id, out var drawing))
 {
-    <svg class="pg" viewBox="0 0 160 96" aria-hidden="true" focusable="false">
-        <g class="pg-rings"><circle cx="160" cy="96" r="150" fill-opacity=".03" /><circle cx="160" cy="96" r="110" fill-opacity=".035" /><circle cx="160" cy="96" r="75" fill-opacity=".045" /></g>
-        @((MarkupString)drawing)
-    </svg>
+    @if (Quiet)
+    {
+        @* Gray, small and flat, for a grid of many (the components page): the colors come from the
+           pg-quiet rules, and the drawing is scaled to 70% about the tile's center. *@
+        <svg class="pg pg-quiet" viewBox="0 0 160 96" aria-hidden="true" focusable="false">
+            <g transform="translate(24 14.4) scale(.7)">@((MarkupString)drawing)</g>
+        </svg>
+    }
+    else
+    {
+        <svg class="pg" viewBox="0 0 160 96" aria-hidden="true" focusable="false">
+            <g class="pg-rings"><circle cx="160" cy="96" r="150" fill-opacity=".03" /><circle cx="160" cy="96" r="110" fill-opacity=".035" /><circle cx="160" cy="96" r="75" fill-opacity=".045" /></g>
+            @((MarkupString)drawing)
+        </svg>
+    }
 }
 else if (Pictures.Modes.TryGetValue(Id, out drawing))
 {
@@ -20,4 +31,7 @@ else if (Pictures.Modes.TryGetValue(Id, out drawing))
 @code {
     /// <summary>A component's id in components.json, or a mode's picture ("mode-static", "mode-interactive").</summary>
     [Parameter, EditorRequired] public string Id { get; set; } = "";
+
+    /// <summary>Grays only, smaller, with no rings: quiet enough for a page of them.</summary>
+    [Parameter] public bool Quiet { get; set; }
 }

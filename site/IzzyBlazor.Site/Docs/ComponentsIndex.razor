@@ -50,7 +50,7 @@
             {
                 var api = Api.Component(component.Name);
                 <Card Title="@component.DisplayName" TitleLevel="2" Description="@component.Summary" Href="@Registry.OverviewHref(component)">
-                    <CardMedia><ComponentPicture Id="@component.Id" /></CardMedia>
+                    <CardMedia><ComponentPicture Id="@component.Id" Quiet /></CardMedia>
                     @if (component.Preview || ModeChips.LabelOf(api?.Modes) is not null)
                     {
                         <div class="site-card-marks">
