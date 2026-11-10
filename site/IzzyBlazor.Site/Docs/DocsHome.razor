@@ -72,7 +72,7 @@
             var components = Registry.InCategory(category).ToList();
             <div class="site-box-category">
                 <Heading Level="3" Size="TextSize.Md" OnThisPage="false" Class="site-box-title">
-                    <Anchor Href="@($"docs/components#{Registry.CategoryAnchor(category)}")" Underline="AnchorUnderline.Hover">@category</Anchor>
+                    <Anchor Href="@($"docs/components?group={Registry.CategoryAnchor(category)}")" Underline="AnchorUnderline.Hover">@category</Anchor>
                     <span class="site-box-count">@components.Count<span class="ib-visually-hidden"> components</span></span>
                 </Heading>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">

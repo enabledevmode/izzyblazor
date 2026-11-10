@@ -6,15 +6,7 @@
 
 @if (Label is { } label)
 {
-    @if (Compact && Short(label) is { } brief)
-    {
-        @* A dense list (the components index): the short form shows, the full one is read. *@
-        <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)"><span aria-hidden="true">@brief</span><span class="ib-visually-hidden">@label</span></Badge>
-    }
-    else
-    {
-        <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@(Subject is null ? label : $"{Subject}: {label}")</Badge>
-    }
+    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@(Subject is null ? label : $"{Subject}: {label}")</Badge>
 }
 
 @code {
@@ -23,41 +15,36 @@
     /// <summary>What the label is about when it isn't the whole member, such as <c>@bind</c>.</summary>
     [Parameter] public string? Subject { get; set; }
 
-    /// <summary>Shows "Interactive" for "Interactive only", for dense lists.</summary>
-    [Parameter] public bool Compact { get; set; }
+    private string? Label => LabelOf(Modes);
 
-    private static string? Short(string label) => label == "Interactive only" ? "Interactive" : null;
-
-    private string? Label
+    /// <summary>The label for this mode support, or null when it works in both and nothing shows.</summary>
+    public static string? LabelOf(ApiModes? modes)
     {
-        get
+        if (modes is null)
         {
-            if (Modes is null)
-            {
-                return null;
-            }
-
-            var (inStatic, inInteractive) = (ModeChip.Parse(Modes.Static), ModeChip.Parse(Modes.Interactive));
-            if (inStatic == ModeLevel.Full && inInteractive == ModeLevel.Full)
-            {
-                return null;
-            }
-
-            if (inStatic == ModeLevel.None && inInteractive == ModeLevel.Full)
-            {
-                return "Interactive only";
-            }
-
-            if (inInteractive == ModeLevel.None && inStatic == ModeLevel.Full)
-            {
-                return "Static only";
-            }
-
-            // "Static: partly", "Interactive: partly", or both limited.
-            var text = string.Join("; ", new[] { ("Static", inStatic), ("Interactive", inInteractive) }
-                .Where(m => m.Item2 != ModeLevel.Full)
-                .Select(m => $"{m.Item1}: {(m.Item2 == ModeLevel.Partial ? "partly" : "no")}"));
-            return text;
+            return null;
         }
+
+        var (inStatic, inInteractive) = (ModeChip.Parse(modes.Static), ModeChip.Parse(modes.Interactive));
+        if (inStatic == ModeLevel.Full && inInteractive == ModeLevel.Full)
+        {
+            return null;
+        }
+
+        if (inStatic == ModeLevel.None && inInteractive == ModeLevel.Full)
+        {
+            return "Interactive only";
+        }
+
+        if (inInteractive == ModeLevel.None && inStatic == ModeLevel.Full)
+        {
+            return "Static only";
+        }
+
+        // "Static: partly", "Interactive: partly", or both limited.
+        var text = string.Join("; ", new[] { ("Static", inStatic), ("Interactive", inInteractive) }
+            .Where(m => m.Item2 != ModeLevel.Full)
+            .Select(m => $"{m.Item1}: {(m.Item2 == ModeLevel.Partial ? "partly" : "no")}"));
+        return text;
     }
 }

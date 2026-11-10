@@ -2,28 +2,39 @@
 @inject Registry Registry
 @inject ApiMetadata Api
 
-@* Every component by category: a row per category, its icon at the start and its components'
-   links after it, so the library fits on a few screens and a name can be found by eye. A filter
-   at the top (a GET form, ?q=) narrows the links as you type, with JavaScript off too. *@
+@* Every component as a card, A to Z (after Chakra's overview): its picture, its name and its
+   one-line summary; the sidebar keeps the groups. A filter at the top (a GET form, ?q=) narrows
+   the cards, with JavaScript off too, and ?group= shows one group, for the breadcrumb. *@
 
-<PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component, by category. Each one renders on static pages, and a label marks the ones limited in a render mode." />
+<PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component, A to Z. Each one renders on static pages, and a label marks the ones limited in a render mode." />
 
 <article class="site-article site-article-wide">
     <Stack Gap="3" Class="site-pagehead">
-        <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
+        <Heading Level="1" Size="TextSize.Xl3">@(_group ?? "Components")</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            IzzyBlazor has @Registry.AllComponents.Count components in @Registry.Categories.Count groups. Every one renders on
+            @if (_group is null)
+            {
+                @($"IzzyBlazor has {Registry.AllComponents.Count} components. Every one renders on ")
+            }
+            else
+            {
+                @($"{Registry.InCategory(_group).Count()} of IzzyBlazor's {Registry.AllComponents.Count} components. ")<Anchor Href="docs/components">See them all</Anchor>@(". Every one renders on ")
+            }
             <Anchor Href="docs/common/render-modes">static pages</Anchor>. A label marks a component that works only on
             interactive pages, or only partly in one render mode.
         </TextBlock>
     </Stack>
 
     <FilterForm Label="Filter the components">
+        @if (_group is not null)
+        {
+            <input type="hidden" name="group" value="@Group" />
+        }
         <FilterSearch Label="Filter the components" Placeholder="Filter by name or purpose" Grow />
     </FilterForm>
     <p role="status" class="site-search-count">@CountText</p>
 
-    @if (_groups.Count == 0)
+    @if (_cards.Count == 0)
     {
         <EmptyState Icon="Lucide.SearchX" Title="@($"No components match “{_query}”")" TitleLevel="2"
                     Description="Try a shorter word, or search the whole docs." Bordered>
@@ -32,57 +43,50 @@
             </EmptyStateActions>
         </EmptyState>
     }
-
-    <div class="site-index">
-        @foreach (var (category, components) in _groups)
-        {
-            <section class="site-index-row" aria-labelledby="@Anchor(category)">
-                <Pictogram Name="@Registry.CategoryIcon(category)" Size="ControlSize.Lg" />
-                <div class="site-index-body">
-                    <h2 class="site-index-heading" id="@Anchor(category)">@category <span class="site-index-count">@components.Count</span></h2>
-                    <ul class="site-index-list">
-                        @foreach (var component in components)
-                        {
-                            var api = Api.Component(component.Name);
-                            <li>
-                                <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.DisplayName</a>
-                                @if (component.Preview)
-                                {
-                                    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>
-                                }
-                                @if (api?.Modes is { } modes)
-                                {
-                                    <ModeChips Modes="modes" Compact />
-                                }
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </section>
-        }
-    </div>
+    else
+    {
+        <Grid MinChildWidth="Length.Rem(15)" Gap="5" Class="site-cards">
+            @foreach (var component in _cards)
+            {
+                var api = Api.Component(component.Name);
+                <Card Title="@component.DisplayName" TitleLevel="2" Description="@component.Summary" Href="@Registry.OverviewHref(component)">
+                    <CardMedia><ComponentPicture Id="@component.Id" /></CardMedia>
+                    @if (component.Preview || ModeChips.LabelOf(api?.Modes) is not null)
+                    {
+                        <div class="site-card-marks">
+                            @if (component.Preview)
+                            {
+                                <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>
+                            }
+                            <ModeChips Modes="api?.Modes" />
+                        </div>
+                    }
+                </Card>
+            }
+        </Grid>
+    }
 </article>
 
 @code {
     [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
 
-    private List<(string Category, List<RegistryComponent> Components)> _groups = [];
+    /// <summary>A group's anchor, such as <c>date-time</c>: the breadcrumb's link to a component's group.</summary>
+    [SupplyParameterFromQuery(Name = "group")] public string? Group { get; set; }
+
+    private List<RegistryComponent> _cards = [];
     private string _query = "";
-    private int _shown;
+    private string? _group;
 
-    // The breadcrumb links to docs/components#forms; "Date & time" is date-time.
-    private static string Anchor(string category) => Registry.CategoryAnchor(category);
-
-    private string CountText => _query.Length == 0 ? "" : $"{_shown} {(_shown == 1 ? "component matches" : "components match")} “{_query}”";
+    private string CountText => _query.Length == 0 ? "" : $"{_cards.Count} {(_cards.Count == 1 ? "component matches" : "components match")} “{_query}”";
 
     protected override void OnParametersSet()
     {
         _query = Q?.Trim() ?? "";
-        _groups = Registry.Categories
-            .Select(c => (Category: c, Components: Registry.AllComponents.Where(x => x.Category == c && Matches(x)).ToList()))
-            .Where(g => g.Components.Count > 0)
+        _group = Registry.Categories.FirstOrDefault(c => Registry.CategoryAnchor(c) == Group);
+        _cards = Registry.AllComponents
+            .Where(c => (_group is null || c.Category == _group) && Matches(c))
+            .OrderBy(c => c.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToList();
-        _shown = _groups.Sum(g => g.Components.Count);
     }
 
     // A name, title, summary or keyword containing the filter's text.
