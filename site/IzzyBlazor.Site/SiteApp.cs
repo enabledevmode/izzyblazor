@@ -287,6 +287,31 @@ public static class SiteApp
                 stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
             .RequireRateLimiting(PagesRateLimit);
+        // A format of the site's own, for the example with DataGridExportFormat: an array of objects by caption.
+        app.MapGet("/examples/orders.json", (HttpContext context) => Results.Stream(
+                async stream =>
+                {
+                    var export = DataExport.Read(Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), context.RequestAborted);
+                    await using var json = new System.Text.Json.Utf8JsonWriter(stream, new() { Indented = true });
+                    json.WriteStartArray();
+                    await foreach (var row in export.Rows)
+                    {
+                        json.WriteStartObject();
+                        for (var i = 0; i < row.Length; i++)
+                        {
+                            json.WritePropertyName(export.Columns[i].Caption);
+                            // To an element first: Serialize would flush the response synchronously, which Kestrel refuses.
+                            System.Text.Json.JsonSerializer.SerializeToElement(row[i] is Enum e ? e.ToString() : row[i]).WriteTo(json);
+                        }
+
+                        json.WriteEndObject();
+                        await json.FlushAsync(context.RequestAborted);
+                    }
+
+                    json.WriteEndArray();
+                },
+                "application/json", "orders.json"))
+            .RequireRateLimiting(PagesRateLimit);
         // Accessibility was one article under Common features until Nov 10, 2026; it's a section now.
         app.MapGet("/docs/common/accessibility", () => Results.Redirect("/docs/accessibility/overview", permanent: true));
         // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.

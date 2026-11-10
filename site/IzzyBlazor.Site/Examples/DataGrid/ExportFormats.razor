@@ -1,0 +1,13 @@
+@* A format of your own beside Excel: JSON, written by the app's endpoint from DataExport.Read, which
+   gives the columns and rows the grid's address asks for. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders in other formats" ExportExcelHref="/examples/orders.xlsx" QueryPrefix="formats-" Grow>
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Status" Sortable Filterable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+        <DataGridExportFormat Label="Export JSON"
+                              Href="/examples/orders.json" />
+    </Columns>
+</DataGrid>

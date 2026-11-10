@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Data;
 using System.Globalization;
 using System.Linq.Expressions;
-using System.Reflection;
 using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor;
@@ -21,8 +18,6 @@ namespace IzzyBlazor;
 /// }</code></example>
 public class DynamicColumn<TItem> : ColumnBase<TItem>
 {
-    private static readonly MethodInfo ReadMethod = typeof(DynamicColumn<TItem>).GetMethod(nameof(Read), BindingFlags.NonPublic | BindingFlags.Static)!;
-
     private (string Field, Type Type)? _built;
     private LambdaExpression? _value;
     private Func<TItem, object?>? _read;
@@ -63,28 +58,7 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
     protected override string? DefaultTitle => Field is null ? null : DataFields.Words(Field);
 
     /// <inheritdoc />
-    protected override string? DefaultSortKey
-    {
-        get
-        {
-            // A key goes in the address and in filter text, so letters and digits, with an underscore
-            // for each run of anything else: "Margin" and "Margin %" stay apart, and "#" has a key.
-            var key = new System.Text.StringBuilder();
-            foreach (var c in Field ?? "")
-            {
-                if (char.IsLetterOrDigit(c))
-                {
-                    key.Append(char.ToLowerInvariant(c));
-                }
-                else if (key.Length == 0 || key[^1] != '_')
-                {
-                    key.Append('_');
-                }
-            }
-
-            return key.Length == 0 ? null : key.ToString();
-        }
-    }
+    protected override string? DefaultSortKey => DynamicRead.KeyOf(Field);
 
     /// <inheritdoc />
     protected override CellAlign DefaultAlign => IsNumeric(_valueType) ? CellAlign.End : CellAlign.Start;
@@ -122,12 +96,8 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
         {
             _built = (Field, Type);
 
-            // Missing values are common in data like this, so a number or date column can always be empty.
-            _valueType = Type.IsValueType && Nullable.GetUnderlyingType(Type) is null ? typeof(Nullable<>).MakeGenericType(Type) : Type;
-            var row = Expression.Parameter(typeof(TItem), "r");
-            var read = Expression.Call(ReadMethod, Expression.Convert(row, typeof(object)), Expression.Constant(Field), Expression.Constant(_valueType));
-            _value = Expression.Lambda(Expression.Convert(read, _valueType), row);
-            _read = Expression.Lambda<Func<TItem, object?>>(read, row).Compile();
+            _valueType = DynamicRead.ValueTypeOf(Type);
+            (_value, _read) = DynamicRead.Reader<TItem>(Field, _valueType);
         }
 
         base.OnParametersSet();
@@ -145,7 +115,7 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
             throw new InvalidOperationException($"The \"{Field}\" column's {nameof(Type)} is null: leave it out for text.");
         }
 
-        if (typeof(TItem) != typeof(object) && !Readable(typeof(TItem)))
+        if (typeof(TItem) != typeof(object) && !DynamicRead.Readable(typeof(TItem)))
         {
             throw new InvalidOperationException($"{nameof(DynamicColumn<TItem>)} reads dictionaries, ExpandoObject and DataRow, not {typeof(TItem).Name}: use a {nameof(PropertyColumn<TItem, object>)} for a row with properties.");
         }
@@ -178,38 +148,4 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
             ? formattable.ToString(Format, CultureInfo.CurrentCulture)
             : value?.ToString());
     };
-
-    private static bool Readable(Type type) =>
-        typeof(IDictionary<string, object?>).IsAssignableFrom(type)
-        || typeof(IReadOnlyDictionary<string, object?>).IsAssignableFrom(type)
-        || typeof(IDictionary).IsAssignableFrom(type)
-        || typeof(DataRow).IsAssignableFrom(type)
-        || typeof(DataRowView).IsAssignableFrom(type);
-
-    // The row's value by name, as the column's type, or null when it's missing or doesn't convert.
-    private static object? Read(object? row, string field, Type type)
-    {
-        var value = row switch
-        {
-            null => null,
-            IDictionary<string, object?> d => d.TryGetValue(field, out var v) ? v : null,
-            IReadOnlyDictionary<string, object?> d => d.TryGetValue(field, out var v) ? v : null,
-            IDictionary d => d.Contains(field) ? d[field] : null,
-            DataRow r => r.Table.Columns.Contains(field) ? r[field] : null,
-            DataRowView v => v.Row.Table.Columns.Contains(field) ? v.Row[field] : null,
-            _ => throw new InvalidOperationException($"The \"{field}\" column reads dictionaries, ExpandoObject and DataRow, not {row.GetType().Name}: use a {nameof(PropertyColumn<TItem, object>)} for a row with properties."),
-        };
-
-        if (value is null or DBNull)
-        {
-            return null;
-        }
-
-        if (type == typeof(string))
-        {
-            return value as string ?? Convert.ToString(FilterConvert.Unwrap(value), CultureInfo.CurrentCulture);
-        }
-
-        return FilterConvert.TryConvert(type, value, out var typed) ? typed : null;
-    }
 }

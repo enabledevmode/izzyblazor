@@ -62,6 +62,34 @@ public class DynamicColumnTests : BunitContext
         Assert.Equal(["Washers", "Bolts", "Nuts"], cut.FindAll("tbody tr").Select(r => r.Children[0].TextContent.Trim()));
     }
 
+    // An export endpoint behind DynamicColumns: fields by the same names read the grid's address.
+    [Fact]
+    public async Task An_export_with_fields_by_name_matches_the_grid()
+    {
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("http://localhost/?sort=margin_");
+        IDictionary<string, object?> Row(string name, int margin, double percent) =>
+            new Dictionary<string, object?> { ["Name"] = name, ["Margin"] = margin, ["Margin %"] = percent };
+        IDictionary<string, object?>[] rows = [Row("Bolts", 900, 30.5), Row("Nuts", 200, 45.0), Row("Washers", 500, 12.0)];
+        (string Name, Type Type)[] shape = [("Name", typeof(string)), ("Margin", typeof(int)), ("Margin %", typeof(double))];
+        var cut = Render<DataGrid<IDictionary<string, object?>>>(p => p
+            .Add(x => x.Items, rows)
+            .Add(x => x.ExportCsvHref, "/export.csv")
+            .Add(x => x.Columns, (RenderFragment)(b =>
+            {
+                foreach (var (name, type) in shape)
+                {
+                    Column<IDictionary<string, object?>>(b, name, type);
+                }
+            })));
+
+        var href = cut.Find(".ib-btn[download]").GetAttribute("href")!;
+        var fields = shape.Select(c => DataFields.ByName<IDictionary<string, object?>>(c.Name, c.Type)).ToList();
+        using var stream = new MemoryStream();
+        await DataExport.WriteCsvAsync(stream, rows.AsQueryable(), href[href.IndexOf('?')..], fields);
+        var lines = System.Text.Encoding.UTF8.GetString(stream.ToArray()[3..]).Split("\r\n",StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(["Name,Margin,Margin %", "Washers,500,12", "Bolts,900,30.5", "Nuts,200,45"], lines);
+    }
+
     // A "show quarter" picker changes the column's Field: the rows and the total come from the new one.
     [Fact]
     public void Changing_the_field_reloads_the_rows_and_totals()

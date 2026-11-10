@@ -24,7 +24,7 @@ internal interface IDataGridToolbar
 
     bool HasExport { get; }
 
-    /// <summary>Whether export opens a menu of both formats, with a chevron beside its icon: a little wider.</summary>
+    /// <summary>Whether export opens a menu of its formats, with a chevron beside its icon: a little wider.</summary>
     bool ExportHasMenu { get; }
 
     bool ToolbarLabels { get; }
@@ -217,9 +217,9 @@ public sealed class DataGridAdd : DataGridToolbarItem
 }
 
 /// <summary>
-/// Puts a <c>DataGrid</c>'s export, from <c>ExportExcelHref</c> and <c>ExportCsvHref</c>, among your
-/// toolbar items: a link with one of them, or with both a button with a chevron that opens a menu of
-/// links. At the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
+/// Puts a <c>DataGrid</c>'s export, from <c>ExportExcelHref</c>, <c>ExportCsvHref</c> and any
+/// <see cref="DataGridExportFormat"/>, among your toolbar items: a link with one format, or with more a
+/// button with a chevron that opens a menu of links. At the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the links download. A menu of them opens and closes, but arrow keys don't move between items.")]
 public sealed class DataGridExport : DataGridToolbarItem
@@ -253,4 +253,75 @@ public sealed class DataGridExport : DataGridToolbarItem
     private protected override double? ItemWidth => !Grid.ExportHasMenu ? ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0)
         : Text ? ButtonWidth.Estimate(ControlSize.Sm, false, true, Grid.ExportLabel, startIcon: true, endIcon: true)
         : 52;
+}
+
+/// <summary>The grid an export format joins, whatever its rows' type.</summary>
+internal interface IDataGridExportFormats
+{
+    void AddExportFormat(DataGridExportFormat format);
+
+    void RemoveExportFormat(DataGridExportFormat format);
+
+    void ExportFormatChanged();
+}
+
+/// <summary>
+/// One more format in a <c>DataGrid</c>'s export, after <c>ExportExcelHref</c> and <c>ExportCsvHref</c>:
+/// a link to an endpoint of yours, such as one that writes a PDF. Like theirs, it adds the current
+/// <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address; the endpoint applies
+/// them with <c>DataRequest&lt;TItem&gt;.Parse(query).Apply(source, fields)</c> and writes the rows.
+/// Write it among the grid's columns. With more than one format, export is a menu of them.
+/// </summary>
+/// <example><code>&lt;DataGrid TItem="Order" ExportExcelHref="/orders/export.xlsx" ...&gt;
+///     &lt;PropertyColumn Property="o =&gt; o.Number" /&gt;
+///     &lt;DataGridExportFormat Label="Export PDF"
+///                           Href="/orders/export.pdf" /&gt;
+/// &lt;/DataGrid&gt;</code></example>
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the link downloads. A menu of formats opens and closes, but arrow keys don't move between items.")]
+public sealed class DataGridExportFormat : ComponentBase, IDisposable
+{
+    private (string?, string?) _shown;
+
+    /// <summary>Its text: the menu item's, or the button's when it's the grid's only format, such as "Export PDF".</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+
+    /// <summary>The endpoint that writes the file. The grid adds the query; a <c>#fragment</c> is dropped.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = default!;
+
+    [CascadingParameter] private IDataGridExportFormats? Grid { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Grid is null)
+        {
+            throw new InvalidOperationException("A DataGridExportFormat must be inside a DataGrid, among its columns.");
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrEmpty(Label) || string.IsNullOrEmpty(Href))
+        {
+            throw new InvalidOperationException("A DataGridExportFormat needs a Label and an Href.");
+        }
+
+        if (_shown == default)
+        {
+            _shown = (Label, Href);
+            Grid!.AddExportFormat(this);
+        }
+        else if (_shown != (Label, Href))
+        {
+            _shown = (Label, Href);
+            Grid!.ExportFormatChanged();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldRender() => false;
+
+    /// <inheritdoc />
+    public void Dispose() => Grid?.RemoveExportFormat(this);
 }
