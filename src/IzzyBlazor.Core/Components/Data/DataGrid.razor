@@ -72,13 +72,15 @@
     reach the rows drawn, unless `SelectAllMode` is `All`.
 
     `ExportExcelHref`, and `ExportCsvHref` beside it if CSV is wanted too, add plain links to endpoints the
-    app maps with `DataExport`. With both, one button with a chevron opens a menu of them. They
+    app maps with `DataExport`. A `DataGridExportFormat` among the columns adds a format of your own,
+    such as PDF. With more than one, a button with a chevron opens a menu of them. They
     carry the filter, sort, search and visible columns, in every mode and with no script. The
     endpoint's fields decide what's written, and head the file. A download matches the screen when
     they have the grid's keys: a column whose key they don't have is left out, a filter on it matches
     nothing, and a sort on it is ignored. Search covers their searchable fields, which may not be the
     grid's text columns. Text doesn't carry `FilterCase`, so a grid that sets it needs the same `Case` on
-    those fields.
+    those fields. `ExportAddress` gives the same address for a button of your own, and a column with
+    `Exportable="false"` stays out of the file.
 
     `ActionColumn` holds a row's actions in a last column: EditAction, DeleteAction and your own
     RowActions, each a button, or with Overflow="RowActionOverflow.Always" in a ⋮ menu, which works
@@ -1211,7 +1213,7 @@
     [Parameter] public bool ToolbarLabels { get; set; }
 
     /// <summary>
-    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>, for a grid that offers CSV besides Excel. It adds
+    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/> and any <see cref="DataGridExportFormat"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>, for a grid that offers CSV besides Excel. It adds
     /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
     /// endpoint's fields need the grid's keys, and its <c>FilterCase</c> as their <c>Case</c>, for the
     /// file to match the screen.
@@ -1219,7 +1221,7 @@
     [Parameter] public string? ExportCsvHref { get; set; }
 
     /// <summary>
-    /// A link in the toolbar, in a menu with <see cref="ExportCsvHref"/>, to an endpoint that writes the rows as an Excel workbook with
+    /// A link in the toolbar, in a menu with <see cref="ExportCsvHref"/> and any <see cref="DataGridExportFormat"/>, to an endpoint that writes the rows as an Excel workbook with
     /// <c>DataExport</c>. It adds the current <c>filter</c>, <c>sort</c>, <c>search</c> and
     /// <c>columns</c> to the address. The endpoint's fields need the grid's keys, and its
     /// <c>FilterCase</c> as their <c>Case</c>, for the file to match the screen.
@@ -2271,7 +2273,57 @@
 
     private bool HasSearchTool => Searchable;
 
-    private bool HasExportTool => ExportCsvHref is not null || ExportExcelHref is not null;
+    private readonly List<DataGridExportFormat> _exportFormats = [];
+
+    // Excel, CSV, then the grid's own formats in the order they're written.
+    private IEnumerable<(string Label, string Href)> ExportLinks
+    {
+        get
+        {
+            if (ExportExcelHref is not null)
+            {
+                yield return (TextDefaults.ExportExcel, ExportExcelHref);
+            }
+
+            if (ExportCsvHref is not null)
+            {
+                yield return (TextDefaults.ExportCsv, ExportCsvHref);
+            }
+
+            foreach (var format in _exportFormats)
+            {
+                yield return (format.Label, format.Href);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    private protected override void AddExportFormat(DataGridExportFormat format)
+    {
+        _exportFormats.Add(format);
+        ExportFormatChanged();
+    }
+
+    /// <inheritdoc />
+    private protected override void RemoveExportFormat(DataGridExportFormat format)
+    {
+        if (_exportFormats.Remove(format))
+        {
+            ExportFormatChanged();
+        }
+    }
+
+    // One added later (behind an @if), or relabeled, shows without waiting for another render.
+    /// <inheritdoc />
+    private protected override void ExportFormatChanged()
+    {
+        if (ReadyToLoad)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private bool HasExportTool => ExportCsvHref is not null || ExportExcelHref is not null || _exportFormats.Count > 0;
 
     bool IDataGridToolbar.HasSearch => HasSearchTool;
 
@@ -2284,15 +2336,13 @@
 
     bool IDataGridToolbar.ExportHasMenu => ExportHasMenu;
 
-    private bool ExportHasMenu => ExportCsvHref is not null && ExportExcelHref is not null;
+    private bool ExportHasMenu => ExportLinks.Skip(1).Any();
 
     bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
 
     string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
 
-    string IDataGridToolbar.ExportLabel => ExportCsvHref is null ? TextDefaults.ExportExcel
-        : ExportExcelHref is null ? TextDefaults.ExportCsv
-        : TextDefaults.Export;
+    string IDataGridToolbar.ExportLabel => ExportHasMenu ? TextDefaults.Export : ExportLinks.FirstOrDefault().Label ?? TextDefaults.Export;
 
     RenderFragment IDataGridToolbar.SearchBar => __builder =>
     {
@@ -2482,35 +2532,36 @@
         }
         else if (showText)
         {
-            <Button Href="@ExportHref((ExportCsvHref ?? ExportExcelHref)!)" StartIcon="icon" Disabled="@(_loadedRequest is null)" download>@label</Button>
+            <Button Href="@ExportAddress(ExportLinks.First().Href)" StartIcon="icon" Disabled="@(_loadedRequest is null)" download>@label</Button>
         }
         else
         {
-            <IconButton Href="@ExportHref((ExportCsvHref ?? ExportExcelHref)!)" Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" download />
+            <IconButton Href="@ExportAddress(ExportLinks.First().Href)" Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" download />
         }
     };
 
     RenderFragment IDataGridToolbar.ExportMenu => __builder =>
     {
-        if (ExportExcelHref is not null)
+        foreach (var (label, href) in ExportLinks)
         {
-            <MenuItem Href="@ExportHref(ExportExcelHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportExcel</MenuItem>
-        }
-
-        if (ExportCsvHref is not null)
-        {
-            <MenuItem Href="@ExportHref(ExportCsvHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</MenuItem>
+            <MenuItem Href="@ExportAddress(href)" Disabled="@(_loadedRequest is null)" download>@label</MenuItem>
         }
     };
 
-    // Everything that matches what's on screen, not its page, in the columns on screen.
-    private string ExportHref(string href)
+    /// <summary>
+    /// <paramref name="href"/> with what the grid's export links add: the current <c>filter</c>,
+    /// <c>sort</c> (after its groups') and <c>search</c>, and the shown, exportable <c>columns</c>, for
+    /// every row that matches, not one page. For a button of your own on an interactive page; on a
+    /// static one, a <see cref="DataGridExportFormat"/> puts the link in the grid's export.
+    /// </summary>
+    /// <param name="href">Your endpoint, such as <c>/orders/export.json</c>. A <c>#fragment</c> is dropped.</param>
+    public string ExportAddress(string href)
     {
         // Rows follow their groups, though a file has none.
         var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
         // Only real keys: a title can hold a comma, and no field has one for a key.
         // A grouped column left the table, not the file.
-        var columns = "columns=" + string.Join(",", Grouping.Levels.Select(l => l.Column).Concat(Shown).Distinct().Where(c => c.Key is not null).Select(c => Uri.EscapeDataString(c.Key!)));
+        var columns = "columns=" + string.Join(",", Grouping.Levels.Select(l => l.Column).Concat(Shown).Distinct().Where(c => c.Key is not null && c.Exportable).Select(c => Uri.EscapeDataString(c.Key!)));
         // A fragment would swallow the query, and means nothing to a download.
         href = href.Split('#')[0];
         return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + (request.Length > 0 ? request + "&" : "") + columns;

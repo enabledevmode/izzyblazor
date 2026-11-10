@@ -1,7 +1,7 @@
 @page "/docs/common/data-api"
 
 @* Data from an API: a provider in the browser sending its DataRequest to your own API or an OData
-   endpoint, the filter's text form, and what the server enforces. Split from Data and filters
+   endpoint, the filter's text form, export files of your own (a PDF recipe), and what the server enforces. Split from Data and filters
    (Data.razor), which covers the request, fields, filters in code, operators, case and dates. *@
 
 <ArticlePage Section="common" Slug="data-api">
@@ -92,6 +92,26 @@
             <ListItem>OData has no cursor. Pass <Code>request.Cursor</Code> on yourself.</ListItem>
         </List>
 
+        <Heading Level="2">Export files</Heading>
+        <TextBlock>
+            A DataGrid's export links go to endpoints you map, with the grid's <Code>filter</Code>, <Code>sort</Code>,
+            <Code>search</Code> and <Code>columns</Code> in the URL. <Code>DataExport.WriteExcelAsync</Code> and
+            <Code>WriteCsvAsync</Code> write those two formats. For any other, <Code>DataExport.Read</Code> gives the columns
+            and rows they would write, and you write the file. This PDF endpoint uses
+            <Anchor Href="https://www.questpdf.com" External>QuestPDF</Anchor>; any PDF library works the same way,
+            and the grid lists it with <Code>&lt;DataGridExportFormat Label="Export PDF" Href="/orders/export.pdf" /&gt;</Code>.
+        </TextBlock>
+        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="7,8">@Pdf</Code>
+        <List Gap="2">
+            <ListItem>A PDF is laid out whole, so this one reads every row first. Cap the rows, as above, where a filter can match millions.</ListItem>
+            <ListItem>QuestPDF is free under its Community license for organizations below $1M in revenue, and paid above it.</ListItem>
+            <ListItem>
+                For rows read by <Code>DynamicColumn</Code>, build the fields with <Code>DataFields.ByName</Code>, by the same
+                names and types, so the keys and values match the grid's:
+                <Code>DataFields.ByName&lt;IDictionary&lt;string, object?&gt;&gt;("Margin %", typeof(double))</Code>.
+            </ListItem>
+        </List>
+
         <Heading Level="2">Limits and security</Heading>
         <TextBlock>
             A request that comes from the browser can ask for anything, so the server decides what it can reach. These rules
@@ -165,6 +185,47 @@
             public string Customer { get; init; } = "";
             public decimal Total { get; init; }
         }
+        """;
+
+    private const string Pdf = """
+        using QuestPDF.Fluent;
+        using QuestPDF.Infrastructure;
+
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        app.MapGet("/orders/export.pdf", async (HttpContext context, ShopDb db) =>
+        {
+            var export = DataExport.Read(db.Orders.AsNoTracking(), context.Request.QueryString.Value,
+                DataFields.Of<OrderRow>(), context.RequestAborted);
+            var rows = new List<object?[]>();
+            await foreach (var row in export.Rows)
+            {
+                if (rows.Count == 5_000)
+                {
+                    return Results.Problem("Narrow the filter: a PDF holds at most 5,000 orders.", statusCode: 413);
+                }
+
+                rows.Add(row);
+            }
+
+            var pdf = Document.Create(document => document.Page(page =>
+            {
+                page.Margin(36);
+                page.Content().Table(table =>
+                {
+                    table.ColumnsDefinition(columns => export.Columns.ToList().ForEach(_ => columns.RelativeColumn()));
+                    table.Header(header => export.Columns.ToList().ForEach(c => header.Cell().Text(c.Caption).Bold()));
+                    foreach (var row in rows)
+                    {
+                        for (var i = 0; i < row.Length; i++)
+                        {
+                            table.Cell().PaddingVertical(2).Text(export.Columns[i].Text(row[i]));
+                        }
+                    }
+                });
+            })).GeneratePdf();
+            return Results.File(pdf, "application/pdf", "orders.pdf");
+        });
         """;
 
     private const string OData = """

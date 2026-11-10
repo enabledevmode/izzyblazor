@@ -499,6 +499,28 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("/o.csv?columns=qty", cut.Find(".ib-btn[download]").GetAttribute("href"));
     }
 
+    [Fact]
+    public void A_format_of_your_own_joins_the_export_menu_and_an_unexportable_column_stays_out()
+    {
+        var columns = new RenderFragment(b =>
+        {
+            b.AddContent(0, Column(r => r.Name));
+            b.OpenComponent<PropertyColumn<Row, int>>(1);
+            b.AddComponentParameter(2, nameof(PropertyColumn<Row, int>.Property), (System.Linq.Expressions.Expression<Func<Row, int>>)(r => r.Qty));
+            b.AddComponentParameter(3, nameof(PropertyColumn<Row, int>.Exportable), false);
+            b.CloseComponent();
+            b.OpenComponent<DataGridExportFormat>(4);
+            b.AddComponentParameter(5, nameof(DataGridExportFormat.Label), "Export PDF");
+            b.AddComponentParameter(6, nameof(DataGridExportFormat.Href), "/o.pdf");
+            b.CloseComponent();
+        });
+        var cut = Grid(columns, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
+        var links = cut.FindAll(".ib-menu-item[download]");
+        Assert.Equal(["Export CSV", "Export PDF"], links.Take(2).Select(l => l.TextContent.Trim()));
+        Assert.Equal("/o.pdf?columns=name", links[1].GetAttribute("href"));
+        Assert.Equal("/o.pdf?columns=name", cut.Instance.ExportAddress("/o.pdf"));
+    }
+
     private static RenderFragment Tools(params Action<Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder>[] items) => b =>
     {
         foreach (var item in items)

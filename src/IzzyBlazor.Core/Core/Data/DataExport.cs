@@ -10,6 +10,26 @@ namespace IzzyBlazor;
 /// <param name="Truncated">Whether it stopped early, at what the format can hold, with a note in the file's last row. An Excel sheet holds 1,048,576 rows.</param>
 public readonly record struct DataExportResult(long Rows, bool Truncated);
 
+/// <summary>A column of an export, from <see cref="DataExport.Read"/>.</summary>
+/// <param name="Caption">Its heading: the field's caption, else its key.</param>
+/// <param name="Format">The field's .NET format string, such as <c>C</c>, if any.</param>
+/// <param name="Type">The type of its values; they can be null.</param>
+public sealed record DataExportColumn(string Caption, string? Format, Type Type)
+{
+    /// <summary>A value as text, as CSV writes it before quoting: with <see cref="Format"/>, in the current culture, empty for null.</summary>
+    public string Text(object? value) => value switch
+    {
+        null => "",
+        IFormattable formattable => formattable.ToString(Format, CultureInfo.CurrentCulture),
+        _ => value.ToString() ?? "",
+    };
+}
+
+/// <summary>The columns and rows of an export, from <see cref="DataExport.Read"/>.</summary>
+/// <param name="Columns">The columns, in order.</param>
+/// <param name="Rows">The rows, read as they're enumerated, once: each holds a value per column, in order.</param>
+public sealed record DataExportTable(IReadOnlyList<DataExportColumn> Columns, IAsyncEnumerable<object?[]> Rows);
+
 /// <summary>
 /// Writes a query's rows as Excel or CSV to a stream, row by row, so memory stays flat however many
 /// there are. It runs on an endpoint the app maps, which a <c>DataGrid</c>'s export links go to with
@@ -98,6 +118,24 @@ public static class DataExport
             sheetName,
             truncatedNote,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// The columns and rows an export writes, for a format of your own such as PDF: the columns the
+    /// address's <c>columns</c> asks for, of <paramref name="fields"/>, and every row that matches its
+    /// <c>filter</c>, <c>search</c> and <c>sort</c>, not one page, read one at a time as CSV and Excel
+    /// read them. Write the file from them on an endpoint a <c>DataGridExportFormat</c> links to.
+    /// </summary>
+    /// <param name="source">The rows, before filtering. An <c>IQueryable</c> is run by the database.</param>
+    /// <param name="query">The address's query string: <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> (keys, in order; all the fields if left out, or if it names none of them).</param>
+    /// <param name="fields">What can be written, filtered, sorted and searched.</param>
+    /// <param name="cancellationToken">Stops reading, such as when the download is abandoned.</param>
+    public static DataExportTable Read<TItem>(IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, CancellationToken cancellationToken = default)
+    {
+        var columns = ColumnsOf(query, fields);
+        return new DataExportTable(
+            columns.Select(c => new DataExportColumn(c.Caption, c.Format, c.Value.ReturnType)).ToList(),
+            Rows(source, query, fields, columns, cancellationToken));
     }
 
     private sealed record Column<TItem>(string Caption, string? Format, LambdaExpression Value);

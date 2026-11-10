@@ -120,6 +120,13 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public bool Pickable { get; set; } = true;
 
     /// <summary>
+    /// In a <c>DataGrid</c> with export, whether the file has this column when it's shown, such as false
+    /// for a thumbnail or a notes column. Defaults to true. It leaves the column out of the export
+    /// link's <c>columns</c>; the endpoint's fields decide what can be written.
+    /// </summary>
+    [Parameter] public bool Exportable { get; set; } = true;
+
+    /// <summary>
     /// Whether the column shows at first in a <c>DataGrid</c>. Hidden, it's still in the column picker,
     /// where people can show it, unless <see cref="Pickable"/> is false, and can still be filtered by and
     /// edited. This isn't access control: its values are sent once it's shown, so leave out a column
