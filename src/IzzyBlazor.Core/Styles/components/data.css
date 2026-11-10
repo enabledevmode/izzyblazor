@@ -1318,8 +1318,10 @@
     user-select: none;
   }
 
-  .ib-datagrid .ib-table-grid[data-ib-dragging] > * > * > :is(th, td) {
-    transition: transform 0.12s;
+  @media (prefers-reduced-motion: no-preference) {
+    .ib-datagrid .ib-table-grid[data-ib-dragging] > * > * > :is(th, td) {
+      transition: transform 0.12s;
+    }
   }
 
   .ib-datagrid .ib-table-grid > * > * > :is(th, td)[data-ib-lifted] {

@@ -51,7 +51,14 @@ class GridColumns extends IzzyElement {
       if (!chip || event.button || event.pointerType === "touch" || (event.target as Element).closest("a, button")) return;
       // Or it selects the chips' text, and a drag of that cancels this one.
       event.preventDefault();
-      loadGroup().then((m) => !signal.aborted && m.dragChip(this.#chipHost(), event, chip, signal));
+      // Let go before the part arrives: a click, not a drag.
+      let up = false;
+      const release = () => (up = true);
+      document.addEventListener("pointerup", release, { once: true, capture: true });
+      loadGroup().then((m) => {
+        document.removeEventListener("pointerup", release, { capture: true });
+        if (!signal.aborted && !up) m.dragChip(this.#chipHost(), event, chip, signal);
+      });
     }, { signal });
     // Or by Alt+Left and Alt+Right on its remove control, the one part of it that takes focus.
     host.addEventListener("keydown", (event) => {
@@ -60,7 +67,7 @@ class GridColumns extends IzzyElement {
       if (!chip || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
       // Alt+Left is the browser's Back, even at the end of the row.
       event.preventDefault();
-      if (!event.repeat) loadGroup().then((m) => m.moveChip(this.#chipHost(), chip, event.key === "ArrowRight"));
+      if (!event.repeat) loadGroup().then((m) => !signal.aborted && m.moveChip(this.#chipHost(), chip, event.key === "ArrowRight"));
     }, { signal });
     host.addEventListener("focusin", (event) => {
       const control = (event.target as Element).closest?.(".ib-grid-group-chip a, .ib-grid-group-chip button");
