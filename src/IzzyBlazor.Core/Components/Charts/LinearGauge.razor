@@ -127,9 +127,9 @@
         var widest = ticks.Count == 0 ? 0 : ticks.Max(t => TextWidths.AtSize(Text(t), 12)) / 12;
         <div class="ib-lgauge-scale" style="--ib-lgauge-tw:@Num(Math.Round(widest, 3))em" role="meter" aria-labelledby="@_labelId"
              aria-valuenow="@Num(Math.Clamp(Shown, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@Words(current)">
-            @* The rail: the pointers' triangles, the bar and the track, with the target across the bar and track. *@
-            <div class="ib-lgauge-rail" aria-hidden="true">
-                <div class="ib-lgauge-pins">
+            @if (marker || pointers.Count > 0)
+            {
+                <div class="ib-lgauge-pins" aria-hidden="true">
                     @for (var i = 0; i < pointers.Count; i++)
                     {
                         <span class="ib-lgauge-pin" style="--p:@Pct(Pos(PointerValue(pointers[i])));background:@PointerColor(pointers[i], i)"></span>
@@ -139,6 +139,9 @@
                         <span class="ib-lgauge-pin ib-lgauge-main" style="@($"--p:{Pct(Pos(Shown))}" + (color is null ? "" : $";background:{color}"))"></span>
                     }
                 </div>
+            }
+            @* The rail: the bar and the track, with the target across both. *@
+            <div class="ib-lgauge-rail" aria-hidden="true">
                 @if (!marker)
                 {
                     var share = Share(Shown);
@@ -177,7 +180,10 @@
                     @for (var k = 0; k < ticks.Count; k++)
                     {
                         @* Narrow, every other number gives way (gauge.css). *@
-                        <span class="@(k % 2 == 1 ? "ib-lgauge-tick ib-lgauge-odd" : "ib-lgauge-tick")" style="--p:@Pct(Pos(ticks[k]))"><span>@Text(ticks[k])</span></span>
+                        var at = Pos(ticks[k]);
+                        // A number at either end sits inside the scale, so the track keeps its container's edges.
+                        var cls = "ib-lgauge-tick" + (k % 2 == 1 ? " ib-lgauge-odd" : "") + (at <= 0 ? " ib-lgauge-start" : at >= 100 ? " ib-lgauge-end" : "");
+                        <span class="@cls" style="--p:@Pct(at)"><span>@Text(ticks[k])</span></span>
                     }
                 </div>
             }
