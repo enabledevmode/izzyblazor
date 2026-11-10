@@ -18,7 +18,7 @@ SignalR circuit or WebAssembly runtime for static pages.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png">
-  <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
+  <img alt="A store's dashboard built with IzzyBlazor: app shell with sidebar navigation, a stock alert, stat cards with sparklines, a stacked bar chart of revenue by channel, and top products with ratings." src="docs/images/showcase-light.png">
 </picture>
 
 > **Status:** preview (`0.1.0-alpha.22`). APIs may change during preview.
