@@ -546,17 +546,38 @@
         if (IsLive && (!_paused || _lastItems is null)) _lastItems = [.. items];
         // Drill-down: the level in the address, its groups as the arguments, each series added up.
         var drill = _context.Levels.Count > 0 ? Drilled(items) : null;
-        if (drill is null && _argument is null)
+        var histogram = _context.Series.Any(s => s.IsHistogram);
+        if (drill is null && _argument is null && !histogram)
         {
             throw new InvalidOperationException("Chart needs an Argument, what each item is plotted at, such as m => m.Month (or ChartDrillLevels).");
         }
 
-        var arguments = drill?.Arguments ?? items.Select(_argument!).ToList();
+        ReadAxes();
+        ChartHistogram? bins = null;
+        string? binsName = null;
+        IEnumerable<ChartSeriesData> raw;
+        IReadOnlyList<object?> arguments;
+        if (histogram)
+        {
+            // A histogram's arguments are its bins, and each series' values its counts in them.
+            CheckHistogram(drill);
+            var read = _context.Series.SelectMany(s => s.Read(items).Select(d => s.Named || s.Split ? d : d with { Name = TextDefaults.ChartCount })).ToList();
+            bins = Binned(read);
+            binsName = _context.Series[0].ValueName;
+            arguments = [.. bins.BinTexts];
+            raw = read.Select(d => d with { Values = Counts(d.Values, bins) });
+            // No item stands for a bin: the tooltips have the counts only.
+            items = new TItem[bins.Count];
+        }
+        else
+        {
+            arguments = drill?.Arguments ?? items.Select(_argument!).ToList();
+            raw = drill is null ? _context.Series.SelectMany(s => s.Read(items)) : _context.Series.SelectMany(s => s.Read(drill.Rows)).Select(d => Totals(d, drill));
+            if (drill is not null) items = drill.Firsts;
+        }
+
         // A view that reached the latest item follows new data, keeping as many items.
         if (_follow is { } keep && arguments.Count > 0) _view = new ChartView(arguments[Math.Max(0, arguments.Count - keep)], null);
-        ReadAxes();
-        var raw = drill is null ? _context.Series.SelectMany(s => s.Read(items)) : _context.Series.SelectMany(s => s.Read(drill.Rows)).Select(d => Totals(d, drill));
-        if (drill is not null) items = drill.Firsts;
         var series = ChartTrends.Add(raw.Select(OnAxis).ToList(), arguments, TextDefaults, bands: drill is not null);
         // Off by default when every series writes its values beside them; labels of other text keep it.
         // On while drilling, whatever the labels: the keys drill from the item they're on.
@@ -619,7 +640,7 @@
 
         // A chart synced by view follows the others' zoom; it takes gestures only with its own Zoom.
         var gestures = (_argumentAxis?.Zoom == true || selector is not null) && waterfall is null && arguments.Count > 1;
-        var zoom = gestures || (Sync is not null && SyncView && waterfall is null && arguments.Count > 1);
+        var zoom = gestures || (Sync is not null && SyncView && waterfall is null && bins is null && arguments.Count > 1);
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
@@ -650,6 +671,7 @@
             SecondaryMin = SecondaryMin,
             SecondaryMax = SecondaryMax,
             Text = TextDefaults,
+            Histogram = bins,
         });
         (_drawnArguments, _drawnKind) = (arguments, model.Kind);
         _zoomOn = model.ZoomPositions is not null && gestures;
@@ -814,7 +836,7 @@
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
-                        <g class="@SeriesClass(s, "ib-chart-bars")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                        <g class="@SeriesClass(s, !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars)
                             {
                                 <rect class="@BarClass(bar)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
@@ -1040,7 +1062,7 @@
                     <table class="ib-chart-table" aria-labelledby="@NameId">
                         <thead>
                             <tr>
-                                <th scope="col">@(drill?.LevelName ?? ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
+                                <th scope="col">@(drill?.LevelName ?? ArgumentTitle ?? (bins is null ? _argumentName : binsName) ?? TextDefaults.ChartItem)</th>
                                 @foreach (var s in model.Series)
                                 {
                                     <th scope="col">@s.Data.Name</th>
@@ -1075,6 +1097,58 @@
                 </div>
             </details>
         }
+    }
+
+    // A histogram's chart holds histograms only, upright, on bins it doesn't zoom across.
+    private void CheckHistogram(ChartDrillState<TItem>? drill)
+    {
+        string? problem = null;
+        if (_context.Series.FirstOrDefault(s => !s.IsHistogram) is { } other)
+            problem = $"A histogram's chart holds only ChartHistogramSeries: {other.GetType().Name.Split('`')[0]} plots items at an Argument, which a histogram's bins aren't. Draw it in a chart of its own.";
+        else if (Argument is not null)
+            problem = "A histogram's bins are its argument: leave the Chart's Argument out.";
+        else if (drill is not null)
+            problem = "A histogram doesn't drill down: leave out the ChartDrillLevels.";
+        else if (Orientation == Orientation.Horizontal)
+            problem = "A histogram's bins run along the bottom: leave the Chart's Orientation vertical.";
+        else if (_argumentAxis?.Zoom == true || _context.Selector is not null || View is not null)
+            problem = "A histogram doesn't zoom: give its series narrower Bins to see the values closer.";
+        else if (TooltipTemplate is not null)
+            problem = "A histogram's tooltip has no item to show, only each bin's counts: leave out the ChartTooltip.";
+        else if (_argumentAxis?.Logarithmic == true)
+            problem = "A histogram's bins are equal widths on a straight scale: leave the ChartArgumentAxis's Logarithmic off.";
+        if (problem is not null) throw new InvalidOperationException(problem);
+    }
+
+    // The bins every histogram series shares, from all their values.
+    private ChartHistogram Binned(List<ChartSeriesData> read)
+    {
+        var first = read[0].Bins!;
+        if (read.Any(d => d.Bins != first))
+        {
+            throw new InvalidOperationException("A chart's histogram series share one set of bins: give them all the same Bins.");
+        }
+
+        var date = read.FirstOrDefault(d => d.Date is not null)?.Date;
+        if (date is not null && read.Any(d => d.Date is null && d.Values.Any(v => v is not null)))
+        {
+            throw new InvalidOperationException("A chart's histogram series count all numbers or all dates, not both.");
+        }
+
+        return ChartHistogram.Build(read.SelectMany(d => d.Values).Where(v => v is not null).Select(v => v!.Value), first, date, ArgumentFormatter, ArgumentFormat, CultureInfo.CurrentCulture);
+    }
+
+    // How many of a series' values fall in each bin; an empty bin counts zero.
+    private static double?[] Counts(double?[] values, ChartHistogram bins)
+    {
+        var counts = new double?[bins.Count];
+        for (var i = 0; i < counts.Length; i++) counts[i] = 0;
+        foreach (var v in values)
+        {
+            if (v is { } x && double.IsFinite(x)) counts[bins.IndexOf(x)]++;
+        }
+
+        return counts;
     }
 
     // Where the legend goes: Auto is above, under the title.
@@ -1311,7 +1385,7 @@
 
     private static string BottomClass(ChartModel model, bool horizontal) =>
         "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "")
-        + (!horizontal && model.Kind == ArgumentKind.Category ? model.Wrap ? " ib-chart-bands ib-chart-wrap" : " ib-chart-bands" : "");
+        + (!horizontal && model.Kind == ArgumentKind.Category && !model.Edges ? model.Wrap ? " ib-chart-bands ib-chart-wrap" : " ib-chart-bands" : "");
 
     private static string SeriesClass(SeriesShape s, string? kind) =>
         $"{kind} ib-chart-s{s.Slot}".TrimStart();
@@ -1866,6 +1940,8 @@
                 if (horizontal && model.Kind == ArgumentKind.Category) w.WriteBoolean("zx", true);
             }
             // The tick count up the side, as the server worked it out from Height.
+            // A histogram's bars fill their bins, square, and its counts tick by whole numbers.
+            if (model.Edges) w.WriteBoolean("hb", true);
             w.WriteNumber("vc", Math.Max(2, (int)Math.Round(Math.Max(80, HeightInPixels(Height)) / 56)));
             // Bubbles pad the value axis by their largest radius (ChartLayout.PadEnds).
             if (model.Series.Any(s => s.Data.Type == ChartType.Bubble))

@@ -69,6 +69,12 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool IsRange => Lows is not null;
 
+    /// <summary>A histogram series' bins (null for other series): its Values are the items' own, until the chart counts them.</summary>
+    public ChartBins? Bins { get; init; }
+
+    /// <summary>A histogram's: one of its dates, for their type (null for numbers).</summary>
+    public object? Date { get; init; }
+
     public bool IsPoint => Type is ChartType.Scatter or ChartType.Bubble;
 }
 
@@ -116,6 +122,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 
     /// <summary>The reader can zoom (ChartArgumentAxis's Zoom): the model carries what the script needs.</summary>
     public bool Zoom { get; init; }
+
+    /// <summary>A histogram's bins, which are the arguments: its bars touch, and the labels mark their edges.</summary>
+    public ChartHistogram? Histogram { get; init; }
 }
 
 /// <summary>
@@ -223,6 +232,9 @@ internal sealed class ChartModel
 {
     public required bool Horizontal { get; init; }
     public required ArgumentKind Kind { get; init; }
+
+    /// <summary>A histogram's: the argument labels are at its bins' edges, not in bands.</summary>
+    public bool Edges { get; init; }
     public List<AxisLabel> ArgumentLabels { get; } = [];
     public List<AxisLabel> ValueLabels { get; } = [];
     public List<GridLine> Grid { get; } = [];
@@ -365,6 +377,7 @@ internal static class ChartLayout
         {
             Horizontal = input.Horizontal,
             Kind = kind,
+            Edges = input.Histogram is not null,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
             SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString(s.SizeFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
@@ -457,6 +470,9 @@ internal static class ChartLayout
         var argumentRoomPx = EstimateValueColumn(input, model, kind);
         double dmin, dmax;
         var step = log ? null : input.ValueStep;
+
+        // A histogram's counts are whole: fewer than a tick apiece, its ticks go up by one.
+        if (step is null && !log && !full && input.Histogram is not null && max - min < Math.Max(2, Math.Round(plotHeight / 56))) step = 1;
         var stepDomain = step is { } st ? StepDomain(min, max, st, input) : null;
         if (stepDomain is null) step = null;
         if (log || step is not null)
@@ -520,7 +536,11 @@ internal static class ChartLayout
             // Zoomed, the bands in view fill the plot; the rest lie past its ends.
             var (first, bands) = (view?.Lo ?? 0, Math.Max(1, model.BandCount));
             positions = Enumerable.Range(0, n).Select(i => (i + 0.5 - first) / bands).ToArray();
-            if (input.Horizontal)
+            if (input.Histogram is { } bins)
+            {
+                EdgeLabels(model, bins, argumentRoomPx);
+            }
+            else if (input.Horizontal)
             {
                 // Down the side: one line each, thinned by the plot's height only.
                 var stride = 1;
@@ -638,13 +658,13 @@ internal static class ChartLayout
         {
             foreach (var label in model.ArgumentLabels)
             {
-                var pos = kind == ArgumentKind.Category ? label.Pos + (reverse ? 0.5 : -0.5) / Math.Max(1, model.BandCount) : label.Pos;
+                var pos = kind == ArgumentKind.Category && !model.Edges ? label.Pos + (reverse ? 0.5 : -0.5) / Math.Max(1, model.BandCount) : label.Pos;
                 if (pos > 1e-9 && pos < 1 - 1e-9) model.Grid.Add(new GridLine(pos, label.From, false, Argument: true));
             }
         }
 
         // A scale's last label is centered on the plot's end: leave room for its far half.
-        var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category ? null : model.ArgumentLabels;
+        var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category && !model.Edges ? null : model.ArgumentLabels;
         if (bottom is { Count: > 0 } && bottom.MaxBy(l => l.Pos) is { Pos: > 0.9 } last)
         {
             var half = Math.Max(Width(last.Text), last.Context is { } c ? Width(c) : 0) / 2;
@@ -707,14 +727,16 @@ internal static class ChartLayout
             if (data.Type == ChartType.Bar)
             {
                 // Chart.js's proportions: the group takes 80% of its band, each bar 90% of its share.
+                // A histogram's bars fill their bins, touching; its series overlap, or stack.
                 var j = bars.IndexOf(data);
-                var slot = stacked ? band * 0.8 : band * 0.8 / bars.Count;
-                var width = slot * 0.9;
+                var edges = input.Histogram is not null;
+                var slot = edges ? band : stacked ? band * 0.8 : band * 0.8 / bars.Count;
+                var width = edges ? band : slot * 0.9;
                 var steps = new List<(double A0, double A1, double V)>();
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
-                    var a0 = (i - firstBand) * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
+                    var a0 = edges ? (i - firstBand) * band : (i - firstBand) * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
 
                     // Zoomed, a bar wholly out of view isn't drawn; one across an end is cut there.
                     if (a0 + width <= 0 || a0 >= 1) continue;
@@ -734,7 +756,7 @@ internal static class ChartLayout
                     rect = rect with { Index = i, Dir = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
                     var outermost = !stacked || !bars.Skip(j + 1).Any(other =>
                         other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
-                    if (outermost && hi > lo && !data.IsWaterfall && !data.IsRange)
+                    if (outermost && hi > lo && !data.IsWaterfall && !data.IsRange && !edges)
                     {
                         rect = rect with { End = rect.Dir };
                     }
@@ -845,7 +867,9 @@ internal static class ChartLayout
         }
 
         model.EndLabelsPx = Math.Ceiling(EndsWidth(input));
-        PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale, scale2, view);
+        // On a histogram, marks at an argument are on its values' scale, from the first edge to the last.
+        if (input.Histogram is { Count: > 0 } hist) PlaceMarks(input, model, marks, hist.Kind, positions, hist.Edges[0], hist.Edges[^1], Scale, scale2, view);
+        else PlaceMarks(input, model, marks, kind, positions, argMin, argMax, Scale, scale2, view);
         PlaceLabels(input, model, argumentRoomPx, plotHeight);
         if (input.Zoom) ZoomData(input, model, kind, argumentRoomPx);
         return model;
@@ -893,7 +917,7 @@ internal static class ChartLayout
         double? At(object? a) => Raw(a) is not { } p ? null : input.Zoom ? Flip(p) : view is null ? Flip(Math.Clamp(p, 0, 1)) : InView(p) ? Flip(Math.Clamp(p, 0, 1)) : null;
 
         // Its place on the whole axis, for the script's zoom.
-        var (zlo, zhi) = kind == ArgumentKind.Category ? (0.0, n) : FullRange(input, kind);
+        var (zlo, zhi) = kind == ArgumentKind.Category || !input.Zoom ? (0.0, n) : FullRange(input, kind);
         double? Share(object? a, double edge = 0.5) => !input.Zoom || zhi <= zlo ? null
             : kind == ArgumentKind.Category ? IndexOf(a) is var i and >= 0 ? (i + edge) / n : null
             : Coord(input, ToDouble(a, kind)) is { } x ? (x - zlo) / (zhi - zlo) : null;
@@ -1796,6 +1820,26 @@ internal static class ChartLayout
                 var text = model.ArgumentTexts[i];
                 model.ArgumentLabels.Add(new AxisLabel(positions[i], text, From: from, Title: text));
             }
+        }
+    }
+
+    // A histogram's edges: each labeled, every 2nd, 10th, 20th… (counted from zero) where they crowd.
+    private static void EdgeLabels(ChartModel model, ChartHistogram bins, double columnPx)
+    {
+        var n = bins.Count;
+        if (n == 0) return;
+        var ladder = ChartScale.Ladder(1, Math.Max(1, n));
+        var ticks = bins.Edges.Select((e, k) =>
+        {
+            var at = (long)Math.Round(e / bins.Step);
+            var level = 0;
+            while (level < ladder.Count - 1 && at % ladder[level + 1] == 0) level++;
+            return (Pos: (double)k / n, Level: level);
+        }).ToList();
+        var froms = FitLevels(ticks, Widths.Length, k => PlotWidth(k, columnPx), bins.EdgeTexts.Max(Width) + LabelGapPx);
+        for (var k = 0; k <= n; k++)
+        {
+            if (froms[k] >= 0) model.ArgumentLabels.Add(new AxisLabel(ticks[k].Pos, bins.EdgeTexts[k], From: froms[k]));
         }
     }
 

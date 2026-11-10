@@ -582,6 +582,30 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_histogram_counts_its_values_in_round_bins_whose_bars_touch()
+    {
+        // Ten orders' days to delivery: Sturges' rule gives 5 bins, 2 days wide from 0.
+        Sale[] orders = [.. new[] { 1, 2, 2, 3, 3, 3, 4, 4, 5, 10 }.Select(d => new Sale(new DateOnly(2026, 3, 1), d))];
+        var cut = Render<Chart<Sale>>(p => p
+            .Add(c => c.Items, orders)
+            .Add(c => c.Title, "Delivery time")
+            .AddChildContent<ChartHistogramSeries<Sale>>(s => s.Add(x => x.Value, o => o.Orders)));
+
+        // Each bin and its count; an empty bin is zero, and the last takes in the largest value.
+        var rows = cut.FindAll(".ib-chart-table tbody tr");
+        Assert.Equal(["0 – 2", "2 – 4", "4 – 6", "6 – 8", "8 – 10"], rows.Select(r => r.QuerySelector("th")!.TextContent.Trim()));
+        Assert.Equal(["1", "5", "3", "0", "1"], rows.Select(r => r.QuerySelector("td")!.TextContent.Trim()));
+        Assert.Equal(["Orders", "Count"], cut.FindAll(".ib-chart-table thead th").Select(h => h.TextContent.Trim()));
+
+        // The axis marks the edges, not the bins' middles; the bars fill their bins, square.
+        Assert.Equal(["0", "2", "4", "6", "8", "10"], cut.FindAll(".ib-chart-bottom .ib-chart-ticks span").Select(s => s.TextContent.Trim()));
+        var bars = cut.FindAll(".ib-chart-hist rect");
+        Assert.Equal("20%", bars[1].GetAttribute("x"));
+        Assert.Equal("20%", bars[0].GetAttribute("width"));
+        Assert.All(bars, b => Assert.Null(b.GetAttribute("class")));
+    }
+
+    [Fact]
     public void Refresh_on_a_static_page_needs_an_id_and_gets_a_pause_button()
     {
         Sale[] days = [new(new DateOnly(2026, 1, 1), 5), new(new DateOnly(2026, 1, 2), 7)];

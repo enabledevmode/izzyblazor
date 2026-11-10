@@ -1,0 +1,24 @@
+@* The same page's load times on phones and on desktops: one set of bins, each device's bars
+   see-through so the two spreads show where they overlap. *@
+<Chart Items="_visits" Title="Product page load time by device, March 9">
+    <ChartArgumentAxis Title="Largest Contentful Paint (seconds)" />
+    <ChartValueAxis Title="Visits" />
+    <ChartHistogramSeries Value="v => v.Seconds" SeriesBy="v => v.Device" Bins="ChartBins.Width(0.5)" Opacity="0.55" />
+</Chart>
+
+@code {
+    private record PageVisit(string Device, double Seconds);
+
+    // Sample data: desktops load in about 1.3 seconds, phones in about 2.2, both skewed.
+    private readonly PageVisit[] _visits = [.. Visits("Desktop", 1.3, 320, seed: 4), .. Visits("Mobile", 2.2, 280, seed: 5)];
+
+    private static IEnumerable<PageVisit> Visits(string device, double median, int count, int seed)
+    {
+        var random = new Random(seed);
+        return Enumerable.Range(0, count).Select(_ =>
+        {
+            var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+            return new PageVisit(device, Math.Round(median * Math.Exp(0.4 * normal), 2));
+        }).ToList();
+    }
+}
