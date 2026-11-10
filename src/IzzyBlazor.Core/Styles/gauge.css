@@ -1,0 +1,216 @@
+/*
+ * LinearGauge's styles, and the readouts of a gauge's GaugePointers (Gauge links this sheet only
+ * when it has pointers). Built to wwwroot/gauge.css.
+ *
+ * Across: the label and value above, then the rail (the pointers' triangles, the bar, the track
+ * with the bands), then the ticks. Standing up (.ib-lgauge-v): the ticks at the left, then the
+ * track, the bar and the triangles; low at the bottom. Marks are placed by --p (where they start,
+ * in percent of the scale, from the left or the bottom) and --l (how long).
+ */
+
+/* The chart palette, which a pointer's color defaults to (as chart.css declares it). */
+:where(:root) {
+  --ib-chart-1: light-dark(#2a78d6, #5fa0f5);
+  --ib-chart-2: light-dark(#008300, #32bd2d);
+  --ib-chart-3: light-dark(#e87ba4, #f77cab);
+  --ib-chart-4: light-dark(#eda100, #f6ae37);
+  --ib-chart-5: light-dark(#1baf7a, #37c78e);
+  --ib-chart-6: light-dark(#eb6834, #f77c4e);
+  --ib-chart-7: light-dark(#6250d6, #8d88f5);
+  --ib-chart-8: light-dark(#e34948, #f66c66);
+}
+
+@layer izzy.components {
+  .ib-lgauge {
+    --ib-lgauge-pin: 0.625rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    inline-size: 100%;
+    min-width: 0;
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-lgauge-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ib-space-2);
+    min-width: 0;
+  }
+
+  .ib-lgauge-label {
+    flex: 1;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-lgauge-value {
+    margin-inline-start: auto;
+    font-size: var(--ib-text-lg);
+    font-weight: var(--ib-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .ib-lgauge-state {
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    color: color-mix(in oklab, var(--ib-gauge-state) 70%, var(--ib-color-on-surface));
+    white-space: nowrap;
+  }
+
+  /* Room at each end for half the widest number, centered on the scale's ends. */
+  .ib-lgauge-scale {
+    display: flex;
+    flex-direction: column;
+    padding-inline: calc(var(--ib-lgauge-tw) / 2);
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
+  }
+
+  .ib-lgauge-rail {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ib-lgauge-pins,
+  .ib-lgauge-bars,
+  .ib-lgauge-track { position: relative; }
+
+  .ib-lgauge-pins { block-size: var(--ib-lgauge-pin); }
+  .ib-lgauge-bars { block-size: 0.625rem; }
+  .ib-lgauge-track { block-size: 0.375rem; background: var(--ib-color-fill-strong); }
+
+  .ib-lgauge-pin,
+  .ib-lgauge-bar,
+  .ib-lgauge-band,
+  .ib-lgauge-target,
+  .ib-lgauge-tick { position: absolute; }
+
+  /* A pointer: a triangle pointing at the track. The value's, on a marker gauge, is larger. */
+  .ib-lgauge-pin {
+    inset-block: 0;
+    left: var(--p);
+    inline-size: 0.75rem;
+    translate: -50% 0;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  .ib-lgauge-main { background: var(--ib-gauge-color, var(--ib-color-primary)); }
+  .ib-lgauge-marker { --ib-lgauge-pin: 0.875rem; }
+  .ib-lgauge-marker .ib-lgauge-main { inline-size: 1rem; }
+
+  .ib-lgauge-bar {
+    inset-block: 0;
+    left: var(--p);
+    inline-size: var(--l);
+    border-radius: 2px;
+    background: var(--ib-gauge-color, var(--ib-color-primary));
+  }
+
+  .ib-lgauge-band { inset-block: 0; left: var(--p); inline-size: var(--l); }
+
+  /* The target: a tick across the bar and the track, in the text color. */
+  .ib-lgauge-target {
+    inset-block: calc(var(--ib-lgauge-pin) + 2px) -2px;
+    left: var(--p);
+    inline-size: 2px;
+    translate: -50% 0;
+    background: var(--ib-color-on-surface);
+  }
+
+  .ib-lgauge-ticks {
+    position: relative;
+    block-size: calc(0.375rem + 1lh);
+    margin-block-start: 2px;
+    color: var(--ib-color-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ib-lgauge-tick {
+    inset-block-start: 0;
+    left: var(--p);
+    block-size: 0.375rem;
+    border-left: 1px solid var(--ib-color-muted);
+  }
+
+  .ib-lgauge-minor { block-size: 0.25rem; }
+
+  .ib-lgauge-tick > span {
+    position: absolute;
+    top: 0.375rem;
+    left: 0;
+    translate: -50% 0;
+  }
+
+  .ib-lgauge:not(.ib-lgauge-v) { container-type: inline-size; }
+
+  @container (width < 20rem) {
+    .ib-lgauge-odd > span { display: none; }
+  }
+
+  /* Standing up: label and value above, centered; the ticks at the left, then the track, the bar
+     and the triangles, each a column, marks rising from the bottom. */
+  .ib-lgauge-v { align-items: center; inline-size: max-content; max-inline-size: 100%; }
+  .ib-lgauge-v .ib-lgauge-head { flex-direction: column; align-items: center; gap: var(--ib-space-1); text-align: center; }
+  .ib-lgauge-v .ib-lgauge-value { margin: 0; order: 1; }
+  .ib-lgauge-v .ib-lgauge-state { order: 2; }
+  .ib-lgauge-v .ib-lgauge-scale { flex-direction: row-reverse; padding: 0.5lh 0; }
+  .ib-lgauge-v .ib-lgauge-rail { flex-direction: row-reverse; block-size: var(--ib-lgauge-h, 12rem); }
+  .ib-lgauge-v .ib-lgauge-pins { block-size: auto; inline-size: var(--ib-lgauge-pin); }
+  .ib-lgauge-v .ib-lgauge-bars { block-size: auto; inline-size: 0.625rem; }
+  .ib-lgauge-v .ib-lgauge-track { block-size: auto; inline-size: 0.375rem; }
+  .ib-lgauge-v .ib-lgauge-pin { inset: auto 0 var(--p); inline-size: auto; block-size: 0.75rem; translate: 0 50%; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+  .ib-lgauge-v.ib-lgauge-marker .ib-lgauge-main { block-size: 1rem; }
+  :is(.ib-lgauge-v .ib-lgauge-bar, .ib-lgauge-v .ib-lgauge-band) { inset: auto 0 var(--p); inline-size: auto; block-size: var(--l); }
+  .ib-lgauge-v .ib-lgauge-target { inset: auto calc(var(--ib-lgauge-pin) + 2px) var(--p) -2px; inline-size: auto; block-size: 2px; translate: 0 50%; }
+  .ib-lgauge-v .ib-lgauge-ticks { block-size: auto; inline-size: calc(var(--ib-lgauge-tw) + 0.625rem); margin: 0 2px 0 0; }
+  .ib-lgauge-v .ib-lgauge-tick { inset: auto 0 var(--p) auto; inline-size: 0.375rem; block-size: 0; border-left: 0; border-top: 1px solid var(--ib-color-muted); }
+  .ib-lgauge-v .ib-lgauge-minor { inline-size: 0.25rem; }
+  .ib-lgauge-v .ib-lgauge-tick > span { top: 0; left: auto; right: calc(100% + 0.25rem); translate: 0 -50%; }
+
+  /* A pointer's readout under the gauge: its color, its label, its value. */
+  .ib-gauge-readouts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-1) var(--ib-space-3);
+    font-size: var(--ib-text-sm);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-gauge .ib-gauge-readouts,
+  .ib-lgauge-v .ib-gauge-readouts { justify-content: center; }
+
+  .ib-gauge-readout { display: inline-flex; align-items: center; gap: 0.375em; }
+
+  .ib-gauge-readout::before {
+    content: "";
+    inline-size: 0.625em;
+    block-size: 0.625em;
+    border-radius: 2px;
+    background: var(--ib-gauge-pointer);
+  }
+
+  .ib-lgauge .ib-gauge-readout::before { border-radius: 0; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .ib-lgauge-v .ib-gauge-readout::before { clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+
+  .ib-gauge-readout > b {
+    font-weight: var(--ib-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--ib-color-on-surface);
+  }
+
+  @media (forced-colors: active) {
+    :is(.ib-lgauge-rail, .ib-gauge-readout) { forced-color-adjust: none; }
+    .ib-lgauge-track { outline: 1px solid CanvasText; }
+    .ib-lgauge-target { background: CanvasText; }
+  }
+
+  @media print {
+    .ib-lgauge, .ib-gauge-readout { print-color-adjust: exact; }
+  }
+}

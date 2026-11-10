@@ -1,0 +1,21 @@
+@* A standby generator's tanks, in liters. Under a quarter of a tank is low and under a tenth
+   critical: the bar takes the color of the band it's in, and the band's name shows beside the value. *@
+<Stack Gap="6" Grow>
+    @foreach (var tank in _tanks)
+    {
+        <LinearGauge Label="@tank.Name" Value="tank.Liters" Max="tank.Capacity" ValueFormat="#,##0 L"
+                     Palette="ChartPalette.Of(Color.Danger, Color.Warning)">
+            <GaugeBand From="0" To="tank.Capacity * 0.1" Label="Critical" />
+            <GaugeBand From="tank.Capacity * 0.1" To="tank.Capacity * 0.25" Label="Low" />
+        </LinearGauge>
+    }
+</Stack>
+
+@code {
+    private readonly (string Name, double Liters, double Capacity)[] _tanks =
+    [
+        ("Diesel, main tank", 3_150, 5_000),
+        ("Diesel, day tank", 210, 1_000),
+        ("Coolant reserve", 34, 200),
+    ];
+}

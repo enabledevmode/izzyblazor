@@ -1,0 +1,12 @@
+@* The same station's temperature, standing up like a thermometer, with the dew point on the same
+   scale; and its relative humidity, with the comfortable range between the bands. *@
+<Row Gap="12" Wrap Justify="Justify.Center">
+    <LinearGauge Label="Temperature" Value="24" Min="-10" Max="40" Step="10" MinorStep="2" ValueFormat="0°C"
+                 Orientation="Orientation.Vertical">
+        <GaugePointer Value="12" Label="Dew point" />
+    </LinearGauge>
+    <LinearGauge Label="Humidity" Value="0.47" ValueFormat="P0" Step="0.25" Orientation="Orientation.Vertical">
+        <GaugeBand From="0" To="0.3" Label="Dry" />
+        <GaugeBand From="0.6" To="1" Label="Humid" />
+    </LinearGauge>
+</Row>

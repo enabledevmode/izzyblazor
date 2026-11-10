@@ -1,0 +1,8 @@
+@* Sea-level pressure at a weather station. A reading isn't an amount, so a marker points at it in
+   place of a bar from the scale's start. The bands are the usual reading, in the default grays. *@
+<LinearGauge Label="Pressure" Value="1004" Min="960" Max="1060" Step="20" MinorStep="5" ValueFormat="0 hPa"
+             Pointer="LinearGaugePointer.Marker">
+    <GaugeBand From="960" To="1000" Label="Low" />
+    <GaugeBand From="1000" To="1025" Label="Normal" />
+    <GaugeBand From="1025" To="1060" Label="High" />
+</LinearGauge>

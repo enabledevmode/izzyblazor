@@ -1,0 +1,218 @@
+@namespace IzzyBlazor
+@inherits GaugeBase
+@attribute [ModeSupport]
+
+@*
+    A value on a straight scale: a thin track carrying the bands' colors, ticks along it, and a
+    pointer, a bar from the start (the default) or a triangle at the value. The label and value
+    are written above it. As wide as its container across; 12rem tall standing up (Height).
+
+    <LinearGauge Label="Pressure" Value="1004" Min="960" Max="1060" ValueFormat="0 hPa"
+                 Pointer="LinearGaugePointer.Marker">
+        <GaugeBand From="960" To="1000" Label="Low" />
+        <GaugeBand From="1000" To="1025" Label="Normal" />
+        <GaugeBand From="1025" To="1060" Label="High" />
+    </LinearGauge>
+
+    Bands are grays, darkest first, unless Palette or a band's Accent colors them; a value in a
+    colored band takes its color, and its label shows beside the value. Target marks a goal with a
+    tick across the track. Each GaugePointer is another value on the same scale, a triangle in its
+    color, written under the scale: "Dew point 12°". With HideLabel and HideScale, a bar and a
+    target tick small enough for a table cell.
+
+    Accessibility:
+    - role="meter" on the scale, named by Label, which is required, with aria-valuenow, -min and
+      -max, and the formatted value as aria-valuetext with its band's label and the target, so a
+      screen reader hears "Pressure, 1004 hPa, Normal".
+    - Colors aren't read: a band's Label says what its color means, on screen and to screen readers.
+    - Each GaugePointer is a meter of its own, named by its label, after the gauge's.
+    See also: Gauge, Progress, BulletChart.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @RefreshScript
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/gauge.css"]" />
+    <CascadingValue Value="Context" IsFixed="true">
+        @ChildContent
+        @_plot
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>
+    /// How the value is drawn: <see cref="LinearGaugePointer.Bar"/> (the default), a bar beside the
+    /// track from <see cref="GaugeBase.Min"/>, or <see cref="LinearGaugePointer.Marker"/>, a triangle
+    /// at the value, for a reading that isn't an amount, such as air pressure.
+    /// </summary>
+    [Parameter] public LinearGaugePointer Pointer { get; set; }
+
+    /// <summary>
+    /// <see cref="Orientation.Horizontal"/> (the default) runs the scale across, the label above it;
+    /// <see cref="Orientation.Vertical"/> stands it up, low at the bottom, like a thermometer.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>Standing up, the scale's height. Defaults to 12rem.</summary>
+    [Parameter] public Length? Height { get; set; }
+
+    /// <summary>Runs the scale the other way: from the right across, from the top standing up.</summary>
+    [Parameter] public bool Reversed { get; set; }
+
+    /// <summary>The step between numbered ticks, such as <c>20</c>. Defaults to a round step that gives about five.</summary>
+    [Parameter] public double? Step { get; set; }
+
+    /// <summary>The step between shorter ticks with no number, such as <c>5</c>. None by default.</summary>
+    [Parameter] public double? MinorStep { get; set; }
+
+    /// <summary>Leaves out the ticks and their numbers, for a gauge small enough for a table cell.</summary>
+    [Parameter] public bool HideScale { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-lgauge");
+    private string? _class;
+    private string? _style;
+    private RenderFragment _plot = null!;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _plot = Plot(RenderPlot);
+        base.OnInitialized();
+    }
+
+    // Where a value sits, in percent from the left (across) or the bottom (standing up).
+    private double Pos(double value) => (Reversed ? 1 - Share(value) : Share(value)) * 100;
+
+    private static string Pct(double percent) => Num(Math.Round(percent, 4)) + "%";
+
+    // Values from the scale's start to its end at a step, from the first whole multiple of it.
+    private List<double> Every(double step)
+    {
+        var values = new List<double>();
+        var first = (long)Math.Ceiling(Min / step - 1e-9);
+        var last = (long)Math.Floor(Max / step + 1e-9);
+        for (var i = first; i <= last; i++)
+        {
+            values.Add(Math.Round(i * step, 10));
+        }
+
+        return values;
+    }
+
+    private List<double> Ticks()
+    {
+        if (Step is { } step) return Every(step);
+        var spec = ChartScale.TickSpec(Min, Max, 5);
+        var ticks = new List<double>();
+        for (var i = spec.I1; i <= spec.I2; i++) ticks.Add(spec.Value(i));
+        return ticks;
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var bands = Context.Bands.Items;
+        var pointers = Context.Pointers!.Items;
+        var current = BandOf(Shown, bands);
+        var color = ValueColor(current, bands);
+        var marker = Pointer == LinearGaugePointer.Marker;
+        <div class="ib-lgauge-head">
+            <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-lgauge-label")">@Label</span>
+            <span class="ib-lgauge-value" aria-hidden="true">@ShownText</span>
+            @if (current?.Label is { Length: > 0 } state)
+            {
+                <span class="ib-lgauge-state" style="--ib-gauge-state:@BandColor(current, bands)" aria-hidden="true">@state</span>
+            }
+        </div>
+        var ticks = HideScale ? [] : Ticks();
+        // The widest number, in ems of the ticks' 12px text: the scale leaves room for it.
+        var widest = ticks.Count == 0 ? 0 : ticks.Max(t => TextWidths.AtSize(Text(t), 12)) / 12;
+        <div class="ib-lgauge-scale" style="--ib-lgauge-tw:@Num(Math.Round(widest, 3))em" role="meter" aria-labelledby="@_labelId"
+             aria-valuenow="@Num(Math.Clamp(Shown, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@Words(current)">
+            @* The rail: the pointers' triangles, the bar and the track, with the target across the bar and track. *@
+            <div class="ib-lgauge-rail" aria-hidden="true">
+                <div class="ib-lgauge-pins">
+                    @for (var i = 0; i < pointers.Count; i++)
+                    {
+                        <span class="ib-lgauge-pin" style="--p:@Pct(Pos(PointerValue(pointers[i])));background:@PointerColor(pointers[i], i)"></span>
+                    }
+                    @if (marker)
+                    {
+                        <span class="ib-lgauge-pin ib-lgauge-main" style="@($"--p:{Pct(Pos(Shown))}" + (color is null ? "" : $";background:{color}"))"></span>
+                    }
+                </div>
+                @if (!marker)
+                {
+                    var share = Share(Shown);
+                    <div class="ib-lgauge-bars">
+                        @if (share > 0)
+                        {
+                            <span class="ib-lgauge-bar" style="@($"--p:{Pct(Reversed ? 100 - share * 100 : 0)};--l:{Pct(share * 100)}" + (color is null ? "" : $";background:{color}"))"></span>
+                        }
+                    </div>
+                }
+                <div class="ib-lgauge-track">
+                    @foreach (var band in bands)
+                    {
+                        var from = Share(band.From);
+                        var to = Share(band.To);
+                        if (!(to > from)) continue;
+                        <span class="ib-lgauge-band" style="--p:@Pct((Reversed ? 1 - to : from) * 100);--l:@Pct((to - from) * 100);background:@BandColor(band, bands)"></span>
+                    }
+                </div>
+                @if (Target is { } goal)
+                {
+                    <span class="ib-lgauge-target" style="--p:@Pct(Pos(goal))"></span>
+                }
+            </div>
+            @if (ticks.Count > 0 || MinorStep is not null && !HideScale)
+            {
+                <div class="ib-lgauge-ticks" aria-hidden="true">
+                    @if (MinorStep is { } minor)
+                    {
+                        foreach (var m in Every(minor))
+                        {
+                            if (ticks.Any(t => Math.Abs(t - m) < minor * 1e-6)) continue;
+                            <span class="ib-lgauge-tick ib-lgauge-minor" style="--p:@Pct(Pos(m))"></span>
+                        }
+                    }
+                    @for (var k = 0; k < ticks.Count; k++)
+                    {
+                        @* Narrow, every other number gives way (gauge.css). *@
+                        <span class="@(k % 2 == 1 ? "ib-lgauge-tick ib-lgauge-odd" : "ib-lgauge-tick")" style="--p:@Pct(Pos(ticks[k]))"><span>@Text(ticks[k])</span></span>
+                    }
+                </div>
+            }
+        </div>
+        @Readouts(pointers)
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-lgauge");
+        classes.Add("ib-lgauge-v", Orientation == Orientation.Vertical);
+        classes.Add("ib-lgauge-marker", Pointer == LinearGaugePointer.Marker);
+        if (Height is { } height)
+        {
+            styles.AddVar("lgauge-h", StyleValues.Length(height));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Step is { } step && !(step > 0 && (Max - Min) / step <= 200))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Step), step, "A LinearGauge's Step must be more than 0, and no more than 200 of them across its scale.");
+        }
+
+        if (MinorStep is { } minor && !(minor > 0 && (Max - Min) / minor <= 500))
+        {
+            throw new ArgumentOutOfRangeException(nameof(MinorStep), minor, "A LinearGauge's MinorStep must be more than 0, and no more than 500 of them across its scale.");
+        }
+
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+}
