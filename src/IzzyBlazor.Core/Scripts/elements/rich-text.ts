@@ -587,10 +587,13 @@ class RichText extends IzzyElement {
       case "table":
         void this.tablePart().then((part) => part.run(this.tableEditor(), value ?? ""));
         return;
-      case "image":
+      case "image": {
+        // A clicked image, or from the keyboard the one selected or beside the caret: edited, not added.
+        const img = this.#picked ?? this.imageAtCaret();
         this.save();
-        void this.images()?.then(([part, editor]) => part.openImage(editor, this.#picked));
+        void this.images()?.then(([part, editor]) => part.openImage(editor, img));
         return;
+      }
       case "link": {
         const dialog = this.querySelector<HTMLDialogElement>(":scope > .ib-rich-text-link");
         if (!dialog) return;
@@ -918,6 +921,23 @@ class RichText extends IzzyElement {
       loaded.attach(this.taskEditor());
       return loaded;
     });
+  }
+
+  /** The image the selection holds, or else the one just before (or after) the caret. */
+  private imageAtCaret(): HTMLImageElement | null {
+    const surface = this.surface, selection = getSelection();
+    if (!surface || !selection?.rangeCount) return null;
+    const range = selection.getRangeAt(0);
+    if (!surface.contains(range.commonAncestorContainer)) return null;
+    if (!range.collapsed) {
+      const held = [...surface.querySelectorAll("img")].filter((img) => range.intersectsNode(img));
+      return held.length === 1 ? held[0] : null;
+    }
+    const { startContainer: node, startOffset: offset } = range;
+    const [before, after] = node.nodeType === Node.TEXT_NODE
+      ? [offset === 0 ? node.previousSibling : null, offset === (node as Text).length ? node.nextSibling : null]
+      : [node.childNodes[offset - 1] ?? null, node.childNodes[offset] ?? null];
+    return [before, after].find((n): n is HTMLImageElement => n instanceof HTMLImageElement) ?? null;
   }
 
   /** Marks the image clicked (or none), which the image tool and Delete act on. */
