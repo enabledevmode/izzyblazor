@@ -24,4 +24,31 @@ public sealed class ChartDownloadTests(SiteFixture site) : IClassFixture<SiteFix
         var chartWidth = await page.Locator("figure.ib-chart").First.EvaluateAsync<double>("f => f.getBoundingClientRect().width");
         Assert.True(width >= chartWidth * 2, $"The image is {width}px wide; the chart is {chartWidth}px.");
     }
+
+    [Fact]
+    public async Task A_form_sends_the_charts_png_as_a_file()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/chart/download?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-chart')");
+
+        // The Downloads article's form, for the example chart with an id; the endpoint is the test's.
+        await page.RouteAsync("**/reports/signups.pdf", route => route.FulfillAsync(new() { ContentType = "application/pdf", Body = "%PDF-1.7" }));
+        await page.EvaluateAsync("""
+            () => {
+                const form = Object.assign(document.createElement("form"), { method: "post", action: "/reports/signups.pdf" });
+                form.innerHTML = '<input type="file" name="chart" data-ib-chart-png="week-signups" hidden><button>Download PDF</button>';
+                document.querySelector("main").append(form);
+            }
+            """);
+
+        var request = await page.RunAndWaitForRequestAsync(() => page.GetByRole(AriaRole.Button, new() { Name = "Download PDF" }).ClickAsync(), "**/reports/signups.pdf");
+
+        Assert.StartsWith("multipart/form-data", await request.HeaderValueAsync("content-type"));
+        var text = System.Text.Encoding.Latin1.GetString(request.PostDataBuffer!);
+        Assert.Contains("name=\"chart\"; filename=\"New signups, last 7 days.png\"", text);
+        Assert.Contains("Content-Type: image/png", text);
+        Assert.Contains("\u0089PNG", text);
+    }
 }
