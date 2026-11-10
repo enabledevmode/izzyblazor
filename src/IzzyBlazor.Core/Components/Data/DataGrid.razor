@@ -8,13 +8,14 @@
 @using System.Reflection
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Forms.Mapping
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply; with columns hidden to fit, a row being edited shows their values in its detail, not fields.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort (the column menu's Add to sort does); filters apply when you press Apply; with columns hidden to fit, a row being edited shows their values in its detail, not fields.")]
 
 @*
     A data grid: a real table, on the same columns, data, paging, filters and selection as Table,
     with sort, filter and page in the address, so it works on static pages. It adds what a grid
-    needs: Shift+click on a header sorts by several columns (?sort=customer,-total), and column
-    widths are set by the server, so nothing moves when the script arrives.
+    needs: Shift+click on a header, or a column menu's Add to sort, sorts by several columns
+    (?sort=customer,-total), and column widths are set by the server, so nothing moves when the
+    script arrives.
 
     A column with a `Width` keeps it (a fixed length, not a percent). Columns without one share the rest of the space, down to their
     `MinWidth` (by default 8rem, or wider to fit its header), and then the grid scrolls sideways. If every column has a `Width`, the
@@ -2001,6 +2002,11 @@
                     groups.Add(@<text>
                         @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending)
                         @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending)
+                        @if (SortsByOthers(column))
+                        {
+                            @SortItem(column, false, Lucide.ArrowDownNarrowWide, TextDefaults.ColumnSortAddAscending, add: true)
+                            @SortItem(column, true, Lucide.ArrowDownWideNarrow, TextDefaults.ColumnSortAddDescending, add: true)
+                        }
                         @if (sorted is not null)
                         {
                             @SortItem(column, null, Lucide.X, TextDefaults.ColumnSortClear)
@@ -2064,16 +2070,18 @@
     };
 
     // A column menu's sort item: a link on static pages, as the header's is. The header shows the
-    // sort now; each item sorts by this column alone, which changes a sort of several too.
-    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text) => __builder =>
+    // sort now; Sort ascending and descending sort by this column alone, which changes a sort of
+    // several too. With another column sorted, Add to sort keeps that sort and adds this column (or
+    // turns it where it stands): Shift+click's sort of several, for touch and the keyboard.
+    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text, bool add = false) => __builder =>
     {
         if (UseState)
         {
-            <MenuItem Icon="icon" OnClick="() => SortToAsync(column, descending)">@text</MenuItem>
+            <MenuItem Icon="icon" OnClick="() => SortToAsync(column, descending, add)">@text</MenuItem>
         }
         else
         {
-            <MenuItem Icon="icon" Href="@SortToHref(column, descending)">@text</MenuItem>
+            <MenuItem Icon="icon" Href="@SortToHref(column, descending, add)">@text</MenuItem>
         }
     };
 

@@ -235,4 +235,20 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             await grid.Locator(".ib-table-sort-order").First.WaitForAsync(new() { State = WaitForSelectorState.Detached });
         }
     }
+
+    // Touch has no Shift: the column menu's Add to sort keeps the sort and adds the column.
+    [Fact]
+    public async Task The_column_menu_adds_to_the_sort()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using (browser)
+        {
+            var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+            await page.GotoAsync(new Uri(site.Client.BaseAddress!, "frame/data-grid-arrange?mode=static&sort=total").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+            await page.Locator("button[title='Options for Customer']").ClickAsync();
+            await page.GetByRole(AriaRole.Menuitem, new() { Name = "Add to sort, descending" }).ClickAsync();
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('sort') === 'total,-customer'");
+            await page.Locator("th", new() { HasText = "Sort 2, descending" }).WaitForAsync();
+        }
+    }
 }
