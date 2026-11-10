@@ -19,6 +19,26 @@ public static class SiteApp
     private const string McpPath = "/mcp";
     private const string McpRateLimit = "mcp";
     private const string PagesRateLimit = "pages";
+    private const string BusyPartition = "busy";
+
+    // A page render with a query string that came through Fly's proxy: the crawlable, endless kind.
+    // Not the examples' frames (a page loads many at once), the circuit, the framework's files,
+    // MCP, static files (a dot in the last segment), or an error page re-executed for a request
+    // already let through.
+    private static bool IsQueryPage(HttpContext context)
+    {
+        var request = context.Request;
+        var path = request.Path.Value ?? "";
+        return request.QueryString.HasValue
+            && request.Headers.ContainsKey("Fly-Client-IP")
+            && context.Features.Get<IStatusCodeReExecuteFeature>() is null
+            && context.Features.Get<IExceptionHandlerFeature>() is null
+            && !request.Path.StartsWithSegments("/frame")
+            && !request.Path.StartsWithSegments("/_blazor")
+            && !request.Path.StartsWithSegments("/_framework")
+            && !request.Path.StartsWithSegments(McpPath)
+            && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
+    }
 
     // The caller's address: Fly's proxy gives it in Fly-Client-IP. IPv6 by its /64, the block one
     // client usually has, so changing addresses inside it doesn't reset the limit.
@@ -97,10 +117,9 @@ public static class SiteApp
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.OnRejected = (context, token) =>
             {
-                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait))
-                {
-                    context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-                }
+                // The fixed windows say when to come back; the global concurrency limit doesn't.
+                var busy = !context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait);
+                context.HttpContext.Response.Headers.RetryAfter = busy ? "10" : ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
 
                 // A page's 429 says so in a line of text, which also keeps the status code pages from
                 // re-executing it into the not-found page.
@@ -111,14 +130,16 @@ public static class SiteApp
 
                 var request = context.HttpContext.Request;
                 var client = ClientKey(context.HttpContext);
-                if (rejectionLog.AttemptAcquire(client).IsAcquired)
+                if (rejectionLog.AttemptAcquire(busy ? BusyPartition : client).IsAcquired)
                 {
                     context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(SiteApp))
-                        .LogWarning("Rate limited {Client} ({UserAgent}): {Path}", client, request.Headers.UserAgent.ToString(), request.Path + request.QueryString);
+                        .LogWarning(busy ? "Busy, turned away {Client} ({UserAgent}): {Path}" : "Rate limited {Client} ({UserAgent}): {Path}",
+                            client, request.Headers.UserAgent.ToString(), request.Path + request.QueryString);
                 }
 
+                context.HttpContext.Response.StatusCode = busy ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
-                return new ValueTask(context.HttpContext.Response.WriteAsync("Too many requests. Try again in a minute.", token));
+                return new ValueTask(context.HttpContext.Response.WriteAsync(busy ? "Busy. Try again in a few seconds." : "Too many requests. Try again in a minute.", token));
             };
             options.AddPolicy(McpRateLimit, context => RateLimitPartition.GetFixedWindowLimiter(
                 ClientKey(context), _ => new FixedWindowRateLimiterOptions { PermitLimit = 300, Window = TimeSpan.FromMinutes(1) }));
@@ -137,6 +158,13 @@ public static class SiteApp
                 && !context.Request.Path.StartsWithSegments("/_framework")
                     ? RateLimitPartition.GetFixedWindowLimiter(client, _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) })
                     : RateLimitPartition.GetNoLimiter("unlimited"));
+            // Pages with a query string, from everyone at once: on Nov 10, 2026 a crawler that ignored
+            // robots.txt walked Table's and Pagination's example states from many addresses, each under
+            // the limit above; renders piled up on the one shared CPU until the machine ran out of
+            // memory. A few render at a time and a short queue waits; the rest get a 503 to retry.
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context => IsQueryPage(context)
+                ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
+                : RateLimitPartition.GetNoLimiter("unlimited"));
         });
 
         var app = builder.Build();

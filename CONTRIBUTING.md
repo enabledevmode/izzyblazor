@@ -208,6 +208,11 @@ outside the Release workflow and broke the Live examples until it was removed.
   disallows `/*?`, and pages that come through Fly's proxy (with `Fly-Client-IP`) are limited to 60
   a minute per client (`SiteApp`, the `pages` policy; not `/frame/`, the circuit, or re-executed
   error pages). The first rejection a minute is logged as `Rate limited <client> (<user agent>)`.
+  On Nov 10, 2026 a crawler ignoring robots.txt from many addresses (each under 60) walked Table's
+  states until the 512 MB machine ran out of memory. Now pages with a query render two at a time
+  across all clients, ten wait, and the rest get a 503 with `Retry-After: 10` (the global limiter,
+  `IsQueryPage`), logged once a minute as `Busy, turned away <client> (<user agent>)`; the machine
+  is 1 GB (fly.toml).
   If the site is slow, compare a page's time with a local Release run and read
   `fly logs -a izzyblazor`: request lines end with their duration.
 - Fly ends TLS and forwards plain HTTP with `X-Forwarded-Proto`, which `UseForwardedHeaders` in
