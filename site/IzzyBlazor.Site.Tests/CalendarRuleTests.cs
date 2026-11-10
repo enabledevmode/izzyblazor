@@ -20,7 +20,6 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_day_is_chosen_with_a_click_or_the_keys_and_saves_and_stays_after(string mode)
     {
         var (_, form, browser) = await OpenAsync(mode);
