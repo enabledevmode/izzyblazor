@@ -2261,10 +2261,28 @@
 
     /// <summary>
     /// The sort with this column alone, ascending or descending, or with it taken out (null): a
-    /// column menu's Sort ascending, Sort descending and Clear sort.
+    /// column menu's Sort ascending, Sort descending and Clear sort. With <paramref name="add"/>, the
+    /// sort keeps its other columns and this one joins at the end, or turns where it stands.
     /// </summary>
-    internal string? SortTo(ColumnBase<TItem> column, bool? descending)
+    internal string? SortTo(ColumnBase<TItem> column, bool? descending, bool add = false)
     {
+        if (add && descending is { } turn)
+        {
+            var sorts = _shapedSort.ToList();
+            var index = sorts.FindIndex(s => string.Equals(column.Key, s.Key, StringComparison.OrdinalIgnoreCase));
+            var field = new SortField(column.Key!, turn);
+            if (index < 0)
+            {
+                sorts.Add(field);
+            }
+            else
+            {
+                sorts[index] = field;
+            }
+
+            return string.Join(',', sorts.Select(s => s.Descending ? $"-{s.Key}" : s.Key));
+        }
+
         if (descending is { } down)
         {
             return down ? $"-{column.Key}" : column.Key;
@@ -2274,23 +2292,27 @@
         return rest.Count > 0 ? string.Join(',', rest.Select(s => s.Descending ? $"-{s.Key}" : s.Key)) : string.IsNullOrEmpty(InitialSort) ? null : "-";
     }
 
-    internal string SortToHref(ColumnBase<TItem> column, bool? descending) =>
+    internal string SortToHref(ColumnBase<TItem> column, bool? descending, bool add = false) =>
         LinkWith(new Dictionary<string, object?>
         {
-            [SortQueryKey] = SortTo(column, descending),
+            [SortQueryKey] = SortTo(column, descending, add),
             [PageKey] = null,
             [CursorKey] = null,
         });
 
-    internal async Task SortToAsync(ColumnBase<TItem> column, bool? descending)
+    internal async Task SortToAsync(ColumnBase<TItem> column, bool? descending, bool add = false)
     {
-        var next = SortTo(column, descending);
+        var next = SortTo(column, descending, add);
         var (pageWas, cursorWas) = (_statePage, _stateCursor);
         (_stateSort, _statePage, _stateCursor) = (next, 1, null);
         await SortChanged.InvokeAsync(next);
         await ReportFirstPageAsync(pageWas, cursorWas);
         await ReloadIfStaleAsync();
     }
+
+    /// <summary>Whether another column is in the sort, so this one can be added to it.</summary>
+    internal bool SortsByOthers(ColumnBase<TItem> column) =>
+        _sorts.Any(s => !string.Equals(s.Key, column.Key, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Whether this column is in the sort, and which way: null when it isn't.</summary>
     internal bool? SortedDescending(ColumnBase<TItem> column) =>
