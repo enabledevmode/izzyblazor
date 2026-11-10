@@ -194,6 +194,8 @@
     In the bar of what's grouped
     - Alt+Left, Alt+Right | On a chip's remove control, move that level before or after (reversed
       on right-to-left pages)
+    - Shift+F10, Menu key | On a chip's remove control, open its menu (Move group earlier, Move
+      group later), as a click on the chip does
     In the footer
     - Tab | Move through the page size button and the pager's links
     - Enter | Follow the link
@@ -454,6 +456,7 @@
     private string? _rowFormId;
 
     private string RowFormId => _rowFormId ??= IdGenerator.Next("ib-grid-edit");
+    private string? _chipIds;
 
     // The row with a form going, once it's been matched to the address.
     private string? RowEditKey => InRow && !_ending && _editModel is not null && CurrentDeleteKey is null && (Adding ? NewRowKey : CurrentEditKey) is { } key && key == _editKeyFor ? key : null;
@@ -2572,7 +2575,8 @@
             @foreach (var level in Grouping.Levels)
             {
                 var column = level.Column;
-                <span class="ib-grid-group-chip" data-ib-group-token="@((level.Descending ? "-" : "") + column.GroupToken)">
+                var chipId = $"{_chipIds ??= IdGenerator.Next("ib-grid-chip")}-{column.GroupToken}";
+                <span class="ib-grid-group-chip" id="@chipId" data-ib-group-token="@((level.Descending ? "-" : "") + column.GroupToken)">
                     @if (UseState)
                     {
                         <Tag Label="@column.FullName" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
@@ -2580,6 +2584,24 @@
                     else
                     {
                         <Tag Label="@column.FullName" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
+                    }
+                    @* The drag's and Alt+arrows' way for a pointer: a click on the chip (grid-group.ts),
+                       right-click, a long press or Shift+F10 opens this. *@
+                    @if (Grouping.Levels.Count > 1)
+                    {
+                        <ContextMenu For="@chipId" Label="@column.FullName">
+                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupMoveEarlier)
+                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupMoveLater)
+                            <MenuDivider />
+                            @if (UseState)
+                            {
+                                <MenuItem Icon="Lucide.X" OnClick="() => SetGroupAsync(GroupTextWith(column, false))">@TextDefaults.GroupRemove</MenuItem>
+                            }
+                            else
+                            {
+                                <MenuItem Icon="Lucide.X" Href="@GroupHref(GroupTextWith(column, false))">@TextDefaults.GroupRemove</MenuItem>
+                            }
+                        </ContextMenu>
                     }
                 </span>
             }
