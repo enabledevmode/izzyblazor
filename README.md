@@ -11,8 +11,8 @@ IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static 
 render as HTML on the server, gain browser behavior through lightweight custom elements, and
 support C# bindings and events on interactive pages.
 
-Build with forms, tables, dialogs, navigation, and responsive layouts—without requiring a SignalR
-circuit or WebAssembly runtime for static pages.
+Build forms, data grids, charts, scheduling, dialogs and complete app layouts—without requiring a
+SignalR circuit or WebAssembly runtime for static pages.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -67,22 +67,22 @@ Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-st
 
 ## What's included
 
-- **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
-- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
-  SiteNav
-- **Typography:** TextBlock, Heading (with anchor links), Anchor, Code (with syntax highlighting,
-  line numbers and highlighted lines), Diff (unified or side by side), CodeExample, Kbd, List,
-  Prose, Icon (all of Lucide, plus brand logos)
-- **Actions:** Button, IconButton, ButtonGroup, ConfirmButton, CopyButton
-- **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
-  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
-  Fieldset, FilterForm
-- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
-- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination, OnThisPage, PrevNext
-- **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
-- **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
-  VideoEmbed
-- **Theming:** IzzyTheme (presets, brand color, grays, fonts), ColorSchemeSwitch
+More than 140 components, in the same groups as the docs:
+
+- **Layout:** Box, Row, Column, Stack, Grid, Container, Section, Center, Spacer, AspectRatio, Divider, Splitter
+- **App shell:** AppShell (header, collapsible sidebar, aside, footer), AppSidebar, SiteNav, IzzyTheme, ThemeScope, ColorSchemeSwitch
+- **Typography:** Heading, TextBlock, List, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight, Icon (all of Lucide, plus brand logos)
+- **Actions:** Button, IconButton, ButtonGroup, ToggleButton, ToggleGroup, SplitButton, FloatingButton, SpeedDial, Toolbar, ConfirmButton, CopyButton
+- **Forms:** Form, Fieldset, FieldFrame, FilterBuilder, FilterForm
+- **Inputs:** TextField (with masks and add-ons), PasswordField, RichTextEditor, TextArea, NumberField, Slider, RangeSlider, Rating, PinField, ColorPanel, ColorPicker, FileUpload
+- **Date and time:** DateField, TimeField, DateRangeField, MultiDateField, MonthField, YearField, Calendar, DurationField
+- **Selection:** Select, Combobox, Autocomplete, MultiSelect, TreeSelect, MultiTreeSelect, PickList, Checkbox, Switch, RadioGroup, CheckboxGroup, SegmentedControl
+- **Overlays:** Dialog (and DialogService), Drawer, Menu, ContextMenu, Popover, Tooltip, ReconnectDialog
+- **Navigation:** NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper, Carousel, Accordion, Collapsible
+- **Feedback:** Alert, Banner, Toast, LiveRegion, Badge, Tag, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
+- **Data:** Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
+- **Display:** Card, Stat, Avatar, AvatarGroup, Image, VideoEmbed, Timeline, Chat, Barcode, QrCode
+- **Charts:** bar, line, area, scatter, bubble, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, Sparkline, Gauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
 
 Build responsive layouts and apply theme tokens through typed component props. If you've used
 Chakra UI or Mantine, the layout props will feel familiar:
@@ -97,6 +97,13 @@ Chakra UI or Mantine, the layout props will feel familiar:
 Light and dark themes are built in, and a single part of the page (a dark sidebar, say) can use its
 own scheme.
 
+## Accessibility
+
+Components build to WCAG 2.2 level AA on the browser's own elements, with keyboard support, visible
+focus (in Windows high-contrast mode too), names screen readers read, and announcements for changes.
+The [Accessibility docs](https://izzyblazor.com/docs/accessibility/overview) list how it's checked and
+the gaps that remain.
+
 ## Documentation
 
 **[izzyblazor.com](https://izzyblazor.com)** includes live component examples, render-mode guidance, and API documentation.
@@ -104,6 +111,7 @@ own scheme.
 - [Getting started](https://izzyblazor.com/docs/get-started): setup, packages and render modes
 - [Components](https://izzyblazor.com/docs/components): examples, mode support and API for each
 - [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming): responsive values, colors, tokens and themes
+- [Accessibility](https://izzyblazor.com/docs/accessibility/overview): standards, keys for every component, and testing your app
 - [Contributing](CONTRIBUTING.md): repository layout, the dev host and adding a component
 
 ## Browser support

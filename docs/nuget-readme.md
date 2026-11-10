@@ -4,7 +4,9 @@
 
 IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static SSR. Components render as HTML on the server, gain browser behavior through lightweight custom elements, and support C# bindings and events when you choose an interactive render mode.
 
-Build forms, tables, dialogs, and complete app layouts without requiring a SignalR circuit or WebAssembly runtime for static pages.
+Build forms, data grids, charts, scheduling, dialogs, and complete app layouts without requiring a SignalR circuit or WebAssembly runtime for static pages.
+
+More than 140 components: layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeView, Scheduler, Chat, a rich text editor, and fourteen chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -65,6 +67,7 @@ Visit **[izzyblazor.com](https://izzyblazor.com)** for live component examples, 
 - [Components](https://izzyblazor.com/docs/components): examples, supported modes, and APIs
 - [Style props](https://izzyblazor.com/docs/common/style-props): typed, responsive styling
 - [Theming](https://izzyblazor.com/docs/theming): colors, fonts, and theme configuration
+- [Accessibility](https://izzyblazor.com/docs/accessibility/overview): standards, keyboard support, and known gaps
 - [Source and issues](https://github.com/enabledevmode/izzyblazor): browse the code and report bugs
 
 ## Browser support
