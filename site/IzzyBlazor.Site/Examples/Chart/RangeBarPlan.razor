@@ -1,0 +1,20 @@
+@* A website relaunch, phase by phase from its first week to its last: bars across, so the phases
+   read down in order and the weeks run left to right. *@
+<Chart Items="_phases" Argument="p => p.Phase" Title="Website relaunch plan, Q1 2026" Orientation="Orientation.Horizontal">
+    <ChartValueAxis Format="'Week '0" Min="0" Max="14" Step="2" />
+    <ChartRangeBarSeries Low="p => p.Start" High="p => p.End" Name="Weeks" />
+</Chart>
+
+@code {
+    private record PlanPhase(string Phase, int Start, int End);
+
+    private readonly PlanPhase[] _phases =
+    [
+        new("Research", 0, 3),
+        new("Design", 2, 6),
+        new("Content", 4, 9),
+        new("Build", 5, 11),
+        new("Testing", 9, 12),
+        new("Launch", 12, 13),
+    ];
+}
