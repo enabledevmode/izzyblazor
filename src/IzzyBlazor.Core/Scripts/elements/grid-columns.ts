@@ -51,10 +51,11 @@ class GridColumns extends IzzyElement {
       if (!chip || event.button || event.pointerType === "touch" || (event.target as Element).closest("a, button")) return;
       // Or it selects the chips' text, and a drag of that cancels this one.
       event.preventDefault();
-      // Let go before the part arrives: a click, not a drag. (Left listening, it only sets this flag.)
+      // Let go before the part arrives: a click, not a drag, which opens the chip's menu. (Left
+      // listening, it only sets this flag.)
       let up = false;
       document.addEventListener("pointerup", () => (up = true), { once: true, capture: true });
-      loadGroup().then((m) => !signal.aborted && !up && m.dragChip(this.#chipHost(), event, chip, signal));
+      loadGroup().then((m) => !signal.aborted && m.dragChip(this.#chipHost(), event, chip, signal, up));
     }, { signal });
     // Or by Alt+Left and Alt+Right on its remove control, the one part of it that takes focus.
     host.addEventListener("keydown", (event) => {

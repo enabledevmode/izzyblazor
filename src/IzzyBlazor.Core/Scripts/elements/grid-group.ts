@@ -1,5 +1,7 @@
 // A DataGrid's bar of what's grouped: moving a chip among the others, by dragging it or by Alt+Left
-// and Alt+Right on its remove control. Loaded by grid-columns.ts on the first press or key on a chip.
+// and Alt+Right on its remove control; a click opens its menu (Move earlier, Move later, Remove).
+// Loaded by grid-columns.ts on the first press or key on a chip.
+import { openPanelAt } from "../context-menu";
 
 /** What grid-columns.ts lends this part: the bar, its chips, and the grouping they make. */
 export interface ChipHost {
@@ -40,7 +42,12 @@ export function moveChip(h: ChipHost, chip: HTMLElement, right: boolean): void {
 }
 
 // Dragging a chip among the others changes which level comes first.
-export function dragChip(h: ChipHost, down: PointerEvent, chip: HTMLElement, signal: AbortSignal): void {
+export function dragChip(h: ChipHost, down: PointerEvent, chip: HTMLElement, signal: AbortSignal, up = false): void {
+  const panel = chip.querySelector<HTMLElement>("[popover]");
+  // A click: the chip's menu, after the pointerup's light dismiss.
+  const menu = () => panel && setTimeout(() => openPanelAt(panel, chip, down.clientX, chip.getBoundingClientRect().bottom));
+  // Let go before this part arrived.
+  if (up) return void menu();
   const bar = h.bar();
   const chips = h.chips();
   const from = chips.indexOf(chip);
@@ -54,7 +61,10 @@ export function dragChip(h: ChipHost, down: PointerEvent, chip: HTMLElement, sig
     abort.abort();
     chip.removeAttribute("data-ib-lifted");
     h.mark(-1);
-    if (!dragging) return;
+    if (!dragging) {
+      if (commit) menu();
+      return;
+    }
     const swallow = (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -78,7 +88,7 @@ export function dragChip(h: ChipHost, down: PointerEvent, chip: HTMLElement, sig
     }
     // Let go off the bar, it stays where it was.
     at = h.inside(bar, event) ? h.dropAt(event, slots) : from;
-    h.mark(at === from || at === from + 1 ? -1 : at, chip.textContent?.trim());
+    h.mark(at === from || at === from + 1 ? -1 : at, chip.querySelector(".ib-tag-label")?.textContent?.trim());
   }, options);
   document.addEventListener("pointerup", () => finish(true), options);
   document.addEventListener("pointercancel", () => finish(false), options);
