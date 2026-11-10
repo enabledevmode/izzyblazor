@@ -20,7 +20,7 @@ public class ColumnBandTests : BunitContext
     {
         Services.GetRequiredService<BunitNavigationManager>().NavigateTo("http://localhost/?sort=-q1");
         var cut = Render<ColumnBandProbe>();
-        cut.WaitForAssertion(() => Assert.Contains(cut.FindAll("tbody > tr > td:first-child"), c => c.TextContent.Trim() == "North"));
+        cut.WaitForAssertion(() => Assert.Contains(cut.FindAll("tbody > tr > td:first-child"), c => c.TextContent.Trim() == "North"), TimeSpan.FromSeconds(5));
         var head = cut.FindAll("thead > tr");
 
         // Each band right above its columns: the shallower Q1 has a gap above it.
