@@ -64,6 +64,11 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool IsWaterfall => Totals is not null;
 
+    /// <summary>A range series' low ends by item (null for other series): it's drawn from these to its Values.</summary>
+    public double?[]? Lows { get; init; }
+
+    public bool IsRange => Lows is not null;
+
     public bool IsPoint => Type is ChartType.Scatter or ChartType.Bubble;
 }
 
@@ -363,6 +368,7 @@ internal static class ChartLayout
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
             SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString(s.SizeFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
+                : s.Lows is { } rangeLows ? RangeText(rangeLows[i], x, s.Secondary ? input.SecondaryFormat : null, s.Secondary ? null : input.ValueFormatter, s.Secondary ? input.SecondaryFormat : input.ValueFormat, culture)
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : Change(s, i) ? Signed(x, y => input.ValueFormatter?.Invoke(y) ?? y.ToString(input.ValueFormat ?? "#,##0.##", culture))
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
@@ -426,7 +432,8 @@ internal static class ChartLayout
             }
         }
 
-        if (!log && input.Series.Any(s => !s.Hidden && !s.Secondary && s.Type is ChartType.Bar or ChartType.Area))
+        // Bars and areas stand on zero; a range doesn't: its length is the spread, not the amount.
+        if (!log && input.Series.Any(s => !s.Hidden && !s.Secondary && !s.IsRange && s.Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
@@ -727,7 +734,7 @@ internal static class ChartLayout
                     rect = rect with { Index = i, Dir = (input.Horizontal, below) switch { (false, false) => 't', (false, true) => 'b', (true, false) => 'r', (true, true) => 'l' } };
                     var outermost = !stacked || !bars.Skip(j + 1).Any(other =>
                         other.Values[i] is { } x && double.IsFinite(x) && x != 0 && (x < 0) == ((highs[s][i] ?? 0) < (lows[s][i] ?? 0)));
-                    if (outermost && hi > lo && !data.IsWaterfall)
+                    if (outermost && hi > lo && !data.IsWaterfall && !data.IsRange)
                     {
                         rect = rect with { End = rect.Dir };
                     }
@@ -787,9 +794,12 @@ internal static class ChartLayout
                 if (data.Type == ChartType.Area)
                 {
                     var lower = run.Select(p => (p.A, lows[s][p.I] is { } l ? sc(l) : zero)).ToList();
+                    var lowerCurve = Curve(lower, stacked || data.IsRange ? data.Curve : ChartCurve.Straight);
                     AppendPath(area, upper, input.Horizontal, move: true);
-                    AppendPath(area, Reverse(Curve(lower, stacked ? data.Curve : ChartCurve.Straight)), input.Horizontal, move: false);
+                    AppendPath(area, Reverse(lowerCurve), input.Horizontal, move: false);
                     area.Append('Z');
+                    // A range's band is edged on both sides.
+                    if (data.IsRange) AppendPath(line, lowerCurve, input.Horizontal, move: true);
                 }
             }
 
@@ -1313,6 +1323,15 @@ internal static class ChartLayout
     /// Whether a value is a waterfall's change, which reads signed: not a total, and not the first
     /// bar, which is the amount the waterfall starts from.
     /// </summary>
+    /// <summary>A range's text, low first: "−3 – 12". None when either end is missing.</summary>
+    private static string? RangeText(double? low, double high, string? _, Func<double, string>? formatter, string? format, CultureInfo culture)
+    {
+        if (low is not { } lo) return null;
+        string Text(double v) => formatter?.Invoke(v) ?? v.ToString(format ?? "#,##0.##", culture);
+        var (a, b) = (Math.Min(lo, high), Math.Max(lo, high));
+        return $"{Text(a)} – {Text(b)}";
+    }
+
     private static bool Change(ChartSeriesData s, int i) =>
         s.Totals is { } totals && !totals[i] && Array.FindIndex(s.Values, v => v is not null) != i;
 
@@ -1433,6 +1452,22 @@ internal static class ChartLayout
             lows[s] = new double?[n];
             highs[s] = input.Series[s].Values.Select(v => v is { } x && double.IsFinite(x) && (!log || x > 0) ? (double?)x : null).ToArray();
 
+            // A range runs from its low to its high; with either missing, there's none at that item.
+            if (input.Series[s].Lows is { } rangeLows)
+            {
+                for (var i = 0; i < n; i++)
+                {
+                    var low = rangeLows[i] is { } x && double.IsFinite(x) && (!log || x > 0) ? (double?)x : null;
+                    if (low is not { } lo || highs[s][i] is not { } hi)
+                    {
+                        highs[s][i] = null;
+                        continue;
+                    }
+
+                    (lows[s][i], highs[s][i]) = (Math.Min(lo, hi), Math.Max(lo, hi));
+                }
+            }
+
             // A waterfall's change starts where the running total was; a total starts from zero.
             if (input.Series[s].Totals is { } totals)
             {
@@ -1454,7 +1489,7 @@ internal static class ChartLayout
 
         foreach (var type in new[] { ChartType.Bar, ChartType.Area })
         {
-            var group = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Type == type && !input.Series[s].Hidden).ToList();
+            var group = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Type == type && !input.Series[s].Hidden && !input.Series[s].IsRange).ToList();
             for (var i = 0; i < n; i++)
             {
                 var total = full ? group.Sum(s => Math.Abs(highs[s][i] ?? 0)) : 1;

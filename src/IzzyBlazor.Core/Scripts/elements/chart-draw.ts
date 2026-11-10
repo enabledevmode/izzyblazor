@@ -37,6 +37,7 @@ export interface DrawSeries {
   lt?: (string | null)[]; // each item's label text
   lo?: boolean; // labels show even when they overlap (LabelOverlap.Show)
   en?: string; // the name written past the plot's end (EndLabel)
+  lw?: (number | null)[]; // a range's low ends (ChartRangeBarSeries, ChartRangeAreaSeries)
 }
 
 export interface DrawData {
@@ -378,9 +379,22 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const lows: (number | null)[][] = d.s.map(() => new Array(n).fill(null));
   const log = d.lg;
   const highs: (number | null)[][] = d.s.map((s) => s.v.map((v) => (v === null || !isFinite(v) || (log && v <= 0) ? null : v)));
+  // A range runs from its low to its high; with either missing, there's none at that item.
+  d.s.forEach((data, s) => {
+    if (!data.lw) return;
+    for (let i = 0; i < n; i++) {
+      const lo = data.lw[i], hi = highs[s][i];
+      if (lo === null || lo === undefined || !isFinite(lo) || (log && lo <= 0) || hi === null) {
+        highs[s][i] = null;
+        continue;
+      }
+      lows[s][i] = Math.min(lo, hi);
+      highs[s][i] = Math.max(lo, hi);
+    }
+  });
   if (stacked) {
     for (const type of [0, 2]) {
-      const group = visible.filter((s) => d.s[s].t === type);
+      const group = visible.filter((s) => d.s[s].t === type && !d.s[s].lw);
       for (let i = 0; i < n; i++) {
         let total = full ? group.reduce((sum, s) => sum + Math.abs(highs[s][i] ?? 0), 0) : 1;
         if (total === 0) total = 1;
@@ -420,7 +434,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     min = Math.min(min, v);
     max = Math.max(max, v);
   }
-  if (!log && visible.some((s) => !d.s[s].ax && (d.s[s].t === 0 || d.s[s].t === 2))) {
+  // Bars and areas stand on zero; a range doesn't.
+  if (!log && visible.some((s) => !d.s[s].ax && !d.s[s].lw && (d.s[s].t === 0 || d.s[s].t === 2))) {
     min = Math.min(min, 0);
     max = Math.max(max, 0);
   }
@@ -538,7 +553,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         const x2 = d.s[o].v[i];
         return x2 !== null && isFinite(x2) && x2 !== 0 && x2 < 0 === (highs[s][i] ?? 0) < (lows[s][i] ?? 0);
       });
-      barSvg += rect(outermost && hi > lo ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
+      barSvg += rect(outermost && hi > lo && !d.s[s].lw ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
       const text = d.s[s].lt?.[i];
       if (d.s[s].lm && text != null) {
         const tw = widthOf(text);
@@ -582,8 +597,10 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         line += path(upper, d.h, true);
         if (data.t === 2) {
           const sc = data.ax ? scale2 : scale;
-          const lower = curve(r.map((p) => [p[0], lows[s][p[2]] !== null ? sc(lows[s][p[2]]!) : sc(0)]), stacked ? data.c : 0);
+          const lower = curve(r.map((p) => [p[0], lows[s][p[2]] !== null ? sc(lows[s][p[2]]!) : sc(0)]), stacked || data.lw ? data.c : 0);
           area += path(upper, d.h, true) + path(reverse(lower), d.h, false) + "Z";
+          // A range's band is edged on both sides.
+          if (data.lw) line += path(lower, d.h, true);
         }
       }
       if (area) areas += `<path ${attrs(s, "ib-chart-area")} d="${area}"/>`;

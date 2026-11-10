@@ -8,16 +8,20 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// What every series of a <see cref="Chart{TItem}"/> has: a value from each item, a name, a color,
-/// labels and a trend. Use <see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
+/// What every series of a <see cref="Chart{TItem}"/> has: a name, a color, labels and a trend. Use
+/// <see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
 /// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
-/// <see cref="ChartBubbleSeries{TItem}"/> or <see cref="ChartWaterfallSeries{TItem}"/>. A series renders nothing itself; the chart draws it.
+/// <see cref="ChartBubbleSeries{TItem}"/>, <see cref="ChartWaterfallSeries{TItem}"/>,
+/// <see cref="ChartRangeBarSeries{TItem}"/> or <see cref="ChartRangeAreaSeries{TItem}"/>. A series
+/// renders nothing itself; the chart draws it.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 {
     private Expression<Func<TItem, object?>>? _lastValue;
     private Func<TItem, object?>? _compiled;
+    private Expression<Func<TItem, object?>>? _lastLow;
+    private Func<TItem, object?>? _low;
     private Expression<Func<TItem, object?>>? _lastSize;
     private Func<TItem, object?>? _size;
     private string? _sizeName;
@@ -31,9 +35,6 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private protected ChartSeriesBase()
     {
     }
-
-    /// <summary>The value to draw, such as <c>m =&gt; m.Revenue</c>: any number, or null for none.</summary>
-    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
 
     /// <summary>
     /// With <see cref="ChartDrillLevel{TItem}"/>s, how each level adds up its items' values:
@@ -124,6 +125,16 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected abstract ChartType Type { get; }
 
+    // The value each item is drawn at (a range's high end), and a range's low end.
+    private protected abstract Expression<Func<TItem, object?>>? ValueOf { get; }
+
+    private protected virtual Expression<Func<TItem, object?>>? LowOf => null;
+
+    private protected virtual bool IsRange => false;
+
+    // What to say when the value is missing.
+    private protected virtual string ValueNeeded => $"{Kind} needs a Value, such as m => m.Revenue.";
+
     private protected virtual ChartCurve CurveOf => ChartCurve.Straight;
 
     private protected virtual ChartLineStyle? LineStyleOf => null;
@@ -162,14 +173,16 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         Context.Register(this);
     }
 
-    private string Kind => GetType().Name.Split('`')[0];
+    private protected string Kind => GetType().Name.Split('`')[0];
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Value is null)
+        var value = ValueOf;
+        var low = LowOf;
+        if (value is null || (low is null && IsRange))
         {
-            throw new InvalidOperationException($"{Kind} needs a Value, such as m => m.Revenue.");
+            throw new InvalidOperationException(ValueNeeded);
         }
 
         if (TrendOrder is < 2 or > 6)
@@ -201,11 +214,14 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             _sizeName = size is null ? null : ChartMembers.Name(size);
         }
 
-        if (!ReferenceEquals(Value, _lastValue))
+        if (!ReferenceEquals(value, _lastValue) || !ReferenceEquals(low, _lastLow))
         {
-            _lastValue = Value;
-            _compiled = Value.Compile();
-            _memberName = ChartMembers.Name(Value);
+            (_lastValue, _lastLow) = (value, low);
+            _compiled = value.Compile();
+            _low = low?.Compile();
+            // A range is named by both ends, such as "Low – High", until it's given a Name.
+            _memberName = low is null ? ChartMembers.Name(value)
+                : ChartMembers.Name(low) is { } l && ChartMembers.Name(value) is { } h ? $"{l} – {h}" : null;
         }
 
         if (!ReferenceEquals(SeriesBy, _lastSeriesBy))
@@ -231,6 +247,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         }
 
         var values = items.Select(item => ChartMembers.ToNumber(_compiled!(item))).ToArray();
+        var lows = _low is null ? null : items.Select(item => ChartMembers.ToNumber(_low(item))).ToArray();
         _labelTexts = _labelText is null ? null : items.Select(item => _labelText(item)?.ToString()).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
         if (IsWaterfall)
@@ -255,7 +272,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
         if (_seriesBy is null)
         {
-            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName };
+            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName, Lows = lows };
             yield break;
         }
 
@@ -265,7 +282,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         {
             var own = values.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownSizes = sizes?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
-            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName };
+            var ownLows = lows?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName, Lows = ownLows };
         }
     }
 
@@ -299,6 +317,25 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 }
 
 /// <summary>
+/// A series with one value from each item: its <see cref="Value"/>. Use
+/// <see cref="ChartBarSeries{TItem}"/>, <see cref="ChartLineSeries{TItem}"/>,
+/// <see cref="ChartAreaSeries{TItem}"/>, <see cref="ChartScatterSeries{TItem}"/>,
+/// <see cref="ChartBubbleSeries{TItem}"/> or <see cref="ChartWaterfallSeries{TItem}"/>.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
+{
+    private protected ChartValueSeriesBase()
+    {
+    }
+
+    /// <summary>The value to draw, such as <c>m =&gt; m.Revenue</c>: any number, or null for none.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    private protected override Expression<Func<TItem, object?>>? ValueOf => Value;
+}
+
+/// <summary>
 /// A bar chart's bars, one per item, to compare values across names such as products or
 /// regions. Bars stand upright, or lie across with the chart's
 /// <c>Orientation="Orientation.Horizontal"</c>, which suits long names and rankings. Several bar
@@ -314,7 +351,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
     /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
@@ -341,7 +378,7 @@ public sealed class ChartBarSeries<TItem> : ChartSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
     /// How the line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot, so lines
@@ -398,7 +435,7 @@ public sealed class ChartLineSeries<TItem> : ChartSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>How the area's line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
     [Parameter] public ChartLineStyle? LineStyle { get; set; }
@@ -448,7 +485,7 @@ public sealed class ChartAreaSeries<TItem> : ChartSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     private protected override ChartType Type => ChartType.Scatter;
 }
@@ -469,7 +506,7 @@ public sealed class ChartScatterSeries<TItem> : ChartSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
     /// Each bubble's size, such as <c>d =&gt; d.Customers</c>: its area is in proportion to it,
@@ -518,7 +555,7 @@ public sealed class ChartBubbleSeries<TItem> : ChartSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
-public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
+public sealed class ChartWaterfallSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     private Expression<Func<TItem, bool>>? _lastTotal;
     private Func<TItem, bool>? _total;
@@ -583,6 +620,111 @@ public sealed class ChartWaterfallSeries<TItem> : ChartSeriesBase<TItem>
     }
 }
 
+/// <summary>
+/// A series with a low and a high value from each item, drawn from one to the other:
+/// <see cref="ChartRangeBarSeries{TItem}"/> or <see cref="ChartRangeAreaSeries{TItem}"/>.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+public abstract class ChartRangeSeriesBase<TItem> : ChartSeriesBase<TItem>
+{
+    private protected ChartRangeSeriesBase()
+    {
+    }
+
+    /// <summary>
+    /// Each item's low end, such as <c>d =&gt; d.Min</c>: any number, or null for none (no range
+    /// at that item). With <see cref="ChartDrillLevel{TItem}"/>s, a level takes its items' lowest.
+    /// </summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Low { get; set; } = default!;
+
+    /// <summary>Each item's high end, such as <c>d =&gt; d.Max</c>. With drill-down levels, a level takes its items' highest.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> High { get; set; } = default!;
+
+    private protected override Expression<Func<TItem, object?>>? ValueOf => High;
+
+    private protected override Expression<Func<TItem, object?>>? LowOf => Low;
+
+    private protected override bool IsRange => true;
+
+    private protected override string ValueNeeded => $"{Kind} needs a Low and a High, such as d => d.Min and d => d.Max.";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Trend != ChartTrend.None)
+        {
+            throw new InvalidOperationException($"A {Kind} takes no Trend: draw the measure inside the range, such as its middle, as a line series with a Trend.");
+        }
+
+        base.OnParametersSet();
+    }
+}
+
+/// <summary>
+/// A bar from each item's low value to its high one, such as a day's lowest and highest
+/// temperature. Bars stand upright, or lie across with the chart's
+/// <c>Orientation="Orientation.Horizontal"</c>. The value axis needn't start at zero: a range
+/// bar's length is the spread, not the amount.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="days" Argument="d =&gt; d.Day" Title="Temperature, March 2026"&gt;
+///     &lt;ChartValueAxis Format="0°C" /&gt;
+///     &lt;ChartRangeBarSeries Low="d =&gt; d.Low" High="d =&gt; d.High" Name="Daily range" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
+[ModeSupport]
+public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
+{
+    /// <summary>
+    /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
+    /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.
+    /// </summary>
+    [Parameter] public double? Opacity { get; set; }
+
+    private protected override ChartType Type => ChartType.Bar;
+
+    private protected override double? OpacityOf => Opacity;
+}
+
+/// <summary>
+/// A band filled from each item's low value to its high one, such as a forecast's interval or a
+/// city's daily spread of temperatures over a year. Draw the measure inside it (the forecast, the
+/// average) as a <see cref="ChartLineSeries{TItem}"/> on top, and say in the band's <c>Name</c>
+/// what it spans, such as "80% interval".
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="forecast" Argument="f =&gt; f.Month" Title="Revenue forecast, 2027"&gt;
+///     &lt;ChartValueAxis Format="C0" /&gt;
+///     &lt;ChartRangeAreaSeries Low="f =&gt; f.Low" High="f =&gt; f.High" Name="80% interval" /&gt;
+///     &lt;ChartLineSeries Value="f =&gt; f.Expected" Name="Expected" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
+[ModeSupport]
+public sealed class ChartRangeAreaSeries<TItem> : ChartRangeSeriesBase<TItem>
+{
+    /// <summary>How the band's edges are drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
+    [Parameter] public ChartLineStyle? LineStyle { get; set; }
+
+    /// <summary>The band's shape between values, at both edges. Defaults to straight.</summary>
+    [Parameter] public ChartCurve Curve { get; set; }
+
+    /// <summary>Draws the band straight across a missing value, instead of leaving a gap.</summary>
+    [Parameter] public bool ConnectGaps { get; set; }
+
+    private protected override ChartType Type => ChartType.Area;
+
+    private protected override ChartCurve CurveOf => Curve;
+
+    private protected override ChartLineStyle? LineStyleOf => LineStyle;
+
+    private protected override bool ConnectGapsOf => ConnectGaps;
+}
 
 /// <summary>What a <see cref="Chart{TItem}"/> shares with its series: the series, in order.</summary>
 internal sealed class ChartContext<TItem> : ChartContextBase

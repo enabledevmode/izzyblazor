@@ -2321,6 +2321,35 @@
       ]
     },
     {
+      "id": "range-bar-chart", "icon": "ChartCandlestick", "name": "ChartRangeBarSeries", "title": "Range bar chart", "category": "Charts", "summary": "Draws each item's span from a low to a high value as a floating bar.", "keywords": ["range bar", "range column", "floating bar", "min max chart", "high low chart"],
+      "features": [
+        { "feature": "Bars from each item's low to its high, upright or across" },
+        { "feature": "A value axis that fits the ranges, not drawn down to zero" },
+        { "feature": "Each range read low first, such as \"1°C – 9°C\", in tooltips, labels and the table" },
+        { "feature": "Legend items that hide and show a range", "noscript": "none" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-range-bar", "title": "Range bars", "lead": "`ChartRangeBarSeries` draws a bar from each item's `Low` to its `High`, here the average day's low and high temperature in each month.", "after": ["The value axis fits the ranges and needn't reach zero: a range bar's length is its spread, not an amount.", "A missing `Low` or `High` leaves a gap at that item. With `ChartDrillLevel`s, a level's bar runs from its items' lowest low to their highest high.", "With the chart's `Orientation=\"Orientation.Horizontal\"`, the bars lie across, as for a plan's start and end. Range series don't stack."] }
+      ]
+    },
+    {
+      "id": "range-area-chart", "icon": "ChartArea", "name": "ChartRangeAreaSeries", "title": "Range area chart", "category": "Charts", "summary": "Fills a band between each item's low and high values, such as a forecast's interval.", "keywords": ["range area", "band chart", "confidence band", "forecast interval", "error band", "min max band"],
+      "features": [
+        { "feature": "A band between the lows and highs, edged on both sides" },
+        { "feature": "A line through it from a line series, such as the forecast" },
+        { "feature": "A value axis that fits the band, not drawn down to zero" },
+        { "feature": "Each range read low first in tooltips and the table" },
+        { "feature": "Legend items that hide and show the band", "noscript": "none" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-range-area", "title": "A band with a line through it", "lead": "`ChartRangeAreaSeries` fills a band between each item's `Low` and `High`, edged on both sides. To show the measure inside it, such as a forecast, add a `ChartLineSeries` after the band, so the line is drawn on top.", "after": ["Say in the band's `Name` what it spans, such as \"80% interval\" or \"Min to max\": a band with no stated meaning reads as a hard limit.", "`Curve` shapes both edges; give the line the same curve so it stays inside."] }
+      ]
+    },
+    {
       "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
       "features": [
         { "feature": "Rises, falls and totals in three colors, keyed in the legend" },

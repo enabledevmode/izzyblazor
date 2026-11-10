@@ -1,0 +1,21 @@
+@* Next year's monthly revenue forecast: the expected amount as a line, and the 80% interval
+   around it as a band that widens as the months run further out. *@
+<Chart Items="_forecast" Argument="f => f.Month" Title="Revenue forecast, 2027">
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartRangeAreaSeries Low="f => f.Low" High="f => f.High" Name="80% interval" Curve="ChartCurve.Smooth" />
+    <ChartLineSeries Value="f => f.Expected" Name="Expected" Curve="ChartCurve.Smooth" LineStyle="ChartLineStyle.Solid" />
+</Chart>
+
+@code {
+    private record Forecast(string Month, decimal Low, decimal Expected, decimal High);
+
+    private readonly Forecast[] _forecast =
+    [
+        new("Jan", 402_000, 418_000, 434_000), new("Feb", 398_000, 421_000, 445_000),
+        new("Mar", 409_000, 437_000, 466_000), new("Apr", 411_000, 444_000, 479_000),
+        new("May", 417_000, 455_000, 494_000), new("Jun", 418_000, 461_000, 506_000),
+        new("Jul", 414_000, 463_000, 514_000), new("Aug", 419_000, 472_000, 528_000),
+        new("Sep", 426_000, 484_000, 545_000), new("Oct", 431_000, 494_000, 560_000),
+        new("Nov", 444_000, 512_000, 584_000), new("Dec", 462_000, 536_000, 614_000),
+    ];
+}
