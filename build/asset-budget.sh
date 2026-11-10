@@ -34,7 +34,7 @@ echo "radar.css gzip: $radar bytes (budget 1024; only pages with a RadarChart lo
 echo "sankey.css gzip: $sankey bytes (budget 1024; only pages with a SankeyChart load it)"
 echo "treemap.css gzip: $treemap bytes (budget 1024; only pages with a TreemapChart load it)"
 echo "bullet.css gzip: $bullet bytes (budget 1536; only pages with a BulletChart load it)"
-echo "gauge.css gzip: $gauge bytes (budget 2048; only pages with a LinearGauge or a Gauge with pointers load it)"
+echo "gauge.css gzip: $gauge bytes (budget 2048; only pages with a LinearGauge, or a Gauge with pointers or a band name, load it)"
 echo "tabs-edit.css gzip: $tabsedit bytes (budget 1024; only tabs with close or add controls load it)"
 echo "speed-dial.css gzip: $speeddial bytes (budget 1024; only pages with a SpeedDial load it)"
 echo "treeselect.css gzip: $treeselect bytes (budget 1024; only pages with a TreeSelect load it)"

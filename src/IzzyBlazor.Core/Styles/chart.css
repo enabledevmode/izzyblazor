@@ -1160,19 +1160,9 @@
   .ib-gauge-fill { stroke: var(--ib-gauge-color, var(--ib-color-primary)); }
 
   /* Bands: thin arcs in their colors along the outer edge. The target: a tick across the track in
-     the text color. A value's band names itself under the value, in its color toward the text's. */
+     the text color. A value's band name under the value is styled in gauge.css. */
   .ib-gauge-band { fill: none; stroke-width: 0.045; }
   .ib-gauge-target { stroke: var(--ib-color-on-surface); stroke-width: 0.035; }
-
-  .ib-gauge-state {
-    position: absolute;
-    top: 64.1%;
-    left: 50%;
-    translate: -50% calc(10cqi + 0.15em);
-    font-weight: var(--ib-weight-medium);
-    color: color-mix(in oklab, var(--ib-gauge-state) 70%, var(--ib-color-on-surface));
-    white-space: nowrap;
-  }
 
   /* The dial's center is 64.1% down (its viewBox is 1.56 tall, the center 1 down). */
   .ib-gauge-value {

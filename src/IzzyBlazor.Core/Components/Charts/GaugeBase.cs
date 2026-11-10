@@ -58,7 +58,8 @@ public abstract class GaugeBase : LayoutItemBase, IDisposable
 
     /// <summary>
     /// The bands' colors, in the order they're written, such as
-    /// <c>ChartPalette.Of(Color.Warning, Color.Danger)</c> or <c>ChartPalette.Shades(Color.Primary)</c>.
+    /// <c>ChartPalette.Of(Color.Warning, Color.Danger)</c>, or <c>ChartPalette.Tints(Color.Warning)</c>
+    /// for a light tint up to the full color (for a thick track's bands).
     /// Defaults to grays, darkest first, which mark the ranges without saying good or bad; a value
     /// in a gray band keeps <see cref="Accent"/> or the primary color. A band's own
     /// <see cref="GaugeBand.Accent"/> takes the place of its palette color.
