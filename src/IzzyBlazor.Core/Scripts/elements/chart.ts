@@ -703,10 +703,11 @@ class Chart extends IzzyElement {
         // With no tooltips there's no item to move to: the arrows pan a zoomed view a tenth of
         // itself, at least an item on a category axis (Right and Down show what's further on),
         // and the zoom's keys.
-        if (!tipsOn && gestures && isZoomed() && ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) {
+        if (!tipsOn && gestures && isZoomed() && event.key.startsWith("Arrow")) {
           event.preventDefault();
           const span = view[1] - view[0];
-          const by = (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1) * (data?.ar ? -1 : 1) * Math.max(span / 10, scale ? 0 : 1 / count);
+          // "ArrowDown" or "ArrowRight" goes on.
+          const by = ("DR".includes(event.key[5]) ? 1 : -1) * (data?.ar ? -1 : 1) * Math.max(span / 10, scale ? 0 : 1 / count);
           const from = Math.min(1 - span, Math.max(0, view[0] + by));
           setView(from, from + span);
           return;

@@ -190,6 +190,11 @@
         {
             builder.AddComponentParameter(18, nameof(SplitButtonMain.ChildContent), (RenderFragment)(b => b.AddContent(0, Label)));
         }
+        // Alt+Down opens the menu from here too (popover.ts): no menu button pattern has it, so it's announced.
+        if (!(Disabled || MenuDisabled) && AdditionalAttributes?.ContainsKey("aria-keyshortcuts") != true)
+        {
+            builder.AddComponentParameter(19, "aria-keyshortcuts", "Alt+ArrowDown");
+        }
 
         builder.CloseComponent();
     };
