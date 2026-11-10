@@ -1,4 +1,4 @@
-@* RangeSelector's Overview, written by hand: it's a .cs component, so its usage, accessibility and
+@* RangeSelector's Overview, with ChartRangeSelector, written by hand: they're .cs components, so its usage, accessibility and
    keys are here rather than in a doc comment. In a chart, on its own to filter by, spans of your
    own, labels. *@
 
@@ -7,7 +7,7 @@
 <TextBlock>A range selector is a strip that draws a whole range small, such as a year of days, with a window over the part chosen. It suits long runs of dates, where the reader looks closer at a month and needs to see where it sits in the year. To pick a range of plain numbers, such as prices, use a <Anchor Href="docs/components/range-slider">RangeSlider</Anchor>; for two dates typed or picked from a calendar, a <Anchor Href="docs/components/date-range-field">DateRangeField</Anchor>.</TextBlock>
 
 <Heading Level="2">A strip under a chart</Heading>
-<TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;RangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
+<TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;ChartRangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
 <ExampleViewer Example="range-selector-strip" />
 <TextBlock><Code>View</Code> opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time.</TextBlock>
 <TextBlock>Clicking the strip outside the window moves the window there. The chart's axis names the dates, so the strip keeps only its coarsest labels, inside it, and each handle's flag shows its date only while the handle is pointed at, focused or dragged. <Code>HideFlags</Code> leaves the flags out; screen readers still hear each handle's value.</TextBlock>
@@ -16,10 +16,10 @@
 <TextBlock>To add buttons for the last 1, 3 and 6 months, the year to date, a year and everything, set <Code>Ranges</Code>. The pressed button is the span in view.</TextBlock>
 <ExampleViewer Example="range-selector-in-chart" />
 <TextBlock>A button whose span would show everything is left out, so a chart of four months has no 6M or 1Y. A range selector turns on the chart's zoom, so the plot zooms by dragging, the wheel and the keys too. To open the chart on part of its arguments, or to learn in C# what's in view, set the chart's <Code>View</Code>; see <Anchor Href="docs/components/chart/zoom">Zoom</Anchor>.</TextBlock>
-<TextBlock>The strip moves with <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, with no round trip, on static pages too. With JavaScript off, it shows the part in view and nothing moves. A range selector needs an upright chart; in a chart with bars across, it throws.</TextBlock>
+<TextBlock>The strip moves with <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, with no round trip, on static pages too. With JavaScript off, it shows the part in view and nothing moves. A <Code>ChartRangeSelector</Code> needs an upright chart; in a chart with bars across, it throws.</TextBlock>
 
 <Heading Level="2">Filtering by a date range</Heading>
-<TextBlock>On its own, a range selector picks a range to use elsewhere, such as the dates a grid lists or a total sums. Give it the <Code>Items</Code> to draw, what each is at as <Code>Argument</Code>, a <Code>Label</Code>, and one or more series inside it, such as a <Code>ChartAreaSeries</Code>. Bind the range with <Code>@@bind-View</Code>.</TextBlock>
+<TextBlock>On its own, a <Code>RangeSelector</Code> picks a range to use elsewhere, such as the dates a grid lists or a total sums. Give it the <Code>Items</Code> to draw, what each is at as <Code>Argument</Code>, a <Code>Label</Code>, and one or more series inside it, such as a <Code>ChartAreaSeries</Code>. Bind the range with <Code>@@bind-View</Code>.</TextBlock>
 <ExampleViewer Example="range-selector-filter" />
 <TextBlock><Code>View</Code> is a <Code>ChartView</Code>: <Code>From</Code> and <Code>To</Code> are the first and last arguments chosen, both included, as the argument's own type (a <Code>DateOnly</Code> here). A null end is the data's own end, and a null view is everything. The view is reported as each drag or key settles, not while dragging, so it suits a query per change.</TextBlock>
 <TextBlock>Reporting the range needs an interactive page. On static pages the strip still moves, but C# doesn't learn the range.</TextBlock>
@@ -75,7 +75,7 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    // RangeSelector is a .cs component, whose doc comment can't carry keys (see RazorHeaders).
+    // RangeSelector and ChartRangeSelector are .cs components, whose doc comment can't carry keys (see RazorHeaders).
     private static readonly ApiKeyboardGroup HandleKeys = new("On a handle",
     [
         new(["Right", "Up"], "Move the handle one item later"),
@@ -88,7 +88,7 @@
         @* In a chart: a strip under the plot that zooms it. *@
         <Chart Items="days" Argument="d => d.Date" Title="Daily visits">
             <ChartLineSeries Value="d => d.Visits" />
-            <RangeSelector />
+            <ChartRangeSelector />
         </Chart>
 
         @* On its own: range is the ChartView chosen. *@
@@ -98,7 +98,7 @@
         """;
 
     private const string Presets = """
-        <RangeSelector Presets="quarters" />
+        <ChartRangeSelector Presets="quarters" />
 
         @code {
             private readonly DateRangePreset[] quarters =

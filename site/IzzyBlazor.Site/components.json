@@ -2184,7 +2184,7 @@
         {
           "id": "zoom", "title": "Zoom", "summary": "Zooming shows part of the arguments up close, such as a month of a year of days, from a drag, the wheel, a pinch or the keys, with no round trip.", "members": ["ChartArgumentAxis.Zoom", "ChartArgumentAxis.MinZoomSpan", "View", "ChartView", "RangeSelector"],
           "examples": [
-            { "id": "chart-zoom-range", "title": "A range selector and a starting view", "lead": "To zoom a chart from a strip under its plot, put a `RangeSelector` in it. The strip draws the whole range small, with a window over the part in view: drag the window to pan, or a handle to widen or narrow it. `View` opens the chart zoomed, here on the last three months.",
+            { "id": "chart-zoom-range", "title": "A range selector and a starting view", "lead": "To zoom a chart from a strip under its plot, put a `ChartRangeSelector` in it. The strip draws the whole range small, with a window over the part in view: drag the window to pan, or a handle to widen or narrow it. `View` opens the chart zoomed, here on the last three months.",
               "after": ["A `ChartView` takes the first and last argument in view, such as two dates, and null for the data's own end. `Ranges` adds buttons for the last 1, 3 and 6 months, the year to date, a year, and everything. A button whose span would show everything is left out.", "The value axis refits to the values in view, so a quiet month fills the plot. On interactive pages, `@bind-View` reports the part in view as each zoom ends, not while dragging; null means everything is in view.", "A range selector needs an upright chart. See RangeSelector for spans of your own and for choosing a range apart from a chart."],
               "notes": { "noscript": "The chart opens on `View` and doesn't zoom. The range selector shows the part in view." } },
             { "id": "chart-zoom-box", "title": "Zoom to a box", "lead": "To zoom with no range selector, set `Zoom` on the `ChartArgumentAxis`. Drag across the plot to zoom into that span, here the afternoon slowdown, and select Reset zoom to see the whole day again.",
@@ -2490,7 +2490,7 @@
       ]
     },
     {
-      "id": "range-selector", "icon": "UnfoldHorizontal", "name": "RangeSelector", "category": "Charts", "summary": "Chooses a span of dates, numbers or names on a strip that draws the whole range small: under a chart's plot it zooms the chart, and on its own it picks a range to filter by.", "keywords": ["range selector", "range navigator", "navigator", "zoom", "time range", "date range", "brush", "range buttons"],
+      "id": "range-selector", "icon": "UnfoldHorizontal", "name": "RangeSelector", "category": "Charts", "parts": ["ChartRangeSelector"], "summary": "Chooses a span of dates, numbers or names on a strip that draws the whole range small: on its own it picks a range to filter by, and as ChartRangeSelector it zooms a chart.", "keywords": ["range selector", "range navigator", "navigator", "zoom", "time range", "date range", "brush", "range buttons"],
       "features": [
         { "feature": "Under a chart's plot, the chart's series drawn small, zooming the chart" },
         { "feature": "On its own, a range over its own items, to filter a grid or sum a total" },
@@ -2501,8 +2501,8 @@
         { "feature": "On its own, zooming several charts at once by their `Sync` name", "member": "Sync", "noscript": "none" }
       ],
       "examples": [
-        { "id": "range-selector-strip", "title": "A strip under a chart", "lead": "Put `RangeSelector` in an upright `Chart`, after its series, to zoom the chart from a strip under the plot. Drag the window to pan, or a handle to widen or narrow it.", "after": ["`View` opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time."] },
-        { "id": "range-selector-in-chart", "title": "Range buttons in a chart", "lead": "To add buttons for common spans back from the last date, set `Ranges` on the `RangeSelector`.",
+        { "id": "range-selector-strip", "title": "A strip under a chart", "lead": "Put `ChartRangeSelector` in an upright `Chart`, after its series, to zoom the chart from a strip under the plot. Drag the window to pan, or a handle to widen or narrow it.", "after": ["`View` opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time."] },
+        { "id": "range-selector-in-chart", "title": "Range buttons in a chart", "lead": "To add buttons for common spans back from the last date, set `Ranges` on the `ChartRangeSelector`.",
           "notes": { "noscript": "The strip shows the part in view, and nothing moves." } },
         { "id": "range-selector-filter", "title": "Filtering by a date range", "lead": "On its own, give `RangeSelector` the `Items`, an `Argument`, a `Label` and a series to draw. `@bind-View` is the range chosen, here the dates whose orders the grid lists.", "modes": ["interactive"] }
       ]

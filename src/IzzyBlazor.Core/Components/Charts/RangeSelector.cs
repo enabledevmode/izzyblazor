@@ -1,10 +1,11 @@
+using System.ComponentModel;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
-/// <summary>What a chart draws for its RangeSelector.</summary>
+/// <summary>What a chart draws for its range selector.</summary>
 internal interface IRangeSelector
 {
     bool Ranges { get; }
@@ -22,46 +23,15 @@ internal interface IRangeSelector
 internal sealed class RangeSelectorHost;
 
 /// <summary>
-/// A strip for choosing a range of a chart's arguments: the whole range drawn small, with a window
-/// over the part chosen. Drag the window to pan, its two handles to widen or narrow it, or click
-/// the strip to move there; each handle is a slider for the keyboard.
-/// <para>
-/// Inside a <see cref="Chart{TItem}"/>, <c>&lt;RangeSelector /&gt;</c> sits under the plot,
-/// draws the chart's series and zooms it (turning on <see cref="ChartArgumentAxis.Zoom"/>); the
-/// chart's <c>View</c> says what's in view. On its own it draws its own <see cref="Items"/> by the
-/// series inside it, and <see cref="View"/> is the range chosen, such as dates to filter a table
-/// by: <c>&lt;RangeSelector Items="days" Argument="d =&gt; d.Day" @bind-View="range"&gt;&lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;&lt;/RangeSelector&gt;</c>.
-/// </para>
+/// What <see cref="ChartRangeSelector"/> and <see cref="RangeSelector{TItem}"/> share: the strip's
+/// name, height, flags and buttons for common spans. Not a component of its own.
 /// </summary>
-/// <typeparam name="TItem">The items it draws: inside a Chart, the chart's.</typeparam>
-[CascadingTypeParameter(nameof(TItem))]
-[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
-public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDisposable
+[EditorBrowsable(EditorBrowsableState.Never)]
+public abstract class RangeSelectorBase : ComponentBase, IRangeSelector
 {
-    private readonly RangeSelectorHost _host = new();
-
-    [CascadingParameter] private ChartContextBase? Context { get; set; }
-
-    [Inject] private IServiceProvider Services { get; set; } = default!;
-
-    /// <summary>On its own: the items it draws, one point per series for each. Inside a Chart it takes the chart's.</summary>
-    [Parameter] public IEnumerable<TItem>? Items { get; set; }
-
-    /// <summary>On its own: what each item is at along the strip, such as <c>d =&gt; d.Day</c>: dates, numbers or names.</summary>
-    [Parameter] public Expression<Func<TItem, object?>>? Argument { get; set; }
-
-    /// <summary>
-    /// On its own: the range chosen, from one argument to another (null: everything). Inside a
-    /// Chart, set the chart's <c>View</c> instead.
-    /// </summary>
-    [Parameter] public ChartView? View { get; set; }
-
-    /// <summary>On its own, on an interactive page: raised with the range chosen as each drag or key settles (<c>@bind-View</c>).</summary>
-    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
-    public EventCallback<ChartView?> ViewChanged { get; set; }
-
-    /// <summary>On its own: the series it draws, such as <c>&lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;</c>. None draws only the scale.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private protected RangeSelectorBase()
+    {
+    }
 
     /// <summary>Its name for screen readers. "Range in view" by default.</summary>
     [Parameter] public string? Label { get; set; }
@@ -84,47 +54,127 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
     /// Screen readers still hear each handle's value.
     /// </summary>
     [Parameter] public bool HideFlags { get; set; }
+}
 
-    /// <summary>
-    /// On its own: the <see cref="Chart{TItem}.Sync"/> name of the charts it zooms, such as
-    /// <c>Sync="sales"</c>, with no round trip, on a static page too. Inside a Chart, set the chart's.
-    /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
-    public string? Sync { get; set; }
+/// <summary>
+/// A strip under a chart's plot for zooming it: the chart's series drawn small, with a window over
+/// the part in view. Drag the window to pan, its two handles to widen or narrow it, or click the
+/// strip to move there; each handle is a slider for the keyboard.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Chart Items="days" Argument="d =&gt; d.Day" @bind-View="view"&gt;
+///     &lt;ChartLineSeries Value="d =&gt; d.Visits" /&gt;
+///     &lt;ChartRangeSelector Ranges /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
+/// <remarks>
+/// It turns on <see cref="ChartArgumentAxis.Zoom"/>, and the chart's <c>View</c> says what's in
+/// view; to link other charts, set the chart's <c>Sync</c>. For a range selector on its own, such
+/// as dates to filter a table by, use <see cref="RangeSelector{TItem}"/>.
+/// </remarks>
+/// <seealso cref="RangeSelector{TItem}"/>
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
+public sealed class ChartRangeSelector : RangeSelectorBase, IDisposable
+{
+    [CascadingParameter] private ChartContextBase? Context { get; set; }
 
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        if (Context is null) return;
-        if (Items is not null || Argument is not null || View is not null || ViewChanged.HasDelegate || ChildContent is not null || Sync is not null)
+        if (Context is null)
         {
-            throw new InvalidOperationException("Inside a Chart, RangeSelector draws the chart's items and series: leave out Items, Argument, series and Sync, and set the chart's View and Sync.");
+            throw new InvalidOperationException("ChartRangeSelector goes inside a Chart. On its own, use RangeSelector with Items and an Argument.");
         }
 
         Context.Selector = this;
     }
 
     /// <inheritdoc />
+    protected override void OnParametersSet() => Context?.Plot?.Refresh();
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (Context?.Selector == this)
+        {
+            Context.Selector = null;
+            Context.Plot?.Refresh();
+        }
+    }
+}
+
+/// <summary>
+/// A strip for choosing a range, such as dates to filter a table by: the whole range drawn small,
+/// with a window over the part chosen. Drag the window to pan, its two handles to widen or narrow
+/// it, or click the strip to move there; each handle is a slider for the keyboard.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;RangeSelector Items="days" Argument="d =&gt; d.Day" @bind-View="range"&gt;
+///     &lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;
+/// &lt;/RangeSelector&gt;
+/// </code>
+/// </example>
+/// <remarks>
+/// It draws its own <see cref="Items"/> by the series inside it, and <see cref="View"/> is the
+/// range chosen. To zoom charts elsewhere on the page, give their <c>Sync</c> name as
+/// <see cref="Sync"/>. Under a chart's own plot, use <see cref="ChartRangeSelector"/>.
+/// </remarks>
+/// <typeparam name="TItem">The items it draws.</typeparam>
+/// <seealso cref="ChartRangeSelector"/>
+[CascadingTypeParameter(nameof(TItem))]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
+public sealed class RangeSelector<TItem> : RangeSelectorBase
+{
+    private readonly RangeSelectorHost _host = new();
+
+    [CascadingParameter] private ChartContextBase? Context { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    /// <summary>The items it draws, one point per series for each.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>What each item is at along the strip, such as <c>d =&gt; d.Day</c>: dates, numbers or names.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>>? Argument { get; set; }
+
+    /// <summary>The range chosen, from one argument to another (null: everything).</summary>
+    [Parameter] public ChartView? View { get; set; }
+
+    /// <summary>Raised on an interactive page with the range chosen as each drag or key settles (<c>@bind-View</c>).</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<ChartView?> ViewChanged { get; set; }
+
+    /// <summary>The series it draws, such as <c>&lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;</c>. None draws only the scale.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// The <see cref="Chart{TItem}.Sync"/> name of the charts it zooms, such as
+    /// <c>Sync="sales"</c>, with no round trip, on a static page too.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? Sync { get; set; }
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (Context is not null)
         {
-            Context.Plot?.Refresh();
-            return;
+            throw new InvalidOperationException("Inside a Chart, use ChartRangeSelector: it draws the chart's items and series.");
         }
 
         if (Items is null || Argument is null)
         {
-            throw new InvalidOperationException("RangeSelector on its own needs Items and an Argument, such as Argument=\"d => d.Day\" (or put it inside a Chart).");
+            throw new InvalidOperationException("RangeSelector needs Items and an Argument, such as Argument=\"d => d.Day\" (or use ChartRangeSelector inside a Chart).");
         }
     }
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (Context is not null) return;
-
-        // On its own: a Chart of the strip only, its View the range chosen.
+        // A Chart of the strip only, its View the range chosen.
         builder.OpenComponent<CascadingValue<RangeSelectorHost>>(0);
         builder.AddComponentParameter(1, "Value", _host);
         builder.AddComponentParameter(2, "IsFixed", true);
@@ -144,7 +194,7 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
             b.AddComponentParameter(9, nameof(Chart<TItem>.ChildContent), (RenderFragment)(c =>
             {
                 c.AddContent(0, ChildContent);
-                c.OpenComponent<RangeSelector<TItem>>(1);
+                c.OpenComponent<ChartRangeSelector>(1);
                 c.AddComponentParameter(2, nameof(Ranges), Ranges);
                 c.AddComponentParameter(3, nameof(Presets), Presets);
                 c.AddComponentParameter(4, nameof(Height), Height);
@@ -155,15 +205,5 @@ public sealed class RangeSelector<TItem> : ComponentBase, IRangeSelector, IDispo
             b.CloseComponent();
         }));
         builder.CloseComponent();
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        if (Context?.Selector == this)
-        {
-            Context.Selector = null;
-            Context.Plot?.Refresh();
-        }
     }
 }

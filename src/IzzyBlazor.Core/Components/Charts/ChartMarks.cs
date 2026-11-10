@@ -267,7 +267,7 @@ internal abstract class ChartContextBase
 
     public ChartPlot? Plot { get; set; }
 
-    /// <summary>The chart's RangeSelector, if it has one.</summary>
+    /// <summary>The chart's ChartRangeSelector, if it has one.</summary>
     public IRangeSelector? Selector { get; set; }
 
     public virtual void BeginPass()

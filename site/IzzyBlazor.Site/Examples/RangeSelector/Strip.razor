@@ -3,7 +3,7 @@
 <Chart Items="_days" Argument="d => d.Date" Title="Daily high temperature, Chicago, 2023 to 2025" View="_lastQuarter">
     <ChartValueAxis Format="0'°F'" />
     <ChartLineSeries Value="d => d.High" Name="High" />
-    <RangeSelector />
+    <ChartRangeSelector />
 </Chart>
 
 @code {

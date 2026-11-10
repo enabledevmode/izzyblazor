@@ -3,7 +3,7 @@
 <Chart Items="_closes" Argument="c => c.Date" Title="Acme Corp. share price, daily close">
     <ChartValueAxis Format="C2" />
     <ChartLineSeries Value="c => c.Price" Name="Close" />
-    <RangeSelector Ranges />
+    <ChartRangeSelector Ranges />
 </Chart>
 
 @code {
