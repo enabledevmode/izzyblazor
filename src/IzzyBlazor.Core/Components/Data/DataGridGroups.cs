@@ -471,6 +471,22 @@ public partial class DataGrid<TItem>
         return string.Join(",", on ? tokens.Append(column.GroupToken) : tokens);
     }
 
+    // The grouping with this column's level swapped with the one before (-1) or after (+1), or
+    // null at that end: the column menu's Move group earlier and later, a chip's drag without one.
+    private string? GroupTextMoved(ColumnBase<TItem> column, int by)
+    {
+        var levels = Grouping.Levels.ToList();
+        var at = levels.FindIndex(l => l.Column == column);
+        var to = at + by;
+        if (at < 0 || to < 0 || to >= levels.Count)
+        {
+            return null;
+        }
+
+        (levels[at], levels[to]) = (levels[to], levels[at]);
+        return string.Join(",", levels.Select(l => (l.Descending ? "-" : "") + l.Column.GroupToken));
+    }
+
     // A new grouping starts at the first page with nothing open. None at all is an empty value, or
     // InitialGroup would come back.
     private string GroupHref(string text) => LinkWith(new Dictionary<string, object?>

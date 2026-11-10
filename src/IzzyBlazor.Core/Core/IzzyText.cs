@@ -783,6 +783,12 @@ public class IzzyText
     /// <summary>A DataGrid header menu's item that stops grouping by the column.</summary>
     public virtual string GroupRemove { get; set; } = "Stop grouping by this column";
 
+    /// <summary>A DataGrid header menu's item that moves the column's grouping level before the one above it.</summary>
+    public virtual string GroupMoveEarlier { get; set; } = "Move group earlier";
+
+    /// <summary>A DataGrid header menu's item that moves the column's grouping level after the one below it.</summary>
+    public virtual string GroupMoveLater { get; set; } = "Move group later";
+
     /// <summary>The name of what a DataGrid is grouped by, its chips.</summary>
     public virtual string GroupedBy { get; set; } = "Grouped by";
 
@@ -992,6 +998,21 @@ public class IzzyText
 
     /// <summary>A Splitter bar's button that restores a collapsed pane: "Expand Folders". {0} is the pane's label, or empty.</summary>
     public virtual string ExpandPane { get; set; } = "Expand {0}";
+
+    /// <summary>A Splitter bar's menu: makes the bar's pane wider, side by side.</summary>
+    public virtual string PaneWider { get; set; } = "Wider";
+
+    /// <summary>A Splitter bar's menu: makes the bar's pane narrower, side by side.</summary>
+    public virtual string PaneNarrower { get; set; } = "Narrower";
+
+    /// <summary>A Splitter bar's menu: makes the bar's pane taller, stacked.</summary>
+    public virtual string PaneTaller { get; set; } = "Taller";
+
+    /// <summary>A Splitter bar's menu: makes the bar's pane shorter, stacked.</summary>
+    public virtual string PaneShorter { get; set; } = "Shorter";
+
+    /// <summary>A Splitter bar's menu: puts the panes on either side back to their starting sizes.</summary>
+    public virtual string PaneResetSize { get; set; } = "Reset size";
 
     /// <summary>A Carousel's role description, read after its label: "Featured trips, carousel".</summary>
     public virtual string CarouselRole { get; set; } = "carousel";
@@ -1244,6 +1265,12 @@ public class IzzyText
 
     /// <summary>The button that zooms a Chart all the way out.</summary>
     public virtual string ChartResetZoom { get; set; } = "Reset zoom";
+
+    /// <summary>The button that zooms a Chart in, around the middle of what's shown.</summary>
+    public virtual string ChartZoomIn { get; set; } = "Zoom in";
+
+    /// <summary>The button that zooms a Chart out a step.</summary>
+    public virtual string ChartZoomOut { get; set; } = "Zoom out";
 
     /// <summary>A Scheduler's form's title for a new appointment, and its toolbar button's name for screen readers.</summary>
     public virtual string SchedulerNew { get; set; } = "New appointment";

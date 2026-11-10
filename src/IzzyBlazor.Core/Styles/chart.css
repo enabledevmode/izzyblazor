@@ -514,41 +514,39 @@
   /* Marks wholly out of view: the server's, until the script draws another view; then its own. */
   ib-chart:not([data-ib-zargs]) [data-ib-out],
   ib-chart[data-ib-zargs] [data-ib-zout] { display: none; }
-  /* Reset zoom and Pause updates: in the title's row, across from it (at the start when the title
-     is at the end, so they flip with the page's direction too), or in a row of their own with no
-     title shown; Pause at the end, Reset before it. Reset's room is kept, so the chart doesn't
-     move as it shows; hidden, it isn't a Tab stop. */
-  .ib-chart:has(.ib-chart-reset) { --ib-chart-reset-room: 8rem; }
+  /* The tools, Reset zoom, Zoom out, Zoom in and Pause updates: in the title's row, across from it
+     (at the start when the title is at the end, so they flip with the page's direction too), or in
+     a row of their own with no title shown; Pause at the end. Reset's room is kept, so nothing
+     moves as it shows; hidden, it isn't a Tab stop. Zoom's buttons wait for the script. */
+  .ib-chart:has(.ib-chart-reset) { --ib-chart-reset-room: 13rem; }
   .ib-chart:has(.ib-chart-pause) { --ib-chart-pause-room: 2.5rem; }
-  .ib-chart:has(.ib-chart-reset, .ib-chart-pause) {
+  .ib-chart:has(.ib-chart-tools) {
     --ib-chart-tools: calc(var(--ib-chart-reset-room, 0rem) + var(--ib-chart-pause-room, 0rem));
     position: relative;
   }
-  :is(.ib-chart-reset, .ib-chart-pause) {
+  .ib-chart-tools {
     position: absolute;
     z-index: 6;
     inset-block-start: 0;
     inset-inline-end: 0;
-    background-color: var(--ib-color-surface);
-    cursor: pointer;
+    display: flex;
+    gap: 0.5rem;
   }
-  .ib-chart-reset {
-    visibility: hidden;
-    inset-inline-end: var(--ib-chart-pause-room, 0rem);
-  }
+  .ib-chart-tools > .ib-btn { background-color: var(--ib-color-surface); cursor: pointer; }
+  .ib-chart-reset,
+  ib-chart:not(:defined) [data-ib-zoom] { visibility: hidden; }
   ib-chart[data-ib-zoomed] .ib-chart-reset { visibility: visible; }
-  .ib-chart:has(> .ib-chart-label-end) :is(.ib-chart-reset, .ib-chart-pause) { inset-inline-end: auto; inset-inline-start: 0; }
-  .ib-chart:has(> .ib-chart-label-end) .ib-chart-reset { inset-inline-start: var(--ib-chart-pause-room, 0rem); }
-  .ib-chart:has(.ib-chart-reset, .ib-chart-pause) > .ib-chart-label {
+  .ib-chart:has(> .ib-chart-label-end) .ib-chart-tools { inset-inline: 0 auto; flex-direction: row-reverse; }
+  .ib-chart:has(.ib-chart-tools) > .ib-chart-label {
     min-block-size: 2rem;
     align-content: center;
     padding-inline-end: var(--ib-chart-tools);
   }
-  .ib-chart:has(.ib-chart-reset, .ib-chart-pause) > .ib-chart-label-end { padding-inline: var(--ib-chart-tools) 0; }
-  .ib-chart:has(.ib-chart-reset, .ib-chart-pause) > .ib-chart-label-center { padding-inline: var(--ib-chart-tools); }
-  .ib-chart:has(.ib-chart-reset, .ib-chart-pause):not(:has(> .ib-chart-label)) ib-chart { padding-block-start: 2.75rem; }
-  :is(.ib-chart-reset, .ib-chart-pause):hover { background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface)); }
-  :is(.ib-chart-reset, .ib-chart-pause):active { background-color: color-mix(in oklab, var(--ib-accent) 18%, var(--ib-color-surface)); }
+  .ib-chart:has(.ib-chart-tools) > .ib-chart-label-end { padding-inline: var(--ib-chart-tools) 0; }
+  .ib-chart:has(.ib-chart-tools) > .ib-chart-label-center { padding-inline: var(--ib-chart-tools); }
+  .ib-chart:has(.ib-chart-tools):not(:has(> .ib-chart-label)) ib-chart { padding-block-start: 2.75rem; }
+  .ib-chart-tools > .ib-btn:enabled:hover { background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface)); }
+  .ib-chart-tools > .ib-btn:enabled:active { background-color: color-mix(in oklab, var(--ib-accent) 18%, var(--ib-color-surface)); }
   /* Paused, it shows Play. */
   .ib-chart-pause[aria-pressed="true"] .ib-chart-pause-icon,
   .ib-chart-pause:not([aria-pressed="true"]) .ib-chart-play-icon { display: none; }

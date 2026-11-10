@@ -21,7 +21,8 @@ export type GestureHost = {
 /**
  * Zoom's gestures (ChartArgumentAxis Zoom): a drag across the plot draws a box to zoom into,
  * Ctrl (⌘) and the wheel or a trackpad's pinch zoom at the pointer, Shift and the wheel pan; on
- * touch two fingers pinch and pan, and one still scrolls the page.
+ * touch two fingers pinch and pan, and one still scrolls the page. Zoom out and Zoom in, by the
+ * title, do the same around the middle for a pointer that doesn't drag.
  */
 export function gestures(c: GestureHost): void {
   const { el, plot, data, horizontal, signal } = c;
@@ -31,6 +32,30 @@ export function gestures(c: GestureHost): void {
     const r = plot.getBoundingClientRect();
     return horizontal ? (y - r.top) / r.height : (x - r.left) / r.width;
   };
+  // Zoom out and in: out waits until there's something to zoom out of, in stops at the closest.
+  const [out, inn] = el.querySelectorAll<HTMLButtonElement>("[data-ib-zoom]");
+  const can = () => {
+    if (!out) return;
+    out.disabled = !c.isZoomed();
+    inn.disabled = c.view()[1] - c.view()[0] <= (data.zl ?? 0) + 1e-6;
+  };
+  const watch = new MutationObserver(can);
+  watch.observe(el, { attributeFilter: ["data-ib-zoomed"] });
+  signal.addEventListener("abort", () => watch.disconnect());
+  el.addEventListener(
+    "click",
+    (event) => {
+      const b = (event.target as Element).closest<HTMLButtonElement>("[data-ib-zoom]");
+      if (!b) return;
+      c.drop();
+      c.zoomAround((c.view()[0] + c.view()[1]) / 2, Number(b.dataset.ibZoom));
+      can();
+      // A button that turned off hands focus to the other.
+      if (b.disabled) (b === out ? inn : out).focus();
+    },
+    { signal }
+  );
+  can();
   const touches = new Map<number, [number, number]>();
   let pinch: { share: number; span: number; dist: number } | null = null;
   let box: { from: number; x: number; y: number; id: number } | null = null;
@@ -42,7 +67,7 @@ export function gestures(c: GestureHost): void {
   plot.addEventListener(
     "pointerdown",
     (event) => {
-      if ((event.target as Element).closest(".ib-chart-reset")) return;
+      if ((event.target as Element).closest(".ib-chart-tools")) return;
       if (event.pointerType === "touch") {
         touches.set(event.pointerId, [event.clientX, event.clientY]);
         if (touches.size === 2) {

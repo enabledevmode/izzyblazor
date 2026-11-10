@@ -684,19 +684,40 @@
                   data-ib-points="@(model.Series.Any(s => s.Data.IsPoint) ? "" : null)"
                   data-ib-pos="@Positions(model)"
                   data-ib-draw="@(redraw ? DrawData(model, shape!, horizontal, marks) : null)">
-        @if (model.ZoomPositions is not null && SelectorHost is null)
-        {
-            @* Reset zoom, in the title's row across from the title (chart.css); shown while zoomed in. *@
-            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
+        @{
+            var zoomTools = model.ZoomPositions is not null && SelectorHost is null;
+            var pause = IsLive && !HidePause && SelectorHost is null && (Refresh is not null || !StaticPage);
         }
-        @if (IsLive && !HidePause && SelectorHost is null && (Refresh is not null || !StaticPage))
+        @if (zoomTools || pause)
         {
-            @* Pause updates, at the end of the title's row (chart.css); pressed, the chart keeps its drawing. *@
-            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause" data-ib-script
-                    aria-label="@TextDefaults.ChartPauseUpdates" aria-pressed="@(_paused ? "true" : "false")" @onclick="TogglePause">
-                <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
-                <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
-            </button>
+            @* In the title's row across from the title (chart.css). *@
+            <div class="ib-chart-tools">
+                @if (zoomTools)
+                {
+                    @* Reset zoom shows while zoomed in. Zoom out and in are the wheel's, pinch's and
+                       the box's way for a pointer that doesn't drag (chart-gesture.ts); out waits
+                       until there's something to zoom out of. *@
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom="2"
+                            aria-label="@TextDefaults.ChartZoomOut" title="@TextDefaults.ChartZoomOut" aria-keyshortcuts="-"
+                            disabled="@(model.View?.Share is null)">
+                        <Icon Name="Lucide.ZoomOut" />
+                    </button>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom="0.5"
+                            aria-label="@TextDefaults.ChartZoomIn" title="@TextDefaults.ChartZoomIn" aria-keyshortcuts="+">
+                        <Icon Name="Lucide.ZoomIn" />
+                    </button>
+                }
+                @if (pause)
+                {
+                    @* Pause updates, at the end; pressed, the chart keeps its drawing. *@
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause" data-ib-script
+                            aria-label="@TextDefaults.ChartPauseUpdates" aria-pressed="@(_paused ? "true" : "false")" @onclick="TogglePause">
+                        <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
+                        <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
+                    </button>
+                }
+            </div>
         }
         @if (drill is { Depth: > 0 } && !HideBreadcrumb)
         {
