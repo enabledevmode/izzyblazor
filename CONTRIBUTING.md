@@ -49,8 +49,8 @@ npm run build             # assets only, minified
 ```
 
 The dev host (`tests/IzzyBlazor.TestHost`, http://localhost:5180) holds full-page previews. The
-README screenshots come from its `/preview/showcase` page, at 1280×860 with a device
-scale factor of 2, in light and dark. The other full-page previews are `/preview/app-shell`,
+README screenshots are the home page's store dashboard, the docs site's `/frame/home-store?mode=static`,
+at 1280×818 (it ends under the chart) with a device scale factor of 2, in light and dark. The other full-page previews are `/preview/app-shell`,
 `/preview/app-shell-live` (interactive) and `/preview/layout/{kind}` (realistic screens such as
 `settings`, `list` and `dashboard`).
 

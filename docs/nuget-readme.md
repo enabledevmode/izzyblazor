@@ -10,7 +10,7 @@ More than 140 components: layout and app shell, inputs, date and time fields, se
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
-![An orders screen built with IzzyBlazor, featuring sidebar navigation, stat cards, search filters, and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
+![A store's dashboard built with IzzyBlazor: app shell with sidebar navigation, a stock alert, stat cards with sparklines, a stacked bar chart of revenue by channel, and top products with ratings.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
 > **Preview:** `0.1.0-alpha.22`. APIs may change during preview.
 
