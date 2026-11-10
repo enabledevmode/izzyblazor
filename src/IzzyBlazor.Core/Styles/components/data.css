@@ -2893,6 +2893,12 @@
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }
+
+    /* Focus on the current item: outside it, in the text color, so the two tell apart. */
+    .ib-tree :is(.ib-tree-current:focus-visible, :focus-visible > .ib-tree-current) {
+      outline-color: CanvasText;
+      outline-offset: 1px;
+    }
   }
 }
 
