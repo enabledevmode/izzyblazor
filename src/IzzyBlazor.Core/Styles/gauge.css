@@ -208,7 +208,8 @@
     left: var(--p);
     inline-size: 1px;
     block-size: 60%;
-    translate: -50% 0;
+    /* The line and its light edge, 1px each, centered together on the value. */
+    translate: -1px 0;
     background: color-mix(in oklab, var(--ib-color-on-surface) 65%, transparent);
     /* A light edge beside it, so a line shows on the darkest band as on the lightest. */
     box-shadow: 1px 0 color-mix(in oklab, var(--ib-color-surface) 55%, transparent);
@@ -236,7 +237,7 @@
   }
 
   .ib-lgauge-v .ib-lgauge-needle > span { clip-path: polygon(100% 0, 100% 100%, 0.5rem 100%, 0 50%, 0.5rem 0); }
-  .ib-lgauge-v .ib-lgauge-line { inset: auto auto var(--p) 0; inline-size: 60%; block-size: 1px; translate: 0 50%; box-shadow: 0 1px color-mix(in oklab, var(--ib-color-surface) 55%, transparent); }
+  .ib-lgauge-v .ib-lgauge-line { inset: auto auto var(--p) 0; inline-size: 60%; block-size: 1px; translate: none; box-shadow: 0 1px color-mix(in oklab, var(--ib-color-surface) 55%, transparent); }
   .ib-lgauge-v .ib-lgauge-line.ib-lgauge-minor { inline-size: 30%; }
   .ib-lgauge-v.ib-lgauge-flip .ib-lgauge-line { left: auto; right: 0; }
   .ib-lgauge-v.ib-lgauge-inside .ib-lgauge-ticks { block-size: auto; inline-size: calc(var(--ib-lgauge-tw) + 0.25rem); }

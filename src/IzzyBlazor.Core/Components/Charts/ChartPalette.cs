@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// </summary>
 public sealed class ChartPalette
 {
-    private enum Kind { Colors, Shades, Diverging, Of }
+    private enum Kind { Colors, Shades, Tints, Diverging, Of }
 
     private readonly Kind _kind;
     private readonly string[] _colors;
@@ -35,6 +35,15 @@ public sealed class ChartPalette
     /// </summary>
     /// <param name="color">The color, such as <c>Color.Primary</c> or <c>Color.Of("#0f766e")</c>.</param>
     public static ChartPalette Shades(Color color) => new(Kind.Shades, StyleValues.Color(color));
+
+    /// <summary>
+    /// Light tints of one color up to the color itself, for ranges drawn as large areas, such as a
+    /// <see cref="LinearGauge"/>'s bands under a needle: the first is the lightest, the last the full
+    /// color, with no black mixed in, so even the strongest stays the color. Tints mix toward the
+    /// surface, so they follow the color scheme.
+    /// </summary>
+    /// <param name="color">The color, such as <c>Color.Warning</c>.</param>
+    public static ChartPalette Tints(Color color) => new(Kind.Tints, StyleValues.Color(color));
 
     /// <summary>
     /// Two colors that meet at a neutral middle, for series on either side of one, such as answers
@@ -113,6 +122,7 @@ public sealed class ChartPalette
     internal string Color(int i, int n) => _kind switch
     {
         Kind.Shades => Shade(_colors[0], n == 1 ? 0.5 : (double)i / (n - 1)),
+        Kind.Tints => n == 1 ? _colors[0] : Mix(_colors[0], 30 + 70.0 * i / (n - 1), "var(--ib-color-surface)"),
         Kind.Diverging => Diverge(_colors[0], _colors[1], n == 1 ? 0 : -1 + 2.0 * i / (n - 1)),
         Kind.Of => _colors[i % _colors.Length],
         _ => $"var(--ib-chart-{i % 8 + 1})",
