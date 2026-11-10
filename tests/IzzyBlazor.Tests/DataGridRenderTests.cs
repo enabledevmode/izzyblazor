@@ -521,6 +521,31 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("/o.pdf?columns=name", cut.Instance.ExportHref("/o.pdf"));
     }
 
+    [Fact]
+    public void A_format_shown_later_takes_its_written_place_in_the_menu()
+    {
+        RenderFragment Columns(bool showPdf) => b =>
+        {
+            b.AddContent(0, Column(r => r.Name));
+            if (showPdf)
+            {
+                b.OpenComponent<DataGridExportFormat>(1);
+                b.AddComponentParameter(2, nameof(DataGridExportFormat.Label), "Export PDF");
+                b.AddComponentParameter(3, nameof(DataGridExportFormat.Href), "/o.pdf");
+                b.CloseComponent();
+            }
+
+            b.OpenComponent<DataGridExportFormat>(4);
+            b.AddComponentParameter(5, nameof(DataGridExportFormat.Label), "Export JSON");
+            b.AddComponentParameter(6, nameof(DataGridExportFormat.Href), "/o.json");
+            b.CloseComponent();
+        };
+
+        var cut = Grid(Columns(false), p => p.Add(x => x.ExportCsvHref, "/o.csv"));
+        cut.Render(p => p.Add(x => x.Columns, Columns(true)));
+        Assert.Equal(["Export CSV", "Export PDF", "Export JSON"], cut.FindAll(".ib-menu-item[download]").Take(3).Select(l => l.TextContent.Trim()));
+    }
+
     private static RenderFragment Tools(params Action<Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder>[] items) => b =>
     {
         foreach (var item in items)
