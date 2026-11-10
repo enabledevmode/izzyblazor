@@ -7,15 +7,16 @@
 
 <ArticlePage Section="common" Slug="session-recovery">
     <Lead>
-        <TextBlock>
-            An interactive server page lives in a session on the server, which holds it in memory while the tab is open and
-            ends with a lost connection, a restart or a server short of memory: a fresh page, and the user's work gone.
-            Blazor can pause a session instead: it saves the page's state in the browser and frees the server, then
-            resumes from that state, building every component again. What lives in the URL, or in a property you mark
-            <Code>[PersistentState]</Code>, comes back.
-        </TextBlock>
+        An interactive server page lives in a session on the server, which ends with a lost connection, a restart or a
+        server short of memory, and takes the user's work with it. Blazor can pause the session instead and resume it later,
+        bringing back what's in the URL or marked <Code>[PersistentState]</Code>.
     </Lead>
     <ChildContent>
+        <TextBlock>
+            A pause saves the page's state in the browser and frees the server's memory. Resuming starts a new session from
+            that state and builds every component again.
+        </TextBlock>
+
         <Heading Level="2">What comes back</Heading>
         <List Gap="2">
             <ListItem>
