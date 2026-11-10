@@ -63,6 +63,48 @@ export function press(button: Element): void {
     .finally(() => button.removeAttribute("aria-busy"));
 }
 
+/**
+ * A form with charts' PNGs in it (each a file input with data-ib-chart-png, the chart's id) being
+ * sent: each PNG goes in its input, and the form is sent again by the same button. Meanwhile
+ * data-ib-png is "busy" (chart.ts holds further submits); then "ready", for that one submit. A
+ * chart that can't be drawn leaves its input empty, and the form goes anyway.
+ */
+export async function send(form: HTMLFormElement, submitter: HTMLElement | null): Promise<void> {
+  form.dataset.ibPng = "busy";
+  submitter?.setAttribute("aria-busy", "true");
+  for (const input of form.querySelectorAll<HTMLInputElement>("input[type=file][data-ib-chart-png]")) {
+    const figure = document.getElementById(input.dataset.ibChartPng ?? "");
+    if (!figure) continue;
+    try {
+      const url = await chartPng(figure);
+      const text = atob(url.slice(url.indexOf(",") + 1));
+      const bytes = new Uint8Array(text.length);
+      for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
+      const files = new DataTransfer();
+      files.items.add(new File([bytes], `${fileName(figure)}.png`, { type: "image/png" }));
+      input.files = files.files;
+    } catch (error) {
+      console.error("IzzyBlazor: the chart couldn't be drawn for the form.", error);
+    }
+  }
+  submitter?.removeAttribute("aria-busy");
+  if (!form.isConnected) return;
+  // The same button, while it's still the form's (a new render can replace it meanwhile).
+  const by = (submitter instanceof HTMLButtonElement || submitter instanceof HTMLInputElement) && submitter.isConnected && submitter.form === form ? submitter : null;
+  // A file goes only in a multipart form, whatever the form or its button says.
+  const enctype = by?.getAttribute("formenctype");
+  form.enctype = "multipart/form-data";
+  by?.setAttribute("formenctype", "multipart/form-data");
+  form.dataset.ibPng = "ready";
+  try {
+    form.requestSubmit(by);
+  } finally {
+    delete form.dataset.ibPng;
+    if (enctype == null) by?.removeAttribute("formenctype");
+    else by?.setAttribute("formenctype", enctype);
+  }
+}
+
 /** Saves the chart in this figure as "<its title>.png". */
 export async function downloadChart(figure: HTMLElement): Promise<void> {
   const link = document.createElement("a");

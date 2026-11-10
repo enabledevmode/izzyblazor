@@ -1,0 +1,185 @@
+@page "/docs/common/downloads"
+
+@* Downloads: every way IzzyBlazor hands the user a file, in one place. A DataGrid's export links to
+   endpoints you map (DataExport's Excel and CSV writers, DataExport.Read for any other format, a
+   PDF recipe with QuestPDF), a chart's Download (a PNG drawn in the browser, chart-export.ts), a
+   chart's PNG posted in a form for a PDF the server builds, and printing. The PDF endpoint was
+   under Data from an API's "Export files" until Nov 10, 2026. *@
+
+<ArticlePage Section="common" Slug="downloads">
+    <Lead>
+        Endpoints you map serve a grid's rows as Excel, CSV or PDF, and the browser saves a chart as a PNG. To put a chart
+        in a PDF, send its picture to your server in a form.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">A grid's rows</Heading>
+        <TextBlock>
+            <Code>ExportExcelHref</Code> and <Code>ExportCsvHref</Code> put an Export button on a DataGrid that links to an
+            endpoint you map. The link carries the grid's <Code>filter</Code>, <Code>sort</Code>, <Code>search</Code> and
+            <Code>columns</Code>, and <Code>DataExport.WriteExcelAsync</Code> and <Code>WriteCsvAsync</Code> write those rows,
+            streamed as they're read:
+        </TextBlock>
+        <Code Block Language="csharp" Title="Program.cs (server)">@Excel</Code>
+        <List Gap="2">
+            <ListItem>The file has the rows the user sees, in every page, with the columns shown in their order.</ListItem>
+            <ListItem>It's a link, so it works on static pages and with JavaScript off.</ListItem>
+            <ListItem>
+                The fields you give <Code>DataExport</Code> decide what can be written, whatever the URL asks for. See
+                <Anchor Href="docs/components/data-grid/export">DataGrid export</Anchor>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Other formats</Heading>
+        <TextBlock>
+            For a format the library doesn't write, <Code>DataExport.Read</Code> gives the columns and rows the Excel and CSV
+            writers would get, and you write the file. This PDF endpoint uses
+            <Anchor Href="https://www.questpdf.com" External>QuestPDF</Anchor>; any PDF library works the same way, and the
+            grid lists it with <Code>&lt;DataGridExportFormat Label="Export PDF" Href="/orders/export.pdf" /&gt;</Code>.
+        </TextBlock>
+        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="10,11">@Pdf</Code>
+        <List Gap="2">
+            <ListItem>A PDF is laid out whole, so this one reads every row first. Cap the rows, as above, where a filter can match millions.</ListItem>
+            <ListItem>
+                The query runs when the rows are read. An endpoint that streams the file, as CSV does, reads the first row
+                before it starts the response, so a query that fails can still answer with an error.
+            </ListItem>
+            <ListItem>Each column's <Code>Key</Code> names it in a keyed format such as JSON, and its <Code>Text</Code> writes a value as CSV does.</ListItem>
+            <ListItem>QuestPDF is free under its Community license for organizations below $1M in revenue, and paid above it.</ListItem>
+            <ListItem>
+                For rows read by <Code>DynamicColumn</Code>, build the fields with <Code>DataFields.ByName</Code>, by the same
+                names and types, so the keys and values match the grid's:
+                <Code>DataFields.ByName&lt;IDictionary&lt;string, object?&gt;&gt;("Margin %", typeof(double))</Code>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">A chart's picture</Heading>
+        <TextBlock>
+            <Code>Download</Code> puts a button by a chart's title that saves it as a PNG named after the title. A button of
+            your own does the same with <Code>data-ib-chart-download</Code> set to the chart's <Code>id</Code>:
+        </TextBlock>
+        <Code Block Language="razor">@ChartButtons</Code>
+        <TextBlock>
+            The browser draws the picture, at twice the chart's size on screen and in the color scheme the page is in. It works
+            on static pages too, and with JavaScript off there's no picture. See
+            <Anchor Href="docs/components/chart/download">Chart download</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">A chart in a PDF</Heading>
+        <TextBlock>
+            To put a chart in a PDF your server builds, send its picture in a form. A file input with
+            <Code>data-ib-chart-png</Code> set to the chart's <Code>id</Code> gets the chart's PNG as the form is sent, and
+            the endpoint reads it like any uploaded file:
+        </TextBlock>
+        <Code Block Language="razor" Title="Revenue.razor" HighlightLines="3">@ChartForm</Code>
+        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="3,16">@ChartPdf</Code>
+        <List Gap="2">
+            <ListItem>The form is sent as <Code>multipart/form-data</Code>, which a file needs, whatever its <Code>enctype</Code> says.</ListItem>
+            <ListItem>The form's other fields go with it, such as a date range or a note for the report. For several charts, add an input for each.</ListItem>
+            <ListItem>Leave out <Code>data-enhance</Code>: the answer is a file, not a page.</ListItem>
+            <ListItem>With JavaScript off, or a chart that couldn't be drawn, the input is empty and the endpoint gets no file. This one answers with an error; it could build the PDF without the chart.</ListItem>
+        </List>
+
+        <Heading Level="2">Printing</Heading>
+        <TextBlock>
+            The browser's Print prints the page, and its Save as PDF makes a PDF with no code on the server. Charts and tables
+            print as they show.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Excel = """
+        app.MapGet("/orders/export.xlsx", (HttpContext context, ShopDb db) => Results.Stream(
+            stream => DataExport.WriteExcelAsync(stream, db.Orders.AsNoTracking(), context.Request.QueryString.Value,
+                DataFields.Of<Order>(), "Orders", cancellationToken: context.RequestAborted),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"));
+        """;
+
+    private const string Pdf = """
+        using QuestPDF.Fluent;
+        using QuestPDF.Infrastructure;
+
+        QuestPDF.Settings.License = LicenseType.Community;
+
+        app.MapGet("/orders/export.pdf", async (HttpContext context, ShopDb db) =>
+        {
+            var orders = db.Orders.AsNoTracking()
+                .Select(o => new OrderRow { Id = o.Id, Customer = o.Customer.Name, Total = o.Total });
+            var export = DataExport.Read(orders, context.Request.QueryString.Value,
+                DataFields.Of<OrderRow>(), context.RequestAborted);
+            var rows = new List<object?[]>();
+            await foreach (var row in export.Rows)
+            {
+                if (rows.Count == 5_000)
+                {
+                    return Results.Problem("Narrow the filter: a PDF holds at most 5,000 orders.", statusCode: 413);
+                }
+
+                rows.Add(row);
+            }
+
+            var pdf = Document.Create(document => document.Page(page =>
+            {
+                page.Margin(36);
+                page.Content().Table(table =>
+                {
+                    table.ColumnsDefinition(columns => export.Columns.ToList().ForEach(_ => columns.RelativeColumn()));
+                    table.Header(header => export.Columns.ToList().ForEach(c => header.Cell().Text(c.Caption).Bold()));
+                    foreach (var row in rows)
+                    {
+                        for (var i = 0; i < row.Length; i++)
+                        {
+                            table.Cell().PaddingVertical(2).Text(export.Columns[i].Text(row[i]));
+                        }
+                    }
+                });
+            })).GeneratePdf();
+            return Results.File(pdf, "application/pdf", "orders.pdf");
+        });
+        """;
+
+    private const string ChartButtons = """
+        <Chart Items="quarters" Argument="q => q.Quarter" Title="Revenue by region, 2026" Download>
+            ...
+        </Chart>
+
+        <Button StartIcon="Lucide.Download" data-ib-chart-download="signups">Download</Button>
+        <Chart id="signups" Items="days" Argument="d => d.Day" Title="New signups, last 7 days">
+            ...
+        </Chart>
+        """;
+
+    private const string ChartForm = """
+        <form method="post" action="/reports/revenue.pdf">
+            <AntiforgeryToken />
+            <input type="file" name="chart" data-ib-chart-png="revenue" hidden />
+            <Button Submit StartIcon="Lucide.FileDown">Download PDF</Button>
+        </form>
+
+        <Chart id="revenue" Items="quarters" Argument="q => q.Quarter" Title="Revenue by region, 2026">
+            ...
+        </Chart>
+        """;
+
+    private const string ChartPdf = """
+        using QuestPDF.Fluent;
+
+        app.MapPost("/reports/revenue.pdf", async (IFormFile? chart) =>
+        {
+            if (chart is null)
+            {
+                return Results.BadRequest("The chart's picture didn't come with the form.");
+            }
+
+            using var image = new MemoryStream();
+            await chart.CopyToAsync(image);
+            var pdf = Document.Create(document => document.Page(page =>
+            {
+                page.Margin(36);
+                page.Header().Text("Revenue report, 2026").FontSize(18).Bold();
+                page.Content().PaddingTop(12).Image(image.ToArray());
+            })).GeneratePdf();
+            return Results.File(pdf, "application/pdf", "revenue.pdf");
+        });
+        """;
+}

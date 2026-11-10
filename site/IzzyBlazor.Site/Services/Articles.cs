@@ -47,6 +47,8 @@ public static class Articles
                 "Load a Table or DataGrid's rows from a provider or EF Core, and build filters in code with the operators each type allows."),
             new("data-api", "Data from an API", "Server",
                 "Send a provider's request from the browser to your own API or an OData endpoint, and limit what the server applies."),
+            new("downloads", "Downloads", "Download",
+                "Export a grid's rows as Excel, CSV or PDF, save a chart as a PNG, and put a chart in a PDF your server builds."),
             new("text", "Text and other languages", "Languages",
                 "The words components use, changed app-wide or per component, in one language or several."),
         ]),

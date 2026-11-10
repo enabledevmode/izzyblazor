@@ -874,10 +874,27 @@ class Chart extends IzzyElement {
 }
 
 // Chart Download: a press on a download button (data-ib-chart-download) loads chart-export.ts,
-// which saves the chart. Here, not in the main module: every chart has an <ib-chart>.
+// which saves the chart; so does a form with a chart's PNG in it (data-ib-chart-png) being sent,
+// held until the PNG is in (before Blazor's enhanced forms see it). Here, not in the main module:
+// every chart has an <ib-chart>.
+const exporter = () => import("./parts/chart-export.js" as string) as Promise<typeof import("./chart-export")>;
 document.addEventListener("click", (event) => {
   const button = (event.target as Element).closest?.("[data-ib-chart-download]");
-  if (button) (import("./parts/chart-export.js" as string) as Promise<{ press: (button: Element) => void }>).then((m) => m.press(button));
+  if (button) exporter().then((m) => m.press(button));
 });
+document.addEventListener(
+  "submit",
+  (event) => {
+    // Only a form that posts: an interactive EditForm's submit stays Blazor's.
+    const form = event.target as HTMLFormElement;
+    const submitter = (event as SubmitEvent).submitter;
+    if (form.method == "post" && form.dataset.ibPng != "ready" && form.querySelector("[data-ib-chart-png]")) {
+      event.preventDefault();
+      // The code can't load: the form goes without the PNG.
+      if (!form.dataset.ibPng) exporter().then((m) => m.send(form, submitter), () => (form.dataset.ibPng = "ready") && form.requestSubmit());
+    }
+  },
+  true
+);
 
 defineElement("ib-chart", Chart);
