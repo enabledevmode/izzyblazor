@@ -2,7 +2,7 @@
 
 **Blazor components. No circuit required.**
 
-IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static SSR. Components render as HTML on the server, gain browser behavior through lightweight custom elements, and support C# bindings and events when you choose an interactive render mode.
+IzzyBlazor is a component library for .NET 10 and .NET 11 Blazor Web Apps, built for static SSR. Components render as HTML on the server, gain browser behavior through lightweight custom elements, and support C# bindings and events when you choose an interactive render mode.
 
 Build forms, data grids, charts, scheduling, dialogs, and complete app layouts without requiring a SignalR circuit or WebAssembly runtime for static pages.
 
