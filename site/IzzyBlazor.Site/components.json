@@ -2384,6 +2384,21 @@
       ]
     },
     {
+      "id": "bullet-chart", "icon": "ChartBarBig", "name": "BulletChart", "title": "Bullet chart", "category": "Charts", "summary": "Shows measures against their targets and ranges, a row each, such as a KPI scorecard.", "parts": ["GaugeBand"], "keywords": ["bullet graph", "KPI", "scorecard", "target", "quota", "actual vs target"],
+      "features": [
+        { "feature": "A bar against a target tick, over ranges in grays (Stephen Few's bullet graph)" },
+        { "feature": "A scale per row, for measures in different units, or one shared scale and axis" },
+        { "feature": "Ranges per row, or bands every row shares, colored by a palette" },
+        { "feature": "Rows across, or standing up as columns" },
+        { "feature": "Each row read as a meter, with its value, target and range in words" }
+      ],
+      "examples": [
+        { "id": "bullet-chart-usage", "title": "A KPI scorecard", "lead": "Give `BulletChart` the `Items`, each row's `Label`, `Value` and `Target`. `Max` gives each row a scale of its own, so measures of different sizes sit together, and `Format` gives each its unit.", "after": ["`Ranges` gives each row the ends of its ranges but the last, which runs to the row's max; `RangeLabels` names them, in the tooltip, the table and to screen readers. Ranges are grays, darkest first: the bar stays the strongest mark.", "Each row is a meter, read as \"275K, target 250K, Good\". With the script, the rows are one Tab stop and the arrow keys move between them."] },
+        { "id": "bullet-chart-bands", "title": "Shared bands", "lead": "For the same ranges on every row, write `GaugeBand`s inside the chart. Without `Max`, the rows share one scale, from `Min` to past the largest value, and one axis under them.", "after": ["`Palette` colors the ranges in order, here green, amber and red; a band's own `Accent` takes the place of its color.", "A scale that doesn't start at zero (`Min`) draws each value as a dot, since a bar's length would no longer be the value."] },
+        { "id": "bullet-chart-vertical", "title": "Standing up", "lead": "To stand the rows up as columns, labels above, set `Orientation=\"Orientation.Vertical\"`. The left and right arrow keys move between columns." }
+      ]
+    },
+    {
       "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows the stages of a process that people drop out of, such as sign-ups, as a funnel, or levels of a hierarchy as a pyramid.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
       "features": [
         { "feature": "A funnel, each stage as wide as its value and sloping to the next" },

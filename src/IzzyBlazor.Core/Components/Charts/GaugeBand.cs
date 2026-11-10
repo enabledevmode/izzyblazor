@@ -8,7 +8,8 @@ namespace IzzyBlazor;
 /// <c>&lt;GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" /&gt;</c>.
 /// It's drawn as a thin arc along the dial's outer edge, in its <see cref="Accent"/> or the
 /// gauge's palette color for its place; a value inside it fills in that color (not in a gray), and
-/// its <see cref="Label"/> shows under the value.
+/// its <see cref="Label"/> shows under the value. In a <see cref="BulletChart{TItem}"/>, a range
+/// every row shares.
 /// </summary>
 public sealed class GaugeBand : ComponentBase, IDisposable
 {
@@ -37,7 +38,7 @@ public sealed class GaugeBand : ComponentBase, IDisposable
     {
         if (Context is null)
         {
-            throw new InvalidOperationException("GaugeBand must be inside a Gauge.");
+            throw new InvalidOperationException("GaugeBand must be inside a Gauge or a BulletChart.");
         }
 
         Context.Bands.Add(this);
@@ -70,7 +71,7 @@ public sealed class GaugeBand : ComponentBase, IDisposable
     }
 }
 
-/// <summary>What a <see cref="Gauge"/> shares with its bands.</summary>
+/// <summary>What a <see cref="Gauge"/> or <see cref="BulletChart{TItem}"/> shares with its bands.</summary>
 internal sealed class GaugeContext
 {
     public ChildOrder<GaugeBand> Bands { get; } = new();

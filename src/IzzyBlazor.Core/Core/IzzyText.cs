@@ -1473,6 +1473,18 @@ public class IzzyText
     /// <summary>A Gauge's target, read after its value: "target {0}".</summary>
     public virtual string GaugeTarget { get; set; } = "target {0}";
 
+    /// <summary>A BulletChart's tooltip and data table: the heading over a row's target, when Target isn't a property.</summary>
+    public virtual string BulletTarget { get; set; } = "Target";
+
+    /// <summary>A BulletChart's data table: the heading over the range each value is in.</summary>
+    public virtual string BulletRange { get; set; } = "Range";
+
+    /// <summary>A BulletChart's keyboard hint, rows across.</summary>
+    public virtual string BulletKeys { get; set; } = "Up and down arrow keys move between rows; Escape hides the tooltip.";
+
+    /// <summary>A vertical BulletChart's keyboard hint, rows standing as columns.</summary>
+    public virtual string BulletKeysAcross { get; set; } = "Left and right arrow keys move between columns; Escape hides the tooltip.";
+
     /// <summary>A waterfall chart's legend: the key for bars that add to the running total.</summary>
     public virtual string ChartIncrease { get; set; } = "Increase";
 

@@ -1,0 +1,187 @@
+/*
+ * BulletChart's styles, built to wwwroot/bullet.css and linked by it beside chart.css (whose
+ * figure, title, tooltip and data table it uses).
+ *
+ * Rows across: a grid of two columns, the labels (as wide as the widest, so the tracks line up)
+ * and the tracks; each row is a subgrid of it, and a shared scale's axis sits under the tracks.
+ * Standing up (.ib-bullet-v): the same turned, labels above columns of equal width, the axis at the
+ * start. Marks are placed by --p (where they start, in percent of the scale) and --l (how long).
+ * Few's look: the bar a third of the track's thickness, the target a tick across it longer than
+ * the bar is thick, ranges with no border, thin ticks outside.
+ */
+
+@layer izzy.components {
+  .ib-bullet {
+    --ib-bullet-size: 1.5rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: var(--ib-space-3);
+    /* Room for the last tick's number, centered on the scale's end. */
+    padding-inline-end: var(--ib-space-4);
+    container-type: inline-size;
+    font-size: var(--ib-chart-tick-size, var(--ib-text-xs));
+  }
+
+  .ib-bullet-rows {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    row-gap: var(--ib-space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ib-bullet-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: start;
+  }
+
+  .ib-bullet-label {
+    min-height: var(--ib-bullet-size);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    color: var(--ib-color-on-surface);
+    text-align: end;
+  }
+
+  .ib-bullet-meter { min-width: 0; outline: none; }
+
+  .ib-bullet-meter:focus-visible .ib-bullet-track {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-bullet-track {
+    position: relative;
+    block-size: var(--ib-bullet-size);
+    background: color-mix(in oklab, var(--ib-color-on-surface) 6%, var(--ib-color-surface));
+  }
+
+  .ib-bullet-row[data-ib-active] .ib-bullet-track { box-shadow: 0 0 0 1px var(--ib-color-on-surface); }
+
+  :is(.ib-bullet-range, .ib-bullet-bar, .ib-bullet-target, .ib-bullet-dot) { position: absolute; }
+
+  .ib-bullet-range {
+    inset-block: 0;
+    inset-inline-start: var(--p);
+    inline-size: var(--l);
+  }
+
+  .ib-bullet-bar {
+    inset-block: calc(var(--ib-bullet-size) / 3);
+    inset-inline-start: 0;
+    inline-size: var(--l);
+    background: var(--ib-bullet-color, var(--ib-color-on-surface));
+  }
+
+  .ib-bullet-dot {
+    inset-block-start: 50%;
+    inset-inline-start: var(--p);
+    inline-size: calc(var(--ib-bullet-size) / 2.5);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    translate: -50% -50%;
+    background: var(--ib-bullet-color, var(--ib-color-on-surface));
+  }
+
+  .ib-bullet-dot:dir(rtl) { translate: 50% -50%; }
+
+  .ib-bullet-target {
+    inset-block: calc(var(--ib-bullet-size) / 6);
+    inset-inline-start: var(--p);
+    inline-size: 3px;
+    margin-inline-start: -1.5px;
+    background: var(--ib-color-on-surface);
+  }
+
+  /* Ticks: a short line at each, its number centered under it. A tick is a zero-width box, so its
+     number centers on it in either direction. Every other number gives way on a narrow chart. */
+  .ib-bullet-ticks {
+    position: relative;
+    block-size: calc(0.25rem + 1lh);
+    color: var(--ib-color-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ib-bullet-tick {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--p);
+    inline-size: 0;
+    border-inline-start: 1px solid var(--ib-color-muted);
+    block-size: 0.25rem;
+  }
+
+  .ib-bullet-tick > span {
+    position: absolute;
+    top: 0.25rem;
+    left: 0;
+    translate: -50% 0;
+  }
+
+  .ib-bullet-axis { grid-column: 2; }
+  .ib-bullet-axis .ib-bullet-ticks { margin-block-start: var(--ib-space-1); }
+
+  @container (width < 24rem) {
+    .ib-bullet-odd > span { display: none; }
+  }
+
+  /* Standing up: labels above, columns side by side, bars growing from the bottom; ticks beside
+     the track at its start. */
+  .ib-bullet-v {
+    --ib-bullet-length: 14rem;
+    padding-inline-end: 0;
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: auto var(--ib-bullet-length);
+  }
+
+  .ib-bullet-v .ib-bullet-rows {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    grid-template-columns: none;
+    grid-template-rows: subgrid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    column-gap: var(--ib-space-3);
+  }
+
+  .ib-bullet-v .ib-bullet-row {
+    grid-column: auto;
+    grid-row: 1 / -1;
+    grid-template-columns: none;
+    grid-template-rows: subgrid;
+    justify-items: center;
+    row-gap: var(--ib-space-2);
+  }
+
+  .ib-bullet-v .ib-bullet-label { min-height: 0; align-items: flex-end; justify-content: center; text-align: center; }
+  .ib-bullet-v .ib-bullet-meter { display: flex; block-size: 100%; }
+  .ib-bullet-v .ib-bullet-track { block-size: 100%; inline-size: var(--ib-bullet-size); order: 2; }
+  .ib-bullet-v .ib-bullet-range { inset: auto 0 var(--p) 0; block-size: var(--l); inline-size: auto; }
+  .ib-bullet-v .ib-bullet-bar { inset: auto calc(var(--ib-bullet-size) / 3) 0; block-size: var(--l); inline-size: auto; }
+  .ib-bullet-v .ib-bullet-dot { inset: auto auto var(--p) 50%; translate: -50% 50%; }
+  .ib-bullet-v .ib-bullet-target { inset: auto calc(var(--ib-bullet-size) / 6) var(--p); block-size: 3px; inline-size: auto; margin: 0 0 -1.5px; }
+
+  .ib-bullet-v .ib-bullet-ticks { block-size: 100%; inline-size: auto; min-inline-size: 1.5rem; margin-inline-end: var(--ib-space-1); order: 1; }
+  .ib-bullet-v .ib-bullet-tick { inset: auto 0 var(--p) auto; inline-size: 0.25rem; block-size: 0; border-inline-start: 0; border-block-start: 1px solid var(--ib-color-muted); }
+  .ib-bullet-v .ib-bullet-tick > span { top: 0; left: auto; right: calc(100% + 0.25rem); translate: 0 -50%; }
+  .ib-bullet-v .ib-bullet-axis { grid-column: 1; grid-row: 2; }
+  .ib-bullet-v .ib-bullet-axis .ib-bullet-ticks { margin: 0; }
+
+  @media (forced-colors: active) {
+    .ib-bullet-track { forced-color-adjust: none; }
+    :is(.ib-bullet-bar, .ib-bullet-dot, .ib-bullet-target) { background: CanvasText; }
+  }
+
+  @media print {
+    .ib-bullet-chart { print-color-adjust: exact; }
+  }
+}
