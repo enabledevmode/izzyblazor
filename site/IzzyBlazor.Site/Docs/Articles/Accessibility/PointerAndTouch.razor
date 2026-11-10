@@ -5,7 +5,7 @@
 
 <ArticlePage Section="accessibility" Slug="pointer-and-touch">
     <Lead>
-        Targets are at least 24 by 24 pixels, or have room around them, as WCAG 2.2 asks; the two exceptions are listed
+        Targets are at least 24 by 24 pixels, or have room around them, as WCAG 2.2 asks; the one exception is listed
         below. Most drags can also be done with single clicks, through a button or a menu.
     </Lead>
     <ChildContent>
@@ -16,10 +16,9 @@
             their small look but take clicks from a 24-pixel area around them.
         </TextBlock>
         <TextBlock>
-            Two controls fall short of 24 pixels and rely on another way to do the same thing: the stacked step buttons of a
-            <Anchor Href="docs/components/number-field">NumberField</Anchor> (type the number, or set
-            <Code>StepButtons="StepButtons.Split"</Code>), and appointments in the
-            <Anchor Href="docs/components/scheduler">Scheduler</Anchor>'s month view (open the day).
+            One control falls short of 24 pixels and relies on another way to do the same thing: the stacked step buttons of a
+            <Anchor Href="docs/components/number-field">NumberField</Anchor>. Type the number instead, or set
+            <Code>StepButtons="StepButtons.Split"</Code> for full-height buttons on each side.
         </TextBlock>
 
         <Heading Level="2">A way around every drag</Heading>

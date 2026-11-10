@@ -28,7 +28,7 @@
   .ib-sched {
     --ib-sched-color: var(--ib-chart-1);
     --ib-sched-hour: 5rem;
-    --ib-sched-lane: 1.5rem;
+    --ib-sched-lane: 1.625rem;
     /* Room at a day's end beside its appointments, to click for a new one. */
     --ib-sched-gap: 0.75rem;
     display: flex;
