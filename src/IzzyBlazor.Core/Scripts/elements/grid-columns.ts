@@ -46,6 +46,12 @@ class GridColumns extends IzzyElement {
       const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
       if (chip && event.button === 0 && event.pointerType !== "touch" && !(event.target as Element).closest("a, button")) this.#dragChip(event, chip, signal);
     }, { signal });
+    // Or by Alt+Left and Alt+Right on its remove control, the one part of it that takes focus.
+    host.addEventListener("keydown", (event) => this.#onChipKey(event), { signal });
+    host.addEventListener("focusin", (event) => {
+      const control = (event.target as Element).closest?.(".ib-grid-group-chip a, .ib-grid-group-chip button");
+      if (this.#mine(control) && this.#chips.length > 1) control!.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
+    }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
     table.addEventListener("pointerdown", (event) => this.#onPointerDown(event, signal), { signal });
     table.addEventListener("dblclick", (event) => this.#onDoubleClick(event), { signal });
@@ -589,6 +595,34 @@ class GridColumns extends IzzyElement {
     const blazor = (window as unknown as { Blazor?: { navigateTo?: (url: string) => void } }).Blazor;
     if (blazor?.navigateTo) blazor.navigateTo(href);
     else location.assign(href);
+  }
+
+  // Alt+Left or Alt+Right moves a grouping level one place, then focus follows its chip into the
+  // new render (a navigation's merge, or Blazor's).
+  #onChipKey(event: KeyboardEvent): void {
+    if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
+    if (!chip) return;
+    // Alt+Left is the browser's Back, even at the end of the row.
+    event.preventDefault();
+    if (event.repeat) return;
+    const tokens = this.#tokens();
+    const from = this.#chips.indexOf(chip);
+    const rtl = getComputedStyle(chip).direction === "rtl";
+    const to = from + ((event.key === "ArrowRight") !== rtl ? 1 : -1);
+    if (to < 0 || to >= tokens.length) return;
+    const token = tokens[from];
+    [tokens[from], tokens[to]] = [tokens[to], token];
+    const watch = new MutationObserver(() => {
+      const moved = this.#chips.find((c) => c.dataset.ibGroupToken === token);
+      if (!moved || this.#chips.indexOf(moved) !== to) return;
+      watch.disconnect();
+      moved.querySelector<HTMLElement>("a, button")?.focus();
+    });
+    watch.observe(this.#host!, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-group-token"] });
+    // Not tied to the signal: a navigation's merge reconnects this element before the chips move.
+    setTimeout(() => watch.disconnect(), 5000);
+    this.#group(tokens);
   }
 
   // Dragging a chip among the others changes which level comes first.

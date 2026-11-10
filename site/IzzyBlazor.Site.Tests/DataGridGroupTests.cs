@@ -32,4 +32,20 @@ public sealed class DataGridGroupTests(SiteFixture site) : IClassFixture<SiteFix
         await page.Locator($"{Grid} >> tr.ib-grid-group[aria-expanded=true]").WaitForAsync(new() { State = WaitForSelectorState.Detached });
         Assert.Equal(0, await rows.CountAsync());
     }
+
+    // Dragging is the only other way to change which level comes first.
+    [Fact]
+    public async Task Alt_and_an_arrow_move_a_grouping_level()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/grouping?mode=static&grouped-group=status,customer").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var remove = page.Locator(Grid).GetByRole(AriaRole.Link, new() { Name = "Remove Status" });
+        await remove.FocusAsync();
+
+        await page.Keyboard.PressAsync("Alt+ArrowRight");
+        await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('grouped-group') === 'customer,status'");
+        await Assertions.Expect(page.Locator($"{Grid} >> .ib-grid-group-chip")).ToHaveTextAsync(["Customer", "Status"]);
+        await Assertions.Expect(page.Locator(Grid).GetByRole(AriaRole.Link, new() { Name = "Remove Status" })).ToBeFocusedAsync();
+    }
 }
