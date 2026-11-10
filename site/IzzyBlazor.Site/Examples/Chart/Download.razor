@@ -1,0 +1,19 @@
+@* Quarterly revenue by region, with a button by the title that saves the chart as a PNG. *@
+<Chart Items="_quarters" Argument="q => q.Quarter" Title="Revenue by region, 2026" Download>
+    <ChartValueAxis Format="$#,##0,K" />
+    <ChartBarSeries Value="q => q.Americas" Name="Americas" />
+    <ChartBarSeries Value="q => q.Europe" Name="Europe" />
+    <ChartBarSeries Value="q => q.AsiaPacific" Name="Asia Pacific" />
+</Chart>
+
+@code {
+    private record QuarterRevenue(string Quarter, int Americas, int Europe, int AsiaPacific);
+
+    private readonly QuarterRevenue[] _quarters =
+    [
+        new("Q1", 412_000, 268_000, 154_000),
+        new("Q2", 438_000, 281_000, 171_000),
+        new("Q3", 425_000, 297_000, 189_000),
+        new("Q4", 476_000, 322_000, 214_000),
+    ];
+}

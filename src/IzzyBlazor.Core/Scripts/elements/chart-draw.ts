@@ -638,6 +638,34 @@ export interface ZoomArgs {
 }
 
 /**
+ * Zoomed to another view than the server's: the argument marks (lines, bands, notes) placed in it,
+ * hidden out of view, a band cut at an end. chart.ts clears them first.
+ */
+export function placeMarks(plot: HTMLElement, placeOf: (share: number) => number, horizontal: boolean): void {
+  for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-za]")) {
+    const [zp, zq] = mark.dataset.ibZa!.split(" ").map(Number);
+    const out = (p: number) => p < -1e-9 || p > 1 + 1e-9;
+    if (mark.classList.contains("ib-chart-note")) {
+      const at = placeOf(zp);
+      mark.toggleAttribute("data-ib-zout", out(at));
+      mark.style.setProperty("--jn", String(horizontal ? 1 - at : at));
+      continue;
+    }
+    let [p, q] = [placeOf(zp), placeOf(zq)];
+    if (p > q) [p, q] = [q, p];
+    // Out of view, a mark is hidden; a band across an end is cut there.
+    const band = mark.classList.contains("ib-chart-band");
+    mark.toggleAttribute("data-ib-zout", band ? q <= 0 || p >= 1 : out(p));
+    if (band) {
+      [p, q] = [Math.max(0, p), Math.min(1, q)];
+      if (horizontal) [p, q] = [1 - q, 1 - p];
+      mark.style.setProperty("--jp", String(p));
+      mark.style.setProperty("--jq", String(q));
+    } else mark.style.setProperty("--jp", String(horizontal ? 1 - p : p));
+  }
+}
+
+/**
  * The argument labels for a view, from the server's tier for about this zoom (laid out for a plot
  * that much wider, so the right ones show at each width), or down the side of a horizontal chart
  * the names in view, thinned by the plot's height. The first label in view takes its second line.

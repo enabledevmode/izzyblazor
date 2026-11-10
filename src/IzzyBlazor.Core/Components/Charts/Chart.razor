@@ -222,6 +222,12 @@
     [Parameter] public bool HidePause { get; set; }
 
     /// <summary>
+    /// Shows a button across from the title that saves the chart as a PNG, named after its title,
+    /// in the color scheme on screen. With JavaScript off there's no button.
+    /// </summary>
+    [Parameter] public bool Download { get; set; }
+
+    /// <summary>
     /// With <see cref="ChartDrillLevel{TItem}"/>s: the name of the page address's query value that
     /// holds the level drilled into, such as <c>?drill=2025&amp;drill=Mar</c>. "drill" by default;
     /// give each chart that drills on a page its own.
@@ -688,7 +694,7 @@
             var zoomTools = model.ZoomPositions is not null && SelectorHost is null;
             var pause = IsLive && !HidePause && SelectorHost is null && (Refresh is not null || !StaticPage);
         }
-        @if (zoomTools || pause)
+        @if (zoomTools || pause || Download)
         {
             @* In the title's row across from the title (chart.css). *@
             <div class="ib-chart-tools">
@@ -716,6 +722,10 @@
                         <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
                         <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />
                     </button>
+                }
+                @if (Download)
+                {
+                    @ChartDownload.Button(TextDefaults)
                 }
             </div>
         }

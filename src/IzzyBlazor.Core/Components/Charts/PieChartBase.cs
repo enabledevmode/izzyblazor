@@ -30,6 +30,12 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     [Parameter] public bool HideTitle { get; set; }
 
     /// <summary>
+    /// Shows a button across from the title that saves the chart as a PNG, named after its title,
+    /// in the color scheme on screen. With JavaScript off there's no button.
+    /// </summary>
+    [Parameter] public bool Download { get; set; }
+
+    /// <summary>
     /// Where the title sits: at the start, over the chart's first label, by default (the left, in
     /// a left-to-right page); <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
     /// </summary>

@@ -48,6 +48,12 @@
         @ChildContent
         @_plotFragment
     </CascadingValue>
+    @if (Download)
+    {
+        @* Download, across from the title (chart.css): last, so the title's neighbor rules
+           (label + legend, label + rings) still meet. *@
+        @ChartDownload.Tools(TextDefaults)
+    }
 </figure>
 
 @code {
@@ -114,6 +120,12 @@
 
     /// <summary>Hides the title, which still names the chart for screen readers.</summary>
     [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Shows a button across from the title that saves the chart as a PNG, named after its title,
+    /// in the color scheme on screen. With JavaScript off there's no button.
+    /// </summary>
+    [Parameter] public bool Download { get; set; }
 
     /// <summary>
     /// Where the title sits: at the start by default (the left, in a left-to-right page);

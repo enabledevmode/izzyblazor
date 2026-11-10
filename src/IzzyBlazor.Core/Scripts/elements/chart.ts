@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import type { DrawData, View, draw as Draw, zoomArgs as ZoomArgs } from "./chart-draw";
+import type { DrawData, View, draw as Draw, placeMarks as PlaceMarks, zoomArgs as ZoomArgs } from "./chart-draw";
 import type { drawPie as DrawPie } from "./chart-draw-pie";
 import type { heat as Heat } from "./chart-heat";
 import type { pie as Pie } from "./chart-pie";
@@ -12,7 +12,7 @@ import type { sankey as Sankey } from "./chart-sankey";
 import type { treemap as Treemap } from "./chart-treemap";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
-type DrawModule = { draw: typeof Draw; zoomArgs: typeof ZoomArgs };
+type DrawModule = { draw: typeof Draw; placeMarks: typeof PlaceMarks; zoomArgs: typeof ZoomArgs };
 let drawing: Promise<DrawModule> | undefined;
 /** A view kept within the whole axis and at least `least` wide; too narrow or wide, it keeps its middle. */
 const clampView = (from: number, to: number, least: number): View => {
@@ -184,31 +184,11 @@ class Chart extends IzzyElement {
     signal.addEventListener("abort", () => {
       for (const a of ["data-ib-zoomed", "data-ib-zargs", "data-ib-brushing"]) this.removeAttribute(a);
     });
-    // The argument marks' places in the view the script draws (with none, the server's).
-    const placeMarks = (on: boolean) => {
+    // The argument marks back in the server's places; chart-draw.ts places them in another view.
+    const clearMarks = () => {
       for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-za]")) {
         for (const v of ["--jn", ...(mark.dataset.ibV ? [] : ["--jp", "--jq"])]) mark.style.removeProperty(v);
         mark.removeAttribute("data-ib-zout");
-        if (!on) continue;
-        const [zp, zq] = mark.dataset.ibZa!.split(" ").map(Number);
-        const out = (p: number) => p < -1e-9 || p > 1 + 1e-9;
-        if (mark.classList.contains("ib-chart-note")) {
-          const at = placeOf(zp);
-          mark.toggleAttribute("data-ib-zout", out(at));
-          mark.style.setProperty("--jn", String(horizontal ? 1 - at : at));
-          continue;
-        }
-        let [p, q] = [placeOf(zp), placeOf(zq)];
-        if (p > q) [p, q] = [q, p];
-        // Out of view, a mark is hidden; a band across an end is cut there.
-        const band = mark.classList.contains("ib-chart-band");
-        mark.toggleAttribute("data-ib-zout", band ? q <= 0 || p >= 1 : out(p));
-        if (band) {
-          [p, q] = [Math.max(0, p), Math.min(1, q)];
-          if (horizontal) [p, q] = [1 - q, 1 - p];
-          mark.style.setProperty("--jp", String(p));
-          mark.style.setProperty("--jq", String(q));
-        } else mark.style.setProperty("--jp", String(horizontal ? 1 - p : p));
       }
     };
     // The tooltip's places for the items, set once the tooltip is (below).
@@ -231,7 +211,7 @@ class Chart extends IzzyElement {
           mark.style.removeProperty("--jp");
           mark.style.removeProperty("--jq");
         }
-        placeMarks(false);
+        clearMarks();
         if (zargs) {
           zargs.innerHTML = "";
           zargs.removeAttribute("style");
@@ -255,7 +235,8 @@ class Chart extends IzzyElement {
         }
       }
       this.toggleAttribute("data-ib-zargs", own);
-      placeMarks(own);
+      clearMarks();
+      if (own) module.placeMarks(plot, placeOf, horizontal);
       jsSvg.innerHTML = grid + out.svg;
       jsLabels.innerHTML = out.labels;
       if (jsDl) jsDl.innerHTML = out.dl;
@@ -891,5 +872,12 @@ class Chart extends IzzyElement {
     }
   }
 }
+
+// Chart Download: a press on a download button (data-ib-chart-download) loads chart-export.ts,
+// which saves the chart. Here, not in the main module: every chart has an <ib-chart>.
+document.addEventListener("click", (event) => {
+  const button = (event.target as Element).closest?.("[data-ib-chart-download]");
+  if (button) (import("./parts/chart-export.js" as string) as Promise<{ press: (button: Element) => void }>).then((m) => m.press(button));
+});
 
 defineElement("ib-chart", Chart);

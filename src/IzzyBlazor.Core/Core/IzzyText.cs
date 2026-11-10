@@ -1404,6 +1404,9 @@ public class IzzyText
     /// <summary>The toggle button that pauses a live Chart's updates (Refresh, Live).</summary>
     public virtual string ChartPauseUpdates { get; set; } = "Pause updates";
 
+    /// <summary>The button that saves a chart as an image (Download).</summary>
+    public virtual string ChartDownload { get; set; } = "Download as PNG";
+
     /// <summary>Said when a Chart zooms or pans: its first and last arguments in view, "Showing {0} to {1}".</summary>
     public virtual string ChartShowing { get; set; } = "Showing {0} to {1}";
 
