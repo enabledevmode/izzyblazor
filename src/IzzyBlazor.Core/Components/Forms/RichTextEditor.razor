@@ -52,8 +52,9 @@
     - Ctrl+Enter | Tick or untick the task at the caret
     - Ctrl+], Ctrl+[ | Indent or outdent a list item
     - Ctrl+Alt+0 | Paragraph
-    - Ctrl+Alt+1 to Ctrl+Alt+6 | Heading 1 to 6, from TopHeading
-    - Ctrl+Z, Ctrl+Y | Undo, redo
+    - Ctrl+Alt+1 to Ctrl+Alt+6 | Heading 1 to 6, from TopHeading; again for a paragraph
+    - Ctrl+Z | Undo
+    - Ctrl+Y, Ctrl+Shift+Z | Redo
     - Ctrl+Shift+V | Paste as plain text
     - ## , - , 1. , > or three backticks at the start of a line, then Space | Heading, list, quote, code block
     - [ ] or [x] at the start of a line or list item, then Space | A task, not done or done
@@ -62,6 +63,9 @@
     - Tab, Shift+Tab | In a table, the next or previous cell; Tab in its last cell leaves the editor
     - Alt+F10 | Move to the toolbar
     In the toolbar
+    - Left, Right | Move to the control before or after, wrapping (reversed on right-to-left pages)
+    - Home, End | Go to the first or last control
+    - Down, Up | On a menu's button, open the menu at its first or last item
     - Escape | Back to the text
     See also: RichText, RichTextSanitizer, TextArea, Form.
 *@
@@ -96,6 +100,7 @@
         @* The script owns what's typed here: the server writes it again only when Value changes
            from outside the field (the key changes), never with what the script reported. *@
         <div @key="_version" class="@SurfaceClass" id="@SurfaceId" role="textbox" aria-multiline="true"
+             aria-keyshortcuts="@SurfaceShortcuts"
              aria-labelledby="@LabelId" aria-describedby="@DescribedBy" aria-invalid="@(Invalid ? "true" : null)"
              aria-required="@(IsRequired ? "true" : null)" aria-readonly="@(IsReadOnly ? "true" : null)"
              aria-disabled="@(IsDisabled ? "true" : null)" style="--ib-rows: @Rows"
@@ -727,6 +732,9 @@
         @<MenuItem Value="@tag" data-ib-command="block" data-ib-value="@tag" data-ib-label="@MenuLabel(TextDefaults.RichTextStyle, label)"
                    Shortcut="@(digit is null ? null : $"Ctrl+Alt+{digit}")"><span class="ib-rich-text-preview-@tag">@label</span></MenuItem>;
 
+    // The text's own keys no tool announces: to the toolbar, a plain paste, ticking a task.
+    private string SurfaceShortcuts => Has(RichTextTools.TaskList) ? "Alt+F10 Control+Shift+V Control+Enter" : "Alt+F10 Control+Shift+V";
+
     private bool HasAny(RichTextTools tools) => (Tools & tools) != 0;
 
     private RenderFragment? Tool(RichTextTools tool, string command, IconData icon, string label, string? keys, bool pressed = false, string? value = null)
@@ -734,7 +742,8 @@
         if (!Has(tool)) return null;
         // Shown as "Ctrl+B" here; the script writes ⌘ on a Mac.
         var title = keys is null ? label : $"{label} (Ctrl+{keys})";
-        var shortcut = keys is null ? null : "Control+" + keys;
+        // Redo takes Ctrl+Shift+Z too.
+        var shortcut = keys is null ? null : keys == "Y" ? "Control+Y Control+Shift+Z" : "Control+" + keys;
         return @<ToolbarIconButton Icon="icon" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
                                    data-ib-command="@command" data-ib-value="@value" aria-pressed="@(pressed ? "false" : null)"
                                    aria-keyshortcuts="@shortcut" title="@title" />;

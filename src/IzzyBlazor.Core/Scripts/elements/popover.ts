@@ -143,6 +143,8 @@ class PopoverRoot extends IzzyElement {
         const split = this.parentElement;
         if (split?.classList.contains("ib-split-btn")) {
           split.addEventListener("keydown", (event) => this.onSplitKey(event), { signal });
+          // Announced on the main button: no menu button pattern has it.
+          for (const main of split.querySelectorAll(":scope > .ib-btn")) main.setAttribute("aria-keyshortcuts", "Alt+ArrowDown");
         }
       } else {
         this.setupHover(panel, signal);

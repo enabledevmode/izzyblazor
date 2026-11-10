@@ -353,7 +353,10 @@ class Tree extends IzzyElement {
       this.#byHand(d, to);
     };
     let to: HTMLElement | undefined;
-    switch (event.key) {
+    // Right opens and Left closes; on a right-to-left page, the other way round.
+    const rtl = getComputedStyle(this).direction === "rtl";
+    const key = rtl && event.key === "ArrowRight" ? "ArrowLeft" : rtl && event.key === "ArrowLeft" ? "ArrowRight" : event.key;
+    switch (key) {
       case "ArrowDown":
         to = shown[at + 1];
         break;

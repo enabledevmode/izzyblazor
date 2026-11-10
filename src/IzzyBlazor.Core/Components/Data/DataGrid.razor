@@ -147,12 +147,14 @@
     - Left, Right | Move to the cell before or after
     - Home, End | Move to the first or last cell of the row
     - Ctrl+Home, Ctrl+End | Move to the first cell of the first row, or the last cell of the last
-    - PageUp, PageDown | Move by the rows in view; from the edge of a page, to the next page
+    - Page Up, Page Down | Move by the rows in view; from the edge of a page, to the next page
     - Enter, F2 | Go into a cell with several controls or a field
     - F2 | Edit the row, from a cell of text, in a grid that edits rows
     - Enter | On a row that's a link, follow it, from a cell of text
     - Alt+Down | Open the cell's menu
     - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a row's handle, move the row
+    - Alt+Left, Alt+Right | On a row's handle, move the row before or after (reversed on
+      right-to-left pages)
     - Shift+F10, Menu | Open the row's menu (on a link, only Shift+F10)
     Inside a cell
     - Tab | Move among its controls, and back out past either end
@@ -187,10 +189,11 @@
     - Shift+F10, Menu | Open its menu
     - Shift+Left, Shift+Right | Resize the column, where it can be
     - Alt+Left, Alt+Right | Move the column, where it can be
-    - PageDown | Go to the first row
+    - Page Down | Go to the first row
     In the footer
     - Tab | Move through the page size button and the pager's links
     - Enter | Follow the link
+    - Page Up | Go to the last row
     In the filter row
     - Up, Down | Move to the header above or the row below
     - Left, Right | Move to the filter before or after
@@ -206,10 +209,14 @@
     - Enter | Filter now and close, from a field or the list's search box
     - Escape | Close and go back to the filter button; the filter stays
     In a filter's list
-    - Down | Move from the search box to the first value
-    - Up, Down | Move among the values; Up from the first goes to the search box
+    - Down | Move from the search box to Select all, then on through the values
+    - Up | Move back through the values to Select all, then the search box
     - Home, End | Move to the first or last value
     - Space | Tick or untick the value
+    In the column chooser
+    - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a row that moves, move the column
+    While dragging
+    - Escape | Cancel dragging a column, its edge, a row, a group or a chooser row
     See also: Table.
 *@
 
@@ -1732,6 +1739,7 @@
                 <Menu>
                     <Trigger Context="wire">
                         <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle ib-sortable-trigger"
+                                    aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+Home Alt+End"
                                     autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
                     </Trigger>
                     <ChildContent>

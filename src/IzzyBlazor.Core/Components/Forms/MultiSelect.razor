@@ -41,6 +41,20 @@
     - The label names the input and the list. The chosen options are the input's description,
       before the hint and errors ("Chosen: Design, Writing.", `IzzyText.Chosen`), so they're heard on focus.
     - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
+
+    Keyboard:
+    In the field
+    - Down | Open the list at the first option; in the open list, go to the next
+    - Up | Open the list at the last option; in the open list, go to the previous
+    - Alt+Down | Open the list without highlighting an option
+    - Page Down, Page Up | Move ten options
+    - Enter, Alt+Up | Choose or unchoose the highlighted option, keeping the list open
+    - Backspace | In the empty input, remove the last chosen option
+    - Escape | Close the list and clear the typed text
+    - Tab | Close the list and move on
+    With AllowCustom
+    - Enter | With no option highlighted, add the typed text
+    - Comma, Semicolon | Add the typed text
     See also: CheckboxGroup, Combobox, Select.
 *@
 

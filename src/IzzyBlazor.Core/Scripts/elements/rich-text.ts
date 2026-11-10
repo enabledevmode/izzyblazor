@@ -253,7 +253,7 @@ class RichText extends IzzyElement {
     if (isMac) {
       for (const tool of this.querySelectorAll<HTMLElement>("[aria-keyshortcuts]")) {
         tool.title = tool.title.replace("Ctrl+", "⌘");
-        tool.setAttribute("aria-keyshortcuts", tool.getAttribute("aria-keyshortcuts")!.replace("Control+", "Meta+"));
+        tool.setAttribute("aria-keyshortcuts", tool.getAttribute("aria-keyshortcuts")!.replaceAll("Control+", "Meta+"));
       }
       for (const key of this.querySelectorAll<HTMLElement>("[data-ib-command] .ib-menu-shortcut")) key.textContent = key.textContent!.replace("Ctrl+", "⌘");
     }
