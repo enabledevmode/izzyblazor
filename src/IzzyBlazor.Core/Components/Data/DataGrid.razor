@@ -2275,7 +2275,7 @@
 
     private readonly List<DataGridExportFormat> _exportFormats = [];
 
-    // Excel, CSV, then the grid's own formats in the order they joined.
+    // Excel, CSV, then the grid's own formats in the order they're written.
     private IEnumerable<(string Label, string Href)> ExportLinks
     {
         get
@@ -2290,11 +2290,67 @@
                 yield return (TextDefaults.ExportCsv, ExportCsvHref);
             }
 
-            foreach (var format in _exportFormats)
+            foreach (var format in FormatsAsWritten())
             {
                 yield return (format.Label, format.Href);
             }
         }
+    }
+
+    // The formats join in the order they first render, so one shown later (behind an @if) would come
+    // last. Their places are read from the frames the columns write; one the columns don't write
+    // themselves (inside a component of yours, or a band) keeps its joining order, after them.
+    private IEnumerable<DataGridExportFormat> FormatsAsWritten()
+    {
+        if (_exportFormats.Count < 2 || Columns is null)
+        {
+            return _exportFormats;
+        }
+
+        var written = new List<(string? Label, string? Href)>();
+#pragma warning disable BL0006 // Reading render frames: the columns are run here only to see where the formats are.
+        using (var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder())
+        {
+            Columns(builder);
+            var frames = builder.GetFrames();
+            for (var i = 0; i < frames.Count; i++)
+            {
+                if (frames.Array[i].FrameType != Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Component || frames.Array[i].ComponentType != typeof(DataGridExportFormat))
+                {
+                    continue;
+                }
+
+                string? label = null, href = null;
+                for (var j = i + 1; j < frames.Count && frames.Array[j].FrameType == Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Attribute; j++)
+                {
+                    switch (frames.Array[j].AttributeName)
+                    {
+                        case nameof(DataGridExportFormat.Label):
+                            label = frames.Array[j].AttributeValue as string;
+                            break;
+                        case nameof(DataGridExportFormat.Href):
+                            href = frames.Array[j].AttributeValue as string;
+                            break;
+                    }
+                }
+
+                written.Add((label, href));
+            }
+        }
+#pragma warning restore BL0006
+
+        // OrderBy is stable: formats not found keep their joining order.
+        return _exportFormats.OrderBy(format =>
+        {
+            var at = written.IndexOf((format.Label, format.Href));
+            if (at < 0)
+            {
+                return int.MaxValue;
+            }
+
+            written[at] = default;
+            return at;
+        }).ToList();
     }
 
     /// <inheritdoc />
