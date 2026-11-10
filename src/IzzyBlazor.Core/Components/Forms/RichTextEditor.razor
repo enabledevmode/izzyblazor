@@ -339,7 +339,8 @@
     /// <summary>
     /// Where the image tool sends a chosen, pasted or dropped image: an endpoint of your app that
     /// takes a multipart POST with the image in a <c>file</c> field (and the form's antiforgery
-    /// token), stores it, and answers with its URL, as text or as JSON <c>{ "url": "…" }</c>.
+    /// token, when it has one: a .NET 11 app without <c>UseAntiforgery</c> checks the origin
+    /// instead), stores it, and answers with its URL, as text or as JSON <c>{ "url": "…" }</c>.
     /// Without it, images come only by their address, or embedded with <see cref="AllowDataImages"/>.
     /// </summary>
     [Parameter] public string? ImageUploadUrl { get; set; }
