@@ -249,4 +249,34 @@ public class RoundChartTests : BunitContext
         Assert.Equal("78%, High, target 80%", banded.Find("[role=meter]").GetAttribute("aria-valuetext"));
         Assert.Equal("High", banded.Find(".ib-gauge-state").TextContent);
     }
+
+    [Fact]
+    public void Gauge_bands_take_the_palette_in_order_and_a_band_accent_overrides_it()
+    {
+        Microsoft.AspNetCore.Components.RenderFragment Bands(Accent? second) => b =>
+        {
+            b.OpenComponent<GaugeBand>(0);
+            b.AddAttribute(1, nameof(GaugeBand.From), 0.5);
+            b.AddAttribute(2, nameof(GaugeBand.To), 0.8);
+            b.CloseComponent();
+            b.OpenComponent<GaugeBand>(3);
+            b.AddAttribute(4, nameof(GaugeBand.From), 0.8);
+            b.AddAttribute(5, nameof(GaugeBand.To), 1.0);
+            b.AddAttribute(6, nameof(GaugeBand.Accent), second);
+            b.CloseComponent();
+        };
+
+        var palette = ChartPalette.Of(Color.Warning, Color.Danger);
+        var colored = Render<Gauge>(p => p.Add(c => c.Label, "CPU").Add(c => c.Value, 0.9)
+            .Add(c => c.Palette, palette).Add(c => c.ChildContent, Bands(Accent.Of("#0d9488"))));
+        var bands = colored.FindAll("path.ib-gauge-band");
+        Assert.Equal($"stroke:{palette.Color(0, 2)}", bands[0].GetAttribute("style"));
+        Assert.Equal($"stroke:{StyleValues.Color(Color.Of("#0d9488"))}", bands[1].GetAttribute("style"));
+        Assert.Equal(bands[1].GetAttribute("style"), colored.Find("path.ib-gauge-fill").GetAttribute("style"));
+
+        // No palette: gray bands, and the value in one keeps the primary fill.
+        var gray = Render<Gauge>(p => p.Add(c => c.Label, "CPU").Add(c => c.Value, 0.6).Add(c => c.ChildContent, Bands(null)));
+        Assert.Equal($"stroke:{ChartPalette.Gray(0, 2, thin: true)}", gray.Find("path.ib-gauge-band").GetAttribute("style"));
+        Assert.Null(gray.Find("path.ib-gauge-fill").GetAttribute("style"));
+    }
 }

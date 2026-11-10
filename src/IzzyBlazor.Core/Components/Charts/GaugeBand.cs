@@ -6,8 +6,9 @@ namespace IzzyBlazor;
 /// <summary>
 /// A range on a <see cref="Gauge"/>'s dial, such as where a load turns high:
 /// <c>&lt;GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" /&gt;</c>.
-/// It's drawn as a thin arc in its color along the dial's outer edge; a value inside it fills in
-/// its color, and its <see cref="Label"/> shows under the value.
+/// It's drawn as a thin arc along the dial's outer edge, in its <see cref="Accent"/> or the
+/// gauge's palette color for its place; a value inside it fills in that color (not in a gray), and
+/// its <see cref="Label"/> shows under the value.
 /// </summary>
 public sealed class GaugeBand : ComponentBase, IDisposable
 {
@@ -19,8 +20,11 @@ public sealed class GaugeBand : ComponentBase, IDisposable
     /// <summary>Where the band ends.</summary>
     [Parameter, EditorRequired] public double To { get; set; }
 
-    /// <summary>The band's color, such as <c>Accent.From(Color.Warning)</c> or <c>Accent.Danger</c>.</summary>
-    [Parameter, EditorRequired] public Accent Accent { get; set; } = default!;
+    /// <summary>
+    /// The band's color, such as <c>Accent.From(Color.Warning)</c> or <c>Accent.Danger</c>, in place
+    /// of the gauge's <see cref="Gauge.Palette"/> color for its place.
+    /// </summary>
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>
     /// What a value in the band means, such as "High": shown under the value when it's in the
@@ -42,11 +46,6 @@ public sealed class GaugeBand : ComponentBase, IDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Accent is null)
-        {
-            throw new InvalidOperationException("GaugeBand needs an Accent, its color, such as Accent.From(Color.Warning).");
-        }
-
         if (!double.IsFinite(From) || !double.IsFinite(To) || To <= From)
         {
             throw new ArgumentOutOfRangeException(nameof(To), To, "A GaugeBand's To must be more than its From.");

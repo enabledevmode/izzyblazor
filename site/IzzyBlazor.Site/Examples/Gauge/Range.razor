@@ -1,2 +1,8 @@
-@* Net Promoter Score runs from −100 to 100; the team's goal this quarter is 50. *@
-<Gauge Label="Net Promoter Score, Q3" Value="42" Min="-100" Max="100" Target="50" />
+@* Net Promoter Score runs from −100 to 100; the team's goal this quarter is 50. The bands are the
+   usual reading of a score, in the default grays: they mark the ranges, the label says which. *@
+<Gauge Label="Net Promoter Score, Q3" Value="42" Min="-100" Max="100" Target="50">
+    <GaugeBand From="-100" To="0" Label="Needs work" />
+    <GaugeBand From="0" To="30" Label="Good" />
+    <GaugeBand From="30" To="70" Label="Great" />
+    <GaugeBand From="70" To="100" Label="Excellent" />
+</Gauge>

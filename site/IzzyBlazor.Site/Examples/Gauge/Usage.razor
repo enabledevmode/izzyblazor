@@ -3,9 +3,9 @@
 <Row Gap="8" Wrap Justify="Justify.Center">
     @foreach (var (label, value) in _load)
     {
-        <Gauge Label="@label" Value="value" ValueFormat="P0">
-            <GaugeBand From="0.7" To="0.9" Accent="Accent.From(Color.Warning)" Label="High" />
-            <GaugeBand From="0.9" To="1" Accent="Accent.Danger" Label="Critical" />
+        <Gauge Label="@label" Value="value" ValueFormat="P0" Palette="ChartPalette.Of(Color.Warning, Color.Danger)">
+            <GaugeBand From="0.7" To="0.9" Label="High" />
+            <GaugeBand From="0.9" To="1" Label="Critical" />
         </Gauge>
     }
 </Row>

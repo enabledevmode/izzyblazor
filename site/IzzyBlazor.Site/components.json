@@ -2555,8 +2555,8 @@
         { "feature": "Read as a meter, with its value in words" }
       ],
       "examples": [
-        { "id": "gauge-usage", "title": "Bands", "lead": "Give `Gauge` a `Value` and a `Label`. Each `GaugeBand` marks a range along the dial's edge in its `Accent`, and a value in it fills in that color.", "after": ["The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. A gauge is 12rem wide; `Width` sets another.", "A dial alone is a number in a ring; bands give the value something to be read against. A band's `Label` shows under the value, so the color isn't the only cue."] },
-        { "id": "gauge-range", "title": "Range and target", "lead": "To measure on another scale, set `Min` and `Max`. `Target` marks a goal with a tick across the dial, read with the value as \"target 50\". A value past either end fills none or all of the dial, and still shows as it is." }
+        { "id": "gauge-usage", "title": "Bands", "lead": "Give `Gauge` a `Value` and a `Label`. Each `GaugeBand` marks a range along the dial's edge in the next of `Palette`'s colors, and a value in it fills in that color.", "after": ["The dial runs from `Min` to `Max`, 0 to 1 by default, so a share reads as a percent with `ValueFormat=\"P0\"`. A gauge is 12rem wide; `Width` sets another.", "A dial alone is a number in a ring; bands give the value something to be read against. A band's `Label` shows under the value, so the color isn't the only cue.", "A band's own `Accent` takes the place of its palette color, such as `Accent=\"Accent.Danger\"` on one band among grays."] },
+        { "id": "gauge-range", "title": "Range and target", "lead": "To measure on another scale, set `Min` and `Max`. `Target` marks a goal with a tick across the dial, read with the value as \"target 50\". A value past either end fills none or all of the dial, and still shows as it is.", "after": ["Without a `Palette`, bands are grays, darkest first: they mark the ranges without calling one good or bad, and the value keeps the primary color. The band's label names where it falls."] }
       ]
     },
     {

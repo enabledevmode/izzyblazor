@@ -5,7 +5,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// The colors a <see cref="Chart{TItem}"/> or <see cref="PieChart{TItem}"/> gives its series or
-/// slices, in order: <see cref="Colors"/> (the default), <see cref="Shades"/> of one color,
+/// slices, or a <see cref="Gauge"/> its bands, in order: <see cref="Colors"/> (the default), <see cref="Shades"/> of one color,
 /// <see cref="Diverging"/> between two, or your own with <see cref="Of"/>. Shades and diverging
 /// ramps are sampled for the number of series, so three get three even steps, and they turn
 /// round in dark mode, where the strongest color is the lightest.
@@ -117,6 +117,37 @@ public sealed class ChartPalette
         Kind.Of => _colors[i % _colors.Length],
         _ => $"var(--ib-chart-{i % 8 + 1})",
     };
+
+    // Few's bullet-graph grays (percent of black on white), darkest first, for 1 to 5 ranges.
+    private static readonly double[][] FewGrays =
+    [
+        [25], [35, 10], [40, 25, 10], [50, 35, 20, 10], [50, 40, 30, 20, 10],
+    ];
+
+    /// <summary>
+    /// The default gray for range <paramref name="i"/> of <paramref name="n"/>, darkest first: the
+    /// text color mixed into the surface, so dark mode turns it round. Few's grays sit behind a
+    /// bullet's bar; a <paramref name="thin"/> band (a gauge's) is drawn alone on the surface, so its
+    /// grays run darker (60% to 25%) for every band to show.
+    /// </summary>
+    internal static string Gray(int i, int n, bool thin)
+    {
+        double percent;
+        if (thin)
+        {
+            percent = n <= 1 ? 45 : 60 - 35.0 * i / (n - 1);
+        }
+        else if (n <= FewGrays.Length)
+        {
+            percent = FewGrays[Math.Max(n, 1) - 1][i];
+        }
+        else
+        {
+            percent = 50 - 40.0 * i / (n - 1);
+        }
+
+        return Mix("var(--ib-color-on-surface)", percent, "var(--ib-color-surface)");
+    }
 
     private static string Mix(string color, double percent, string with) =>
         $"color-mix(in oklab, {color} {percent.ToString("0.#", CultureInfo.InvariantCulture)}%, {with})";
