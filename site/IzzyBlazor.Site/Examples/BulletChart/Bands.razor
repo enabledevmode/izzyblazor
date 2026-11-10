@@ -1,0 +1,15 @@
+@* Largest Contentful Paint at the 75th percentile, by page template, against Google's thresholds:
+   the same three bands on every row, so the rows share one scale. *@
+<BulletChart Items="_pages" Title="Largest Contentful Paint (p75), last 28 days"
+             Label="p => p.Template" Value="p => p.Seconds" Target="p => 2.0" ValueFormat="0.0 s"
+             Palette="ChartPalette.Of(Color.Success, Color.Warning, Color.Danger)">
+    <GaugeBand From="0" To="2.5" Label="Good" />
+    <GaugeBand From="2.5" To="4" Label="Needs improvement" />
+    <GaugeBand From="4" To="6" Label="Poor" />
+</BulletChart>
+
+@code {
+    private record Page(string Template, double Seconds);
+
+    private readonly Page[] _pages = [new("Home", 1.8), new("Search", 2.2), new("Product", 2.9), new("Cart", 2.4), new("Checkout", 4.6)];
+}

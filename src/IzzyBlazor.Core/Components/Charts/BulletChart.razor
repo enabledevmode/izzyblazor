@@ -1,0 +1,515 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits LayoutItemBase
+@implements IDisposable
+@attribute [ModeSupport]
+@using System.Globalization
+@using System.Linq.Expressions
+
+@*
+    Bullet graphs, a row per item: each measure's value as a bar against its target and the ranges
+    that say how good it is, such as a KPI scorecard. Stephen Few's design: a dark bar a third of
+    the row's thickness over ranges in grays, a target tick across it, the label to the left.
+
+    <BulletChart Items="kpis" Title="Q3 against plan"
+                 Label="k => k.Name" Value="k => k.Actual" Target="k => k.Goal"
+                 Max="k => k.Max" Ranges="k => k.Thresholds"
+                 RangeLabels="@(["Poor", "Fair", "Good"])" />
+
+    With Max, each row has a scale of its own (revenue and margin side by side, each readable),
+    with its ticks under it; without, the rows share one scale and one axis. Ranges gives each row
+    its ranges (the ends of all but the last, which runs to its max); GaugeBand children give every
+    row the same. Ranges are grays, darkest first, until Palette or a band's Accent colors them.
+    A scale that doesn't start at zero (Min) draws the value as a dot, since a bar's length would
+    mislead. Orientation Vertical stands the rows up as columns, labels above.
+
+    Accessibility:
+    - The chart is a figure captioned by Title, or named by a heading on the page with TitledBy.
+    - The rows are a list; each row is a meter named by its label, with its value, target and
+      range in words ("275, target 250, Good"). Colors aren't read: RangeLabels and the bands'
+      labels say what each range means.
+    - "Show data" under the chart opens the same numbers as a table (DataTable).
+    - With IzzyBlazor's script, the rows are one Tab stop: the arrow keys move from row to row,
+      each showing its tooltip.
+
+    Keyboard:
+    On the rows
+    - Down, Up (Right, Left in a vertical chart) | Move to the next or previous row
+    - Home, End | Go to the first or last row
+    - Escape | Hide the tooltip
+    See also: Gauge, Chart.
+*@
+
+<figure @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@TitledBy">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/chart.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/bullet.css"]" />
+    @if (TitledBy is null)
+    {
+        <figcaption id="@_labelId" class="@(HideTitle ? "ib-visually-hidden" : TitleAlign switch { ChartAlign.Center => "ib-chart-label ib-chart-label-center", ChartAlign.End => "ib-chart-label ib-chart-label-end", _ => "ib-chart-label" })">@Title</figcaption>
+    }
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+        @_plotFragment
+    </CascadingValue>
+    @if (Download)
+    {
+        @* Download, across from the title (chart.css): last, so the title's neighbor rules still meet. *@
+        @ChartDownload.Tools(TextDefaults)
+    }
+</figure>
+
+@code {
+    /// <summary>
+    /// How often the chart reads its data again, at least a second, such as
+    /// <c>Refresh="TimeSpan.FromSeconds(30)"</c>. On a static page the page (or
+    /// <see cref="RefreshFrom"/>) is fetched again and the chart drawn from it, found by its
+    /// <c>id</c>, which it then needs; on an interactive page <see cref="OnRefresh"/> is raised, for
+    /// you to load new data. Not while the tab is hidden or the chart is off-screen, nor (static)
+    /// while the pointer or focus is in it. Unlike Chart's, it has no Pause button.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public TimeSpan? Refresh { get; set; }
+
+    /// <summary>On a static page with <see cref="Refresh"/>: a lighter page to fetch than this one, which renders the same chart with the same <c>id</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? RefreshFrom { get; set; }
+
+    /// <summary>On an interactive page with <see cref="Refresh"/>: raised at each interval, to load new data.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback OnRefresh { get; set; }
+
+    private readonly ChartRefresh _refresh = new();
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _refresh.AfterRender(Refresh, RendererInfo, OnRefresh, InvokeAsync, DispatchExceptionAsync);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _refresh.Dispose();
+
+    /// <summary>The items, a row each, in order.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each row's name, such as <c>k =&gt; k.Name</c>: beside its row, and its meter's accessible name.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Label { get; set; } = default!;
+
+    /// <summary>Each row's value, such as <c>k =&gt; k.Actual</c>: the bar. A missing value draws no bar.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>Each row's goal, such as <c>k =&gt; k.Goal</c>: a tick across the row, read with the value.</summary>
+    [Parameter] public Expression<Func<TItem, object?>>? Target { get; set; }
+
+    /// <summary>
+    /// Each row's own scale end, such as <c>k =&gt; k.Max</c>: the rows then each have their own
+    /// scale and ticks, for measures in different units or sizes. Without it, the rows share one
+    /// scale, from <see cref="Min"/> to past the largest value, target and range, and one axis.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? Max { get; set; }
+
+    /// <summary>
+    /// Where every row's scale starts. Defaults to 0; any other start draws each value as a dot
+    /// rather than a bar, since a bar's length would no longer be the value.
+    /// </summary>
+    [Parameter] public double Min { get; set; }
+
+    /// <summary>
+    /// Each row's ranges, such as <c>k =&gt; k.Thresholds</c>: the ends of all but the last, in
+    /// order, numbers of any type (<c>[150, 225]</c> on a scale to 300 makes three ranges). The
+    /// last runs to the row's max. For the same ranges on every row, use
+    /// <see cref="GaugeBand"/>s inside the chart instead.
+    /// </summary>
+    [Parameter] public Func<TItem, System.Collections.IEnumerable?>? Ranges { get; set; }
+
+    /// <summary>
+    /// What <see cref="Ranges"/>' ranges mean, in order, such as <c>["Poor", "Fair", "Good"]</c>:
+    /// in the tooltip, the table and the meter's words, so color isn't the only cue. One per range.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? RangeLabels { get; set; }
+
+    /// <summary>
+    /// The ranges' colors, in order, such as <c>ChartPalette.Of(Color.Danger, Color.Warning,
+    /// Color.Success)</c>, drawn as tints so the bar stays the strongest mark. Defaults to grays,
+    /// darkest first (Few's: the darkest is the poor end).
+    /// </summary>
+    [Parameter] public ChartPalette? Palette { get; set; }
+
+    /// <summary>The bar's color, such as <c>Accent.Of("#0d9488")</c>. Defaults to the text color.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>A .NET format string for the values, targets and ticks, such as <c>C0</c>, <c>N0</c> or <c>P0</c>.</summary>
+    [Parameter] public string? ValueFormat { get; set; }
+
+    /// <summary>
+    /// Each row's own format string, such as <c>k =&gt; k.Format</c>, for rows in different units
+    /// (revenue in <c>C0</c> beside a margin in <c>P0</c>); a null falls back to <see cref="ValueFormat"/>.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? Format { get; set; }
+
+    /// <summary>Rows across (horizontal, the default) or standing up as columns, their labels above.</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>
+    /// The chart's title, such as "Q3 against plan", shown above it as its caption. It also names the chart
+    /// for screen readers. A chart needs a Title or <see cref="TitledBy"/>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Hides the title, which still names the chart for screen readers.</summary>
+    [Parameter] public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// Where the title sits: at the start by default (the left, in a left-to-right page);
+    /// <see cref="ChartAlign.Center"/> or <see cref="ChartAlign.End"/>.
+    /// </summary>
+    [Parameter] public ChartAlign TitleAlign { get; set; }
+
+    /// <summary>
+    /// The id of a heading already on the page that titles the chart, such as a card's, in place of
+    /// <see cref="Title"/>: the chart takes its name from it and shows no title of its own.
+    /// </summary>
+    [Parameter] public string? TitledBy { get; set; }
+
+    /// <summary>
+    /// Shows a button across from the title that saves the chart as a PNG, named after its title,
+    /// in the color scheme on screen. With JavaScript off there's no button.
+    /// </summary>
+    [Parameter] public bool Download { get; set; }
+
+    /// <summary>A tooltip for the row under the pointer or keyboard focus. On by default.</summary>
+    [Parameter] public bool Tooltip { get; set; } = true;
+
+    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; }
+
+    /// <summary><see cref="GaugeBand"/>s: ranges every row shares, on the shared scale.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-chart");
+    private readonly GaugeContext _context = new();
+    private RenderFragment _plotFragment = null!;
+    private Expression<Func<TItem, object?>>? _lastLabel, _lastValue, _lastTarget, _lastMax;
+    private Func<TItem, object?>? _label, _value, _target, _max;
+    private string? _labelName, _valueName, _targetName;
+    private string? _class;
+    private string? _style;
+
+    private string NameId => TitledBy ?? _labelId;
+
+    private bool Vertical => Orientation == Orientation.Vertical;
+
+    private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    private string Text(double value, string? format = null) => value.ToString(format ?? ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
+
+    /// <summary>A range on a row: where it starts and ends, its color and what it means.</summary>
+    private readonly record struct Range(double From, double To, string Color, string? Label);
+
+    /// <summary>A row, laid out: its scale, its ranges and what it says.</summary>
+    private sealed record Row(int Index, string Label, double? Value, double? Target, double Max, Range[] Ranges, string? Text, string? TargetText, string? RangeLabel, string? Format)
+    {
+        public string Spoken(string target, string noData) => string.Join(", ", new[]
+        {
+            Text ?? noData, TargetText is null ? null : string.Format(CultureInfo.CurrentCulture, target, TargetText), RangeLabel,
+        }.Where(t => !string.IsNullOrEmpty(t)));
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The rows draw after the bands inside the chart have said they're there.
+        _plotFragment = builder =>
+        {
+            builder.OpenComponent<ChartPlot>(0);
+            builder.AddComponentParameter(1, nameof(ChartPlot.Content), (RenderFragment)RenderPlot);
+            builder.AddComponentParameter(2, nameof(ChartPlot.Attach), (Action<ChartPlot>)(plot => _context.Dial = plot));
+            builder.CloseComponent();
+        };
+        base.OnInitialized();
+    }
+
+    // Round ticks from the scale's start to its end, about count of them.
+    private static List<double> Ticks(double min, double max, int count)
+    {
+        var spec = ChartScale.TickSpec(min, max, count);
+        var ticks = new List<double>();
+        for (var i = spec.I1; i <= spec.I2; i++) ticks.Add(spec.Value(i));
+        return ticks;
+    }
+
+    // Where a value sits along a row, in percent of its scale.
+    private double Pct(double value, double max) => Math.Clamp((value - Min) / (max - Min), 0, 1) * 100;
+
+    private string Share(double value, double max) => Num(Pct(value, max));
+
+    private List<Row> Layout(IReadOnlyList<TItem> items, out double? shared)
+    {
+        var bands = _context.Bands.Items;
+        var culture = CultureInfo.CurrentCulture;
+        // Colors, Few's way, as tints: a range is a background for the bar, never as strong as it.
+        static string Tint(string color) => $"color-mix(in oklab, {color} 45%, var(--ib-color-surface))";
+        string Color(Accent? accent, int i, int n) =>
+            accent is { } a ? Tint(StyleValues.Color(a.ToColor())) : Palette is { } p ? Tint(p.Color(i, n)) : ChartPalette.Gray(i, n, thin: false);
+
+        var raw = items.Select(item => (
+            Label: ChartLayout.ArgumentText(_label!(item), null, culture),
+            Value: ChartMembers.ToNumber(_value!(item)),
+            Target: _target is null ? null : ChartMembers.ToNumber(_target(item)),
+            Max: _max is null ? null : ChartMembers.ToNumber(_max(item)),
+            Format: Format?.Invoke(item),
+            Ends: Ranges?.Invoke(item) is { } ends ? ends.Cast<object?>().Select(e => ChartMembers.ToNumber(e) ?? double.NaN).ToArray() : [])).ToList();
+
+        // One scale for every row without Max: from Min to a round end past everything drawn.
+        shared = null;
+        if (_max is null)
+        {
+            var top = raw.SelectMany(r => new[] { r.Value, r.Target }.Concat(r.Ends.Select(e => (double?)e)))
+                .Concat(bands.Select(b => (double?)b.To))
+                .Where(v => v is { } x && double.IsFinite(x)).Select(v => v!.Value).DefaultIfEmpty(Min).Max();
+            shared = top > Min ? ChartScale.Nice(Min, top, 5).Max : Min + 1;
+        }
+
+        var rows = new List<Row>(raw.Count);
+        for (var i = 0; i < raw.Count; i++)
+        {
+            var r = raw[i];
+            var max = shared ?? r.Max ?? double.NaN;
+            if (!(max > Min))
+            {
+                throw new InvalidOperationException($"BulletChart: the row \"{r.Label}\" needs a Max more than Min ({Text(Min)}).");
+            }
+
+            Range[] ranges;
+            if (bands.Count > 0)
+            {
+                ranges = bands.Select((b, k) => new Range(b.From, b.To, Color(b.Accent, k, bands.Count), b.Label)).ToArray();
+            }
+            else
+            {
+                var n = r.Ends.Length + 1;
+                if (RangeLabels is not null && r.Ends.Length > 0 && RangeLabels.Count != n)
+                {
+                    throw new InvalidOperationException($"BulletChart: the row \"{r.Label}\" has {n} ranges but RangeLabels names {RangeLabels.Count}; give one label per range.");
+                }
+
+                ranges = r.Ends.Length == 0
+                    ? []
+                    : Enumerable.Range(0, n).Select(k => new Range(k == 0 ? Min : r.Ends[k - 1], k == n - 1 ? max : r.Ends[k], Color(null, k, n), RangeLabels?[k])).ToArray();
+            }
+
+            // The range the value is in: the last that holds it, so a later one wins where two meet.
+            var rangeLabel = r.Value is { } v ? ranges.LastOrDefault(x => v >= x.From && v <= x.To).Label : null;
+            rows.Add(new Row(i, r.Label, r.Value, r.Target, max, ranges,
+                r.Value is { } value ? Text(value, r.Format) : null, r.Target is { } t ? Text(t, r.Format) : null, rangeLabel, r.Format));
+        }
+
+        return rows;
+    }
+
+    private void RenderPlot(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+    {
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        var rows = Layout(items, out var shared);
+        var dot = Min != 0;
+        var tooltip = Tooltip && rows.Count > 0;
+        var noData = TextDefaults.HeatmapNoData;
+        var hasTarget = rows.Any(r => r.Target is not null);
+        var hasRange = rows.Any(r => r.RangeLabel is not null) || RangeLabels is not null || _context.Bands.Items.Any(b => b.Label is not null);
+
+        RenderFragment TicksFor(double max, string? format) => __builder =>
+        {
+            var ticks = Ticks(Min, max, 5);
+            <div class="ib-bullet-ticks" aria-hidden="true">
+                @for (var k = 0; k < ticks.Count; k++)
+                {
+                    <span class="@(k % 2 == 1 ? "ib-bullet-tick ib-bullet-odd" : "ib-bullet-tick")" style="--p:@Share(ticks[k], max)%"><span>@Text(ticks[k], format)</span></span>
+                }
+            </div>
+        };
+
+        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" data-ib-bullet="@rows.Count">
+            <div class="@(Vertical ? "ib-bullet ib-bullet-v" : "ib-bullet")" style="@(Accent is { } accent ? $"--ib-bullet-color:{StyleValues.Color(accent.ToColor())}" : null)">
+                <ul class="ib-bullet-rows" aria-labelledby="@NameId">
+                    @foreach (var row in rows)
+                    {
+                        var id = $"{_labelId}-r{row.Index}";
+                        <li class="ib-bullet-row" data-ib-row="@row.Index">
+                            <span id="@id" class="ib-bullet-label">@row.Label</span>
+                            <div class="ib-bullet-meter" role="meter" aria-labelledby="@id"
+                                 aria-valuenow="@Num(Math.Clamp(row.Value ?? Min, Min, row.Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(row.Max)"
+                                 aria-valuetext="@row.Spoken(TextDefaults.GaugeTarget, noData)">
+                                <div class="ib-bullet-track" aria-hidden="true">
+                                    @foreach (var range in row.Ranges)
+                                    {
+                                        if (!(range.To > range.From)) continue;
+                                        <span class="ib-bullet-range" style="--p:@Share(range.From, row.Max)%;--l:@Num(Pct(range.To, row.Max) - Pct(range.From, row.Max))%;background:@range.Color"></span>
+                                    }
+                                    @if (row.Value is { } value)
+                                    {
+                                        @if (dot)
+                                        {
+                                            <span class="ib-bullet-dot" style="--p:@Share(value, row.Max)%"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="ib-bullet-bar" style="--l:@Share(value, row.Max)%"></span>
+                                        }
+                                    }
+                                    @if (row.Target is { } goal)
+                                    {
+                                        <span class="ib-bullet-target" style="--p:@Share(goal, row.Max)%"></span>
+                                    }
+                                </div>
+                                @if (shared is null)
+                                {
+                                    @TicksFor(row.Max, row.Format)
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+                @if (shared is { } scale && rows.Count > 0)
+                {
+                    <div class="ib-bullet-axis">@TicksFor(scale, null)</div>
+                }
+                @if (tooltip)
+                {
+                    <div class="ib-chart-tooltip" hidden></div>
+                }
+            </div>
+            @if (tooltip)
+            {
+                @* Each row's tooltip; the script shows the one under the pointer or keyboard focus. *@
+                <div class="ib-chart-tips" hidden>
+                    @foreach (var row in rows)
+                    {
+                        <div data-ib-tip="@row.Index">
+                            <div class="ib-chart-tooltip-title">
+                                <span>@row.Label</span>
+                                <span class="ib-chart-tooltip-value">@(row.Text ?? noData)</span>
+                            </div>
+                            @if (row.TargetText is { } target)
+                            {
+                                <div class="ib-chart-tooltip-row"><span>@(_targetName ?? TextDefaults.BulletTarget)</span><span class="ib-chart-tooltip-value">@target</span></div>
+                            }
+                            @if (row.RangeLabel is { } range)
+                            {
+                                <div class="ib-chart-tooltip-row"><span>@range</span></div>
+                            }
+                        </div>
+                    }
+                </div>
+                <span id="@(_labelId)-keys" class="ib-visually-hidden" data-ib-keys>@(Vertical ? TextDefaults.BulletKeysAcross : TextDefaults.BulletKeys)</span>
+            }
+        </ib-chart>
+
+        @if (DataTable != ChartDataTable.None)
+        {
+            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
+                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
+                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
+                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
+                        {<span class="ib-visually-hidden">, @Title</span>}</span>
+                </summary>
+                <div class="ib-chart-table-scroll">
+                    <table class="ib-chart-table" aria-labelledby="@NameId">
+                        <thead>
+                            <tr>
+                                <th scope="col">@(_labelName ?? TextDefaults.ChartItem)</th>
+                                <th scope="col">@(_valueName ?? TextDefaults.ChartValue)</th>
+                                @if (hasTarget)
+                                {
+                                    <th scope="col">@(_targetName ?? TextDefaults.BulletTarget)</th>
+                                }
+                                @if (hasRange)
+                                {
+                                    <th scope="col">@TextDefaults.BulletRange</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in rows)
+                            {
+                                <tr>
+                                    <th scope="row">@row.Label</th>
+                                    <td>@row.Text</td>
+                                    @if (hasTarget)
+                                    {
+                                        <td>@row.TargetText</td>
+                                    }
+                                    @if (hasRange)
+                                    {
+                                        <td>@row.RangeLabel</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-chart");
+        classes.Add("ib-bullet-chart");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _refresh.Check("BulletChart", Refresh, RefreshFrom, RendererInfo, AssignedRenderMode, AdditionalAttributes, OnRefresh.HasDelegate);
+        if (string.IsNullOrWhiteSpace(Title) == string.IsNullOrWhiteSpace(TitledBy))
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
+                ? "BulletChart needs a Title, such as \"Q3 against plan\", or TitledBy, the id of a heading on the page that titles it."
+                : "BulletChart takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (Label is null || Value is null)
+        {
+            throw new InvalidOperationException("BulletChart needs a Label, each row's name, and a Value, such as k => k.Name and k => k.Actual.");
+        }
+
+        if (Ranges is not null && ChildContent is not null)
+        {
+            throw new InvalidOperationException("BulletChart takes Ranges (each row's own) or GaugeBands (shared by every row), not both.");
+        }
+
+        if (RangeLabels is not null && Ranges is null)
+        {
+            throw new InvalidOperationException("BulletChart's RangeLabels name the ranges from Ranges; a GaugeBand names its own with Label.");
+        }
+
+        if (Max is not null && ChildContent is not null)
+        {
+            throw new InvalidOperationException("BulletChart's GaugeBands are on one shared scale: leave out Max, which gives each row its own.");
+        }
+
+        if (!double.IsFinite(Min))
+        {
+            throw new ArgumentOutOfRangeException(nameof(Min), Min, "BulletChart's Min must be a number.");
+        }
+
+        (_label, _labelName) = Compile(Label, ref _lastLabel, _label, _labelName);
+        (_value, _valueName) = Compile(Value, ref _lastValue, _value, _valueName);
+        (_target, _targetName) = Target is null ? (null, null) : Compile(Target, ref _lastTarget, _target, _targetName);
+        (_max, _) = Max is null ? (null, null) : Compile(Max, ref _lastMax, _max, null);
+        _context.Bands.BeginPass();
+        base.OnParametersSet();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private static (Func<TItem, object?>, string?) Compile(Expression<Func<TItem, object?>> expression, ref Expression<Func<TItem, object?>>? last, Func<TItem, object?>? compiled, string? name)
+    {
+        if (ReferenceEquals(expression, last) && compiled is not null) return (compiled, name);
+        last = expression;
+        return (expression.Compile(), ChartMembers.Name(expression));
+    }
+}

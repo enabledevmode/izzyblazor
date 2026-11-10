@@ -250,6 +250,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "sankey.css"),
   },
   {
+    // A sheet of its own, linked by BulletChart beside chart.css.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "bullet.css")],
+    outfile: join(lib, "wwwroot", "bullet.css"),
+  },
+  {
     // A sheet of its own, linked by TreemapChart beside chart.css.
     ...common,
     sourcemap: false,
@@ -406,6 +413,8 @@ const builds = [
       "elements/parts/chart-export": join(lib, "Scripts", "elements", "chart-export.ts"),
       // TreemapChart's tooltip and keys, loaded where there's a treemap.
       "elements/parts/chart-treemap": join(lib, "Scripts", "elements", "chart-treemap.ts"),
+      // BulletChart's tooltip and keys, loaded where there's a bullet chart.
+      "elements/parts/chart-bullet": join(lib, "Scripts", "elements", "chart-bullet.ts"),
       // A DataGrid's grouped-by chips moved by drag or keys, loaded on the first press or key on one.
       "elements/parts/grid-group": join(lib, "Scripts", "elements", "grid-group.ts"),
       // RichTextEditor's alignment and span formats, for editors that use them.

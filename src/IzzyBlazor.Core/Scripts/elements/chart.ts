@@ -10,6 +10,7 @@ import type { Peer, SyncAt } from "./chart-sync";
 import type { radar as Radar } from "./chart-radar";
 import type { sankey as Sankey } from "./chart-sankey";
 import type { treemap as Treemap } from "./chart-treemap";
+import type { bullet as Bullet } from "./chart-bullet";
 
 // The redraw (chart-draw.ts), loaded the first time a legend hides a series (or a pie's slices).
 type DrawModule = { draw: typeof Draw; placeMarks: typeof PlaceMarks; zoomArgs: typeof ZoomArgs };
@@ -67,7 +68,7 @@ class Chart extends IzzyElement {
     if (this.hasAttribute("data-ib-refresh")) {
       (import("./parts/chart-live.js" as string) as Promise<{ live: typeof Live }>).then((m) => !signal.aborted && m.live(this, signal));
     }
-    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap", "data-ib-sync", "data-ib-sync-at", "data-ib-sync-view", "data-ib-sync-hover", "data-ib-follow"] });
+    changed.observe(this, { attributeFilter: ["data-ib-draw", "data-ib-pos", "data-ib-count", "data-ib-pie", "data-ib-sankey", "data-ib-treemap", "data-ib-bullet", "data-ib-sync", "data-ib-sync-at", "data-ib-sync-view", "data-ib-sync-hover", "data-ib-follow"] });
     signal.addEventListener("abort", () => changed.disconnect());
 
     if (this.hasAttribute("data-ib-pie")) {
@@ -106,6 +107,14 @@ class Chart extends IzzyElement {
     if (this.hasAttribute("data-ib-treemap")) {
       (import("./parts/chart-treemap.js" as string) as Promise<{ treemap: typeof Treemap }>).then((m) => {
         if (!signal.aborted) m.treemap(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
+      });
+      return;
+    }
+
+    // A BulletChart: its own part (chart-bullet.ts), loaded when one is on the page.
+    if (this.hasAttribute("data-ib-bullet")) {
+      (import("./parts/chart-bullet.js" as string) as Promise<{ bullet: typeof Bullet }>).then((m) => {
+        if (!signal.aborted) m.bullet(this, signal, (frame) => this.keyboard(frame, signal), () => this.connectedCallback());
       });
       return;
     }

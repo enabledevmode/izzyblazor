@@ -1,0 +1,11 @@
+@* Each region's quarter so far against its quota, standing up. The ranges are each region's own:
+   under 60% of quota is behind, 60–90% near, past 90% on track. *@
+<BulletChart Items="_regions" Title="Q4 bookings against quota" Orientation="Orientation.Vertical"
+             Label="r => r.Region" Value="r => r.Bookings" Target="r => r.Quota" ValueFormat="$#,##0.0M"
+             Ranges="r => new[] { r.Quota * 0.6, r.Quota * 0.9 }" RangeLabels="@(["Behind", "Near", "On track"])" />
+
+@code {
+    private record Sales(string Region, double Bookings, double Quota);
+
+    private readonly Sales[] _regions = [new("North", 4.2, 4.0), new("South", 2.6, 3.5), new("East", 3.9, 3.8), new("West", 3.1, 4.5), new("Central", 1.7, 2.4)];
+}

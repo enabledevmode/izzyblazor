@@ -1,0 +1,18 @@
+@* A company's year to date against plan: each measure on its own scale, in its own unit, with the
+   ranges finance set for poor, satisfactory and good. *@
+<BulletChart Items="_kpis" Title="2026 year to date against plan"
+             Label="k => k.Measure" Value="k => k.Actual" Target="k => k.Plan" Max="k => k.Max"
+             Ranges="k => k.Ranges" RangeLabels="@(["Poor", "Satisfactory", "Good"])" Format="k => k.Format" />
+
+@code {
+    private record Kpi(string Measure, double Actual, double Plan, double Max, double[] Ranges, string Format);
+
+    private readonly Kpi[] _kpis =
+    [
+        new("Revenue", 275_000, 250_000, 300_000, [150_000, 225_000], "$#,##0,K;;$0"),
+        new("Profit margin", 0.225, 0.27, 0.30, [0.20, 0.25], "0%"),
+        new("Average order", 320, 550, 600, [350, 500], "$#,##0"),
+        new("New customers", 1_650, 2_100, 2_500, [1_400, 2_000], "#,##0"),
+        new("Satisfaction (1–5)", 4.6, 4.4, 5, [3.5, 4.25], "0.0"),
+    ];
+}
