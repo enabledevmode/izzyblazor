@@ -174,6 +174,68 @@
   .ib-lgauge-v .ib-lgauge-minor { inline-size: 0.25rem; }
   .ib-lgauge-v .ib-lgauge-tick > span { top: 0; left: auto; right: calc(100% + 0.25rem); translate: 0 -50%; }
 
+  /* Thick (a needle, or ticks inside): the track is the gauge, the bands its body. */
+  .ib-lgauge-thick .ib-lgauge-track { block-size: 1.5rem; }
+  .ib-lgauge-v.ib-lgauge-thick .ib-lgauge-track { block-size: auto; inline-size: 1.5rem; }
+
+  /* The needle: a bar ending in a point, from past the track's edge into it. On the bands it keeps
+     the gauge's color, or the text's, so it never sinks into the band it's in. */
+  .ib-lgauge-needled .ib-lgauge-rail { margin-block-start: 0.75rem; }
+  .ib-lgauge-needle {
+    position: absolute;
+    inset-block: -0.75rem 30%;
+    left: var(--p);
+    inline-size: 0.5rem;
+    translate: -50% 0;
+    background: var(--ib-gauge-color, color-mix(in oklab, var(--ib-color-on-surface) 70%, var(--ib-color-surface)));
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.5rem), 50% 100%, 0 calc(100% - 0.5rem));
+  }
+
+  /* Ticks inside: lines over the bands from the numbers' edge, the minor ones shorter; the row
+     outside holds only the numbers. */
+  .ib-lgauge-line {
+    position: absolute;
+    inset-block: auto 0;
+    left: var(--p);
+    inline-size: 1px;
+    block-size: 60%;
+    translate: -50% 0;
+    background: color-mix(in oklab, var(--ib-color-on-surface) 65%, transparent);
+    /* A light edge beside it, so a line shows on the darkest band as on the lightest. */
+    box-shadow: 1px 0 color-mix(in oklab, var(--ib-color-surface) 55%, transparent);
+  }
+
+  .ib-lgauge-line.ib-lgauge-minor { block-size: 30%; }
+  .ib-lgauge-flip .ib-lgauge-line { inset-block: 0 auto; }
+  .ib-lgauge-inside .ib-lgauge-scale { gap: 0.25rem; }
+  .ib-lgauge-inside .ib-lgauge-ticks { block-size: 1lh; }
+  .ib-lgauge-inside .ib-lgauge-tick { block-size: 0; border: 0; }
+  .ib-lgauge-inside .ib-lgauge-tick > span { top: 0; }
+
+  /* The numbers on the other side: above across (the ticks hang down to the track). */
+  .ib-lgauge-flip .ib-lgauge-ticks { order: -1; }
+  .ib-lgauge-flip:not(.ib-lgauge-v, .ib-lgauge-inside) .ib-lgauge-tick { inset-block: auto 0; }
+  .ib-lgauge-flip:not(.ib-lgauge-v, .ib-lgauge-inside) .ib-lgauge-tick > span { top: auto; bottom: 0.375rem; }
+
+  /* Standing up: the needle comes in from the right, the lines from the numbers' side. */
+  .ib-lgauge-v.ib-lgauge-needled .ib-lgauge-rail { margin: 0 0.75rem 0 0; }
+  .ib-lgauge-v .ib-lgauge-needle {
+    inset: auto -0.75rem var(--p) 30%;
+    inline-size: auto;
+    block-size: 0.5rem;
+    translate: 0 50%;
+    clip-path: polygon(100% 0, 100% 100%, 0.5rem 100%, 0 50%, 0.5rem 0);
+  }
+  .ib-lgauge-v .ib-lgauge-line { inset: auto auto var(--p) 0; inline-size: 60%; block-size: 1px; translate: 0 50%; box-shadow: 0 1px color-mix(in oklab, var(--ib-color-surface) 55%, transparent); }
+  .ib-lgauge-v .ib-lgauge-line.ib-lgauge-minor { inline-size: 30%; }
+  .ib-lgauge-v.ib-lgauge-flip .ib-lgauge-line { left: auto; right: 0; }
+  .ib-lgauge-v.ib-lgauge-inside .ib-lgauge-ticks { block-size: auto; inline-size: calc(var(--ib-lgauge-tw) + 0.25rem); }
+  .ib-lgauge-v.ib-lgauge-inside .ib-lgauge-tick { inline-size: 0; border: 0; }
+  .ib-lgauge-v.ib-lgauge-inside .ib-lgauge-tick > span { right: 0; }
+  .ib-lgauge-v.ib-lgauge-flip .ib-lgauge-tick { inset: auto auto var(--p) 0; }
+  .ib-lgauge-v.ib-lgauge-flip .ib-lgauge-tick > span { right: auto; left: calc(100% + 0.25rem); }
+  .ib-lgauge-v.ib-lgauge-flip.ib-lgauge-inside .ib-lgauge-tick > span { left: 0; }
+
   /* A pointer's readout under the gauge: its color, its label, its value. */
   .ib-gauge-readouts {
     display: flex;
@@ -208,7 +270,7 @@
   @media (forced-colors: active) {
     :is(.ib-lgauge-rail, .ib-gauge-readout) { forced-color-adjust: none; }
     .ib-lgauge-track { outline: 1px solid CanvasText; }
-    .ib-lgauge-target { background: CanvasText; }
+    :is(.ib-lgauge-target, .ib-lgauge-needle, .ib-lgauge-line) { background: CanvasText; }
   }
 
   @media print {

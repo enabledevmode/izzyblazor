@@ -2578,9 +2578,9 @@
     {
       "id": "linear-gauge", "icon": "Ruler", "name": "LinearGauge", "title": "Linear gauge", "category": "Charts", "summary": "Shows a value on a straight scale with ticks, as a bar or a marker, such as a tank's level or the air pressure.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["linear gauge", "meter", "thermometer", "level", "scale", "horizontal gauge", "vertical gauge"],
       "features": [
-        { "feature": "A bar from the scale's start, or a marker at the value" },
+        { "feature": "A bar from the scale's start, a marker at the value, or a needle into the bands" },
         { "feature": "Bands along the track that color the value and name its range" },
-        { "feature": "Round ticks by default, or your own step, with minor ticks" },
+        { "feature": "Round ticks by default, or your own step, with minor ticks, beside the track or over it" },
         { "feature": "Across or standing up, either way round" },
         { "feature": "A target tick, and more values as pointers" },
         { "feature": "Read as a meter, with its value in words" }
@@ -2588,6 +2588,7 @@
       "examples": [
         { "id": "linear-gauge-usage", "title": "Bands", "lead": "Give `LinearGauge` a `Value` and a `Label`. The scale runs from `Min` to `Max`, 0 to 1 by default, with round ticks; `ValueFormat` formats the value and the ticks. Each `GaugeBand` marks a range on the track, and a value in it colors the bar.", "after": ["`Palette` colors the bands in order; without it they're grays, darkest first, and the bar keeps the primary color. A band's `Label` shows beside the value, so the color isn't the only cue.", "The gauge is as wide as its container."] },
         { "id": "linear-gauge-marker", "title": "Marker and ticks", "lead": "For a reading that isn't an amount, set `Pointer=\"LinearGaugePointer.Marker\"`: a triangle points at the value in place of a bar from the start. `Step` sets the numbered ticks, and `MinorStep` adds shorter ones between them.", "after": ["`Target` marks a goal with a tick across the track. `Reversed` runs the scale the other way. `HideScale` leaves out the ticks and their numbers, for a gauge small enough for a table cell."] },
+        { "id": "linear-gauge-needle", "title": "Needle and ticks inside", "lead": "When the bands are the reading, set `Pointer=\"LinearGaugePointer.Needle\"`: the track thickens into the gauge's body and a needle points into it. `TickPlacement=\"TickPlacement.Inside\"` draws the ticks over the bands.", "after": ["The needle keeps the gauge's `Accent`, or the text color, so it never sinks into the band it's in. The band's label names where the value falls.", "`ScaleSide=\"ScaleSide.Start\"` puts the numbers above the scale, and the inside ticks hang from the top edge."] },
         { "id": "linear-gauge-vertical", "title": "Vertical, with pointers", "lead": "To stand the scale up, low at the bottom, set `Orientation=\"Orientation.Vertical\"`. It's 12rem tall; `Height` sets another.", "after": ["A `GaugePointer` is another value on the same scale: a triangle in the next chart color, written under the gauge as \"Dew point 12°C\". Each pointer is a meter of its own, named by its label."] }
       ]
     },

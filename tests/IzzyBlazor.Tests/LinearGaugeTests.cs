@@ -90,4 +90,21 @@ public class LinearGaugeTests : BunitContext
         Assert.Equal("44 km/h", dial.FindAll("[role=meter]")[1].GetAttribute("aria-valuetext"));
         Assert.Contains("gauge", dial.Find("link[href*=gauge]").GetAttribute("href"));
     }
+
+    [Fact]
+    public void A_needle_points_into_the_bands_with_the_ticks_drawn_over_them()
+    {
+        var cut = Render<LinearGauge>(p => p
+            .Add(c => c.Label, "Carbohydrate").Add(c => c.Value, 0.35).Add(c => c.ValueFormat, "P0").Add(c => c.Step, 0.25)
+            .Add(c => c.Pointer, LinearGaugePointer.Needle).Add(c => c.TickPlacement, TickPlacement.Inside)
+            .Add(c => c.ScaleSide, ScaleSide.Start)
+            .AddChildContent<GaugeBand>(b => b.Add(x => x.From, 0.45).Add(x => x.To, 0.65).Add(x => x.Label, "In range")));
+
+        Assert.Empty(cut.FindAll(".ib-lgauge-bar"));
+        Assert.Equal("--p:35%", cut.Find(".ib-lgauge-needle").GetAttribute("style"));
+        // The lines are in the track; the row beside it holds only the numbers, here above.
+        Assert.Equal(5, cut.FindAll(".ib-lgauge-track .ib-lgauge-line").Count);
+        Assert.Equal(["0%", "25%", "50%", "75%", "100%"], cut.FindAll(".ib-lgauge-tick > span").Select(t => t.TextContent));
+        Assert.Contains("ib-lgauge-flip", cut.Find(".ib-lgauge").ClassName);
+    }
 }
