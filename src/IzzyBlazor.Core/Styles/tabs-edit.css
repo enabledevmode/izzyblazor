@@ -57,6 +57,13 @@
     border-radius: var(--ib-radius-sm);
   }
 
+  /* A 24px target around the small button (WCAG 2.5.8), the look unchanged. */
+  .ib-tab-close::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, (100% - 24px) / 2);
+  }
+
   .ib-tab-close > .ib-icon {
     width: calc(var(--ib-tab-x) * 0.7);
     height: calc(var(--ib-tab-x) * 0.7);

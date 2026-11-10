@@ -75,6 +75,18 @@
     transition: width var(--ib-duration-normal) var(--ib-ease);
   }
 
+  /* Forced colors drop backgrounds: the track is outlined and the bar keeps a system color. */
+  @media (forced-colors: active) {
+    .ib-progress-track {
+      border: 1px solid CanvasText;
+    }
+
+    .ib-progress-bar {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+  }
+
   /* No value: a short bar sweeps across. */
   .ib-progress-indeterminate .ib-progress-bar {
     position: absolute;

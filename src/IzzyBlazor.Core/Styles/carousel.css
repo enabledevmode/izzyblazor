@@ -234,4 +234,16 @@
       transition: none;
     }
   }
+
+  /* Forced colors drop backgrounds (and the pill): the dots keep system colors. */
+  @media (forced-colors: active) {
+    .ib-carousel .ib-carousel-dot::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+
+    .ib-carousel .ib-carousel-dot[aria-current="true"]::before {
+      background: Highlight;
+    }
+  }
 }

@@ -304,8 +304,10 @@
     inset-inline: 0;
   }
 
+  /* The bar's color shows focus; forced colors drop it and draw this outline instead. */
   .ib-split-bar:focus-visible {
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
   }
 
   .ib-splitter[data-ib-resizing] {

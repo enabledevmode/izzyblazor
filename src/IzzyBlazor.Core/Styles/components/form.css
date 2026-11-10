@@ -208,8 +208,9 @@
     border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
   }
 
+  /* A transparent outline, not none: forced colors drop the halo and draw this one instead. */
   .ib-field-input:focus-visible {
-    outline: none;
+    outline: 2px solid transparent;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
@@ -487,6 +488,22 @@
     --ib-slider-accent: var(--ib-color-disabled);
   }
 
+  /* Forced colors drop backgrounds: the track keeps its own, in system colors. */
+  @media (forced-colors: active) {
+    .ib-slider {
+      --ib-slider-rail: CanvasText;
+      --ib-slider-accent: Highlight;
+    }
+
+    .ib-slider:has(:disabled) {
+      --ib-slider-accent: GrayText;
+    }
+
+    .ib-slider-track::before {
+      forced-color-adjust: none;
+    }
+  }
+
   .ib-field-invalid .ib-slider {
     --ib-slider-accent: var(--ib-color-danger);
   }
@@ -571,7 +588,7 @@
   }
 
   .ib-slider-input:focus-visible {
-    outline: none;
+    outline: 2px solid transparent;
   }
 
   /* A solid ring, the focus color, with a gap in the surface color: visible on the track and off it. */
@@ -1612,7 +1629,7 @@
   }
 
   .ib-combobox[data-ready] > .ib-multiselect-box:focus-within {
-    outline: none;
+    outline: 2px solid transparent;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
@@ -3022,6 +3039,7 @@
   }
 
   .ib-color-box:focus-within {
+    outline: 2px solid transparent;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
@@ -3352,7 +3370,7 @@
   }
 
   .ib-date-control:has([data-ib-cover]) .ib-date-toggle:focus-visible {
-    outline: none;
+    outline: 2px solid transparent;
   }
 
   .ib-date-control:has([data-ib-cover]) .ib-date-text {
@@ -3416,6 +3434,7 @@
   }
 
   .ib-field-clear > button {
+    position: relative;
     display: inline-flex;
     padding: 0.25rem;
     border: 0;
@@ -3424,6 +3443,13 @@
     color: var(--ib-color-subtle);
     cursor: pointer;
     --ib-icon-size: 0.875rem;
+  }
+
+  /* A 24px target around the small button (WCAG 2.5.8), the look unchanged. */
+  .ib-field-clear > button::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, (100% - 24px) / 2);
   }
 
   .ib-field-clear > button:hover {
