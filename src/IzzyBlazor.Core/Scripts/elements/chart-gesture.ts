@@ -33,7 +33,7 @@ export function gestures(c: GestureHost): void {
     return horizontal ? (y - r.top) / r.height : (x - r.left) / r.width;
   };
   // Zoom out and in: out waits until there's something to zoom out of, in stops at the closest.
-  const [out, inn] = el.querySelectorAll<HTMLButtonElement>("[data-ib-zoom]");
+  const [out, inn] = el.querySelectorAll<HTMLButtonElement>("[data-ib-zoom-by]");
   const can = () => {
     if (!out) return;
     out.disabled = !c.isZoomed();
@@ -45,10 +45,10 @@ export function gestures(c: GestureHost): void {
   el.addEventListener(
     "click",
     (event) => {
-      const b = (event.target as Element).closest<HTMLButtonElement>("[data-ib-zoom]");
+      const b = (event.target as Element).closest<HTMLButtonElement>("[data-ib-zoom-by]");
       if (!b) return;
       c.drop();
-      c.zoomAround((c.view()[0] + c.view()[1]) / 2, Number(b.dataset.ibZoom));
+      c.zoomAround((c.view()[0] + c.view()[1]) / 2, Number(b.dataset.ibZoomBy));
       can();
       // A button that turned off hands focus to the other.
       if (b.disabled) (b === out ? inn : out).focus();
