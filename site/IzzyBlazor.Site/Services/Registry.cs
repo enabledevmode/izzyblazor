@@ -117,7 +117,7 @@ public sealed class Registry
         _ => "Square",
     };
 
-    /// <summary>A category's anchor on the components page, such as <c>date-time</c> for "Date &amp; time".</summary>
+    /// <summary>A category's slug, such as <c>date-time</c> for "Date &amp; time": the components page's <c>?group=</c>.</summary>
     public static string CategoryAnchor(string category) =>
         System.Text.RegularExpressions.Regex.Replace(category.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
 

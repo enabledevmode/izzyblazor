@@ -613,61 +613,17 @@ html:has(> body > .frame) body { margin: 0; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }
 
-/* The components index: a row per category, its icon at the start and its links in columns after
-   it (after Ant Design's overview, with an icon a group rather than a picture a component). */
-.site-index {
-  display: flex;
-  flex-direction: column;
-  margin-block-start: var(--ib-space-4);
+/* The components index: a card a component, A to Z (after Chakra's overview), its picture on
+   top and its summary held to two lines. */
+.site-cards { margin-block-start: var(--ib-space-4); }
+.site-cards .ib-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
-.site-index-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--ib-space-6);
-  align-items: start;
-  padding-block: var(--ib-space-6);
-  border-block-start: 1px solid var(--ib-color-border);
-}
-.site-index-heading {
-  display: flex;
-  align-items: baseline;
-  gap: var(--ib-space-2);
-  margin: 0 0 var(--ib-space-3);
-  font-size: var(--ib-text-md);
-  font-weight: 600;
-  color: var(--ib-color-on-surface);
-  scroll-margin-top: 5rem;
-}
-.site-index-count { font-size: var(--ib-text-sm); font-weight: 400; color: var(--ib-color-muted); }
-.site-index-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-  gap: 0 var(--ib-space-6);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.site-index-list > li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ib-space-1) var(--ib-space-2);
-  padding-block: 0.3125rem;
-}
-@media (max-width: 39.98rem) {
-  /* Phones: the text alone, the links in two columns. */
-  .site-index-row { grid-template-columns: minmax(0, 1fr); }
-  .site-index-row > .site-picto { display: none; }
-  .site-index-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-/* Names in the muted gray under strong group headings, as in the docs sidebar; full color on
-   hover and focus. */
-.site-index-list a {
-  color: var(--ib-color-muted);
-  font-size: var(--ib-text-sm);
-  text-decoration: none;
-}
-.site-index-list a:is(:hover, :focus-visible) { color: var(--ib-color-on-surface); text-decoration: underline; }
+.site-card-marks { display: flex; flex-wrap: wrap; gap: var(--ib-space-1); }
 
 /* Search (the /search page and the header's dialog): a heading per group, then a list of links,
    each a title with the matched words marked and where it is, and a line about it below. */
