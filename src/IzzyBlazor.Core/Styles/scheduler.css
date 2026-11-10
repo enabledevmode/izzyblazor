@@ -143,21 +143,8 @@
     white-space: pre-line;
   }
 
-  /* Some categories hidden: the accent, and a dot on the funnel (a DataGrid column filter's look). */
-  .ib-sched-cats-btn[data-active] {
-    position: relative;
-    color: var(--ib-color-primary-text);
-  }
-  .ib-sched-cats-btn[data-active]::after {
-    content: "";
-    position: absolute;
-    top: calc(50% - var(--ib-icon-size) / 2 - 2px);
-    inset-inline-start: calc(var(--ib-btn-px, var(--ib-btn-pad)) + var(--ib-icon-size) - 4px);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--ib-color-primary);
-  }
+  /* Some categories hidden: the Categories button is data-active (button.css: the accent, and a
+     dot on its funnel). */
 
   /* The provider failed: the message and Retry above an empty view. */
   .ib-sched-error {
@@ -564,6 +551,7 @@
     .ib-sched-bar .ib-btn { --ib-btn-pad: var(--ib-space-2); }
     /* The menus keep their words, not their icons; New keeps its icon. */
     :is(.ib-sched-cats-btn, .ib-sched-views-btn) > svg:first-child { display: none; }
+    /* With the funnel hidden, the dot sits in the corner. */
     .ib-sched-cats-btn[data-active]::after { top: 4px; inset-inline: auto 4px; }
     .ib-sched-new { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
@@ -579,6 +567,5 @@
     .ib-sched-pill::before { forced-color-adjust: none; }
     /* Box shadows are gone in forced colors: today's bar is a border then. */
     :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { border-block-start: 3px solid Highlight; }
-    .ib-sched-cats-btn[data-active]::after { forced-color-adjust: none; background-color: Highlight; }
   }
 }

@@ -68,6 +68,35 @@
     padding: 0;
   }
 
+  /* Narrowing what shows (data-active), as a filter or a categories menu with some hidden: the
+     accent, and a dot on the icon's top end corner. */
+  .ib-btn[data-active] {
+    position: relative;
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-btn[data-active]::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - var(--ib-icon-size) / 2 - 2px);
+    inset-inline-start: calc(var(--ib-btn-px, var(--ib-btn-pad)) + var(--ib-icon-size) - 4px);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ib-color-primary);
+  }
+
+  .ib-btn-icon-only[data-active]::after {
+    inset-inline-start: calc(50% + var(--ib-icon-size) / 2 - 4px);
+  }
+
+  @media (forced-colors: active) {
+    .ib-btn[data-active]::after {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+  }
+
   .ib-btn-full {
     display: flex;
     width: 100%;
