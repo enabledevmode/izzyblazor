@@ -54,6 +54,13 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     [Parameter] public double StartAngle { get; set; }
 
     /// <summary>
+    /// How far round the slices go, in degrees: 360 (the default) for a whole circle, 180 for a
+    /// half. <c>StartAngle="-90" Sweep="180"</c> runs them across the top half, and the chart takes
+    /// only the half's height.
+    /// </summary>
+    [Parameter] public double Sweep { get; set; } = 360;
+
+    /// <summary>
     /// The circle's largest size. Defaults to 16rem; it's smaller when its container is narrower.
     /// </summary>
     [Parameter] public Length? Size { get; set; }
@@ -150,6 +157,58 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     // The turn the first slice starts at, 0 to 1.
     private protected double StartTurn => (StartAngle % 360 + 360) % 360 / 360;
 
+    // The share of the turn the slices fill, 0 to 1.
+    private protected double SweepTurn => Sweep / 360;
+
+    // The arc's box in the -1 -1 2 2 viewBox: the whole square, unless Sweep cuts it.
+    private protected (double X, double Y, double W, double H) Box => ChartShapes.PieBox(StartTurn, SweepTurn);
+
+    private protected bool Swept => SweepTurn < 0.99999;
+
+    private protected string ViewBox => $"{Num(Box.X)} {Num(Box.Y)} {Num(Box.W)} {Num(Box.H)}";
+
+    /// <summary>
+    /// A swept circle's plot is just the arc's box: as wide as its share of the circle's, as tall as
+    /// its shape gives. What's placed in it is placed by where it is on the circle (<see cref="Left"/>,
+    /// <see cref="Top"/>), and the script reads the box from <c>data-ib-box</c>.
+    /// </summary>
+    private protected string? PlotStyle => Swept
+        ? $"width:min(100%, calc(var(--ib-pie-size, 16rem) * {Num(Box.W / 2)}));aspect-ratio:{Num(Box.W)} / {Num(Box.H)}"
+        : null;
+
+    private protected string? BoxData => Swept ? ViewBox : null;
+
+    // A point given in shares of the whole circle's square (0 to 1), as a % of the plot's box.
+    private protected string Left(double x) => Num((x * 2 - 1 - Box.X) / Box.W * 100);
+
+    private protected string Top(double y) => Num((y * 2 - 1 - Box.Y) / Box.H * 100);
+
+    private protected string PlotClass => Swept ? "ib-pie-plot ib-pie-swept" : "ib-pie-plot";
+
+    private bool Above => Box.Y + Box.H <= 0.0001;
+
+    private bool Below => Box.Y >= -0.0001;
+
+    /// <summary>A donut's Center: above the middle when the arc is all above it (a top half), below it when all below.</summary>
+    private protected string CenterClass(string @class) => !Swept ? @class
+        : Above ? @class + " ib-pie-center-above"
+        : Below ? @class + " ib-pie-center-below"
+        : @class;
+
+    /// <summary>
+    /// A swept donut's Center in its box: the square <paramref name="inset"/> of the whole circle
+    /// keeps (a share of the side), cut at the middle when the arc is all above or below it.
+    /// </summary>
+    private protected string? CenterStyle(double inset)
+    {
+        if (!Swept) return null;
+        var (x, y, w, h) = Box;
+        double lo = -1 + 2 * inset, hi = 1 - 2 * inset;
+        var top = Below ? 0 : lo;
+        var bottom = Above ? 0 : hi;
+        return $"inset:{Num((top - y) / h * 100)}% {Num((x + w - hi) / w * 100)}% {Num((y + h - bottom) / h * 100)}% {Num((lo - x) / w * 100)}%";
+    }
+
     private protected string? FormatValue(double? value) => value?.ToString(ValueFormat ?? "#,##0.##", CultureInfo.CurrentCulture);
 
     /// <summary>
@@ -188,6 +247,7 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
 
             w.WriteEndArray();
             w.WriteNumber("f", StartTurn);
+            w.WriteNumber("w", SweepTurn);
             WriteShape(w, "p0", NumberShape.Of("P0", CultureInfo.CurrentCulture)!);
             WriteShape(w, "p1", NumberShape.Of("P1", CultureInfo.CurrentCulture)!);
             w.WriteNumber("l", labels);
@@ -279,6 +339,11 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(Title)
                 ? $"{ComponentName} needs a Title, such as \"Customers by plan\", or TitledBy, the id of a heading on the page that titles it."
                 : $"{ComponentName} takes a Title or TitledBy, not both: TitledBy names it from a heading already on the page.");
+        }
+
+        if (!double.IsFinite(Sweep) || Sweep <= 0 || Sweep > 360)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Sweep), Sweep, $"{ComponentName}'s Sweep is how far round the slices go, more than 0 and up to 360 degrees, such as 180 for a half circle.");
         }
 
         if (Argument is null && !Drills)

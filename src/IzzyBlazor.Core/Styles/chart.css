@@ -879,6 +879,8 @@
     border-radius: 50%;
   }
 
+  /* Sweep: the plot is just the arc's box (PieChartBase.PlotStyle). */
+  .ib-pie-swept > .ib-pie-frame { border-radius: var(--ib-radius-md); }
   .ib-pie-frame:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 4px;
@@ -964,6 +966,9 @@
 
   /* Its hole is wider than a donut's (half the radius): the square inside it. */
   .ib-pie-center-nested { inset: 32%; }
+  /* A half (or less) above the middle: Center sits in the hole, on the flat edge; below it, the same under. */
+  .ib-pie-center-above { place-content: end center; }
+  .ib-pie-center-below { place-content: start center; }
 
   .ib-pie-legend > li {
     display: grid;

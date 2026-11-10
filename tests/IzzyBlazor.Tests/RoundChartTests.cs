@@ -67,6 +67,18 @@ public class RoundChartTests : BunitContext
     }
 
     [Fact]
+    public void A_half_pie_shares_half_the_turn_and_takes_only_its_half_of_the_box()
+    {
+        // StartAngle -90, Sweep 180: from the left, over the top, to the right.
+        var slices = ChartShapes.Pie([1, 3], hole: 0.62, from: 0.75, sweep: 0.5);
+        Assert.Equal([(0.75, 0.875), (0.875, 1.25)], slices.Select(s => (Math.Round(s.Start, 6), Math.Round(s.End, 6))));
+        Assert.Equal((-1, -1, 2, 1), ChartShapes.PieBox(0.75, 0.5));
+        // A quarter from the top to the right keeps the middle, where a donut's Center goes.
+        Assert.Equal((0, -1, 1, 1), ChartShapes.PieBox(0, 0.25));
+        Assert.Equal((-1, -1, 2, 2), ChartShapes.PieBox(0.3, 1));
+    }
+
+    [Fact]
     public void Funnel_stages_slope_from_their_value_to_the_next_and_a_pyramid_stands_on_its_base()
     {
         // Equal heights; each top as wide as its value against the largest, down to the next's.

@@ -1,0 +1,17 @@
+@* Seats in the House of Commons after the July 2024 election, as a half ring. *@
+<PieChart Items="_parties" Argument="p => p.Party" Value="p => p.Seats" Title="House of Commons seats, 2024" ValueFormat="N0"
+          Donut="true" StartAngle="-90" Sweep="180">
+    <Center><strong>650 seats</strong><br />326 for a majority</Center>
+</PieChart>
+
+@code {
+    private record PartySeats(string Party, int Seats);
+
+    private readonly PartySeats[] _parties =
+    [
+        new("Labour", 411),
+        new("Conservative", 121),
+        new("Liberal Democrat", 72),
+        new("Other", 46),
+    ];
+}

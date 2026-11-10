@@ -15,6 +15,13 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
   if (!plot || !frame) return;
 
   const hole = Number(host.dataset.ibPie) || 0;
+  // A swept circle's plot is just its arc's box, in the circle's -1 -1 2 2 viewBox (Sweep): where
+  // the middle is and how many pixels the radius is come from it.
+  const [bx, by, bw, bh] = (host.dataset.ibBox ?? "-1 -1 2 2").split(" ").map(Number);
+  const radius = () => plot.clientWidth / bw;
+  // A point in shares of the whole circle's square, as a % of the plot.
+  const leftOf = (x: number) => `${((x * 2 - 1 - bx) / bw) * 100}%`;
+  const topOf = (y: number) => `${((y * 2 - 1 - by) / bh) * 100}%`;
   // A nested donut's rings, outer first, each as thick as the next; its slices are numbered
   // ring by ring (ring * count + item), and its positions come ring by ring, split by ";".
   const rings = Number(host.dataset.ibRings) || 1;
@@ -53,8 +60,8 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
       if (!label) continue;
       if (el instanceof SVGPathElement) el.setAttribute("d", label.leader);
       else {
-        el.style.left = `${label.x * 100}%`;
-        el.style.top = `${label.y * 100}%`;
+        el.style.left = leftOf(label.x);
+        el.style.top = topOf(label.y);
         el.classList.toggle("ib-pie-label-start", !label.end);
       }
     }
@@ -62,8 +69,8 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
       const at = out.inside.get(Number(el.dataset.ibIn));
       el.toggleAttribute("data-ib-hidden", !at);
       if (!at) continue;
-      el.style.left = `${at.x * 100}%`;
-      el.style.top = `${at.y * 100}%`;
+      el.style.left = leftOf(at.x);
+      el.style.top = topOf(at.y);
     }
     redrawn();
   };
@@ -102,9 +109,10 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
   // The slice at a point on the page, or -1: past the circle, in the hole, or an empty ring.
   const sliceAt = (cx: number, cy: number) => {
     const r = plot.getBoundingClientRect();
-    const dx = cx - r.left - r.width / 2;
-    const dy = cy - r.top - r.height / 2;
-    const d = Math.hypot(dx, dy) / (r.width / 2);
+    const unit = r.width / bw;
+    const dx = cx - r.left + bx * unit;
+    const dy = cy - r.top + by * unit;
+    const d = Math.hypot(dx, dy) / unit;
     if (d > 1 || d < hole) return -1;
     const turn = (Math.atan2(dx, -dy) / (2 * Math.PI) + 1) % 1;
     const ring = Math.min(rings - 1, Math.floor((1 - d) / thick));
@@ -128,12 +136,12 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
     for (const s of slices) s.toggleAttribute("data-ib-active", s.dataset.ibI === String(index));
 
     // Beside the pointer, or for the keyboard beside the slice's middle; kept inside the chart.
-    const size = plot.clientWidth;
+    const unit = radius();
     if (x === undefined || y === undefined) {
       const turn = ((span[0] + span[1]) / 2) * 2 * Math.PI;
-      const r = (size / 2) * (rings > 1 ? 1 - (ringOf(index) + 0.5) * thick : hole ? (1 + hole) / 2 : 0.6);
-      x = size / 2 + r * Math.sin(turn);
-      y = size / 2 - r * Math.cos(turn);
+      const r = unit * (rings > 1 ? 1 - (ringOf(index) + 0.5) * thick : hole ? (1 + hole) / 2 : 0.6);
+      x = -bx * unit + r * Math.sin(turn);
+      y = -by * unit - r * Math.cos(turn);
     }
     const gap = 12;
     const tw = tooltip.offsetWidth;
@@ -142,7 +150,7 @@ export function pie(host: HTMLElement, signal: AbortSignal, keyboard: (frame: HT
     const offset = plot.getBoundingClientRect().left - box.left;
     const left = x + gap + tw <= box.width - offset ? x + gap : x - gap - tw;
     tooltip.style.left = `${Math.max(-offset, Math.min(left, box.width - offset - tw))}px`;
-    tooltip.style.top = `${Math.min(Math.max(y - th / 2, 0), Math.max(0, size - th))}px`;
+    tooltip.style.top = `${Math.min(Math.max(y - th / 2, 0), Math.max(0, plot.clientHeight - th))}px`;
   };
 
   const hide = () => {

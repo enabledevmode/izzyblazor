@@ -113,7 +113,7 @@
         var n = items.Count;
         var thickness = (1 - Hole) / rings.Count;
         var values = rings.Select(r => items.Select(i => ChartMembers.ToNumber(r.Read(i))).ToArray()).ToArray();
-        var slices = values.Select((v, r) => ChartShapes.Pie(v, 1 - (r + 1) * thickness, StartTurn, 1 - r * thickness)).ToArray();
+        var slices = values.Select((v, r) => ChartShapes.Pie(v, 1 - (r + 1) * thickness, StartTurn, 1 - r * thickness, SweepTurn)).ToArray();
         var texts = values.Select(v => v.Select(FormatValue).ToArray()).ToArray();
         var shares = values.Select(v =>
         {
@@ -133,7 +133,7 @@
                 <span>@RingName(r, rings.Count, rings[r].DisplayName)</span>
             }
         </p>
-        <ib-chart data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(n)"
+        <ib-chart data-ib-box="@BoxData" data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(n)"
                   data-ib-pie="@Num(Hole)"
                   data-ib-rings="@rings.Count"
                   data-ib-count="@n"
@@ -141,14 +141,14 @@
                   data-ib-pos="@string.Join(";", slices.Select(ring => string.Join(",", Enumerable.Range(0, n).Select(i => ring.FirstOrDefault(s => s.Index == i) is { } s ? $"{Num(s.Start)} {Num(s.End)}" : ""))))">
             <div class="@PieClass">
                 <div class="ib-pie-unringed">
-                <div class="ib-pie-plot">
+                <div class="@PlotClass" style="@PlotStyle">
                     <div class="ib-pie-frame" role="img" aria-labelledby="@NameId" aria-describedby="@ringsId">
-                        <svg class="ib-pie-svg" viewBox="-1 -1 2 2">
+                        <svg class="ib-pie-svg" viewBox="@ViewBox">
                             @for (var r = 0; r < rings.Count; r++)
                             {
                                 @if (slices[r].Count == 0)
                                 {
-                                    <path class="ib-pie-empty" d="@ChartShapes.Pie([1], 1 - (r + 1) * thickness, 0, 1 - r * thickness)[0].Path" />
+                                    <path class="ib-pie-empty" d="@ChartShapes.Pie([1], 1 - (r + 1) * thickness, StartTurn, 1 - r * thickness, SweepTurn)[0].Path" />
                                 }
                                 @foreach (var slice in slices[r])
                                 {
@@ -160,7 +160,7 @@
                     </div>
                     @if (Center is not null)
                     {
-                        <div class="ib-pie-center ib-pie-center-nested">@Center</div>
+                        <div class="@(CenterClass("ib-pie-center ib-pie-center-nested"))" style="@CenterStyle(0.32)">@Center</div>
                     }
                     @if (Tooltip)
                     {
