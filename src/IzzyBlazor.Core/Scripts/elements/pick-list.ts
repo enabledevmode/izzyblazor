@@ -57,6 +57,8 @@ class PickList extends IzzyElement {
       }
       const option = this.#optionAt(target);
       if (option) this.#choose(option, event);
+      // A click with no press before it (a screen reader's) isn't a tap.
+      this.#tap = false;
     });
     on("dblclick", (event) => {
       const option = this.#optionAt(event.target as Element);

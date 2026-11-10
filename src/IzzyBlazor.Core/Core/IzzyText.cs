@@ -102,10 +102,10 @@ public class IzzyText
     /// <summary>A DataGrid column menu: sorts by the column, largest first.</summary>
     public virtual string ColumnSortDescending { get; set; } = "Sort descending";
 
-    /// <summary>A DataGrid column menu, with another column sorted: adds the column to the sort, smallest first.</summary>
+    /// <summary>A DataGrid column menu, with another column sorted and not this one: adds the column to the sort, smallest first.</summary>
     public virtual string ColumnSortAddAscending { get; set; } = "Add to sort, ascending";
 
-    /// <summary>A DataGrid column menu, with another column sorted: adds the column to the sort, largest first.</summary>
+    /// <summary>A DataGrid column menu, with another column sorted and not this one: adds the column to the sort, largest first.</summary>
     public virtual string ColumnSortAddDescending { get; set; } = "Add to sort, descending";
 
     /// <summary>A DataGrid column menu: takes the column out of the sort.</summary>

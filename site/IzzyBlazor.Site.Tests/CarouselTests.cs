@@ -11,6 +11,7 @@ public sealed class CarouselTests(SiteFixture site) : IClassFixture<SiteFixture>
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/carousel?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-carousel')");
         var carousel = page.Locator("ib-carousel.ib-carousel-fade").First;
         var track = carousel.Locator(".ib-carousel-track");
         var box = (await track.BoundingBoxAsync())!;
@@ -23,11 +24,12 @@ public sealed class CarouselTests(SiteFixture site) : IClassFixture<SiteFixture>
         var after = await track.EvaluateAsync<string>(
             "t => { const s = [...t.children]; const i = s.findIndex(c => c.hasAttribute('data-ib-shown')); return s[(i + 1) % s.length].getAttribute('aria-label'); }");
 
+        Assert.NotEqual(before, after);
+
         await page.Mouse.DownAsync();
         await page.Mouse.MoveAsync(x - 120, y, new() { Steps = 6 });
         await page.Mouse.UpAsync();
 
         await Assertions.Expect(shown).ToHaveAttributeAsync("aria-label", after);
-        Assert.NotEqual(before, after);
     }
 }
