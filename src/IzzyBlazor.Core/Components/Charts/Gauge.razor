@@ -91,11 +91,12 @@
             <span class="ib-gauge-end ib-gauge-max" aria-hidden="true">@Text(Max)</span>
         </div>
         <span id="@_labelId" class="@(HideLabel ? "ib-visually-hidden" : "ib-gauge-label")">@Label</span>
-        @if (pointers.Count > 0)
+        @if (pointers.Count > 0 || current?.Label is { Length: > 0 })
         {
+            @* The pointers' readouts and the band name are styled in gauge.css. *@
             <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/gauge.css"]" />
-            @Readouts(pointers)
         }
+        @Readouts(pointers)
     }
 
     /// <inheritdoc />

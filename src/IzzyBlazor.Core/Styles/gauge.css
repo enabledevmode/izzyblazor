@@ -1,6 +1,6 @@
 /*
- * LinearGauge's styles, and the readouts of a gauge's GaugePointers (Gauge links this sheet only
- * when it has pointers). Built to wwwroot/gauge.css.
+ * LinearGauge's styles, and a Gauge's extras, its pointers' readouts and its band name (Gauge
+ * links this sheet only when it shows one). Built to wwwroot/gauge.css.
  *
  * Across: the label and value above, then the rail (the pointers' triangles, the bar, the track
  * with the bands), then the ticks. Standing up (.ib-lgauge-v): the ticks at the left, then the
@@ -54,12 +54,25 @@
     white-space: nowrap;
   }
 
-  .ib-lgauge-state {
-    font-size: var(--ib-text-sm);
+  /* A value's band name: the muted text color after a swatch of the band's color, since a light
+     band's color would be too faint as text. Under a Gauge's value, at the dial's center (which is
+     64.1% down), or beside a LinearGauge's. */
+  :is(.ib-gauge-state, .ib-lgauge-state) {
     font-weight: var(--ib-weight-medium);
-    color: color-mix(in oklab, var(--ib-gauge-state) 70%, var(--ib-color-on-surface));
+    color: var(--ib-color-muted);
+    border-inline-start: 0.5em solid var(--ib-gauge-state);
+    padding-inline-start: 0.35em;
     white-space: nowrap;
   }
+
+  .ib-gauge-state {
+    position: absolute;
+    top: 64.1%;
+    left: 50%;
+    translate: -50% calc(10cqi + 0.15em);
+  }
+
+  .ib-lgauge-state { font-size: var(--ib-text-sm); }
 
   .ib-lgauge-scale {
     display: flex;
