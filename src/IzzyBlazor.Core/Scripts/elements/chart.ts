@@ -658,7 +658,7 @@ class Chart extends IzzyElement {
 
     // The keyboard: one Tab stop on the plot. Screen readers pass the arrow keys to an application,
     // not an image, so the frame becomes one, described by the keys' hint.
-    this.keyboard(frame, signal);
+    this.keyboard(frame, signal, gestures);
     document.addEventListener("keydown", (event) => event.key === "Escape" && tipsOn && !tooltip.hidden && drop(), { signal });
     const announce = () => {
       if (!live || !tipsOn) return;
@@ -782,9 +782,12 @@ class Chart extends IzzyElement {
    * Makes the plot one Tab stop that takes the arrow keys: an application to screen readers (an
    * image takes no keys in their browse mode), named as before and described by the keys' hint.
    */
-  private keyboard(frame: HTMLElement, signal: AbortSignal): void {
+  private keyboard(frame: HTMLElement, signal: AbortSignal, zoom = false): void {
     frame.tabIndex = 0;
     frame.setAttribute("role", "application");
+    // Keys beyond moving between items, announced: the zoom's and a drill-down's.
+    const shortcuts = [zoom ? "Plus - 0" : "", this.querySelector(".ib-chart-drills [data-ib-drill]") ? "Enter" : ""].filter(Boolean).join(" ");
+    if (shortcuts) frame.setAttribute("aria-keyshortcuts", shortcuts);
     const hint = this.querySelector<HTMLElement>("[data-ib-keys]");
     // The server's description (the reference marks) stays, with the keys' hint after it.
     const described = frame.getAttribute("aria-describedby");
@@ -799,6 +802,7 @@ class Chart extends IzzyElement {
       if (this.#keep) return;
       frame.setAttribute("role", "img");
       frame.removeAttribute("aria-roledescription");
+      frame.removeAttribute("aria-keyshortcuts");
       // Only the hint comes off: a render since may have changed the server's part.
       const rest = (frame.getAttribute("aria-describedby") ?? "").split(" ").filter((id) => id && id !== hint?.id).join(" ");
       if (rest) frame.setAttribute("aria-describedby", rest);
