@@ -194,11 +194,20 @@ public static class SiteApp
         // a minute is logged with its user agent, to find them.
         var blocked = (app.Configuration["BlockedAgents"] ?? "")
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        // And by network, for one that passes as a browser from many addresses (Nov 10, 2026: a
+        // cloud provider's 47.79.0.0/16): BlockedNetworks, comma separated CIDRs.
+        var networks = (app.Configuration["BlockedNetworks"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(n => System.Net.IPNetwork.TryParse(n, out var net) ? net : (System.Net.IPNetwork?)null)
+            .OfType<System.Net.IPNetwork>()
+            .ToArray();
         var queryLog = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Crawlers");
         app.Use((context, next) =>
         {
             var agent = context.Request.Headers.UserAgent.ToString();
-            if (blocked.Length > 0 && blocked.Any(b => agent.Contains(b, StringComparison.OrdinalIgnoreCase)))
+            var from = IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var fly) ? fly : null;
+            if ((blocked.Length > 0 && blocked.Any(b => agent.Contains(b, StringComparison.OrdinalIgnoreCase)))
+                || (from is not null && networks.Any(n => n.Contains(from.IsIPv4MappedToIPv6 ? from.MapToIPv4() : from))))
             {
                 // With a body, so the status code pages don't render the not-found page for it.
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
