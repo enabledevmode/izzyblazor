@@ -7,6 +7,8 @@ const SETTLE_MS = 150;
 const SLIDE_MS = 400;
 // A fading carousel's swipe: how far the pointer must travel to move a slide.
 const SWIPE_PX = 40;
+// A trackpad swipe has ended once its wheel events stop this long.
+const WHEEL_QUIET_MS = 200;
 
 /**
  * <ib-carousel> is a thin layer over a Carousel's track, which the server renders as a scroller
@@ -18,7 +20,8 @@ const SWIPE_PX = 40;
  * made it, says which slide in the live region.
  *
  * Transition.Fade (.ib-carousel-fade) stacks the slides (main sheet) and shows the one with
- * data-ib-shown; this moves that attribute, and gives the track arrow keys and a swipe.
+ * data-ib-shown; this moves that attribute, and gives the track arrow keys, a swipe, a mouse drag
+ * and a trackpad's sideways swipe.
  *
  * Autoplay (data-ib-autoplay) moves on a slide each interval (the slide's data-ib-interval, else
  * the carousel's), wrapping at the end. Its button stops and starts it (data-ib-rotating); it
@@ -319,14 +322,51 @@ class Carousel extends IzzyElement {
       else return;
       e.preventDefault();
     }, { signal });
+    // A swipe, or a mouse drag: a slide that scrolls takes a drag from neither, but its scrollbar
+    // and a trackpad move it, and a fading one has no scrollbar.
     let x: number | null = null;
-    track.addEventListener("pointerdown", (e) => (x = e.pointerType === "mouse" ? null : e.clientX), { signal });
+    let dragged = false;
+    track.addEventListener("pointerdown", (e) => {
+      // A field keeps its own drags.
+      x = e.button === 0 && !(e.target as Element).closest("input, textarea, select, [contenteditable]") ? e.clientX : null;
+      dragged = false;
+    }, { signal });
     track.addEventListener("pointerup", (e) => {
       if (x === null) return;
       const dx = e.clientX - x;
       x = null;
-      if (Math.abs(dx) >= SWIPE_PX) this.#step((dx < 0) !== this.#rtl() ? 1 : -1);
+      if (Math.abs(dx) < SWIPE_PX) return;
+      // The drag wins over selecting the slide's text, as in Swiper and Embla; a double-click still
+      // selects a word.
+      if (e.pointerType === "mouse") getSelection()?.removeAllRanges();
+      dragged = true;
+      this.#step((dx < 0) !== this.#rtl() ? 1 : -1);
     }, { signal });
+    track.addEventListener("pointercancel", () => (x = null), { signal });
+    // A drag isn't a click on a link in the slide, nor the browser's drag of its image or link.
+    track.addEventListener("click", (e) => {
+      if (!dragged) return;
+      dragged = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }, { signal, capture: true });
+    track.addEventListener("dragstart", (e) => e.preventDefault(), { signal });
+    // A trackpad's sideways swipe: one slide a gesture, the gesture over when the wheel goes quiet.
+    let sideways = 0;
+    let moved = false;
+    let quiet = 0;
+    track.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      clearTimeout(quiet);
+      quiet = window.setTimeout(() => ((sideways = 0), (moved = false)), WHEEL_QUIET_MS);
+      if (moved) return;
+      sideways += e.deltaX;
+      if (Math.abs(sideways) < SWIPE_PX) return;
+      moved = true;
+      this.#step((sideways > 0) !== this.#rtl() ? 1 : -1);
+    }, { signal });
+    signal.addEventListener("abort", () => clearTimeout(quiet));
   }
 
   // Starts or stops the rotation, as its button shows.
