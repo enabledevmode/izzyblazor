@@ -41,8 +41,26 @@ export function moveChip(h: ChipHost, chip: HTMLElement, right: boolean): void {
   h.group(tokens);
 }
 
+// A chip menu's Move left and Move right, once this part is here (a click on a chip opens the menu
+// through it): moved as Alt+arrows move it, so focus follows the chip, in place of the item's link
+// or call: on the way up, after the menu has closed and before the document, where Blazor listens.
+const taken = new WeakSet<HTMLElement>();
+function takeMenu(h: ChipHost): void {
+  if (taken.has(h.host)) return;
+  taken.add(h.host);
+  h.host.addEventListener("click", (event) => {
+    const item = (event.target as Element).closest<HTMLElement>("[data-ib-chip-move]");
+    const chip = item?.closest<HTMLElement>(".ib-grid-group-chip");
+    if (!item || !chip || !h.chips().includes(chip)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    moveChip(h, chip, item.dataset.ibChipMove === "1");
+  });
+}
+
 // Dragging a chip among the others changes which level comes first.
 export function dragChip(h: ChipHost, down: PointerEvent, chip: HTMLElement, signal: AbortSignal, up = false): void {
+  takeMenu(h);
   const panel = chip.querySelector<HTMLElement>("[popover]");
   // A click: the chip's menu, after the pointerup's light dismiss.
   const menu = () => panel && setTimeout(() => openPanelAt(panel, chip, down.clientX, chip.getBoundingClientRect().bottom));
