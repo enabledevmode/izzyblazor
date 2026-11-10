@@ -194,8 +194,8 @@
     In the bar of what's grouped
     - Alt+Left, Alt+Right | On a chip's remove control, move that level before or after (reversed
       on right-to-left pages)
-    - Shift+F10, Menu key | On a chip's remove control, open its menu (Move group earlier, Move
-      group later), as a click on the chip does
+    - Shift+F10, Menu key | On a chip's remove control, open its menu (Move left, Move right),
+      as a click on the chip does
     In the footer
     - Tab | Move through the page size button and the pager's links
     - Enter | Follow the link
@@ -2031,8 +2031,8 @@
                         var groupItem = groups[^1];
                         groups[^1] = @<text>
                             @groupItem
-                            @GroupMoveItem(column, -1, Lucide.MoveUp, TextDefaults.GroupMoveEarlier)
-                            @GroupMoveItem(column, 1, Lucide.MoveDown, TextDefaults.GroupMoveLater)
+                            @GroupMoveItem(column, -1, Lucide.MoveLeft, TextDefaults.GroupMoveLeft)
+                            @GroupMoveItem(column, 1, Lucide.MoveRight, TextDefaults.GroupMoveRight)
                         </text>;
                     }
                 }
@@ -2085,7 +2085,7 @@
         </Menu>
     };
 
-    // A column menu's Move group earlier or later: a link on static pages, as Group by is.
+    // Move group left or right (a column menu) or Move left or right (a chip's): a link on static pages, as Group by is.
     private RenderFragment GroupMoveItem(ColumnBase<TItem> column, int by, IconData icon, string text) => __builder =>
     {
         var moved = GroupTextMoved(column, by);
@@ -2590,8 +2590,8 @@
                     @if (Grouping.Levels.Count > 1)
                     {
                         <ContextMenu For="@chipId" Label="@column.FullName">
-                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupMoveEarlier)
-                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupMoveLater)
+                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupChipMoveLeft)
+                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupChipMoveRight)
                             <MenuDivider />
                             @if (UseState)
                             {

@@ -783,11 +783,17 @@ public class IzzyText
     /// <summary>A DataGrid header menu's item that stops grouping by the column.</summary>
     public virtual string GroupRemove { get; set; } = "Stop grouping by this column";
 
-    /// <summary>A DataGrid header menu's item that moves the column's grouping level before the one above it.</summary>
-    public virtual string GroupMoveEarlier { get; set; } = "Move group earlier";
+    /// <summary>A DataGrid header menu's item that moves the column's grouping level one place left among the grouped-by chips.</summary>
+    public virtual string GroupMoveLeft { get; set; } = "Move group left";
 
-    /// <summary>A DataGrid header menu's item that moves the column's grouping level after the one below it.</summary>
-    public virtual string GroupMoveLater { get; set; } = "Move group later";
+    /// <summary>A DataGrid header menu's item that moves the column's grouping level one place right among the grouped-by chips.</summary>
+    public virtual string GroupMoveRight { get; set; } = "Move group right";
+
+    /// <summary>A DataGrid grouped-by chip's menu item that moves its level one place left.</summary>
+    public virtual string GroupChipMoveLeft { get; set; } = "Move left";
+
+    /// <summary>A DataGrid grouped-by chip's menu item that moves its level one place right.</summary>
+    public virtual string GroupChipMoveRight { get; set; } = "Move right";
 
     /// <summary>The name of what a DataGrid is grouped by, its chips.</summary>
     public virtual string GroupedBy { get; set; } = "Grouped by";
