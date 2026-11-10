@@ -11,10 +11,11 @@ namespace IzzyBlazor;
 public readonly record struct DataExportResult(long Rows, bool Truncated);
 
 /// <summary>A column of an export, from <see cref="DataExport.Read"/>.</summary>
+/// <param name="Key">The field's key, such as <c>total</c>: a name for a keyed format such as JSON.</param>
 /// <param name="Caption">Its heading: the field's caption, else its key.</param>
 /// <param name="Format">The field's .NET format string, such as <c>C</c>, if any.</param>
 /// <param name="Type">The type of its values; they can be null.</param>
-public sealed record DataExportColumn(string Caption, string? Format, Type Type)
+public sealed record DataExportColumn(string Key, string Caption, string? Format, Type Type)
 {
     /// <summary>A value as text, as CSV writes it before quoting: with <see cref="Format"/>, in the current culture, empty for null.</summary>
     public string Text(object? value) => value switch
@@ -27,7 +28,11 @@ public sealed record DataExportColumn(string Caption, string? Format, Type Type)
 
 /// <summary>The columns and rows of an export, from <see cref="DataExport.Read"/>.</summary>
 /// <param name="Columns">The columns, in order.</param>
-/// <param name="Rows">The rows, read as they're enumerated, once: each holds a value per column, in order.</param>
+/// <param name="Rows">
+/// The rows, each a value per column in order. Nothing runs until they're enumerated, and each
+/// enumeration runs the query again. A query that fails throws at the first row, so read it before
+/// the response starts to still answer with an error.
+/// </param>
 public sealed record DataExportTable(IReadOnlyList<DataExportColumn> Columns, IAsyncEnumerable<object?[]> Rows);
 
 /// <summary>
@@ -124,7 +129,8 @@ public static class DataExport
     /// The columns and rows an export writes, for a format of your own such as PDF: the columns the
     /// address's <c>columns</c> asks for, of <paramref name="fields"/>, and every row that matches its
     /// <c>filter</c>, <c>search</c> and <c>sort</c>, not one page, read one at a time as CSV and Excel
-    /// read them. Write the file from them on an endpoint a <c>DataGridExportFormat</c> links to.
+    /// read them. Write the file from them on an endpoint a <c>DataGridExportFormat</c> links to. The
+    /// query runs when <see cref="DataExportTable.Rows"/> is enumerated, not here.
     /// </summary>
     /// <param name="source">The rows, before filtering. An <c>IQueryable</c> is run by the database.</param>
     /// <param name="query">The address's query string: <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> (keys, in order; all the fields if left out, or if it names none of them).</param>
@@ -134,11 +140,11 @@ public static class DataExport
     {
         var columns = ColumnsOf(query, fields);
         return new DataExportTable(
-            columns.Select(c => new DataExportColumn(c.Caption, c.Format, c.Value.ReturnType)).ToList(),
+            columns.Select(c => new DataExportColumn(c.Key, c.Caption, c.Format, c.Value.ReturnType)).ToList(),
             Rows(source, query, fields, columns, cancellationToken));
     }
 
-    private sealed record Column<TItem>(string Caption, string? Format, LambdaExpression Value);
+    private sealed record Column<TItem>(string Key, string Caption, string? Format, LambdaExpression Value);
 
     // The columns asked for, of the fields there are: a key the fields don't have isn't written. With
     // none of them known (a grid of only template columns), all of the fields, not a file of nothing.
@@ -156,7 +162,7 @@ public static class DataExport
             .OfType<DataField<TItem>>()
             .Distinct()
             .ToList();
-        return (known.Count == 0 ? fields : known).Select(f => new Column<TItem>(f.Caption ?? f.Key, f.Format, f.Value)).ToList();
+        return (known.Count == 0 ? fields : known).Select(f => new Column<TItem>(f.Key, f.Caption ?? f.Key, f.Format, f.Value)).ToList();
     }
 
     // Wide enough for its heading and, as Excel shows ##### for a date that doesn't fit, its type.

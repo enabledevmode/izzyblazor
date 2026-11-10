@@ -299,7 +299,7 @@ public static class SiteApp
                         json.WriteStartObject();
                         for (var i = 0; i < row.Length; i++)
                         {
-                            json.WritePropertyName(export.Columns[i].Caption);
+                            json.WritePropertyName(export.Columns[i].Key);
                             // To an element first: Serialize would flush the response synchronously, which Kestrel refuses.
                             System.Text.Json.JsonSerializer.SerializeToElement(row[i] is Enum e ? e.ToString() : row[i]).WriteTo(json);
                         }

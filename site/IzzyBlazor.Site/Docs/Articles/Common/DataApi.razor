@@ -101,9 +101,14 @@
             <Anchor Href="https://www.questpdf.com" External>QuestPDF</Anchor>; any PDF library works the same way,
             and the grid lists it with <Code>&lt;DataGridExportFormat Label="Export PDF" Href="/orders/export.pdf" /&gt;</Code>.
         </TextBlock>
-        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="7,8">@Pdf</Code>
+        <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="10,11">@Pdf</Code>
         <List Gap="2">
             <ListItem>A PDF is laid out whole, so this one reads every row first. Cap the rows, as above, where a filter can match millions.</ListItem>
+            <ListItem>
+                The query runs when the rows are read. An endpoint that streams the file, as CSV does, reads the first row
+                before it starts the response, so a query that fails can still answer with an error.
+            </ListItem>
+            <ListItem>Each column's <Code>Key</Code> names it in a keyed format such as JSON, and its <Code>Text</Code> writes a value as CSV does.</ListItem>
             <ListItem>QuestPDF is free under its Community license for organizations below $1M in revenue, and paid above it.</ListItem>
             <ListItem>
                 For rows read by <Code>DynamicColumn</Code>, build the fields with <Code>DataFields.ByName</Code>, by the same
@@ -195,7 +200,9 @@
 
         app.MapGet("/orders/export.pdf", async (HttpContext context, ShopDb db) =>
         {
-            var export = DataExport.Read(db.Orders.AsNoTracking(), context.Request.QueryString.Value,
+            var orders = db.Orders.AsNoTracking()
+                .Select(o => new OrderRow { Id = o.Id, Customer = o.Customer.Name, Total = o.Total });
+            var export = DataExport.Read(orders, context.Request.QueryString.Value,
                 DataFields.Of<OrderRow>(), context.RequestAborted);
             var rows = new List<object?[]>();
             await foreach (var row in export.Rows)

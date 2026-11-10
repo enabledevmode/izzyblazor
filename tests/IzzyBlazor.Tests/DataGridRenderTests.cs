@@ -518,7 +518,7 @@ public class DataGridRenderTests : BunitContext
         var links = cut.FindAll(".ib-menu-item[download]");
         Assert.Equal(["Export CSV", "Export PDF"], links.Take(2).Select(l => l.TextContent.Trim()));
         Assert.Equal("/o.pdf?columns=name", links[1].GetAttribute("href"));
-        Assert.Equal("/o.pdf?columns=name", cut.Instance.ExportAddress("/o.pdf"));
+        Assert.Equal("/o.pdf?columns=name", cut.Instance.ExportHref("/o.pdf"));
     }
 
     private static RenderFragment Tools(params Action<Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder>[] items) => b =>

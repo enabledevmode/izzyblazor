@@ -129,17 +129,18 @@ public static class DataFields
     public static IReadOnlyList<DataField<TItem>> Of<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] TItem>() => Cache<TItem>.Fields;
 
     /// <summary>
-    /// A field read by name from rows whose shape is known only at run time (dictionaries,
-    /// <c>ExpandoObject</c>, <c>DataRow</c> and <c>DataRowView</c>), keyed and read as a
-    /// <c>DynamicColumn</c> with the same <c>Field</c> and <c>Type</c> is: <c>Q1 2026</c> is
-    /// <c>q1_2026</c>, and a value that's missing or doesn't convert is empty. For an export endpoint
-    /// behind a grid of DynamicColumns, so the file matches the screen. It's sortable, filterable,
-    /// groupable and aggregatable when its type can be filtered, and text is searchable.
+    /// Reads a field by name from rows whose shape is known only at run time (dictionaries,
+    /// <c>ExpandoObject</c>, <c>DataRow</c> and <c>DataRowView</c>), with the same key and values as a
+    /// <c>DynamicColumn</c> with this <c>Field</c> and <c>Type</c>: <c>Q1 2026</c> is <c>q1_2026</c>, and a
+    /// value that's missing or doesn't convert is empty. For an export endpoint behind a grid of
+    /// DynamicColumns, so the file matches the screen. A column with its own <c>SortKey</c> needs a
+    /// field of yours with that key. It's sortable, filterable, groupable and aggregatable when its
+    /// type can be filtered, and text is searchable.
     /// </summary>
     /// <param name="field">The name to read from each row: a dictionary key or a <c>DataRow</c>'s column name.</param>
     /// <param name="type">The values' type, such as <c>typeof(int)</c>. Defaults to text.</param>
     /// <param name="format">A .NET format string for the value, such as <c>C</c>.</param>
-    /// <param name="caption">Its heading in a file. Defaults to the name in words, as the column's title.</param>
+    /// <param name="caption">Its heading in a file, as the column's <c>Title</c>. Defaults to the name in words, as the column's title does.</param>
     /// <param name="filterCase">The grid's <c>FilterCase</c>, for its filters and search to match the same rows.</param>
     /// <example><code>var fields = columns.Select(c =&gt; DataFields.ByName&lt;IDictionary&lt;string, object?&gt;&gt;(c.Name, c.Type)).ToList();</code></example>
     [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Enum fields are kept with their enum; Choices reads them as ColumnFilter does.")]
