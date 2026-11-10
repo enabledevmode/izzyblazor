@@ -1,5 +1,9 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { readCookie, writeCookie } from "../cookies";
+import type { ChipHost } from "./grid-group";
+
+// Moving a grouped-by chip, by drag or keys: its own part (grid-group.ts).
+const loadGroup = () => import("./parts/grid-group.js" as string) as Promise<typeof import("./grid-group")>;
 
 /**
  * <ib-grid-columns> is an empty element in a DataGrid with resizable or reorderable columns or a
@@ -44,10 +48,20 @@ class GridColumns extends IzzyElement {
     // A chip in the bar of what's grouped moves among the others.
     host.addEventListener("pointerdown", (event) => {
       const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
-      if (chip && event.button === 0 && event.pointerType !== "touch" && !(event.target as Element).closest("a, button")) this.#dragChip(event, chip, signal);
+      if (!chip || event.button || event.pointerType === "touch" || (event.target as Element).closest("a, button")) return;
+      // Or it selects the chips' text, and a drag of that cancels this one.
+      event.preventDefault();
+      loadGroup().then((m) => !signal.aborted && m.dragChip(this.#chipHost(), event, chip, signal));
     }, { signal });
     // Or by Alt+Left and Alt+Right on its remove control, the one part of it that takes focus.
-    host.addEventListener("keydown", (event) => this.#onChipKey(event), { signal });
+    host.addEventListener("keydown", (event) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
+      if (!chip || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+      // Alt+Left is the browser's Back, even at the end of the row.
+      event.preventDefault();
+      if (!event.repeat) loadGroup().then((m) => m.moveChip(this.#chipHost(), chip, event.key === "ArrowRight"));
+    }, { signal });
     host.addEventListener("focusin", (event) => {
       const control = (event.target as Element).closest?.(".ib-grid-group-chip a, .ib-grid-group-chip button");
       if (!this.#mine(control)) return;
@@ -549,10 +563,6 @@ class GridColumns extends IzzyElement {
     return [...(this.#bar?.querySelectorAll<HTMLElement>(".ib-grid-group-chip") ?? [])];
   }
 
-  #tokens(): string[] {
-    return this.#chips.map((chip) => chip.dataset.ibGroupToken!);
-  }
-
   #inside(el: Element, event: PointerEvent): boolean {
     const r = el.getBoundingClientRect();
     return event.clientX >= r.left && event.clientX <= r.right && event.clientY >= r.top && event.clientY <= r.bottom;
@@ -600,82 +610,17 @@ class GridColumns extends IzzyElement {
     else location.assign(href);
   }
 
-  // Alt+Left or Alt+Right moves a grouping level one place, then focus follows its chip into the
-  // new render (a navigation's merge, or Blazor's; a full reload, with no Blazor, starts at the top).
-  #onChipKey(event: KeyboardEvent): void {
-    if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
-    if (!chip) return;
-    // Alt+Left is the browser's Back, even at the end of the row.
-    event.preventDefault();
-    if (event.repeat) return;
-    const tokens = this.#tokens();
-    const from = this.#chips.indexOf(chip);
-    const rtl = getComputedStyle(chip).direction === "rtl";
-    const to = from + ((event.key === "ArrowRight") !== rtl ? 1 : -1);
-    if (to < 0 || to >= tokens.length) return;
-    const token = tokens[from];
-    [tokens[from], tokens[to]] = [tokens[to], token];
-    const watch = new MutationObserver(() => {
-      const moved = this.#chips.find((c) => c.dataset.ibGroupToken === token);
-      if (!moved || this.#chips.indexOf(moved) !== to) return;
-      watch.disconnect();
-      moved.querySelector<HTMLElement>("a, button")?.focus();
-    });
-    watch.observe(this.#host!, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-group-token"] });
-    // Not tied to the signal: a navigation's merge reconnects this element before the chips move.
-    setTimeout(() => watch.disconnect(), 5000);
-    this.#group(tokens);
-  }
-
-  // Dragging a chip among the others changes which level comes first.
-  #dragChip(down: PointerEvent, chip: HTMLElement, signal: AbortSignal): void {
-    // Or it selects the chips' text, and a drag of that cancels this one.
-    down.preventDefault();
-    const bar = this.#bar!;
-    const chips = this.#chips;
-    const slots = chips.map((c) => c.getBoundingClientRect());
-    const from = chips.indexOf(chip);
-    let dragging = false;
-    let at = from;
-    const abort = this.#until(signal);
-    const options = { signal: abort.signal };
-    const finish = (commit: boolean) => {
-      abort.abort();
-      chip.removeAttribute("data-ib-lifted");
-      this.#mark(-1);
-      if (!dragging) return;
-      const swallow = (event: Event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      };
-      document.addEventListener("click", swallow, { capture: true, once: true });
-      setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 0);
-      if (!commit || at === from || at === from + 1) return;
-      const tokens = this.#tokens();
-      const [token] = tokens.splice(from, 1);
-      tokens.splice(at > from ? at - 1 : at, 0, token);
-      this.#group(tokens);
+  #chipHost(): ChipHost {
+    return {
+      host: this.#host!,
+      bar: () => this.#bar,
+      chips: () => this.#chips,
+      group: (tokens) => this.#group(tokens),
+      mark: (at, name) => this.#mark(at, name),
+      inside: (el, event) => this.#inside(el, event),
+      dropAt: (event, slots) => this.#dropAt(event, slots),
+      until: (signal) => this.#until(signal),
     };
-    document.addEventListener("pointermove", (event) => {
-      const dx = event.clientX - down.clientX;
-      if (!dragging) {
-        if (Math.abs(dx) < DRAG_START) return;
-        dragging = true;
-        chip.setAttribute("data-ib-lifted", "");
-      }
-      // Let go off the bar, it stays where it was.
-      at = this.#inside(bar, event) ? this.#dropAt(event, slots) : from;
-      this.#mark(at === from || at === from + 1 ? -1 : at, chip.textContent?.trim());
-    }, options);
-    document.addEventListener("pointerup", () => finish(true), options);
-    document.addEventListener("pointercancel", () => finish(false), options);
-    document.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      event.stopPropagation();
-      finish(false);
-    }, { ...options, capture: true });
   }
 
   // Dragging a header: its column follows the pointer, and the others slide aside.
@@ -745,7 +690,7 @@ class GridColumns extends IzzyElement {
       document.addEventListener("click", swallow, { capture: true, once: true });
       setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 0);
       if (commit && at >= 0) {
-        const tokens = this.#tokens();
+        const tokens = this.#chips.map((chip) => chip.dataset.ibGroupToken!);
         tokens.splice(at, 0, th.dataset.ibGroup!);
         this.#group(tokens);
       } else if (commit && to !== from) this.#moveTo(th, to, true);
