@@ -139,6 +139,8 @@
   .ib-bullet-v {
     --ib-bullet-length: 14rem;
     padding-inline-end: 0;
+    /* Room for the lowest tick's number, centered on the scale's start. */
+    padding-block-end: 0.75em;
     grid-template-columns: max-content minmax(0, 1fr);
     grid-template-rows: auto var(--ib-bullet-length);
   }
@@ -170,7 +172,7 @@
   .ib-bullet-v .ib-bullet-dot { inset: auto auto var(--p) 50%; translate: -50% 50%; }
   .ib-bullet-v .ib-bullet-target { inset: auto calc(var(--ib-bullet-size) / 6) var(--p); block-size: 3px; inline-size: auto; margin: 0 0 -1.5px; }
 
-  .ib-bullet-v .ib-bullet-ticks { block-size: 100%; inline-size: auto; min-inline-size: 1.5rem; margin-inline-end: var(--ib-space-1); order: 1; }
+  .ib-bullet-v .ib-bullet-ticks { block-size: 100%; inline-size: auto; min-inline-size: calc(var(--ib-bullet-tw, 1.5em) + 0.5rem); margin-inline-end: var(--ib-space-1); order: 1; }
   .ib-bullet-v .ib-bullet-tick { inset: auto 0 var(--p) auto; inline-size: 0.25rem; block-size: 0; border-inline-start: 0; border-block-start: 1px solid var(--ib-color-muted); }
   .ib-bullet-v .ib-bullet-tick > span { top: 0; left: auto; right: calc(100% + 0.25rem); translate: 0 -50%; }
   .ib-bullet-v .ib-bullet-axis { grid-column: 1; grid-row: 2; }
