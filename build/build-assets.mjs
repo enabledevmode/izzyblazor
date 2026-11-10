@@ -402,6 +402,8 @@ const builds = [
       "elements/parts/chart-sync": join(lib, "Scripts", "elements", "chart-sync.ts"),
       // The RangeSelector's window, handles and buttons, loaded where there's one.
       "elements/parts/chart-select": join(lib, "Scripts", "elements", "chart-select.ts"),
+      // A chart saved as a PNG (Download), loaded on the first press of a download button.
+      "elements/parts/chart-export": join(lib, "Scripts", "elements", "chart-export.ts"),
       // TreemapChart's tooltip and keys, loaded where there's a treemap.
       "elements/parts/chart-treemap": join(lib, "Scripts", "elements", "chart-treemap.ts"),
       // A DataGrid's grouped-by chips moved by drag or keys, loaded on the first press or key on one.

@@ -1,0 +1,20 @@
+@* A dashboard card whose own button saves its chart: the button names the chart by its id. *@
+<Card Title="New signups, last 7 days" TitleId="week-signups-heading" Description="Trials and paid plans" Width="Length.Full" MaxWidth="32.Rem">
+    <CardActions>
+        <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" StartIcon="Lucide.Download" data-ib-chart-download="week-signups">Download</Button>
+    </CardActions>
+    <Chart id="week-signups" Items="_days" Argument="d => d.Day" TitledBy="week-signups-heading" Stacking="ChartStacking.Normal" Height="12.Rem">
+        <ChartBarSeries Value="d => d.Trials" Name="Trials" />
+        <ChartBarSeries Value="d => d.Paid" Name="Paid" />
+    </Chart>
+</Card>
+
+@code {
+    private record DaySignups(string Day, int Trials, int Paid);
+
+    private readonly DaySignups[] _days =
+    [
+        new("Mon", 142, 31), new("Tue", 168, 38), new("Wed", 155, 35), new("Thu", 171, 42),
+        new("Fri", 149, 33), new("Sat", 88, 14), new("Sun", 79, 12),
+    ];
+}

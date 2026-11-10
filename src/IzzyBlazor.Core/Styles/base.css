@@ -258,6 +258,10 @@
      An element whose code couldn't load (data-ib-failed) is as with no script. */
   @media (scripting: none) {
     [data-ib-script] { display: none !important; }
+    /* A chart's Download button is one of those: no room kept for it by the title, and none
+       above a chart with no title of its own when it's the only tool (chart.css). */
+    .ib-chart { --ib-chart-download-room: 0rem !important; }
+    .ib-chart:has(.ib-chart-tools):not(:has(.ib-chart-tools > :not([data-ib-script]))) { padding-block-start: 0 !important; }
   }
 
   @media (scripting: enabled) {

@@ -48,6 +48,12 @@
         @ChildContent
         @PlotFragment
     </CascadingValue>
+    @if (Download)
+    {
+        @* Download, across from the title (chart.css): last, so the title's neighbor rules
+           (label + legend, label + rings) still meet. *@
+        @ChartDownload.Tools(TextDefaults)
+    }
 </figure>
 
 @code {
