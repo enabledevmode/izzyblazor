@@ -7,7 +7,7 @@
 <ArticlePage Section="accessibility" Slug="names-and-announcements">
     <Lead>
         Every control has a name that screen readers read, and IzzyBlazor requires one wherever WCAG or ARIA does. When
-        something changes without a page load, such as a filtered count, a saved form or a new toast, the change is
+        something changes without a full reload, such as a filtered count, a saved form or a new toast, the change is
         announced.
     </Lead>
     <ChildContent>
@@ -21,35 +21,35 @@
 
         <Heading Level="2">Components that require a name</Heading>
         <TextBlock>
-            A control shown only as an icon or a picture has no text for a screen reader to read, so these components throw when
-            the name is missing, on the first render, where you'll see it:
+            These components throw on their first render when their name is missing, so you see it at once. Most are shown as
+            an icon or a picture, with no text of their own for a screen reader to read:
         </TextBlock>
-        <Table Items="Required" Caption="Components that require a name" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="Required" Caption="Components that require a name" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
             <Columns>
-                <TemplateColumn Title="Component" Width="Length.Rem(14)"><Anchor Href="@($"docs/components/{context!.Id}")">@context.Name</Anchor></TemplateColumn>
+                <TemplateColumn Title="Component"><Anchor Href="@($"docs/components/{context!.Id}")">@context.Name</Anchor></TemplateColumn>
                 <TemplateColumn Title="Requires">@context.Requires</TemplateColumn>
             </Columns>
         </Table>
         <TextBlock>
             Where ARIA makes a name optional, so does IzzyBlazor. Landmarks get a default from
-            <Anchor Href="docs/common/text">IzzyText</Anchor>, such as "Breadcrumb" and "Pagination"; give them a
-            <Code>Label</Code> when a page has two of the same kind.
+            <Anchor Href="docs/common/text">IzzyText</Anchor>, such as "Breadcrumb" and "Pagination". When a page has two of the
+            same kind, set <Code>Label</Code> on each.
         </TextBlock>
 
         <Heading Level="2">Icons and pictures</Heading>
         <List Gap="2">
             <ListItem>An <Anchor Href="docs/components/icon">Icon</Anchor> is hidden from screen readers unless you give it a <Code>Label</Code>, so it never repeats the text beside it.</ListItem>
             <ListItem>An <Anchor Href="docs/components/avatar">Avatar</Anchor> is read as its <Code>Name</Code>.</ListItem>
-            <ListItem>A status, such as a badge's or an alert's, comes with an icon and words as well as a color.</ListItem>
+            <ListItem>An alert's and a toast's status come with an icon as well as a color. A <Code>Badge</Code>'s <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
             <ListItem>A chart is named by its <Code>Title</Code>, and its Show data table lists every value.</ListItem>
         </List>
 
         <Heading Level="2">What screen readers hear when something changes</Heading>
         <List Gap="2">
-            <ListItem>Danger and warning alerts are announced as soon as they appear; other alerts politely. A <Code>Banner</Code> isn't announced, since it's there when the page loads; set <Code>Announce</Code> when one appears later.</ListItem>
+            <ListItem>Danger and warning alerts are announced as soon as they appear; other alerts politely. A <Code>Banner</Code> isn't announced, since it's there when the page loads. To announce one that appears later, set <Code>Announce</Code>.</ListItem>
             <ListItem>Toasts are read politely. Their timers pause while the user hovers over or focuses them, and error toasts stay until dismissed.</ListItem>
             <ListItem>A table's "1–10 of 50", its filter status, and a DataGrid's moved rows and columns are read when they change.</ListItem>
-            <ListItem>A combobox reads "No matches"; a carousel reads its new slide; a chat reads each reply once.</ListItem>
+            <ListItem>A combobox reads "No matches", and a carousel reads its new slide. A chat says "Replying" and then "Reply complete", and reads a message from someone else with its author.</ListItem>
             <ListItem>A loading button sets <Code>aria-busy</Code> and is heard as its <Code>LoadingLabel</Code>; a <Code>Spinner</Code> is heard as its <Code>Label</Code>; a <Code>Progress</Code> reports its value.</ListItem>
             <ListItem>A PasswordField reads a Caps Lock warning, and when its requirements are all met.</ListItem>
         </List>
@@ -58,7 +58,7 @@
         <TextBlock>
             To announce a change the components don't know about, such as a list's new count after a filter, put the text in a
             <Anchor Href="docs/components/live-region">LiveRegion</Anchor>; it's read each time it changes. To announce what just
-            happened after an action, such as "Revoked the invite", call <Code>Announcer.Announce</Code>. On static pages,
+            happened after an action, such as "Revoked the invite", call <Code>Announcer.Announce</Code>. On <Anchor Href="docs/common/render-modes">static pages</Anchor>,
             <Code>AnnouncerRegion</Code> carries the message across the post; a <Code>ToastRegion</Code> includes one.
         </TextBlock>
     </ChildContent>
@@ -83,6 +83,12 @@
         new("Carousel", "carousel", "Label"),
         new("Chat", "chat", "Label"),
         new("Collapsible", "collapsible", "Label, or a Trigger of your own"),
-        new("FilterSelect, FilterCheckbox", "filter-form", "Label"),
+        new("FilterSelect, FilterCheckbox, FilterDate", "filter-form", "Label"),
+        new("Menu, Popover", "menu", "Label for their button, or a Trigger of your own"),
+        new("ContextMenu", "context-menu", "Label"),
+        new("MenuSub", "menu", "Label"),
+        new("Tab, TabLink", "tabs", "Label"),
+        new("Card with Href", "card", "Title, which is the link"),
+        new("ColumnBand", "data-grid", "Title"),
     ];
 }

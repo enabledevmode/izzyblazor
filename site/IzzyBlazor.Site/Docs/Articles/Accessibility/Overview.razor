@@ -8,7 +8,8 @@
     <Lead>
         IzzyBlazor builds to WCAG 2.2 level AA and follows the ARIA Authoring Practices patterns for each kind of
         control. Components start from the browser's own elements, so keyboard, focus and screen readers work as the
-        platform defines them, and IzzyBlazor's script adds ARIA only where it adds behavior.
+        platform defines them, and <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds ARIA only where it
+        adds behavior.
     </Lead>
     <ChildContent>
         <Heading Level="2">Native elements first</Heading>
@@ -18,7 +19,7 @@
             Enter, Space, Escape and the arrow keys do what the user expects, with JavaScript off too.
         </TextBlock>
         <TextBlock>
-            Where <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds behavior, it adds the roles that go
+            Where IzzyBlazor's script adds behavior, it adds the roles that go
             with it. Tabs are a radio group with JavaScript off, and become ARIA tabs with arrow-key focus once the script runs.
             A dialog opened by the server becomes a real modal. Each component's Overview ends with an Accessibility section: its
             roles, its keys, and what changes in each render mode.
@@ -36,7 +37,7 @@
             <ListItem>Keyboard flows (opening, moving, choosing, closing, and where focus lands after each) run in Chromium in the test suite, on static and interactive pages.</ListItem>
             <ListItem>A component's examples are checked in Chromium with axe and the accessibility tree when it's built or changed.</ListItem>
             <ListItem>A sweep of every example checks that focus shows in Windows high-contrast mode and that targets are at least 24 by 24 pixels.</ListItem>
-            <ListItem>Text and control colors are computed to their contrast ratios, for the built-in themes and for any brand color you set.</ListItem>
+            <ListItem>A brand or gray color you set is computed to its contrast ratios when the page renders; the built-in themes are tuned to the same ratios.</ListItem>
             <ListItem>A full pass with screen readers (NVDA, JAWS, VoiceOver and TalkBack) hasn't been done yet. Names, roles and states are checked in the accessibility tree, which is what screen readers read.</ListItem>
         </List>
 
@@ -66,11 +67,11 @@
 
         <Heading Level="2">In this section</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/accessibility/keyboard-and-focus">Keyboard and focus</Anchor>: the focus ring, where focus goes, and every component's keys.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/names-and-announcements">Names and announcements</Anchor>: labels, the components that require a name, and what screen readers hear when something changes.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/color-and-motion">Color, contrast and motion</Anchor>: contrast, brand colors, high-contrast mode and reduced motion.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/pointer-and-touch">Pointer and touch</Anchor>: target sizes and a way around every drag.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/testing">Testing your app</Anchor>: what to check on your own pages.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/keyboard-and-focus">Keyboard and focus</Anchor> says where focus goes and lists every component's keys.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/names-and-announcements">Names and announcements</Anchor> covers labels, the components that throw without a name, and what screen readers hear when something changes.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/color-and-motion">Color, contrast and motion</Anchor> explains how contrast is kept with your own colors, in high-contrast mode and with reduced motion.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/pointer-and-touch">Pointer and touch</Anchor> gives target sizes and the click-only way to do each drag.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/testing">Testing your app</Anchor> walks through checking your own pages.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -81,9 +82,9 @@
     private static readonly KnownGap[] Gaps =
     [
         new("Splitter: a size between open and collapsed needs a drag or the arrow keys.",
-            "The collapse button and a double-click on the bar collapse and restore a pane with one click."),
+            "The collapse button collapses and restores a pane with one click; a double-click on the bar does the same."),
         new("Chart: zooming and panning need a drag, the wheel or a pinch.",
-            "Plus and minus zoom from the keyboard; Show data lists every value; a RangeSelector's preset buttons choose a range with one click."),
+            "Plus and minus zoom from the keyboard, and Show data lists every value. A ChartRangeSelector with Ranges or Presets sets a range in one click, and a click on its strip moves the window there."),
         new("DataGrid: moving a grouping level by pointer needs a drag.",
             "Alt+Left and Alt+Right move it from the keyboard; removing levels and grouping again from the column menu sets any order."),
         new("Scheduler: appointments in the month view are 22px tall, under the 24px minimum.",
