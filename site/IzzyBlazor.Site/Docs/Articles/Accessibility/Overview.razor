@@ -91,8 +91,8 @@
             "The day's number opens the day view, where each appointment is larger."),
         new("NumberField: the stacked step buttons are 16px tall at the default size.",
             "Typing the number does the same. StepButtons=\"StepButtons.Split\" puts full-height buttons on each side."),
-        new("Field borders and switch tracks are about 2:1 against the page, under the 3:1 WCAG asks for when the border is the only sign of a control.",
-            "Every field has a visible label above it. To darken the edges, set --ib-color-outline in your theme."),
+        new("Field borders and switch tracks are about 2:1 against the page. WCAG asks for 3:1 when a border is the only thing that shows where a control is; every field also has a visible label above it, so this is a judgment call, and some audits flag it.",
+            "If you need strict 3:1, set --ib-color-outline in your theme to a darker gray, such as #8e8e96 on white."),
         new("No full screen reader pass yet.",
             "Names, roles and states are checked in the accessibility tree; report anything a screen reader gets wrong as an issue."),
     ];
