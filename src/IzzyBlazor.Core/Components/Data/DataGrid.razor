@@ -2085,17 +2085,17 @@
         </Menu>
     };
 
-    // Move group left or right (a column menu) or Move left or right (a chip's): a link on static pages, as Group by is.
-    private RenderFragment GroupMoveItem(ColumnBase<TItem> column, int by, IconData icon, string text) => __builder =>
+    // Move group left or right (a column menu's) or Move left or right (a chip's): a link on static pages, as Group by is.
+    private RenderFragment GroupMoveItem(ColumnBase<TItem> column, int by, IconData icon, string text, string? chip = null) => __builder =>
     {
         var moved = GroupTextMoved(column, by);
         if (UseState)
         {
-            <MenuItem Icon="icon" Disabled="moved is null" OnClick="() => SetGroupAsync(moved)">@text</MenuItem>
+            <MenuItem Icon="icon" Disabled="moved is null" OnClick="() => SetGroupAsync(moved)" data-ib-chip-move="@chip">@text</MenuItem>
         }
         else
         {
-            <MenuItem Icon="icon" Disabled="moved is null" Href="@(moved is null ? null : GroupHref(moved))">@text</MenuItem>
+            <MenuItem Icon="icon" Disabled="moved is null" Href="@(moved is null ? null : GroupHref(moved))" data-ib-chip-move="@chip">@text</MenuItem>
         }
     };
 
@@ -2590,8 +2590,10 @@
                     @if (Grouping.Levels.Count > 1)
                     {
                         <ContextMenu For="@chipId" Label="@column.FullName">
-                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupChipMoveLeft)
-                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupChipMoveRight)
+                            @* Links (or calls), which the drag part takes over once loaded, to move the
+                               chip as Alt+arrows do with focus following it (grid-group.ts). *@
+                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupChipMoveLeft, "-1")
+                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupChipMoveRight, "1")
                             <MenuDivider />
                             @if (UseState)
                             {

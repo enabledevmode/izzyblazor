@@ -48,7 +48,8 @@ class GridColumns extends IzzyElement {
     // A chip in the bar of what's grouped moves among the others.
     host.addEventListener("pointerdown", (event) => {
       const chip = this.#mine((event.target as Element).closest<HTMLElement>(".ib-grid-group-chip"));
-      if (!chip || event.button || event.pointerType === "touch" || (event.target as Element).closest("a, button")) return;
+      // On touch too: a tap opens its menu, and a scroll cancels the press.
+      if (!chip || event.button || (event.target as Element).closest("a, button")) return;
       // Or it selects the chips' text, and a drag of that cancels this one.
       event.preventDefault();
       // Let go before the part arrives: a click, not a drag, which opens the chip's menu. (Left
