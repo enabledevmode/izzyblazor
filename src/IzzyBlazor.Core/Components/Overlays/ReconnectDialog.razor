@@ -16,14 +16,15 @@
     Blazor finds it by its id, components-reconnect-modal, and reports each state of the
     reconnection to it; the main script opens it and writes the message: rejoining, retrying
     with a countdown, failed (Retry, and again whenever the tab comes back into view), paused by
-    the server (Resume), or a session that couldn't resume (Reload). A circuit the server
+    the server or by the page, such as .NET 11's auto-pause in a hidden tab (titled "Session
+    paused", with Resume), or a session that couldn't resume (Reload). A circuit the server
     rejected reloads the page. One per page: remove the template's ReconnectModal, which
     would answer Blazor too (the script warns in the console when it finds two).
 
     The messages and buttons are IzzyText's (ReconnectRejoining and on, Retry, Resume, Reload).
 
     Accessibility:
-    - A modal dialog named by its title ("Connection lost", `Title`), which Escape doesn't close:
+    - A modal dialog named by its title ("Connection lost", `Title`; "Session paused" while paused), which Escape doesn't close:
       the page behind it can't respond until it reconnects.
     - Each new state is read once from a status region; the countdown isn't read every second.
     - Focus moves to the dialog as it opens, and to Retry, Resume or Reload when one shows.
@@ -36,7 +37,10 @@
         data-retrying="@TextDefaults.ReconnectRetrying"
         data-retrying-one="@TextDefaults.ReconnectRetryingOne"
         data-failed="@TextDefaults.ReconnectFailed"
+        data-title="@(Title ?? TextDefaults.ReconnectTitle)"
+        data-paused-title="@TextDefaults.ReconnectPausedTitle"
         data-paused="@TextDefaults.ReconnectPaused"
+        data-paused-here="@TextDefaults.ReconnectPausedHere"
         data-resume-failed="@TextDefaults.ReconnectResumeFailed">
     <div class="ib-dialog-body ib-reconnect-body">
         <span class="ib-icon ib-spinner ib-icon-xl2 ib-reconnect-spinner" aria-hidden="true">@((MarkupString)SpinnerSvg)</span>
@@ -52,7 +56,7 @@
 </dialog>
 
 @code {
-    /// <summary>The dialog's title. Defaults to "Connection lost".</summary>
+    /// <summary>The dialog's title while it reconnects. Defaults to "Connection lost"; a paused session has its own, "Session paused".</summary>
     [Parameter] public string? Title { get; set; }
 
     private string? _class;

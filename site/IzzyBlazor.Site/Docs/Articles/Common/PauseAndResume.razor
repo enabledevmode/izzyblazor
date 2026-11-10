@@ -1,0 +1,107 @@
+@page "/docs/common/pause-and-resume"
+
+@* Pausing and resuming an interactive server session (circuit): what IzzyBlazor components keep,
+   what the app persists, the reconnect dialog, and .NET 11's pause in a hidden tab. Each claim
+   was checked on .NET 11 (Nov 10, 2026) with Blazor.pauseCircuit/resumeCircuit and AddAutoPause. *@
+
+<ArticlePage Section="common" Slug="pause-and-resume">
+    <Lead>
+        <TextBlock>
+            On an interactive server page, Blazor can pause the session: it saves the page's state in the browser, closes the
+            connection and frees the server's memory. Resuming starts a new session from that state and builds every
+            component again. What lives in the URL, or in a property you mark <Code>[PersistentState]</Code>, comes back.
+        </TextBlock>
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">What comes back</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>Table and DataGrid sort, filter, search and page.</strong> They're in the URL, so a resumed page shows
+                the same rows. A grid you bind, such as with <Code>@@bind-Page</Code>, keeps what your property keeps.
+            </ListItem>
+            <ListItem>
+                <strong>Anything you bind and mark <Code>[PersistentState]</Code>.</strong> The components rebuild from it: a
+                Dialog bound with <Code>@@bind-Open</Code> opens again, a TextField and a RichTextEditor show their text, a grid
+                shows its page.
+            </ListItem>
+            <ListItem>
+                <strong>Not what you leave unmarked.</strong> Bound values without <Code>[PersistentState]</Code> start over, as
+                after a reload. So does a file chosen in a FileUpload: the browser can't put it back.
+            </ListItem>
+        </List>
+        <Code Block Language="razor" Title="Orders.razor" HighlightLines="13,14,15">@Persisted</Code>
+        <TextBlock>
+            A persisted value has to serialize to JSON. Keep it to what the user would miss: what they typed, chose or opened.
+        </TextBlock>
+
+        <Heading Level="2">The reconnect dialog</Heading>
+        <TextBlock>
+            With a <Anchor Href="docs/components/reconnect-dialog">ReconnectDialog</Anchor> in <Code>App.razor</Code>, a paused
+            session shows "Session paused" with a Resume button, which starts the new session. The message says whether the
+            server paused it or the page did. A session that can't resume offers Reload.
+        </TextBlock>
+
+        <Heading Level="2">Pause a hidden tab <Badge Accent="Accent.Primary" Size="BadgeSize.Sm">.NET 11+</Badge></Heading>
+        <TextBlock>
+            .NET 11 can pause a session by itself once its tab has been out of view for a while, and resume it when the tab
+            comes back. Add the <Code>Microsoft.AspNetCore.Components.Server.AutoPause</Code> package, then turn it on where
+            the app maps its components:
+        </TextBlock>
+        <Code Block Language="csharp" Title="Program.cs">@AutoPause</Code>
+        <List Gap="2">
+            <ListItem>
+                It doesn't pause while a text field or a RichTextEditor has focus, so text the user is still typing isn't
+                lost.
+            </ListItem>
+            <ListItem>
+                On phones, the browser stops a backgrounded page's script within seconds, often before the delay runs out.
+                The session then ends as a lost connection and comes back through the reconnect dialog.
+            </ListItem>
+            <ListItem>A paused tab that comes back resumes by itself; the dialog shows only while it does.</ListItem>
+        </List>
+
+        <Heading Level="2">Pause from your own code</Heading>
+        <TextBlock>
+            <Code>Blazor.pauseCircuit()</Code> and <Code>Blazor.resumeCircuit()</Code> pause and resume from the page's script,
+            for a policy of your own, such as pausing after a time without input. On .NET 11 the server can ask a page to pause
+            too, before a deployment or restart. See Microsoft's
+            <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/state-management/server#pause-and-resume-circuits" External>pause and resume circuits</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what components do on static and interactive pages.</ListItem>
+            <ListItem><Anchor Href="docs/components/reconnect-dialog">ReconnectDialog</Anchor>: the dialog's states and text.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Persisted = """
+        @page "/orders"
+        @rendermode InteractiveServer
+
+        <DataGrid Items="Orders" @bind-Page="Page" PageSize="20">
+            ...
+        </DataGrid>
+
+        <Dialog Title="Notes" @bind-Open="NotesOpen">
+            <RichTextEditor Label="Notes" @bind-Value="Notes" />
+        </Dialog>
+
+        @code {
+            [PersistentState] public int Page { get; set; } = 1;
+            [PersistentState] public bool NotesOpen { get; set; }
+            [PersistentState] public string? Notes { get; set; }
+        }
+        """;
+
+    private const string AutoPause = """
+        using Microsoft.AspNetCore.Components;   // AddAutoPause
+
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode()
+            .WithBrowserOptions(options =>
+                options.AddAutoPause(pause => pause.HiddenDelay = TimeSpan.FromMinutes(2)));
+        """;
+}
