@@ -1025,9 +1025,11 @@
                 any = true;
                 <li class="@DayClass("ib-sched-agenda-day", day, today)" aria-current="@(day == today ? "date" : null)">
                     <div class="ib-sched-agenda-head">
-                        <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@day.ToString("D", culture)">
+                        <a class="ib-sched-agenda-date" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound">
+                            @* Named by what it shows, so a voice user can say it (WCAG 2.5.3), and the year for screen readers. *@
                             <span class="ib-sched-num">@day.Day</span>
                             <span>@day.ToString("ddd, MMM", culture)</span>
+                            <span class="ib-visually-hidden">@day.Year</span>
                         </a>
                         @DayExtra(day)
                     </div>
