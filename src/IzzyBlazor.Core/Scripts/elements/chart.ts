@@ -700,7 +700,17 @@ class Chart extends IzzyElement {
       "keydown",
       (event) => {
         if (event.key !== "Escape" && event.key !== "Tab") byKeys = true;
-        // With no tooltips there's no item to move to: only the zoom's keys.
+        // With no tooltips there's no item to move to: the arrows pan a zoomed view a tenth of
+        // itself, at least an item on a category axis (Right and Down show what's further on),
+        // and the zoom's keys.
+        if (!tipsOn && gestures && isZoomed() && ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) {
+          event.preventDefault();
+          const span = view[1] - view[0];
+          const by = (event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1) * (data?.ar ? -1 : 1) * Math.max(span / 10, scale ? 0 : 1 / count);
+          const from = Math.min(1 - span, Math.max(0, view[0] + by));
+          setView(from, from + span);
+          return;
+        }
         if (!tipsOn && !["+", "=", "-", "_", "0"].includes(event.key)) return;
         let next = current;
         switch (event.key) {
