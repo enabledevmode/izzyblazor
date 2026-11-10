@@ -1,0 +1,98 @@
+@page "/docs/accessibility/overview"
+
+@* The section's first page: the standard, how components are built for it, how it's checked, the gaps
+   left (from artifacts/izzyblazor-a11y-inventory-2026-11-09.md), and the app's share. Until Nov 10,
+   2026 this was the one article at docs/common/accessibility (redirected). *@
+
+<ArticlePage Section="accessibility" Slug="overview">
+    <Lead>
+        IzzyBlazor builds to WCAG 2.2 level AA and follows the ARIA Authoring Practices patterns for each kind of
+        control. Components start from the browser's own elements, so keyboard, focus and screen readers work as the
+        platform defines them, and IzzyBlazor's script adds ARIA only where it adds behavior.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Native elements first</Heading>
+        <TextBlock>
+            Buttons are <Code>button</Code> or <Code>a</Code>, dialogs are <Code>dialog</Code>, selects are
+            <Code>select</Code>, disclosures are <Code>details</Code>, and checkboxes, radios and switches are real inputs.
+            Enter, Space, Escape and the arrow keys do what the user expects, with JavaScript off too.
+        </TextBlock>
+        <TextBlock>
+            Where <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds behavior, it adds the roles that go
+            with it. Tabs are a radio group with JavaScript off, and become ARIA tabs with arrow-key focus once the script runs.
+            A dialog opened by the server becomes a real modal. Each component's Overview ends with an Accessibility section: its
+            roles, its keys, and what changes in each render mode.
+        </TextBlock>
+
+        <Heading Level="2">With JavaScript off</Heading>
+        <TextBlock>
+            Everything stays usable, but a few things are plainer. Tabs are heard as radio buttons, a dialog opened by the server
+            isn't modal, and keys that IzzyBlazor's script adds, such as a grid's arrow keys, aren't there. Each component's Mode
+            support table lists what changes.
+        </TextBlock>
+
+        <Heading Level="2">How it's checked</Heading>
+        <List Gap="2">
+            <ListItem>Keyboard flows (opening, moving, choosing, closing, and where focus lands after each) run in Chromium in the test suite, on static and interactive pages.</ListItem>
+            <ListItem>A component's examples are checked in Chromium with axe and the accessibility tree when it's built or changed.</ListItem>
+            <ListItem>A sweep of every example checks that focus shows in Windows high-contrast mode and that targets are at least 24 by 24 pixels.</ListItem>
+            <ListItem>Text and control colors are computed to their contrast ratios, for the built-in themes and for any brand color you set.</ListItem>
+            <ListItem>A full pass with screen readers (NVDA, JAWS, VoiceOver and TalkBack) hasn't been done yet. Names, roles and states are checked in the accessibility tree, which is what screen readers read.</ListItem>
+        </List>
+
+        <Heading Level="2">Known gaps</Heading>
+        <TextBlock>
+            These fall short of WCAG 2.2 AA or are close to the line. Each has a way around it today.
+        </TextBlock>
+        <List Gap="3">
+            @foreach (var gap in Gaps)
+            {
+                <ListItem><strong>@gap.Gap</strong> @gap.Workaround</ListItem>
+            }
+        </List>
+
+        <Heading Level="2">What's left to your app</Heading>
+        <TextBlock>
+            Accessible components don't make a page accessible on their own. Your app still owns these:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>A <Code>lang</Code> on the <Code>html</Code> element, and a <Code>PageTitle</Code> on every page.</ListItem>
+            <ListItem>One <Code>h1</Code> per page and headings in order. <Code>Heading</Code>'s <Code>Size</Code> changes the look, not the level.</ListItem>
+            <ListItem>Link and button text that makes sense on its own, not "Click here".</ListItem>
+            <ListItem>Alt text that says what a picture shows, and a unit in a field's label when it matters, as in "Price (USD)".</ListItem>
+            <ListItem>Contrast for colors you set yourself, and time limits the user can extend.</ListItem>
+            <ListItem>Testing your pages with a keyboard and a screen reader: see <Anchor Href="docs/accessibility/testing">Testing your app</Anchor>.</ListItem>
+        </List>
+
+        <Heading Level="2">In this section</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/accessibility/keyboard-and-focus">Keyboard and focus</Anchor>: the focus ring, where focus goes, and every component's keys.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/names-and-announcements">Names and announcements</Anchor>: labels, the components that require a name, and what screen readers hear when something changes.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/color-and-motion">Color, contrast and motion</Anchor>: contrast, brand colors, high-contrast mode and reduced motion.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/pointer-and-touch">Pointer and touch</Anchor>: target sizes and a way around every drag.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/testing">Testing your app</Anchor>: what to check on your own pages.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record KnownGap(string Gap, string Workaround);
+
+    private static readonly KnownGap[] Gaps =
+    [
+        new("Splitter: a size between open and collapsed needs a drag or the arrow keys.",
+            "The collapse button and a double-click on the bar collapse and restore a pane with one click."),
+        new("Chart: zooming and panning need a drag, the wheel or a pinch.",
+            "Plus and minus zoom from the keyboard; Show data lists every value; a RangeSelector's preset buttons choose a range with one click."),
+        new("DataGrid: moving a grouping level by pointer needs a drag.",
+            "Alt+Left and Alt+Right move it from the keyboard; removing levels and grouping again from the column menu sets any order."),
+        new("Scheduler: appointments in the month view are 22px tall, under the 24px minimum.",
+            "The day's number opens the day view, where each appointment is larger."),
+        new("NumberField: the stacked step buttons are 16px tall at the default size.",
+            "Typing the number does the same. StepButtons=\"StepButtons.Split\" puts full-height buttons on each side."),
+        new("Field borders and switch tracks are about 2:1 against the page, under the 3:1 WCAG asks for when the border is the only sign of a control.",
+            "Every field has a visible label above it. To darken the edges, set --ib-color-outline in your theme."),
+        new("No full screen reader pass yet.",
+            "Names, roles and states are checked in the accessibility tree; report anything a screen reader gets wrong as an issue."),
+    ];
+}

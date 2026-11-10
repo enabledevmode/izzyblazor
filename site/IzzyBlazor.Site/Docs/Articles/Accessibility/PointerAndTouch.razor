@@ -1,0 +1,69 @@
+@page "/docs/accessibility/pointer-and-touch"
+
+@* WCAG 2.5.8 target size (the sweep of Nov 10, 2026) and 2.5.7 dragging (inventory section 1.10), with
+   what changes on touch screens (section 1.13). *@
+
+<ArticlePage Section="accessibility" Slug="pointer-and-touch">
+    <Lead>
+        Every target is at least 24 by 24 pixels, or has room around it, as WCAG 2.2 asks. Anything that can be dragged can
+        also be done with single clicks, through a button or a menu.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Target sizes</Heading>
+        <TextBlock>
+            Buttons and icon buttons are at least 32 pixels tall, even at the small size. A checkbox, radio or switch is clicked
+            through its whole label. Small icons inside a field or a tab, such as a clear button or a tab's close button, keep
+            their small look but take clicks from a 24-pixel area around them.
+        </TextBlock>
+        <TextBlock>
+            Two controls fall short of 24 pixels and rely on another way to do the same thing: the stacked step buttons of a
+            <Anchor Href="docs/components/number-field">NumberField</Anchor> (type the number, or set
+            <Code>StepButtons="StepButtons.Split"</Code>), and appointments in the
+            <Anchor Href="docs/components/scheduler">Scheduler</Anchor>'s month view (open the day).
+        </TextBlock>
+
+        <Heading Level="2">A way around every drag</Heading>
+        <TextBlock>
+            Dragging is hard or impossible for some users, so each drag has a single-click way to the same result:
+        </TextBlock>
+        <Table Items="Drags" Caption="Drags and their single-click alternatives" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Drag" Width="Length.Rem(18)">@context!.Drag</TemplateColumn>
+                <TemplateColumn Title="Without dragging">@context!.Instead</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Two drags have no single-click way yet: resizing a <Anchor Href="docs/components/splitter">Splitter</Anchor>'s pane to
+            a size between open and collapsed, and zooming or panning a <Anchor Href="docs/components/chart">Chart</Anchor>. Both
+            work from the keyboard, and the overview's Known gaps list what to use meanwhile.
+        </TextBlock>
+
+        <Heading Level="2">On touch screens</Heading>
+        <List Gap="2">
+            <ListItem>Fields use 16-pixel text on touch screens, so iOS doesn't zoom the page when one takes focus.</ListItem>
+            <ListItem>Date fields show their calendar button, and file uploads drop the "drag a file here" text.</ListItem>
+            <ListItem>One finger scrolls the page over a chart; two fingers pinch to zoom it.</ListItem>
+            <ListItem>A carousel moves by swipe, and its arrows and dots still work.</ListItem>
+            <ListItem>Toasts don't pause on touch, as there's no hover; error toasts stay until dismissed.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record DragAlternative(string Drag, string Instead);
+
+    private static readonly DragAlternative[] Drags =
+    [
+        new("DataGrid: move or resize a column", "The column menu's Move left, Move right and Width items, and double-click on the edge to fit"),
+        new("DataGrid: reorder rows", "The row handle's menu: Move up, Move down, Move to top, Move to bottom"),
+        new("DataGrid: group by a column", "The column menu's Group by this column"),
+        new("DataGrid: choose and order columns", "The column picker's checkboxes and each row's handle menu"),
+        new("ListView and DropZoneGroup: move an item", "The handle's or the item's menu, including Move to another zone"),
+        new("PickList: move items across", "The move buttons between the lists, or a double-click"),
+        new("Scheduler: move or resize an appointment", "Click it and change its times in the form"),
+        new("Carousel: swipe", "The previous and next buttons and the dots"),
+        new("Slider, RangeSlider, ColorPanel", "Click where you want the value"),
+        new("RangeSelector: move the window", "Click the strip, or choose a preset range"),
+        new("FileUpload: drop a file", "The Choose a file button"),
+    ];
+}

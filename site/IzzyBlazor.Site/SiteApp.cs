@@ -226,6 +226,8 @@ public static class SiteApp
                 stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
             .RequireRateLimiting(PagesRateLimit);
+        // Accessibility was one article under Common features until Nov 10, 2026; it's a section now.
+        app.MapGet("/docs/common/accessibility", () => Results.Redirect("/docs/accessibility/overview", permanent: true));
         // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.
         foreach (var (topic, page) in new[] { ("bars", "bar-chart"), ("lines", "line-chart"), ("scatter", "scatter-chart") })
         {

@@ -1,0 +1,54 @@
+@page "/docs/accessibility/testing"
+
+@* A practical check for an app's own pages: keyboard, screen reader, zoom, high contrast, reduced
+   motion, automated tools, and what automated tools can't tell. *@
+
+<ArticlePage Section="accessibility" Slug="testing">
+    <Lead>
+        Automated tools find only some accessibility problems. The rest show up when you use your pages the way your users
+        do: with a keyboard alone, with a screen reader, zoomed in, and in high-contrast mode. A few minutes of each on every
+        new page catches most of them.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">With a keyboard</Heading>
+        <List Gap="2">
+            <ListItem>Put the mouse away and Tab through the page. Every link, button and field is reached, in the order it reads, and you can always see where focus is.</ListItem>
+            <ListItem>Open and close every dialog, menu and popover with the keyboard. Escape closes it, and focus returns to what opened it.</ListItem>
+            <ListItem>Submit each form with a mistake in it. Focus goes to the list of errors, and each error leads to its field.</ListItem>
+            <ListItem>Nothing traps focus, and nothing happens only on hover.</ListItem>
+        </List>
+
+        <Heading Level="2">With a screen reader</Heading>
+        <TextBlock>
+            Use the one your users are likely to have: NVDA (free) with Firefox or Chrome on Windows, VoiceOver with Safari on a Mac
+            or an iPhone, TalkBack with Chrome on Android. Listen for these:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>The page title, then one heading level 1, then headings in order. Most screen reader users move by headings.</ListItem>
+            <ListItem>Each control's name says what it does without its surroundings: "Delete invoice INV-1042", not "Delete".</ListItem>
+            <ListItem>Changes you make without a page load, such as a saved form or a filtered list, are announced. Use a <Anchor Href="docs/components/live-region">LiveRegion</Anchor> or <Code>Announcer</Code> where they aren't.</ListItem>
+            <ListItem>Pictures that carry meaning are described, and decorative ones are silent.</ListItem>
+        </List>
+
+        <Heading Level="2">Zoom, contrast and motion</Heading>
+        <List Gap="2">
+            <ListItem>Zoom the browser to 200%, and narrow the window to 320 pixels. Nothing is cut off, and only wide content, such as a table, scrolls sideways.</ListItem>
+            <ListItem>Turn on a contrast theme in Windows (Settings, Accessibility, Contrast themes), or emulate forced colors in the browser's developer tools. Every control, its focus and its state still show.</ListItem>
+            <ListItem>Turn on reduced motion in the operating system, and check your own animations stop.</ListItem>
+            <ListItem>Check the contrast of any color you set yourself: 4.5:1 for text, 3:1 for icons and control edges.</ListItem>
+        </List>
+
+        <Heading Level="2">Automated tools</Heading>
+        <TextBlock>
+            Run <Anchor Href="https://www.deque.com/axe/devtools/" External>axe DevTools</Anchor> or Lighthouse's accessibility audit
+            on each page, in each state that matters, such as with a dialog open or a form showing errors. They find missing
+            names, contrast problems, broken ARIA and duplicate ids. To run axe in your own tests, add
+            <Anchor Href="https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright" External>@@axe-core/playwright</Anchor>
+            to a Playwright test of the page.
+        </TextBlock>
+        <TextBlock>
+            Automated tools can't tell whether a name makes sense, whether the focus order matches the reading order, or whether
+            an announcement comes at the right time. The checks above cover those.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
