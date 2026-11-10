@@ -1,12 +1,12 @@
 @* A day's meals against the dietary guidelines' ranges for each share of calories (US Dietary
    Guidelines: carbohydrate 45–65%, fat 20–35%, protein 10–35%). Below, within and above each range
-   are shades of one color; the needle reads where the day fell. *@
+   are tints of one color up to the color itself; the needle reads where the day fell. *@
 <Stack Gap="8" Grow>
-    @foreach (var (label, share, low, high, color) in _intake)
+    @foreach (var (label, share, low, high, palette) in _intake)
     {
         <LinearGauge Label="@label" Value="share" ValueFormat="P0" Step="0.1" MinorStep="0.02"
                      Pointer="LinearGaugePointer.Needle" TickPlacement="TickPlacement.Inside"
-                     Palette="ChartPalette.Shades(color)">
+                     Palette="palette">
             <GaugeBand From="0" To="low" Label="Below range" />
             <GaugeBand From="low" To="high" Label="In range" />
             <GaugeBand From="high" To="1" Label="Above range" />
@@ -15,10 +15,10 @@
 </Stack>
 
 @code {
-    private readonly (string Label, double Share, double Low, double High, Color Color)[] _intake =
+    private readonly (string Label, double Share, double Low, double High, ChartPalette Palette)[] _intake =
     [
-        ("Fat", 0.40, 0.20, 0.35, Color.Warning),
-        ("Carbohydrate", 0.35, 0.45, 0.65, Color.Success),
-        ("Protein", 0.25, 0.10, 0.35, Color.Info),
+        ("Fat", 0.40, 0.20, 0.35, ChartPalette.Tints(Color.Warning)),
+        ("Carbohydrate", 0.35, 0.45, 0.65, ChartPalette.Tints(Color.Success)),
+        ("Protein", 0.25, 0.10, 0.35, ChartPalette.Tints(Color.Info)),
     ];
 }

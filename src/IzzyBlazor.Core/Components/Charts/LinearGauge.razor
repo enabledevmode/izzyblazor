@@ -173,7 +173,7 @@
                         var from = Share(band.From);
                         var to = Share(band.To);
                         if (!(to > from)) continue;
-                        <span class="ib-lgauge-band" style="--p:@Pct((Reversed ? 1 - to : from) * 100);--l:@Pct((to - from) * 100);background:@BandColor(band, bands)"></span>
+                        <span class="ib-lgauge-band" style="--p:@Pct((Reversed ? 1 - to : from) * 100);--l:@Pct((to - from) * 100);background:@BandFill(band, bands)"></span>
                     }
                     @if (inside)
                     {
@@ -209,6 +209,17 @@
             }
         </div>
         @Readouts(pointers)
+    }
+
+    // A band's fill. On a thick track the bands are a body under the needle or the ticks, so the
+    // default grays are Few's lighter ones (the thin track's start darker, for every band to show).
+    private string BandFill(GaugeBand band, IReadOnlyList<GaugeBand> bands)
+    {
+        var thick = Pointer == LinearGaugePointer.Needle || TickPlacement == TickPlacement.Inside;
+        if (!thick || band.Accent is not null || Palette is not null) return BandColor(band, bands);
+        var i = 0;
+        while (i < bands.Count && !ReferenceEquals(bands[i], band)) i++;
+        return ChartPalette.Gray(i < bands.Count ? i : 0, bands.Count, thin: false);
     }
 
     // Tick lines: the minor ticks between the numbered ones, and (unless minorOnly) the numbered ones.
