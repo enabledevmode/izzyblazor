@@ -322,7 +322,9 @@
         RenderFragment TicksFor(double max, string? format) => __builder =>
         {
             var ticks = Ticks(Min, max, 5);
-            <div class="ib-bullet-ticks" aria-hidden="true">
+            // The widest number, in ems of the ticks' 12px text: a vertical scale's column fits it.
+            var widest = ticks.Count == 0 ? 0 : ticks.Max(t => TextWidths.AtSize(Text(t, format), 12)) / 12;
+            <div class="ib-bullet-ticks" style="--ib-bullet-tw:@Num(widest)em" aria-hidden="true">
                 @for (var k = 0; k < ticks.Count; k++)
                 {
                     <span class="@(k % 2 == 1 ? "ib-bullet-tick ib-bullet-odd" : "ib-bullet-tick")" style="--p:@Share(ticks[k], max)%"><span>@Text(ticks[k], format)</span></span>
