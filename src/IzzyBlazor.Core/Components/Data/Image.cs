@@ -41,9 +41,9 @@ public class Image : StyledComponentBase
 
     /// <summary>
     /// What the image shows, for screen readers and when it fails to load. Use "" for a purely
-    /// decorative image.
+    /// decorative image; leaving it out throws, so a meaningful picture is never hidden by mistake.
     /// </summary>
-    [Parameter, EditorRequired] public string Alt { get; set; } = "";
+    [Parameter, EditorRequired] public string? Alt { get; set; }
 
     /// <summary>The image's own width in pixels, so the browser reserves its space before it loads.</summary>
     [Parameter] public int? IntrinsicWidth { get; set; }
@@ -62,6 +62,15 @@ public class Image : StyledComponentBase
 
     /// <summary>A caption under the image; wraps it in a <c>figure</c>.</summary>
     [Parameter] public string? Caption { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Alt is null)
+        {
+            throw new InvalidOperationException("Image needs Alt, what it shows, such as \"Chart of March sales\"; or Alt=\"\" when it only decorates.");
+        }
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

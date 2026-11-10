@@ -60,6 +60,12 @@
     transition: rotate var(--ib-duration-fast) var(--ib-ease);
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .ib-treeselect-chevron {
+      transition: none;
+    }
+  }
+
   .ib-treeselect-button:disabled .ib-treeselect-chevron {
     color: var(--ib-color-disabled);
   }
@@ -102,6 +108,13 @@
     color: var(--ib-color-subtle);
     cursor: pointer;
     --ib-icon-size: 0.875rem;
+  }
+
+  /* A 24px target around the small button (WCAG 2.5.8), the look unchanged. */
+  .ib-treeselect-clear::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, (100% - 24px) / 2);
   }
 
   .ib-treeselect-clear:hover {

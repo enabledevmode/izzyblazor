@@ -8,7 +8,8 @@ namespace IzzyBlazor;
 /// The accent derived from a brand color (<see cref="ThemeBase.Brand"/>): the fill, text on the fill, the accent as text and its
 /// soft tint, for light and dark mode. Every pair meets WCAG AA: text on the fill holds 4.5:1, the
 /// accent as text holds 4.5:1 on the surface, the gray fills and its own soft tint, and the dark
-/// fill holds 3:1 against the dark surface so controls stay visible.
+/// fill holds 3:1 against the dark surface so controls stay visible. The focus ring holds 3:1 on the
+/// surface in both modes: a light fill that doesn't (a yellow, say) keeps the ring in the accent's text color.
 /// </summary>
 /// <remarks>
 /// The light fill is the brand color itself, unless neither white nor near-black text can reach
@@ -25,6 +26,12 @@ public sealed record BrandPalette(
     string DarkText,
     string DarkSoft)
 {
+    /// <summary>
+    /// The light-mode focus ring when the fill is under 3:1 on white (WCAG 1.4.11): the accent's text
+    /// color, which holds 4.5:1. Null when the fill itself shows, and the ring follows it.
+    /// </summary>
+    public string? Focus { get; init; }
+
     // The built-in gray sets' surfaces the accent is checked against (neutral, slate, stone), so
     // the promises hold on each. A hex Gray keeps its fills at least this light (GrayPalette).
     private static readonly Rgb White = Rgb.Parse("#ffffff");
@@ -56,15 +63,22 @@ public sealed record BrandPalette(
 
         return new BrandPalette(
             fill.ToHex(), on.ToHex(), text.ToHex(), soft.ToHex(),
-            darkFill.ToHex(), darkOn.ToHex(), darkText.ToHex(), darkSoft.ToHex());
+            darkFill.ToHex(), darkOn.ToHex(), darkText.ToHex(), darkSoft.ToHex())
+        {
+            Focus = Rgb.Ratio(fill, White) >= 3 ? null : text.ToHex(),
+        };
     }
 
-    /// <summary>The four primary tokens as CSS declarations, each a <c>light-dark()</c> pair.</summary>
+    /// <summary>
+    /// The four primary tokens as CSS declarations, each a <c>light-dark()</c> pair, and the focus
+    /// color when <see cref="Focus"/> is set.
+    /// </summary>
     public string ToCss() =>
         $"--ib-color-primary: light-dark({Fill}, {DarkFill}); " +
         $"--ib-color-on-primary: light-dark({OnFill}, {DarkOnFill}); " +
         $"--ib-color-primary-text: light-dark({Text}, {DarkText}); " +
-        $"--ib-color-primary-soft: light-dark({Soft}, {DarkSoft});";
+        $"--ib-color-primary-soft: light-dark({Soft}, {DarkSoft});" +
+        (Focus is null ? "" : $" --ib-color-focus: light-dark({Focus}, {DarkFill});");
 
     // Each check is on the color as written (rounded to hex), so rounding can't take it under.
     // White or near-black, whichever reads better; if neither reaches 4.5:1, move the fill's

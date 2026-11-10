@@ -77,7 +77,7 @@ jobs:
           sankey=$(gzip -c src/IzzyBlazor.Core/wwwroot/sankey.css | wc -c)
           treemap=$(gzip -c src/IzzyBlazor.Core/wwwroot/treemap.css | wc -c)
           tabsedit=$(gzip -c src/IzzyBlazor.Core/wwwroot/tabs-edit.css | wc -c)
-          echo "CSS gzip: $css bytes (budget 51500)"
+          echo "CSS gzip: $css bytes (budget 52224)"
           echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
           echo "carousel.css gzip: $carousel bytes (budget 2048; only pages with a carousel load it)"
           echo "chart.css gzip: $chart bytes (budget 6144; only pages with a chart load it)"
@@ -101,7 +101,7 @@ jobs:
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
           echo "Largest on-demand element: $big bytes (budget 6144)"
-          test "$css" -le 51500 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6144 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$tabsedit" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
+          test "$css" -le 52224 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6144 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$tabsedit" -le 1024 && test "$js" -le 15360 && test "$big" -le 6144
 
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts

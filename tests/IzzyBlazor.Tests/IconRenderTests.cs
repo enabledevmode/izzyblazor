@@ -83,4 +83,11 @@ public class IconRenderTests : BunitContext
         Assert.Contains("\"evil\"", error.Message);
         Assert.Contains("<script>", error.Message);
     }
+
+    [Fact]
+    public void An_image_needs_alt_text_or_an_empty_alt_to_say_it_decorates()
+    {
+        Assert.Throws<InvalidOperationException>(() => Render<Image>(p => p.Add(i => i.Src, "a.png")));
+        Assert.Equal("", Render<Image>(p => p.Add(i => i.Src, "a.png").Add(i => i.Alt, "")).Find("img").GetAttribute("alt"));
+    }
 }

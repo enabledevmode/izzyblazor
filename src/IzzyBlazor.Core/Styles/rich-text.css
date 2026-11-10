@@ -26,6 +26,7 @@
   }
 
   .ib-rich-text-box:has(> .ib-rich-text-surface:focus-visible) {
+    outline: 2px solid transparent;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }

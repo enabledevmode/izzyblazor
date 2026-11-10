@@ -428,6 +428,8 @@
   .ib-table-sticky > .ib-table-scroll {
     --ib-table-head-line: round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px);
     --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px);
+    /* A focused row or link stops below the sticky header. */
+    scroll-padding-block-start: var(--ib-table-head-h);
   }
 
   /* Header filters: the 22px filter button is taller than a small table's 18px line. */
@@ -1256,11 +1258,6 @@
 
   .ib-datagrid .ib-table-grid > * > * > td {
     scroll-margin-block-start: var(--ib-shell-top, 0px);
-  }
-
-  /* A focused row stops below the sticky header. */
-  .ib-table-sticky.ib-datagrid > .ib-table-scroll {
-    scroll-padding-block-start: var(--ib-table-head-h);
   }
 
   /* A grid's header: the title and its sort arrow at the start, its tools at the far edge, so they

@@ -27,6 +27,7 @@ public class BrandPaletteTests
         Assert.True(Ratio(p.DarkFill, "#0d0d0f") >= 3, "dark: fill visible on the surface");
         Assert.True(Ratio(p.DarkText, "#232326") >= 4.5, "dark: accent text on the strongest gray fill");
         Assert.True(Ratio(p.DarkText, p.DarkSoft) >= 4.5, "dark: accent text on its soft tint");
+        Assert.True(Ratio(p.Focus ?? p.Fill, "#ffffff") >= 3, "the focus ring on the surface");
     }
 
     [Fact]

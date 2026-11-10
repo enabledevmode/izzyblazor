@@ -431,9 +431,17 @@
     background-color: #e00;
   }
 
+  /* The ring is drawn over the picture, which would cover an outline; a border, so forced colors keep it. */
   .ib-video-poster:focus-visible {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-    outline-offset: -2px;
+    outline: none;
+    border-radius: inherit;
+  }
+
+  .ib-video-poster:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     border-radius: inherit;
   }
 

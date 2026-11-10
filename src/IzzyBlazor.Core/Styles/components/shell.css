@@ -343,9 +343,10 @@
     max-height: calc(100dvh - var(--ib-shell-top) - var(--ib-shell-bottom));
   }
 
-  /* Linked sections (heading anchors, OnThisPage) land below the sticky bars, with some room. */
-  .ib-shell-scroll-page > .ib-shell-main [id] {
-    scroll-margin-top: calc(var(--ib-shell-top) + var(--ib-space-4));
+  /* Linked sections (heading anchors, OnThisPage) land below the sticky bars, with some room, and
+     a control that takes focus scrolls out from under them (WCAG 2.4.11). */
+  .ib-shell-scroll-page > .ib-shell-main :is([id], a, button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-block: calc(var(--ib-shell-top) + var(--ib-space-4)) calc(var(--ib-shell-bottom) + var(--ib-space-4));
   }
 
   .ib-shell-scroll-main > .ib-shell-main [id] {
@@ -488,7 +489,7 @@
   .ib-skip-link {
     position: absolute;
     top: var(--ib-space-2);
-    left: var(--ib-space-2);
+    inset-inline-start: var(--ib-space-2);
     z-index: 50;
     padding: var(--ib-space-2) var(--ib-space-3);
     border-radius: var(--ib-radius-md);
