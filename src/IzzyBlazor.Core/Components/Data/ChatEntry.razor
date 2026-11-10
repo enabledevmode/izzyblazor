@@ -10,7 +10,7 @@
     <ChatEntry Mine Text="Where's my order?" Time="sent" />
     <ChatEntry Author="Assistant" Markdown="@reply" Pending="_streaming" />
 
-    The content is Text (plain, its lines kept), Markdown (shown as RichText shows it, code
+    The content is Text (plain, its lines kept), Markdown (shown as the Markdown component shows it, code
     highlighted), Html (sanitized), or anything else as ChildContent. Pending shows three dots
     until content arrives, then a caret after it while more is coming. Failed says so, with
     Retry (OnRetry). Others' entries have a copy button for their text (Copyable).
@@ -54,8 +54,14 @@
             else if (!string.IsNullOrEmpty(Markdown))
             {
                 @* While it streams, a last line that would make a heading waits for the next. *@
-                <RichText Class="ib-chat-content" TopHeading="ContentTop" Html="@(Pending ? RichTextMarkdown.Render(Markdown, display: true, streaming: true) : null)"
-                          Markdown="@(Pending ? null : Markdown)" />
+                if (Pending)
+                {
+                    <RichText Class="ib-chat-content" TopHeading="ContentTop" Html="@RichTextMarkdown.Render(Markdown, display: true, streaming: true)" />
+                }
+                else
+                {
+                    <Markdown Class="ib-chat-content" TopHeading="ContentTop" Text="@Markdown" />
+                }
             }
             else if (!string.IsNullOrEmpty(Html))
             {
@@ -146,7 +152,7 @@
     /// <summary>The message as plain text; its line breaks are kept.</summary>
     [Parameter] public string? Text { get; set; }
 
-    /// <summary>The message as Markdown, shown as <see cref="RichText"/> shows it.</summary>
+    /// <summary>The message as Markdown, shown as <see cref="IzzyBlazor.Markdown"/> shows it.</summary>
     [Parameter] public string? Markdown { get; set; }
 
     /// <summary>The message as HTML; it's sanitized first.</summary>
