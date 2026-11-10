@@ -2331,7 +2331,8 @@
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-range-bar", "title": "Range bars", "lead": "`ChartRangeBarSeries` draws a bar from each item's `Low` to its `High`, here the average day's low and high temperature in each month.", "after": ["The value axis fits the ranges and needn't reach zero: a range bar's length is its spread, not an amount.", "A missing `Low` or `High` leaves a gap at that item. With `ChartDrillLevel`s, a level's bar runs from its items' lowest low to their highest high.", "With the chart's `Orientation=\"Orientation.Horizontal\"`, the bars lie across, as for a plan's start and end. Range series don't stack."] }
+        { "id": "chart-range-bar", "title": "Range bars", "lead": "`ChartRangeBarSeries` draws a bar from each item's `Low` to its `High`, here the average day's low and high temperature in each month.", "after": ["The value axis fits the ranges and needn't reach zero: a range bar's length is its spread, not an amount.", "A missing `Low` or `High` leaves a gap at that item. With `ChartDrillLevel`s, a level's bar runs from its items' lowest low to their highest high.", "Range series don't stack, and take no `Trend`."] },
+        { "id": "chart-range-bar-plan", "title": "Bars across: a plan", "lead": "With the chart's `Orientation=\"Orientation.Horizontal\"`, range bars lie across, each from its `Low` on the left to its `High`. Here each phase of a plan runs from its first week to its last, so overlaps between phases show at a glance.", "after": ["The value axis sets the weeks' scale: `Min`, `Max` and `Step` on `ChartValueAxis`, and a `Format` that writes each tick as a week.", "The values are numbers. To plan by date, give each phase its start and end as a count of days or weeks from the plan's start."] }
       ]
     },
     {
