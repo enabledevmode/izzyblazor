@@ -320,8 +320,11 @@
   --pg-strong: light-dark(#a1a1aa, #71717a);
   --pg-accent: light-dark(#8b8b93, #8b8b93);
 }
-.pg-quiet :is(.e, .a, .ink) { fill: var(--pg-accent); }
-.pg-quiet :is(.es, .as, .ink-s) { stroke: var(--pg-accent); }
+.pg-quiet :is(.e, .a) { fill: var(--pg-accent); }
+/* Ink on an accent (a button's label, a play mark) turns light, so it shows on the gray. */
+.pg-quiet .ink { fill: var(--pg-raised); }
+.pg-quiet :is(.es, .as) { stroke: var(--pg-accent); }
+.pg-quiet .ink-s { stroke: var(--pg-raised); }
 .pg-quiet :is(.h, .h2, .hs, .ah) { fill: var(--pg-line); fill-opacity: .18; }
 .pg-quiet text.pg-label { fill: var(--pg-strong); }
 .pg-quiet text.pg-ember { fill: var(--pg-accent); }
