@@ -3,7 +3,7 @@
 <Chart Items="_days" Argument="d => d.Date" Title="Daily visits, last 12 months" View="_lastQuarter">
     <ChartValueAxis Format="N0" />
     <ChartLineSeries Value="d => d.Visits" Name="Visits" />
-    <RangeSelector Ranges />
+    <ChartRangeSelector Ranges />
 </Chart>
 
 @code {

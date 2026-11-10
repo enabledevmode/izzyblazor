@@ -601,7 +601,7 @@
         var selector = _context.Selector;
         if (selector is not null && horizontal)
         {
-            throw new InvalidOperationException("A RangeSelector goes under an upright chart's plot: leave the Chart's Orientation vertical.");
+            throw new InvalidOperationException("A ChartRangeSelector goes under an upright chart's plot: leave the Chart's Orientation vertical.");
         }
 
         // A chart synced by view follows the others' zoom; it takes gestures only with its own Zoom.
@@ -1366,7 +1366,7 @@
         return model.Series.Count(o => o.Data.Sizes is not null) > 1 ? $"{s.Data.Name}: {name}" : name;
     }
 
-    // A RangeSelector under the plot (outside the frame, whose img role would hide its sliders):
+    // A ChartRangeSelector under the plot (outside the frame, whose img role would hide its sliders):
     // the series drawn small over the whole range, a window over the view with a slider at each
     // end, the rest shaded, range buttons, and the whole range's labels. The script lines it up
     // with the plot and makes it move.
