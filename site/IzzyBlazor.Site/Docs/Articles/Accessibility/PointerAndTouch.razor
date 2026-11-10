@@ -5,8 +5,8 @@
 
 <ArticlePage Section="accessibility" Slug="pointer-and-touch">
     <Lead>
-        Every target is at least 24 by 24 pixels, or has room around it, as WCAG 2.2 asks. Anything that can be dragged can
-        also be done with single clicks, through a button or a menu.
+        Targets are at least 24 by 24 pixels, or have room around them, as WCAG 2.2 asks; the two exceptions are listed
+        below. Most drags can also be done with single clicks, through a button or a menu.
     </Lead>
     <ChildContent>
         <Heading Level="2">Target sizes</Heading>
@@ -26,22 +26,25 @@
         <TextBlock>
             Dragging is hard or impossible for some users, so each drag has a single-click way to the same result:
         </TextBlock>
-        <Table Items="Drags" Caption="Drags and their single-click alternatives" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="Drags" Caption="Drags and their single-click alternatives" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
             <Columns>
-                <TemplateColumn Title="Drag" Width="Length.Rem(18)">@context!.Drag</TemplateColumn>
+                <TemplateColumn Title="Drag">@context!.Drag</TemplateColumn>
                 <TemplateColumn Title="Without dragging">@context!.Instead</TemplateColumn>
             </Columns>
         </Table>
         <TextBlock>
-            Two drags have no single-click way yet: resizing a <Anchor Href="docs/components/splitter">Splitter</Anchor>'s pane to
-            a size between open and collapsed, and zooming or panning a <Anchor Href="docs/components/chart">Chart</Anchor>. Both
-            work from the keyboard, and the overview's Known gaps list what to use meanwhile.
+            Three drags have no single-click way yet: resizing a <Anchor Href="docs/components/splitter">Splitter</Anchor>'s pane
+            to a size between open and collapsed, zooming or panning a <Anchor Href="docs/components/chart">Chart</Anchor>, and
+            changing the order of a <Anchor Href="docs/components/data-grid">DataGrid</Anchor>'s grouping levels. All three work
+            from the keyboard, and the overview's <Anchor Href="docs/accessibility/overview">Known gaps</Anchor> list what to use
+            meanwhile.
         </TextBlock>
 
         <Heading Level="2">On touch screens</Heading>
         <List Gap="2">
             <ListItem>Fields use 16-pixel text on touch screens, so iOS doesn't zoom the page when one takes focus.</ListItem>
-            <ListItem>Date fields show their calendar button, and file uploads drop the "drag a file here" text.</ListItem>
+            <ListItem>Date fields open the phone's own date picker; one that needs IzzyBlazor's calendar shows its calendar button instead.</ListItem>
+            <ListItem>File uploads drop the "or drag it here" text.</ListItem>
             <ListItem>One finger scrolls the page over a chart; two fingers pinch to zoom it.</ListItem>
             <ListItem>A carousel moves by swipe, and its arrows and dots still work.</ListItem>
             <ListItem>Toasts don't pause on touch, as there's no hover; error toasts stay until dismissed.</ListItem>
@@ -54,7 +57,7 @@
 
     private static readonly DragAlternative[] Drags =
     [
-        new("DataGrid: move or resize a column", "The column menu's Move left, Move right and Width items, and double-click on the edge to fit"),
+        new("DataGrid: move or resize a column", "The column menu's Move left, Move right, Width and Fit to content items"),
         new("DataGrid: reorder rows", "The row handle's menu: Move up, Move down, Move to top, Move to bottom"),
         new("DataGrid: group by a column", "The column menu's Group by this column"),
         new("DataGrid: choose and order columns", "The column picker's checkboxes and each row's handle menu"),
@@ -64,6 +67,6 @@
         new("Carousel: swipe", "The previous and next buttons and the dots"),
         new("Slider, RangeSlider, ColorPanel", "Click where you want the value"),
         new("RangeSelector: move the window", "Click the strip, or choose a preset range"),
-        new("FileUpload: drop a file", "The Choose a file button"),
+        new("FileUpload: drop a file", "The Choose a file link"),
     ];
 }

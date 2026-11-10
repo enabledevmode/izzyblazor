@@ -386,6 +386,8 @@
 .site-params td:last-child, .site-params th:last-child { width: 100%; }
 .site-params td:not(:last-child) { white-space: nowrap; vertical-align: top; }
 .site-params td:last-child { vertical-align: top; }
+/* Sentences in both columns (the accessibility pages): let the first wrap too, so a phone fits it. */
+.site-params-wrap td:not(:last-child) { white-space: normal; }
 .site-params .site-param-text { margin-block-start: var(--ib-space-1); }
 /* Compact (Overviews): prop and its first sentence in one cell, type and default beside it. */
 .site-params-compact td:first-child, .site-params-compact th:first-child { width: 100%; white-space: normal; }

@@ -35,30 +35,35 @@
 
         <Heading Level="2">Charts</Heading>
         <TextBlock>
-            Chart series don't rely on color alone. Lines have dash patterns and markers of different shapes, and the legend,
-            tooltips and Show data table name every series. A few colors of the default palette (pink, yellow, aqua and orange) are
+            Lines don't rely on color alone: they have dash patterns and markers of different shapes. Bars and pie slices differ
+            by color, and the legend, tooltips and Show data table name every series and slice. A few colors of the default palette (pink, yellow, aqua and orange) are
             under 3:1 against a white page, so a chart that needs them should keep its legend or labels.
         </TextBlock>
 
         <Heading Level="2">Windows high-contrast mode</Heading>
         <TextBlock>
             In high-contrast mode (forced colors) the browser replaces the page's colors with the user's system colors and removes
-            backgrounds and shadows. IzzyBlazor plans for that:
+            backgrounds and shadows. IzzyBlazor handles it:
         </TextBlock>
         <List Gap="2">
             <ListItem>Every focusable control shows its focus with an outline, which the system colors keep.</ListItem>
             <ListItem>Checkboxes, radios and switches fall back to the browser's own drawing.</ListItem>
             <ListItem>Indicators drawn as fills, such as a progress bar, a slider's track, a carousel's dots, a selected tab or a chosen option, switch to the system's highlight color.</ListItem>
-            <ListItem>Charts keep their own colors, so the series still tell apart.</ListItem>
+            <ListItem>Charts keep their own colors, so the series can still be told apart.</ListItem>
         </List>
 
         <Heading Level="2">Reduced motion</Heading>
         <TextBlock>
-            When the user's system asks for reduced motion, components with movement stop moving: dialogs and drawers, popovers,
-            menus and tooltips, accordions and collapsibles, tabs' indicator, the sidebar, toasts, carousels (and autoplay doesn't
-            start), sortable rows and lists, chevrons that turn, and chat messages. Spinners and progress bars slow down rather than
-            stop, since their motion means "still working". Color fades stay.
+            When the user's system asks for reduced motion, components stop sliding, growing and turning:
         </TextBlock>
+        <List Gap="1">
+            <ListItem>Dialogs and drawers open and close without sliding, and so do popovers, menus and tooltips.</ListItem>
+            <ListItem>Accordions, collapsibles, tabs and the sidebar change at once.</ListItem>
+            <ListItem>Toasts appear without sliding in, and a carousel changes slides at once and doesn't start autoplay.</ListItem>
+            <ListItem>Rows, list items and DataGrid columns that make way for a drag jump to their places.</ListItem>
+            <ListItem>Chevrons don't turn, and the chat's typing indicator stops.</ListItem>
+            <ListItem>Spinners and progress bars slow down rather than stop, since their motion means "still working".</ListItem>
+        </List>
         <TextBlock>
             IzzyBlazor has no page-wide reset, so your own animations are yours to handle with
             <Code>@@media (prefers-reduced-motion: reduce)</Code>.
