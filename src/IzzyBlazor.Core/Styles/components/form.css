@@ -895,6 +895,7 @@
 
   /* The zone shows the input's focus, like a field. */
   .ib-file-zone:has(.ib-file-input:focus-visible) {
+    outline: 2px solid transparent;
     border-style: solid;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
