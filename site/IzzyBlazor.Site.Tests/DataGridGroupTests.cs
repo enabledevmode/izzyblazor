@@ -46,7 +46,7 @@ public sealed class DataGridGroupTests(SiteFixture site) : IClassFixture<SiteFix
 
         await page.Keyboard.PressAsync("Alt+ArrowRight");
         await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('grouped-group') === 'customer,status'");
-        await Assertions.Expect(page.Locator($"{Grid} >> .ib-grid-group-chip")).ToHaveTextAsync(["Customer", "Status"]);
+        await Assertions.Expect(page.Locator($"{Grid} >> .ib-grid-group-chip > .ib-tag")).ToHaveTextAsync(["Customer", "Status"]);
         await Assertions.Expect(page.Locator(Grid).GetByRole(AriaRole.Link, new() { Name = "Remove Status" })).ToBeFocusedAsync();
     }
 }
