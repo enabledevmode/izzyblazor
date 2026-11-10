@@ -1,0 +1,88 @@
+@page "/docs/accessibility/names-and-announcements"
+
+@* Names: fields' labels, the components that throw without a name (artifacts/izzyblazor-a11y-inventory
+   section 1.3), icons and images. Announcements: LiveRegion, Announcer, alerts, toasts, tables, combobox,
+   carousel, chat, busy states (section 1.4). *@
+
+<ArticlePage Section="accessibility" Slug="names-and-announcements">
+    <Lead>
+        Every control has a name that screen readers read, and IzzyBlazor requires one wherever WCAG or ARIA does. When
+        something changes without a page load, such as a filtered count, a saved form or a new toast, the change is
+        announced.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Labels on fields</Heading>
+        <TextBlock>
+            Every field renders a <Code>label</Code> linked to its control, and links its hint and errors with
+            <Code>aria-describedby</Code>. The label comes from <Code>Label</Code>, else from the model property's
+            <Code>[Display]</Code> name, else from the property's own name. To hide the label but keep it for screen readers, set
+            <Code>HideLabel</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Components that require a name</Heading>
+        <TextBlock>
+            A control shown only as an icon or a picture has no text for a screen reader to read, so these components throw when
+            the name is missing, on the first render, where you'll see it:
+        </TextBlock>
+        <Table Items="Required" Caption="Components that require a name" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Component" Width="Length.Rem(14)"><Anchor Href="@($"docs/components/{context!.Id}")">@context.Name</Anchor></TemplateColumn>
+                <TemplateColumn Title="Requires">@context.Requires</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Where ARIA makes a name optional, so does IzzyBlazor. Landmarks get a default from
+            <Anchor Href="docs/common/text">IzzyText</Anchor>, such as "Breadcrumb" and "Pagination"; give them a
+            <Code>Label</Code> when a page has two of the same kind.
+        </TextBlock>
+
+        <Heading Level="2">Icons and pictures</Heading>
+        <List Gap="2">
+            <ListItem>An <Anchor Href="docs/components/icon">Icon</Anchor> is hidden from screen readers unless you give it a <Code>Label</Code>, so it never repeats the text beside it.</ListItem>
+            <ListItem>An <Anchor Href="docs/components/avatar">Avatar</Anchor> is read as its <Code>Name</Code>.</ListItem>
+            <ListItem>A status, such as a badge's or an alert's, comes with an icon and words as well as a color.</ListItem>
+            <ListItem>A chart is named by its <Code>Title</Code>, and its Show data table lists every value.</ListItem>
+        </List>
+
+        <Heading Level="2">What screen readers hear when something changes</Heading>
+        <List Gap="2">
+            <ListItem>Danger and warning alerts are announced as soon as they appear; other alerts politely. A <Code>Banner</Code> isn't announced, since it's there when the page loads; set <Code>Announce</Code> when one appears later.</ListItem>
+            <ListItem>Toasts are read politely. Their timers pause while the user hovers over or focuses them, and error toasts stay until dismissed.</ListItem>
+            <ListItem>A table's "1–10 of 50", its filter status, and a DataGrid's moved rows and columns are read when they change.</ListItem>
+            <ListItem>A combobox reads "No matches"; a carousel reads its new slide; a chat reads each reply once.</ListItem>
+            <ListItem>A loading button sets <Code>aria-busy</Code> and is heard as its <Code>LoadingLabel</Code>; a <Code>Spinner</Code> is heard as its <Code>Label</Code>; a <Code>Progress</Code> reports its value.</ListItem>
+            <ListItem>A PasswordField reads a Caps Lock warning, and when its requirements are all met.</ListItem>
+        </List>
+
+        <Heading Level="2">Announcing your own changes</Heading>
+        <TextBlock>
+            To announce a change the components don't know about, such as a list's new count after a filter, put the text in a
+            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>; it's read each time it changes. To announce what just
+            happened after an action, such as "Revoked the invite", call <Code>Announcer.Announce</Code>. On static pages,
+            <Code>AnnouncerRegion</Code> carries the message across the post; a <Code>ToastRegion</Code> includes one.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Named(string Name, string Id, string Requires);
+
+    private static readonly Named[] Required =
+    [
+        new("IconButton", "icon-button", "Label"),
+        new("FloatingButton", "floating-button", "Label"),
+        new("SpeedDial", "speed-dial", "Label, and a Label on each SpeedDialAction"),
+        new("SplitButton", "split-button", "Label"),
+        new("ToggleButton", "toggle-button", "Label when IconOnly"),
+        new("Image", "image", "Alt, or Alt=\"\" for a picture that only decorates"),
+        new("QrCode", "qr-code", "Label, or Decorative when the text beside it says what it is"),
+        new("Chart and every other chart", "chart", "Title, or TitledBy to name it by a heading of your own"),
+        new("Sparkline", "sparkline", "Label"),
+        new("Gauge", "gauge", "Label"),
+        new("Stat with a Sparkline", "stat", "Label or SparklineLabel"),
+        new("Carousel", "carousel", "Label"),
+        new("Chat", "chat", "Label"),
+        new("Collapsible", "collapsible", "Label, or a Trigger of your own"),
+        new("FilterSelect, FilterCheckbox", "filter-form", "Label"),
+    ];
+}

@@ -1,0 +1,67 @@
+@page "/docs/accessibility/color-and-motion"
+
+@* Contrast (Color.cs, GrayPalette, BrandPalette incl. the light-mode focus fallback), charts' palette,
+   forced colors (the sweep of Nov 10, 2026), reduced motion (inventory section 1.6). *@
+
+<ArticlePage Section="accessibility" Slug="color-and-motion">
+    <Lead>
+        Text meets WCAG's 4.5:1 contrast in light and dark, and so does a brand color you set. In Windows high-contrast mode,
+        components switch to the system's colors and keep their focus rings and indicators. When the user asks for reduced
+        motion, components stop sliding and growing.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Contrast</Heading>
+        <List Gap="2">
+            <ListItem>Text has at least 4.5:1 contrast against its background in both color schemes; body text has 7:1. Disabled text is lighter, as WCAG allows.</ListItem>
+            <ListItem>A field's border and a switch's track are about 2:1 against the page, with a label above every field. See Known gaps in the <Anchor Href="docs/accessibility/overview">overview</Anchor>.</ListItem>
+            <ListItem>A status, such as success or danger, is never color alone: it comes with an icon and a word.</ListItem>
+        </List>
+
+        <Heading Level="2">Your own brand and gray</Heading>
+        <TextBlock>
+            <Code>IzzyTheme</Code>'s <Code>Brand</Code> is checked when the page renders. Text on a brand-colored button keeps 4.5:1,
+            by moving the fill's lightness when neither white nor dark text would. The brand as text, such as a link, keeps 4.5:1 on
+            the page and on the gray fills. In dark mode a dark brand is lifted until it shows against the background.
+        </TextBlock>
+        <TextBlock>
+            A light brand, such as a yellow, keeps its color on buttons and checked boxes, where dark text or a check mark carries
+            the contrast. The focus ring switches to the darker brand text color, so it still has 3:1 against the page.
+            <Code>Gray</Code> is checked the same way: muted text keeps 4.5:1. See <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            A color you set directly, on a component's <Code>Color</Code> or in CSS, isn't checked. Keep the pairs in
+            <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> together and check them yourself.
+        </TextBlock>
+
+        <Heading Level="2">Charts</Heading>
+        <TextBlock>
+            Chart series don't rely on color alone. Lines have dash patterns and markers of different shapes, and the legend,
+            tooltips and Show data table name every series. A few colors of the default palette (pink, yellow, aqua and orange) are
+            under 3:1 against a white page, so a chart that needs them should keep its legend or labels.
+        </TextBlock>
+
+        <Heading Level="2">Windows high-contrast mode</Heading>
+        <TextBlock>
+            In high-contrast mode (forced colors) the browser replaces the page's colors with the user's system colors and removes
+            backgrounds and shadows. IzzyBlazor plans for that:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>Every focusable control shows its focus with an outline, which the system colors keep.</ListItem>
+            <ListItem>Checkboxes, radios and switches fall back to the browser's own drawing.</ListItem>
+            <ListItem>Indicators drawn as fills, such as a progress bar, a slider's track, a carousel's dots, a selected tab or a chosen option, switch to the system's highlight color.</ListItem>
+            <ListItem>Charts keep their own colors, so the series still tell apart.</ListItem>
+        </List>
+
+        <Heading Level="2">Reduced motion</Heading>
+        <TextBlock>
+            When the user's system asks for reduced motion, components with movement stop moving: dialogs and drawers, popovers,
+            menus and tooltips, accordions and collapsibles, tabs' indicator, the sidebar, toasts, carousels (and autoplay doesn't
+            start), sortable rows and lists, chevrons that turn, and chat messages. Spinners and progress bars slow down rather than
+            stop, since their motion means "still working". Color fades stay.
+        </TextBlock>
+        <TextBlock>
+            IzzyBlazor has no page-wide reset, so your own animations are yours to handle with
+            <Code>@@media (prefers-reduced-motion: reduce)</Code>.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>

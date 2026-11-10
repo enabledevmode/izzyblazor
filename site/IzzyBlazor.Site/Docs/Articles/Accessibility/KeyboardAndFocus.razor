@@ -1,0 +1,74 @@
+@page "/docs/accessibility/keyboard-and-focus"
+@inject Registry Registry
+@inject ApiMetadata Api
+
+@* Focus ring, focus moves, focus not hidden by sticky bars, keys, and an index of every component's
+   Keyboard table (from the API metadata, as @KeyboardTable.Section draws them). Sources: base.css focus
+   rules, focus.ts, shell.css scroll margins, data.css sticky tables. *@
+
+<ArticlePage Section="accessibility" Slug="keyboard-and-focus">
+    <Lead>
+        Every component works from the keyboard. Tab moves between components, the arrow keys move inside the ones that hold
+        several items, and focus lands somewhere sensible after every change: a dialog closing, a row deleted, a form failing.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The focus ring</Heading>
+        <TextBlock>
+            A 2px ring in the focus color (<Code>--ib-color-focus</Code>, your brand color by default) shows on the control that
+            has keyboard focus. A mouse click doesn't show it. Fields show focus with their border and a soft halo instead, and add
+            an outline in Windows high-contrast mode, where borders and shadows lose their colors.
+        </TextBlock>
+        <TextBlock>
+            When Blazor's <Code>FocusOnNavigate</Code> moves focus to a page's heading, or the skip link moves it to the main area,
+            no ring shows there. Screen readers still announce the move.
+        </TextBlock>
+
+        <Heading Level="2">Where focus goes</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor> starts with a "Skip to content" link to the main area, and it works after enhanced navigation too.</ListItem>
+            <ListItem>Dialogs and drawers keep focus inside while open and return it to the control that opened them. A popover or menu takes focus when the user opens it and gives it back when it closes.</ListItem>
+            <ListItem>After a failed submit, <Code>FormErrors</Code> takes focus, with JavaScript off too, so the user starts from the list of problems. A dialog that comes back open with errors focuses its first invalid field.</ListItem>
+            <ListItem>When the focused control goes away, such as a removed tag or a deleted row, focus moves to the nearest control instead of falling back to the top of the page.</ListItem>
+            <ListItem>Closing a toast moves focus to the next toast, or back to where it was.</ListItem>
+        </List>
+
+        <Heading Level="2">Focus not hidden behind sticky bars</Heading>
+        <TextBlock>
+            When focus moves to a control under AppShell's sticky header or footer, the page scrolls it into view with some room to
+            spare. A sticky table header does the same for the rows under it. If you add a sticky bar of your own, give the scrolling
+            element a <Code>scroll-padding</Code> as tall as the bar.
+        </TextBlock>
+
+        <Heading Level="2">Keys</Heading>
+        <List Gap="2">
+            <ListItem>A component that holds several items, such as tabs, a toolbar, a tree, a grid or a chart, is one Tab stop. The arrow keys move inside it, and Home and End go to its ends.</ListItem>
+            <ListItem>Arrow keys follow the page's direction: on a right-to-left page, Left moves forward.</ListItem>
+            <ListItem>Shortcuts that aren't part of a standard pattern, such as Alt+Down on a split button or Alt+Arrow keys on a drag handle, are announced with <Code>aria-keyshortcuts</Code>.</ListItem>
+            <ListItem>Single-letter shortcuts, such as the Scheduler's T for today, work only while focus is inside the component. Set <Code>Shortcuts="false"</Code> on a <Anchor Href="docs/components/scheduler">Scheduler</Anchor> to turn them off.</ListItem>
+            <ListItem>Keys that IzzyBlazor's script adds aren't there with JavaScript off. The native ones, such as Space on a checkbox or the arrows in a radio group, still are.</ListItem>
+        </List>
+
+        <Heading Level="2">Every component's keys</Heading>
+        <TextBlock>
+            Each of these components lists its keys in a Keyboard navigation table under its Overview's Accessibility section. The
+            others use only the browser's own keys: Tab, Enter, Space, Escape and the arrows in a native control.
+        </TextBlock>
+        @foreach (var (category, components) in WithKeys)
+        {
+            <Heading Level="3">@category</Heading>
+            <List Gap="1">
+                @foreach (var component in components)
+                {
+                    <ListItem><Anchor Href="@($"{Registry.OverviewHref(component)}#keyboard-navigation")">@component.DisplayName</Anchor></ListItem>
+                }
+            </List>
+        }
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private IEnumerable<(string Category, List<RegistryComponent> Components)> WithKeys =>
+        Registry.Categories
+            .Select(category => (category, Registry.InCategory(category).Where(c => Api.Component(c.Name)?.Keyboard is { Count: > 0 }).ToList()))
+            .Where(group => group.Item2.Count > 0);
+}
