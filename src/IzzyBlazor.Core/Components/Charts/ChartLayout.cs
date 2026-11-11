@@ -95,6 +95,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool ShowMean { get; init; }
 
+    /// <summary>What a split series' groups are, its SeriesBy's own name (such as "Service"), for a table's column.</summary>
+    public string? GroupName { get; init; }
+
     public bool IsBox => Whiskers is not null;
 
     /// <summary>
@@ -400,6 +403,12 @@ internal sealed class ChartModel
 
     /// <summary>A bar series' targets as text, by item (null for series without one).</summary>
     public string?[]?[] TargetTexts { get; init; } = [];
+
+    /// <summary>
+    /// A box plot series' numbers as text, by item (null for other series, and an item with no
+    /// box): median, Q1, Q3, the whiskers' low and high ends, mean, how many values, how many outliers.
+    /// </summary>
+    public string[]?[]?[] BoxTexts { get; init; } = [];
 }
 
 /// <summary>
@@ -474,6 +483,7 @@ internal static class ChartLayout
             TargetTexts = input.Series.Select(s => s.Targets?.Select(v => v is not { } x ? null
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
+            BoxTexts = input.Series.Select(s => s.Boxes?.Select(b => BoxTexts(s, b, input)).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
                 : s.Boxes is { } boxes ? BoxText(s, boxes[i], input)
                 : s.IsOhlc ? OhlcText(s, i, input)
@@ -913,7 +923,9 @@ internal static class ChartLayout
                 // theirs with caps half its width, the median across it, the mean and the outliers.
                 BarRect? Box(int i, ChartBox b)
                 {
-                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + slot * 0.05;
+                    // Narrower than a bar: at most 40% of the band, in the middle of its slot.
+                    var width = Math.Min(slot * 0.9, band * 0.4);
+                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + (slot - width) / 2;
                     if (a0 + width <= 0 || a0 >= 1) return null;
                     if (reverse) a0 = 1 - a0 - width;
                     // A value's place along its axis, and a point at a place across, in percent.
@@ -1557,6 +1569,16 @@ internal static class ChartLayout
         string Text(double v) => formatter?.Invoke(v) ?? v.ToString(format ?? "#,##0.##", culture);
         var (a, b) = (Math.Min(lo, high), Math.Max(lo, high));
         return $"{Text(a)} – {Text(b)}";
+    }
+
+    // A box's numbers, each in the value axis's format: median, Q1, Q3, low, high, mean, count, outliers.
+    private static string[]? BoxTexts(ChartSeriesData s, ChartBox? b, ChartInput input)
+    {
+        if (b is null) return null;
+        string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
+            : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
+        return [Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High), Text(b.Mean),
+            b.Count.ToString("N0", input.Culture), b.Outliers.Length.ToString("N0", input.Culture)];
     }
 
     // A box in words: "median 3, quartiles 2 – 4.5, whiskers 1 – 7, mean 3.4, 120 values, 2 outliers".

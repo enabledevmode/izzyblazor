@@ -24,8 +24,8 @@
         {
             var express = k % 3 == 2;
             var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
-            var days = (express ? median * 0.5 : median) * Math.Exp(0.25 * normal)
-                + (random.NextDouble() < (express ? delayed / 2 : delayed) ? 2 + random.NextDouble() * 4 : 0);
+            var days = (express ? median * 0.5 : median) * Math.Exp(0.3 * normal)
+                + (random.NextDouble() < (express ? delayed / 2 : delayed) ? 1.5 + random.NextDouble() * 3 : 0);
             return new Parcel(carrier, express ? "Express" : "Standard", Math.Round(days, 1));
         }).ToList();
     }

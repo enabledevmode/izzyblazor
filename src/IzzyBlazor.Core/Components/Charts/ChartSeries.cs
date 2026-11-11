@@ -389,6 +389,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             Bins = BinsOf,
             Date = DateOf,
             Whiskers = WhiskersOf,
+            GroupName = SeriesBy is null ? null : ChartMembers.Name(SeriesBy),
             ShowMean = ShowMeanOf,
         };
 

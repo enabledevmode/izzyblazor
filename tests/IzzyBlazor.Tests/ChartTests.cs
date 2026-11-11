@@ -668,8 +668,9 @@ public class ChartRenderTests : BunitContext
         // A box per carrier, in the order they come; quartiles interpolated (R-7).
         var rows = cut.FindAll(".ib-chart-table tbody tr");
         Assert.Equal(["A", "B"], rows.Select(r => r.QuerySelector("th")!.TextContent.Trim()));
-        Assert.Equal(["median 5.5, quartiles 3.25 – 7.75, whiskers 1 – 9, 10 values, 1 outlier", "median 4, quartiles 3 – 5, whiskers 2 – 6, 3 values"],
-            rows.Select(r => r.QuerySelector("td")!.TextContent.Trim()));
+        // Median, quartiles, whiskers' ends, how many values and outliers, a column each.
+        Assert.Equal([["5.5", "3.25", "7.75", "1", "9", "10", "1"], ["4", "3", "5", "2", "6", "3", "0"]],
+            rows.Select(r => r.QuerySelectorAll("td").Select(d => d.TextContent.Trim()).ToArray()));
         Assert.Single(cut.FindAll(".ib-chart-box circle"));
 
         // Split by region: a box per region side by side within each carrier, where it has values.
