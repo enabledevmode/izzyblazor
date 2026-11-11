@@ -1794,7 +1794,7 @@
     {
         if (data.IsPoint || data.IsWaterfall || data.IsOhlc)
         {
-            throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble, waterfall and OHLC series.");
+            throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble, waterfall, candlestick and OHLC series.");
         }
 
         // A range's level runs from its items' lowest to their highest.

@@ -423,8 +423,8 @@ internal static class ChartLayout
         if (input.Series.Any(s => s.IsOhlc) && (input.Horizontal || stacked))
         {
             throw new InvalidOperationException(input.Horizontal
-                ? "A ChartOhlcSeries stands upright: leave the Chart's Orientation vertical."
-                : "A ChartOhlcSeries doesn't stack: leave out the Chart's Stacking.");
+                ? "Candlesticks and OHLC bars stand upright: leave the Chart's Orientation vertical."
+                : "Candlesticks and OHLC bars don't stack: leave out the Chart's Stacking.");
         }
 
         // A target is one bar's: a stack's segments have none of their own to be measured against.

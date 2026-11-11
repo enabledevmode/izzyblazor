@@ -1488,10 +1488,10 @@ public class IzzyText
     /// <summary>A vertical BulletChart's keyboard hint, rows standing as columns.</summary>
     public virtual string BulletKeysAcross { get; set; } = "Left and right arrow keys move between columns; Escape hides the tooltip.";
 
-    /// <summary>A ChartOhlcSeries item's prices, in its tooltip and description: open, high, low, close.</summary>
+    /// <summary>A candlestick's or OHLC bar's prices, in its tooltip and description: open, high, low, close.</summary>
     public virtual string ChartOhlc { get; set; } = "open {0}, high {1}, low {2}, close {3}";
 
-    /// <summary>A ChartOhlcSeries item's prices with no Open: high, low, close.</summary>
+    /// <summary>An OHLC bar's prices with no Open: high, low, close.</summary>
     public virtual string ChartHlc { get; set; } = "high {0}, low {1}, close {2}";
 
     /// <summary>A waterfall chart's legend: the key for bars that add to the running total.</summary>
