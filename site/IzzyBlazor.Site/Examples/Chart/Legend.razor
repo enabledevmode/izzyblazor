@@ -1,0 +1,22 @@
+@* Sessions by channel, the legend beside the chart, and the small "Other" channel starting hidden. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Sessions by channel, 2026" Legend="ChartLegend.End">
+    <ChartValueAxis Format="#,##0,K" />
+    <ChartLineSeries Value="m => m.Organic" Name="Organic search" />
+    <ChartLineSeries Value="m => m.Direct" Name="Direct" />
+    <ChartLineSeries Value="m => m.Paid" Name="Paid search" />
+    <ChartLineSeries Value="m => m.Other" Name="Other" Hidden />
+</Chart>
+
+@code {
+    private record ChannelMonth(string Month, int Organic, int Direct, int Paid, int Other);
+
+    private readonly ChannelMonth[] _months =
+    [
+        new("Jan", 182_400, 96_300, 61_200, 8_100), new("Feb", 176_900, 94_800, 58_700, 7_900),
+        new("Mar", 195_300, 101_200, 66_400, 8_600), new("Apr", 201_800, 103_900, 70_100, 8_800),
+        new("May", 209_600, 106_500, 72_800, 9_200), new("Jun", 198_200, 104_100, 69_300, 9_000),
+        new("Jul", 191_700, 99_800, 64_500, 8_700), new("Aug", 204_300, 105_200, 71_900, 9_100),
+        new("Sep", 218_900, 110_600, 78_200, 9_600), new("Oct", 226_400, 113_800, 81_500, 9_900),
+        new("Nov", 241_700, 121_300, 94_600, 10_400), new("Dec", 236_200, 124_900, 98_300, 10_800),
+    ];
+}
