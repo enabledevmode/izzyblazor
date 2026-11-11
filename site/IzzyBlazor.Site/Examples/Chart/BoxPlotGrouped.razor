@@ -1,0 +1,32 @@
+@* The same carriers' times for standard and express service: a box for each, side by side, with
+   each box's mean marked as well as its median. *@
+<Chart Items="_parcels" Argument="p => p.Carrier" Title="Delivery time by carrier and service, March">
+    <ChartValueAxis Title="Days from order to delivery" />
+    <ChartBoxPlotSeries Value="p => p.Days" SeriesBy="p => p.Service" ShowMean />
+</Chart>
+
+@code {
+    private record Parcel(string Carrier, string Service, double Days);
+
+    // Sample data: express takes about half as long as standard, with fewer delays.
+    private readonly Parcel[] _parcels =
+    [
+        .. Parcels("Northwind Post", 2.4, 0.03, seed: 1),
+        .. Parcels("Parcelwise", 3.1, 0.05, seed: 2),
+        .. Parcels("Swift Freight", 1.8, 0.02, seed: 3),
+        .. Parcels("Coastline Express", 3.6, 0.06, seed: 4),
+    ];
+
+    private static IEnumerable<Parcel> Parcels(string carrier, double median, double delayed, int seed)
+    {
+        var random = new Random(seed);
+        return Enumerable.Range(0, 200).Select(k =>
+        {
+            var express = k % 3 == 2;
+            var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+            var days = (express ? median * 0.5 : median) * Math.Exp(0.25 * normal)
+                + (random.NextDouble() < (express ? delayed / 2 : delayed) ? 2 + random.NextDouble() * 4 : 0);
+            return new Parcel(carrier, express ? "Express" : "Standard", Math.Round(days, 1));
+        }).ToList();
+    }
+}

@@ -578,6 +578,27 @@
             // No item stands for a bin: the tooltips have the counts only.
             items = new TItem[bins.Count];
         }
+        else if (_context.Series.Any(s => s.IsBox))
+        {
+            // A box plot's arguments are its items' own, each once in the order they first come,
+            // and each series' values there make a box.
+            CheckBoxPlot(drill);
+            var at = new int[items.Count];
+            var groups = new Dictionary<object, int>();
+            var distinct = new List<object?>();
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (_argument!(items[i]) is not { } key) { at[i] = -1; continue; }
+                if (!groups.TryGetValue(key, out var g)) groups[key] = g = distinct.Count;
+                if (g == distinct.Count) distinct.Add(key);
+                at[i] = g;
+            }
+
+            arguments = distinct;
+            raw = _context.Series.SelectMany(s => s.Read(items)).Select(d => Boxed(d, at, distinct.Count)).ToList();
+            // No item stands for a box: the tooltips have its numbers only.
+            items = new TItem[distinct.Count];
+        }
         else
         {
             arguments = drill?.Arguments ?? items.Select(_argument!).ToList();
@@ -649,7 +670,8 @@
 
         // A chart synced by view follows the others' zoom; it takes gestures only with its own Zoom.
         var gestures = (_argumentAxis?.Zoom == true || selector is not null) && waterfall is null && arguments.Count > 1;
-        var zoom = gestures || (Sync is not null && SyncView && waterfall is null && bins is null && arguments.Count > 1);
+        var boxes = series.Any(s => s.IsBox);
+        var zoom = gestures || (Sync is not null && SyncView && waterfall is null && bins is null && !boxes && arguments.Count > 1);
         var model = ChartLayout.Build(new ChartInput(arguments, series)
         {
             Stacked = Stacked,
@@ -690,7 +712,8 @@
         var bottom = horizontal ? model.ValueLabels : model.ArgumentLabels;
         var marks = _labelId + "-m";
         // With a legend, the script draws the chart again without the series it hides.
-        var shape = (legend || zoom) && waterfall is null ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
+        // Not a box plot's: the legend hides its boxes in place.
+        var shape = (legend || zoom) && waterfall is null && !boxes ? NumberShape.Of(Stacked == ChartStacking.Percent ? "P0" : ValueFormat, CultureInfo.CurrentCulture) : null;
         var redraw = shape is not null;
         var room = model.Wrap && !horizontal
             ? $"--ib-chart-n:{Num(model.BandCount)}"
@@ -830,6 +853,11 @@
                         <path id="@(marks)1" d="M-4.5,-4.5h9v9h-9z" />
                         <path id="@(marks)2" d="M0,-6.2L5.8,4.2H-5.8Z" />
                         <path id="@(marks)3" d="M0,-6.2L6.2,0L0,6.2L-6.2,0Z" />
+                        @if (model.Series.Any(s => s.Data.ShowMean))
+                        {
+                            @* A box's mean: a small diamond. *@
+                            <path id="@(marks)m" d="M0,-4.5L4.5,0L0,4.5L-4.5,0Z" />
+                        }
                     </defs>
                     @foreach (var line in model.Grid.Where(l => l.Argument || ValueGrid || l.Zero))
                     {
@@ -852,7 +880,7 @@
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
-                        <g class="@SeriesClass(s, s.Data.IsOhlc ? s.Data.OhlcBars ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc" : !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                        <g class="@SeriesClass(s, s.Data.IsBox ? "ib-chart-bars ib-chart-box" : s.Data.IsOhlc ? s.Data.OhlcBars ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc" : !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars.Where(b => b.Prices is not null))
                             {
                                 var p = bar.Prices!.Value;
@@ -863,7 +891,16 @@
                                 {@if (!double.IsNaN(p.Open))
                                 {<line x1="@Num(p.Mid - p.Tick)%" x2="@Num(p.Mid)%" y1="@Num(p.Open)%" y2="@Num(p.Open)%" />}<line x1="@Num(p.Mid)%" x2="@Num(p.Mid + p.Tick)%" y1="@Num(p.Close)%" y2="@Num(p.Close)%" />}</g>
                             }
-                            @foreach (var bar in s.Bars.Where(b => b.Prices is null))
+                            @foreach (var bar in s.Bars.Where(b => b.Box is not null))
+                            {
+                                var box = bar.Box!;
+                                <g>@if (tooltip)
+                                {<title>@bar.Title</title>}@foreach (var w in box.Whiskers)
+                                {<line x1="@Num(w.X1)%" y1="@Num(w.Y1)%" x2="@Num(w.X2)%" y2="@Num(w.Y2)%" />}<rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%" /><line class="ib-chart-median" x1="@Num(box.Median.X1)%" y1="@Num(box.Median.Y1)%" x2="@Num(box.Median.X2)%" y2="@Num(box.Median.Y2)%" />@if (box.Mean is { } mean)
+                                {<use class="ib-chart-mean" href="@($"#{marks}m")" x="@Num(mean.X)%" y="@Num(mean.Y)%" />}@foreach (var o in box.Outliers)
+                                {<circle cx="@Num(o.X)%" cy="@Num(o.Y)%" r="3" />}</g>
+                            }
+                            @foreach (var bar in s.Bars.Where(b => b.Prices is null && b.Box is null))
                             {
                                 <rect class="@BarClass(bar)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
                                 {<title>@bar.Title</title>}</rect>
@@ -1167,6 +1204,44 @@
         if (problem is not null) throw new InvalidOperationException(problem);
     }
 
+    // A box plot's chart holds box plots only, on groups it doesn't zoom across.
+    private void CheckBoxPlot(ChartDrillState<TItem>? drill)
+    {
+        string? problem = null;
+        if (_context.Series.FirstOrDefault(s => !s.IsBox) is { } other)
+            problem = $"A box plot's chart holds only ChartBoxPlotSeries: {other.GetType().Name.Split('`')[0]} plots each item, where a box stands for a group of them. Draw it in a chart of its own.";
+        else if (drill is not null)
+            problem = "A box plot doesn't drill down: leave out the ChartDrillLevels.";
+        else if (_argumentAxis?.Zoom == true || _context.Selector is not null || View is not null)
+            problem = "A box plot doesn't zoom: its boxes are groups, not a run of items.";
+        else if (TooltipTemplate is not null)
+            problem = "A box plot's tooltip has no item to show, only each box's numbers: leave out the ChartTooltip.";
+        else if (Stacked != ChartStacking.None)
+            problem = "A box plot doesn't stack: leave out the Chart's Stacking.";
+        else if (Crosshair)
+            problem = "A box plot takes no Crosshair: each box's numbers are in its tooltip.";
+        if (problem is not null) throw new InvalidOperationException(problem);
+    }
+
+    // A box plot series' boxes, one for each argument's values; its Lows and Values become their
+    // smallest and largest values, so the value axis takes in the outliers.
+    private static ChartSeriesData Boxed(ChartSeriesData data, int[] at, int count)
+    {
+        var groups = new List<double>?[count];
+        for (var i = 0; i < data.Values.Length; i++)
+        {
+            if (at[i] >= 0 && data.Values[i] is { } v && double.IsFinite(v)) (groups[at[i]] ??= []).Add(v);
+        }
+
+        var boxes = groups.Select(g => g is null ? null : ChartBox.Of(g, data.Whiskers!.Value)).ToArray();
+        return data with
+        {
+            Boxes = boxes,
+            Lows = boxes.Select(b => b?.Min).ToArray(),
+            Values = boxes.Select(b => b?.Max).ToArray(),
+        };
+    }
+
     // The bins every histogram series shares, from all their values.
     private ChartHistogram Binned(List<ChartSeriesData> read)
     {
@@ -1252,7 +1327,12 @@
                         @* The script makes this a toggle button that hides and shows the series. *@
                         <span class="ib-chart-toggle" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                         <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
-                            @if (s.Data.IsOhlc)
+                            @if (s.Data.IsBox)
+                            {
+                                @* A box on its whisker, with its median. *@
+                                <g class="ib-chart-box"><line x1="12" x2="12" y1="0" y2="12" /><rect x="5.5" y="2.5" width="13" height="7" /><line class="ib-chart-median" x1="5.5" x2="18.5" y1="6" y2="6" /></g>
+                            }
+                            else if (s.Data.IsOhlc)
                             {
                                 @* Two candles, up then down: what the colors and fills mean. *@
                                 <g class="ib-chart-ohlc">
@@ -1792,7 +1872,7 @@
     // A series added up by the level's groups, by its Aggregate.
     private static ChartSeriesData Totals(ChartSeriesData data, ChartDrillState<TItem> drill)
     {
-        if (data.IsPoint || data.IsWaterfall || data.IsOhlc)
+        if (data.IsPoint || data.IsWaterfall || data.IsOhlc || data.IsBox)
         {
             throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble, waterfall, candlestick and OHLC series.");
         }

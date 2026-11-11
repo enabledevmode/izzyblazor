@@ -89,6 +89,19 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     public object? Date { get; init; }
 
     public bool IsPoint => Type is ChartType.Scatter or ChartType.Bubble;
+
+    /// <summary>A box plot series' whiskers (null for other series), and whether it marks each box's mean.</summary>
+    public ChartWhiskers? Whiskers { get; init; }
+
+    public bool ShowMean { get; init; }
+
+    public bool IsBox => Whiskers is not null;
+
+    /// <summary>
+    /// A box plot's boxes by argument, once the chart has grouped its items (null before, and for
+    /// other series); its Lows and Values are then each group's smallest and largest values.
+    /// </summary>
+    public ChartBox?[]? Boxes { get; init; }
 }
 
 /// <summary>Everything a chart's layout depends on. No widths: the chart fills its container.</summary>
@@ -199,7 +212,20 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
     /// none) and close down, and an OHLC bar's tick length. Its rect is the candle's body.
     /// </summary>
     public (double Mid, double High, double Low, double Open, double Close, double Tick)? Prices { get; init; }
+
+    /// <summary>A box plot's marks, in percent of the plot (x then y); its rect is the box.</summary>
+    public BoxMarks? Box { get; init; }
 }
+
+/// <summary>
+/// A box's marks past its rect, in percent of the plot: the whiskers and their caps, the median
+/// across the box, the mean (null without ShowMean) and each outlier.
+/// </summary>
+internal sealed record BoxMarks(
+    IReadOnlyList<(double X1, double Y1, double X2, double Y2)> Whiskers,
+    (double X1, double Y1, double X2, double Y2) Median,
+    (double X, double Y)? Mean,
+    IReadOnlyList<(double X, double Y)> Outliers);
 
 /// <summary>
 /// A value written beside its bar or point. Its center is <c>AX</c>/<c>AY</c> (0 to 1 of the plot)
@@ -449,6 +475,7 @@ internal static class ChartLayout
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
+                : s.Boxes is { } boxes ? BoxText(s, boxes[i], input)
                 : s.IsOhlc ? OhlcText(s, i, input)
                 : s.Lows is { } rangeLows ? RangeText(rangeLows[i], x, s.Secondary ? input.SecondaryFormat : null, s.Secondary ? null : input.ValueFormatter, s.Secondary ? input.SecondaryFormat : input.ValueFormat, culture)
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
@@ -810,6 +837,12 @@ internal static class ChartLayout
                         continue;
                     }
 
+                    if (data.Boxes is { } boxes)
+                    {
+                        if (boxes[i] is { } b && Box(i, b) is { } box) shape.Bars.Add(box);
+                        continue;
+                    }
+
                     var a0 = edges ? (i - firstBand) * band : (i - firstBand) * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
 
                     // Zoomed, a bar wholly out of view isn't drawn; one across an end is cut there.
@@ -873,6 +906,36 @@ internal static class ChartLayout
                         Index = i,
                         Change = up ? "up" : "down",
                         Prices = (mid, y(p.High), y(p.Low), p.Open is { } op ? y(op) : double.NaN, y(p.Close), width * 35),
+                    };
+                }
+
+                // A box: its rect from the first quartile to the third, whiskers from its ends out to
+                // theirs with caps half its width, the median across it, the mean and the outliers.
+                BarRect? Box(int i, ChartBox b)
+                {
+                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + slot * 0.05;
+                    if (a0 + width <= 0 || a0 >= 1) return null;
+                    if (reverse) a0 = 1 - a0 - width;
+                    // A value's place along its axis, and a point at a place across, in percent.
+                    double V(double v) => input.Horizontal ? sc(v) * 100 : (1 - sc(v)) * 100;
+                    (double X, double Y) At(double across, double value) => input.Horizontal ? (value, across) : (across, value);
+                    (double, double, double, double) Line(double a1, double v1, double a2, double v2) =>
+                        (At(a1, v1).X, At(a1, v1).Y, At(a2, v2).X, At(a2, v2).Y);
+                    var (mid, start, end, cap) = ((a0 + width / 2) * 100, a0 * 100, (a0 + width) * 100, width * 25);
+                    var (q1, q3) = (V(b.Q1), V(b.Q3));
+                    var (lo, hi) = (Math.Min(q1, q3), Math.Max(q1, q3));
+                    var title = $"{model.ArgumentTexts[i]}{(data.Name.Length > 0 ? ", " + data.Name : "")}: {model.ValueTexts[s][i]}";
+                    var rect = input.Horizontal
+                        ? new BarRect(lo, start, hi - lo, width * 100, title)
+                        : new BarRect(start, lo, width * 100, hi - lo, title);
+                    return rect with
+                    {
+                        Index = i,
+                        Box = new BoxMarks(
+                            [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High)), Line(mid - cap, V(b.Low), mid + cap, V(b.Low)), Line(mid - cap, V(b.High), mid + cap, V(b.High))],
+                            Line(start, V(b.Median), end, V(b.Median)),
+                            data.ShowMean ? At(mid, V(b.Mean)) : null,
+                            b.Outliers.Where(o => !log || o > 0).Select(o => At(mid, V(o))).ToList()),
                     };
                 }
 
@@ -1494,6 +1557,19 @@ internal static class ChartLayout
         string Text(double v) => formatter?.Invoke(v) ?? v.ToString(format ?? "#,##0.##", culture);
         var (a, b) = (Math.Min(lo, high), Math.Max(lo, high));
         return $"{Text(a)} – {Text(b)}";
+    }
+
+    // A box in words: "median 3, quartiles 2 – 4.5, whiskers 1 – 7, mean 3.4, 120 values, 2 outliers".
+    private static string? BoxText(ChartSeriesData s, ChartBox? b, ChartInput input)
+    {
+        if (b is null) return null;
+        string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
+            : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
+        var text = string.Format(input.Culture, input.Text.ChartBox, Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High));
+        if (s.ShowMean) text += ", " + string.Format(input.Culture, input.Text.ChartBoxMean, Text(b.Mean));
+        text += ", " + string.Format(input.Culture, b.Count == 1 ? input.Text.ChartBoxValue : input.Text.ChartBoxValues, b.Count);
+        if (b.Outliers.Length > 0) text += ", " + string.Format(input.Culture, b.Outliers.Length == 1 ? input.Text.ChartBoxOutlier : input.Text.ChartBoxOutliers, b.Outliers.Length);
+        return text;
     }
 
     // A price series' item in words: "open $182.10, high $185.40, low $181.00, close $184.90".
