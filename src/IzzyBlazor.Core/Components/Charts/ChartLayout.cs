@@ -98,7 +98,10 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
     /// <summary>What a split series' groups are, its SeriesBy's own name (such as "Service"), for a table's column.</summary>
     public string? GroupName { get; init; }
 
-    public bool IsBox => Whiskers is not null;
+    public bool IsBox => Whiskers is not null || Summaries is not null;
+
+    /// <summary>A box plot summary series' boxes by item, as given (null for other series), until the chart groups them by argument.</summary>
+    public ChartBox?[]? Summaries { get; init; }
 
     /// <summary>
     /// A box plot's boxes by argument, once the chart has grouped its items (null before, and for
@@ -1578,7 +1581,7 @@ internal static class ChartLayout
         string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
             : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
         return [Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High), Text(b.Mean),
-            b.Count.ToString("N0", input.Culture), b.Outliers.Length.ToString("N0", input.Culture)];
+            b.Count?.ToString("N0", input.Culture) ?? "", b.Outliers.Length.ToString("N0", input.Culture)];
     }
 
     // A box in words: "median 3, quartiles 2 – 4.5, whiskers 1 – 7, mean 3.4, 120 values, 2 outliers".
@@ -1589,7 +1592,7 @@ internal static class ChartLayout
             : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
         var text = string.Format(input.Culture, input.Text.ChartBox, Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High));
         if (s.ShowMean) text += ", " + string.Format(input.Culture, input.Text.ChartBoxMean, Text(b.Mean));
-        text += ", " + string.Format(input.Culture, b.Count == 1 ? input.Text.ChartBoxValue : input.Text.ChartBoxValues, b.Count);
+        if (b.Count is { } count) text += ", " + string.Format(input.Culture, count == 1 ? input.Text.ChartBoxValue : input.Text.ChartBoxValues, count);
         if (b.Outliers.Length > 0) text += ", " + string.Format(input.Culture, b.Outliers.Length == 1 ? input.Text.ChartBoxOutlier : input.Text.ChartBoxOutliers, b.Outliers.Length);
         return text;
     }

@@ -140,7 +140,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     internal ChartBins? HistogramBins => BinsOf;
 
-    internal bool IsBox => WhiskersOf is not null;
+    internal bool IsBox => WhiskersOf is not null || SummaryOf is not null;
 
     private protected abstract ChartType Type { get; }
 
@@ -200,6 +200,9 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private protected virtual ChartWhiskers? WhiskersOf => null;
 
     private protected virtual bool ShowMeanOf => false;
+
+    // A box plot summary's: each item's box, given (null where a number is missing).
+    private protected virtual Func<TItem, ChartBox?>? SummaryOf => null;
 
     // Each value as a number; a histogram reads dates too.
     private protected virtual double? Number(object? value) => ChartMembers.ToNumber(value);
@@ -311,6 +314,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         var targets = _target is null ? null : items.Select(item => ChartMembers.ToNumber(_target(item))).ToArray();
         _labelTexts = _labelText is null ? null : items.Select(item => _labelText(item)?.ToString()).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
+        var summaries = SummaryOf is { } summary ? items.Select(summary).ToArray() : null;
         if (IsWaterfall)
         {
             // A total's value is everything so far, whatever its own Value says.
@@ -347,7 +351,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
         if (_seriesBy is null)
         {
-            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName, Lows = lows, Targets = targets };
+            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName, Lows = lows, Targets = targets, Summaries = summaries };
             yield break;
         }
 
@@ -359,7 +363,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             var ownSizes = sizes?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownLows = lows?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownTargets = targets?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
-            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName, Lows = ownLows, Targets = ownTargets };
+            var ownSummaries = summaries?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName, Lows = ownLows, Targets = ownTargets, Summaries = ownSummaries };
         }
     }
 
