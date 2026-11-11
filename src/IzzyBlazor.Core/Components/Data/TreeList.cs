@@ -69,6 +69,24 @@ public partial class TreeList<TItem>
     /// </summary>
     [Parameter] public int ChildRowLimit { get; set; } = 200;
 
+    /// <summary>
+    /// With <c>SelectionMode.Multiple</c>, checking a row checks the rows under it, and a row with
+    /// some of them checked shows a mixed box. A checked row stands for its whole branch: rows under
+    /// it come in checked as they're drawn, and <see cref="Selection.ApplyTree"/> finds them all. On
+    /// by default; false makes each box its own.
+    /// </summary>
+    [Parameter] public bool Cascade { get; set; } = true;
+
+    private bool _treeFiltering;
+
+    /// <inheritdoc />
+    // While filtering, a row with every child checked isn't checked itself: its children are only the matches.
+    internal override string? CascadeMode => MultiSelect && Cascade ? (_treeFiltering ? "down" : "up") : null;
+
+    /// <inheritdoc />
+    // A row kept only for a match under it isn't a result, so it can't be selected.
+    internal override bool HasSelectBox(TItem item) => !(_treeRows.TryGetValue(KeyOf(item), out var row) && row.Context);
+
     private string TreeOpenKey => $"{QueryPrefix}open";
 
     private string TreeMoreKey => $"{QueryPrefix}more";
@@ -415,7 +433,7 @@ public partial class TreeList<TItem>
 
         await Walk(top, pageSize is { } shownSize ? (page - 1) * shownSize : 0, total, 0);
         var shown = top.Count;
-        return new GroupedPage(rows, total, page, () => (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore) = (info, shown, anyChildren, deepest, more));
+        return new GroupedPage(rows, total, page, () => (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore, _treeFiltering) = (info, shown, anyChildren, deepest, more, filtering));
     }
 
     // The nodes, linked: the top ones in order, and every one in all.

@@ -43,7 +43,7 @@
             @GripCell(item, row)
             @if (SelectColumn)
             {
-                <td class="@SelectCellClass" role="@StackRole("cell")">@SelectBox(item, key, null)</td>
+                <td class="@SelectCellClass" role="@StackRole("cell")">@if (HasSelectBox(item)) { @SelectBox(item, key, null) }</td>
             }
             @RowLead(item, row)
             @{ var first = true; }

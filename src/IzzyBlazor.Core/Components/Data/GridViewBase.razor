@@ -16,7 +16,7 @@
     // The grid, drawn by DataGrid and TreeList.
     internal RenderFragment Grid => __builder =>
     {
-        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)">
+        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)" data-ib-cascade="@CascadeMode">
             <ib-grid hidden></ib-grid>
             @if (CanEdit || CanDelete)
             {
@@ -48,6 +48,12 @@
     // for a name after it, so the indent doesn't squeeze it.
     private string? FirstColumnWidth(ColumnBase<TItem> column) => FirstColumnLead is not { } lead ? null
         : $"calc(max({(column.MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(column))}, 12rem) + {lead})";
+
+    // That width, fixed while other columns share the rest, so it isn't squeezed to their share. When
+    // every other column has a width, it takes the rest itself, with that as its least.
+    private bool FirstColumnFills => WidthOf(Shown[0]) is null && Shown.Skip(1).All(c => WidthOf(c) is not null);
+
+    private string? FixedWidth(int i) => WidthOf(Shown[i]) ?? (i == 0 && !FirstColumnFills ? FirstColumnWidth(Shown[i]) : null);
 
     private string HeaderMinWidth(ColumnBase<TItem> column)
     {
@@ -2717,7 +2723,7 @@
 
     private RenderFragment ColumnCol(int i) => __builder =>
     {
-        <col class="@ColClass(Shown[i])" style="@((WidthOf(Shown[i]) ?? (i == 0 ? FirstColumnWidth(Shown[i]) : null)) is null ? null : $"width:var(--ib-col-{i})")" />
+        <col class="@ColClass(Shown[i])" style="@(FixedWidth(i) is null ? null : $"width:var(--ib-col-{i})")" />
     };
 
     /// <inheritdoc />
@@ -2800,14 +2806,14 @@
             var unset = new List<string>();
             for (var i = 0; i < Shown.Count; i++)
             {
-                if ((WidthOf(Shown[i]) ?? (i == 0 ? FirstColumnWidth(Shown[i]) : null)) is { } width)
+                if (FixedWidth(i) is { } width)
                 {
                     style.Append($"--ib-col-{i}:{width};");
                     parts.Add($"var(--ib-col-{i})");
                 }
                 else
                 {
-                    unset.Add(Shown[i].MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(Shown[i]));
+                    unset.Add((i == 0 ? FirstColumnWidth(Shown[i]) : null) ?? (Shown[i].MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(Shown[i])));
                 }
             }
 

@@ -64,6 +64,12 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>Whether the rows have a column of boxes to select them.</summary>
     internal bool SelectColumn => Selectable && !SelectsInRow;
 
+    /// <summary>Whether a row has a box to select it: a TreeList's row kept only for a match under it has none.</summary>
+    internal virtual bool HasSelectBox(TItem item) => true;
+
+    /// <summary>"down" when checking a row checks the rows under it, "up" when also a row whose rows are all checked is checked; null for neither.</summary>
+    internal virtual string? CascadeMode => null;
+
     /// <summary>Cells before the columns, for a grid's groups: in the header, and in a row.</summary>
     internal virtual RenderFragment? LeadHeader => null;
 

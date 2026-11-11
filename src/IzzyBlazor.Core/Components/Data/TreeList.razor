@@ -2,7 +2,7 @@
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits GridViewBase<TItem>
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, each chevron is a link that loads the page with that row open or closed; there's no select-all checkbox, and filters apply when you press Apply.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, each chevron is a link that loads the page with that row open or closed; there's no select-all checkbox, checking a row doesn't check the rows under it, and filters apply when you press Apply.")]
 
 @*
     A grid whose rows form a tree. Give it the top rows and ItemChildren (nested data), or every row
@@ -24,6 +24,11 @@
     each open row's children, with that row's key in request.Parent, and request.ToTreeResult answers
     it. ItemHasChildren gives rows their chevrons before their children load. A row shows up to
     ChildRowLimit rows under it (200), then Show more.
+
+    With SelectionMode.Multiple, checking a row checks the rows under it, and a row with some of them
+    checked shows a mixed box (Cascade="false" makes each box its own). A checked row stands for its
+    branch, drawn or not: Selection.ApplyTree finds every row it means. SelectOnClick selects a row
+    by a click on it.
 
     <TreeList Items="employees" ItemKey="e => e.Id.ToString()"
               ItemParentKey="e => e.ManagerId?.ToString()">

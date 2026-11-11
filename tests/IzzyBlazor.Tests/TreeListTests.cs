@@ -145,6 +145,21 @@ public class TreeListTests : BunitContext
     }
 
     [Fact]
+    public void A_checked_row_stands_for_its_branch_and_the_rows_above_a_match_have_no_box()
+    {
+        // Daniel's branch (Lena under him) and Mei on her own: Sofia isn't checked, so James isn't.
+        var rows = Selection.Of("5", "3").ApplyTree(People.AsQueryable(), p => p.Id, p => p.ManagerId).Select(p => p.Name).Order();
+        Assert.Equal(["Daniel", "Lena", "Mei"], rows);
+
+        var cut = Tree("/people", p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
+        Assert.Equal("up", cut.Find("ib-table").GetAttribute("data-ib-cascade"));
+
+        cut = Tree("/people?f-name=lena", p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
+        Assert.Equal("down", cut.Find("ib-table").GetAttribute("data-ib-cascade"));
+        Assert.Equal([false, false, true], cut.FindAll("tbody > tr").Select(r => r.QuerySelector(".ib-table-select") is not null));
+    }
+
+    [Fact]
     public void A_page_counts_top_rows_and_keeps_each_branch_whole()
     {
         var cut = Tree("/people?open=*", p => p.Add(x => x.PageSize, 1));

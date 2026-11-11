@@ -1,0 +1,74 @@
+@* Choose what to back up: checking a folder checks everything in it, opened or not. Back up posts
+   the selection, and Selection.ApplyTree finds every file a checked folder stands for. *@
+<form method="post" @onsubmit="BackUp" @formname="tree-backup" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3">
+        <TreeList Items="_files" ItemKey="f => f.Id.ToString()" ItemParentKey="f => f.FolderId?.ToString()" ItemIcon="Icon"
+                  ItemExpanded="f => f.FolderId is null" SelectionMode="SelectionMode.Multiple" @bind-Selection="_selection"
+                  QueryPrefix="backup-" Caption="Files to back up" Grow>
+            <SelectionActions>
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.HardDriveUpload">Back up</Button>
+            </SelectionActions>
+            <Columns>
+                <PropertyColumn Property="f => f.Name" />
+                <PropertyColumn Property="f => f.Modified" Format="MMM d, yyyy" Width="9.Rem" />
+                <TemplateColumn Title="Size" Align="CellAlign.End" Width="7.Rem">@Size(context.Bytes)</TemplateColumn>
+            </Columns>
+        </TreeList>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the selection posts under the tree list's SelectionName ("{QueryPrefix}selected").
+    [SupplyParameterFromForm(FormName = "tree-backup", Name = "backup-selected")]
+    private Selection? Posted { get; set; }
+
+    // Interactive pages: bound to the tree list.
+    private Selection? _selection;
+    private string? _status;
+
+    protected override void OnInitialized() => _selection = Posted;
+
+    private void BackUp()
+    {
+        var files = (Posted ?? _selection ?? Selection.None).ApplyTree(_files.AsQueryable(), f => f.Id, f => f.FolderId)
+            .Where(f => f.Bytes != null).ToList();
+        _status = files.Count == 0
+            ? "Choose the files or folders to back up first."
+            : $"Backing up {files.Count} files, {Size(files.Sum(f => f.Bytes))}.";
+        _selection = Selection.None;
+    }
+
+    private static IconData? Icon(StoredFile file, bool open) =>
+        file.Bytes is not null ? Lucide.FileText : open ? Lucide.FolderOpen : Lucide.Folder;
+
+    private static string Size(long? bytes) => bytes switch
+    {
+        null => "",
+        < 1024 * 1024 => $"{bytes / 1024.0:0} KB",
+        _ => $"{bytes / (1024.0 * 1024):0.0} MB",
+    };
+
+    @* hide *@
+    private readonly StoredFile[] _files =
+    [
+        new(1, null, "Documents", null, new(2026, 11, 2)),
+        new(2, 1, "Contracts", null, new(2026, 10, 14)),
+        new(3, 2, "Lease agreement.pdf", 845_000, new(2026, 4, 7)),
+        new(4, 2, "Service agreement.pdf", 412_000, new(2026, 10, 14)),
+        new(5, 1, "Taxes", null, new(2026, 4, 12)),
+        new(6, 5, "Return 2025.pdf", 1_920_000, new(2026, 4, 12)),
+        new(7, 5, "Receipts 2025.zip", 38_400_000, new(2026, 3, 30)),
+        new(8, 1, "Resume.docx", 96_000, new(2026, 11, 2)),
+        new(9, null, "Projects", null, new(2026, 11, 3)),
+        new(10, 9, "Website redesign", null, new(2026, 11, 3)),
+        new(11, 10, "Brief.docx", 54_000, new(2026, 9, 18)),
+        new(12, 10, "Mockups.fig", 18_700_000, new(2026, 11, 3)),
+        new(13, 9, "Budget 2027.xlsx", 210_000, new(2026, 10, 27)),
+        new(14, null, "Notes.txt", 3_000, new(2026, 10, 29)),
+    ];
+
+    private sealed record StoredFile(int Id, int? FolderId, string Name, long? Bytes, DateOnly Modified);
+    @* /hide *@
+}
