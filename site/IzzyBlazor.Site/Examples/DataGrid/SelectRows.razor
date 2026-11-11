@@ -1,0 +1,50 @@
+@* Select orders on any page, or every order the filters match with the header checkbox. While any
+   are selected, the bar of SelectionActions takes the toolbar's place; Archive posts the selection,
+   and Selection.Apply finds the orders it means. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<form method="post" @onsubmit="Archive" @formname="grid-archive" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3">
+        <DataGrid Items="Rows.All" PageSize="5" Caption="Orders to archive" QueryPrefix="pick-" Grow
+                  ItemKey="o => o.Number.ToString()" RowLabel='o => $"order {o.Number}"'
+                  SelectionMode="SelectionMode.Multiple" SelectAllMode="SelectAllMode.All" @bind-Selection="_selection">
+            <ToolbarContent>
+                <ToolbarButton StartIcon="Lucide.Plus" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline">New order</ToolbarButton>
+            </ToolbarContent>
+            <SelectionActions>
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+            </SelectionActions>
+            <Columns>
+                <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+                <PropertyColumn Property="o => o.Customer" Filterable />
+                <PropertyColumn Property="o => o.Status" Filterable Width="9.Rem" />
+                <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+            </Columns>
+        </DataGrid>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the selection posts under the grid's SelectionName ("{QueryPrefix}selected").
+    [SupplyParameterFromForm(FormName = "grid-archive", Name = "pick-selected")]
+    private Selection? Posted { get; set; }
+
+    // Interactive pages: bound to the grid.
+    private Selection? _selection;
+    private string? _status;
+
+    protected override void OnInitialized() => _selection = Posted;
+
+    private void Archive()
+    {
+        var orders = (Posted ?? _selection ?? Selection.None).Apply(Rows.All.AsQueryable(), o => o.Number.ToString()).ToList();
+        _status = orders.Count switch
+        {
+            0 => "Select the orders to archive first.",
+            1 => $"Archived order #{orders[0].Number}.",
+            _ => $"Archived {orders.Count} orders.",
+        };
+        _selection = Selection.None;
+    }
+}

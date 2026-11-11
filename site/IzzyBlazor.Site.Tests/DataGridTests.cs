@@ -75,7 +75,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task On_a_static_page_virtual_rows_load_on_scroll()
     {
-        var (browser, page) = await OpenAsync("static");
+        var (browser, page) = await OpenAsync("static", topic: "/server-data");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });

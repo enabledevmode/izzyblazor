@@ -5,13 +5,13 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>DataGrid's keyboard in Chromium: one Tab stop, arrows between cells, the way in and out of a cell, selection keys.</summary>
 public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, string query = "")
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, string query = "", string topic = "")
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid{topic}?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]").First.WaitForAsync();
-        await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> table[role=grid]").WaitForAsync();
+        await page.Locator(topic == "" ? ".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> table[role=grid]" : ".ib-datagrid >> table[role=grid]").First.WaitForAsync();
         return (browser, page);
     }
 
@@ -108,7 +108,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task A_rows_menu_opens_by_button_right_click_and_keys_and_links_keep_the_browsers(string mode)
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync(mode, topic: "/row-actions");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
