@@ -380,7 +380,8 @@ public abstract partial class GridViewBase<TItem>
     }
 
     /// <summary>What's grouped and open, for telling whether it changed since the last load.</summary>
-    private string GroupSignature => Grouping.Signature;
+    // Only while grouped: a TreeList keeps its open rows under the same ?open= key, which isn't a grouping.
+    private string GroupSignature => GroupedNow ? Grouping.Signature : "";
 
     // A new grouping, from the toolbar or a header: it starts from the first page, with nothing open.
     private async Task SetGroupAsync(string? text)

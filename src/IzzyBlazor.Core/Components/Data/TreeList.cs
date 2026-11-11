@@ -227,7 +227,7 @@ public partial class TreeList<TItem>
     internal override Func<TItem, TItem>? ChildFactory => NewChild;
 
     /// <inheritdoc />
-    internal override bool NewRowOnTop => AddingUnder is null;
+    internal override bool NewRowOnTop => AddingUnder is null || VirtualRows;
 
     /// <inheritdoc />
     // Adding under a closed row opens it, so the new row, and later the saved one, shows.
@@ -330,6 +330,30 @@ public partial class TreeList<TItem>
 
     private bool TreeBound => ExpandedItemsChanged.HasDelegate;
 
+    /// <summary>
+    /// Draws only the rows in view, as they scroll, for a tree with many rows open: every visible row
+    /// is worked out from <c>Items</c>, and opening a row keeps the place. Interactive pages only (a
+    /// static one pages by top rows); needs a <c>MaxHeight</c>, and each row one line of
+    /// <see cref="RowHeight"/>. There's no Show more: every row under an open one is in the list.
+    /// </summary>
+    [Parameter]
+    public new bool Virtualize { get => base.Virtualize; set => base.Virtualize = value; }
+
+    /// <summary>The height of every row, in pixels, with <see cref="Virtualize"/>. Text past it is cut short.</summary>
+    [Parameter]
+    public new double RowHeight { get => base.RowHeight; set => base.RowHeight = value; }
+
+    // The rows in view's list, open branches included, for the windows virtual rows ask for.
+    private IReadOnlyList<TItem> _treeVisible = [];
+    private string? _treeBaseFilters;
+
+    /// <inheritdoc />
+    internal override string? VirtualShape => _treeBaseFilters;
+
+    /// <inheritdoc />
+    internal override (IReadOnlyList<TItem> Items, int Total)? LoadedWindow(int start, int count) =>
+        !VirtualRows ? null : (_treeVisible.Skip(start).Take(count).ToList(), _treeVisible.Count);
+
     /// <inheritdoc />
     internal override string ViewName => "TreeList";
 
@@ -340,14 +364,18 @@ public partial class TreeList<TItem>
     internal override bool ExtraBound => base.ExtraBound || TreeBound;
 
     /// <inheritdoc />
-    internal override string FilterSignature() => $"{base.FilterSignature()}|{TreeOpen.Signature}|{string.Join('/', TreeMoreList)}";
+    internal override string FilterSignature()
+    {
+        _treeBaseFilters = base.FilterSignature();
+        return $"{_treeBaseFilters}|{TreeOpen.Signature}|{string.Join('/', TreeMoreList)}";
+    }
 
     // Each row given more children, once for each Show more pressed under it.
     private IReadOnlyList<string> TreeMoreList => UseState
         ? _stateTreeMore ?? []
         : QueryString.Of(Navigation.Uri).TryGetValue(TreeMoreKey, out var values) ? values.OfType<string>().TakeLast(MaxOpenKeys).ToList() : [];
 
-    private int ChildLimit(string key) => Math.Max(1, ChildRowLimit) * (1 + TreeMoreList.Count(k => k == key));
+    private int ChildLimit(string key) => VirtualRows ? int.MaxValue : Math.Max(1, ChildRowLimit) * (1 + TreeMoreList.Count(k => k == key));
 
     private IReadOnlyList<string> TreeMoreWith(string key) => [.. TreeMoreList.TakeLast(MaxOpenKeys - 1), key];
 
@@ -463,6 +491,11 @@ public partial class TreeList<TItem>
             throw new InvalidOperationException("A TreeList needs an ItemKey: open rows are kept by it.");
         }
 
+        if (ItemsProvider is not null && Virtualize)
+        {
+            throw new InvalidOperationException($"A TreeList with {nameof(Virtualize)} works out its rows from its {nameof(Items)}: it doesn't take an {nameof(ItemsProvider)} yet.");
+        }
+
         if (ItemsProvider is not null && OnReparent.HasDelegate)
         {
             throw new InvalidOperationException($"A TreeList's {nameof(OnReparent)} moves rows among its {nameof(Items)}: it doesn't take an {nameof(ItemsProvider)} yet.");
@@ -569,7 +602,7 @@ public partial class TreeList<TItem>
 
             var kept = roots.Where(n => n.Kept).ToList();
             total = kept.Count;
-            if (pageSize is { } size)
+            if (pageSize is { } size && !VirtualRows)
             {
                 page = Math.Clamp(page, 1, LastPage(total, size));
                 kept = kept.Skip((page - 1) * size).Take(size).ToList();
@@ -641,8 +674,14 @@ public partial class TreeList<TItem>
             }
         }
 
-        await Walk(top, pageSize is { } shownSize ? (page - 1) * shownSize : 0, total, 0);
+        await Walk(top, pageSize is { } shownSize && !VirtualRows ? (page - 1) * shownSize : 0, total, 0);
         var shown = top.Count;
+        if (VirtualRows)
+        {
+            // Every visible row, counted as rows: the windows are slices of them.
+            _treeVisible = rows;
+            (page, total) = (1, rows.Count);
+        }
         return new GroupedPage(rows, total, page, () =>
         {
             (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore, _treeFiltering) = (info, shown, anyChildren, deepest, more, filtering);

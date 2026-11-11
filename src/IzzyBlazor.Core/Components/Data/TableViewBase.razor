@@ -125,11 +125,28 @@
         }
     };
 
+    /// <summary>
+    /// What makes the virtual rows a new list, to start again from the top: the filters by default.
+    /// A TreeList leaves out its open rows, so opening one keeps the place.
+    /// </summary>
+    internal virtual string? VirtualShape => null;
+
+    /// <summary>A window of rows from what's loaded already, and how many there are: a TreeList's, whose rows are all in hand.</summary>
+    internal virtual (IReadOnlyList<TItem> Items, int Total)? LoadedWindow(int start, int count) => null;
+
     private async ValueTask<ItemsProviderResult<VirtualRow>> LoadWindowAsync(ItemsProviderRequest window)
     {
         if (_loadedRequest is not { } basis)
         {
             return new([], 0);
+        }
+
+        if (LoadedWindow(window.StartIndex, window.Count) is { } loaded)
+        {
+            _firstWindowLoaded = false;
+            _items = loaded.Items;
+            _total = loaded.Total;
+            return new(loaded.Items.Select((item, i) => new VirtualRow(window.StartIndex + i, item)), loaded.Total);
         }
 
         // The first page has just loaded, for the total: no need to ask again.
@@ -2562,7 +2579,7 @@
     /// <inheritdoc />
     internal override void Requested()
     {
-        var shape = (_loadedKey?.Sort, _loadedKey?.Filters, _loadedKey?.PageSize);
+        var shape = (_loadedKey?.Sort, VirtualShape ?? _loadedKey?.Filters, _loadedKey?.PageSize);
         if (!shape.Equals(_virtualShape))
         {
             _virtualShape = shape;
