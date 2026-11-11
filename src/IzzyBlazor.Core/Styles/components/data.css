@@ -1576,12 +1576,17 @@
     inset-inline-start: var(--ib-group-at);
   }
 
+  /* A link with script off or unbound, a button when bound: the button loses the browser's own look. */
   :is(.ib-grid-group-toggle, .ib-grid-expand) {
     display: inline-flex;
     align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
     color: inherit;
     font: inherit;
     text-decoration: none;
+    cursor: pointer;
   }
 
   /* Every chevron is centered in its lead column, in the header too, and the label after it starts
