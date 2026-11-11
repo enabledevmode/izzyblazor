@@ -92,8 +92,9 @@
     // After the last row drawn under a row with more children than ChildRowLimit: how many show, and Show more.
     internal override RenderFragment? AfterRow(TItem item, int row, int? indent)
     {
-        var own = base.AfterRow(item, row, indent);
         var key = KeyOf(item);
+        // A row's detail (its hidden columns' values) is at its level, as the treegrid's rows are.
+        var own = base.AfterRow(item, row, _treeRows.TryGetValue(key, out var at) ? at.Depth : indent);
         // The row being added under this one: first among its rows.
         if (NewRowItem is { } added && AddingUnder == key && _treeRows.TryGetValue(key, out var parent))
         {

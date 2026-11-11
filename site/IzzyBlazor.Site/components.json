@@ -2907,6 +2907,12 @@
             { "id": "tree-list-file-storage", "title": "Loading a level at a time", "lead": "To load rows from a database as they open, set `ItemsProvider` instead of `Items`. The tree list asks for the top rows, then for the children of each open row, with that row's key in `request.Parent`. `request.ToTreeResult` answers it from a query, given the key and the parent key.", "after": ["Set `ItemHasChildren` so a row shows its chevron before its children load. Without it, every row gets one, and a row that opens to none loses it.", "Sorting, filters and search go with every request. While filtering, `ToTreeResult` keeps the rows that match and the rows above them, which takes a query for each level above a match. With EF Core, use `ToTreeResultAsync` with `CountAsync` and `ToListAsync`.", "A row shows at most 200 rows under it, then Show more, which adds as many again. Set `ChildRowLimit` to change it."] },
             { "id": "tree-list-directory", "title": "Virtual rows", "modes": ["interactive"], "lead": "Virtual rows draw only the rows in view, so a tree with thousands of rows open scrolls as easily as a short one. Set `Virtualize`, with a `MaxHeight` and a `RowHeight`; it works on interactive pages.", "after": ["Every visible row is worked out from `Items`, open branches included, and opening or closing a row keeps the place in the list. There's no Show more, and each row is one line high.", "On a static page the same tree pages by its top rows."] }
           ]
+        },
+        {
+          "id": "adaptability", "title": "Adaptability", "summary": "On a phone or in a narrow panel, the tree list hides the columns that don't fit and shows their values under the row.", "members": ["SmallScreen", "Column.Priority", "ItemKey"],
+          "examples": [
+            { "id": "tree-list-narrow", "widthSwitch": true, "title": "Columns that hide", "lead": "To hide the columns that don't fit a narrow screen instead of scrolling sideways, set `SmallScreen=\"DataGridSmallScreen.HideColumns\"`. Columns hide lowest `Priority` first, and each row's button shows their values under it.", "after": ["The first column stays, with each row's indent and chevron, so the tree still reads. A row's hidden values open under it at its level, and stay open as the rows around it open and close."] }
+          ]
         }
       ]
     },

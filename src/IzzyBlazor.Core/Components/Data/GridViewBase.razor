@@ -1545,7 +1545,7 @@
     private RenderFragment DetailRow(TItem item, int row, int? indent, bool template) => __builder =>
     {
         <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)" data-ib-follows="@(HasGrip ? "" : null)">
-            <td colspan="@(Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
+            <td colspan="@(Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@($"--ib-detail-at:calc({StartWidths}{LeadWidths}{DetailIndent(item)})")">
                 <div class="ib-grid-detail-content">
                     @if (Hiding)
                     {
@@ -1560,7 +1560,8 @@
         </tr>
     };
 
-    private string DetailAt => $"--ib-detail-at:calc({StartWidths}{LeadWidths})";
+    /// <summary>More room before a row's detail, as " + ...": a TreeList's row's indent, so its detail starts at its value.</summary>
+    internal virtual string DetailIndent(TItem item) => "";
 
     // The widths of the columns before the lead ones, each followed by " + ": the handles and the selection.
     private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (SelectColumn ? "var(--ib-datagrid-select) + " : "");

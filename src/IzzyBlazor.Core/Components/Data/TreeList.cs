@@ -476,6 +476,19 @@ public partial class TreeList<TItem>
         !VirtualRows ? null : (_treeVisible.Skip(start).Take(count).ToList(), _treeVisible.Count);
 
     /// <inheritdoc />
+    // The row's indent, chevron, icon and handle: its detail starts where its value does.
+    internal override string DetailIndent(TItem item)
+    {
+        if (!_treeRows.TryGetValue(KeyOf(item), out var row) || FirstColumnLead is null)
+        {
+            return "";
+        }
+
+        var steps = row.Depth + (_treeHasChildren ? 1 : 0);
+        return $" + {steps} * (var(--ib-treelist-toggle) + var(--ib-treelist-gap))" + (ItemIcon is null ? "" : " + 1.25rem") + (TreeDragKey is null ? "" : " + 1.5rem");
+    }
+
+    /// <inheritdoc />
     internal override string ViewName => "TreeList";
 
     /// <inheritdoc />
@@ -632,11 +645,6 @@ public partial class TreeList<TItem>
         else if ((ItemChildren is null) == (ItemParentKey is null))
         {
             throw new InvalidOperationException($"A TreeList needs one of {nameof(ItemChildren)} (nested rows) or {nameof(ItemParentKey)} (a flat list), not both.");
-        }
-
-        if (SmallScreen == DataGridSmallScreen.HideColumns)
-        {
-            throw new InvalidOperationException("A TreeList can't hide columns to fit yet: it scrolls sideways.");
         }
 
         return base.OnParametersSetAsync();
