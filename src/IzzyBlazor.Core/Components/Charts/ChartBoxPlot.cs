@@ -27,6 +27,9 @@ internal sealed record ChartBox(double Low, double Q1, double Median, double Q3,
 
     public double Max => Outliers.Length > 0 ? Math.Max(High, Outliers.Max()) : High;
 
+    /// <summary>The value axis's span for the box: its values', and a given mean past them (a skewed summary's).</summary>
+    public (double Lo, double Hi) Span => double.IsFinite(Mean) ? (Math.Min(Min, Mean), Math.Max(Max, Mean)) : (Min, Max);
+
     /// <summary>
     /// A violin's outline: the values' density at <see cref="DensitySteps"/> even steps from
     /// <see cref="Min"/> to <see cref="Max"/>, the largest 1 (null for a box, and for values all alike).
