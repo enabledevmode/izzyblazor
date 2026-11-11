@@ -1,0 +1,31 @@
+@* A year of an exchange rate's trading days as OHLC bars, which stay readable where candles would crowd; zoom to read a month. *@
+<Chart Items="_days" Argument="d => d.Date" Title="EUR/USD, daily, Nov 2025 to Oct 2026">
+    <ChartValueAxis Format="0.000" />
+    <ChartArgumentAxis Zoom />
+    <ChartOhlcSeries Open="d => d.Open" High="d => d.High" Low="d => d.Low" Close="d => d.Close" Name="EUR/USD" />
+</Chart>
+
+@code {
+    private record Day(DateOnly Date, decimal Open, decimal High, decimal Low, decimal Close);
+
+    private readonly Day[] _days;
+
+    public OhlcBars()
+    {
+        // Weekdays (the currency market closes at weekends), a slow drift with small daily swings.
+        var random = new Random(11);
+        var days = new List<Day>();
+        var close = 1.085m;
+        for (var date = new DateOnly(2025, 11, 3); date <= new DateOnly(2026, 10, 30); date = date.AddDays(1))
+        {
+            if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday || (date.Month == 12 && date.Day == 25) || (date.Month == 1 && date.Day == 1)) continue;
+            var open = close;
+            close = Math.Round(open * (1 + (decimal)(random.NextDouble() - 0.485) * 0.012m), 4);
+            var high = Math.Round(Math.Max(open, close) * (1 + (decimal)random.NextDouble() * 0.004m), 4);
+            var low = Math.Round(Math.Min(open, close) * (1 - (decimal)random.NextDouble() * 0.004m), 4);
+            days.Add(new Day(date, open, high, low, close));
+        }
+
+        _days = [.. days];
+    }
+}

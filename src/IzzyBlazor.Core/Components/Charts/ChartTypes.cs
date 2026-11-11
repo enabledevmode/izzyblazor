@@ -229,19 +229,3 @@ public enum ChartLabelFit
     /// <summary>Every name shows, wrapped onto more lines in its band. Suits a few long names.</summary>
     Wrap,
 }
-
-/// <summary>How a <see cref="ChartOhlcSeries{TItem}"/> draws each item's prices.</summary>
-public enum ChartOhlcLook
-{
-    /// <summary>
-    /// A body from the open to the close on a line from the low to the high: hollow when the price
-    /// closed up, filled when it closed down, so the direction shows without color too.
-    /// </summary>
-    Candlestick,
-
-    /// <summary>
-    /// A line from the low to the high, with the open as a tick to the left and the close as a tick
-    /// to the right. Without an Open, only the close's tick (high-low-close).
-    /// </summary>
-    Bars,
-}
