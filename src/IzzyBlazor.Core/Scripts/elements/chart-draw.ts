@@ -284,6 +284,7 @@ export interface Drawing {
   dl: string; // the value labels' HTML
   ends: string; // the end labels' HTML
   pos: (v: number) => number; // a value's place on the new value axis, 0 to 1
+  hi: (number | null)[][]; // each series' plotted values (a stack's segment tops), for a crosshair
 }
 
 // ---- Value labels (ChartLayout.PlaceLabels), placed at the plot's real size. ----
@@ -655,7 +656,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const endsHtml = ends
     .map(([s], i) => `<span class="ib-chart-s${d.s[s].k}" style="top:${pct(centers[i] / H)};${d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""}" data-ib-series="${s}">${esc(d.s[s].en!)}</span>`)
     .join("");
-  return { svg, labels, pos: scale, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""), d.lr) };
+  return { svg, labels, pos: scale, hi: highs, ends: endsHtml, dl: placeLabels(labelsAt, W, H, (s) => d.s[s].k, (s) => (d.s[s].col ? `--ib-chart-color:${esc(d.s[s].col!)}` : ""), d.lr) };
 }
 
 // ---- Zoom: the argument labels and grid lines for a view. ----

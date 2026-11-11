@@ -398,6 +398,8 @@ const builds = [
     ...common,
     entryPoints: {
       "elements/parts/chart-draw": join(lib, "Scripts", "elements", "chart-draw.ts"),
+      // Chart's Crosshair, loaded where a chart has one.
+      "elements/parts/chart-cross": join(lib, "Scripts", "elements", "chart-cross.ts"),
       // HeatmapChart's tooltip, keys, legend and fitting, loaded where there's a heatmap.
       "elements/parts/chart-heat": join(lib, "Scripts", "elements", "chart-heat.ts"),
       // RadarChart's tooltip, keys and legend, loaded where there's a radar.

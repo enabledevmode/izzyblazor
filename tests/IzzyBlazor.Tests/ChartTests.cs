@@ -936,6 +936,29 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_crosshair_snaps_to_each_values_place_a_stacks_segment_top_in_the_axis_format()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue and costs")
+            .Add(c => c.Crosshair, true)
+            .Add(c => c.Stacking, ChartStacking.Normal)
+            .AddChildContent<ChartValueAxis>(a => a.Add(x => x.Format, "C0"))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Costs)));
+
+        Assert.True(cut.Find("ib-chart").HasAttribute("data-ib-cross"));
+        // Jan: revenue 100, then costs stacked on it to 160, written as the axis writes it.
+        using var jan = System.Text.Json.JsonDocument.Parse(cut.FindAll("[data-ib-tip]")[0].GetAttribute("data-ib-c")!);
+        var points = jan.RootElement[1];
+        Assert.Equal("Jan", jan.RootElement[0].GetString());
+        Assert.Equal(160, points[1][1].GetDouble());
+        Assert.Equal(160.ToString("C0", CultureInfo.CurrentCulture), points[1][2].GetString());
+        Assert.True(points[1][0].GetDouble() > points[0][0].GetDouble());
+    }
+
+    [Fact]
     public void A_waterfall_keys_its_colors_in_the_legend_and_is_its_charts_only_series()
     {
         var cut = Render<Chart<Month>>(p => p

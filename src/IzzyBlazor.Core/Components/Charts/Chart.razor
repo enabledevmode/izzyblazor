@@ -179,6 +179,15 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public string? Sync { get; set; }
 
+    /// <summary>
+    /// Draws a crosshair at the item under the pointer or keyboard focus: a line across the plot at
+    /// the item, and one at the value nearest the pointer (snapped to it), with the item's argument
+    /// and that value in badges on their axes. On a scatter or bubble chart both lines run through
+    /// the nearest point. It goes with the tooltip, so with tooltips off there's none.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool Crosshair { get; set; }
+
     /// <summary>With <see cref="Sync"/>, the chart zooms with the others (and, without its own <see cref="ChartArgumentAxis.Zoom"/>, only follows them). On by default.</summary>
     [Parameter] public bool SyncView { get; set; } = true;
 
@@ -672,6 +681,7 @@
             SecondaryMax = SecondaryMax,
             Text = TextDefaults,
             Histogram = bins,
+            Crosshair = Crosshair,
         });
         (_drawnArguments, _drawnKind) = (arguments, model.Kind);
         _zoomOn = model.ZoomPositions is not null && gestures;
@@ -706,6 +716,7 @@
                   data-ib-sync="@Sync"
                   data-ib-sync-view="@(Sync is not null && SyncView && model.ZoomPositions is not null ? "" : null)"
                   data-ib-sync-hover="@(Sync is not null && SyncHover ? "" : null)"
+                  data-ib-cross="@(Crosshair ? valueRight ? "r" : "" : null)"
                   data-ib-sync-at="@(Sync is not null || IsLive || drill is not null ? SyncKeys(model) : null)"
                   data-ib-drilled="@drill?.Said" data-ib-drill="@(drill is null ? null : DrillKey)"
                   data-ib-refresh="@(Refresh is { } every && StaticPage ? ((long)every.TotalMilliseconds).ToString(CultureInfo.InvariantCulture) : null)"
@@ -1006,7 +1017,7 @@
                 @for (var i = 0; i < items.Count; i++)
                 {
                     var tip = TooltipFor(items, model, i);
-                    <div data-ib-tip>
+                    <div data-ib-tip data-ib-c="@(Crosshair ? CrossData(model, i, Stacked == ChartStacking.Percent) : null)">
                         @if (TooltipTemplate is not null)
                         {
                             @TooltipTemplate(tip)
@@ -1493,6 +1504,47 @@
             Target = s.Data.Targets?[index],
             TargetText = model.TargetTexts[s.Index]?[index],
         }).ToList());
+
+    // An item's crosshair: its argument, then each series' place, value and text (null with none).
+    private static string CrossData(ChartModel model, int i, bool full)
+    {
+        using var stream = new MemoryStream();
+        using (var w = new System.Text.Json.Utf8JsonWriter(stream))
+        {
+            w.WriteStartArray();
+            w.WriteStringValue(model.ArgumentTexts[i]);
+            w.WriteStartArray();
+            for (var s = 0; s < model.Cross[i].Length; s++)
+            {
+                if (model.Cross[i][s] is not { } v)
+                {
+                    w.WriteNullValue();
+                    continue;
+                }
+
+                w.WriteStartArray();
+                w.WriteNumberValue(Math.Round(v.Place, 5));
+                w.WriteNumberValue(v.Value);
+                w.WriteStringValue(v.Text);
+                // On a stack, the series' own value too: where the stack closes up under it, its top.
+                var own = model.Series[s].Data.Values[i];
+                if (own is { } o && o != v.Value && model.ValueTexts[s][i] is { } ownText && !full)
+                {
+                    w.WriteNumberValue(model.Series[s].Data.Secondary ? 1 : 0);
+                    w.WriteNumberValue(o);
+                    w.WriteStringValue(ownText);
+                }
+                else if (model.Series[s].Data.Secondary) w.WriteNumberValue(1);
+
+                w.WriteEndArray();
+            }
+
+            w.WriteEndArray();
+            w.WriteEndArray();
+        }
+
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
 
     // A bar series' target column: "Target", with the series' name when there are more.
     private string TargetHeader(ChartModel model, SeriesShape s) =>

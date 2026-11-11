@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import type { DrawData, View, draw as Draw, placeMarks as PlaceMarks, zoomArgs as ZoomArgs } from "./chart-draw";
+import type { crosshair as Crosshair, Drawn } from "./chart-cross";
+import type { DrawData, Drawing, View, draw as Draw, placeMarks as PlaceMarks, zoomArgs as ZoomArgs } from "./chart-draw";
 import type { drawPie as DrawPie } from "./chart-draw-pie";
 import type { heat as Heat } from "./chart-heat";
 import type { pie as Pie } from "./chart-pie";
@@ -211,9 +212,12 @@ class Chart extends IzzyElement {
         measure = (text) => ctx.measureText(text).width;
       }
     }
+    // What the script drew last, for a crosshair (chart-cross.ts).
+    let drawnOut: Drawing | undefined;
     const redraw = async () => {
       const same = hidden.size === drawn.size && [...hidden].every((s) => drawn.has(s));
       if ((same && (!zoomOn || sameView())) || !data || !jsSvg || !jsLabels) {
+        drawnOut = undefined;
         this.removeAttribute("data-ib-redrawn");
         this.removeAttribute("data-ib-zargs");
         for (const mark of plot.querySelectorAll<HTMLElement>("[data-ib-v]")) {
@@ -231,7 +235,7 @@ class Chart extends IzzyElement {
       }
       const module = await loadModule();
       if (signal.aborted) return;
-      const out = module.draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight }, measure, zoomOn ? view : undefined);
+      const out = (drawnOut = module.draw(data, hidden, { w: plot.clientWidth, h: plot.clientHeight }, measure, zoomOn ? view : undefined));
       // Another view than the server's: argument labels, grid lines and marks for it too.
       let grid = "";
       const own = zoomOn && !sameView();
@@ -417,6 +421,13 @@ class Chart extends IzzyElement {
     // With no tooltips (every series labeled), a chart that zooms still takes its keys and gestures.
     const tipsOn = !!tooltip && !!hover && tips.length > 0;
     if (!tipsOn && !gestures) return;
+    // A crosshair (Chart Crosshair) goes with the tooltip: its part, loaded where there's one.
+    let cross: ReturnType<typeof Crosshair> | undefined;
+    if (tipsOn && this.hasAttribute("data-ib-cross")) {
+      (import("./parts/chart-cross.js" as string) as Promise<{ crosshair: typeof Crosshair }>).then(
+        (m) => signal.aborted || (cross = m.crosshair(this, plot, tips, hidden, (): Drawn => drawnOut, signal))
+      );
+    }
 
     const count = Number(this.dataset.ibCount) || tips.length;
     const scale = this.hasAttribute("data-ib-scale");
@@ -520,8 +531,9 @@ class Chart extends IzzyElement {
       hover.style.cssText = horizontal
         ? `top:${start * 100}%;height:${length * 100}%;left:0;width:100%`
         : `left:${start * 100}%;width:${length * 100}%;top:0;height:100%`;
-      hover.hidden = pointsMode;
+      hover.hidden = pointsMode || !!cross;
       tooltip.hidden = false;
+      cross?.(index, pointerY, active, pos);
 
       // Beside the item, flipped to the other side when there's no room; kept inside the chart.
       const pw = plot.clientWidth;
@@ -565,6 +577,7 @@ class Chart extends IzzyElement {
       if (!tipsOn) return;
       tooltip.hidden = true;
       hover.hidden = true;
+      cross?.(-1);
       active?.removeAttribute("data-ib-active");
       active = undefined;
     };
