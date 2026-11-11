@@ -200,10 +200,10 @@
     left: var(--p);
     inline-size: 0.5rem;
     translate: -50% 0;
-    /* Lifted off the bands: a 1px outline in the surface color, so it parts from a band of its own
-       shade, and a soft shadow. On the wrapper, since the shape's clip-path would cut them off. */
+    /* A 1px outline in the surface color parts it from a band of its own shade; flat, as the
+       charts' other marks are. On the wrapper, since the shape's clip-path would cut it off. */
     --ib-lgauge-o: var(--ib-color-surface);
-    filter: drop-shadow(1px 0 0 var(--ib-lgauge-o)) drop-shadow(-1px 0 0 var(--ib-lgauge-o)) drop-shadow(0 1px 0 var(--ib-lgauge-o)) drop-shadow(0 2px 3px rgb(0 0 0 / 0.45));
+    filter: drop-shadow(1px 0 0 var(--ib-lgauge-o)) drop-shadow(-1px 0 0 var(--ib-lgauge-o)) drop-shadow(0 1px 0 var(--ib-lgauge-o));
   }
 
   .ib-lgauge-needle > span {
