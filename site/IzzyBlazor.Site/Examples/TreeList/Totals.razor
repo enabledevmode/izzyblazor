@@ -1,0 +1,11 @@
+@* A project estimate: each phase shows the hours of the tasks under it, the footer the whole
+   project's, and the export keeps the phases and tasks as an outline. *@
+<TreeList Items="Estimate.All" ItemKey="w => w.Id.ToString()" ItemParentKey="w => w.ParentId?.ToString()"
+          ItemExpanded="w => w.ParentId is null" Caption="Estimate" QueryPrefix="estimate-"
+          ExportExcelHref="/examples/estimate.xlsx" ExportCsvHref="/examples/estimate.csv" Grow>
+    <Columns>
+        <PropertyColumn Property="w => w.Task" Filterable />
+        <PropertyColumn Property="w => w.Owner" Filterable Width="10.Rem" />
+        <PropertyColumn Property="w => w.Hours" RollUp="DataAggregate.Sum" Aggregate="DataAggregate.Sum" Width="8.Rem" />
+    </Columns>
+</TreeList>

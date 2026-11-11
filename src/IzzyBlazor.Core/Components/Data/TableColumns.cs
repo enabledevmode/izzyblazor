@@ -181,6 +181,14 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public DataAggregate? GroupFooterAggregate { get; set; }
 
     /// <summary>
+    /// In a TreeList, what a row with rows under it shows in this column in place of its own value:
+    /// the sum, average, lowest, highest or count of the rows at the ends of its branch, such as a
+    /// folder's size or a project's hours. While filtering, of the rows kept. Not with an <c>ItemsProvider</c>:
+    /// give the rows their totals there.
+    /// </summary>
+    [Parameter] public DataAggregate? RollUp { get; set; }
+
+    /// <summary>
     /// Your own aggregate, as an expression over the rows, so it runs in the database:
     /// <c>g =&gt; g.Sum(o =&gt; o.Profit) / g.Sum(o =&gt; o.Total)</c>. Wherever the column's aggregate
     /// is <see cref="DataAggregate.Custom"/>; set alone, it's the footer's. Not for a Table.
@@ -487,6 +495,21 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column sets {nameof(Visible)}, which only a DataGrid's columns take.");
         }
 
+        if (RollUp is { } rollUp)
+        {
+            if (Table is not null && !Table.RollsUp)
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(RollUp)}, which only a TreeList's columns take, from its Items.");
+            }
+
+            if (rollUp == DataAggregate.Custom || AggregateProblem(rollUp) is not null)
+            {
+                throw new InvalidOperationException(rollUp == DataAggregate.Custom
+                    ? $"The \"{HeaderText}\" column's {nameof(RollUp)} can't be Custom: use Sum, Avg, Min, Max or Count."
+                    : AggregateProblem(rollUp)!);
+            }
+        }
+
         if (HasAggregate)
         {
             if (Table is { GridColumns: false })
@@ -730,7 +753,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         Filterable = CanFilter || (GroupBy is null && Table?.GroupsBy(this) == true),
         Searchable = FilterKind == ColumnFilterKind.Text,
         Groupable = GroupBy is null && CanGroup,
-        Aggregatable = HasAggregate,
+        Aggregatable = HasAggregate || RollUp is not null,
         AggregateBy = AggregateBy,
         Operators = RequestOperators(ColumnFilter.FieldOperators(this)),
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
@@ -951,7 +974,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
     {
         Key = key,
         Value = value,
-        Aggregatable = HasAggregate,
+        Aggregatable = HasAggregate || RollUp is not null,
         AggregateBy = AggregateBy,
         SortValue = FilterBy is null ? null : SortBy,
         Caption = FullName,

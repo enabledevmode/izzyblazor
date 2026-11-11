@@ -70,6 +70,9 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>"down" when checking a row checks the rows under it, "up" when also a row whose rows are all checked is checked; null for neither.</summary>
     internal virtual string? CascadeMode => null;
 
+    /// <summary>Whether its columns can take a RollUp: a TreeList's, from Items.</summary>
+    internal virtual bool RollsUp => false;
+
     /// <summary>Cells before the columns, for a grid's groups: in the header, and in a row.</summary>
     internal virtual RenderFragment? LeadHeader => null;
 

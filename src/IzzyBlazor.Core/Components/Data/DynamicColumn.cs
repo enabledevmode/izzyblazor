@@ -132,7 +132,7 @@ public class DynamicColumn<TItem> : ColumnBase<TItem>
         Filterable = CanFilter || (GroupBy is null && Table?.GroupsBy(this) == true),
         Searchable = FilterKind == ColumnFilterKind.Text,
         Groupable = GroupBy is null && CanGroup,
-        Aggregatable = HasAggregate,
+        Aggregatable = HasAggregate || RollUp is not null,
         AggregateBy = AggregateBy,
         Operators = RequestOperators(ColumnFilter.FieldOperators(this)),
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,

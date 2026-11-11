@@ -1,6 +1,9 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 
+// GroupsProvider passes through to GridViewBase, as DataGrid's does.
+#pragma warning disable BL0007
+
 namespace IzzyBlazor;
 
 /// <summary>
@@ -76,6 +79,33 @@ public partial class TreeList<TItem>
     /// by default; false makes each box its own.
     /// </summary>
     [Parameter] public bool Cascade { get; set; } = true;
+
+    /// <summary>
+    /// With an <c>ItemsProvider</c>, works out the footer's aggregates (a column's <c>Aggregate</c>)
+    /// over every row the filters match, as the rows it holds are only a page's: answer it with
+    /// <c>request.ToResultAsync</c> over the same query.
+    /// </summary>
+    [Parameter]
+    public new Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsProvider { get => base.GroupsProvider; set => base.GroupsProvider = value; }
+
+    // The last load's rows, by key, and the fields its request read them by: a row's branch totals
+    // (RollUp) are worked out from them as its cells draw, once a load.
+    private Dictionary<string, Node>? _treeNodes;
+    private IReadOnlyList<DataField<TItem>>? _treeFields;
+    private readonly Dictionary<string, DataGroup?> _treeRollUps = [];
+
+    /// <inheritdoc />
+    internal override bool RollsUp => ItemsProvider is null;
+
+    /// <inheritdoc />
+    internal override bool ExportsBranch => FilterBranch;
+
+    /// <inheritdoc />
+    // A row with rows under it shows its branch's total in a column with a RollUp.
+    internal override RenderFragment CellOf(TItem item, ColumnBase<TItem> column) =>
+        column.RollUp is { } type && _treeRows.TryGetValue(KeyOf(item), out var row) && row.HasChildren && RollUpOf(KeyOf(item)) is { } totals && column.TryAggregate(totals, type, out var value)
+            ? builder => builder.AddContent(0, column.AggregateText(type, value))
+            : base.CellOf(item, column);
 
     private bool _treeFiltering;
 
@@ -291,6 +321,7 @@ public partial class TreeList<TItem>
         var deepest = 0;
         Func<string, int, Task<(IReadOnlyList<TItem> Items, int Total)>> childrenOf;
         Func<TItem, string, bool> mayHaveChildren;
+        Dictionary<string, Node>? nodes = null;
         if (ItemsProvider is { } provider)
         {
             // One level at a time: the top rows, then the children of each open row.
@@ -377,6 +408,7 @@ public partial class TreeList<TItem>
                 return Task.FromResult<(IReadOnlyList<TItem>, int)>((children.Take(take).Select(c => c.Item).ToList(), children.Count));
             };
             mayHaveChildren = (_, key) => byKey[key].Children.Any(c => c.Kept);
+            nodes = byKey;
         }
 
         var state = TreeOpen;
@@ -433,7 +465,45 @@ public partial class TreeList<TItem>
 
         await Walk(top, pageSize is { } shownSize ? (page - 1) * shownSize : 0, total, 0);
         var shown = top.Count;
-        return new GroupedPage(rows, total, page, () => (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore, _treeFiltering) = (info, shown, anyChildren, deepest, more, filtering));
+        return new GroupedPage(rows, total, page, () =>
+        {
+            (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore, _treeFiltering) = (info, shown, anyChildren, deepest, more, filtering);
+            (_treeNodes, _treeFields) = (nodes, request.Fields);
+            _treeRollUps.Clear();
+        });
+    }
+
+    // The totals of a row's branch: over its kept rows with no kept rows under them, so a value
+    // isn't counted again in the rows above it.
+    private DataGroup? RollUpOf(string key)
+    {
+        if (_treeRollUps.TryGetValue(key, out var known))
+        {
+            return known;
+        }
+
+        var fields = Shown.Where(c => c.RollUp is not null).Select(c => new DataAggregateField(c.AggregateKey, c.RollUp!.Value)).Distinct().ToList();
+        DataGroup? totals = null;
+        if (fields.Count > 0 && _treeNodes?.GetValueOrDefault(key) is { } parent)
+        {
+            var leaves = new List<TItem>();
+            var stack = new Stack<Node>(parent.Children.Where(c => c.Kept));
+            while (stack.TryPop(out var node))
+            {
+                var under = node.Children.Where(c => c.Kept).ToList();
+                if (under.Count == 0)
+                {
+                    leaves.Add(node.Item);
+                }
+
+                under.ForEach(stack.Push);
+            }
+
+            var request = new DataGroupRequest<TItem> { Aggregates = fields, Fields = _treeFields };
+            totals = request.ToResult(AsQuery(leaves)).Groups.FirstOrDefault();
+        }
+
+        return _treeRollUps[key] = totals;
     }
 
     // The nodes, linked: the top ones in order, and every one in all.
