@@ -28,6 +28,54 @@ internal sealed record ChartBox(double Low, double Q1, double Median, double Q3,
     public double Max => Outliers.Length > 0 ? Math.Max(High, Outliers.Max()) : High;
 
     /// <summary>
+    /// A violin's outline: the values' density at <see cref="DensitySteps"/> even steps from
+    /// <see cref="Min"/> to <see cref="Max"/>, the largest 1 (null for a box, and for values all alike).
+    /// </summary>
+    public double[]? Density { get; init; }
+
+    public const int DensitySteps = 64;
+
+    /// <summary>
+    /// The density of some values by a Gaussian kernel, with Silverman's bandwidth (Plotly's
+    /// violin): 0.9 × min(standard deviation, IQR / 1.34) × n^-1/5. Trimmed to the values' range,
+    /// as ggplot2's violins are, so the outline never reaches a value no item has.
+    /// </summary>
+    public static double[]? DensityOf(IReadOnlyList<double> values, double min, double max)
+    {
+        var n = values.Count;
+        if (n < 2 || !(max > min)) return null;
+        var mean = values.Average();
+        var sd = Math.Sqrt(values.Sum(v => (v - mean) * (v - mean)) / (n - 1));
+        var sorted = values.Order().ToArray();
+        double Quantile(double p)
+        {
+            var h = (n - 1) * p;
+            var k = (int)Math.Floor(h);
+            return k + 1 < n ? sorted[k] + (h - k) * (sorted[k + 1] - sorted[k]) : sorted[k];
+        }
+
+        var spread = Quantile(0.75) - Quantile(0.25) is var iqr && iqr > 0 ? Math.Min(sd, iqr / 1.34) : sd;
+        var bandwidth = 0.9 * spread * Math.Pow(n, -0.2);
+        if (!(bandwidth > 0)) return null;
+        var density = new double[DensitySteps];
+        for (var k = 0; k < DensitySteps; k++)
+        {
+            var x = min + (max - min) * k / (DensitySteps - 1);
+            var sum = 0.0;
+            foreach (var v in sorted)
+            {
+                var z = (x - v) / bandwidth;
+                if (z is > -6 and < 6) sum += Math.Exp(-0.5 * z * z);
+            }
+
+            density[k] = sum;
+        }
+
+        var top = density.Max();
+        return top > 0 ? density.Select(d => d / top).ToArray() : null;
+    }
+
+    /// <summary>
     /// The box for some values, or null with none. Quartiles by linear interpolation between the
     /// sorted values (R-7, Excel's QUARTILE.INC, Plotly's and Chart.js's default).
     /// </summary>
@@ -125,6 +173,43 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
     private protected override ChartWhiskers? WhiskersOf => Whiskers;
 
     private protected override bool ShowMeanOf => ShowMean;
+}
+
+/// <summary>
+/// Draws a violin for each <c>Argument</c> from the <see cref="Value"/>s of the items that share
+/// it: an outline as wide as the values are dense, so it shows the shape a box hides, such as two
+/// peaks. Inside, a slim box from the first quartile to the third, a line at the median, and a line
+/// to Tukey's whiskers; outliers past them are circles. The density is a Gaussian kernel with
+/// Silverman's bandwidth (as Plotly's), trimmed to the values' range, and every violin is as wide
+/// at its densest. <c>SeriesBy</c> puts a violin per group side by side; the chart's
+/// <c>Orientation="Orientation.Horizontal"</c> lays them across. A violin's chart holds only box
+/// plot and violin series.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="deliveries" Argument="d =&gt; d.Carrier" Title="Delivery time by carrier"&gt;
+///     &lt;ChartValueAxis Title="Days" /&gt;
+///     &lt;ChartViolinSeries Value="d =&gt; d.Days" Name="Delivery time" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
+[ModeSupport]
+public sealed class ChartViolinSeries<TItem> : ChartBoxSeriesBase<TItem>
+{
+    /// <summary>Each item's value, such as <c>d =&gt; d.Days</c>: a number, or null to leave the item out.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Value { get; set; } = default!;
+
+    /// <summary>Marks each violin's mean with a diamond, and says it in the tooltip and data table.</summary>
+    [Parameter] public bool ShowMean { get; set; }
+
+    private protected override Expression<Func<TItem, object?>>? ValueOf => Value;
+
+    private protected override ChartWhiskers? WhiskersOf => ChartWhiskers.Tukey;
+
+    private protected override bool ShowMeanOf => ShowMean;
+
+    private protected override bool ViolinOf => true;
 }
 
 /// <summary>

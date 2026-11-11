@@ -1,0 +1,33 @@
+@* Days from order to delivery for a month's parcels with three carriers. Two of them don't pick
+   up at weekends, so orders placed Friday to Sunday wait a day or two longer: a second peak a box
+   plot would hide inside its box. *@
+<Chart Items="_parcels" Argument="p => p.Carrier" Title="Delivery time by carrier, March">
+    <ChartValueAxis Title="Days from order to delivery" />
+    <ChartViolinSeries Value="p => p.Days" Name="Delivery time" />
+</Chart>
+
+@code {
+    private record Parcel(string Carrier, double Days);
+
+    // Sample data: each carrier's weekday time, and how much longer a weekend order waits (0: it
+    // picks up every day).
+    private readonly Parcel[] _parcels =
+    [
+        .. Parcels("Northwind Post", 2.2, 2.0, 220, seed: 1),
+        .. Parcels("Swift Freight", 1.8, 0, 200, seed: 2),
+        .. Parcels("Coastline Express", 3.0, 1.6, 180, seed: 3),
+    ];
+
+    private static IEnumerable<Parcel> Parcels(string carrier, double median, double weekendWait, int count, int seed)
+    {
+        var random = new Random(seed);
+        return Enumerable.Range(0, count).Select(k =>
+        {
+            // Three days in seven are Friday to Sunday.
+            var weekend = random.Next(7) >= 4;
+            var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
+            var days = median * Math.Exp(0.2 * normal) + (weekend ? weekendWait : 0);
+            return new Parcel(carrier, Math.Round(days, 1));
+        }).ToList();
+    }
+}
