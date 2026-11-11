@@ -201,6 +201,14 @@ public sealed class ChartArgumentAxis : ChartAxisBase
     [Parameter] public bool Reverse { get; set; }
 
     /// <summary>
+    /// Spaces dates by item, not by time: each item takes the same room and a date with no item
+    /// (a weekend, a holiday, a closed night) takes none, as on a stock chart. The labels still mark
+    /// where a day, month or year begins. The items need to be in date order. A chart with bars or
+    /// candles already spaces its dates by item.
+    /// </summary>
+    [Parameter] public bool SkipGaps { get; set; }
+
+    /// <summary>
     /// Lets the reader zoom into part of the arguments and pan along them: a drag across the plot,
     /// Ctrl (⌘ on a Mac) and the wheel, a pinch, + and − on the focused chart, or the Zoom in and
     /// Zoom out buttons by the title. The page still

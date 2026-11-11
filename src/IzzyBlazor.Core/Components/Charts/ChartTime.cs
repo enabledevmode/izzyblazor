@@ -65,6 +65,25 @@ internal static class ChartTime
         };
     }
 
+    /// <summary>
+    /// Which of an interval's spans a moment falls in (the day, the 5-day stretch, the quarter…):
+    /// two moments share a span when their keys are the same.
+    /// </summary>
+    public static long Key(DateTime t, Interval interval) => interval.Unit switch
+    {
+        Unit.Second => new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second - t.Second % interval.Count).Ticks,
+        Unit.Minute => new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute - t.Minute % interval.Count, 0).Ticks,
+        Unit.Hour => new DateTime(t.Year, t.Month, t.Day, t.Hour - t.Hour % interval.Count, 0, 0).Ticks,
+        Unit.Day => interval.Count switch
+        {
+            1 => t.Date.Ticks,
+            5 => new DateTime(t.Year, t.Month, Math.Min(26, t.Day - (t.Day - 1) % 5)).Ticks,
+            _ => new DateTime(t.Year, t.Month, t.Day >= 16 ? 16 : 1).Ticks,
+        },
+        Unit.Month => new DateTime(t.Year, t.Month - (t.Month - 1) % interval.Count, 1).Ticks,
+        _ => t.Year / interval.Count,
+    };
+
     /// <summary>The ticks of an interval from min to max, inclusive.</summary>
     public static List<DateTime> Ticks(DateTime min, DateTime max, Interval interval)
     {

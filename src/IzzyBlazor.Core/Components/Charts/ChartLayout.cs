@@ -103,6 +103,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
     /// <summary>Whether the arguments run backward: right to left, or bottom to top across.</summary>
     public bool ArgumentReverse { get; init; }
 
+    /// <summary>Dates spaced by item, not by time (ChartArgumentAxis's SkipGaps): a date no item has takes no room.</summary>
+    public bool SkipGaps { get; init; }
+
     /// <summary>The first value axis at the right: no column at the left for the first name, turned, to reach into.</summary>
     public bool ValueRight { get; init; }
     public ChartLabelFit ArgumentLabels { get; init; }
@@ -310,6 +313,9 @@ internal sealed class ChartModel
     /// <summary>Whether every name shows, wrapped in its band (<see cref="ChartLabelFit.Wrap"/>).</summary>
     public bool Wrap { get; set; }
 
+    /// <summary>Dates one to an item: labeled where a day, month or year begins, placed like a scale's ticks, not in bands.</summary>
+    public bool Dated { get; set; }
+
     /// <summary>Whether the argument labels have a second line (a month under days, a year under months).</summary>
     public bool TwoLine { get; set; }
 
@@ -375,7 +381,18 @@ internal static class ChartLayout
     {
         var n = input.Arguments.Count;
         var hasBars = input.Series.Any(s => s.Type == ChartType.Bar);
-        var kind = hasBars || input.Bands ? ArgumentKind.Category : KindOf(input.Arguments);
+        if (input.SkipGaps && KindOf(input.Arguments) != ArgumentKind.Time)
+        {
+            throw new InvalidOperationException("ChartArgumentAxis's SkipGaps spaces dates by item: the chart's Argument needs to be a date (DateTime, DateOnly or DateTimeOffset).");
+        }
+
+        var dates = Dates(input.Arguments);
+        if (input.SkipGaps && dates is null)
+        {
+            throw new InvalidOperationException("ChartArgumentAxis's SkipGaps needs the items in date order, earliest first.");
+        }
+
+        var kind = hasBars || input.Bands || input.SkipGaps ? ArgumentKind.Category : KindOf(input.Arguments);
         var culture = input.Culture;
         var full = input.Stacked == ChartStacking.Percent;
         var stacked = input.Stacked != ChartStacking.None;
@@ -584,7 +601,8 @@ internal static class ChartLayout
                     if (InView(positions[i])) model.ArgumentLabels.Add(new AxisLabel(positions[i], model.ArgumentTexts[i]));
                 }
             }
-            else
+            else if (input.ArgumentLabels != ChartLabelFit.Skip || dates is null
+                || !DateLabels(model, dates, positions, bands, Math.Max(2, PlotWidth(Widths.Length - 1, argumentRoomPx) / 90), input, argumentRoomPx, tier: false))
             {
                 CategoryLabels(model, positions, bands, argumentRoomPx, input.ArgumentLabels, input.ArgumentReverse, input.ValueRight);
             }
@@ -659,16 +677,7 @@ internal static class ChartLayout
             }
             else
             {
-                // A formatter gets each tick as a date of the argument's own type.
-                var first = input.Arguments.FirstOrDefault(a => a is not null);
-                Func<DateTime, string>? timeText = input.ArgumentFormatter is { } tf
-                    ? t => tf(first switch
-                    {
-                        DateOnly => DateOnly.FromDateTime(t),
-                        DateTimeOffset o => new DateTimeOffset(t, o.Offset),
-                        _ => t,
-                    })
-                    : null;
+                var timeText = TimeFormatter(input);
                 TimeLabels(model, new DateTime((long)amin), new DateTime((long)amax), count, input.ArgumentFormat, culture, argumentRoomPx, timeText);
             }
         }
@@ -698,7 +707,7 @@ internal static class ChartLayout
         }
 
         // A scale's last label is centered on the plot's end: leave room for its far half.
-        var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category && !model.Edges ? null : model.ArgumentLabels;
+        var bottom = input.Horizontal ? model.ValueLabels : kind == ArgumentKind.Category && !model.Edges && !model.Dated ? null : model.ArgumentLabels;
         if (bottom is { Count: > 0 } && bottom.MaxBy(l => l.Pos) is { Pos: > 0.9 } last)
         {
             var half = Math.Max(Width(last.Text), last.Context is { } c ? Width(c) : 0) / 2;
@@ -968,6 +977,16 @@ internal static class ChartLayout
             return -1;
         }
 
+        // Dates one to an item: a date no item has sits between the items around it.
+        var dates = kind == ArgumentKind.Category ? Dates(input.Arguments) : null;
+        DateTime? DateOf(object? a) => dates is not null && a is DateTime or DateOnly or DateTimeOffset ? new DateTime((long)ToDouble(a, ArgumentKind.Time)!.Value) : null;
+        double? SlotOf(object? a) => IndexOf(a) is var i and >= 0 ? i : DateOf(a) is { } t ? DateSlot(dates!, t) : null;
+        double PlaceOf(double f)
+        {
+            var i = (int)Math.Floor(f);
+            return i >= n - 1 ? positions[n - 1] : positions[i] + (f - i) * (positions[i + 1] - positions[i]);
+        }
+
         // Zoomed, a mark out of view isn't drawn (Raw gives its place past the plot's ends). With
         // zoom on, it's drawn where it falls, cut off by the plot, so the script can bring it in.
         double? At(object? a) => Raw(a) is not { } p ? null : input.Zoom ? Flip(p) : view is null ? Flip(Math.Clamp(p, 0, 1)) : InView(p) ? Flip(Math.Clamp(p, 0, 1)) : null;
@@ -975,11 +994,11 @@ internal static class ChartLayout
         // Its place on the whole axis, for the script's zoom.
         var (zlo, zhi) = kind == ArgumentKind.Category || !input.Zoom ? (0.0, n) : FullRange(input, kind);
         double? Share(object? a, double edge = 0.5) => !input.Zoom || zhi <= zlo ? null
-            : kind == ArgumentKind.Category ? IndexOf(a) is var i and >= 0 ? (i + edge) / n : null
+            : kind == ArgumentKind.Category ? SlotOf(a) is { } f ? (f + edge) / n : null
             : Coord(input, ToDouble(a, kind)) is { } x ? (x - zlo) / (zhi - zlo) : null;
         (double, double)? Shares(double? p, double? q) => p is { } x && q is { } y ? (x, y) : null;
         double? Raw(object? a) => kind == ArgumentKind.Category
-            ? IndexOf(a) is var i and >= 0 ? input.ArgumentReverse ? 1 - positions[i] : positions[i] : null
+            ? SlotOf(a) is { } f ? input.ArgumentReverse ? 1 - PlaceOf(f) : PlaceOf(f) : null
             : ToDouble(a, kind) is not { } x ? null
             : input.ArgumentLog ? x > 0 ? (Math.Log10(x) - Math.Log10(argMin)) / (Math.Log10(argMax) - Math.Log10(argMin)) : null
             : (x - argMin) / (argMax - argMin);
@@ -1028,10 +1047,22 @@ internal static class ChartLayout
                 case (ChartMarkKind.Band, MarkAxis.Argument):
                 {
                     double? p, q;
+                    (double, double)? itemShares = null;
                     if (kind == ArgumentKind.Category)
                     {
                         var (i0, i1) = (IndexOf(m.At), IndexOf(m.AtTo));
+
+                        // Dates: the items from the first on or after one end to the last on or
+                        // before the other; an end past the items takes them in to that end.
+                        if ((i0 < 0 || i1 < 0) && DateOf(m.At) is { } d0 && DateOf(m.AtTo) is { } d1)
+                        {
+                            var all = Enumerable.Range(0, n).Where(i => dates![i] is { } d && d >= (d0 < d1 ? d0 : d1) && d <= (d0 < d1 ? d1 : d0)).ToArray();
+                            if (all.Length == 0) break;
+                            (i0, i1) = (all[0], all[^1]);
+                        }
+
                         if (i0 < 0 || i1 < 0) break;
+                        itemShares = ((double)Math.Min(i0, i1) / n, (Math.Max(i0, i1) + 1.0) / n);
                         var (first, bands) = (view?.Lo ?? 0, Math.Max(1, model.BandCount));
                         (p, q) = ((Math.Min(i0, i1) - first) / bands, (Math.Max(i0, i1) + 1 - first) / bands);
                         if (!input.Zoom && (q <= 0 || p >= 1)) break;
@@ -1051,7 +1082,7 @@ internal static class ChartLayout
 
                     var range = $"{ArgText(m.At)} {input.Text.ChartRangeTo} {ArgText(m.AtTo)}";
                     var shares = kind == ArgumentKind.Category
-                        ? Shares(Math.Min(Share(m.At, 0) ?? 0, Share(m.AtTo, 0) ?? 0), Math.Max(Share(m.At, 1) ?? 0, Share(m.AtTo, 1) ?? 0))
+                        ? input.Zoom ? itemShares : null
                         : Shares(Share(m.At), Share(m.AtTo)) is { } z ? (Math.Min(z.Item1, z.Item2), Math.Max(z.Item1, z.Item2)) : null;
                     model.Marks.Add(new MarkShape(m.Kind, m.Axis, Math.Clamp(p!.Value, 0, 1), Math.Clamp(q!.Value, 0, 1), 0, m.Label ?? range)
                     {
@@ -1665,7 +1696,10 @@ internal static class ChartLayout
             var tier = new ChartModel { Horizontal = input.Horizontal, Kind = kind, ArgumentTexts = model.ArgumentTexts, ValueTexts = model.ValueTexts };
             if (kind == ArgumentKind.Category)
             {
-                CategoryLabels(tier, model.ZoomPositions!, n / z, columnPx, input.ArgumentLabels == ChartLabelFit.Wrap ? ChartLabelFit.Wrap : ChartLabelFit.Skip, input.ArgumentReverse, input.ValueRight);
+                if (!model.Dated || !DateLabels(tier, Dates(input.Arguments)!, model.ZoomPositions!, n / z, count * z, input, columnPx, tier: true))
+                {
+                    CategoryLabels(tier, model.ZoomPositions!, n / z, columnPx, input.ArgumentLabels == ChartLabelFit.Wrap ? ChartLabelFit.Wrap : ChartLabelFit.Skip, input.ArgumentReverse, input.ValueRight);
+                }
             }
             else if (input.ArgumentLog)
             {
@@ -1687,15 +1721,7 @@ internal static class ChartLayout
             }
             else
             {
-                var first = input.Arguments.FirstOrDefault(a => a is not null);
-                Func<DateTime, string>? timeText = input.ArgumentFormatter is { } tf
-                    ? t => tf(first switch
-                    {
-                        DateOnly => DateOnly.FromDateTime(t),
-                        DateTimeOffset o => new DateTimeOffset(t, o.Offset),
-                        _ => t,
-                    })
-                    : null;
+                var timeText = TimeFormatter(input);
                 TimeLabels(tier, new DateTime((long)lo), new DateTime((long)hi), count * z, input.ArgumentFormat, culture, columnPx, timeText, stretch: z);
             }
 
@@ -1729,6 +1755,7 @@ internal static class ChartLayout
         var least = Math.Clamp(input.MinZoomSpan, 1, n);
         if (kind == ArgumentKind.Category)
         {
+            var dates = Dates(input.Arguments);
             int Index(object? a, int fallback)
             {
                 if (a is null) return fallback;
@@ -1736,6 +1763,15 @@ internal static class ChartLayout
                 for (var i = 0; i < n; i++)
                 {
                     if (Equals(input.Arguments[i], a) || texts[i] == text) return i;
+                }
+
+                // Dates one to an item: the nearest item inside the view (a weekend's end moves to
+                // the Monday or Friday).
+                if (dates is not null && a is DateTime or DateOnly or DateTimeOffset)
+                {
+                    var t = new DateTime((long)ToDouble(a, ArgumentKind.Time)!.Value);
+                    var inside = Enumerable.Range(0, n).Where(i => dates[i] is { } d && (fallback == 0 ? d >= t : d <= t));
+                    return fallback == 0 ? inside.DefaultIfEmpty(n - 1).First() : inside.DefaultIfEmpty(0).Last();
                 }
 
                 // Not among them (the items changed since the reader zoomed): that end is open.
@@ -1949,25 +1985,8 @@ internal static class ChartLayout
             return level;
         }).ToArray();
 
-        string Text(DateTime t) => text is not null ? text(t) : format is not null ? t.ToString(format, culture) : unit switch
-        {
-            ChartTime.Unit.Second => t.ToString("T", culture),
-            ChartTime.Unit.Minute or ChartTime.Unit.Hour => t.ToString("t", culture),
-            ChartTime.Unit.Day => t.Day.ToString(culture),
-            ChartTime.Unit.Month => t.ToString("MMM", culture),
-            _ => t.ToString("yyyy", culture),
-        };
-
-        // The second line: the month (and year) under days, the date under times, the year under months.
-        string? Context(DateTime t, DateTime? previous) => format is not null || text is not null ? null : unit switch
-        {
-            ChartTime.Unit.Second or ChartTime.Unit.Minute or ChartTime.Unit.Hour =>
-                previous?.Date == t.Date ? null : t.ToString(previous?.Year == t.Year ? "MMM d" : "MMM d, yyyy", culture),
-            ChartTime.Unit.Day =>
-                previous is { } p && p.Year == t.Year && p.Month == t.Month ? null : t.ToString(previous?.Year == t.Year ? "MMM" : "MMM yyyy", culture),
-            ChartTime.Unit.Month => previous?.Year == t.Year ? null : t.ToString("yyyy", culture),
-            _ => null,
-        };
+        string Text(DateTime t) => TimeText(t, unit, format, text, culture);
+        string? Context(DateTime t, DateTime? previous) => TimeContext(t, previous, unit, format, text, culture);
 
         var texts = ticks.Select(Text).ToArray();
         var widest = texts.Max(Width) + (unit is ChartTime.Unit.Day ? 8 : 0);
@@ -1997,6 +2016,199 @@ internal static class ChartLayout
             model.TwoLine |= context is not null;
             model.ArgumentLabels.Add(new AxisLabel((ticks[i] - min).Ticks / span, texts[i], context, from) { Lead = stretch == 1 ? null : Context(ticks[i], null) });
         }
+    }
+
+    private static string TimeText(DateTime t, ChartTime.Unit unit, string? format, Func<DateTime, string>? text, CultureInfo culture) =>
+        text is not null ? text(t) : format is not null ? t.ToString(format, culture) : unit switch
+        {
+            ChartTime.Unit.Second => t.ToString("T", culture),
+            ChartTime.Unit.Minute or ChartTime.Unit.Hour => t.ToString("t", culture),
+            ChartTime.Unit.Day => t.Day.ToString(culture),
+            ChartTime.Unit.Month => t.ToString("MMM", culture),
+            _ => t.ToString("yyyy", culture),
+        };
+
+    // The second line: the month (and year) under days, the date under times, the year under months.
+    private static string? TimeContext(DateTime t, DateTime? previous, ChartTime.Unit unit, string? format, Func<DateTime, string>? text, CultureInfo culture) =>
+        format is not null || text is not null ? null : unit switch
+        {
+            ChartTime.Unit.Second or ChartTime.Unit.Minute or ChartTime.Unit.Hour =>
+                previous?.Date == t.Date ? null : t.ToString(previous?.Year == t.Year ? "MMM d" : "MMM d, yyyy", culture),
+            ChartTime.Unit.Day =>
+                previous is { } p && p.Year == t.Year && p.Month == t.Month ? null : t.ToString(previous?.Year == t.Year ? "MMM" : "MMM yyyy", culture),
+            ChartTime.Unit.Month => previous?.Year == t.Year ? null : t.ToString("yyyy", culture),
+            _ => null,
+        };
+
+    // A formatter gets each tick as a date of the argument's own type.
+    private static Func<DateTime, string>? TimeFormatter(ChartInput input)
+    {
+        if (input.ArgumentFormatter is not { } tf) return null;
+        var first = input.Arguments.FirstOrDefault(a => a is not null);
+        return t => tf(first switch
+        {
+            DateOnly => DateOnly.FromDateTime(t),
+            DateTimeOffset o => new DateTimeOffset(t, o.Offset),
+            _ => t,
+        });
+    }
+
+    /// <summary>The arguments as dates (null where none), when every one given is a date and they run earliest first; else null.</summary>
+    internal static DateTime?[]? Dates(IReadOnlyList<object?> arguments)
+    {
+        if (KindOf(arguments) != ArgumentKind.Time) return null;
+        var dates = new DateTime?[arguments.Count];
+        DateTime? last = null;
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            if (arguments[i] is null) continue;
+            if (ToDouble(arguments[i], ArgumentKind.Time) is not { } ticks) return null;
+            var d = new DateTime((long)ticks);
+            if (last > d) return null;
+            dates[i] = last = d;
+        }
+
+        return dates;
+    }
+
+    /// <summary>
+    /// A date's place among items one to a date, counted in items: an item's own index, or between
+    /// two by its share of the time between them (a Saturday between Friday and Monday). Null
+    /// before the first or after the last.
+    /// </summary>
+    internal static double? DateSlot(DateTime?[] dates, DateTime t)
+    {
+        var previous = -1;
+        for (var i = 0; i < dates.Length; i++)
+        {
+            if (dates[i] is not { } d) continue;
+            if (d == t) return i;
+            if (d > t)
+            {
+                if (previous < 0) return null;
+                var p = dates[previous]!.Value;
+                return previous + (i - previous) * ((t - p).Ticks / (double)(d - p).Ticks);
+            }
+
+            previous = i;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Labels for dates one to an item (bars, or SkipGaps): at the item where a day, month or year
+    /// begins, as a time scale's ticks, coarser at narrower widths. Placed like ticks, not in bands:
+    /// the script drops any that still crowd. False when there's too little to go by (one date).
+    /// </summary>
+    private static bool DateLabels(ChartModel model, DateTime?[] dates, double[] positions, double bands, double count, ChartInput input, double columnPx, bool tier)
+    {
+        var items = Enumerable.Range(0, dates.Length).Where(i => dates[i] is not null).ToArray();
+        if (items.Length < 2) return false;
+        var ladder = ChartTime.Ladder;
+        var (min, max) = (dates[items[0]]!.Value, dates[items[^1]]!.Value);
+        if (max == min) return false;
+
+        // The data's own step: the coarsest interval that still gives each item one to itself.
+        var own = 0;
+        for (var j = 0; j < ladder.Length; j++)
+        {
+            var distinct = true;
+            for (var k = 1; k < items.Length && distinct; k++)
+            {
+                distinct = ChartTime.Key(dates[items[k]]!.Value, ladder[j]) != ChartTime.Key(dates[items[k - 1]]!.Value, ladder[j]);
+            }
+
+            if (!distinct) break;
+            own = j;
+        }
+
+        // As fine as the dates in view call for (zoomed by the chart's View, only those).
+        var seen = items.Where(i => InView(positions[i])).ToArray();
+        var span = seen.Length >= 2 ? (dates[seen[^1]]!.Value - dates[seen[0]]!.Value).Ticks : (max - min).Ticks;
+        var b = Math.Min(ladder.Length - 1, Math.Max(own, ChartTime.BaseIndex(span, count)));
+
+        // An item's level: how many intervals up from the base begin at it (0 the base, 1 the next
+        // up…), or -1 for none. The first item begins only those it's exactly on.
+        var level = new int[dates.Length];
+        Array.Fill(level, -1);
+        DateTime? previous = null;
+        foreach (var i in items)
+        {
+            var t = dates[i]!.Value;
+            for (var j = b; j < ladder.Length; j++)
+            {
+                if (previous is { } p ? ChartTime.Key(t, ladder[j]) == ChartTime.Key(p, ladder[j]) : !ChartTime.IsOn(t, ladder[j])) break;
+                level[i] = j - b;
+            }
+
+            previous = t;
+        }
+
+        model.Dated = true;
+        var labeled = items.Where(i => level[i] >= 0).ToArray();
+        if (labeled.Length == 0) return true;
+        var (unit, format, text, culture) = (ladder[b].Unit, input.ArgumentFormat, TimeFormatter(input), input.Culture);
+        var texts = labeled.ToDictionary(i => i, i => TimeText(dates[i]!.Value, unit, format, text, culture));
+        var need = texts.Values.Max(Width) + (unit is ChartTime.Unit.Day ? 8 : 0) + LabelGapPx;
+        var top = labeled.Max(i => level[i]);
+
+        // At each width, the finest level whose labels are far enough apart on average; then any
+        // still too near the one before gives way, a month's start keeping its place over a day's.
+        var shown = new HashSet<int>[Widths.Length];
+        for (var k = 0; k < Widths.Length; k++)
+        {
+            var slot = PlotWidth(k, columnPx) / Math.Max(1, bands);
+            var floor = 0;
+            while (floor < top)
+            {
+                var at = labeled.Where(i => level[i] >= floor).ToArray();
+                if (at.Length < 2 || (at[^1] - at[0]) / (double)(at.Length - 1) * slot >= need) break;
+                floor++;
+            }
+
+            var kept = new List<int>();
+            foreach (var i in labeled.Where(i => level[i] >= floor))
+            {
+                if (kept.Count > 0 && (i - kept[^1]) * slot < need)
+                {
+                    if (level[i] > level[kept[^1]]) kept[^1] = i;
+                    continue;
+                }
+
+                kept.Add(i);
+            }
+
+            shown[k] = [.. kept];
+        }
+
+        // Shown from the narrowest width from which it shows at every wider one too.
+        var from = new Dictionary<int, int>();
+        foreach (var i in labeled)
+        {
+            var f = -1;
+            for (var k = Widths.Length - 1; k >= 0 && shown[k].Contains(i); k--) f = k;
+            if (f >= 0) from[i] = f;
+        }
+
+        foreach (var i in labeled)
+        {
+            if (!from.TryGetValue(i, out var f) || !InView(positions[i])) continue;
+
+            // Compared with the label before it at the narrowest width it shows at.
+            DateTime? before = null;
+            for (var j = i - 1; j >= 0; j--)
+            {
+                if (from.TryGetValue(j, out var g) && g <= f) { before = dates[j]; break; }
+            }
+
+            var t = dates[i]!.Value;
+            var context = TimeContext(t, before, unit, format, text, culture);
+            model.TwoLine |= context is not null;
+            model.ArgumentLabels.Add(new AxisLabel(positions[i], texts[i], context, f) { Lead = tier ? TimeContext(t, null, unit, format, text, culture) : null });
+        }
+
+        return true;
     }
 
     private static List<List<(double A, double V, int I)>> Runs(List<(double A, double V, int I)?> points)
