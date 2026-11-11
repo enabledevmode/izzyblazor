@@ -489,6 +489,10 @@ public partial class TreeList<TItem>
     }
 
     /// <inheritdoc />
+    // The row's start is the tree's chevron: the button for hidden columns goes at its end.
+    internal override bool ExpanderAtEnd => true;
+
+    /// <inheritdoc />
     internal override string ViewName => "TreeList";
 
     /// <inheritdoc />

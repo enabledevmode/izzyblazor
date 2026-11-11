@@ -1430,7 +1430,7 @@
     };
 
     /// <inheritdoc />
-    internal override int LeadSpan => Grouping.Levels.Count + (HasExpander ? 1 : 0);
+    internal override int LeadSpan => Grouping.Levels.Count + (LeadExpander ? 1 : 0);
 
     // The lead columns hold the groups' chevrons: frozen with the start columns, after the selection.
     private string LeadClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-lead ib-frozen ib-frozen-start" : "ib-grid-lead";
@@ -1469,7 +1469,7 @@
             </th>
         }
 
-        if (HasExpander)
+        if (LeadExpander)
         {
             var all = Details.AllOpen;
             var label = all ? TextDefaults.DetailCollapseAll : TextDefaults.DetailExpandAll;
@@ -1504,32 +1504,38 @@
         : $"{LeadSpan} * var(--ib-datagrid-group)";
 
     /// <inheritdoc />
-    internal override RenderFragment? RowLead(TItem item, int row) => !HasExpander ? LeadCell : __builder =>
+    internal override RenderFragment? RowLead(TItem item, int row) => !LeadExpander ? LeadCell : __builder =>
     {
         var levels = Grouping.Levels.Count;
         if (levels > 0)
         {
             <td class="@LeadClass" style="@LeadStyle" colspan="@levels"></td>
         }
-        <td class="@ExpanderClass" style="@ExpanderStyle">
-            @* Not while it's open only for an edit, which closes it. *@
-            @if (HasDetail(item) && (Details.IsOpen(KeyOf(item)) || !DetailOpen(item)))
+        <td class="@ExpanderClass" style="@ExpanderStyle">@DetailButton(item, row)</td>
+    };
+
+    // A row's button for its detail: a chevron that turns right to down at the row's start; at its end
+    // (a TreeList's), one that points down and turns over.
+    private RenderFragment DetailButton(TItem item, int row) => __builder =>
+    {
+        @* Not while it's open only for an edit, which closes it. *@
+        @if (HasDetail(item) && (Details.IsOpen(KeyOf(item)) || !DetailOpen(item)))
+        {
+            var key = KeyOf(item);
+            var open = DetailOpen(item);
+            var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
+            // One with only hidden values to show goes while nothing is hidden.
+            var css = (HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx") + (TrailExpander ? " ib-grid-expand-down" : "");
+            var icon = TrailExpander ? IconPurpose.ChevronDown : IconPurpose.ChevronRight;
+            if (UseState)
             {
-                var key = KeyOf(item);
-                var open = DetailOpen(item);
-                var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
-                // One with only hidden values to show goes while nothing is hidden.
-                var css = HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx";
-                if (UseState)
-                {
-                    <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
-                }
-                else
-                {
-                    <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
-                }
+                <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Purpose="icon" /></button>
             }
-        </td>
+            else
+            {
+                <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Purpose="icon" /></a>
+            }
+        }
     };
 
     /// <inheritdoc />
@@ -2136,23 +2142,29 @@
         : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item));
 
     /// <inheritdoc />
-    internal override RenderFragment? LastHeaderCell => !HasActionCell ? null : __builder =>
+    internal override RenderFragment? LastHeaderCell => !HasLastCell ? null : __builder =>
     {
-        <th scope="col" class="@MenuCellClass"><span class="ib-visually-hidden">@TextDefaults.RowActions</span></th>
+        <th scope="col" class="@MenuCellClass"><span class="ib-visually-hidden">@(HasActionCell ? TextDefaults.RowActions : TextDefaults.DetailColumn)</span></th>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? LastEmptyCell => !HasActionCell ? null : __builder =>
+    internal override RenderFragment? LastEmptyCell => !HasLastCell ? null : __builder =>
     {
         <td class="@MenuCellClass"></td>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? LastCell(TItem item) => !HasActionCell ? null : __builder =>
+    internal override RenderFragment? LastCell(TItem item) => !HasLastCell ? null : __builder =>
     {
         <td class="@MenuCellClass">
             <div class="ib-grid-actions">
-                @{ var edited = RowEditKey is { } editing && (editing == NewRowKey ? ReferenceEquals(item, _editModel) : IsEditingRow(item)); }
+                @if (TrailExpander)
+                {
+                    @DetailButton(item, RowIndexOf(item))
+                }
+                @if (HasActionCell)
+                {
+                var edited = RowEditKey is { } editing && (editing == NewRowKey ? ReferenceEquals(item, _editModel) : IsEditingRow(item));
                 @if (edited)
                 {
                     @RowEditActions
@@ -2161,7 +2173,7 @@
                 {
                     <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
                 }
-                @{ var count = edited ? default : ActionCount(item); }
+                var count = edited ? default : ActionCount(item);
                 @if (count.Menu || count.Auto > 0)
                 {
                     @* With only buttons that fold, the ⋮ shows once they're in it. *@
@@ -2173,9 +2185,24 @@
                         <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
                     </Menu>
                 }
+                }
             </div>
         </td>
     };
+
+    // A row's place among those drawn, for its detail's id, where only the row is at hand.
+    private int RowIndexOf(TItem item)
+    {
+        for (var i = 0; i < _items.Count; i++)
+        {
+            if (EqualityComparer<TItem>.Default.Equals(_items[i], item))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 
     private bool HasSearchTool => Searchable;
 
@@ -2796,9 +2823,9 @@
                 {
                     @ColumnCol(i)
                 }
-                @if (HasActionCell)
+                @if (HasLastCell)
                 {
-                    <col class="ib-datagrid-menu-col" />
+                    <col class="ib-datagrid-menu-col" style="@(TrailExpander ? $"width:calc({LastWidth})" : null)" />
                 }
             }
         </colgroup>
@@ -2815,10 +2842,10 @@
                     }
                 </colgroup>
             }
-            @if (HasActionCell)
+            @if (HasLastCell)
             {
                 <colgroup>
-                    <col class="ib-datagrid-menu-col" />
+                    <col class="ib-datagrid-menu-col" style="@(TrailExpander ? $"width:calc({LastWidth})" : null)" />
                 </colgroup>
             }
         }
@@ -2946,6 +2973,11 @@
                 parts.Add("var(--ib-datagrid-menu)");
             }
 
+            if (TrailExpander)
+            {
+                parts.Add(HasActionCell ? "var(--ib-grid-expander, var(--ib-datagrid-group))" : LastWidth);
+            }
+
             if (unset.Count > 0)
             {
                 parts.Add($"{unset.Count} * max({string.Join(", ", unset.Distinct())})");
@@ -3025,9 +3057,9 @@
                 parts.Add($"var(--ib-col-{i})");
             }
 
-            if (HasActionCell)
+            if (HasLastCell)
             {
-                parts.Add("var(--ib-datagrid-menu)");
+                parts.Add(LastWidth);
             }
         }
 

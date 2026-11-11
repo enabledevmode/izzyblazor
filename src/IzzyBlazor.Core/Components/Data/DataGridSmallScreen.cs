@@ -52,8 +52,30 @@ public abstract partial class GridViewBase<TItem>
     // A detail button for each row: for a DetailTemplate, or for the values of hidden columns.
     private bool HasExpander => HasDetails || Hiding;
 
+    /// <summary>
+    /// Whether the button for hidden columns' values goes at the row's end, before its actions: a
+    /// TreeList's, whose rows start with the tree's own chevron. A DataGrid's leads the row.
+    /// </summary>
+    internal virtual bool ExpanderAtEnd => false;
+
+    // At the end: only with no DetailTemplate, whose button leads the row, hidden values and all.
+    private bool TrailExpander => ExpanderAtEnd && Hiding && !HasDetails;
+
+    // The button column at the row's start.
+    private bool LeadExpander => HasExpander && !TrailExpander;
+
+    // The column at the row's end: its actions, its button for hidden values, or both.
+    private bool HasLastCell => HasActionCell || TrailExpander;
+
+    // That column's width; the button's part is 0 while nothing is hidden.
+    // Alone, as wide as one action's column (its padding included); beside actions, a lead column's more.
+    private string LastWidth =>
+        !TrailExpander ? "var(--ib-datagrid-menu)"
+        : HasActionCell ? "var(--ib-datagrid-menu) + var(--ib-grid-expander, var(--ib-datagrid-group))"
+        : "var(--ib-grid-expander, 3rem)";
+
     // Hiding with no template: the button column shows only while a column is hidden.
-    private bool ExpanderComesAndGoes => Hiding && !HasDetails;
+    private bool ExpanderComesAndGoes => Hiding && !HasDetails && !TrailExpander;
 
     /// <inheritdoc />
     internal override string? GridId => Hiding ? _tableId ??= IdGenerator.Next("ib-grid") : null;
@@ -125,7 +147,8 @@ public abstract partial class GridViewBase<TItem>
                 + (SelectColumn ? SelectRem : 0)
                 + (GripColumn ? GripRem : 0)
                 + leads * LeadRem
-                + (HasActionCell ? ActionWidth(hidden > 0) : 0);
+                + (HasActionCell ? ActionWidth(hidden > 0) : 0)
+                + (TrailExpander && hidden > 0 ? (HasActionCell ? LeadRem : ActionWidth(false)) : 0);
         }
 
         return new HidePlan(levels, widths, allSet);
@@ -176,6 +199,11 @@ public abstract partial class GridViewBase<TItem>
         else
         {
             none.Append(CultureInfo.InvariantCulture, $"{t}>*>tr>*>.ib-hx,{t}>tbody>.ib-hx,{t}>*>tr>*>*>.ib-grid-hidden{{display:none}}");
+            if (TrailExpander)
+            {
+                // The end button, in the actions' cell, and its room.
+                none.Append(CultureInfo.InvariantCulture, $"{t}{{--ib-grid-expander:0px}}{t}>*>tr>td>.ib-grid-actions>.ib-hx{{display:none}}");
+            }
         }
 
         if (HasActionCell)
