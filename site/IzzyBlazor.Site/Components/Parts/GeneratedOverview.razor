@@ -11,6 +11,11 @@
     <DocHtml Html="@ApiComponent.Summary" Context="_prose" Size="ProseSize.Md" />
 }
 
+@if (Component.Use is { } use)
+{
+    <TextBlock><InlineCode Text="@use" /></TextBlock>
+}
+
 @if (ApiComponent.Examples is { Count: > 0 } usage)
 {
     <Heading Level="2">Usage</Heading>

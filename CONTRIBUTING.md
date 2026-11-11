@@ -226,6 +226,11 @@ outside the Release workflow and broke the Live examples until it was removed.
 
 An Overview is for using the component; the API page is the reference. Follow Button's:
 
+0. **When to use it** (charts): a chart's `use` in `components.json`, a paragraph under the
+   summary saying what the chart type shows, when it's the right choice and which fits better
+   otherwise, from published guidance (the FT Visual Vocabulary, data-to-viz, Datawrapper,
+   Claus Wilke's Fundamentals of Data Visualization). A new chart type gets one.
+
 1. **Usage**: a short code block of the common cases, ready to copy.
 2. **A section per feature**, in this order: what it is, as the user sees it; when to use it,
    next to the alternatives; how to turn it on; then the details. "A filter row is a row of

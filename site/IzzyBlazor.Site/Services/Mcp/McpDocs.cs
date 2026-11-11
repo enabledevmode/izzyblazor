@@ -201,6 +201,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
 
         // The remarks often finish the summary's thought ("What confirming does:"), so they follow it.
         Section(text, null, component.Summary);
+        if (owner?.Name == component.Name && owner.Use is { } use)
+        {
+            text.Append('\n').Append(use).Append('\n');
+        }
+
         Section(text, null, component.Remarks);
         if (component.Examples is { Count: > 0 } usage)
         {
