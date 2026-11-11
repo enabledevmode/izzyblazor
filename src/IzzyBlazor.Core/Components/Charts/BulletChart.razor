@@ -8,9 +8,8 @@
 @using System.Linq.Expressions
 
 @*
-    Bullet graphs, a row per item: each measure's value as a bar against its target and the ranges
-    that say how good it is, such as a KPI scorecard. Stephen Few's design: a dark bar a third of
-    the row's thickness over ranges in grays, a target tick across it, the label to the left.
+    Bullet graphs, a row per item: each measure's value against its target and the ranges that
+    say how good it is, such as a KPI scorecard.
 
     <BulletChart Items="kpis" Title="Q3 against plan"
                  Label="k => k.Name" Value="k => k.Actual" Target="k => k.Goal"

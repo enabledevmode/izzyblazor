@@ -426,10 +426,7 @@ public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// A bar chart's bars, one per item, to compare values across names such as products or
-/// regions. Bars stand upright, or lie across with the chart's
-/// <c>Orientation="Orientation.Horizontal"</c>, which suits long names and rankings. Several bar
-/// series sit side by side, or stack with the chart's <c>Stacking</c>.
+/// Bars, one per item, to compare amounts across names such as products or regions.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -440,6 +437,11 @@ public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Bars stand upright, or lie across with the chart's <c>Orientation="Orientation.Horizontal"</c>,
+/// which suits long names and rankings. Several bar series sit side by side, or stack with the
+/// chart's <c>Stacking</c>.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -465,8 +467,7 @@ public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 }
 
 /// <summary>
-/// A line chart's line through each item's value, to show how a measure changes over time. Each
-/// line series is one line, and several lines differ by dash as well as by color.
+/// A line through each item's value, to show how a measure changes over time.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -477,6 +478,9 @@ public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Each line series is one line, and several lines differ by dash as well as by color.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -518,9 +522,7 @@ public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 }
 
 /// <summary>
-/// An area chart's filled area under a line through each item's value, to show a quantity over
-/// time. The chart's <c>Stacking</c> stacks area series, so the parts add up to the whole, such as
-/// visits by channel.
+/// A filled area under a line through each item's value, to show a quantity over time.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -534,6 +536,10 @@ public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// The chart's <c>Stacking</c> stacks area series, so the parts add up to the whole, such as visits
+/// by channel.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -571,8 +577,8 @@ public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 }
 
 /// <summary>
-/// A scatter chart's markers, one per item at two measures, the chart's <c>Argument</c> and this
-/// <c>Value</c>, to show how they relate, such as a page's load time and bounce rate.
+/// A marker per item at two measures, the chart's <c>Argument</c> and this <c>Value</c>, to show
+/// how they relate.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -591,9 +597,7 @@ public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 }
 
 /// <summary>
-/// A bubble chart's circles, one per item at two measures and sized by a third, such as products
-/// by growth and margin, sized by revenue. Each circle's area is in proportion to its
-/// <see cref="Size"/>.
+/// A circle per item at two measures, sized by a third.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -605,6 +609,9 @@ public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Each circle's area is in proportion to its <see cref="Size"/>.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -637,13 +644,8 @@ public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 }
 
 /// <summary>
-/// A waterfall chart: each item's <c>Value</c> is a change, drawn as a bar from where the last one
-/// ended, so the bars walk from a starting amount to a result, such as revenue less costs to
-/// profit. The first bar, the starting amount, and each item that's a <see cref="Total"/> stand
-/// on the baseline, a total showing everything so far. Rises, falls and totals each take a color,
-/// and the changes read signed ("+12,000", "−4,500"). Line items such as a profit and loss read
-/// best as bars across (the chart's <c>Orientation.Horizontal</c>); changes over time, as columns.
-/// A waterfall is its chart's only series, and the chart's legend keys its three colors.
+/// Bars that walk from a starting amount through each change to a result, such as revenue less
+/// costs to profit.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -654,6 +656,13 @@ public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// The first bar, the starting amount, and each item that's a <see cref="Total"/> stand on the
+/// baseline, a total showing everything so far. Rises, falls and totals each take a color, and the
+/// changes read signed ("+12,000", "−4,500"). Line items such as a profit and loss read best as
+/// bars across (the chart's <c>Orientation.Horizontal</c>); changes over time, as columns. A
+/// waterfall is its chart's only series, and the chart's legend keys its three colors.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartWaterfallSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -762,9 +771,7 @@ public abstract class ChartRangeSeriesBase<TItem> : ChartSeriesBase<TItem>
 
 /// <summary>
 /// A bar from each item's low value to its high one, such as a day's lowest and highest
-/// temperature. Bars stand upright, or lie across with the chart's
-/// <c>Orientation="Orientation.Horizontal"</c>. The value axis needn't start at zero: a range
-/// bar's length is the spread, not the amount.
+/// temperature.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -775,6 +782,10 @@ public abstract class ChartRangeSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Bars stand upright, or lie across with the chart's <c>Orientation="Orientation.Horizontal"</c>.
+/// The value axis needn't start at zero: a range bar's length is the spread, not the amount.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 {
@@ -790,10 +801,7 @@ public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 }
 
 /// <summary>
-/// A band filled from each item's low value to its high one, such as a forecast's interval or a
-/// city's daily spread of temperatures over a year. Draw the measure inside it (the forecast, the
-/// average) as a <see cref="ChartLineSeries{TItem}"/> on top, and say in the band's <c>Name</c>
-/// what it spans, such as "80% interval".
+/// A band from each item's low value to its high one, such as a forecast's interval.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -805,6 +813,10 @@ public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Draw the measure inside it (the forecast, the average) as a <see cref="ChartLineSeries{TItem}"/>
+/// on top, and say in the band's <c>Name</c> what it spans, such as "80% interval".
+/// </remarks>
 [ModeSupport]
 public sealed class ChartRangeAreaSeries<TItem> : ChartRangeSeriesBase<TItem>
 {
@@ -900,13 +912,7 @@ public abstract class ChartPriceSeriesBase<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// Prices over time as candlesticks: a body from each item's open to its close on a line from its
-/// low to its high. A candle is hollow when the price closed above its open and filled when it
-/// closed below, in the chart's increase and decrease colors (blue and red by default, which stay
-/// apart for red-green color blindness), so the direction shows without color too. Add a
-/// <see cref="ChartLineSeries{TItem}"/> for a moving average; volume reads best as bars in a chart
-/// of its own under this one, joined with <c>Sync</c>. For many items, <see cref="ChartOhlcSeries{TItem}"/>
-/// is thinner. Stands upright only.
+/// Prices over time as candlesticks, from each item's open, high, low and close.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -921,6 +927,14 @@ public abstract class ChartPriceSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// A candle is hollow when the price closed above its open and filled when it closed below, in the
+/// chart's increase and decrease colors (blue and red by default, which stay apart for red-green
+/// color blindness), so the direction shows without color too. Add a <see
+/// cref="ChartLineSeries{TItem}"/> for a moving average; volume reads best as bars in a chart of
+/// its own under this one, joined with <c>Sync</c>. For many items, <see
+/// cref="ChartOhlcSeries{TItem}"/> is thinner. Stands upright only.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 {
@@ -944,11 +958,7 @@ public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 }
 
 /// <summary>
-/// Prices over time as OHLC bars: a line from each item's low to its high, with the open as a tick
-/// to the left and the close as a tick to the right, in the chart's increase and decrease colors.
-/// Thinner than candlesticks, bars stay readable over many items, such as a year of days. Without
-/// an <see cref="Open"/>, high-low-close: an item is up when it closed at or above the one before.
-/// Stands upright only.
+/// Prices over time as OHLC bars, from each item's open, high, low and close.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -963,6 +973,11 @@ public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Thinner than candlesticks, bars stay readable over many items, such as a year of days. Without
+/// an <see cref="Open"/>, high-low-close: an item is up when it closed at or above the one before.
+/// Stands upright only.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartOhlcSeries<TItem> : ChartPriceSeriesBase<TItem>
 {

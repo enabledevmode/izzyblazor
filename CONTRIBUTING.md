@@ -226,10 +226,12 @@ outside the Release workflow and broke the Live examples until it was removed.
 
 An Overview is for using the component; the API page is the reference. Follow Button's:
 
-0. **When to use it** (charts): a chart's `use` in `components.json`, a paragraph under the
-   summary saying what the chart type shows, when it's the right choice and which fits better
-   otherwise, from published guidance (the FT Visual Vocabulary, data-to-viz, Datawrapper,
-   Claus Wilke's Fundamentals of Data Visualization). A new chart type gets one.
+0. **When to use it** (charts): a chart's `use` in `components.json` opens its Overview in place
+   of the doc comment's summary: what the chart is for, when to pick it and what to pick
+   instead, in short plain sentences, from published guidance (the FT Visual Vocabulary,
+   data-to-viz, Datawrapper, Claus Wilke's Fundamentals of Data Visualization). Never what it
+   looks like: the example shows that. A new chart type gets one, and its doc comment's summary
+   is one sentence, with the details in remarks.
 
 1. **Usage**: a short code block of the common cases, ready to copy.
 2. **A section per feature**, in this order: what it is, as the user sees it; when to use it,

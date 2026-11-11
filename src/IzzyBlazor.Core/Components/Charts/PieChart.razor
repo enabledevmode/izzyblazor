@@ -7,8 +7,7 @@
 @using System.Linq.Expressions
 
 @*
-    Parts of a whole as slices of a circle, or of a ring with Donut, drawn on the server. The
-    legend beside it (under it, when narrow) names each slice with its value and share.
+    Parts of a whole as slices of a circle, or of a ring with Donut.
 
     <PieChart Items="plans"
               Argument="p => p.Plan"
@@ -17,6 +16,8 @@
               Donut>
         <Center><strong>1,240</strong> customers</Center>
     </PieChart>
+
+    The legend beside it (under it, when narrow) names each slice with its value and share.
 
     Slices go clockwise from the top (or StartAngle) in item order, in the palette's eight colors, then gray. Missing, zero and
     negative values get no slice but keep their row in the legend and the table. Past about six

@@ -6,14 +6,14 @@
    doc comment's example), a section per registered example, the remarks, the parts, then Mode
    support, Accessibility, Keyboard, Parameters and See also. A section with nothing to show is left out. *@
 
-@if (ApiComponent.Summary is not null)
-{
-    <DocHtml Html="@ApiComponent.Summary" Context="_prose" Size="ProseSize.Md" />
-}
-
+@* A chart opens with when to use it; its doc comment's summary, which says what it draws, is on the API page. *@
 @if (Component.Use is { } use)
 {
     <TextBlock><InlineCode Text="@use" /></TextBlock>
+}
+else if (ApiComponent.Summary is not null)
+{
+    <DocHtml Html="@ApiComponent.Summary" Context="_prose" Size="ProseSize.Md" />
 }
 
 @if (ApiComponent.Examples is { Count: > 0 } usage)

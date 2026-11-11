@@ -51,14 +51,8 @@ public sealed record ChartBins
 }
 
 /// <summary>
-/// A histogram: each item's <see cref="Value"/> (a number or a date) falls in a bin, and each bin's
-/// bar is how many items it holds, to show how values spread, such as delivery times. The bars
-/// touch, the axis along the bottom is the values' own scale with the bins' edges marked, and the
-/// value axis counts from zero. <see cref="Bins"/> sets how they're cut. The chart takes no
-/// <c>Argument</c>. <c>SeriesBy</c> splits the counts by a group, on one set of bins: stacked with
-/// the chart's <c>Stacking</c>, or overlaid with a lower <see cref="Opacity"/>. A histogram's chart
-/// holds only histogram series; mark a value on its scale with a <see cref="ChartReferenceLine"/>'s
-/// <c>Argument</c>, such as a target time.
+/// Counts how many items' <c>Value</c>s fall in each bin, to show how values spread, such as
+/// delivery times.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -69,6 +63,14 @@ public sealed record ChartBins
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// The bars touch, the axis along the bottom is the values' own scale with the bins' edges marked,
+/// and the value axis counts from zero. <see cref="Bins"/> sets how they're cut. The chart takes no
+/// <c>Argument</c>. <c>SeriesBy</c> splits the counts by a group, on one set of bins: stacked with
+/// the chart's <c>Stacking</c>, or overlaid with a lower <see cref="Opacity"/>. A histogram's chart
+/// holds only histogram series; mark a value on its scale with a <see cref="ChartReferenceLine"/>'s
+/// <c>Argument</c>, such as a target time.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartHistogramSeries<TItem> : ChartSeriesBase<TItem>
 {

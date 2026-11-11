@@ -2117,7 +2117,7 @@
       ]
     },
     {
-      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "use": "Pick the series by the question the chart answers: change over time takes a line or an area; comparing amounts, bars; how two measures relate, a scatter or bubble chart; how values spread, a histogram, box plot or violin; how a total was reached, a waterfall. Parts of a whole, flows and readings against a target have charts of their own, from the pie chart and treemap to the Sankey, funnel, bullet chart and gauges.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh", "drill-down", "drill down", "breadcrumb"],
+      "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "use": "Choose the series by the question. For change over time, use lines or areas. To compare amounts, use bars. To show how two measures relate, use a scatter or bubble chart. To show how values spread, use a histogram, box plot or violin. To explain how a total was reached, use a waterfall. Parts of a whole, flows and targets have components of their own, such as `PieChart`, `SankeyChart` and `BulletChart`.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh", "drill-down", "drill down", "breadcrumb"],
       "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation", "ChartDrillLevel"],
       "features": [
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
@@ -2268,7 +2268,7 @@
       ]
     },
     {
-      "id": "bar-chart", "icon": "ChartColumn", "name": "ChartBarSeries", "title": "Bar chart", "category": "Charts", "summary": "Compares values across names as bars: ranked across, grouped or stacked as columns.", "use": "Bars compare amounts by their length, so they start at zero; sort them when the order is the point, as in a ranking. Over many dates a line chart reads better, and for two values per name where the gap between them matters, a range bar chart shows that gap directly.", "keywords": ["bar chart", "column chart", "bar graph", "stacked bar chart", "grouped bar chart"],
+      "id": "bar-chart", "icon": "ChartColumn", "name": "ChartBarSeries", "title": "Bar chart", "category": "Charts", "summary": "Compares values across names as bars: ranked across, grouped or stacked as columns.", "use": "Use bars to compare amounts across names, such as revenue by region. Bars start at zero, so their lengths compare fairly. Sort them when the order matters, as in a ranking. For many dates, use a line chart instead.", "keywords": ["bar chart", "column chart", "bar graph", "stacked bar chart", "grouped bar chart"],
       "features": [
         { "feature": "Bars across, or upright columns" },
         { "feature": "Grouped side by side, stacked, or stacked to 100%" },
@@ -2288,7 +2288,7 @@
       ]
     },
     {
-      "id": "line-chart", "icon": "ChartLine", "name": "ChartLineSeries", "title": "Line chart", "category": "Charts", "summary": "Shows how values change over time as lines, on a date or number scale.", "use": "The standard chart for a measure over time: the slope shows the change, and the value axis needn't start at zero. Past four or five lines it turns to spaghetti, so highlight the one that matters or give each its own small chart. Join points only when their order means something; otherwise use a scatter chart.", "keywords": ["line chart", "line graph", "time series", "trend chart"],
+      "id": "line-chart", "icon": "ChartLine", "name": "ChartLineSeries", "title": "Line chart", "category": "Charts", "summary": "Shows how values change over time as lines, on a date or number scale.", "use": "A line chart is the standard way to show change over time. The value axis doesn't have to start at zero, so small changes show. More than four or five lines get hard to follow. Highlight the one that matters, or give each line its own chart.", "keywords": ["line chart", "line graph", "time series", "trend chart"],
       "features": [
         { "feature": "Lines over dates, numbers or names, straight, smooth or stepped" },
         { "feature": "Dashes and marker shapes that tell lines apart besides color" },
@@ -2306,7 +2306,7 @@
       ]
     },
     {
-      "id": "area-chart", "icon": "ChartArea", "name": "ChartAreaSeries", "title": "Area chart", "category": "Charts", "summary": "Shows a total over time as filled areas, stacked to show each part of the whole.", "use": "An area shows a quantity over time where the amount itself matters, and stacked areas show a total and how it splits. Only the bottom layer of a stack reads exactly, since the others sit on a moving baseline, so to compare the layers, use lines. A single measure reads more clearly as a line, and fewer than about ten dates as stacked bars.", "keywords": ["area chart", "stacked area chart", "area graph"],
+      "id": "area-chart", "icon": "ChartArea", "name": "ChartAreaSeries", "title": "Area chart", "category": "Charts", "summary": "Shows a total over time as filled areas, stacked to show each part of the whole.", "use": "Use an area chart when the size of a total over time matters, such as visits by channel. Stacked areas show the total and how it splits. Only the bottom layer reads exactly, because the others sit on a moving base. To compare the parts, use a line chart.", "keywords": ["area chart", "stacked area chart", "area graph"],
       "features": [
         { "feature": "Areas over dates, numbers or names, straight, smooth or stepped" },
         { "feature": "Stacked, or stacked to 100%" },
@@ -2320,7 +2320,7 @@
       ]
     },
     {
-      "id": "scatter-chart", "icon": "ChartScatter", "name": "ChartScatterSeries", "title": "Scatter chart", "category": "Charts", "summary": "Shows how two measures relate, a marker for each item.", "use": "The standard chart for how two measures relate: whether they rise together, where items cluster, which stand apart. It shows that two measures move together, not why. When thousands of points pile on each other, a heatmap of counts reads better.", "keywords": ["scatter plot", "scatter chart", "xy chart", "correlation"],
+      "id": "scatter-chart", "icon": "ChartScatter", "name": "ChartScatterSeries", "title": "Scatter chart", "category": "Charts", "summary": "Shows how two measures relate, a marker for each item.", "use": "Use a scatter chart to see whether two measures move together, such as page load time and bounce rate. It shows clusters and outliers too. It doesn't show that one causes the other. With thousands of points, use a heatmap of counts.", "keywords": ["scatter plot", "scatter chart", "xy chart", "correlation"],
       "features": [
         { "feature": "Two measures on number or date scales" },
         { "feature": "Groups split into series by a value, each with its own marker shape" },
@@ -2334,7 +2334,7 @@
       ]
     },
     {
-      "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows three measures at once: a circle for each item at two, sized by the third.", "use": "A bubble's size adds a third measure that matters less than the two on the axes: readers judge area far less exactly than position. Put the measures that matter most on the axes, say in the legend or title what size means, and with many items, drop the sizes for a scatter chart.", "keywords": ["bubble chart", "bubble plot"],
+      "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows three measures at once: a circle for each item at two, sized by the third.", "use": "Use a bubble chart when a third measure adds to a scatter chart, such as revenue on top of growth and margin. People judge size far less exactly than position, so put the most important measures on the axes. Say what the size means in the title or the legend.", "keywords": ["bubble chart", "bubble plot"],
       "features": [
         { "feature": "Circles sized by area, on one scale across series" },
         { "feature": "An optional size key of reference circles" },
@@ -2350,7 +2350,7 @@
       ]
     },
     {
-      "id": "range-bar-chart", "icon": "ChartGantt", "name": "ChartRangeBarSeries", "title": "Range bar chart", "category": "Charts", "summary": "Draws each item's span from a low to a high value as a floating bar.", "use": "A range bar fits when the distance between two values matters more than the values themselves, such as a day's temperatures or the pay gap in each job. It shows nothing between its ends: when the spread inside matters, use a box plot. Over time, a range area chart shows the same span as a band.", "keywords": ["range bar", "range column", "floating bar", "min max chart", "high low chart"],
+      "id": "range-bar-chart", "icon": "ChartGantt", "name": "ChartRangeBarSeries", "title": "Range bar chart", "category": "Charts", "summary": "Draws each item's span from a low to a high value as a floating bar.", "use": "Use range bars when the span between two values is the point, such as each day's low and high temperature. A range bar shows only the ends. When the spread between them matters, use a box plot. For a span over time, a range area chart reads better.", "keywords": ["range bar", "range column", "floating bar", "min max chart", "high low chart"],
       "features": [
         { "feature": "Bars from each item's low to its high, upright or across" },
         { "feature": "A value axis that fits the ranges, not drawn down to zero" },
@@ -2365,7 +2365,7 @@
       ]
     },
     {
-      "id": "range-area-chart", "icon": "ChartArea", "name": "ChartRangeAreaSeries", "title": "Range area chart", "category": "Charts", "summary": "Fills a band between each item's low and high values, such as a forecast's interval.", "use": "A band shows a span over time: a forecast's uncertainty, the interval around a trend, a day's low and high across a year. Readers outside statistics often take a band's edges as hard limits, so name what it spans. For separate names rather than dates, use a range bar chart.", "keywords": ["range area", "band chart", "confidence band", "forecast interval", "error band", "min max band"],
+      "id": "range-area-chart", "icon": "ChartArea", "name": "ChartRangeAreaSeries", "title": "Range area chart", "category": "Charts", "summary": "Fills a band between each item's low and high values, such as a forecast's interval.", "use": "Use a range area for a span that changes over time, such as a forecast's uncertainty or a year of daily temperatures. Many readers take a band's edges as hard limits, so name what it covers, such as \"80% interval\". For separate names instead of dates, use range bars.", "keywords": ["range area", "band chart", "confidence band", "forecast interval", "error band", "min max band"],
       "features": [
         { "feature": "A band between the lows and highs, edged on both sides" },
         { "feature": "A line through it from a line series, such as the forecast" },
@@ -2380,7 +2380,7 @@
       ]
     },
     {
-      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "The traders' chart: each candle shows whether its period closed up or down, and by how much, at a glance. It can't show the path the price took within a period. When only the closing price matters, a line chart is simpler.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
+      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "Use candlesticks for prices that traders read. Each period shows at a glance whether the price closed up or down. Over long histories the candles crowd together, so use an OHLC chart. For the closing price alone, use a line chart.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
       "features": [
         { "feature": "Candlesticks, hollow when the price closed up and filled when it closed down, so direction shows without color" },
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
@@ -2396,7 +2396,7 @@
       ]
     },
     {
-      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days, as thin bars of each period's four prices.", "use": "OHLC bars are the Western convention for price histories, and readers who trade know them; high-low-close suits end-of-day values, such as a fund's or an index's, where the open says little. For readers outside markets, candlesticks show the direction more plainly, and for the trend alone, a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
+      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days, as thin bars of each period's four prices.", "use": "Traders know OHLC bars, and they stay readable over long histories where candlesticks crowd together. Leave out `Open` for high-low-close, which suits end-of-day prices such as a fund's. For a general audience, use a candlestick chart. For the trend alone, use a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
       "features": [
         { "feature": "OHLC bars, the open a tick to the left and the close to the right, colored by whether the price closed up" },
         { "feature": "High-low-close, with no open" },
@@ -2411,7 +2411,7 @@
       ]
     },
     {
-      "id": "histogram", "icon": "ChartColumnBig", "name": "ChartHistogramSeries", "title": "Histogram", "category": "Charts", "summary": "Counts numbers or dates in equal bins, to show how they spread.", "use": "The standard first look at one measure: a histogram shows where values bunch, how they lean, whether they split into two peaks and where they leave gaps. The bin width changes the picture, so try a few. To compare more than three or so groups, use box plots or violins; counts of names rather than numbers are a bar chart.", "keywords": ["histogram", "distribution", "frequency chart", "bins", "binning", "frequency distribution"],
+      "id": "histogram", "icon": "ChartColumnBig", "name": "ChartHistogramSeries", "title": "Histogram", "category": "Charts", "summary": "Counts numbers or dates in equal bins, to show how they spread.", "use": "Use a histogram for a first look at one measure, such as delivery times. It shows where values bunch, whether they lean to one side, and whether there are two peaks. The bin width changes the picture, so try a few. To compare more than three groups, use box plots.", "keywords": ["histogram", "distribution", "frequency chart", "bins", "binning", "frequency distribution"],
       "features": [
         { "feature": "Values cut into round bins: by Sturges' rule, a most count, or a width" },
         { "feature": "Bars that touch, on an axis that marks the bins' edges" },
@@ -2428,7 +2428,7 @@
       ]
     },
     {
-      "id": "box-plot", "icon": "ChartCandlestick", "name": "ChartBoxPlotSeries", "title": "Box plot", "category": "Charts", "parts": ["ChartBoxSummarySeries"], "summary": "Compares how values spread across groups: each group's median, middle half, range and outliers.", "use": "The standard compact way to compare how values spread across many groups. A box shows a summary, not a shape: two peaks, or only a handful of values, look the same as a smooth spread. For large groups, a violin plot shows the shape; for small ones, show the values themselves.", "keywords": ["box plot", "box and whisker", "box-and-whisker plot", "whisker chart", "quartiles", "distribution", "outliers", "five-number summary"],
+      "id": "box-plot", "icon": "ChartCandlestick", "name": "ChartBoxPlotSeries", "title": "Box plot", "category": "Charts", "parts": ["ChartBoxSummarySeries"], "summary": "Compares how values spread across groups: each group's median, middle half, range and outliers.", "use": "Use box plots to compare how values spread across many groups, such as delivery times by carrier. A box is a summary, so it hides the shape. Two peaks look the same as one smooth spread. For large groups, use a violin plot to show the shape.", "keywords": ["box plot", "box and whisker", "box-and-whisker plot", "whisker chart", "quartiles", "distribution", "outliers", "five-number summary"],
       "features": [
         { "feature": "A box per group, worked out from raw values: quartiles, median and whiskers" },
         { "feature": "Tukey whiskers with outliers drawn as circles, or whiskers to the minimum and maximum" },
@@ -2447,7 +2447,7 @@
       ]
     },
     {
-      "id": "violin-plot", "icon": "ChartCandlestick", "name": "ChartViolinSeries", "title": "Violin plot", "category": "Charts", "summary": "Shows each group's values as an outline as wide as they're dense, with a slim box plot inside.", "use": "A violin fits large groups whose shape matters, such as two peaks a box plot would hide. With few values per group, the outline invents a shape the data doesn't have, so use a box plot. Order the groups by their medians when their order is free.", "keywords": ["violin plot", "violin chart", "density plot", "kernel density", "distribution", "bimodal", "box plot"],
+      "id": "violin-plot", "icon": "ChartCandlestick", "name": "ChartViolinSeries", "title": "Violin plot", "category": "Charts", "summary": "Shows each group's values as an outline as wide as they're dense, with a slim box plot inside.", "use": "Use violins when the shape of each group's values matters, such as a second peak a box plot would hide. They need many values per group. With only a few, the outline shows a shape that isn't really there, so use a box plot.", "keywords": ["violin plot", "violin chart", "density plot", "kernel density", "distribution", "bimodal", "box plot"],
       "features": [
         { "feature": "Each group's density, a Gaussian kernel with Silverman's bandwidth, trimmed to its values" },
         { "feature": "A slim box, median and whiskers inside, with outliers as circles" },
@@ -2462,7 +2462,7 @@
       ]
     },
     {
-      "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "use": "A waterfall explains how a total was reached or changed, such as a profit bridge, a budget's variance or a month's cash in and out. When every part adds and none takes away, stacked bars say the same more simply; when only the total's trend matters, a line chart.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
+      "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "use": "Use a waterfall to explain how a total was reached, such as profit from revenue and costs, or a budget's variance. When nothing is subtracted, stacked bars are simpler. For the total's trend alone, use a line chart.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
       "features": [
         { "feature": "Rises, falls and totals in three colors, keyed in the legend" },
         { "feature": "Changes written signed, so color isn't the only cue" },
@@ -2477,7 +2477,7 @@
       ]
     },
     {
-      "id": "bullet-chart", "icon": "ChartBarBig", "name": "BulletChart", "title": "Bullet chart", "category": "Charts", "summary": "Shows measures against their targets and ranges, a row each, such as a KPI scorecard.", "use": "Stephen Few designed the bullet graph to replace dashboard gauges: a length on a straight scale reads more exactly than a dial's angle, and many stack in the space of one dial. Use it for a measure against a target with ranges that mean something; without ranges, a bar chart with `Target` on its bars says it. It shows one moment, so add a sparkline for the trend.", "parts": ["GaugeBand"], "keywords": ["bullet graph", "KPI", "scorecard", "target", "quota", "actual vs target"],
+      "id": "bullet-chart", "icon": "ChartBarBig", "name": "BulletChart", "title": "Bullet chart", "category": "Charts", "summary": "Shows measures against their targets and ranges, a row each, such as a KPI scorecard.", "use": "Use bullet graphs to show measures against their targets, such as a KPI scorecard. Stephen Few designed them to replace dashboard gauges. A bar's length reads more exactly than a dial's angle, and many fit in the space of one gauge. Without ranges, a bar chart with `Target` on its bars does the same job.", "parts": ["GaugeBand"], "keywords": ["bullet graph", "KPI", "scorecard", "target", "quota", "actual vs target"],
       "features": [
         { "feature": "A bar against a target tick, over ranges in grays (Stephen Few's bullet graph)" },
         { "feature": "A scale per row, for measures in different units, or one shared scale and axis" },
@@ -2492,7 +2492,7 @@
       ]
     },
     {
-      "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows how many make it through each step of a checkout, a sign-up or a sales pipeline, and where the most are lost.", "use": "A funnel fits a strict sequence of four or more stages, each a subset of the one before, such as the steps of a checkout. Its taper asks readers to compare widths, so when the numbers matter more than the picture, bars across in stage order read more exactly. Values that only happen to shrink, such as sales by region, aren't a funnel.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
+      "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows how many make it through each step of a checkout, a sign-up or a sales pipeline, and where the most are lost.", "use": "Use a funnel for a fixed sequence of steps, each a subset of the one before, such as a checkout. It works best with four or more steps. When the exact numbers matter, use bars in step order. Values that just get smaller, such as sales by region, aren't a funnel.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
       "features": [
         { "feature": "A funnel, each stage as wide as its value and sloping to the next" },
         { "feature": "A pyramid, each level as tall as its share of the total" },
@@ -2507,7 +2507,7 @@
       ]
     },
     {
-      "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows where values run high or low across two dimensions, such as the busiest hours of the week.", "use": "A heatmap gives an overview of patterns across two dimensions, such as busy hours by weekday, not exact values: show the numbers in the cells, or use a bar chart, when precision matters. Order the rows and columns so similar ones sit together, and color by one hue that deepens with the value.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows where values run high or low across two dimensions, such as the busiest hours of the week.", "use": "Use a heatmap to spot patterns across two dimensions, such as the busiest hours of the week. It shows where values run high or low, not exact amounts. When the numbers matter, show them in the cells or use a bar chart.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
         { "feature": "Cells colored in even steps from round bounds, light to dark, or blended continuously" },
         { "feature": "A diverging scale for values above and below a midpoint" },
@@ -2528,7 +2528,7 @@
       ]
     },
     {
-      "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a year of daily activity at a glance, such as a contributions graph, with busy days darker.", "use": "A calendar heatmap shows daily rhythms, streaks and standout dates to readers who think in weeks and months. It shows patterns, not amounts: for the trend or exact values, chart the same days as a line or bars, and for seasons, as monthly totals. A few weeks of data looks sparse.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a year of daily activity at a glance, such as a contributions graph, with busy days darker.", "use": "Use a calendar heatmap to spot daily rhythms, streaks and standout days, such as orders over a year. It shows patterns, not amounts. For exact values or the trend, use a line or bar chart of the same days. A few weeks of data looks sparse.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
         { "feature": "A column per week and a row per weekday, from the culture's first day or one you choose" },
         { "feature": "Months named along the top, thinning as the calendar narrows" },
@@ -2546,7 +2546,7 @@
       ]
     },
     {
-      "id": "radar-chart", "icon": "Hexagon", "name": "RadarChart", "title": "Radar chart", "category": "Charts", "summary": "Compares a few things across several measures on one scale, as outlines over spokes, one spoke per measure.", "use": "A radar fits one to three items across a handful of measures on one scale, where the profile's shape is the point. Its shape changes with the order of the spokes, and its areas exaggerate differences, so to rank or compare exactly, use bars side by side.", "keywords": ["radar", "spider", "spider web", "web chart", "star chart", "polar", "profile", "skills"], "parts": ["RadarSeries"],
+      "id": "radar-chart", "icon": "Hexagon", "name": "RadarChart", "title": "Radar chart", "category": "Charts", "summary": "Compares a few things across several measures on one scale, as outlines over spokes, one spoke per measure.", "use": "Use a radar to compare one to three items across a handful of measures, such as two phones' review scores. The overall shape is the message. The shape changes with the order of the spokes, so it's hard to rank from. To compare exactly, use bars side by side.", "keywords": ["radar", "spider", "spider web", "web chart", "star chart", "polar", "profile", "skills"], "parts": ["RadarSeries"],
       "features": [
         { "feature": "An outline per series with markers that differ by shape, or a light fill" },
         { "feature": "One shared scale from 0 to a round maximum, or your own Min and Max" },
@@ -2565,7 +2565,7 @@
       ]
     },
     {
-      "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows where an amount comes from and where it goes, such as a budget from income to spending.", "use": "A Sankey traces where an amount comes from and where it goes, such as an energy balance, a budget or the paths through a site. Many small flows turn it to clutter, so fold them into one. A single process that people drop out of reads better as a funnel.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
+      "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows where an amount comes from and where it goes, such as a budget from income to spending.", "use": "Use a Sankey to show where an amount comes from and where it goes, such as a budget from income to spending. Many small flows make it cluttered, so combine them into one. For a single process that people drop out of, use a funnel.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
       "features": [
         { "feature": "Nodes worked out from the flows' names, with no list of nodes to keep" },
         { "feature": "Columns by the flows, with every end node in the last column, or each node as far left or right as it can go" },
@@ -2584,7 +2584,7 @@
       ]
     },
     {
-      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows which parts take the biggest share of a total, such as the largest lines in a budget.", "use": "A treemap fits a large hierarchy of parts into little space, to find the biggest, such as spending by department and line. Readers judge areas loosely, so for exact comparison, or for a short list without groups, use a bar chart.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
+      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows which parts take the biggest share of a total, such as the largest lines in a budget.", "use": "Use a treemap to find the biggest parts of a large total, such as spending by department and line. It fits many parts in little space. People judge areas loosely, so for exact comparisons, use a bar chart.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
       "features": [
         { "feature": "Tiles as near square as they can be, the largest at the top left" },
         { "feature": "Groups of tiles, each under a strip with its name" },
@@ -2606,7 +2606,7 @@
       ]
     },
     {
-      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows how one total splits into a few shares, such as customers by plan, each labeled with its share.", "use": "A pie fits one whole split into a few parts, five or fewer, whose shares differ clearly, when part of a whole is the message. Readers judge angles poorly, so to compare similar shares or rank them, use a bar chart, and for several wholes, 100% stacked bars. Two values are one number: say it in words.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown", "half donut", "semicircle", "semi-circle pie"],
+      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows how one total splits into a few shares, such as customers by plan, each labeled with its share.", "use": "Use a pie when the point is how one total splits, and there are five or fewer parts with clearly different shares. People judge angles poorly. To compare similar shares or rank them, use a bar chart.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown", "half donut", "semicircle", "semi-circle pie"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
         { "feature": "A half circle, or any part of one, that takes only its own height" },
@@ -2625,7 +2625,7 @@
       ]
     },
     {
-      "id": "nested-donut-chart", "icon": "Donut", "name": "NestedDonutChart", "title": "Nested donut chart", "category": "Charts", "summary": "Shows how the same items split two or three wholes, as rings of one donut, one ring per measure.", "use": "Rings compare the same items' shares across two or three measures, such as exports and imports, when the mix is the point rather than exact values. An outer ring's arc is longer than an inner one's for the same share, so rings compare loosely; for precision, use 100% stacked bars, a bar per measure.", "keywords": ["donut", "doughnut", "rings", "multi-series pie", "nested pie", "share"],
+      "id": "nested-donut-chart", "icon": "Donut", "name": "NestedDonutChart", "title": "Nested donut chart", "category": "Charts", "summary": "Shows how the same items split two or three wholes, as rings of one donut, one ring per measure.", "use": "Use rings to compare how the same items split two or three totals, such as exports and imports. They show the overall mix, not exact shares. The same share looks bigger on the outer ring. For exact comparisons, use 100% stacked bars.", "keywords": ["donut", "doughnut", "rings", "multi-series pie", "nested pie", "share"],
       "parts": ["DonutRing"],
       "features": [
         { "feature": "A ring for each measure, the first outside, with the rings named under the title" },
@@ -2640,7 +2640,7 @@
       ]
     },
     {
-      "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Puts a trend beside a number or in a table row, in the space of a word.", "use": "Edward Tufte's word-sized chart: a sparkline gives a number or a table row its context (rising, steady, unusual) in the space of a word. It has no scale to read values from, and each draws to its own, so to compare levels between rows, use a line chart.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
+      "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Puts a trend beside a number or in a table row, in the space of a word.", "use": "Use a sparkline to show the trend beside a number or in a table row. It has no scale, and each one fits its own values. To compare levels between rows, use a line chart.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
       "features": [
         { "feature": "A line, an area, bars or win-loss bars, as wide as its container" },
         { "feature": "The latest value marked, and the first, lowest or highest when they matter" },
@@ -2655,7 +2655,7 @@
       ]
     },
     {
-      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "use": "A gauge shows one value against its range at a glance, such as progress to a goal. It takes a lot of space for one number and shows no history: Stephen Few's bullet graph replaces it on dashboards, and several readings side by side read better as bullet charts. Add a sparkline for the trend.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
+      "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows a value on a dial between a start and an end, with the value in the middle.", "use": "Use a gauge to show one value against its range, such as progress toward a goal. It takes a lot of space for one number and has no history. Several readings side by side read better as bullet graphs. Add a sparkline to show the trend.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
       "features": [
         { "feature": "A 240° dial with the value in the middle and the ends under it" },
         { "feature": "Bands along the dial that color the fill and name the value's range" },
@@ -2669,7 +2669,7 @@
       ]
     },
     {
-      "id": "linear-gauge", "icon": "Ruler", "name": "LinearGauge", "title": "Linear gauge", "category": "Charts", "summary": "Shows a value on a straight scale with ticks, as a bar or a marker, such as a tank's level or the air pressure.", "use": "A linear gauge shows one reading on a known scale, such as a temperature, a pressure or a tank's level, where the position on the scale is the point. A length reads more exactly than a dial's angle, in less space. Against a target with ranges, use a bullet chart; for history, a line chart.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["linear gauge", "meter", "thermometer", "level", "scale", "horizontal gauge", "vertical gauge"],
+      "id": "linear-gauge", "icon": "Ruler", "name": "LinearGauge", "title": "Linear gauge", "category": "Charts", "summary": "Shows a value on a straight scale with ticks, as a bar or a marker, such as a tank's level or the air pressure.", "use": "Use a linear gauge for one reading on a known scale, such as a temperature or a tank's level. A length reads more exactly than a dial's angle, in less space. Against a target with ranges, use a bullet graph. For history, use a line chart.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["linear gauge", "meter", "thermometer", "level", "scale", "horizontal gauge", "vertical gauge"],
       "features": [
         { "feature": "A bar from the scale's start, a marker at the value, or a needle into the bands" },
         { "feature": "Bands along the track that color the value and name its range" },

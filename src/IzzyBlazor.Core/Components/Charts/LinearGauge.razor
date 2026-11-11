@@ -3,9 +3,7 @@
 @attribute [ModeSupport]
 
 @*
-    A value on a straight scale: a thin track carrying the bands' colors, ticks along it, and a
-    pointer, a bar from the start (the default) or a triangle at the value. The label and value
-    are written above it. As wide as its container across; 12rem tall standing up (Height).
+    A value on a straight scale, as a bar from the start or a marker at the value.
 
     <LinearGauge Label="Pressure" Value="1004" Min="960" Max="1060" ValueFormat="0 hPa"
                  Pointer="LinearGaugePointer.Marker">
@@ -13,6 +11,9 @@
         <GaugeBand From="1000" To="1025" Label="Normal" />
         <GaugeBand From="1025" To="1060" Label="High" />
     </LinearGauge>
+
+    Pointer sets the bar (the default) or a triangle. The label and value are written above the
+    scale. As wide as its container across; 12rem tall standing up (Height).
 
     Bands are grays, darkest first, unless Palette or a band's Accent colors them; a value in a
     colored band takes its color, and its label shows beside the value. Target marks a goal with a

@@ -8,8 +8,8 @@
 @using System.Linq.Expressions
 
 @*
-    Bars, lines, areas, scatter, bubbles and waterfalls over a list of items, drawn on the server: the chart is in the page's
-    HTML, so it shows with no script and no circuit, prints, and fills its container's width.
+    Draws a list of items as bars, lines, areas, points, ranges, prices, distributions or
+    waterfalls, with a series inside it for each.
 
     <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026">
         <ChartValueAxis Format="C0" />
@@ -17,6 +17,9 @@
         <ChartBarSeries Value="m => m.Costs" />
         <ChartLineSeries Value="m => m.Target" />
     </Chart>
+
+    The chart is drawn on the server, in the page's HTML, so it shows with no script and no
+    circuit, prints, and fills its container's width.
 
     Argument is what each item is plotted at: names and enums sit in bands, one per item; numbers
     and dates, on a line or area chart, sit on a scale (any chart with bars uses bands). Each

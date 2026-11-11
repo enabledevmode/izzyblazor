@@ -139,12 +139,8 @@ public abstract class ChartBoxSeriesBase<TItem> : ChartSeriesBase<TItem>
 }
 
 /// <summary>
-/// Draws a box for each <c>Argument</c> from the <see cref="Value"/>s of the items that share it,
-/// to compare how values spread across groups, such as delivery times by carrier. Each box shows
-/// the quartiles and median, with whiskers and outliers by <see cref="Whiskers"/>. <c>SeriesBy</c>
-/// puts a box per group side by side; the chart's <c>Orientation="Orientation.Horizontal"</c> lays
-/// them across. A box plot's chart holds only box plot series. For numbers already worked out,
-/// such as by a database, use <see cref="ChartBoxSummarySeries{TItem}"/>.
+/// A box for each <c>Argument</c> from the <c>Value</c>s of the items that share it, to compare how
+/// values spread across groups.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -155,6 +151,13 @@ public abstract class ChartBoxSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Each box shows the quartiles and median, with whiskers and outliers by <see cref="Whiskers"/>.
+/// <c>SeriesBy</c> puts a box per group side by side; the chart's
+/// <c>Orientation="Orientation.Horizontal"</c> lays them across. A box plot's chart holds only box
+/// plot series. For numbers already worked out, such as by a database, use <see
+/// cref="ChartBoxSummarySeries{TItem}"/>.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 {
@@ -179,14 +182,8 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 }
 
 /// <summary>
-/// Draws a violin for each <c>Argument</c> from the <see cref="Value"/>s of the items that share
-/// it: an outline as wide as the values are dense, so it shows the shape a box hides, such as two
-/// peaks. Inside, a slim box from the first quartile to the third, a line at the median, and a line
-/// to Tukey's whiskers; outliers past them are circles. The density is a Gaussian kernel with
-/// Silverman's bandwidth (as Plotly's), trimmed to the values' range, and every violin is as wide
-/// at its densest. <c>SeriesBy</c> puts a violin per group side by side; the chart's
-/// <c>Orientation="Orientation.Horizontal"</c> lays them across. A violin's chart holds only box
-/// plot and violin series.
+/// A violin for each <c>Argument</c> from the <c>Value</c>s of the items that share it, to show the
+/// shape of each group's values.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
@@ -197,6 +194,14 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
+/// <remarks>
+/// Inside, a slim box from the first quartile to the third, a line at the median, and a line to
+/// Tukey's whiskers; outliers past them are circles. The density is a Gaussian kernel with
+/// Silverman's bandwidth (as Plotly's), trimmed to the values' range, and every violin is as wide
+/// at its densest. <c>SeriesBy</c> puts a violin per group side by side; the chart's
+/// <c>Orientation="Orientation.Horizontal"</c> lays them across. A violin's chart holds only box
+/// plot and violin series.
+/// </remarks>
 [ModeSupport]
 public sealed class ChartViolinSeries<TItem> : ChartBoxSeriesBase<TItem>
 {
