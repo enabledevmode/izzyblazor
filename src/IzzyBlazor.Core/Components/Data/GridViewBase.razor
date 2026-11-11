@@ -1042,6 +1042,25 @@
     /// </summary>
     [Parameter] public bool SelectOnClick { get; set; }
 
+    /// <summary>
+    /// Whether text too long for its column wraps onto more lines, making the row taller (true, the
+    /// default), or stays on one line, ending in an ellipsis, with the whole text in a tooltip when a
+    /// cell is hovered or focused. A column's <c>Wrap</c> overrides it. With <c>Virtualize</c>, cells
+    /// stay on one line.
+    /// </summary>
+    [Parameter] public bool WrapCells { get; set; } = true;
+
+    /// <inheritdoc />
+    internal override string? OverflowClass(ColumnBase<TItem> column)
+    {
+        if (Virtualize && column.Wrap == true)
+        {
+            throw new InvalidOperationException($"With {nameof(Virtualize)}, every row is one line high, so the column \"{column.HeaderText}\" can't wrap: leave out its Wrap.");
+        }
+
+        return !Virtualize && (column.Wrap ?? WrapCells) ? null : "ib-cell-clip";
+    }
+
     /// <inheritdoc />
     internal override bool SelectsInRow => SelectOnClick && Selectable && !MultiSelect;
 

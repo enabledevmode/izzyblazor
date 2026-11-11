@@ -19,7 +19,9 @@ import { openMenuAt, ownTrigger, setupContextMenu } from "../context-menu";
 const CONTROLS = "a[href], button, input:not([type=hidden], .ib-table-select-inline), select, textarea, summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not(td, th, tr)";
 const KEEPS_ARROWS = "input:not([type=checkbox], [type=button], [type=submit], [type=reset]), select, textarea, [contenteditable]:not([contenteditable=false]), [role=combobox], [role=slider], [role=spinbutton]";
 const CELLS = "td, th";
-const levelOf = (row: HTMLTableRowElement): number => Number(row.getAttribute("aria-level"));
+// Parts loaded where they're needed: a TreeList's cascade, and the tooltip for text cut off at one line.
+const loadTree = () => import("./parts/grid-tree.js" as string) as Promise<typeof import("./grid-tree")>;
+const loadTip = () => import("./parts/grid-tip.js" as string) as Promise<typeof import("./grid-tip")>;
 
 class Grid extends IzzyElement {
   #table: HTMLTableElement | null = null;
@@ -46,8 +48,8 @@ class Grid extends IzzyElement {
   #load: string | undefined;
   // The frozen columns' widths at each edge, as a scroll padding.
   #clearOf = "";
-  // A TreeList's boxes being changed by a cascade, whose own changes don't cascade again.
-  #cascading = false;
+  // A TreeList's cascade (parts/grid-tree), which checks rows as they're drawn under a checked one.
+  #tree: (() => void) | null = null;
 
   protected setup(signal: AbortSignal): void {
     const table = this.closest("ib-table")?.querySelector<HTMLTableElement>(":scope > .ib-table-scroll > table");
@@ -124,14 +126,15 @@ class Grid extends IzzyElement {
       if ((event as MouseEvent).shiftKey && this.#clickMode() === "multiple" && this.#clickRow(event as MouseEvent)) event.preventDefault();
     }, signal);
     this.#on(table, "click", (event) => this.#onRowClick(event as MouseEvent), signal);
-    // A TreeList's box checks or clears the rows under it, and the rows above follow.
-    this.#on(table, "change", (event) => {
-      const box = event.target as HTMLInputElement;
-      if (this.#cascading || !this.#cascade() || box.type !== "checkbox" || !box.matches(".ib-table-select") || box.closest("table") !== table) return;
-      // Once this change has reached the selection (the script's, which redraws every box as one
-      // changes, or C#'s): the rows it sets would otherwise be drawn before this one counts.
-      setTimeout(() => this.#cascadeFrom(box), 0);
-    }, signal);
+    const host = this.closest("ib-table");
+    if (host?.hasAttribute("data-ib-cascade")) {
+      void loadTree().then((part) => {
+        if (signal.aborted) return;
+        this.#tree = part.setupCascade(table, host as HTMLElement, signal);
+        this.#tree();
+      });
+    }
+    void loadTip().then((part) => signal.aborted || part.setupCellTips(table, signal));
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
@@ -515,7 +518,7 @@ class Grid extends IzzyElement {
     if (!this.#table) return;
     this.#prepare();
     this.#frozen();
-    if (this.#cascade()) this.#treeArrived();
+    this.#tree?.();
     const rows = this.#rows;
     if (this.#count) {
       this.#window(rows);
@@ -614,99 +617,6 @@ class Grid extends IzzyElement {
       return true;
     }
     return false;
-  }
-
-  /** A TreeList's cascade: "up" (a row with all its rows checked is checked), "down", or null. */
-  #cascade(): string | null {
-    return this.closest("ib-table")?.getAttribute("data-ib-cascade") ?? null;
-  }
-
-  #treeRows(): HTMLTableRowElement[] {
-    return [...this.#table!.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr[aria-level]:not(.ib-treelist-more)")];
-  }
-
-  #treeBox(row: HTMLTableRowElement): HTMLInputElement | null {
-    return row.querySelector<HTMLInputElement>(":scope > td > .ib-table-select");
-  }
-
-  /** The rows drawn under one, in order. */
-  #under(rows: HTMLTableRowElement[], at: number): HTMLTableRowElement[] {
-    const level = levelOf(rows[at]);
-    const end = rows.findIndex((row, i) => i > at && levelOf(row) <= level);
-    return rows.slice(at + 1, end < 0 ? rows.length : end);
-  }
-
-  /** The rows above one, nearest first. */
-  #above(rows: HTMLTableRowElement[], at: number): HTMLTableRowElement[] {
-    const out: HTMLTableRowElement[] = [];
-    let level = levelOf(rows[at]);
-    for (let i = at - 1; i >= 0 && level > 1; i--) {
-      if (levelOf(rows[i]) < level) {
-        out.push(rows[i]);
-        level = levelOf(rows[i]);
-      }
-    }
-    return out;
-  }
-
-  /** Sets a box as a person would, so the selection (the script's, or C#'s) hears it. */
-  #setBox(box: HTMLInputElement | null, on: boolean): void {
-    if (box && !box.disabled && box.checked !== on) box.click();
-  }
-
-  #cascadeFrom(box: HTMLInputElement): void {
-    const rows = this.#treeRows();
-    const at = rows.indexOf(box.closest("tr")!);
-    if (at < 0) return;
-    const on = box.checked;
-    this.#cascading = true;
-    try {
-      for (const row of this.#under(rows, at)) this.#setBox(this.#treeBox(row), on);
-      for (const row of this.#above(rows, at)) {
-        const own = this.#treeBox(row);
-        // A row kept only for a match under it has no box: the rows above it still follow.
-        if (!on) {
-          this.#setBox(own, false);
-          continue;
-        }
-        // Checked when every row under it is drawn and checked, not while filtering.
-        const index = rows.indexOf(row);
-        const children = this.#under(rows, index).filter((r) => levelOf(r) === levelOf(row) + 1);
-        const whole = children.length === Number(children[0]?.getAttribute("aria-setsize"));
-        if (this.#cascade() !== "up" || !own || !whole || children.some((r) => !this.#treeBox(r)?.checked)) break;
-        this.#setBox(own, true);
-      }
-    } finally {
-      this.#cascading = false;
-    }
-    this.#treeMixed(rows);
-  }
-
-  /** Rows drawn under a checked row come in checked: it stands for its branch. */
-  #treeArrived(): void {
-    const rows = this.#treeRows();
-    const checked: number[] = [];
-    this.#cascading = true;
-    try {
-      for (let i = 0; i < rows.length; i++) {
-        const level = levelOf(rows[i]);
-        while (checked.length && checked[checked.length - 1] >= level) checked.pop();
-        const box = this.#treeBox(rows[i]);
-        if (checked.length) this.#setBox(box, true);
-        if (box?.checked) checked.push(level);
-      }
-    } finally {
-      this.#cascading = false;
-    }
-    this.#treeMixed(rows);
-  }
-
-  /** A row with some of the rows under it checked shows a mixed box. */
-  #treeMixed(rows: HTMLTableRowElement[]): void {
-    rows.forEach((row, i) => {
-      const box = this.#treeBox(row);
-      if (box) box.indeterminate = !box.checked && this.#under(rows, i).some((r) => this.#treeBox(r)?.checked);
-    });
   }
 
   /** SelectOnClick's "single" or "multiple"; null without it. */

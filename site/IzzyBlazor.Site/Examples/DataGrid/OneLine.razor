@@ -1,0 +1,25 @@
+@* A support queue, one ticket a line: long subjects end in an ellipsis, and the whole subject shows
+   in a tooltip on hover or when the cell has focus. *@
+<DataGrid Items="_tickets" ItemKey="t => t.Id.ToString()" PageSize="5" Caption="Open tickets" WrapCells="false" QueryPrefix="queue-" Grow>
+    <Columns>
+        <PropertyColumn Property="t => t.Id" Title="Ticket" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="t => t.Subject" Sortable />
+        <PropertyColumn Property="t => t.Customer" Width="10.Rem" />
+        <PropertyColumn Property="t => t.Opened" Format="MMM d" Sortable Width="7.Rem" />
+    </Columns>
+</DataGrid>
+
+@code {
+    private readonly Ticket[] _tickets =
+    [
+        new(4812, "Invoice for October shows the old billing address after we moved offices", "Northwind Traders", new(2026, 11, 10)),
+        new(4809, "Can't sign in with single sign-on since the identity provider changed its certificate", "Contoso Pharmaceuticals", new(2026, 11, 9)),
+        new(4806, "Export to Excel drops the last column when a filter is applied", "Fabrikam", new(2026, 11, 9)),
+        new(4801, "Add a second admin", "Tailspin Toys", new(2026, 11, 7)),
+        new(4797, "Webhook retries arrive out of order when the endpoint is slow to answer", "Adventure Works Cycles", new(2026, 11, 6)),
+        new(4790, "Refund for duplicate charge", "Wide World Importers", new(2026, 11, 4)),
+    ];
+    @* hide *@
+    private sealed record Ticket(int Id, string Subject, string Customer, DateOnly Opened);
+    @* /hide *@
+}

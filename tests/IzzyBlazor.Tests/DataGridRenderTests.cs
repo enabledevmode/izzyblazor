@@ -70,6 +70,27 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void Cells_keep_to_one_line_when_the_grid_or_column_says_so()
+    {
+        static RenderFragment Wrapping(bool? wrap) => builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, string>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
+            builder.AddComponentParameter(2, "Wrap", wrap);
+            builder.CloseComponent();
+        };
+
+        var cut = Grid(Wrapping(null));
+        Assert.DoesNotContain("ib-cell-clip", cut.Find("tbody td").ClassName ?? "");
+
+        cut = Grid(Wrapping(null), p => p.Add(x => x.WrapCells, false));
+        Assert.Contains("ib-cell-clip", cut.Find("tbody td").ClassName);
+
+        cut = Grid(Wrapping(true), p => p.Add(x => x.WrapCells, false));
+        Assert.DoesNotContain("ib-cell-clip", cut.Find("tbody td").ClassName ?? "");
+    }
+
+    [Fact]
     public void Frozen_columns_are_placed_by_the_widths_before_them()
     {
         var cut = Grid(builder =>
