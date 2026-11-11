@@ -675,8 +675,9 @@
   }
 
   /* A box plot's tooltip: its numbers in columns, headed once (the headings from data-ib-label,
-     so the live region, reading text, doesn't say them twice). */
-  .ib-chart-tooltip:has(.ib-chart-tooltip-box) {
+     so the live region, reading text, doesn't say them twice). Only while shown: display
+     would outrank [hidden]'s. */
+  .ib-chart-tooltip:not([hidden]):has(.ib-chart-tooltip-box) {
     display: grid;
     grid-template-columns: auto 1fr auto auto;
     align-items: center;
@@ -686,7 +687,7 @@
     [data-ib-label]::before { content: attr(data-ib-label); color: var(--ib-color-muted); font-size: var(--ib-text-xs); font-weight: var(--ib-weight-normal); }
     .ib-chart-tooltip-value { text-align: end; }
   }
-  .ib-chart-tooltip:has(.ib-chart-tooltip-mean) { grid-template-columns: auto 1fr auto auto auto; }
+  .ib-chart-tooltip:not([hidden]):has(.ib-chart-tooltip-mean) { grid-template-columns: auto 1fr auto auto auto; }
 
   .ib-chart-tooltip-value {
     margin-inline-start: auto;
