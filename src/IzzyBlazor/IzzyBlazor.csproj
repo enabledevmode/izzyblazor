@@ -9,8 +9,8 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>IzzyBlazor</PackageId>
-    <Description>Blazor components. No circuit required. Components that work on static SSR pages, even with JavaScript off, and bind to C# on interactive ones. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
-    <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
+    <Description>Blazor components. No circuit required. A complete component library for every render mode: components work on static SSR pages and bind to C# on interactive ones. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
+    <PackageTags>blazor;components;ssr;static-ssr;interactive-server;webassembly;datagrid;charts;ui;design-system</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
   </PropertyGroup>
