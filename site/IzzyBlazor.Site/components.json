@@ -2380,7 +2380,7 @@
       ]
     },
     {
-      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "Use candlesticks for prices that traders read. Each period shows at a glance whether the price closed up or down. Over long histories the candles crowd together, so use an OHLC chart. For the closing price alone, use a line chart.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
+      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "Use candlesticks to show how a price moved in each period, such as a stock's day of trading. Up and down periods stand out at a glance. Over long histories the candles crowd together, so use an OHLC chart. For the closing price alone, use a line chart.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
       "features": [
         { "feature": "Candlesticks, hollow when the price closed up and filled when it closed down, so direction shows without color" },
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
@@ -2396,7 +2396,7 @@
       ]
     },
     {
-      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days, as thin bars of each period's four prices.", "use": "Traders know OHLC bars, and they stay readable over long histories where candlesticks crowd together. Leave out `Open` for high-low-close, which suits end-of-day prices such as a fund's. For a general audience, use a candlestick chart. For the trend alone, use a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
+      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days, as thin bars of each period's four prices.", "use": "Use OHLC bars for price histories over many periods, such as a year of trading days, where candlesticks would crowd together. Leave out `Open` for high-low-close, which suits end-of-day prices such as a fund's. For the trend alone, use a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
       "features": [
         { "feature": "OHLC bars, the open a tick to the left and the close to the right, colored by whether the price closed up" },
         { "feature": "High-low-close, with no open" },
