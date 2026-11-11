@@ -185,6 +185,27 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void Skipped_gaps_space_trading_days_evenly_and_label_where_months_begin()
+    {
+        // Weekdays only, Jan to Jun 2026: the first item of each month is labeled (Feb 2, a Monday).
+        var days = Enumerable.Range(0, 181).Select(d => new DateOnly(2026, 1, 1).AddDays(d))
+            .Where(d => d.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday)).ToList();
+        var model = ChartLayout.Build(new ChartInput(
+            [.. days.Cast<object?>()],
+            [new ChartSeriesData("Close", ChartType.Line, [.. days.Select((_, i) => (double?)100 + i)])])
+        { Culture = CultureInfo.InvariantCulture, SkipGaps = true, View = new ChartView(new DateOnly(2026, 1, 3), null) });
+
+        // Friday to Monday is one step, as Monday to Tuesday.
+        var p = model.ArgumentPositions;
+        Assert.Equal(p[1] - p[0], p[days.IndexOf(new DateOnly(2026, 1, 12))] - p[days.IndexOf(new DateOnly(2026, 1, 9))], 6);
+        var month = model.ArgumentLabels.Single(l => l.Text == "Feb");
+        Assert.Equal(p[days.IndexOf(new DateOnly(2026, 2, 2))], month.Pos, 6);
+
+        // A view from a Saturday starts at the Monday after it.
+        Assert.Equal(days.IndexOf(new DateOnly(2026, 1, 5)), (int)model.View!.Lo);
+    }
+
+    [Fact]
     public void Stacked_bars_sit_on_each_other_and_full_stacks_reach_the_top_with_a_rounded_end()
     {
         var model = ChartLayout.Build(new ChartInput(

@@ -663,6 +663,7 @@
             ValueLog = ValueLog,
             ArgumentLog = _argumentAxis?.Logarithmic ?? false,
             ArgumentReverse = _argumentAxis?.Reverse ?? false,
+            SkipGaps = _argumentAxis?.SkipGaps ?? false,
             View = _view,
             MinZoomSpan = Math.Max(1, _argumentAxis?.MinZoomSpan ?? 2),
             Zoom = zoom,
@@ -1423,7 +1424,7 @@
 
     private static string BottomClass(ChartModel model, bool horizontal) =>
         "ib-chart-bottom" + (model.TwoLine ? " ib-chart-two-line" : "")
-        + (!horizontal && model.Kind == ArgumentKind.Category && !model.Edges ? model.Wrap ? " ib-chart-bands ib-chart-wrap" : " ib-chart-bands" : "");
+        + (!horizontal && model.Kind == ArgumentKind.Category && !model.Edges && !model.Dated ? model.Wrap ? " ib-chart-bands ib-chart-wrap" : " ib-chart-bands" : "");
 
     private static string SeriesClass(SeriesShape s, string? kind) =>
         $"{kind} ib-chart-s{s.Slot}".TrimStart();
@@ -1705,7 +1706,7 @@
     private List<(string Text, string Name, double From, double To)> SelectorRanges(ChartModel model, IRangeSelector selector)
     {
         var list = new List<(string, string, double, double)>();
-        if (model.Kind != ArgumentKind.Time || (!selector.Ranges && selector.Presets is null)) return list;
+        if ((model.Kind != ArgumentKind.Time && !model.Dated) || (!selector.Ranges && selector.Presets is null)) return list;
         var ticks = _drawnArguments.Select(a => ChartLayout.ToDouble(a, ArgumentKind.Time)).Where(x => x is not null).Select(x => (long)x!.Value).ToList();
         if (ticks.Count < 2) return list;
         var (lo, hi) = (ticks.Min(), ticks.Max());
@@ -1713,11 +1714,15 @@
         var last = new DateTime(hi);
         // Whole days: a span back from the last day starts the day after (1M of Oct 31 is Oct 1 on).
         DateTime Back(DateTime from) => last.TimeOfDay == TimeSpan.Zero ? from.AddDays(1) : from;
-        double Share(DateTime t) => Math.Clamp((t.Ticks - lo) / (double)(hi - lo), 0, 1);
+        // Dates spaced by item: a span's share is its items' (one item to each slot).
+        var n = _drawnArguments.Count;
+        double Share(DateTime t, bool end) => model.Dated
+            ? (end ? _drawnArguments.Count(a => ChartLayout.ToDouble(a, ArgumentKind.Time) <= t.Ticks) : _drawnArguments.Count(a => ChartLayout.ToDouble(a, ArgumentKind.Time) < t.Ticks)) / (double)n
+            : Math.Clamp((t.Ticks - lo) / (double)(hi - lo), 0, 1);
         void Add(string text, string name, DateTime from, DateTime to)
         {
             if (from.Ticks <= lo && to.Ticks >= hi && text != TextDefaults.RangeAll) return;
-            list.Add((text, name, Share(from), Share(to)));
+            list.Add((text, name, Share(from, false), Share(to, true)));
         }
 
         if (selector.Ranges)
