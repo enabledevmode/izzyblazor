@@ -1515,7 +1515,7 @@
     };
 
     // A row's button for its detail: a chevron that turns right to down at the row's start; at its end
-    // (a TreeList's), one that points down and turns over.
+    // (a TreeList's, beside the tree's own chevrons), unfold to open and fold to close.
     private RenderFragment DetailButton(TItem item, int row) => __builder =>
     {
         @* Not while it's open only for an edit, which closes it. *@
@@ -1526,14 +1526,14 @@
             var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
             // One with only hidden values to show goes while nothing is hidden.
             var css = (HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx") + (TrailExpander ? " ib-grid-expand-down" : "");
-            var icon = TrailExpander ? IconPurpose.ChevronDown : IconPurpose.ChevronRight;
+            var icon = !TrailExpander ? IconSet.Current.Get(IconPurpose.ChevronRight) : open ? Lucide.FoldVertical : Lucide.UnfoldVertical;
             if (UseState)
             {
-                <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Purpose="icon" /></button>
+                <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Name="icon" /></button>
             }
             else
             {
-                <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Purpose="icon" /></a>
+                <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Name="icon" /></a>
             }
         }
     };
