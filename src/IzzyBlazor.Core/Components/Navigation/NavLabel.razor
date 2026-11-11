@@ -2,12 +2,17 @@
 @inherits IzzyComponentBase
 
 @* A small heading that labels the items below it in a NavMenu: a plain list item, since a list
-   holds only items. *@
+   holds only items. With Href, the heading is a link to the group's own page, such as an index
+   of its items. *@
 
-<li @attributes="AdditionalAttributes" class="@_class" style="@_style">@if (Icon is { } icon)
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style">@if (Href is null)
 {
-    <Icon Name="icon" />
-}@ChildContent</li>
+    @Content
+}
+else
+{
+    <a href="@Href" aria-current="@(Current ? "page" : null)">@Content</a>
+}</li>
 
 @code {
     /// <summary>An icon before the text.</summary>
@@ -16,8 +21,19 @@
     /// <summary>The heading text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>A page for the group, such as an index of its items, that the heading links to.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>Whether <see cref="Href"/> is the current page, marked with <c>aria-current="page"</c>.</summary>
+    [Parameter] public bool Current { get; set; }
+
     private string? _class;
     private string? _style;
+
+    private RenderFragment Content => @<text>@if (Icon is { } icon)
+    {
+        <Icon Name="icon" />
+    }@ChildContent</text>;
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-nav-heading");

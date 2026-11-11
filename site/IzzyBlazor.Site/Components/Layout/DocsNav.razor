@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.WebUtilities
 @inject Registry Registry
 @inject NavigationManager Navigation
 
@@ -10,10 +11,12 @@
 <NavMenu>
     @if (_area == DocsArea.Components)
     {
-        <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All components</NavItem>
+        <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
         @foreach (var category in Registry.Categories)
         {
-            <NavLabel Icon="@Pictogram.Lookup(Registry.CategoryIcon(category))">@category</NavLabel>
+            @* Each heading links to the components page showing its group alone. *@
+            var anchor = Registry.CategoryAnchor(category);
+            <NavLabel Icon="@Pictogram.Lookup(Registry.CategoryIcon(category))" Href="@($"docs/components?group={anchor}")" Current="@(_group == anchor)">@category</NavLabel>
             @* A preview isn't listed, but on its own pages it needs its topics. *@
             @foreach (var component in Registry.InCategory(category).Concat(_current is { Preview: true } && _current.Category == category ? [_current] : []))
             {
@@ -58,6 +61,9 @@
     private RegistryComponent? _current;
     private DocsArea _area;
 
+    // On docs/components, the group it shows (?group=), whose heading is current.
+    private string? _group;
+
     /// <summary>Which sidebar a docs page has: the components' under docs/components, else the articles'.</summary>
     public static DocsArea AreaOf(NavigationManager navigation) =>
         Parts(navigation) is ["docs", "components", ..] ? DocsArea.Components : Parts(navigation) is ["docs", ..] ? DocsArea.Articles : DocsArea.None;
@@ -70,5 +76,10 @@
         // docs/components/{id}[/api, /{topic}]
         _area = AreaOf(Navigation);
         _current = Parts(Navigation) is ["docs", "components", var id, ..] ? Registry.ById(id) : null;
+        _group = Parts(Navigation) is ["docs", "components"]
+            && QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("group", out var group)
+            && Registry.Categories.Any(c => Registry.CategoryAnchor(c) == group.ToString())
+                ? group.ToString()
+                : null;
     }
 }
