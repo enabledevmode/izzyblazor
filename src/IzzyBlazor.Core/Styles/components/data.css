@@ -1664,6 +1664,31 @@
     min-width: 0;
   }
 
+  /* MoveByDrag: a handle before the row's indent, and where a drop lands. */
+  td:has(> .ib-treelist-grip) {
+    padding-inline-start: 1.5rem;
+  }
+
+  td:has(> .ib-treelist-grip):not(.ib-frozen) {
+    position: relative;
+  }
+
+  .ib-treelist-grip {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0.25rem;
+    display: flex;
+    align-items: center;
+    color: var(--ib-color-muted);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .ib-tree-drop-before > td { box-shadow: inset 0 2px var(--ib-color-primary); }
+  .ib-tree-drop-after > td { box-shadow: inset 0 -2px var(--ib-color-primary); }
+  .ib-tree-drop-into > td { background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent); }
+  .ib-tree-dragging { opacity: 0.5; }
+
   /* Kept only for a match under it, while filtering. */
   .ib-treelist-context > td {
     color: var(--ib-color-muted);

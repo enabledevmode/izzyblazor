@@ -57,6 +57,11 @@
     internal override RenderFragment FirstCell(TItem item, RenderFragment content) => !_treeRows.TryGetValue(KeyOf(item), out var row) ? content : __builder =>
     {
         var key = KeyOf(item);
+        @if (TreeDragKey is not null && CanMoveRow(item))
+        {
+            @* For the pointer only: the keyboard moves a row with its Move action. *@
+            <span class="ib-treelist-grip" aria-hidden="true" data-ib-key="@key" @onibmove="DropAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"><Icon Name="Lucide.GripVertical" /></span>
+        }
         <span class="ib-treelist-cell" style="@($"--ib-treelist-depth:{row.Depth}")">
             @if (row.HasChildren)
             {
@@ -193,7 +198,11 @@
         if (_moveFor != key || _moveContext is null)
         {
             _moveFor = key;
-            _moveModel = new TreeListMovePost { Parent = node?.Parent?.Key ?? "" };
+            // A drop on a static page chose the parent and place; the dialog confirms them.
+            var dropped = RendererInfo.IsInteractive ? null : QueryValue(MoveUnderQueryKey);
+            _moveDropParent = dropped is null ? null : dropped == "-" ? "" : dropped;
+            _moveIndex = dropped is not null && int.TryParse(QueryValue(MoveAtQueryKey), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : null;
+            _moveModel = new TreeListMovePost { Parent = _moveDropParent ?? node?.Parent?.Key ?? "" };
             _moveContext = new Microsoft.AspNetCore.Components.Forms.EditContext(_moveModel);
             _moveMessages = new Microsoft.AspNetCore.Components.Forms.ValidationMessageStore(_moveContext);
         }
