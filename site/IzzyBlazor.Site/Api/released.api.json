@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.22",
+  "version": "0.1.0-alpha.23",
   "components": [
     {
       "name": "Accordion",
@@ -1284,6 +1284,153 @@
       "types": []
     },
     {
+      "name": "BulletChart",
+      "displayName": "BulletChart\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.BulletChart\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Refresh",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "RefreshFrom",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Label",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Value",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Target",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Max",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Min",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Ranges",
+          "type": "Func\u003CTItem, IEnumerable?\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "RangeLabels",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Palette",
+          "type": "ChartPalette?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Format",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "HideTitle",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TitleAlign",
+          "type": "ChartAlign",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TitledBy",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Tooltip",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "DataTable",
+          "type": "ChartDataTable",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnRefresh",
+          "type": "EventCallback",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ChartAlign",
+        "ChartDataTable",
+        "ChartPalette",
+        "Orientation"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "Button",
       "displayName": "Button",
       "fullName": "IzzyBlazor.Button",
@@ -1504,6 +1651,11 @@
           "name": "HideTitle",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "TitleAlign",
@@ -2230,6 +2382,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "SkipGaps",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "Zoom",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
@@ -2268,6 +2425,11 @@
       ],
       "bases": [],
       "properties": [
+        {
+          "name": "Target",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
         {
           "name": "Opacity",
           "type": "double?",
@@ -2358,6 +2520,241 @@
         "DataAggregate"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ChartBoxPlotSeries",
+      "displayName": "ChartBoxPlotSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartBoxPlotSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Whiskers",
+          "type": "ChartWhiskers",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ShowMean",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "ChartWhiskers",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
+      "name": "ChartBoxSummarySeries",
+      "displayName": "ChartBoxSummarySeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartBoxSummarySeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Low",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Q1",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Median",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Q3",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "High",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Mean",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Outliers",
+          "type": "Expression\u003CFunc\u003CTItem, IEnumerable\u003Cdouble\u003E?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "ChartBubbleSeries",
@@ -2472,6 +2869,128 @@
       "addedIn": "0.1.0-alpha.22"
     },
     {
+      "name": "ChartCandlestickSeries",
+      "displayName": "ChartCandlestickSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartCandlestickSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Open",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "High",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Low",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Close",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "IncreaseColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "DecreaseColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "ChartDrillLevel",
       "displayName": "ChartDrillLevel\u003CTItem\u003E",
       "fullName": "IzzyBlazor.ChartDrillLevel\u00601",
@@ -2497,6 +3016,114 @@
       "methods": [],
       "types": [],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ChartHistogramSeries",
+      "displayName": "ChartHistogramSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartHistogramSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Bins",
+          "type": "ChartBins?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Opacity",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartBins",
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "ChartLineSeries",
@@ -2621,6 +3248,354 @@
         "DataAggregate"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ChartOhlcSeries",
+      "displayName": "ChartOhlcSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartOhlcSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Open",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "High",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Low",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Close",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "IncreaseColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "DecreaseColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
+      "name": "ChartRangeAreaSeries",
+      "displayName": "ChartRangeAreaSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartRangeAreaSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "LineStyle",
+          "type": "ChartLineStyle?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Curve",
+          "type": "ChartCurve",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ConnectGaps",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Low",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "High",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartCurve",
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartLineStyle",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
+      "name": "ChartRangeBarSeries",
+      "displayName": "ChartRangeBarSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartRangeBarSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Opacity",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Low",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "High",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "ChartRangeSelector",
@@ -2959,6 +3934,108 @@
       "addedIn": "0.1.0-alpha.22"
     },
     {
+      "name": "ChartViolinSeries",
+      "displayName": "ChartViolinSeries\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ChartViolinSeries\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ShowMean",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "SeriesBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Color",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Labels",
+          "type": "ChartLabels",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelText",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "LabelOverlap",
+          "type": "ChartLabelOverlap",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Trend",
+          "type": "ChartTrend",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendOrder",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendPeriod",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TrendColor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueAxis",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ChartLabelOverlap",
+        "ChartLabels",
+        "ChartTrend",
+        "DataAggregate"
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "ChartWaterfallSeries",
       "displayName": "ChartWaterfallSeries\u003CTItem\u003E",
       "fullName": "IzzyBlazor.ChartWaterfallSeries\u00601",
@@ -3170,6 +4247,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Crosshair",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "SyncView",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
@@ -3203,6 +4285,11 @@
           "name": "HidePause",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "Drill",
@@ -4481,6 +5568,30 @@
       "addedIn": "0.1.0-alpha.20"
     },
     {
+      "name": "DataGridExportFormat",
+      "displayName": "DataGridExportFormat",
+      "fullName": "IzzyBlazor.DataGridExportFormat",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Href",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "DataGridFilterBuilder",
       "displayName": "DataGridFilterBuilder",
       "fullName": "IzzyBlazor.DataGridFilterBuilder",
@@ -5025,6 +6136,11 @@
         }
       ],
       "methods": [
+        {
+          "name": "ExportHref",
+          "type": "string ExportHref(string href)",
+          "addedIn": "0.1.0-alpha.23"
+        },
         {
           "name": "ReloadAsync",
           "type": "Task ReloadAsync()",
@@ -6293,6 +7409,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Exportable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "Visible",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
@@ -7335,6 +8456,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "TitleAlign",
           "type": "ChartAlign",
           "addedIn": "0.1.0-alpha.22"
@@ -7455,6 +8581,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Palette",
+          "type": "ChartPalette?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "ChildContent",
           "type": "RenderFragment?",
           "addedIn": "0.1.0-alpha.22"
@@ -7469,7 +8600,8 @@
       ],
       "methods": [],
       "types": [
-        "Accent"
+        "Accent",
+        "ChartPalette"
       ],
       "addedIn": "0.1.0-alpha.22"
     },
@@ -7493,7 +8625,7 @@
         },
         {
           "name": "Accent",
-          "type": "Accent",
+          "type": "Accent?",
           "addedIn": "0.1.0-alpha.22"
         },
         {
@@ -7508,6 +8640,37 @@
         "Accent"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "GaugePointer",
+      "displayName": "GaugePointer",
+      "fullName": "IzzyBlazor.GaugePointer",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent"
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "Grid",
@@ -7743,6 +8906,11 @@
           "name": "HideTitle",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "TitleAlign",
@@ -8240,6 +9408,142 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "LinearGauge",
+      "displayName": "LinearGauge",
+      "fullName": "IzzyBlazor.LinearGauge",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Pointer",
+          "type": "LinearGaugePointer",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "TickPlacement",
+          "type": "TickPlacement",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ScaleSide",
+          "type": "ScaleSide?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Height",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Reversed",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Step",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "MinorStep",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "HideScale",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Refresh",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "RefreshFrom",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Value",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Min",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Max",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "HideLabel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ValueFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Target",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Palette",
+          "type": "ChartPalette?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnRefresh",
+          "type": "EventCallback",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ChartPalette",
+        "Length",
+        "LinearGaugePointer",
+        "Orientation",
+        "ScaleSide",
+        "TickPlacement"
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "List",
@@ -9423,6 +10727,16 @@
         {
           "name": "ChildContent",
           "type": "RenderFragment?"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Current",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         }
       ],
       "events": [],
@@ -9500,6 +10814,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "TitleAlign",
           "type": "ChartAlign",
           "addedIn": "0.1.0-alpha.22"
@@ -9513,6 +10832,11 @@
           "name": "StartAngle",
           "type": "double",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Sweep",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "Size",
@@ -9997,6 +11321,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "TitleAlign",
           "type": "ChartAlign",
           "addedIn": "0.1.0-alpha.22"
@@ -10010,6 +11339,11 @@
           "name": "StartAngle",
           "type": "double",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Sweep",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "Size",
@@ -10467,6 +11801,11 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "Exportable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "Visible",
           "type": "bool",
           "addedIn": "0.1.0-alpha.20"
@@ -10689,6 +12028,11 @@
           "name": "HideTitle",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "TitleAlign",
@@ -11494,6 +12838,11 @@
           "name": "HideTitle",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
         },
         {
           "name": "TitleAlign",
@@ -13815,6 +15164,11 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "Exportable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "Visible",
           "type": "bool",
           "addedIn": "0.1.0-alpha.20"
@@ -15795,6 +17149,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Download",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "TitleAlign",
           "type": "ChartAlign",
           "addedIn": "0.1.0-alpha.22"
@@ -16865,6 +18224,34 @@
       "addedIn": "0.1.0-alpha.22"
     },
     {
+      "name": "ChartBins",
+      "fullName": "IzzyBlazor.ChartBins",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "ChartBins",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Count",
+          "type": "ChartBins Count(int count)",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Width",
+          "type": "ChartBins Width(double width)",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Width",
+          "type": "ChartBins Width(TimeSpan width)",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "ChartCurve",
       "fullName": "IzzyBlazor.ChartCurve",
       "kind": "enum",
@@ -17056,6 +18443,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Tints",
+          "type": "ChartPalette Tints(Color color)",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
           "name": "Diverging",
           "type": "ChartPalette Diverging(Color low, Color high)",
           "addedIn": "0.1.0-alpha.22"
@@ -17182,6 +18574,24 @@
         }
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ChartWhiskers",
+      "fullName": "IzzyBlazor.ChartWhiskers",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Tukey",
+          "type": "ChartWhiskers",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "MinMax",
+          "type": "ChartWhiskers",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "ChatAttachment",
@@ -19412,6 +20822,29 @@
       ]
     },
     {
+      "name": "LinearGaugePointer",
+      "fullName": "IzzyBlazor.LinearGaugePointer",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Bar",
+          "type": "LinearGaugePointer",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Marker",
+          "type": "LinearGaugePointer",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Needle",
+          "type": "LinearGaugePointer",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.23"
+    },
+    {
       "name": "ListMoveEventArgs",
       "fullName": "IzzyBlazor.ListMoveEventArgs\u00601",
       "kind": "class",
@@ -20069,6 +21502,24 @@
         }
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ScaleSide",
+      "fullName": "IzzyBlazor.ScaleSide",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "ScaleSide",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "End",
+          "type": "ScaleSide",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "SchedulerAppointmentContext",
@@ -21056,6 +22507,24 @@
           "type": "ThemeScrollbars"
         }
       ]
+    },
+    {
+      "name": "TickPlacement",
+      "fullName": "IzzyBlazor.TickPlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Outside",
+          "type": "TickPlacement",
+          "addedIn": "0.1.0-alpha.23"
+        },
+        {
+          "name": "Inside",
+          "type": "TickPlacement",
+          "addedIn": "0.1.0-alpha.23"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.23"
     },
     {
       "name": "ToastPlacement",
