@@ -22,7 +22,7 @@ public sealed record DataGridAggregate(DataAggregate Type, object? Value, string
 public sealed record DataGridGroup(object? Value, string Text, DataGroup Group, int Level, bool IsOpen);
 
 /// <summary>
-/// What <see cref="DataGrid{TItem}"/> and <c>TreeList</c> share: the grid's columns,
+/// What <see cref="DataGrid{TItem}"/> and <see cref="TreeList{TItem}"/> share: the grid's columns,
 /// filters, toolbar, editing and export.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>

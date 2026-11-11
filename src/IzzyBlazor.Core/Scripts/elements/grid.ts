@@ -720,6 +720,21 @@ class Grid extends IzzyElement {
           cell.querySelector<HTMLElement>(".ib-grid-group-toggle")?.click();
           return true;
         }
+        // A tree row's first column, as a treegrid's: Right opens, Left closes, then goes to the parent.
+        if (cell.tagName === "TD" && this.#own(cell, ".ib-treelist-cell")) {
+          const toggle = this.#own(cell, ".ib-treelist-toggle");
+          if (toggle && row.getAttribute("aria-expanded") === String(!forward)) {
+            toggle.click();
+            return true;
+          }
+          const level = Number(row.getAttribute("aria-level"));
+          if (!forward && level > 1) {
+            let parent = row.previousElementSibling;
+            while (parent && Number(parent.getAttribute("aria-level")) !== level - 1) parent = parent.previousElementSibling;
+            if (parent instanceof HTMLTableRowElement) this.#focusCell(this.#atColumn(parent, this.#column));
+            return true;
+          }
+        }
         this.#focusCell(cells[cells.indexOf(cell) + (forward ? 1 : -1)]);
         return true;
       }

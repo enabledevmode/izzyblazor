@@ -1,0 +1,90 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits GridViewBase<TItem>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, each chevron is a link that loads the page with that row open or closed; there's no select-all checkbox, and filters apply when you press Apply.")]
+
+@*
+    A grid whose rows form a tree. Give it the top rows and ItemChildren (nested data), or every row
+    and ItemParentKey (a flat list with a parent id). It needs an ItemKey. Its columns are the
+    DataGrid's: PropertyColumn and TemplateColumn, with sorting, filters, a toolbar, editing and export.
+
+    The first column shows each row's level: an indent, a chevron on a row with rows under it, an
+    optional ItemIcon, then the column's value. The chevron in its header opens or closes every row.
+
+    Open rows are in the address (?open=key, repeated; * for all, !key for one closed), so a static
+    page opens a row by a link. Bind ExpandedItems on an interactive page to keep them in the
+    component. ExpandAll and ItemExpanded choose the rows that start open.
+
+    Sorting orders each row's children among themselves; a row never leaves its parent. Filtering
+    and search keep the matches and the rows above them, muted, with their branches open;
+    FilterBranch keeps the rows under a match too. Pages count top rows, so a branch is never split.
+
+    <TreeList Items="employees" ItemKey="e => e.Id.ToString()"
+              ItemParentKey="e => e.ManagerId?.ToString()">
+        <PropertyColumn Property="e => e.Name" />
+        <PropertyColumn Property="e => e.Title" />
+    </TreeList>
+
+    Accessibility:
+    - With script, the table is a treegrid: each row has its level, its place among its siblings and,
+      with rows under it, whether it's open.
+    - Each chevron is named for its row ("Expand Ada Lovelace"), and the header's for what it does
+      ("Expand all rows").
+    - A row kept only because a match is under it is muted, and still read.
+
+    Keyboard:
+    In the first column
+    - Right | Open the row; on an open row, move right
+    - Left | Close the row; on a closed row, move to its parent
+    See also: DataGrid, TreeView.
+*@
+
+@Grid
+
+@code {
+    /// <inheritdoc />
+    internal override RenderFragment FirstCell(TItem item, RenderFragment content) => !_treeRows.TryGetValue(KeyOf(item), out var row) ? content : __builder =>
+    {
+        var key = KeyOf(item);
+        <span class="ib-treelist-cell" style="@($"--ib-treelist-depth:{row.Depth}")">
+            @if (row.HasChildren)
+            {
+                var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, row.Open ? TextDefaults.TreeCollapse : TextDefaults.TreeExpand, LabelOf(item));
+                var list = TreeToggled(key, row.Open, row.OpenByDefault);
+                if (UseState)
+                {
+                    <button type="button" class="ib-grid-expand ib-treelist-toggle" aria-expanded="@(row.Open ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetTreeOpenAsync(list)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
+                }
+                else
+                {
+                    <a class="ib-grid-expand ib-treelist-toggle" href="@TreeLink(list)" aria-expanded="@(row.Open ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
+                }
+            }
+            else if (_treeHasChildren)
+            {
+                <span class="ib-treelist-leaf"></span>
+            }
+            @if (ItemIcon?.Invoke(item, row.Open) is { } icon)
+            {
+                <Icon Name="icon" Class="ib-treelist-icon" />
+            }
+            <span class="ib-treelist-value">@content</span>
+        </span>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? FirstHeaderLead => !_treeHasChildren ? null : __builder =>
+    {
+        var all = TreeAllOpen;
+        var label = all ? TextDefaults.TreeCollapseAll : TextDefaults.TreeExpandAll;
+        if (UseState)
+        {
+            <button type="button" class="ib-grid-expand ib-treelist-toggle" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetTreeOpenAsync(TreeAll(!all))"><Icon Purpose="IconPurpose.ChevronRight" /></button>
+        }
+        else
+        {
+            <a class="ib-grid-expand ib-treelist-toggle" href="@TreeLink(TreeAll(!all))" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
+        }
+    };
+}

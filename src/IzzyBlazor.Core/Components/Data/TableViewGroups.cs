@@ -37,6 +37,15 @@ public abstract partial class TableViewBase<TItem>
     /// <summary>A class every data row has, a grid's rows that move.</summary>
     internal virtual string? OwnRowClass => null;
 
+    /// <summary>A class a data row has by its item: a tree's row kept only for a match under it.</summary>
+    internal virtual string? ItemRowClass(TItem item) => null;
+
+    /// <summary>The first column's cell content, around what its column draws: a tree's indent and chevron.</summary>
+    internal virtual RenderFragment FirstCell(TItem item, RenderFragment content) => content;
+
+    /// <summary>Before the first column's header, in one line with it: a tree's chevron that opens every row.</summary>
+    internal virtual RenderFragment? FirstHeaderLead => null;
+
     /// <summary>A data row's own attributes, for a grid's rows that move.</summary>
     internal virtual IReadOnlyDictionary<string, object>? RowAttributes(TItem item) => null;
 

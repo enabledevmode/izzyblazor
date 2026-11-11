@@ -41,6 +41,14 @@
     // semibold, a little over the estimate), the sort icon, the filter and menu buttons and the padding,
     // measured in the browser at 28, 24, 24 and 32px. Fewer columns fit before the grid scrolls, but
     // none is cut short.
+    /// <summary>Room the first column's cells take before its value, beyond its header's: a tree's indent, chevron and icon.</summary>
+    internal virtual string? FirstColumnLead => null;
+
+    // A first column with no width of its own, whose cells start with more than its value: wide enough
+    // for a name after it, so the indent doesn't squeeze it.
+    private string? FirstColumnWidth(ColumnBase<TItem> column) => FirstColumnLead is not { } lead ? null
+        : $"calc(max({(column.MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(column))}, 12rem) + {lead})";
+
     private string HeaderMinWidth(ColumnBase<TItem> column)
     {
         var px = TextWidths.AtSize(column.HeaderText, 14) * 1.05 + 32
@@ -388,12 +396,12 @@
 
         if (!OnSave.HasDelegate)
         {
-            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditDialogForm of your own.");
+            throw new InvalidOperationException($"A {ViewName} with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditDialogForm of your own.");
         }
 
         if (!WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
         {
-            throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
+            throw new InvalidOperationException($"A {ViewName} on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
         }
     }
 
@@ -1594,7 +1602,7 @@
 
         if (LayoutKey.Length is 0 or > 64 || !LayoutKey.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
         {
-            throw new InvalidOperationException($"The DataGrid's {nameof(LayoutKey)} \"{LayoutKey}\" names a cookie: use letters, digits, - and _.");
+            throw new InvalidOperationException($"The {ViewName}'s {nameof(LayoutKey)} \"{LayoutKey}\" names a cookie: use letters, digits, - and _.");
         }
 
         // The cookie is there on the server's first render; an interactive render that follows a
@@ -1633,12 +1641,12 @@
     {
         if (CanEdit && ItemKey is null)
         {
-            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(ItemKey)} to know which row is being edited.");
+            throw new InvalidOperationException($"A {ViewName} with an {nameof(EditMode)} needs an {nameof(ItemKey)} to know which row is being edited.");
         }
 
         if (CanDelete && ItemKey is null)
         {
-            throw new InvalidOperationException($"A DataGrid with an {nameof(OnDelete)} needs an {nameof(ItemKey)} to know which row to delete.");
+            throw new InvalidOperationException($"A {ViewName} with an {nameof(OnDelete)} needs an {nameof(ItemKey)} to know which row to delete.");
         }
 
         if (Virtualize)
@@ -1693,7 +1701,7 @@
         // Rows that load as they're needed can't be counted on to hold the one a link names.
         if (CanEdit && FindItem is null && (Virtualize || Appending))
         {
-            throw new InvalidOperationException($"A DataGrid that loads rows as they're needed can't edit one it hasn't loaded: give it a {nameof(FindItem)}.");
+            throw new InvalidOperationException($"A {ViewName} that loads rows as they're needed can't edit one it hasn't loaded: give it a {nameof(FindItem)}.");
         }
 
         return LoadThenFindAsync();
@@ -2688,7 +2696,7 @@
 
     private RenderFragment ColumnCol(int i) => __builder =>
     {
-        <col class="@ColClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+        <col class="@ColClass(Shown[i])" style="@((WidthOf(Shown[i]) ?? (i == 0 ? FirstColumnWidth(Shown[i]) : null)) is null ? null : $"width:var(--ib-col-{i})")" />
     };
 
     /// <inheritdoc />
@@ -2771,7 +2779,7 @@
             var unset = new List<string>();
             for (var i = 0; i < Shown.Count; i++)
             {
-                if (WidthOf(Shown[i]) is { } width)
+                if ((WidthOf(Shown[i]) ?? (i == 0 ? FirstColumnWidth(Shown[i]) : null)) is { } width)
                 {
                     style.Append($"--ib-col-{i}:{width};");
                     parts.Add($"var(--ib-col-{i})");
@@ -2902,7 +2910,7 @@
     {
         if (RowHref is not null && Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))
         {
-            throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
+            throw new InvalidOperationException($"A {ViewName} can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
         }
 
         // A band is frozen as one: a column frozen on its own would leave the band split at the edge.

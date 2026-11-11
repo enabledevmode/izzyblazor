@@ -64,7 +64,8 @@
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
                         <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                     }
-                    @(cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item)))
+                    @{ var content = cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item)); }
+                    @(first ? FirstCell(item, content) : content)
                 </td>
                 first = false;
             }
@@ -248,21 +249,16 @@
                             @foreach (var column in Shown)
                             {
                                 <th scope="col" class="@CellClass(column)" role="@StackRole("columnheader")" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)" @attributes="HeaderAttributes(column)">
-                                    @if ((headerFilters is not null && column.CanFilter) || HasHeaderMenu(column))
+                                    @if (column == Shown[0] && FirstHeaderLead is { } headerLead)
                                     {
-                                        @* The title (or sort control) and a filter button that opens the filter. *@
-                                        <div class="ib-table-head">
-                                            @HeaderTitle(column)
-                                            @if (headerFilters is not null && column.CanFilter)
-                                            {
-                                                @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column))
-                                            }
-                                            @HeaderMenu(column)
+                                        <div class="ib-tree-head">
+                                            @headerLead
+                                            @HeaderContent(column, headerFilters)
                                         </div>
                                     }
                                     else
                                     {
-                                        @HeaderTitle(column)
+                                        @HeaderContent(column, headerFilters)
                                     }
                                     @HeaderHandle(column)
                                 </th>
@@ -2052,9 +2048,29 @@
     // On the row's link when it has one (screen readers announce it there), else on the row.
     private string? CurrentOf(TItem item) => RowCurrent?.Invoke(item) == true ? "true" : null;
 
+    // A header's title (or sort control), with a filter button that opens the filter and its menu when it has them.
+    private RenderFragment HeaderContent(ColumnBase<TItem> column, IReadOnlyDictionary<string, ColumnFilterValue>? headerFilters) => __builder =>
+    {
+        @if ((headerFilters is not null && column.CanFilter) || HasHeaderMenu(column))
+        {
+            <div class="ib-table-head">
+                @HeaderTitle(column)
+                @if (headerFilters is not null && column.CanFilter)
+                {
+                    @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column))
+                }
+                @HeaderMenu(column)
+            </div>
+        }
+        else
+        {
+            @HeaderTitle(column)
+        }
+    };
+
     private string? RowClasses(TItem item, string? href)
     {
-        var classes = string.Join(' ', new[] { RowClass?.Invoke(item), href is null ? null : "ib-table-row-linked", OwnRowClass }.Where(c => !string.IsNullOrEmpty(c)));
+        var classes = string.Join(' ', new[] { RowClass?.Invoke(item), href is null ? null : "ib-table-row-linked", OwnRowClass, ItemRowClass(item) }.Where(c => !string.IsNullOrEmpty(c)));
         return classes.Length > 0 ? classes : null;
     }
 

@@ -1618,6 +1618,51 @@
     rotate: -90deg;
   }
 
+  /* A TreeList's first column: an indent per level, the chevron (or its space on a row with nothing under
+     it), an icon, then the value. A level's indent is a chevron and its gap, so a row's chevron sits
+     under its parent's value. */
+  .ib-table-grid {
+    --ib-treelist-toggle: 1.5rem;
+    --ib-treelist-gap: 0.25rem;
+  }
+
+  :is(.ib-treelist-cell, .ib-tree-head) {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-treelist-gap);
+    min-width: 0;
+  }
+
+  .ib-treelist-cell {
+    padding-inline-start: calc(var(--ib-treelist-depth, 0) * (var(--ib-treelist-toggle) + var(--ib-treelist-gap)));
+  }
+
+  :is(.ib-treelist-toggle, .ib-treelist-leaf) {
+    flex: none;
+    justify-content: center;
+    inline-size: var(--ib-treelist-toggle);
+    block-size: var(--ib-treelist-toggle);
+    /* The chevron starts in the cell's padding, so the value lines up with the header's title. */
+    margin-inline-start: calc(var(--ib-treelist-gap) * -1);
+  }
+
+  .ib-grid-expand.ib-treelist-toggle > svg {
+    padding-inline: 0;
+  }
+
+  .ib-treelist-icon {
+    flex: none;
+  }
+
+  .ib-treelist-value {
+    min-width: 0;
+  }
+
+  /* Kept only for a match under it, while filtering. */
+  .ib-treelist-context > td {
+    color: var(--ib-color-muted);
+  }
+
   /* A row's detail: under its data, in view as the grid scrolls sideways (--ib-box is the box's width). */
   .ib-grid-detail > td {
     padding: 0;

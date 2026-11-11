@@ -2821,6 +2821,22 @@
       ]
     },
     {
+      "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
+      "features": [
+        { "feature": "Nested rows from a flat list with a parent key, or from children", "member": "ItemParentKey" },
+        { "feature": "Open rows in the URL, so a static page opens them by a link" },
+        { "feature": "Open rows bound to C#", "member": "ExpandedItems", "noscript": "none" },
+        { "feature": "Sorting within each row's children" },
+        { "feature": "Filters and search that keep the rows above a match", "member": "FilterBranch" },
+        { "feature": "Pages of top rows, so a branch is never split" },
+        { "feature": "Treegrid keys: Right opens a row, Left closes it or goes to its parent", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "tree-list-org-chart", "title": "A flat list with parent keys", "lead": "For rows stored with a parent's id, as in most databases, pass every row as `Items` and set `ItemParentKey`. A row with no parent, or one that isn't in the list, is a top row. `ItemExpanded` chooses the rows that start open.", "after": ["Sorting orders each row's children among themselves. Filtering keeps the matches and the rows above them, muted; to keep the rows under a match too, set `FilterBranch`.", "Open rows are in the address, so a link or a reload keeps them. On an interactive page, bind `ExpandedItems` to keep them in the component instead."] },
+        { "id": "tree-list-files", "title": "Nested rows and icons", "lead": "For rows that hold their children, pass the top rows as `Items` and set `ItemChildren`. `ItemIcon` draws an icon before a row's value in the first column, and is told whether the row is open." }
+      ]
+    },
+    {
       "id": "list-view", "icon": "List", "name": "ListView", "category": "Data", "summary": "Displays a list of items users can open, select, page through and reorder.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
         { "feature": "Links, the current item, actions and a ⋯ menu on each item" },

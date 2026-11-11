@@ -819,6 +819,18 @@ public class IzzyText
     /// <summary>Closes every row's detail in a DataGrid.</summary>
     public virtual string DetailCollapseAll { get; set; } = "Hide all details";
 
+    /// <summary>A TreeList row's chevron that shows the rows under it: {0} is the row's name.</summary>
+    public virtual string TreeExpand { get; set; } = "Expand {0}";
+
+    /// <summary>A TreeList row's chevron that hides the rows under it: {0} is the row's name.</summary>
+    public virtual string TreeCollapse { get; set; } = "Collapse {0}";
+
+    /// <summary>Opens every row in a TreeList.</summary>
+    public virtual string TreeExpandAll { get; set; } = "Expand all rows";
+
+    /// <summary>Closes every row in a TreeList.</summary>
+    public virtual string TreeCollapseAll { get; set; } = "Collapse all rows";
+
     /// <summary>The name of a DataGrid's column of detail buttons, when it has no button of its own.</summary>
     public virtual string DetailColumn { get; set; } = "Details";
 

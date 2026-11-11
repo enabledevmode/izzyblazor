@@ -1,0 +1,59 @@
+@* Nested folders and files, as a file manager shows them; each folder's icon open or closed. *@
+<TreeList Items="_files" ItemKey="f => f.Path" ItemChildren="f => f.Children" ItemIcon="Icon"
+          ItemExpanded="StartsOpen" QueryPrefix="files-" Caption="Files">
+    <Columns>
+        <PropertyColumn Property="f => f.Name" Sortable />
+        <PropertyColumn Property="f => f.Modified" Format="MMM d, yyyy" Sortable />
+        <PropertyColumn Property="f => f.Kind" Sortable />
+        <TemplateColumn Title="Size" SortBy="f => f.Bytes" Align="CellAlign.End" Sortable>@Size(context.Bytes)</TemplateColumn>
+    </Columns>
+</TreeList>
+
+@code {
+    private static bool StartsOpen(FileEntry entry) => entry.Path == "/Projects";
+
+    private static IconData? Icon(FileEntry entry, bool open) =>
+        entry.Children is null ? entry.Kind == "Spreadsheet" ? Lucide.FileSpreadsheet : entry.Kind == "Image" ? Lucide.FileImage : Lucide.FileText
+        : open ? Lucide.FolderOpen : Lucide.Folder;
+
+    private static string Size(long? bytes) => bytes switch
+    {
+        null => "",
+        < 1024 * 1024 => $"{bytes / 1024.0:0} KB",
+        _ => $"{bytes / (1024.0 * 1024):0.0} MB",
+    };
+
+    private readonly FileEntry[] _files =
+    [
+        Folder("/Projects", new(2026, 11, 3),
+        [
+            Folder("/Projects/Website redesign", new(2026, 11, 3),
+            [
+                File("/Projects/Website redesign/Brief.docx", "Document", new(2026, 9, 14), 48_200),
+                File("/Projects/Website redesign/Homepage mockup.png", "Image", new(2026, 10, 30), 2_874_000),
+                File("/Projects/Website redesign/Budget.xlsx", "Spreadsheet", new(2026, 11, 3), 31_500),
+            ]),
+            Folder("/Projects/Q4 launch", new(2026, 10, 21),
+            [
+                File("/Projects/Q4 launch/Launch plan.docx", "Document", new(2026, 10, 2), 61_900),
+                File("/Projects/Q4 launch/Press list.xlsx", "Spreadsheet", new(2026, 10, 21), 22_400),
+            ]),
+        ]),
+        Folder("/Finance", new(2026, 11, 1),
+        [
+            File("/Finance/2026 forecast.xlsx", "Spreadsheet", new(2026, 11, 1), 118_300),
+            File("/Finance/Expense policy.pdf", "Document", new(2026, 2, 6), 402_000),
+        ]),
+        File("/Notes.txt", "Document", new(2026, 11, 7), 3_100),
+    ];
+    @* hide *@
+    private sealed record FileEntry(string Path, string Kind, DateOnly Modified, long? Bytes, FileEntry[]? Children)
+    {
+        public string Name => Path[(Path.LastIndexOf('/') + 1)..];
+    }
+
+    private static FileEntry Folder(string path, DateOnly modified, FileEntry[] children) => new(path, "Folder", modified, null, children);
+
+    private static FileEntry File(string path, string kind, DateOnly modified, long bytes) => new(path, kind, modified, bytes, null);
+    @* /hide *@
+}
