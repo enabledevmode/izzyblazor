@@ -1,0 +1,48 @@
+@* A task's comments with a box to add yours: a Comment with your avatar and a form inside. *@
+@using System.ComponentModel.DataAnnotations
+
+<Stack Gap="6" Grow>
+    @foreach (var comment in _comments)
+    {
+        <Comment Author="@comment.Author" Initials="@comment.Initials" Time="comment.Time" RelativeTime Text="@comment.Text" />
+    }
+    <Comment Initials="YO">
+        <Form Model="Model" FormName="comment-reply-form" OnValidSubmit="Add">
+            <TextArea @bind-Value="Model!.Text" Rows="2" AutoGrow HideLabel Placeholder="Add a comment" />
+            <FormActions>
+                <Button Submit Size="ControlSize.Sm">Comment</Button>
+            </FormActions>
+        </Form>
+    </Comment>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "comment-reply-form")]
+    private Draft? Model { get; set; }
+
+    private readonly List<Posted> _comments =
+    [
+        new("Aisha Bello", "AB", DateTimeOffset.UtcNow.AddHours(-6), "The vendor sent the revised quote. It's attached to the task."),
+        new("Daniel Kim", "DK", DateTimeOffset.UtcNow.AddHours(-1), "It's 8% over budget. I'll ask whether they can drop the install fee."),
+    ];
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // On a static page the post adds it to this render; an app saves it, then shows the task again.
+    private void Add()
+    {
+        _comments.Add(new("You", "YO", DateTimeOffset.UtcNow, Model!.Text!.Trim()));
+        Model = new();
+    }
+    @* hide *@
+    private sealed record Posted(string Author, string Initials, DateTimeOffset Time, string Text);
+
+    public sealed class Draft
+    {
+        [Required(ErrorMessage = "Write a comment first")]
+        [StringLength(1000)]
+        [Display(Name = "Comment")]
+        public string? Text { get; set; }
+    }
+    @* /hide *@
+}
