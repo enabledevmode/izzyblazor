@@ -1,51 +1,32 @@
-@* A stock's last three months of trading days: candles with a 20-day moving average, and the day's volume in a chart under them, synced. *@
-<Chart Items="_shown" Argument="d => d.Date" Title="Northwind Traders (NWND)" Sync="nwnd">
-    <ChartValueAxis Format="C2" Position="ChartAxisPosition.Right" LabelWidth="Length.Rem(4)" />
-    <ChartArgumentAxis HideLabels Zoom />
-    <ChartCandlestickSeries Open="d => d.Open" High="d => d.High" Low="d => d.Low" Close="d => d.Close" Name="Price" />
-    <ChartLineSeries Value="d => d.Average" Name="20-day average" />
-</Chart>
-
-<Chart Items="_shown" Argument="d => d.Date" Title="Volume" Sync="nwnd" Height="Length.Rem(8)">
-    <ChartValueAxis Format="#,##0,,M" Position="ChartAxisPosition.Right" LabelWidth="Length.Rem(4)" />
-    <ChartBarSeries Value="d => d.Volume" Name="Volume" />
+@* Six weeks of a stock's trading days as candlesticks. *@
+<Chart Items="_days" Argument="d => d.Date" Title="Northwind Traders (NWND), Sep to Oct 2026">
+    <ChartValueAxis Format="C2" />
+    <ChartCandlestickSeries Open="d => d.Open" High="d => d.High" Low="d => d.Low" Close="d => d.Close" Name="NWND" />
 </Chart>
 
 @code {
-    private record Day(DateOnly Date, decimal Open, decimal High, decimal Low, decimal Close, long Volume)
-    {
-        public decimal? Average { get; init; }
-    }
+    private record Day(DateOnly Date, decimal Open, decimal High, decimal Low, decimal Close);
 
-    private static readonly HashSet<DateOnly> Holidays = [new(2026, 5, 25), new(2026, 6, 19), new(2026, 7, 3), new(2026, 9, 7)];
+    private static readonly HashSet<DateOnly> Holidays = [new(2026, 9, 7)];
 
-    private readonly Day[] _shown;
+    private readonly Day[] _days;
 
     public Candlestick()
     {
-        // Trading days from May to October 2026: a random walk with a slow climb, a wider swing
-        // on busier days, and more shares traded when the price moves most.
+        // Trading days: a random walk with a slow climb, each day opening near the last close.
         var random = new Random(26);
         var days = new List<Day>();
-        var close = 182m;
-        for (var date = new DateOnly(2026, 5, 1); date <= new DateOnly(2026, 10, 30); date = date.AddDays(1))
+        var close = 204m;
+        for (var date = new DateOnly(2026, 9, 14); date <= new DateOnly(2026, 10, 23); date = date.AddDays(1))
         {
             if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday || Holidays.Contains(date)) continue;
             var open = Math.Round(close * (1 + (decimal)(random.NextDouble() - 0.5) * 0.012m), 2);
-            var move = (decimal)(random.NextDouble() - 0.47) * 0.04m;
-            close = Math.Round(open * (1 + move), 2);
+            close = Math.Round(open * (1 + (decimal)(random.NextDouble() - 0.47) * 0.04m), 2);
             var high = Math.Round(Math.Max(open, close) * (1 + (decimal)random.NextDouble() * 0.012m), 2);
             var low = Math.Round(Math.Min(open, close) * (1 - (decimal)random.NextDouble() * 0.012m), 2);
-            var volume = (long)(18_000_000 + Math.Abs(move) * 900_000_000m + random.Next(0, 8_000_000));
-            days.Add(new Day(date, open, high, low, close, volume));
+            days.Add(new Day(date, open, high, low, close));
         }
 
-        // The 20-day average of the close, from the days before the chart's first too.
-        for (var i = 19; i < days.Count; i++)
-        {
-            days[i] = days[i] with { Average = Math.Round(days.Skip(i - 19).Take(20).Average(d => d.Close), 2) };
-        }
-
-        _shown = days.Where(d => d.Date >= new DateOnly(2026, 8, 3)).ToArray();
+        _days = [.. days];
     }
 }
