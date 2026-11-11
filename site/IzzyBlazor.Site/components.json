@@ -19,7 +19,7 @@
       ]
     },
     {
-      "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lays out its children in a row.",
+      "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lines up buttons, badges or fields side by side, with a gap between them.",
       "examples": [
         { "id": "row-alignment", "title": "Alignment", "lead": "Alignment sets where children sit across the row, between its top and bottom. By default they stretch to the row's height. To line them up on one center line, as the avatar, text and button are here, set `Align` to `Align.Center`." },
         { "id": "row-distribute", "title": "Distributing the free space", "lead": "To share the free space along the row, set `Justify`. `Justify.Between` puts the count at the start and the buttons at the end." },
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Lays out its children in a column.",
+      "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Stacks fields, cards or text from top to bottom, with even spacing.",
       "examples": [
         { "id": "column-spacing", "title": "Space between children", "lead": "To change the space between a column's children, set `Gap`. For a tighter group inside the column, nest a column with a smaller gap.", "after": ["Here the plan's name and description use `Gap=\"1\"` (4px), and the groups `Gap=\"5\"` (20px)."] },
         { "id": "column-alignment", "title": "Alignment", "lead": "Children stretch to the column's width by default. To keep each one at its own width, as the button here, set `Align=\"Align.Start\"`." }
@@ -95,7 +95,7 @@
       ]
     },
     {
-      "id": "splitter", "icon": "Columns2", "name": "Splitter", "category": "Layout", "summary": "Lays out panes side by side or stacked, with bars that resize them.", "keywords": ["split pane", "split view", "resizable panes", "panels", "divider", "resize"],
+      "id": "splitter", "icon": "Columns2", "name": "Splitter", "category": "Layout", "summary": "Divides a view into panes the user resizes, such as a mail list beside the open message.", "keywords": ["split pane", "split view", "resizable panes", "panels", "divider", "resize"],
       "parts": ["SplitterPane"],
       "features": [
         { "feature": "Pane sizes, limits and a pane that fills, on the first paint" },
@@ -284,7 +284,7 @@
       ]
     },
     {
-      "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Renders body text in any text style.",
+      "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Sets paragraphs, captions and labels in the library's text styles.",
       "examples": [
         { "id": "text-block-scale", "title": "Size scale", "lead": "To pick a step on the type scale, from `Xs` to `Xl6`, set `Size`." },
         { "id": "text-block-styles", "title": "Weight, family and decoration", "lead": "To style text without CSS, set `Weight`, `Family`, `Italic` and `Decoration`." },
@@ -313,7 +313,7 @@
       ]
     },
     {
-      "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Shows saved rich text, sanitized and styled as Prose.",
+      "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Displays HTML from an editor or a CMS safely in the page.",
       "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
       "examples": [
         { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML. Under the page's own title, set `TopHeading` to 2, as on the editor that wrote it." },
@@ -479,7 +479,7 @@
       ]
     },
     {
-      "id": "speed-dial", "icon": "Plus", "name": "SpeedDial", "category": "Actions", "summary": "A floating button that opens a line of actions, such as the things a page can create.", "keywords": ["speed dial", "fab menu", "floating action menu", "floating button menu"], "parts": ["SpeedDialAction"],
+      "id": "speed-dial", "icon": "Plus", "name": "SpeedDial", "category": "Actions", "summary": "Gathers a page's create actions behind one button in a corner.", "keywords": ["speed dial", "fab menu", "floating action menu", "floating button menu"], "parts": ["SpeedDialAction"],
       "features": [
         { "feature": "Opens and closes with JavaScript off" },
         { "feature": "Actions are links, form posts or C#" },
@@ -964,7 +964,7 @@
       ]
     },
     {
-      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Date & time", "summary": "Lets the user type a date, or a date and time, or choose it from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
+      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Date & time", "summary": "Takes a due date, a birthday or an appointment's date and time, typed or picked from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
         { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
         { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
@@ -992,7 +992,7 @@
       ]
     },
     {
-      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Date & time", "summary": "Lets the user type a time of day or choose one from a list.", "keywords": ["time picker", "clock", "hours"],
+      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Date & time", "summary": "Takes an opening hour, a reminder or a meeting's start, typed or picked from a list.", "keywords": ["time picker", "clock", "hours"],
       "features": [
         { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
         { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
@@ -1031,7 +1031,7 @@
       ]
     },
     {
-      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Date & time", "summary": "Lets the user choose several separate days from a month.", "keywords": ["multiple dates", "date picker", "several dates"],
+      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Date & time", "summary": "Picks a set of days, such as time off or a class's dates, by clicking each one.", "keywords": ["multiple dates", "date picker", "several dates"],
       "features": [
         { "feature": "A month where each day toggles, in a panel or on the page", "noscript": "partial" },
         { "feature": "Min, Max and DateDisabled checked for each date on the server" },
@@ -1074,7 +1074,7 @@
       ]
     },
     {
-      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Date & time", "summary": "Shows a month on the page for the user to choose a day from.", "keywords": ["month", "date", "inline calendar", "week numbers"],
+      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Date & time", "summary": "Puts a month on the page itself, for picking a day without opening a field.", "keywords": ["month", "date", "inline calendar", "week numbers"],
       "features": [
         { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
         { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
@@ -1095,7 +1095,7 @@
       ]
     },
     {
-      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Date & time", "summary": "Lets the user enter a length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
+      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Date & time", "summary": "Takes a timeout, a cooking time or a video's length in hours, minutes and seconds.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
       "features": [
         { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
         { "feature": "Min and Max checked on the server" },
@@ -1279,7 +1279,7 @@
       ]
     },
     {
-      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "summary": "Lets the user build a filter of nested groups and rules.",
+      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "summary": "Lets the user ask detailed questions of a grid's data, such as \"open orders over $500 from Europe\".",
       "features": [
         { "feature": "Groups and rules, from a type's fields, applied with a button", "noscript": "none" },
         { "feature": "The filter in the URL, or bound to C#", "noscript": "partial" }
@@ -1456,7 +1456,7 @@
       ]
     },
     {
-      "id": "tree-select", "icon": "ListTree", "name": "TreeSelect", "category": "Selection", "summary": "Lets the user choose one item from a tree, such as a category or a team, in a field that opens it.", "keywords": ["tree select", "dropdown tree", "drop-down tree", "hierarchy", "category picker", "cascader"],
+      "id": "tree-select", "icon": "ListTree", "name": "TreeSelect", "category": "Selection", "summary": "Opens a tree from a field, so a choice from a deep hierarchy takes the space of one input.", "keywords": ["tree select", "dropdown tree", "drop-down tree", "hierarchy", "category picker", "cascader"],
       "features": [
         { "feature": "Choose one item from a tree, posted with the form" },
         { "feature": "The field shows the choice as it's made", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1483,7 +1483,7 @@
       ]
     },
     {
-      "id": "multi-tree-select", "icon": "ListTree", "name": "MultiTreeSelect", "category": "Selection", "summary": "Lets the user choose several items from a tree, such as teams, in a field that opens it, shown as chips.", "keywords": ["tree select", "multi select tree", "checkbox tree", "dropdown tree", "hierarchy"],
+      "id": "multi-tree-select", "icon": "ListTree", "name": "MultiTreeSelect", "category": "Selection", "summary": "Opens a tree from a field to pick several nodes, shown as chips in the space of one input.", "keywords": ["tree select", "multi select tree", "checkbox tree", "dropdown tree", "hierarchy"],
       "features": [
         { "feature": "Choose several items from a tree, posted with the form" },
         { "feature": "Checking a parent checks its branch; mixed parents", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1760,7 +1760,7 @@
       ]
     },
     {
-      "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "Shows the path to the current page.", "parts": ["BreadcrumbItem"],
+      "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "Shows where a page sits in the site, with a link back up to each level.", "parts": ["BreadcrumbItem"],
       "examples": [
         { "id": "breadcrumb-path", "title": "Links and the current page", "lead": "A breadcrumb links to the pages above the current one. Give each `BreadcrumbItem` an `Href`, and leave it off the last, which is the current page. `Icon` adds an icon, such as a house for Home." },
         { "id": "breadcrumb-slash", "title": "Slashes", "lead": "To separate items with slashes in place of chevrons, set `Separator` to `BreadcrumbSeparator.Slash`." }
@@ -2380,7 +2380,7 @@
       ]
     },
     {
-      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Shows prices over time as candlesticks: each period's open, high, low and close, hollow when it closed up.", "use": "The traders' chart: each candle shows whether its period closed up or down, and by how much, at a glance. It can't show the path the price took within a period. When only the closing price matters, a line chart is simpler.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
+      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "The traders' chart: each candle shows whether its period closed up or down, and by how much, at a glance. It can't show the path the price took within a period. When only the closing price matters, a line chart is simpler.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
       "features": [
         { "feature": "Candlesticks, hollow when the price closed up and filled when it closed down, so direction shows without color" },
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
@@ -2396,7 +2396,7 @@
       ]
     },
     {
-      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Shows prices over time as OHLC bars: a line from each period's low to its high, with ticks at the open and close.", "use": "OHLC bars are the Western convention for price histories, and readers who trade know them; high-low-close suits end-of-day values, such as a fund's or an index's, where the open says little. For readers outside markets, candlesticks show the direction more plainly, and for the trend alone, a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
+      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days, as thin bars of each period's four prices.", "use": "OHLC bars are the Western convention for price histories, and readers who trade know them; high-low-close suits end-of-day values, such as a fund's or an index's, where the open says little. For readers outside markets, candlesticks show the direction more plainly, and for the trend alone, a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
       "features": [
         { "feature": "OHLC bars, the open a tick to the left and the close to the right, colored by whether the price closed up" },
         { "feature": "High-low-close, with no open" },
@@ -2492,7 +2492,7 @@
       ]
     },
     {
-      "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows the stages of a process that people drop out of, such as sign-ups, as a funnel, or levels of a hierarchy as a pyramid.", "use": "A funnel fits a strict sequence of four or more stages, each a subset of the one before, such as the steps of a checkout. Its taper asks readers to compare widths, so when the numbers matter more than the picture, bars across in stage order read more exactly. Values that only happen to shrink, such as sales by region, aren't a funnel.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
+      "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows how many make it through each step of a checkout, a sign-up or a sales pipeline, and where the most are lost.", "use": "A funnel fits a strict sequence of four or more stages, each a subset of the one before, such as the steps of a checkout. Its taper asks readers to compare widths, so when the numbers matter more than the picture, bars across in stage order read more exactly. Values that only happen to shrink, such as sales by region, aren't a funnel.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
       "features": [
         { "feature": "A funnel, each stage as wide as its value and sloping to the next" },
         { "feature": "A pyramid, each level as tall as its share of the total" },
@@ -2507,7 +2507,7 @@
       ]
     },
     {
-      "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows values over two dimensions, such as orders by weekday and hour, as a grid of cells whose color grows with the value.", "use": "A heatmap gives an overview of patterns across two dimensions, such as busy hours by weekday, not exact values: show the numbers in the cells, or use a bar chart, when precision matters. Order the rows and columns so similar ones sit together, and color by one hue that deepens with the value.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows where values run high or low across two dimensions, such as the busiest hours of the week.", "use": "A heatmap gives an overview of patterns across two dimensions, such as busy hours by weekday, not exact values: show the numbers in the cells, or use a bar chart, when precision matters. Order the rows and columns so similar ones sit together, and color by one hue that deepens with the value.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
         { "feature": "Cells colored in even steps from round bounds, light to dark, or blended continuously" },
         { "feature": "A diverging scale for values above and below a midpoint" },
@@ -2528,7 +2528,7 @@
       ]
     },
     {
-      "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a value for each day, such as commits or orders, as a calendar of colored cells: a column per week, a row per weekday.", "use": "A calendar heatmap shows daily rhythms, streaks and standout dates to readers who think in weeks and months. It shows patterns, not amounts: for the trend or exact values, chart the same days as a line or bars, and for seasons, as monthly totals. A few weeks of data looks sparse.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
+      "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a year of daily activity at a glance, such as a contributions graph, with busy days darker.", "use": "A calendar heatmap shows daily rhythms, streaks and standout dates to readers who think in weeks and months. It shows patterns, not amounts: for the trend or exact values, chart the same days as a line or bars, and for seasons, as monthly totals. A few weeks of data looks sparse.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
         { "feature": "A column per week and a row per weekday, from the culture's first day or one you choose" },
         { "feature": "Months named along the top, thinning as the calendar narrows" },
@@ -2565,7 +2565,7 @@
       ]
     },
     {
-      "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows amounts moving through stages, such as income through a budget, as bands between columns of nodes, each as wide as its flow.", "use": "A Sankey traces where an amount comes from and where it goes, such as an energy balance, a budget or the paths through a site. Many small flows turn it to clutter, so fold them into one. A single process that people drop out of reads better as a funnel.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
+      "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows where an amount comes from and where it goes, such as a budget from income to spending.", "use": "A Sankey traces where an amount comes from and where it goes, such as an energy balance, a budget or the paths through a site. Many small flows turn it to clutter, so fold them into one. A single process that people drop out of reads better as a funnel.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
       "features": [
         { "feature": "Nodes worked out from the flows' names, with no list of nodes to keep" },
         { "feature": "Columns by the flows, with every end node in the last column, or each node as far left or right as it can go" },
@@ -2584,7 +2584,7 @@
       ]
     },
     {
-      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows parts of a whole, such as a cloud bill by service, as tiles that fill a rectangle, each as large as its share, optionally in groups under their names.", "use": "A treemap fits a large hierarchy of parts into little space, to find the biggest, such as spending by department and line. Readers judge areas loosely, so for exact comparison, or for a short list without groups, use a bar chart.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
+      "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows which parts take the biggest share of a total, such as the largest lines in a budget.", "use": "A treemap fits a large hierarchy of parts into little space, to find the biggest, such as spending by department and line. Readers judge areas loosely, so for exact comparison, or for a short list without groups, use a bar chart.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
       "features": [
         { "feature": "Tiles as near square as they can be, the largest at the top left" },
         { "feature": "Groups of tiles, each under a strip with its name" },
@@ -2606,7 +2606,7 @@
       ]
     },
     {
-      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows parts of a whole as slices of a circle or a ring, with each slice's value and share beside it.", "use": "A pie fits one whole split into a few parts, five or fewer, whose shares differ clearly, when part of a whole is the message. Readers judge angles poorly, so to compare similar shares or rank them, use a bar chart, and for several wholes, 100% stacked bars. Two values are one number: say it in words.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown", "half donut", "semicircle", "semi-circle pie"],
+      "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows how one total splits into a few shares, such as customers by plan, each labeled with its share.", "use": "A pie fits one whole split into a few parts, five or fewer, whose shares differ clearly, when part of a whole is the message. Readers judge angles poorly, so to compare similar shares or rank them, use a bar chart, and for several wholes, 100% stacked bars. Two values are one number: say it in words.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown", "half donut", "semicircle", "semi-circle pie"],
       "features": [
         { "feature": "A pie, or a donut with content in its middle" },
         { "feature": "A half circle, or any part of one, that takes only its own height" },
@@ -2640,7 +2640,7 @@
       ]
     },
     {
-      "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Draws a run of values as a small line, area or bars, with no axes, to show a trend at a glance.", "use": "Edward Tufte's word-sized chart: a sparkline gives a number or a table row its context (rising, steady, unusual) in the space of a word. It has no scale to read values from, and each draws to its own, so to compare levels between rows, use a line chart.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
+      "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Puts a trend beside a number or in a table row, in the space of a word.", "use": "Edward Tufte's word-sized chart: a sparkline gives a number or a table row its context (rising, steady, unusual) in the space of a word. It has no scale to read values from, and each draws to its own, so to compare levels between rows, use a line chart.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
       "features": [
         { "feature": "A line, an area, bars or win-loss bars, as wide as its container" },
         { "feature": "The latest value marked, and the first, lowest or highest when they matter" },
@@ -2704,7 +2704,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditField", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridExportFormat", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Displays rows of data in a grid users can sort, filter, group, edit and rearrange.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject", "column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditField", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridExportFormat", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Runs admin screens and back-office lists: large sets of records people search, edit and export.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject", "column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
@@ -2865,7 +2865,7 @@
       ]
     },
     {
-      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Moves items between lists, such as a board's columns; each zone is a ListView.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
+      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Builds kanban boards and available-to-chosen lists, with items dragged between them.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
       "features": [
         { "feature": "Moving between zones from each handle's menu (with JavaScript off, each move posts the form)" },
         { "feature": "Dragging between zones and announcements", "noscript": "none" },
@@ -3027,7 +3027,7 @@
       ]
     },
     {
-      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Display", "summary": "Shows a conversation and a box to write the next message in, for an assistant or for people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
+      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Display", "summary": "Builds an AI assistant's chat panel or a conversation between people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
       "parts": ["ChatEntry"],
       "features": [
         { "feature": "A log that starts at its newest entry and stays there as entries arrive" },
