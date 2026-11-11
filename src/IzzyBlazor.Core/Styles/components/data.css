@@ -1624,9 +1624,9 @@
     rotate: 90deg;
   }
 
-  /* At a row's end (a TreeList's hidden values): down, and over as they open. */
+  /* At a row's end (a TreeList's hidden values): its icon changes, unfold to fold, rather than turning. */
   .ib-grid-expand-down[aria-expanded="true"] > svg {
-    rotate: 180deg;
+    rotate: none;
   }
 
   :is(.ib-grid-group-toggle, .ib-grid-expand) > svg:dir(rtl) {
