@@ -14,7 +14,7 @@ FD = "node_modules/@fontsource"
 INK, PAPER, EMBER, AMBER = "#14161A", "#F5F4F1", "#F26A1B", "#FFB020"
 STEEL, GREY_L, GREY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
 TAGLINE = "Blazor components. No circuit required."
-SUBHEAD = "Rich components for static SSR. C# interactivity when you need it."
+SUBHEAD = "A complete component library for every render mode, static SSR included."
 MODES = ["Static", "Interactive"]
 
 class Font:

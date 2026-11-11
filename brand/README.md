@@ -48,7 +48,7 @@ All text is outlined, so the SVGs need no fonts installed.
 
 ## Rules
 
-- **Tagline:** "Blazor components. No circuit required." **Subhead:** "Rich components for static SSR. C# interactivity when you need it."
+- **Tagline:** "Blazor components. No circuit required." **Subhead:** "A complete component library for every render mode, static SSR included." **Positioning:** pick the render mode per page, not per library.
 - **Render modes:** say Static and Interactive, Microsoft's own terms. Static is amber, Interactive is ember. Working without JavaScript is part of what Static means, not a mode of its own, so marketing doesn't mention it on its own.
 - **Wordmark:** the dot gets its halo at 48 px and up and its amber core at 24 px and up. Below that it's a plain ember dot.
 - **Icon:** use the "ib" monogram wherever a square mark is needed. It's transparent at favicon sizes, and sits on a plain ink tile at 128 px and up.

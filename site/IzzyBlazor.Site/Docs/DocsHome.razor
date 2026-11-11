@@ -10,13 +10,13 @@
     repeat them as cards.
 *@
 
-<PageMeta Title="Docs · IzzyBlazor" Description="The IzzyBlazor docs: a Blazor component library built for static SSR that works in every render mode. Start here to learn how it works." />
+<PageMeta Title="Docs · IzzyBlazor" Description="The IzzyBlazor docs: a Blazor component library for every render mode, including static SSR. Start here to learn how it works." />
 
 <article class="site-article">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Documentation</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            IzzyBlazor is a Blazor component library built for static SSR. Its components render as HTML, and a small script makes them interactive in the browser. When you choose an interactive render mode, they also bind to your C# and raise events.
+            IzzyBlazor is a Blazor component library for every render mode. Its components render as HTML, and on static SSR pages a small script makes them interactive in the browser, with no circuit. When you choose an interactive render mode, they also bind to your C# and raise events.
         </TextBlock>
     </Stack>
 
@@ -33,7 +33,7 @@
     </Row>
 
     <Heading Level="2">Static · Interactive</Heading>
-    <TextBlock>Every example on this site runs in both of Blazor's render modes. To pick one, use the switch, here and on component pages:</TextBlock>
+    <TextBlock>Every example on this site runs both static and interactive. To pick one, use the switch, here and on component pages:</TextBlock>
     <List Gap="2">
         <ListItem><strong>Static</strong>: the server renders the page, and IzzyBlazor's script adds keyboard handling, live values and similar behavior. The page needs no circuit and no WebAssembly.</ListItem>
         <ListItem><strong>Interactive</strong>: the page runs on Blazor Server, so C# event handlers and <Code>@@bind</Code> work.</ListItem>

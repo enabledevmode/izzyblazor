@@ -5,14 +5,16 @@
   </picture>
 </h1>
 
-<p align="center">Rich components for static SSR. C# interactivity when you need it.</p>
+<p align="center">A complete component library for every render mode, static SSR included.</p>
 
-IzzyBlazor is a component library for .NET 10 and .NET 11 Blazor Web Apps, built for static SSR. Components
-render as HTML on the server, gain browser behavior through lightweight custom elements, and
-support C# bindings and events on interactive pages.
+IzzyBlazor is a component library for .NET 10 and .NET 11 Blazor apps in every render mode: Interactive
+Server, WebAssembly, Auto, and static SSR. Components render as HTML on the server and bind to C# on
+interactive pages. On static pages they gain browser behavior through lightweight custom elements, with
+no SignalR circuit or WebAssembly runtime.
 
-Build forms, data grids, charts, scheduling, dialogs and complete app layouts—without requiring a
-SignalR circuit or WebAssembly runtime for static pages.
+Choose each page's render mode for what the page needs, not for what your component library can handle.
+Build forms, data grids, charts, scheduling, dialogs and complete app layouts with the same components
+on every page.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -25,7 +27,7 @@ SignalR circuit or WebAssembly runtime for static pages.
 
 ## Static and Interactive
 
-The same components work in both of Blazor's render modes. Start static; make a page interactive when it needs C#.
+The same components work in all of Blazor's render modes, static or interactive, so you choose each page's mode for what that page does.
 
 | | Static | Interactive |
 | --- | --- | --- |

@@ -3,7 +3,7 @@
 @inject Registry Registry
 
 <PageMeta Title="IzzyBlazor: Blazor components. No circuit required."
-          Description="Rich Blazor components for static SSR: real HTML first, interactive without a circuit, and bound to C# where you need it.">
+          Description="A complete Blazor component library for every render mode, including static SSR. Pick each page's render mode for the page, not for the library.">
     @* The brand's display face, for the hero's headline only. *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,7 +30,7 @@
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                Rich components for static SSR. C# interactivity when you need it.
+                A complete component library for every render mode, static SSR included.
             </TextBlock>
             <Row Gap="3" Wrap>
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
@@ -68,12 +68,19 @@
 <Section Bg="Color.FillSubtle" Class="site-band">
     <Stack Gap="6">
         <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">SSR first. Interactive when it matters.</Heading>
+            <Heading Level="2" Size="TextSize.Xl2">Pick the render mode per page, not per library.</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-why-intro">
-                Static SSR keeps Blazor lightweight. IzzyBlazor helps you build more of your UI that way, adding interactivity where it earns its place.
+                Most component libraries need a circuit or WebAssembly before anything works. IzzyBlazor's components work in every render mode, so a page that doesn't need C# can stay static, and a page that does can be interactive.
             </TextBlock>
         </Stack>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
+            <Stack Gap="2">
+                <Row Gap="3" Align="Align.Center">
+                    <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">One component library. Every render mode.</Heading>
+                </Row>
+                <TextBlock Color="Color.Muted">Use the same IzzyBlazor components across Interactive Server, WebAssembly, Auto, and static SSR. Make a page interactive when it needs C#, without switching libraries.</TextBlock>
+            </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.MemoryStick" Size="ControlSize.Sm" />
@@ -95,13 +102,6 @@
                 </Row>
                 <TextBlock Color="Color.Muted">Pages arrive as HTML, ready for the browser to display. Users can start reading without waiting for a .NET runtime to download.</TextBlock>
             </Stack>
-            <Stack Gap="2">
-                <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">One component library. Every render mode.</Heading>
-                </Row>
-                <TextBlock Color="Color.Muted">Start with static SSR and add interactive C# where you need it. Use the same IzzyBlazor components across static SSR, Interactive Server, WebAssembly, and Auto.</TextBlock>
-            </Stack>
         </Grid>
     </Stack>
 </Section>
@@ -110,14 +110,14 @@
     <Stack Gap="6">
         <Stack Gap="2">
             <Heading Level="2" Size="TextSize.Xl2">Static and Interactive</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Blazor's two render modes, and the same components work in both. Start static; make a page interactive when it needs C#.</TextBlock>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Static or interactive, the same components work in all of Blazor's render modes, so you choose each page's mode for what that page does.</TextBlock>
         </Stack>
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <Card Title="Static: no circuit" Variant="CardVariant.Outline">
                 <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
                 <TextBlock>Pages render as complete HTML on the server, and IzzyBlazor's small script adds keyboard controls, live values, dragging and drop zones. No SignalR connection, no WebAssembly runtime. Every page is working HTML before the script loads, so nothing is broken while it wakes up.</TextBlock>
             </Card>
-            <Card Title="Interactive: C# when you need it" Variant="CardVariant.Outline">
+            <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
                 <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
                 <TextBlock>Choose Server, WebAssembly or Auto for a page that needs C#. The same components add <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and while the page prerenders they're the same working HTML, until the circuit or runtime is ready.</TextBlock>
             </Card>
