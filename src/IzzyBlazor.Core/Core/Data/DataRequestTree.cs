@@ -39,7 +39,13 @@ public sealed partial record DataRequest<TItem>
         Func<IQueryable<TItem>, CancellationToken, Task<List<TItem>>> list)
         where TKey : notnull
     {
-        var parentValue = Parent is null ? default : ParseKey<TParent>(Parent);
+        TParent? parentValue = default;
+        if (Parent is not null && !TryParseKey(Parent, out parentValue))
+        {
+            // A parent no row can have, as from a hand-made request: no rows.
+            return new([], NeedsTotal ? 0 : null);
+        }
+
         if (Filter is null && string.IsNullOrWhiteSpace(Search))
         {
             var level = source.Where(Is(parent, parentValue));
@@ -88,8 +94,9 @@ public sealed partial record DataRequest<TItem>
             items.Select(parentOf).Where(p => p is not null).Select(p => (TKey)(object)p!).Where(k => !kept.ContainsKey(k)).Distinct().ToList();
     }
 
-    // A key from the tree list's text: "42" for an int column, as ItemKey wrote it.
-    internal static T ParseKey<T>(string text)
+    // A key from the tree list's text: "42" for an int column, as ItemKey wrote it. False for text
+    // that isn't one, which comes from the browser, so it matches nothing rather than failing.
+    internal static bool TryParseKey<T>(string text, out T? key)
     {
         var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
         try
@@ -97,11 +104,13 @@ public sealed partial record DataRequest<TItem>
             object value = type == typeof(string) ? text
                 : type == typeof(Guid) ? Guid.Parse(text)
                 : Convert.ChangeType(text, type, CultureInfo.InvariantCulture);
-            return (T)value;
+            key = (T)value;
+            return true;
         }
         catch (Exception e) when (e is FormatException or OverflowException or ArgumentException or InvalidCastException)
         {
-            throw new InvalidOperationException($"The tree's parent key \"{text}\" isn't a {type.Name}: give the tree the properties ItemKey writes.", e);
+            key = default;
+            return false;
         }
     }
 

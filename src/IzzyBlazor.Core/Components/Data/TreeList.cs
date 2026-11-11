@@ -107,40 +107,76 @@ public partial class TreeList<TItem>
 
     private string MoveQueryKey => $"{QueryPrefix}move";
 
-    // A drop on a static page: the parent and place it chose, for the dialog to confirm.
-    private string MoveUnderQueryKey => $"{QueryPrefix}moveunder";
+    // A drop on a static page: the row it landed on and where (before, after or into), for the
+    // dialog to confirm the parent and place they come to.
+    private string MoveNearQueryKey => $"{QueryPrefix}movenear";
 
     private string MoveAtQueryKey => $"{QueryPrefix}moveat";
 
     private int? _moveIndex;
 
+    // The last load's top rows, in their order: a drop before or after one counts among them.
+    private List<Node> _treeRootNodes = [];
+
     /// <inheritdoc />
     internal override string? TreeDragKey => MoveByDrag && OnReparent.HasDelegate ? MoveQueryKey : null;
 
-    // A drop on an interactive page: the dragged row's key, its new parent's ("" for the top level)
-    // and its place among its new siblings, or -1 for after them.
+    private static readonly string[] DropZones = ["before", "after", "into"];
+
+    // Where a drop puts a row: the parent and its place among that parent's rows, worked out from the
+    // whole tree, as the rows drawn may be a page, a window or only the matches. Null where it can't go.
+    private (Node? Parent, int Index)? DropPlace(string moving, string target, string zone)
+    {
+        if (_treeNodes is null || !_treeNodes.TryGetValue(moving, out var node) || !_treeNodes.TryGetValue(target, out var near) || near == node || !DropZones.Contains(zone))
+        {
+            return null;
+        }
+
+        var parent = zone == "into" ? near : near.Parent;
+        if (IsUnder(parent, node))
+        {
+            return null;
+        }
+
+        var siblings = (parent?.Children ?? _treeRootNodes).Where(s => s != node).ToList();
+        return (parent, zone == "into" ? siblings.Count : siblings.IndexOf(near) + (zone == "after" ? 1 : 0));
+    }
+
+    // A drop on an interactive page: the dragged row's key, the row it landed on as the zone, and
+    // where on it as the index (0 before, 1 after, 2 into). An error opens the Move dialog with it.
     private async Task DropAsync(IzzyMoveEventArgs e)
     {
-        if (e.Key is not { } key || _treeNodes?.GetValueOrDefault(key) is not { } node || !CanMoveRow(node.Item))
+        if (e.Key is not { } key || e.ToZone is not { } target || _treeNodes?.GetValueOrDefault(key) is not { } node || !CanMoveRow(node.Item)
+            || e.ToIndex is < 0 or > 2 || DropPlace(key, target, DropZones[e.ToIndex]) is not { } place)
         {
             return;
         }
 
-        var parentKey = string.IsNullOrEmpty(e.ToZone) ? null : e.ToZone;
-        var parent = parentKey is null ? null : _treeNodes.GetValueOrDefault(parentKey);
-        if ((parentKey is not null && parent is null) || IsUnder(parent, node))
-        {
-            return;
-        }
-
-        var siblings = (parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)]).Count(s => s.Key != key);
-        var index = e.ToIndex < 0 ? siblings : Math.Min(e.ToIndex, siblings);
-        var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, index, _ => { });
+        var errors = new List<string>();
+        var move = new TreeListMove<TItem>(node.Item, place.Parent is null ? default : place.Parent.Item, place.Index, errors.Add);
         await OnReparent.InvokeAsync(move);
         if (!move.HasErrors)
         {
             await ReloadAsync();
+            return;
         }
+
+        // The dialog shows why, with the drop's parent chosen, to change or cancel.
+        StartMove(key, place.Parent?.Key ?? "", place.Index);
+        errors.ForEach(AddMoveError);
+        if (!UseState)
+        {
+            Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [MoveQueryKey] = key, [MoveNearQueryKey] = null, [MoveAtQueryKey] = null }));
+        }
+    }
+
+    // A Move dialog's state, for this row, starting on a parent and place.
+    private void StartMove(string key, string parent, int? index)
+    {
+        (_stateMoveKey, _moveFor, _moveDropParent, _moveIndex) = (key, key, parent, index);
+        _moveModel = new TreeListMovePost { Parent = parent };
+        _moveContext = new Microsoft.AspNetCore.Components.Forms.EditContext(_moveModel);
+        _moveMessages = new Microsoft.AspNetCore.Components.Forms.ValidationMessageStore(_moveContext);
     }
 
     private static bool IsUnder(Node? candidate, Node moving)
@@ -166,7 +202,7 @@ public partial class TreeList<TItem>
     private string? CurrentMoveKey => !OnReparent.HasDelegate || EditEnding ? null : UseState ? _stateMoveKey : QueryValue(MoveQueryKey);
 
     /// <inheritdoc />
-    internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey, MoveUnderQueryKey, MoveAtQueryKey] : base.LinkClears;
+    internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey, MoveNearQueryKey, MoveAtQueryKey] : base.LinkClears;
 
     /// <inheritdoc />
     internal override void EndOwnDialogs() => (_stateMoveKey, _moveFor) = (null, null);
@@ -177,7 +213,7 @@ public partial class TreeList<TItem>
     private List<TreeListMoveTarget> MoveTargets(string moving)
     {
         TreeListMoveTarget Of(Node node) => new(node.Key, LabelOf(node.Item), [.. node.Children.Where(c => c.Key != moving).Select(Of)]);
-        var roots = (_treeNodes?.Values.AsEnumerable() ?? []).Where(n => n.Parent is null && n.Key != moving).Select(Of).ToList();
+        var roots = _treeRootNodes.Where(n => n.Key != moving).Select(Of).ToList();
         return [new TreeListMoveTarget("", TextDefaults.TreeTopLevel, roots)];
     }
 
@@ -202,7 +238,7 @@ public partial class TreeList<TItem>
             parent = _treeNodes[parentKey];
         }
 
-        var siblings = (parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)]).Count(s => s.Key != key);
+        var siblings = (parent?.Children ?? _treeRootNodes).Count(s => s.Key != key);
         // A drop's place, while the dialog still has the parent it chose; else after the others.
         var index = _moveIndex is { } at && (parentKey ?? "") == _moveDropParent ? Math.Clamp(at, 0, siblings) : siblings;
         var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, index, AddMoveError);
@@ -225,6 +261,10 @@ public partial class TreeList<TItem>
 
     /// <inheritdoc />
     internal override Func<TItem, TItem>? ChildFactory => NewChild;
+
+    /// <inheritdoc />
+    // Any row of the tree, drawn or not: with virtual rows, the one added under may have scrolled away.
+    internal override TItem? RowForAdding(string key) => _treeNodes?.GetValueOrDefault(key) is { } node ? node.Item : base.RowForAdding(key);
 
     /// <inheritdoc />
     internal override bool NewRowOnTop => AddingUnder is null || VirtualRows;
@@ -282,9 +322,90 @@ public partial class TreeList<TItem>
 
     private bool _treeFiltering;
 
+    // On an interactive page with Items, C# cascades over the whole tree, drawn or not (virtual rows,
+    // pages); elsewhere the script does, over the rows drawn.
+    private bool CascadesHere => MultiSelect && Cascade && RendererInfo.IsInteractive && _treeNodes is not null;
+
     /// <inheritdoc />
     // While filtering, a row with every child checked isn't checked itself: its children are only the matches.
-    internal override string? CascadeMode => MultiSelect && Cascade ? (_treeFiltering ? "down" : "up") : null;
+    internal override string? CascadeMode => MultiSelect && Cascade && !CascadesHere ? (_treeFiltering ? "down" : "up") : null;
+
+    /// <inheritdoc />
+    internal override Selection NextSelection(Selection current, string key, bool on)
+    {
+        if (!CascadesHere || current.All || _treeNodes!.GetValueOrDefault(key) is not { } node)
+        {
+            return base.NextSelection(current, key, on);
+        }
+
+        var keys = new HashSet<string>(current.Keys ?? [], StringComparer.Ordinal);
+        void Set(Node row)
+        {
+            if (on && !row.Context && CanSelect(row.Item))
+            {
+                keys.Add(row.Key);
+            }
+            else if (!on)
+            {
+                keys.Remove(row.Key);
+            }
+        }
+
+        Set(node);
+        var stack = new Stack<Node>(node.Children.Where(c => c.Kept));
+        while (stack.TryPop(out var down))
+        {
+            Set(down);
+            foreach (var child in down.Children.Where(c => c.Kept))
+            {
+                stack.Push(child);
+            }
+        }
+
+        for (var up = node.Parent; up is not null; up = up.Parent)
+        {
+            // Unchecked: none above it is whole now. Checked: one whose rows all are, is too.
+            if (!on)
+            {
+                keys.Remove(up.Key);
+            }
+            else if (!_treeFiltering && !up.Context && up.Children.All(c => keys.Contains(c.Key)))
+            {
+                keys.Add(up.Key);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return Selection.Of(keys);
+    }
+
+    /// <inheritdoc />
+    internal override bool IsMixed(TItem item, string key)
+    {
+        if (!CascadesHere || IsSelected(item, key) || _treeNodes!.GetValueOrDefault(key) is not { } node)
+        {
+            return false;
+        }
+
+        var stack = new Stack<Node>(node.Children.Where(c => c.Kept));
+        while (stack.TryPop(out var down))
+        {
+            if (IsSelected(down.Item, down.Key))
+            {
+                return true;
+            }
+
+            foreach (var child in down.Children.Where(c => c.Kept))
+            {
+                stack.Push(child);
+            }
+        }
+
+        return false;
+    }
 
     /// <inheritdoc />
     // A row kept only for a match under it isn't a result, so it can't be selected.
@@ -533,6 +654,7 @@ public partial class TreeList<TItem>
         Func<string, int, Task<(IReadOnlyList<TItem> Items, int Total)>> childrenOf;
         Func<TItem, string, bool> mayHaveChildren;
         Dictionary<string, Node>? nodes = null;
+        List<Node> rootNodes = [];
         if (ItemsProvider is { } provider)
         {
             // One level at a time: the top rows, then the children of each open row.
@@ -550,18 +672,19 @@ public partial class TreeList<TItem>
                 result = await provider(ask with { Skip = (page - 1) * size });
             }
 
-            top = Mark(result.Items);
+            top = Mark(result.Items, null);
             childrenOf = async (key, take) =>
             {
                 var children = await provider(request with { Parent = key, FilterBranch = FilterBranch, Skip = 0, Take = take, Cursor = null, NeedsTotal = true });
-                return (Mark(children.Items), children.Total ?? children.Items.Count);
+                return (Mark(children.Items, key), children.Total ?? children.Items.Count);
             };
             mayHaveChildren = (item, _) => ItemHasChildren?.Invoke(item) ?? true;
 
-            // While filtering, a row the provider kept for a match under it is muted.
-            IReadOnlyList<TItem> Mark(IReadOnlyList<TItem> items)
+            // While filtering, a row the provider kept for a match under it is muted; with FilterBranch,
+            // not one under a match or a row of its branch.
+            IReadOnlyList<TItem> Mark(IReadOnlyList<TItem> items, string? parent)
             {
-                if (filtering)
+                if (filtering && !(FilterBranch && parent is not null && !context.Contains(parent)))
                 {
                     var matched = request.ApplyFiltering(AsQuery(items)).AsEnumerable().Select(KeyOf).ToHashSet();
                     context.UnionWith(items.Select(KeyOf).Where(k => !matched.Contains(k)));
@@ -620,6 +743,7 @@ public partial class TreeList<TItem>
             };
             mayHaveChildren = (_, key) => byKey[key].Children.Any(c => c.Kept);
             nodes = byKey;
+            rootNodes = roots;
         }
 
         var state = TreeOpen;
@@ -685,7 +809,7 @@ public partial class TreeList<TItem>
         return new GroupedPage(rows, total, page, () =>
         {
             (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore, _treeFiltering) = (info, shown, anyChildren, deepest, more, filtering);
-            (_treeNodes, _treeFields) = (nodes, request.Fields);
+            (_treeNodes, _treeFields, _treeRootNodes) = (nodes, request.Fields, rootNodes);
             _treeRollUps.Clear();
         });
     }
@@ -852,11 +976,9 @@ public partial class TreeList<TItem>
                 var stack = new Stack<Node>(node.Children);
                 while (stack.TryPop(out var down))
                 {
-                    if (!down.Kept)
-                    {
-                        down.Kept = true;
-                        down.Context = false;
-                    }
+                    // Kept already as the row above a deeper match, it's in the branch all the same.
+                    down.Kept = true;
+                    down.Context = false;
 
                     foreach (var child in down.Children)
                     {

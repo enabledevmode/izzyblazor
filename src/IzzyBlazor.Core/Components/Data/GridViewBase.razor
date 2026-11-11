@@ -177,7 +177,10 @@
 
     /// <summary>The key of the row a new row is being added under, while one is and that row is here.</summary>
     internal string? AddingUnder => ChildFactory is null ? null
-        : (UseState ? _stateAddUnder : QueryValue(AddUnderQueryKey)) is { } key && RowOf(key) is not null ? key : null;
+        : (UseState ? _stateAddUnder : QueryValue(AddUnderQueryKey)) is { } key && RowForAdding(key) is not null ? key : null;
+
+    /// <summary>The row a new one is added under, by its key: a TreeList's from all its rows.</summary>
+    internal virtual TItem? RowForAdding(string key) => RowOf(key);
 
     /// <summary>The link that adds a row under another, on a static page: a TreeList's also opens it.</summary>
     internal virtual string AddUnderHref(string key) =>
@@ -490,7 +493,7 @@
         // A row that can't be edited isn't found, so a link or a post made by hand gets no further.
         if (_editIsNew || (RowOf(key) is { } found && CanEditRow(found)))
         {
-            var item = _editIsNew ? AddingUnder is { } under ? ChildFactory!(RowOf(under)!) : NewItem!() : RowOf(key)!;
+            var item = _editIsNew ? AddingUnder is { } under ? ChildFactory!(RowForAdding(under)!) : NewItem!() : RowOf(key)!;
             _editItem = _editIsNew ? default : item;
             _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
                 : _editIsNew ? item
