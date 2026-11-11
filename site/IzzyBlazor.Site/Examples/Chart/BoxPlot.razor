@@ -11,10 +11,10 @@
     // Sample data: each carrier's typical time and spread, skewed late, with a few parcels delayed.
     private readonly Parcel[] _parcels =
     [
-        .. Parcels("Northwind Post", 2.4, 0.25, 0.03, 180, seed: 1),
-        .. Parcels("Parcelwise", 3.1, 0.3, 0.05, 140, seed: 2),
-        .. Parcels("Swift Freight", 1.8, 0.2, 0.02, 160, seed: 3),
-        .. Parcels("Coastline Express", 3.6, 0.4, 0.06, 120, seed: 4),
+        .. Parcels("Northwind Post", 2.4, 0.3, 0.03, 180, seed: 1),
+        .. Parcels("Parcelwise", 3.1, 0.35, 0.05, 140, seed: 2),
+        .. Parcels("Swift Freight", 1.8, 0.3, 0.02, 160, seed: 3),
+        .. Parcels("Coastline Express", 3.6, 0.35, 0.06, 120, seed: 4),
     ];
 
     private static IEnumerable<Parcel> Parcels(string carrier, double median, double spread, double delayed, int count, int seed)
@@ -23,7 +23,7 @@
         return Enumerable.Range(0, count).Select(_ =>
         {
             var normal = Math.Sqrt(-2 * Math.Log(1 - random.NextDouble())) * Math.Cos(2 * Math.PI * random.NextDouble());
-            var days = median * Math.Exp(spread * normal) + (random.NextDouble() < delayed ? 3 + random.NextDouble() * 4 : 0);
+            var days = median * Math.Exp(spread * normal) + (random.NextDouble() < delayed ? 1.5 + random.NextDouble() * 3 : 0);
             return new Parcel(carrier, Math.Round(days, 1));
         }).ToList();
     }

@@ -1077,6 +1077,12 @@
                         else
                         {
                             <div class="ib-chart-tooltip-title">@tip.Argument</div>
+                            @if (boxes)
+                            {
+                                @BoxTip(model, i)
+                            }
+                            else
+                            {
                             @for (var p = 0; p < tip.Points.Count; p++)
                             {
                                 var point = tip.Points[p];
@@ -1104,6 +1110,7 @@
                                         <span class="ib-chart-tooltip-value">@point.SizeText</span>
                                     </div>
                                 }
+                            }
                             }
                             @if (drill?.Hint is { } hint && drill.Hrefs![i] is not null)
                             {
@@ -1136,6 +1143,12 @@
                 </summary>
                 <div class="ib-chart-table-scroll">
                     <table class="ib-chart-table" aria-labelledby="@NameId">
+                        @if (boxes)
+                        {
+                            @BoxTable(model)
+                        }
+                        else
+                        {
                         <thead>
                             <tr>
                                 <th scope="col">@(drill?.LevelName ?? ArgumentTitle ?? (bins is null ? _argumentName : binsName) ?? TextDefaults.ChartItem)</th>
@@ -1177,6 +1190,7 @@
                                 </tr>
                             }
                         </tbody>
+                        }
                     </table>
                 </div>
             </details>
@@ -1203,6 +1217,87 @@
             problem = "A histogram's bins are equal widths on a straight scale: leave the ChartArgumentAxis's Logarithmic off.";
         if (problem is not null) throw new InvalidOperationException(problem);
     }
+
+    // A box plot's tooltip: a column for the median and one for the middle half (and the mean),
+    // headed once (chart.css draws the headings, so the live region doesn't say them twice), and
+    // each number named for screen readers.
+    private RenderFragment BoxTip(ChartModel model, int i) => __builder =>
+    {
+        var mean = model.Series.Any(s => s.Data.ShowMean);
+        <div class="ib-chart-tooltip-row">
+            <span></span><span></span>
+            <span class="ib-chart-tooltip-value ib-chart-tooltip-box" data-ib-label="@TextDefaults.ChartMedian"></span>
+            <span class="ib-chart-tooltip-value" data-ib-label="@TextDefaults.ChartBoxMiddle"></span>
+            @if (mean)
+            {
+                <span class="ib-chart-tooltip-value ib-chart-tooltip-mean" data-ib-label="@TextDefaults.ChartMean"></span>
+            }
+        </div>
+        @foreach (var s in model.Series)
+        {
+            if (model.BoxTexts[s.Index]?[i] is not { } t) continue;
+            <div class="ib-chart-tooltip-row" data-ib-series="@s.Index">
+                <span class="ib-chart-tooltip-key" style="@($"background:{SeriesColor(s)}")"></span>
+                <span>@s.Data.Name</span>
+                <span class="ib-chart-tooltip-value"><span class="ib-visually-hidden">@($", {TextDefaults.ChartMedian} ")</span>@t[0]</span>
+                <span class="ib-chart-tooltip-value"><span class="ib-visually-hidden">@($", {TextDefaults.ChartBoxMiddle} ")</span>@t[1] – @t[2]</span>
+                @if (mean)
+                {
+                    <span class="ib-chart-tooltip-value">@if (s.Data.ShowMean)
+                    {<span class="ib-visually-hidden">@($", {TextDefaults.ChartMean} ")</span>@t[5]}</span>
+                }
+            </div>
+        }
+    };
+
+    // A box plot's table: a row for each box, and a column for each of its numbers.
+    private RenderFragment BoxTable(ChartModel model) => __builder =>
+    {
+        var several = model.Series.Count > 1;
+        var mean = model.Series.Any(s => s.Data.ShowMean);
+        <thead>
+            <tr>
+                <th scope="col">@(ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
+                @if (several)
+                {
+                    <th scope="col">@(model.Series[0].Data.GroupName ?? TextDefaults.ChartSeries)</th>
+                }
+                <th scope="col">@TextDefaults.ChartMedian</th>
+                <th scope="col">@TextDefaults.ChartBoxQ1</th>
+                <th scope="col">@TextDefaults.ChartBoxQ3</th>
+                <th scope="col">@TextDefaults.ChartBoxLow</th>
+                <th scope="col">@TextDefaults.ChartBoxHigh</th>
+                @if (mean)
+                {
+                    <th scope="col">@TextDefaults.ChartMean</th>
+                }
+                <th scope="col">@TextDefaults.ChartBoxCount</th>
+                <th scope="col">@TextDefaults.ChartBoxOutlierCount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < model.ArgumentTexts.Length; i++)
+            {
+                foreach (var s in model.Series)
+                {
+                    if (model.BoxTexts[s.Index]?[i] is not { } t) continue;
+                    <tr>
+                        <th scope="row">@model.ArgumentTexts[i]</th>
+                        @if (several)
+                        {
+                            <td>@s.Data.Name</td>
+                        }
+                        <td>@t[0]</td><td>@t[1]</td><td>@t[2]</td><td>@t[3]</td><td>@t[4]</td>
+                        @if (mean)
+                        {
+                            <td>@(s.Data.ShowMean ? t[5] : null)</td>
+                        }
+                        <td>@t[6]</td><td>@t[7]</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    };
 
     // A box plot's chart holds box plots only, on groups it doesn't zoom across.
     private void CheckBoxPlot(ChartDrillState<TItem>? drill)
@@ -1330,7 +1425,7 @@
                             @if (s.Data.IsBox)
                             {
                                 @* A box on its whisker, with its median. *@
-                                <g class="ib-chart-box"><line x1="12" x2="12" y1="0" y2="12" /><rect x="5.5" y="2.5" width="13" height="7" /><line class="ib-chart-median" x1="5.5" x2="18.5" y1="6" y2="6" /></g>
+                                <g class="ib-chart-box"><line x1="12" x2="12" y1="0" y2="12" /><rect x="6.5" y="2.5" width="11" height="7" /><line class="ib-chart-median" x1="7" x2="17" y1="6" y2="6" /></g>
                             }
                             else if (s.Data.IsOhlc)
                             {

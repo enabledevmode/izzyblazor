@@ -1497,6 +1497,33 @@ public class IzzyText
     /// <summary>A box plot's box, in its tooltip and description: the median, the quartiles and the whiskers' ends.</summary>
     public virtual string ChartBox { get; set; } = "median {0}, quartiles {1} – {2}, whiskers {3} – {4}";
 
+    /// <summary>A box plot's tooltip and table: the column for the box itself, from the first quartile to the third.</summary>
+    public virtual string ChartBoxMiddle { get; set; } = "Middle half";
+
+    /// <summary>A box plot's tooltip and table: the column for each box's mean (a box plot series' ShowMean).</summary>
+    public virtual string ChartMean { get; set; } = "Mean";
+
+    /// <summary>A box plot's table: the column for each box's first quartile.</summary>
+    public virtual string ChartBoxQ1 { get; set; } = "Lower quartile";
+
+    /// <summary>A box plot's table: the column for each box's third quartile.</summary>
+    public virtual string ChartBoxQ3 { get; set; } = "Upper quartile";
+
+    /// <summary>A box plot's table: the column for where each box's lower whisker ends.</summary>
+    public virtual string ChartBoxLow { get; set; } = "Lower whisker";
+
+    /// <summary>A box plot's table: the column for where each box's upper whisker ends.</summary>
+    public virtual string ChartBoxHigh { get; set; } = "Upper whisker";
+
+    /// <summary>A box plot's table: the column for how many values make each box.</summary>
+    public virtual string ChartBoxCount { get; set; } = "Values";
+
+    /// <summary>A box plot's table: the column for how many of each box's values are outliers.</summary>
+    public virtual string ChartBoxOutlierCount { get; set; } = "Outliers";
+
+    /// <summary>A chart's table, with several series in its rows: the column that names each one.</summary>
+    public virtual string ChartSeries { get; set; } = "Series";
+
     /// <summary>A box's mean, after <see cref="ChartBox"/> (a box plot series' ShowMean).</summary>
     public virtual string ChartBoxMean { get; set; } = "mean {0}";
 
