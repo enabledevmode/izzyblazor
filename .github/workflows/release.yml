@@ -58,7 +58,12 @@ jobs:
 
       # Chromium and its system libraries, for the site's browser test (ToolbarWidthTests).
       - name: Install Chromium
-        run: pwsh site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+        # When apt can't reach Ubuntu's mirrors, fall back to Chromium alone: the runner image
+        # already has most of its libraries, and the browser test says if one is missing.
+        shell: bash
+        run: |
+          pw=site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1
+          pwsh $pw install --with-deps chromium || { echo "::warning::System packages didn't install; installing Chromium alone."; pwsh $pw install chromium; }
 
       - name: Unit and render tests
         run: dotnet test izzyblazor.sln --configuration Release --no-build
