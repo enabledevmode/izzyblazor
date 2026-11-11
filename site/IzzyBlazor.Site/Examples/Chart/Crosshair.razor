@@ -1,0 +1,18 @@
+@* A summer day's temperature and dew point by the hour, read off the axes with a crosshair. *@
+<Chart Items="_hours" Argument="h => h.Hour" Title="Temperature and dew point, July 14, 2026" Crosshair>
+    <ChartArgumentAxis Format="h tt" />
+    <ChartValueAxis Format="0°F" />
+    <ChartLineSeries Value="h => h.Temperature" Name="Temperature" EndLabel />
+    <ChartLineSeries Value="h => h.DewPoint" Name="Dew point" EndLabel />
+</Chart>
+
+@code {
+    private record HourReading(DateTime Hour, double Temperature, double DewPoint);
+
+    private static readonly double[] Temperatures = [74, 73, 72, 71, 71, 70, 71, 74, 77, 80, 83, 86, 88, 90, 91, 92, 91, 89, 87, 84, 81, 79, 77, 76];
+    private static readonly double[] DewPoints = [66, 66, 65, 65, 65, 64, 65, 66, 67, 67, 68, 68, 67, 67, 66, 66, 66, 67, 67, 68, 68, 67, 67, 66];
+
+    private readonly HourReading[] _hours = Enumerable.Range(0, 24)
+        .Select(h => new HourReading(new DateTime(2026, 7, 14, h, 0, 0), Temperatures[h], DewPoints[h]))
+        .ToArray();
+}

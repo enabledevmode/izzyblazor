@@ -128,6 +128,9 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 
     /// <summary>A histogram's bins, which are the arguments: its bars touch, and the labels mark their edges.</summary>
     public ChartHistogram? Histogram { get; init; }
+
+    /// <summary>Chart's Crosshair: the model carries each value's place and axis text for it.</summary>
+    public bool Crosshair { get; init; }
 }
 
 /// <summary>
@@ -340,6 +343,12 @@ internal sealed class ChartModel
 
     /// <summary>A bubble series' sizes as text, by item (null for other series).</summary>
     public string?[]?[] SizeTexts { get; init; } = [];
+
+    /// <summary>
+    /// With a crosshair, by item then series: where its value line goes, 0 to 1 along its value
+    /// axis (a stack's segment top), that value, and its text in the axis's format. Null with no value.
+    /// </summary>
+    public (double Place, double Value, string Text)?[][] Cross { get; set; } = [];
 
     /// <summary>A bar series' targets as text, by item (null for series without one).</summary>
     public string?[]?[] TargetTexts { get; init; } = [];
@@ -887,6 +896,19 @@ internal static class ChartLayout
                 // Larger bubbles first, so none covers a smaller one of its series.
                 if (data.Type == ChartType.Bubble) shape.Marks.Sort((a, b) => (b.R ?? 0).CompareTo(a.R ?? 0));
             }
+        }
+
+        // A crosshair's value line: each series' plotted value (a hidden one's own, for when the
+        // legend shows it), placed on its axis and written in the axis's format.
+        if (input.Crosshair)
+        {
+            string Text(ChartSeriesData d, double v) => d.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
+                : full ? v.ToString("P0", culture)
+                : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", culture);
+            model.Cross = Enumerable.Range(0, n).Select(i => input.Series.Select((d, s) =>
+                (highs[s][i] ?? (d.Hidden ? d.Values[i] : null)) is { } v && double.IsFinite(v) && (!log || v > 0)
+                    ? ((d.Secondary ? scale2 : Scale)(v), v, Text(d, v))
+                    : ((double, double, string)?)null).ToArray()).ToArray();
         }
 
         // End labels: each level with its line's last value, nudged apart a line each.
