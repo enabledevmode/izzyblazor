@@ -7,7 +7,7 @@
                   ItemExpanded="f => f.FolderId is null" SelectionMode="SelectionMode.Multiple" @bind-Selection="_selection"
                   QueryPrefix="backup-" Caption="Files to back up" Grow>
             <SelectionActions>
-                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.HardDriveUpload">Back up</Button>
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.HardDriveUpload">Back up</Button>
             </SelectionActions>
             <Columns>
                 <PropertyColumn Property="f => f.Name" />
