@@ -272,6 +272,22 @@
     vector-effect: non-scaling-stroke;
   }
 
+  /* Box plots (ChartBoxPlotSeries): the box filled as a bar, its whiskers and caps in the series
+     color, the median across it in the surface's (the color has 3:1 on the surface, so the line
+     reads on the fill), outliers hollow and the mean a diamond outlined in the series color. */
+  .ib-chart-box line {
+    stroke: var(--ib-chart-c);
+    stroke-width: 1.5px;
+    stroke-linecap: butt;
+  }
+  .ib-chart-box .ib-chart-median { stroke: var(--ib-color-surface); stroke-width: 2px; }
+  .ib-chart-box :is(circle, use) {
+    stroke: var(--ib-chart-c);
+    stroke-width: 1.5px;
+  }
+  .ib-chart-box circle { fill: none; }
+  .ib-chart-box use { fill: var(--ib-color-surface); }
+  .ib-chart-key .ib-chart-box rect { rx: 0; }
 
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
 

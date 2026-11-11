@@ -140,6 +140,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     internal ChartBins? HistogramBins => BinsOf;
 
+    internal bool IsBox => WhiskersOf is not null;
+
     private protected abstract ChartType Type { get; }
 
     // The value each item is drawn at (a range's high end), and a range's low end.
@@ -193,6 +195,11 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private protected virtual ChartBins? BinsOf => null;
 
     private protected virtual object? DateOf => null;
+
+    // A box plot's: how far its whiskers reach, and whether it marks the mean.
+    private protected virtual ChartWhiskers? WhiskersOf => null;
+
+    private protected virtual bool ShowMeanOf => false;
 
     // Each value as a number; a histogram reads dates too.
     private protected virtual double? Number(object? value) => ChartMembers.ToNumber(value);
@@ -381,6 +388,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             ValueAxis = ValueAxis,
             Bins = BinsOf,
             Date = DateOf,
+            Whiskers = WhiskersOf,
+            ShowMean = ShowMeanOf,
         };
 
     /// <inheritdoc />

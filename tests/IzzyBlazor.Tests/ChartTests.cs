@@ -651,6 +651,36 @@ public class ChartRenderTests : BunitContext
         Assert.Empty(loading.FindAll(".ib-chart-hist rect"));
     }
 
+    private record Delivery(string Carrier, string Region, double Days);
+
+    [Fact]
+    public void A_box_plot_makes_a_box_of_each_arguments_values_with_tukey_whiskers_and_outliers()
+    {
+        // Carrier A: 1 to 9 and one late parcel at 30, past Q3 + 1.5 IQR (7.75 + 6.75). Carrier B: 2, 4, 6.
+        Delivery[] parcels = [.. Enumerable.Range(1, 9).Select(d => new Delivery("A", "North", d)), new("A", "North", 30),
+            new("B", "North", 2), new("B", "South", 4), new("B", "South", 6)];
+        var cut = Render<Chart<Delivery>>(p => p
+            .Add(c => c.Items, parcels)
+            .Add(c => c.Argument, d => d.Carrier)
+            .Add(c => c.Title, "Delivery time")
+            .AddChildContent<ChartBoxPlotSeries<Delivery>>(s => s.Add(x => x.Value, d => d.Days).Add(x => x.Name, "Days")));
+
+        // A box per carrier, in the order they come; quartiles interpolated (R-7).
+        var rows = cut.FindAll(".ib-chart-table tbody tr");
+        Assert.Equal(["A", "B"], rows.Select(r => r.QuerySelector("th")!.TextContent.Trim()));
+        Assert.Equal(["median 5.5, quartiles 3.25 – 7.75, whiskers 1 – 9, 10 values, 1 outlier", "median 4, quartiles 3 – 5, whiskers 2 – 6, 3 values"],
+            rows.Select(r => r.QuerySelector("td")!.TextContent.Trim()));
+        Assert.Single(cut.FindAll(".ib-chart-box circle"));
+
+        // Split by region: a box per region side by side within each carrier, where it has values.
+        var split = Render<Chart<Delivery>>(p => p
+            .Add(c => c.Items, parcels)
+            .Add(c => c.Argument, d => d.Carrier)
+            .Add(c => c.Title, "Delivery time")
+            .AddChildContent<ChartBoxPlotSeries<Delivery>>(s => s.Add(x => x.Value, d => d.Days).Add(x => x.SeriesBy, d => d.Region)));
+        Assert.Equal([2, 1], split.FindAll(".ib-chart-svg g.ib-chart-box").Select(g => g.QuerySelectorAll(":scope > g").Length));
+    }
+
     [Fact]
     public void Refresh_on_a_static_page_needs_an_id_and_gets_a_pause_button()
     {

@@ -1494,6 +1494,24 @@ public class IzzyText
     /// <summary>An OHLC bar's prices with no Open: high, low, close.</summary>
     public virtual string ChartHlc { get; set; } = "high {0}, low {1}, close {2}";
 
+    /// <summary>A box plot's box, in its tooltip and description: the median, the quartiles and the whiskers' ends.</summary>
+    public virtual string ChartBox { get; set; } = "median {0}, quartiles {1} – {2}, whiskers {3} – {4}";
+
+    /// <summary>A box's mean, after <see cref="ChartBox"/> (a box plot series' ShowMean).</summary>
+    public virtual string ChartBoxMean { get; set; } = "mean {0}";
+
+    /// <summary>How many values make a box, when it's one.</summary>
+    public virtual string ChartBoxValue { get; set; } = "{0:N0} value";
+
+    /// <summary>How many values make a box, when it's more than one.</summary>
+    public virtual string ChartBoxValues { get; set; } = "{0:N0} values";
+
+    /// <summary>How many of a box's values are outliers, past its whiskers, when it's one.</summary>
+    public virtual string ChartBoxOutlier { get; set; } = "{0:N0} outlier";
+
+    /// <summary>How many of a box's values are outliers, when it's more than one.</summary>
+    public virtual string ChartBoxOutliers { get; set; } = "{0:N0} outliers";
+
     /// <summary>A waterfall chart's legend: the key for bars that add to the running total.</summary>
     public virtual string ChartIncrease { get; set; } = "Increase";
 
