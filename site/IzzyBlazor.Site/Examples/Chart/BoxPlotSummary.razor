@@ -1,0 +1,22 @@
+@* A week of an API's response times by region, as a monitoring database reports them: percentiles
+   and a mean over millions of requests, not the requests themselves. The whiskers are the 5th and
+   95th percentiles, as the title says. *@
+<Chart Items="_regions" Argument="r => r.Region" Title="API response time by region, last 7 days (whiskers: 5th to 95th percentile)">
+    <ChartValueAxis Title="Milliseconds" />
+    <ChartBoxSummarySeries Low="r => r.P5" Q1="r => r.P25" Median="r => r.P50" Q3="r => r.P75" High="r => r.P95"
+                           Mean="r => r.Mean" Name="Response time" />
+</Chart>
+
+@code {
+    private record RegionLatency(string Region, double P5, double P25, double P50, double P75, double P95, double Mean);
+
+    // Sample data: each region's percentiles, the mean above the median, as a long tail pulls it.
+    private readonly RegionLatency[] _regions =
+    [
+        new("US East", 38, 52, 64, 82, 141, 74),
+        new("US West", 44, 60, 73, 94, 166, 86),
+        new("Europe", 51, 68, 83, 108, 192, 99),
+        new("Asia Pacific", 88, 117, 142, 186, 334, 171),
+        new("South America", 97, 131, 158, 207, 389, 192),
+    ];
+}
