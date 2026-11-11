@@ -80,7 +80,8 @@ function setupDrag(table: HTMLTableElement, host: HTMLElement, signal: AbortSign
   }, { signal });
 }
 
-const rows = (table: HTMLTableElement) => [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr[aria-level]:not(.ib-treelist-more)")];
+// Not a Show more row, nor a row's detail, which share their row's level.
+const rows = (table: HTMLTableElement) => [...table.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr[aria-level]:not(.ib-treelist-more, .ib-grid-detail)")];
 
 // The rows drawn under one, in order, and the rows above it, nearest first.
 const under = (all: HTMLTableRowElement[], at: number) => {

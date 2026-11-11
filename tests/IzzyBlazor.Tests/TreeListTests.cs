@@ -282,6 +282,25 @@ public class TreeListTests : BunitContext
     }
 
     [Fact]
+    public void Hidden_columns_open_under_their_row_at_its_level()
+    {
+        var cut = Tree("/people?open=1&detail=2", p => p.Add(x => x.SmallScreen, DataGridSmallScreen.HideColumns), builder =>
+        {
+            builder.AddContent(0, Columns);
+            builder.OpenComponent<PropertyColumn<Person, int>>(1);
+            builder.AddComponentParameter(2, "Property", (Expression<Func<Person, int>>)(x => x.Id));
+            builder.AddComponentParameter(3, "Width", Length.Rem(6));
+            builder.CloseComponent();
+        });
+
+        var rows = cut.FindAll("tbody > tr");
+        Assert.Equal("Sofia", rows[1].QuerySelector(".ib-treelist-value")!.TextContent.Trim());
+        Assert.Contains("ib-grid-detail", rows[2].ClassList);
+        Assert.Equal("2", rows[2].GetAttribute("aria-level"));
+        Assert.Equal("Daniel", rows[3].QuerySelector(".ib-treelist-value")!.TextContent.Trim());
+    }
+
+    [Fact]
     public void A_page_counts_top_rows_and_keeps_each_branch_whole()
     {
         var cut = Tree("/people?open=*", p => p.Add(x => x.PageSize, 1));
