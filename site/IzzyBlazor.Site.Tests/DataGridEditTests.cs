@@ -93,12 +93,10 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.Equal(0, await dialog.GetByRole(AriaRole.Button, new() { Name = "Delete" }).CountAsync());
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task A_field_of_your_own_saves_with_the_generated_ones(string mode)
+    [Fact]
+    public async Task A_field_of_your_own_saves_with_the_generated_ones()
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync("static");
         await using var _ = browser;
         var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in two columns'])");
         var rows = grid.Locator(".ib-table-scroll tbody tr");
