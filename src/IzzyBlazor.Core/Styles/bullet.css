@@ -127,6 +127,9 @@
     translate: -50% 0;
   }
 
+  /* The number at the scale's end ends there, so it stays inside the chart however wide. */
+  .ib-bullet-end > span { translate: -100% 0; }
+
   .ib-bullet-axis { grid-column: 2; }
   .ib-bullet-axis .ib-bullet-ticks { margin-block-start: var(--ib-space-1); }
 
@@ -143,6 +146,8 @@
     padding-block-end: 0.75em;
     grid-template-columns: max-content minmax(0, 1fr);
     grid-template-rows: auto var(--ib-bullet-length);
+    /* The rows' gap, so their subgrids' tracks are the axis's length, not half a gap short at each end. */
+    row-gap: var(--ib-space-2);
   }
 
   .ib-bullet-v .ib-bullet-rows {
@@ -153,6 +158,7 @@
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
     column-gap: var(--ib-space-3);
+    row-gap: var(--ib-space-2);
   }
 
   .ib-bullet-v .ib-bullet-row {

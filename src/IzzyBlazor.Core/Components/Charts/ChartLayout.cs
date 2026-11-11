@@ -556,6 +556,10 @@ internal static class ChartLayout
             ? SecondaryAxis(input, model, marks, highs, lows, plotHeight, null)
             : SecondaryAxis(input, model, marks, Masked(highs, inDomain), Masked(lows, inDomain), plotHeight, inDomain);
         if (tickText is null && !full) PlainZero(model.ValueLabels, input.ValueFormat, culture);
+
+        // With no series on the first axis shown (only a second axis's), its numbers would be
+        // made up: it keeps its grid lines, which the second axis's ticks sit on, and no labels.
+        if (!input.Series.Any(s => !s.Hidden && !s.Secondary) && model.MarkValues.Count == 0) model.ValueLabels.Clear();
         PlainZero(model.SecondaryLabels, input.SecondaryFormat, culture);
 
         // The argument axis.

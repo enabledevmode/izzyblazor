@@ -140,7 +140,11 @@
         var ticks = HideScale ? [] : Ticks();
         // The widest number, in ems of the ticks' 12px text: the scale leaves room for it.
         var widest = ticks.Count == 0 ? 0 : ticks.Max(t => TextWidths.AtSize(Text(t), 12)) / 12;
-        <div class="ib-lgauge-scale" style="--ib-lgauge-tw:@Num(Math.Round(widest, 3))em" role="meter" aria-labelledby="@_labelId"
+        // Below what width every other number gives way: where the numbers, the ends' set inside the
+        // scale, would come within 8px of each other (20rem at least; gauge.css has 20 to 60).
+        var needPx = (ticks.Count - 1) * (widest * 12 * 1.5 + 8);
+        var thin = new[] { 20, 30, 40, 50, 60 }.FirstOrDefault(rem => rem * 16 >= needPx, 60);
+        <div class="@(thin == 20 ? "ib-lgauge-scale" : $"ib-lgauge-scale ib-lgauge-t{thin}")" style="--ib-lgauge-tw:@Num(Math.Round(widest, 3))em" role="meter" aria-labelledby="@_labelId"
              aria-valuenow="@Num(Math.Clamp(Shown, Min, Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(Max)" aria-valuetext="@Words(current)">
             @if (marker || pointers.Count > 0)
             {

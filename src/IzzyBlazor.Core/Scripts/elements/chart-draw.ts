@@ -509,6 +509,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     ticks.map(([v]) => [scale(v), v === 0 && d.f.k < 1 && !full ? d.f.p + "0" : format(d.f, v, log ? v : d.vs != null && step === d.vs ? Math.pow(10, -stepDecimals) : step!), 0, v === 0]);
   let svg = "";
   let labels = "";
+  // With only a second axis's series shown, the first axis keeps its grid lines and no numbers (ChartLayout).
+  const own = visible.some((s) => !d.s[s].ax) || d.rv?.length;
   for (const [pos, raw, from, isZero] of axisTicks) {
     const text = esc(raw);
     const cls = (isZero ? " ib-chart-zero" : "") + (from > 0 ? ` ib-chart-from${from}` : "");
@@ -516,10 +518,10 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     const line = d.gl || isZero;
     if (d.h) {
       if (line) svg += `<line class="ib-chart-grid${cls}" x1="${pct(pos)}" x2="${pct(pos)}" y1="0" y2="100%"/>`;
-      labels += `<span${span} style="left:${pct(pos)}">${text}</span>`;
+      if (own) labels += `<span${span} style="left:${pct(pos)}">${text}</span>`;
     } else {
       if (line) svg += `<line class="ib-chart-grid${cls}" x1="0" x2="100%" y1="${pct(1 - pos)}" y2="${pct(1 - pos)}"/>`;
-      labels += `<span${span} style="top:${pct(1 - pos)}">${text}</span>`;
+      if (own) labels += `<span${span} style="top:${pct(1 - pos)}">${text}</span>`;
     }
   }
 

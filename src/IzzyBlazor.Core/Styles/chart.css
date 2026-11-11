@@ -241,10 +241,12 @@
     vector-effect: non-scaling-stroke;
   }
 
-  /* A bar's target (ChartBarSeries' Target): a tick across it in the text color. */
+  /* A bar's target (ChartBarSeries' Target): a tick across it in the text color, with a halo of
+     the surface's so it stands off the bar in either mode. */
   .ib-chart-target {
     stroke: var(--ib-color-on-surface);
     stroke-width: 3px;
+    filter: drop-shadow(0 0 1px var(--ib-color-surface));
   }
 
   .ib-chart-line,
@@ -935,7 +937,12 @@
     color: var(--ib-color-on-surface);
     font-size: var(--ib-text-sm);
     line-height: 1.3;
+    container-type: size;
   }
+
+  /* Smaller with the hole, so a small donut's middle still fits it. */
+  .ib-pie-center > div { font-size: min(1em, 10cqi); }
+  .ib-pie-center-nested > div { font-size: min(1em, 15cqi); }
 
   .ib-pie-legend {
     display: grid;

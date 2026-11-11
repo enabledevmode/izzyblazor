@@ -327,7 +327,7 @@
             <div class="ib-bullet-ticks" style="--ib-bullet-tw:@Num(widest)em" aria-hidden="true">
                 @for (var k = 0; k < ticks.Count; k++)
                 {
-                    <span class="@(k % 2 == 1 ? "ib-bullet-tick ib-bullet-odd" : "ib-bullet-tick")" style="--p:@Share(ticks[k], max)%"><span>@Text(ticks[k], format)</span></span>
+                    <span class="@((k % 2 == 1 ? "ib-bullet-tick ib-bullet-odd" : "ib-bullet-tick") + (Pct(ticks[k], max) >= 99.999 ? " ib-bullet-end" : ""))" style="--p:@Share(ticks[k], max)%"><span>@Text(ticks[k], format)</span></span>
                 }
             </div>
         };
@@ -342,7 +342,7 @@
                             <span id="@id" class="ib-bullet-label">@row.Label</span>
                             <div class="ib-bullet-meter" role="meter" aria-labelledby="@id"
                                  aria-valuenow="@Num(Math.Clamp(row.Value ?? Min, Min, row.Max))" aria-valuemin="@Num(Min)" aria-valuemax="@Num(row.Max)"
-                                 aria-valuetext="@row.Spoken(TextDefaults.GaugeTarget, noData)">
+                                 aria-valuetext="@row.Spoken(_targetName is { } named ? named.Replace("{", "{{").Replace("}", "}}") + " {0}" : TextDefaults.GaugeTarget, noData)">
                                 <div class="ib-bullet-track" aria-hidden="true">
                                     @foreach (var range in row.Ranges)
                                     {

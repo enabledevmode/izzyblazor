@@ -167,6 +167,12 @@
     .ib-lgauge-odd > span { display: none; }
   }
 
+  /* Wider numbers give way at a wider gauge (LinearGauge works out which). */
+  @container (width < 30rem) { .ib-lgauge-t30 .ib-lgauge-odd > span { display: none; } }
+  @container (width < 40rem) { .ib-lgauge-t40 .ib-lgauge-odd > span { display: none; } }
+  @container (width < 50rem) { .ib-lgauge-t50 .ib-lgauge-odd > span { display: none; } }
+  @container (width < 60rem) { .ib-lgauge-t60 .ib-lgauge-odd > span { display: none; } }
+
   /* Standing up: label and value above, centered; the ticks at the left, then the track, the bar
      and the triangles, each a column, marks rising from the bottom. */
   .ib-lgauge-v { align-items: center; inline-size: max-content; max-inline-size: 100%; }

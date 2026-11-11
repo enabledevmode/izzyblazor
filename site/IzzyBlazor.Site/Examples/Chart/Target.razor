@@ -1,6 +1,6 @@
 @* Each sales team's bookings against its quota: the tick across each bar is the team's quota. *@
 <Chart Items="_teams" Argument="t => t.Team" Title="Bookings against quota by team, Q3 2026" Orientation="Orientation.Horizontal">
-    <ChartValueAxis Format="$#,##0,,.0M" />
+    <ChartValueAxis Format="$#,##0,,.00M" />
     <ChartBarSeries Value="t => t.Bookings" Target="t => t.Quota" Name="Bookings" />
 </Chart>
 
