@@ -2453,7 +2453,7 @@
         { "feature": "A slim box, median and whiskers inside, with outliers as circles" },
         { "feature": "Every violin as wide at its densest, so shapes compare" },
         { "feature": "Violins split by a group, side by side, upright or across" },
-        { "feature": "Each violin's median, middle half and counts in its tooltip and the table" },
+        { "feature": "Each violin's median and middle half in its tooltip, every number in the table" },
         { "feature": "A table of the values in a \"Show data\" disclosure" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],

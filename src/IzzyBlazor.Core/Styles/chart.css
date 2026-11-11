@@ -261,6 +261,7 @@
   .ib-chart-ohlc .ib-chart-down rect { fill: var(--ib-chart-c); }
   .ib-chart-ohlc-bars line { stroke-width: 1.5px; }
   .ib-chart-key .ib-chart-ohlc rect { rx: 0; }
+  .ib-chart-key .ib-chart-ohlc line { stroke-width: 1px; stroke-linecap: butt; }
 
   .ib-chart-line,
   .ib-chart-key line {
@@ -273,8 +274,9 @@
   }
 
   /* Box plots (ChartBoxPlotSeries): the box filled as a bar, its whiskers and caps in the series
-     color, the median across it in the surface's (the color has 3:1 on the surface, so the line
-     reads on the fill), outliers hollow and the mean a diamond outlined in the series color. */
+     color, the median across it in the surface's (the fill is the color, which has 3:1 on the
+     surface, mixed 85% into it, so the line keeps nearly that), outliers hollow and the mean a
+     diamond outlined in the series color. */
   .ib-chart-box line {
     stroke: var(--ib-chart-c);
     stroke-width: 1.5px;

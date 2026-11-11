@@ -39,7 +39,7 @@ export interface DrawSeries {
   en?: string; // the name written past the plot's end (EndLabel)
   lw?: (number | null)[]; // a range's low ends (ChartRangeBarSeries, ChartRangeAreaSeries)
   tg?: (number | null)[]; // a bar series' targets
-  op?: (number | null)[]; // a price series' opens (ChartOhlcSeries); its lw and v are the lows and highs
+  po?: (number | null)[]; // a price series' opens (ChartOhlcSeries); its lw and v are the lows and highs
   cl?: (number | null)[]; // a price series' closes
   ob?: boolean; // a price series drawn as OHLC bars, not candles
 }
@@ -560,14 +560,16 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       // A price: its body from the open to the close (a candle) or its ticks (a bar), on a line
       // from the low to the high; up when it closed above its open, or the close before (ChartLayout's Candle).
       if (prices) {
-        const o = d.s[s].op?.[i] ?? null, c = prices[i];
-        if (c == null || (d.s[s].op && o == null)) continue;
+        const o = d.s[s].po?.[i] ?? null, c = prices[i];
+        if (c == null || lows[s][i] == null || (d.s[s].po && o == null)) continue;
         let k = i;
         while (k-- && prices[k] == null);
         const y = (v: number) => pct(1 - sc(v)), m = a0 + width / 2, t = width * 0.35;
         barSvg += `<g class="ib-chart-${(o ?? prices[k] ?? c) <= c ? "up" : "down"}"><line x1="${pct(m)}" x2="${pct(m)}" y1="${pct(1 - hi)}" y2="${pct(1 - lo)}"/>` +
           (d.s[s].ob || o == null
             ? (o == null ? "" : `<line x1="${pct(m - t)}" x2="${pct(m)}" y1="${y(o)}" y2="${y(o)}"/>`) + `<line x1="${pct(m)}" x2="${pct(m + t)}" y1="${y(c)}" y2="${y(c)}"/>`
+            : o == c // a doji: a zero-height rect draws nothing, so its body is a line
+            ? `<line x1="${pct(a0)}" x2="${pct(a0 + width)}" y1="${y(c)}" y2="${y(c)}"/>`
             : `<rect x="${pct(a0)}" y="${y(Math.max(o, c))}" width="${pct(width)}" height="${pct(Math.abs(sc(o) - sc(c)))}"/>`) + "</g>";
         continue;
       }
