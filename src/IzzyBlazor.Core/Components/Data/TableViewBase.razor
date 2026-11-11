@@ -60,7 +60,7 @@
                     {
                         @SelectBox(item, key, "ib-table-select-inline")
                     }
-                    @{ var content = cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item)); }
+                    @{ var content = cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : CellOf(item, column)); }
                     @(first ? FirstCell(item, content) : content)
                 </td>
                 first = false;
@@ -2377,6 +2377,9 @@
 
     /// <summary>A class for a column's cells beyond their alignment and its own.</summary>
     internal virtual string? ColumnClass(ColumnBase<TItem> column) => null;
+
+    /// <summary>A data cell's content: the column's, or a TreeList's total of a row's branch (RollUp).</summary>
+    internal virtual RenderFragment CellOf(TItem item, ColumnBase<TItem> column) => column.Cell(item);
 
     /// <summary>The class of a column's data cells that keeps them to one line, or null where they wrap.</summary>
     internal virtual string? OverflowClass(ColumnBase<TItem> column) => null;

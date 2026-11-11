@@ -18,14 +18,18 @@ internal static class XlsxWriter
 
     // Excel refused a sheet of 5.8 GB of XML and opened one of 3.6 GB; the limit is likely 4 GB.
     private const long MaxSheetBytes = 3_500_000_000;
-    const int StyleDate = 1, StyleDateTime = 2, StyleHeader = 3;
+    const int StyleDate = 1, StyleDateTime = 2, StyleHeader = 3, StyleIndent = 4, MaxIndent = 15, MaxOutline = 7;
 
     // Excel keeps 15 significant digits, and rounds the rest away.
     private const long MaxExactWhole = 999_999_999_999_999;
 
     public static async Task<DataExportResult> WriteAsync(
-        Stream output, IReadOnlyList<XlsxColumn> columns, IAsyncEnumerator<object?[]> rows, bool more, string sheetName, string truncatedNote, CancellationToken ct)
+        Stream output, IReadOnlyList<XlsxColumn> columns, IAsyncEnumerator<object?[]> rows, bool more, string sheetName, string truncatedNote, CancellationToken ct,
+        int? deepest = null)
     {
+        // A tree's rows (deepest is its deepest level) end with their level, which isn't written: it
+        // sets the row's outline level, so the rows fold in Excel, and indents its first cell.
+        var leveled = deepest is not null;
         const CompressionLevel level = CompressionLevel.Fastest;
         if (columns.Count is 0 or > MaxColumns) throw new ArgumentOutOfRangeException(nameof(columns));
 
@@ -44,7 +48,8 @@ internal static class XlsxWriter
         var entry = zip.CreateEntry("xl/worksheets/sheet1.xml", level);
         var part = await entry.OpenAsync(ct);
         var w = new Utf8Buffer(FlushAt * 2);
-        w.Ascii(SheetStart);
+        w.Ascii(leveled ? SheetStart.Replace("<sheetViews>", "<sheetPr><outlinePr summaryBelow=\"0\"/></sheetPr><sheetViews>", StringComparison.Ordinal) : SheetStart);
+        if (leveled) w.Ascii($"<sheetFormatPr defaultRowHeight=\"15\" outlineLevelRow=\"{Math.Clamp(deepest!.Value, 0, MaxOutline)}\"/>");
         w.Ascii("<cols>");
         for (var i = 0; i < columns.Count; i++)
         {
@@ -75,11 +80,12 @@ internal static class XlsxWriter
 
             rowNumber++;
             dataRows++;
-            w.RowStart(rowNumber);
-            var count = Math.Min(row.Length, MaxColumns);
+            var depth = leveled ? (int)row[^1]! : 0;
+            w.RowStart(rowNumber, Math.Min(depth, MaxOutline));
+            var count = Math.Min(row.Length - (leveled ? 1 : 0), MaxColumns);
             for (var i = 0; i < count; i++)
             {
-                w.Value(i, rowNumber, row[i]);
+                w.Value(i, rowNumber, row[i], i == 0 && depth > 0 ? StyleIndent + Math.Min(depth, MaxIndent) - 1 : 0);
                 if (w.Length >= FlushAt) await w.FlushAsync(part, ct);
             }
             w.Ascii("</row>");
@@ -142,16 +148,21 @@ internal static class XlsxWriter
         + "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>"
         + "</Relationships>";
 
-    // cellXfs: 0 general, 1 date (built-in 14), 2 date and time (built-in 22), 3 bold header.
-    const string Styles = Xml + "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
+    // cellXfs: 0 general, 1 date (built-in 14), 2 date and time (built-in 22), 3 bold header, then a
+    // tree's first cells indented 1 to 15 steps.
+    static readonly string IndentStyles = string.Concat(Enumerable.Range(1, MaxIndent).Select(i =>
+        $"<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyAlignment=\"1\"><alignment indent=\"{i}\"/></xf>"));
+
+    static readonly string Styles = Xml + "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
         + "<fonts count=\"2\"><font><sz val=\"11\"/><name val=\"Calibri\"/><family val=\"2\"/></font><font><b/><sz val=\"11\"/><name val=\"Calibri\"/><family val=\"2\"/></font></fonts>"
         + "<fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills>"
         + "<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>"
         + "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>"
-        + "<cellXfs count=\"4\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>"
+        + "<cellXfs count=\"19\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>"
         + "<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/>"
         + "<xf numFmtId=\"22\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/>"
-        + "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\"/></cellXfs>"
+        + "<xf numFmtId=\"0\" fontId=\"1\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyFont=\"1\"/>"
+        + IndentStyles + "</cellXfs>"
         + "<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles>"
         + "</styleSheet>";
 
@@ -213,10 +224,11 @@ internal static class XlsxWriter
             Int(row);
         }
 
-        public void RowStart(int row)
+        public void RowStart(int row, int outline = 0)
         {
             Ascii("<row r=\"");
             Int(row);
+            if (outline > 0) { Ascii("\" outlineLevel=\""); Int(outline); }
             Ascii("\">");
         }
 
@@ -229,16 +241,17 @@ internal static class XlsxWriter
             Ascii("\">");
         }
 
-        public void Value(int col, int row, object? value)
+        // style: a text or number cell's own (a tree's indent); dates keep theirs.
+        public void Value(int col, int row, object? value, int style = 0)
         {
             switch (value)
             {
                 case null: break;
-                case string s: Cell(col, row, s, 0); break;
+                case string s: Cell(col, row, s, style); break;
                 case bool b: Open(col, row, 0, "b"); Ascii(b ? "<v>1</v></c>" : "<v>0</v></c>"); break;
                 case sbyte or byte or short or ushort or int or long:
                     var whole = Convert.ToInt64(value);
-                    if (whole is >= -MaxExactWhole and <= MaxExactWhole) Number(col, row, whole); else Cell(col, row, whole.ToString(CultureInfo.InvariantCulture), 0);
+                    if (whole is >= -MaxExactWhole and <= MaxExactWhole) Number(col, row, whole, style); else Cell(col, row, whole.ToString(CultureInfo.InvariantCulture), style);
                     break;
                 case uint u: Number(col, row, u); break;
                 case ulong u when u <= MaxExactWhole: Number(col, row, u); break;
@@ -247,12 +260,12 @@ internal static class XlsxWriter
                 case double d when !double.IsFinite(d): Cell(col, row, d.ToString(CultureInfo.InvariantCulture), 0); break;
                 case float f: Number(col, row, f); break;
                 case double d: Number(col, row, d); break;
-                case decimal d: Number(col, row, d); break;
+                case decimal d: Number(col, row, d, style); break;
                 case DateOnly d: Date(col, row, d.ToDateTime(TimeOnly.MinValue), StyleDate, "yyyy-MM-dd"); break;
                 case DateTime d: Date(col, row, d, StyleDateTime, "yyyy-MM-dd HH:mm:ss"); break;
                 case DateTimeOffset d: Date(col, row, d.DateTime, StyleDateTime, "yyyy-MM-dd HH:mm:ss"); break;
                 case IFormattable f: Cell(col, row, f.ToString(null, CultureInfo.InvariantCulture), 0); break;
-                default: Cell(col, row, value.ToString() ?? "", 0); break;
+                default: Cell(col, row, value.ToString() ?? "", style); break;
             }
         }
 

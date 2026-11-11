@@ -2437,6 +2437,9 @@
         }
     };
 
+    /// <summary>Whether its export keeps the rows under a match too (a TreeList's FilterBranch), as <c>branch=true</c>.</summary>
+    internal virtual bool ExportsBranch => false;
+
     /// <summary>
     /// <paramref name="href"/> with what the grid's export links add: the current <c>filter</c>,
     /// <c>sort</c> (after its groups') and <c>search</c>, and the shown, exportable <c>columns</c>, for
@@ -2449,7 +2452,7 @@
     public string ExportHref(string href)
     {
         // Rows follow their groups, though a file has none.
-        var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
+        var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true, FilterBranch = ExportsBranch }).ToQueryString() : "";
         var columns = "columns=" + string.Join(",", ExportColumns.Select(c => Uri.EscapeDataString(c.Key!)));
         // A fragment would swallow the query, and means nothing to a download.
         href = href.Split('#')[0];

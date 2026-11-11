@@ -287,6 +287,17 @@ public static class SiteApp
                 stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
             .RequireRateLimiting(PagesRateLimit);
+        // The TreeList totals example's downloads: the estimate as an outline.
+        app.MapGet("/examples/estimate.csv", (HttpContext context) => Results.Stream(
+                stream => DataExport.WriteCsvAsync(stream, Examples.TreeList.Estimate.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.TreeList.WorkItem>(), cancellationToken: context.RequestAborted,
+                    tree: DataExportTree<Examples.TreeList.WorkItem>.Of(w => w.Id, w => w.ParentId).RollUp("hours", DataAggregate.Sum)),
+                "text/csv", "estimate.csv"))
+            .RequireRateLimiting(PagesRateLimit);
+        app.MapGet("/examples/estimate.xlsx", (HttpContext context) => Results.Stream(
+                stream => DataExport.WriteExcelAsync(stream, Examples.TreeList.Estimate.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.TreeList.WorkItem>(), "Estimate", cancellationToken: context.RequestAborted,
+                    tree: DataExportTree<Examples.TreeList.WorkItem>.Of(w => w.Id, w => w.ParentId).RollUp("hours", DataAggregate.Sum)),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "estimate.xlsx"))
+            .RequireRateLimiting(PagesRateLimit);
         // A format of the site's own, for the example with DataGridExportFormat: an array of objects by caption.
         app.MapGet("/examples/orders.json", (HttpContext context) => Results.Stream(
                 async stream =>

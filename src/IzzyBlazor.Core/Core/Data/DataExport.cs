@@ -63,10 +63,11 @@ public static class DataExport
     /// <param name="fields">What can be written, filtered, sorted and searched. Their captions head the file.</param>
     /// <param name="escapeFormulas">Puts an apostrophe before text starting with <c>=</c>, <c>+</c>, <c>-</c> or <c>@</c>, which a spreadsheet would run as a formula. Leave it on for anything people typed.</param>
     /// <param name="cancellationToken">Stops the export, such as when the download is abandoned.</param>
-    public static async Task<DataExportResult> WriteCsvAsync<TItem>(Stream output, IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, bool escapeFormulas = true, CancellationToken cancellationToken = default)
+    /// <param name="tree">For a <c>TreeList</c>'s rows: their key and parent key, so they come in the tree's order with their levels.</param>
+    public static async Task<DataExportResult> WriteCsvAsync<TItem>(Stream output, IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, bool escapeFormulas = true, CancellationToken cancellationToken = default, DataExportTree<TItem>? tree = null)
     {
         var columns = ColumnsOf(query, fields);
-        await using var rows = Rows(source, query, fields, columns, cancellationToken).GetAsyncEnumerator(cancellationToken);
+        await using var rows = (tree is null ? Rows(source, query, fields, columns, cancellationToken) : TreeRows(source, query, fields, columns, tree, cancellationToken)).GetAsyncEnumerator(cancellationToken);
         var more = await rows.MoveNextAsync();
 
         await using var writer = new StreamWriter(output, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true), bufferSize: 64 * 1024, leaveOpen: true);
@@ -83,7 +84,11 @@ public static class DataExport
                     await writer.WriteAsync(',');
                 }
 
-                var cell = CsvCell(rows.Current[i], columns[i].Format, escapeFormulas);
+                // A tree's level indents its first column, two spaces a level.
+                var level = tree is null || i > 0 ? 0 : (int)rows.Current[^1]!;
+                var cell = level > 0
+                    ? CsvText(new string(' ', level * 2) + CsvPlain(rows.Current[i], columns[i].Format, escapeFormulas), escapeFormulas: false)
+                    : CsvCell(rows.Current[i], columns[i].Format, escapeFormulas);
                 // Alone on its line, an empty cell would be a blank line, which readers skip.
                 await writer.WriteAsync((columns.Count == 1 && cell.Length == 0 ? "\"\"" : cell).AsMemory(), cancellationToken);
             }
@@ -110,10 +115,26 @@ public static class DataExport
     /// <param name="sheetName">The sheet's name.</param>
     /// <param name="truncatedNote">The last row, when there's more than a sheet can hold.</param>
     /// <param name="cancellationToken">Stops the export, such as when the download is abandoned.</param>
-    public static async Task<DataExportResult> WriteExcelAsync<TItem>(Stream output, IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, string sheetName = "Sheet1", string truncatedNote = "This export stopped here: there are more rows than a sheet can hold.", CancellationToken cancellationToken = default)
+    /// <param name="tree">For a <c>TreeList</c>'s rows: their key and parent key, so they come in the tree's order with their levels.</param>
+    public static async Task<DataExportResult> WriteExcelAsync<TItem>(Stream output, IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, string sheetName = "Sheet1", string truncatedNote = "This export stopped here: there are more rows than a sheet can hold.", CancellationToken cancellationToken = default, DataExportTree<TItem>? tree = null)
     {
         var columns = ColumnsOf(query, fields);
-        await using var rows = Rows(source, query, fields, columns, cancellationToken).GetAsyncEnumerator(cancellationToken);
+        int? deepest = null;
+        IAsyncEnumerable<object?[]> source2 = Rows(source, query, fields, columns, cancellationToken);
+        if (tree is not null)
+        {
+            // In memory already, to put it in order: the deepest level heads the sheet's outline.
+            var all = new List<object?[]>();
+            await foreach (var row in TreeRows(source, query, fields, columns, tree, cancellationToken))
+            {
+                all.Add(row);
+            }
+
+            deepest = all.Count == 0 ? 0 : all.Max(r => (int)r[^1]!);
+            source2 = all.ToAsyncEnumerable();
+        }
+
+        await using var rows = source2.GetAsyncEnumerator(cancellationToken);
         var more = await rows.MoveNextAsync();
         return await XlsxWriter.WriteAsync(
             output,
@@ -122,7 +143,8 @@ public static class DataExport
             more,
             sheetName,
             truncatedNote,
-            cancellationToken);
+            cancellationToken,
+            deepest);
     }
 
     /// <summary>
@@ -190,27 +212,81 @@ public static class DataExport
             yield break;
         }
 
-        // In memory a null along the way throws, cell by cell, so it's made null to match. A field
-        // that throws the same by itself looks no different.
-        var readers = columns.Select(c => Expression.Lambda<Func<TItem, object?>>(Expression.Convert(c.Value.Body, typeof(object)), c.Value.Parameters).Compile()).ToList();
+        var readers = Readers(columns);
         foreach (var item in rows)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var values = new object?[readers.Count];
-            for (var i = 0; i < values.Length; i++)
-            {
-                try
-                {
-                    values[i] = readers[i](item);
-                }
-                catch (NullReferenceException)
-                {
-                    values[i] = null;
-                }
-            }
-
-            yield return values;
+            yield return Values(item, readers, 0);
         }
+    }
+
+    // A tree's rows in its order, each with its level after its values: every row is read, then
+    // the filter picks the matches among them and the tree adds the rows above.
+    private static async IAsyncEnumerable<object?[]> TreeRows<TItem>(IQueryable<TItem> source, string? query, IReadOnlyList<DataField<TItem>> fields, List<Column<TItem>> columns, DataExportTree<TItem> tree, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var request = DataRequest<TItem>.Parse(query ?? "");
+        var sorted = request.ApplySorting(source, fields);
+        var all = new List<TItem>();
+        if (sorted is IAsyncEnumerable<TItem> rows)
+        {
+            await foreach (var row in rows.WithCancellation(cancellationToken))
+            {
+                all.Add(row);
+            }
+        }
+        else
+        {
+            all.AddRange(sorted);
+        }
+
+        var filtering = request.Filter is not null || !string.IsNullOrWhiteSpace(request.Search);
+        var matches = filtering ? request.ApplyFiltering(DataViewBase<TItem>.AsQuery(all), fields).ToHashSet() : null;
+        var readers = Readers(columns);
+        var written = new List<object?[]>();
+        foreach (var (item, level) in tree.Order(all, matches, request.FilterBranch))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var values = Values(item, readers, 1);
+            values[^1] = level;
+            written.Add(values);
+        }
+
+        var rollUps = tree.RollUps
+            .Select(r => (Column: columns.FindIndex(c => string.Equals(c.Key, r.Key, StringComparison.OrdinalIgnoreCase)), r.Type))
+            .Where(r => r.Column >= 0)
+            .ToList();
+        if (rollUps.Count > 0)
+        {
+            DataExportTree<TItem>.ApplyRollUps(written, rollUps);
+        }
+
+        foreach (var row in written)
+        {
+            yield return row;
+        }
+    }
+
+    private static List<Func<TItem, object?>> Readers<TItem>(List<Column<TItem>> columns) =>
+        columns.Select(c => Expression.Lambda<Func<TItem, object?>>(Expression.Convert(c.Value.Body, typeof(object)), c.Value.Parameters).Compile()).ToList();
+
+    // In memory a null along the way throws, cell by cell, so it's made null to match. A field
+    // that throws the same by itself looks no different. Room for more after them, such as a level.
+    private static object?[] Values<TItem>(TItem item, List<Func<TItem, object?>> readers, int extra)
+    {
+        var values = new object?[readers.Count + extra];
+        for (var i = 0; i < readers.Count; i++)
+        {
+            try
+            {
+                values[i] = readers[i](item);
+            }
+            catch (NullReferenceException)
+            {
+                values[i] = null;
+            }
+        }
+
+        return values;
     }
 
     private static Expression<Func<TItem, object?[]>> Projection<TItem>(List<Column<TItem>> columns)
@@ -234,11 +310,26 @@ public static class DataExport
         _ => CsvText(value.ToString() ?? "", escapeFormulas),
     };
 
+    // A value's text with the formula guard, before indenting and quoting.
+    private static string CsvPlain(object? value, string? format, bool escapeFormulas)
+    {
+        var text = value switch
+        {
+            null => "",
+            IFormattable formattable => formattable.ToString(format, CultureInfo.CurrentCulture),
+            _ => value.ToString() ?? "",
+        };
+        return escapeFormulas && value is not (sbyte or short or int or long or Int128 or float or double or decimal) ? Guarded(text) : text;
+    }
+
+    private static string Guarded(string text) =>
+        text.Length > 0 && text[0] is '=' or '+' or '-' or '@' or '\t' or '\r' or '\n' or '＝' or '＋' or '－' or '＠' ? "'" + text : text;
+
     private static string CsvText(string text, bool escapeFormulas)
     {
-        if (escapeFormulas && text.Length > 0 && text[0] is '=' or '+' or '-' or '@' or '\t' or '\r' or '\n' or '＝' or '＋' or '－' or '＠')
+        if (escapeFormulas)
         {
-            text = "'" + text;
+            text = Guarded(text);
         }
 
         // Semicolons and tabs too: where the list separator is one, Excel splits on it, and what

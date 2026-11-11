@@ -8,16 +8,16 @@ namespace IzzyBlazor.Tests;
 // Rows that form a tree: open by the address, sorted among siblings, filtered with their ancestors, paged by top rows.
 public class TreeListTests : BunitContext
 {
-    public sealed record Person(int Id, int? ManagerId, string Name, Person[]? Reports = null);
+    public sealed record Person(int Id, int? ManagerId, string Name, Person[]? Reports = null, int Hours = 0);
 
     private static readonly Person[] People =
     [
         new(1, null, "Maya"),
         new(2, 1, "Sofia"),
-        new(3, 2, "Mei"),
-        new(4, 2, "James"),
+        new(3, 2, "Mei", Hours: 30),
+        new(4, 2, "James", Hours: 10),
         new(5, 1, "Daniel"),
-        new(6, 5, "Lena"),
+        new(6, 5, "Lena", Hours: 5),
         new(7, null, "Ravi"),
     ];
 
@@ -157,6 +157,42 @@ public class TreeListTests : BunitContext
         cut = Tree("/people?f-name=lena", p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
         Assert.Equal("down", cut.Find("ib-table").GetAttribute("data-ib-cascade"));
         Assert.Equal([false, false, true], cut.FindAll("tbody > tr").Select(r => r.QuerySelector(".ib-table-select") is not null));
+    }
+
+    [Fact]
+    public void A_row_rolls_up_the_rows_at_the_ends_of_its_branch()
+    {
+        Nav.NavigateTo("/people?open=*");
+        var cut = Render<TreeList<Person>>(p =>
+        {
+            p.Add(x => x.Items, People);
+            p.Add(x => x.ItemKey, x => x.Id.ToString());
+            p.Add(x => x.ItemParentKey, x => x.ManagerId?.ToString());
+            p.Add(x => x.Columns, builder =>
+            {
+                builder.AddContent(0, Columns);
+                builder.OpenComponent<PropertyColumn<Person, int>>(1);
+                builder.AddComponentParameter(2, "Property", (Expression<Func<Person, int>>)(x => x.Hours));
+                builder.AddComponentParameter(3, "RollUp", (DataAggregate?)DataAggregate.Sum);
+                builder.CloseComponent();
+            });
+        });
+
+        // Maya: Mei, James and Lena; Sofia: Mei and James. A leaf shows its own.
+        var hours = cut.FindAll("tbody > tr").Select(r => r.Children[1].TextContent.Trim()).ToArray();
+        Assert.Equal(["45", "40", "30", "10", "5", "5", "0"], hours);
+    }
+
+    [Fact]
+    public async Task An_export_keeps_the_trees_order_and_levels_and_the_rows_above_a_match()
+    {
+        var fields = DataFields.Of<Person>().Where(f => f.Key.Equals("name", StringComparison.OrdinalIgnoreCase)).ToList();
+        var tree = DataExportTree<Person>.Of(p => p.Id, p => p.ManagerId);
+        using var stream = new MemoryStream();
+        await DataExport.WriteCsvAsync(stream, People.AsQueryable(), "sort=name&filter=" + Uri.EscapeDataString("name eq 'Lena'"), fields, tree: tree);
+        var lines = System.Text.Encoding.UTF8.GetString(stream.ToArray()).TrimStart('﻿').Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        // Quoted, so a reader keeps the spaces.
+        Assert.Equal(["Name", "Maya", "\"  Daniel\"", "\"    Lena\""], lines);
     }
 
     [Fact]
