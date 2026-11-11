@@ -48,7 +48,7 @@ public class TreeListTests : BunitContext
     }
 
     private static string[] Rows(IRenderedComponent<TreeList<Person>> cut) =>
-        cut.FindAll("tbody > tr").Select(r => $"{r.GetAttribute("aria-level")}:{r.QuerySelector(".ib-treelist-value")!.TextContent.Trim()}").ToArray();
+        cut.FindAll("tbody > tr:not(.ib-treelist-more)").Select(r => $"{r.GetAttribute("aria-level")}:{r.QuerySelector(".ib-treelist-value")!.TextContent.Trim()}").ToArray();
 
     [Fact]
     public void A_link_in_the_address_opens_a_row_under_its_parent()
@@ -100,6 +100,48 @@ public class TreeListTests : BunitContext
 
         cut = Tree("/people?f-name=daniel", p => p.Add(x => x.FilterBranch, true));
         Assert.Equal(["1:Maya", "2:Daniel", "3:Lena"], Rows(cut));
+    }
+
+    [Fact]
+    public void A_provider_loads_each_open_rows_children_and_keeps_the_rows_above_a_match()
+    {
+        var parents = new List<string?>();
+        IRenderedComponent<TreeList<Person>> Load(string address)
+        {
+            Nav.NavigateTo(address);
+            return Render<TreeList<Person>>(p =>
+            {
+                p.Add(x => x.ItemsProvider, request =>
+                {
+                    parents.Add(request.Parent);
+                    return ValueTask.FromResult(request.ToTreeResult(People.AsQueryable(), x => x.Id, x => x.ManagerId));
+                });
+                p.Add(x => x.ItemKey, x => x.Id.ToString());
+                p.Add(x => x.ItemHasChildren, x => People.Any(c => c.ManagerId == x.Id));
+                p.Add(x => x.Columns, Columns);
+            });
+        }
+
+        var cut = Load("/people?open=1&sort=name");
+        Assert.Equal(["1:Maya", "2:Daniel", "2:Sofia", "1:Ravi"], Rows(cut));
+        Assert.Equal([null, "1"], parents);
+        Assert.Null(cut.FindAll("tbody > tr")[3].GetAttribute("aria-expanded"));
+
+        cut = Load("/people?f-name=lena");
+        Assert.Equal(["1:Maya", "2:Daniel", "3:Lena"], Rows(cut));
+        Assert.Contains("ib-treelist-context", cut.FindAll("tbody > tr")[1].ClassList);
+    }
+
+    [Fact]
+    public void A_row_with_more_children_than_the_limit_shows_more_by_a_link()
+    {
+        var cut = Tree("/people?open=1", p => p.Add(x => x.ChildRowLimit, 1));
+        Assert.Equal(["1:Maya", "2:Sofia", "1:Ravi"], Rows(cut));
+        var more = cut.Find(".ib-treelist-more a");
+        Assert.Contains("Showing 1 of 2", cut.Find(".ib-treelist-more").TextContent);
+
+        cut = Tree(more.GetAttribute("href")!, p => p.Add(x => x.ChildRowLimit, 1));
+        Assert.Equal(["1:Maya", "2:Sofia", "2:Daniel", "1:Ravi"], Rows(cut));
     }
 
     [Fact]

@@ -1,0 +1,64 @@
+@* A file store's folders and files, one level at a time from the database: opening a folder asks for
+   its contents. Lisbon trip holds 640 photos, so it shows the first 200 and Show more. *@
+<TreeList TItem="StoredFile" ItemsProvider="LoadAsync" ItemKey="f => f.Id.ToString()" ItemHasChildren="f => f.IsFolder"
+          ItemIcon="Icon" QueryPrefix="store-" Caption="Storage" MaxHeight="28.Rem" Grow>
+    <Columns>
+        <PropertyColumn Property="f => f.Name" Sortable Filterable />
+        <PropertyColumn Property="f => f.Modified" Format="MMM d, yyyy" Sortable Width="9.Rem" />
+        <TemplateColumn Title="Size" SortBy="f => f.Bytes" Align="CellAlign.End" Sortable Width="7.Rem">@Size(context.Bytes)</TemplateColumn>
+    </Columns>
+</TreeList>
+
+@code {
+    // Stands in for a DbSet: with EF Core, pass db.Files to ToTreeResultAsync.
+    private static IQueryable<StoredFile> Database => Files.AsQueryable();
+
+    private ValueTask<DataResult<StoredFile>> LoadAsync(DataRequest<StoredFile> request) =>
+        ValueTask.FromResult(request.ToTreeResult(Database, f => f.Id, f => f.FolderId));
+
+    private static IconData? Icon(StoredFile file, bool open) =>
+        file.IsFolder ? open ? Lucide.FolderOpen : Lucide.Folder : file.Name.EndsWith(".jpg") ? Lucide.FileImage : Lucide.FileText;
+
+    private static string Size(long? bytes) => bytes switch
+    {
+        null => "",
+        < 1024 * 1024 => $"{bytes / 1024.0:0} KB",
+        _ => $"{bytes / (1024.0 * 1024):0.0} MB",
+    };
+
+    @* hide *@
+    private static readonly List<StoredFile> Files = Build();
+
+    private static List<StoredFile> Build()
+    {
+        var files = new List<StoredFile>();
+        var day = new DateOnly(2026, 11, 3);
+        StoredFile Add(int? folder, string name, long? bytes, int daysAgo)
+        {
+            var file = new StoredFile(files.Count + 1, folder, name, bytes is null, bytes, day.AddDays(-daysAgo));
+            files.Add(file);
+            return file;
+        }
+
+        var docs = Add(null, "Documents", null, 2);
+        Add(docs.Id, "Lease agreement.pdf", 845_000, 210);
+        Add(docs.Id, "Tax return 2025.pdf", 1_920_000, 190);
+        var work = Add(docs.Id, "Work", null, 2);
+        Add(work.Id, "Q4 plan.docx", 96_000, 2);
+        Add(work.Id, "Budget 2027.xlsx", 210_000, 9);
+        var photos = Add(null, "Photos", null, 1);
+        var trip = Add(photos.Id, "Lisbon trip", null, 40);
+        for (var i = 1; i <= 640; i++)
+        {
+            Add(trip.Id, $"IMG_{4100 + i}.jpg", 2_400_000 + i * 7_919 % 1_800_000, 40 + i / 90);
+        }
+
+        var music = Add(null, "Music", null, 120);
+        Add(music.Id, "Playlist.m3u", 4_000, 120);
+        Add(null, "Notes.txt", 3_000, 5);
+        return files;
+    }
+
+    private sealed record StoredFile(int Id, int? FolderId, string Name, bool IsFolder, long? Bytes, DateOnly Modified);
+    @* /hide *@
+}

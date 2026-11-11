@@ -57,7 +57,27 @@ public partial class TreeList<TItem>
     /// </summary>
     [Parameter] public bool FilterBranch { get; set; }
 
+    /// <summary>
+    /// Whether a row has rows under it, so it gets a chevron before they load, with an
+    /// <c>ItemsProvider</c>. Without it every row gets one, and a row that opens to none loses it.
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? ItemHasChildren { get; set; }
+
+    /// <summary>
+    /// The most rows shown under one row; a Show more row after them shows as many again. 200 by
+    /// default.
+    /// </summary>
+    [Parameter] public int ChildRowLimit { get; set; } = 200;
+
     private string TreeOpenKey => $"{QueryPrefix}open";
+
+    private string TreeMoreKey => $"{QueryPrefix}more";
+
+    private IReadOnlyList<string>? _stateTreeMore;
+    private Dictionary<string, List<TreeMore>> _treeMore = [];
+
+    /// <summary>A Show more row, after the last row drawn under its parent.</summary>
+    private sealed record TreeMore(string Parent, int Depth, int Shown, int Total);
 
     private IReadOnlyList<string>? _stateTreeOpen;
     private object? _treeOpenFor;
@@ -99,7 +119,24 @@ public partial class TreeList<TItem>
     internal override bool ExtraBound => base.ExtraBound || TreeBound;
 
     /// <inheritdoc />
-    internal override string FilterSignature() => $"{base.FilterSignature()}|{TreeOpen.Signature}";
+    internal override string FilterSignature() => $"{base.FilterSignature()}|{TreeOpen.Signature}|{string.Join('/', TreeMoreList)}";
+
+    // Each row given more children, once for each Show more pressed under it.
+    private IReadOnlyList<string> TreeMoreList => UseState
+        ? _stateTreeMore ?? []
+        : QueryString.Of(Navigation.Uri).TryGetValue(TreeMoreKey, out var values) ? values.OfType<string>().TakeLast(MaxOpenKeys).ToList() : [];
+
+    private int ChildLimit(string key) => Math.Max(1, ChildRowLimit) * (1 + TreeMoreList.Count(k => k == key));
+
+    private IReadOnlyList<string> TreeMoreWith(string key) => [.. TreeMoreList.TakeLast(MaxOpenKeys - 1), key];
+
+    private string TreeMoreLink(string key) => LinkWith(new Dictionary<string, object?> { [TreeMoreKey] = TreeMoreWith(key).ToArray() });
+
+    private async Task ShowMoreAsync(string key)
+    {
+        _stateTreeMore = TreeMoreWith(key);
+        await ReloadIfStaleAsync();
+    }
 
     private OpenState TreeOpen
     {
@@ -134,18 +171,18 @@ public partial class TreeList<TItem>
 
     // Whether a row is open, by the state, else by its default: every row, the ones ItemExpanded opens,
     // and while filtering, the rows above a match.
-    private bool IsOpen(OpenState state, Node node, bool filtering)
+    private bool IsOpen(OpenState state, string key, TItem item, bool filtering)
     {
-        if (state.Shut.Contains(node.Key))
+        if (state.Shut.Contains(key))
         {
             return false;
         }
 
-        return state.Open.Contains(node.Key) || state.All || (!state.None && OpensByDefault(node, filtering));
+        return state.Open.Contains(key) || state.All || (!state.None && OpensByDefault(item, filtering));
     }
 
-    private bool OpensByDefault(Node node, bool filtering) =>
-        ExpandAll || filtering || ItemExpanded?.Invoke(node.Item) == true;
+    private bool OpensByDefault(TItem item, bool filtering) =>
+        ExpandAll || filtering || ItemExpanded?.Invoke(item) == true;
 
     // The state with one row the other way: a key when its default is closed, "!key" when it's open.
     private IReadOnlyList<string> TreeToggled(string key, bool open, bool openByDefault)
@@ -190,6 +227,11 @@ public partial class TreeList<TItem>
         {
             _stateTreeOpen = values.OfType<string>().ToList();
         }
+
+        if (QueryString.Of(Navigation.Uri).TryGetValue(TreeMoreKey, out var more))
+        {
+            _stateTreeMore = more.OfType<string>().TakeLast(MaxOpenKeys).ToList();
+        }
     }
 
     /// <inheritdoc />
@@ -200,14 +242,16 @@ public partial class TreeList<TItem>
             throw new InvalidOperationException("A TreeList needs an ItemKey: open rows are kept by it.");
         }
 
-        if ((ItemChildren is null) == (ItemParentKey is null))
-        {
-            throw new InvalidOperationException($"A TreeList needs one of {nameof(ItemChildren)} (nested rows) or {nameof(ItemParentKey)} (a flat list), not both.");
-        }
-
         if (ItemsProvider is not null)
         {
-            throw new InvalidOperationException($"A TreeList takes its rows from Items for now, not an {nameof(ItemsProvider)}.");
+            if (ItemChildren is not null || ItemParentKey is not null)
+            {
+                throw new InvalidOperationException($"A TreeList with an {nameof(ItemsProvider)} loads each row's children from it (DataRequest.Parent): leave {nameof(ItemChildren)} and {nameof(ItemParentKey)} unset.");
+            }
+        }
+        else if ((ItemChildren is null) == (ItemParentKey is null))
+        {
+            throw new InvalidOperationException($"A TreeList needs one of {nameof(ItemChildren)} (nested rows) or {nameof(ItemParentKey)} (a flat list), not both.");
         }
 
         if (SmallScreen == DataGridSmallScreen.HideColumns)
@@ -219,73 +263,159 @@ public partial class TreeList<TItem>
     }
 
     /// <inheritdoc />
-    internal override ValueTask<GroupedPage?> LoadGroupedAsync(DataRequest<TItem> request, int page, int? pageSize)
+    internal override async ValueTask<GroupedPage?> LoadGroupedAsync(DataRequest<TItem> request, int page, int? pageSize)
     {
-        var roots = Build(SourceItems ?? [], request, out var all);
         var filtering = request.Filter is not null || !string.IsNullOrWhiteSpace(request.Search);
-        if (filtering)
+        var context = new HashSet<string>();
+        IReadOnlyList<TItem> top;
+        int total;
+        var anyChildren = false;
+        var deepest = 0;
+        Func<string, int, Task<(IReadOnlyList<TItem> Items, int Total)>> childrenOf;
+        Func<TItem, string, bool> mayHaveChildren;
+        if (ItemsProvider is { } provider)
         {
-            KeepMatches(all, request);
+            // One level at a time: the top rows, then the children of each open row.
+            var ask = request with { Parent = null, FilterBranch = FilterBranch };
+            var result = await provider(ask);
+            if (pageSize is not null && result.Total is null)
+            {
+                throw new InvalidOperationException("A TreeList's ItemsProvider returns the total count of top rows, for its pages.");
+            }
+
+            total = result.Total ?? result.Items.Count;
+            if (pageSize is { } size && result.Items.Count == 0 && total > 0 && page > LastPage(total, size))
+            {
+                page = LastPage(total, size);
+                result = await provider(ask with { Skip = (page - 1) * size });
+            }
+
+            top = Mark(result.Items);
+            childrenOf = async (key, take) =>
+            {
+                var children = await provider(request with { Parent = key, FilterBranch = FilterBranch, Skip = 0, Take = take, Cursor = null, NeedsTotal = true });
+                return (Mark(children.Items), children.Total ?? children.Items.Count);
+            };
+            mayHaveChildren = (item, _) => ItemHasChildren?.Invoke(item) ?? true;
+
+            // While filtering, a row the provider kept for a match under it is muted.
+            IReadOnlyList<TItem> Mark(IReadOnlyList<TItem> items)
+            {
+                if (filtering)
+                {
+                    var matched = request.ApplyFiltering(AsQuery(items)).AsEnumerable().Select(KeyOf).ToHashSet();
+                    context.UnionWith(items.Select(KeyOf).Where(k => !matched.Contains(k)));
+                }
+
+                return items;
+            }
         }
-
-        if (request.Sort.Count > 0)
+        else
         {
-            var rank = 0;
-            var ranks = new Dictionary<string, int>();
-            foreach (var item in request.ApplySorting(AsQuery(all.Select(n => n.Item))))
+            var roots = Build(SourceItems ?? [], request, out var all);
+            if (filtering)
             {
-                ranks.TryAdd(KeyOf(item), rank++);
+                KeepMatches(all, request);
             }
 
-            foreach (var node in all)
+            if (request.Sort.Count > 0)
             {
-                node.Rank = ranks.GetValueOrDefault(node.Key);
+                var rank = 0;
+                var ranks = new Dictionary<string, int>();
+                foreach (var item in request.ApplySorting(AsQuery(all.Select(n => n.Item))))
+                {
+                    ranks.TryAdd(KeyOf(item), rank++);
+                }
+
+                foreach (var node in all)
+                {
+                    node.Rank = ranks.GetValueOrDefault(node.Key);
+                }
+
+                foreach (var node in all)
+                {
+                    node.Children.Sort((a, b) => a.Rank.CompareTo(b.Rank));
+                }
+
+                roots.Sort((a, b) => a.Rank.CompareTo(b.Rank));
             }
 
-            foreach (var node in all)
+            var kept = roots.Where(n => n.Kept).ToList();
+            total = kept.Count;
+            if (pageSize is { } size)
             {
-                node.Children.Sort((a, b) => a.Rank.CompareTo(b.Rank));
+                page = Math.Clamp(page, 1, LastPage(total, size));
+                kept = kept.Skip((page - 1) * size).Take(size).ToList();
             }
 
-            roots.Sort((a, b) => a.Rank.CompareTo(b.Rank));
-        }
-
-        var kept = roots.Where(n => n.Kept).ToList();
-        var total = kept.Count;
-        var first = 0;
-        var shown = kept;
-        if (pageSize is { } size)
-        {
-            page = Math.Clamp(page, 1, LastPage(total, size));
-            first = (page - 1) * size;
-            shown = kept.Skip(first).Take(size).ToList();
+            top = kept.Select(n => n.Item).ToList();
+            var byKey = all.ToDictionary(n => n.Key);
+            context.UnionWith(all.Where(n => n.Kept && n.Context).Select(n => n.Key));
+            anyChildren = all.Any(n => n.Children.Count > 0);
+            deepest = all.Where(n => n.Kept).Select(n => { var d = 0; for (var up = n.Parent; up is not null; up = up.Parent) { d++; } return d; }).DefaultIfEmpty().Max();
+            childrenOf = (key, take) =>
+            {
+                var children = byKey[key].Children.Where(c => c.Kept).ToList();
+                return Task.FromResult<(IReadOnlyList<TItem>, int)>((children.Take(take).Select(c => c.Item).ToList(), children.Count));
+            };
+            mayHaveChildren = (_, key) => byKey[key].Children.Any(c => c.Kept);
         }
 
         var state = TreeOpen;
         var rows = new List<TItem>();
         var info = new Dictionary<string, TreeRow>();
-        var anyChildren = all.Any(n => n.Children.Count > 0);
-        var deepest = all.Where(n => n.Kept).Select(n => { var d = 0; for (var up = n.Parent; up is not null; up = up.Parent) { d++; } return d; }).DefaultIfEmpty().Max();
+        var more = new Dictionary<string, List<TreeMore>>();
 
-        void Walk(List<Node> siblings, int offset, int setSize, int depth)
+        async Task Walk(IReadOnlyList<TItem> siblings, int offset, int setSize, int depth)
         {
+            if (depth > MaxDepth)
+            {
+                throw new InvalidOperationException($"The TreeList's rows go deeper than {MaxDepth} levels.");
+            }
+
             for (var i = 0; i < siblings.Count; i++)
             {
-                var node = siblings[i];
-                var children = node.Children.Where(c => c.Kept).ToList();
-                var open = children.Count > 0 && IsOpen(state, node, filtering);
-                info[node.Key] = new TreeRow(depth, offset + i + 1, setSize, children.Count > 0, open, OpensByDefault(node, filtering), node.Context);
-                rows.Add(node.Item);
+                var item = siblings[i];
+                var key = KeyOf(item);
+                if (info.ContainsKey(key))
+                {
+                    throw new InvalidOperationException($"The TreeList has the row \"{key}\" twice: each row needs its own key, and no row can be under itself.");
+                }
+
+                var has = mayHaveChildren(item, key);
+                var open = has && IsOpen(state, key, item, filtering);
+                IReadOnlyList<TItem> children = [];
+                var count = 0;
                 if (open)
                 {
-                    Walk(children, 0, children.Count, depth + 1);
+                    (children, count) = await childrenOf(key, ChildLimit(key));
+                    has = open = children.Count > 0;
+                }
+
+                anyChildren |= has;
+                deepest = Math.Max(deepest, depth);
+                info[key] = new TreeRow(depth, offset + i + 1, setSize, has, open, OpensByDefault(item, filtering), context.Contains(key));
+                rows.Add(item);
+                if (open)
+                {
+                    await Walk(children, 0, count, depth + 1);
+                    if (count > children.Count)
+                    {
+                        var last = KeyOf(rows[^1]);
+                        if (!more.TryGetValue(last, out var after))
+                        {
+                            more[last] = after = [];
+                        }
+
+                        after.Add(new TreeMore(key, depth + 1, children.Count, count));
+                    }
                 }
             }
         }
 
-        Walk(shown, first, total, 0);
-        var count = shown.Count;
-        return ValueTask.FromResult<GroupedPage?>(new GroupedPage(rows, total, page, () => (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth) = (info, count, anyChildren, deepest)));
+        await Walk(top, pageSize is { } shownSize ? (page - 1) * shownSize : 0, total, 0);
+        var shown = top.Count;
+        return new GroupedPage(rows, total, page, () => (_treeRows, _treeRootsShown, _treeHasChildren, _treeDepth, _treeMore) = (info, shown, anyChildren, deepest, more));
     }
 
     // The nodes, linked: the top ones in order, and every one in all.

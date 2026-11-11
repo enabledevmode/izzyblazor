@@ -831,6 +831,9 @@ public class IzzyText
     /// <summary>Closes every row in a TreeList.</summary>
     public virtual string TreeCollapseAll { get; set; } = "Collapse all rows";
 
+    /// <summary>The button after a tree list's first children of a row, when it has more.</summary>
+    public virtual string TreeShowMore { get; set; } = "Show more";
+
     /// <summary>The name of a DataGrid's column of detail buttons, when it has no button of its own.</summary>
     public virtual string DetailColumn { get; set; } = "Details";
 

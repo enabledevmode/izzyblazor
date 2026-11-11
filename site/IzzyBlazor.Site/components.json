@@ -2851,6 +2851,8 @@
         { "feature": "Sorting within each row's children" },
         { "feature": "Filters and search that keep the rows above a match", "member": "FilterBranch" },
         { "feature": "Pages of top rows, so a branch is never split" },
+        { "feature": "Rows from a database a level at a time, loaded as rows open", "member": "ItemsProvider" },
+        { "feature": "Up to 200 rows under a row, then Show more", "member": "ChildRowLimit" },
         { "feature": "Treegrid keys: Right opens a row, Left closes it or goes to its parent", "noscript": "none" }
       ],
       "examples": [
@@ -2869,6 +2871,12 @@
           "id": "open-rows", "title": "Open rows", "summary": "Rows open from the address, from a link, or from C# when the open rows are bound.", "members": ["ExpandedItems", "ExpandAll", "ItemExpanded"],
           "examples": [
             { "id": "tree-list-budget", "title": "Opening rows from C#", "modes": ["interactive"], "lead": "To open and close rows from your code, bind `@bind-ExpandedItems` on an interactive page. It holds the keys of the open rows, and the tree list keeps it in step as the user opens and closes them.", "after": ["`*` in the list opens every row, `!*` closes every row, and `!key` closes one row that would otherwise start open.", "To choose the rows that start open, set `ExpandAll` for every row or `ItemExpanded` for some, such as the top level. Without a binding, the open rows are in the address as `?open=`, which works on static pages and with JavaScript off."] }
+          ]
+        },
+        {
+          "id": "server-data", "title": "Server data", "summary": "Rows load from your database a level at a time, as the user opens them.", "members": ["ItemsProvider", "ItemHasChildren", "ChildRowLimit", "ItemKey"],
+          "examples": [
+            { "id": "tree-list-file-storage", "title": "Loading a level at a time", "lead": "To load rows from a database as they open, set `ItemsProvider` instead of `Items`. The tree list asks for the top rows, then for the children of each open row, with that row's key in `request.Parent`. `request.ToTreeResult` answers it from a query, given the key and the parent key.", "after": ["Set `ItemHasChildren` so a row shows its chevron before its children load. Without it, every row gets one, and a row that opens to none loses it.", "Sorting, filters and search go with every request. While filtering, `ToTreeResult` keeps the rows that match and the rows above them, which takes a query for each level above a match. With EF Core, use `ToTreeResultAsync` with `CountAsync` and `ToListAsync`.", "A row shows at most 200 rows under it, then Show more, which adds as many again. Set `ChildRowLimit` to change it."] }
           ]
         }
       ]
