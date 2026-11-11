@@ -398,6 +398,21 @@ public class IzzyText
     /// <summary>A TreeList row's Add child action. {0} is the row's name.</summary>
     public virtual string AddUnder { get; set; } = "Add under {0}";
 
+    /// <summary>A TreeList row's Move action, and its dialog's title. {0} is the row's name.</summary>
+    public virtual string TreeMoveItem { get; set; } = "Move {0}";
+
+    /// <summary>The Move dialog's field: the row the moving one goes under.</summary>
+    public virtual string TreeMoveUnder { get; set; } = "Under";
+
+    /// <summary>The Move dialog's choice for no parent.</summary>
+    public virtual string TreeTopLevel { get; set; } = "Top level";
+
+    /// <summary>The Move dialog's button.</summary>
+    public virtual string TreeMove { get; set; } = "Move";
+
+    /// <summary>The Move dialog's error when the chosen row is the moving one or under it.</summary>
+    public virtual string TreeMoveIntoItself { get; set; } = "A row can't go under itself or a row under it.";
+
     /// <summary>A DataGrid's delete button in its confirmation.</summary>
     public virtual string Delete { get; set; } = "Delete";
 

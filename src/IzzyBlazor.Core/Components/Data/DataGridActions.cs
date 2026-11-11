@@ -87,7 +87,7 @@ public sealed class ActionColumn<TItem> : ComponentBase
 }
 
 /// <summary>What a row's actions draw: as buttons, or in its menu.</summary>
-internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, bool Folds, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete, Func<bool, RenderFragment?> AddUnder);
+internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, bool Folds, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete, Func<bool, RenderFragment?> AddUnder, Func<bool, RenderFragment?> Move);
 
 /// <summary>An action in a <c>DataGrid</c>'s <see cref="ActionColumn{TItem}"/>: drawn once as a button or a menu item, by where it shows.</summary>
 public abstract class RowActionBase : ComponentBase
@@ -225,6 +225,17 @@ public sealed class AddChildAction : RowActionBase
 {
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
         builder.AddContent(0, scope.AddUnder(scope.InMenu));
+}
+
+/// <summary>
+/// A TreeList row's Move action: a dialog to choose the row it goes under, or the top level, for the
+/// tree list's <c>OnReparent</c> to save. Its own branch can't be chosen. Works on static pages and
+/// with the keyboard alone.
+/// </summary>
+public sealed class MoveAction : RowActionBase
+{
+    private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
+        builder.AddContent(0, scope.Move(scope.InMenu));
 }
 
 /// <summary>A row's field in the editor, for a column's <c>EditTemplate</c>.</summary>

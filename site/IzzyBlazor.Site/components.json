@@ -2846,7 +2846,7 @@
       ]
     },
     {
-      "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "parts": ["AddChildAction"], "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
+      "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "parts": ["AddChildAction", "MoveAction"], "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
       "features": [
         { "feature": "Nested rows from a flat list with a parent key, or from children", "member": "ItemParentKey" },
         { "feature": "Open rows in the URL, so a static page opens them by a link" },
@@ -2860,6 +2860,7 @@
         { "feature": "A row's total of its branch, and the footer's of every match", "member": "Column.RollUp" },
         { "feature": "Excel and CSV export that keeps the tree's levels", "member": "ExportExcelHref" },
         { "feature": "Editing as in a DataGrid, and adding a row under another", "member": "NewChild" },
+        { "feature": "Moving a row under a new parent from a dialog, with no script needed", "member": "OnReparent" },
         { "feature": "Treegrid keys: Right opens a row, Left closes it or goes to its parent", "noscript": "none" }
       ],
       "examples": [
@@ -2887,9 +2888,9 @@
           ]
         },
         {
-          "id": "editing", "title": "Editing", "summary": "Rows are edited as in a DataGrid, and an action adds a row under another.", "members": ["EditMode", "OnSave", "NewItem", "NewChild", "OnDelete", "ItemEditable", "ItemDeletable"],
+          "id": "editing", "title": "Editing", "summary": "Rows are edited as in a DataGrid, an action adds a row under another, and Move puts a row under a new parent.", "members": ["EditMode", "OnSave", "NewItem", "NewChild", "OnReparent", "ItemMovable", "OnDelete", "ItemEditable", "ItemDeletable"],
           "examples": [
-            { "id": "tree-list-edit-plan", "title": "Editing and adding rows under others", "lead": "A tree list edits as a DataGrid does: set `EditMode` and handle `OnSave`. To add a row under another, set `NewChild` and put an `AddChildAction` in the `ActionColumn`.", "after": ["`NewChild` gets the row the new one goes under, so it can set the parent's id. The new row opens under it, which opens if it was closed, and `OnSave` gets it with `IsNew` set.", "`NewItem` adds a top row, from the toolbar's Add. Deleting a row is yours to handle, so decide there what happens to the rows under it: this example deletes them too."] }
+            { "id": "tree-list-edit-plan", "title": "Editing and adding rows under others", "lead": "A tree list edits as a DataGrid does: set `EditMode` and handle `OnSave`. To add a row under another, set `NewChild` and put an `AddChildAction` in the `ActionColumn`.", "after": ["`NewChild` gets the row the new one goes under, so it can set the parent's id. The new row opens under it, which opens if it was closed, and `OnSave` gets it with `IsNew` set.", "`NewItem` adds a top row, from the toolbar's Add. Deleting a row is yours to handle, so decide there what happens to the rows under it: this example deletes them too.", "To move a row under another, add a `MoveAction` and handle `OnReparent`. Its dialog offers every row but the moving one and its branch, under Top level; `OnReparent` gets the new parent, or none, and the row's place after its new siblings."] }
           ]
         },
         {

@@ -225,6 +225,21 @@ public class TreeListTests : BunitContext
     }
 
     [Fact]
+    public void The_move_dialog_offers_every_row_but_the_moving_one_and_its_branch()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = Tree("/people?move=2", p => p.Add(x => x.OnReparent, (TreeListMove<Person> _) => { }));
+
+        // Sofia (2) is moving: she, Mei and James aren't offered; the top level and the others are.
+        var offered = cut.FindAll("dialog li[data-ib-key]").Select(e => e.GetAttribute("data-ib-key") ?? "?").ToArray();
+        Assert.Equal(["", "1", "5", "6", "7"], offered);
+        Assert.DoesNotContain("2", offered);
+        Assert.DoesNotContain("3", offered);
+        Assert.Contains("Move Sofia", cut.Find("dialog").TextContent);
+    }
+
+    [Fact]
     public void A_page_counts_top_rows_and_keeps_each_branch_whole()
     {
         var cut = Tree("/people?open=*", p => p.Add(x => x.PageSize, 1));

@@ -87,6 +87,93 @@ public partial class TreeList<TItem>
     /// </summary>
     [Parameter] public Func<TItem, TItem>? NewChild { get; set; }
 
+    /// <summary>
+    /// Saves a row moved under another, or to the top level, from a <c>MoveAction</c>'s dialog. With
+    /// no error added, the dialog closes and the rows load again. Needs <c>Items</c>.
+    /// </summary>
+    [Parameter] public EventCallback<TreeListMove<TItem>> OnReparent { get; set; }
+
+    /// <summary>Which rows can be moved; all of them when it's not set. It's checked on a move too, not just when drawing the action.</summary>
+    [Parameter]
+    public new Func<TItem, bool>? ItemMovable { get => base.ItemMovable; set => base.ItemMovable = value; }
+
+    private string MoveQueryKey => $"{QueryPrefix}move";
+
+    private string? _stateMoveKey;
+    private TreeListMovePost _moveModel = new();
+    private string? _moveFor;
+    private Microsoft.AspNetCore.Components.Forms.EditContext? _moveContext;
+    private Microsoft.AspNetCore.Components.Forms.ValidationMessageStore? _moveMessages;
+
+    // The row whose Move dialog is open: one that can move, and is here.
+    private string? CurrentMoveKey => !OnReparent.HasDelegate || EditEnding ? null : UseState ? _stateMoveKey : QueryValue(MoveQueryKey);
+
+    /// <inheritdoc />
+    internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey] : base.LinkClears;
+
+    /// <inheritdoc />
+    internal override void EndOwnDialogs() => (_stateMoveKey, _moveFor) = (null, null);
+
+    private bool CanMoveRow(TItem item) => ItemMovable?.Invoke(item) != false;
+
+    // The tree to choose from: every row but the moving one and its branch, under the top level.
+    private List<TreeListMoveTarget> MoveTargets(string moving)
+    {
+        TreeListMoveTarget Of(Node node) => new(node.Key, LabelOf(node.Item), [.. node.Children.Where(c => c.Key != moving).Select(Of)]);
+        var roots = (_treeNodes?.Values.AsEnumerable() ?? []).Where(n => n.Parent is null && n.Key != moving).Select(Of).ToList();
+        return [new TreeListMoveTarget("", TextDefaults.TreeTopLevel, roots)];
+    }
+
+    // Checked again on the post, which a hand-made one could aim anywhere.
+    private async Task MoveAsync(string key)
+    {
+        if (_treeNodes?.GetValueOrDefault(key) is not { } node || !CanMoveRow(node.Item))
+        {
+            return;
+        }
+
+        _moveMessages!.Clear();
+        var parentKey = string.IsNullOrEmpty(_moveModel.Parent) ? null : _moveModel.Parent;
+        Node? parent = null;
+        if (parentKey is not null && (_treeNodes.GetValueOrDefault(parentKey) is not { } found || Under(found, node)))
+        {
+            AddMoveError(TextDefaults.TreeMoveIntoItself);
+            return;
+        }
+        else if (parentKey is not null)
+        {
+            parent = _treeNodes[parentKey];
+        }
+
+        var siblings = parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)];
+        var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, siblings.Count(s => s.Key != key), AddMoveError);
+        await OnReparent.InvokeAsync(move);
+        if (!move.HasErrors)
+        {
+            _moveFor = null;
+            await EndEditAsync(saved: true);
+        }
+
+        static bool Under(Node candidate, Node moving)
+        {
+            for (var at = candidate; at is not null; at = at.Parent)
+            {
+                if (at == moving)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private void AddMoveError(string message)
+    {
+        _moveMessages!.Add(new Microsoft.AspNetCore.Components.Forms.FieldIdentifier(_moveModel, ""), message);
+        _moveContext!.NotifyValidationStateChanged();
+    }
+
     /// <inheritdoc />
     internal override Func<TItem, TItem>? ChildFactory => NewChild;
 
@@ -325,6 +412,11 @@ public partial class TreeList<TItem>
         if (ItemKey is null)
         {
             throw new InvalidOperationException("A TreeList needs an ItemKey: open rows are kept by it.");
+        }
+
+        if (ItemsProvider is not null && OnReparent.HasDelegate)
+        {
+            throw new InvalidOperationException($"A TreeList's {nameof(OnReparent)} moves rows among its {nameof(Items)}: it doesn't take an {nameof(ItemsProvider)} yet.");
         }
 
         if (ItemsProvider is not null)

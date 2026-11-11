@@ -25,6 +25,7 @@
             }
             @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
             @Editor
+            @OwnDialog
             @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive) || ShowsGroupBar)
             {
                 <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
@@ -133,7 +134,7 @@
 
     private bool CanDeleteRow(TItem item) => CanDelete && ItemDeletable?.Invoke(item) != false;
 
-    private string? QueryValue(string key) =>
+    internal string? QueryValue(string key) =>
         QueryString.Of(Navigation.Uri).TryGetValue(key, out var value) && value.ToString().Length > 0 ? value.ToString() : null;
 
     // Never the new row's own stand-in, which a typed address could name.
@@ -202,7 +203,23 @@
     private bool _ending;
     private string? _stateDeleteKey;
 
-    private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [AddUnderQueryKey] = null, [DeleteQueryKey] = null });
+    // Every key an editor or a dialog of the grid's puts in the address, taken out.
+    internal string EditEndHref => Navigation.GetUriWithQueryParameters(
+        new[] { EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey }.Concat(LinkClears).Distinct().ToDictionary(k => k, _ => (object?)null));
+
+    /// <summary>Whether the grid is on its way out of an editor: the address hasn't caught up yet.</summary>
+    internal bool EditEnding => _ending;
+
+    /// <summary>A dialog of a TreeList's own, such as its Move dialog, beside the grid's editor.</summary>
+    internal virtual RenderFragment? OwnDialog => null;
+
+    /// <summary>A TreeList row's Move action; null elsewhere.</summary>
+    internal virtual RenderFragment? MoveControl(TItem item, bool inMenu) => null;
+
+    /// <summary>Clears a TreeList's own dialog when an editor or dialog ends, on an interactive page.</summary>
+    internal virtual void EndOwnDialogs()
+    {
+    }
 
     // In a row, only what's shown has a field to post; the rest stays as loaded.
     private List<ColumnBase<TItem>> EditableColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : AllColumns).Where(c => c.IsEditable).ToList();
@@ -600,7 +617,7 @@
         StateHasChanged();
     }
 
-    private async Task EndEditAsync(bool saved)
+    internal async Task EndEditAsync(bool saved)
     {
         // Cleared whether or not the key changes: a bound parent may keep it, and the next edit starts afresh.
         (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
@@ -609,6 +626,7 @@
         if (UseState)
         {
             (_stateAdding, _stateAddUnder, _stateDeleteKey, _stateEditKey) = (false, null, null, null);
+            EndOwnDialogs();
             if (EditKey is not null)
             {
                 await EditKeyChanged.InvokeAsync(null);
@@ -856,7 +874,7 @@
     };
 
     private RowActionScope ScopeOf(TItem item, bool inMenu) =>
-        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason), menu => AddUnderControl(item, menu));
+        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason), menu => AddUnderControl(item, menu), menu => MoveControl(item, menu));
 
     private string AddRootHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [AddQueryKey] = 1, [AddUnderQueryKey] = null });
 
