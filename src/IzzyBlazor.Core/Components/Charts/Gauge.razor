@@ -4,14 +4,15 @@
 @using System.Globalization
 
 @*
-    A value on a dial: a 240° track filled up to the value, with the value in the middle and the
-    label under it. 12rem wide unless Width says otherwise, and never wider than its container.
+    A value on a dial, against its range.
 
     <Gauge Label="Disk used" Value="0.72" ValueFormat="P0" Target="0.8"
            Palette="ChartPalette.Of(Color.Warning, Color.Danger)">
         <GaugeBand From="0.7" To="0.9" Label="High" />
         <GaugeBand From="0.9" To="1" Label="Critical" />
     </Gauge>
+
+    12rem wide unless Width says otherwise, and never wider than its container.
 
     Bands mark ranges along the dial's outer edge, in grays (darkest first) unless Palette or a
     band's Accent colors them; a value in a colored band fills in its color, and shows its label.

@@ -193,7 +193,8 @@ public sealed record RegistryComponent
 
     /// <summary>
     /// What it shows and when it's the right choice (or another fits better), from published
-    /// guidance: a paragraph under the Overview's summary, with <c>`code`</c> as in an example's lead.
+    /// guidance: the Overview's opening paragraph in place of the doc comment's summary, with
+    /// <c>`code`</c> as in an example's lead. Short plain sentences; not what the chart looks like.
     /// </summary>
     public string? Use { get; init; }
 
