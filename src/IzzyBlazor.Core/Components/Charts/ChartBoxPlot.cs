@@ -140,10 +140,14 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 /// <example>
 /// <code>
-/// &lt;Chart Items="regions" Argument="r =&gt; r.Region" Title="API response time (whiskers: 5th to 95th percentile)"&gt;
+/// &lt;Chart Items="regions" Argument="r =&gt; r.Region" Title="Response time (whiskers: p5 to p95)"&gt;
 ///     &lt;ChartValueAxis Format="0 ms" /&gt;
-///     &lt;ChartBoxSummarySeries Low="r =&gt; r.P5" Q1="r =&gt; r.P25" Median="r =&gt; r.P50"
-///                            Q3="r =&gt; r.P75" High="r =&gt; r.P95" Name="Response time" /&gt;
+///     &lt;ChartBoxSummarySeries Low="r =&gt; r.P5"
+///                            Q1="r =&gt; r.P25"
+///                            Median="r =&gt; r.P50"
+///                            Q3="r =&gt; r.P75"
+///                            High="r =&gt; r.P95"
+///                            Name="Response time" /&gt;
 /// &lt;/Chart&gt;
 /// </code>
 /// </example>
