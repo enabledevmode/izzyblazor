@@ -264,7 +264,10 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     internal virtual bool GroupedNow => false;
 
     /// <summary>How the view pages now.</summary>
-    internal DataPaging ActivePaging => GroupedNow ? DataPaging.Pages : Paging;
+    /// <summary>Whether a page is of top-level rows, each with what's under it: groups, or a tree's roots.</summary>
+    internal virtual bool PagesByTop => GroupedNow;
+
+    internal DataPaging ActivePaging => PagesByTop ? DataPaging.Pages : Paging;
 
     /// <summary>A page of groups in place of a page of rows: its rows in drawn order, the number of groups, and the page they're on.</summary>
     internal sealed record GroupedPage(IReadOnlyList<TItem> Items, int Total, int Page, Action Keep);
@@ -439,7 +442,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     // A page of rows keeps its height as filters leave fewer, so what's below stays. Not a list that
     // grows. The script holds the tallest height it has seen until this changes.
-    internal virtual string? HeldFor => Appending || VirtualRows || GroupedNow ? null : EffectivePageSize?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    internal virtual string? HeldFor => Appending || VirtualRows || PagesByTop ? null : EffectivePageSize?.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     // The page that holds the first item on view now, at another size. A cursor is for one size,
     // so paging by cursor starts over.
@@ -709,7 +712,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         try
         {
             // Its groups load from the provider too: the loading state shows while they do.
-            var loadingGroups = GroupedNow && ItemsProvider is not null;
+            var loadingGroups = PagesByTop && ItemsProvider is not null;
             if (loadingGroups)
             {
                 _providerLoading = true;

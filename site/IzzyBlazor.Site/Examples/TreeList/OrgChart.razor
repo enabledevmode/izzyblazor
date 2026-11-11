@@ -1,0 +1,36 @@
+@* A flat list of people, each with a manager's id, as an HR table holds them; the top level open. *@
+<TreeList Items="_people" ItemKey="p => p.Id.ToString()" ItemParentKey="p => p.ManagerId?.ToString()"
+          ItemExpanded="p => p.ManagerId is null" QueryPrefix="org-" Caption="People">
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Sortable Filterable />
+        <PropertyColumn Property="p => p.Title" Sortable />
+        <PropertyColumn Property="p => p.Location" Sortable Filterable />
+        <PropertyColumn Property="p => p.Started" Format="MMM yyyy" Sortable />
+    </Columns>
+</TreeList>
+
+@code {
+    private readonly Person[] _people =
+    [
+        new(1, null, "Maya Okafor", "Chief Executive Officer", "New York", new(2016, 3, 1)),
+        new(2, 1, "Daniel Reyes", "VP of Engineering", "Austin", new(2017, 6, 12)),
+        new(3, 2, "Priya Natarajan", "Engineering Manager, Platform", "Austin", new(2018, 9, 4)),
+        new(4, 3, "Tom Becker", "Senior Software Engineer", "Remote", new(2019, 1, 14)),
+        new(5, 3, "Lena Fischer", "Software Engineer", "Austin", new(2022, 5, 2)),
+        new(6, 3, "Omar Haddad", "Site Reliability Engineer", "Remote", new(2021, 8, 23)),
+        new(7, 2, "Grace Kim", "Engineering Manager, Apps", "New York", new(2019, 4, 8)),
+        new(8, 7, "Lucas Moreau", "Senior Software Engineer", "New York", new(2020, 2, 17)),
+        new(9, 7, "Aisha Bello", "Software Engineer", "Remote", new(2023, 1, 9)),
+        new(10, 1, "Sofia Rossi", "VP of Sales", "Chicago", new(2018, 1, 22)),
+        new(11, 10, "James O'Connor", "Account Executive", "Chicago", new(2020, 10, 5)),
+        new(12, 10, "Mei Lin", "Account Executive", "San Francisco", new(2022, 3, 28)),
+        new(13, 10, "Carlos Mendes", "Sales Engineer", "Remote", new(2021, 6, 14)),
+        new(14, 1, "Hannah Weiss", "Head of People", "New York", new(2019, 11, 11)),
+        new(15, 14, "Kwame Asante", "Recruiter", "New York", new(2023, 7, 31)),
+        new(16, 1, "Ravi Shah", "Chief Financial Officer", "New York", new(2020, 5, 18)),
+        new(17, 16, "Elena Petrova", "Controller", "New York", new(2021, 2, 1)),
+    ];
+    @* hide *@
+    private sealed record Person(int Id, int? ManagerId, string Name, string Title, string Location, DateOnly Started);
+    @* /hide *@
+}

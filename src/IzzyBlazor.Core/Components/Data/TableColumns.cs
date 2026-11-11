@@ -380,6 +380,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The cell content for an item.</summary>
     internal abstract RenderFragment Cell(TItem item);
 
+    /// <summary>A cell's value as text, where the column knows it: a row's name when nothing else names it.</summary>
+    internal virtual string? CellText(TItem item) => null;
+
     internal bool IsEditable => Editable ?? EditableByDefault;
 
     /// <summary>Whether it's editable when <see cref="Editable"/> isn't set.</summary>
@@ -728,13 +731,16 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         FilterValues = FilterValues,
     };
 
-    internal override RenderFragment Cell(TItem item) => builder =>
+    internal override RenderFragment Cell(TItem item) => builder => builder.AddContent(0, CellText(item));
+
+    /// <inheritdoc />
+    internal override string? CellText(TItem item)
     {
         var value = _compiled!(item);
-        builder.AddContent(0, Format is not null && value is IFormattable formattable
+        return Format is not null && value is IFormattable formattable
             ? formattable.ToString(Format, CultureInfo.CurrentCulture)
-            : value?.ToString());
-    };
+            : value?.ToString();
+    }
 
     private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
 
