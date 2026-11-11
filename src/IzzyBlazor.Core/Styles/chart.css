@@ -241,6 +241,12 @@
     vector-effect: non-scaling-stroke;
   }
 
+  /* A bar's target (ChartBarSeries' Target): a tick across it in the text color. */
+  .ib-chart-target {
+    stroke: var(--ib-color-on-surface);
+    stroke-width: 3px;
+  }
+
   .ib-chart-line,
   .ib-chart-key line {
     fill: none;

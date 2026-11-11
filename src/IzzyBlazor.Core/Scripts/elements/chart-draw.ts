@@ -38,6 +38,7 @@ export interface DrawSeries {
   lo?: boolean; // labels show even when they overlap (LabelOverlap.Show)
   en?: string; // the name written past the plot's end (EndLabel)
   lw?: (number | null)[]; // a range's low ends (ChartRangeBarSeries, ChartRangeAreaSeries)
+  tg?: (number | null)[]; // a bar series' targets
 }
 
 export interface DrawData {
@@ -422,7 +423,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   for (const s of visible.filter((s) => !d.s[s].ax)) {
     for (let i = 0; i < n; i++) {
       if (fits && !fits[i]) continue;
-      for (const x of [highs[s][i], lows[s][i]]) {
+      for (const x of [highs[s][i], lows[s][i], d.s[s].tg?.[i] ?? null]) {
         if (x !== null && (!log || x > 0)) {
           min = Math.min(min, x);
           max = Math.max(max, x);
@@ -559,6 +560,12 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
         return x2 !== null && isFinite(x2) && x2 !== 0 && x2 < 0 === (highs[s][i] ?? 0) < (lows[s][i] ?? 0);
       });
       barSvg += rect(outermost && hi > lo && !d.s[s].lw && !hist ? (d.h ? (below ? "l" : "r") : below ? "b" : "t") : "");
+      // The target: a tick across the bar, a little past its sides when it's alone in its band.
+      const tg = d.s[s].tg?.[i];
+      if (tg != null && (!log || tg > 0)) {
+        const t = pct(d.h ? sc(tg) : 1 - sc(tg)), over = bars.length < 2 ? width / 10 : 0, [p, q] = d.h ? "xy" : "yx";
+        barSvg += `<line class="ib-chart-target" ${p}1="${t}" ${p}2="${t}" ${q}1="${pct(Math.max(0, a0 - over))}" ${q}2="${pct(Math.min(1, a0 + width + over))}"/>`;
+      }
       const text = d.s[s].lt?.[i];
       if (d.s[s].lm && text != null) {
         const tw = widthOf(text);

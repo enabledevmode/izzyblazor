@@ -842,6 +842,10 @@
                                 <rect class="@BarClass(bar)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
                                 {<title>@bar.Title</title>}</rect>
                             }
+                            @foreach (var t in s.Targets)
+                            {
+                                <line class="ib-chart-target" x1="@Num(t.X1)%" y1="@Num(t.Y1)%" x2="@Num(t.X2)%" y2="@Num(t.Y2)%" />
+                            }
                         </g>
                     }
                     <svg class="ib-chart-paths ib-chart-lines" viewBox="0 0 1000 1000" preserveAspectRatio="none">
@@ -1019,6 +1023,15 @@
                                     <span>@point.Series</span>
                                     <span class="ib-chart-tooltip-value">@point.Text</span>
                                 </div>
+                                @if (point.TargetText is not null)
+                                {
+                                    @* A bar's target, under its value. *@
+                                    <div class="ib-chart-tooltip-row" data-ib-series="@p">
+                                        <span class="ib-chart-tooltip-key"></span>
+                                        <span>@TextDefaults.ChartTarget</span>
+                                        <span class="ib-chart-tooltip-value">@point.TargetText</span>
+                                    </div>
+                                }
                                 @if (point.SizeText is not null)
                                 {
                                     @* A bubble's size, under its value. *@
@@ -1070,6 +1083,10 @@
                                     {
                                         <th scope="col">@SizeHeader(model, s)</th>
                                     }
+                                    @if (model.TargetTexts[s.Index] is not null)
+                                    {
+                                        <th scope="col">@TargetHeader(model, s)</th>
+                                    }
                                 }
                             </tr>
                         </thead>
@@ -1088,6 +1105,10 @@
                                         @if (model.SizeTexts[s] is { } sizes)
                                         {
                                             <td>@sizes[row]</td>
+                                        }
+                                        @if (model.TargetTexts[s] is { } targets)
+                                        {
+                                            <td>@targets[row]</td>
                                         }
                                     }
                                 </tr>
@@ -1469,7 +1490,13 @@
             Size = s.Data.Sizes?[index],
             SizeName = s.Data.Sizes is null ? null : s.Data.SizeName ?? TextDefaults.ChartSize,
             SizeText = model.SizeTexts[s.Index]?[index],
+            Target = s.Data.Targets?[index],
+            TargetText = model.TargetTexts[s.Index]?[index],
         }).ToList());
+
+    // A bar series' target column: "Target", with the series' name when there are more.
+    private string TargetHeader(ChartModel model, SeriesShape s) =>
+        model.Series.Count(o => o.Data.Targets is not null) > 1 ? $"{s.Data.Name}: {TextDefaults.ChartTarget}" : TextDefaults.ChartTarget;
 
     // A bubble series' size column: what it measures, with the series' name when there are more.
     private string SizeHeader(ChartModel model, SeriesShape s)
@@ -1691,7 +1718,7 @@
             return data with { Values = drill.Total(data.Values, DataAggregate.Max), Lows = drill.Total(lows, DataAggregate.Min), LabelTexts = null };
         }
 
-        return data with { Values = drill.Total(data.Values, data.Aggregate), LabelTexts = null };
+        return data with { Values = drill.Total(data.Values, data.Aggregate), Targets = data.Targets is { } targets ? drill.Total(targets, data.Aggregate) : null, LabelTexts = null };
     }
 
     // Interactive: the address changed (a drill link or Back): draw the level it names.
@@ -1974,6 +2001,19 @@
                 {
                     w.WriteStartArray("lw");
                     foreach (var v in lows)
+                    {
+                        if (v is { } x && double.IsFinite(x)) w.WriteNumberValue(x);
+                        else w.WriteNullValue();
+                    }
+
+                    w.WriteEndArray();
+                }
+
+                // A bar series' targets.
+                if (d.Targets is { } targets)
+                {
+                    w.WriteStartArray("tg");
+                    foreach (var v in targets)
                     {
                         if (v is { } x && double.IsFinite(x)) w.WriteNumberValue(x);
                         else w.WriteNullValue();
