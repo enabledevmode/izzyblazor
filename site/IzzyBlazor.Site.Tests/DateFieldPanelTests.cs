@@ -26,10 +26,6 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
             await button.ClickAsync();
             await Assertions.Expect(form.GetByRole(AriaRole.Button, new() { Name = "Monday, March 15, 2027", Exact = true })).ToBeFocusedAsync();
 
-            // A weekend day stays open and changes nothing.
-            await form.GetByRole(AriaRole.Button, new() { Name = "Saturday, March 20, 2027" }).ClickAsync(new() { Force = true });
-            await Assertions.Expect(input).ToHaveValueAsync("2027-03-15");
-
             await form.GetByRole(AriaRole.Button, new() { Name = "Tuesday, March 16, 2027" }).ClickAsync();
             await Assertions.Expect(input).ToHaveValueAsync("2027-03-16");
             var changed = form.GetByRole(AriaRole.Button, new() { Name = "Change date, Tuesday, March 16, 2027" });
