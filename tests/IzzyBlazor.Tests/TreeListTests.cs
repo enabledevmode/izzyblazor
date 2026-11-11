@@ -248,12 +248,12 @@ public class TreeListTests : BunitContext
         var cut = Tree("/people?open=*", p => p
             .Add(x => x.MoveByDrag, true)
             .Add(x => x.OnReparent, (TreeListMove<Person> m) => moves.Add($"{m.Item.Name} > {m.Parent?.Name ?? "top"} @{m.Index}")));
-        var sofia = cut.Find(".ib-treelist-grip[data-ib-key='2']");
+        var sofia = cut.Find("tr[data-ib-key='2'] > .ib-grid-grip-cell");
 
         // Into Mei, her own report: refused. Before Lena: under Daniel, first. After Ravi: the top, last.
         await cut.InvokeAsync(() => sofia.TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "3", ToIndex = 2 }));
-        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "6", ToIndex = 0 }));
-        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "7", ToIndex = 1 }));
+        await cut.InvokeAsync(() => cut.Find("tr[data-ib-key='2'] > .ib-grid-grip-cell").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "6", ToIndex = 0 }));
+        await cut.InvokeAsync(() => cut.Find("tr[data-ib-key='2'] > .ib-grid-grip-cell").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "7", ToIndex = 1 }));
         Assert.Equal(["Sofia > Daniel @0", "Sofia > top @2"], moves);
     }
 

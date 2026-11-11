@@ -37,7 +37,17 @@ public abstract partial class GridViewBase<TItem>
     private bool PostsOrder => HasGrip && !MovesLive;
 
     /// <inheritdoc />
-    internal override int GripSpan => HasGrip ? 1 : 0;
+    internal override int GripSpan => GripColumn ? 1 : 0;
+
+    // The column of handles at the rows' start: a DataGrid's for reordering, a TreeList's for dragging
+    // rows to a new parent (TreeGrip draws its cells). The sortable list is reordering's alone.
+    internal bool GripColumn => HasGrip || TreeGrips;
+
+    /// <summary>Whether a TreeList's rows have handles to drag them to a new parent.</summary>
+    internal virtual bool TreeGrips => false;
+
+    /// <summary>A TreeList row's handle cell; null elsewhere.</summary>
+    internal virtual RenderFragment? TreeGrip(TItem item) => null;
 
     // The rows are in the grid's own order, so a move has a place in it.
     private bool InOwnOrder =>

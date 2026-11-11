@@ -1669,22 +1669,8 @@
     min-width: 0;
   }
 
-  /* MoveByDrag: a handle before the row's indent, and where a drop lands. */
-  td:has(> .ib-treelist-grip) {
-    padding-inline-start: 1.5rem;
-  }
-
-  td:has(> .ib-treelist-grip):not(.ib-frozen) {
-    position: relative;
-  }
-
+  /* MoveByDrag: the row's handle, in the grip column, and where a drop lands. */
   .ib-treelist-grip {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0.25rem;
-    display: flex;
-    align-items: center;
-    color: var(--ib-color-muted);
     cursor: grab;
     touch-action: none;
   }

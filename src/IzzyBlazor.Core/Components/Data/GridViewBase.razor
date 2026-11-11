@@ -1564,7 +1564,7 @@
     internal virtual string DetailIndent(TItem item) => "";
 
     // The widths of the columns before the lead ones, each followed by " + ": the handles and the selection.
-    private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (SelectColumn ? "var(--ib-datagrid-select) + " : "");
+    private string StartWidths => (GripColumn ? "var(--ib-datagrid-grip) + " : "") + (SelectColumn ? "var(--ib-datagrid-select) + " : "");
 
     // Moving rows (DataGridReorder.cs): the drag, the menus' moves in place and their shortcuts on
     // static pages, and the live region that announces every move. Beside the table, as a custom
@@ -1593,7 +1593,7 @@
         </ib-sortable>
     };
 
-    private string GripCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-grip-cell ib-frozen ib-frozen-start" : "ib-grid-grip-cell";
+    internal string GripCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-grip-cell ib-frozen ib-frozen-start" : "ib-grid-grip-cell";
 
     /// <inheritdoc />
     internal override string? RowsClass => HasGrip ? "ib-sortable-list" : null;
@@ -1610,19 +1610,21 @@
         : new Dictionary<string, object> { ["data-ib-label"] = LabelOf(item) };
 
     /// <inheritdoc />
-    internal override RenderFragment? GripHeader => !HasGrip ? null : __builder =>
+    internal override RenderFragment? GripHeader => !GripColumn ? null : __builder =>
     {
         <th scope="col" class="@GripCellClass"><span class="ib-visually-hidden">@TextDefaults.MoveColumn</span></th>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? GripEmptyCell => !HasGrip ? null : __builder =>
+    internal override RenderFragment? GripEmptyCell => !GripColumn ? null : __builder =>
     {
         <td class="@GripCellClass"></td>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? GripCell(TItem item, int row) => !HasGrip ? null : __builder =>
+    internal override RenderFragment? GripCell(TItem item, int row) => !GripColumn ? null : TreeGrip(item) ?? ReorderGrip(item, row);
+
+    private RenderFragment ReorderGrip(TItem item, int row) => __builder =>
     {
         var key = KeyOf(item);
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, LabelOf(item));
@@ -2766,10 +2768,10 @@
     internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
     {
         @* An empty group would be a column of its own. *@
-        @if (!HasBands || HasGrip || SelectColumn || LeadSpan > 0)
+        @if (!HasBands || GripColumn || SelectColumn || LeadSpan > 0)
         {
         <colgroup>
-            @if (HasGrip)
+            @if (GripColumn)
             {
                 <col class="ib-datagrid-grip-col" />
             }
@@ -2918,7 +2920,7 @@
                 }
             }
 
-            if (HasGrip)
+            if (GripColumn)
             {
                 parts.Add("var(--ib-datagrid-grip)");
             }
@@ -2996,7 +2998,7 @@
         var parts = new List<string>();
         if (frozen == ColumnFrozen.Start)
         {
-            if (HasGrip)
+            if (GripColumn)
             {
                 parts.Add("var(--ib-datagrid-grip)");
             }
@@ -3069,7 +3071,7 @@
     {
         classes.Add("ib-datagrid");
         classes.Add("ib-datagrid-virtual", VirtualRows);
-        classes.Add("ib-datagrid-grip", HasGrip);
+        classes.Add("ib-datagrid-grip", GripColumn);
         // Hiding goes by the width it's given, so it takes all of it rather than its columns' width.
         classes.Add("ib-datagrid-fill", SmallScreen == DataGridSmallScreen.HideColumns);
         base.BuildAttributes(classes, styles);
