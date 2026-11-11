@@ -1669,6 +1669,31 @@
     padding-inline: 0;
   }
 
+  /* Its target is TreeView's (2.25rem) around the 1.5rem box that sets the indent: the hover and
+     the focus ring are drawn on it, behind the chevron. */
+  .ib-treelist-toggle {
+    position: relative;
+    isolation: isolate;
+    outline: none;
+  }
+
+  .ib-treelist-toggle::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: calc((var(--ib-treelist-toggle) - var(--ib-control-h-md)) / 2);
+    border-radius: var(--ib-radius-md);
+  }
+
+  .ib-treelist-toggle:hover::before {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-treelist-toggle:focus-visible::before {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
   .ib-treelist-icon {
     flex: none;
   }
