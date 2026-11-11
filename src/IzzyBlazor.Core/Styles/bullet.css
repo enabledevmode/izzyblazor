@@ -13,6 +13,8 @@
 @layer izzy.components {
   .ib-bullet {
     --ib-bullet-size: 1.5rem;
+    /* The bar's default: the text color, at 80% in dark mode, where full strength glares. */
+    --ib-bullet-ink: light-dark(var(--ib-color-on-surface), color-mix(in oklab, var(--ib-color-on-surface) 80%, var(--ib-color-surface)));
     position: relative;
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
@@ -78,7 +80,7 @@
     inset-block: calc(var(--ib-bullet-size) / 3);
     inset-inline-start: 0;
     inline-size: var(--l);
-    background: var(--ib-bullet-color, var(--ib-color-on-surface));
+    background: var(--ib-bullet-color, var(--ib-bullet-ink));
   }
 
   .ib-bullet-dot {
@@ -88,7 +90,7 @@
     aspect-ratio: 1;
     border-radius: 50%;
     translate: -50% -50%;
-    background: var(--ib-bullet-color, var(--ib-color-on-surface));
+    background: var(--ib-bullet-color, var(--ib-bullet-ink));
   }
 
   .ib-bullet-dot:dir(rtl) { translate: 50% -50%; }

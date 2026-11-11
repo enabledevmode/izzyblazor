@@ -159,6 +159,17 @@ public sealed class ChartPalette
         return Mix("var(--ib-color-on-surface)", percent, "var(--ib-color-surface)");
     }
 
+    /// <summary>
+    /// A bullet's gray for range <paramref name="i"/> of <paramref name="n"/>: Few's in light mode,
+    /// at 60% strength in dark, where the text color mixed in is light: kept near the surface, the
+    /// ranges stay behind the bar (BulletChart's dimmed ink) instead of glaring.
+    /// </summary>
+    internal static string BulletGray(int i, int n)
+    {
+        var percent = n <= FewGrays.Length ? FewGrays[Math.Max(n, 1) - 1][i] : 50 - 40.0 * i / (n - 1);
+        return $"light-dark({Mix("var(--ib-color-on-surface)", percent, "var(--ib-color-surface)")}, {Mix("var(--ib-color-on-surface)", percent * 0.6, "var(--ib-color-surface)")})";
+    }
+
     private static string Mix(string color, double percent, string with) =>
         $"color-mix(in oklab, {color} {percent.ToString("0.#", CultureInfo.InvariantCulture)}%, {with})";
 

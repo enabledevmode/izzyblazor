@@ -137,7 +137,10 @@
     /// </summary>
     [Parameter] public ChartPalette? Palette { get; set; }
 
-    /// <summary>The bar's color, such as <c>Accent.Of("#0d9488")</c>. Defaults to the text color.</summary>
+    /// <summary>
+    /// The bar's color, such as <c>Accent.Of("#0d9488")</c>. Defaults to the text color, dimmed a
+    /// little in dark mode so it doesn't glare.
+    /// </summary>
     [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>A .NET format string for the values, targets and ticks, such as <c>C0</c>, <c>N0</c> or <c>P0</c>.</summary>
@@ -252,7 +255,7 @@
         // Colors, Few's way, as tints: a range is a background for the bar, never as strong as it.
         static string Tint(string color) => $"color-mix(in oklab, {color} 45%, var(--ib-color-surface))";
         string Color(Accent? accent, int i, int n) =>
-            accent is { } a ? Tint(StyleValues.Color(a.ToColor())) : Palette is { } p ? Tint(p.Color(i, n)) : ChartPalette.Gray(i, n, thin: false);
+            accent is { } a ? Tint(StyleValues.Color(a.ToColor())) : Palette is { } p ? Tint(p.Color(i, n)) : ChartPalette.BulletGray(i, n);
 
         var raw = items.Select(item => (
             Label: ChartLayout.ArgumentText(_label!(item), null, culture),
