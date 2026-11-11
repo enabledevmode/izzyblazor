@@ -1,0 +1,64 @@
+@* file: PlanItem.cs *@
+@using IzzyBlazor.Site.Examples.DataGrid
+@* A plan edited where it stands: a phase's row adds a task under it, the toolbar's Add a phase, and
+   deleting a phase takes its tasks with it. Hours roll up to the phases. *@
+<TreeList TItem="PlanItem" Items="_plan" ItemKey="p => p.Id.ToString()" ItemParentKey="p => p.ParentId?.ToString()"
+          ExpandAll Caption="Plan" QueryPrefix="plan-edit-" EditMode="DataGridEditMode.Row"
+          OnSave="Save" NewItem="NewPhase" NewChild="NewTask" OnDelete="Delete" Grow>
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Title="Task" />
+        <PropertyColumn Property="p => p.Owner" Width="10.Rem" />
+        <PropertyColumn Property="p => p.Hours" RollUp="DataAggregate.Sum" Width="7.Rem" />
+        <ActionColumn>
+            <AddChildAction />
+            <EditAction />
+            <DeleteAction />
+        </ActionColumn>
+    </Columns>
+</TreeList>
+
+@code {
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    private List<PlanItem> _plan = [];
+
+    // Stands in for your database, with a copy of the rows for each visitor to this site.
+    protected override void OnInitialized() => _plan = ExampleRows.For(Http, "tree-edit", () => Estimate.All
+        .Where(w => w.Id <= 8)
+        .Select(w => new PlanItem { Id = w.Id, ParentId = w.ParentId, Name = w.Task, Owner = w.Owner, Hours = w.Hours })
+        .ToList());
+
+    private void Save(DataGridSave<PlanItem> save)
+    {
+        if (save.IsNew)
+        {
+            _plan.Add(save.Item);
+            return;
+        }
+
+        save.CopyTo(_plan.First(p => p.Id == save.Item.Id));
+    }
+
+    private PlanItem NewPhase() => new() { Id = NextId() };
+
+    private PlanItem NewTask(PlanItem phase) => new() { Id = NextId(), ParentId = phase.Id, Owner = phase.Owner };
+
+    private int NextId() => _plan.Count == 0 ? 1 : _plan.Max(p => p.Id) + 1;
+
+    // A row and everything under it.
+    private void Delete(DataGridDelete<PlanItem> delete)
+    {
+        var gone = new HashSet<int> { delete.Item.Id };
+        var more = true;
+        while (more)
+        {
+            more = false;
+            foreach (var item in _plan.Where(p => p.ParentId is { } parent && gone.Contains(parent)))
+            {
+                more |= gone.Add(item.Id);
+            }
+        }
+
+        _plan.RemoveAll(p => gone.Contains(p.Id));
+    }
+}

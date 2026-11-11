@@ -395,6 +395,9 @@ public class IzzyText
     /// <summary>A DataGrid's Add button, and its editor's title for a new row.</summary>
     public virtual string Add { get; set; } = "Add";
 
+    /// <summary>A TreeList row's Add child action. {0} is the row's name.</summary>
+    public virtual string AddUnder { get; set; } = "Add under {0}";
+
     /// <summary>A DataGrid's delete button in its confirmation.</summary>
     public virtual string Delete { get; set; } = "Delete";
 

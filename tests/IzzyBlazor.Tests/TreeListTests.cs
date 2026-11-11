@@ -34,7 +34,7 @@ public class TreeListTests : BunitContext
         builder.CloseComponent();
     };
 
-    private IRenderedComponent<TreeList<Person>> Tree(string address, Action<ComponentParameterCollectionBuilder<TreeList<Person>>>? more = null)
+    private IRenderedComponent<TreeList<Person>> Tree(string address, Action<ComponentParameterCollectionBuilder<TreeList<Person>>>? more = null, RenderFragment? columns = null)
     {
         Nav.NavigateTo(address);
         return Render<TreeList<Person>>(p =>
@@ -42,7 +42,7 @@ public class TreeListTests : BunitContext
             p.Add(x => x.Items, People);
             p.Add(x => x.ItemKey, x => x.Id.ToString());
             p.Add(x => x.ItemParentKey, x => x.ManagerId?.ToString());
-            p.Add(x => x.Columns, Columns);
+            p.Add(x => x.Columns, columns ?? Columns);
             more?.Invoke(p);
         });
     }
@@ -193,6 +193,35 @@ public class TreeListTests : BunitContext
         var lines = System.Text.Encoding.UTF8.GetString(stream.ToArray()).TrimStart('﻿').Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
         // Quoted, so a reader keeps the spaces.
         Assert.Equal(["Name", "Maya", "\"  Daniel\"", "\"    Lena\""], lines);
+    }
+
+    [Fact]
+    public void Adding_under_a_row_opens_it_and_puts_the_new_row_first_under_it()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = Tree("/people", p => p
+            .Add(x => x.EditMode, DataGridEditMode.Row)
+            .Add(x => x.OnSave, (DataGridSave<Person> _) => { })
+            .Add(x => x.NewChild, parent => new Person(0, parent.Id, "")), builder =>
+            {
+                builder.AddContent(0, Columns);
+                builder.OpenComponent<ActionColumn<Person>>(1);
+                builder.AddComponentParameter(2, nameof(ActionColumn<Person>.ChildContent), (RenderFragment<Person>)(_ => b =>
+                {
+                    b.OpenComponent<AddChildAction>(0);
+                    b.CloseComponent();
+                }));
+                builder.CloseComponent();
+            });
+
+        Nav.NavigateTo(cut.Find("a[aria-label='Add under Maya']").GetAttribute("href")!);
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tr[data-ib-editing]")));
+        var rows = cut.FindAll("tbody > tr");
+        Assert.Equal("Maya", rows[0].QuerySelector(".ib-treelist-value")!.TextContent.Trim());
+        Assert.Equal("2", rows[1].GetAttribute("aria-level"));
+        Assert.NotNull(rows[1].GetAttribute("data-ib-editing"));
+        Assert.Equal("Sofia", rows[2].QuerySelector(".ib-treelist-value")!.TextContent.Trim());
     }
 
     [Fact]

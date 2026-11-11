@@ -2846,7 +2846,7 @@
       ]
     },
     {
-      "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
+      "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "parts": ["AddChildAction"], "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
       "features": [
         { "feature": "Nested rows from a flat list with a parent key, or from children", "member": "ItemParentKey" },
         { "feature": "Open rows in the URL, so a static page opens them by a link" },
@@ -2859,6 +2859,7 @@
         { "feature": "Checking a row checks the rows under it, open or not", "member": "Cascade" },
         { "feature": "A row's total of its branch, and the footer's of every match", "member": "Column.RollUp" },
         { "feature": "Excel and CSV export that keeps the tree's levels", "member": "ExportExcelHref" },
+        { "feature": "Editing as in a DataGrid, and adding a row under another", "member": "NewChild" },
         { "feature": "Treegrid keys: Right opens a row, Left closes it or goes to its parent", "noscript": "none" }
       ],
       "examples": [
@@ -2883,6 +2884,12 @@
           "id": "selection", "title": "Selection", "summary": "Checkboxes select rows, and checking a row checks the rows under it.", "members": ["SelectionMode", "Selection", "SelectionName", "Cascade", "SelectOnClick", "SelectionActions", "ItemSelectable"],
           "examples": [
             { "id": "tree-list-backup", "title": "Checking a branch", "lead": "Checking a row checks the rows under it, and a row with some of them checked shows a mixed box. Set `SelectionMode=\"SelectionMode.Multiple\"`; to make each box its own, set `Cascade` to false.", "after": ["A checked row stands for its whole branch, opened or not: rows under it come in checked when they open, and unchecking one unchecks the rows above it. A row whose rows are all checked is checked too.", "To find every row the selection means, call `selection.ApplyTree` with the key and the parent key. It adds the rows under each checked row, a level at a time.", "While filtering, the muted rows above a match have no box, so the selection holds only matches."] }
+          ]
+        },
+        {
+          "id": "editing", "title": "Editing", "summary": "Rows are edited as in a DataGrid, and an action adds a row under another.", "members": ["EditMode", "OnSave", "NewItem", "NewChild", "OnDelete", "ItemEditable", "ItemDeletable"],
+          "examples": [
+            { "id": "tree-list-edit-plan", "title": "Editing and adding rows under others", "lead": "A tree list edits as a DataGrid does: set `EditMode` and handle `OnSave`. To add a row under another, set `NewChild` and put an `AddChildAction` in the `ActionColumn`.", "after": ["`NewChild` gets the row the new one goes under, so it can set the parent's id. The new row opens under it, which opens if it was closed, and `OnSave` gets it with `IsNew` set.", "`NewItem` adds a top row, from the toolbar's Add. Deleting a row is yours to handle, so decide there what happens to the rows under it: this example deletes them too."] }
           ]
         },
         {

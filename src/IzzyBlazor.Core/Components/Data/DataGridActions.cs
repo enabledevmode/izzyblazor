@@ -74,9 +74,9 @@ public sealed class ActionColumn<TItem> : ComponentBase
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        if (Table is not DataGrid<TItem> grid)
+        if (Table is not GridViewBase<TItem> grid)
         {
-            throw new InvalidOperationException("An ActionColumn must be inside a DataGrid.");
+            throw new InvalidOperationException("An ActionColumn must be inside a DataGrid or a TreeList.");
         }
 
         grid.ActionColumn = this;
@@ -87,7 +87,7 @@ public sealed class ActionColumn<TItem> : ComponentBase
 }
 
 /// <summary>What a row's actions draw: as buttons, or in its menu.</summary>
-internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, bool Folds, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete);
+internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, bool Folds, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete, Func<bool, RenderFragment?> AddUnder);
 
 /// <summary>An action in a <c>DataGrid</c>'s <see cref="ActionColumn{TItem}"/>: drawn once as a button or a menu item, by where it shows.</summary>
 public abstract class RowActionBase : ComponentBase
@@ -215,6 +215,16 @@ public sealed class DeleteAction : RowActionBase
 
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
         builder.AddContent(0, scope.Delete(scope.InMenu, DisabledReason));
+}
+
+/// <summary>
+/// A TreeList row's Add child action: adds a row under it, from the tree list's <c>NewChild</c>, in
+/// the edit dialog or in place under it, and opens it so the new row shows.
+/// </summary>
+public sealed class AddChildAction : RowActionBase
+{
+    private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
+        builder.AddContent(0, scope.AddUnder(scope.InMenu));
 }
 
 /// <summary>A row's field in the editor, for a column's <c>EditTemplate</c>.</summary>

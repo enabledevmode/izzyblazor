@@ -318,7 +318,11 @@ class GridEdit extends IzzyElement {
     for (const row of [...from.querySelectorAll<HTMLElement>(":scope > tr[data-ib-editing]")]) {
       const old = rowIn(into, row.dataset.ibKey);
       const rows = withDetail(row);
+      // A new row goes where the page has it: a TreeList's under its parent, a grid's on top.
+      const before = (row.previousElementSibling as HTMLElement | null)?.dataset.ibKey;
+      const after = withDetail(rowIn(into, before)).at(-1);
       if (old) swap(old, rows);
+      else if (after) after.after(...rows);
       else into.prepend(...rows);
     }
     // The rest of the rows' actions and the toolbar's Add are drawn for the old address.

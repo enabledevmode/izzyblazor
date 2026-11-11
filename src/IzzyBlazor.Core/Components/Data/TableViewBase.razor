@@ -295,22 +295,9 @@
                         }
                     </thead>
                     <tbody class="@RowsClass" role="@StackRole("rowgroup")">
-                        @if (_loadError is null && NewRowItem is { } added)
+                        @if (_loadError is null && NewRowOnTop && NewRowItem is { } added)
                         {
-                            <tr data-ib-editing="">
-                                @GripEmptyCell
-                                @if (SelectColumn)
-                                {
-                                    <td class="@SelectCellClass"></td>
-                                }
-                                @LeadCell
-                                @foreach (var column in Shown)
-                                {
-                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(EditCell(column) ?? column.Cell(added))</td>
-                                }
-                                @LastCell(added)
-                            </tr>
-                            @AfterNewRow(added)
+                            @AddedRow(added, null)
                         }
                         @if (_loadError is not null)
                         {
@@ -2444,6 +2431,34 @@
 
     /// <summary>The new row being edited, which isn't among those loaded.</summary>
     internal virtual TItem? NewRowItem => default;
+
+    /// <summary>Whether the new row being added goes above the rows: a TreeList's child goes under its parent.</summary>
+    internal virtual bool NewRowOnTop => true;
+
+    /// <summary>The first cell's content in the new row: a TreeList's indents it under its parent.</summary>
+    internal virtual RenderFragment NewRowFirstCell(RenderFragment content, int? depth) => content;
+
+    // The row being added, with its fields; depth places a TreeList's under its parent.
+    internal RenderFragment AddedRow(TItem added, int? depth) => __builder =>
+    {
+        <tr data-ib-editing="" aria-level="@(depth + 1)">
+            @GripEmptyCell
+            @if (SelectColumn)
+            {
+                <td class="@SelectCellClass"></td>
+            }
+            @LeadCell
+            @{ var first = true; }
+            @foreach (var column in Shown)
+            {
+                var content = EditCell(column) ?? column.Cell(added);
+                <td class="@CellClass(column)" style="@CellStyle(column)">@(first ? NewRowFirstCell(content, depth) : content)</td>
+                first = false;
+            }
+            @LastCell(added)
+        </tr>
+        @AfterNewRow(added)
+    };
 
     /// <summary>The field for a column of the row being edited, or null for one that only shows its value.</summary>
     internal virtual RenderFragment? EditCell(ColumnBase<TItem> column) => null;

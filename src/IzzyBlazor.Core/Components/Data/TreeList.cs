@@ -81,6 +81,43 @@ public partial class TreeList<TItem>
     [Parameter] public bool Cascade { get; set; } = true;
 
     /// <summary>
+    /// A new row's starting values under the row given, such as its parent's id set. Setting it lets an
+    /// <c>AddChildAction</c> add rows under others; <c>OnSave</c> gets the row with <c>IsNew</c> set.
+    /// <c>NewItem</c> still adds top rows, from the toolbar.
+    /// </summary>
+    [Parameter] public Func<TItem, TItem>? NewChild { get; set; }
+
+    /// <inheritdoc />
+    internal override Func<TItem, TItem>? ChildFactory => NewChild;
+
+    /// <inheritdoc />
+    internal override bool NewRowOnTop => AddingUnder is null;
+
+    /// <inheritdoc />
+    // Adding under a closed row opens it, so the new row, and later the saved one, shows.
+    internal override string AddUnderHref(string key)
+    {
+        var href = base.AddUnderHref(key);
+        return !_treeRows.TryGetValue(key, out var row) || row.Open
+            ? href
+            : Navigation.GetUriWithQueryParameters(href, new Dictionary<string, object?> { [TreeOpenKey] = TreeToggled(key, false, row.OpenByDefault).ToArray() });
+    }
+
+    /// <inheritdoc />
+    internal override bool AddsInPlace(string key) => !_treeRows.TryGetValue(key, out var row) || row.Open || !row.HasChildren;
+
+    /// <inheritdoc />
+    internal override async Task StartAddUnderAsync(string key)
+    {
+        if (_treeRows.TryGetValue(key, out var row) && !row.Open)
+        {
+            await SetTreeOpenAsync(TreeToggled(key, false, row.OpenByDefault));
+        }
+
+        await base.StartAddUnderAsync(key);
+    }
+
+    /// <summary>
     /// With an <c>ItemsProvider</c>, works out the footer's aggregates (a column's <c>Aggregate</c>)
     /// over every row the filters match, as the rows it holds are only a page's: answer it with
     /// <c>request.ToResultAsync</c> over the same query.
