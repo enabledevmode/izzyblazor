@@ -13,7 +13,7 @@
     {
         <tr class="ib-table-skeleton-row" aria-hidden="true" style="@VirtualRowStyle">
             @GripEmptyCell
-            @if (Selectable)
+            @if (SelectColumn)
             {
                 <td class="@SelectCellClass"></td>
             }
@@ -41,17 +41,9 @@
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
         <tr @key="(object?)absolute" class="@RowClasses(item, href)" role="@StackRole("row")" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@((absolute ?? row) % 2 == 1 ? "" : null)" style="@VirtualRowStyle" aria-level="@(indent + 1)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @attributes="RowAttributes(item)" @ref="_rowRefs[absolute is null ? row : -1]">
             @GripCell(item, row)
-            @if (Selectable)
+            @if (SelectColumn)
             {
-                <td class="@SelectCellClass" role="@StackRole("cell")">
-                    @* Keyed by its item: rows are keyed by place, and a tick C# hasn't heard of yet would stay on the
-                       next item to take this place. *@
-                    <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
-                           aria-label="@SelectLabel(item)"
-                           checked="@IsSelected(item, key)"
-                           disabled="@(!CanSelect(item))"
-                           @onchange="e => OnSelectChanged(key, e)" />
-                </td>
+                <td class="@SelectCellClass" role="@StackRole("cell")">@SelectBox(item, key, null)</td>
             }
             @RowLead(item, row)
             @{ var first = true; }
@@ -64,6 +56,10 @@
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
                         <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                     }
+                    @if (first && Selectable && SelectsInRow)
+                    {
+                        @SelectBox(item, key, "ib-table-select-inline")
+                    }
                     @{ var content = cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item)); }
                     @(first ? FirstCell(item, content) : content)
                 </td>
@@ -71,6 +67,17 @@
             }
             @LastCell(item)
         </tr>
+    };
+
+    // A row's box. Keyed by its item: rows are keyed by place, and a tick C# hasn't heard of yet would
+    // stay on the next item to take this place.
+    private RenderFragment SelectBox(TItem item, string key, string? extra) => __builder =>
+    {
+        <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="@(extra is null ? "ib-check-input ib-table-select" : $"ib-check-input ib-table-select {extra}")" name="@SelectionKeysName" value="@key"
+               aria-label="@SelectLabel(item)"
+               checked="@IsSelected(item, key)"
+               disabled="@(!CanSelect(item))"
+               @onchange="e => OnSelectChanged(key, e)" />
     };
 
     private readonly record struct VirtualRow(int Index, TItem Item);
@@ -210,7 +217,7 @@
                         {
                             <tr class="ib-table-band-row" role="@StackRole("row")" aria-rowindex="@(VirtualRows ? level + 1 : null)">
                                 @GripEmptyCell
-                                @if (Selectable)
+                                @if (SelectColumn)
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
@@ -232,7 +239,7 @@
                         }
                         <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? bandDepth + 1 : null)">
                             @GripHeader
-                            @if (Selectable)
+                            @if (SelectColumn)
                             {
                                 @* Select all: script only. For the page, it checks the rows, which report their own changes. *@
                                 <th scope="col" class="@SelectCellClass" role="@StackRole("columnheader")">
@@ -269,7 +276,7 @@
                         {
                             <tr class="ib-table-filter-row" aria-rowindex="@(VirtualRows ? bandDepth + 2 : null)">
                                 @GripEmptyCell
-                                @if (Selectable)
+                                @if (SelectColumn)
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
@@ -292,7 +299,7 @@
                         {
                             <tr data-ib-editing="">
                                 @GripEmptyCell
-                                @if (Selectable)
+                                @if (SelectColumn)
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
@@ -393,7 +400,7 @@
                         <tfoot role="@StackRole("rowgroup")">
                             <tr role="@StackRole("row")" aria-rowindex="@(VirtualRows ? (_total ?? 0) + HeaderRows + 1 : null)">
                                 @GripEmptyCell
-                                @if (Selectable)
+                                @if (SelectColumn)
                                 {
                                     <td class="@SelectCellClass" role="@StackRole("cell")"></td>
                                 }

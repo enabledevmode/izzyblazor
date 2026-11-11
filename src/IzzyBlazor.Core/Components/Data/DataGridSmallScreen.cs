@@ -71,7 +71,7 @@ public abstract partial class GridViewBase<TItem>
             // Asked for at every cell, so cheap: the rows' actions (the action column's width) are
             // read only when the rows or the edit change.
             var signature = string.Join('|', Shown.Select(c => $"{KeyOf(c)}:{c.Priority}:{WidthOf(c)}:{c.MinWidth}:{FrozenOf(c)}"))
-                + $"|{Selectable}|{HasGrip}|{Grouping.Levels.Count}|{HasDetails}|{HasActionCell}|{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(_items)}:{_items.Count}|{RowEditKey}";
+                + $"|{SelectColumn}|{HasGrip}|{Grouping.Levels.Count}|{HasDetails}|{HasActionCell}|{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(_items)}:{_items.Count}|{RowEditKey}";
             if (_hidePlan is null || _hidePlanFor != signature)
             {
                 (_hidePlanFor, _hidePlan) = (signature, MakePlan());
@@ -122,7 +122,7 @@ public abstract partial class GridViewBase<TItem>
             var leads = Grouping.Levels.Count + (HasDetails || (ExpanderComesAndGoes && hidden > 0) ? 1 : 0);
             widths[hidden] = set
                 + (unset.Count > 0 ? unset.Count * unset.Max() : 0)
-                + (Selectable ? SelectRem : 0)
+                + (SelectColumn ? SelectRem : 0)
                 + (HasGrip ? GripRem : 0)
                 + leads * LeadRem
                 + (HasActionCell ? ActionWidth(hidden > 0) : 0);

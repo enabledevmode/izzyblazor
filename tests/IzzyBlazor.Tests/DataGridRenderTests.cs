@@ -51,6 +51,25 @@ public class DataGridRenderTests : BunitContext
         cut.FindAll("tbody tr").Select(r => $"{r.Children[0].TextContent}{r.Children[1].TextContent}").ToArray();
 
     [Fact]
+    public void Selecting_one_row_by_a_click_puts_its_radio_in_the_first_cell_and_needs_no_link()
+    {
+        var cut = Grid(NameAndQty, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.SelectionMode, SelectionMode.Single)
+            .Add(x => x.SelectOnClick, true));
+
+        Assert.Empty(cut.FindAll(".ib-table-select-cell, .ib-datagrid-select-col"));
+        var first = cut.Find("tbody tr").Children[0];
+        Assert.Equal("radio", first.QuerySelector("input.ib-table-select-inline")!.GetAttribute("type"));
+        Assert.Equal("single", cut.Find("ib-table").GetAttribute("data-ib-select-click"));
+
+        Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p
+            .Add(x => x.SelectionMode, SelectionMode.Single)
+            .Add(x => x.SelectOnClick, true)
+            .Add(x => x.RowHref, r => "/rows/" + r.Name)));
+    }
+
+    [Fact]
     public void Frozen_columns_are_placed_by_the_widths_before_them()
     {
         var cut = Grid(builder =>

@@ -94,7 +94,7 @@
             @foreach (var more in mores)
             {
                 <tr class="ib-grid-group-more ib-treelist-more" aria-level="@(more.Depth + 1)">
-                    @if (Selectable)
+                    @if (SelectColumn)
                     {
                         <td class="@SelectCellClass"></td>
                     }

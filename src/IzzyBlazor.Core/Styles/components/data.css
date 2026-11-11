@@ -1835,6 +1835,17 @@
     padding-inline-end: 0;
   }
 
+  /* SelectOnClick with one row: the radio leads the first cell, and goes once a click selects. */
+  .ib-table-select-inline {
+    margin-inline-end: var(--ib-space-2);
+  }
+
+  [data-ib-clicks] .ib-table-select-inline {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset. */
   .ib-table-select,
   .ib-table-select-all,
