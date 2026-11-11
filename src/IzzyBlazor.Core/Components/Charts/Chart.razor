@@ -707,7 +707,7 @@
         var keyed = legend || (Legend != ChartLegend.None && model.SizeKey is not null);
         @* In the top corner, across from the title, when the chart is wide enough (chart.css). *@
         var cornerKey = keyed && model.SizeKey is not null && TitledBy is null && !HideTitle && Place is ChartLegend.Top or ChartLegend.Bottom;
-        <ib-chart class="@(keyed ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") + (cornerKey ? " ib-chart-kc" : "") : null)" style="@RootStyle(model, waterfall)"
+        <ib-chart class="@(keyed ? LegendClass + (Stacking != ChartStacking.None && !horizontal ? " ib-chart-stack-up" : "") + (cornerKey ? " ib-chart-kc" : "") : null)" style="@RootStyle(model, waterfall ?? series.FirstOrDefault(s => s.IsOhlc))"
                   data-ib-count="@model.ArgumentTexts.Length"
                   data-ib-scale="@(model.Kind == ArgumentKind.Category ? null : "")"
                   data-ib-horizontal="@(horizontal ? "" : null)"
@@ -848,8 +848,18 @@
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
-                        <g class="@SeriesClass(s, !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
-                            @foreach (var bar in s.Bars)
+                        <g class="@SeriesClass(s, s.Data.IsOhlc ? s.Data.OhlcBars ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc" : !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                            @foreach (var bar in s.Bars.Where(b => b.Prices is not null))
+                            {
+                                var p = bar.Prices!.Value;
+                                <g class="@ChangeClass(bar.Change)">@if (tooltip)
+                                {<title>@bar.Title</title>}<line x1="@Num(p.Mid)%" x2="@Num(p.Mid)%" y1="@Num(p.High)%" y2="@Num(p.Low)%" />@if (!s.Data.OhlcBars)
+                                {<rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%" />}
+                                else
+                                {@if (!double.IsNaN(p.Open))
+                                {<line x1="@Num(p.Mid - p.Tick)%" x2="@Num(p.Mid)%" y1="@Num(p.Open)%" y2="@Num(p.Open)%" />}<line x1="@Num(p.Mid)%" x2="@Num(p.Mid + p.Tick)%" y1="@Num(p.Close)%" y2="@Num(p.Close)%" />}</g>
+                            }
+                            @foreach (var bar in s.Bars.Where(b => b.Prices is null))
                             {
                                 <rect class="@BarClass(bar)" x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%">@if (tooltip)
                                 {<title>@bar.Title</title>}</rect>
@@ -1238,7 +1248,15 @@
                         @* The script makes this a toggle button that hides and shows the series. *@
                         <span class="ib-chart-toggle" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                         <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
-                            @if (s.Data.Type == ChartType.Bar)
+                            @if (s.Data.IsOhlc)
+                            {
+                                @* Two candles, up then down: what the colors and fills mean. *@
+                                <g class="ib-chart-ohlc">
+                                    <g class="ib-chart-up"><line x1="8.5" x2="8.5" y1="0" y2="12" /><rect x="5.5" y="3.5" width="6" height="6" /></g>
+                                    <g class="ib-chart-down"><line x1="16.5" x2="16.5" y1="0" y2="12" /><rect x="13.5" y="2.5" width="6" height="7" /></g>
+                                </g>
+                            }
+                            else if (s.Data.Type == ChartType.Bar)
                             {
                                 <rect x="6" y="1" width="12" height="10" />
                             }
@@ -1326,7 +1344,7 @@
         return keys;
     }
 
-    // The palette, and a waterfall's colors for rises and falls (on the chart, so the tooltips have them).
+    // The palette, and a waterfall's or a price series' colors for rises and falls (on the chart, so the tooltips have them).
     private string? RootStyle(ChartModel model, ChartSeriesData? waterfall)
     {
         var style = (Palette?.Style(model.Series.Count(s => s.Data.ColorFrom is null)) ?? "")
@@ -1770,9 +1788,9 @@
     // A series added up by the level's groups, by its Aggregate.
     private static ChartSeriesData Totals(ChartSeriesData data, ChartDrillState<TItem> drill)
     {
-        if (data.IsPoint || data.IsWaterfall)
+        if (data.IsPoint || data.IsWaterfall || data.IsOhlc)
         {
-            throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble and waterfall series.");
+            throw new InvalidOperationException("Chart drill-down levels add up bar, line and area series: leave out scatter, bubble, waterfall and OHLC series.");
         }
 
         // A range's level runs from its items' lowest to their highest.
@@ -2071,6 +2089,22 @@
 
                     w.WriteEndArray();
                 }
+
+                // A price series' opens and closes, and whether it's drawn as bars.
+                foreach (var (key, prices) in new[] { ("op", d.Opens), ("cl", d.Closes) })
+                {
+                    if (prices is null) continue;
+                    w.WriteStartArray(key);
+                    foreach (var v in prices)
+                    {
+                        if (v is { } x && double.IsFinite(x)) w.WriteNumberValue(x);
+                        else w.WriteNullValue();
+                    }
+
+                    w.WriteEndArray();
+                }
+
+                if (d.OhlcBars) w.WriteBoolean("ob", true);
 
                 // A bar series' targets.
                 if (d.Targets is { } targets)

@@ -69,6 +69,16 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool IsRange => Lows is not null;
 
+    /// <summary>A price series' opens and closes by item (null for other series); its Lows and Values are the lows and highs.</summary>
+    public double?[]? Opens { get; init; }
+
+    public double?[]? Closes { get; init; }
+
+    /// <summary>A price series drawn as OHLC bars (ticks), not candlesticks.</summary>
+    public bool OhlcBars { get; init; }
+
+    public bool IsOhlc => Closes is not null;
+
     /// <summary>A bar series' targets by item (its Target), or null: a tick across each bar.</summary>
     public double?[]? Targets { get; init; }
 
@@ -181,8 +191,14 @@ internal sealed record BarRect(double X, double Y, double Width, double Height, 
 
     public char Dir { get; init; } = 't';
 
-    /// <summary>A waterfall bar's kind: "up", "down" or "total" (null for other bars).</summary>
+    /// <summary>A waterfall bar's kind: "up", "down" or "total" (null for other bars); a price's "up" or "down".</summary>
     public string? Change { get; init; }
+
+    /// <summary>
+    /// A price's marks, in percent of the plot: the middle across, the high, low, open (NaN with
+    /// none) and close down, and an OHLC bar's tick length. Its rect is the candle's body.
+    /// </summary>
+    public (double Mid, double High, double Low, double Open, double Close, double Tick)? Prices { get; init; }
 }
 
 /// <summary>
@@ -403,6 +419,14 @@ internal static class ChartLayout
             throw new InvalidOperationException("A Trend can't be drawn on a percent stack (Stacking=\"ChartStacking.Percent\"): its axis is shares, not the series' values.");
         }
 
+        // Prices stand upright, side by side.
+        if (input.Series.Any(s => s.IsOhlc) && (input.Horizontal || stacked))
+        {
+            throw new InvalidOperationException(input.Horizontal
+                ? "A ChartOhlcSeries stands upright: leave the Chart's Orientation vertical."
+                : "A ChartOhlcSeries doesn't stack: leave out the Chart's Stacking.");
+        }
+
         // A target is one bar's: a stack's segments have none of their own to be measured against.
         if (stacked && input.Series.Any(s => s.Targets is not null))
         {
@@ -425,6 +449,7 @@ internal static class ChartLayout
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
+                : s.IsOhlc ? OhlcText(s, i, input)
                 : s.Lows is { } rangeLows ? RangeText(rangeLows[i], x, s.Secondary ? input.SecondaryFormat : null, s.Secondary ? null : input.ValueFormatter, s.Secondary ? input.SecondaryFormat : input.ValueFormat, culture)
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
                 : Change(s, i) ? Signed(x, y => input.ValueFormatter?.Invoke(y) ?? y.ToString(input.ValueFormat ?? "#,##0.##", culture))
@@ -779,6 +804,12 @@ internal static class ChartLayout
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
+                    if (data.IsOhlc)
+                    {
+                        if (OhlcAt(data, i) is { } price && Candle(i, price) is { } candle) shape.Bars.Add(candle);
+                        continue;
+                    }
+
                     var a0 = edges ? (i - firstBand) * band : (i - firstBand) * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
 
                     // Zoomed, a bar wholly out of view isn't drawn; one across an end is cut there.
@@ -822,6 +853,27 @@ internal static class ChartLayout
                         var (t0, t1) = (Math.Max(0, a0 - over), Math.Min(1, a0 + width + over));
                         shape.Targets.Add(input.Horizontal ? (t * 100, t0 * 100, t * 100, t1 * 100) : (t0 * 100, (1 - t) * 100, t1 * 100, (1 - t) * 100));
                     }
+                }
+
+                // A price: its body from the open to the close (a candle) or its ticks (a bar), on a
+                // line from the low to the high. Up when it closed above its open, or with no
+                // open, at or above the close before.
+                BarRect? Candle(int i, (double? Open, double High, double Low, double Close) p)
+                {
+                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + slot * 0.05;
+                    if (a0 + width <= 0 || a0 >= 1) return null;
+                    if (reverse) a0 = 1 - a0 - width;
+                    var y = (double v) => (1 - sc(v)) * 100;
+                    var before = Enumerable.Range(0, i).Reverse().Select(k => data.Closes![k]).FirstOrDefault(c => c is not null);
+                    var up = p.Open is { } o ? p.Close >= o : before is not { } b || p.Close >= b;
+                    var (top, bottom) = p.Open is { } open ? (y(Math.Max(open, p.Close)), y(Math.Min(open, p.Close))) : (y(p.High), y(p.Low));
+                    var mid = (a0 + width / 2) * 100;
+                    return new BarRect(a0 * 100, top, width * 100, bottom - top, $"{model.ArgumentTexts[i]}{(data.Name.Length > 0 ? ", " + data.Name : "")}: {model.ValueTexts[s][i]}")
+                    {
+                        Index = i,
+                        Change = up ? "up" : "down",
+                        Prices = (mid, y(p.High), y(p.Low), p.Open is { } op ? y(op) : double.NaN, y(p.Close), width * 35),
+                    };
                 }
 
                 // A waterfall's connectors: from each bar's end, at the running total, to the next bar.
@@ -1442,6 +1494,25 @@ internal static class ChartLayout
         string Text(double v) => formatter?.Invoke(v) ?? v.ToString(format ?? "#,##0.##", culture);
         var (a, b) = (Math.Min(lo, high), Math.Max(lo, high));
         return $"{Text(a)} – {Text(b)}";
+    }
+
+    // A price series' item in words: "open $182.10, high $185.40, low $181.00, close $184.90".
+    private static string? OhlcText(ChartSeriesData s, int i, ChartInput input)
+    {
+        if (OhlcAt(s, i) is not { } p) return null;
+        string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
+            : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
+        return p.Open is { } open
+            ? string.Format(input.Culture, input.Text.ChartOhlc, Text(open), Text(p.High), Text(p.Low), Text(p.Close))
+            : string.Format(input.Culture, input.Text.ChartHlc, Text(p.High), Text(p.Low), Text(p.Close));
+    }
+
+    /// <summary>A price series' item, or null when a price it needs is missing (an Open only when the series has them).</summary>
+    internal static (double? Open, double High, double Low, double Close)? OhlcAt(ChartSeriesData s, int i)
+    {
+        static bool Ok(double? v) => v is { } x && double.IsFinite(x);
+        if (!Ok(s.Values[i]) || !Ok(s.Lows![i]) || !Ok(s.Closes![i]) || (s.Opens is { } o && !Ok(o[i]))) return null;
+        return (s.Opens?[i], Math.Max(s.Values[i]!.Value, s.Lows[i]!.Value), Math.Min(s.Values[i]!.Value, s.Lows[i]!.Value), s.Closes[i]!.Value);
     }
 
     private static bool Change(ChartSeriesData s, int i) =>
