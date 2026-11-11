@@ -139,6 +139,95 @@
     }
 
     /// <inheritdoc />
+    internal override RenderFragment? MoveControl(TItem item, bool inMenu) => !OnReparent.HasDelegate || !CanMoveRow(item) ? null : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TreeMoveItem, LabelOf(item));
+        var key = KeyOf(item);
+        var href = Navigation.GetUriWithQueryParameter(MoveQueryKey, key);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.FolderInput" OnClick="@(() => _stateMoveKey = key)" data-ib-edit>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.FolderInput" Href="@href" data-ib-edit="@MoveQueryKey">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.FolderInput" Label="@label" OnClick="@(() => _stateMoveKey = key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.FolderInput" Label="@label" Href="@href" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@MoveQueryKey" />
+        }
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? OwnDialog => CurrentMoveKey is not { } key ? null : __builder =>
+    {
+        @if (RendererInfo.IsInteractive)
+        {
+            @MoveDialog(key, null)
+        }
+        else
+        {
+            @* Named for this tree list, so that a post reaches only its own form. *@
+            <FormMappingScope Name="@($"ib-tree-{QueryPrefix}")" Context="scope">
+                @MoveBinding(key)
+            </FormMappingScope>
+        }
+    };
+
+    private RenderFragment MoveBinding(string key) => builder =>
+    {
+        builder.OpenComponent<TreeListMoveBinding>(0);
+        builder.AddComponentParameter(1, nameof(TreeListMoveBinding.ChildContent), (RenderFragment<TreeListMovePost?>)(posted => MoveDialog(key, posted)));
+        builder.CloseComponent();
+    };
+
+    // Choose the row it goes under, or the top level; its own branch isn't offered.
+    private RenderFragment MoveDialog(string key, TreeListMovePost? posted) => __builder =>
+    {
+        var node = _treeNodes?.GetValueOrDefault(key);
+        var found = node is not null && CanMoveRow(node.Item);
+        if (_moveFor != key || _moveContext is null)
+        {
+            _moveFor = key;
+            _moveModel = new TreeListMovePost { Parent = node?.Parent?.Key ?? "" };
+            _moveContext = new Microsoft.AspNetCore.Components.Forms.EditContext(_moveModel);
+            _moveMessages = new Microsoft.AspNetCore.Components.Forms.ValidationMessageStore(_moveContext);
+        }
+
+        if (posted is not null)
+        {
+            _moveModel.Parent = posted.Parent;
+        }
+
+        var title = found ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TreeMoveItem, LabelOf(node!.Item)) : TextDefaults.TreeMove;
+        <Dialog Open="true" OpenChanged="@(open => open ? Task.CompletedTask : EndEditAsync(saved: false))" QueryKey="@MoveQueryKey" Title="@title" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@key">
+            <Form EditContext="_moveContext" FormName="@(RendererInfo.IsInteractive ? null : "move")" OnValidSubmit="@(() => found ? MoveAsync(key) : Task.CompletedTask)">
+                @if (found)
+                {
+                    <FormErrors />
+                    <TreeSelect TValue="string" TItem="TreeListMoveTarget" @bind-Value="_moveModel.Parent" Items="MoveTargets(key)" ItemChildren="t => t.Children"
+                                ItemValue="t => t.Key" ItemText="t => t.Text" Label="@TextDefaults.TreeMoveUnder" name="@($"{TreeListMoveBinding.Prefix}.{nameof(TreeListMovePost.Parent)}")" />
+                }
+                else if (!IsLoading)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                }
+                <DialogFooter>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+                    @if (found)
+                    {
+                        <Button Submit>@TextDefaults.TreeMove</Button>
+                    }
+                </DialogFooter>
+            </Form>
+        </Dialog>
+    };
+
+    /// <inheritdoc />
     // A new row starts its first cell at its level, as the rows around it do.
     internal override RenderFragment NewRowFirstCell(RenderFragment content, int? depth) => !_treeHasChildren && NewChild is null ? content : __builder =>
     {

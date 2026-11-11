@@ -174,7 +174,7 @@ public class DocsGenTests
         // C# callbacks run only on interactive pages, and the API pages label them so. The
         // exceptions are what a static post does too: a form's submit events, and a field's
         // @bind-Value (the model binds from the posted form).
-        string[] everywhere = ["Form.OnValidSubmit", "Form.OnInvalidSubmit", "Form.OnSubmit", "DataGrid.OnSave", "DataGrid.OnDelete", "TreeList.OnSave", "TreeList.OnDelete"];
+        string[] everywhere = ["Form.OnValidSubmit", "Form.OnInvalidSubmit", "Form.OnSubmit", "DataGrid.OnSave", "DataGrid.OnDelete", "TreeList.OnSave", "TreeList.OnDelete", "TreeList.OnReparent"];
         var unmarked = Api.File.Components
             .SelectMany(c => c.Events.Where(e => e.Modes is null).Select(e => $"{c.Name}.{e.Name}")
                 .Concat(c.Properties
