@@ -16,7 +16,7 @@
     // The grid, drawn by DataGrid and TreeList.
     internal RenderFragment Grid => __builder =>
     {
-        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)">
             <ib-grid hidden></ib-grid>
             @if (CanEdit || CanDelete)
             {
@@ -1028,6 +1028,17 @@
     /// </summary>
     [Parameter] public bool Searchable { get; set; }
 
+    /// <summary>
+    /// A click on a row selects it, with IzzyBlazor's script; clicks on its links, buttons and fields
+    /// stay theirs. With one row (<see cref="SelectionMode.Single"/>) the radio buttons are hidden,
+    /// and Space on the selected row clears it. With several, a click selects only that row,
+    /// Ctrl+click adds or removes one and Shift+click a range, and the checkboxes stay.
+    /// </summary>
+    [Parameter] public bool SelectOnClick { get; set; }
+
+    /// <inheritdoc />
+    internal override bool SelectsInRow => SelectOnClick && Selectable && !MultiSelect;
+
     /// <summary>The words searched for. Binding it (<c>@bind-Search</c>) on an interactive page keeps them, with sort and page, in the component.</summary>
     [Parameter] public string? Search { get; set; }
 
@@ -1198,7 +1209,7 @@
         var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
         <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize">
             @GripEmptyCell
-            @if (Selectable)
+            @if (SelectColumn)
             {
                 <td class="@SelectCellClass">
                     @* Its rows, when they're drawn: the script ticks them, and they report their own changes. *@
@@ -1258,7 +1269,7 @@
             {
                 <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)">
                     @GripEmptyCell
-                    @if (Selectable)
+                    @if (SelectColumn)
                     {
                         <td class="@SelectCellClass"></td>
                     }
@@ -1275,7 +1286,7 @@
             {
                 <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)">
                     @GripEmptyCell
-                    @if (Selectable)
+                    @if (SelectColumn)
                     {
                         <td class="@SelectCellClass"></td>
                     }
@@ -1449,7 +1460,7 @@
     private string DetailAt => $"--ib-detail-at:calc({StartWidths}{LeadWidths})";
 
     // The widths of the columns before the lead ones, each followed by " + ": the handles and the selection.
-    private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (Selectable ? "var(--ib-datagrid-select) + " : "");
+    private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (SelectColumn ? "var(--ib-datagrid-select) + " : "");
 
     // Moving rows (DataGridReorder.cs): the drag, the menus' moves in place and their shortcuts on
     // static pages, and the live region that announces every move. Beside the table, as a custom
@@ -1639,6 +1650,16 @@
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
+        if (SelectOnClick && !Selectable)
+        {
+            throw new InvalidOperationException($"{nameof(SelectOnClick)} selects rows, so it needs a {nameof(SelectionMode)}.");
+        }
+
+        if (SelectOnClick && RowHref is not null)
+        {
+            throw new InvalidOperationException($"With a {nameof(RowHref)}, a click on a row follows its link, so it can't also select it: leave out {nameof(SelectOnClick)} or {nameof(RowHref)}.");
+        }
+
         if (CanEdit && ItemKey is null)
         {
             throw new InvalidOperationException($"A {ViewName} with an {nameof(EditMode)} needs an {nameof(ItemKey)} to know which row is being edited.");
@@ -2638,14 +2659,14 @@
     internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
     {
         @* An empty group would be a column of its own. *@
-        @if (!HasBands || HasGrip || Selectable || LeadSpan > 0)
+        @if (!HasBands || HasGrip || SelectColumn || LeadSpan > 0)
         {
         <colgroup>
             @if (HasGrip)
             {
                 <col class="ib-datagrid-grip-col" />
             }
-            @if (Selectable)
+            @if (SelectColumn)
             {
                 <col class="ib-datagrid-select-col" />
             }
@@ -2795,7 +2816,7 @@
                 parts.Add("var(--ib-datagrid-grip)");
             }
 
-            if (Selectable)
+            if (SelectColumn)
             {
                 parts.Add("var(--ib-datagrid-select)");
             }
@@ -2873,7 +2894,7 @@
                 parts.Add("var(--ib-datagrid-grip)");
             }
 
-            if (Selectable)
+            if (SelectColumn)
             {
                 parts.Add("var(--ib-datagrid-select)");
             }

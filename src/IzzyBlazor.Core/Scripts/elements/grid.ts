@@ -16,7 +16,7 @@ import { openMenuAt, ownTrigger, setupContextMenu } from "../context-menu";
  * Selection keys click the row's own checkbox, so the bar, ranges and binding stay in one place.
  */
 
-const CONTROLS = "a[href], button, input:not([type=hidden]), select, textarea, summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not(td, th, tr)";
+const CONTROLS = "a[href], button, input:not([type=hidden], .ib-table-select-inline), select, textarea, summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not(td, th, tr)";
 const KEEPS_ARROWS = "input:not([type=checkbox], [type=button], [type=submit], [type=reset]), select, textarea, [contenteditable]:not([contenteditable=false]), [role=combobox], [role=slider], [role=spinbutton]";
 const CELLS = "td, th";
 
@@ -116,6 +116,11 @@ class Grid extends IzzyElement {
       this.#syncSelected();
     }, signal);
     setupContextMenu(table, "tbody > tr, thead > tr > th", "[data-ib-row-menu], [data-ib-menu]", () => true, signal);
+    // SelectOnClick: a click on a row selects it. Shift+click picks a range, not the text between.
+    this.#on(table, "mousedown", (event) => {
+      if ((event as MouseEvent).shiftKey && this.#clickMode() === "multiple" && this.#clickRow(event as MouseEvent)) event.preventDefault();
+    }, signal);
+    this.#on(table, "click", (event) => this.#onRowClick(event as MouseEvent), signal);
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
@@ -300,6 +305,13 @@ class Grid extends IzzyElement {
     table.setAttribute("role", table.querySelector(":scope > * > tr[aria-level]") ? "treegrid" : "grid");
     if (table.querySelector(":scope > thead .ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
     else table.removeAttribute("aria-multiselectable");
+    // A row's radio in its first cell (SelectOnClick, one row) is hidden once a click can select:
+    // the row's aria-selected says it, and the radio stays to post with the form.
+    table.toggleAttribute("data-ib-clicks", !!this.#clickMode());
+    for (const box of table.querySelectorAll<HTMLInputElement>(":scope > tbody > tr > td > .ib-table-select-inline")) {
+      box.tabIndex = -1;
+      box.setAttribute("aria-hidden", "true");
+    }
 
     // A control that came beside the focused one, as a filter's × does: focus is in that cell now, and Tab reaches it.
     const active = document.activeElement;
@@ -592,6 +604,48 @@ class Grid extends IzzyElement {
     return false;
   }
 
+  /** SelectOnClick's "single" or "multiple"; null without it. */
+  #clickMode(): string | null {
+    return this.closest("ib-table")?.getAttribute("data-ib-select-click") ?? null;
+  }
+
+  /** The body row a click selects, unless it's on one of the row's links, buttons, fields or menus. */
+  #clickRow(event: MouseEvent): HTMLTableRowElement | null {
+    const target = event.target as Element;
+    const row = target.closest?.("tr");
+    if (!row || event.button !== 0 || row.parentElement?.localName !== "tbody" || row.closest("table") !== this.#table) return null;
+    // Within the row: the scroll box around the table has a tabindex too.
+    const control = target.closest(`${CONTROLS}, label, [role=button], [role=menuitem], [popover]`);
+    return control && row.contains(control) ? null : row;
+  }
+
+  #onRowClick(event: MouseEvent): void {
+    const mode = this.#clickMode();
+    const row = mode && !event.defaultPrevented ? this.#clickRow(event) : null;
+    // A drag across a cell that selected its text isn't a click on the row.
+    if (!row || !(getSelection()?.isCollapsed ?? true)) return;
+    const box = row.querySelector<HTMLInputElement>(":scope > td > .ib-table-select:not(:disabled)");
+    if (!box) return;
+    if (mode === "single") {
+      if (!box.checked) box.click();
+    } else if (event.ctrlKey || event.metaKey) {
+      box.click();
+    } else if (event.shiftKey) {
+      // As a Shift+click on the box: the range from the last one changed (setupRanges).
+      box.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, shiftKey: true }));
+    } else {
+      // Only this row, on any page: Clear selection, then this one's box.
+      this.#clearSelection();
+      box.checked = false;
+      box.click();
+    }
+  }
+
+  /** Clear selection, as its button in the footer does (the script's on a static page, C#'s on an interactive one). */
+  #clearSelection(): void {
+    this.closest("ib-table")?.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-clear")?.click();
+  }
+
   #boxOf(cell: Element): HTMLInputElement | null {
     return cell.closest("tr")?.querySelector<HTMLInputElement>(":scope > td > .ib-table-select:not(:disabled)") ?? null;
   }
@@ -627,14 +681,14 @@ class Grid extends IzzyElement {
     switch (event.key) {
       case " ": {
         const box = this.#boxOf(cell);
-        if (event.shiftKey) {
-          if (!event.repeat) box?.click();
-          return !!box;
+        // On a control, Space is the control's, but Shift+Space selects from anywhere in the row.
+        if (!event.shiftKey && target !== cell) return false;
+        if (!event.repeat) {
+          // A radio can't be unchecked: with SelectOnClick, Space on the selected row clears it.
+          if (box?.type === "radio" && box.checked && this.#clickMode() === "single") this.#clearSelection();
+          else box?.click();
         }
-        // On a control, Space is the control's.
-        if (target !== cell) return false;
-        if (!event.repeat) box?.click();
-        return true;
+        return event.shiftKey ? !!box : true;
       }
       case "Enter": {
         if (target !== cell) return false;

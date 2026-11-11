@@ -56,7 +56,13 @@ public abstract partial class TableViewBase<TItem>
     internal virtual object? RowKey(string key) => null;
 
     /// <summary>The columns before the lead cells: the handles and the selection.</summary>
-    internal int StartSpan => GripSpan + (Selectable ? 1 : 0);
+    internal int StartSpan => GripSpan + (SelectColumn ? 1 : 0);
+
+    /// <summary>Whether a row's radio sits in its first cell, hidden, rather than in a column (SelectOnClick, one row).</summary>
+    internal virtual bool SelectsInRow => false;
+
+    /// <summary>Whether the rows have a column of boxes to select them.</summary>
+    internal bool SelectColumn => Selectable && !SelectsInRow;
 
     /// <summary>Cells before the columns, for a grid's groups: in the header, and in a row.</summary>
     internal virtual RenderFragment? LeadHeader => null;

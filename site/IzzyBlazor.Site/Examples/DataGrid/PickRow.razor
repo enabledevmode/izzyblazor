@@ -1,0 +1,32 @@
+@* Click an order to see it below: one row at a time, by a click or Space, with no radio buttons. *@
+@using IzzyBlazor.Site.Examples.Table
+<Stack Gap="4">
+    <DataGrid Items="Orders.All" ItemKey="o => o.Number.ToString()" RowLabel='o => $"order {o.Number}"' PageSize="5"
+              Caption="Orders to review" QueryPrefix="pick-one-" SelectionMode="SelectionMode.Single" SelectOnClick
+              @bind-Selection="_selection" Grow>
+        <Columns>
+            <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Status" Width="9.Rem" />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+        </Columns>
+    </DataGrid>
+    <Divider Label="Order" />
+    @if (Picked is { } order)
+    {
+        <Stack Gap="1">
+            <Heading Level="3" Size="TextSize.Lg">Order #@order.Number</Heading>
+            <TextBlock>@order.Customer, @order.Date.ToString("MMMM d"): @order.Total.ToString("C"), @order.Status.ToString().ToLowerInvariant().</TextBlock>
+        </Stack>
+    }
+    else
+    {
+        <TextBlock Color="Color.Muted">Pick an order to see it here.</TextBlock>
+    }
+</Stack>
+
+@code {
+    private Selection? _selection;
+
+    private Order? Picked => _selection?.Keys is [var key] ? Orders.All.FirstOrDefault(o => o.Number.ToString() == key) : null;
+}

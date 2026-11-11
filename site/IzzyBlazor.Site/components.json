@@ -2718,6 +2718,7 @@
         { "feature": "Row menus, also opened by right-click, long press or the keyboard", "member": "ActionColumn" },
         { "feature": "Resizing, moving and hiding columns, saved per user", "member": "ResizableColumns" },
         { "feature": "Selected rows post with a form" },
+        { "feature": "Selecting rows by a click, with or without boxes", "member": "SelectOnClick", "noscript": "partial" },
         { "feature": "Sorting by several columns: Shift+click a header, or Add to sort in its column menu" },
         { "feature": "One Tab stop and arrow keys between cells, with selection keys", "noscript": "none" }
       ],
@@ -2745,9 +2746,10 @@
           ]
         },
         {
-          "id": "selection", "title": "Selection", "summary": "Checkboxes select rows to act on, and a bar of actions takes the toolbar's place. The selection posts with a form or binds to C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel"],
+          "id": "selection", "title": "Selection", "summary": "Checkboxes select rows to act on, and a bar of actions takes the toolbar's place. The selection posts with a form or binds to C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel", "SelectOnClick"],
           "examples": [
-            { "id": "data-grid-select-rows", "title": "Selecting rows", "lead": "Row selection adds a checkbox to each row, so the user can pick rows to act on. Set `SelectionMode=\"SelectionMode.Multiple\"` and an `ItemKey`. For a radio button on each row instead, set `SelectionMode.Single`.", "after": ["While rows are selected, the buttons in `SelectionActions` take the toolbar's place, so the rows don't move.", "In a form, the checked rows post their keys, so selection works with JavaScript off. Read them as a `Selection` with `[SupplyParameterFromForm]`, or bind `@bind-Selection` on interactive pages, then call its `Apply` to find the rows.", "The header checkbox selects the rows on the current page. To make it select every row the filters match, on any page, set `SelectAllMode=\"SelectAllMode.All\"`."] }
+            { "id": "data-grid-select-rows", "title": "Selecting rows", "lead": "Row selection adds a checkbox to each row, so the user can pick rows to act on. Set `SelectionMode=\"SelectionMode.Multiple\"` and an `ItemKey`. For a radio button on each row instead, set `SelectionMode.Single`.", "after": ["While rows are selected, the buttons in `SelectionActions` take the toolbar's place, so the rows don't move.", "In a form, the checked rows post their keys, so selection works with JavaScript off. Read them as a `Selection` with `[SupplyParameterFromForm]`, or bind `@bind-Selection` on interactive pages, then call its `Apply` to find the rows.", "The header checkbox selects the rows on the current page. To make it select every row the filters match, on any page, set `SelectAllMode=\"SelectAllMode.All\"`."] },
+            { "id": "data-grid-pick-row", "title": "Selecting a row by a click", "modes": ["interactive"], "lead": "To select a row by clicking it, set `SelectOnClick`. With `SelectionMode.Single` the rows have no radio buttons, and the selected row shows by its tint. A click or Space selects a row, and Space on the selected row clears it.", "after": ["Clicks on the row's links, buttons and fields stay theirs. With `SelectionMode.Multiple` the checkboxes stay: a click selects only that row, Ctrl+click adds or removes one, and Shift+click selects a range.", "It needs IzzyBlazor's script. With JavaScript off, each row shows its radio button again. A row with a `RowHref` opens its link on a click, so it can't take both."] }
           ]
         },
         {
