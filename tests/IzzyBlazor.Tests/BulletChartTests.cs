@@ -42,8 +42,8 @@ public class BulletChartTests : BunitContext
             .Add(c => c.Format, k => k.Format));
 
         var meters = cut.FindAll("[role=meter]");
-        Assert.Equal("$275K, target $250K, Good", meters[0].GetAttribute("aria-valuetext"));
-        Assert.Equal("18%, target 27%, Poor", meters[1].GetAttribute("aria-valuetext"));
+        Assert.Equal("$275K, Goal $250K, Good", meters[0].GetAttribute("aria-valuetext"));
+        Assert.Equal("18%, Goal 27%, Poor", meters[1].GetAttribute("aria-valuetext"));
         Assert.Equal("0.3", meters[1].GetAttribute("aria-valuemax"));
         Assert.Equal(cut.FindAll(".ib-bullet-label")[1].Id, meters[1].GetAttribute("aria-labelledby"));
 
