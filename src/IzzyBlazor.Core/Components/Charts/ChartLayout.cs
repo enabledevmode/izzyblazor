@@ -553,8 +553,8 @@ internal static class ChartLayout
 
         model.ValueRange = (dmin, dmax);
         var scale2 = inDomain is null
-            ? SecondaryAxis(input, model, marks, highs, lows, plotHeight)
-            : SecondaryAxis(input, model, marks, Masked(highs, inDomain), Masked(lows, inDomain), plotHeight);
+            ? SecondaryAxis(input, model, marks, highs, lows, plotHeight, null)
+            : SecondaryAxis(input, model, marks, Masked(highs, inDomain), Masked(lows, inDomain), plotHeight, inDomain);
         if (tickText is null && !full) PlainZero(model.ValueLabels, input.ValueFormat, culture);
         PlainZero(model.SecondaryLabels, input.SecondaryFormat, culture);
 
@@ -1077,7 +1077,7 @@ internal static class ChartLayout
     /// so both read off the same lines. With its own SecondaryMin and SecondaryMax, or a first axis
     /// whose ticks don't reach both ends, it takes its own round ticks instead. Returns its scale.
     /// </summary>
-    private static Func<double, double> SecondaryAxis(ChartInput input, ChartModel model, List<ChartMarkInput> marks, double?[][] highs, double?[][] lows, double plotHeight)
+    private static Func<double, double> SecondaryAxis(ChartInput input, ChartModel model, List<ChartMarkInput> marks, double?[][] highs, double?[][] lows, double plotHeight, bool[]? inDomain)
     {
         var on = Enumerable.Range(0, input.Series.Count).Where(s => input.Series[s].Secondary).ToList();
         if (on.Count == 0) return v => 0;
@@ -1088,7 +1088,8 @@ internal static class ChartLayout
         // server's), so a series the legend shows again has to fit in it.
         foreach (var s in on)
         {
-            foreach (var v in highs[s].Concat(lows[s]).Concat(input.Series[s].Targets ?? []))
+            // Targets too, those in view when zoomed.
+            foreach (var v in highs[s].Concat(lows[s]).Concat((input.Series[s].Targets ?? []).Where((_, i) => inDomain?[i] ?? true)))
             {
                 if (v is { } x) { min = Math.Min(min, x); max = Math.Max(max, x); }
             }
@@ -1102,7 +1103,7 @@ internal static class ChartLayout
             }
         }
 
-        if (on.Any(s => !input.Series[s].Hidden && input.Series[s].Type is ChartType.Bar or ChartType.Area))
+        if (on.Any(s => !input.Series[s].Hidden && !input.Series[s].IsRange && input.Series[s].Type is ChartType.Bar or ChartType.Area))
         {
             min = Math.Min(min, 0);
             max = Math.Max(max, 0);
