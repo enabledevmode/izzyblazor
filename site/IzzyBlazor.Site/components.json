@@ -2380,10 +2380,9 @@
       ]
     },
     {
-      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "parts": ["ChartOhlcSeries"], "summary": "Shows prices over time, each period's open, high, low and close, as candlesticks or OHLC bars.", "keywords": ["candlestick", "candlestick chart", "OHLC", "OHLC chart", "stock chart", "financial chart", "high low close", "HLC", "price chart"],
+      "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Shows prices over time as candlesticks: each period's open, high, low and close, hollow when it closed up.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
       "features": [
         { "feature": "Candlesticks, hollow when the price closed up and filled when it closed down, so direction shows without color" },
-        { "feature": "OHLC bars, the open a tick to the left and the close to the right, or high-low-close with no open" },
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
         { "feature": "A moving average or other line drawn over the prices, and volume in a synced chart beneath" },
         { "feature": "Each period's four prices in its tooltip and the table" },
@@ -2392,8 +2391,22 @@
         { "feature": "Zoom and pan along the dates", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chart-candlestick", "title": "Candlesticks with volume", "lead": "`ChartCandlestickSeries` draws each item's `Open`, `High`, `Low` and `Close` as a candlestick: a body from the open to the close on a line from the low to the high. A rise is hollow and a fall filled, in the chart's increase and decrease colors, blue and red.", "after": ["Dates under bars or candles sit side by side by item, so weekends and holidays leave no gaps. A line series over the candles takes the same spacing; on a chart without bars or candles, `SkipGaps` on `ChartArgumentAxis` does it.", "The 20-day average is a `ChartLineSeries` of a value worked out in the data, so it starts from the days before the chart's first.", "Volume reads best in a chart of its own under the prices. `Sync` joins the two, for hover and zoom, and the same `LabelWidth` on both value axes lines up their plots. The prices' chart hides its dates with `HideLabels`, since the volume's show them.", "`IncreaseColor` and `DecreaseColor` set the colors, such as green and red."] },
-        { "id": "chart-ohlc-bars", "title": "OHLC bars over a year", "lead": "`ChartOhlcSeries` draws each item as a line from its low to its high, with the open as a tick to the left and the close as a tick to the right. Thinner than candles, bars stay readable across many periods, here a year of trading days. Drag across the plot to zoom into a month.", "after": ["Without an `Open`, bars show the high, low and close, and an item is up when it closed above the one before.", "For a low and a high alone, such as a day's temperatures, use a Range bar chart."] }
+        { "id": "chart-candlestick", "title": "Candlesticks with volume", "lead": "`ChartCandlestickSeries` draws each item's `Open`, `High`, `Low` and `Close` as a candlestick: a body from the open to the close on a line from the low to the high. A rise is hollow and a fall filled, in the chart's increase and decrease colors, blue and red.", "after": ["Dates under bars or candles sit side by side by item, so weekends and holidays leave no gaps. A line series over the candles takes the same spacing; on a chart without bars or candles, `SkipGaps` on `ChartArgumentAxis` does it.", "The 20-day average is a `ChartLineSeries` of a value worked out in the data, so it starts from the days before the chart's first.", "Volume reads best in a chart of its own under the prices. `Sync` joins the two, for hover and zoom, and the same `LabelWidth` on both value axes lines up their plots. Only the prices' chart sets `Zoom`, so its buttons zoom both, and the volume follows. The prices' chart hides its dates with `HideLabels`, since the volume's show them.", "`IncreaseColor` and `DecreaseColor` set the colors, such as green and red.", "Over many periods, such as a year of days, candles crowd: an OHLC chart's bars are thinner."] }
+      ]
+    },
+    {
+      "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Shows prices over time as OHLC bars: a line from each period's low to its high, with ticks at the open and close.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
+      "features": [
+        { "feature": "OHLC bars, the open a tick to the left and the close to the right, colored by whether the price closed up" },
+        { "feature": "High-low-close, with no open" },
+        { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
+        { "feature": "Each period's prices in its tooltip and the table" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
+        { "feature": "Zoom and pan along the dates", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-ohlc-bars", "title": "OHLC bars over a year", "lead": "`ChartOhlcSeries` draws each item as a line from its `Low` to its `High`, with the `Open` as a tick to the left and the `Close` as a tick to the right. Thinner than candles, bars stay readable across many periods, here a year of trading days. Drag across the plot to zoom into a month.", "after": ["Without an `Open`, bars show the high, low and close, and an item is up when it closed above the one before.", "`IncreaseColor` and `DecreaseColor` set the colors, as on a candlestick chart.", "For a low and a high alone, such as a day's temperatures, use a Range bar chart."] }
       ]
     },
     {
