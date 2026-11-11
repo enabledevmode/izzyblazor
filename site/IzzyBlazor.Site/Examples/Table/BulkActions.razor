@@ -8,7 +8,7 @@
                ItemKey="o => o.Number.ToString()" RowLabel='o => $"order {o.Number}"'
                SelectionMode="SelectionMode.Multiple" SelectAllMode="SelectAllMode.All" @bind-Selection="_selection">
             <SelectionActions>
-                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
             </SelectionActions>
             <Columns>
                 <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
