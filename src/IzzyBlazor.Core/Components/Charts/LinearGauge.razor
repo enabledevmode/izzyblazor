@@ -216,14 +216,15 @@
     }
 
     // A band's fill. On a thick track the bands are a body under the needle or the ticks, so the
-    // default grays are Few's lighter ones (the thin track's start darker, for every band to show).
+    // default grays are a bullet's: Few's lighter ones, quieter in dark mode (the thin track's
+    // start darker, for every band to show).
     private string BandFill(GaugeBand band, IReadOnlyList<GaugeBand> bands)
     {
         var thick = Pointer == LinearGaugePointer.Needle || TickPlacement == TickPlacement.Inside;
         if (!thick || band.Accent is not null || Palette is not null) return BandColor(band, bands);
         var i = 0;
         while (i < bands.Count && !ReferenceEquals(bands[i], band)) i++;
-        return ChartPalette.Gray(i < bands.Count ? i : 0, bands.Count, thin: false);
+        return ChartPalette.BulletGray(i < bands.Count ? i : 0, bands.Count);
     }
 
     // Tick lines: the minor ticks between the numbered ones, and (unless minorOnly) the numbered ones.

@@ -135,34 +135,18 @@ public sealed class ChartPalette
     ];
 
     /// <summary>
-    /// The default gray for range <paramref name="i"/> of <paramref name="n"/>, darkest first: the
-    /// text color mixed into the surface, so dark mode turns it round. Few's grays sit behind a
-    /// bullet's bar; a <paramref name="thin"/> band (a gauge's) is drawn alone on the surface, so its
-    /// grays run darker (60% to 25%) for every band to show.
+    /// A thin gauge band's default gray for band <paramref name="i"/> of <paramref name="n"/>,
+    /// darkest first: the text color mixed into the surface, so dark mode turns it round. A thin
+    /// band is drawn alone on the surface, so its grays run darker than Few's (60% to 25%) for every
+    /// band to show. Bands under a bar or needle take <see cref="BulletGray"/>.
     /// </summary>
-    internal static string Gray(int i, int n, bool thin)
-    {
-        double percent;
-        if (thin)
-        {
-            percent = n <= 1 ? 45 : 60 - 35.0 * i / (n - 1);
-        }
-        else if (n <= FewGrays.Length)
-        {
-            percent = FewGrays[Math.Max(n, 1) - 1][i];
-        }
-        else
-        {
-            percent = 50 - 40.0 * i / (n - 1);
-        }
-
-        return Mix("var(--ib-color-on-surface)", percent, "var(--ib-color-surface)");
-    }
+    internal static string Gray(int i, int n) =>
+        Mix("var(--ib-color-on-surface)", n <= 1 ? 45 : 60 - 35.0 * i / (n - 1), "var(--ib-color-surface)");
 
     /// <summary>
-    /// A bullet's gray for range <paramref name="i"/> of <paramref name="n"/>: Few's in light mode,
-    /// at 60% strength in dark, where the text color mixed in is light: kept near the surface, the
-    /// ranges stay behind the bar (BulletChart's dimmed ink) instead of glaring.
+    /// A bullet's gray for range <paramref name="i"/> of <paramref name="n"/> (and a thick linear
+    /// gauge's): Few's in light mode, at 60% strength in dark, where the text color mixed in is
+    /// light: kept near the surface, the ranges stay behind the bar or needle instead of glaring.
     /// </summary>
     internal static string BulletGray(int i, int n)
     {

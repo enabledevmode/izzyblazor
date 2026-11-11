@@ -125,7 +125,7 @@ public abstract class GaugeBase : LayoutItemBase, IDisposable
         if (band.Accent is { } accent) return StyleValues.Color(accent.ToColor());
         var i = 0;
         while (i < bands.Count && !ReferenceEquals(bands[i], band)) i++;
-        return Palette is { } palette ? palette.Color(i < bands.Count ? i : 0, bands.Count) : ChartPalette.Gray(i < bands.Count ? i : 0, bands.Count, thin: true);
+        return Palette is { } palette ? palette.Color(i < bands.Count ? i : 0, bands.Count) : ChartPalette.Gray(i < bands.Count ? i : 0, bands.Count);
     }
 
     /// <summary>The band a value is in: the last that holds it, so a later band wins where two meet.</summary>
