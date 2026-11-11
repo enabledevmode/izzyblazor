@@ -1,0 +1,55 @@
+@* Department budgets, with the open rows bound to C#: Show overspending opens every row above a
+   line that has spent more than its budget. *@
+<Stack Gap="3">
+    <Button Variant="ButtonVariant.Outline" StartIcon="Lucide.TriangleAlert" OnClick="ShowOverspending" Style="align-self: start">Show overspending</Button>
+    <TreeList Items="_lines" ItemKey="b => b.Id" ItemParentKey="b => b.Parent" @bind-ExpandedItems="_open"
+              Caption="Budgets" Grow>
+        <Columns>
+            <PropertyColumn Property="b => b.Name" Title="Budget line" />
+            <PropertyColumn Property="b => b.Budget" Format="C0" Width="9.Rem" />
+            <PropertyColumn Property="b => b.Spent" Format="C0" Width="9.Rem" />
+            <TemplateColumn Title="Left" Align="CellAlign.End" Width="9.Rem">
+                <span style="@(context.Spent > context.Budget ? "color: var(--ib-color-danger-text)" : null)">@((context.Budget - context.Spent).ToString("C0"))</span>
+            </TemplateColumn>
+        </Columns>
+    </TreeList>
+</Stack>
+
+@code {
+    private IReadOnlyList<string>? _open;
+
+    private void ShowOverspending()
+    {
+        var byId = _lines.ToDictionary(b => b.Id);
+        var open = new HashSet<string>();
+        foreach (var line in _lines.Where(b => b.Spent > b.Budget))
+        {
+            for (var parent = line.Parent; parent is not null; parent = byId[parent].Parent)
+            {
+                open.Add(parent);
+            }
+        }
+
+        _open = [.. open];
+    }
+
+    private readonly BudgetLine[] _lines =
+    [
+        new("eng", null, "Engineering", 1_200_000, 1_085_000),
+        new("eng-staff", "eng", "Salaries", 950_000, 870_000),
+        new("eng-cloud", "eng", "Cloud hosting", 180_000, 196_000),
+        new("eng-tools", "eng", "Software and tools", 70_000, 19_000),
+        new("mkt", null, "Marketing", 420_000, 392_000),
+        new("mkt-ads", "mkt", "Advertising", 250_000, 231_000),
+        new("mkt-events", "mkt", "Events", 120_000, 134_000),
+        new("mkt-events-conf", "mkt-events", "Conference booths", 80_000, 97_000),
+        new("mkt-events-meet", "mkt-events", "Customer meetups", 40_000, 37_000),
+        new("mkt-content", "mkt", "Content", 50_000, 27_000),
+        new("ops", null, "Operations", 310_000, 268_000),
+        new("ops-office", "ops", "Office", 210_000, 188_000),
+        new("ops-travel", "ops", "Travel", 100_000, 80_000),
+    ];
+    @* hide *@
+    private sealed record BudgetLine(string Id, string? Parent, string Name, decimal Budget, decimal Spent);
+    @* /hide *@
+}

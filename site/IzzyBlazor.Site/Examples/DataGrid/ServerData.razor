@@ -1,0 +1,24 @@
+@* Rows, groups and the footer's total, each asked of the data source in its own query: the provider
+   loads one page of orders, and the groups provider counts and totals the groups the user opens. *@
+@using IzzyBlazor.Site.Examples.Table
+<DataGrid TItem="Order" ItemsProvider="LoadAsync" GroupsProvider="GroupAsync" ItemKey="o => o.Number.ToString()"
+          Caption="Orders from the database" PageSize="5" Groupable InitialGroup="status" QueryPrefix="db-" Grow>
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="7.Rem" Sortable />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+        <PropertyColumn Property="o => o.Status" Filterable Width="9.Rem" />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Width="8.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="9.Rem" Aggregate="DataAggregate.Sum" />
+    </Columns>
+</DataGrid>
+
+@code {
+    // Stands in for a DbSet: with EF Core, pass db.Orders and call ToResultAsync.
+    private static IQueryable<Order> Database => Orders.All.AsQueryable();
+
+    private ValueTask<DataResult<Order>> LoadAsync(DataRequest<Order> request) =>
+        ValueTask.FromResult(request.ToResult(Database));
+
+    private ValueTask<DataGroupResult> GroupAsync(DataGroupRequest<Order> request) =>
+        ValueTask.FromResult(request.ToResult(Database));
+}

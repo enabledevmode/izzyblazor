@@ -1,0 +1,35 @@
+@* A store's catalog: departments, categories and products. FilterBranch keeps everything under a
+   match, so a search for a category lists its products. *@
+<TreeList Items="_catalog" ItemKey="c => c.Sku" ItemParentKey="c => c.Parent" FilterBranch
+          Searchable QueryPrefix="shop-" Caption="Catalog" Grow>
+    <Columns>
+        <PropertyColumn Property="c => c.Name" Sortable />
+        <PropertyColumn Property="c => c.Sku" Title="SKU" Width="8.Rem" />
+        <PropertyColumn Property="c => c.Price" Format="C" Sortable Width="7.Rem" />
+        <PropertyColumn Property="c => c.Stock" Sortable Width="6.Rem" />
+    </Columns>
+</TreeList>
+
+@code {
+    private readonly CatalogEntry[] _catalog =
+    [
+        new("EL", null, "Electronics", null, null),
+        new("EL-LAP", "EL", "Laptops", null, null),
+        new("LP-1401", "EL-LAP", "Aero 14 laptop", 1099m, 34),
+        new("LP-1602", "EL-LAP", "Studio 16 laptop", 1899m, 12),
+        new("LP-1303", "EL-LAP", "Air 13 laptop", 899m, 58),
+        new("EL-AUD", "EL", "Headphones", null, null),
+        new("HP-0201", "EL-AUD", "Over-ear wireless headphones", 249m, 76),
+        new("HP-0202", "EL-AUD", "Noise-canceling earbuds", 179m, 140),
+        new("HM", null, "Home", null, null),
+        new("HM-KIT", "HM", "Kitchen", null, null),
+        new("KT-0301", "HM-KIT", "Pour-over coffee maker", 39m, 210),
+        new("KT-0302", "HM-KIT", "Chef's knife", 89m, 64),
+        new("HM-LGT", "HM", "Lighting", null, null),
+        new("LT-0401", "HM-LGT", "Desk lamp", 59m, 95),
+        new("LT-0402", "HM-LGT", "Floor lamp", 129m, 27),
+    ];
+    @* hide *@
+    private sealed record CatalogEntry(string Sku, string? Parent, string Name, decimal? Price, int? Stock);
+    @* /hide *@
+}

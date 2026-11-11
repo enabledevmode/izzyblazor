@@ -139,8 +139,8 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         await using (browser)
         {
             var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-            await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
+            await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/toolbar?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" }).First;
             var toolbar = grid.Locator(".ib-grid-toolbar");
             await toolbar.ScrollIntoViewSettledAsync();
             var box = grid.GetByRole(AriaRole.Searchbox);
@@ -149,6 +149,10 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await page.WaitForFunctionAsync("() => [...document.querySelectorAll('.ib-datagrid')].find(g => g.textContent.includes('Export')).querySelectorAll('tbody tr').length === 3");
             Assert.Equal("ada", await box.InputValueAsync());
 
+            await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/selection?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+            grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
+            toolbar = grid.Locator(".ib-grid-toolbar");
+            await toolbar.ScrollIntoViewSettledAsync();
             var top = await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top");
             await grid.Locator("tbody .ib-table-select").First.CheckAsync();
             await grid.Locator(".ib-selection-bar:not([hidden])").WaitForAsync();

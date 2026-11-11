@@ -1,0 +1,41 @@
+@* A project plan: phases, their tasks, and the steps under some tasks. Filter by owner or status, or
+   search, and each match keeps the phase and task above it, muted, so it's clear where it belongs. *@
+<TreeList Items="_tasks" ItemKey="t => t.Id.ToString()" ItemParentKey="t => t.ParentId?.ToString()"
+          Searchable QueryPrefix="plan-" Caption="Launch plan" Grow>
+    <Columns>
+        <PropertyColumn Property="t => t.Name" Title="Task" Filterable />
+        <PropertyColumn Property="t => t.Owner" Filterable Width="10.Rem" />
+        <PropertyColumn Property="t => t.Status" Filterable Width="9.Rem" />
+        <PropertyColumn Property="t => t.Due" Format="MMM d" Sortable Width="7.Rem" />
+    </Columns>
+</TreeList>
+
+@code {
+    private readonly PlanTask[] _tasks =
+    [
+        new(1, null, "Research", "Nadia Park", Progress.Done, new(2026, 9, 26)),
+        new(2, 1, "Interview customers", "Nadia Park", Progress.Done, new(2026, 9, 12)),
+        new(3, 1, "Review competitors", "Owen Clarke", Progress.Done, new(2026, 9, 19)),
+        new(4, 1, "Write the brief", "Nadia Park", Progress.Done, new(2026, 9, 26)),
+        new(5, null, "Design", "Iris Novak", Progress.Doing, new(2026, 10, 31)),
+        new(6, 5, "Wireframes", "Iris Novak", Progress.Done, new(2026, 10, 10)),
+        new(7, 5, "Visual design", "Iris Novak", Progress.Doing, new(2026, 10, 24)),
+        new(8, 7, "Color and type", "Iris Novak", Progress.Done, new(2026, 10, 17)),
+        new(9, 7, "Icons", "Sam Ortiz", Progress.Doing, new(2026, 10, 24)),
+        new(10, 5, "Usability test", "Owen Clarke", Progress.Todo, new(2026, 10, 31)),
+        new(11, null, "Build", "Sam Ortiz", Progress.Todo, new(2026, 12, 12)),
+        new(12, 11, "Sign-up flow", "Sam Ortiz", Progress.Doing, new(2026, 11, 14)),
+        new(13, 11, "Billing", "Leo Brandt", Progress.Todo, new(2026, 11, 28)),
+        new(14, 13, "Plans and prices", "Leo Brandt", Progress.Todo, new(2026, 11, 21)),
+        new(15, 13, "Invoices", "Leo Brandt", Progress.Todo, new(2026, 11, 28)),
+        new(16, 11, "Onboarding emails", "Nadia Park", Progress.Todo, new(2026, 12, 5)),
+        new(17, null, "Launch", "Owen Clarke", Progress.Todo, new(2026, 12, 19)),
+        new(18, 17, "Press release", "Owen Clarke", Progress.Todo, new(2026, 12, 15)),
+        new(19, 17, "Launch post", "Nadia Park", Progress.Todo, new(2026, 12, 19)),
+    ];
+    @* hide *@
+    private sealed record PlanTask(int Id, int? ParentId, string Name, string Owner, Progress Status, DateOnly Due);
+
+    private enum Progress { Todo, Doing, Done }
+    @* /hide *@
+}
