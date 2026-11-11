@@ -89,7 +89,7 @@ public sealed partial record DataRequest<TItem>
     }
 
     // A key from the tree list's text: "42" for an int column, as ItemKey wrote it.
-    private static T ParseKey<T>(string text)
+    internal static T ParseKey<T>(string text)
     {
         var type = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
         try
@@ -101,14 +101,14 @@ public sealed partial record DataRequest<TItem>
         }
         catch (Exception e) when (e is FormatException or OverflowException or ArgumentException or InvalidCastException)
         {
-            throw new InvalidOperationException($"The tree's parent key \"{text}\" isn't a {type.Name}: give ToTreeResult the properties ItemKey writes.", e);
+            throw new InvalidOperationException($"The tree's parent key \"{text}\" isn't a {type.Name}: give the tree the properties ItemKey writes.", e);
         }
     }
 
-    private static Expression<Func<TItem, bool>> Is<T>(Expression<Func<TItem, T>> property, T? value) =>
+    internal static Expression<Func<TItem, bool>> Is<T>(Expression<Func<TItem, T>> property, T? value) =>
         Expression.Lambda<Func<TItem, bool>>(Expression.Equal(property.Body, Expression.Constant(value, typeof(T))), property.Parameters);
 
-    private static Expression<Func<TItem, bool>> In<T>(Expression<Func<TItem, T>> property, IEnumerable<T> values) =>
+    internal static Expression<Func<TItem, bool>> In<T>(Expression<Func<TItem, T>> property, IEnumerable<T> values) =>
         Expression.Lambda<Func<TItem, bool>>(
             Expression.Call(typeof(Enumerable), nameof(Enumerable.Contains), [typeof(T)], Expression.Constant(values.ToList()), property.Body),
             property.Parameters);

@@ -169,6 +169,31 @@ public sealed class Selection
         protected override Expression VisitParameter(ParameterExpression node) => node == parameter ? with : node;
     }
 
+    /// <summary>
+    /// The selected rows of a <c>TreeList</c> that cascades, from a query: each selected row and every
+    /// row under it, which it stands for whether or not those rows were drawn. Give it the key and
+    /// parent key as properties, such as <c>e =&gt; e.Id, e =&gt; e.ManagerId</c>. It finds the rows
+    /// under them a level at a time. Not for a selection of every match (<see cref="All"/>).
+    /// </summary>
+    public IQueryable<TItem> ApplyTree<TItem, TKey, TParent>(IQueryable<TItem> source, Expression<Func<TItem, TKey>> key, Expression<Func<TItem, TParent>> parent)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        if (All)
+        {
+            throw new InvalidOperationException("A selection of every match isn't a list of rows: use Apply, with the view's fields.");
+        }
+
+        var all = Distinct(Keys ?? []).Select(DataRequest<TItem>.ParseKey<TKey>).ToHashSet();
+        var down = all.ToList();
+        for (var depth = 0; down.Count > 0 && depth < 64; depth++)
+        {
+            down = source.Where(DataRequest<TItem>.In(parent, down.Select(k => (TParent)(object)k))).Select(key).AsEnumerable().Where(all.Add).ToList();
+        }
+
+        return source.Where(DataRequest<TItem>.In(key, all));
+    }
+
     private static string[] Distinct(IEnumerable<string> keys) => [.. keys.Where(k => k is not null).Distinct(StringComparer.Ordinal)];
 
     private static string? NullIfEmpty(string? text) => string.IsNullOrEmpty(text) ? null : text;
