@@ -276,7 +276,7 @@ public class RoundChartTests : BunitContext
 
         // No palette: gray bands, and the value in one keeps the primary fill.
         var gray = Render<Gauge>(p => p.Add(c => c.Label, "CPU").Add(c => c.Value, 0.6).Add(c => c.ChildContent, Bands(null)));
-        Assert.Equal($"stroke:{ChartPalette.Gray(0, 2, thin: true)}", gray.Find("path.ib-gauge-band").GetAttribute("style"));
+        Assert.Equal($"stroke:{ChartPalette.Gray(0, 2)}", gray.Find("path.ib-gauge-band").GetAttribute("style"));
         Assert.Null(gray.Find("path.ib-gauge-fill").GetAttribute("style"));
     }
 }

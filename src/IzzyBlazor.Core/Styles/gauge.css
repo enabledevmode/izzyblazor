@@ -215,7 +215,8 @@
   .ib-lgauge-needle > span {
     position: absolute;
     inset: 0;
-    background: var(--ib-gauge-color, color-mix(in oklab, var(--ib-color-on-surface) 70%, var(--ib-color-surface)));
+    /* The text color in light mode (3:1 on the darkest gray band), a little dimmer in dark. */
+    background: var(--ib-gauge-color, light-dark(var(--ib-color-on-surface), color-mix(in oklab, var(--ib-color-on-surface) 70%, var(--ib-color-surface))));
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.5rem), 50% 100%, 0 calc(100% - 0.5rem));
   }
 
