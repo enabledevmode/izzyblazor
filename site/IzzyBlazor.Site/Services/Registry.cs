@@ -191,6 +191,12 @@ public sealed record RegistryComponent
     /// <summary>One line for cards and the index.</summary>
     public required string Summary { get; init; }
 
+    /// <summary>
+    /// What it shows and when it's the right choice (or another fits better), from published
+    /// guidance: a paragraph under the Overview's summary, with <c>`code`</c> as in an example's lead.
+    /// </summary>
+    public string? Use { get; init; }
+
     /// <summary>Other names people search for it by (<c>modal</c> for Dialog), matched like its name.</summary>
     public List<string> Keywords { get; init; } = [];
 
