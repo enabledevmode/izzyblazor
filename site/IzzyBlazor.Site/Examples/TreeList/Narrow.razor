@@ -1,5 +1,5 @@
 @* The org chart on a phone: Started, then Location, then Title hide as the tree narrows, and a
-   row's button shows them under it, at its level. Names stay, with their indent. Switch to Phone. *@
+   button at the row's end shows them under it, at its level. Names stay, with their indent. Switch to Phone. *@
 <TreeList Items="_people" ItemKey="p => p.Id.ToString()" ItemParentKey="p => p.ManagerId?.ToString()"
           ItemExpanded="p => p.ManagerId is null" RowLabel="p => p.Name" SmallScreen="DataGridSmallScreen.HideColumns"
           QueryPrefix="org-narrow-" Caption="People on a phone">

@@ -2911,7 +2911,7 @@
         {
           "id": "adaptability", "title": "Adaptability", "summary": "On a phone or in a narrow panel, the tree list hides the columns that don't fit and shows their values under the row.", "members": ["SmallScreen", "Column.Priority", "ItemKey"],
           "examples": [
-            { "id": "tree-list-narrow", "widthSwitch": true, "title": "Columns that hide", "lead": "To hide the columns that don't fit a narrow screen instead of scrolling sideways, set `SmallScreen=\"DataGridSmallScreen.HideColumns\"`. Columns hide lowest `Priority` first, and each row's button shows their values under it.", "after": ["The first column stays, with each row's indent and chevron, so the tree still reads. A row's hidden values open under it at its level, and stay open as the rows around it open and close."] }
+            { "id": "tree-list-narrow", "widthSwitch": true, "title": "Columns that hide", "lead": "To hide the columns that don't fit a narrow screen instead of scrolling sideways, set `SmallScreen=\"DataGridSmallScreen.HideColumns\"`. Columns hide lowest `Priority` first, and a button at the end of each row shows their values under it.", "after": ["The first column stays, with each row's indent and chevron, so the tree still reads; the button is at the row's end, as a DataGrid's would sit beside the tree's chevron. A row's hidden values open under it at its level, and stay open as the rows around it open and close."] }
           ]
         }
       ]

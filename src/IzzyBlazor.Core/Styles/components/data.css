@@ -1624,6 +1624,11 @@
     rotate: 90deg;
   }
 
+  /* At a row's end (a TreeList's hidden values): down, and over as they open. */
+  .ib-grid-expand-down[aria-expanded="true"] > svg {
+    rotate: 180deg;
+  }
+
   :is(.ib-grid-group-toggle, .ib-grid-expand) > svg:dir(rtl) {
     scale: -1 1;
   }

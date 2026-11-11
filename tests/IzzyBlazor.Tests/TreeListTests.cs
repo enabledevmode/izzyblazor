@@ -298,6 +298,10 @@ public class TreeListTests : BunitContext
         Assert.Contains("ib-grid-detail", rows[2].ClassList);
         Assert.Equal("2", rows[2].GetAttribute("aria-level"));
         Assert.Equal("Daniel", rows[3].QuerySelector(".ib-treelist-value")!.TextContent.Trim());
+
+        // The button is at the row's end: its start is the tree's chevron alone.
+        Assert.Equal("Hide details for Sofia", rows[1].Children[^1].QuerySelector(".ib-grid-expand-down")!.GetAttribute("aria-label"));
+        Assert.Empty(rows[1].Children[0].QuerySelectorAll(".ib-grid-expand:not(.ib-treelist-toggle)"));
     }
 
     [Fact]
