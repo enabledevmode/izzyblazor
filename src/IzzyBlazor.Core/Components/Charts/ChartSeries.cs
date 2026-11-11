@@ -134,6 +134,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     internal bool IsHistogram => BinsOf is not null;
 
+    internal ChartBins? HistogramBins => BinsOf;
+
     private protected abstract ChartType Type { get; }
 
     // The value each item is drawn at (a range's high end), and a range's low end.

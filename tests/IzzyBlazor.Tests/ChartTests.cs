@@ -603,6 +603,13 @@ public class ChartRenderTests : BunitContext
         Assert.Equal("20%", bars[1].GetAttribute("x"));
         Assert.Equal("20%", bars[0].GetAttribute("width"));
         Assert.All(bars, b => Assert.Null(b.GetAttribute("class")));
+
+        // Split by a group while the items are still loading: drawn empty, not an exception.
+        var loading = Render<Chart<Sale>>(p => p
+            .Add(c => c.Items, Array.Empty<Sale>())
+            .Add(c => c.Title, "Delivery time")
+            .AddChildContent<ChartHistogramSeries<Sale>>(s => s.Add(x => x.Value, o => o.Orders).Add(x => x.SeriesBy, o => o.Day)));
+        Assert.Empty(loading.FindAll(".ib-chart-hist rect"));
     }
 
     [Fact]

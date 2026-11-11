@@ -1155,6 +1155,12 @@
     // The bins every histogram series shares, from all their values.
     private ChartHistogram Binned(List<ChartSeriesData> read)
     {
+        // Split by SeriesBy with no items yet (still loading), there's no series to read: no bins.
+        if (read.Count == 0)
+        {
+            return ChartHistogram.Build([], _context.Series[0].HistogramBins!, null, ArgumentFormatter, ArgumentFormat, CultureInfo.CurrentCulture);
+        }
+
         var first = read[0].Bins!;
         if (read.Any(d => d.Bins != first))
         {
