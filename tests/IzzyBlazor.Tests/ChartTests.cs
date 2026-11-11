@@ -682,6 +682,28 @@ public class ChartRenderTests : BunitContext
         Assert.Equal([2, 1], split.FindAll(".ib-chart-svg g.ib-chart-box").Select(g => g.QuerySelectorAll(":scope > g").Length));
     }
 
+    private record Latency(string Region, double P5, double P25, double P50, double P75, double P95, double[] Slow);
+
+    [Fact]
+    public void A_box_summary_draws_each_items_box_as_given()
+    {
+        Latency[] regions = [new("East", 40, 60, 75, 95, 140, [210, 260]), new("West", 50, 70, 85, 110, 160, [])];
+        var cut = Render<Chart<Latency>>(p => p
+            .Add(c => c.Items, regions)
+            .Add(c => c.Argument, r => r.Region)
+            .Add(c => c.Title, "Response time")
+            .AddChildContent<ChartBoxSummarySeries<Latency>>(s => s
+                .Add(x => x.Low, r => r.P5).Add(x => x.Q1, r => r.P25).Add(x => x.Median, r => r.P50)
+                .Add(x => x.Q3, r => r.P75).Add(x => x.High, r => r.P95).Add(x => x.Outliers, r => r.Slow)));
+
+        // The numbers as given, with outliers drawn; nothing was counted, so no Values column.
+        Assert.Equal(["Region", "Median", "Lower quartile", "Upper quartile", "Lower whisker", "Upper whisker", "Outliers"],
+            cut.FindAll(".ib-chart-table thead th").Select(h => h.TextContent.Trim()));
+        Assert.Equal([["75", "60", "95", "40", "140", "2"], ["85", "70", "110", "50", "160", "0"]],
+            cut.FindAll(".ib-chart-table tbody tr").Select(r => r.QuerySelectorAll("td").Select(d => d.TextContent.Trim()).ToArray()));
+        Assert.Equal(2, cut.FindAll(".ib-chart-box circle").Count);
+    }
+
     [Fact]
     public void Refresh_on_a_static_page_needs_an_id_and_gets_a_pause_button()
     {

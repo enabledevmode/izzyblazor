@@ -594,7 +594,7 @@
                 at[i] = g;
             }
 
-            arguments = distinct;
+            arguments = _drawnBox = distinct;
             raw = _context.Series.SelectMany(s => s.Read(items)).Select(d => Boxed(d, at, distinct.Count)).ToList();
             // No item stands for a box: the tooltips have its numbers only.
             items = new TItem[distinct.Count];
@@ -1255,6 +1255,9 @@
     {
         var several = model.Series.Count > 1;
         var mean = model.Series.Any(s => s.Data.ShowMean);
+        // Counted only from raw values; outliers only where a series has them.
+        var counted = model.Series.Any(s => s.Data.Whiskers is not null);
+        var outliers = counted || model.Series.Any(s => s.Data.Boxes?.Any(b => b?.Outliers.Length > 0) == true);
         <thead>
             <tr>
                 <th scope="col">@(ArgumentTitle ?? _argumentName ?? TextDefaults.ChartItem)</th>
@@ -1271,8 +1274,14 @@
                 {
                     <th scope="col">@TextDefaults.ChartMean</th>
                 }
-                <th scope="col">@TextDefaults.ChartBoxCount</th>
-                <th scope="col">@TextDefaults.ChartBoxOutlierCount</th>
+                @if (counted)
+                {
+                    <th scope="col">@TextDefaults.ChartBoxCount</th>
+                }
+                @if (outliers)
+                {
+                    <th scope="col">@TextDefaults.ChartBoxOutlierCount</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -1292,19 +1301,29 @@
                         {
                             <td>@(s.Data.ShowMean ? t[5] : null)</td>
                         }
-                        <td>@t[6]</td><td>@t[7]</td>
+                        @if (counted)
+                        {
+                            <td>@t[6]</td>
+                        }
+                        @if (outliers)
+                        {
+                            <td>@t[7]</td>
+                        }
                     </tr>
                 }
             }
         </tbody>
     };
 
+    // A box plot's arguments, while it groups its items, for a message naming one.
+    private List<object?> _drawnBox = [];
+
     // A box plot's chart holds box plots only, on groups it doesn't zoom across.
     private void CheckBoxPlot(ChartDrillState<TItem>? drill)
     {
         string? problem = null;
         if (_context.Series.FirstOrDefault(s => !s.IsBox) is { } other)
-            problem = $"A box plot's chart holds only ChartBoxPlotSeries: {other.GetType().Name.Split('`')[0]} plots each item, where a box stands for a group of them. Draw it in a chart of its own.";
+            problem = $"A box plot's chart holds only ChartBoxPlotSeries and ChartBoxSummarySeries: {other.GetType().Name.Split('`')[0]} plots each item, where a box stands for a group of them. Draw it in a chart of its own.";
         else if (drill is not null)
             problem = "A box plot doesn't drill down: leave out the ChartDrillLevels.";
         else if (_argumentAxis?.Zoom == true || _context.Selector is not null || View is not null)
@@ -1320,15 +1339,35 @@
 
     // A box plot series' boxes, one for each argument's values; its Lows and Values become their
     // smallest and largest values, so the value axis takes in the outliers.
-    private static ChartSeriesData Boxed(ChartSeriesData data, int[] at, int count)
+    private ChartSeriesData Boxed(ChartSeriesData data, int[] at, int count)
     {
-        var groups = new List<double>?[count];
-        for (var i = 0; i < data.Values.Length; i++)
+        ChartBox?[] boxes;
+        if (data.Summaries is { } given)
         {
-            if (at[i] >= 0 && data.Values[i] is { } v && double.IsFinite(v)) (groups[at[i]] ??= []).Add(v);
+            // Given: each item is its argument's box, one to a series.
+            boxes = new ChartBox?[count];
+            for (var i = 0; i < given.Length; i++)
+            {
+                if (at[i] < 0 || given[i] is not { } box) continue;
+                if (boxes[at[i]] is not null)
+                {
+                    throw new InvalidOperationException($"A ChartBoxSummarySeries takes one item per box: \"{ChartLayout.ArgumentText(_drawnBox[at[i]], null, CultureInfo.CurrentCulture)}\" has two{(data.Name.Length > 0 ? $" in \"{data.Name}\"" : "")}. Split them with SeriesBy, or give them Arguments of their own.");
+                }
+
+                boxes[at[i]] = box;
+            }
+        }
+        else
+        {
+            var groups = new List<double>?[count];
+            for (var i = 0; i < data.Values.Length; i++)
+            {
+                if (at[i] >= 0 && data.Values[i] is { } v && double.IsFinite(v)) (groups[at[i]] ??= []).Add(v);
+            }
+
+            boxes = groups.Select(g => g is null ? null : ChartBox.Of(g, data.Whiskers!.Value)).ToArray();
         }
 
-        var boxes = groups.Select(g => g is null ? null : ChartBox.Of(g, data.Whiskers!.Value)).ToArray();
         return data with
         {
             Boxes = boxes,
