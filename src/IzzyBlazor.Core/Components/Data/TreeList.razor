@@ -160,7 +160,8 @@
                 else
                 {
                     <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-treelist-grip"
-                                Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [MoveQueryKey] = key, [MoveNearQueryKey] = null, [MoveAtQueryKey] = null })" />
+                                Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [MoveQueryKey] = key, [MoveNearQueryKey] = null, [MoveAtQueryKey] = null })"
+                                data-ib-autofocus="@(key == _dropped ? "" : null)" />
                 }
             }
         </td>
@@ -191,19 +192,45 @@
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? OwnDialog => CurrentMoveKey is not { } key ? null : __builder =>
+    internal override RenderFragment? OwnDialog => CurrentMoveKey is null && (!TreeGrips || RendererInfo.IsInteractive) ? null : __builder =>
     {
         @if (RendererInfo.IsInteractive)
         {
-            @MoveDialog(key, null)
+            @MoveDialog(CurrentMoveKey!, null)
         }
         else
         {
             @* Named for this tree list, so that a post reaches only its own form. *@
             <FormMappingScope Name="@($"ib-tree-{QueryPrefix}")" Context="scope">
-                @MoveBinding(key)
+                @if (TreeGrips)
+                {
+                    @DropForm
+                }
+                @if (CurrentMoveKey is { } key)
+                {
+                    @MoveBinding(key)
+                }
             </FormMappingScope>
         }
+    };
+
+    private RenderFragment DropFormFor(TreeListDropPost? posted) => __builder =>
+    {
+        <form method="post" @formname="drop" @onsubmit="() => DropPostedAsync(posted)" data-enhance data-ib-tree-drop hidden>
+            <AntiforgeryToken />
+            <input type="hidden" name="@($"{TreeListDropBinding.Prefix}.{nameof(TreeListDropPost.Key)}")" />
+            <input type="hidden" name="@($"{TreeListDropBinding.Prefix}.{nameof(TreeListDropPost.Near)}")" />
+            <input type="hidden" name="@($"{TreeListDropBinding.Prefix}.{nameof(TreeListDropPost.At)}")" />
+        </form>
+    };
+
+    // A static page's drops post here: the script fills it in and sends it, so a drop moves the row as
+    // it does on an interactive page, with no dialog to confirm.
+    private RenderFragment DropForm => builder =>
+    {
+        builder.OpenComponent<TreeListDropBinding>(0);
+        builder.AddComponentParameter(1, nameof(TreeListDropBinding.ChildContent), (RenderFragment<TreeListDropPost?>)DropFormFor);
+        builder.CloseComponent();
     };
 
     private RenderFragment MoveBinding(string key) => builder =>

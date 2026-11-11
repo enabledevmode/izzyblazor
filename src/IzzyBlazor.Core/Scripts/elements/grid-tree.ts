@@ -61,6 +61,16 @@ function setupDrag(table: HTMLTableElement, host: HTMLElement, signal: AbortSign
         grip.dispatchEvent(new CustomEvent("ibmove", { bubbles: true, detail: { key, to: ["before", "after", "into"].indexOf(zone), zone: near, seq: ++seq } }));
         return;
       }
+      // A static page: post the drop with the tree list's own form, as the server works out the place.
+      const form = [...host.querySelectorAll<HTMLFormElement>("form[data-ib-tree-drop]")].find((f) => f.closest("ib-table") === host);
+      if (form) {
+        for (const [field, value] of [["Key", key], ["Near", near], ["At", zone]]) {
+          const input = form.querySelector<HTMLInputElement>(`input[name$=".${field}"]`);
+          if (input) input.value = value;
+        }
+        form.requestSubmit();
+        return;
+      }
       const name = host.getAttribute("data-ib-tree-drag")!;
       const url = new URL(location.href);
       url.searchParams.set(name, key);

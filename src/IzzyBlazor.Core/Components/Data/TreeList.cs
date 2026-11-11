@@ -99,9 +99,10 @@ public partial class TreeList<TItem>
 
     /// <summary>
     /// Gives each row a handle to drag it before, after or into another row, never into its own
-    /// branch. Needs <see cref="OnReparent"/>, which gets the row's new parent and place. On an
-    /// interactive page the drop moves it; on a static page it opens the Move dialog with the new
-    /// parent chosen, to confirm. A <c>MoveAction</c> does the same with the keyboard.
+    /// branch. Needs <see cref="OnReparent"/>, which gets the row's new parent and place. A drop
+    /// moves the row at once, on a static page by a form post. Pressed, or from the keyboard, the
+    /// handle opens the Move dialog, as a <c>MoveAction</c> does, and so does a drop OnReparent turns
+    /// down, with its reason.
     /// </summary>
     [Parameter] public bool MoveByDrag { get; set; }
 
@@ -198,8 +199,39 @@ public partial class TreeList<TItem>
     private Microsoft.AspNetCore.Components.Forms.EditContext? _moveContext;
     private Microsoft.AspNetCore.Components.Forms.ValidationMessageStore? _moveMessages;
 
-    // The row whose Move dialog is open: one that can move, and is here.
-    private string? CurrentMoveKey => !OnReparent.HasDelegate || EditEnding ? null : UseState ? _stateMoveKey : QueryValue(MoveQueryKey);
+    // The row whose Move dialog is open: one that can move, and is here. On a static page, also one
+    // whose drop OnReparent turned down, to say why.
+    private string? CurrentMoveKey => !OnReparent.HasDelegate || EditEnding ? null : UseState ? _stateMoveKey : QueryValue(MoveQueryKey) ?? _dropRefused;
+
+    // A static page's drop: the row OnReparent turned down, and the row just moved, whose handle takes focus.
+    private string? _dropRefused;
+    private string? _dropped;
+
+    // A drop posted on a static page: moved as on an interactive one, or, turned down, the Move dialog
+    // opens with the drop's place chosen and the reason.
+    private async Task DropPostedAsync(TreeListDropPost? posted)
+    {
+        (_dropRefused, _dropped) = (null, null);
+        if (posted is not { Key: { } key, Near: { } near, At: { } zone } || _treeNodes?.GetValueOrDefault(key) is not { } node || !CanMoveRow(node.Item)
+            || DropPlace(key, near, zone) is not { } place)
+        {
+            return;
+        }
+
+        var errors = new List<string>();
+        var move = new TreeListMove<TItem>(node.Item, place.Parent is null ? default : place.Parent.Item, place.Index, errors.Add);
+        await OnReparent.InvokeAsync(move);
+        if (move.HasErrors)
+        {
+            StartMove(key, place.Parent?.Key ?? "", place.Index);
+            errors.ForEach(AddMoveError);
+            _dropRefused = key;
+            return;
+        }
+
+        _dropped = key;
+        await ReloadAsync();
+    }
 
     /// <inheritdoc />
     internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey, MoveNearQueryKey, MoveAtQueryKey] : base.LinkClears;
