@@ -1624,7 +1624,7 @@
     rotate: 90deg;
   }
 
-  /* At a row's end (a TreeList's hidden values): its icon changes, unfold to fold, rather than turning. */
+  /* At a row's end (a TreeList's hidden values): its icon changes, chevrons apart to together, rather than turning. */
   .ib-grid-expand-down[aria-expanded="true"] > svg {
     rotate: none;
   }

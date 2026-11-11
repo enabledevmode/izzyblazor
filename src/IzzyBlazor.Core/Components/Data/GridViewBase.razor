@@ -1515,7 +1515,7 @@
     };
 
     // A row's button for its detail: a chevron that turns right to down at the row's start; at its end
-    // (a TreeList's, beside the tree's own chevrons), unfold to open and fold to close.
+    // (a TreeList's, beside the tree's own chevrons), chevrons apart to open and together to close.
     private RenderFragment DetailButton(TItem item, int row) => __builder =>
     {
         @* Not while it's open only for an edit, which closes it. *@
@@ -1526,7 +1526,7 @@
             var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
             // One with only hidden values to show goes while nothing is hidden.
             var css = (HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx") + (TrailExpander ? " ib-grid-expand-down" : "");
-            var icon = !TrailExpander ? IconSet.Current.Get(IconPurpose.ChevronRight) : open ? Lucide.FoldVertical : Lucide.UnfoldVertical;
+            var icon = !TrailExpander ? IconSet.Current.Get(IconPurpose.ChevronRight) : open ? Lucide.ChevronsDownUp : Lucide.ChevronsUpDown;
             if (UseState)
             {
                 <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Name="icon" /></button>
