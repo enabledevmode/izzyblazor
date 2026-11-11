@@ -441,13 +441,15 @@ internal static class ChartLayout
     {
         var n = input.Arguments.Count;
         var hasBars = input.Series.Any(s => s.Type == ChartType.Bar);
-        if (input.SkipGaps && KindOf(input.Arguments) != ArgumentKind.Time)
+        // Checked once there are dates: with no items yet (still loading), there's nothing to space.
+        var anyArgument = input.Arguments.Any(a => a is not null);
+        if (input.SkipGaps && anyArgument && KindOf(input.Arguments) != ArgumentKind.Time)
         {
             throw new InvalidOperationException("ChartArgumentAxis's SkipGaps spaces dates by item: the chart's Argument needs to be a date (DateTime, DateOnly or DateTimeOffset).");
         }
 
         var dates = Dates(input.Arguments);
-        if (input.SkipGaps && dates is null)
+        if (input.SkipGaps && anyArgument && dates is null)
         {
             throw new InvalidOperationException("ChartArgumentAxis's SkipGaps needs the items in date order, earliest first.");
         }
@@ -847,6 +849,14 @@ internal static class ChartLayout
                 var slot = edges ? band : stacked ? band * 0.8 : band * 0.8 / bars.Count;
                 var width = edges ? band : slot * 0.9;
                 var steps = new List<(double A0, double A1, double V)>();
+
+                // A price's close before it, for high-low-close's up or down: worked out once, not per item.
+                var prior = new double?[data.IsOhlc ? n : 0];
+                for (var (k, previous) = (0, (double?)null); k < prior.Length; k++)
+                {
+                    prior[k] = previous;
+                    if (data.Closes![k] is { } close) previous = close;
+                }
                 for (var i = 0; i < n; i++)
                 {
                     if (highs[s][i] is not { } top) continue;
@@ -916,8 +926,7 @@ internal static class ChartLayout
                     if (a0 + width <= 0 || a0 >= 1) return null;
                     if (reverse) a0 = 1 - a0 - width;
                     var y = (double v) => (1 - sc(v)) * 100;
-                    var before = Enumerable.Range(0, i).Reverse().Select(k => data.Closes![k]).FirstOrDefault(c => c is not null);
-                    var up = p.Open is { } o ? p.Close >= o : before is not { } b || p.Close >= b;
+                    var up = p.Open is { } o ? p.Close >= o : prior[i] is not { } b || p.Close >= b;
                     var (top, bottom) = p.Open is { } open ? (y(Math.Max(open, p.Close)), y(Math.Min(open, p.Close))) : (y(p.High), y(p.Low));
                     var mid = (a0 + width / 2) * 100;
                     return new BarRect(a0 * 100, top, width * 100, bottom - top, $"{model.ArgumentTexts[i]}{(data.Name.Length > 0 ? ", " + data.Name : "")}: {model.ValueTexts[s][i]}")
@@ -982,7 +991,7 @@ internal static class ChartLayout
                                 ? [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High))]
                                 : [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High)), Line(mid - cap, V(b.Low), mid + cap, V(b.Low)), Line(mid - cap, V(b.High), mid + cap, V(b.High))],
                             Line(start, V(b.Median), end, V(b.Median)),
-                            data.ShowMean ? At(mid, V(b.Mean)) : null,
+                            data.ShowMean && double.IsFinite(b.Mean) ? At(mid, V(b.Mean)) : null,
                             b.Outliers.Where(o => !log || o > 0).Select(o => At(mid, V(o))).ToList()),
                     };
                 }
@@ -1613,7 +1622,7 @@ internal static class ChartLayout
         if (b is null) return null;
         string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
             : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
-        return [Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High), Text(b.Mean),
+        return [Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High), double.IsFinite(b.Mean) ? Text(b.Mean) : "",
             b.Count?.ToString("N0", input.Culture) ?? "", b.Outliers.Length.ToString("N0", input.Culture)];
     }
 
@@ -1624,7 +1633,7 @@ internal static class ChartLayout
         string Text(double v) => s.Secondary ? v.ToString(input.SecondaryFormat ?? "#,##0.##", input.Culture)
             : input.ValueFormatter?.Invoke(v) ?? v.ToString(input.ValueFormat ?? "#,##0.##", input.Culture);
         var text = string.Format(input.Culture, input.Text.ChartBox, Text(b.Median), Text(b.Q1), Text(b.Q3), Text(b.Low), Text(b.High));
-        if (s.ShowMean) text += ", " + string.Format(input.Culture, input.Text.ChartBoxMean, Text(b.Mean));
+        if (s.ShowMean && double.IsFinite(b.Mean)) text += ", " + string.Format(input.Culture, input.Text.ChartBoxMean, Text(b.Mean));
         if (b.Count is { } count) text += ", " + string.Format(input.Culture, count == 1 ? input.Text.ChartBoxValue : input.Text.ChartBoxValues, count);
         if (b.Outliers.Length > 0) text += ", " + string.Format(input.Culture, b.Outliers.Length == 1 ? input.Text.ChartBoxOutlier : input.Text.ChartBoxOutliers, b.Outliers.Length);
         return text;

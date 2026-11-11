@@ -1250,7 +1250,7 @@
                 <span class="ib-chart-tooltip-value"><span class="ib-visually-hidden">@($", {TextDefaults.ChartBoxMiddle} ")</span>@t[1] – @t[2]</span>
                 @if (mean)
                 {
-                    <span class="ib-chart-tooltip-value">@if (s.Data.ShowMean)
+                    <span class="ib-chart-tooltip-value">@if (s.Data.ShowMean && t[5].Length > 0)
                     {<span class="ib-visually-hidden">@($", {TextDefaults.ChartMean} ")</span>@t[5]}</span>
                 }
             </div>
@@ -1384,8 +1384,8 @@
         return data with
         {
             Boxes = boxes,
-            Lows = boxes.Select(b => b?.Min).ToArray(),
-            Values = boxes.Select(b => b?.Max).ToArray(),
+            Lows = boxes.Select(b => b?.Span.Lo).ToArray(),
+            Values = boxes.Select(b => b?.Span.Hi).ToArray(),
         };
     }
 
@@ -1961,7 +1961,9 @@
     private List<(string Text, string Name, double From, double To)> SelectorRanges(ChartModel model, IRangeSelector selector)
     {
         var list = new List<(string, string, double, double)>();
-        if ((model.Kind != ArgumentKind.Time && !model.Dated) || (!selector.Ranges && selector.Presets is null)) return list;
+        // Dates spaced by item (SkipGaps, or under bars): presets count items, whatever the labels' fit.
+        var byItem = model.Kind == ArgumentKind.Category && ChartLayout.Dates(_drawnArguments) is not null;
+        if ((model.Kind != ArgumentKind.Time && !byItem) || (!selector.Ranges && selector.Presets is null)) return list;
         var ticks = _drawnArguments.Select(a => ChartLayout.ToDouble(a, ArgumentKind.Time)).Where(x => x is not null).Select(x => (long)x!.Value).ToList();
         if (ticks.Count < 2) return list;
         var (lo, hi) = (ticks.Min(), ticks.Max());
@@ -1971,7 +1973,7 @@
         DateTime Back(DateTime from) => last.TimeOfDay == TimeSpan.Zero ? from.AddDays(1) : from;
         // Dates spaced by item: a span's share is its items' (one item to each slot).
         var n = _drawnArguments.Count;
-        double Share(DateTime t, bool end) => model.Dated
+        double Share(DateTime t, bool end) => byItem
             ? (end ? _drawnArguments.Count(a => ChartLayout.ToDouble(a, ArgumentKind.Time) <= t.Ticks) : _drawnArguments.Count(a => ChartLayout.ToDouble(a, ArgumentKind.Time) < t.Ticks)) / (double)n
             : Math.Clamp((t.Ticks - lo) / (double)(hi - lo), 0, 1);
         void Add(string text, string name, DateTime from, DateTime to)
