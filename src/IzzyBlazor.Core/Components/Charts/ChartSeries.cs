@@ -24,6 +24,10 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private Func<TItem, object?>? _low;
     private Expression<Func<TItem, object?>>? _lastTarget;
     private Func<TItem, object?>? _target;
+    private Expression<Func<TItem, object?>>? _lastOpen;
+    private Func<TItem, object?>? _open;
+    private Expression<Func<TItem, object?>>? _lastClose;
+    private Func<TItem, object?>? _close;
     private Expression<Func<TItem, object?>>? _lastSize;
     private Func<TItem, object?>? _size;
     private string? _sizeName;
@@ -148,6 +152,13 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     // A bar series' target for each item.
     private protected virtual Expression<Func<TItem, object?>>? TargetOf => null;
 
+    // A price series' open and close for each item, and its look.
+    private protected virtual Expression<Func<TItem, object?>>? OpenOf => null;
+
+    private protected virtual Expression<Func<TItem, object?>>? CloseOf => null;
+
+    private protected virtual ChartOhlcLook OhlcLookOf => ChartOhlcLook.Candlestick;
+
     // What to say when the value is missing.
     private protected virtual string ValueNeeded => $"{Kind} needs a Value, such as m => m.Revenue.";
 
@@ -247,9 +258,16 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             (_lastValue, _lastLow) = (value, low);
             _compiled = value.Compile();
             _low = low?.Compile();
-            // A range is named by both ends, such as "Low – High", until it's given a Name.
-            _memberName = low is null ? ChartMembers.Name(value)
+            // A range is named by both ends, such as "Low – High", until it's given a Name; prices
+            // by none (their tooltip names each one).
+            _memberName = CloseOf is not null ? null : low is null ? ChartMembers.Name(value)
                 : ChartMembers.Name(low) is { } l && ChartMembers.Name(value) is { } h ? $"{l} – {h}" : null;
+        }
+
+        if (!ReferenceEquals(OpenOf, _lastOpen) || !ReferenceEquals(CloseOf, _lastClose))
+        {
+            (_lastOpen, _lastClose) = (OpenOf, CloseOf);
+            (_open, _close) = (_lastOpen?.Compile(), _lastClose?.Compile());
         }
 
         if (!ReferenceEquals(TargetOf, _lastTarget))
@@ -300,6 +318,20 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             yield return Data(DisplayName, values, Color) with
             {
                 Totals = totals,
+                IncreaseColor = IncreaseColorOf,
+                DecreaseColor = DecreaseColorOf,
+            };
+            yield break;
+        }
+
+        if (_close is not null)
+        {
+            yield return Data(DisplayName, values, Color) with
+            {
+                Lows = lows,
+                Opens = _open is null ? null : items.Select(item => ChartMembers.ToNumber(_open(item))).ToArray(),
+                Closes = items.Select(item => ChartMembers.ToNumber(_close(item))).ToArray(),
+                OhlcBars = OhlcLookOf == ChartOhlcLook.Bars,
                 IncreaseColor = IncreaseColorOf,
                 DecreaseColor = DecreaseColorOf,
             };
@@ -773,6 +805,106 @@ public sealed class ChartRangeAreaSeries<TItem> : ChartRangeSeriesBase<TItem>
     private protected override ChartLineStyle? LineStyleOf => LineStyle;
 
     private protected override bool ConnectGapsOf => ConnectGaps;
+}
+
+/// <summary>
+/// Prices over time: each item's open, high, low and close, as a candlestick or an OHLC bar. A
+/// candle is hollow when the price closed above its open and filled when it closed below, in the
+/// chart's increase and decrease colors (blue and red by default, which stay apart for red-green
+/// color blindness). Pair it with the argument axis's <c>SkipGaps</c> on a chart without bars, and
+/// with a <see cref="ChartLineSeries{TItem}"/> for a moving average. Volume reads best as bars in a
+/// chart of its own under this one, joined with <c>Sync</c>. Stands upright only.
+/// </summary>
+/// <typeparam name="TItem">The chart's item type.</typeparam>
+/// <example>
+/// <code>
+/// &lt;Chart Items="days" Argument="d =&gt; d.Date" Title="ACME, March 2026"&gt;
+///     &lt;ChartValueAxis Format="C0" /&gt;
+///     &lt;ChartOhlcSeries Open="d =&gt; d.Open"
+///                      High="d =&gt; d.High"
+///                      Low="d =&gt; d.Low"
+///                      Close="d =&gt; d.Close"
+///                      Name="ACME" /&gt;
+/// &lt;/Chart&gt;
+/// </code>
+/// </example>
+[ModeSupport]
+public sealed class ChartOhlcSeries<TItem> : ChartSeriesBase<TItem>
+{
+    /// <summary>Each item's opening price, such as <c>d =&gt; d.Open</c>. Without it, only <c>Look="ChartOhlcLook.Bars"</c> applies: high, low and the close's tick.</summary>
+    [Parameter] public Expression<Func<TItem, object?>>? Open { get; set; }
+
+    /// <summary>Each item's highest price, such as <c>d =&gt; d.High</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> High { get; set; } = default!;
+
+    /// <summary>Each item's lowest price, such as <c>d =&gt; d.Low</c>.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Low { get; set; } = default!;
+
+    /// <summary>Each item's closing price, such as <c>d =&gt; d.Close</c>. An item missing any price is left out.</summary>
+    [Parameter, EditorRequired] public Expression<Func<TItem, object?>> Close { get; set; } = default!;
+
+    /// <summary>Candlesticks (the default) or OHLC bars, which suit many items.</summary>
+    [Parameter] public ChartOhlcLook Look { get; set; }
+
+    /// <summary>
+    /// The CSS color of items that closed up, such as <c>var(--ib-color-success)</c>. Defaults to
+    /// the palette's blue (<c>--ib-chart-increase</c>, or <c>--ib-chart-1</c>), as a waterfall's rises.
+    /// </summary>
+    [Parameter] public string? IncreaseColor { get; set; }
+
+    /// <summary>The CSS color of items that closed down. Defaults to the palette's red (<c>--ib-chart-decrease</c>, or <c>--ib-chart-8</c>).</summary>
+    [Parameter] public string? DecreaseColor { get; set; }
+
+    private protected override ChartType Type => ChartType.Bar;
+
+    private protected override Expression<Func<TItem, object?>>? ValueOf => High;
+
+    private protected override Expression<Func<TItem, object?>>? LowOf => Low;
+
+    private protected override bool IsRange => true;
+
+    private protected override Expression<Func<TItem, object?>>? OpenOf => Open;
+
+    private protected override Expression<Func<TItem, object?>>? CloseOf => Close;
+
+    private protected override ChartOhlcLook OhlcLookOf => Look;
+
+    private protected override string? IncreaseColorOf => IncreaseColor;
+
+    private protected override string? DecreaseColorOf => DecreaseColor;
+
+    private protected override string ValueNeeded => "A ChartOhlcSeries needs a High, a Low and a Close, such as d => d.High.";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Close is null)
+        {
+            throw new InvalidOperationException(ValueNeeded);
+        }
+
+        if (Open is null && Look == ChartOhlcLook.Candlestick)
+        {
+            throw new InvalidOperationException("A candlestick needs an Open, such as d => d.Open: without one, use Look=\"ChartOhlcLook.Bars\" for high, low and close.");
+        }
+
+        if (Trend != ChartTrend.None)
+        {
+            throw new InvalidOperationException("A ChartOhlcSeries takes no Trend: draw a moving average of the close as a ChartLineSeries with Trend=\"ChartTrend.MovingAverage\".");
+        }
+
+        if (SeriesBy is not null)
+        {
+            throw new InvalidOperationException("A ChartOhlcSeries can't be split with SeriesBy: give each instrument a series, or a chart, of its own.");
+        }
+
+        if (Labels != ChartLabels.None || LabelText is not null)
+        {
+            throw new InvalidOperationException("A ChartOhlcSeries takes no Labels: its four prices are in each item's tooltip.");
+        }
+
+        base.OnParametersSet();
+    }
 }
 
 /// <summary>What a <see cref="Chart{TItem}"/> shares with its series: the series, in order.</summary>

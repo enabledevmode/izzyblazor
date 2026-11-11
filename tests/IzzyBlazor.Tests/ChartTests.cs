@@ -206,6 +206,24 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void A_candle_runs_from_open_to_close_on_a_wick_from_low_to_high_and_is_up_when_it_closed_higher()
+    {
+        // Two days: 10 to 14 (up), then 14 to 11 (down); highs and lows past both.
+        var model = ChartLayout.Build(new ChartInput(
+            ["Mon", "Tue"],
+            [new ChartSeriesData("ACME", ChartType.Bar, [15, 16]) { Lows = [9, 10], Opens = [10, 14], Closes = [14, 11] }])
+        { Culture = CultureInfo.InvariantCulture, ValueMin = 0, ValueMax = 20 });
+
+        var (mon, tue) = (model.Series[0].Bars[0], model.Series[0].Bars[1]);
+        Assert.Equal(("up", "down"), (mon.Change, tue.Change));
+        Assert.Equal(30, mon.Y, 6);
+        Assert.Equal(50, mon.Y + mon.Height, 6);
+        Assert.Equal(25, mon.Prices!.Value.High, 6);
+        Assert.Equal(55, mon.Prices.Value.Low, 6);
+        Assert.Equal("Mon, ACME: open 10, high 15, low 9, close 14", mon.Title);
+    }
+
+    [Fact]
     public void Stacked_bars_sit_on_each_other_and_full_stacks_reach_the_top_with_a_rounded_end()
     {
         var model = ChartLayout.Build(new ChartInput(

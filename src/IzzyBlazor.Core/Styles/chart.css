@@ -249,6 +249,19 @@
     filter: drop-shadow(0 0 1px var(--ib-color-surface));
   }
 
+  /* Prices (ChartOhlcSeries): a candle's wick and body, or an OHLC bar's line and ticks, in the
+     item's rise or fall color. A rise's body is hollow, a fall's filled, so the direction shows
+     without color too. */
+  .ib-chart-ohlc :is(line, rect) {
+    stroke: var(--ib-chart-c);
+    stroke-width: 1px;
+    stroke-linecap: butt;
+  }
+  .ib-chart-ohlc .ib-chart-up rect { fill: var(--ib-color-surface); }
+  .ib-chart-ohlc .ib-chart-down rect { fill: var(--ib-chart-c); }
+  .ib-chart-ohlc-bars line { stroke-width: 1.5px; }
+  .ib-chart-key .ib-chart-ohlc rect { rx: 0; }
+
   .ib-chart-line,
   .ib-chart-key line {
     fill: none;

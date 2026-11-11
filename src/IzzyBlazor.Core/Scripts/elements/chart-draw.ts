@@ -39,6 +39,9 @@ export interface DrawSeries {
   en?: string; // the name written past the plot's end (EndLabel)
   lw?: (number | null)[]; // a range's low ends (ChartRangeBarSeries, ChartRangeAreaSeries)
   tg?: (number | null)[]; // a bar series' targets
+  op?: (number | null)[]; // a price series' opens (ChartOhlcSeries); its lw and v are the lows and highs
+  cl?: (number | null)[]; // a price series' closes
+  ob?: boolean; // a price series drawn as OHLC bars, not candles
 }
 
 export interface DrawData {
@@ -543,7 +546,8 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const width = hist ? band : slotWidth * 0.9;
   let barSvg = "";
   bars.forEach((s, j) => {
-    barSvg += `<g ${attrs(s, !hist ? "ib-chart-bars" : d.s[s].op == null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")}>`;
+    const prices = d.s[s].cl;
+    barSvg += `<g ${attrs(s, prices ? (d.s[s].ob ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc") : !hist ? "ib-chart-bars" : d.s[s].op == null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")}>`;
     for (let i = 0; i < n; i++) {
       const top = highs[s][i];
       if (top === null) continue;
@@ -553,6 +557,20 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
       const sc = d.s[s].ax ? scale2 : scale;
       const v0 = sc(lows[s][i] ?? 0), v1 = sc(top);
       const lo = Math.min(v0, v1), hi = Math.max(v0, v1);
+      // A price: its body from the open to the close (a candle) or its ticks (a bar), on a line
+      // from the low to the high; up when it closed above its open, or the close before (ChartLayout's Candle).
+      if (prices) {
+        const o = d.s[s].op?.[i] ?? null, c = prices[i];
+        if (c == null || (d.s[s].op && o == null)) continue;
+        let k = i;
+        while (k-- && prices[k] == null);
+        const y = (v: number) => pct(1 - sc(v)), m = a0 + width / 2, t = width * 0.35;
+        barSvg += `<g class="ib-chart-${(o ?? prices[k] ?? c) <= c ? "up" : "down"}"><line x1="${pct(m)}" x2="${pct(m)}" y1="${pct(1 - hi)}" y2="${pct(1 - lo)}"/>` +
+          (d.s[s].ob || o == null
+            ? (o == null ? "" : `<line x1="${pct(m - t)}" x2="${pct(m)}" y1="${y(o)}" y2="${y(o)}"/>`) + `<line x1="${pct(m)}" x2="${pct(m + t)}" y1="${y(c)}" y2="${y(c)}"/>`
+            : `<rect x="${pct(a0)}" y="${y(Math.max(o, c))}" width="${pct(width)}" height="${pct(Math.abs(sc(o) - sc(c)))}"/>`) + "</g>";
+        continue;
+      }
       const [x, y, w, h] = d.h ? [lo, a0, hi - lo, width] : [a0, 1 - hi, width, hi - lo];
       const rect = (end: string) =>
         `<rect${end ? ` class="ib-chart-end-${end}"` : ""} x="${pct(x)}" y="${pct(y)}" width="${pct(w)}" height="${pct(h)}"/>`;
