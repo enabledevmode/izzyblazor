@@ -890,7 +890,10 @@
                                 var p = bar.Prices!.Value;
                                 <g class="@ChangeClass(bar.Change)">@if (tooltip)
                                 {<title>@bar.Title</title>}<line x1="@Num(p.Mid)%" x2="@Num(p.Mid)%" y1="@Num(p.High)%" y2="@Num(p.Low)%" />@if (!s.Data.OhlcBars)
+                                {@if (bar.Height > 0)
                                 {<rect x="@Num(bar.X)%" y="@Num(bar.Y)%" width="@Num(bar.Width)%" height="@Num(bar.Height)%" />}
+                                else
+                                {@* A doji: a zero-height rect draws nothing, so its body is a line. *@<line x1="@Num(bar.X)%" x2="@Num(bar.X + bar.Width)%" y1="@Num(bar.Y)%" y2="@Num(bar.Y)%" />}}
                                 else
                                 {@if (!double.IsNaN(p.Open))
                                 {<line x1="@Num(p.Mid - p.Tick)%" x2="@Num(p.Mid)%" y1="@Num(p.Open)%" y2="@Num(p.Open)%" />}<line x1="@Num(p.Mid)%" x2="@Num(p.Mid + p.Tick)%" y1="@Num(p.Close)%" y2="@Num(p.Close)%" />}</g>
@@ -1475,7 +1478,7 @@
                             {
                                 @* A violin with its slim box. *@
                                 <path class="ib-chart-violin" d="M12 0C10 3 6.5 4.5 6.5 7S10 10 12 12C14 10 17.5 9.5 17.5 7S14 3 12 0Z" />
-                                <g class="ib-chart-box"><rect x="11" y="4" width="2" height="5" /></g>
+                                <g class="ib-chart-box ib-chart-box-in"><rect x="11" y="4" width="2" height="5" /></g>
                             }
                             else if (s.Data.IsBox)
                             {
@@ -2325,7 +2328,7 @@
                 }
 
                 // A price series' opens and closes, and whether it's drawn as bars.
-                foreach (var (key, prices) in new[] { ("op", d.Opens), ("cl", d.Closes) })
+                foreach (var (key, prices) in new[] { ("po", d.Opens), ("cl", d.Closes) })
                 {
                     if (prices is null) continue;
                     w.WriteStartArray(key);
