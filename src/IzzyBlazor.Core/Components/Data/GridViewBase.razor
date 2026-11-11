@@ -1,0 +1,2941 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits TableViewBase<TItem>
+@implements IDataGridToolbar
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
+@using System.Reflection
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Forms.Mapping
+
+@* What DataGrid and TreeList share: everything but grouping, row details, moving rows and virtual rows, which are DataGrid's. See DataGrid.razor. *@
+
+
+
+@code {
+    // The grid, drawn by DataGrid and TreeList.
+    internal RenderFragment Grid => __builder =>
+    {
+        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+            <ib-grid hidden></ib-grid>
+            @if (CanEdit || CanDelete)
+            {
+                @* It says which cell to edit by the event a layout uses, which is already registered on every page. *@
+                <ib-grid-edit hidden @oniblayout="OnCellEventAsync"></ib-grid-edit>
+            }
+            @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
+            @Editor
+            @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive) || ShowsGroupBar)
+            {
+                <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
+                                 data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-width-text="@TextDefaults.ColumnWidth" @oniblayout="OnLayoutAsync"></ib-grid-columns>
+            }
+            @RowSorter
+            @Body
+        </ib-table>
+    };
+
+    private const string DefaultMinWidth = "8rem";
+
+    // A column with no MinWidth is at least 8rem, and wide enough for its header: the title (14px
+    // semibold, a little over the estimate), the sort icon, the filter and menu buttons and the padding,
+    // measured in the browser at 28, 24, 24 and 32px. Fewer columns fit before the grid scrolls, but
+    // none is cut short.
+    private string HeaderMinWidth(ColumnBase<TItem> column)
+    {
+        var px = TextWidths.AtSize(column.HeaderText, 14) * 1.05 + 32
+            + (column.CanSort ? 28 : 0)
+            + (column.CanFilter ? 24 : 0)
+            + (HasHeaderMenu(column) ? 24 : 0);
+        var rem = Math.Ceiling(px / 16 * 4) / 4;
+        return rem <= 8 ? DefaultMinWidth : rem.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "rem";
+    }
+
+    /// <summary>How a row is edited. Needs <see cref="OnSave"/> and an <c>ItemKey</c>.</summary>
+    [Parameter] public DataGridEditMode EditMode { get; set; }
+
+    /// <summary>
+    /// Saves an edited row. With no errors added, the editor closes and the rows load again; with
+    /// errors, it stays open and shows them. It's called only when the row is valid by its rules.
+    /// </summary>
+    [Parameter] public EventCallback<DataGridSave<TItem>> OnSave { get; set; }
+
+    /// <summary>
+    /// Finds a row that isn't among those loaded, by its key, for the edit dialog and the delete
+    /// confirmation: a link to a row on another page, say. A grid that loads rows as they're needed
+    /// (<c>Virtualize</c>, or <c>Paging</c> by loading more) has to have it. Return null for a row this
+    /// person can't reach: <c>ItemEditable</c> and <c>ItemDeletable</c> are checked on what it returns.
+    /// </summary>
+    [Parameter] public Func<string, Task<TItem?>>? FindItem { get; set; }
+
+    /// <summary>
+    /// A new row's starting values. Setting it adds an Add button to the toolbar, and <c>OnSave</c> gets
+    /// the row with <c>IsNew</c> set.
+    /// </summary>
+    [Parameter] public Func<TItem>? NewItem { get; set; }
+
+    /// <summary>
+    /// Deletes a row, once someone has confirmed it. Setting it adds a Delete action to each row. With no
+    /// error added, the dialog closes and the rows load again.
+    /// </summary>
+    [Parameter] public EventCallback<DataGridDelete<TItem>> OnDelete { get; set; }
+
+    /// <summary>Which rows can be edited; all of them when it's not set. It's checked on a save too, not just when drawing the button.</summary>
+    [Parameter] public Func<TItem, bool>? ItemEditable { get; set; }
+
+    /// <summary>Which rows can be deleted; all of them when it's not set. It's checked on a delete too, not just when drawing the button.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDeletable { get; set; }
+
+    /// <summary>
+    /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
+    /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>), or
+    /// where another of them is bound, such as <c>Page</c>, kept in the component.
+    /// </summary>
+    [Parameter] public string? EditKey { get; set; }
+
+    /// <summary>Raised when the row being edited changes, on interactive pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string?> EditKeyChanged { get; set; }
+
+    /// <summary>
+    /// Makes the copy of a row that's edited, on an interactive page, in place of a shallow copy: for a
+    /// type that holds what a copy mustn't share.
+    /// </summary>
+    [Parameter] public Func<TItem, TItem>? EditCopy { get; set; }
+
+    private string EditQueryKey => $"{QueryPrefix}edit";
+
+    private bool CanEdit => EditMode != DataGridEditMode.None;
+
+    private string AddQueryKey => $"{QueryPrefix}add";
+
+    private string DeleteQueryKey => $"{QueryPrefix}delete";
+
+    private bool CanAdd => CanEdit && NewItem is not null;
+
+    private bool CanDelete => OnDelete.HasDelegate;
+
+    private bool CanEditRow(TItem item) => CanEdit && ItemEditable?.Invoke(item) != false;
+
+    private bool CanDeleteRow(TItem item) => CanDelete && ItemDeletable?.Invoke(item) != false;
+
+    private string? QueryValue(string key) =>
+        QueryString.Of(Navigation.Uri).TryGetValue(key, out var value) && value.ToString().Length > 0 ? value.ToString() : null;
+
+    // Never the new row's own stand-in, which a typed address could name.
+    private string? CurrentEditKey =>
+        !CanEdit || CellMode ? null
+        : (UseState ? (EditKeyChanged.HasDelegate ? EditKey : _stateEditKey) : QueryValue(EditQueryKey)) is { } key && key != NewRowKey ? key
+        : null;
+
+    private string? _stateEditKey;
+
+    private Task StartEdit(string key)
+    {
+        _stateEditKey = key;
+        return EditKeyChanged.InvokeAsync(key);
+    }
+
+    // An edit the address or a parent has ended, not this grid: the next one mustn't find what was typed.
+    private void ForgetEndedEdit()
+    {
+        if (_editKeyFor is not null && _cellKey is null && _editKeyFor != (Adding ? NewRowKey : CurrentEditKey))
+        {
+            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
+            (_foundKey, _found) = (null, default);
+        }
+
+        if (CurrentDeleteKey is null)
+        {
+            (_deleteContext, _deleteMessages) = (null, null);
+        }
+    }
+
+    private bool Adding => CanAdd && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
+
+    private string? CurrentDeleteKey => !CanDelete ? null : UseState ? _stateDeleteKey : QueryValue(DeleteQueryKey);
+
+    private bool _stateAdding;
+    private bool _ending;
+    private string? _stateDeleteKey;
+
+    private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
+
+    // In a row, only what's shown has a field to post; the rest stays as loaded.
+    private List<ColumnBase<TItem>> EditableColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : AllColumns).Where(c => c.IsEditable).ToList();
+
+    // Cell mode where it can be: a static page, with a round trip for each cell, edits rows instead.
+    private bool CellMode => EditMode == DataGridEditMode.Cell && WillBeInteractive;
+
+    private bool InCell => CellMode && !Adding;
+
+    private bool InPlace => EditMode != DataGridEditMode.Dialog;
+
+    private bool InRow => EditMode == DataGridEditMode.Row || (EditMode == DataGridEditMode.Cell && !InCell);
+
+    private string? _cellKey;
+    private ColumnBase<TItem>? _cellColumn;
+    private bool _saving;
+    private string? _cellNext;
+
+    private void EndCell() =>
+        (_cellKey, _cellColumn, _cellNext, _editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, null, null, null, default, default, null, null, null, null);
+
+    private void StartCell(string key, ColumnBase<TItem> column)
+    {
+        EndCell();
+        (_cellKey, _cellColumn) = (key, column);
+    }
+
+    // From the script: a column's key and a row's to start, or nothing to cancel. While a save is on its
+    // way, the next cell waits for how it ends, since an invalid cell stays open.
+    private Task OnCellEventAsync(IzzyLayoutEventArgs e)
+    {
+        if (!InCell)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (string.IsNullOrEmpty(e.Layout))
+        {
+            if (!_saving)
+            {
+                EndCell();
+                StateHasChanged();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        if (_saving)
+        {
+            _cellNext = e.Layout;
+        }
+        // One whose row has left the page can't be closed any other way.
+        else if (_cellKey is null || RowOf(_cellKey) is null)
+        {
+            StartCellFrom(e.Layout);
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartCellFrom(string address)
+    {
+        var parts = address.Split('\n', 2);
+        var column = parts.Length == 2 ? Shown.FirstOrDefault(c => c.IsEditable && c.EditKey == parts[0]) : null;
+        // Checked here too: what the page says is only what the page says.
+        if (column is not null && RowOf(parts[1]) is { } row && CanEditRow(row))
+        {
+            StartCell(parts[1], column);
+        }
+    }
+
+    /// <inheritdoc />
+    internal override string? EditColumnKey(TItem item, ColumnBase<TItem> column) =>
+        CellMode && column.IsEditable && CanEditRow(item) ? column.EditKey : null;
+
+    /// <inheritdoc />
+    internal override RenderFragment? CellEditor(TItem item, ColumnBase<TItem> column) =>
+        _cellKey is not null && column == _cellColumn && _editModel is not null && KeyOf(item) == _cellKey ? EditCell(column) : null;
+
+    /// <inheritdoc />
+    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, DeleteQueryKey] : [];
+
+    private string? _rowFormId;
+
+    private string RowFormId => _rowFormId ??= IdGenerator.Next("ib-grid-edit");
+    private string? _chipIds;
+
+    // The row with a form going, once it's been matched to the address.
+    private string? RowEditKey => InRow && !_ending && _editModel is not null && CurrentDeleteKey is null && (Adding ? NewRowKey : CurrentEditKey) is { } key && key == _editKeyFor ? key : null;
+
+    /// <inheritdoc />
+    internal override bool IsEditingRow(TItem item) => RowEditKey is { } key && key != NewRowKey && KeyOf(item) == key;
+
+    /// <inheritdoc />
+    internal override TItem? NewRowItem => RowEditKey == NewRowKey ? _editModel : default;
+
+    /// <inheritdoc />
+    internal override RenderFragment? EditCell(ColumnBase<TItem> column) => !column.IsEditable ? null : __builder =>
+    {
+        @* Keyed by it: a field can't take another context, as a bound parent keeping the key after a save gives it. *@
+        <CascadingValue @key="_editContext" TValue="EditContext" Value="_editContext">@EditorOf(column)</CascadingValue>
+    };
+
+    /// <summary>
+    /// Arranges the generated edit dialog's fields: an <see cref="EditField"/> for a column sets its
+    /// place and its label, hint or span, and the library's components can go around them. The grid
+    /// still draws, binds and checks each field. An editable column left out is added at the end, as
+    /// a field that isn't drawn isn't posted, and would save as empty; to leave one out, set its
+    /// <c>Editable</c> to false.
+    /// </summary>
+    [Parameter] public RenderFragment? EditDialog { get; set; }
+
+    /// <summary>
+    /// Your own form in the edit dialog, in place of the generated one, for what isn't fields of the
+    /// row, such as steps or a save across several records. The grid opens and closes the dialog; the
+    /// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so is
+    /// guarding against forged fields, with a view model. Call <c>context.CloseAsync()</c> when it has
+    /// saved. Needs <c>EditMode="DataGridEditMode.Dialog"</c>.
+    /// </summary>
+    [Parameter] public RenderFragment<DataGridEditFormContext<TItem>>? EditDialogForm { get; set; }
+
+    /// <summary>The columns the edit dialog's fields are laid out in, as <c>Form</c>'s <c>Columns</c>. Defaults to 1.</summary>
+    [Parameter] public int EditColumns { get; set; } = 1;
+
+    /// <summary>How labels sit next to the edit dialog's fields, as <c>Form</c>'s <c>Layout</c>.</summary>
+    [Parameter] public FormLayout EditLayout { get; set; } = FormLayout.Vertical;
+
+    /// <summary>The edit dialog's size. Defaults to <see cref="DialogSize.Md"/>.</summary>
+    [Parameter] public DialogSize EditDialogSize { get; set; } = DialogSize.Md;
+
+    /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label, or "Add".</summary>
+    [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
+
+    private string? _foundKey;
+    private TItem? _found;
+    private bool _finding;
+
+    // A row by its key: one loaded, or else the one FindItem found.
+    private TItem? RowOf(string key)
+    {
+        foreach (var item in _items)
+        {
+            if (KeyOf(item) == key)
+            {
+                return item;
+            }
+        }
+
+        return _foundKey == key ? _found : default;
+    }
+
+    private async Task FindRowAsync()
+    {
+        // A row edited in place is on the page, or there's nowhere to edit it.
+        var key = Adding ? null : CurrentDeleteKey ?? (InRow ? null : CurrentEditKey);
+        if (FindItem is null || key is null || key == _foundKey || _items.Any(i => KeyOf(i) == key))
+        {
+            return;
+        }
+
+        (_foundKey, _found, _finding) = (key, default, true);
+        try
+        {
+            var found = await FindItem(key);
+            // Not if a later link has since asked for another row.
+            if (_foundKey == key)
+            {
+                _found = found;
+            }
+        }
+        finally
+        {
+            if (_foundKey == key)
+            {
+                _finding = false;
+            }
+        }
+    }
+
+    private async Task LoadThenFindAsync()
+    {
+        await base.OnParametersSetAsync();
+        await FindRowAsync();
+    }
+
+    /// <inheritdoc />
+    internal override void AddressChanged(string location)
+    {
+        base.AddressChanged(location);
+        _ending = false;
+        // Sorting or changing page ends it, as it does a row's.
+        if (_cellKey is not null && !_saving)
+        {
+            EndCell();
+        }
+
+        ForgetEndedEdit();
+        if (FindItem is not null)
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await FindRowAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    // Here and not with the parameters: the parts that decide these are written among the columns.
+    private void CheckEditing()
+    {
+        if (CanEdit && EditMode != DataGridEditMode.Dialog && EditDialogForm is not null)
+        {
+            throw new InvalidOperationException($"An EditDialogForm replaces the generated edit form, so it needs {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+        }
+
+        if (EditMode == DataGridEditMode.Cell && RowHref is not null)
+        {
+            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Cell)} starts on a click, which a row with a {nameof(RowHref)} follows: use a link in a cell, or {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Row)}.");
+        }
+
+        if (!CanEdit || EditDialogForm is not null)
+        {
+            return;
+        }
+
+        if (!OnSave.HasDelegate)
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditDialogForm of your own.");
+        }
+
+        if (!WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
+        {
+            throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
+        }
+    }
+
+    private List<PropertyInfo> EditProperties => EditableColumns.Select(c => c.EditProperty!).ToList();
+
+    private string? _editKeyFor;
+    private TItem? _editItem;
+    private TItem? _editModel;
+    private EditContext? _editContext;
+    private ValidationMessageStore? _editMessages;
+    private Dictionary<ColumnBase<TItem>, RenderFragment>? _editors;
+    private bool _editIsNew;
+    // Stands for "a new row" where the key goes: no ItemKey gives a control character.
+    private const string NewRowKey = "\u0001new";
+
+    // Matches the editor to the key and what's loaded. Before the row is found the form still draws, on
+    // nothing, as a post for a form that isn't there fails outright.
+    private void SyncEdit(string key, TItem? posted)
+    {
+        if (key != _editKeyFor)
+        {
+            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (key, default, default, null, null, null, null);
+        }
+
+        if (_editModel is not null)
+        {
+            return;
+        }
+
+        _editIsNew = key == NewRowKey;
+        // A row that can't be edited isn't found, so a link or a post made by hand gets no further.
+        if (_editIsNew || (RowOf(key) is { } found && CanEditRow(found)))
+        {
+            var item = _editIsNew ? NewItem!() : RowOf(key)!;
+            _editItem = _editIsNew ? default : item;
+            _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
+                : _editIsNew ? item
+                : EditCopy is not null ? EditCopy(item)
+                : DataGridEditCopy.Of(item);
+            _editContext = new EditContext(_editModel!);
+            _editMessages = new ValidationMessageStore(_editContext);
+            _editContext.OnValidationRequested += (_, _) => _editMessages.Clear();
+        }
+        else
+        {
+            _editContext ??= new EditContext(new object());
+        }
+    }
+
+    private RenderFragment EditorOf(ColumnBase<TItem> column) =>
+        (_editors ??= []).TryGetValue(column, out var editor)
+            ? editor
+            : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
+                // Opening goes to the first field. After a failed save, a dialog's FormErrors takes focus
+                // instead, and a row's first invalid field, its message beside it.
+                () => InPlace
+                    ? column == (EditableColumns.FirstOrDefault(c => HasError(c)) ?? EditableColumns.FirstOrDefault())
+                    : column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
+                () => _placedFields.GetValueOrDefault(column),
+                InPlace ? RowFormId : null);
+
+    private bool HasError(ColumnBase<TItem> column) =>
+        _editContext?.GetValidationMessages(new FieldIdentifier(_editModel!, column.EditProperty!.Name)).Any() == true;
+
+    // What an EditField set for its column, read as the column's field draws.
+    private readonly Dictionary<ColumnBase<TItem>, EditField> _placedFields = [];
+
+    private DataGridEditFields? _editFields;
+
+    private List<string> PlacedKeys => InPlace ? [] : EditField.KeysIn(EditDialog);
+
+    // In the order the dialog draws them: those placed, then the rest.
+    private ColumnBase<TItem>? FirstEditColumn =>
+        PlacedKeys.Select(k => EditableColumns.FirstOrDefault(c => c.EditKey == k)).FirstOrDefault(c => c is not null) ?? EditableColumns.FirstOrDefault();
+
+    private DataGridEditFields EditFieldsOf => _editFields ??= new(placed =>
+    {
+        if (EditableColumns.FirstOrDefault(c => c.EditKey == placed.Key) is not { } column)
+        {
+            return null;
+        }
+
+        _placedFields[column] = placed;
+        return EditorOf(column);
+    });
+
+    private async Task SaveEditAsync(EditContext context)
+    {
+        // A second click while the first is saving would save twice: for a new row, two rows.
+        if (_editModel is null || _editMessages is null || _saving)
+        {
+            return;
+        }
+
+        // Moving through cells saves only what changed, by its value, as a field of your own may not say.
+        if (_cellColumn?.EditProperty is { } edited && Equals(edited.GetValue(_editModel), edited.GetValue(_editItem)))
+        {
+            EndCellAndGoOn(_cellNext);
+            return;
+        }
+
+        var save = new DataGridSave<TItem>(_editModel, _editItem, _editIsNew, EditProperties, context, _editMessages);
+        // It may have been locked since the editor opened.
+        if (!_editIsNew && _editItem is { } loaded && !CanEditRow(loaded))
+        {
+            save.AddError(TextDefaults.EditRowGone);
+            return;
+        }
+
+        // A key column left editable: a save to another key would be a save to another row.
+        if (!_editIsNew && KeyOf(_editModel) != _editKeyFor)
+        {
+            save.AddError(TextDefaults.EditKeyChanged);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await OnSave.InvokeAsync(save);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (_cellKey is not null)
+        {
+            var next = _cellNext;
+            _cellNext = null;
+            if (!save.HasErrors)
+            {
+                EndCell();
+                await ReloadAsync();
+                // The script may have started the next cell itself as this one left, while the rows loaded.
+                if (next is not null && _cellKey is null)
+                {
+                    StartCellFrom(next);
+                }
+
+                StateHasChanged();
+            }
+
+            return;
+        }
+
+        if (!save.HasErrors)
+        {
+            await EndEditAsync(saved: true);
+        }
+    }
+
+    private void EndCellAndGoOn(string? next)
+    {
+        EndCell();
+        if (next is not null)
+        {
+            StartCellFrom(next);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task EndEditAsync(bool saved)
+    {
+        // Cleared whether or not the key changes: a bound parent may keep it, and the next edit starts afresh.
+        (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
+        // The row may have changed or gone, so the next link looks it up again.
+        (_foundKey, _found) = (null, default);
+        if (UseState)
+        {
+            (_stateAdding, _stateDeleteKey, _stateEditKey) = (false, null, null);
+            if (EditKey is not null)
+            {
+                await EditKeyChanged.InvokeAsync(null);
+            }
+        }
+        else
+        {
+            // On an interactive page the address hasn't changed yet at the next render, and it mustn't
+            // draw the editor again for it.
+            _ending = true;
+            Navigation.NavigateTo(EditEndHref);
+        }
+
+        if (saved)
+        {
+            await ReloadAsync();
+        }
+
+        StateHasChanged();
+    }
+
+    // Closed by Escape, the ✕ or the backdrop. With script its own query key has left the address by now.
+    private Task OnEditDialogChangedAsync(bool open) => open ? Task.CompletedTask : EndEditAsync(saved: false);
+
+    private RenderFragment? Editor
+    {
+        get
+        {
+            var delete = CurrentDeleteKey;
+            var key = Adding ? NewRowKey : _cellKey ?? CurrentEditKey;
+            if (_ending || (delete is null && key is null))
+            {
+                return null;
+            }
+
+            return __builder =>
+            {
+                @* The form's name is the page's to match, so it's outside this grid's scope. *@
+                if (delete is null && EditDialogForm is not null)
+                {
+                    @OwnFormDialog(key!)
+                }
+                else if (RendererInfo.IsInteractive)
+                {
+                    @(delete is not null ? DeleteDialog(delete) : InPlace ? RowForm(key!, default) : EditDialogFor(key!, default))
+                }
+                else
+                {
+                    @* Named for this grid, so that a post reaches only its own form. *@
+                    <FormMappingScope Name="@($"ib-grid-{QueryPrefix}")" Context="scope">
+                        @(delete is not null ? DeleteDialog(delete) : EditBinding(key!))
+                    </FormMappingScope>
+                }
+            };
+        }
+    }
+
+    private readonly object _deleteModel = new();
+    private string? _deleteFor;
+    private EditContext? _deleteContext;
+    private ValidationMessageStore? _deleteMessages;
+
+    private async Task DeleteAsync(TItem item, EditContext context)
+    {
+        if (_saving)
+        {
+            return;
+        }
+
+        _deleteMessages!.Clear();
+        var delete = new DataGridDelete<TItem>(item, message =>
+        {
+            _deleteMessages.Add(new FieldIdentifier(_deleteModel, ""), message);
+            context.NotifyValidationStateChanged();
+        });
+        _saving = true;
+        try
+        {
+            await OnDelete.InvokeAsync(delete);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!delete.HasErrors)
+        {
+            (_deleteContext, _deleteMessages) = (null, null);
+            await EndEditAsync(saved: true);
+        }
+    }
+
+    private RenderFragment DeleteDialog(string key) => __builder =>
+    {
+        // A row that can't be deleted isn't found, so a link or a post made by hand gets no further.
+        var item = RowOf(key);
+        var found = item is not null && CanDeleteRow(item);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        // Another row's error isn't this one's.
+        if (_deleteContext is null || _deleteFor != key)
+        {
+            _deleteFor = key;
+            _deleteContext = new EditContext(_deleteModel);
+            _deleteMessages = new ValidationMessageStore(_deleteContext);
+        }
+
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@DeleteQueryKey" Title="@(found ? string.Format(culture, TextDefaults.DeleteConfirm, LabelOf(item!)) : TextDefaults.Delete)" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@key">
+            <Form EditContext="_deleteContext" FormName="@(RendererInfo.IsInteractive ? null : "delete")" OnValidSubmit="@(context => found ? DeleteAsync(item!, context) : Task.CompletedTask)">
+                @if (found)
+                {
+                    <FormErrors />
+                    @TextDefaults.DeleteWarning
+                }
+                else if (!IsLoading && !_finding)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                }
+                <DialogFooter>
+                    @EditCancel
+                    @if (found)
+                    {
+                        <Button Submit Accent="Accent.Danger">@TextDefaults.Delete</Button>
+                    }
+                </DialogFooter>
+            </Form>
+        </Dialog>
+    };
+
+    @* A link, which leaves the address clean with no script. With script, the dialog closes in the
+       browser instead, with no round trip, and gives focus back to the row. *@
+    private RenderFragment EditCancel => __builder =>
+    {
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+    };
+
+    private RenderFragment OwnFormDialog(string key) => __builder =>
+    {
+        var isNew = key == NewRowKey;
+        var item = isNew ? default : RowOf(key);
+        var found = isNew || (item is not null && CanEditRow(item));
+        var label = EditDialogTitle?.Invoke(item)
+            ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
+            @if (found)
+            {
+                @EditDialogForm!.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
+            }
+            else if (!IsLoading && !_finding)
+            {
+                <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                <DialogFooter>@EditCancel</DialogFooter>
+            }
+        </Dialog>
+    };
+
+    /// <summary>The column holding a row's actions, when one is written.</summary>
+    internal ActionColumn<TItem>? ActionColumn { get; set; }
+
+    private RenderFragment ActionsOf(TItem item) => ActionColumn?.ChildContent is { } written ? written(item) : AutoActions;
+
+    private RowActionOverflow ActionOverflow => ActionColumn?.Overflow ?? RowActionOverflow.Auto;
+
+    private RenderFragment AutoActions => builder =>
+    {
+        if (CanEdit)
+        {
+            builder.OpenComponent<EditAction>(0);
+            builder.CloseComponent();
+        }
+
+        if (CanDelete)
+        {
+            builder.OpenComponent<DeleteAction>(1);
+            builder.CloseComponent();
+        }
+    };
+
+    // An action the row can't use, which says why.
+    private RenderFragment DisabledAction(IconData icon, string label, string reason, bool inMenu, Accent accent) => __builder =>
+    {
+        @if (inMenu)
+        {
+            <MenuItem Icon="icon" Accent="accent" Disabled title="@reason">@label</MenuItem>
+        }
+        else
+        {
+            @* On the span, as a disabled button takes no pointer. *@
+            <span title="@reason">
+                <IconButton Icon="icon" Label="@($"{label}: {reason}")" Disabled Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+            </span>
+        }
+    };
+
+    private RenderFragment? EditControl(TItem item, bool inMenu, string? reason) =>
+        InCell ? null
+        : !CanEditRow(item)
+            ? CanEdit && reason is not null ? DisabledAction(Lucide.Pencil, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)), reason, inMenu, Accent.Neutral) : null
+            : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item));
+        var key = KeyOf(item);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => StartEdit(key))" data-ib-edit data-ib-edit-start>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.Pencil" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" data-ib-edit="@EditQueryKey" data-ib-edit-start data-ib-edit-row="@(InRow ? "" : null)">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => StartEdit(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit data-ib-edit-start />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.Pencil" Label="@label" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@EditQueryKey" data-ib-edit-start data-ib-edit-row="@(InRow ? "" : null)" />
+        }
+    };
+
+    private void StartDelete(string key) => (_stateDeleteKey, _deleteContext) = (key, null);
+
+    private RenderFragment? DeleteControl(TItem item, bool inMenu, string? reason) =>
+        !CanDeleteRow(item)
+            ? CanDelete && reason is not null ? DisabledAction(Lucide.Trash, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item)), reason, inMenu, Accent.Danger) : null
+            : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item));
+        var key = KeyOf(item);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger" OnClick="@(() => StartDelete(key))" data-ib-edit>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger" Href="@Navigation.GetUriWithQueryParameter(DeleteQueryKey, key)" data-ib-edit="@DeleteQueryKey">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.Trash" Label="@label" OnClick="@(() => StartDelete(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.Trash" Label="@label" Href="@Navigation.GetUriWithQueryParameter(DeleteQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@DeleteQueryKey" />
+        }
+    };
+
+    private RowActionScope ScopeOf(TItem item, bool inMenu) =>
+        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
+
+    private (int Buttons, bool Menu, int Auto) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item) && !InCell, CanDeleteRow(item), Hiding);
+
+    bool IDataGridToolbar.HasAdd => CanAdd;
+
+    string IDataGridToolbar.AddLabel => TextDefaults.Add;
+
+    RenderFragment IDataGridToolbar.AddBar(bool showText) => __builder =>
+    {
+        var plus = IconSet.Current.Get(IconPurpose.Plus);
+        @if (UseState)
+        {
+            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); _stateAdding = true; })" data-ib-edit />
+        }
+        else if (showText)
+        {
+            <Button StartIcon="plus" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@TextDefaults.Add</Button>
+        }
+        else
+        {
+            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
+        }
+    };
+
+    private RenderFragment EditBinding(string key) => builder =>
+    {
+        builder.OpenComponent<DataGridEditBinding<TItem>>(0);
+        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InPlace ? RowForm(key, posted) : EditDialogFor(key, posted)));
+        builder.CloseComponent();
+    };
+
+    // The form of a row being edited: empty but for errors no field shows, as a form can't hold rows of a
+    // table, and the row's fields and Save join it by its id.
+    private RenderFragment RowForm(string key, TItem? posted) => __builder =>
+    {
+        var had = _editModel is not null;
+        SyncEdit(key, posted);
+        // On a static page this is drawn after the row's cells, which have the model to draw now.
+        if (!had && _editModel is not null && !RendererInfo.IsInteractive)
+        {
+            StateHasChanged();
+        }
+
+        if (_editModel is null && !IsLoading)
+        {
+            <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+        }
+
+        <Form Class="ib-grid-edit-form" id="@RowFormId" novalidate="@(Hiding ? "" : null)" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(_cellKey is not null ? null : key == NewRowKey ? "" : key)">
+            @if (_editModel is not null)
+            {
+                <FormErrors ExceptFields="@EditProperties.Select(p => p.Name).ToList()" />
+            }
+        </Form>
+    };
+
+    private RenderFragment RowEditActions => __builder =>
+    {
+        <IconButton Icon="Lucide.Save" Label="@TextDefaults.Save" Submit Form="@RowFormId" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+        @if (UseState)
+        {
+            <IconButton Icon="Lucide.Undo2" Label="@TextDefaults.Cancel" OnClick="@(() => EndEditAsync(saved: false))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit-cancel />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.Undo2" Label="@TextDefaults.Cancel" Href="@EditEndHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit-cancel data-ib-edit-row />
+        }
+    };
+
+    private RenderFragment EditDialogFor(string key, TItem? posted) => __builder =>
+    {
+        SyncEdit(key, posted);
+        var missing = _editModel is null && !IsLoading && !_finding;
+        var title = EditDialogTitle is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+            <Form Columns="EditColumns" Layout="EditLayout" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
+                @if (missing)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                }
+                else if (_editModel is not null)
+                {
+                    <FormErrors />
+                    var placed = PlacedKeys;
+                    @if (EditDialog is not null)
+                    {
+                        <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditDialog</CascadingValue>
+                    }
+                    @foreach (var column in EditableColumns.Where(c => !placed.Contains(c.EditKey!)))
+                    {
+                        @EditorOf(column)
+                    }
+                }
+                <DialogFooter>
+                    @EditCancel
+                    @if (!missing)
+                    {
+                        <Button Submit>@TextDefaults.Save</Button>
+                    }
+                </DialogFooter>
+            </Form>
+        </Dialog>
+    };
+
+    // Cells have no Edit button, but a new row in them still has Save and Cancel.
+    private bool HasActionCell => ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd));
+
+    /// <summary>
+    /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
+    /// draws it on the first paint. Letters, digits, <c>-</c> and <c>_</c>. With neither this nor
+    /// <see cref="Layout"/>, nothing is stored.
+    /// </summary>
+    [Parameter] public string? LayoutKey { get; set; }
+
+    /// <summary>
+    /// How the columns are arranged, in place of the cookie: bind it (<c>@bind-Layout</c>) to keep
+    /// layouts yourself, such as per user in a database. Null leaves them as declared.
+    /// </summary>
+    [Parameter] public DataGridLayout? Layout { get; set; }
+
+    /// <summary>Raised when the columns are rearranged, on interactive pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<DataGridLayout?> LayoutChanged { get; set; }
+
+    /// <summary>
+    /// With script, an address the app maps to save a person's layout: the grid posts it there as JSON
+    /// when it changes, for a static page that passes its own <see cref="Layout"/>.
+    /// </summary>
+    [Parameter] public string? LayoutSaveUrl { get; set; }
+
+    /// <summary>
+    /// Lets people resize columns: by dragging a handle at the header's end, by double-clicking it to
+    /// fit, by Shift+Left and Shift+Right, or from the header's menu. The grid scrolls if it grows.
+    /// Needs script, and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ResizableColumns { get; set; }
+
+    /// <summary>
+    /// Lets people move columns: by dragging a header, by Alt+Left and Alt+Right, or from the header's
+    /// menu, which can also freeze them. Frozen columns move among themselves. Needs script, and on a
+    /// static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ReorderableColumns { get; set; }
+
+    /// <summary>
+    /// A button above the grid that opens a list of the columns, in the grid's order, each band's under
+    /// it: tick to show or hide, search by title, drag a handle (or open its menu, or Alt+Up and Down)
+    /// to move, and reset to the columns as declared. Each header's menu opens it too. Needs script,
+    /// and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ColumnPicker { get; set; }
+
+    internal bool Virtualize { get; set; }
+
+    internal double RowHeight { get; set; } = 48;
+
+    /// <inheritdoc />
+    internal override bool VirtualRows => Virtualize && RendererInfo.IsInteractive && !GroupedNow;
+
+    /// <inheritdoc />
+    internal override bool ByTotal => Virtualize;
+
+    /// <inheritdoc />
+    internal override double VirtualRowHeight => RowHeight;
+
+    /// <summary>
+    /// Text beside the icons of the toolbar's own tools, for a grid people use now and then. Without it
+    /// they're icons with a tooltip, for one used all day. A tool's own <c>ShowText</c> goes first.
+    /// </summary>
+    [Parameter] public bool ToolbarLabels { get; set; }
+
+    /// <summary>
+    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/> and any <see cref="DataGridExportFormat"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>, for a grid that offers CSV besides Excel. It adds
+    /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
+    /// endpoint's fields need the grid's keys, and its <c>FilterCase</c> as their <c>Case</c>, for the
+    /// file to match the screen.
+    /// </summary>
+    [Parameter] public string? ExportCsvHref { get; set; }
+
+    /// <summary>
+    /// A link in the toolbar, in a menu with <see cref="ExportCsvHref"/> and any <see cref="DataGridExportFormat"/>, to an endpoint that writes the rows as an Excel workbook with
+    /// <c>DataExport</c>. It adds the current <c>filter</c>, <c>sort</c>, <c>search</c> and
+    /// <c>columns</c> to the address. The endpoint's fields need the grid's keys, and its
+    /// <c>FilterCase</c> as their <c>Case</c>, for the file to match the screen.
+    /// </summary>
+    [Parameter] public string? ExportExcelHref { get; set; }
+
+    /// <summary>
+    /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
+    /// <c>ToolbarMenu</c> and the like. Write <see cref="DataGridSearch"/>, <see cref="DataGridExport"/> or
+    /// <see cref="DataGridColumnPicker"/> here to place the grid's own among them. While rows are selected,
+    /// the selection bar takes its place. The grid reads this once more on each render, to see which of
+    /// its tools are here, so nothing in it should count or consume anything.
+    /// </summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    /// <summary>
+    /// A search box in the toolbar, across the text columns. The words go in the address
+    /// (<c>?search=</c>) and reach an <c>ItemsProvider</c> as the request's <c>Search</c>. With no
+    /// script they apply on Enter.
+    /// </summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The words searched for. Binding it (<c>@bind-Search</c>) on an interactive page keeps them, with sort and page, in the component.</summary>
+    [Parameter] public string? Search { get; set; }
+
+    /// <summary>Raised when the search changes, on interactive pages (typing waits for a pause).</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string?> SearchChanged { get; set; }
+
+    /// <summary>The search box's name and placeholder. Defaults to "Search".</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    private string SearchKey => $"{QueryPrefix}search";
+
+    private string? _stateSearch;
+    private string? _lastSearchParam;
+    private string? _reportedSearch;
+    // What the box is drawn with: not what's being typed, or a slow render would overwrite the keys
+    // pressed since. It changes only when C# sets something else.
+    private string? _searchShown;
+    private bool _searchReady;
+    private CancellationTokenSource? _searchDelay;
+
+    // The words searched for: the component's when bound, else the address's.
+    private string? CurrentSearch =>
+        UseState ? _stateSearch?.Trim()
+        : !Searchable ? null
+        : QueryString.Of(Navigation.Uri).TryGetValue(SearchKey, out var words) ? (string.IsNullOrWhiteSpace(words.ToString()) ? null : words.ToString().Trim())
+        : null;
+
+    /// <summary>
+    /// Adds a row of filters under the titles: a field for each column, then its filter button, which opens
+    /// the column's panel, where the operator is chosen. A list, a range or a date shows what it's set to,
+    /// and opens the panel too.
+    /// </summary>
+    [Parameter] public bool FilterRow { get; set; }
+
+    /// <summary>
+    /// Adds a Filter builder button to the toolbar, for groups of conditions no column's filter can
+    /// hold. What it builds goes in the address as <c>?filter=</c>, and applies along with the columns' filters.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off the button is hidden. A filter already in the address still applies.")]
+    public bool FilterBuilder { get; set; }
+
+    /// <inheritdoc />
+    internal override bool ReadsFilterText => FilterBuilder || base.ReadsFilterText;
+
+    /// <inheritdoc />
+    internal override string? BuilderPanelId => FilterBuilder ? $"{FilterFormId}-builder" : null;
+
+    bool IDataGridToolbar.HasFilterBuilder => FilterBuilder;
+
+    string IDataGridToolbar.FilterBuilderLabel => TextDefaults.FilterBuilderLabel;
+
+    RenderFragment IDataGridToolbar.FilterBuilderBar(bool showText) => __builder =>
+    {
+        var active = UseState ? ExtraFilter is not null : QueryString.Of(Navigation.Uri).ContainsKey(FilterTextKey);
+        <div class="ib-toolbar-item ib-filter-builder-tool">
+            <Popover Id="@BuilderPanelId" Placement="Placement.BottomStart" PanelWidth="Length.Rem(48)" data-ib-user-controlled>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-active="@(active ? "" : null)" @attributes="context">@TextDefaults.FilterBuilderLabel</Button>
+                    }
+                    else
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" IconOnly Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="@TextDefaults.FilterBuilderLabel" title="@TextDefaults.FilterBuilderLabel" data-active="@(active ? "" : null)" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>
+                    @if (UseState)
+                    {
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" CursorKey="@CursorKey" Value="ExtraFilter" ValueChanged="SetExtraFilterAsync" />
+                    }
+                    else
+                    {
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" CursorKey="@CursorKey" />
+                    }
+                </ChildContent>
+            </Popover>
+        </div>
+    };
+
+    /// <inheritdoc />
+    internal override bool ShowsFilterRow => FilterRow;
+
+    /// <inheritdoc />
+    internal override string? ValuesGridSearch => CurrentSearch;
+
+    /// <inheritdoc />
+    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate || EditKeyChanged.HasDelegate || GroupBound || DetailBound;
+
+    /// <inheritdoc />
+    internal override bool NeedsFilterForm => base.NeedsFilterForm || Searchable;
+
+    /// <inheritdoc />
+    internal override IEnumerable<string> ExtraFilterKeys => Searchable ? [SearchKey] : [];
+
+    /// <inheritdoc />
+    internal override string FilterSignature() => $"{base.FilterSignature()}|{CurrentSearch}|{GroupSignature}";
+
+    /// <inheritdoc />
+    internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) =>
+        base.Shape(request, sortRaw) with { Search = CurrentSearch };
+
+    private async Task OnSearchAsync(ChangeEventArgs e)
+    {
+        _stateSearch = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : e.Value!.ToString();
+        _reportedSearch = _stateSearch;
+        _searchDelay?.Cancel();
+        var delay = _searchDelay = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(FilterDelay, delay.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        var (pageWas, cursorWas) = (_statePage, _stateCursor);
+        (_statePage, _stateCursor) = (1, null);
+        await SearchChanged.InvokeAsync(_stateSearch);
+        await ReportFirstPageAsync(pageWas, cursorWas);
+        await ReloadIfStaleAsync();
+    }
+
+    // A static page can only keep a change by having it saved and asking for the page again.
+    private bool CanSave => WillBeInteractive || LayoutKey is not null || LayoutSaveUrl is not null;
+
+    private bool Rearrangeable => (ResizableColumns || ReorderableColumns || ColumnPicker) && CanSave;
+
+    private DataGridLayout? _stored;
+    private PersistingComponentStateSubscription? _persisting;
+    private List<ColumnBase<TItem>>? _shown;
+    private GroupState? _shownFor;
+
+    // One bound follows the parent; given one-way, what people choose after it wins.
+    private DataGridLayout? CurrentLayout => LayoutChanged.HasDelegate || !_rearranged ? Layout ?? _stored : _stored;
+
+    private bool _rearranged;
+
+    private string CookieName => $"ib-grid-{LayoutKey}";
+
+    internal Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsProvider { get; set; }
+
+    /// <inheritdoc />
+    internal override Func<DataGroupRequest<TItem>, ValueTask<DataGroupResult>>? GroupsSource => GroupsProvider;
+
+    /// <inheritdoc />
+    internal override string ViewName => "DataGrid";
+
+    /// <inheritdoc />
+    internal override RenderFragment? GroupRows => _groupRoots is not { Count: > 0 } roots ? null : __builder =>
+    {
+        foreach (var root in roots)
+        {
+            @GroupRow(root)
+        }
+    };
+
+    private RenderFragment GroupRow(GroupNode node) => __builder =>
+    {
+        // The label starts in the lead column of its level and spans up to the first aggregate, which
+        // sits in its own column. One in the first column has no cell of its own: it goes after the label.
+        var shown = Shown.ToList();
+        var first = shown.FindIndex(c => c.AggregateIn(AggregatePlace.GroupRow) is not null);
+        var next = first == 0 ? shown.FindIndex(1, c => c.AggregateIn(AggregatePlace.GroupRow) is not null) : first;
+        var span = next < 0 ? shown.Count : next;
+        var value = node.Level.Column.GroupText(node.Value) ?? TextDefaults.GroupNone;
+        <tr class="ib-grid-group" data-ib-key="@($"g:{node.Path}")" aria-level="@(node.Depth + 1)" aria-expanded="@(node.Open ? "true" : "false")" aria-posinset="@node.Position" aria-setsize="@node.SetSize">
+            @GripEmptyCell
+            @if (Selectable)
+            {
+                <td class="@SelectCellClass">
+                    @* Its rows, when they're drawn: the script ticks them, and they report their own changes. *@
+                    @if (MultiSelect && node.Open && HasRows(node))
+                    {
+                        <input type="checkbox" class="ib-check-input ib-table-group-select" aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupSelect, value)" />
+                    }
+                </td>
+            }
+            @if (node.Depth > 0)
+            {
+                <td class="@LeadClass" style="@LeadStyle" colspan="@node.Depth"></td>
+            }
+            <th scope="row" colspan="@(LeadSpan - node.Depth + span)" style="@LabelAt(node.Depth)">
+                @* Sticks, as the cell is as wide as its columns and a frozen column may be under it. *@
+                <span class="ib-grid-group-label">
+                    @if (UseState)
+                    {
+                        <button type="button" class="ib-grid-group-toggle" aria-expanded="@(node.Open ? "true" : "false")" @onclick="() => ToggleGroupAsync(node)">
+                            <Icon Purpose="IconPurpose.ChevronRight" />
+                            @GroupLabel(node, value)
+                        </button>
+                    }
+                    else
+                    {
+                        <a class="ib-grid-group-toggle" href="@ToggleHref(node)" aria-expanded="@(node.Open ? "true" : "false")">
+                            <Icon Purpose="IconPurpose.ChevronRight" />
+                            @GroupLabel(node, value)
+                        </a>
+                    }
+                    @if (first == 0)
+                    {
+                        <span class="ib-grid-group-aggregate">@AggregateCell(shown[0], node.Group, AggregatePlace.GroupRow)</span>
+                    }
+                </span>
+            </th>
+            @foreach (var column in Shown.Skip(span))
+            {
+                <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group, AggregatePlace.GroupRow)</td>
+            }
+            @LastEmptyCell
+        </tr>
+        if (node.Open)
+        {
+            foreach (var child in node.Children)
+            {
+                @GroupRow(child)
+            }
+
+            for (var i = 0; i < node.Rows.Count; i++)
+            {
+                @DataRow(node.Rows[i], node.FirstRow + i, null, node.Depth + 1)
+                @AfterRow(node.Rows[i], node.FirstRow + i, node.Depth + 1)
+            }
+
+            if (Shown.Any(c => c.AggregateIn(AggregatePlace.GroupFooter) is not null))
+            {
+                <tr class="ib-grid-group-foot" aria-level="@(node.Depth + 2)">
+                    @GripEmptyCell
+                    @if (Selectable)
+                    {
+                        <td class="@SelectCellClass"></td>
+                    }
+                    @LeadCell
+                    @foreach (var column in Shown)
+                    {
+                        <td class="@CellClass(column)" style="@CellStyle(column)">@AggregateCell(column, node.Group, AggregatePlace.GroupFooter)</td>
+                    }
+                    @LastEmptyCell
+                </tr>
+            }
+
+            if (node.Children.Count == 0 && node.Group.Count > node.Rows.Count)
+            {
+                <tr class="ib-grid-group-more" aria-level="@(node.Depth + 2)">
+                    @GripEmptyCell
+                    @if (Selectable)
+                    {
+                        <td class="@SelectCellClass"></td>
+                    }
+                    @LeadCell
+                    <td colspan="@(Shown.Count + (LastEmptyCell is null ? 0 : 1))">
+                        @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupShowing, node.Rows.Count, node.Group.Count)
+                        @if (OnlyThisGroup(node) is { } only)
+                        {
+                            @(" ")
+                            if (UseState)
+                            {
+                                <button type="button" class="ib-link" @onclick="() => OnlyThisGroupAsync(only)">@TextDefaults.GroupShowOnly</button>
+                            }
+                            else
+                            {
+                                <a href="@OnlyThisGroupHref(only)">@TextDefaults.GroupShowOnly</a>
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    };
+
+    private RenderFragment GroupLabel(GroupNode node, string value) => __builder =>
+    {
+        if (node.Level.Column.GroupTemplate is { } template)
+        {
+            @template(new DataGridGroup(node.Value, value, node.Group, node.Depth, node.Open))
+        }
+        else
+        {
+            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupLabel, node.Level.Column.FullName, value)
+        }
+
+        @(" ")
+        @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupCount, node.Group.Count)
+    };
+
+    /// <inheritdoc />
+    internal override int LeadSpan => Grouping.Levels.Count + (HasExpander ? 1 : 0);
+
+    // The lead columns hold the groups' chevrons: frozen with the start columns, after the selection.
+    private string LeadClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-lead ib-frozen ib-frozen-start" : "ib-grid-lead";
+
+    private string? LeadStyle => StartSpan > 0 && Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? $"--ib-frozen-at:calc({StartWidths}0px)" : null;
+
+    // Where a label sticks: past the selection and the lead columns of the levels above it.
+    private string LabelAt(int depth) =>
+        $"--ib-group-at:calc({StartWidths}{depth} * var(--ib-datagrid-group))";
+
+    /// <inheritdoc />
+    internal override RenderFragment? LeadCell => LeadSpan == 0 ? null : __builder =>
+    {
+        <td class="@LeadClass" style="@LeadStyle" colspan="@LeadSpan"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LeadHeader => LeadSpan == 0 ? null : __builder =>
+    {
+        // One control opens or closes them all: the groups, over their lead columns, and the details.
+        var levels = Grouping.Levels.Count;
+        if (levels > 0)
+        {
+            var state = Grouping;
+            var all = state.AllOpen && state.Shut.Count == 0;
+            var label = all ? TextDefaults.GroupCollapseAll : TextDefaults.GroupExpandAll;
+            <th scope="col" class="@LeadClass" style="@LeadStyle" colspan="@levels">
+                @if (UseState)
+                {
+                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetAllOpenAsync(!all)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
+                }
+                else
+                {
+                    <a class="ib-grid-expand" href="@AllOpenHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
+                }
+            </th>
+        }
+
+        if (HasExpander)
+        {
+            var all = Details.AllOpen;
+            var label = all ? TextDefaults.DetailCollapseAll : TextDefaults.DetailExpandAll;
+            <th scope="col" class="@ExpanderClass" style="@ExpanderStyle">
+                @if (SingleDetail)
+                {
+                    <span class="ib-visually-hidden">@TextDefaults.DetailColumn</span>
+                }
+                else if (UseState)
+                {
+                    <button type="button" class="ib-grid-expand" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label" @onclick="() => SetDetailsAsync(AllDetails(!all, ExpandAllDetails))"><Icon Purpose="IconPurpose.ChevronRight" /></button>
+                }
+                else
+                {
+                    <a class="ib-grid-expand" href="@AllDetailsHref(!all)" aria-expanded="@(all ? "true" : "false")" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
+                }
+            </th>
+        }
+    };
+
+    // The detail buttons' column: frozen past the selection and the groups' lead columns.
+    private string? ExpanderStyle => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start)
+        ? $"--ib-frozen-at:calc({StartWidths}{Grouping.Levels.Count} * var(--ib-datagrid-group))"
+        : null;
+
+    // Hiding with no template, the button column goes while nothing is hidden (DataGridSmallScreen.cs).
+    private string ExpanderClass => ExpanderComesAndGoes ? LeadClass + " ib-hx" : LeadClass;
+
+    // The lead columns' width: the button column's is 0 while it's gone.
+    private string LeadWidths => ExpanderComesAndGoes
+        ? $"{Grouping.Levels.Count} * var(--ib-datagrid-group) + var(--ib-grid-expander, var(--ib-datagrid-group))"
+        : $"{LeadSpan} * var(--ib-datagrid-group)";
+
+    /// <inheritdoc />
+    internal override RenderFragment? RowLead(TItem item, int row) => !HasExpander ? LeadCell : __builder =>
+    {
+        var levels = Grouping.Levels.Count;
+        if (levels > 0)
+        {
+            <td class="@LeadClass" style="@LeadStyle" colspan="@levels"></td>
+        }
+        <td class="@ExpanderClass" style="@ExpanderStyle">
+            @* Not while it's open only for an edit, which closes it. *@
+            @if (HasDetail(item) && (Details.IsOpen(KeyOf(item)) || !DetailOpen(item)))
+            {
+                var key = KeyOf(item);
+                var open = DetailOpen(item);
+                var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, open ? TextDefaults.DetailHide : TextDefaults.DetailShow, LabelOf(item));
+                // One with only hidden values to show goes while nothing is hidden.
+                var css = HasTemplateDetail(item) ? "ib-grid-expand" : "ib-grid-expand ib-hx";
+                if (UseState)
+                {
+                    <button type="button" class="@css" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label" @onclick="() => ToggleDetailAsync(key)"><Icon Purpose="IconPurpose.ChevronRight" /></button>
+                }
+                else
+                {
+                    <a class="@css" href="@DetailHref(key)" aria-expanded="@(open ? "true" : "false")" aria-controls="@(open ? DetailId(row) : null)" aria-label="@label" title="@label"><Icon Purpose="IconPurpose.ChevronRight" /></a>
+                }
+            }
+        </td>
+    };
+
+    /// <inheritdoc />
+    // Open only for an edit, it shows only while a column is hidden: there are no fields in it otherwise.
+    internal override RenderFragment? AfterRow(TItem item, int row, int? indent) => !DetailOpen(item) ? null : DetailRow(item, row, indent, HasTemplateDetail(item) && Details.IsOpen(KeyOf(item)));
+
+    // The new row being added: its hidden columns' fields go in a detail under it, as for any row.
+    /// <inheritdoc />
+    internal override RenderFragment? AfterNewRow(TItem item) => !Hiding ? null : DetailRow(item, -1, null, false);
+
+    // One cell across the grid. Its content starts under the row's data, and stays in view when the
+    // grid scrolls sideways.
+    private RenderFragment DetailRow(TItem item, int row, int? indent, bool template) => __builder =>
+    {
+        <tr class="@(template ? "ib-grid-detail" : "ib-grid-detail ib-hx")" id="@DetailId(row)" aria-level="@(indent + 1)" data-ib-follows="@(HasGrip ? "" : null)">
+            <td colspan="@(Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))" style="@DetailAt">
+                <div class="ib-grid-detail-content">
+                    @if (Hiding)
+                    {
+                        @HiddenValues(item)
+                    }
+                    @if (template)
+                    {
+                        @DetailTemplate!(item)
+                    }
+                </div>
+            </td>
+        </tr>
+    };
+
+    private string DetailAt => $"--ib-detail-at:calc({StartWidths}{LeadWidths})";
+
+    // The widths of the columns before the lead ones, each followed by " + ": the handles and the selection.
+    private string StartWidths => (HasGrip ? "var(--ib-datagrid-grip) + " : "") + (Selectable ? "var(--ib-datagrid-select) + " : "");
+
+    // Moving rows (DataGridReorder.cs): the drag, the menus' moves in place and their shortcuts on
+    // static pages, and the live region that announces every move. Beside the table, as a custom
+    // element can't sit between a table and its rows.
+    private RenderFragment? RowSorter => !HasGrip ? null : __builder =>
+    {
+        <ib-sortable class="ib-visually-hidden" data-ib-rows=""
+                     data-ib-interactive="@(MovesLive ? "" : null)"
+                     data-ib-seq="@(RendererInfo.IsInteractive ? _rowMoveSeq.ToString(System.Globalization.CultureInfo.InvariantCulture) : null)"
+                     @onibmove="DropRowAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"
+                     data-ib-submit="@(PostsOrder && SubmitOnMove ? "" : null)"
+                     data-ib-moved="@TextDefaults.MovedTo"
+                     data-ib-cancelled="@(MovesLive ? TextDefaults.MoveCancelled : null)">
+            @if (PostsOrder)
+            {
+                @* The form's default button, ahead of the rows' moves: Enter in another field submits the
+                   form, rather than pressing the first row's (disabled) Move up. *@
+                <button type="submit" class="ib-data-default-submit ib-visually-hidden" tabindex="-1" aria-hidden="true"></button>
+            }
+            <div role="status">@_moveAnnouncement</div>
+            @if (MovesLive)
+            {
+                @* The script's own, for a drop no render answered: C# owns the one above. *@
+                <div role="status" data-ib-say></div>
+            }
+        </ib-sortable>
+    };
+
+    private string GripCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-grid-grip-cell ib-frozen ib-frozen-start" : "ib-grid-grip-cell";
+
+    /// <inheritdoc />
+    internal override string? RowsClass => HasGrip ? "ib-sortable-list" : null;
+
+    /// <inheritdoc />
+    internal override string? OwnRowClass => HasGrip ? "ib-sortable-item" : null;
+
+    /// <inheritdoc />
+    internal override object? RowKey(string key) => HasGrip ? key : null;
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? RowAttributes(TItem item) => !HasGrip ? null : CanMove(item) && MoveBlockedReason is null
+        ? new Dictionary<string, object> { ["data-ib-label"] = LabelOf(item), ["data-ib-movable"] = "" }
+        : new Dictionary<string, object> { ["data-ib-label"] = LabelOf(item) };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripHeader => !HasGrip ? null : __builder =>
+    {
+        <th scope="col" class="@GripCellClass"><span class="ib-visually-hidden">@TextDefaults.MoveColumn</span></th>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripEmptyCell => !HasGrip ? null : __builder =>
+    {
+        <td class="@GripCellClass"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? GripCell(TItem item, int row) => !HasGrip ? null : __builder =>
+    {
+        var key = KeyOf(item);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, LabelOf(item));
+        <td class="@GripCellClass">
+            @if (!CanMove(item))
+            {
+            }
+            else if (MoveBlockedReason is { } reason)
+            {
+                <span title="@reason">
+                    <IconButton Icon="Lucide.GripVertical" Label="@($"{label}: {reason}")" Disabled Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle" />
+                </span>
+            }
+            else
+            {
+                var focus = !MovesLive && key == _moveFocusKey;
+                <Menu>
+                    <Trigger Context="wire">
+                        <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle ib-sortable-trigger"
+                                    aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+Home Alt+End"
+                                    autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+                    </Trigger>
+                    <ChildContent>
+                        @RowMove(new(ListMoveKind.Up, key), TextDefaults.MoveUp, "Alt+↑", row == 0)
+                        @RowMove(new(ListMoveKind.Down, key), TextDefaults.MoveDown, "Alt+↓", row == _items.Count - 1)
+                        @RowMove(new(ListMoveKind.Top, key), TextDefaults.MoveToTop, "Alt+Home", row == 0)
+                        @RowMove(new(ListMoveKind.Bottom, key), TextDefaults.MoveToBottom, "Alt+End", row == _items.Count - 1)
+                    </ChildContent>
+                </Menu>
+            }
+            @if (PostsOrder && InOwnOrder)
+            {
+                @* Only in the grid's own order: a sorted order posted with the form would save as the rows' own. *@
+                <input type="hidden" name="@OrderKeysName" value="@key" />
+            }
+        </td>
+    };
+
+    // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the row in place.
+    private RenderFragment RowMove(ListMove move, string text, string shortcut, bool disabled) => __builder =>
+    {
+        var kind = move.Kind.ToString().ToLowerInvariant();
+        if (MovesLive)
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@kind" OnClick="() => MoveRowAsync(move)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@kind" Submit Name="@OrderMoveName" Value="@move.ToString()">@text</MenuItem>
+        }
+    };
+
+    /// <inheritdoc />
+    internal override void Loaded()
+    {
+        base.Loaded();
+        ArrangePosted();
+    }
+
+    /// <inheritdoc />
+    internal override string Summary(int size)
+    {
+        if (!GroupedNow)
+        {
+            return base.Summary(size);
+        }
+
+        var shown = _groupRoots?.Count ?? 0;
+        if (shown == 0)
+        {
+            return "";
+        }
+
+        var first = (_page - 1L) * size + 1;
+        return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupRange, first, first + shown - 1, _total ?? 0);
+    }
+
+    /// <inheritdoc />
+    internal override bool MultiSort => true;
+
+    /// <inheritdoc />
+    internal override bool GridColumns => true;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (LayoutKey is null)
+        {
+            return;
+        }
+
+        if (LayoutKey.Length is 0 or > 64 || !LayoutKey.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
+        {
+            throw new InvalidOperationException($"The DataGrid's {nameof(LayoutKey)} \"{LayoutKey}\" names a cookie: use letters, digits, - and _.");
+        }
+
+        // The cookie is there on the server's first render; an interactive render that follows a
+        // prerender gets it handed over.
+        var state = Services.GetService<PersistentComponentState>();
+        var key = $"ib-grid:{LayoutKey}";
+        if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.DataGridLayout, out var handedOver))
+        {
+            _stored = handedOver;
+        }
+        else if (!RendererInfo.IsInteractive)
+        {
+            _stored = DataGridLayout.Parse(Services.GetService<IRequestCookies>()?.Get(CookieName));
+        }
+
+        if (state is not null && _stored is not null)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                try
+                {
+                    PersistedState.Persist(state, key, _stored, PersistedStateJson.Default.DataGridLayout);
+                }
+                catch (ArgumentException)
+                {
+                    // Another grid with the same key already handed it over.
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    protected override Task OnParametersSetAsync()
+    {
+        if (CanEdit && ItemKey is null)
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(ItemKey)} to know which row is being edited.");
+        }
+
+        if (CanDelete && ItemKey is null)
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(OnDelete)} needs an {nameof(ItemKey)} to know which row to delete.");
+        }
+
+        if (Virtualize)
+        {
+            if (MaxHeight is null)
+            {
+                throw new InvalidOperationException("A DataGrid with Virtualize needs a MaxHeight, for its rows to scroll inside.");
+            }
+
+            if (Paging is not (DataPaging.Pages or DataPaging.LoadOnScroll))
+            {
+                throw new InvalidOperationException("A DataGrid with Virtualize has no pages, so it can't take a Paging.");
+            }
+
+            // Without a runtime to draw rows as they scroll, they load on scroll.
+            Paging = RendererInfo.IsInteractive ? DataPaging.Pages : DataPaging.LoadOnScroll;
+            PageSize ??= 50;
+        }
+
+        CheckReorder();
+        _shown = null;
+        ForgetEndedEdit();
+        // Bound, it starts from the address, as sort and page do, and then follows the parent.
+        if (!_searchReady)
+        {
+            _searchReady = true;
+            _lastSearchParam = Search;
+            _stateSearch = Search ?? (QueryString.Of(Navigation.Uri).TryGetValue(SearchKey, out var words) ? words.ToString() : null);
+            _searchShown = _stateSearch;
+        }
+        else if (Search != _lastSearchParam)
+        {
+            _lastSearchParam = Search;
+            // Not the echo of what was just typed, which may have moved on since.
+            if (Search != _reportedSearch)
+            {
+                _stateSearch = _searchShown = Search;
+            }
+        }
+
+        if ((ResizableColumns || ReorderableColumns || ColumnPicker) && !CanSave && !_warned)
+        {
+            _warned = true;
+            Logger?.LogWarning("A DataGrid on a static page needs a {Key} or {Url} for people to rearrange its columns, so it shows no controls.", nameof(LayoutKey), nameof(LayoutSaveUrl));
+        }
+
+        if (EditMode is DataGridEditMode.Row or DataGridEditMode.Cell && (Virtualize || Appending))
+        {
+            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{EditMode} can't edit rows that load as they're needed, as an edited row could scroll away with what's typed in it: use {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+        }
+
+        // Rows that load as they're needed can't be counted on to hold the one a link names.
+        if (CanEdit && FindItem is null && (Virtualize || Appending))
+        {
+            throw new InvalidOperationException($"A DataGrid that loads rows as they're needed can't edit one it hasn't loaded: give it a {nameof(FindItem)}.");
+        }
+
+        return LoadThenFindAsync();
+    }
+
+    private bool _warned;
+
+    private async Task OnLayoutAsync(IzzyLayoutEventArgs e)
+    {
+        _stored = DataGridLayout.Parse(e.Layout);
+        _rearranged = true;
+        _shown = null;
+        await LayoutChanged.InvokeAsync(_stored);
+        StateHasChanged();
+    }
+
+    private bool CanResize(ColumnBase<TItem> column) => ResizableColumns && CanSave && column.Resizable;
+
+    private bool CanMove(ColumnBase<TItem> column) => ReorderableColumns && CanSave && column.Reorderable;
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? HeaderAttributes(ColumnBase<TItem> column)
+    {
+        // A header that can be dragged to the bar of what's grouped.
+        var group = ShowsGroupBar && CanGroupBy(column) && !GroupsBy(column) && HasRoomToGroup;
+        if (!Rearrangeable && !group)
+        {
+            return null;
+        }
+
+        var attributes = new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column) };
+        if (group)
+        {
+            attributes["data-ib-group"] = column.GroupToken;
+        }
+
+        if (CanMove(column))
+        {
+            attributes["data-ib-reorder"] = "";
+        }
+
+        if (BandPath(column) is { } path)
+        {
+            attributes["data-ib-path"] = path;
+            // Its name where the script says it alone: a width as it's resized.
+            attributes["data-ib-name"] = column.FullName;
+        }
+
+        if (CanResize(column))
+        {
+            attributes["data-ib-resize"] = "";
+            // Its controls need room: smaller, they'd sit on each other.
+            attributes["data-ib-min"] = column.MinWidth is { } min ? StyleValues.Length(min) : "6rem";
+            if (column.MaxWidth is { } max)
+            {
+                attributes["data-ib-max"] = StyleValues.Length(max);
+            }
+        }
+
+        return attributes;
+    }
+
+    /// <inheritdoc />
+    internal override bool HasHeaderMenu(ColumnBase<TItem> column) =>
+        CanResize(column) || CanMove(column) || CanGroupBy(column);
+
+    /// <inheritdoc />
+    internal override RenderFragment? HeaderMenu(ColumnBase<TItem> column) => !HasHeaderMenu(column) ? null : __builder =>
+    {
+        var key = KeyOf(column);
+        var frozen = FrozenOf(column);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.FullName);
+        var zone = SiblingBlocks(column.Band, frozen);
+        <Menu Class="ib-col-menu" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@TextDefaults.ColumnOptionsButton" title="@label" @attributes="context">
+                    <Icon Purpose="IconPurpose.MoreVertical" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                @{ var groups = new List<RenderFragment>(); }
+                @if (column.CanSort)
+                {
+                    var sorted = SortedDescending(column);
+                    groups.Add(@<text>
+                        @SortItem(column, false, Lucide.ArrowUp, TextDefaults.ColumnSortAscending)
+                        @SortItem(column, true, Lucide.ArrowDown, TextDefaults.ColumnSortDescending)
+                        @if (sorted is null && SortsByOthers(column))
+                        {
+                            @SortItem(column, false, Lucide.ArrowDownNarrowWide, TextDefaults.ColumnSortAddAscending, add: true)
+                            @SortItem(column, true, Lucide.ArrowDownWideNarrow, TextDefaults.ColumnSortAddDescending, add: true)
+                        }
+                        @if (sorted is not null)
+                        {
+                            @SortItem(column, null, Lucide.X, TextDefaults.ColumnSortClear)
+                        }
+                    </text>);
+                }
+                @if (CanGroupBy(column))
+                {
+                    var grouped = GroupsBy(column);
+                    groups.Add(UseState
+                        ? @<MenuItem Icon="Lucide.Rows3" OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                        : @<MenuItem Icon="Lucide.Rows3" Href="@GroupHref(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>);
+                    // The chips' drag and Alt+arrows, for touch and the pointer: one of several levels moves.
+                    if (grouped && Grouping.Levels.Count > 1)
+                    {
+                        var groupItem = groups[^1];
+                        groups[^1] = @<text>
+                            @groupItem
+                            @GroupMoveItem(column, -1, Lucide.MoveLeft, TextDefaults.GroupMoveLeft)
+                            @GroupMoveItem(column, 1, Lucide.MoveRight, TextDefaults.GroupMoveRight)
+                        </text>;
+                    }
+                }
+                @if (CanMove(column) && RowHref is null)
+                {
+                    groups.Add(FreezeSub(column, "data-ib-col", key));
+                }
+                @if (CanResize(column))
+                {
+                    groups.Add(@<text>
+                        <MenuItem Icon="Lucide.ArrowLeftRight" data-ib-col-action="fit" data-ib-col="@key">@TextDefaults.ColumnFit</MenuItem>
+                        <MenuItem Icon="Lucide.ChevronsLeftRight" data-ib-col-action="fit-all" data-ib-col="@key">@TextDefaults.ColumnFitAll</MenuItem>
+                        <MenuSub Label="@TextDefaults.ColumnSize" Icon="Lucide.Ruler">
+                            <MenuItem data-ib-col-action="wider" data-ib-col="@key">@TextDefaults.ColumnWider</MenuItem>
+                            <MenuItem data-ib-col-action="narrower" data-ib-col="@key">@TextDefaults.ColumnNarrower</MenuItem>
+                            <MenuItem Disabled="CurrentLayout?.Column(key)?.Width is null || (frozen != ColumnFrozen.None && column.Width is null)" data-ib-col-action="reset-width" data-ib-col="@key">@TextDefaults.ColumnResetWidth</MenuItem>
+                        </MenuSub>
+                    </text>);
+                }
+                @if (CanMove(column))
+                {
+                    groups.Add(@<text>
+                        <MenuItem Icon="Lucide.ArrowLeft" Disabled="zone.FirstOrDefault() == (object)column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
+                        <MenuItem Icon="Lucide.ArrowRight" Disabled="zone.LastOrDefault() == (object)column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
+                    </text>);
+                }
+                @if (HasPicker || Rearrangeable)
+                {
+                    groups.Add(@<text>
+                        @if (HasPicker && column.Pickable)
+                        {
+                            <MenuItem Icon="Lucide.EyeOff" Disabled="@(Shown.Count <= 1)" data-ib-col-action="hide" data-ib-col="@key">@TextDefaults.ColumnHide</MenuItem>
+                        }
+                        @if (HasPicker)
+                        {
+                            <MenuItem Icon="Lucide.Columns3" data-ib-col-action="choose" data-ib-col="@key">@TextDefaults.ColumnChoose</MenuItem>
+                        }
+                        <MenuItem Icon="Lucide.RotateCcw" data-ib-col-action="reset">@TextDefaults.ColumnsReset</MenuItem>
+                    </text>);
+                }
+                @for (var i = 0; i < groups.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        <MenuDivider />
+                    }
+                    @groups[i]
+                }
+            </ChildContent>
+        </Menu>
+    };
+
+    // Move group left or right (a column menu's) or Move left or right (a chip's): a link on static pages, as Group by is.
+    private RenderFragment GroupMoveItem(ColumnBase<TItem> column, int by, IconData icon, string text, string? chip = null) => __builder =>
+    {
+        var moved = GroupTextMoved(column, by);
+        if (UseState)
+        {
+            <MenuItem Icon="icon" Disabled="moved is null" OnClick="() => SetGroupAsync(moved)" data-ib-chip-move="@chip">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="icon" Disabled="moved is null" Href="@(moved is null ? null : GroupHref(moved))" data-ib-chip-move="@chip">@text</MenuItem>
+        }
+    };
+
+    // A column menu's sort item: a link on static pages, as the header's is. The header shows the
+    // sort now; Sort ascending and descending sort by this column alone, which changes a sort of
+    // several too. With another column sorted and not this one, Add to sort keeps that sort and adds
+    // this column: Shift+click's sort of several, for touch and the keyboard.
+    private RenderFragment SortItem(ColumnBase<TItem> column, bool? descending, IconData icon, string text, bool add = false) => __builder =>
+    {
+        if (UseState)
+        {
+            <MenuItem Icon="icon" OnClick="() => SortToAsync(column, descending, add)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="icon" Href="@SortToHref(column, descending, add)">@text</MenuItem>
+        }
+    };
+
+    // Freeze columns ›: a line, as a sheet's frozen panes. To the left freezes every column to this
+    // one's left (its band's, for a column in one), To the right every column to its right; freezing
+    // again moves the line. Unfreeze clears this column's side, or every frozen column from one that
+    // scrolls.
+    private RenderFragment FreezeSub(ColumnBase<TItem> member, string by, object id) => __builder =>
+    {
+        var outer = member.Band?.Chain[0];
+        var span = Shown.Select((c, i) => (c, i)).Where(x => outer is null ? x.c == member : x.c.Band?.Chain[0] == outer).Select(x => x.i).ToList();
+        var attributes = new Dictionary<string, object> { [by] = id };
+        <MenuSub Label="@TextDefaults.ColumnFreeze" Icon="Lucide.Pin">
+            <MenuItem Disabled="@(span[0] == 0)" data-ib-col-action="freeze-start" @attributes="attributes">@TextDefaults.ColumnFreezeLeft</MenuItem>
+            <MenuItem Disabled="@(span[^1] == Shown.Count - 1)" data-ib-col-action="freeze-end" @attributes="attributes">@TextDefaults.ColumnFreezeRight</MenuItem>
+            <MenuItem Disabled="@(!Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))" data-ib-col-action="unfreeze" @attributes="attributes">@TextDefaults.ColumnUnfreeze</MenuItem>
+        </MenuSub>
+    };
+
+    // What a column or band moves among: the columns and bands in its band (or outside any), in its
+    // frozen zone, that can move. A band is one block.
+    private List<object> SiblingBlocks(ColumnBand? parent, ColumnFrozen zone)
+    {
+        var depth = parent?.Chain.Count ?? 0;
+        var blocks = new List<object>();
+        foreach (var column in Shown)
+        {
+            var chain = column.Band?.Chain ?? [];
+            if (FrozenOf(column) != zone || (parent is not null && (chain.Count < depth || chain[depth - 1] != parent)))
+            {
+                continue;
+            }
+
+            object block = chain.Count > depth ? chain[depth] : column;
+            if (blocks.Count == 0 || blocks[^1] != block)
+            {
+                blocks.Add(block);
+            }
+        }
+
+        return blocks.Where(b => b is ColumnBand band ? BandMoves(band) : CanMove((ColumnBase<TItem>)b)).ToList();
+    }
+
+    // A band moves when every column in it can.
+    private bool BandMoves(ColumnBand band) =>
+        ReorderableColumns && CanSave && AllColumns.Where(c => c.Band?.Chain.Contains(band) == true).All(c => c.Reorderable);
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? BandAttributes(ColumnBand band, BandSpan span)
+    {
+        if (!Rearrangeable)
+        {
+            return null;
+        }
+
+        var attributes = new Dictionary<string, object> { ["data-ib-band"] = BandId(band), ["data-ib-path"] = BandPath(band) };
+        // All its columns, hidden ones too, which the script freezes and places with the band.
+        if (band.Parent is null)
+        {
+            attributes["data-ib-cols"] = System.Text.Json.JsonSerializer.Serialize(AllColumns.Where(c => c.Band?.Chain[0] == band).Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray);
+        }
+        if (BandMoves(band))
+        {
+            attributes["data-ib-reorder"] = "";
+        }
+
+        return attributes;
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment BandHeader(ColumnBand band, BandSpan span) => !BandMoves(band) ? BandLabel(band) : __builder =>
+    {
+        var id = BandId(band);
+        var frozen = FrozenOf(Shown[span.First]);
+        var zone = SiblingBlocks(band.Parent, frozen);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, BandFullName(band));
+        <div class="ib-table-head">
+            @* Centered (or as aligned) in the room the menu button leaves, which sits at the end. *@
+            <span class="ib-table-title" style="@(band.Align switch { CellAlign.Center => "margin-inline:auto", CellAlign.End => "margin-inline-start:auto", _ => null })">@BandLabel(band)</span>
+            <Menu Class="ib-col-menu" data-ib-user-controlled>
+                <Trigger>
+                    <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@TextDefaults.ColumnOptionsButton" title="@label" @attributes="context">
+                        <Icon Purpose="IconPurpose.MoreVertical" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    @if (RowHref is null && band.Parent is null)
+                    {
+                        @FreezeSub(Shown[span.First], "data-ib-band", id)
+                        <MenuDivider />
+                    }
+                    <MenuItem Icon="Lucide.ArrowLeft" Disabled="zone.FirstOrDefault() == (object)band" data-ib-col-action="left" data-ib-band="@id">@TextDefaults.ColumnMoveStart</MenuItem>
+                    <MenuItem Icon="Lucide.ArrowRight" Disabled="zone.LastOrDefault() == (object)band" data-ib-col-action="right" data-ib-band="@id">@TextDefaults.ColumnMoveEnd</MenuItem>
+                </ChildContent>
+            </Menu>
+        </div>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? HeaderHandle(ColumnBase<TItem> column) => !CanResize(column) ? null : __builder =>
+    {
+        @* Pointer only: the grid is one Tab stop, and the keys and the menu do the same. *@
+        <span class="ib-col-resize" aria-hidden="true"></span>
+    };
+
+    private bool HasPicker => Rearrangeable && ColumnPicker;
+
+    // With frozen End columns its column stays in view with them, or its button would be out of reach.
+    private string MenuCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.End) ? "ib-grid-menu-cell ib-frozen ib-frozen-end" : "ib-grid-menu-cell";
+
+    // Named for its row, if the row has a name: its string form may be a whole record.
+    private string RowMenuLabel(TItem item) => RowLabel is null && ItemKey is null
+        ? TextDefaults.RowActions
+        : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item));
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastHeaderCell => !HasActionCell ? null : __builder =>
+    {
+        <th scope="col" class="@MenuCellClass"><span class="ib-visually-hidden">@TextDefaults.RowActions</span></th>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastEmptyCell => !HasActionCell ? null : __builder =>
+    {
+        <td class="@MenuCellClass"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastCell(TItem item) => !HasActionCell ? null : __builder =>
+    {
+        <td class="@MenuCellClass">
+            <div class="ib-grid-actions">
+                @{ var edited = RowEditKey is { } editing && (editing == NewRowKey ? ReferenceEquals(item, _editModel) : IsEditingRow(item)); }
+                @if (edited)
+                {
+                    @RowEditActions
+                }
+                else
+                {
+                    <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
+                }
+                @{ var count = edited ? default : ActionCount(item); }
+                @if (count.Menu || count.Auto > 0)
+                {
+                    @* With only buttons that fold, the ⋮ shows once they're in it. *@
+                    <Menu>
+                        <Trigger Context="wire">
+                            <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreVertical)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
+                                        Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
+                        </Trigger>
+                        <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
+                    </Menu>
+                }
+            </div>
+        </td>
+    };
+
+    private bool HasSearchTool => Searchable;
+
+    private readonly List<DataGridExportFormat> _exportFormats = [];
+
+    // Excel, CSV, then the grid's own formats in the order they're written.
+    private IEnumerable<(string Label, string Href)> ExportLinks
+    {
+        get
+        {
+            if (ExportExcelHref is not null)
+            {
+                yield return (TextDefaults.ExportExcel, ExportExcelHref);
+            }
+
+            if (ExportCsvHref is not null)
+            {
+                yield return (TextDefaults.ExportCsv, ExportCsvHref);
+            }
+
+            foreach (var format in FormatsAsWritten())
+            {
+                yield return (format.Label, format.Href);
+            }
+        }
+    }
+
+    // The formats join in the order they first render, so one shown later (behind an @if) would come
+    // last. Their places are read from the frames the columns write; one the columns don't write
+    // themselves (inside a component of yours, or a band) keeps its joining order, after them.
+    private IEnumerable<DataGridExportFormat> FormatsAsWritten()
+    {
+        if (_exportFormats.Count < 2 || Columns is null)
+        {
+            return _exportFormats;
+        }
+
+        var written = new List<(string? Label, string? Href)>();
+#pragma warning disable BL0006 // Reading render frames: the columns are run here only to see where the formats are.
+        using (var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder())
+        {
+            Columns(builder);
+            var frames = builder.GetFrames();
+            for (var i = 0; i < frames.Count; i++)
+            {
+                if (frames.Array[i].FrameType != Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Component || frames.Array[i].ComponentType != typeof(DataGridExportFormat))
+                {
+                    continue;
+                }
+
+                string? label = null, href = null;
+                for (var j = i + 1; j < frames.Count && frames.Array[j].FrameType == Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Attribute; j++)
+                {
+                    switch (frames.Array[j].AttributeName)
+                    {
+                        case nameof(DataGridExportFormat.Label):
+                            label = frames.Array[j].AttributeValue as string;
+                            break;
+                        case nameof(DataGridExportFormat.Href):
+                            href = frames.Array[j].AttributeValue as string;
+                            break;
+                    }
+                }
+
+                written.Add((label, href));
+            }
+        }
+#pragma warning restore BL0006
+
+        // OrderBy is stable: formats not found keep their joining order.
+        return _exportFormats.OrderBy(format =>
+        {
+            var at = written.IndexOf((format.Label, format.Href));
+            if (at < 0)
+            {
+                return int.MaxValue;
+            }
+
+            written[at] = default;
+            return at;
+        }).ToList();
+    }
+
+    /// <inheritdoc />
+    private protected override void AddExportFormat(DataGridExportFormat format)
+    {
+        _exportFormats.Add(format);
+        ExportFormatChanged();
+    }
+
+    /// <inheritdoc />
+    private protected override void RemoveExportFormat(DataGridExportFormat format)
+    {
+        if (_exportFormats.Remove(format))
+        {
+            ExportFormatChanged();
+        }
+    }
+
+    // One added later (behind an @if), or relabeled, shows without waiting for another render.
+    /// <inheritdoc />
+    private protected override void ExportFormatChanged()
+    {
+        if (ReadyToLoad)
+        {
+            StateHasChanged();
+        }
+    }
+
+    // Not when every shown column with a key is left out: an address naming none of them would get
+    // every field, the ones left out too.
+    private bool HasExportTool => (ExportCsvHref is not null || ExportExcelHref is not null || _exportFormats.Count > 0) && !ExportsNothing;
+
+    private bool ExportsNothing => ExportColumns.Count == 0 && Grouping.Levels.Select(l => l.Column).Concat(Shown).Any(c => c.Key is not null);
+
+    // Only real keys: a title can hold a comma, and no field has one for a key.
+    // A grouped column left the table, not the file.
+    private List<ColumnBase<TItem>> ExportColumns => Grouping.Levels.Select(l => l.Column).Concat(Shown).Distinct().Where(c => c.Key is not null && c.Exportable).ToList();
+
+    bool IDataGridToolbar.HasSearch => HasSearchTool;
+
+    bool IDataGridToolbar.HasColumnPicker => HasPicker;
+
+    /// <inheritdoc />
+    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd;
+
+    bool IDataGridToolbar.HasExport => HasExportTool;
+
+    bool IDataGridToolbar.ExportHasMenu => ExportHasMenu;
+
+    private bool ExportHasMenu => ExportLinks.Skip(1).Any();
+
+    bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
+
+    string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
+
+    string IDataGridToolbar.ExportLabel => ExportHasMenu ? TextDefaults.Export : ExportLinks.FirstOrDefault().Label ?? TextDefaults.Export;
+
+    RenderFragment IDataGridToolbar.SearchBar => __builder =>
+    {
+        <div class="ib-toolbar-item" style="width:14rem">
+            <div class="ib-field ib-field-sm">
+                <div class="ib-field-control">
+                    @if (UseState)
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@_searchShown" autocomplete="off" data-ib-bound-search @oninput="OnSearchAsync" />
+                    }
+                    else
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@CurrentSearch" autocomplete="off" name="@SearchKey" form="@FilterFormId" data-ib-filter />
+                    }
+                </div>
+            </div>
+        </div>
+    };
+
+    RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
+    {
+        var pickable = InOrder(AllColumns.Where(c => c.Pickable).ToList());
+        var hidden = pickable.Count(c => !Shown.Contains(c));
+        <div class="ib-toolbar-item ib-col-picker">
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/column-picker.css"]" />
+            <Popover Title="@TextDefaults.ColumnPickerTitle" ShowCloseButton="true" Class="ib-col-picker-pop" data-ib-user-controlled>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Columns)" @attributes="context">@TextDefaults.ColumnPicker</Button>
+                    }
+                    else
+                    {
+                        <IconButton Icon="IconSet.Current.Get(IconPurpose.Columns)" Label="@TextDefaults.ColumnPicker" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>
+                    <ib-col-picker class="ib-col-picker-panel">
+                        <div class="ib-col-picker-top">
+                            @if (HasBands)
+                            {
+                                @* Named for what it does next: every band starts open. *@
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" data-ib-open="" aria-label="@TextDefaults.ColumnsCollapseAll" data-ib-text-open="@TextDefaults.ColumnsExpandAll" data-ib-text-close="@TextDefaults.ColumnsCollapseAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
+                            }
+                            <input type="checkbox" class="ib-check-input" aria-label="@TextDefaults.ColumnsShowAll" checked="@(hidden == 0)" data-ib-mixed="@(hidden > 0 && hidden < pickable.Count ? "" : null)" data-ib-picker-all />
+                            <div class="ib-field ib-field-sm">
+                                <div class="ib-field-control">
+                                    <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" data-ib-picker-search />
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="ib-col-picker-list ib-scroll" aria-label="@TextDefaults.ColumnPicker">
+                            @PickerRows(pickable, 0)
+                        </ul>
+                        @* Only with something to say: what's hidden, or a layout to go back from. *@
+                        @if (hidden > 0 || CurrentLayout is not null)
+                        {
+                            <div class="ib-col-picker-foot">
+                                <span>@(hidden > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnsHidden, hidden, pickable.Count) : null)</span>
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                            </div>
+                        }
+                    </ib-col-picker>
+                </ChildContent>
+            </Popover>
+        </div>
+    };
+
+    // The picker's rows from here down: each band's columns in a list of their own under its row.
+    private RenderFragment PickerRows(List<ColumnBase<TItem>> columns, int depth) => __builder =>
+    {
+        for (var i = 0; i < columns.Count;)
+        {
+            var chain = columns[i].Band?.Chain ?? [];
+            if (chain.Count > depth)
+            {
+                var band = chain[depth];
+                var run = columns.Skip(i).TakeWhile(c => c.Band?.Chain is { } other && other.Count > depth && other[depth] == band).ToList();
+                i += run.Count;
+                var shown = run.Count(Shown.Contains);
+                var id = BandId(band);
+                var list = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-b{id}";
+                <li class="ib-col-picker-band" data-ib-picker-item="band:@id" data-ib-title="@band.Title">
+                    <div class="ib-col-picker-row">
+                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-controls="@list" aria-label="@BandFullName(band)" data-ib-picker-toggle><Icon Name="Lucide.ChevronDown" /></button>
+                        <input type="checkbox" class="ib-check-input" id="@($"{list}-c")" aria-label="@(band.Parent is null ? null : BandFullName(band))" checked="@(shown == run.Count)" data-ib-mixed="@(shown > 0 && shown < run.Count ? "" : null)"
+                               data-ib-picker-keys="@System.Text.Json.JsonSerializer.Serialize(run.Select(KeyOf).ToArray(), PersistedStateJson.Default.StringArray)" />
+                        @PickerHandle(shown > 0 && BandMoves(band), band, null, BandFullName(band))
+                        <label for="@($"{list}-c")">@band.Title</label>
+                    </div>
+                    <ul id="@list" aria-label="@BandFullName(band)">@PickerRows(run, depth + 1)</ul>
+                </li>
+            }
+            else
+            {
+                var column = columns[i++];
+                var key = KeyOf(column);
+                var shown = Shown.Contains(column);
+                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{AllColumns.ToList().IndexOf(column)}";
+                var frozen = shown && FrozenOf(column) != ColumnFrozen.None;
+                var name = column.Band is null ? column.HeaderText : column.FullName;
+                name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnFrozenNote, name) : name;
+                <li data-ib-picker-item="@key" data-ib-title="@column.HeaderText">
+                    <div class="ib-col-picker-row">
+                        @if (HasBands)
+                        {
+                            <span class="ib-col-picker-gap"></span>
+                        }
+                        <input type="checkbox" class="ib-check-input" id="@box" aria-label="@(name == column.HeaderText ? null : name)" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                        @PickerHandle(shown && CanMove(column), null, column, column.FullName)
+                        <label for="@box">
+                            @column.HeaderText
+                            @if (frozen)
+                            {
+                                <Icon Name="Lucide.Pin" Class="ib-col-picker-pin" />
+                            }
+                        </label>
+                    </div>
+                </li>
+            }
+        }
+    };
+
+    private string? _pickerId;
+
+    // A row's handle: dragged, or pressed for its moves (one pointer, and the keys). Rows that can't
+    // move keep its room.
+    private RenderFragment PickerHandle(bool moves, ColumnBand? band, ColumnBase<TItem>? column, string name) => __builder =>
+    {
+        if (!ReorderableColumns)
+        {
+            return;
+        }
+
+        if (!moves)
+        {
+            <span class="ib-col-picker-gap"></span>
+            return;
+        }
+
+        var zone = band is not null ? SiblingBlocks(band.Parent, FrozenOf(AllColumns.First(c => c.Band?.Chain.Contains(band) == true && Shown.Contains(c)))) : SiblingBlocks(column!.Band, FrozenOf(column));
+        object self = (object?)band ?? column!;
+        var attributes = band is not null ? new Dictionary<string, object> { ["data-ib-band"] = BandId(band) } : new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column!) };
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveItem, name);
+        <Menu Class="ib-col-menu" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-handle" aria-label="@label" title="@label" aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+Home Alt+End" data-ib-picker-handle @attributes="context">
+                    <Icon Name="Lucide.GripVertical" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                <MenuItem Icon="Lucide.ArrowUp" Shortcut="Alt+↑" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="left" @attributes="attributes">@TextDefaults.MoveUp</MenuItem>
+                <MenuItem Icon="Lucide.ArrowDown" Shortcut="Alt+↓" Disabled="zone.LastOrDefault() == self" data-ib-col-action="right" @attributes="attributes">@TextDefaults.MoveDown</MenuItem>
+                <MenuItem Shortcut="Alt+Home" Disabled="zone.FirstOrDefault() == self" data-ib-col-action="first" @attributes="attributes">@TextDefaults.MoveToTop</MenuItem>
+                <MenuItem Shortcut="Alt+End" Disabled="zone.LastOrDefault() == self" data-ib-col-action="last" @attributes="attributes">@TextDefaults.MoveToBottom</MenuItem>
+            </ChildContent>
+        </Menu>
+    };
+
+    RenderFragment IDataGridToolbar.ExportBar(bool showText) => __builder =>
+    {
+        // Its links can be cleared before the item has left.
+        if (!HasExportTool)
+        {
+            return;
+        }
+
+        var label = ((IDataGridToolbar)this).ExportLabel;
+        var icon = IconSet.Current.Get(IconPurpose.Export);
+        if (ExportHasMenu)
+        {
+            // Both inside one button, not a split button: one click only ever opens the menu.
+            var chevron = IconSet.Current.Get(IconPurpose.ChevronDown);
+            <Menu>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button Class="ib-grid-export" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" @attributes="context">@label</Button>
+                    }
+                    else
+                    {
+                        <Button Class="ib-grid-export ib-grid-export-icons" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" aria-label="@label" title="@label" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>@(((IDataGridToolbar)this).ExportMenu)</ChildContent>
+            </Menu>
+        }
+        else if (showText)
+        {
+            <Button Href="@ExportHref(ExportLinks.First().Href)" StartIcon="icon" Disabled="@(_loadedRequest is null)" download>@label</Button>
+        }
+        else
+        {
+            <IconButton Href="@ExportHref(ExportLinks.First().Href)" Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" download />
+        }
+    };
+
+    RenderFragment IDataGridToolbar.ExportMenu => __builder =>
+    {
+        foreach (var (label, href) in ExportLinks)
+        {
+            <MenuItem Href="@ExportHref(href)" Disabled="@(_loadedRequest is null)" download>@label</MenuItem>
+        }
+    };
+
+    /// <summary>
+    /// <paramref name="href"/> with what the grid's export links add: the current <c>filter</c>,
+    /// <c>sort</c> (after its groups') and <c>search</c>, and the shown, exportable <c>columns</c>, for
+    /// every row that matches, not one page. For a button of your own on an interactive page: call it
+    /// when the button is clicked, such as <c>Nav.NavigateTo(grid.ExportHref("/orders.json"), forceLoad: true)</c>,
+    /// as the grid's filter and sort change without the page rendering again. On a static page, a
+    /// <see cref="DataGridExportFormat"/> puts the link in the grid's export.
+    /// </summary>
+    /// <param name="href">Your endpoint, such as <c>/orders/export.json</c>. A <c>#fragment</c> is dropped.</param>
+    public string ExportHref(string href)
+    {
+        // Rows follow their groups, though a file has none.
+        var request = _loadedRequest is { } loaded ? (loaded with { Sort = [.. Grouping.Levels.Select(l => new SortField(l.Field, l.Descending)), .. loaded.Sort], Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
+        var columns = "columns=" + string.Join(",", ExportColumns.Select(c => Uri.EscapeDataString(c.Key!)));
+        // A fragment would swallow the query, and means nothing to a download.
+        href = href.Split('#')[0];
+        return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + (request.Length > 0 ? request + "&" : "") + columns;
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment? AboveGrid => __builder =>
+    {
+        if (Rearrangeable)
+        {
+            <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
+        }
+
+        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd)
+        {
+            var placed = DataGridToolbarItem.Placed(ToolbarContent);
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !FilterBuilder && !CanAdd ? "ib-grid-toolbar-picker-only" : null)">
+                @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
+                <CascadingValue TValue="IDataGridToolbar" Value="this">
+                    <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
+                        @if (!placed.Contains(typeof(DataGridSearch)))
+                        {
+                            <DataGridSearch />
+                        }
+                        @if (!placed.Contains(typeof(DataGridFilterBuilder)))
+                        {
+                            <DataGridFilterBuilder />
+                        }
+                        @ToolbarContent
+                        @if (!placed.Contains(typeof(DataGridExport)))
+                        {
+                            <DataGridExport />
+                        }
+                        @if (!placed.Contains(typeof(DataGridColumnPicker)))
+                        {
+                            <DataGridColumnPicker />
+                        }
+                        @if (!placed.Contains(typeof(DataGridAdd)))
+                        {
+                            <DataGridAdd />
+                        }
+                    </Toolbar>
+                </CascadingValue>
+            </div>
+        }
+
+        if (ShowsGroupBar)
+        {
+            @GroupBar
+        }
+    };
+
+    // What's grouped, as chips people can remove, and a header can be dropped among. A drop is the
+    // script's: it goes to the address with _GROUP_ filled in, or into the input on a bound page.
+    private RenderFragment GroupBar => __builder =>
+    {
+        <div class="ib-grid-group-bar" role="group" aria-label="@TextDefaults.GroupedBy" data-ib-group-href="@(UseState ? null : GroupHref("_GROUP_"))">
+            @if (!GroupedNow)
+            {
+                <span class="ib-grid-group-hint">@TextDefaults.GroupDropHint</span>
+            }
+            @foreach (var level in Grouping.Levels)
+            {
+                var column = level.Column;
+                var chipId = $"{_chipIds ??= IdGenerator.Next("ib-grid-chip")}-{column.GroupToken}";
+                <span class="ib-grid-group-chip" id="@chipId" data-ib-group-token="@((level.Descending ? "-" : "") + column.GroupToken)">
+                    @if (UseState)
+                    {
+                        <Tag Label="@column.FullName" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
+                    }
+                    else
+                    {
+                        <Tag Label="@column.FullName" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
+                    }
+                    @* The drag's and Alt+arrows' way for a pointer: a click on the chip (grid-group.ts),
+                       right-click, a long press or Shift+F10 opens this. *@
+                    @if (Grouping.Levels.Count > 1)
+                    {
+                        <ContextMenu For="@chipId" Label="@column.FullName">
+                            @* Links (or calls), which the drag part takes over once loaded, to move the
+                               chip as Alt+arrows do with focus following it (grid-group.ts). *@
+                            @GroupMoveItem(column, -1, Lucide.ArrowLeft, TextDefaults.GroupChipMoveLeft, "-1")
+                            @GroupMoveItem(column, 1, Lucide.ArrowRight, TextDefaults.GroupChipMoveRight, "1")
+                            <MenuDivider />
+                            @if (UseState)
+                            {
+                                <MenuItem Icon="Lucide.X" OnClick="() => SetGroupAsync(GroupTextWith(column, false))">@TextDefaults.GroupRemove</MenuItem>
+                            }
+                            else
+                            {
+                                <MenuItem Icon="Lucide.X" Href="@GroupHref(GroupTextWith(column, false))">@TextDefaults.GroupRemove</MenuItem>
+                            }
+                        </ContextMenu>
+                    }
+                </span>
+            }
+            @if (UseState)
+            {
+                <input type="text" hidden class="ib-grid-group-set" aria-hidden="true" tabindex="-1" @onchange="e => SetGroupAsync(e.Value?.ToString() ?? string.Empty)" />
+            }
+        </div>
+    };
+
+    /// <inheritdoc />
+    internal override void ColumnsChanged() => _shown = null;
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        base.Dispose();
+        _persisting?.Dispose();
+        _searchDelay?.Cancel();
+    }
+
+    // Its key in a layout. Not every column has a sort key; its title is the next best.
+    private static string KeyOf(ColumnBase<TItem> column) => column.Key ?? column.HeaderText;
+
+    private string? WidthOf(ColumnBase<TItem> column) =>
+        CurrentLayout?.Column(KeyOf(column))?.Width ?? (column.Width is { } width ? StyleValues.Length(width) : null);
+
+    // A layout can freeze a column only if it has a width to be placed by.
+    private ColumnFrozen FrozenOf(ColumnBase<TItem> column)
+    {
+        // A stored layout can't freeze a column on a grid that can't have frozen columns.
+        // A band is frozen as one, as its first column is, so it never straddles the frozen edge.
+        if (column.Band is { } band)
+        {
+            // The script sets all of a band's columns, hidden ones too; only those shown need widths.
+            var outer = band.Chain[0];
+            var members = AllColumns.Where(c => c.Band?.Chain[0] == outer).ToList();
+            var first = OwnFrozen(members[0]);
+            return first != ColumnFrozen.None && members.Any(c => !HiddenByLayout(c) && WidthOf(c) is null) ? ColumnFrozen.None : first;
+        }
+
+        var frozen = OwnFrozen(column);
+        return frozen != ColumnFrozen.None && WidthOf(column) is null ? ColumnFrozen.None : frozen;
+    }
+
+    private bool HiddenByLayout(ColumnBase<TItem> column) =>
+        !(column.Pickable && CurrentLayout?.Column(KeyOf(column))?.Hidden is { } hidden ? !hidden : column.Visible);
+
+    private ColumnFrozen OwnFrozen(ColumnBase<TItem> column) =>
+        RowHref is not null ? column.Frozen : CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
+
+    // Start, then the rest, then end, whatever order they were declared or came in: a frozen column
+    // among those that scroll would overlap them. Within those, a layout's place, else the declared one.
+    // At least one always shows: a layout that hides them all is ignored for that.
+    /// <inheritdoc />
+    internal override IReadOnlyList<ColumnBase<TItem>> Shown
+    {
+        get
+        {
+            var grouping = Grouping;
+            if (!ReferenceEquals(grouping, _shownFor))
+            {
+                (_shown, _shownFor) = (null, grouping);
+            }
+
+            return _shown ??= Arrange();
+        }
+    }
+
+    private List<ColumnBase<TItem>> Arrange()
+    {
+        // One the page says can't be hidden isn't, whatever a stored layout says.
+        // Visible says how it starts. What someone chose goes first, on a column they can choose.
+        var visible = AllColumns.Where(c => !GroupedColumnLeaves(c) && !HiddenByLayout(c)).ToList();
+        return InOrder(visible.Count > 0 ? visible : AllColumns);
+    }
+
+    // Columns in the grid's order: frozen at start, the rest, frozen at end, each by its saved place
+    // or its declared one, a band's columns together. The picker lists hidden ones the same way.
+    private List<ColumnBase<TItem>> InOrder(IReadOnlyList<ColumnBase<TItem>> columns)
+    {
+        var layout = CurrentLayout;
+        var placed = columns
+            .Select((column, index) => (column, index, place: layout?.Column(KeyOf(column))?.Position ?? index))
+            .ToList();
+        if (!HasBands)
+        {
+            return placed
+                .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
+                .ThenBy(x => x.place)
+                .Select(x => x.column)
+                .ToList();
+        }
+
+        // A band's columns stay together: siblings (a column, or a band with all its columns) are in
+        // order of the first place among their columns, so moving a band moves its columns' places.
+        var bandPlace = new Dictionary<ColumnBand, int>();
+        foreach (var (column, _, place) in placed)
+        {
+            foreach (var band in column.Band?.Chain ?? [])
+            {
+                bandPlace[band] = Math.Min(bandPlace.GetValueOrDefault(band, int.MaxValue), place);
+            }
+        }
+
+        // The key of each step down from the top: a band's place (and its number, should two share
+        // one), then the column's.
+        List<(int Place, int Tie)> Key((ColumnBase<TItem> column, int index, int place) x) =>
+            [.. (x.column.Band?.Chain ?? []).Select(b => (bandPlace[b], BandId(b))), (x.place, int.MaxValue / 2 + x.index)];
+
+        return placed
+            .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
+            .ThenBy(Key, KeyOrder.Instance)
+            .Select(x => x.column)
+            .ToList();
+    }
+
+    private sealed class KeyOrder : IComparer<List<(int Place, int Tie)>>
+    {
+        public static readonly KeyOrder Instance = new();
+
+        public int Compare(List<(int Place, int Tie)>? x, List<(int Place, int Tie)>? y)
+        {
+            for (var i = 0; i < Math.Min(x!.Count, y!.Count); i++)
+            {
+                var step = x[i].CompareTo(y[i]);
+                if (step != 0)
+                {
+                    return step;
+                }
+            }
+
+            return x.Count.CompareTo(y.Count);
+        }
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
+    {
+        @* An empty group would be a column of its own. *@
+        @if (!HasBands || HasGrip || Selectable || LeadSpan > 0)
+        {
+        <colgroup>
+            @if (HasGrip)
+            {
+                <col class="ib-datagrid-grip-col" />
+            }
+            @if (Selectable)
+            {
+                <col class="ib-datagrid-select-col" />
+            }
+            @for (var i = 0; i < LeadSpan; i++)
+            {
+                if (ExpanderComesAndGoes && i == LeadSpan - 1)
+                {
+                    <col class="ib-grid-lead-col" style="width:var(--ib-grid-expander, var(--ib-datagrid-group))" />
+                }
+                else
+                {
+                    <col class="ib-grid-lead-col" />
+                }
+            }
+            @if (!HasBands)
+            {
+                @for (var i = 0; i < Shown.Count; i++)
+                {
+                    @ColumnCol(i)
+                }
+                @if (HasActionCell)
+                {
+                    <col class="ib-datagrid-menu-col" />
+                }
+            }
+        </colgroup>
+        }
+        @* With bands, a group per band, which its scope="colgroup" names, or per column with none. *@
+        @if (HasBands)
+        {
+            @foreach (var span in OuterBands())
+            {
+                <colgroup>
+                    @for (var i = span.First; i <= span.Last; i++)
+                    {
+                        @ColumnCol(i)
+                    }
+                </colgroup>
+            }
+            @if (HasActionCell)
+            {
+                <colgroup>
+                    <col class="ib-datagrid-menu-col" />
+                </colgroup>
+            }
+        }
+    };
+
+    private RenderFragment ColumnCol(int i) => __builder =>
+    {
+        <col class="@ColClass(Shown[i])" style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
+    };
+
+    /// <inheritdoc />
+    internal override bool BandBreaks(ColumnBase<TItem> before, ColumnBase<TItem> after) => FrozenOf(before) != FrozenOf(after);
+
+    // As its columns: frozen at their edge, and, once every one of them hides, hidden with the last.
+    /// <inheritdoc />
+    internal override string? BandColumnsClass(BandSpan span)
+    {
+        var columns = Enumerable.Range(span.First, span.Count).Select(i => Shown[i]).ToList();
+        var frozen = FrozenOf(columns[0]);
+        var classes = new List<string>();
+        if (frozen != ColumnFrozen.None)
+        {
+            var side = frozen == ColumnFrozen.Start ? "start" : "end";
+            classes.Add($"ib-frozen ib-frozen-{side}");
+            if (columns.Any(c => ColumnClass(c)?.Contains("ib-frozen-edge", StringComparison.Ordinal) == true))
+            {
+                classes.Add("ib-frozen-edge");
+            }
+        }
+        else if (Hiding && columns.All(c => Plan.Levels.ContainsKey(c)))
+        {
+            classes.Add($"ib-h{columns.Max(c => Plan.Levels[c])}");
+        }
+
+        return classes.Count == 0 ? null : string.Join(' ', classes);
+    }
+
+    // A frozen band sits where its first column does at the start, or its last at the end.
+    /// <inheritdoc />
+    internal override string? BandStyle(BandSpan span) =>
+        FrozenOf(Shown[span.First]) switch
+        {
+            ColumnFrozen.Start => CellStyle(Shown[span.First]),
+            ColumnFrozen.End => CellStyle(Shown[span.Last]),
+            _ => null,
+        };
+
+    // How many buttons wide the action column is: as the most a row has, the ⋮ among them. Save and
+    // Cancel have to fit, and starting an edit mustn't move the columns.
+    private int ActionButtons
+    {
+        get
+        {
+            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu, auto) ? count + auto + (menu ? 1 : 0) : 0);
+            return InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
+        }
+    }
+
+    // The same once columns hide, and buttons that fold are in the ⋮.
+    private int FoldedActionButtons
+    {
+        get
+        {
+            var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu, auto) ? count + (menu || auto > 0 ? 1 : 0) : 0);
+            return InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
+        }
+    }
+
+    // Widths are variables on the table, so one change later (a resize) moves everything that uses
+    // them. Fixed layout shares the rest equally whatever each column's minimum, so the grid's
+    // minimum gives every unset column the largest of them.
+    /// <inheritdoc />
+    internal override string? GridStyle
+    {
+        get
+        {
+            // Before the columns register (a page still streaming), a message takes the whole width.
+            if (Shown.Count == 0)
+            {
+                return "table-layout:auto";
+            }
+
+            CheckFrozen();
+            CheckEditing();
+            CheckDetails();
+            var style = new System.Text.StringBuilder();
+            var parts = new List<string>();
+            var unset = new List<string>();
+            for (var i = 0; i < Shown.Count; i++)
+            {
+                if (WidthOf(Shown[i]) is { } width)
+                {
+                    style.Append($"--ib-col-{i}:{width};");
+                    parts.Add($"var(--ib-col-{i})");
+                }
+                else
+                {
+                    unset.Add(Shown[i].MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(Shown[i]));
+                }
+            }
+
+            if (HasGrip)
+            {
+                parts.Add("var(--ib-datagrid-grip)");
+            }
+
+            if (Selectable)
+            {
+                parts.Add("var(--ib-datagrid-select)");
+            }
+
+            if (LeadSpan > 0)
+            {
+                parts.Add(LeadWidths);
+            }
+
+            if (HasActionCell)
+            {
+                var buttons = ActionButtons;
+                if (buttons > 1)
+                {
+                    style.Append(System.FormattableString.Invariant($"--ib-datagrid-menu:{0.75 + 2.25 * buttons}rem;"));
+                }
+
+                parts.Add("var(--ib-datagrid-menu)");
+            }
+
+            if (unset.Count > 0)
+            {
+                parts.Add($"{unset.Count} * max({string.Join(", ", unset.Distinct())})");
+            }
+
+            if (parts.Count > 0)
+            {
+                style.Append($"{(unset.Count > 0 ? "min-width" : "width")}:calc({string.Join(" + ", parts)})");
+            }
+
+            return style.Length > 0 ? style.ToString() : null;
+        }
+    }
+
+    /// <inheritdoc />
+    internal override string? HeaderStyle(ColumnBase<TItem> column) => CellStyle(column);
+
+    /// <inheritdoc />
+    internal override string SelectCellClass =>
+        Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-table-select-cell ib-frozen ib-frozen-start" : "ib-table-select-cell";
+
+    /// <inheritdoc />
+    internal override string? ColumnClass(ColumnBase<TItem> column)
+    {
+        var frozen = FrozenOf(column);
+        if (frozen == ColumnFrozen.None)
+        {
+            return HideClass(column);
+        }
+
+        var side = frozen == ColumnFrozen.Start ? "start" : "end";
+        // The one beside the columns that scroll draws the line between them.
+        var edge = frozen == ColumnFrozen.Start
+            ? column == Shown.LastOrDefault(c => FrozenOf(c) == ColumnFrozen.Start)
+            : column == Shown.FirstOrDefault(c => FrozenOf(c) == ColumnFrozen.End);
+        return edge ? $"ib-frozen ib-frozen-{side} ib-frozen-edge" : $"ib-frozen ib-frozen-{side}";
+    }
+
+    // Its offset: the widths between it and its edge, and the selection column at the start.
+    /// <inheritdoc />
+    internal override string? CellStyle(ColumnBase<TItem> column)
+    {
+        var frozen = FrozenOf(column);
+        if (frozen == ColumnFrozen.None)
+        {
+            return null;
+        }
+
+        var index = _shown!.IndexOf(column);
+        var parts = new List<string>();
+        if (frozen == ColumnFrozen.Start)
+        {
+            if (HasGrip)
+            {
+                parts.Add("var(--ib-datagrid-grip)");
+            }
+
+            if (Selectable)
+            {
+                parts.Add("var(--ib-datagrid-select)");
+            }
+
+            if (LeadSpan > 0)
+            {
+                parts.Add(LeadWidths);
+            }
+
+            for (var i = 0; i < index; i++)
+            {
+                parts.Add($"var(--ib-col-{i})");
+            }
+        }
+        else
+        {
+            for (var i = index + 1; i < Shown.Count; i++)
+            {
+                parts.Add($"var(--ib-col-{i})");
+            }
+
+            if (HasActionCell)
+            {
+                parts.Add("var(--ib-datagrid-menu)");
+            }
+        }
+
+        return parts.Count == 0 ? null : $"--ib-frozen-at:calc({string.Join(" + ", parts)})";
+    }
+
+    // A frozen cell is the containing block of the row's stretched link, and sits above it, so the
+    // link wouldn't cover the row.
+    private void CheckFrozen()
+    {
+        if (RowHref is not null && Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))
+        {
+            throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
+        }
+
+        // A band is frozen as one: a column frozen on its own would leave the band split at the edge.
+        foreach (var band in AllColumns.Where(c => c.Band is not null).GroupBy(c => c.Band!.Chain[0]))
+        {
+            if (band.Select(c => c.Frozen).Distinct().Skip(1).Any())
+            {
+                throw new InvalidOperationException($"The \"{BandFullName(band.Key)}\" band's columns are frozen differently: set the same {nameof(ColumnBase<TItem>.Frozen)} on all of them, as a band is frozen as one.");
+            }
+        }
+
+        if (Rearrangeable)
+        {
+            // A layout finds columns by key: two with one, or one with none, would be mixed up.
+            var taken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var column in AllColumns)
+            {
+                if (string.IsNullOrEmpty(KeyOf(column)) || !taken.Add(KeyOf(column)))
+                {
+                    throw new InvalidOperationException($"The \"{column.FullName}\" column needs a {nameof(ColumnBase<TItem>.SortKey)} of its own, since people can rearrange the columns: its key is empty or another column's.");
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-datagrid");
+        classes.Add("ib-datagrid-virtual", VirtualRows);
+        classes.Add("ib-datagrid-grip", HasGrip);
+        // Hiding goes by the width it's given, so it takes all of it rather than its columns' width.
+        classes.Add("ib-datagrid-fill", SmallScreen == DataGridSmallScreen.HideColumns);
+        base.BuildAttributes(classes, styles);
+    }
+}

@@ -23,7 +23,7 @@ public enum DataGridSmallScreen
 // the width each set of columns needs, and writes container queries for them into the grid's own
 // style: right at the first paint, with or without script. A hidden column keeps its place at no
 // width, so cells that span columns (group labels, details) still line up.
-public partial class DataGrid<TItem>
+public abstract partial class GridViewBase<TItem>
 {
     /// <summary>
     /// What it does when its columns don't fit its width: <see cref="DataGridSmallScreen.Scroll"/> (the

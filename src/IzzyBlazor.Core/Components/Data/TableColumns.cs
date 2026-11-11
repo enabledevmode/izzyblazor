@@ -461,7 +461,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, which only a DataGrid's columns take.");
         }
 
-        if (Priority != 0 && Table is DataGrid<TItem> { SmallScreen: not DataGridSmallScreen.HideColumns })
+        if (Priority != 0 && Table is GridViewBase<TItem> { SmallScreen: not DataGridSmallScreen.HideColumns })
         {
             throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(Priority)}, which only a DataGrid with SmallScreen=\"HideColumns\" uses.");
         }
