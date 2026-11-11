@@ -25,8 +25,10 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     {
         await using var client = await Connect();
         var tools = await client.ListToolsAsync();
-        Assert.Equal(["get_article", "get_component", "get_example", "get_type", "list_components", "search"], tools.Select(t => t.Name).Order());
-        Assert.All(tools, t => Assert.True(t.ProtocolTool.Annotations?.ReadOnlyHint));
+        Assert.Equal(["find_known_issues", "get_article", "get_component", "get_example", "get_type", "list_components", "report_gap", "search"], tools.Select(t => t.Name).Order());
+        // Only report_gap writes anything, and it says so.
+        Assert.All(tools.Where(t => t.Name != "report_gap"), t => Assert.True(t.ProtocolTool.Annotations?.ReadOnlyHint));
+        Assert.False(tools.Single(t => t.Name == "report_gap").ProtocolTool.Annotations?.ReadOnlyHint);
 
         var search = TextOf(await client.CallToolAsync("search", new Dictionary<string, object?> { ["query"] = "button" }));
         Assert.Contains("Component: **Button**", search.Split('\n').First(l => l.StartsWith("- ", StringComparison.Ordinal)));

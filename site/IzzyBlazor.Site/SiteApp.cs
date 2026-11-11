@@ -42,7 +42,7 @@ public static class SiteApp
 
     // The caller's address: Fly's proxy gives it in Fly-Client-IP. IPv6 by its /64, the block one
     // client usually has, so changing addresses inside it doesn't reset the limit.
-    private static string ClientKey(HttpContext context)
+    internal static string ClientKey(HttpContext context)
     {
         var address = IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var fly) ? fly : context.Connection.RemoteIpAddress;
         if (address is null)
@@ -101,13 +101,26 @@ public static class SiteApp
         // data, stateless so any of Fly's machines can answer any request.
         builder.Services.AddSingleton<PageText>();
         builder.Services.AddSingleton<McpDocs>();
+        // Agent reports (report_gap): posted as GitHub discussions when AgentReports:Token is set,
+        // switched off without it, so a deploy with no token is safe.
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.Configure<AgentReportOptions>(builder.Configuration.GetSection("AgentReports"));
+        builder.Services.AddHttpClient(GitHubDiscussionsReportSink.ClientName, client => client.Timeout = TimeSpan.FromSeconds(15));
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AgentReportLimiter>();
+        builder.Services.AddSingleton<GitHubDiscussionsReportSink>();
+        builder.Services.AddSingleton<IAgentReportSink>(services =>
+            string.IsNullOrWhiteSpace(services.GetRequiredService<Microsoft.Extensions.Options.IOptions<AgentReportOptions>>().Value.Token)
+                ? new DisabledReportSink()
+                : services.GetRequiredService<GitHubDiscussionsReportSink>());
         builder.Services.AddMcpServer(options =>
             {
                 options.ServerInfo = new() { Name = "izzyblazor", Title = "IzzyBlazor docs", Version = api.Version };
                 options.ServerInstructions = McpTools.Instructions.ReplaceLineEndings(" ");
             })
             .WithHttpTransport(options => options.Stateless = true)
-            .WithTools<McpTools>();
+            .WithTools<McpTools>()
+            .WithTools<McpFeedbackTools>();
         // A crawler that ignores its 429s is logged once a minute, not on every request.
         var rejectionLog = PartitionedRateLimiter.Create<string, string>(client => RateLimitPartition.GetFixedWindowLimiter(
             client, _ => new FixedWindowRateLimiterOptions { PermitLimit = 1, Window = TimeSpan.FromMinutes(1) }));

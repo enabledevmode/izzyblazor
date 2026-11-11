@@ -6,21 +6,26 @@ namespace IzzyBlazor.Site.Services.Mcp;
 
 /// <summary>
 /// The tools at <c>/mcp</c>: read-only lookups in IzzyBlazor's docs for an assistant writing code
-/// with it. The answers come from <see cref="McpDocs"/>; the descriptions are what the assistant
+/// with it (<see cref="McpFeedbackTools"/> has the two for reporting what the docs don't cover). The answers come from <see cref="McpDocs"/>; the descriptions are what the assistant
 /// reads to pick a tool, so they say when to use each.
 /// </summary>
 [McpServerToolType]
 public sealed class McpTools(McpDocs docs)
 {
     public const string Instructions = """
-        IzzyBlazor is a Blazor component library for .NET 10, built for static server rendering first: most components
-        work on static pages, many with JavaScript off, and become interactive where a page has a render mode. Install
+        IzzyBlazor is a complete Blazor component library for .NET 10 and .NET 11 in every render mode: Interactive
+        Server, WebAssembly, Auto, and static server rendering, where its components work without a circuit. Install
         with `dotnet add package IzzyBlazor --prerelease` (IzzyBlazor.Core in a WebAssembly project) and
         `@using IzzyBlazor`. Look components up before writing markup: names, parameters and defaults are
         IzzyBlazor's own, not Bootstrap's or MudBlazor's. Start with search or list_components, then get_component for
         the API and get_example for working code. Check a component's mode support before relying on OnClick or
         @bind on a static page; get_article covers setup, theming, forms and static-rendering pitfalls. If nothing
         fits, say so and use plain Blazor or HTML: don't invent IzzyBlazor components or parameters.
+        When IzzyBlazor can't do what the task needs and you work around it (a missing parameter, a bug, behavior that
+        differs from the docs, a mode limit), call find_known_issues first: it often has the fix. If it isn't known,
+        tell the user what you worked around and offer to report it. Call report_gap only after they agree, with a
+        minimal .razor repro using sample names (never their code or data), the version, the render mode and your
+        workaround.
         """;
 
     [McpServerTool(Name = "search", Title = "Search IzzyBlazor docs", ReadOnly = true, Idempotent = true, OpenWorld = false)]
