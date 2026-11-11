@@ -122,7 +122,7 @@ public sealed class ChartPalette
     internal string Color(int i, int n) => _kind switch
     {
         Kind.Shades => Shade(_colors[0], n == 1 ? 0.5 : (double)i / (n - 1)),
-        Kind.Tints => n == 1 ? _colors[0] : Mix(_colors[0], 30 + 70.0 * i / (n - 1), "var(--ib-color-surface)"),
+        Kind.Tints => n == 1 ? _colors[0] : Tint(_colors[0], (double)i / (n - 1)),
         Kind.Diverging => Diverge(_colors[0], _colors[1], n == 1 ? 0 : -1 + 2.0 * i / (n - 1)),
         Kind.Of => _colors[i % _colors.Length],
         _ => $"var(--ib-chart-{i % 8 + 1})",
@@ -161,6 +161,11 @@ public sealed class ChartPalette
 
     private static string Mix(string color, double percent, string with) =>
         $"color-mix(in oklab, {color} {percent.ToString("0.#", CultureInfo.InvariantCulture)}%, {with})";
+
+    // A tint t of the way from the lightest (0) to the color itself (1). Dark mode starts nearer the
+    // color: a light tint of it on a near-black surface reads as empty track.
+    private static string Tint(string color, double t) =>
+        $"light-dark({Mix(color, 30 + 70 * t, "var(--ib-color-surface)")}, {Mix(color, 45 + 55 * t, "var(--ib-color-surface)")})";
 
     // t runs 0 to 1 along the ramp. In light mode it goes from the color mixed with white to the
     // color mixed with black; in dark mode the other way, so the last is always the strongest.
