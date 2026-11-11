@@ -319,7 +319,10 @@ class GridEdit extends IzzyElement {
       const old = rowIn(into, row.dataset.ibKey);
       const rows = withDetail(row);
       // A new row goes where the page has it: a TreeList's under its parent, a grid's on top.
-      const before = (row.previousElementSibling as HTMLElement | null)?.dataset.ibKey;
+      // The nearest keyed row before it: a parent's open detail row has no key.
+      let prior = row.previousElementSibling as HTMLElement | null;
+      while (prior && !prior.dataset.ibKey) prior = prior.previousElementSibling as HTMLElement | null;
+      const before = prior?.dataset.ibKey;
       const after = withDetail(rowIn(into, before)).at(-1);
       if (old) swap(old, rows);
       else if (after) after.after(...rows);

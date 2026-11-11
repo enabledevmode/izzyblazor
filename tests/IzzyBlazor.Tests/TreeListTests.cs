@@ -250,10 +250,35 @@ public class TreeListTests : BunitContext
             .Add(x => x.OnReparent, (TreeListMove<Person> m) => moves.Add($"{m.Item.Name} > {m.Parent?.Name ?? "top"} @{m.Index}")));
         var sofia = cut.Find(".ib-treelist-grip[data-ib-key='2']");
 
-        // Under Mei, her own report: refused. Before Daniel's Lena: Daniel's first.
-        await cut.InvokeAsync(() => sofia.TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "3", ToIndex = -1 }));
-        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "5", ToIndex = 0 }));
-        Assert.Equal(["Sofia > Daniel @0"], moves);
+        // Into Mei, her own report: refused. Before Lena: under Daniel, first. After Ravi: the top, last.
+        await cut.InvokeAsync(() => sofia.TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "3", ToIndex = 2 }));
+        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "6", ToIndex = 0 }));
+        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "7", ToIndex = 1 }));
+        Assert.Equal(["Sofia > Daniel @0", "Sofia > top @2"], moves);
+    }
+
+    [Fact]
+    public void On_an_interactive_page_checking_a_row_checks_its_whole_branch_drawn_or_not()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Selection? selection = null;
+        var cut = Tree("/people", p => p
+            .Add(x => x.SelectionMode, SelectionMode.Multiple)
+            .Add(x => x.SelectionChanged, (Selection s) => selection = s));
+        Assert.Null(cut.Find("ib-table").GetAttribute("data-ib-cascade"));
+
+        // Maya is closed: her rows aren't drawn, and they're checked all the same.
+        cut.Find("tbody tr[aria-level='1'] .ib-table-select").Change(true);
+        Assert.Equal(["1", "2", "3", "4", "5", "6"], selection!.Keys!.Order());
+
+        // Unchecking Mei leaves Sofia and Maya unchecked, and Maya mixed.
+        cut.Render(p => p.Add(x => x.Selection, selection));
+        Nav.NavigateTo("/people?open=*");
+        cut.Find("tbody tr[data-ib-key='3'] .ib-table-select").Change(false);
+        Assert.Equal(["4", "5", "6"], selection!.Keys!.Order());
+        cut.Render(p => p.Add(x => x.Selection, selection));
+        Assert.NotNull(cut.Find("tbody tr[data-ib-key='1'] .ib-table-select").GetAttribute("data-indeterminate"));
     }
 
     [Fact]

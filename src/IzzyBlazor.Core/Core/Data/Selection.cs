@@ -184,7 +184,16 @@ public sealed class Selection
             throw new InvalidOperationException("A selection of every match isn't a list of rows: use Apply, with the view's fields.");
         }
 
-        var all = Distinct(Keys ?? []).Select(DataRequest<TItem>.ParseKey<TKey>).ToHashSet();
+        // A posted key that isn't one of the tree's matches nothing, as in Apply.
+        var all = new HashSet<TKey>();
+        foreach (var text in Distinct(Keys ?? []))
+        {
+            if (DataRequest<TItem>.TryParseKey<TKey>(text, out var parsed))
+            {
+                all.Add(parsed!);
+            }
+        }
+
         var down = all.ToList();
         for (var depth = 0; down.Count > 0 && depth < 64; depth++)
         {

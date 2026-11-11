@@ -56,7 +56,7 @@
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
                         <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                     }
-                    @if (first && Selectable && SelectsInRow)
+                    @if (first && Selectable && SelectsInRow && HasSelectBox(item))
                     {
                         @SelectBox(item, key, "ib-table-select-inline")
                     }
@@ -74,7 +74,7 @@
     private RenderFragment SelectBox(TItem item, string key, string? extra) => __builder =>
     {
         <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="@(extra is null ? "ib-check-input ib-table-select" : $"ib-check-input ib-table-select {extra}")" name="@SelectionKeysName" value="@key"
-               aria-label="@SelectLabel(item)"
+               aria-label="@SelectLabel(item)" data-indeterminate="@(IsMixed(item, key) ? "" : null)"
                checked="@IsSelected(item, key)"
                disabled="@(!CanSelect(item))"
                @onchange="e => OnSelectChanged(key, e)" />

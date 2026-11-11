@@ -76,7 +76,7 @@ export function setupCellTips(table: HTMLTableElement, signal: AbortSignal): voi
   }, { signal });
   table.addEventListener("focusin", (event) => {
     const cell = event.target as HTMLElement;
-    if (cell.matches(CELLS)) later(cell, 0);
+    if (cell.matches(CELLS) && cell.closest("table") === table) later(cell, 0);
   }, { signal });
   table.addEventListener("focusout", () => later(null, 0), { signal });
   document.addEventListener("keydown", (event) => {

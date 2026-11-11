@@ -148,7 +148,7 @@
     {
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TreeMoveItem, LabelOf(item));
         var key = KeyOf(item);
-        var href = Navigation.GetUriWithQueryParameter(MoveQueryKey, key);
+        var href = Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [MoveQueryKey] = key, [MoveNearQueryKey] = null, [MoveAtQueryKey] = null });
         @if (inMenu && UseState)
         {
             <MenuItem Icon="Lucide.FolderInput" OnClick="@(() => _stateMoveKey = key)" data-ib-edit>@label</MenuItem>
@@ -199,9 +199,9 @@
         {
             _moveFor = key;
             // A drop on a static page chose the parent and place; the dialog confirms them.
-            var dropped = RendererInfo.IsInteractive ? null : QueryValue(MoveUnderQueryKey);
-            _moveDropParent = dropped is null ? null : dropped == "-" ? "" : dropped;
-            _moveIndex = dropped is not null && int.TryParse(QueryValue(MoveAtQueryKey), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : null;
+            var dropped = !RendererInfo.IsInteractive && QueryValue(MoveNearQueryKey) is { } near && QueryValue(MoveAtQueryKey) is { } zone ? DropPlace(key, near, zone) : null;
+            _moveDropParent = dropped is { } place ? place.Parent?.Key ?? "" : null;
+            _moveIndex = dropped?.Index;
             _moveModel = new TreeListMovePost { Parent = _moveDropParent ?? node?.Parent?.Key ?? "" };
             _moveContext = new Microsoft.AspNetCore.Components.Forms.EditContext(_moveModel);
             _moveMessages = new Microsoft.AspNetCore.Components.Forms.ValidationMessageStore(_moveContext);

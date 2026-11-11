@@ -251,7 +251,8 @@ function keepFocus(root: HTMLElement, boxes: () => HTMLInputElement[], signal: A
     const clear = root.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-clear");
     // The first box in view: focus shouldn't scroll the items away from where someone is. With no
     // boxes, the way back from no items, or the view itself, which a plain table can't otherwise take.
-    const free = boxes().filter((box) => !box.disabled);
+    // Not a row's hidden radio (SelectOnClick), which takes no focus a person could see.
+    const free = boxes().filter((box) => !box.disabled && !box.matches(".ib-table-select-inline"));
     const top = root.querySelector("thead")?.getBoundingClientRect().bottom ?? -Infinity;
     const box = free.find((b) => b.getBoundingClientRect().top >= top) ?? free[0];
     const target = clear && seen(clear) ? clear : box ?? root.querySelector<HTMLElement>(".ib-table-empty-clear > *") ?? root;
@@ -285,7 +286,8 @@ function setupRanges(root: HTMLElement, boxes: () => HTMLInputElement[], signal:
     "change",
     (event) => {
       const box = event.target as HTMLInputElement;
-      if (applying || box.type !== "checkbox" || !boxes().includes(box)) return;
+      // A TreeList's cascade sets boxes too (data-ib-cascading); the range starts from the person's.
+      if (applying || box.type !== "checkbox" || !boxes().includes(box) || box.hasAttribute("data-ib-cascading")) return;
       const all = boxes();
       const from = shift && anchor?.isConnected ? all.indexOf(anchor) : -1;
       anchor = box;

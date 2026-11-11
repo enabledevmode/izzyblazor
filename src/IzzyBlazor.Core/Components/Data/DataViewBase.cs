@@ -387,8 +387,14 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     internal Task OnSelectChanged(string key, ChangeEventArgs e)
     {
         var on = e.Value is true || (e.Value is string text && (text == key || (bool.TryParse(text, out var parsed) && parsed)));
-        return SetSelectionAsync(MultiSelect ? _selection.With(key, on) : on ? IzzyBlazor.Selection.Of(key) : IzzyBlazor.Selection.None);
+        return SetSelectionAsync(MultiSelect ? NextSelection(_selection, key, on) : on ? IzzyBlazor.Selection.Of(key) : IzzyBlazor.Selection.None);
     }
+
+    /// <summary>The selection after a row's box changes: a TreeList's takes the rows under it along.</summary>
+    internal virtual Selection NextSelection(Selection current, string key, bool on) => current.With(key, on);
+
+    /// <summary>Whether a row's box shows mixed: a TreeList's, with some of the rows under it checked.</summary>
+    internal virtual bool IsMixed(TItem item, string key) => false;
 
     /// <summary>Every item matching the shown filter and search.</summary>
     internal Task SelectAllMatchingAsync() =>

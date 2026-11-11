@@ -630,7 +630,7 @@ class Grid extends IzzyElement {
     const row = target.closest?.("tr");
     if (!row || event.button !== 0 || row.parentElement?.localName !== "tbody" || row.closest("table") !== this.#table) return null;
     // Within the row: the scroll box around the table has a tabindex too.
-    const control = target.closest(`${CONTROLS}, label, [role=button], [role=menuitem], [popover]`);
+    const control = target.closest(`${CONTROLS}, label, [role=button], [role=menuitem], [popover], .ib-treelist-grip`);
     return control && row.contains(control) ? null : row;
   }
 
