@@ -15,7 +15,7 @@ namespace IzzyBlazor;
 /// applies it through the fields the server declares.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
-public sealed record DataRequest<TItem>
+public sealed partial record DataRequest<TItem>
 {
     /// <summary>The sort, first key first; empty for the source's own order.</summary>
     public IReadOnlyList<SortField> Sort { get; init; } = [];
@@ -38,6 +38,18 @@ public sealed record DataRequest<TItem>
     /// first page. <see cref="Skip"/> is then the page's position (rows 401–600 at 200 a page).
     /// </summary>
     public string? Cursor { get; init; }
+
+    /// <summary>
+    /// For a <see cref="TreeList{TItem}"/>: the key of the row whose children to load, or null for the
+    /// top rows. <see cref="ToTreeResult"/> answers it.
+    /// </summary>
+    public string? Parent { get; init; }
+
+    /// <summary>
+    /// For a <see cref="TreeList{TItem}"/> set to <c>FilterBranch</c>: while filtering, keep the rows
+    /// under a match too, not only the match and the rows above it.
+    /// </summary>
+    public bool FilterBranch { get; init; }
 
     /// <summary>Whether the component needs the total count. False when it pages by cursor, where the total is optional.</summary>
     public bool NeedsTotal { get; init; } = true;
@@ -163,7 +175,8 @@ public sealed record DataRequest<TItem>
     }
 
     /// <summary>
-    /// The request as a query string, for a GET API: <c>sort=customer,-total&amp;skip=20&amp;take=10&amp;filter=...&amp;search=...&amp;cursor=...</c>,
+    /// The request as a query string, for a GET API: <c>sort=customer,-total&amp;skip=20&amp;take=10&amp;filter=...&amp;search=...&amp;cursor=...</c>
+    /// (and a tree's <c>parent=</c> and <c>branch=true</c>),
     /// with <c>total=false</c> when it doesn't need the total. The filter is in the form
     /// <see cref="Filter.Parse"/> reads (<see cref="FieldFilter.MatchCase"/> isn't written). Read it
     /// back with <see cref="Parse"/>.
@@ -186,6 +199,8 @@ public sealed record DataRequest<TItem>
         Add("search", Search);
         Add("cursor", Cursor);
         Add("total", NeedsTotal ? null : "false");
+        Add("parent", Parent);
+        Add("branch", FilterBranch ? "true" : null);
         return string.Join("&", parts);
     }
 
@@ -211,6 +226,8 @@ public sealed record DataRequest<TItem>
             Search = Get("search"),
             Cursor = Get("cursor"),
             NeedsTotal = !string.Equals(Get("total"), "false", StringComparison.OrdinalIgnoreCase),
+            Parent = Get("parent"),
+            FilterBranch = string.Equals(Get("branch"), "true", StringComparison.OrdinalIgnoreCase),
         };
     }
 

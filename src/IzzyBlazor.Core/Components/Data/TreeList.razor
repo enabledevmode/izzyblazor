@@ -20,6 +20,11 @@
     and search keep the matches and the rows above them, muted, with their branches open;
     FilterBranch keeps the rows under a match too. Pages count top rows, so a branch is never split.
 
+    For rows in a database, set ItemsProvider instead of Items: it's asked for the top rows, then for
+    each open row's children, with that row's key in request.Parent, and request.ToTreeResult answers
+    it. ItemHasChildren gives rows their chevrons before their children load. A row shows up to
+    ChildRowLimit rows under it (200), then Show more.
+
     <TreeList Items="employees" ItemKey="e => e.Id.ToString()"
               ItemParentKey="e => e.ManagerId?.ToString()">
         <PropertyColumn Property="e => e.Name" />
@@ -72,6 +77,53 @@
             <span class="ib-treelist-value">@content</span>
         </span>
     };
+
+    /// <inheritdoc />
+    // After the last row drawn under a row with more children than ChildRowLimit: how many show, and Show more.
+    internal override RenderFragment? AfterRow(TItem item, int row, int? indent)
+    {
+        var own = base.AfterRow(item, row, indent);
+        if (!_treeMore.TryGetValue(KeyOf(item), out var mores))
+        {
+            return own;
+        }
+
+        return __builder =>
+        {
+            @own
+            @foreach (var more in mores)
+            {
+                <tr class="ib-grid-group-more ib-treelist-more" aria-level="@(more.Depth + 1)">
+                    @if (Selectable)
+                    {
+                        <td class="@SelectCellClass"></td>
+                    }
+                    <td colspan="@(Shown.Count + (LastEmptyCell is null ? 0 : 1))">
+                        <span class="ib-treelist-cell" style="@($"--ib-treelist-depth:{more.Depth}")">
+                            <span class="ib-treelist-leaf"></span>
+                            @if (ItemIcon is not null)
+                            {
+                                @* The icon's room, so the text lines up with the rows' values. *@
+                                <span class="ib-treelist-icon" style="inline-size: 1rem"></span>
+                            }
+                            <span class="ib-treelist-value">
+                                @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.GroupShowing, more.Shown, more.Total)
+                                @(" ")
+                                @if (UseState)
+                                {
+                                    <button type="button" class="ib-link" @onclick="() => ShowMoreAsync(more.Parent)">@TextDefaults.TreeShowMore</button>
+                                }
+                                else
+                                {
+                                    <a class="ib-link" href="@TreeMoreLink(more.Parent)">@TextDefaults.TreeShowMore</a>
+                                }
+                            </span>
+                        </span>
+                    </td>
+                </tr>
+            }
+        };
+    }
 
     /// <inheritdoc />
     internal override RenderFragment? FirstHeaderLead => !_treeHasChildren ? null : __builder =>
