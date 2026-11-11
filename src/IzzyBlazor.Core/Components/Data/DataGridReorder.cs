@@ -5,54 +5,21 @@ using Microsoft.Extensions.Logging;
 namespace IzzyBlazor;
 
 // Moving rows by a handle at their start: a drag, or the handle's menu of moves.
-public partial class DataGrid<TItem>
+public abstract partial class GridViewBase<TItem>
 {
-    /// <summary>
-    /// Lets people put the rows in their own order: each row starts with a handle to drag, which also
-    /// opens a menu (Move up, Move down, Move to top, Move to bottom) for moving without dragging. The
-    /// handles work while the rows are in the grid's own order, and are disabled while it's sorted,
-    /// filtered, searched or grouped, so leave those off: the order is the data. Needs an <c>ItemKey</c> and every row shown: <c>Items</c>, with no
-    /// paging, <c>ItemsProvider</c> or <c>Virtualize</c>. On interactive pages bind the order with
-    /// <c>@bind-Items</c>; on static pages give it an <see cref="OrderName"/> inside a form and pass the
-    /// posted <see cref="ListOrder"/> back as <see cref="Order"/>.
-    /// </summary>
-    [Parameter] public bool ReorderableRows { get; set; }
+    internal bool ReorderableRows { get; set; }
 
-    /// <summary>Runs with the rows in their new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+    internal EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
 
-    /// <summary>
-    /// Runs before a move changes the order, on interactive pages: save it here, or set
-    /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the row where it was. A dragged row stays
-    /// where it was dropped while this runs, for up to 3 seconds.
-    /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
+    internal EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
 
-    /// <summary>Which rows can move; the others have no handle, and stay put while rows move past them.</summary>
-    [Parameter] public Func<TItem, bool>? ItemMovable { get; set; }
+    internal Func<TItem, bool>? ItemMovable { get; set; }
 
-    /// <summary>
-    /// For <see cref="ReorderableRows"/> on a static page, the prefix of the fields the order posts:
-    /// <c>{OrderName}.Keys</c> and <c>{OrderName}.Move</c>, bound as a <see cref="ListOrder"/>. Without
-    /// it, a static page shows no handles.
-    /// </summary>
-    [Parameter] public string? OrderName { get; set; }
+    internal string? OrderName { get; set; }
 
-    /// <summary>
-    /// For <see cref="ReorderableRows"/> on a static page, what the form posted: the grid shows the
-    /// posted order with the move applied, and focuses the moved row's handle.
-    /// </summary>
-    [Parameter] public ListOrder? Order { get; set; }
+    internal ListOrder? Order { get; set; }
 
-    /// <summary>
-    /// For <see cref="ReorderableRows"/> on a static page with script, posts the form after each move,
-    /// for pages that save every move. Otherwise moves stay in the page until the form is submitted.
-    /// With JavaScript off, each move from a handle's menu posts anyway.
-    /// </summary>
-    [Parameter, ModeSupport(Interactive = ModeLevel.None)]
-    public bool SubmitOnMove { get; set; }
+    internal bool SubmitOnMove { get; set; }
 
     private string? _moveFocusKey;
     private string? _moveAnnouncement;

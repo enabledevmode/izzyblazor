@@ -3,36 +3,19 @@ using Microsoft.AspNetCore.Components;
 namespace IzzyBlazor;
 
 // A grid's detail rows.
-public partial class DataGrid<TItem>
+public abstract partial class GridViewBase<TItem>
 {
-    /// <summary>
-    /// A row's detail: drawn under it, across the grid, while it's open. Setting it adds a column of
-    /// buttons that open and close it. It needs an <c>ItemKey</c>, which open rows are kept by. Only
-    /// open rows draw it, so a component in it loads its own data when it's opened.
-    /// </summary>
-    [Parameter] public RenderFragment<TItem>? DetailTemplate { get; set; }
+    internal RenderFragment<TItem>? DetailTemplate { get; set; }
 
-    /// <summary>
-    /// Which rows have a detail; all of them when it's not set. A row without one has no button, except
-    /// while the grid hides columns to fit, when its detail shows their values.
-    /// </summary>
-    [Parameter] public Func<TItem, bool>? ItemHasDetail { get; set; }
+    internal Func<TItem, bool>? ItemHasDetail { get; set; }
 
-    /// <summary>
-    /// Which rows' details are open, by key; <c>"*"</c> is all of them, and <c>"!key"</c> an exception to
-    /// that. Binding it on an interactive page keeps it in the component; otherwise it's in the address.
-    /// </summary>
-    [Parameter] public IReadOnlyList<string>? ExpandedDetails { get; set; }
+    internal IReadOnlyList<string>? ExpandedDetails { get; set; }
 
-    /// <summary>Raised when a detail opens or closes, on interactive pages.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<string>?> ExpandedDetailsChanged { get; set; }
+    internal EventCallback<IReadOnlyList<string>?> ExpandedDetailsChanged { get; set; }
 
-    /// <summary>Whether every row's detail starts open.</summary>
-    [Parameter] public bool ExpandAllDetails { get; set; }
+    internal bool ExpandAllDetails { get; set; }
 
-    /// <summary>Opening a row's detail closes the one that was open. There's no button to open them all.</summary>
-    [Parameter] public bool SingleDetail { get; set; }
+    internal bool SingleDetail { get; set; }
 
     private string DetailKey => $"{QueryPrefix}detail";
 

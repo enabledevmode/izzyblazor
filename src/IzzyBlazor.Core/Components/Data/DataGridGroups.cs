@@ -22,66 +22,34 @@ public sealed record DataGridAggregate(DataAggregate Type, object? Value, string
 public sealed record DataGridGroup(object? Value, string Text, DataGroup Group, int Level, bool IsOpen);
 
 /// <summary>
-/// Displays rows of data in a grid users can sort, filter, group and edit, with its state in the URL
-/// so it works on static pages too. Users can resize, move and hide columns, open a row's detail,
-/// and export to CSV or Excel. For a plain list of records, use Table.
+/// What <see cref="DataGrid{TItem}"/> and <c>TreeList</c> share: the grid's columns,
+/// filters, toolbar, editing and export.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
-public partial class DataGrid<TItem>
+public abstract partial class GridViewBase<TItem>
 {
     private const int MaxOpenPaths = 50;
     private const int MaxGroupsOnALevel = 2000;
 
-    /// <summary>
-    /// Lets people group by columns, from a header's menu. Grouped, the grid's pages count top-level
-    /// groups, so a group is never split, and each group's count and aggregates are the whole group's.
-    /// With an <c>ItemsProvider</c>, it needs a <see cref="GroupsProvider"/>.
-    /// </summary>
-    [Parameter] public bool Groupable { get; set; }
+    internal bool Groupable { get; set; }
 
-    /// <summary>
-    /// The grouping, outermost first, such as <c>"status,-customer"</c> (<c>-</c> for descending); null for
-    /// <see cref="InitialGroup"/>. Works without <see cref="Groupable"/>, for a grouping people can't change.
-    /// Binding it (<c>@bind-Group</c>) on an interactive page keeps it in the component instead of the URL.
-    /// </summary>
-    [Parameter] public string? Group { get; set; }
+    internal string? Group { get; set; }
 
-    /// <summary>The grouping when the URL has none, such as <c>"status"</c>.</summary>
-    [Parameter] public string? InitialGroup { get; set; }
+    internal string? InitialGroup { get; set; }
 
-    /// <summary>Raised when the grouping changes, on interactive pages.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<string?> GroupChanged { get; set; }
+    internal EventCallback<string?> GroupChanged { get; set; }
 
-    /// <summary>Whether groups start open. They start closed by default, which is what a page of groups is for.</summary>
-    [Parameter] public bool ExpandAllGroups { get; set; }
+    internal bool ExpandAllGroups { get; set; }
 
-    /// <summary>
-    /// Which groups are open, each by its values joined with <c>/</c>, escaped, such as <c>"Shipped/Acme"</c>; <c>"*"</c>
-    /// is all of them, and <c>"!Shipped"</c> an exception to that. Binding it on an interactive page keeps it in the component.
-    /// </summary>
-    [Parameter] public IReadOnlyList<string>? ExpandedGroups { get; set; }
+    internal IReadOnlyList<string>? ExpandedGroups { get; set; }
 
-    /// <summary>Raised when a group opens or closes, on interactive pages.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<string>?> ExpandedGroupsChanged { get; set; }
+    internal EventCallback<IReadOnlyList<string>?> ExpandedGroupsChanged { get; set; }
 
-    /// <summary>
-    /// The most rows drawn in one open group. Past it, the group says how many it has and links to
-    /// showing only that group, with the grid's pages. Defaults to 100.
-    /// </summary>
-    [Parameter] public int GroupRowLimit { get; set; } = 100;
+    internal int GroupRowLimit { get; set; } = 100;
 
-    /// <summary>
-    /// Keeps the bar of what's grouped above the grid while nothing is, saying a header can be dragged
-    /// there. Without it the bar shows only while grouped, and the first grouping is from a header's
-    /// menu. Dragging needs script and a mouse or pen; the menu works everywhere.
-    /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the bar shows what's grouped, and headers can't be dragged to it.")]
-    public bool GroupPanel { get; set; }
+    internal bool GroupPanel { get; set; }
 
-    /// <summary>Keeps a grouped column in the table. By default it leaves, as each group's row says its value.</summary>
-    [Parameter] public bool ShowGroupedColumns { get; set; }
+    internal bool ShowGroupedColumns { get; set; }
 
     private string GroupKey => $"{QueryPrefix}group";
 
