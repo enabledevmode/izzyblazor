@@ -3,8 +3,8 @@
 @inject ApiMetadata Api
 
 @* Every component as a card, A to Z (after Chakra's overview): its picture, its name and its
-   one-line summary; the sidebar keeps the groups. A filter at the top (a GET form, ?q=) narrows
-   the cards, with JavaScript off too, and ?group= shows one group, for the breadcrumb. *@
+   one-line summary. A filter at the top (a GET form) narrows the cards, with JavaScript off too:
+   ?q= by text, and ?group= to one group, which the sidebar's headings and the breadcrumb link to. *@
 
 <PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component, A to Z. Each one renders on static pages, and a label marks the ones limited in a render mode." />
 
@@ -26,11 +26,9 @@
     </Stack>
 
     <FilterForm Label="Filter the components">
-        @if (_group is not null)
-        {
-            <input type="hidden" name="group" value="@Group" />
-        }
         <FilterSearch Label="Filter the components" Placeholder="Filter by name or purpose" Grow />
+        <FilterSelect Name="group" Label="Group" AllText="All groups"
+                      Items="Registry.Categories.Select(Registry.CategoryAnchor)" ItemText="GroupText" />
     </FilterForm>
     <p role="status" class="site-search-count">@CountText</p>
 
@@ -76,6 +74,13 @@
     private List<RegistryComponent> _cards = [];
     private string _query = "";
     private string? _group;
+
+    // "Charts (27)": a group and how many components it has.
+    private string GroupText(string anchor)
+    {
+        var category = Registry.Categories.First(c => Registry.CategoryAnchor(c) == anchor);
+        return $"{category} ({Registry.InCategory(category).Count()})";
+    }
 
     private string CountText => _query.Length == 0 ? "" : $"{_cards.Count} {(_cards.Count == 1 ? "component matches" : "components match")} “{_query}”";
 

@@ -128,8 +128,28 @@
     margin-top: 0;
   }
 
-  .ib-nav-heading > .ib-icon {
+  .ib-nav-heading > .ib-icon,
+  .ib-nav-heading > a > .ib-icon {
     margin-inline-end: var(--ib-space-2);
+  }
+
+  /* A heading with Href links to its group's page: it keeps the heading's look, underlined on
+     hover and when it's the current page. */
+  .ib-nav-heading > a {
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-nav-heading > a:is(:hover, [aria-current="page"]) {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  /* Underlined as well as colored: with a neutral primary, the color alone doesn't show. */
+  .ib-nav-heading > a[aria-current="page"] {
+    color: var(--ib-color-primary-text);
+    text-decoration-thickness: 2px;
   }
 
   /* A divider already separates the groups. */
