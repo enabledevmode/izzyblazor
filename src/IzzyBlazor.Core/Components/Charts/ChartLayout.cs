@@ -95,6 +95,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool ShowMean { get; init; }
 
+    /// <summary>A violin series: each box drawn slim inside its values' density.</summary>
+    public bool Violin { get; init; }
+
     /// <summary>What a split series' groups are, its SeriesBy's own name (such as "Service"), for a table's column.</summary>
     public string? GroupName { get; init; }
 
@@ -279,6 +282,9 @@ internal sealed class SeriesShape
 
     public string? Line { get; set; }
     public string? Area { get; set; }
+
+    /// <summary>A violin series' outlines, in the 1000 by 1000 box.</summary>
+    public string? Violins { get; set; }
 
     /// <summary>A waterfall's thin lines from each bar's end across to the next bar, in the 1000 by 1000 box.</summary>
     public string? Connectors { get; set; }
@@ -926,8 +932,10 @@ internal static class ChartLayout
                 // theirs with caps half its width, the median across it, the mean and the outliers.
                 BarRect? Box(int i, ChartBox b)
                 {
-                    // Narrower than a bar: at most 40% of the band, in the middle of its slot.
-                    var width = Math.Min(slot * 0.9, band * 0.4);
+                    // Narrower than a bar: at most 40% of the band, in the middle of its slot. A
+                    // violin takes a bar's width, its box a slim 15% of it.
+                    var outer = slot * 0.9;
+                    var width = data.Violin ? outer * 0.15 : Math.Min(outer, band * 0.4);
                     var a0 = (i - firstBand) * band + band * 0.1 + j * slot + (slot - width) / 2;
                     if (a0 + width <= 0 || a0 >= 1) return null;
                     if (reverse) a0 = 1 - a0 - width;
@@ -939,6 +947,29 @@ internal static class ChartLayout
                     var (mid, start, end, cap) = ((a0 + width / 2) * 100, a0 * 100, (a0 + width) * 100, width * 25);
                     var (q1, q3) = (V(b.Q1), V(b.Q3));
                     var (lo, hi) = (Math.Min(q1, q3), Math.Max(q1, q3));
+                    if (data.Violin && b.Density is { } density)
+                    {
+                        // Its outline, mirrored about the middle: out along one side, back along the other.
+                        var half = outer / 2;
+                        var middle = a0 + width / 2;
+                        var pts = Enumerable.Range(0, density.Length).Select(k =>
+                            (Value: sc(b.Min + (b.Max - b.Min) * k / (density.Length - 1)), Half: density[k] * half)).ToList();
+                        var outline = new StringBuilder();
+                        foreach (var (p, k) in pts.Select((p, k) => (p, k)))
+                        {
+                            var (x, y) = Map(middle + p.Half, p.Value, input.Horizontal);
+                            outline.Append(CultureInfo.InvariantCulture, $"{(k == 0 ? 'M' : 'L')}{x * 1000:0.#},{y * 1000:0.#}");
+                        }
+
+                        foreach (var p in Enumerable.Reverse(pts))
+                        {
+                            var (x, y) = Map(middle - p.Half, p.Value, input.Horizontal);
+                            outline.Append(CultureInfo.InvariantCulture, $"L{x * 1000:0.#},{y * 1000:0.#}");
+                        }
+
+                        shape.Violins += outline.Append('Z').ToString();
+                    }
+
                     var title = $"{model.ArgumentTexts[i]}{(data.Name.Length > 0 ? ", " + data.Name : "")}: {model.ValueTexts[s][i]}";
                     var rect = input.Horizontal
                         ? new BarRect(lo, start, hi - lo, width * 100, title)
@@ -947,7 +978,9 @@ internal static class ChartLayout
                     {
                         Index = i,
                         Box = new BoxMarks(
-                            [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High)), Line(mid - cap, V(b.Low), mid + cap, V(b.Low)), Line(mid - cap, V(b.High), mid + cap, V(b.High))],
+                            data.Violin
+                                ? [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High))]
+                                : [Line(mid, q1, mid, V(b.Low)), Line(mid, q3, mid, V(b.High)), Line(mid - cap, V(b.Low), mid + cap, V(b.Low)), Line(mid - cap, V(b.High), mid + cap, V(b.High))],
                             Line(start, V(b.Median), end, V(b.Median)),
                             data.ShowMean ? At(mid, V(b.Mean)) : null,
                             b.Outliers.Where(o => !log || o > 0).Select(o => At(mid, V(o))).ToList()),

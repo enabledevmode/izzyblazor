@@ -2447,6 +2447,21 @@
       ]
     },
     {
+      "id": "violin-plot", "icon": "ChartCandlestick", "name": "ChartViolinSeries", "title": "Violin plot", "category": "Charts", "summary": "Shows each group's values as an outline as wide as they're dense, with a slim box plot inside.", "keywords": ["violin plot", "violin chart", "density plot", "kernel density", "distribution", "bimodal", "box plot"],
+      "features": [
+        { "feature": "Each group's density, a Gaussian kernel with Silverman's bandwidth, trimmed to its values" },
+        { "feature": "A slim box, median and whiskers inside, with outliers as circles" },
+        { "feature": "Every violin as wide at its densest, so shapes compare" },
+        { "feature": "Violins split by a group, side by side, upright or across" },
+        { "feature": "Each violin's median, middle half and counts in its tooltip and the table" },
+        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chart-violin", "title": "A violin plot", "lead": "A violin shows the shape of each group's values, where a box plot shows only its summary: here a second peak of weekend orders that wait for Monday. `ChartViolinSeries` makes a violin from the `Value`s of the items that share an `Argument`.", "after": ["The outline is as wide as the values are dense: a Gaussian kernel with Silverman's bandwidth, trimmed to each group's smallest and largest value, so it never reaches a value no item has. Every violin is as wide at its densest.", "Inside, a slim box runs from the first quartile to the third, with a line at the median and a line out to Tukey's whiskers. Outliers past them are circles, and `ShowMean` adds a diamond at the mean.", "A density needs values to work from: for a handful per group, a box plot or the points themselves read better.", "`SeriesBy` puts a violin per group side by side, and the chart's `Orientation=\"Orientation.Horizontal\"` lays them across. A violin's chart holds only box plot and violin series."] }
+      ]
+    },
+    {
       "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
       "features": [
         { "feature": "Rises, falls and totals in three colors, keyed in the legend" },

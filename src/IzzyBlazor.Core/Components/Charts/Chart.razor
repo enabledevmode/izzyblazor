@@ -869,6 +869,10 @@
                               y1="@(upright ? "0" : y)" y2="@(upright ? "100%" : y)" />
                     }
                     <svg class="ib-chart-paths" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                        @foreach (var s in model.Series.Where(s => s.Violins is not null))
+                        {
+                            <path class="@SeriesClass(s, "ib-chart-violin")" style="@ColorStyle(s)" d="@s.Violins" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
+                        }
                         @foreach (var s in model.Series.Where(s => s.Area is not null))
                         {
                             <path class="@SeriesClass(s, "ib-chart-area")" style="@ColorStyle(s)" d="@s.Area" data-ib-series="@s.Index" data-ib-hidden="@Off(s)" />
@@ -880,7 +884,7 @@
                     </svg>
                     @foreach (var s in model.Series.Where(s => s.Bars.Count > 0))
                     {
-                        <g class="@SeriesClass(s, s.Data.IsBox ? "ib-chart-bars ib-chart-box" : s.Data.IsOhlc ? s.Data.OhlcBars ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc" : !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
+                        <g class="@SeriesClass(s, s.Data.Violin ? "ib-chart-bars ib-chart-box ib-chart-box-in" : s.Data.IsBox ? "ib-chart-bars ib-chart-box" : s.Data.IsOhlc ? s.Data.OhlcBars ? "ib-chart-bars ib-chart-ohlc ib-chart-ohlc-bars" : "ib-chart-bars ib-chart-ohlc" : !model.Edges ? "ib-chart-bars" : s.Data.Opacity is null ? "ib-chart-bars ib-chart-hist" : "ib-chart-bars ib-chart-hist ib-chart-hist-see")" style="@ColorStyle(s)" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                             @foreach (var bar in s.Bars.Where(b => b.Prices is not null))
                             {
                                 var p = bar.Prices!.Value;
@@ -1323,7 +1327,7 @@
     {
         string? problem = null;
         if (_context.Series.FirstOrDefault(s => !s.IsBox) is { } other)
-            problem = $"A box plot's chart holds only ChartBoxPlotSeries and ChartBoxSummarySeries: {other.GetType().Name.Split('`')[0]} plots each item, where a box stands for a group of them. Draw it in a chart of its own.";
+            problem = $"A box plot's chart holds only ChartBoxPlotSeries, ChartBoxSummarySeries and ChartViolinSeries: {other.GetType().Name.Split('`')[0]} plots each item, where a box stands for a group of them. Draw it in a chart of its own.";
         else if (drill is not null)
             problem = "A box plot doesn't drill down: leave out the ChartDrillLevels.";
         else if (_argumentAxis?.Zoom == true || _context.Selector is not null || View is not null)
@@ -1365,7 +1369,13 @@
                 if (at[i] >= 0 && data.Values[i] is { } v && double.IsFinite(v)) (groups[at[i]] ??= []).Add(v);
             }
 
-            boxes = groups.Select(g => g is null ? null : ChartBox.Of(g, data.Whiskers!.Value)).ToArray();
+            // A violin's box carries its values' density too.
+            boxes = groups.Select(g =>
+            {
+                if (g is null) return null;
+                var box = ChartBox.Of(g, data.Whiskers!.Value);
+                return box is not null && data.Violin ? box with { Density = ChartBox.DensityOf(g, box.Min, box.Max) } : box;
+            }).ToArray();
         }
 
         return data with
@@ -1461,7 +1471,13 @@
                         @* The script makes this a toggle button that hides and shows the series. *@
                         <span class="ib-chart-toggle" data-ib-series="@s.Index" data-ib-hidden="@Off(s)">
                         <svg class="ib-chart-key" width="24" height="12" aria-hidden="true">
-                            @if (s.Data.IsBox)
+                            @if (s.Data.Violin)
+                            {
+                                @* A violin with its slim box. *@
+                                <path class="ib-chart-violin" d="M12 0C10 3 6.5 4.5 6.5 7S10 10 12 12C14 10 17.5 9.5 17.5 7S14 3 12 0Z" />
+                                <g class="ib-chart-box"><rect x="11" y="4" width="2" height="5" /></g>
+                            }
+                            else if (s.Data.IsBox)
                             {
                                 @* A box on its whisker, with its median. *@
                                 <g class="ib-chart-box"><line x1="12" x2="12" y1="0" y2="12" /><rect x="6.5" y="2.5" width="11" height="7" /><line class="ib-chart-median" x1="7" x2="17" y1="6" y2="6" /></g>

@@ -290,6 +290,17 @@
   .ib-chart-box use { fill: var(--ib-color-surface); }
   .ib-chart-key .ib-chart-box rect { rx: 0; }
 
+  /* Violins (ChartViolinSeries): the outline a light fill of the series color, edged in it, under
+     the slim box, solid with no edge: an edge would eat a box only a few pixels wide. */
+  .ib-chart-violin {
+    fill: var(--ib-chart-c);
+    fill-opacity: 0.3;
+    stroke: var(--ib-chart-c);
+    stroke-width: 1.5px;
+    vector-effect: non-scaling-stroke;
+  }
+  .ib-chart-box-in rect { stroke: none; }
+
   .ib-chart-dash1 { stroke-dasharray: 6 4; }
 
   /* Lines and markers over bars are lifted by a soft shadow, so a line reads on a bar of any

@@ -682,6 +682,30 @@ public class ChartRenderTests : BunitContext
         Assert.Equal([2, 1], split.FindAll(".ib-chart-svg g.ib-chart-box").Select(g => g.QuerySelectorAll(":scope > g").Length));
     }
 
+    [Fact]
+    public void A_violin_draws_each_groups_density_around_a_slim_box()
+    {
+        // A: two clusters, 1–3 and 8–10. B: all 5, no spread to make a density of.
+        Delivery[] parcels = [.. new[] { 1, 2, 2, 3, 8, 9, 9, 10 }.Select(d => new Delivery("A", "North", d)),
+            new("B", "North", 5), new("B", "North", 5)];
+        var cut = Render<Chart<Delivery>>(p => p
+            .Add(c => c.Items, parcels)
+            .Add(c => c.Argument, d => d.Carrier)
+            .Add(c => c.Title, "Delivery time")
+            .AddChildContent<ChartViolinSeries<Delivery>>(s => s.Add(x => x.Value, d => d.Days)));
+
+        // An outline for A only, widest at its clusters and narrow between them (the middle of 64 steps).
+        var outline = cut.Find("path.ib-chart-violin").GetAttribute("d")!;
+        Assert.Equal(1, outline.Count(c => c == 'Z'));
+        var xs = outline.Split('L', 'M').Where(p => p.Length > 0).Take(64).Select(p => double.Parse(p.Split(',')[0], CultureInfo.InvariantCulture)).ToArray();
+        Assert.True(xs[10] > xs[32] && xs[54] > xs[32]);
+
+        // Both get their box, slim: 15% of a bar's width.
+        var boxes = cut.FindAll(".ib-chart-svg g.ib-chart-box > g > rect");
+        Assert.Equal(2, boxes.Count);
+        Assert.Equal("5.4%", boxes[0].GetAttribute("width"));
+    }
+
     private record Latency(string Region, double P5, double P25, double P50, double P75, double P95, double[] Slow);
 
     [Fact]

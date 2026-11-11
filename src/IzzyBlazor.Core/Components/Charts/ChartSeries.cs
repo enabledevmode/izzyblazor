@@ -201,6 +201,9 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual bool ShowMeanOf => false;
 
+    // A violin's: drawn as its values' density around a slim box.
+    private protected virtual bool ViolinOf => false;
+
     // A box plot summary's: each item's box, given (null where a number is missing).
     private protected virtual Func<TItem, ChartBox?>? SummaryOf => null;
 
@@ -396,6 +399,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             Whiskers = WhiskersOf,
             GroupName = SeriesBy is null ? null : ChartMembers.Name(SeriesBy),
             ShowMean = ShowMeanOf,
+            Violin = ViolinOf,
         };
 
     /// <inheritdoc />
