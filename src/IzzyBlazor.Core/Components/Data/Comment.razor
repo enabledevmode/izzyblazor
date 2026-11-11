@@ -1,0 +1,147 @@
+@namespace IzzyBlazor
+@using System.Globalization
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+
+@*
+    Comment: one comment in a discussion, with who wrote it, when, what they said, actions under it
+    and replies nested inside it.
+
+    <Comment Author="Ana Ruiz" Avatar="/img/ana.jpg" Time="posted" Text="Shipped on Tuesday.">
+        <Actions><Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">Reply</Button></Actions>
+        <Replies>
+            <Comment Author="Sam Lee" Initials="SL" Time="later" Text="Thanks!" />
+        </Replies>
+    </Comment>
+
+    The content is Text (plain, its lines kept) or anything else as ChildContent, which is also
+    where a reply form goes: a Comment with only an Avatar and a TextArea inside reads as "you,
+    writing". Replies step in by one avatar's width at each level. RelativeTime shows "2 hours
+    ago" in place of the date, computed when the page renders, with the full date on hover.
+    Placement End mirrors it, for one side of a two-person exchange; for a conversation as it
+    happens, Chat suits better.
+
+    Accessibility:
+    - Each comment is an `article` named by its author, its replies nested inside it, so screen
+      readers can move between comments and tell a reply from the comment it answers.
+    - The time is a `time` element with the exact date and time in `datetime`.
+    - The avatar is decoration: the author's name is next to it.
+    See also: Chat, Timeline, Avatar.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/comment.css"]" />
+<article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@(Author is { Length: > 0 } ? _authorId : null)">
+    @if (Avatar is not null || Initials is not null)
+    {
+        <Avatar Name="@Author" Src="@Avatar" Initials="@Initials" Size="AvatarSize.Sm" Decorative Class="ib-comment-avatar" />
+    }
+    <div class="ib-comment-body">
+        @if (Author is { Length: > 0 } || Time is not null)
+        {
+            <p class="ib-comment-meta">
+                @if (Author is { Length: > 0 } author)
+                {
+                    <span class="ib-comment-author" id="@_authorId">@author</span>
+                }
+                @if (Time is { } time)
+                {
+                    <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)" title="@(RelativeTime ? time.ToString("f", CultureInfo.CurrentCulture) : null)">@TimeText(time)</time>
+                }
+            </p>
+        }
+        @if (ChildContent is not null)
+        {
+            <div class="ib-comment-content">@ChildContent</div>
+        }
+        else if (!string.IsNullOrEmpty(Text))
+        {
+            <p class="ib-comment-content ib-comment-text">@Text</p>
+        }
+        @if (Actions is not null)
+        {
+            <div class="ib-comment-actions">@Actions</div>
+        }
+        @if (Replies is not null)
+        {
+            <div class="ib-comment-replies">@Replies</div>
+        }
+    </div>
+</article>
+
+@code {
+    /// <summary>Who wrote it. Names the comment for screen readers.</summary>
+    [Parameter] public string? Author { get; set; }
+
+    /// <summary>The address of the author's picture.</summary>
+    [Parameter] public string? Avatar { get; set; }
+
+    /// <summary>Letters for the avatar when there's no picture, such as <c>AR</c>.</summary>
+    [Parameter] public string? Initials { get; set; }
+
+    /// <summary>When it was written, shown after the author: the date and time, or how long ago with <see cref="RelativeTime"/>.</summary>
+    [Parameter] public DateTimeOffset? Time { get; set; }
+
+    /// <summary>
+    /// Shows <see cref="Time"/> as how long ago ("5 minutes ago", "3 days ago"), with the full date
+    /// on hover. Comments older than a week show their date. Worked out when the page renders.
+    /// </summary>
+    [Parameter] public bool RelativeTime { get; set; }
+
+    /// <summary>The comment as plain text, its line breaks kept.</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>The comment as anything else: formatted text, an image, or a reply form. Wins over <see cref="Text"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>A row under the comment for things to do with it, such as Reply and Like buttons.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>Replies: more <see cref="Comment"/>s, nested inside this one and stepped in.</summary>
+    [Parameter] public RenderFragment? Replies { get; set; }
+
+    /// <summary>
+    /// Which side the avatar sits on. <see cref="CommentPlacement.End"/> mirrors the comment, the
+    /// text lined up at the end.
+    /// </summary>
+    [Parameter] public CommentPlacement Placement { get; set; }
+
+    private readonly string _authorId = IdGenerator.Next("ib-comment-author");
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-comment");
+        classes.Add("ib-comment-end", Placement == CommentPlacement.End);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private string TimeText(DateTimeOffset time)
+    {
+        var culture = CultureInfo.CurrentCulture;
+        if (!RelativeTime)
+        {
+            return time.ToString("g", culture);
+        }
+
+        var ago = DateTimeOffset.UtcNow - time;
+        var text = TextDefaults;
+        return ago switch
+        {
+            { TotalMinutes: < 1 } => text.CommentJustNow,
+            { TotalMinutes: < 2 } => text.CommentMinuteAgo,
+            { TotalHours: < 1 } => string.Format(culture, text.CommentMinutesAgo, (int)ago.TotalMinutes),
+            { TotalHours: < 2 } => text.CommentHourAgo,
+            { TotalDays: < 1 } => string.Format(culture, text.CommentHoursAgo, (int)ago.TotalHours),
+            { TotalDays: < 2 } => text.CommentDayAgo,
+            { TotalDays: < 7 } => string.Format(culture, text.CommentDaysAgo, (int)ago.TotalDays),
+            _ => time.Year == DateTimeOffset.Now.Year
+                ? time.ToString(culture.DateTimeFormat.MonthDayPattern, culture)
+                : time.ToString("d", culture),
+        };
+    }
+}

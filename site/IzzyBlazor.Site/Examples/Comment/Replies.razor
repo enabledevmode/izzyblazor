@@ -1,0 +1,25 @@
+@* A question on a pull request and the answers to it, two levels deep. *@
+<Comment Author="Marcus Webb" Initials="MW" Time="_now.AddHours(-5)" RelativeTime
+         Text="Does the retry here back off, or will it hammer the payments API when it's down?">
+    <Actions>
+        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Reply</Button>
+    </Actions>
+    <Replies>
+        <Comment Author="Lena Okafor" Initials="LO" Time="_now.AddHours(-4)" RelativeTime
+                 Text="It backs off: 1, 2, then 4 seconds, and gives up after three tries.">
+            <Actions>
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Reply</Button>
+            </Actions>
+            <Replies>
+                <Comment Author="Marcus Webb" Initials="MW" Time="_now.AddHours(-3)" RelativeTime
+                         Text="Good. Could the delays go in the config, so ops can change them?" />
+                <Comment Author="Lena Okafor" Initials="LO" Time="_now.AddMinutes(-40)" RelativeTime
+                         Text="Done, under Payments:RetryDelays." />
+            </Replies>
+        </Comment>
+    </Replies>
+</Comment>
+
+@code {
+    private readonly DateTimeOffset _now = DateTimeOffset.UtcNow;
+}

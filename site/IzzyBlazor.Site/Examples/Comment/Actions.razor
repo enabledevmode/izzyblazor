@@ -1,0 +1,12 @@
+@* A teammate's note on a design file, with what you can do about it. *@
+<Comment Author="Priya Natarajan" Initials="PN" Time="_posted"
+         Text="The checkout button drops below the fold on a 13-inch laptop. Could we move the order summary under it?">
+    <Actions>
+        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Reply">Reply</Button>
+        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.CircleCheck">Resolve</Button>
+    </Actions>
+</Comment>
+
+@code {
+    private readonly DateTimeOffset _posted = new(2026, 11, 4, 14, 20, 0, TimeSpan.Zero);
+}

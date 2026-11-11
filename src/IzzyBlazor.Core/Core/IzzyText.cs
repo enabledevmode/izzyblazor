@@ -2111,6 +2111,27 @@ public class IzzyText
     /// <summary>A Chat's day separator for yesterday.</summary>
     public virtual string ChatYesterday { get; set; } = "Yesterday";
 
+    /// <summary>A Comment's relative time under a minute old.</summary>
+    public virtual string CommentJustNow { get; set; } = "just now";
+
+    /// <summary>A Comment's relative time: one minute.</summary>
+    public virtual string CommentMinuteAgo { get; set; } = "1 minute ago";
+
+    /// <summary>A Comment's relative time: {0} minutes.</summary>
+    public virtual string CommentMinutesAgo { get; set; } = "{0} minutes ago";
+
+    /// <summary>A Comment's relative time: one hour.</summary>
+    public virtual string CommentHourAgo { get; set; } = "1 hour ago";
+
+    /// <summary>A Comment's relative time: {0} hours.</summary>
+    public virtual string CommentHoursAgo { get; set; } = "{0} hours ago";
+
+    /// <summary>A Comment's relative time: one day.</summary>
+    public virtual string CommentDayAgo { get; set; } = "yesterday";
+
+    /// <summary>A Comment's relative time: {0} days, up to a week; older comments show the date.</summary>
+    public virtual string CommentDaysAgo { get; set; } = "{0} days ago";
+
     /// <summary>A RichTextEditor's task list tool.</summary>
     public virtual string RichTextTaskList { get; set; } = "Task list";
 
