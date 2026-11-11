@@ -2135,11 +2135,20 @@
         { "feature": "A button that saves the chart as a PNG, or a button of your own", "member": "Download", "noscript": "none" },
         { "feature": "On a right-to-left page, the plot keeps its direction while the legend, title and tooltip follow the page; `Reverse` on `ChartArgumentAxis` runs the arguments right to left" }
       ],
-      "examples": [
-        { "id": "chart-usage", "title": "Bar and line series", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against.", "after": ["`Color` sets a series' color in place of the palette's next one. Here the revenue is in the theme's primary color and the plan in its text color, and `LineStyle` dashes the plan's line.", "A `ChartValueAxis` with a `Format` formats the values on the axis and in the Show data table under the chart. Leave the axes out and they take their defaults.", "The chart is rendered on the server with the page, so it shows with JavaScript off."] },
-        { "id": "chart-in-card", "title": "Titled by a heading", "lead": "When a heading on the page already says what the chart shows, such as a card's title, set `TitledBy` to the heading's id instead of giving the chart a `Title`. A `Card` gives its heading an id with `TitleId`.", "after": ["The chart and its Show data are named from the heading, so the title isn't written twice. For a chart with no heading near it, `HideTitle` keeps a `Title` for screen readers only.", "To size every chart's own title at once, set `--ib-chart-title-size` (the theme's `--ib-text-lg` by default) and `--ib-chart-title-weight` in your CSS."] }
-      ],
+      "examples": [],
       "topics": [
+        {
+          "id": "series", "title": "Bars and lines", "summary": "Bar and line series in one chart, such as each month's revenue against its plan, each in its own color and dash, with formatted values.", "members": ["ChartBarSeries", "ChartLineSeries", "ChartBarSeries.Color", "ChartLineSeries.LineStyle", "ChartValueAxis.Format"],
+          "examples": [
+            { "id": "chart-usage", "title": "Bar and line series", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against.", "after": ["`Color` sets a series' color in place of the palette's next one. Here the revenue is in the theme's primary color and the plan in its text color, and `LineStyle` dashes the plan's line.", "A `ChartValueAxis` with a `Format` formats the values on the axis and in the Show data table under the chart. Leave the axes out and they take their defaults.", "The chart is rendered on the server with the page, so it shows with JavaScript off."] }
+          ]
+        },
+        {
+          "id": "titles", "title": "Titles", "summary": "A chart's title, or a heading on the page that titles it, such as a card's, so the title isn't written twice, and the title's size and alignment.", "members": ["Title", "TitledBy", "HideTitle", "TitleAlign"],
+          "examples": [
+            { "id": "chart-in-card", "title": "Titled by a heading", "lead": "When a heading on the page already says what the chart shows, such as a card's title, set `TitledBy` to the heading's id instead of giving the chart a `Title`. A `Card` gives its heading an id with `TitleId`.", "after": ["The chart and its Show data are named from the heading, so the title isn't written twice. For a chart with no heading near it, `HideTitle` keeps a `Title` for screen readers only.", "To size every chart's own title at once, set `--ib-chart-title-size` (the theme's `--ib-text-lg` by default) and `--ib-chart-title-weight` in your CSS. `TitleAlign` moves the title to the `Center` or `End`."] }
+          ]
+        },
         {
           "id": "labels", "title": "Value labels", "summary": "Each value written beside its bar or point, on any series, past a bar's end or in the middle of a stacked segment, with labels that would overlap left out.", "members": ["ChartBarSeries.Labels", "ChartBarSeries.LabelFormat", "ChartBarSeries.LabelOverlap"],
           "examples": [
@@ -2148,9 +2157,14 @@
           ]
         },
         {
-          "id": "reference", "title": "Reference lines and notes", "summary": "Lines at a target or an average, shaded ranges such as a season, and notes at a point, each labeled in text and said in the chart's description.", "members": ["ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation"],
+          "id": "reference", "title": "Reference lines", "summary": "Lines at a target or an average, and shaded ranges of values or arguments such as a season, each labeled in text and said in the chart's description.", "members": ["ChartReferenceLine", "ChartReferenceBand"],
           "examples": [
-            { "id": "chart-reference", "title": "Reference lines and bands", "lead": "To mark a value, such as a target, put a `ChartReferenceLine` in the chart with its series and set its `Value`. It's a dashed line with its `Label` just above it at the left, or where `LabelAlign` puts it: `Start`, `Center` or `End`.", "after": ["The value axis always reaches a reference line, so a target above every value still shows. With `Statistic` and a series' name as `Series`, the line is that series' `Average` or `Median`.", "`ChartReferenceBand` shades a range of values from `From` to `To`, or of arguments from `ArgumentFrom` to `ArgumentTo`, here November and December."] },
+            { "id": "chart-reference", "title": "Reference lines and bands", "lead": "To mark a value, such as a target, put a `ChartReferenceLine` in the chart with its series and set its `Value`. It's a dashed line with its `Label` just above it at the left, or where `LabelAlign` puts it: `Start`, `Center` or `End`.", "after": ["The value axis always reaches a reference line, so a target above every value still shows. With `Statistic` and a series' name as `Series`, the line is that series' `Average` or `Median`.", "`ChartReferenceBand` shades a range of values from `From` to `To`, or of arguments from `ArgumentFrom` to `ArgumentTo`, here November and December."] }
+          ]
+        },
+        {
+          "id": "annotations", "title": "Annotations", "summary": "Short notes at a point, and lines at an argument such as a launch day, which move with the chart when the legend rescales it.", "members": ["ChartAnnotation", "ChartReferenceLine.Argument"],
+          "examples": [
             { "id": "chart-annotations", "title": "Annotations", "lead": "`ChartAnnotation` puts a short `Text` at an `Argument` and `Value`, with a line down to the point. A `ChartReferenceLine` with an `Argument` in place of a `Value` draws a line at an argument, here the day of a launch. Hiding a series from the legend rescales the chart, and the marks move with it." }
           ]
         },
@@ -2185,10 +2199,21 @@
           ]
         },
         {
-          "id": "tooltips", "title": "Tooltips, crosshair and the legend", "summary": "Each series' value for the item under the pointer or keyboard focus, from a template if you like, a crosshair, and a legend above, below or beside the chart.", "members": ["Tooltip", "ChartTooltip", "Crosshair", "Legend", "LegendAlign", "TitleAlign", "ChartBarSeries.Hidden", "DataTable"],
+          "id": "tooltips", "title": "Tooltips", "summary": "Each series' value for the item under the pointer or keyboard focus, said to screen readers, from a template of your own if you like.", "members": ["Tooltip", "ChartTooltip", "DataTable"],
           "examples": [
-            { "id": "chart-tooltips", "title": "A tooltip template and a legend", "lead": "To write the tooltip yourself, put a `ChartTooltip` in the chart. Its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors.", "after": ["To show the tooltips from the keyboard, Tab to the chart and use the arrow keys. A screen reader hears each value as they move.", "The tooltip is rendered on the server with the page, so keep the template to text and inline content. To leave the tooltips out, set `Tooltip` to false. They're off by default when every series has value labels.", "Click a legend item to hide its series, and again to show it. The chart is drawn again without it, so stacks close up and the value axis rescales. To start a series hidden, set `Hidden`.", "`Legend` places the legend: `Top`, `Bottom`, `Start`, `End` or `None`. `Start` and `End` put it beside the chart, and above or below it under 30rem wide. By default it's above, under the title, with two series or more.", "`LegendAlign` sets where the legend sits along its edge: `Start` (the default, lined up with the title), `Center` or `End`. Above or below the chart, that's left, center or right; beside it, top, middle or bottom. `TitleAlign` moves the title the same way."], "notes": {"noscript": "There are no tooltips, and the legend doesn't hide series. Each bar and marker still shows its value on hover, and Show data lists every value."} },
+            { "id": "chart-tooltips", "title": "A tooltip template", "lead": "To write the tooltip yourself, put a `ChartTooltip` in the chart. Its context has the `Item`, the formatted `Argument`, and each series' `Points` with their names, values and colors.", "after": ["To show the tooltips from the keyboard, Tab to the chart and use the arrow keys. A screen reader hears each value as they move.", "The tooltip is rendered on the server with the page, so keep the template to text and inline content. To leave the tooltips out, set `Tooltip` to false. They're off by default when every series has value labels."], "notes": {"noscript": "There are no tooltips. Each bar and marker still shows its value on hover, and Show data lists every value."} }
+          ]
+        },
+        {
+          "id": "crosshair", "title": "Crosshair", "summary": "Lines at the item under the pointer and at its nearest value, with both in badges on the axes, to read values off the axes exactly.", "members": ["Crosshair"],
+          "examples": [
             { "id": "chart-crosshair", "title": "A crosshair", "lead": "`Crosshair` draws a line at the item under the pointer and one at the value nearest it, with the item's argument and that value in badges on the axes, so a reader can read a line's value off the axis exactly.", "after": ["The value line snaps to the series nearest the pointer; from the keyboard it stays on the series it was on.", "On a scatter or bubble chart, both lines run through the nearest point. The crosshair goes with the tooltip, so with `Tooltip` false there's none, and it's left out of downloads."], "notes": {"noscript": "There's no crosshair."} }
+          ]
+        },
+        {
+          "id": "legend", "title": "Legend", "summary": "A legend above, below or beside the chart whose items hide and show their series, with series that can start hidden.", "members": ["Legend", "LegendAlign", "ChartBarSeries.Hidden"],
+          "examples": [
+            { "id": "chart-legend", "title": "A legend beside the chart", "lead": "`Legend` places the legend: `Top`, `Bottom`, `Start`, `End` or `None`. `Start` and `End` put it beside the chart, and above or below it under 30rem wide. By default it's above, under the title, with two series or more.", "after": ["Click a legend item to hide its series, and again to show it. The chart is drawn again without it, so stacks close up and the value axis rescales. To start a series hidden, set `Hidden`, here the small Other channel, which would flatten the rest.", "`LegendAlign` sets where the legend sits along its edge: `Start` (the default, lined up with the title), `Center` or `End`. Above or below the chart, that's left, center or right; beside it, top, middle or bottom."], "notes": {"noscript": "The legend doesn't hide series."} }
           ]
         },
         {
