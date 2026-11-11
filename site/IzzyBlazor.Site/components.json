@@ -2428,11 +2428,12 @@
       ]
     },
     {
-      "id": "box-plot", "icon": "ChartCandlestick", "name": "ChartBoxPlotSeries", "title": "Box plot", "category": "Charts", "summary": "Compares how values spread across groups: each group's median, middle half, range and outliers.", "keywords": ["box plot", "box and whisker", "box-and-whisker plot", "whisker chart", "quartiles", "distribution", "outliers", "five-number summary"],
+      "id": "box-plot", "icon": "ChartCandlestick", "name": "ChartBoxPlotSeries", "title": "Box plot", "category": "Charts", "parts": ["ChartBoxSummarySeries"], "summary": "Compares how values spread across groups: each group's median, middle half, range and outliers.", "keywords": ["box plot", "box and whisker", "box-and-whisker plot", "whisker chart", "quartiles", "distribution", "outliers", "five-number summary"],
       "features": [
         { "feature": "A box per group, worked out from raw values: quartiles, median and whiskers" },
         { "feature": "Tukey whiskers with outliers drawn as circles, or whiskers to the minimum and maximum" },
         { "feature": "The mean marked with a diamond" },
+        { "feature": "Boxes from numbers already worked out, such as a database's percentiles" },
         { "feature": "Boxes split by a group, side by side within each argument" },
         { "feature": "Upright, or lying across for long names" },
         { "feature": "Each box's numbers in its tooltip and the table" },
@@ -2441,7 +2442,8 @@
       ],
       "examples": [
         { "id": "chart-box-plot", "title": "A box plot", "lead": "A box plot compares how values spread across groups: where most fall, how far they range, and which stand apart. `ChartBoxPlotSeries` makes a box from the `Value`s of the items that share an `Argument`, here a month of parcels by carrier.", "after": ["Each box runs from the first quartile to the third, so it holds the middle half of the values, with a line at the median.", "The whiskers reach the furthest values within 1.5 times the box's height of its ends (Tukey's rule). Values past them are outliers, drawn as circles: here the parcels a missed scan or a storm held up. `Whiskers=\"ChartWhiskers.MinMax\"` runs them to the smallest and largest values instead, with no outliers.", "Quartiles are interpolated between the sorted values, as Excel's `QUARTILE.INC` works them out.", "A box hides how its values are shaped, such as two clusters, and says little about a handful of values: a histogram shows one group's spread in full."] },
-        { "id": "chart-box-plot-grouped", "title": "Boxes split by a group", "lead": "`SeriesBy` splits each argument's values by a group, here standard and express service, and draws their boxes side by side. `ShowMean` marks each box's mean with a diamond, which sits above the median when a few late parcels pull it up.", "after": ["With long names, the chart's `Orientation=\"Orientation.Horizontal\"` lays the boxes across.", "A box plot's chart holds only box plot series, and doesn't stack or zoom."] }
+        { "id": "chart-box-plot-grouped", "title": "Boxes split by a group", "lead": "`SeriesBy` splits each argument's values by a group, here standard and express service, and draws their boxes side by side. `ShowMean` marks each box's mean with a diamond, which sits above the median when a few late parcels pull it up.", "after": ["With long names, the chart's `Orientation=\"Orientation.Horizontal\"` lays the boxes across.", "A box plot's chart holds only box plot series, and doesn't stack or zoom."] },
+        { "id": "chart-box-plot-summary", "title": "Boxes from a summary", "lead": "`ChartBoxSummarySeries` draws each item as one box from numbers already worked out: its `Low`, `Q1`, `Median`, `Q3` and `High`. Use it when a database or monitoring tool summarizes the values, here a week of an API's requests by region.", "after": ["The whiskers end at `Low` and `High`, whatever they stand for: here the 5th and 95th percentiles. Say which in the title, since a reader would otherwise take them for Tukey's whiskers.", "`Mean` marks each box's mean with a diamond. `Outliers` takes a list of numbers on each item, drawn as circles past the whiskers.", "`SeriesBy` puts the boxes of items that share an `Argument` side by side; each split series takes one item per box."] }
       ]
     },
     {
