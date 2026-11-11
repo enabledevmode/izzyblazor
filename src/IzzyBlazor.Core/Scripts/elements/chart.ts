@@ -892,6 +892,19 @@ class Chart extends IzzyElement {
       line.textContent = first.dataset.ibLead;
       first.append(line);
     }
+
+    // Zoomed by the script, a label near either end slides in to stay inside the chart (the
+    // server leaves end room for its own last label; the view's labels can land anywhere).
+    if (!zoomed || this.hasAttribute("data-ib-turn")) return;
+    const box = axis.getBoundingClientRect(), chart = this.getBoundingClientRect();
+    const [min, max] = [chart.left - box.left, chart.right - box.left];
+    for (const [i, l] of labels.entries()) {
+      l.style.removeProperty("--ib-chart-tx");
+      if (from(l) > chosen || l.parentElement !== zoomed) continue;
+      const size = l.scrollWidth;
+      const start = Math.max(min, Math.min(centers[i] - size / 2, max - size));
+      if (Math.abs(start - (centers[i] - size / 2)) > 0.5) l.style.setProperty("--ib-chart-tx", `${Math.round(start - centers[i])}px`);
+    }
   }
 }
 
