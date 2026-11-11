@@ -1,0 +1,56 @@
+@* A company's 2,000-odd people by division, department and team, every branch open: only the
+   rows in view are drawn as the list scrolls, and opening or closing a row keeps the place. *@
+<TreeList Items="People" ItemKey="p => p.Id" ItemParentKey="p => p.ManagerId" ExpandAll Virtualize RowHeight="40"
+          MaxHeight="28.Rem" Caption="Directory" QueryPrefix="directory-" Grow>
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Filterable />
+        <PropertyColumn Property="p => p.Title" Width="14.Rem" />
+        <PropertyColumn Property="p => p.Location" Width="9.Rem" />
+    </Columns>
+</TreeList>
+
+@code {
+    @* hide *@
+    private static readonly string[] First = ["Ada", "Ben", "Chloe", "Dev", "Elena", "Farid", "Grace", "Hugo", "Iris", "Jonas", "Kira", "Leo", "Maya", "Nico", "Omar", "Priya", "Quinn", "Rosa", "Sam", "Tara"];
+    private static readonly string[] Last = ["Novak", "Okafor", "Park", "Reyes", "Shah", "Tanaka", "Weiss", "Bello", "Clarke", "Diaz", "Fischer", "Haddad", "Kim", "Lindqvist", "Moreau"];
+    private static readonly string[] Places = ["New York", "Austin", "Chicago", "Remote", "London"];
+    private static readonly string[] Divisions = ["Engineering", "Sales", "Operations", "Marketing", "Finance", "People"];
+
+    private static readonly List<Person> People = Build();
+
+    private static List<Person> Build()
+    {
+        var people = new List<Person>();
+        var n = 0;
+        string Name() { n++; return $"{First[n * 7 % First.Length]} {Last[n * 11 % Last.Length]}"; }
+        Person Add(string? manager, string title)
+        {
+            var person = new Person($"p{people.Count + 1}", manager, Name(), title, Places[n % Places.Length]);
+            people.Add(person);
+            return person;
+        }
+
+        var ceo = Add(null, "Chief Executive Officer");
+        foreach (var division in Divisions)
+        {
+            var head = Add(ceo.Id, $"VP of {division}");
+            for (var d = 1; d <= 5; d++)
+            {
+                var lead = Add(head.Id, $"{division} Director {d}");
+                for (var t = 1; t <= 8; t++)
+                {
+                    var manager = Add(lead.Id, $"{division} Manager {d}.{t}");
+                    for (var p = 1; p <= 7; p++)
+                    {
+                        Add(manager.Id, p == 1 ? "Senior Specialist" : "Specialist");
+                    }
+                }
+            }
+        }
+
+        return people;
+    }
+
+    private sealed record Person(string Id, string? ManagerId, string Name, string Title, string Location);
+    @* /hide *@
+}

@@ -2856,6 +2856,7 @@
         { "feature": "Pages of top rows, so a branch is never split" },
         { "feature": "Rows from a database a level at a time, loaded as rows open", "member": "ItemsProvider" },
         { "feature": "Up to 200 rows under a row, then Show more", "member": "ChildRowLimit" },
+        { "feature": "Virtual rows over every open branch, on interactive pages", "member": "Virtualize", "noscript": "none", "static": "none" },
         { "feature": "Checking a row checks the rows under it, open or not", "member": "Cascade" },
         { "feature": "A row's total of its branch, and the footer's of every match", "member": "Column.RollUp" },
         { "feature": "Excel and CSV export that keeps the tree's levels", "member": "ExportExcelHref" },
@@ -2901,9 +2902,10 @@
           ]
         },
         {
-          "id": "server-data", "title": "Server data", "summary": "Rows load from your database a level at a time, as the user opens them.", "members": ["ItemsProvider", "ItemHasChildren", "ChildRowLimit", "ItemKey"],
+          "id": "server-data", "title": "Server data", "summary": "Rows load from your database a level at a time, as the user opens them, and large trees draw only the rows in view.", "members": ["ItemsProvider", "ItemHasChildren", "ChildRowLimit", "ItemKey", "Virtualize", "RowHeight", "MaxHeight"],
           "examples": [
-            { "id": "tree-list-file-storage", "title": "Loading a level at a time", "lead": "To load rows from a database as they open, set `ItemsProvider` instead of `Items`. The tree list asks for the top rows, then for the children of each open row, with that row's key in `request.Parent`. `request.ToTreeResult` answers it from a query, given the key and the parent key.", "after": ["Set `ItemHasChildren` so a row shows its chevron before its children load. Without it, every row gets one, and a row that opens to none loses it.", "Sorting, filters and search go with every request. While filtering, `ToTreeResult` keeps the rows that match and the rows above them, which takes a query for each level above a match. With EF Core, use `ToTreeResultAsync` with `CountAsync` and `ToListAsync`.", "A row shows at most 200 rows under it, then Show more, which adds as many again. Set `ChildRowLimit` to change it."] }
+            { "id": "tree-list-file-storage", "title": "Loading a level at a time", "lead": "To load rows from a database as they open, set `ItemsProvider` instead of `Items`. The tree list asks for the top rows, then for the children of each open row, with that row's key in `request.Parent`. `request.ToTreeResult` answers it from a query, given the key and the parent key.", "after": ["Set `ItemHasChildren` so a row shows its chevron before its children load. Without it, every row gets one, and a row that opens to none loses it.", "Sorting, filters and search go with every request. While filtering, `ToTreeResult` keeps the rows that match and the rows above them, which takes a query for each level above a match. With EF Core, use `ToTreeResultAsync` with `CountAsync` and `ToListAsync`.", "A row shows at most 200 rows under it, then Show more, which adds as many again. Set `ChildRowLimit` to change it."] },
+            { "id": "tree-list-directory", "title": "Virtual rows", "modes": ["interactive"], "lead": "Virtual rows draw only the rows in view, so a tree with thousands of rows open scrolls as easily as a short one. Set `Virtualize`, with a `MaxHeight` and a `RowHeight`; it works on interactive pages.", "after": ["Every visible row is worked out from `Items`, open branches included, and opening or closing a row keeps the place in the list. There's no Show more, and each row is one line high.", "On a static page the same tree pages by its top rows."] }
           ]
         }
       ]
