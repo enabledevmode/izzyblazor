@@ -88,7 +88,15 @@
     internal override RenderFragment? AfterRow(TItem item, int row, int? indent)
     {
         var own = base.AfterRow(item, row, indent);
-        if (!_treeMore.TryGetValue(KeyOf(item), out var mores))
+        var key = KeyOf(item);
+        // The row being added under this one: first among its rows.
+        if (NewRowItem is { } added && AddingUnder == key && _treeRows.TryGetValue(key, out var parent))
+        {
+            var child = AddedRow(added, parent.Depth + 1);
+            own = own is null ? child : __builder => { @own @child };
+        }
+
+        if (!_treeMore.TryGetValue(key, out var mores))
         {
             return own;
         }
@@ -129,6 +137,16 @@
             }
         };
     }
+
+    /// <inheritdoc />
+    // A new row starts its first cell at its level, as the rows around it do.
+    internal override RenderFragment NewRowFirstCell(RenderFragment content, int? depth) => !_treeHasChildren && NewChild is null ? content : __builder =>
+    {
+        <span class="ib-treelist-cell" style="@($"--ib-treelist-depth:{depth ?? 0}")">
+            <span class="ib-treelist-leaf"></span>
+            <span class="ib-treelist-value">@content</span>
+        </span>
+    };
 
     /// <inheritdoc />
     internal override RenderFragment? FirstHeaderLead => !_treeHasChildren ? null : __builder =>

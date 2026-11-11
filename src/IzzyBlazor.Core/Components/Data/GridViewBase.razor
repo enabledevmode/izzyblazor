@@ -165,7 +165,36 @@
         }
     }
 
-    private bool Adding => CanAdd && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
+    private bool Adding => CanEdit && (NewItem is not null || AddingUnder is not null) && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
+
+    private string AddUnderQueryKey => $"{QueryPrefix}addunder";
+
+    private string? _stateAddUnder;
+
+    /// <summary>A TreeList's new row under another: its <c>NewChild</c>, given the row it goes under.</summary>
+    internal virtual Func<TItem, TItem>? ChildFactory => null;
+
+    /// <summary>The key of the row a new row is being added under, while one is and that row is here.</summary>
+    internal string? AddingUnder => ChildFactory is null ? null
+        : (UseState ? _stateAddUnder : QueryValue(AddUnderQueryKey)) is { } key && RowOf(key) is not null ? key : null;
+
+    /// <summary>The link that adds a row under another, on a static page: a TreeList's also opens it.</summary>
+    internal virtual string AddUnderHref(string key) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [AddQueryKey] = 1, [AddUnderQueryKey] = key });
+
+    /// <summary>
+    /// Whether the script can fetch the new row alone, on a static page: not where adding also opens
+    /// the row it goes under, which brings rows of its own, so the link loads the page.
+    /// </summary>
+    internal virtual bool AddsInPlace(string key) => true;
+
+    /// <summary>Starts adding a row under another, on an interactive page: a TreeList's also opens it.</summary>
+    internal virtual Task StartAddUnderAsync(string key)
+    {
+        EndCell();
+        (_stateAdding, _stateAddUnder) = (true, key);
+        return Task.CompletedTask;
+    }
 
     private string? CurrentDeleteKey => !CanDelete ? null : UseState ? _stateDeleteKey : QueryValue(DeleteQueryKey);
 
@@ -173,7 +202,7 @@
     private bool _ending;
     private string? _stateDeleteKey;
 
-    private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
+    private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [AddUnderQueryKey] = null, [DeleteQueryKey] = null });
 
     // In a row, only what's shown has a field to post; the rest stays as loaded.
     private List<ColumnBase<TItem>> EditableColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : AllColumns).Where(c => c.IsEditable).ToList();
@@ -255,7 +284,7 @@
         _cellKey is not null && column == _cellColumn && _editModel is not null && KeyOf(item) == _cellKey ? EditCell(column) : null;
 
     /// <inheritdoc />
-    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, DeleteQueryKey] : [];
+    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey] : [];
 
     private string? _rowFormId;
 
@@ -441,7 +470,7 @@
         // A row that can't be edited isn't found, so a link or a post made by hand gets no further.
         if (_editIsNew || (RowOf(key) is { } found && CanEditRow(found)))
         {
-            var item = _editIsNew ? NewItem!() : RowOf(key)!;
+            var item = _editIsNew ? AddingUnder is { } under ? ChildFactory!(RowOf(under)!) : NewItem!() : RowOf(key)!;
             _editItem = _editIsNew ? default : item;
             _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
                 : _editIsNew ? item
@@ -579,7 +608,7 @@
         (_foundKey, _found) = (null, default);
         if (UseState)
         {
-            (_stateAdding, _stateDeleteKey, _stateEditKey) = (false, null, null);
+            (_stateAdding, _stateAddUnder, _stateDeleteKey, _stateEditKey) = (false, null, null, null);
             if (EditKey is not null)
             {
                 await EditKeyChanged.InvokeAsync(null);
@@ -827,7 +856,32 @@
     };
 
     private RowActionScope ScopeOf(TItem item, bool inMenu) =>
-        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
+        new(inMenu, ActionOverflow, Hiding, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason), menu => AddUnderControl(item, menu));
+
+    private string AddRootHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [AddQueryKey] = 1, [AddUnderQueryKey] = null });
+
+    // A TreeList's Add child: a new row under this one, in the dialog or in place.
+    private RenderFragment? AddUnderControl(TItem item, bool inMenu) => ChildFactory is null || !CanEdit ? null : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.AddUnder, LabelOf(item));
+        var key = KeyOf(item);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.CornerDownRight" OnClick="@(() => StartAddUnderAsync(key))" data-ib-edit>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.CornerDownRight" Href="@AddUnderHref(key)" data-ib-edit="@(AddsInPlace(key) ? AddQueryKey : null)" data-ib-edit-row="@(InRow && AddsInPlace(key) ? "" : null)">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.CornerDownRight" Label="@label" OnClick="@(() => StartAddUnderAsync(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.CornerDownRight" Label="@label" Href="@AddUnderHref(key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@(AddsInPlace(key) ? AddQueryKey : null)" data-ib-edit-row="@(InRow && AddsInPlace(key) ? "" : null)" />
+        }
+    };
 
     private (int Buttons, bool Menu, int Auto) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item) && !InCell, CanDeleteRow(item), Hiding);
 
@@ -840,15 +894,15 @@
         var plus = IconSet.Current.Get(IconPurpose.Plus);
         @if (UseState)
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); _stateAdding = true; })" data-ib-edit />
+            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); (_stateAdding, _stateAddUnder) = (true, null); })" data-ib-edit />
         }
         else if (showText)
         {
-            <Button StartIcon="plus" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@TextDefaults.Add</Button>
+            <Button StartIcon="plus" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@TextDefaults.Add</Button>
         }
         else
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
+            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
         }
     };
 
