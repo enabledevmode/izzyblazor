@@ -83,6 +83,14 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
 
+    /// <summary>
+    /// In a DataGrid or TreeList, whether text too long for the column wraps onto more lines (true) or
+    /// stays on one line, ending in an ellipsis, with the whole text in a tooltip on hover and focus
+    /// (false). Null takes the grid's <c>WrapCells</c>. Numbers and other end-aligned values stay on
+    /// one line either way.
+    /// </summary>
+    [Parameter] public bool? Wrap { get; set; }
+
     /// <summary>The column width, such as <c>Length.Rem(8)</c>. In a grid, a fixed length: not a percent or a keyword.</summary>
     [Parameter] public Length? Width { get; set; }
 

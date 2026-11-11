@@ -426,6 +426,10 @@ const builds = [
       "elements/parts/chart-bullet": join(lib, "Scripts", "elements", "chart-bullet.ts"),
       // A DataGrid's grouped-by chips moved by drag or keys, loaded on the first press or key on one.
       "elements/parts/grid-group": join(lib, "Scripts", "elements", "grid-group.ts"),
+      // A TreeList's cascade of checkboxes, loaded for a tree list that has one.
+      "elements/parts/grid-tree": join(lib, "Scripts", "elements", "grid-tree.ts"),
+      // The tooltip for a grid's text cut off at one line.
+      "elements/parts/grid-tip": join(lib, "Scripts", "elements", "grid-tip.ts"),
       // RichTextEditor's alignment and span formats, for editors that use them.
       "elements/parts/rich-text-format": join(lib, "Scripts", "elements", "rich-text-format.ts"),
       // Its link dialog, loaded when the dialog first opens.

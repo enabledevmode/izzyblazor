@@ -1245,9 +1245,15 @@
     overflow-wrap: anywhere;
   }
 
-  .ib-datagrid .ib-table-grid > * > * > td.ib-cell-end {
+  .ib-datagrid .ib-table-grid > * > * > td:is(.ib-cell-end, .ib-cell-clip) {
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* One line (WrapCells, Wrap): a tree's name ends in the ellipsis, after its indent. */
+  .ib-cell-clip .ib-treelist-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Grid keys: an inset ring, since the scroll box clips one outside the cell. */
