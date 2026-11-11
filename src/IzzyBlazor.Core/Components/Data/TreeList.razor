@@ -57,11 +57,6 @@
     internal override RenderFragment FirstCell(TItem item, RenderFragment content) => !_treeRows.TryGetValue(KeyOf(item), out var row) ? content : __builder =>
     {
         var key = KeyOf(item);
-        @if (TreeDragKey is not null && CanMoveRow(item))
-        {
-            @* For the pointer only: the keyboard moves a row with its Move action. *@
-            <span class="ib-treelist-grip" aria-hidden="true" data-ib-key="@key" @onibmove="DropAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive"><Icon Name="Lucide.GripVertical" /></span>
-        }
         <span class="ib-treelist-cell" style="@($"--ib-treelist-depth:{row.Depth}")">
             @if (row.HasChildren)
             {
@@ -113,6 +108,7 @@
             @foreach (var more in mores)
             {
                 <tr class="ib-grid-group-more ib-treelist-more" aria-level="@(more.Depth + 1)">
+                    @GripEmptyCell
                     @if (SelectColumn)
                     {
                         <td class="@SelectCellClass"></td>
@@ -143,6 +139,32 @@
             }
         };
     }
+
+    /// <inheritdoc />
+    internal override bool TreeGrips => TreeDragKey is not null;
+
+    /// <inheritdoc />
+    // The row's handle, as a DataGrid's reorder handle looks: dragged, it moves the row and its branch;
+    // pressed (or with the keyboard), it opens the Move dialog.
+    internal override RenderFragment? TreeGrip(TItem item) => !TreeGrips ? null : __builder =>
+    {
+        var key = KeyOf(item);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TreeMoveItem, LabelOf(item));
+        <td class="@GripCellClass" @onibmove="DropAsync" __internal_stopPropagation_onibmove="@RendererInfo.IsInteractive">
+            @if (CanMoveRow(item))
+            {
+                @if (UseState)
+                {
+                    <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-treelist-grip" OnClick="@(() => _stateMoveKey = key)" />
+                }
+                else
+                {
+                    <IconButton Icon="Lucide.GripVertical" Label="@label" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-treelist-grip"
+                                Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [MoveQueryKey] = key, [MoveNearQueryKey] = null, [MoveAtQueryKey] = null })" />
+                }
+            }
+        </td>
+    };
 
     /// <inheritdoc />
     internal override RenderFragment? MoveControl(TItem item, bool inMenu) => !OnReparent.HasDelegate || !CanMoveRow(item) ? null : __builder =>

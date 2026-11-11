@@ -485,7 +485,7 @@ public partial class TreeList<TItem>
         }
 
         var steps = row.Depth + (_treeHasChildren ? 1 : 0);
-        return $" + {steps} * (var(--ib-treelist-toggle) + var(--ib-treelist-gap))" + (ItemIcon is null ? "" : " + 1.25rem") + (TreeDragKey is null ? "" : " + 1.5rem");
+        return $" + {steps} * (var(--ib-treelist-toggle) + var(--ib-treelist-gap))" + (ItemIcon is null ? "" : " + 1.25rem");
     }
 
     /// <inheritdoc />
@@ -1041,13 +1041,13 @@ public partial class TreeList<TItem>
     {
         get
         {
-            if (!_treeHasChildren && ItemIcon is null && TreeDragKey is null)
+            if (!_treeHasChildren && ItemIcon is null)
             {
                 return null;
             }
 
             var steps = _treeDepth + (_treeHasChildren ? 1 : 0);
-            var icon = (ItemIcon is null ? "" : " + 1.25rem") + (TreeDragKey is null ? "" : " + 1.5rem");
+            var icon = ItemIcon is null ? "" : " + 1.25rem";
             return $"{steps} * (var(--ib-treelist-toggle) + var(--ib-treelist-gap)){icon}";
         }
     }
