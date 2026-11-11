@@ -16,7 +16,7 @@
     // The grid, drawn by DataGrid and TreeList.
     internal RenderFragment Grid => __builder =>
     {
-        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)" data-ib-cascade="@CascadeMode">
+        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)" data-ib-cascade="@CascadeMode" data-ib-tree-drag="@TreeDragKey">
             <ib-grid hidden></ib-grid>
             @if (CanEdit || CanDelete)
             {
@@ -209,6 +209,9 @@
 
     /// <summary>Whether the grid is on its way out of an editor: the address hasn't caught up yet.</summary>
     internal bool EditEnding => _ending;
+
+    /// <summary>A TreeList's Move dialog's query key, when its rows move by drag; the script reads it.</summary>
+    internal virtual string? TreeDragKey => null;
 
     /// <summary>A dialog of a TreeList's own, such as its Move dialog, beside the grid's editor.</summary>
     internal virtual RenderFragment? OwnDialog => null;

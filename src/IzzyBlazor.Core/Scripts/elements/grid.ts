@@ -127,10 +127,10 @@ class Grid extends IzzyElement {
     }, signal);
     this.#on(table, "click", (event) => this.#onRowClick(event as MouseEvent), signal);
     const host = this.closest("ib-table");
-    if (host?.hasAttribute("data-ib-cascade")) {
+    if (host?.matches("[data-ib-cascade], [data-ib-tree-drag]")) {
       void loadTree().then((part) => {
         if (signal.aborted) return;
-        this.#tree = part.setupCascade(table, host as HTMLElement, signal);
+        this.#tree = part.setupTree(table, host as HTMLElement, signal);
         this.#tree();
       });
     }

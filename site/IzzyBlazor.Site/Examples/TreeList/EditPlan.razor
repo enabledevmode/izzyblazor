@@ -1,11 +1,11 @@
 @* file: PlanItem.cs *@
 @using IzzyBlazor.Site.Examples.DataGrid
 @* A plan edited where it stands: a phase's row adds a task under it, the toolbar's Add a phase,
-   Move puts a task under another phase, and deleting a phase takes its tasks with it. Hours roll up
+   Move, or a drag by its handle, puts a task under another phase, and deleting a phase takes its tasks with it. Hours roll up
    to the phases. *@
 <TreeList TItem="PlanItem" Items="_plan" ItemKey="p => p.Id.ToString()" ItemParentKey="p => p.ParentId?.ToString()"
           ExpandAll Caption="Plan" QueryPrefix="plan-edit-" EditMode="DataGridEditMode.Row"
-          OnSave="Save" NewItem="NewPhase" NewChild="NewTask" OnReparent="Reparent" OnDelete="Delete" Grow>
+          OnSave="Save" NewItem="NewPhase" NewChild="NewTask" OnReparent="Reparent" MoveByDrag OnDelete="Delete" Grow>
     <Columns>
         <PropertyColumn Property="p => p.Name" Title="Task" />
         <PropertyColumn Property="p => p.Owner" Width="10.Rem" />
@@ -41,13 +41,14 @@
         save.CopyTo(_plan.First(p => p.Id == save.Item.Id));
     }
 
-    // The row's new parent, and its place after the rows already there.
+    // The row's new parent, and its place among the rows already there.
     private void Reparent(TreeListMove<PlanItem> move)
     {
         var item = _plan.First(p => p.Id == move.Item.Id);
-        item.ParentId = move.Parent?.Id;
         _plan.Remove(item);
-        _plan.Add(item);
+        item.ParentId = move.Parent?.Id;
+        var siblings = _plan.Where(p => p.ParentId == item.ParentId).ToList();
+        _plan.Insert(move.Index < siblings.Count ? _plan.IndexOf(siblings[move.Index]) : _plan.Count, item);
     }
 
     private PlanItem NewPhase() => new() { Id = NextId() };

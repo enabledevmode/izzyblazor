@@ -97,7 +97,64 @@ public partial class TreeList<TItem>
     [Parameter]
     public new Func<TItem, bool>? ItemMovable { get => base.ItemMovable; set => base.ItemMovable = value; }
 
+    /// <summary>
+    /// Gives each row a handle to drag it before, after or into another row, never into its own
+    /// branch. Needs <see cref="OnReparent"/>, which gets the row's new parent and place. On an
+    /// interactive page the drop moves it; on a static page it opens the Move dialog with the new
+    /// parent chosen, to confirm. A <c>MoveAction</c> does the same with the keyboard.
+    /// </summary>
+    [Parameter] public bool MoveByDrag { get; set; }
+
     private string MoveQueryKey => $"{QueryPrefix}move";
+
+    // A drop on a static page: the parent and place it chose, for the dialog to confirm.
+    private string MoveUnderQueryKey => $"{QueryPrefix}moveunder";
+
+    private string MoveAtQueryKey => $"{QueryPrefix}moveat";
+
+    private int? _moveIndex;
+
+    /// <inheritdoc />
+    internal override string? TreeDragKey => MoveByDrag && OnReparent.HasDelegate ? MoveQueryKey : null;
+
+    // A drop on an interactive page: the dragged row's key, its new parent's ("" for the top level)
+    // and its place among its new siblings, or -1 for after them.
+    private async Task DropAsync(IzzyMoveEventArgs e)
+    {
+        if (e.Key is not { } key || _treeNodes?.GetValueOrDefault(key) is not { } node || !CanMoveRow(node.Item))
+        {
+            return;
+        }
+
+        var parentKey = string.IsNullOrEmpty(e.ToZone) ? null : e.ToZone;
+        var parent = parentKey is null ? null : _treeNodes.GetValueOrDefault(parentKey);
+        if ((parentKey is not null && parent is null) || IsUnder(parent, node))
+        {
+            return;
+        }
+
+        var siblings = (parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)]).Count(s => s.Key != key);
+        var index = e.ToIndex < 0 ? siblings : Math.Min(e.ToIndex, siblings);
+        var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, index, _ => { });
+        await OnReparent.InvokeAsync(move);
+        if (!move.HasErrors)
+        {
+            await ReloadAsync();
+        }
+    }
+
+    private static bool IsUnder(Node? candidate, Node moving)
+    {
+        for (var at = candidate; at is not null; at = at.Parent)
+        {
+            if (at == moving)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private string? _stateMoveKey;
     private TreeListMovePost _moveModel = new();
@@ -109,7 +166,7 @@ public partial class TreeList<TItem>
     private string? CurrentMoveKey => !OnReparent.HasDelegate || EditEnding ? null : UseState ? _stateMoveKey : QueryValue(MoveQueryKey);
 
     /// <inheritdoc />
-    internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey] : base.LinkClears;
+    internal override IReadOnlyList<string> LinkClears => OnReparent.HasDelegate ? [.. base.LinkClears, MoveQueryKey, MoveUnderQueryKey, MoveAtQueryKey] : base.LinkClears;
 
     /// <inheritdoc />
     internal override void EndOwnDialogs() => (_stateMoveKey, _moveFor) = (null, null);
@@ -135,7 +192,7 @@ public partial class TreeList<TItem>
         _moveMessages!.Clear();
         var parentKey = string.IsNullOrEmpty(_moveModel.Parent) ? null : _moveModel.Parent;
         Node? parent = null;
-        if (parentKey is not null && (_treeNodes.GetValueOrDefault(parentKey) is not { } found || Under(found, node)))
+        if (parentKey is not null && (_treeNodes.GetValueOrDefault(parentKey) is not { } found || IsUnder(found, node)))
         {
             AddMoveError(TextDefaults.TreeMoveIntoItself);
             return;
@@ -145,8 +202,10 @@ public partial class TreeList<TItem>
             parent = _treeNodes[parentKey];
         }
 
-        var siblings = parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)];
-        var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, siblings.Count(s => s.Key != key), AddMoveError);
+        var siblings = (parent?.Children ?? [.. _treeNodes.Values.Where(n => n.Parent is null)]).Count(s => s.Key != key);
+        // A drop's place, while the dialog still has the parent it chose; else after the others.
+        var index = _moveIndex is { } at && (parentKey ?? "") == _moveDropParent ? Math.Clamp(at, 0, siblings) : siblings;
+        var move = new TreeListMove<TItem>(node.Item, parent is null ? default : parent.Item, index, AddMoveError);
         await OnReparent.InvokeAsync(move);
         if (!move.HasErrors)
         {
@@ -154,19 +213,9 @@ public partial class TreeList<TItem>
             await EndEditAsync(saved: true);
         }
 
-        static bool Under(Node candidate, Node moving)
-        {
-            for (var at = candidate; at is not null; at = at.Parent)
-            {
-                if (at == moving)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
+
+    private string? _moveDropParent;
 
     private void AddMoveError(string message)
     {
@@ -823,13 +872,13 @@ public partial class TreeList<TItem>
     {
         get
         {
-            if (!_treeHasChildren && ItemIcon is null)
+            if (!_treeHasChildren && ItemIcon is null && TreeDragKey is null)
             {
                 return null;
             }
 
             var steps = _treeDepth + (_treeHasChildren ? 1 : 0);
-            var icon = ItemIcon is null ? "" : " + 1.25rem";
+            var icon = (ItemIcon is null ? "" : " + 1.25rem") + (TreeDragKey is null ? "" : " + 1.5rem");
             return $"{steps} * (var(--ib-treelist-toggle) + var(--ib-treelist-gap)){icon}";
         }
     }

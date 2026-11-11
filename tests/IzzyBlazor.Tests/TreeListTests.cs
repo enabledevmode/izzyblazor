@@ -240,6 +240,23 @@ public class TreeListTests : BunitContext
     }
 
     [Fact]
+    public async Task A_drop_moves_a_row_but_never_into_its_own_branch()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var moves = new List<string>();
+        var cut = Tree("/people?open=*", p => p
+            .Add(x => x.MoveByDrag, true)
+            .Add(x => x.OnReparent, (TreeListMove<Person> m) => moves.Add($"{m.Item.Name} > {m.Parent?.Name ?? "top"} @{m.Index}")));
+        var sofia = cut.Find(".ib-treelist-grip[data-ib-key='2']");
+
+        // Under Mei, her own report: refused. Before Daniel's Lena: Daniel's first.
+        await cut.InvokeAsync(() => sofia.TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "3", ToIndex = -1 }));
+        await cut.InvokeAsync(() => cut.Find(".ib-treelist-grip[data-ib-key='2']").TriggerEventAsync("onibmove", new IzzyMoveEventArgs { Key = "2", ToZone = "5", ToIndex = 0 }));
+        Assert.Equal(["Sofia > Daniel @0"], moves);
+    }
+
+    [Fact]
     public void A_page_counts_top_rows_and_keeps_each_branch_whole()
     {
         var cut = Tree("/people?open=*", p => p.Add(x => x.PageSize, 1));
