@@ -25,10 +25,11 @@
         </TextBlock>
     </Stack>
 
+    @* The groups A to Z: a list to find a name in. The sidebar keeps them in their order of use. *@
     <FilterForm Label="Filter the components">
         <FilterSearch Label="Filter the components" Placeholder="Filter by name or purpose" Grow />
         <FilterSelect Name="group" Label="Group" AllText="All groups"
-                      Items="Registry.Categories.Select(Registry.CategoryAnchor)" ItemText="GroupText" />
+                      Items="Registry.Categories.Order(StringComparer.CurrentCultureIgnoreCase).Select(Registry.CategoryAnchor)" ItemText="GroupText" />
     </FilterForm>
     <p role="status" class="site-search-count">@CountText</p>
 
