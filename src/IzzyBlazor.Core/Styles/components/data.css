@@ -1596,6 +1596,9 @@
     width: 1rem;
     height: 1rem;
     padding-inline: calc((var(--ib-datagrid-group) - 1rem) / 2);
+    /* As TreeView's: muted, and turning as it opens. */
+    color: var(--ib-color-muted);
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
   }
 
   .ib-grid-group-toggle > svg {
@@ -2962,7 +2965,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ib-tree-chevron {
+    :is(.ib-tree-chevron, .ib-grid-group-toggle > svg, .ib-grid-expand > svg) {
       transition: none;
     }
   }
