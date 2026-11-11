@@ -22,6 +22,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
     private Func<TItem, object?>? _compiled;
     private Expression<Func<TItem, object?>>? _lastLow;
     private Func<TItem, object?>? _low;
+    private Expression<Func<TItem, object?>>? _lastTarget;
+    private Func<TItem, object?>? _target;
     private Expression<Func<TItem, object?>>? _lastSize;
     private Func<TItem, object?>? _size;
     private string? _sizeName;
@@ -141,6 +143,9 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     private protected virtual bool IsRange => false;
 
+    // A bar series' target for each item.
+    private protected virtual Expression<Func<TItem, object?>>? TargetOf => null;
+
     // What to say when the value is missing.
     private protected virtual string ValueNeeded => $"{Kind} needs a Value, such as m => m.Revenue.";
 
@@ -245,6 +250,12 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
                 : ChartMembers.Name(low) is { } l && ChartMembers.Name(value) is { } h ? $"{l} – {h}" : null;
         }
 
+        if (!ReferenceEquals(TargetOf, _lastTarget))
+        {
+            _lastTarget = TargetOf;
+            _target = _lastTarget?.Compile();
+        }
+
         if (!ReferenceEquals(SeriesBy, _lastSeriesBy))
         {
             _lastSeriesBy = SeriesBy;
@@ -270,6 +281,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
         BeginRead();
         var values = items.Select(item => Number(_compiled!(item))).ToArray();
         var lows = _low is null ? null : items.Select(item => ChartMembers.ToNumber(_low(item))).ToArray();
+        var targets = _target is null ? null : items.Select(item => ChartMembers.ToNumber(_target(item))).ToArray();
         _labelTexts = _labelText is null ? null : items.Select(item => _labelText(item)?.ToString()).ToArray();
         var sizes = _size is null ? null : items.Select(item => ChartMembers.ToNumber(_size(item))).ToArray();
         if (IsWaterfall)
@@ -294,7 +306,7 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
         if (_seriesBy is null)
         {
-            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName, Lows = lows };
+            yield return Data(DisplayName, values, Color) with { Sizes = sizes, SizeName = _sizeName, Lows = lows, Targets = targets };
             yield break;
         }
 
@@ -305,7 +317,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
             var own = values.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownSizes = sizes?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
             var ownLows = lows?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
-            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName, Lows = ownLows };
+            var ownTargets = targets?.Select((v, i) => Equals(keys[i], key) ? v : null).ToArray();
+            yield return Data(ChartLayout.ArgumentText(key, null, CultureInfo.CurrentCulture), own, null) with { Sizes = ownSizes, SizeName = _sizeName, Lows = ownLows, Targets = ownTargets };
         }
     }
 
@@ -377,6 +390,16 @@ public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
 [ModeSupport]
 public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 {
+    /// <summary>
+    /// Each item's target, such as <c>r =&gt; r.Quota</c>: a tick across its bar in the text
+    /// color, named in the tooltip and data table ("$1.2M, target $1.5M"). Null for none. The
+    /// value axis takes in every target. For bars side by side, not stacked. For one measure
+    /// against its target and qualitative ranges, use a <see cref="BulletChart{TItem}"/>.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? Target { get; set; }
+
+    private protected override Expression<Func<TItem, object?>>? TargetOf => Target;
+
     /// <summary>
     /// How solid the bars are, from 0 (the surface's color) to 1 (the series color). Defaults to
     /// 0.85 in light mode and 0.9 in dark, or the theme's <c>--ib-chart-fill-opacity</c>.

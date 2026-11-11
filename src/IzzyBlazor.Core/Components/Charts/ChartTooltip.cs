@@ -92,6 +92,12 @@ public sealed record ChartTooltipPoint(string Series, double? Value, string? Tex
 
     /// <summary>A bubble's size as text.</summary>
     public string? SizeText { get; init; }
+
+    /// <summary>A bar's target (a ChartBarSeries' Target; null for other series or none).</summary>
+    public double? Target { get; init; }
+
+    /// <summary>The target formatted as on its value axis, or null.</summary>
+    public string? TargetText { get; init; }
 }
 
 /// <summary>

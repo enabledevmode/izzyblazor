@@ -909,6 +909,33 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_bars_target_is_a_tick_across_it_that_the_axis_takes_in_and_the_tooltip_and_table_name()
+    {
+        // Costs as the target: Feb's 300 is past every bar, so the axis reaches it.
+        Month[] months = [new("Jan", 100, 90), new("Feb", 120, 300)];
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue against target")
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Target, m => m.Costs)));
+
+        Assert.Equal(2, cut.FindAll("line.ib-chart-target").Count);
+        Assert.Equal(["Name", "Revenue", "Target"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
+        Assert.Equal("300", cut.FindAll(".ib-chart-table tbody tr")[1].Children[2].TextContent);
+        Assert.Contains("Target", cut.FindAll("[data-ib-tip]")[1].TextContent);
+        var model = ChartLayout.Build(new ChartInput(["Jan", "Feb"], [new ChartSeriesData("Revenue", ChartType.Bar, [100, 120]) { Targets = [90, 300] }]));
+        Assert.True(model.ValueRange.Max >= 300);
+        Assert.Equal(2, model.Series[0].Targets.Count);
+        Assert.Equal("Feb, Revenue: 120, target 300", cut.FindAll("rect title")[1].TextContent);
+        Assert.Throws<InvalidOperationException>(() => Render<Chart<Month>>(p => p
+            .Add(c => c.Items, months)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Stacked")
+            .Add(c => c.Stacking, ChartStacking.Normal)
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue).Add(x => x.Target, m => m.Costs))));
+    }
+
+    [Fact]
     public void A_waterfall_keys_its_colors_in_the_legend_and_is_its_charts_only_series()
     {
         var cut = Render<Chart<Month>>(p => p

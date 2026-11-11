@@ -69,6 +69,9 @@ internal sealed record ChartSeriesData(string Name, ChartType Type, double?[] Va
 
     public bool IsRange => Lows is not null;
 
+    /// <summary>A bar series' targets by item (its Target), or null: a tick across each bar.</summary>
+    public double?[]? Targets { get; init; }
+
     /// <summary>A histogram series' bins (null for other series): its Values are the items' own, until the chart counts them.</summary>
     public ChartBins? Bins { get; init; }
 
@@ -225,6 +228,9 @@ internal sealed class SeriesShape
 
     /// <summary>A waterfall's thin lines from each bar's end across to the next bar, in the 1000 by 1000 box.</summary>
     public string? Connectors { get; set; }
+
+    /// <summary>A bar series' target ticks across its bars, ends in percent of the plot.</summary>
+    public List<(double X1, double Y1, double X2, double Y2)> Targets { get; } = [];
     public List<PointMark> Marks { get; } = [];
 }
 
@@ -334,6 +340,9 @@ internal sealed class ChartModel
 
     /// <summary>A bubble series' sizes as text, by item (null for other series).</summary>
     public string?[]?[] SizeTexts { get; init; } = [];
+
+    /// <summary>A bar series' targets as text, by item (null for series without one).</summary>
+    public string?[]?[] TargetTexts { get; init; } = [];
 }
 
 /// <summary>
@@ -368,6 +377,12 @@ internal static class ChartLayout
             throw new InvalidOperationException("A Trend can't be drawn on a percent stack (Stacking=\"ChartStacking.Percent\"): its axis is shares, not the series' values.");
         }
 
+        // A target is one bar's: a stack's segments have none of their own to be measured against.
+        if (stacked && input.Series.Any(s => s.Targets is not null))
+        {
+            throw new InvalidOperationException("A ChartBarSeries' Target needs bars side by side: leave out the chart's Stacking.");
+        }
+
         if (full && input.Marks.Any(m => m.Statistic is not null && m.Axis == MarkAxis.Value))
         {
             throw new InvalidOperationException("A ChartReferenceLine's Statistic can't be drawn on a percent stack (Stacking=\"ChartStacking.Percent\"): its axis is shares, not the series' values.");
@@ -380,6 +395,9 @@ internal static class ChartLayout
             Edges = input.Histogram is not null,
             ArgumentTexts = input.Arguments.Select(a => input.ArgumentFormatter?.Invoke(a) ?? ArgumentText(a, input.ArgumentFormat, culture)).ToArray(),
             SizeTexts = input.Series.Select(s => s.Sizes?.Select(v => v is { } x ? x.ToString(s.SizeFormat ?? "#,##0.##", culture) : null).ToArray()).ToArray(),
+            TargetTexts = input.Series.Select(s => s.Targets?.Select(v => v is not { } x ? null
+                : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
+                : input.ValueFormatter?.Invoke(x) ?? x.ToString(input.ValueFormat ?? "#,##0.##", culture)).ToArray()).ToArray(),
             ValueTexts = input.Series.Select(s => s.Values.Select((v, i) => v is not { } x ? null
                 : s.Lows is { } rangeLows ? RangeText(rangeLows[i], x, s.Secondary ? input.SecondaryFormat : null, s.Secondary ? null : input.ValueFormatter, s.Secondary ? input.SecondaryFormat : input.ValueFormat, culture)
                 : s.Secondary ? x.ToString(input.SecondaryFormat ?? "#,##0.##", culture)
@@ -428,6 +446,9 @@ internal static class ChartLayout
             {
                 if (domainHighs[s][i] is { } h && (!log || h > 0)) { min = Math.Min(min, h); max = Math.Max(max, h); }
                 if (domainLows[s][i] is { } l && (!log || l > 0)) { min = Math.Min(min, l); max = Math.Max(max, l); }
+
+                // A target past every bar still shows.
+                if (input.Series[s].Targets?[i] is { } t && double.IsFinite(t) && (!log || t > 0) && (inDomain?[i] ?? true)) { min = Math.Min(min, t); max = Math.Max(max, t); }
             }
         }
 
@@ -744,6 +765,7 @@ internal static class ChartLayout
                     var v0 = sc(lows[s][i] ?? 0);
                     var v1 = sc(top);
                     var title = $"{model.ArgumentTexts[i]}, {data.Name}: {model.ValueTexts[s][i]}";
+                    if (model.TargetTexts[s]?[i] is { } targetText) title += ", " + string.Format(culture, input.Text.GaugeTarget, targetText);
                     var (lo, hi) = (Math.Min(v0, v1), Math.Max(v0, v1));
                     var rect = input.Horizontal
                         ? new BarRect(lo * 100, a0 * 100, (hi - lo) * 100, width * 100, title)
@@ -770,6 +792,14 @@ internal static class ChartLayout
                     }
 
                     shape.Bars.Add(rect);
+
+                    // The target: a tick across the bar, a little past its sides when it's alone in its band.
+                    if (data.Targets?[i] is { } target && double.IsFinite(target) && (!log || target > 0))
+                    {
+                        var (t, over) = (sc(target), bars.Count == 1 ? width * 0.1 : 0);
+                        var (t0, t1) = (Math.Max(0, a0 - over), Math.Min(1, a0 + width + over));
+                        shape.Targets.Add(input.Horizontal ? (t * 100, t0 * 100, t * 100, t1 * 100) : (t0 * 100, (1 - t) * 100, t1 * 100, (1 - t) * 100));
+                    }
                 }
 
                 // A waterfall's connectors: from each bar's end, at the running total, to the next bar.
@@ -1036,7 +1066,7 @@ internal static class ChartLayout
         // server's), so a series the legend shows again has to fit in it.
         foreach (var s in on)
         {
-            foreach (var v in highs[s].Concat(lows[s]))
+            foreach (var v in highs[s].Concat(lows[s]).Concat(input.Series[s].Targets ?? []))
             {
                 if (v is { } x) { min = Math.Min(min, x); max = Math.Max(max, x); }
             }
