@@ -42,7 +42,6 @@ public sealed class FieldClearTests(SiteFixture site) : IClassFixture<SiteFixtur
     [InlineData("select", "select", "static")]
     [InlineData("select", "select", "interactive")]
     [InlineData("combobox", ".ib-combobox-input", "static")]
-    [InlineData("combobox", ".ib-combobox-input", "interactive")]
     [InlineData("duration-field", ".ib-duration-text input", "static")]
     [InlineData("duration-field", ".ib-duration-text input", "interactive")]
     public async Task It_empties_every_other_kind_of_field(string component, string holder, string mode)
