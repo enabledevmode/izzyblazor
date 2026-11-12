@@ -1607,6 +1607,23 @@
       ]
     },
     {
+      "id": "action-sheet", "icon": "PanelBottom", "name": "ActionSheet", "category": "Overlays", "summary": "Offers a few actions on one thing in a sheet from the bottom, with Cancel last.", "keywords": ["action sheet", "bottom sheet", "actions", "mobile menu"], "parts": ["ActionSheetItem"],
+      "features": [
+        { "feature": "Opens from a trigger or a ?dialog= link" },
+        { "feature": "Items as links and form posts" },
+        { "feature": "Closes when an item is chosen" },
+        { "feature": "Focus moves in when opened and back when closed", "noscript": "partial", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "action-sheet-photo", "title": "A photo's actions", "lead": "Open the sheet with a `DialogTrigger`, give it a `Title` that names what the actions act on, and write an `ActionSheetItem` per action. Mark a destructive one with `Accent.Danger`. To post the choice, put the sheet inside the form and give each item `Submit`, `Name` and `Value`.",
+          "notes": {
+            "noscript": "An item posts the form, and the page reloads with the sheet closed.",
+            "static": "An item posts without a full reload, and the sheet closes.",
+            "interactive": "An item runs its OnClick, the sheet closes, and the form's handler runs."
+          } }
+      ]
+    },
+    {
       "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "Opens a dialog that slides in from an edge.", "keywords": ["sheet", "side panel"],
       "examples": [
         { "id": "drawer-filters", "title": "A form in a drawer", "lead": "A drawer can contain a form. Put a `Form` in the `Drawer` and end it with `FormActions`, whose buttons become the drawer's footer. To keep the footer at the bottom, put the fields in a `DialogBody`, which fills the drawer.",
@@ -1616,13 +1633,7 @@
             "interactive": "Show orders runs C# and closes the drawer through @bind-Open."
           } },
         { "id": "drawer-edges", "title": "Edges and widths", "lead": "At the end edge, `Size` sets the drawer's width. For a sheet along the bottom, set `Placement` to `DialogPlacement.Bottom`." },
-        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "For navigation that slides in from the start edge, set `Placement` to `DialogPlacement.Start` with a small `Size`." },
-        { "id": "drawer-action-sheet", "title": "An action sheet", "lead": "For a few actions on one thing on phones, open a drawer from the bottom with a full-width button per action in a form, and a `DialogClose` for Cancel last. Choosing an action closes the sheet.",
-          "notes": {
-            "noscript": "An action posts the form, and the page reloads with the sheet closed.",
-            "static": "An action posts without a full reload, and the sheet closes.",
-            "interactive": "An action runs C# and closes the sheet through @bind-Open."
-          } }
+        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "For navigation that slides in from the start edge, set `Placement` to `DialogPlacement.Start` with a small `Size`." }
       ]
     },
     {

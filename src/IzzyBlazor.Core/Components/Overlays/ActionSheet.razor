@@ -1,0 +1,128 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a sheet opened from the server isn't modal: focus can leave it, and Escape or a click outside closes it only in browsers with closedby (not Safari).")]
+
+@*
+    ActionSheet: a few actions on one thing, such as a photo or a message, in a sheet that slides
+    up from the bottom, with Cancel last. It suits phones; on wide screens a Menu fits better.
+
+    <DialogTrigger For="photo">IMG_2041.jpg</DialogTrigger>
+    <ActionSheet Id="photo" Title="IMG_2041.jpg">
+        <ActionSheetItem Submit Name="choice" Value="share">Share</ActionSheetItem>
+        <ActionSheetItem Href="photos/2041/edit">Edit</ActionSheetItem>
+        <ActionSheetItem Submit Name="choice" Value="delete"
+                         Accent="Accent.Danger">Delete</ActionSheetItem>
+    </ActionSheet>
+
+    It opens as a Dialog does: a DialogTrigger, a ?dialog=id link, or @bind-Open. Its items take
+    MenuItem's parameters, so they act on static pages too: Href is a link, Submit posts the form
+    the sheet is in (or Form="id"), and OnClick runs C# on interactive pages. Choosing one closes
+    the sheet: a link or a post renders the page with it closed, and on an interactive page the
+    sheet closes after OnClick. Put the sheet inside the form its items post, as with a Menu.
+
+    The sheet is centered and 40rem wide at most, the full width on phones. Cancel (CancelText)
+    closes it, as do Escape and a tap outside.
+
+    Accessibility:
+    - It's a native modal `dialog` named by `Title` (an `h2`); without a Title, pass an
+      `aria-label`. The page behind it is inert, and focus returns to the trigger.
+    - Each item is a native `button` or link, so it's reached with Tab and named by its text.
+    - Cancel is a real button, not only a tap outside, so every way out can be reached.
+    See also: Menu, Drawer, Dialog.
+*@
+
+<Dialog Id="@Id" Title="@Title" Placement="DialogPlacement.Bottom" Size="Size" ShowCloseButton="false" InsideForm
+        ContentPadding="0" CloseOnBackdrop="CloseOnBackdrop" QueryKey="@QueryKey" Open="_open" OpenChanged="DialogOpenChanged"
+        Class="@BuildClass()" Style="@Style" @attributes="AdditionalAttributes">
+    @if (Title is not null)
+    {
+        <Divider />
+    }
+    <CascadingValue Value="this" IsFixed="true">
+        <Stack Gap="3" PaddingX="6" PaddingY="5">
+            @if (Description is not null)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Description</TextBlock>
+            }
+            @ChildContent
+            @if (ShowCancel)
+            {
+                <DialogClose FullWidth>@(CancelText ?? TextDefaults.Cancel)</DialogClose>
+            }
+        </Stack>
+    </CascadingValue>
+</Dialog>
+
+@code {
+    /// <summary>The id a <see cref="DialogTrigger"/>'s <c>For</c> or a <c>?dialog=</c> link opens it by. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>The heading, which names the sheet for screen readers: what the actions act on, such as a file's name.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>A short line under the title, such as a file's size or a warning about what's undone.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>The <see cref="ActionSheetItem"/>s, in order. Cancel comes after them.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Whether it is open. Use <c>@bind-Open</c> to follow changes on interactive pages.</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Runs when the sheet opens or closes on an interactive page, choosing an item included.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>Shows Cancel after the items. On by default.</summary>
+    [Parameter] public bool ShowCancel { get; set; } = true;
+
+    /// <summary>Cancel's text. Defaults to "Cancel" (<see cref="IzzyText.Cancel"/>).</summary>
+    [Parameter] public string? CancelText { get; set; }
+
+    /// <summary>Closes the sheet on a tap outside it. On by default.</summary>
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+
+    /// <summary>
+    /// The width at most: <see cref="DialogSize.Md"/> (the default) is 40rem, Sm 24rem, Lg 48rem,
+    /// Xl 64rem, Full the screen's. On phones it spans the screen.
+    /// </summary>
+    [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
+
+    /// <summary>The query-string key that opens it from a link, as on <see cref="Dialog"/>. Defaults to <c>dialog</c>; null turns it off.</summary>
+    [Parameter] public string? QueryKey { get; set; } = "dialog";
+
+    private bool _open;
+    private bool? _lastOpen;
+
+    private string BuildClass() => Class is null ? "ib-action-sheet" : $"ib-action-sheet {Class}";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        // Only a new parameter value overrides what the browser reported.
+        if (_lastOpen != Open)
+        {
+            _lastOpen = Open;
+            _open = Open;
+        }
+    }
+
+    private Task DialogOpenChanged(bool open)
+    {
+        _open = open;
+        return OpenChanged.InvokeAsync(open);
+    }
+
+    // An item was chosen on an interactive page.
+    internal async Task CloseAsync()
+    {
+        if (!_open)
+        {
+            return;
+        }
+
+        _open = false;
+        StateHasChanged();
+        await OpenChanged.InvokeAsync(false);
+    }
+}
