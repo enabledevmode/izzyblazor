@@ -285,6 +285,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "mentions.css"),
   },
   {
+    // A sheet of its own, linked by TileLayout.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "tile-layout.css")],
+    outfile: join(lib, "wwwroot", "tile-layout.css"),
+  },
+  {
     // A sheet of its own, linked by Comment.
     ...common,
     sourcemap: false,

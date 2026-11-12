@@ -1,0 +1,165 @@
+@namespace IzzyBlazor
+@using System.Globalization
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@*
+    One tile of a TileLayout: a header with an icon, title and actions, over its content. It sits
+    at Col and Row and spans ColSpan columns and RowSpan rows; without Col and Row it takes the
+    first free cells.
+
+    <Tile Id="revenue" Title="Revenue" Icon="Lucide.ChartLine" Col="1" Row="1" ColSpan="8" RowSpan="2">
+        <Actions>
+            <IconButton Icon="Lucide.RefreshCw" Label="Refresh" />
+        </Actions>
+        <ChildContent>...</ChildContent>
+    </Tile>
+
+    Header replaces the icon and title with your own content; Actions stay at the end of the
+    header. A tile with none of these has no header.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem" aria-labelledby="@(HasTitle ? _titleId : null)" data-tile-id="@Id">
+    @if (HasHeader)
+    {
+        <div class="ib-tile-header">
+            @if (Header is not null)
+            {
+                <div class="ib-tile-heading" id="@_titleId">@Header</div>
+            }
+            else if (HasTitle || Icon is not null)
+            {
+                <div class="ib-tile-heading">
+                    @if (Icon is { } icon)
+                    {
+                        <span class="ib-tile-icon" aria-hidden="true"><Icon Name="icon" /></span>
+                    }
+                    @if (HasTitle)
+                    {
+                        @TitleElement
+                    }
+                </div>
+            }
+            @if (Actions is not null)
+            {
+                <div class="ib-tile-actions">@Actions</div>
+            }
+        </div>
+    }
+    <div class="ib-tile-body">@ChildContent</div>
+</div>
+
+@code {
+    /// <summary>
+    /// The tile's id in the layout's <see cref="TileLayout.State"/>, which saves its place and
+    /// size. Keep it the same across visits: a saved layout finds the tile by it.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>Its first column, from 1. Set both <see cref="Col"/> and <see cref="Row"/>, or neither to take the first free cells.</summary>
+    [Parameter] public int? Col { get; set; }
+
+    /// <summary>Its first row, from 1. Set both <see cref="Col"/> and <see cref="Row"/>, or neither to take the first free cells.</summary>
+    [Parameter] public int? Row { get; set; }
+
+    /// <summary>How many columns it spans. Defaults to 1.</summary>
+    [Parameter] public int ColSpan { get; set; } = 1;
+
+    /// <summary>How many rows it spans. Defaults to 1.</summary>
+    [Parameter] public int RowSpan { get; set; } = 1;
+
+    /// <summary>The heading in its header. Names the tile for screen readers.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The heading level of <see cref="Title"/>, 2 to 6. Defaults to 3.</summary>
+    [Parameter] public int TitleLevel { get; set; } = 3;
+
+    /// <summary>An icon before the title.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Your own header content in place of the icon and title. It names the tile for screen readers.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>Buttons at the end of the header, such as a refresh or a <c>Menu</c>.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>The tile's content. It scrolls inside the tile when longer.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private TileLayoutContext? Context { get; set; }
+
+    private readonly string _titleId = IdGenerator.Next("ib-tile-title");
+    private string? _class;
+
+    private bool HasTitle => Header is not null || Title is { Length: > 0 };
+
+    private bool HasHeader => HasTitle || Icon is not null || Actions is not null;
+
+    // Where the tile goes depends on the tiles around it, which have all said they're there by the
+    // time any of them renders; so it's worked out here, not when the parameters are set.
+    private string? PlacedStyle
+    {
+        get
+        {
+            var place = Context!.PlaceOf(this);
+            var styles = new StyleBuilder()
+                .AddVar("tile-col", place.Col.ToString(CultureInfo.InvariantCulture))
+                .AddVar("tile-row", place.Row.ToString(CultureInfo.InvariantCulture))
+                .AddVar("tile-cs", place.ColSpan.ToString(CultureInfo.InvariantCulture))
+                .AddVar("tile-rs", place.RowSpan.ToString(CultureInfo.InvariantCulture))
+                .AddVar("tile-order", place.Order.ToString(CultureInfo.InvariantCulture));
+            styles.AddRaw(Style);
+            return styles.ToString();
+        }
+    }
+
+    private RenderFragment TitleElement => builder =>
+    {
+        builder.OpenElement(0, $"h{TitleLevel}");
+        builder.AddAttribute(1, "class", "ib-tile-title");
+        builder.AddAttribute(2, "id", _titleId);
+        builder.AddContent(3, Title);
+        builder.CloseElement();
+    };
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("Tile must be inside a TileLayout.");
+        }
+
+        Context.Register(this);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (TitleLevel is < 2 or > 6)
+        {
+            throw new InvalidOperationException("Tile's TitleLevel is 2 to 6.");
+        }
+
+        if (ColSpan < 1 || RowSpan < 1)
+        {
+            throw new InvalidOperationException("A Tile's ColSpan and RowSpan are at least 1.");
+        }
+
+        if (Col < 1 || Row < 1)
+        {
+            throw new InvalidOperationException("A Tile's Col and Row start at 1.");
+        }
+
+        if (Context!.Owner.State is not null && string.IsNullOrEmpty(Id))
+        {
+            throw new InvalidOperationException("A Tile in a TileLayout with State needs an Id: the saved layout finds the tile by it.");
+        }
+
+        Context.Seen(this);
+        _class = new ClassBuilder().Add("ib-tile").Add(VisibilityClasses).Add(Class).ToString();
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

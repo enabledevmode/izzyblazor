@@ -32,6 +32,7 @@ src/IzzyBlazor.Core/wwwroot/blockquote.css
 src/IzzyBlazor.Core/wwwroot/comment.css
 src/IzzyBlazor.Core/wwwroot/mentions.css
 src/IzzyBlazor.Core/wwwroot/action-sheet.css
+src/IzzyBlazor.Core/wwwroot/tile-layout.css
 src/IzzyBlazor.Core/wwwroot/range-selector.css
 src/IzzyBlazor.Core/wwwroot/scheduler.css
 src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js

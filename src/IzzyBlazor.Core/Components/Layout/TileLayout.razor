@@ -1,0 +1,118 @@
+@namespace IzzyBlazor
+@using System.Globalization
+@inherits LayoutItemBase
+@attribute [ModeSupport]
+
+@*
+    A grid of tiles, each placed at a column and row and spanning some of each, such as the panels
+    of a dashboard. The server draws the layout as it is, with no script, and cells can stay empty.
+
+    <TileLayout Columns="12" RowHeight="Length.Rem(7)" State="_layout">
+        <Tile Id="revenue" Title="Revenue" Col="1" Row="1" ColSpan="8" RowSpan="2">...</Tile>
+        <Tile Id="orders" Title="Orders" Col="9" Row="1" ColSpan="4">...</Tile>
+        <Tile Id="tickets" Title="Open tickets" ColSpan="4">...</Tile>
+    </TileLayout>
+
+    A Tile with both Col and Row goes there; one without them takes the first free cells, row by
+    row, in the order written. State, a TileLayoutState saved for this person, overrides each
+    tile's place and size by its Id; tiles it doesn't name keep their own. Spans are kept inside
+    Columns (and Rows, when set). Each tile is as tall as the rows it spans, and its content
+    scrolls inside it when longer.
+
+    Below StackBelow (Md by default), the tiles stack in one column in reading order: by row, then
+    by column. Each keeps its row span's height.
+
+    Accessibility:
+    - The layout is a list and each tile an item, named by its title, so screen readers say how
+      many tiles there are and which one they're in.
+    - A tile's Title is a heading (TitleLevel, 3 by default), so screen readers can jump from tile
+      to tile.
+    - Screen readers and the Tab key follow the order the tiles are written in, not where they're
+      drawn. Write them in reading order (by row, then by column), or sort the tiles you render
+      from a list by their saved place.
+    See also: Grid, Card, Stat.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/tile-layout.css"]" />
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list">
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>The <see cref="Tile"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>How many columns, all the same width. Defaults to 12.</summary>
+    [Parameter] public int Columns { get; set; } = 12;
+
+    /// <summary>
+    /// How many rows. Tiles are kept inside them. Defaults to 0: as many as the tiles need.
+    /// </summary>
+    [Parameter] public int Rows { get; set; }
+
+    /// <summary>The height of a row. Defaults to 8rem.</summary>
+    [Parameter] public Length RowHeight { get; set; } = Length.Rem(8);
+
+    /// <summary>Space between tiles, in spacing steps (0 to 16). Defaults to 4.</summary>
+    [Parameter] public int Gap { get; set; } = 4;
+
+    /// <summary>
+    /// Below this width the tiles stack in one column, in reading order. Defaults to
+    /// <see cref="Breakpoint.Md"/>; null keeps the columns at every width.
+    /// </summary>
+    [Parameter] public Breakpoint? StackBelow { get; set; } = Breakpoint.Md;
+
+    /// <summary>
+    /// The layout saved for this person: each tile's place and size by its <see cref="Tile.Id"/>.
+    /// Tiles it doesn't name keep their own; entries for tiles that aren't there are ignored.
+    /// </summary>
+    [Parameter] public TileLayoutState? State { get; set; }
+
+    private readonly TileLayoutContext _context;
+    private string? _class;
+    private string? _style;
+
+    /// <summary>Creates the layout.</summary>
+    public TileLayout() => _context = new TileLayoutContext(this);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-tiles");
+        if (StackBelow is { } below)
+        {
+            classes.Add($"ib-tiles-stack-{below.Name()}");
+        }
+
+        classes.Add("ib-tiles-rows", Rows > 0);
+        base.BuildAttributes(classes, styles);
+        styles.AddVar("tiles-cols", Columns.ToString(CultureInfo.InvariantCulture));
+        if (Rows > 0)
+        {
+            styles.AddVar("tiles-rows", Rows.ToString(CultureInfo.InvariantCulture));
+        }
+
+        styles.AddVar("tiles-row-h", RowHeight.ToString());
+        styles.AddVar("tiles-gap", StyleValues.Spacing(Gap));
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Columns < 1)
+        {
+            throw new InvalidOperationException("TileLayout's Columns must be at least 1.");
+        }
+
+        if (Rows < 0)
+        {
+            throw new InvalidOperationException("TileLayout's Rows can't be negative; 0 means as many as the tiles need.");
+        }
+
+        base.OnParametersSet();
+        _context.BeginPass();
+        (_class, _style) = BuildRootAttributes();
+    }
+}

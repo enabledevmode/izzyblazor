@@ -1,0 +1,58 @@
+@* A store's week at a glance: four figures across the top, revenue and best sellers under them. *@
+<TileLayout Columns="12" RowHeight="Length.Rem(7)" aria-label="Store dashboard">
+    <Tile Id="revenue" Col="1" Row="1" ColSpan="3">
+        <Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week" />
+    </Tile>
+    <Tile Id="orders" Col="4" Row="1" ColSpan="3">
+        <Stat Label="Orders" Value="1,284" Change="6.1%" Trend="StatTrend.Up" Description="vs last week" />
+    </Tile>
+    <Tile Id="average" Col="7" Row="1" ColSpan="3">
+        <Stat Label="Average order" Value="$65.67" Change="3.0%" Trend="StatTrend.Up" Description="vs last week" />
+    </Tile>
+    <Tile Id="returns" Col="10" Row="1" ColSpan="3">
+        <Stat Label="Returns" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
+    </Tile>
+    <Tile Id="channels" Title="Revenue by channel" Icon="Lucide.ChartColumn" Col="1" Row="2" ColSpan="8" RowSpan="3">
+        <Actions>
+            <IconButton Icon="Lucide.Download" Label="Download revenue by channel" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+        </Actions>
+        <ChildContent>
+            <Chart Items="_channels" Argument="m => m.Month" Title="Revenue by channel, last 6 months" HideTitle
+                   Stacking="ChartStacking.Normal" Height="Length.Rem(10)">
+                <ChartValueAxis Format="$#,##0,K" />
+                <ChartBarSeries Value="m => m.Online" Name="Online store" />
+                <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
+                <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
+            </Chart>
+        </ChildContent>
+    </Tile>
+    <Tile Id="products" Title="Top products" Icon="Lucide.Package" Col="9" Row="2" ColSpan="4" RowSpan="3">
+        <Stack Gap="3">
+            @foreach (var product in _top)
+            {
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@product.Name" Size="AvatarSize.Sm" Decorative />
+                    <TextBlock Size="TextSize.Sm" Grow>@product.Name</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums>@product.Sold sold</TextBlock>
+                </Row>
+            }
+        </Stack>
+    </Tile>
+</TileLayout>
+
+@code {
+    private record ChannelMonth(string Month, decimal Online, decimal Marketplace, decimal Wholesale);
+
+    private readonly ChannelMonth[] _channels =
+    [
+        new("Jun", 151_000, 60_000, 47_000), new("Jul", 149_000, 63_000, 45_000), new("Aug", 157_000, 66_000, 48_000),
+        new("Sep", 162_000, 68_000, 52_000), new("Oct", 171_000, 72_000, 55_000), new("Nov", 178_000, 75_000, 57_000),
+    ];
+
+    private record Product(string Name, int Sold);
+
+    private readonly Product[] _top =
+    [
+        new("Stoneware mug", 214), new("Linen throw", 168), new("Oak serving board", 131), new("Beeswax candle", 97), new("Wool blanket", 84), new("Ceramic planter", 72),
+    ];
+}
