@@ -17,6 +17,9 @@ internal interface ISchedulerToolbar
     RenderFragment? ViewsPart { get; }
 
     RenderFragment? NewPart { get; }
+
+    /// <summary>An id for the Scheduler's element, which its parts outside it carry so its script finds them.</summary>
+    string PartsId { get; }
 }
 
 /// <summary>
@@ -29,6 +32,12 @@ internal interface ISchedulerToolbar
 /// <c>ToolbarContent</c>: inside a component of your own the Scheduler can't see them, and draws
 /// its own as well.
 /// </summary>
+/// <remarks>
+/// A part can also go outside the Scheduler, such as in a <c>Tile</c>'s <c>HeaderEnd</c>: it acts on
+/// the Scheduler whose <c>id</c> is <see cref="For"/>, or else the one Scheduler in its <c>Tile</c> or
+/// <c>Card</c>, and the Scheduler leaves its own out. With every part outside and no
+/// <c>ToolbarContent</c>, the Scheduler has no toolbar.
+/// </remarks>
 public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -40,9 +49,25 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
 
     [CascadingParameter] private ToolbarContext? Toolbar { get; set; }
 
+    /// <summary>
+    /// The <c>id</c> of the Scheduler it acts on, when it's outside the Scheduler. Leave it out in the
+    /// Scheduler's <c>ToolbarContent</c>, or in a <c>Tile</c> or <c>Card</c> with one Scheduler: it
+    /// acts on that one.
+    /// </summary>
+    [Parameter] public string? For { get; set; }
+
     [CascadingParameter] private ISchedulerToolbar? SchedulerValue { get; set; }
 
-    private ISchedulerToolbar Scheduler => SchedulerValue ?? throw new InvalidOperationException($"{GetType().Name} must be in a Scheduler's ToolbarContent.");
+    [CascadingParameter] private HeaderHost? Host { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    private PartLink? _link;
+    private Action? _redraw;
+    private bool _joined;
+
+    // Outside the Scheduler, the one it draws from once that one has drawn.
+    private ISchedulerToolbar? Target => _link is not null ? _link.Target as ISchedulerToolbar : SchedulerValue;
 
     private protected abstract ToolbarPosition DefaultPosition { get; }
 
@@ -58,22 +83,72 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
 
     // Off (no categories yet, one view, no OnSave), it keeps its place, so turned on later it
     // comes back where it was.
-    bool IToolbarItem.Hidden => Part(Scheduler) is null;
+    bool IToolbarItem.Hidden => Target is null || Part(Target) is null;
 
-    RenderFragment IToolbarItem.Bar => Part(Scheduler) ?? (_ => { });
+    RenderFragment IToolbarItem.Bar => Target is { } target && Part(target) is { } part ? OutsideParts.Wrap(_link is null ? null : target.PartsId, "data-ib-scheduler", null, part) : _ => { };
 
     RenderFragment? IToolbarItem.Menu => null;
 
     double? IToolbarItem.Width => null;
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => _slot.Join(Toolbar);
+    protected override void OnParametersSet()
+    {
+        if (For is null && SchedulerValue is not null)
+        {
+            Leave();
+            _joined = true;
+            _slot.Join(Toolbar);
+            return;
+        }
+
+        var link = For is { Length: > 0 } id ? PartLinks.For(Services, typeof(ISchedulerToolbar), id, GetType().Name)
+            : Host?.Parts(typeof(ISchedulerToolbar))
+            ?? throw new InvalidOperationException($"{GetType().Name} must be in a Scheduler's ToolbarContent, in a Tile or Card with a Scheduler, or name its Scheduler with For.");
+        if (!ReferenceEquals(link, _link))
+        {
+            Leave();
+            _link = link;
+            link.Place(GetType(), _redraw ??= StateHasChanged);
+        }
+
+        // In a toolbar of the page's, it's one of its items.
+        _joined = Toolbar is not null && !ReferenceEquals(Toolbar, ToolbarContext.Outside);
+        if (_joined)
+        {
+            _slot.Join(Toolbar);
+        }
+    }
 
     /// <inheritdoc />
-    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => _slot.Rendered();
+    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        if (_joined)
+        {
+            _slot.Rendered();
+        }
+        else if (Target is { } target && Part(target) is { } part)
+        {
+            // As in the Scheduler's own toolbar.
+            builder.AddContent(0, OutsideParts.Wrap(target.PartsId, "data-ib-scheduler", ButtonGroup.Defaults(Accent.Neutral, ButtonVariant.Ghost, ControlSize.Md), part));
+        }
+    }
+
+    private void Leave()
+    {
+        if (_link is not null)
+        {
+            _link.Unplace(GetType(), _redraw!);
+            _link = null;
+        }
+    }
 
     /// <inheritdoc />
-    public void Dispose() => _slot.Dispose();
+    public void Dispose()
+    {
+        Leave();
+        _slot.Dispose();
+    }
 
     // Which parts a Scheduler's ToolbarContent writes, so the rest go in their usual places.
     internal static HashSet<Type> Placed(RenderFragment? content)

@@ -59,7 +59,10 @@ class ColPicker extends IzzyElement {
   }
 
   get #grid(): GridColumns | null {
-    return this.closest("ib-table")?.querySelector<GridColumns>("ib-grid-columns") ?? null;
+    // Its grid's, or outside it (a tile's header), the grid its part names.
+    const part = this.closest<HTMLElement>(".ib-part")?.dataset.ibGrid;
+    const table = this.closest("ib-table") ?? (part ? document.querySelector(`ib-table[data-ib-grid-id="${CSS.escape(part)}"]`) : null);
+    return table?.querySelector<GridColumns>("ib-grid-columns") ?? null;
   }
 
   #name(el: Element): string | null {

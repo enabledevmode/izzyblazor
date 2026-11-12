@@ -1,0 +1,36 @@
+@* Toolbar parts outside their component, for OutsidePartsTests, by Kind. *@
+@switch (Kind)
+{
+    case "grid-in-tile":
+        <TileLayout Columns="1">
+            <Tile Id="orders" Title="Orders" Flush>
+                <HeaderEnd>
+                    <DataGridSearch />
+                </HeaderEnd>
+                <ChildContent>
+                    <DataGrid Items="Rows" Searchable ExportCsvHref="/orders.csv">
+                        <Columns>
+                            <PropertyColumn Property="r => r.Name" />
+                        </Columns>
+                    </DataGrid>
+                </ChildContent>
+            </Tile>
+        </TileLayout>
+        break;
+    case "scheduler-for":
+        <div class="page-bar">
+            <SchedulerToday For="bookings" />
+            <SchedulerArrows For="bookings" />
+            <SchedulerPeriod For="bookings" />
+        </div>
+        <Scheduler TItem="Row" Items="Rows" Start="r => r.Start" End="r => r.Start.AddHours(1)" Title="r => r.Name" ViewOptions="[SchedulerView.Week]" id="bookings" />
+        break;
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+
+    public sealed record Row(string Name, DateTime Start);
+
+    private static readonly Row[] Rows = [new("Ada", new DateTime(2026, 11, 9, 9, 0, 0)), new("Grace", new DateTime(2026, 11, 10, 9, 0, 0))];
+}

@@ -1369,6 +1369,11 @@
     gap: 0.125rem;
   }
 
+  /* A DataGrid's or Scheduler's toolbar part outside it (a tile's header): only names its component. */
+  .ib-part {
+    display: contents;
+  }
+
   .ib-grid-toolbar {
     display: flex;
     align-items: center;

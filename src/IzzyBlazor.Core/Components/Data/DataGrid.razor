@@ -54,7 +54,8 @@
 
     A toolbar above the grid holds `ToolbarContent` (Toolbar's items), the search box with `Searchable`,
     export and the Columns button, which show their icons alone unless ToolbarLabels is set. Write
-    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the bar of SelectionActions takes its place. `Searchable`
+    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items, or
+    outside the grid (a Tile's HeaderEnd, or anywhere with For set to the grid's id) to move it there. While rows are selected, the bar of SelectionActions takes its place. `Searchable`
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
