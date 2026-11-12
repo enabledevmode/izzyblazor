@@ -7,7 +7,7 @@
     A grid of tiles, each placed at a column and row and spanning some of each, such as the panels
     of a dashboard. The server draws the layout as it is, with no script, and cells can stay empty.
 
-    <TileLayout Columns="12" RowHeight="Length.Rem(7)" State="_layout">
+    <TileLayout Columns="new() { Base = 1, Md = 6, Lg = 12 }" RowHeight="Length.Rem(7)" State="_layout">
         <Tile Id="revenue" Title="Revenue" Col="1" Row="1" ColSpan="8" RowSpan="2">...</Tile>
         <Tile Id="orders" Title="Orders" Col="9" Row="1" ColSpan="4">...</Tile>
         <Tile Id="tickets" Title="Open tickets" ColSpan="4">...</Tile>
@@ -16,11 +16,13 @@
     A Tile with both Col and Row goes there; one without them takes the first free cells, row by
     row, in the order written. State, a TileLayoutState saved for this person, overrides each
     tile's place and size by its Id; tiles it doesn't name keep their own. Spans are kept inside
-    Columns (and Rows, when set). Each tile is as tall as the rows it spans, and its content
+    the columns (and Rows, when set). Each tile is as tall as the rows it spans, and its content
     scrolls inside it when longer.
 
-    Below StackBelow (Md by default), the tiles stack in one column in reading order: by row, then
-    by column. Each keeps its row span's height.
+    Columns can change by breakpoint. Places and spans are for the widest count; at each narrower
+    one, spans shrink in proportion (8 of 12 is 4 of 6) and the tiles wrap in reading order, by
+    row and then by column, with no empty cells. At 1 column they stack. Unless Base is set, the
+    tiles stack below the first breakpoint given.
 
     Accessibility:
     - The layout is a list and each tile an item, named by its title, so screen readers say how
@@ -44,11 +46,17 @@
     /// <summary>The <see cref="Tile"/>s.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>How many columns, all the same width. Defaults to 12.</summary>
-    [Parameter] public int Columns { get; set; } = 12;
+    /// <summary>
+    /// How many columns, all the same width, per breakpoint. Defaults to 1, then 12 from
+    /// <see cref="Breakpoint.Md"/>. Tiles are placed at the widest count; at narrower ones they
+    /// wrap in reading order, their spans shrunk in proportion. Unless <c>Base</c> is set, it's 1.
+    /// </summary>
+    [Parameter] public Responsive<int> Columns { get; set; } = new() { Base = 1, Md = 12 };
 
     /// <summary>
-    /// How many rows. Tiles are kept inside them. Defaults to 0: as many as the tiles need.
+    /// How many rows at the widest column count. Tiles are kept inside them, and the layout is as
+    /// tall as all of them, empty ones included. Defaults to 0: as many as the tiles need. At fewer
+    /// columns, as many as the tiles need.
     /// </summary>
     [Parameter] public int Rows { get; set; }
 
@@ -59,18 +67,15 @@
     [Parameter] public int Gap { get; set; } = 4;
 
     /// <summary>
-    /// Below this width the tiles stack in one column, in reading order. Defaults to
-    /// <see cref="Breakpoint.Md"/>; null keeps the columns at every width.
-    /// </summary>
-    [Parameter] public Breakpoint? StackBelow { get; set; } = Breakpoint.Md;
-
-    /// <summary>
     /// The layout saved for this person: each tile's place and size by its <see cref="Tile.Id"/>.
     /// Tiles it doesn't name keep their own; entries for tiles that aren't there are ignored.
     /// </summary>
     [Parameter] public TileLayoutState? State { get; set; }
 
     private readonly TileLayoutContext _context;
+
+    /// <summary>Each column count and the breakpoint it starts at (null for the base), narrowest width first.</summary>
+    internal IReadOnlyList<(Breakpoint? Breakpoint, int Columns)> Levels { get; private set; } = [];
     private string? _class;
     private string? _style;
 
@@ -81,16 +86,18 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-tiles");
-        if (StackBelow is { } below)
+        base.BuildAttributes(classes, styles);
+        foreach (var (breakpoint, columns) in Levels)
         {
-            classes.Add($"ib-tiles-stack-{below.Name()}");
+            var suffix = breakpoint is { } b ? "-" + b.Name() : "";
+            classes.Add($"ib-tiles-at{suffix}", breakpoint is not null);
+            styles.AddVar("tiles-cols" + suffix, columns.ToString(CultureInfo.InvariantCulture));
         }
 
-        classes.Add("ib-tiles-rows", Rows > 0);
-        base.BuildAttributes(classes, styles);
-        styles.AddVar("tiles-cols", Columns.ToString(CultureInfo.InvariantCulture));
+        // A fixed number of rows holds its height at the widest count, empty rows included.
         if (Rows > 0)
         {
+            classes.Add($"ib-tiles-rows-at-{(Levels[^1].Breakpoint is { } widest ? widest.Name() : "base")}");
             styles.AddVar("tiles-rows", Rows.ToString(CultureInfo.InvariantCulture));
         }
 
@@ -101,10 +108,18 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Columns < 1)
+        var levels = Columns.Entries.ToList();
+        if (levels.Count == 0 || levels[0].Breakpoint is not null)
         {
-            throw new InvalidOperationException("TileLayout's Columns must be at least 1.");
+            levels.Insert(0, (null, 1));
         }
+
+        if (levels.Any(l => l.Value < 1))
+        {
+            throw new InvalidOperationException("TileLayout's Columns must be at least 1 at every breakpoint.");
+        }
+
+        Levels = [.. levels.Select(l => (l.Breakpoint, l.Value))];
 
         if (Rows < 0)
         {

@@ -117,13 +117,19 @@ public sealed record TileLayoutState(IReadOnlyList<TileState> Tiles)
 
 /// <summary>
 /// What a <see cref="TileLayout"/> shares with its tiles: the tiles in page order, and where each
-/// one goes. Tiles with both <c>Col</c> and <c>Row</c> (or an entry in the state) go there; the
-/// rest take the first free cells, row by row, in page order.
+/// one goes at each column count.
 /// </summary>
+/// <remarks>
+/// The widest column count is the layout as written or saved: tiles with both <c>Col</c> and
+/// <c>Row</c> (or an entry in the state) go there, and the rest take the first free cells, row
+/// by row, in page order. Each narrower count is worked out from it: spans scale down, and the
+/// tiles repack in reading order (by row, then by column), each after the one before, so they
+/// wrap onto new rows.
+/// </remarks>
 internal sealed class TileLayoutContext(TileLayout owner)
 {
     private readonly ChildOrder<Tile> _tiles = new();
-    private Dictionary<Tile, TilePlace>? _places;
+    private Dictionary<Tile, TilePlace[]>? _places;
 
     public TileLayout Owner { get; } = owner;
 
@@ -153,23 +159,60 @@ internal sealed class TileLayoutContext(TileLayout owner)
         _places = null;
     }
 
-    public TilePlace PlaceOf(Tile tile)
+    /// <summary>The tile's place at each of the layout's <see cref="TileLayout.Levels"/>, in the same order.</summary>
+    public TilePlace[] PlacesOf(Tile tile)
     {
         _places ??= Place();
-        return _places.TryGetValue(tile, out var place) ? place : new TilePlace(1, 1, 1, 1, 0);
+        return _places.TryGetValue(tile, out var places) ? places : [.. Owner.Levels.Select(_ => new TilePlace(1, 1, 1, 1))];
     }
 
-    private Dictionary<Tile, TilePlace> Place()
+    private Dictionary<Tile, TilePlace[]> Place()
     {
-        var columns = Owner.Columns;
-        var rows = Owner.Rows;
-        var tiles = _tiles.Items;
-        var taken = new HashSet<(int Col, int Row)>();
-        var places = new Dictionary<Tile, (int Col, int Row, int ColSpan, int RowSpan)>();
+        var levels = Owner.Levels;
+        var widest = levels[^1].Columns;
+        var written = PlaceWritten(widest);
 
-        // Spans clamped to the grid; then tiles with a place, then the rest in the first free cells.
-        var sized = new List<(Tile Tile, int? Col, int? Row, int ColSpan, int RowSpan)>(tiles.Count);
-        foreach (var tile in tiles)
+        // Reading order of the written layout, which every narrower count keeps.
+        var reading = written.OrderBy(p => p.Value.Row).ThenBy(p => p.Value.Col).Select(p => p.Key).ToList();
+        var result = written.Keys.ToDictionary(t => t, _ => new TilePlace[levels.Count]);
+        for (var i = 0; i < levels.Count; i++)
+        {
+            var columns = levels[i].Columns;
+            if (columns == widest)
+            {
+                foreach (var (tile, place) in written)
+                {
+                    result[tile][i] = place;
+                }
+
+                continue;
+            }
+
+            var taken = new HashSet<(int, int)>();
+            var (cursorCol, cursorRow) = (1, 1);
+            foreach (var tile in reading)
+            {
+                var from = written[tile];
+                var colSpan = Math.Clamp((int)Math.Ceiling(from.ColSpan * (double)columns / widest), 1, columns);
+                var place = NextFree(taken, columns, cursorCol, cursorRow, colSpan, from.RowSpan);
+                result[tile][i] = place;
+                Take(taken, place);
+                (cursorCol, cursorRow) = (place.Col + place.ColSpan, place.Row);
+            }
+        }
+
+        return result;
+    }
+
+    // The layout at the widest count: placed tiles where they say (kept inside the grid), then the
+    // rest in the first free cells.
+    private Dictionary<Tile, TilePlace> PlaceWritten(int columns)
+    {
+        var rows = Owner.Rows;
+        var taken = new HashSet<(int, int)>();
+        var places = new Dictionary<Tile, TilePlace>();
+        var sized = new List<(Tile Tile, int? Col, int? Row, int ColSpan, int RowSpan)>();
+        foreach (var tile in _tiles.Items)
         {
             var saved = tile.Id is { } id ? Owner.State?.Find(id) : null;
             var colSpan = Math.Clamp(saved?.ColSpan ?? tile.ColSpan, 1, columns);
@@ -186,7 +229,11 @@ internal sealed class TileLayoutContext(TileLayout owner)
         {
             if (col is { } c && row is { } r)
             {
-                var place = (Math.Clamp(c, 1, columns - colSpan + 1), rows > 0 ? Math.Clamp(r, 1, rows - rowSpan + 1) : Math.Max(1, r), colSpan, rowSpan);
+                var place = new TilePlace(
+                    Math.Clamp(c, 1, columns - colSpan + 1),
+                    rows > 0 ? Math.Clamp(r, 1, rows - rowSpan + 1) : r,
+                    colSpan,
+                    rowSpan);
                 places[tile] = place;
                 Take(taken, place);
             }
@@ -196,28 +243,25 @@ internal sealed class TileLayoutContext(TileLayout owner)
         {
             if (col is null || row is null)
             {
-                var place = FirstFree(taken, columns, colSpan, rowSpan);
+                var place = NextFree(taken, columns, 1, 1, colSpan, rowSpan);
                 places[tile] = place;
                 Take(taken, place);
             }
         }
 
-        // Reading order, for the one column on small screens: by row, then by column.
-        var order = places.OrderBy(p => p.Value.Row).ThenBy(p => p.Value.Col).Select(p => p.Key).ToList();
-        return places.ToDictionary(
-            p => p.Key,
-            p => new TilePlace(p.Value.Col, p.Value.Row, p.Value.ColSpan, p.Value.RowSpan, order.IndexOf(p.Key)));
+        return places;
     }
 
-    private static (int Col, int Row, int ColSpan, int RowSpan) FirstFree(HashSet<(int, int)> taken, int columns, int colSpan, int rowSpan)
+    // The first cells, at or after the given one in row-major order, that the tile fits in.
+    private static TilePlace NextFree(HashSet<(int, int)> taken, int columns, int fromCol, int fromRow, int colSpan, int rowSpan)
     {
-        for (var row = 1; ; row++)
+        for (var row = fromRow; ; row++)
         {
-            for (var col = 1; col <= columns - colSpan + 1; col++)
+            for (var col = row == fromRow ? fromCol : 1; col <= columns - colSpan + 1; col++)
             {
                 if (Fits(taken, col, row, colSpan, rowSpan))
                 {
-                    return (col, row, colSpan, rowSpan);
+                    return new TilePlace(col, row, colSpan, rowSpan);
                 }
             }
         }
@@ -239,7 +283,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
         return true;
     }
 
-    private static void Take(HashSet<(int, int)> taken, (int Col, int Row, int ColSpan, int RowSpan) place)
+    private static void Take(HashSet<(int, int)> taken, TilePlace place)
     {
         for (var r = place.Row; r < place.Row + place.RowSpan; r++)
         {
@@ -251,5 +295,5 @@ internal sealed class TileLayoutContext(TileLayout owner)
     }
 }
 
-/// <summary>Where a tile is drawn, and its place in reading order.</summary>
-internal readonly record struct TilePlace(int Col, int Row, int ColSpan, int RowSpan, int Order);
+/// <summary>Where a tile is drawn at one column count.</summary>
+internal readonly record struct TilePlace(int Col, int Row, int ColSpan, int RowSpan);

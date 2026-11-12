@@ -16,11 +16,12 @@ public class TileLayoutRenderTests : BunitContext
         b.CloseComponent();
     }
 
-    private static string Place(IRenderedComponent<TileLayout> cut, string id)
+    // The tile's column, row and spans at the base width, or from a breakpoint ("-md").
+    private static string Place(IRenderedComponent<TileLayout> cut, string id, string at = "")
     {
         var style = cut.Find($"[data-tile-id='{id}']").GetAttribute("style")!;
-        string Var(string name) => style.Split(';').First(s => s.StartsWith($"--ib-tile-{name}:", StringComparison.Ordinal)).Split(':')[1];
-        return $"{Var("col")},{Var("row")},{Var("cs")},{Var("rs")} #{Var("order")}";
+        string Var(string name) => style.Split(';').First(s => s.StartsWith($"--ib-tile-{name}{at}:", StringComparison.Ordinal)).Split(':')[1];
+        return $"{Var("col")},{Var("row")},{Var("cs")},{Var("rs")}";
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class TileLayoutRenderTests : BunitContext
         // A 4-column grid: "chart" placed at column 2, two tiles written before it with no place,
         // and a saved layout that moves "notes" and widens it.
         var cut = Render<TileLayout>(p => p
-            .Add(l => l.Columns, 4)
+            .Add(l => l.Columns, new Responsive<int> { Base = 4 })
             .Add(l => l.State, TileLayoutState.Parse("notes:1,3,4,1;gone:1,1,1,1"))
             .Add(l => l.ChildContent, b =>
             {
@@ -40,17 +41,44 @@ public class TileLayoutRenderTests : BunitContext
                 AddTile(b, "huge", 1, 4, 9);
             }));
 
-        Assert.Equal("2,1,3,2 #1", Place(cut, "chart"));
-        Assert.Equal("1,3,4,1 #2", Place(cut, "notes")); // the saved place wins over Col and Row
-        Assert.Equal("1,1,1,1 #0", Place(cut, "first")); // the free cell left of the chart
-        Assert.Equal("1,4,4,1 #3", Place(cut, "huge")); // the span kept inside the columns
-        Assert.Equal("1,5,2,1 #4", Place(cut, "wide")); // no 2 free cells side by side until row 5
+        Assert.Equal("2,1,3,2", Place(cut, "chart"));
+        Assert.Equal("1,3,4,1", Place(cut, "notes")); // the saved place wins over Col and Row
+        Assert.Equal("1,1,1,1", Place(cut, "first")); // the free cell left of the chart
+        Assert.Equal("1,4,4,1", Place(cut, "huge")); // the span kept inside the columns
+        Assert.Equal("1,5,2,1", Place(cut, "wide")); // no 2 free cells side by side until row 5
 
         // A list of tiles, each named by its title.
         Assert.Equal("list", cut.Find(".ib-tiles").GetAttribute("role"));
         var chart = cut.Find("[data-tile-id='chart']");
         Assert.Equal("listitem", chart.GetAttribute("role"));
         Assert.Equal("chart", cut.Find("#" + chart.GetAttribute("aria-labelledby")).TextContent);
+    }
+
+    [Fact]
+    public void At_fewer_columns_spans_shrink_and_the_tiles_wrap_in_reading_order()
+    {
+        // Written for 12 columns; at 6 (from Md) and 1 (the base) they're worked out from it.
+        var cut = Render<TileLayout>(p => p
+            .Add(l => l.Columns, new Responsive<int> { Base = 1, Md = 6, Lg = 12 })
+            .Add(l => l.Rows, 6)
+            .Add(l => l.ChildContent, b =>
+            {
+                AddTile(b, "chart", 1, 2, 8, 2);
+                AddTile(b, "revenue", 1, 1, 4);
+                AddTile(b, "orders", 5, 1, 4);
+                AddTile(b, "returns", 9, 1, 4);
+                AddTile(b, "products", 9, 2, 4, 2);
+            }));
+
+        Assert.Equal("1,2,8,2", Place(cut, "chart", "-lg"));
+        Assert.Equal("1,1,2,1", Place(cut, "revenue", "-md"));
+        Assert.Equal("5,1,2,1", Place(cut, "returns", "-md"));
+        Assert.Equal("1,2,4,2", Place(cut, "chart", "-md"));
+        Assert.Equal("5,2,2,2", Place(cut, "products", "-md"));
+        Assert.Equal("1,4,1,2", Place(cut, "chart")); // one column: stacked in reading order
+        Assert.Equal("1,6,1,2", Place(cut, "products"));
+        Assert.Contains("ib-tiles-at-md", cut.Find(".ib-tiles").ClassName);
+        Assert.Contains("ib-tiles-rows-at-lg", cut.Find(".ib-tiles").ClassName); // all 6 rows, at 12 columns only
     }
 
     [Fact]
