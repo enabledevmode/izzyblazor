@@ -332,7 +332,20 @@
 
 /* A card's picture with a tag on its corner (the mode, or the component a demo is about), so the
    card reads picture, title, text. */
+/* The components showcase: a card per group, the real components on top, cropped with a short fade. */
+.site-show { display: flex; flex-direction: column; border: 1px solid var(--ib-color-border); border-radius: var(--ib-radius-xl); overflow: hidden; background: var(--ib-color-surface); }
+.site-show-preview { position: relative; height: 14rem; overflow: hidden; padding: var(--ib-space-4); border-bottom: 1px solid var(--ib-color-border); background: var(--ib-color-fill-subtle); }
+.site-show-preview::after { content: ""; position: absolute; inset: auto 0 0; height: 1.25rem; background: linear-gradient(transparent, var(--ib-color-fill-subtle)); pointer-events: none; }
+.site-show-body { padding: var(--ib-space-5); }
+.site-show-links { font-size: var(--ib-text-sm); row-gap: var(--ib-space-1); }
+
+/* The hero's frames are live: a label says so. */
+.site-hero-live { position: absolute; z-index: 2; top: -2.25rem; right: 0; display: inline-flex; align-items: center; gap: var(--ib-space-2); padding: var(--ib-space-1) var(--ib-space-3); border: 1px solid light-dark(#d6d3cc, #2c2f36); border-radius: 999px; background: light-dark(#fff, #1b1d22); font-size: var(--ib-text-xs); color: var(--ib-color-muted); }
+.site-hero-live i { width: .5rem; height: .5rem; border-radius: 50%; background: #2f9e44; }
+
 .site-media { position: relative; }
+/* The homepage's mode pictures, a fifth shorter: the drawing's middle. */
+.site-media > .pg { display: block; width: 100%; height: auto; aspect-ratio: 320 / 154; }
 .site-media-tag { position: absolute; top: var(--ib-space-3); left: var(--ib-space-3); display: inline-flex; gap: var(--ib-space-1); }
 
 /* Link cards: they take you somewhere, so they read as links rather than content: a small

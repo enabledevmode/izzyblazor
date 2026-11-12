@@ -22,7 +22,8 @@
 else if (Pictures.Modes.TryGetValue(Id, out drawing))
 {
     @* A mode's picture, shown twice as wide: drawn on a grid twice the size, so its lines stay fine. *@
-    <svg class="pg" viewBox="0 0 320 192" aria-hidden="true" focusable="false">
+    @* Sliced, not letterboxed, where CSS makes it shorter (the homepage's comparison). *@
+    <svg class="pg" viewBox="0 0 320 192" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
         <g class="pg-rings"><circle cx="320" cy="192" r="300" fill-opacity=".03" /><circle cx="320" cy="192" r="220" fill-opacity=".035" /><circle cx="320" cy="192" r="150" fill-opacity=".045" /></g>
         @((MarkupString)drawing)
     </svg>
