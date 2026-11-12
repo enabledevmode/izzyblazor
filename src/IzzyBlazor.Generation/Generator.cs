@@ -8,6 +8,15 @@ public static class Generator
 {
     static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+    /// <summary>
+    /// The IzzyBlazor version items reference (the <c>{{IzzyBlazorVersion}}</c> token): this engine's own, since
+    /// the engine, the templates and the components are released together.
+    /// </summary>
+    public static string IzzyBlazorVersion { get; } =
+        (typeof(Generator).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion ?? "0.0.0")
+        .Split('+')[0];
+
     /// <summary>Generates <paramref name="item"/> into <paramref name="project"/> with the given settings.</summary>
     /// <param name="item">The item.</param>
     /// <param name="settings">Settings by name, as text (<c>true</c>, <c>Auto</c>, <c>3</c>); the rest take their defaults.</param>
@@ -125,6 +134,8 @@ public static class Generator
         {
             ["ProjectName"] = project.Name,
             ["RootNamespace"] = project.RootNamespace,
+            ["HostName"] = Names.HostName(project.Name),
+            ["IzzyBlazorVersion"] = IzzyBlazorVersion,
         };
         foreach (var p in manifest.Parameters.Where(p => p.Type != ParameterType.Bool))
             tokens[p.Name] = Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!;

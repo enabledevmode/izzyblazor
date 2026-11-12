@@ -43,6 +43,18 @@ public static class Names
         return result.ToString();
     }
 
+    /// <summary>
+    /// A DNS-safe host name from any name: <c>My App.2</c> → <c>my-app-2</c>. The same steps as Microsoft's
+    /// <c>lowerCaseInvariantWithHyphens</c> form: lower case, anything but a-z, 0-9 and hyphens becomes a
+    /// hyphen, runs of hyphens become one, and hyphens at either end go.
+    /// </summary>
+    public static string HostName(string value)
+    {
+        var host = System.Text.RegularExpressions.Regex.Replace(value.ToLowerInvariant(), "[^a-z0-9-]", "-");
+        host = System.Text.RegularExpressions.Regex.Replace(host, "-{2,}", "-");
+        return host.Trim('-');
+    }
+
     static bool IsIdentifierStart(char c) => c == '_' || char.GetUnicodeCategory(c) is
         UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or
         UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber;

@@ -41,7 +41,7 @@ public sealed class DotnetNewTests : IDisposable
         {
             var output = Path.Combine(_work, $"out{run++}");
             var args = new List<string> { "new", id, "-o", output, "-n", name, "--debug:custom-hive", hive };
-            foreach (var (key, value) in settings) args.AddRange([$"--{TemplateExport.OptionName(key)}", value]);
+            foreach (var (key, value) in settings) args.AddRange([$"--{item.Manifest.Parameters.Single(p => p.Name == key).Option}", value]);
             Dotnet([.. args]);
 
             var label = $"{id} -n \"{name}\" {string.Join(" ", settings.Select(s => $"{s.Key}={s.Value}"))}";

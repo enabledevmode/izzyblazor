@@ -35,7 +35,10 @@ public static class TemplateExport
     {
         var info = new JsonObject();
         foreach (var p in manifest.Parameters)
-            info[p.Name] = new JsonObject { ["longName"] = OptionName(p.Name), ["shortName"] = "" };
+        {
+            info[p.Name] = new JsonObject { ["longName"] = p.Option, ["shortName"] = "" };
+            if (p.Hidden) info[p.Name]!["isHidden"] = true;
+        }
         return new JsonObject { ["$schema"] = "http://json.schemastore.org/dotnetcli.host", ["symbolInfo"] = info }.ToJsonString(Indented) + "\n";
     }
 
@@ -70,6 +73,17 @@ public static class TemplateExport
             {
                 ["type"] = "derived", ["valueSource"] = "name", ["valueTransform"] = "safeNamespace",
                 ["replaces"] = "{{RootNamespace}}", ["fileRename"] = "{{RootNamespace}}",
+            },
+            ["HostName"] = new JsonObject
+            {
+                ["type"] = "derived", ["valueSource"] = "name", ["valueTransform"] = "hostName",
+                ["replaces"] = "{{HostName}}",
+            },
+            ["IzzyBlazorVersion"] = new JsonObject
+            {
+                ["type"] = "generated", ["generator"] = "constant",
+                ["parameters"] = new JsonObject { ["value"] = Generator.IzzyBlazorVersion },
+                ["replaces"] = "{{IzzyBlazorVersion}}",
             },
         };
         foreach (var p in manifest.Parameters)
@@ -118,7 +132,19 @@ public static class TemplateExport
             ["shortName"] = manifest.Id,
             ["preferNameDirectory"] = true,
             ["tags"] = new JsonObject { ["language"] = "C#", ["type"] = "project" },
-            ["forms"] = new JsonObject { ["safeNamespace"] = new JsonObject { ["identifier"] = "safe_namespace" } },
+            ["forms"] = new JsonObject
+            {
+                ["safeNamespace"] = new JsonObject { ["identifier"] = "safe_namespace" },
+                // Names.HostName's steps, as Microsoft's templates spell them.
+                ["hostName"] = new JsonObject
+                {
+                    ["identifier"] = "chain",
+                    ["steps"] = new JsonArray("lowerCaseInvariant", "dnsInvalidToHyphen", "repeatedHyphens", "edgeHyphens"),
+                },
+                ["dnsInvalidToHyphen"] = new JsonObject { ["identifier"] = "replace", ["pattern"] = "[^a-z0-9-]", ["replacement"] = "-" },
+                ["repeatedHyphens"] = new JsonObject { ["identifier"] = "replace", ["pattern"] = "-{2,}", ["replacement"] = "-" },
+                ["edgeHyphens"] = new JsonObject { ["identifier"] = "replace", ["pattern"] = "^-+|-+$", ["replacement"] = "" },
+            },
             ["symbols"] = symbols,
         };
         if (manifest.Summary is not null) template["description"] = manifest.Summary;
