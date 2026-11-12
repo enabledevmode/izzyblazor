@@ -24,11 +24,9 @@
         @*#if (!SidebarNav) *@
         <SiteNav>
             <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
-            <NavItem Href="contact">Contact</NavItem>
-            <NavItem Href="weather">Weather</NavItem>
-            @*#if (UseServer || UseWebAssembly) *@
             <NavItem Href="counter">Counter</NavItem>
-            @*#endif *@
+            <NavItem Href="weather">Weather</NavItem>
+            <NavItem Href="contact">Contact</NavItem>
         </SiteNav>
         @*#endif *@
         <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
@@ -38,11 +36,9 @@
     <AppSidebar>
         <NavMenu>
             <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.House">Home</NavItem>
-            <NavItem Href="contact" Icon="Lucide.Mail">Contact</NavItem>
-            <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
-            @*#if (UseServer || UseWebAssembly) *@
             <NavItem Href="counter" Icon="Lucide.SquarePlus">Counter</NavItem>
-            @*#endif *@
+            <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
+            <NavItem Href="contact" Icon="Lucide.Mail">Contact</NavItem>
         </NavMenu>
     </AppSidebar>
     @*#endif *@

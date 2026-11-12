@@ -3,9 +3,10 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// The other half of the phase 1 gate: what izzy-blazor makes builds. Three projects cover its layouts: the
-/// default (Server, pages static by default), static with no samples and a Main method, and Auto with every page
-/// interactive (the layout and pages in the .Client project) under a name that needs a safe namespace. The
+/// The other half of the phase 1 gate: what izzy-blazor makes builds. Four projects cover its layouts: the
+/// default (Server, pages static by default); static with a Main method, whose Counter answers by request;
+/// Auto with every page interactive (the layout and pages in the .Client project) under a name that needs a
+/// safe namespace; and a top bar with a preset, a hex brand, a shell, a column width and no samples. The
 /// IzzyBlazor packages are swapped for this repo's projects, so it builds against the code here, not a release.
 /// </summary>
 [Collection(ProjectBuild.Collection)]
@@ -16,9 +17,9 @@ public sealed class StarterBuildTests : IDisposable
     public static TheoryData<string, string> Cases() => new()
     {
         { "MyApp", "" },
-        { "MyApp", "Interactivity=None;Empty=true;UseProgramMain=true" },
+        { "MyApp", "Interactivity=None;UseProgramMain=true" },
         { "My-App.2", "Interactivity=Auto;AllInteractive=true" },
-        { "MyApp", "Nav=Top;Preset=Compact;Brand=#0a7d5a;Shell=Inset;ContentWidth=64" },
+        { "MyApp", "Nav=Top;Preset=Compact;Brand=#0a7d5a;Shell=Inset;ContentWidth=64;Empty=true" },
     };
 
     [Theory]
