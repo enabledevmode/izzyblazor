@@ -78,10 +78,10 @@ public enum DialogPlacement
     /// <summary>A full-height drawer on the end side.</summary>
     End,
 
-    /// <summary>A full-width sheet along the top edge, as tall as its content.</summary>
+    /// <summary>A sheet along the top edge, as tall as its content: centered, 40rem wide at most by default.</summary>
     Top,
 
-    /// <summary>A full-width sheet along the bottom edge, as tall as its content. Suits phones.</summary>
+    /// <summary>A sheet along the bottom edge, as tall as its content: centered, 40rem wide at most by default. Suits phones.</summary>
     Bottom,
 }
 

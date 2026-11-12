@@ -5,7 +5,8 @@ namespace IzzyBlazor;
 /// <see cref="DialogPlacement.End"/> by default. Everything else is the dialog's: open it with a
 /// <see cref="DialogTrigger"/>, a <c>?dialog=id</c> link or <c>@bind-Open</c>; it traps focus and
 /// closes on Escape. <see cref="Dialog.Size"/> sets its width (Sm 20rem, Md 24rem, Lg 32rem,
-/// Xl 40rem, Full). Use <see cref="DialogPlacement.Bottom"/> for a sheet on phones.
+/// Xl 40rem, Full). Use <see cref="DialogPlacement.Bottom"/> for a sheet on phones: it's centered,
+/// Sm 24rem, Md 40rem, Lg 48rem, Xl 64rem wide at most, or Full for the screen's width.
 /// </summary>
 /// <example>
 /// <code>

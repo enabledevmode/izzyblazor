@@ -34,7 +34,7 @@
     </table>
 </Prose>
 <ExampleViewer Example="drawer-edges" />
-<TextBlock><Code>Placement</Code> is <Code>End</Code> by default, or <Code>Start</Code>. <Code>Top</Code> and <Code>Bottom</Code> open a full-width sheet as tall as its content.</TextBlock>
+<TextBlock><Code>Placement</Code> is <Code>End</Code> by default, or <Code>Start</Code>. <Code>Top</Code> and <Code>Bottom</Code> open a sheet as tall as its content, centered and 40rem wide at most, so it stays usable on a wide screen; on phones it spans the screen. For a sheet's width, <Code>Size</Code> is <Code>Sm</Code> 24rem, <Code>Md</Code> 40rem, <Code>Lg</Code> 48rem, <Code>Xl</Code> 64rem, or <Code>Full</Code> for the screen's width.</TextBlock>
 
 <Heading Level="2">A menu from the start edge</Heading>
 <TextBlock>A drawer from the start edge suits navigation that slides in, such as a site's menu on phones. Set <Code>Placement="DialogPlacement.Start"</Code> and <Code>Size="DialogSize.Sm"</Code>.</TextBlock>
