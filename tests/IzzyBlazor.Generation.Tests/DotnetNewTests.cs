@@ -72,19 +72,23 @@ public sealed class DotnetNewTests : IDisposable
             var settings = new Dictionary<string, string>();
             var port = 5100;
             foreach (var p in manifest.Parameters.Where(p => p.Port is not null)) settings[p.Name] = (port++).ToString();
-            if (manifest.Parameters.Any(p => p.Name == "SkipRestore")) settings["SkipRestore"] = "true";
+            foreach (var p in manifest.Parameters.Where(p => p.Name is "SkipRestore" or "NoRestore")) settings[p.Name] = "true";
             foreach (var (key, value) in extra) settings[key] = value;
             return settings;
         }
 
+        var restoreSettings = new[] { "SkipRestore", "NoRestore" };
+        var choices = manifest.Parameters.Where(p => p.Type == ParameterType.Choice)
+            .SelectMany(p => p.Choices.Where(c => c != p.Default).Select(c => (p.Name, Value: c))).ToList();
+        var flips = manifest.Parameters.Where(p => p.Type == ParameterType.Bool && !restoreSettings.Contains(p.Name))
+            .Select(p => (p.Name, Value: p.Default == "true" ? "false" : "true")).ToList();
+
         yield return ("MyApp", With());
-        foreach (var p in manifest.Parameters.Where(p => p.Name != "SkipRestore"))
-        {
-            if (p.Type == ParameterType.Choice)
-                foreach (var choice in p.Choices.Where(c => c != p.Default)) yield return ("MyApp", With((p.Name, choice)));
-            if (p.Type == ParameterType.Bool)
-                yield return ("MyApp", With((p.Name, p.Default == "true" ? "false" : "true")));
-        }
+        foreach (var choice in choices) yield return ("MyApp", With(choice));
+        foreach (var flip in flips) yield return ("MyApp", With(flip));
+        // Each other choice with each switch flipped: the settings that change a starter's layout together.
+        foreach (var choice in choices)
+            foreach (var flip in flips) yield return ("MyApp", With(choice, flip));
         yield return ("My-App.2", With());
     }
 

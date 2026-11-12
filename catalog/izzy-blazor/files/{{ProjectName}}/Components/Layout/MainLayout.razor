@@ -1,0 +1,41 @@
+@inherits LayoutComponentBase
+@*#if (SampleContent) *@
+
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="" Icon="Lucide.Blocks" Label="{{ProjectName}}" />
+        <Box Grow />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.House">Home</NavItem>
+            @*#if (UseServer || UseWebAssembly) *@
+            <NavItem Href="counter" Icon="Lucide.SquarePlus">Counter</NavItem>
+            @*#endif *@
+            <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Box Padding="new() { Base = 4, Md = 8 }">
+            @Body
+        </Box>
+    </AppMain>
+</AppShell>
+@*#else *@
+
+@Body
+@*#endif *@
+
+<ToastRegion />
+@*#if (UseServer || UseWebAssembly) *@
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+@*#endif *@

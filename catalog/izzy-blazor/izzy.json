@@ -1,0 +1,90 @@
+// Microsoft's Blazor Web App (dotnet new blazor, .NET 10) rebuilt with IzzyBlazor: the same options, names and
+// defaults, its pages drawn with IzzyBlazor's components and theme instead of Bootstrap. Its files are ported
+// from Microsoft's template (MIT, dotnet/aspnetcore). With WebAssembly or Auto it's a solution with a .Client
+// project; with every page interactive in the browser, the layout and pages move to the .Client project.
+{
+  "id": "izzy-blazor",
+  "name": "IzzyBlazor Blazor Web App",
+  "kind": "starter",
+  "category": "Starters",
+  "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
+  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Interactivity": {
+        "type": "string", "enum": ["None", "Server", "WebAssembly", "Auto"], "default": "Server",
+        "description": "Which interactive render mode interactive components use. None makes every page static.",
+        "x-priority": "important"
+      },
+      "AllInteractive": {
+        "type": "boolean", "default": false,
+        "description": "Makes every page interactive. Otherwise pages are static by default, and you mark the ones that need it."
+      },
+      "Empty": {
+        "type": "boolean", "default": false,
+        "description": "Leaves out the sample pages (Counter and Weather) and the sidebar."
+      },
+      "Framework": {
+        "type": "string", "enum": ["net10.0"], "default": "net10.0",
+        "description": "The target framework."
+      },
+      "ExcludeLaunchSettings": { "type": "boolean", "default": false, "description": "Leaves out launchSettings.json." },
+      "NoHttps": { "type": "boolean", "default": false, "description": "Turns off HTTPS." },
+      "UseProgramMain": {
+        "type": "boolean", "default": false,
+        "description": "Writes a Program class with a Main method instead of top-level statements."
+      },
+      "LocalhostTld": {
+        "type": "boolean", "default": false,
+        "description": "Puts the project name in a .dev.localhost address, such as https://myapp.dev.localhost:7000."
+      },
+      "NoRestore": { "type": "boolean", "default": false, "description": "Doesn't restore packages after creating the project." },
+      "KestrelHttpPort": {
+        "type": "integer", "x-port": [5000, 5300], "x-option": "kestrelHttpPort", "x-hidden": true,
+        "description": "The HTTP port in launchSettings.json."
+      },
+      "KestrelHttpsPort": {
+        "type": "integer", "x-port": [7000, 7300], "x-option": "kestrelHttpsPort", "x-hidden": true,
+        "description": "The HTTPS port in launchSettings.json."
+      }
+    }
+  },
+  "computed": {
+    "UseServer": "Interactivity == \"Server\" || Interactivity == \"Auto\"",
+    "UseWebAssembly": "Interactivity == \"WebAssembly\" || Interactivity == \"Auto\"",
+    "InteractiveAtRoot": "AllInteractive && Interactivity != \"None\"",
+    "SampleContent": "!Empty",
+    "HasHttpsProfile": "!NoHttps"
+  },
+  "exclude": [
+    { "if": "!UseWebAssembly", "paths": ["{{ProjectName}}.Client/**", "*.slnx"] },
+    { "if": "!(UseServer && !UseWebAssembly)", "paths": ["{{ProjectName}}/Components/Pages/Counter.razor"] },
+    { "if": "ExcludeLaunchSettings", "paths": ["{{ProjectName}}/Properties/launchSettings.json"] },
+    {
+      "if": "!SampleContent",
+      "paths": [
+        "{{ProjectName}}/Components/Pages/Counter.*",
+        "{{ProjectName}}/Components/Pages/Weather.*",
+        "{{ProjectName}}/wwwroot/favicon.*",
+        "{{ProjectName}}.Client/Pages/**",
+        "{{ProjectName}}.Client/wwwroot/**"
+      ]
+    }
+  ],
+  "rename": [
+    { "if": "!UseWebAssembly", "paths": { "{{ProjectName}}/": "./" } },
+    {
+      "if": "UseWebAssembly && InteractiveAtRoot",
+      "paths": {
+        "{{ProjectName}}/Components/Layout/": "./{{ProjectName}}.Client/Layout/",
+        "{{ProjectName}}/Components/Pages/Home.razor": "./{{ProjectName}}.Client/Pages/Home.razor",
+        "{{ProjectName}}/Components/Pages/NotFound.razor": "./{{ProjectName}}.Client/Pages/NotFound.razor",
+        "{{ProjectName}}/Components/Pages/Weather.razor": "./{{ProjectName}}.Client/Pages/Weather.razor",
+        "{{ProjectName}}/Components/Routes.razor": "./{{ProjectName}}.Client/Routes.razor"
+      }
+    }
+  ],
+  "restore": "!NoRestore"
+}

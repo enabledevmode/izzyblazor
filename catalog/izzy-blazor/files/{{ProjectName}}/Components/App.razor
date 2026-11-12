@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    @* The theme: a preset, a brand color and fonts, set on the server so it applies on first paint. See https://izzyblazor.com/docs/theming *@
+    <IzzyTheme />
+    <ImportMap />
+    @*#if (SampleContent) *@
+    <link rel="icon" type="image/png" href="favicon.png" />
+    @*#endif *@
+    @*#if (!InteractiveAtRoot) *@
+    <HeadOutlet />
+    @*#elif (UseServer && UseWebAssembly) *@
+    <HeadOutlet @rendermode="InteractiveAuto" />
+    @*#elif (UseServer) *@
+    <HeadOutlet @rendermode="InteractiveServer" />
+    @*#else *@
+    <HeadOutlet @rendermode="InteractiveWebAssembly" />
+    @*#endif *@
+</head>
+
+<body>
+    @*#if (!InteractiveAtRoot) *@
+    <Routes />
+    @*#elif (UseServer && UseWebAssembly) *@
+    <Routes @rendermode="InteractiveAuto" />
+    @*#elif (UseServer) *@
+    <Routes @rendermode="InteractiveServer" />
+    @*#else *@
+    <Routes @rendermode="InteractiveWebAssembly" />
+    @*#endif *@
+    @*#if (UseServer) *@
+    <ReconnectDialog />
+    @*#endif *@
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>
