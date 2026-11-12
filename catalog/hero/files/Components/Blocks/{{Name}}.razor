@@ -1,0 +1,49 @@
+@* The top of the landing page, from izzy add hero. It's yours: change the words, the buttons and
+   the image here. *@
+<Section Spacing="SectionSpacing.Lg">
+@*#if (Split) *@
+    <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="12" Align="Align.Center">
+        <Stack Gap="6" Align="Align.Start">
+            @*#if (HasEyebrow) *@
+            <Badge Pill>{{Eyebrow}}</Badge>
+            @*#endif *@
+            <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Subhead}}</TextBlock>
+            <Row Gap="3" Wrap>
+                <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>
+                @*#if (HasSecondary) *@
+                <Button Href="{{SecondaryHref}}" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">{{SecondaryText}}</Button>
+                @*#endif *@
+            </Row>
+        </Stack>
+        @*#if (Screenshot) *@
+        <Box Border="1" Radius="Radius.Lg" Shadow="Shadow.Lg" Overflow="Overflow.Hidden">
+            <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
+        </Box>
+        @*#else *@
+        <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" />
+        @*#endif *@
+    </Grid>
+@*#else *@
+    <Stack Gap="6" Align="Align.Center">
+        @*#if (HasEyebrow) *@
+        <Badge Pill>{{Eyebrow}}</Badge>
+        @*#endif *@
+        <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(40)">{{Subhead}}</TextBlock>
+        <Row Gap="3" Wrap Justify="Justify.Center">
+            <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>
+            @*#if (HasSecondary) *@
+            <Button Href="{{SecondaryHref}}" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">{{SecondaryText}}</Button>
+            @*#endif *@
+        </Row>
+        @*#if (Screenshot) *@
+        <Box Border="1" Radius="Radius.Lg" Shadow="Shadow.Lg" MarginTop="6" MaxWidth="Length.Rem(64)" Overflow="Overflow.Hidden">
+            <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
+        </Box>
+        @*#elif (HasMedia) *@
+        <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" MarginTop="6" MaxWidth="Length.Rem(64)" />
+        @*#endif *@
+    </Stack>
+@*#endif *@
+</Section>
