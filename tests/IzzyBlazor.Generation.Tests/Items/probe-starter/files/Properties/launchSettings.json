@@ -2,7 +2,7 @@
   "profiles": {
     "http": {
       "commandName": "Project",
-      "applicationUrl": "http://localhost:{{HttpPort}}"
+      "applicationUrl": "http://{{HostName}}.dev.localhost:{{HttpPort}}"
     }
   }
 }

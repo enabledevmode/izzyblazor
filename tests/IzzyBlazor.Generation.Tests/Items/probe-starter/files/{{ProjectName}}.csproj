@@ -2,6 +2,9 @@
   <PropertyGroup>
     <RootNamespace>{{RootNamespace}}</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="IzzyBlazor" Version="{{IzzyBlazorVersion}}" />
+  </ItemGroup>
   <!--#if (Interactivity == "Auto") -->
   <ItemGroup>
     <ProjectReference Include="Client/Client.csproj" />

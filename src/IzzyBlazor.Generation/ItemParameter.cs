@@ -27,6 +27,12 @@ public sealed class ItemParameter
     /// </summary>
     public (int Low, int High)? Port { get; init; }
 
+    /// <summary>The command-line option, without dashes: <c>"x-option"</c>, else the name in kebab case (<c>AllInteractive</c> → <c>all-interactive</c>).</summary>
+    public required string Option { get; init; }
+
+    /// <summary>Left out of help and forms (<c>"x-hidden": true</c>), such as the ports, but still accepted.</summary>
+    public bool Hidden { get; init; }
+
     internal static IReadOnlyList<ItemParameter> FromSchema(JsonObject schema)
     {
         if (schema["properties"] is not JsonObject properties) return [];
@@ -60,6 +66,8 @@ public sealed class ItemParameter
                 Default = p["default"] is { } d ? Text(d) : fallback,
                 Description = (string?)p["description"],
                 Port = port,
+                Option = (string?)p["x-option"] ?? TemplateExport.OptionName(name),
+                Hidden = (bool?)p["x-hidden"] ?? false,
             });
         }
         return list;
