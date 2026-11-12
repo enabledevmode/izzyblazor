@@ -5,7 +5,7 @@
 //
 // An example's id names its file: "button-multi-submit" is Examples/Button/MultiSubmit.razor.
 {
-  "categories": ["Layout", "App shell", "Typography", "Actions", "Inputs", "Date & time", "Selection", "Overlays", "Navigation", "Feedback", "Data", "Display", "Charts"],
+  "categories": ["Layout", "Typography", "Buttons", "Inputs", "Dropdowns", "Overlays", "Navigation", "Feedback", "Data", "Display", "Charts", "Utilities"],
   "components": [
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "Renders a block that accepts every style prop.",
@@ -18,6 +18,7 @@
         { "id": "box-visibility", "title": "Showing by breakpoint", "lead": "To hide content from a breakpoint up, set `HiddenFrom`. To show it only from a breakpoint up, set `VisibleFrom`.", "after": ["In this example the button shows its label from Sm (640px) and is an icon button on phones."] }
       ]
     },
+
     {
       "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lines up buttons, badges or fields side by side, with a gap between them.",
       "examples": [
@@ -27,6 +28,7 @@
         { "id": "row-stats", "title": "Sharing the width", "lead": "In a wrapping row, children can share the width: give each one a `Grow` and a `Basis`. Here each stat is at least 10rem wide and stretches to fill its line, and one that doesn't fit wraps to the next." }
       ]
     },
+
     {
       "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Stacks fields, cards or text from top to bottom, with even spacing.",
       "examples": [
@@ -34,6 +36,7 @@
         { "id": "column-alignment", "title": "Alignment", "lead": "Children stretch to the column's width by default. To keep each one at its own width, as the button here, set `Align=\"Align.Start\"`." }
       ]
     },
+
     {
       "id": "stack", "icon": "Layers", "name": "Stack", "category": "Layout", "summary": "Lays out its children in a row or a column, changing with the screen width.",
       "examples": [
@@ -41,6 +44,7 @@
         { "id": "stack-page-header", "title": "Page header", "lead": "Alignment can change with the screen width too, since `Align` accepts a breakpoint map. In this page header, the title and actions share a line from Sm, spread apart by `Justify.Between`. On phones the actions stack under the title." }
       ]
     },
+
     {
       "id": "grid", "icon": "LayoutGrid", "name": "Grid", "category": "Layout", "summary": "Lays out its children in columns set by breakpoint, by minimum width or by template.", "parts": ["GridItem"],
       "examples": [
@@ -51,6 +55,7 @@
         { "id": "grid-spans", "title": "Spanning cells", "lead": "A child can span several columns or rows. Set `ColSpan` on any child to span columns, and wrap a child in a `GridItem` to set `RowSpan`. Here, from Sm, the revenue card spans two columns and two rows, and the activity card spans the whole row with `GridSpan.Full`." }
       ]
     },
+
     {
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
@@ -58,6 +63,7 @@
         { "id": "container-bands", "title": "Bands that reach the edges", "lead": "For bands of color that reach the page's edges, put the color on a `Box` around each `Container`. The bands run the full width, and their content keeps the same width and side padding, so the edges line up." }
       ]
     },
+
     {
       "id": "section", "icon": "PanelTop", "name": "Section", "category": "Layout", "summary": "Renders a full-width band of a page, such as a hero.",
       "examples": [
@@ -65,6 +71,7 @@
         { "id": "section-bands", "title": "Band spacing", "lead": "A band's spacing is its padding above and below. `Md`, the default, suits most bands. For a slimmer band, such as this sign-up, set `Spacing` to `SectionSpacing.Sm`." }
       ]
     },
+
     {
       "id": "center", "icon": "Crosshair", "name": "Center", "category": "Layout", "summary": "Centers its content both ways.",
       "examples": [
@@ -72,6 +79,7 @@
         { "id": "center-loading", "title": "Centering in a panel", "lead": "To center content in a panel, such as a spinner while a report loads, give `Center` a `Height`." }
       ]
     },
+
     {
       "id": "spacer", "icon": "MoveHorizontal", "name": "Spacer", "category": "Layout", "summary": "Pushes the rest of a row to the end.",
       "examples": [
@@ -79,6 +87,7 @@
         { "id": "spacer-plans", "title": "Pushing items to a column's bottom", "lead": "In a `Column`, a `Spacer` fills the free height instead, so both buttons sit at the bottom of their cards however long the text above them." }
       ]
     },
+
     {
       "id": "aspect-ratio", "icon": "Ratio", "name": "AspectRatio", "category": "Layout", "summary": "Keeps media at a fixed shape, 16:9 by default.",
       "examples": [
@@ -86,6 +95,7 @@
         { "id": "aspect-ratio-thumbnails", "title": "Matching thumbnails", "lead": "Thumbnails with the same shape keep a grid's rows lined up. Give each one the same `Ratio`, and pictures of any shape, here a wide one and a tall one, crop to it. Other content fills the box too, such as a `Center` with an icon where there's no picture." }
       ]
     },
+
     {
       "id": "divider", "icon": "SeparatorHorizontal", "name": "Divider", "category": "Layout", "summary": "Separates content with a line: plain, dashed, labeled or vertical.", "keywords": ["separator", "rule"],
       "examples": [
@@ -94,6 +104,7 @@
         { "id": "divider-vertical", "title": "Vertical", "lead": "To separate items in a `Row`, set `Orientation=\"Orientation.Vertical\"`. The line is as tall as the row." }
       ]
     },
+
     {
       "id": "tile-layout", "icon": "LayoutDashboard", "name": "TileLayout", "category": "Layout", "summary": "Places a dashboard's panels on a grid of columns and rows, each spanning as many as it needs.", "keywords": ["dashboard", "tiles", "widgets", "panels", "grid layout", "dashboard layout"],
       "parts": ["Tile"],
@@ -113,6 +124,7 @@
           "example": { "id": "tile-layout-store", "title": "Store overview", "height": 980, "page": true } }
       ]
     },
+
     {
       "id": "splitter", "icon": "Columns2", "name": "Splitter", "category": "Layout", "summary": "Divides a view into panes the user resizes, such as a mail list beside the open message.", "keywords": ["split pane", "split view", "resizable panes", "panels", "divider", "resize"],
       "parts": ["SplitterPane"],
@@ -129,7 +141,7 @@
     },
 
     {
-      "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Arranges a header, sidebar, main area, aside and footer with CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AsideToggle", "AppFooter"],
+      "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "Layout", "summary": "Arranges a header, sidebar, main area, aside and footer with CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AsideToggle", "AppFooter"],
       "examples": [
         { "id": "app-shell-parts", "title": "The parts", "height": 600, "page": true,
           "notes": {
@@ -201,8 +213,9 @@
             } } }
       ]
     },
+
     {
-      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "App shell", "summary": "Shows a sidebar that becomes a drawer or panel on small screens.", "keywords": ["sidebar", "navigation drawer"], "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
+      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "Layout", "summary": "Shows a sidebar that becomes a drawer or panel on small screens.", "keywords": ["sidebar", "navigation drawer"], "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
       "features": [
         { "feature": "A column beside the page, from its breakpoint up" },
         { "feature": "A drawer or panel on phones, opened and closed by the menu button" },
@@ -245,8 +258,9 @@
           "example": { "id": "app-sidebar-bound-collapse", "title": "Focus mode", "height": 440, "page": true, "modes": ["interactive"] } }
       ]
     },
+
     {
-      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "App shell", "summary": "Shows header links that fold into a menu on phones.", "keywords": ["navbar", "top navigation"], "parts": ["SiteNavFooter"],
+      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "Navigation", "summary": "Shows header links that fold into a menu on phones.", "keywords": ["navbar", "top navigation"], "parts": ["SiteNavFooter"],
       "features": [
         { "feature": "A row of links from the breakpoint up" },
         { "feature": "A menu button on phones; Escape or a tap outside closes the panel" },
@@ -263,22 +277,25 @@
             } } }
       ]
     },
+
     {
-      "id": "izzy-theme", "icon": "Palette", "name": "IzzyTheme", "category": "App shell", "summary": "Sets the preset, brand color, fonts and color scheme on the server.",
+      "id": "izzy-theme", "icon": "Palette", "name": "IzzyTheme", "category": "Utilities", "summary": "Sets the preset, brand color, fonts and color scheme on the server.",
       "examples": [
         { "id": "izzy-theme-presets", "title": "The four presets" },
         { "id": "izzy-theme-brands", "title": "Built-in brand colors" },
         { "id": "izzy-theme-hex-brand", "title": "Your own brand color", "lead": "To use your own brand color, set `Brand` to a hex value. The server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, and keeps text at 4.5:1 contrast." }
       ]
     },
+
     {
-      "id": "theme-scope", "icon": "PaintBucket", "name": "ThemeScope", "category": "App shell", "summary": "Themes part of a page: its brand color, density, shape or color scheme.", "keywords": ["nested theme", "theme provider", "inverse", "dark panel"],
+      "id": "theme-scope", "icon": "PaintBucket", "name": "ThemeScope", "category": "Utilities", "summary": "Themes part of a page: its brand color, density, shape or color scheme.", "keywords": ["nested theme", "theme provider", "inverse", "dark panel"],
       "examples": [
         { "id": "theme-scope-panel", "title": "A panel in another theme", "lead": "Put the content inside a ThemeScope, and set any of `Brand`, a built-in `Gray`, `Radius`, `Density`, `Preset` (shape, density and depth) and `ColorScheme`, which here can also be `Inverse`. What it doesn't set comes from the theme around it." }
       ]
     },
+
     {
-      "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets the user pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
+      "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "Utilities", "summary": "Lets the user pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
       "features": [
         { "feature": "Picks a scheme, kept in a cookie for every later page", "noscript": "none" },
         { "feature": "Changes the page at once, without a full reload; other open tabs follow", "noscript": "none", "static": "full", "interactive": "full" },
@@ -302,6 +319,7 @@
         { "id": "heading-size-level", "title": "Size apart from level", "lead": "To change how a heading looks without changing its level, set `Size`, per breakpoint or fluid with `MinSize`." }
       ]
     },
+
     {
       "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Sets paragraphs, captions and labels in the library's text styles.",
       "examples": [
@@ -312,6 +330,7 @@
         { "id": "text-block-numbers", "title": "Tabular numbers", "lead": "To give digits equal widths, so numbers line up in columns, set `TabularNums`." }
       ]
     },
+
     {
       "id": "list", "icon": "List", "name": "List", "category": "Typography", "summary": "Renders bulleted, numbered, plain or icon lists.", "parts": ["ListItem"],
       "examples": [
@@ -319,6 +338,7 @@
         { "id": "list-checklist", "title": "Icon lists", "lead": "To put an icon in place of each bullet, set `Icon` and `IconColor` on the list. An item's own `Icon` overrides it." }
       ]
     },
+
     {
       "id": "prose", "icon": "FileText", "name": "Prose", "category": "Typography", "summary": "Styles plain HTML, such as rendered Markdown.",
       "examples": [
@@ -331,6 +351,7 @@
           "example": { "id": "prose-release-notes", "title": "Release notes", "height": 1100, "page": true } }
       ]
     },
+
     {
       "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Displays HTML from an editor or a CMS safely in the page.",
       "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
@@ -339,6 +360,7 @@
         { "id": "rich-text-sanitized", "title": "What it removes", "lead": "RichText sanitizes the HTML every time it renders: scripts, event handlers, styles and `javascript:` links go, and other markup becomes the elements a rich text editor makes. HTML saved before you sanitized it can't run script on the page. To clean HTML yourself, call `RichTextSanitizer.Sanitize`." }
       ]
     },
+
     {
       "id": "markdown", "icon": "Hash", "name": "Markdown", "category": "Typography", "summary": "Shows Markdown as HTML, sanitized and styled as Prose.",
       "keywords": ["markdown", "md", "commonmark", "gfm", "readme", "release notes", "sanitize"],
@@ -346,6 +368,7 @@
         { "id": "markdown-release-notes", "title": "Release notes", "lead": "Set `Text` to the Markdown. It's CommonMark, with GitHub's tables, task lists, strikethrough and links from bare URLs. Under the page's own title, set `TopHeading` to 2.", "after": ["The Markdown becomes HTML on the server and is sanitized as `RichText` sanitizes HTML, so HTML written in it can't run script. A fenced code block's language is highlighted.", "To turn Markdown into safe HTML yourself, call `RichTextMarkdown.ToHtml`."] }
       ]
     },
+
     {
       "id": "anchor", "icon": "Link", "name": "Anchor", "category": "Typography", "summary": "Renders a text link, internal or external.",
       "examples": [
@@ -353,6 +376,7 @@
         { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Links are underlined by default. For links whose place already marks them as links, such as a nav, set `Underline` to `Hover` or `None`. To use the color of the text around a link, set `InheritColor`." }
       ]
     },
+
     {
       "id": "code", "icon": "Code", "name": "Code", "category": "Typography", "summary": "Shows inline code or a code block, highlighted on the server.",
       "examples": [
@@ -378,6 +402,7 @@
             } } }
       ]
     },
+
     {
       "id": "diff", "icon": "FileDiff", "name": "Diff", "category": "Typography", "summary": "Shows the lines two texts differ by, unified or side by side.", "keywords": ["compare", "changes", "version history"],
       "features": [
@@ -399,6 +424,7 @@
           "example": { "id": "diff-history", "title": "Version history", "height": 900, "page": true } }
       ]
     },
+
     {
       "id": "code-example", "icon": "SquareCode", "name": "CodeExample", "category": "Typography", "summary": "Shows a live example with its source under it.", "parts": ["CodeExampleFile"],
       "examples": [
@@ -416,6 +442,7 @@
           } }
       ]
     },
+
     {
       "id": "blockquote", "icon": "Quote", "name": "Blockquote", "category": "Typography", "summary": "Sets a quotation apart, with who said it and where.", "keywords": ["quote", "pull quote", "citation"],
       "examples": [
@@ -424,6 +451,7 @@
         { "id": "blockquote-pull-quote", "title": "Pull quote", "lead": "For a line lifted out of an article, center it with `Align`, enlarge it with `Size` and add `QuoteMark`." }
       ]
     },
+
     {
       "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "Shows a key or a key combination.", "keywords": ["keyboard shortcut"],
       "examples": [
@@ -431,6 +459,7 @@
         { "id": "kbd-sequence", "title": "Sequences and Mac shortcuts", "lead": "The separator is what shows between the keys, \"+\" by default. For a sequence of keys, set `Separator` to a word, such as \"then\". For a Mac shortcut, set it to an empty string." }
       ]
     },
+
     {
       "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Marks the words of a search in a text.", "keywords": ["mark", "search results"],
       "examples": [
@@ -438,6 +467,7 @@
         { "id": "highlight-anywhere", "title": "Matching anywhere", "lead": "To mark a word wherever it appears, such as a code inside a part number, set `Match` to `Anywhere`." }
       ]
     },
+
     {
       "id": "mention-text", "icon": "AtSign", "name": "MentionText", "category": "Typography", "summary": "Shows text written in a Mentions field, with each @name marked or linked.", "keywords": ["mentions", "at mention", "hashtag", "comment", "activity"],
       "examples": [
@@ -445,6 +475,7 @@
           "after": ["`Prefixes` sets the triggers to find, as on the `Mentions` field that wrote the text. `Mention.Parse` finds the same names in C#, to notify the people mentioned."] }
       ]
     },
+
     {
       "id": "icon", "icon": "Shapes", "name": "Icon", "category": "Typography", "summary": "Renders Lucide icons as inline SVG on the server.",
       "examples": [
@@ -457,7 +488,7 @@
     },
 
     {
-      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Actions", "summary": "Submits or resets a form, follows a link or runs C#.",
+      "id": "button", "icon": "MousePointerClick", "name": "Button", "category": "Buttons", "summary": "Submits or resets a form, follows a link or runs C#.",
       "features": [
         { "feature": "Submit or reset a form, follow a link" },
         { "feature": "Several submit buttons told apart by Name and Value" },
@@ -492,8 +523,9 @@
           "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 440, "page": true } }
       ]
     },
+
     {
-      "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Actions", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "extended fab"],
+      "id": "floating-button", "icon": "CirclePlus", "name": "FloatingButton", "category": "Buttons", "summary": "Floats the page's main action in a corner of the window.", "keywords": ["fab", "floating action button", "extended fab"],
       "features": [
         { "feature": "Stays in its corner as the page scrolls, above a sticky footer" },
         { "feature": "Follows a link, posts a form or runs C#" },
@@ -504,8 +536,9 @@
         { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Placement` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
       ]
     },
+
     {
-      "id": "speed-dial", "icon": "Plus", "name": "SpeedDial", "category": "Actions", "summary": "Gathers a page's create actions behind one button in a corner.", "keywords": ["speed dial", "fab menu", "floating action menu", "floating button menu"], "parts": ["SpeedDialAction"],
+      "id": "speed-dial", "icon": "Plus", "name": "SpeedDial", "category": "Buttons", "summary": "Gathers a page's create actions behind one button in a corner.", "keywords": ["speed dial", "fab menu", "floating action menu", "floating button menu"], "parts": ["SpeedDialAction"],
       "features": [
         { "feature": "Opens and closes with JavaScript off" },
         { "feature": "Actions are links, form posts or C#" },
@@ -520,8 +553,9 @@
           } }
       ]
     },
+
     {
-      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "Shows a square icon button with a required label.",
+      "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Buttons", "summary": "Shows a square icon button with a required label.",
       "features": [
         { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
@@ -538,8 +572,9 @@
           } }
       ]
     },
+
     {
-      "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Actions", "summary": "Joins or spaces buttons and gives them shared defaults.", "keywords": ["segmented buttons"],
+      "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Buttons", "summary": "Joins or spaces buttons and gives them shared defaults.", "keywords": ["segmented buttons"],
       "examples": [
         { "id": "button-group-joined", "title": "Joined buttons", "lead": "Buttons and icon buttons in a group are joined into one control. To name the group for screen readers, set `Label`." },
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "A group can set its buttons' defaults, so you set a look once. Set `Variant`, `Accent` and `Size` on the group. A button's own setting overrides them." },
@@ -547,8 +582,9 @@
         { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." }
       ]
     },
+
     {
-      "id": "toggle-button", "icon": "ToggleLeft", "name": "ToggleButton", "category": "Actions", "summary": "A button that stays on or off: a checkbox drawn as a button.", "keywords": ["toggle button", "toggle", "pressed", "on off button"],
+      "id": "toggle-button", "icon": "ToggleLeft", "name": "ToggleButton", "category": "Buttons", "summary": "A button that stays on or off: a checkbox drawn as a button.", "keywords": ["toggle button", "toggle", "pressed", "on off button"],
       "features": [
         { "feature": "Toggles, shows its state and posts with JavaScript off" },
         { "feature": "Binds a bool, in a Form or on its own" },
@@ -565,14 +601,16 @@
           } }
       ]
     },
+
     {
-      "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Actions", "summary": "Joins toggle buttons that any of can be on, such as text styles.", "keywords": ["toggle group", "toggle button group", "multiple toggle group", "formatting buttons"],
+      "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Buttons", "summary": "Joins toggle buttons that any of can be on, such as text styles.", "keywords": ["toggle group", "toggle button group", "multiple toggle group", "formatting buttons"],
       "examples": [
         { "id": "toggle-group-text-style", "title": "Text styles", "lead": "To make toggles that belong together, such as bold, italic and underline, read as one control, put them in a `ToggleGroup` and name it with `Label`. Each toggle keeps its own value, and any of them can be on.", "after": ["For one choice of several, such as text alignment, use a SegmentedControl: the single-selection toggle group of other libraries."], "modes": ["interactive"] }
       ]
     },
+
     {
-      "id": "split-button", "icon": "SquareChevronDown", "name": "SplitButton", "category": "Actions", "summary": "Pairs a main action with a menu of related ones.", "keywords": ["dropdown button", "menu button"],
+      "id": "split-button", "icon": "SquareChevronDown", "name": "SplitButton", "category": "Buttons", "summary": "Pairs a main action with a menu of related ones.", "keywords": ["dropdown button", "menu button"],
       "parts": ["ToolbarSplitButton"],
       "features": [
         { "feature": "Links, form posts and the menu opening and closing", "noscript": "full", "static": "full", "interactive": "full" },
@@ -599,8 +637,9 @@
           } }
       ]
     },
+
     {
-      "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "Lays out one row of controls and moves what doesn't fit into a … menu.", "keywords": ["action bar"],
+      "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Buttons", "summary": "Lays out one row of controls and moves what doesn't fit into a … menu.", "keywords": ["action bar"],
       "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarToggleButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarSplitButton", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
         { "feature": "What doesn't fit moves into the … menu, which opens and posts with JavaScript off", "noscript": "full", "static": "full", "interactive": "full" },
@@ -651,8 +690,9 @@
           "example": { "id": "toolbar-app-header", "title": "Mail app header", "height": 320, "page": true } }
       ]
     },
+
     {
-      "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks the user to confirm in an alert dialog before acting.", "keywords": ["are you sure"], "parts": ["ConfirmDialogContent"],
+      "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Buttons", "summary": "Asks the user to confirm in an alert dialog before acting.", "keywords": ["are you sure"], "parts": ["ConfirmDialogContent"],
       "features": [
         { "feature": "Opens its dialog (with JavaScript off, in browsers with the command attribute)", "noscript": "partial", "static": "full", "interactive": "full" },
         { "feature": "Confirming posts the form with Name and Value", "noscript": "full", "static": "full", "interactive": "none" },
@@ -674,8 +714,9 @@
           } }
       ]
     },
+
     {
-      "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Actions", "summary": "Copies text, such as an install command.", "keywords": ["clipboard"],
+      "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Buttons", "summary": "Copies text, such as an install command.", "keywords": ["clipboard"],
       "examples": [
         { "id": "copy-button-command", "title": "Copying fixed text", "lead": "To copy a fixed value, such as an install command, set `Text`.",
           "notes": {
@@ -748,6 +789,7 @@
             } } }
       ]
     },
+
     {
       "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Inputs", "summary": "Groups related fields under a legend.",
       "examples": [
@@ -757,6 +799,15 @@
         { "id": "fieldset-icons", "title": "Icons on sections", "lead": "To tell sections apart at a glance, set `Icon`. The icon is decorative." }
       ]
     },
+
+    {
+      "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Inputs", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
+      "examples": [
+        { "id": "field-frame-custom", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
+        { "id": "field-frame-addons", "title": "Add-ons", "lead": "To attach text or a button to the start or end of your own control, use `FieldAddons`." }
+      ]
+    },
+
     {
       "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Inputs", "summary": "Lets the user enter a line of text, with a label, add-ons and masks.", "keywords": ["input", "textbox", "input mask"],
       "features": [
@@ -788,6 +839,7 @@
         { "id": "text-field-states", "title": "Sizes, read-only and disabled" }
       ]
     },
+
     {
       "id": "password-field", "icon": "KeyRound", "name": "PasswordField", "category": "Inputs", "summary": "Lets the user enter a password, show it, and see a new one's requirements.", "keywords": ["password", "password input", "show password", "password strength", "password rules"],
       "features": [
@@ -816,6 +868,32 @@
           } }
       ]
     },
+
+    {
+      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Inputs", "summary": "Lets the user enter several lines of text, and can grow and count them.", "keywords": ["textarea", "multiline"],
+      "features": [
+        { "feature": "Label, hint and length limits from the model" },
+        { "feature": "Checks before posting, server messages under the field" },
+        { "feature": "Grows with the text (AutoGrow)" },
+        { "feature": "The count follows typing (ShowCount)", "noscript": "none", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "To set how many lines show, set `Rows`. Longer text scrolls." },
+        { "id": "text-area-count", "title": "Growing, with a count", "lead": "To grow the box with the text, set `AutoGrow`. To count against the limit from `[StringLength]`, set `ShowCount`.",
+          "notes": {
+            "noscript": "The count shows the length the page loaded with, and doesn't follow the typing.",
+            "static": "IzzyBlazor's script keeps the count current as the user types."
+          } },
+        { "id": "text-area-feedback", "title": "Required, with a length",
+          "notes": {
+            "noscript": "The browser stops a post that's empty or too short, with its default message.",
+            "static": "The browser stops a post that's empty or too short, with your `[Required]` or `[StringLength]` message.",
+            "interactive": "The browser checks with your `[Required]` and `[StringLength]` messages, as on static pages, and Send runs C# without a full reload."
+          } },
+        { "id": "text-area-states", "title": "Sizes, read-only and disabled" }
+      ]
+    },
+
     {
       "id": "rich-text-editor", "icon": "PenLine", "name": "RichTextEditor", "category": "Inputs", "summary": "Lets the user write formatted text, saved as sanitized HTML.", "keywords": ["wysiwyg", "html editor", "rich text", "text editor", "editor", "formatted text", "checklist", "task list"],
       "features": [
@@ -939,30 +1017,25 @@
         }
       ]
     },
+
     {
-      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Inputs", "summary": "Lets the user enter several lines of text, and can grow and count them.", "keywords": ["textarea", "multiline"],
+      "id": "mentions", "icon": "AtSign", "name": "Mentions", "category": "Inputs", "summary": "Suggests people or tags as the user types @ or # in a text area, and writes the chosen name into the text.", "keywords": ["mention", "at mention", "tag", "hashtag", "@", "typeahead", "comment box"],
       "features": [
-        { "feature": "Label, hint and length limits from the model" },
-        { "feature": "Checks before posting, server messages under the field" },
-        { "feature": "Grows with the text (AutoGrow)" },
-        { "feature": "The count follows typing (ShowCount)", "noscript": "none", "static": "full", "interactive": "full" }
+        { "feature": "The value is the plain text, posted with the form" },
+        { "feature": "Typing a trigger suggests names at the caret, narrowed as you type", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Search fills each trigger's suggestions when the page loads" },
+        { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "To set how many lines show, set `Rows`. Longer text scrolls." },
-        { "id": "text-area-count", "title": "Growing, with a count", "lead": "To grow the box with the text, set `AutoGrow`. To count against the limit from `[StringLength]`, set `ShowCount`.",
-          "notes": {
-            "noscript": "The count shows the length the page loaded with, and doesn't follow the typing.",
-            "static": "IzzyBlazor's script keeps the count current as the user types."
-          } },
-        { "id": "text-area-feedback", "title": "Required, with a length",
-          "notes": {
-            "noscript": "The browser stops a post that's empty or too short, with its default message.",
-            "static": "The browser stops a post that's empty or too short, with your `[Required]` or `[StringLength]` message.",
-            "interactive": "The browser checks with your `[Required]` and `[StringLength]` messages, as on static pages, and Send runs C# without a full reload."
-          } },
-        { "id": "text-area-states", "title": "Sizes, read-only and disabled" }
+        { "id": "mentions-people", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
+          "after": ["A mention ends at a space, so `ItemText` should be a handle without spaces. `Placement=\"MentionsPlacement.Top\"` opens the list above the line, for a box at the bottom of the page."] },
+        { "id": "mentions-search", "title": "Searching a directory", "lead": "For a list too long to send whole, set `Search`. It gets a `MentionQuery`, the trigger and what's typed after it, and returns the first matches. Each pause in typing asks again." },
+        { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows.",
+          "after": ["`MentionText` shows the saved text with its names marked or linked."] },
+        { "id": "mentions-triggers", "title": "People and issues", "lead": "`Prefixes` sets the triggers. `Search` gets the one typed, so `@` can list people and `#` issues." }
       ]
     },
+
     {
       "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Inputs", "summary": "Lets the user enter a number, with step buttons.", "keywords": ["numeric input"],
       "features": [
@@ -989,152 +1062,118 @@
           } }
       ]
     },
+
     {
-      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Date & time", "summary": "Takes a due date, a birthday or an appointment's date and time, typed or picked from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
+      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Inputs", "summary": "Accepts a one-time code or a PIN, with a box for each character.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code", "pin input", "code input", "authenticator"],
       "features": [
-        { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
-        { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
-        { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
-        { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
+        { "feature": "Pasting, autofill and screen readers work as in a text field" },
+        { "feature": "A box per character", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Spaces and dashes dropped, the length checked on the server" }
       ],
       "examples": [
-        { "id": "date-field-limits", "title": "Limits from the model", "lead": "Limits set the earliest and latest dates the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. This example sets the check-out date's `Min` from the check-in date.",
+        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It accepts six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
           "notes": {
-            "noscript": "The browser stops a check-in outside 2027, with its default message.",
-            "static": "The browser stops a check-in outside 2027, with your `[Range]` message.",
-            "interactive": "Check-out's earliest date follows Check-in as it changes."
+            "noscript": "Verify posts the code; the field is one wide text box, not boxes.",
+            "static": "Verify posts the code without a full reload.",
+            "interactive": "Verify runs C# without a full reload."
           } },
-        { "id": "date-field-time-zones", "title": "Time zones", "lead": "A field with a time reads it in a time zone, the one the user types times in. It's UTC unless you set `TimeZone`. A `DateTime` comes back in UTC, and a `DateTimeOffset` with the zone's offset.",
-          "notes": {
-            "noscript": "The server reads the New York time in its own zone, so the saved offset is the server's.",
-            "static": "IzzyBlazor's script posts the New York time with its offset, so the saved value is correct."
-          } },
-        { "id": "date-field-days", "title": "Disabled days and the browser's calendar", "lead": "To turn days off, set `DateDisabled`; the server checks it too. To keep the browser's calendar, set `UseNative`.",
-          "notes": {
-            "noscript": "The browser's calendar opens on both fields, and the server rejects a day that's off.",
-            "static": "On a phone, Reminder opens the browser's calendar and Delivery opens this one, since a browser's calendar can't show which days are off."
-          } },
-        { "id": "date-field-states", "title": "Sizes, read-only and disabled" }
+        { "id": "pin-field-pin", "title": "PINs and codes with letters", "lead": "To hide a PIN, set `Secret` and an `AutoComplete` of `current-password`, so password managers save it and screen readers don't read it out. `Length` sets the number of boxes, and `Letters` accepts letters too, upper-cased." }
       ]
     },
+
     {
-      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Date & time", "summary": "Takes an opening hour, a reminder or a meeting's start, typed or picked from a list.", "keywords": ["time picker", "clock", "hours"],
+      "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Inputs", "summary": "Shows a checkbox styled to match the fields.",
+      "examples": [
+        { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
+          "notes": {
+            "noscript": "The browser stops the post until the box is checked, with its default message.",
+            "static": "The browser stops the post until the box is checked, with your `[Required]` message.",
+            "interactive": "The browser stops the post with your `[Required]` message, and clearing a checked box shows the message under it at once."
+          } },
+        { "id": "checkbox-select-all", "title": "Indeterminate (select all)", "modes": ["interactive"], "lead": "A box can stand for several others, as a select-all box does. When only some of them are checked, set `Indeterminate` to show a dash. Set the others from the box's `ValueChanged`." },
+        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "To match a box to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` box doesn't post." }
+      ]
+    },
+
+    {
+      "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Inputs", "summary": "Lets the user pick several choices from a list of checkboxes.",
+      "examples": [
+        { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "A `CheckboxGroup` binds to a collection: an array, `List` or `HashSet`. Pass the options to `Items`. Each checked box posts its value, so the group works with JavaScript off." },
+        { "id": "checkbox-group-chips", "title": "Filter chips", "lead": "To show the options as filter chips in a wrapping row, set `Chips`. They're still checkboxes: posting, keys and what screen readers hear don't change." },
+        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "To add a line under each option's name, set `ItemDescription`. Screen readers read it as the box's description." },
+        { "id": "checkbox-group-everything", "title": "Select all", "lead": "To add a box above the options that checks or clears them all, set `SelectAll`. `SelectAllText` sets its text.",
+          "notes": {
+            "noscript": "The Everything box isn't shown, since it needs IzzyBlazor's script. The user checks each topic."
+          } },
+        { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "To require at least one checked box, put `[Required]` and `[MinLength(1)]` together on the property.",
+          "notes": {
+            "noscript": "Saving with no box checked posts the form, and the page reloads with the message under the group. The message stays until the next Save.",
+            "static": "Saving with no box checked shows the message under the group without a full reload. The message stays until the next Save.",
+            "interactive": "Save checks the group without a post, and the message comes and goes as boxes are checked and cleared."
+          } },
+        { "id": "checkbox-group-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. `Disabled` boxes don't post." }
+      ]
+    },
+
+    {
+      "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Inputs", "summary": "Shows an on/off switch that posts like a checkbox.", "keywords": ["toggle"],
+      "examples": [
+        { "id": "switch-control-end", "title": "At the end of the row", "lead": "To put the switch at the end of the row, with the hint under the label, as in a list of settings, set `ControlPosition` to `ControlPosition.End`." },
+        { "id": "switch-icons", "title": "Icons on rows", "lead": "To put a decorative icon at the start of the row, set `Icon`. Give every row in a group an icon, or none." },
+        { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "On interactive pages, `@bind-Value:after` can save each change as it happens. On static pages, add a Save button.",
+          "notes": {
+            "noscript": "Switching changes nothing until Save posts the form.",
+            "static": "Switching changes nothing until Save posts the form, without a full reload.",
+            "interactive": "Each switch saves at once, with no button."
+          } },
+        { "id": "switch-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. A `Disabled` switch doesn't post." }
+      ],
+      "scenarios": [
+        { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
+          "description": "A settings page: switches (and one checkbox) at the end of each row with hints under their labels, grouped in fieldsets with dividers and section icons, and one form that saves them all. Every switch posts like a checkbox, so it works with JavaScript off.",
+          "example": { "id": "switch-notification-settings", "title": "Notification settings", "height": 940, "page": true } }
+      ]
+    },
+
+    {
+      "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Inputs", "summary": "Lets the user pick one choice from a list of radio buttons.",
+      "examples": [
+        { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default. To put a few short ones in a row, set `Orientation` to `Orientation.Horizontal`; they wrap when space runs out." },
+        { "id": "radio-group-chips", "title": "Chips", "lead": "To show the options as chips in a wrapping row, set `Chips`. They're still radio buttons: posting, keys and what screen readers hear don't change." },
+        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "For options that aren't an enum, set `Items`. `ItemText` sets how each option reads." },
+        { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "To start with nothing chosen and require a choice, bind a nullable property with `[Required]`.",
+          "notes": {
+            "noscript": "The browser stops the post until an option is chosen, with its default message.",
+            "static": "The browser stops the post until an option is chosen, with your `[Required]` message.",
+            "interactive": "The browser stops the post with your `[Required]` message, as on static pages, and Send runs C# without a full reload."
+          } },
+        { "id": "radio-group-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. A `Disabled` group doesn't post." }
+      ]
+    },
+
+    {
+      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Inputs", "summary": "Lets the user pick one of a few choices from joined buttons.", "keywords": ["exclusive toggle group", "single toggle group", "single select button group", "radio buttons as buttons"],
+      "examples": [
+        { "id": "segmented-control-icons", "title": "Icons", "lead": "To put an icon before each option's text, set `ItemIcon`. To show only the icons, set `IconOnly`; the text becomes a tooltip and stays for screen readers." },
+        { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "To share the width equally between the segments, set `FullWidth`. To keep the label for screen readers only, set `HideLabel`." },
+        { "id": "segmented-control-sizes", "title": "Sizes and disabled", "lead": "To match the control to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` control doesn't post." }
+      ]
+    },
+
+    {
+      "id": "pick-list", "icon": "ArrowLeftRight", "name": "PickList", "category": "Inputs", "summary": "Lets the user choose items by moving them from one list to another, in the order they want.", "keywords": ["transfer list", "dual list box", "list builder", "shuttle", "columns picker"],
       "features": [
-        { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
-        { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
-        { "feature": "Binds TimeOnly, and a window across midnight when Min is after Max" }
+        { "feature": "Two lists, the move buttons, double-click and Enter", "noscript": "none" },
+        { "feature": "Dragging between the lists and within Chosen", "noscript": "none" },
+        { "feature": "Search over each list", "noscript": "none" },
+        { "feature": "The chosen items post in their order" }
       ],
       "examples": [
-        { "id": "time-field-limits", "title": "Limits", "lead": "To limit the times the user can choose, set `Min` and `Max` on the field, or put `[Range]` on the property. This example sets the closing time's `Min` from the opening time.", "after": ["For a window across midnight, such as a night shift from 10 PM to 6 AM, set `Min` later than `Max`."],
-          "notes": {
-            "static": "The server rejects a time outside the limits, whatever the browser let through."
-          } },
-        { "id": "time-field-slots", "title": "The list of times", "lead": "The list offers a time every `Step`, or every 30 minutes without one; then the input still accepts any minute. To turn times off, set `TimeDisabled`; the server enforces it too. To keep the browser's picker, set `UseNative`.",
-          "notes": {
-            "noscript": "The browser's picker opens instead, so `TimeDisabled` is enforced only when the form posts."
-          } },
-        { "id": "time-field-states", "title": "Steps, sizes, read-only and disabled", "lead": "The step is the increment a time moves by. To change it, set `Step`. A step under a minute shows seconds." }
+        { "id": "pick-list-columns", "title": "Columns, in order", "lead": "Bind `Value` to a collection and set `Items`. To let people set the order, set `Reorderable`: Move up and Move down sit beside the chosen list, and items drag within it. The chosen items post in their order." },
+        { "id": "pick-list-team", "title": "Search and a template", "lead": "For a longer list, set `Searchable`: a search box goes over each list, and Move all moves only the matches. To draw each item, set `ItemTemplate`; `ItemText` is what search matches." }
       ]
     },
-    {
-      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Date & time", "summary": "Lets the user choose a range of whole days, both ends included.", "keywords": ["date range", "date range picker", "from to", "period"],
-      "features": [
-        { "feature": "Two date inputs in one field, posting each end, with the end's minimum following the start" },
-        { "feature": "Months side by side to choose from, and presets beside them", "noscript": "none" },
-        { "feature": "Min, Max, MinDays, MaxDays and disabled days checked on the server" },
-        { "feature": "Binds DateRange, whose days keep midnight out of it, with Contains and ToUtc for queries" }
-      ],
-      "examples": [
-        { "id": "date-range-field-limits", "title": "Limits", "lead": "The server enforces `Min`, `Max`, `MinDays` and `MaxDays`, even if the browser lets a value through. `DateDisabled` rejects a range with a disabled day in it; with `AllowDisabledInRange`, only the ends are checked.",
-          "notes": {
-            "static": "The server rejects a range outside the rules, whatever the browser let through."
-          } },
-        { "id": "date-range-field-presets", "title": "Presets", "lead": "To offer ranges one click away, set `Presets` to `DateRangePreset.Common` for the usual ones, or list your own.", "after": ["Presets are absolute days counted from the today you pass to `DateRangePreset.Common`, so they follow your time zone. A preset the field's rules would reject is disabled."],
-          "notes": {
-            "noscript": "The presets show with the months, so only the two date inputs remain."
-          } },
-        { "id": "date-range-field-states", "title": "Open ends, sizes, read-only and disabled", "lead": "Either end can stay empty unless the field is `Required`. To change the captions, set `StartText` and `EndText`." }
-      ]
-    },
-    {
-      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Date & time", "summary": "Picks a set of days, such as time off or a class's dates, by clicking each one.", "keywords": ["multiple dates", "date picker", "several dates"],
-      "features": [
-        { "feature": "A month where each day toggles, in a panel or on the page", "noscript": "partial" },
-        { "feature": "Min, Max and DateDisabled checked for each date on the server" },
-        { "feature": "Binds an array, List or HashSet of DateOnly" }
-      ],
-      "examples": [
-        { "id": "multi-date-field-days-off", "title": "Days off", "lead": "Choosing a day toggles it and writes the value at once, so the panel stays open. With `Required`, the user must choose at least one day. The server checks the rules for each date.",
-          "notes": {
-            "noscript": "A date input shows for each date, plus an empty one, so the user can add one more date with each post."
-          } },
-        { "id": "multi-date-field-inline", "title": "On the page", "lead": "To show the month on the page in place of the button, set `Inline`." }
-      ]
-    },
-    {
-      "id": "month-field", "icon": "CalendarFold", "name": "MonthField", "category": "Date & time", "summary": "Lets the user choose a month, such as a card's expiry, from a page of twelve.", "keywords": ["month picker", "month input", "expiry date"],
-      "features": [
-        { "feature": "A page of twelve months to choose from", "noscript": "partial" },
-        { "feature": "Binds the 1st of the month, in a DateOnly or DateTime" },
-        { "feature": "Min and Max compare whole months, and are checked again on the server" }
-      ],
-      "examples": [
-        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
-          "notes": {
-            "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
-            "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
-          } }
-      ]
-    },
-    {
-      "id": "year-field", "icon": "Calendar1", "name": "YearField", "category": "Date & time", "summary": "Lets the user type a year, or choose it from a page of twelve.", "keywords": ["year picker", "year input"],
-      "features": [
-        { "feature": "A page of twelve years beside the input", "noscript": "partial" },
-        { "feature": "Binds an int" }
-      ],
-      "examples": [
-        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
-          "notes": {
-            "noscript": "A number input, with no page of years."
-          } }
-      ]
-    },
-    {
-      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Date & time", "summary": "Puts a month on the page itself, for picking a day without opening a field.", "keywords": ["month", "date", "inline calendar", "week numbers"],
-      "features": [
-        { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
-        { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
-        { "feature": "Binds DateOnly, on the Gregorian calendar" }
-      ],
-      "examples": [
-        { "id": "calendar-limits", "title": "Limits", "lead": "Limits set the earliest and latest days the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. Days outside them are marked.",
-          "notes": {
-            "static": "The server rejects a date outside the limits, whatever the browser let through."
-          } },
-        { "id": "calendar-days", "title": "Disabled days and classes", "lead": "To turn days off, set `DateDisabled`; to give days a class of your own, set `DayClass`. Keep both quick, since the server calls them for many days. To set how far from the value or today the server calls them, set `DateDisabledWindow`.",
-          "notes": {
-            "static": "The server rejects a day that's off, whatever the browser let through."
-          } },
-        { "id": "calendar-periods", "title": "A month or a year", "lead": "A calendar can show a page of months or a page of years in place of days. Set `Type`: a month is stored as the 1st of the chosen one, and a year in an `int`." },
-        { "id": "calendar-culture", "title": "Culture and weeks", "lead": "The culture sets the day and month names and the first day of the week. To change them, set `Culture`, or set `FirstDayOfWeek` to change only the first day.", "after": ["To add a column of week numbers, set `ShowWeekNumbers`. To leave out other months' days, set `ShowAdjacentDays` to false."] },
-        { "id": "calendar-states", "title": "Sizes, read-only and disabled", "lead": "To match other fields, set `Size`. It scales the field and the month together." }
-      ]
-    },
-    {
-      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Date & time", "summary": "Takes a timeout, a cooking time or a video's length in hours, minutes and seconds.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
-      "features": [
-        { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
-        { "feature": "Min and Max checked on the server" },
-        { "feature": "Binds TimeSpan, with a sign when Min is negative" }
-      ],
-      "examples": [
-        { "id": "duration-field-limits", "title": "Units and limits", "lead": "To choose which boxes the field shows, from days to seconds, set `LargestUnit` and `SmallestUnit`. To limit the duration, set `Min` and `Max` on the field, or put `[Range]` on the property.", "after": ["The server checks the limits when the form posts."],
-          "notes": {
-            "noscript": "One text box accepts the length as hh:mm:ss, or d.hh:mm:ss with days."
-          } },
-        { "id": "duration-field-states", "title": "Steps, signs, sizes, read-only and disabled", "lead": "The step is the increment of the smallest box. To change it, set `Step`. To allow a negative length, set a negative `Min`; the field then has a sign." }
-      ]
-    },
+
     {
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Inputs", "summary": "Lets the user pick a number by dragging along a range.", "keywords": ["range"],
       "features": [
@@ -1170,6 +1209,7 @@
           } }
       ]
     },
+
     {
       "id": "range-slider", "icon": "SlidersHorizontal", "name": "RangeSlider", "category": "Inputs", "summary": "Lets the user pick a span of numbers with two thumbs on one track.", "keywords": ["range", "two thumbs", "dual slider", "price filter", "min max"],
       "features": [
@@ -1193,6 +1233,7 @@
           } }
       ]
     },
+
     {
       "id": "rating", "icon": "Star", "name": "Rating", "category": "Inputs", "summary": "Lets the user rate with stars, and shows a rating.", "keywords": ["stars", "review", "score"],
       "features": [
@@ -1210,39 +1251,161 @@
         { "id": "rating-display", "title": "Showing a rating", "lead": "With `ReadOnly`, a rating shows any value, `double` too, filled to the exact fraction. `Icon`, `Accent` and `Max` change the stars." }
       ]
     },
+
     {
-      "id": "pin-field", "icon": "RectangleEllipsis", "name": "PinField", "category": "Inputs", "summary": "Accepts a one-time code or a PIN, with a box for each character.", "keywords": ["one-time code", "otp", "verification code", "two-factor", "2fa", "pin", "security code", "pin input", "code input", "authenticator"],
+      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Inputs", "summary": "Takes a due date, a birthday or an appointment's date and time, typed or picked from a calendar.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
-        { "feature": "Pasting, autofill and screen readers work as in a text field" },
-        { "feature": "A box per character", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "Spaces and dashes dropped, the length checked on the server" }
+        { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
+        { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
+        { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
+        { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It accepts six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
+        { "id": "date-field-limits", "title": "Limits from the model", "lead": "Limits set the earliest and latest dates the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. This example sets the check-out date's `Min` from the check-in date.",
           "notes": {
-            "noscript": "Verify posts the code; the field is one wide text box, not boxes.",
-            "static": "Verify posts the code without a full reload.",
-            "interactive": "Verify runs C# without a full reload."
+            "noscript": "The browser stops a check-in outside 2027, with its default message.",
+            "static": "The browser stops a check-in outside 2027, with your `[Range]` message.",
+            "interactive": "Check-out's earliest date follows Check-in as it changes."
           } },
-        { "id": "pin-field-pin", "title": "PINs and codes with letters", "lead": "To hide a PIN, set `Secret` and an `AutoComplete` of `current-password`, so password managers save it and screen readers don't read it out. `Length` sets the number of boxes, and `Letters` accepts letters too, upper-cased." }
+        { "id": "date-field-time-zones", "title": "Time zones", "lead": "A field with a time reads it in a time zone, the one the user types times in. It's UTC unless you set `TimeZone`. A `DateTime` comes back in UTC, and a `DateTimeOffset` with the zone's offset.",
+          "notes": {
+            "noscript": "The server reads the New York time in its own zone, so the saved offset is the server's.",
+            "static": "IzzyBlazor's script posts the New York time with its offset, so the saved value is correct."
+          } },
+        { "id": "date-field-days", "title": "Disabled days and the browser's calendar", "lead": "To turn days off, set `DateDisabled`; the server checks it too. To keep the browser's calendar, set `UseNative`.",
+          "notes": {
+            "noscript": "The browser's calendar opens on both fields, and the server rejects a day that's off.",
+            "static": "On a phone, Reminder opens the browser's calendar and Delivery opens this one, since a browser's calendar can't show which days are off."
+          } },
+        { "id": "date-field-states", "title": "Sizes, read-only and disabled" }
       ]
     },
+
     {
-      "id": "color-panel", "icon": "Palette", "name": "ColorPanel", "category": "Inputs", "summary": "Lets the user choose a color inline: swatches, a picker, or both.", "keywords": ["color picker", "swatches", "palette", "hex", "rgb", "opacity", "eyedropper"],
+      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Inputs", "summary": "Takes an opening hour, a reminder or a meeting's start, typed or picked from a list.", "keywords": ["time picker", "clock", "hours"],
       "features": [
-        { "feature": "Swatches that post with the form" },
-        { "feature": "Picker, opacity slider and number fields", "noscript": "none" }
+        { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
+        { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
+        { "feature": "Binds TimeOnly, and a window across midnight when Min is after Max" }
       ],
       "examples": [
-        { "id": "color-panel-usage", "title": "Swatches and a picker", "lead": "A ColorPanel shows swatches for the usual choices and a picker for any other color. The value is a hex string such as `#22c55e`.", "after": ["The picker has a saturation and brightness area, a hue slider, and hex and RGB fields. Beside the sliders, a swatch shows the current color.", "To set your own swatches, set `Swatches`. To hide the picker or the fields, set `ShowPicker` or `ShowFields` to false."],
+        { "id": "time-field-limits", "title": "Limits", "lead": "To limit the times the user can choose, set `Min` and `Max` on the field, or put `[Range]` on the property. This example sets the closing time's `Min` from the opening time.", "after": ["For a window across midnight, such as a night shift from 10 PM to 6 AM, set `Min` later than `Max`."],
           "notes": {
-            "noscript": "The swatches choose the color and post with the form; the picker, sliders and number fields need script, and don't show.",
-            "static": "IzzyBlazor's script runs the picker and fields, and keeps one value that posts with the form."
+            "static": "The server rejects a time outside the limits, whatever the browser let through."
           } },
-        { "id": "color-panel-swatches-only", "title": "Swatches only", "lead": "For a fixed set of colors, set `ShowPicker` and `ShowFields` to false and give `Swatches`. Name each with `SwatchText`; otherwise screen readers hear the color's name, such as \"light green\". `Clearable` adds a swatch for no color." },
-        { "id": "color-panel-opacity", "title": "Any color, see-through", "lead": "For the picker alone, set `Swatches` to an empty list. `ShowAlpha` adds an opacity slider and field, and the value becomes `#rrggbbaa` when the color isn't opaque. `ShowEyedropper` adds a button that picks a color from the screen, in browsers that have one." }
+        { "id": "time-field-slots", "title": "The list of times", "lead": "The list offers a time every `Step`, or every 30 minutes without one; then the input still accepts any minute. To turn times off, set `TimeDisabled`; the server enforces it too. To keep the browser's picker, set `UseNative`.",
+          "notes": {
+            "noscript": "The browser's picker opens instead, so `TimeDisabled` is enforced only when the form posts."
+          } },
+        { "id": "time-field-states", "title": "Steps, sizes, read-only and disabled", "lead": "The step is the increment a time moves by. To change it, set `Step`. A step under a minute shows seconds." }
       ]
     },
+
+    {
+      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Inputs", "summary": "Lets the user choose a range of whole days, both ends included.", "keywords": ["date range", "date range picker", "from to", "period"],
+      "features": [
+        { "feature": "Two date inputs in one field, posting each end, with the end's minimum following the start" },
+        { "feature": "Months side by side to choose from, and presets beside them", "noscript": "none" },
+        { "feature": "Min, Max, MinDays, MaxDays and disabled days checked on the server" },
+        { "feature": "Binds DateRange, whose days keep midnight out of it, with Contains and ToUtc for queries" }
+      ],
+      "examples": [
+        { "id": "date-range-field-limits", "title": "Limits", "lead": "The server enforces `Min`, `Max`, `MinDays` and `MaxDays`, even if the browser lets a value through. `DateDisabled` rejects a range with a disabled day in it; with `AllowDisabledInRange`, only the ends are checked.",
+          "notes": {
+            "static": "The server rejects a range outside the rules, whatever the browser let through."
+          } },
+        { "id": "date-range-field-presets", "title": "Presets", "lead": "To offer ranges one click away, set `Presets` to `DateRangePreset.Common` for the usual ones, or list your own.", "after": ["Presets are absolute days counted from the today you pass to `DateRangePreset.Common`, so they follow your time zone. A preset the field's rules would reject is disabled."],
+          "notes": {
+            "noscript": "The presets show with the months, so only the two date inputs remain."
+          } },
+        { "id": "date-range-field-states", "title": "Open ends, sizes, read-only and disabled", "lead": "Either end can stay empty unless the field is `Required`. To change the captions, set `StartText` and `EndText`." }
+      ]
+    },
+
+    {
+      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Inputs", "summary": "Picks a set of days, such as time off or a class's dates, by clicking each one.", "keywords": ["multiple dates", "date picker", "several dates"],
+      "features": [
+        { "feature": "A month where each day toggles, in a panel or on the page", "noscript": "partial" },
+        { "feature": "Min, Max and DateDisabled checked for each date on the server" },
+        { "feature": "Binds an array, List or HashSet of DateOnly" }
+      ],
+      "examples": [
+        { "id": "multi-date-field-days-off", "title": "Days off", "lead": "Choosing a day toggles it and writes the value at once, so the panel stays open. With `Required`, the user must choose at least one day. The server checks the rules for each date.",
+          "notes": {
+            "noscript": "A date input shows for each date, plus an empty one, so the user can add one more date with each post."
+          } },
+        { "id": "multi-date-field-inline", "title": "On the page", "lead": "To show the month on the page in place of the button, set `Inline`." }
+      ]
+    },
+
+    {
+      "id": "month-field", "icon": "CalendarFold", "name": "MonthField", "category": "Inputs", "summary": "Lets the user choose a month, such as a card's expiry, from a page of twelve.", "keywords": ["month picker", "month input", "expiry date"],
+      "features": [
+        { "feature": "A page of twelve months to choose from", "noscript": "partial" },
+        { "feature": "Binds the 1st of the month, in a DateOnly or DateTime" },
+        { "feature": "Min and Max compare whole months, and are checked again on the server" }
+      ],
+      "examples": [
+        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
+          "notes": {
+            "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
+            "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
+          } }
+      ]
+    },
+
+    {
+      "id": "year-field", "icon": "Calendar1", "name": "YearField", "category": "Inputs", "summary": "Lets the user type a year, or choose it from a page of twelve.", "keywords": ["year picker", "year input"],
+      "features": [
+        { "feature": "A page of twelve years beside the input", "noscript": "partial" },
+        { "feature": "Binds an int" }
+      ],
+      "examples": [
+        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
+          "notes": {
+            "noscript": "A number input, with no page of years."
+          } }
+      ]
+    },
+
+    {
+      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Inputs", "summary": "Takes a timeout, a cooking time or a video's length in hours, minutes and seconds.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
+      "features": [
+        { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
+        { "feature": "Min and Max checked on the server" },
+        { "feature": "Binds TimeSpan, with a sign when Min is negative" }
+      ],
+      "examples": [
+        { "id": "duration-field-limits", "title": "Units and limits", "lead": "To choose which boxes the field shows, from days to seconds, set `LargestUnit` and `SmallestUnit`. To limit the duration, set `Min` and `Max` on the field, or put `[Range]` on the property.", "after": ["The server checks the limits when the form posts."],
+          "notes": {
+            "noscript": "One text box accepts the length as hh:mm:ss, or d.hh:mm:ss with days."
+          } },
+        { "id": "duration-field-states", "title": "Steps, signs, sizes, read-only and disabled", "lead": "The step is the increment of the smallest box. To change it, set `Step`. To allow a negative length, set a negative `Min`; the field then has a sign." }
+      ]
+    },
+
+    {
+      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Inputs", "summary": "Puts a month on the page itself, for picking a day without opening a field.", "keywords": ["month", "date", "inline calendar", "week numbers"],
+      "features": [
+        { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
+        { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
+        { "feature": "Binds DateOnly, on the Gregorian calendar" }
+      ],
+      "examples": [
+        { "id": "calendar-limits", "title": "Limits", "lead": "Limits set the earliest and latest days the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. Days outside them are marked.",
+          "notes": {
+            "static": "The server rejects a date outside the limits, whatever the browser let through."
+          } },
+        { "id": "calendar-days", "title": "Disabled days and classes", "lead": "To turn days off, set `DateDisabled`; to give days a class of your own, set `DayClass`. Keep both quick, since the server calls them for many days. To set how far from the value or today the server calls them, set `DateDisabledWindow`.",
+          "notes": {
+            "static": "The server rejects a day that's off, whatever the browser let through."
+          } },
+        { "id": "calendar-periods", "title": "A month or a year", "lead": "A calendar can show a page of months or a page of years in place of days. Set `Type`: a month is stored as the 1st of the chosen one, and a year in an `int`." },
+        { "id": "calendar-culture", "title": "Culture and weeks", "lead": "The culture sets the day and month names and the first day of the week. To change them, set `Culture`, or set `FirstDayOfWeek` to change only the first day.", "after": ["To add a column of week numbers, set `ShowWeekNumbers`. To leave out other months' days, set `ShowAdjacentDays` to false."] },
+        { "id": "calendar-states", "title": "Sizes, read-only and disabled", "lead": "To match other fields, set `Size`. It scales the field and the month together." }
+      ]
+    },
+
     {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Inputs", "summary": "A swatch and a hex box; the swatch opens a color panel.",
       "features": [
@@ -1269,6 +1432,24 @@
           } }
       ]
     },
+
+    {
+      "id": "color-panel", "icon": "Palette", "name": "ColorPanel", "category": "Inputs", "summary": "Lets the user choose a color inline: swatches, a picker, or both.", "keywords": ["color picker", "swatches", "palette", "hex", "rgb", "opacity", "eyedropper"],
+      "features": [
+        { "feature": "Swatches that post with the form" },
+        { "feature": "Picker, opacity slider and number fields", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "color-panel-usage", "title": "Swatches and a picker", "lead": "A ColorPanel shows swatches for the usual choices and a picker for any other color. The value is a hex string such as `#22c55e`.", "after": ["The picker has a saturation and brightness area, a hue slider, and hex and RGB fields. Beside the sliders, a swatch shows the current color.", "To set your own swatches, set `Swatches`. To hide the picker or the fields, set `ShowPicker` or `ShowFields` to false."],
+          "notes": {
+            "noscript": "The swatches choose the color and post with the form; the picker, sliders and number fields need script, and don't show.",
+            "static": "IzzyBlazor's script runs the picker and fields, and keeps one value that posts with the form."
+          } },
+        { "id": "color-panel-swatches-only", "title": "Swatches only", "lead": "For a fixed set of colors, set `ShowPicker` and `ShowFields` to false and give `Swatches`. Name each with `SwatchText`; otherwise screen readers hear the color's name, such as \"light green\". `Clearable` adds a swatch for no color." },
+        { "id": "color-panel-opacity", "title": "Any color, see-through", "lead": "For the picker alone, set `Swatches` to an empty list. `ShowAlpha` adds an opacity slider and field, and the value becomes `#rrggbbaa` when the color isn't opaque. `ShowEyedropper` adds a button that picks a color from the screen, in browsers that have one." }
+      ]
+    },
+
     {
       "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Inputs", "summary": "Lets the user choose or drop files, with a real file input inside.", "keywords": ["dropzone", "file input"],
       "features": [
@@ -1297,13 +1478,7 @@
           } }
       ]
     },
-    {
-      "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Inputs", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
-      "examples": [
-        { "id": "field-frame-custom", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
-        { "id": "field-frame-addons", "title": "Add-ons", "lead": "To attach text or a button to the start or end of your own control, use `FieldAddons`." }
-      ]
-    },
+
     {
       "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Data", "summary": "Lets the user ask detailed questions of a grid's data, such as \"open orders over $500 from Europe\".",
       "features": [
@@ -1314,6 +1489,7 @@
         { "id": "filter-builder-orders", "title": "Filtering a list", "lead": "A filter builder combines rules on a list's fields, in groups. To set the fields it offers, set `Fields`. Apply puts the filter in the URL as `?filter=`, and the page reads it with `Filter.TryParse`." }
       ]
     },
+
     {
       "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Data", "summary": "Puts a search and filters in the URL for the page to read.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterDate", "FilterCheckbox"],
       "features": [
@@ -1358,7 +1534,7 @@
     },
 
     {
-      "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "Shows a native select, themed where the browser allows.", "keywords": ["dropdown", "picker"],
+      "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Dropdowns", "summary": "Shows a native select, themed where the browser allows.", "keywords": ["dropdown", "picker"],
       "examples": [
         { "id": "select-options", "title": "Options" },
         { "id": "select-rich", "title": "Rich options",
@@ -1375,8 +1551,9 @@
         { "id": "select-states", "title": "Sizes, read-only and disabled" }
       ]
     },
+
     {
-      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Lets the user type to filter a list of options, with server search on interactive pages.", "keywords": ["typeahead"],
+      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Dropdowns", "summary": "Lets the user type to filter a list of options, with server search on interactive pages.", "keywords": ["typeahead"],
       "features": [
         { "feature": "Choose an option, posted with the form" },
         { "feature": "Typing narrows the list in the browser, ignoring case and accents", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1411,8 +1588,9 @@
         { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "To line up with other controls, set `Size`. A `ReadOnly` value posts but can't change; a `Disabled` one doesn't post." }
       ]
     },
+
     {
-      "id": "autocomplete", "icon": "TextCursorInput", "name": "Autocomplete", "category": "Selection", "summary": "Suggests as the user types, and takes any text.", "keywords": ["typeahead", "suggestions", "datalist"],
+      "id": "autocomplete", "icon": "TextCursorInput", "name": "Autocomplete", "category": "Dropdowns", "summary": "Suggests as the user types, and takes any text.", "keywords": ["typeahead", "suggestions", "datalist"],
       "features": [
         { "feature": "Any typed text is the value, posted with the form" },
         { "feature": "Typing narrows the suggestions in the browser, ignoring case and accents", "noscript": "partial", "static": "full", "interactive": "full" },
@@ -1434,38 +1612,9 @@
           } }
       ]
     },
+
     {
-      "id": "mentions", "icon": "AtSign", "name": "Mentions", "category": "Inputs", "summary": "Suggests people or tags as the user types @ or # in a text area, and writes the chosen name into the text.", "keywords": ["mention", "at mention", "tag", "hashtag", "@", "typeahead", "comment box"],
-      "features": [
-        { "feature": "The value is the plain text, posted with the form" },
-        { "feature": "Typing a trigger suggests names at the caret, narrowed as you type", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "Search fills each trigger's suggestions when the page loads" },
-        { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" }
-      ],
-      "examples": [
-        { "id": "mentions-people", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
-          "after": ["A mention ends at a space, so `ItemText` should be a handle without spaces. `Placement=\"MentionsPlacement.Top\"` opens the list above the line, for a box at the bottom of the page."] },
-        { "id": "mentions-search", "title": "Searching a directory", "lead": "For a list too long to send whole, set `Search`. It gets a `MentionQuery`, the trigger and what's typed after it, and returns the first matches. Each pause in typing asks again." },
-        { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows.",
-          "after": ["`MentionText` shows the saved text with its names marked or linked."] },
-        { "id": "mentions-triggers", "title": "People and issues", "lead": "`Prefixes` sets the triggers. `Search` gets the one typed, so `@` can list people and `#` issues." }
-      ]
-    },
-    {
-      "id": "pick-list", "icon": "ArrowLeftRight", "name": "PickList", "category": "Selection", "summary": "Lets the user choose items by moving them from one list to another, in the order they want.", "keywords": ["transfer list", "dual list box", "list builder", "shuttle", "columns picker"],
-      "features": [
-        { "feature": "Two lists, the move buttons, double-click and Enter", "noscript": "none" },
-        { "feature": "Dragging between the lists and within Chosen", "noscript": "none" },
-        { "feature": "Search over each list", "noscript": "none" },
-        { "feature": "The chosen items post in their order" }
-      ],
-      "examples": [
-        { "id": "pick-list-columns", "title": "Columns, in order", "lead": "Bind `Value` to a collection and set `Items`. To let people set the order, set `Reorderable`: Move up and Move down sit beside the chosen list, and items drag within it. The chosen items post in their order." },
-        { "id": "pick-list-team", "title": "Search and a template", "lead": "For a longer list, set `Searchable`: a search box goes over each list, and Move all moves only the matches. To draw each item, set `ItemTemplate`; `ItemText` is what search matches." }
-      ]
-    },
-    {
-      "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Lets the user choose several options, shown as chips, and type to filter them.", "keywords": ["tags input", "chips input"],
+      "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Dropdowns", "summary": "Lets the user choose several options, shown as chips, and type to filter them.", "keywords": ["tags input", "chips input"],
       "features": [
         { "feature": "Choose several options, posted with the form" },
         { "feature": "Chips, and typing to filter, ignoring case and accents", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1498,8 +1647,9 @@
         { "id": "multi-select-states", "title": "Sizes, read-only and disabled", "lead": "To line up with other controls, set `Size`. `ReadOnly` choices post but can't change; `Disabled` ones don't post." }
       ]
     },
+
     {
-      "id": "tree-select", "icon": "ListTree", "name": "TreeSelect", "category": "Selection", "summary": "Opens a tree from a field, so a choice from a deep hierarchy takes the space of one input.", "keywords": ["tree select", "dropdown tree", "drop-down tree", "hierarchy", "category picker", "cascader"],
+      "id": "tree-select", "icon": "ListTree", "name": "TreeSelect", "category": "Dropdowns", "summary": "Opens a tree from a field, so a choice from a deep hierarchy takes the space of one input.", "keywords": ["tree select", "dropdown tree", "drop-down tree", "hierarchy", "category picker", "cascader"],
       "features": [
         { "feature": "Choose one item from a tree, posted with the form" },
         { "feature": "The field shows the choice as it's made", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1525,8 +1675,9 @@
           } }
       ]
     },
+
     {
-      "id": "multi-tree-select", "icon": "ListTree", "name": "MultiTreeSelect", "category": "Selection", "summary": "Opens a tree from a field to pick several nodes, shown as chips in the space of one input.", "keywords": ["tree select", "multi select tree", "checkbox tree", "dropdown tree", "hierarchy"],
+      "id": "multi-tree-select", "icon": "ListTree", "name": "MultiTreeSelect", "category": "Dropdowns", "summary": "Opens a tree from a field to pick several nodes, shown as chips in the space of one input.", "keywords": ["tree select", "multi select tree", "checkbox tree", "dropdown tree", "hierarchy"],
       "features": [
         { "feature": "Choose several items from a tree, posted with the form" },
         { "feature": "Checking a parent checks its branch; mixed parents", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1540,80 +1691,6 @@
             "noscript": "The field opens the tree as checkboxes in branches, and checking a department doesn't check its teams. The chips change once the form posts.",
             "static": "Checking a department checks its teams and the chips follow at once; a chip's × or Backspace on the field unchecks it."
           } }
-      ]
-    },
-    {
-      "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "Shows a checkbox styled to match the fields.",
-      "examples": [
-        { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
-          "notes": {
-            "noscript": "The browser stops the post until the box is checked, with its default message.",
-            "static": "The browser stops the post until the box is checked, with your `[Required]` message.",
-            "interactive": "The browser stops the post with your `[Required]` message, and clearing a checked box shows the message under it at once."
-          } },
-        { "id": "checkbox-select-all", "title": "Indeterminate (select all)", "modes": ["interactive"], "lead": "A box can stand for several others, as a select-all box does. When only some of them are checked, set `Indeterminate` to show a dash. Set the others from the box's `ValueChanged`." },
-        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "To match a box to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` box doesn't post." }
-      ]
-    },
-    {
-      "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Selection", "summary": "Shows an on/off switch that posts like a checkbox.", "keywords": ["toggle"],
-      "examples": [
-        { "id": "switch-control-end", "title": "At the end of the row", "lead": "To put the switch at the end of the row, with the hint under the label, as in a list of settings, set `ControlPosition` to `ControlPosition.End`." },
-        { "id": "switch-icons", "title": "Icons on rows", "lead": "To put a decorative icon at the start of the row, set `Icon`. Give every row in a group an icon, or none." },
-        { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "On interactive pages, `@bind-Value:after` can save each change as it happens. On static pages, add a Save button.",
-          "notes": {
-            "noscript": "Switching changes nothing until Save posts the form.",
-            "static": "Switching changes nothing until Save posts the form, without a full reload.",
-            "interactive": "Each switch saves at once, with no button."
-          } },
-        { "id": "switch-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. A `Disabled` switch doesn't post." }
-      ],
-      "scenarios": [
-        { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
-          "description": "A settings page: switches (and one checkbox) at the end of each row with hints under their labels, grouped in fieldsets with dividers and section icons, and one form that saves them all. Every switch posts like a checkbox, so it works with JavaScript off.",
-          "example": { "id": "switch-notification-settings", "title": "Notification settings", "height": 940, "page": true } }
-      ]
-    },
-    {
-      "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Selection", "summary": "Lets the user pick one choice from a list of radio buttons.",
-      "examples": [
-        { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default. To put a few short ones in a row, set `Orientation` to `Orientation.Horizontal`; they wrap when space runs out." },
-        { "id": "radio-group-chips", "title": "Chips", "lead": "To show the options as chips in a wrapping row, set `Chips`. They're still radio buttons: posting, keys and what screen readers hear don't change." },
-        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "For options that aren't an enum, set `Items`. `ItemText` sets how each option reads." },
-        { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "To start with nothing chosen and require a choice, bind a nullable property with `[Required]`.",
-          "notes": {
-            "noscript": "The browser stops the post until an option is chosen, with its default message.",
-            "static": "The browser stops the post until an option is chosen, with your `[Required]` message.",
-            "interactive": "The browser stops the post with your `[Required]` message, as on static pages, and Send runs C# without a full reload."
-          } },
-        { "id": "radio-group-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. A `Disabled` group doesn't post." }
-      ]
-    },
-    {
-      "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Lets the user pick several choices from a list of checkboxes.",
-      "examples": [
-        { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "A `CheckboxGroup` binds to a collection: an array, `List` or `HashSet`. Pass the options to `Items`. Each checked box posts its value, so the group works with JavaScript off." },
-        { "id": "checkbox-group-chips", "title": "Filter chips", "lead": "To show the options as filter chips in a wrapping row, set `Chips`. They're still checkboxes: posting, keys and what screen readers hear don't change." },
-        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "To add a line under each option's name, set `ItemDescription`. Screen readers read it as the box's description." },
-        { "id": "checkbox-group-everything", "title": "Select all", "lead": "To add a box above the options that checks or clears them all, set `SelectAll`. `SelectAllText` sets its text.",
-          "notes": {
-            "noscript": "The Everything box isn't shown, since it needs IzzyBlazor's script. The user checks each topic."
-          } },
-        { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "To require at least one checked box, put `[Required]` and `[MinLength(1)]` together on the property.",
-          "notes": {
-            "noscript": "Saving with no box checked posts the form, and the page reloads with the message under the group. The message stays until the next Save.",
-            "static": "Saving with no box checked shows the message under the group without a full reload. The message stays until the next Save.",
-            "interactive": "Save checks the group without a post, and the message comes and goes as boxes are checked and cleared."
-          } },
-        { "id": "checkbox-group-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. `Disabled` boxes don't post." }
-      ]
-    },
-    {
-      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "Lets the user pick one of a few choices from joined buttons.", "keywords": ["exclusive toggle group", "single toggle group", "single select button group", "radio buttons as buttons"],
-      "examples": [
-        { "id": "segmented-control-icons", "title": "Icons", "lead": "To put an icon before each option's text, set `ItemIcon`. To show only the icons, set `IconOnly`; the text becomes a tooltip and stays for screen readers." },
-        { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "To share the width equally between the segments, set `FullWidth`. To keep the label for screen readers only, set `HideLabel`." },
-        { "id": "segmented-control-sizes", "title": "Sizes and disabled", "lead": "To match the control to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` control doesn't post." }
       ]
     },
 
@@ -1637,6 +1714,7 @@
         { "id": "dialog-service", "title": "Dialogs from code", "modes": ["interactive"] }
       ]
     },
+
     {
       "id": "reconnect-dialog", "icon": "WifiOff", "name": "ReconnectDialog", "category": "Overlays", "summary": "Tells the user, in your theme, when an interactive server page loses its connection.", "keywords": ["reconnect", "connection lost", "circuit", "components-reconnect-modal"],
       "features": [
@@ -1649,6 +1727,7 @@
             "interactive": "A real disconnect, such as stopping the server, shows it until the circuit comes back." } }
       ]
     },
+
     {
       "id": "action-sheet", "icon": "PanelBottom", "name": "ActionSheet", "category": "Overlays", "summary": "Offers a few actions on one thing in a sheet from the bottom, with Cancel last.", "keywords": ["action sheet", "bottom sheet", "actions", "mobile menu"], "parts": ["ActionSheetItem"],
       "features": [
@@ -1666,6 +1745,7 @@
           } }
       ]
     },
+
     {
       "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "Opens a dialog that slides in from an edge.", "keywords": ["sheet", "side panel"],
       "examples": [
@@ -1679,6 +1759,7 @@
         { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "For navigation that slides in from the start edge, set `Placement` to `DialogPlacement.Start` with a small `Size`." }
       ]
     },
+
     {
       "id": "context-menu", "icon": "MousePointer2", "name": "ContextMenu", "category": "Overlays", "summary": "Opens a menu at the pointer by right-click, with no button.", "keywords": ["context menu", "right-click menu", "long press", "shift+f10"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "features": [
@@ -1694,6 +1775,7 @@
           } }
       ]
     },
+
     {
       "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "actions menu", "right-click menu"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
@@ -1718,6 +1800,7 @@
           } }
       ]
     },
+
     {
       "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Shows non-modal content beside a trigger.", "keywords": ["popup", "flyout"],
       "features": [
@@ -1739,6 +1822,7 @@
         { "id": "popover-info-button", "title": "Custom trigger", "lead": "To open the popover from a button of your own, such as an info icon, put the button in `Trigger` and pass it `context` with `@attributes`." }
       ]
     },
+
     {
       "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Shows text on hover and keyboard focus.", "keywords": ["hint"],
       "features": [
@@ -1765,6 +1849,7 @@
         { "id": "nav-menu-counts", "title": "Quiet counts", "lead": "For totals with no fill, as docs and mail sidebars show them, set an item's `BadgeVariant` to `BadgeVariant.Plain`. Long labels wrap." }
       ]
     },
+
     {
       "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Switches between panels, even with JavaScript off.", "keywords": ["tab strip", "tab panels", "closable tabs", "close tab", "add tab", "dynamic tabs", "document tabs"], "parts": ["Tab"],
       "features": [
@@ -1808,6 +1893,7 @@
             } } }
       ]
     },
+
     {
       "id": "tab-nav", "icon": "PanelTop", "name": "TabNav", "category": "Navigation", "summary": "Links to pages of their own, drawn as tabs.", "keywords": ["tab links", "link tabs", "tabs as links", "route tabs", "nav tabs", "secondary navigation"], "parts": ["TabLink"],
       "features": [
@@ -1819,6 +1905,7 @@
         { "id": "tab-nav-settings", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] }
       ]
     },
+
     {
       "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "Shows where a page sits in the site, with a link back up to each level.", "parts": ["BreadcrumbItem"],
       "examples": [
@@ -1826,6 +1913,7 @@
         { "id": "breadcrumb-slash", "title": "Slashes", "lead": "To separate items with slashes in place of chevrons, set `Separator` to `BreadcrumbSeparator.Slash`." }
       ]
     },
+
     {
       "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Links to pages and keeps the rest of the URL.", "keywords": ["pager"],
       "features": [
@@ -1843,6 +1931,7 @@
           } }
       ]
     },
+
     {
       "id": "prev-next", "icon": "ArrowRightLeft", "name": "PrevNext", "category": "Navigation", "summary": "Links to the pages before and after.",
       "examples": [
@@ -1850,6 +1939,7 @@
         { "id": "prev-next-first-page", "title": "First page and link text", "lead": "With only `NextHref`, the next page's card stays at the end. To change the small text above its title, set `NextText`; `PreviousText` does the same for the other card." }
       ]
     },
+
     {
       "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "Lists links to the page's headings, rendered on the server with the page.", "keywords": ["table of contents", "toc"],
       "examples": [
@@ -1861,6 +1951,7 @@
           } }
       ]
     },
+
     {
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Shows where the user is in a process of steps.", "keywords": ["wizard", "steps"], "parts": ["Step"],
       "examples": [
@@ -1900,6 +1991,7 @@
           } }
       ]
     },
+
     {
       "id": "banner", "icon": "Megaphone", "name": "Banner", "category": "Feedback", "summary": "Shows a full-width message about the whole app.", "keywords": ["announcement"], "parts": ["BannerActions"],
       "features": [
@@ -1927,6 +2019,7 @@
             } } }
       ]
     },
+
     {
       "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Shows toasts from any render mode, even after a redirect.", "keywords": ["toast", "snackbar", "notification"],
       "features": [
@@ -1966,8 +2059,9 @@
             } } }
       ]
     },
+
     {
-      "id": "live-region", "icon": "AudioLines", "name": "LiveRegion", "category": "Feedback", "summary": "Tells screen reader users what changed or just happened.", "keywords": ["aria-live", "announcer", "screen reader", "announcement", "status message"], "parts": ["AnnouncerRegion"],
+      "id": "live-region", "icon": "AudioLines", "name": "LiveRegion", "category": "Utilities", "summary": "Tells screen reader users what changed or just happened.", "keywords": ["aria-live", "announcer", "screen reader", "announcement", "status message"], "parts": ["AnnouncerRegion"],
       "features": [
         { "feature": "Hidden text read when it changes (LiveRegion)" },
         { "feature": "Messages from C# (Announcer), the same words twice included", "noscript": "none", "static": "full", "interactive": "full" },
@@ -1988,8 +2082,65 @@
           } }
       ]
     },
+
     {
-      "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Feedback", "summary": "Labels a status, category or count.", "keywords": ["pill", "label"],
+      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Display", "summary": "Groups media, a header, body sections, actions and a footer in a box.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
+      "examples": [
+        { "id": "card-variants", "title": "Variants", "lead": "A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`. To give the card a header, set `Title` and `Description`." },
+        { "id": "card-sizes", "title": "Sizes", "lead": "A card's size sets its padding and its title's size. To change it, set `Size`." },
+        { "id": "card-linked", "title": "A linked card", "lead": "To make the whole card a link through its title, set `Href`. Buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
+        { "id": "card-post", "title": "Header content", "lead": "For content above the title, such as who wrote the post, add a `CardHeader`. For a menu at the end of the heading row, add `CardActions`." },
+        { "id": "card-footer", "title": "Body and footer", "lead": "To lay out the body, such as with a `Gap`, put it in a `CardBody`. For a row of buttons at the bottom, add a `CardFooter`." },
+        { "id": "card-flush", "title": "Flush content", "lead": "To run a table or list to the card's edges, set `Flush` on `CardBody`." },
+        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "To make each `CardBody` a section, set `Dividers`. For a bar across the bottom, give a `CardFooter` a `Bg`." },
+        { "id": "card-settings", "title": "A form in a card", "lead": "To submit from a button in the `CardFooter`, put the `Form` around the `Card`, so the button is inside the form.",
+          "notes": {
+            "noscript": "Save posts the form, and the page reloads with the result under the card.",
+            "static": "Save posts the form without a full reload.",
+            "interactive": "Save runs C# on the server, and nothing is posted." } },
+        { "id": "card-projects", "title": "Cards in a grid", "lead": "To fit as many cards to a row as there's room for, put them in a `Grid` with `MinChildWidth`. Cards in a row share its height, and each `CardFooter` stays at the bottom." }
+      ],
+      "scenarios": [
+        { "id": "profile-card", "title": "Profile card",
+          "description": "A team member's card: a cover, an avatar with an online dot, a role badge, contact details in a DescriptionList, skills as tags and two actions in the footer.",
+          "example": { "id": "card-profile", "title": "Team member", "height": 600, "page": true } }
+      ]
+    },
+
+    {
+      "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Display", "summary": "Shows a figure with its trend, read as words.",
+      "examples": [
+        { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
+        { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
+        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Sparkline` the values, such as the last twelve weeks. `SparklineType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparklineLabel`, with its first, last, lowest and highest values formatted by `SparklineFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
+      ],
+      "scenarios": [
+        { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
+          "description": "Stat cards for revenue, orders, refunds and conversion over a monthly goal and top products. The period is a link, so it works in every mode, and refunds going down shows as good news.",
+          "example": { "id": "stat-dashboard", "title": "Store overview", "height": 600, "page": true } }
+      ]
+    },
+
+    {
+      "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Display", "summary": "Shows a photo, initials or an icon for a person or thing.",
+      "examples": [
+        { "id": "avatar-basics", "title": "Initials and icons", "lead": "To show a name's initials, in a color picked from the name, set `Name`. Without a name, the avatar shows a person icon.", "after": ["For teams and companies, set `Square`."] },
+        { "id": "avatar-variants", "title": "Colors and variants", "lead": "A variant sets the avatar's fill, `Soft` or `Solid`. To choose one, set `Variant`. For a color other than the one picked from `Name`, set `Accent`." },
+        { "id": "avatar-sizes", "title": "Sizes and status", "lead": "Avatars come in sizes from `Xs` to `Xl2`. To choose one, set `Size`. For a status dot in the corner, set `Status` with a `StatusLabel`." },
+        { "id": "avatar-beside-name", "title": "Beside a name", "lead": "When the name is written beside the avatar, set `Decorative`, so screen readers don't hear it twice." }
+      ]
+    },
+
+    {
+      "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Display", "summary": "Overlaps avatars and counts the rest.",
+      "examples": [
+        { "id": "avatar-group-max", "title": "Counting the rest", "lead": "To show the first few avatars and count the rest in a +N avatar, set `Max`." },
+        { "id": "avatar-group-sizes", "title": "Sizes", "lead": "To set the size of every avatar in a group, set `Size` on the group." }
+      ]
+    },
+
+    {
+      "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Display", "summary": "Labels a status, category or count.", "keywords": ["pill", "label"],
       "examples": [
         { "id": "badge-statuses", "title": "Status", "lead": "A status sets what the badge means, and its color. To choose one, set `Status`. For a color of your own, set `Accent`." },
         { "id": "badge-variants", "title": "Variants", "lead": "A variant sets how strongly the badge stands out: `Soft` (the default), `Solid`, `Outline` or `Plain`. To choose one, set `Variant`." },
@@ -1997,8 +2148,9 @@
         { "id": "badge-inline", "title": "In headings and buttons", "lead": "A badge sits inline, so it fits in a heading. For a count inside a button, set `Size=\"BadgeSize.Sm\"`." }
       ]
     },
+
     {
-      "id": "tag", "icon": "Tag", "name": "Tag", "category": "Feedback", "summary": "Shows a keyword or filter that can link or be removed.", "keywords": ["chip"],
+      "id": "tag", "icon": "Tag", "name": "Tag", "category": "Display", "summary": "Shows a keyword or filter that can link or be removed.", "keywords": ["chip"],
       "features": [
         { "feature": "Colors, sizes, icons and links" },
         { "feature": "Removed by a link (RemoveHref)" },
@@ -2014,6 +2166,100 @@
           } }
       ]
     },
+
+    {
+      "id": "image", "icon": "Image", "name": "Image", "category": "Display", "summary": "Loads an image lazily and keeps its space.",
+      "examples": [
+        { "id": "image-fit", "title": "Ratio and fit", "lead": "A ratio gives the image a fixed shape, whatever the picture's own. Set `Ratio`. To choose whether the image fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
+        { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." }
+      ]
+    },
+
+    {
+      "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Display", "summary": "Shows a YouTube video that loads when played.",
+      "examples": [
+        { "id": "video-embed-play", "title": "Playing a video", "lead": "The poster shows first, and YouTube's player loads only when the user plays the video. Set `YouTubeId` and `Label`.",
+          "notes": {
+            "noscript": "The play button is a link that opens the video on YouTube.",
+            "static": "Clicking plays the video in place, from youtube-nocookie.com."
+          } },
+        { "id": "video-embed-upcoming", "title": "A video that isn't out yet", "lead": "To keep the space for a video that isn't out yet, leave out `YouTubeId`. `EmptyText` shows in the middle." }
+      ]
+    },
+
+    {
+      "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
+      "examples": [
+        { "id": "timeline-commits", "title": "Links and the current item", "lead": "To make an item's title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
+        { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
+      ]
+    },
+
+    {
+      "id": "comment", "icon": "MessageSquareText", "name": "Comment", "category": "Display", "summary": "Shows a comment in a discussion, with who wrote it, when, and replies nested under it.", "keywords": ["comments", "discussion", "thread", "reply", "feedback", "review"],
+      "examples": [
+        { "id": "comment-actions", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`. The avatar shows the author's initials, or a picture from `Avatar`. To add buttons such as Reply under the comment, set `Actions`." },
+        { "id": "comment-replies", "title": "Replies", "lead": "To answer a comment, put `Comment`s in its `Replies`. Each level steps in by one avatar.", "after": ["To load the rest of a long thread, put a link button after the replies. As a link, it works with JavaScript off.", "`RelativeTime` shows how long ago (\"5 hours ago\") with the full date on hover, worked out when the page renders. Comments older than a week show their date."] },
+        { "id": "comment-list", "title": "A list of comments", "lead": "For a page's comments, put them in a `Stack` with a count above and a `Divider` between.", "after": ["`Extra` adds to the author's line after the time, such as \"Edited\", a `Badge` or a `Menu`."] },
+        { "id": "comment-reply-form", "title": "Adding a comment", "lead": "For a box to write in, put a form in a `Comment` that has only the signed-in user's `Initials` or `Avatar`: it lines up with the comments above.", "after": ["For a conversation as it happens, `Chat` suits better."] }
+      ]
+    },
+
+    {
+      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Display", "summary": "Builds an AI assistant's chat panel or a conversation between people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
+      "parts": ["ChatEntry"],
+      "features": [
+        { "feature": "A log that starts at its newest entry and stays there as entries arrive" },
+        { "feature": "Entries as text, Markdown or HTML, sanitized; avatars, times and days" },
+        { "feature": "Sends in a plain form post, with suggestions and Stop" },
+        { "feature": "Replies that stream in", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "chat-assistant", "title": "An assistant", "lead": "Put a `ChatEntry` for each message in a `Chat`, oldest first, and set `Mine` on yours. `OnSend` gets what was typed, or the suggestion chosen; add it, then the reply.", "after": ["An assistant's reply is usually Markdown. Set `Markdown` on its entry, and it's shown as `RichText` shows it: sanitized, with code highlighted.", "While the reply is on its way, set `Status` to `Waiting`, then `Streaming`, and set the entry's `Pending`. Send becomes Stop (`OnStop`), and the entry shows dots and then a caret.", "`Suggestions` shows messages to send with one press. `EmptyContent` fills the log before the first entry.", "`AllowFiles` adds a button to attach files, limited by `Accept`, `MaxFileSize` and `MaxFiles`. The files come to `OnSend` as `Files`, checked on the server against those limits. To show an entry's own files, set its `Attachments`."],
+          "notes": {
+            "noscript": "Send posts the form, and the page comes back with the whole reply: `CanStream` is false. Enter adds a line.",
+            "static": "The form posts without reloading the page. With `[StreamRendering]` on the page, the reply streams as it does interactively: `OnSend`'s `CanStream` is true when the post came with script. There's no Stop: the reply streams in a request a new post can't reach. Keep the conversation yourself between posts, under an id: this example sets `FormAction` to an address with the conversation's id, so each post goes there."
+          } }
+,
+        { "id": "chat-dictation", "title": "A button of your own", "modes": ["interactive"], "lead": "To add a button of your own beside Send, put it in `ComposerActions`. Here a microphone dictates with the browser's speech recognition: `@bind-Draft` fills the box with what it hears, and Send sends it as typed text.", "after": ["Chrome, Edge and Safari have speech recognition, and Chrome and Edge send the audio to their speech services. Where it's missing, the button doesn't show.", "For another service, such as Azure Speech, send the audio there and set `Draft` from the result."] },
+        { "id": "chat-people", "title": "People talking", "lead": "For a conversation between people, set `Variant` to `Conversation`. Set `Mine` on your entries and `Author` on everyone else's.", "after": ["Everyone's messages sit in bubbles, yours at the end. Another person's name sits above their message, with an `Avatar`: a picture's URL, or initials from the name. Yours shows an avatar when you give it a picture or `Initials`.", "Messages in a row from one person, minutes apart, are grouped, with the name, avatar and time shown once. With `Time`, each entry shows its time, and the day sits above the first message of each day: \"Yesterday\", \"Today\", or the date.", "While someone is typing, an entry with their `Author` and `Pending` shows three dots. `Height` sets the chat's height, and the log scrolls inside it."] }
+      ],
+      "topics": [
+        {
+          "id": "streaming", "title": "Streaming from a model", "summary": "Stream a model's reply into the last entry, with Stop and Retry.", "members": ["Status", "OnStop", "OnSend", "ChatEntry.Pending", "ChatEntry.Failed", "ChatEntry.OnRetry"],
+          "intro": [
+            "Chat takes plain values, so it works with any model client, and with no dependency of its own. With Microsoft.Extensions.AI, keep the conversation as `ChatMessage` items and map each to a `ChatEntry`: `Mine` for the user's, `Markdown` for the assistant's. Send the history to `IChatClient.GetStreamingResponseAsync` and append each update's text to the last message.",
+            "Set `Status` to `Waiting` until the first piece, then `Streaming`, and `Pending` on the entry being written. Render at most every 50 milliseconds or so (each render on an interactive page crosses the circuit), and once more at the end. Stop cancels the request through a `CancellationToken`; what arrived stays. On an error, set `Failed` on the entry and `Status` to `Failed`; `OnRetry` asks again.",
+            "On a static page, put `[StreamRendering]` on the page and stream only when `OnSend`'s `CanStream` is true; with JavaScript off, send the reply whole."
+          ],
+          "examples": [
+            { "id": "chat-streaming", "title": "A cooking assistant", "modes": ["interactive"], "lead": "This site's `IChatClient` is a stand-in with canned answers; register your own (OpenAI, Azure OpenAI, Ollama) and the page stays the same." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
+      "examples": [
+        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
+        { "id": "barcode-product", "title": "Products", "lead": "For a retail product, set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit, the barcode adds it; with it, the barcode checks it." }
+      ]
+    },
+
+    {
+      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
+      "examples": [
+        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code renders on the server as an SVG and works with JavaScript off. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for a user without a camera." },
+        { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
+          "notes": {
+            "noscript": "Verify posts the code; the field is one wide text box, not boxes. The key's copy button needs IzzyBlazor's script.",
+            "static": "Verify posts the code without a full reload.",
+            "interactive": "Verify runs C# without a full reload."
+          } }
+      ]
+    },
+
     {
       "id": "spinner", "icon": "LoaderCircle", "name": "Spinner", "category": "Feedback", "summary": "Shows a loading ring sized like an icon.", "keywords": ["loader", "loading indicator"],
       "examples": [
@@ -2021,12 +2267,14 @@
         { "id": "spinner-beside-text", "title": "Beside text", "lead": "At its default size, 1em, a spinner matches the text beside it." }
       ]
     },
+
     {
       "id": "progress-circle", "icon": "CircleDashed", "name": "ProgressCircle", "category": "Feedback", "summary": "Shows progress as a ring, with the value in its middle.", "keywords": ["circular progress", "progress ring", "radial progress", "donut progress"],
       "examples": [
         { "id": "progress-circle-sizes", "title": "Values, sizes and colors", "lead": "To show the value in the middle of the ring, set `ShowValue`, or `ValueText` for text of your own. `Size` sets the diameter: 2rem, 3rem or 5rem.", "after": ["The ring fills clockwise from the top, and the `Label` goes under it. At Sm, the value goes beside the label. For any other diameter, set `Width`.", "Without a `Value`, an arc turns around the ring."] }
       ]
     },
+
     {
       "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar, with or without a known value.", "keywords": ["progress bar", "loading bar"],
       "examples": [
@@ -2036,6 +2284,7 @@
         { "id": "progress-from-code", "title": "Updating from C#", "lead": "On interactive pages, changing `Value` from C# moves the bar.", "modes": ["interactive"] }
       ]
     },
+
     {
       "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content that's still loading.", "keywords": ["placeholder", "shimmer"],
       "examples": [
@@ -2043,6 +2292,7 @@
         { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "To show the real content in place of the placeholder once it arrives, set `Loaded`. A placeholder as tall as the content it stands for keeps the page from moving.", "modes": ["interactive"] }
       ]
     },
+
     {
       "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "Shows what to do when there's nothing yet.", "keywords": ["no results", "blank slate"], "parts": ["EmptyStateActions"],
       "examples": [
@@ -2140,42 +2390,7 @@
             } } }
       ]
     },
-    {
-      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Display", "summary": "Groups media, a header, body sections, actions and a footer in a box.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
-      "examples": [
-        { "id": "card-variants", "title": "Variants", "lead": "A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`. To give the card a header, set `Title` and `Description`." },
-        { "id": "card-sizes", "title": "Sizes", "lead": "A card's size sets its padding and its title's size. To change it, set `Size`." },
-        { "id": "card-linked", "title": "A linked card", "lead": "To make the whole card a link through its title, set `Href`. Buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
-        { "id": "card-post", "title": "Header content", "lead": "For content above the title, such as who wrote the post, add a `CardHeader`. For a menu at the end of the heading row, add `CardActions`." },
-        { "id": "card-footer", "title": "Body and footer", "lead": "To lay out the body, such as with a `Gap`, put it in a `CardBody`. For a row of buttons at the bottom, add a `CardFooter`." },
-        { "id": "card-flush", "title": "Flush content", "lead": "To run a table or list to the card's edges, set `Flush` on `CardBody`." },
-        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "To make each `CardBody` a section, set `Dividers`. For a bar across the bottom, give a `CardFooter` a `Bg`." },
-        { "id": "card-settings", "title": "A form in a card", "lead": "To submit from a button in the `CardFooter`, put the `Form` around the `Card`, so the button is inside the form.",
-          "notes": {
-            "noscript": "Save posts the form, and the page reloads with the result under the card.",
-            "static": "Save posts the form without a full reload.",
-            "interactive": "Save runs C# on the server, and nothing is posted." } },
-        { "id": "card-projects", "title": "Cards in a grid", "lead": "To fit as many cards to a row as there's room for, put them in a `Grid` with `MinChildWidth`. Cards in a row share its height, and each `CardFooter` stays at the bottom." }
-      ],
-      "scenarios": [
-        { "id": "profile-card", "title": "Profile card",
-          "description": "A team member's card: a cover, an avatar with an online dot, a role badge, contact details in a DescriptionList, skills as tags and two actions in the footer.",
-          "example": { "id": "card-profile", "title": "Team member", "height": 600, "page": true } }
-      ]
-    },
-    {
-      "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Display", "summary": "Shows a figure with its trend, read as words.",
-      "examples": [
-        { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
-        { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
-        { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Sparkline` the values, such as the last twelve weeks. `SparklineType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparklineLabel`, with its first, last, lowest and highest values formatted by `SparklineFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
-      ],
-      "scenarios": [
-        { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
-          "description": "Stat cards for revenue, orders, refunds and conversion over a monthly goal and top products. The period is a link, so it works in every mode, and refunds going down shows as good news.",
-          "example": { "id": "stat-dashboard", "title": "Store overview", "height": 600, "page": true } }
-      ]
-    },
+
     {
       "id": "chart", "icon": "ChartNoAxesCombined", "name": "Chart", "category": "Charts", "base": true, "summary": "Draws a chart on the server from a list of items, with axes, value labels, reference lines, trends and a table of the values, for every chart type.", "use": "Choose the series by the question. For change over time, use lines or areas. To compare amounts, use bars. To show how two measures relate, use a scatter or bubble chart. To show how values spread, use a histogram, box plot or violin. To explain how a total was reached, use a waterfall. Parts of a whole, flows and targets have components of their own, such as `PieChart`, `SankeyChart` and `BulletChart`.", "keywords": ["graph", "plot", "chart axis", "data labels", "legend", "tooltip", "reference line", "trend line", "zoom", "pan", "drag to zoom", "synchronized charts", "sync", "linked charts", "shared tooltip", "live data", "real-time", "streaming", "auto refresh", "drill-down", "drill down", "breadcrumb"],
       "parts": ["ChartValueAxis", "ChartArgumentAxis", "ChartTooltip", "ChartReferenceLine", "ChartReferenceBand", "ChartAnnotation", "ChartDrillLevel", "ChartDownload", "ChartResetZoom", "ChartZoom", "ChartPause"],
@@ -2327,6 +2542,7 @@
         }
       ]
     },
+
     {
       "id": "bar-chart", "icon": "ChartColumn", "name": "ChartBarSeries", "title": "Bar chart", "category": "Charts", "summary": "Compares values across names as bars: ranked across, grouped or stacked as columns.", "use": "Use bars to compare amounts across names, such as revenue by region. Bars start at zero, so their lengths compare fairly. Sort them when the order matters, as in a ranking. For many dates, use a line chart instead.", "keywords": ["bar chart", "column chart", "bar graph", "stacked bar chart", "grouped bar chart"],
       "features": [
@@ -2347,6 +2563,7 @@
         { "id": "chart-target", "title": "Bars with targets", "lead": "`Target` on `ChartBarSeries` draws a tick across each bar at the item's target, such as a team's quota, and names it in the tooltip and the data table. The value axis takes in every target, so one past every bar still shows.", "after": ["Targets go on bars side by side; with `Stacking` they're an error.", "For one measure against its target with qualitative ranges behind it (poor, satisfactory, good), use a Bullet chart."] }
       ]
     },
+
     {
       "id": "line-chart", "icon": "ChartLine", "name": "ChartLineSeries", "title": "Line chart", "category": "Charts", "summary": "Shows how values change over time as lines, on a date or number scale.", "use": "A line chart is the standard way to show change over time. The value axis doesn't have to start at zero, so small changes show. More than four or five lines get hard to follow. Highlight the one that matters, or give each line its own chart.", "keywords": ["line chart", "line graph", "time series", "trend chart"],
       "features": [
@@ -2365,6 +2582,7 @@
         { "id": "chart-line-step", "title": "Step lines", "lead": "`Curve=\"ChartCurve.Step\"` holds each value flat until the next one's date, then steps: for values that stay put until they change, such as a price, a rate or a plan's tier. Add a last item at today's date so the current value runs to the present." }
       ]
     },
+
     {
       "id": "area-chart", "icon": "ChartArea", "name": "ChartAreaSeries", "title": "Area chart", "category": "Charts", "summary": "Shows a total over time as filled areas, stacked to show each part of the whole.", "use": "Use an area chart when the size of a total over time matters, such as visits by channel. Stacked areas show the total and how it splits. Only the bottom layer reads exactly, because the others sit on a moving base. To compare the parts, use a line chart.", "keywords": ["area chart", "stacked area chart", "area graph"],
       "features": [
@@ -2379,6 +2597,7 @@
         { "id": "chart-area-channels", "title": "Stacked areas", "lead": "Stacked with `Stacking`, `ChartAreaSeries` show a total over time and how it divides: the top edge is all visits, and each band one channel's part.", "after": ["Put the largest, steadiest part at the bottom, where its edge is straight and easiest to read.", "Everything on the Chart page works with every series type."] }
       ]
     },
+
     {
       "id": "scatter-chart", "icon": "ChartScatter", "name": "ChartScatterSeries", "title": "Scatter chart", "category": "Charts", "summary": "Shows how two measures relate, a marker for each item.", "use": "Use a scatter chart to see whether two measures move together, such as page load time and bounce rate. It shows clusters and outliers too. It doesn't show that one causes the other. With thousands of points, use a heatmap of counts.", "keywords": ["scatter plot", "scatter chart", "xy chart", "correlation"],
       "features": [
@@ -2393,6 +2612,7 @@
         { "id": "chart-scatter", "title": "Two measures against each other", "lead": "To show how two measures relate across many items, use `ChartScatterSeries`, with one measure as the `Argument` and the other as the series' `Value`. Name both measures with each axis's `Title`, since nothing else says which is which.", "after": ["Both scales start where the values do rather than at zero.", "`SeriesBy` splits a series into one per value of a property, here the device, each with its own color and marker shape. `Trend=\"ChartTrend.Linear\"` draws each one's straight line of best fit.", "The tooltip is for the point nearest the pointer, and the arrow keys move between points from left to right. Here a `ChartTooltip` names the page."] }
       ]
     },
+
     {
       "id": "bubble-chart", "icon": "ChartScatter", "name": "ChartBubbleSeries", "title": "Bubble chart", "category": "Charts", "summary": "Shows how two measures relate, with a third as each item's size.", "use": "Use a bubble chart when a third measure adds to a scatter chart, such as revenue on top of growth and margin. People judge size far less exactly than position, so put the most important measures on the axes. Say what the size means in the title or the legend.", "keywords": ["bubble chart", "bubble plot"],
       "features": [
@@ -2409,6 +2629,7 @@
         { "id": "chart-bubble-world", "title": "Many bubbles, by group, on a log scale", "lead": "To spread out values that span a hundredfold, such as income, set `Logarithmic` on `ChartArgumentAxis`: each step of ten is an equal distance apart. Here each country's income is plotted against how long its people live, sized by population and colored by region with `SeriesBy`.", "after": ["With this many bubbles, not every name fits. List the items largest first, and `LabelText` names the biggest, leaving out those that would collide.", "`ShowSizeKey` adds a key to the legend, with circles for a round size near the largest and a quarter of it, so a size can be read and not only compared. `SizeFormat` sets how sizes read there. Here the legend is beside the chart, with `Legend=\"ChartLegend.End\"`."] }
       ]
     },
+
     {
       "id": "range-bar-chart", "icon": "ChartGantt", "name": "ChartRangeBarSeries", "title": "Range bar chart", "category": "Charts", "summary": "Compares spans between two values, such as each day's low and high temperature.", "use": "Use range bars when the span between two values is the point, such as each day's low and high temperature. A range bar shows only the ends. When the spread between them matters, use a box plot. For a span over time, a range area chart reads better.", "keywords": ["range bar", "range column", "floating bar", "min max chart", "high low chart"],
       "features": [
@@ -2424,6 +2645,7 @@
         { "id": "chart-range-bar-plan", "title": "Bars across: a plan", "lead": "With the chart's `Orientation=\"Orientation.Horizontal\"`, range bars lie across, each from its `Low` on the left to its `High`. Here each phase of a plan runs from its first week to its last, so overlaps between phases show at a glance.", "after": ["The value axis sets the weeks' scale: `Min`, `Max` and `Step` on `ChartValueAxis`, and a `Format` that writes each tick as a week.", "The values are numbers. To plan by date, give each phase its start and end as a count of days or weeks from the plan's start."] }
       ]
     },
+
     {
       "id": "range-area-chart", "icon": "ChartArea", "name": "ChartRangeAreaSeries", "title": "Range area chart", "category": "Charts", "summary": "Fills a band between each item's low and high values, such as a forecast's interval.", "use": "Use a range area for a span that changes over time, such as a forecast's uncertainty or a year of daily temperatures. Many readers take a band's edges as hard limits, so name what it covers, such as \"80% interval\". For separate names instead of dates, use range bars.", "keywords": ["range area", "band chart", "confidence band", "forecast interval", "error band", "min max band"],
       "features": [
@@ -2439,6 +2661,7 @@
         { "id": "chart-range-area", "title": "A band with a line through it", "lead": "`ChartRangeAreaSeries` fills a band between each item's `Low` and `High`. To show the measure inside it, such as a forecast, add a `ChartLineSeries` after the band, so the line is drawn on top.", "after": ["Say in the band's `Name` what it spans, such as \"80% interval\" or \"Min to max\": a band with no stated meaning reads as a hard limit.", "`Curve` shapes both edges; give the line the same curve so it stays inside."] }
       ]
     },
+
     {
       "id": "candlestick-chart", "icon": "ChartCandlestick", "name": "ChartCandlestickSeries", "title": "Candlestick chart", "category": "Charts", "summary": "Charts a stock's or a currency's price by the day or hour, with up and down periods told apart at a glance.", "use": "Use candlesticks to show how a price moved in each period, such as a stock's day of trading. Up and down periods stand out at a glance. Over long histories the candles crowd together, so use an OHLC chart. For the closing price alone, use a line chart.", "keywords": ["candlestick", "candlestick chart", "stock chart", "financial chart", "price chart", "Japanese candlestick"],
       "features": [
@@ -2455,6 +2678,7 @@
         { "id": "chart-candlestick-volume", "title": "With a moving average and volume", "lead": "A stock chart often adds a moving average over the candles and the volume traded beneath them. The 20-day average is a `ChartLineSeries` of a value worked out in the data, so it starts from the days before the chart's first. The volume is a bar chart of its own, joined to the prices with `Sync` for hover and zoom.", "after": ["A line series over the candles takes the same spacing by item; on a chart without bars or candles, `SkipGaps` on `ChartArgumentAxis` does it.", "The same `LabelWidth` on both value axes lines up their plots, and the prices' chart hides its dates with `HideLabels`, since the volume's show them. Only the prices' chart sets `Zoom`, so its buttons zoom both, and the volume follows.", "One title names the pair: the volume chart's `Title` is for screen readers, hidden with `HideTitle`, and each value axis's `Title` says what it measures. Both leave out their tables (`DataTable=\"ChartDataTable.None\"`), so nothing sits between the two plots."] }
       ]
     },
+
     {
       "id": "ohlc-chart", "icon": "ChartCandlestick", "name": "ChartOhlcSeries", "title": "OHLC chart", "category": "Charts", "summary": "Charts long price histories, such as a year of trading days.", "use": "Use OHLC bars for price histories over many periods, where candlesticks would crowd together. Leave out `Open` for high-low-close, which suits end-of-day prices such as a fund's. For the trend alone, use a line chart.", "keywords": ["OHLC", "OHLC chart", "open high low close", "bar chart (finance)", "high low close", "HLC", "stock chart", "financial chart"],
       "features": [
@@ -2470,6 +2694,7 @@
         { "id": "chart-ohlc-bars", "title": "OHLC bars over a year", "lead": "`ChartOhlcSeries` takes each item's `Open`, `High`, `Low` and `Close`, here for a year of trading days. The tick on the left is the open and the one on the right the close. Drag across the plot to zoom into a month.", "after": ["Without an `Open`, bars show the high, low and close, and an item is up when it closed above the one before.", "`IncreaseColor` and `DecreaseColor` set the colors, as on a candlestick chart.", "For a low and a high alone, such as a day's temperatures, use a Range bar chart."] }
       ]
     },
+
     {
       "id": "histogram", "icon": "ChartColumnBig", "name": "ChartHistogramSeries", "title": "Histogram", "category": "Charts", "summary": "Counts numbers or dates in equal bins, to show how they spread.", "use": "Use a histogram for a first look at one measure, such as delivery times. It shows where values bunch, whether they lean to one side, and whether there are two peaks. The bin width changes the picture, so try a few. To compare more than three groups, use box plots.", "keywords": ["histogram", "distribution", "frequency chart", "bins", "binning", "frequency distribution"],
       "features": [
@@ -2487,6 +2712,7 @@
         { "id": "chart-histogram-split", "title": "Split by a group", "lead": "`SeriesBy` splits the counts by a group, here phones and desktops, on one set of bins. A lower `Opacity` lets each group's bars show through the other's.", "after": ["With the chart's `Stacking=\"ChartStacking.Normal\"`, the groups stack instead, so each bar's height is the bin's total.", "A histogram's chart holds only histogram series, upright, and doesn't zoom."] }
       ]
     },
+
     {
       "id": "box-plot", "icon": "ChartCandlestick", "name": "ChartBoxPlotSeries", "title": "Box plot", "category": "Charts", "parts": ["ChartBoxSummarySeries"], "summary": "Compares how values spread across groups: each group's median, middle half, range and outliers.", "use": "Use box plots to compare how values spread across many groups, such as delivery times by carrier. A box is a summary, so it hides the shape. Two peaks look the same as one smooth spread. For large groups, use a violin plot to show the shape.", "keywords": ["box plot", "box and whisker", "box-and-whisker plot", "whisker chart", "quartiles", "distribution", "outliers", "five-number summary"],
       "features": [
@@ -2506,6 +2732,7 @@
         { "id": "chart-box-plot-summary", "title": "Boxes from a summary", "lead": "`ChartBoxSummarySeries` draws each item as one box from numbers already worked out: its `Low`, `Q1`, `Median`, `Q3` and `High`. Use it when a database or monitoring tool summarizes the values, here a week of an API's requests by region.", "after": ["The whiskers end at `Low` and `High`, whatever they stand for: here the 5th and 95th percentiles. Say which in the title, since a reader would otherwise take them for Tukey's whiskers.", "`Mean` marks each box's mean with a diamond. `Outliers` takes a list of numbers on each item, drawn as circles past the whiskers.", "`SeriesBy` puts the boxes of items that share an `Argument` side by side; each split series takes one item per box."] }
       ]
     },
+
     {
       "id": "violin-plot", "icon": "ChartCandlestick", "name": "ChartViolinSeries", "title": "Violin plot", "category": "Charts", "summary": "Compares the shape of each group's values, such as two peaks a box plot hides.", "use": "Use violins when the shape of each group's values matters, such as a second peak a box plot would hide. They need many values per group. With only a few, the outline shows a shape that isn't really there, so use a box plot.", "keywords": ["violin plot", "violin chart", "density plot", "kernel density", "distribution", "bimodal", "box plot"],
       "features": [
@@ -2521,6 +2748,7 @@
         { "id": "chart-violin", "title": "A violin plot", "lead": "`ChartViolinSeries` makes a violin from the `Value`s of the items that share an `Argument`. Here weekend orders that wait for Monday make a second peak.", "after": ["The density is a Gaussian kernel with Silverman's bandwidth, trimmed to each group's smallest and largest value, so it never reaches a value no item has. Every violin is as wide at its densest.", "The box inside marks the quartiles, the median and Tukey's whiskers, as on a box plot. `ShowMean` adds the mean.", "`SeriesBy` puts a violin per group side by side, and the chart's `Orientation=\"Orientation.Horizontal\"` lays them across. A violin's chart holds only box plot and violin series."] }
       ]
     },
+
     {
       "id": "waterfall-chart", "icon": "ChartColumnIncreasing", "name": "ChartWaterfallSeries", "title": "Waterfall chart", "category": "Charts", "summary": "Walks from a starting amount through rises and falls to a result, with totals along the way.", "use": "Use a waterfall to explain how a total was reached, such as profit from revenue and costs, or a budget's variance. When nothing is subtracted, stacked bars are simpler. For the total's trend alone, use a line chart.", "keywords": ["waterfall chart", "bridge chart", "profit and loss chart", "cascade chart"],
       "features": [
@@ -2536,6 +2764,7 @@
         { "id": "chart-waterfall-over-time", "title": "Changes over time", "lead": "For changes over time, such as a year's cash flow, keep the columns upright so time runs left to right: the opening balance, each month's net change, and the closing balance as a `Total`." }
       ]
     },
+
     {
       "id": "bullet-chart", "icon": "ChartBarBig", "name": "BulletChart", "title": "Bullet chart", "category": "Charts", "summary": "Shows measures against their targets and ranges, a row each, such as a KPI scorecard.", "use": "Use bullet graphs to show measures against their targets, such as a KPI scorecard. Stephen Few designed them to replace dashboard gauges. A bar's length reads more exactly than a dial's angle, and many fit in the space of one gauge. Without ranges, a bar chart with `Target` on its bars does the same job.", "parts": ["GaugeBand"], "keywords": ["bullet graph", "KPI", "scorecard", "target", "quota", "actual vs target"],
       "features": [
@@ -2551,6 +2780,7 @@
         { "id": "bullet-chart-vertical", "title": "Vertical", "lead": "To stand the rows up as columns, labels above, set `Orientation=\"Orientation.Vertical\"`. The left and right arrow keys move between columns." }
       ]
     },
+
     {
       "id": "funnel-chart", "icon": "Funnel", "name": "FunnelChart", "title": "Funnel chart", "category": "Charts", "summary": "Shows how many make it through each step of a checkout, a sign-up or a sales pipeline, and where the most are lost.", "use": "Use a funnel for a fixed sequence of steps, each a subset of the one before, such as a checkout. It works best with four or more steps. When the exact numbers matter, use bars in step order. Values that just get smaller, such as sales by region, aren't a funnel.", "keywords": ["funnel", "conversion", "pipeline", "drop-off", "pyramid", "sales funnel"],
       "features": [
@@ -2566,6 +2796,7 @@
         { "id": "funnel-chart-pyramid", "title": "A pyramid", "lead": "A pyramid shows levels of a hierarchy, such as a team by seniority. To draw one, set `Pyramid`: the first item is at the bottom, and each level is as tall as its share of the total, which its label shows.", "after": ["The wide base gives the first level more area than its share. To compare levels exactly, use a `Chart` with bars across."] }
       ]
     },
+
     {
       "id": "heatmap-chart", "icon": "Grid3x3", "name": "HeatmapChart", "title": "Heatmap", "category": "Charts", "summary": "Shows where values run high or low across two dimensions, such as the busiest hours of the week.", "use": "Use a heatmap to spot patterns across two dimensions, such as the busiest hours of the week. It shows where values run high or low, not exact amounts. When the numbers matter, show them in the cells or use a bar chart.", "keywords": ["heatmap", "heat map", "matrix", "grid", "activity", "punch card", "color scale"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
@@ -2587,6 +2818,7 @@
         { "id": "heatmap-chart-year", "title": "Thousands of cells", "lead": "A heatmap holds thousands of cells: here a site's visitors in each hour of each day of a year, 365 columns by 24 rows. `Steps=\"0\"` blends the color continuously, with a gradient for the legend.", "after": ["Along the bottom, the columns are named by month. When a row is shorter than a line of text (`CellHeight`), every second row name shows.", "Cells narrower than 6px lose their gaps and corners, so the grid reads as one surface. The cells are too small for values, so point at one for its tooltip."] }
       ]
     },
+
     {
       "id": "calendar-heatmap", "icon": "Grid3x2", "name": "CalendarHeatmap", "title": "Calendar heatmap", "category": "Charts", "summary": "Shows a year of daily activity at a glance, such as a contributions graph, with busy days darker.", "use": "Use a calendar heatmap to spot daily rhythms, streaks and standout days, such as orders over a year. It shows patterns, not amounts. For exact values or the trend, use a line or bar chart of the same days. A few weeks of data looks sparse.", "keywords": ["calendar heatmap", "contribution graph", "activity calendar", "github calendar", "daily heatmap", "streak"], "parts": ["HeatmapRange", "HeatmapTooltip"],
       "features": [
@@ -2605,6 +2837,7 @@
         { "id": "calendar-heatmap-diverging", "title": "Diverging colors", "lead": "For values on either side of a meaningful middle, such as each day's temperature against the normal, set `Palette` to `ChartPalette.Diverging`. The scale turns gray at `Midpoint` (0 by default).", "after": ["Here the weeks start on Monday (`FirstDayOfWeek`). To compare years, draw one calendar per year with the same `Min` and `Max`, so their colors mean the same values."] }
       ]
     },
+
     {
       "id": "radar-chart", "icon": "Hexagon", "name": "RadarChart", "title": "Radar chart", "category": "Charts", "summary": "Compares a few things across several measures on one scale, such as two phones' review scores.", "use": "Use a radar to compare one to three items across a handful of measures, such as two phones' review scores. The overall shape is the message. The shape changes with the order of the spokes, so it's hard to rank from. To compare exactly, use bars side by side.", "keywords": ["radar", "spider", "spider web", "web chart", "star chart", "polar", "profile", "skills"], "parts": ["RadarSeries"],
       "features": [
@@ -2624,6 +2857,7 @@
         { "id": "radar-chart-circle", "title": "Circular grid and fill", "lead": "Months around a circle make a year's cycle visible, such as two cities' rainfall. `Grid=\"RadarGrid.Circle\"` draws the rings as circles, and `Fill` shades each outline lightly.", "after": ["A fill makes differences look larger than they are, since area grows with the square of the values, and fills cover each other. Use it for one or two series. An outline with a missing value has a gap, so it isn't filled."] }
       ]
     },
+
     {
       "id": "sankey-chart", "icon": "Split", "name": "SankeyChart", "title": "Sankey chart", "category": "Charts", "summary": "Shows where an amount comes from and where it goes, such as a budget from income to spending.", "use": "Use a Sankey to show where an amount comes from and where it goes, such as a budget from income to spending. Many small flows make it cluttered, so combine them into one. For a single process that people drop out of, use a funnel.", "keywords": ["sankey", "flow", "flow diagram", "alluvial", "budget", "income statement", "funnel paths", "energy flow"], "parts": ["SankeyNode"],
       "features": [
@@ -2643,6 +2877,7 @@
         { "id": "sankey-chart-income-statement", "title": "Node and flow colors", "lead": "Color a node by what it means with a `SankeyNode`, such as profit in green and costs in red. `LinkColor=\"SankeyLinkColor.Target\"` colors each flow by where it goes, and `Values` writes each node's amount after its name.", "after": ["Every node with no flows out sits in the last column, so Hosting and Support end beside Net profit. `NodeAlign` changes that: `Start` keeps each node as far left as its flows allow."] }
       ]
     },
+
     {
       "id": "treemap-chart", "icon": "LayoutDashboard", "name": "TreemapChart", "title": "Treemap", "category": "Charts", "summary": "Shows which parts take the biggest share of a total, such as the largest lines in a budget.", "use": "Use a treemap to find the biggest parts of a large total, such as spending by department and line. It fits many parts in little space. People judge areas loosely, so for exact comparisons, use a bar chart.", "keywords": ["treemap", "tree map", "part to whole", "hierarchy", "market map", "budget", "disk usage", "breakdown"],
       "features": [
@@ -2665,6 +2900,7 @@
           "notes": { "noscript": "The tiles don't open, but the data table's rows link to each tile's level." } }
       ]
     },
+
     {
       "id": "pie-chart", "icon": "ChartPie", "name": "PieChart", "title": "Pie chart", "category": "Charts", "summary": "Shows how one total splits into a few shares, such as customers by plan, each labeled with its share.", "use": "Use a pie when the point is how one total splits, and there are five or fewer parts with clearly different shares. People judge angles poorly. To compare similar shares or rank them, use a bar chart.", "keywords": ["pie", "donut", "doughnut", "ring chart", "share", "breakdown", "half donut", "semicircle", "semi-circle pie"],
       "features": [
@@ -2684,6 +2920,7 @@
         { "id": "pie-chart-half", "title": "A half donut", "lead": "`Sweep` sets how far round the slices go, in degrees: 180 is a half circle. With `StartAngle=\"-90\"` they start at the left and run over the top to the right, and the chart takes only the half's height.", "after": ["A donut's `Center` sits in the hole, on the flat edge.", "A half circle suits a whole that has a midpoint people read against, as a majority here. For most breakdowns a whole circle, or bars, compare better."] }
       ]
     },
+
     {
       "id": "nested-donut-chart", "icon": "Donut", "name": "NestedDonutChart", "title": "Nested donut chart", "category": "Charts", "summary": "Shows how the same items split two or three totals, such as a country's exports and imports.", "use": "Use rings to compare how the same items split two or three totals, such as exports and imports. They show the overall mix, not exact shares. The same share looks bigger on the outer ring. For exact comparisons, use 100% stacked bars.", "keywords": ["donut", "doughnut", "rings", "multi-series pie", "nested pie", "share"],
       "parts": ["DonutRing"],
@@ -2699,6 +2936,7 @@
           "notes": { "noscript": "There are no tooltips. Each slice still shows its ring, value and share on hover, and Show data lists them all." } }
       ]
     },
+
     {
       "id": "sparkline", "icon": "ChartSpline", "name": "Sparkline", "category": "Charts", "summary": "Puts a trend beside a number or in a table row, in the space of a word.", "use": "Use a sparkline to show the trend beside a number or in a table row. It has no scale, and each one fits its own values. To compare levels between rows, use a line chart.", "keywords": ["spark", "trend line", "micro chart", "inline chart"],
       "features": [
@@ -2714,6 +2952,7 @@
         { "id": "sparkline-usage", "title": "A trend beside each row", "lead": "In a table, a sparkline in each row shows that row's trend beside its numbers. Each fills its cell's width, with a dot on the last value, the current one.", "after": ["A missing value, null, breaks the line, as the image resizer's outage does here.", "A sparkline has no axes or tooltip. `ValueFormat` formats the values screen readers hear with the label."] }
       ]
     },
+
     {
       "id": "gauge", "icon": "Gauge", "name": "Gauge", "category": "Charts", "summary": "Shows one value against its range, such as progress toward a goal.", "use": "Use a gauge to show one value against its range, such as progress toward a goal. It takes a lot of space for one number and has no history. Several readings side by side read better as bullet graphs. Add a sparkline to show the trend.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["meter", "dial", "speedometer", "radial progress"],
       "features": [
@@ -2728,6 +2967,7 @@
         { "id": "gauge-pointers", "title": "Pointers", "lead": "For another value on the same dial, such as the gusts beside the mean wind, write a `GaugePointer` inside the gauge with its `Value` and `Label`. It's written under the label as \"Gusts 44 km/h\".", "after": ["The gauge's own `Value` stays the one that fills. Each pointer is a meter of its own, named by its label; its `Accent` sets another color.", "For one goal, `Target` is simpler: a tick in the text color, read with the value."] }
       ]
     },
+
     {
       "id": "linear-gauge", "icon": "Ruler", "name": "LinearGauge", "title": "Linear gauge", "category": "Charts", "summary": "Shows one reading on a scale, such as a tank's level or the air pressure.", "use": "Use a linear gauge for one reading on a known scale, such as a temperature or a tank's level. A length reads more exactly than a dial's angle, in less space. Against a target with ranges, use a bullet graph. For history, use a line chart.", "parts": ["GaugeBand", "GaugePointer"], "keywords": ["linear gauge", "meter", "thermometer", "level", "scale", "horizontal gauge", "vertical gauge"],
       "features": [
@@ -2745,6 +2985,7 @@
         { "id": "linear-gauge-vertical", "title": "Vertical, with pointers", "lead": "To stand the scale up, low at the bottom, set `Orientation=\"Orientation.Vertical\"`. It's 12rem tall; `Height` sets another.", "after": ["A `GaugePointer` is another value on the same scale, written under the gauge as \"Dew point 12°C\". Each pointer is a meter of its own, named by its label."] }
       ]
     },
+
     {
       "id": "range-selector", "icon": "UnfoldHorizontal", "name": "RangeSelector", "category": "Charts", "parts": ["ChartRangeSelector"], "summary": "Chooses a span of dates, numbers or names on a strip that draws the whole range small: on its own it picks a range to filter by, and as ChartRangeSelector it zooms a chart.", "keywords": ["range selector", "range navigator", "navigator", "zoom", "time range", "date range", "brush", "range buttons"],
       "features": [
@@ -2763,6 +3004,7 @@
         { "id": "range-selector-filter", "title": "Filtering by a date range", "lead": "On its own, give `RangeSelector` the `Items`, an `Argument`, a `Label` and a series to draw. `@bind-View` is the range chosen, here the dates whose orders the grid lists.", "modes": ["interactive"] }
       ]
     },
+
     {
       "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditField", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridExportFormat", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Runs admin screens and back-office lists: large sets of records people search, edit and export.", "keywords": ["data grid", "datagrid", "grid", "dynamic columns", "DataTable", "dictionary", "ExpandoObject", "column bands", "column groups", "grouped headers", "multi-column headers", "stacked headers"],
       "features": [
@@ -2905,6 +3147,7 @@
         }
       ]
     },
+
     {
       "id": "tree-list", "icon": "FolderTree", "name": "TreeList", "category": "Data", "parts": ["AddChildAction", "MoveAction"], "summary": "Shows rows nested in rows, such as an org chart or a folder tree, in a grid's columns.", "keywords": ["tree list", "treelist", "tree grid", "treegrid", "tree table", "hierarchy", "parent id", "self-referencing", "org chart", "bill of materials"],
       "features": [
@@ -2976,6 +3219,7 @@
         }
       ]
     },
+
     {
       "id": "list-view", "icon": "List", "name": "ListView", "category": "Data", "summary": "Displays a list of items users can open, select, page through and reorder.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
@@ -3020,6 +3264,7 @@
         }
       ]
     },
+
     {
       "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Builds kanban boards and available-to-chosen lists, with items dragged between them.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
       "features": [
@@ -3041,6 +3286,7 @@
           "example": { "id": "drop-zone-group-kanban", "title": "Spring conference", "height": 760, "page": true } }
       ]
     },
+
     {
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
@@ -3048,22 +3294,7 @@
         { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`." }
       ]
     },
-    {
-      "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Display", "summary": "Shows a photo, initials or an icon for a person or thing.",
-      "examples": [
-        { "id": "avatar-basics", "title": "Initials and icons", "lead": "To show a name's initials, in a color picked from the name, set `Name`. Without a name, the avatar shows a person icon.", "after": ["For teams and companies, set `Square`."] },
-        { "id": "avatar-variants", "title": "Colors and variants", "lead": "A variant sets the avatar's fill, `Soft` or `Solid`. To choose one, set `Variant`. For a color other than the one picked from `Name`, set `Accent`." },
-        { "id": "avatar-sizes", "title": "Sizes and status", "lead": "Avatars come in sizes from `Xs` to `Xl2`. To choose one, set `Size`. For a status dot in the corner, set `Status` with a `StatusLabel`." },
-        { "id": "avatar-beside-name", "title": "Beside a name", "lead": "When the name is written beside the avatar, set `Decorative`, so screen readers don't hear it twice." }
-      ]
-    },
-    {
-      "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Display", "summary": "Overlaps avatars and counts the rest.",
-      "examples": [
-        { "id": "avatar-group-max", "title": "Counting the rest", "lead": "To show the first few avatars and count the rest in a +N avatar, set `Max`." },
-        { "id": "avatar-group-sizes", "title": "Sizes", "lead": "To set the size of every avatar in a group, set `Size` on the group." }
-      ]
-    },
+
     {
       "id": "tree-view", "icon": "ListTree", "name": "TreeView", "category": "Data", "summary": "Shows items nested in items, such as folders, as branches that open and close.", "keywords": ["tree", "treeview", "hierarchy", "folders", "nested list", "file browser"],
       "features": [
@@ -3097,50 +3328,7 @@
         }
       ]
     },
-    {
-      "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
-      "examples": [
-        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
-        { "id": "barcode-product", "title": "Products", "lead": "For a retail product, set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit, the barcode adds it; with it, the barcode checks it." }
-      ]
-    },
-    {
-      "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
-      "examples": [
-        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code renders on the server as an SVG and works with JavaScript off. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for a user without a camera." },
-        { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
-          "notes": {
-            "noscript": "Verify posts the code; the field is one wide text box, not boxes. The key's copy button needs IzzyBlazor's script.",
-            "static": "Verify posts the code without a full reload.",
-            "interactive": "Verify runs C# without a full reload."
-          } }
-      ]
-    },
-    {
-      "id": "image", "icon": "Image", "name": "Image", "category": "Display", "summary": "Loads an image lazily and keeps its space.",
-      "examples": [
-        { "id": "image-fit", "title": "Ratio and fit", "lead": "A ratio gives the image a fixed shape, whatever the picture's own. Set `Ratio`. To choose whether the image fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
-        { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." }
-      ]
-    },
-    {
-      "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Display", "summary": "Shows a YouTube video that loads when played.",
-      "examples": [
-        { "id": "video-embed-play", "title": "Playing a video", "lead": "The poster shows first, and YouTube's player loads only when the user plays the video. Set `YouTubeId` and `Label`.",
-          "notes": {
-            "noscript": "The play button is a link that opens the video on YouTube.",
-            "static": "Clicking plays the video in place, from youtube-nocookie.com."
-          } },
-        { "id": "video-embed-upcoming", "title": "A video that isn't out yet", "lead": "To keep the space for a video that isn't out yet, leave out `YouTubeId`. `EmptyText` shows in the middle." }
-      ]
-    },
-    {
-      "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
-      "examples": [
-        { "id": "timeline-commits", "title": "Links and the current item", "lead": "To make an item's title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
-        { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
-      ]
-    },
+
     {
       "id": "scheduler", "icon": "CalendarDays", "name": "Scheduler", "category": "Data", "parts": ["SchedulerToday", "SchedulerArrows", "SchedulerPeriod", "SchedulerCategories", "SchedulerViews", "SchedulerNew"], "summary": "Shows appointments in a day, a week, a month or a list, drawn on the server, with its view and date in the page's address.", "keywords": ["scheduler", "calendar", "event calendar", "appointments", "bookings", "week view", "month view", "agenda"],
       "features": [
@@ -3182,48 +3370,7 @@
           "after": ["`ViewOptions` limits the view menu, here to the day, the week and the agenda. With one view there's no menu."] }
       ]
     },
-    {
-      "id": "comment", "icon": "MessageSquareText", "name": "Comment", "category": "Display", "summary": "Shows a comment in a discussion, with who wrote it, when, and replies nested under it.", "keywords": ["comments", "discussion", "thread", "reply", "feedback", "review"],
-      "examples": [
-        { "id": "comment-actions", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`. The avatar shows the author's initials, or a picture from `Avatar`. To add buttons such as Reply under the comment, set `Actions`." },
-        { "id": "comment-replies", "title": "Replies", "lead": "To answer a comment, put `Comment`s in its `Replies`. Each level steps in by one avatar.", "after": ["To load the rest of a long thread, put a link button after the replies. As a link, it works with JavaScript off.", "`RelativeTime` shows how long ago (\"5 hours ago\") with the full date on hover, worked out when the page renders. Comments older than a week show their date."] },
-        { "id": "comment-list", "title": "A list of comments", "lead": "For a page's comments, put them in a `Stack` with a count above and a `Divider` between.", "after": ["`Extra` adds to the author's line after the time, such as \"Edited\", a `Badge` or a `Menu`."] },
-        { "id": "comment-reply-form", "title": "Adding a comment", "lead": "For a box to write in, put a form in a `Comment` that has only the signed-in user's `Initials` or `Avatar`: it lines up with the comments above.", "after": ["For a conversation as it happens, `Chat` suits better."] }
-      ]
-    },
-    {
-      "id": "chat", "icon": "MessagesSquare", "name": "Chat", "category": "Display", "summary": "Builds an AI assistant's chat panel or a conversation between people.", "keywords": ["ai chat", "assistant", "chatbot", "messages", "conversation", "copilot", "llm", "prompt"],
-      "parts": ["ChatEntry"],
-      "features": [
-        { "feature": "A log that starts at its newest entry and stays there as entries arrive" },
-        { "feature": "Entries as text, Markdown or HTML, sanitized; avatars, times and days" },
-        { "feature": "Sends in a plain form post, with suggestions and Stop" },
-        { "feature": "Replies that stream in", "noscript": "none" }
-      ],
-      "examples": [
-        { "id": "chat-assistant", "title": "An assistant", "lead": "Put a `ChatEntry` for each message in a `Chat`, oldest first, and set `Mine` on yours. `OnSend` gets what was typed, or the suggestion chosen; add it, then the reply.", "after": ["An assistant's reply is usually Markdown. Set `Markdown` on its entry, and it's shown as `RichText` shows it: sanitized, with code highlighted.", "While the reply is on its way, set `Status` to `Waiting`, then `Streaming`, and set the entry's `Pending`. Send becomes Stop (`OnStop`), and the entry shows dots and then a caret.", "`Suggestions` shows messages to send with one press. `EmptyContent` fills the log before the first entry.", "`AllowFiles` adds a button to attach files, limited by `Accept`, `MaxFileSize` and `MaxFiles`. The files come to `OnSend` as `Files`, checked on the server against those limits. To show an entry's own files, set its `Attachments`."],
-          "notes": {
-            "noscript": "Send posts the form, and the page comes back with the whole reply: `CanStream` is false. Enter adds a line.",
-            "static": "The form posts without reloading the page. With `[StreamRendering]` on the page, the reply streams as it does interactively: `OnSend`'s `CanStream` is true when the post came with script. There's no Stop: the reply streams in a request a new post can't reach. Keep the conversation yourself between posts, under an id: this example sets `FormAction` to an address with the conversation's id, so each post goes there."
-          } }
-,
-        { "id": "chat-dictation", "title": "A button of your own", "modes": ["interactive"], "lead": "To add a button of your own beside Send, put it in `ComposerActions`. Here a microphone dictates with the browser's speech recognition: `@bind-Draft` fills the box with what it hears, and Send sends it as typed text.", "after": ["Chrome, Edge and Safari have speech recognition, and Chrome and Edge send the audio to their speech services. Where it's missing, the button doesn't show.", "For another service, such as Azure Speech, send the audio there and set `Draft` from the result."] },
-        { "id": "chat-people", "title": "People talking", "lead": "For a conversation between people, set `Variant` to `Conversation`. Set `Mine` on your entries and `Author` on everyone else's.", "after": ["Everyone's messages sit in bubbles, yours at the end. Another person's name sits above their message, with an `Avatar`: a picture's URL, or initials from the name. Yours shows an avatar when you give it a picture or `Initials`.", "Messages in a row from one person, minutes apart, are grouped, with the name, avatar and time shown once. With `Time`, each entry shows its time, and the day sits above the first message of each day: \"Yesterday\", \"Today\", or the date.", "While someone is typing, an entry with their `Author` and `Pending` shows three dots. `Height` sets the chat's height, and the log scrolls inside it."] }
-      ],
-      "topics": [
-        {
-          "id": "streaming", "title": "Streaming from a model", "summary": "Stream a model's reply into the last entry, with Stop and Retry.", "members": ["Status", "OnStop", "OnSend", "ChatEntry.Pending", "ChatEntry.Failed", "ChatEntry.OnRetry"],
-          "intro": [
-            "Chat takes plain values, so it works with any model client, and with no dependency of its own. With Microsoft.Extensions.AI, keep the conversation as `ChatMessage` items and map each to a `ChatEntry`: `Mine` for the user's, `Markdown` for the assistant's. Send the history to `IChatClient.GetStreamingResponseAsync` and append each update's text to the last message.",
-            "Set `Status` to `Waiting` until the first piece, then `Streaming`, and `Pending` on the entry being written. Render at most every 50 milliseconds or so (each render on an interactive page crosses the circuit), and once more at the end. Stop cancels the request through a `CancellationToken`; what arrived stays. On an error, set `Failed` on the entry and `Status` to `Failed`; `OnRetry` asks again.",
-            "On a static page, put `[StreamRendering]` on the page and stream only when `OnSend`'s `CanStream` is true; with JavaScript off, send the reply whole."
-          ],
-          "examples": [
-            { "id": "chat-streaming", "title": "A cooking assistant", "modes": ["interactive"], "lead": "This site's `IChatClient` is a stand-in with canned answers; register your own (OpenAI, Azure OpenAI, Ollama) and the page stays the same." }
-          ]
-        }
-      ]
-    },
+
     {
       "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Navigation", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
       "parts": ["CarouselItem"],
@@ -3243,6 +3390,7 @@
           "info": { "title": "Reduced motion", "text": "When the browser asks for reduced motion, the rotation starts stopped, and a fade switches slides without fading. The button still starts it." } }
       ]
     },
+
     {
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Navigation", "summary": "Shows sections that open and close, even with JavaScript off.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
@@ -3268,6 +3416,7 @@
           } }
       ]
     },
+
     {
       "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a \"show more\" toggle.", "keywords": ["details", "disclosure"],
       "features": [

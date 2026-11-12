@@ -71,20 +71,18 @@ Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-st
 
 More than 140 components, in the same groups as the docs:
 
-- **Layout:** Box, Row, Column, Stack, Grid, Container, Section, Center, Spacer, AspectRatio, Divider, Splitter
-- **App shell:** AppShell (header, collapsible sidebar, aside, footer), AppSidebar, SiteNav, IzzyTheme, ThemeScope, ColorSchemeSwitch
-- **Typography:** Heading, TextBlock, List, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight, Icon (all of Lucide, plus brand logos)
-- **Actions:** Button, IconButton, ButtonGroup, ToggleButton, ToggleGroup, SplitButton, FloatingButton, SpeedDial, Toolbar, ConfirmButton, CopyButton
-- **Forms:** Form, Fieldset, FieldFrame, FilterBuilder, FilterForm
-- **Inputs:** TextField (with masks and add-ons), PasswordField, RichTextEditor, TextArea, NumberField, Slider, RangeSlider, Rating, PinField, ColorPanel, ColorPicker, FileUpload
-- **Date and time:** DateField, TimeField, DateRangeField, MultiDateField, MonthField, YearField, Calendar, DurationField
-- **Selection:** Select, Combobox, Autocomplete, MultiSelect, TreeSelect, MultiTreeSelect, PickList, Checkbox, Switch, RadioGroup, CheckboxGroup, SegmentedControl
-- **Overlays:** Dialog (and DialogService), Drawer, Menu, ContextMenu, Popover, Tooltip, ReconnectDialog
-- **Navigation:** NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper, Carousel, Accordion, Collapsible
-- **Feedback:** Alert, Banner, Toast, LiveRegion, Badge, Tag, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
-- **Data:** Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
-- **Display:** Card, Stat, Avatar, AvatarGroup, Image, VideoEmbed, Timeline, Chat, Barcode, QrCode
+- **Layout:** Box, Row, Column, Stack, Grid, Container, Section, Center, Spacer, AspectRatio, Divider, TileLayout, Splitter, AppShell (header, collapsible sidebar, aside, footer), AppSidebar
+- **Typography:** Heading, TextBlock, List, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight, MentionText, Icon (all of Lucide, plus brand logos)
+- **Buttons:** Button, IconButton, ButtonGroup, ToggleButton, ToggleGroup, SplitButton, FloatingButton, SpeedDial, Toolbar, ConfirmButton, CopyButton
+- **Inputs:** Form, Fieldset, FieldFrame, TextField (with masks and add-ons), PasswordField, TextArea, RichTextEditor, Mentions, NumberField, PinField, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, PickList, Slider, RangeSlider, Rating, DateField, TimeField, DateRangeField, MultiDateField, MonthField, YearField, DurationField, Calendar, ColorPicker, ColorPanel, FileUpload
+- **Dropdowns:** Select, Combobox, Autocomplete, MultiSelect, TreeSelect, MultiTreeSelect
+- **Overlays:** Dialog (and DialogService), ActionSheet, Drawer, Menu, ContextMenu, Popover, Tooltip, ReconnectDialog
+- **Navigation:** SiteNav, NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper, Carousel, Accordion, Collapsible
+- **Feedback:** Alert, Banner, Toast, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
+- **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
+- **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
 - **Charts:** bar, line, area, scatter, bubble, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, Sparkline, Gauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
+- **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion
 
 Build responsive layouts and apply theme tokens through typed component props. If you've used
 Chakra UI or Mantine, the layout props will feel familiar:

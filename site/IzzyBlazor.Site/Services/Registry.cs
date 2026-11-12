@@ -101,22 +101,21 @@ public sealed class Registry
     public static string CategoryIcon(string category) => category switch
     {
         "Layout" => "LayoutGrid",
-        "App shell" => "PanelsTopLeft",
         "Typography" => "Type",
-        "Actions" => "MousePointerClick",
+        "Buttons" => "MousePointerClick",
         "Inputs" => "TextCursorInput",
-        "Date & time" => "CalendarClock",
-        "Selection" => "ListChecks",
+        "Dropdowns" => "SquareChevronDown",
         "Overlays" => "Layers",
         "Navigation" => "Compass",
         "Feedback" => "Bell",
         "Data" => "Table",
         "Display" => "IdCard",
         "Charts" => "ChartColumn",
+        "Utilities" => "Wrench",
         _ => "Square",
     };
 
-    /// <summary>A category's slug, such as <c>date-time</c> for "Date &amp; time": the components page's <c>?group=</c>.</summary>
+    /// <summary>A category's slug, such as <c>data</c> for "Data": the components page's <c>?group=</c>.</summary>
     public static string CategoryAnchor(string category) =>
         System.Text.RegularExpressions.Regex.Replace(category.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
 
