@@ -80,6 +80,35 @@
 
   .ib-tiles-rows-at-base { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
 
+  /* Editing: the handle at the header's start, pulled into the padding so the title keeps its line. */
+  .ib-tile-handle {
+    flex: none;
+    margin-inline-start: calc(var(--ib-space-2) * -1);
+    cursor: grab;
+  }
+
+  /* ShowGrid's cells, under the tiles: each at its column and row of the widest count. */
+  .ib-tiles-cell {
+    grid-column: var(--ib-cell-col);
+    grid-row: var(--ib-cell-row);
+    z-index: 0;
+    border: 1px dashed var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    pointer-events: none;
+  }
+
+  .ib-tiles-editing > .ib-tile { position: relative; z-index: 1; }
+
+  /* A tile with no header keeps its handle in the top end corner, over its content. */
+  .ib-tile-corner {
+    position: absolute;
+    inset-block-start: var(--ib-space-1);
+    inset-inline-end: var(--ib-space-1);
+    z-index: 1;
+  }
+
+  .ib-tile-corner .ib-tile-handle { margin: 0; }
+
   /* Each column count from its breakpoint up; the server places every tile at each one. */
   @media (width >= 640px) {
     .ib-tiles-at-sm { grid-template-columns: repeat(var(--ib-tiles-cols-sm), minmax(0, 1fr)); }
@@ -119,5 +148,31 @@
     }
 
     .ib-tiles-rows-at-xl { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
+  }
+}
+
+/* Editing is at the widest count only: below it, no handles and no cells. */
+@layer izzy.components {
+  @media (width < 640px) {
+    .ib-tiles-edit-from-sm .ib-tile-handle,
+    .ib-tiles-edit-from-sm > .ib-tiles-cell { display: none; }
+  }
+}
+@layer izzy.components {
+  @media (width < 768px) {
+    .ib-tiles-edit-from-md .ib-tile-handle,
+    .ib-tiles-edit-from-md > .ib-tiles-cell { display: none; }
+  }
+}
+@layer izzy.components {
+  @media (width < 1024px) {
+    .ib-tiles-edit-from-lg .ib-tile-handle,
+    .ib-tiles-edit-from-lg > .ib-tiles-cell { display: none; }
+  }
+}
+@layer izzy.components {
+  @media (width < 1280px) {
+    .ib-tiles-edit-from-xl .ib-tile-handle,
+    .ib-tiles-edit-from-xl > .ib-tiles-cell { display: none; }
   }
 }

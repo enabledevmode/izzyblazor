@@ -1,0 +1,43 @@
+@* A support lead arranging the team dashboard. On a static page each move posts the form and the
+   layout comes back moved; Save keeps the layout when its own button posted. *@
+<Stack Grow>
+    <Form Model="this" FormName="tile-layout-edit" OnValidSubmit="Save">
+        <TileLayout Columns="new() { Base = 1, Md = 6 }" Rows="3" RowHeight="Length.Rem(7)" Editable ShowGrid
+                    Name="layout" Post="Posted" @bind-State="_layout" aria-label="Support dashboard">
+            <Tile Id="open" Label="Open tickets" Col="1" Row="1" ColSpan="2" MinColSpan="2">
+                <Stat Label="Open tickets" Value="42" Change="5" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="since Monday" />
+            </Tile>
+            <Tile Id="response" Label="First response" Col="3" Row="1" ColSpan="2" MinColSpan="2">
+                <Stat Label="First response" Value="38 min" Change="6 min" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
+            </Tile>
+            <Tile Id="satisfaction" Label="Satisfaction" Col="1" Row="2" ColSpan="2" MinColSpan="2">
+                <Stat Label="Satisfaction" Value="94%" Change="1 pt" Trend="StatTrend.Up" Description="last 30 days" />
+            </Tile>
+        </TileLayout>
+        <FormActions><Button Submit>Save layout</Button></FormActions>
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @_saved</TextBlock>
+        }
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "tile-layout-edit", Name = "layout")]
+    private TileLayoutPost? Posted { get; set; }
+
+    private TileLayoutState? _layout;
+    private string? _saved;
+
+    private void Save()
+    {
+        // A move from a tile's menu posts too; only the Save button saves.
+        if (Posted?.Move is not null)
+        {
+            return;
+        }
+
+        _layout = Posted?.State ?? _layout;
+        _saved = _layout?.ToString() ?? "the layout as written";
+    }
+}

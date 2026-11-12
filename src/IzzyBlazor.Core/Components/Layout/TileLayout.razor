@@ -39,6 +39,7 @@
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list">
     <CascadingValue Value="_context" IsFixed="true">
         @ChildContent
+        @Extras
     </CascadingValue>
 </div>
 
@@ -72,12 +73,99 @@
     /// </summary>
     [Parameter] public TileLayoutState? State { get; set; }
 
+    /// <summary>
+    /// Runs with the new layout after each move on an interactive page; use <c>@bind-State</c> and
+    /// save it here.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<TileLayoutState> StateChanged { get; set; }
+
+    /// <summary>
+    /// Lets the user move and resize the tiles: each gets a handle whose menu moves it a cell at a
+    /// time and makes it wider, narrower, taller or shorter. Only at the widest column count; at
+    /// fewer columns the handles hide. On a static page it needs a <see cref="Name"/> inside a form.
+    /// </summary>
+    [Parameter, ModeSupport(NoScriptNotes = "Each move from a tile's menu posts the form.")]
+    public bool Editable { get; set; }
+
+    /// <summary>While <see cref="Editable"/>, outlines every cell, so the user sees where tiles can go.</summary>
+    [Parameter] public bool ShowGrid { get; set; }
+
+    /// <summary>Lets a tile move or grow over another. By default a move that would cover a tile isn't offered.</summary>
+    [Parameter] public bool AllowOverlap { get; set; }
+
+    /// <summary>
+    /// On a static page, the name an editable layout posts under: <c>{Name}.Tiles</c> (the layout
+    /// shown) and <c>{Name}.Move</c> (a move from a tile's menu), bound as a
+    /// <see cref="TileLayoutPost"/>. Pass that back as <see cref="Post"/>.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>
+    /// On a static page, what the layout posted, bound under its <see cref="Name"/>: it shows the
+    /// posted layout with the posted move made, over <see cref="State"/>.
+    /// </summary>
+    [Parameter] public TileLayoutPost? Post { get; set; }
+
     private readonly TileLayoutContext _context;
 
     /// <summary>Each column count and the breakpoint it starts at (null for the base), narrowest width first.</summary>
     internal IReadOnlyList<(Breakpoint? Breakpoint, int Columns)> Levels { get; private set; } = [];
     private string? _class;
     private string? _style;
+    // Drawn after the tiles, which it needs placed. (Internal, so built here rather than as a tag.)
+    private RenderFragment Extras => builder =>
+    {
+        builder.OpenComponent<TileLayoutExtras>(0);
+        builder.AddComponentParameter(1, nameof(TileLayoutExtras.Context), _context);
+        builder.AddComponentParameter(2, nameof(TileLayoutExtras.Version), _version);
+        builder.CloseComponent();
+    };
+
+    private TileLayoutState? _live;
+    private TileLayoutState? _lastState;
+    private int _version;
+
+    // Interactive (or prerendering for it): C# makes the moves.
+    internal bool Live => WillBeInteractive;
+
+    /// <summary>The layout to draw: what a static page posted, else a move made here, else <see cref="State"/>.</summary>
+    internal TileLayoutState? EffectiveState => Post?.State is { } posted && !Live ? posted : _live ?? State;
+
+    /// <summary>The move a static page posted, made as the tiles are placed.</summary>
+    internal TileMove? PendingMove { get; private set; }
+
+    /// <summary>The tile whose handle takes focus after a static page's move.</summary>
+    internal string? FocusId { get; private set; }
+
+    /// <summary>The tile that last moved, and what its live region says.</summary>
+    internal (Tile Tile, string Text)? Announcement { get; private set; }
+
+    internal void Moved(Tile tile, TileMoveKind kind, TilePlace to)
+    {
+        FocusId = Live ? null : tile.Id;
+        var text = kind is TileMoveKind.Left or TileMoveKind.Right or TileMoveKind.Up or TileMoveKind.Down
+            ? string.Format(CultureInfo.CurrentCulture, TextDefaults.TileMovedTo, tile.AccessibleName, to.Col, to.Row)
+            : string.Format(CultureInfo.CurrentCulture, TextDefaults.TileResizedTo, tile.AccessibleName, to.ColSpan, to.RowSpan);
+        Announcement = (tile, text);
+    }
+
+    // A move from a tile's menu on an interactive page.
+    internal async Task MoveAsync(Tile tile, TileMoveKind kind)
+    {
+        if (!_context.TryMove(tile, kind, out var to))
+        {
+            return;
+        }
+
+        var state = _context.CurrentState(tile, to);
+        _live = state;
+        Moved(tile, kind, to);
+        _context.Invalidate();
+        _version++;
+        await StateChanged.InvokeAsync(state);
+        StateHasChanged();
+    }
 
     /// <summary>Creates the layout.</summary>
     public TileLayout() => _context = new TileLayoutContext(this);
@@ -86,6 +174,12 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-tiles");
+        classes.Add("ib-tiles-editing", Editable);
+        if (Editable && Levels[^1].Breakpoint is { } from)
+        {
+            classes.Add($"ib-tiles-edit-from-{from.Name()}");
+        }
+
         base.BuildAttributes(classes, styles);
         foreach (var (breakpoint, columns) in Levels)
         {
@@ -126,6 +220,19 @@
             throw new InvalidOperationException("TileLayout's Rows can't be negative; 0 means as many as the tiles need.");
         }
 
+        if (Editable && !Live && string.IsNullOrEmpty(Name))
+        {
+            throw new InvalidOperationException("An Editable TileLayout on a static page needs a Name inside a form: its moves post the form, and the posted TileLayoutPost comes back as Post.");
+        }
+
+        // A new State from the page replaces moves made here.
+        if (!ReferenceEquals(State, _lastState))
+        {
+            _lastState = State;
+            _live = null;
+        }
+
+        PendingMove = Editable && !Live && TileMove.TryParse(Post?.Move, out var move) ? move : null;
         base.OnParametersSet();
         _context.BeginPass();
         (_class, _style) = BuildRootAttributes();
