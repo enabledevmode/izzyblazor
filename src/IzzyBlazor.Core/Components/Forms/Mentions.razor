@@ -1,0 +1,331 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits FieldBase<string?>
+@inject NavigationManager Navigation
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain text area: names typed after @ post as text, with no suggestions.")]
+
+@*
+    A text area where typing @ suggests names: choosing one writes "@name " into the text. The
+    value is the plain text; Mention.Parse finds the names in it, and MentionText shows it with
+    the names marked.
+
+    <Mentions @bind-Value="Model.Note" Label="Note"
+              Items="People" ItemText="p => p.Handle" />
+    <Mentions @bind-Value="Model.Note" Label="Note"
+              Prefixes="Triggers" Search="Find"
+              Rows="1" AutoGrow />
+
+    Suggestions come from Items (narrowed in the browser, for every trigger) or from Search, called
+    with the trigger and the text typed after it ("" when the trigger is first typed), so each
+    trigger can have its own: people for @, tags for #. On interactive pages each pause in typing
+    searches on the circuit. Static pages do too, with script: each pause fetches the page with the
+    typed text in its address and takes this field's suggestions out of the response. That render
+    sees the address, not the form's current values.
+
+    A mention starts at a trigger at the start of the text or after a space, and ends at the next
+    space, so ItemText should be a handle without spaces ("ana.ruiz", not "Ana Ruiz"); show the
+    full name in ItemTemplate.
+
+    Accessibility:
+    - The text area keeps its own role (a multi-line text box, which is what it is) and has
+      `aria-autocomplete="list"` and `aria-controls` naming the list of suggestions; the
+      highlighted suggestion is its `aria-activedescendant`. ARIA's combobox role is for one-line
+      inputs and isn't allowed on a text area.
+    - When the list opens, a status says how many suggestions there are; the first is highlighted,
+      so Enter takes it, and Escape closes the list for Enter to start a new line.
+    - With JavaScript off it's a plain text area.
+
+    Keyboard:
+    In the text, with suggestions showing
+    - Down, Up | Highlight the next or previous suggestion
+    - Enter, Tab | Write the highlighted suggestion into the text
+    - Escape | Close the suggestions, leaving the text as it is
+    See also: Autocomplete, TextArea, MentionText.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/mentions.css"]" />
+<FieldFrame Class="@WrapperClass("mentions")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-mentions class="ib-field-control ib-mentions"
+                 data-prefixes="@string.Join("\n", PrefixList)"
+                 data-split="@Split"
+                 data-top="@(Placement == MentionsPlacement.Top ? "" : null)"
+                 data-server="@(ServerSearches ? "" : null)"
+                 data-ib-suggest-key="@(PageFetches ? SuggestionKey : null)"
+                 data-ib-debounce="@(Searches ? Durations.Ms(Debounce) : null)"
+                 data-count="@TextDefaults.MentionSuggestions"
+                 data-count-one="@TextDefaults.MentionSuggestion">
+        <textarea @attributes="ControlAttributes"
+                  id="@FieldId"
+                  class="@InputClass"
+                  name="@NameAttributeValue"
+                  @bind="CurrentValueAsString"
+                  rows="@Rows"
+                  style="@(AutoGrow ? $"--ib-rows: {Rows}" : null)"
+                  placeholder="@Placeholder"
+                  required="@IsRequired"
+                  maxlength="@(MaxLength ?? AnnotatedMaxLength)"
+                  disabled="@IsDisabled"
+                  readonly="@IsReadOnly"
+                  aria-autocomplete="list"
+                  aria-controls="@ListId"
+                  aria-invalid="@(Invalid ? "true" : null)"
+                  aria-describedby="@DescribedBy"></textarea>
+        <span class="ib-mentions-caret" aria-hidden="true" style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"></span>
+        <div id="@ListId"
+             class="@ListClass"
+             style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+             popover="manual"
+             role="listbox"
+             aria-labelledby="@LabelId"
+             aria-busy="@(_searching ? "true" : null)"
+             data-query="@(ServerSearches ? _answered : null)"
+             data-ib-answered="@(_pageAnswer ? "" : null)">
+            @{ var index = 0; }
+            @foreach (var (prefix, items) in Shown)
+            {
+                @foreach (var item in items)
+                {
+                    var text = TextOf(item);
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        continue;
+                    }
+
+                    <div role="option"
+                         id="@($"{ListId}-{index++}")"
+                         class="ib-combobox-option ib-mentions-option"
+                         data-prefix="@prefix"
+                         data-text="@text"
+                         aria-selected="false"
+                         aria-disabled="@(ItemDisabled?.Invoke(item) == true ? "true" : null)">
+                        @if (ItemTemplate is not null)
+                        {
+                            @ItemTemplate(item)
+                        }
+                        else
+                        {
+                            @text
+                        }
+                    </div>
+                }
+            }
+            @* Shown while a search runs with nothing to show yet; read through the status. *@
+            <div class="ib-combobox-empty" aria-hidden="true">@TextDefaults.Searching</div>
+        </div>
+        <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
+        @if (ServerSearches)
+        {
+            @* The script writes the trigger and the typed text here ("@an") and fires input. *@
+            <input type="hidden" class="ib-mentions-query" value="" @oninput="OnQuery" />
+        }
+        @if (Clearable && !IsDisabled && !IsReadOnly)
+        {
+            @ClearButton
+        }
+    </ib-mentions>
+</FieldFrame>
+
+@code {
+    /// <summary>Suggestions for every trigger, narrowed in the browser as the user types.</summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Finds suggestions for a trigger and the text typed after it, for lists too long to send whole
+    /// or a list for each trigger. Called with each trigger and "" to fill the list at first, then
+    /// for each pause in typing. Return a short list, such as the first 10 matches.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Notes = "On static pages, each pause in typing fetches the page with the typed text in its address, and Search runs in that render; it sees the address, not the form's current values. The field needs a name (inside a Form it has one) or an id; without either, the browser narrows the first results.")]
+    public Func<MentionQuery, CancellationToken, Task<IEnumerable<TItem>>>? Search { get; set; }
+
+    /// <summary>What's written into the text for an item, after the trigger: a handle without spaces. Defaults to the item's <c>ToString()</c>.</summary>
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    /// <summary>How a suggestion looks in the list, such as an avatar beside a full name. Defaults to <see cref="ItemText"/>.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>Suggestions shown but not chosen, such as someone without access.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>The characters that start a mention, such as <c>["@", "#"]</c>. Defaults to <c>@</c>.</summary>
+    [Parameter] public IReadOnlyList<string>? Prefixes { get; set; }
+
+    /// <summary>Written after a chosen name, unless the text there already starts with it. Defaults to a space.</summary>
+    [Parameter] public string Split { get; set; } = " ";
+
+    /// <summary>Whether the suggestions open below the caret's line (the default) or above it. They flip where there's no room.</summary>
+    [Parameter] public MentionsPlacement Placement { get; set; }
+
+    /// <summary>How long to wait after the last keystroke before searching. Defaults to 250 milliseconds.</summary>
+    [Parameter] public TimeSpan Debounce { get; set; } = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>Visible lines. Defaults to 4; 1 for a one-line look.</summary>
+    [Parameter] public int Rows { get; set; } = 4;
+
+    /// <summary>Grows with the text instead of scrolling, from <see cref="Rows"/> lines up, where the browser supports CSS <c>field-sizing</c>.</summary>
+    [Parameter] public bool AutoGrow { get; set; }
+
+    /// <summary>Text in the empty field, such as "Type @ to mention someone".</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Maximum length. Defaults to <c>[StringLength]</c> or <c>[MaxLength]</c>.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>A button in the field that empties it, there while it holds text. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    private static readonly IReadOnlyList<string> DefaultPrefixes = ["@"];
+
+    // Each trigger's suggestions from Search; Items has one list for all ("" below).
+    private readonly Dictionary<string, IReadOnlyList<TItem>> _results = new(StringComparer.Ordinal);
+    private CancellationTokenSource? _searchCts;
+    private bool _searching;
+    private bool _searched;
+    // Interactive: the trigger and text the results answer ("@an"); "" for the first results.
+    private string _answered = "";
+    // Static: this render answers the script's fetch for this field's suggestions.
+    private bool _pageAnswer;
+    private string? _askedPrefix;
+
+    private string ListId => FieldId + "-list";
+    private string LabelId => FieldId + "-label";
+
+    private IReadOnlyList<string> PrefixList => Prefixes is { Count: > 0 } p ? p : DefaultPrefixes;
+
+    private bool Searches => Search is not null;
+
+    private bool ServerSearches => Searches && RendererInfo.IsInteractive;
+
+    private bool PageFetches => Searches && !WillBeInteractive && SuggestionKey is not null;
+
+    private string InputClass => AutoGrow ? "ib-field-input ib-mentions-input ib-field-autogrow" : "ib-field-input ib-mentions-input";
+
+    private string ListClass => Placement == MentionsPlacement.Top
+        ? "ib-pop ib-place-top-start ib-combobox-list ib-mentions-list"
+        : "ib-pop ib-place-bottom-start ib-combobox-list ib-mentions-list";
+
+    private string TextOf(TItem item) => ItemText is not null ? ItemText(item) : item?.ToString() ?? "";
+
+    // What the list holds: each trigger's results, or Items for all (an empty data-prefix).
+    private IEnumerable<(string? Prefix, IEnumerable<TItem> Items)> Shown
+    {
+        get
+        {
+            if (!Searches)
+            {
+                yield return (null, Items ?? []);
+                yield break;
+            }
+
+            foreach (var prefix in PrefixList)
+            {
+                // A page fetch's answer holds only the asked trigger's.
+                if (_pageAnswer && prefix != _askedPrefix)
+                {
+                    continue;
+                }
+
+                if (_results.TryGetValue(prefix, out var items))
+                {
+                    yield return (prefix, items);
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Searches || _searched)
+        {
+            return;
+        }
+
+        _searched = true;
+        var asked = false;
+        var query = WillBeInteractive ? null : IzzyRequest.SuggestionFor(Navigation, PageFetches ? SuggestionKey! : null, out asked);
+        _pageAnswer = asked;
+        if (query is not null && !asked)
+        {
+            // Another field's fetch: its render is thrown away, so don't search.
+            return;
+        }
+
+        if (asked && SplitQuery(query!) is { } q)
+        {
+            _askedPrefix = q.Prefix;
+            _results[q.Prefix] = (await Search!(q, CancellationToken.None)).ToList();
+            return;
+        }
+
+        foreach (var prefix in PrefixList)
+        {
+            _results[prefix] = (await Search!(new MentionQuery(prefix, ""), CancellationToken.None)).ToList();
+        }
+    }
+
+    // "@an" as the trigger "@" and "an"; the longest trigger that fits.
+    private MentionQuery? SplitQuery(string query)
+    {
+        var prefix = PrefixList.Where(p => query.StartsWith(p, StringComparison.Ordinal)).MaxBy(p => p.Length);
+        return prefix is null ? null : new MentionQuery(prefix, query[prefix.Length..]);
+    }
+
+    private async Task OnQuery(ChangeEventArgs e)
+    {
+        if (!ServerSearches || SplitQuery(e.Value?.ToString() ?? "") is not { } q)
+        {
+            return;
+        }
+
+        _searchCts?.Cancel();
+        var cts = _searchCts = new CancellationTokenSource();
+        var token = cts.Token;
+        var asked = q.Prefix + q.Text;
+
+        try
+        {
+            await Task.Delay(Debounce, token);
+            _searching = true;
+            StateHasChanged();
+            var results = (await Search!(q, token)).ToList();
+            if (!token.IsCancellationRequested)
+            {
+                _results[q.Prefix] = results;
+                _answered = asked;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            if (ReferenceEquals(_searchCts, cts))
+            {
+                _searching = false;
+                _searchCts = null;
+            }
+
+            cts.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+}

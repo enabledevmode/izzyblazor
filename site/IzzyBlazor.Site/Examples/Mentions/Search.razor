@@ -1,0 +1,39 @@
+@* A company directory too long to send whole: Search returns the first matches for each pause in typing. *@
+
+<Mentions TItem="Employee" @bind-Value="_message" Label="Message" Search="FindPeople"
+          ItemText="e => e.Handle" Placeholder="Type @@ and a name" Rows="3" MaxWidth="32.Rem" Grow>
+    <ItemTemplate Context="employee">
+        <Avatar Name="@employee.Name" Size="AvatarSize.Xs" Decorative />
+        <span>@employee.Name <span class="ib-option-hint">@employee.Department</span></span>
+    </ItemTemplate>
+</Mentions>
+
+@code {
+    private string? _message;
+
+    // Called with "" when @ is typed, then for each pause in typing.
+    private static async Task<IEnumerable<Employee>> FindPeople(MentionQuery query, CancellationToken token)
+    {
+        await Task.Delay(query.Text.Length == 0 ? 0 : 300, token); // a database query
+        return Staff.Where(e => e.Name.Contains(query.Text, StringComparison.OrdinalIgnoreCase)
+                                 || e.Handle.Contains(query.Text, StringComparison.OrdinalIgnoreCase))
+                        .Take(8);
+    }
+    @* hide *@
+    private sealed record Employee(string Name, string Handle, string Department);
+
+    private static readonly Employee[] Staff =
+    [
+        new("Aisha Bello", "aisha.bello", "Finance"), new("Ben Carter", "ben.carter", "Sales"),
+        new("Carmen Diaz", "carmen.diaz", "Legal"), new("Daniel Kim", "daniel.kim", "Finance"),
+        new("Elena Petrova", "elena.petrova", "Engineering"), new("Farid Haddad", "farid.haddad", "Support"),
+        new("Grace Liu", "grace.liu", "Design"), new("Hannah Weber", "hannah.weber", "Marketing"),
+        new("Isaac Mensah", "isaac.mensah", "Engineering"), new("Jordan Ellis", "jordan.ellis", "Operations"),
+        new("Kenji Sato", "kenji.sato", "Engineering"), new("Laura Rossi", "laura.rossi", "Sales"),
+        new("Mei Chen", "mei.chen", "Design"), new("Noah Fischer", "noah.fischer", "Support"),
+        new("Olivia Brown", "olivia.brown", "People"), new("Priya Nair", "priya.nair", "Engineering"),
+        new("Rafael Souza", "rafael.souza", "Finance"), new("Sara Lindqvist", "sara.lindqvist", "Legal"),
+        new("Tomás Ortega", "tomas.ortega", "Operations"), new("Yusuf Kaya", "yusuf.kaya", "Sales"),
+    ];
+    @* /hide *@
+}

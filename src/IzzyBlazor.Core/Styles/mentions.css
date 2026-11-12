@@ -1,0 +1,70 @@
+/*
+ * Mentions and MentionText. Built to wwwroot/mentions.css and linked by both, so pages without
+ * one don't pay for it. The list of suggestions is a Combobox list (form.css), anchored to a mark
+ * the script keeps at the caret.
+ */
+@layer izzy.components {
+  .ib-mentions {
+    position: relative;
+  }
+
+  .ib-mentions-input {
+    resize: vertical;
+  }
+
+  /* Where the caret is, for the list to open beside; one line high. Placed by the script, in
+     physical pixels, in either direction. Empty and 0 wide, so nothing shows; not hidden, as a
+     hidden anchor hides what's anchored to it. */
+  .ib-mentions-caret {
+    position: absolute;
+    top: 0;
+    left: 0;
+    inline-size: 0;
+    block-size: 1lh;
+    pointer-events: none;
+  }
+
+  .ib-mentions:not([data-ready]) > .ib-mentions-list {
+    display: none;
+  }
+
+  /* As wide as its names, not as the caret (anchor-size would make it 0). */
+  .ib-mentions > .ib-pop.ib-mentions-list {
+    min-inline-size: 12rem;
+    max-inline-size: min(24rem, calc(100vw - 1rem));
+  }
+
+  /* While a search runs with nothing to show: "Searching…". */
+  .ib-mentions > .ib-mentions-list > .ib-combobox-empty {
+    display: none;
+  }
+
+  .ib-mentions > .ib-mentions-list:not(:has(> [role="option"]:not([hidden]))) > .ib-combobox-empty {
+    display: block;
+  }
+
+  .ib-mention-text {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .ib-mention {
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium, 500);
+  }
+
+  a.ib-mention {
+    text-decoration: none;
+  }
+
+  a.ib-mention:hover {
+    text-decoration: underline;
+  }
+
+  @media (forced-colors: active) {
+    span.ib-mention {
+      color: CanvasText;
+      text-decoration: underline dotted;
+    }
+  }
+}

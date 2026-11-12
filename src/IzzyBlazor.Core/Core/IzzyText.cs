@@ -478,6 +478,12 @@ public class IzzyText
     /// <summary>Combobox while searching on the server.</summary>
     public virtual string Searching { get; set; } = "Searching…";
 
+    /// <summary>For screen readers, when Mentions' suggestions open with one: "1 suggestion."</summary>
+    public virtual string MentionSuggestion { get; set; } = "1 suggestion.";
+
+    /// <summary>For screen readers, when Mentions' suggestions open: "5 suggestions." {0} is the number.</summary>
+    public virtual string MentionSuggestions { get; set; } = "{0} suggestions.";
+
     /// <summary>After the label of a field that isn't required, in a Form with <c>RequiredMark.Optional</c>.</summary>
     public virtual string Optional { get; set; } = "(optional)";
 

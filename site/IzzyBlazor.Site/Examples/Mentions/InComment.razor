@@ -1,0 +1,43 @@
+@* A posted comment's text with its mentions linked; a link opens that person's profile under it. *@
+@inject NavigationManager Navigation
+
+<Stack Gap="4" Grow>
+    <Comment Author="Aisha Bello" Time="_posted" RelativeTime>
+        <MentionText Text="@_text" Href="ProfileOf" />
+    </Comment>
+    @if (Profile is not null && Team.TryGetValue(Profile, out var person))
+    {
+        <Card MaxWidth="20.Rem">
+            <Row Gap="3" Align="Align.Center">
+                <Avatar Name="@person.Name" Decorative />
+                <Stack Gap="0">
+                    <TextBlock Weight="FontWeight.Medium">@person.Name</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@person.Role</TextBlock>
+                </Stack>
+            </Row>
+        </Card>
+    }
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "profile")] private string? Profile { get; set; }
+
+    private readonly DateTimeOffset _posted = DateTimeOffset.UtcNow.AddHours(-3);
+
+    private readonly string _text = """
+        The revised quote is in. @daniel.kim can you check it against the budget?
+        @mei.chen the install dates moved to the 14th.
+        """;
+
+    // An app links to its profile page, such as $"/people/{m.Text}".
+    private string ProfileOf(Mention m) => Navigation.GetUriWithQueryParameter("profile", m.Text) + "#ex-mentions-in-comment";
+    @* hide *@
+    private sealed record Person(string Name, string Role);
+
+    private static readonly Dictionary<string, Person> Team = new()
+    {
+        ["daniel.kim"] = new("Daniel Kim", "Finance lead"),
+        ["mei.chen"] = new("Mei Chen", "Facilities"),
+    };
+    @* /hide *@
+}

@@ -1,0 +1,48 @@
+@* A nomination form: Mention.Parse counts the people named, and the form asks for two. *@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="mentions-form" OnValidSubmit="Send" MaxWidth="32.Rem" Grow>
+    <Mentions @bind-Value="Model!.Nominees" Items="Team" Rows="1" AutoGrow
+              Hint="Name at least two people." />
+    <Mentions @bind-Value="Model!.Reason" Items="Team" Rows="3" AutoGrow
+              Placeholder="What did they do? Type @@ to credit others." />
+    <FormActions>
+        <Button Submit>Nominate</Button>
+    </FormActions>
+    @if (_sent is not null)
+    {
+        <Alert Color="Color.Success">Nominated @_sent.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "mentions-form")]
+    private Nomination? Model { get; set; }
+
+    private string? _sent;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Send() =>
+        _sent = string.Join(" and ", Mention.Parse(Model!.Nominees).Select(m => m.Text).Distinct());
+
+    public sealed class Nomination : IValidatableObject
+    {
+        [Required, Display(Name = "Nominees")]
+        public string? Nominees { get; set; }
+
+        [Required, StringLength(500), Display(Name = "Why")]
+        public string? Reason { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext context)
+        {
+            if (!string.IsNullOrWhiteSpace(Nominees) && Mention.Parse(Nominees).Select(m => m.Text).Distinct().Count() < 2)
+            {
+                yield return new("Name at least two people, each with @.", [nameof(Nominees)]);
+            }
+        }
+    }
+    @* hide *@
+    private static readonly string[] Team = ["aisha.bello", "daniel.kim", "jordan.ellis", "mei.chen", "priya.nair", "tomas.ortega"];
+    @* /hide *@
+}

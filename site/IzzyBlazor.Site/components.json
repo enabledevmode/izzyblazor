@@ -1409,6 +1409,25 @@
       ]
     },
     {
+      "id": "mentions", "icon": "AtSign", "name": "Mentions", "category": "Inputs", "summary": "Suggests people or tags as the user types @ or # in a text area, and writes the chosen name into the text.", "keywords": ["mention", "at mention", "tag", "hashtag", "@", "typeahead", "comment box"],
+      "parts": ["MentionText"],
+      "features": [
+        { "feature": "The value is the plain text, posted with the form" },
+        { "feature": "Typing a trigger suggests names at the caret, narrowed as you type", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Search fills each trigger's suggestions when the page loads" },
+        { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "MentionText shows saved text with the names marked or linked" }
+      ],
+      "examples": [
+        { "id": "mentions-people", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
+          "after": ["A mention ends at a space, so `ItemText` should be a handle without spaces. `Placement=\"MentionsPlacement.Top\"` opens the list above the line, for a box at the bottom of the page."] },
+        { "id": "mentions-search", "title": "Searching a directory", "lead": "For a list too long to send whole, set `Search`. It gets a `MentionQuery`, the trigger and what's typed after it, and returns the first matches. Each pause in typing asks again." },
+        { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows." },
+        { "id": "mentions-triggers", "title": "People and issues", "lead": "`Prefixes` sets the triggers. `Search` gets the one typed, so `@` can list people and `#` issues." },
+        { "id": "mentions-in-comment", "title": "Showing mentions", "lead": "To show saved text, use `MentionText`: it marks each mention, and `Href` links it to a profile; here the link opens it under the comment. Its lines are kept." }
+      ]
+    },
+    {
       "id": "pick-list", "icon": "ArrowLeftRight", "name": "PickList", "category": "Selection", "summary": "Lets the user choose items by moving them from one list to another, in the order they want.", "keywords": ["transfer list", "dual list box", "list builder", "shuttle", "columns picker"],
       "features": [
         { "feature": "Two lists, the move buttons, double-click and Enter", "noscript": "none" },
