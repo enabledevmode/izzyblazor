@@ -54,6 +54,9 @@ public sealed class ItemManifest
     /// <summary>When packages are restored after a starter is made: a condition over the settings, or null for never.</summary>
     public string? Restore { get; init; }
 
+    /// <summary>Things to tell the user about the project as it is, such as a page that already has an h1.</summary>
+    public IReadOnlyList<CheckSpec> Checks { get; init; } = [];
+
     /// <summary>Reads a manifest from the text of an <c>izzy.json</c>.</summary>
     public static ItemManifest Parse(string json)
     {
@@ -84,6 +87,8 @@ public sealed class ItemManifest
                 Required(r!.AsObject(), "if"),
                 (r["paths"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>())).ToList() ?? [],
             Restore = (string?)root["restore"],
+            Checks = (root["checks"] as JsonArray)?.Select(c => new CheckSpec(
+                (string?)c!["if"], Required(c.AsObject(), "file"), Required(c.AsObject(), "pattern"), Required(c.AsObject(), "message"))).ToList() ?? [],
         };
     }
 
@@ -124,6 +129,13 @@ public enum ItemTier
 /// <param name="If">A condition expression over the settings.</param>
 /// <param name="Paths">Globs over paths in the item's <c>files</c> folder: <c>*</c> within a folder, <c>**</c> across folders.</param>
 public sealed record ExcludeRule(string If, IReadOnlyList<string> Paths);
+
+/// <summary>A warning when a file in the project matches a pattern, such as a page that already has an h1.</summary>
+/// <param name="If">A condition expression; checked only when it holds. Null always.</param>
+/// <param name="File">The file, relative to the project folder; tokens allowed.</param>
+/// <param name="Pattern">A regular expression; a match anywhere in the file gives the warning.</param>
+/// <param name="Message">The warning; tokens allowed.</param>
+public sealed record CheckSpec(string? If, string File, string Pattern, string Message);
 
 /// <summary>Paths moved when <see cref="If"/> holds.</summary>
 /// <param name="If">A condition expression over the settings.</param>

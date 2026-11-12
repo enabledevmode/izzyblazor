@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <!-- A placeholder for your app's screenshot: replace it, or set ImageSrc. It follows the system's light or dark scheme. -->
+  <style>
+    .bg { fill: #f6f7f9 } .bar { fill: #ffffff } .side { fill: #eef0f3 } .card { fill: #ffffff; stroke: #e2e5ea } .line { fill: #d5d9e0 } .accent { fill: #8b93a1 }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #121317 } .bar { fill: #17191e } .side { fill: #15171b } .card { fill: #1b1d22; stroke: #2a2d34 } .line { fill: #30343c } .accent { fill: #5c6370 }
+    }
+  </style>
+  <rect class="bg" width="1280" height="800"/>
+  <rect class="bar" width="1280" height="64"/>
+  <rect class="accent" x="32" y="22" width="120" height="20" rx="6"/>
+  <rect class="side" y="64" width="240" height="736"/>
+  <rect class="line" x="32" y="104" width="150" height="14" rx="7"/>
+  <rect class="line" x="32" y="144" width="120" height="14" rx="7"/>
+  <rect class="line" x="32" y="184" width="136" height="14" rx="7"/>
+  <rect class="accent" x="288" y="112" width="320" height="28" rx="8"/>
+  <rect class="card" x="288" y="176" width="296" height="140" rx="14"/>
+  <rect class="card" x="608" y="176" width="296" height="140" rx="14"/>
+  <rect class="card" x="928" y="176" width="296" height="140" rx="14"/>
+  <rect class="line" x="312" y="204" width="110" height="12" rx="6"/>
+  <rect class="accent" x="312" y="236" width="160" height="28" rx="8"/>
+  <rect class="line" x="632" y="204" width="110" height="12" rx="6"/>
+  <rect class="accent" x="632" y="236" width="130" height="28" rx="8"/>
+  <rect class="line" x="952" y="204" width="110" height="12" rx="6"/>
+  <rect class="accent" x="952" y="236" width="150" height="28" rx="8"/>
+  <rect class="card" x="288" y="340" width="936" height="420" rx="14"/>
+  <path class="accent" d="M330 700 L460 600 L590 640 L720 520 L850 560 L980 440 L1180 480 L1180 720 L330 720 Z" opacity="0.5"/>
+</svg>

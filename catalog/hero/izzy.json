@@ -1,0 +1,55 @@
+// The free hero: the top of a landing page, written into the project as a component you own
+// (Components/Blocks/Hero.razor) and placed on a page after its <PageTitle>.
+{
+  "id": "hero",
+  "name": "Hero",
+  "kind": "block",
+  "category": "Marketing",
+  "summary": "The top of a landing page: a headline, a sentence, two buttons and a screenshot or image.",
+  "components": ["Section", "Grid", "Stack", "Row", "Badge", "Heading", "TextBlock", "Button", "Box", "Image"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Centered", "Split"], "default": "Centered", "x-priority": "important",
+        "description": "Centered stacks everything in the middle; Split puts the image or screenshot beside the text."
+      },
+      "Eyebrow": { "type": "string", "default": "", "description": "A short pill above the headline, such as \"New in 2.0\". Empty leaves it out." },
+      "Headline": { "type": "string", "default": "Ship your next app faster", "x-priority": "important", "description": "The headline: what you offer, in a few words." },
+      "Subhead": { "type": "string", "default": "One or two sentences on what it does and who it's for.", "description": "The sentence under the headline." },
+      "PrimaryText": { "type": "string", "default": "Get started", "description": "The main button." },
+      "PrimaryHref": { "type": "string", "default": "get-started", "description": "Where the main button goes." },
+      "SecondaryText": { "type": "string", "default": "Learn more", "description": "The second button. Empty leaves it out." },
+      "SecondaryHref": { "type": "string", "default": "about", "description": "Where the second button goes." },
+      "Media": {
+        "type": "string", "enum": ["Screenshot", "Image", "None"], "default": "Screenshot",
+        "description": "Screenshot frames the image in a browser window; Image shows it as it is."
+      },
+      "ImageSrc": { "type": "string", "default": "images/hero-screenshot.svg", "description": "The image, from wwwroot. The default is a placeholder to replace." },
+      "ImageAlt": { "type": "string", "default": "A screenshot of the app", "description": "What the image shows, for screen readers. Empty marks it decorative." },
+      "HeadingLevel": { "type": "string", "enum": ["1", "2"], "default": "1", "description": "1 makes the headline the page's main heading; use 2 when the page has its own." },
+      "Name": { "type": "string", "default": "Hero", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's placed on, after its <PageTitle>." }
+    }
+  },
+  "computed": {
+    "HasMedia": "Media != \"None\"",
+    "Split": "Layout == \"Split\" && Media != \"None\"",
+    "Screenshot": "Media == \"Screenshot\"",
+    "HasEyebrow": "Eyebrow != \"\"",
+    "HasSecondary": "SecondaryText != \"\"",
+    "Placeholder": "Media != \"None\" && ImageSrc == \"images/hero-screenshot.svg\""
+  },
+  "exclude": [ { "if": "!Placeholder", "paths": ["wwwroot/images/hero-screenshot.svg"] } ],
+  "inserts": [
+    { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ],
+  "checks": [
+    {
+      "if": "HeadingLevel == \"1\"", "file": "{{Into}}", "pattern": "<h1[ >]|Level=\"1\"",
+      "message": "{{Into}} already has a level-1 heading, and the hero's headline is one too. Remove one, or set HeadingLevel to 2."
+    }
+  ]
+}

@@ -53,11 +53,16 @@ public static class Generator
 
         var warnings = new List<string>();
         var inserts = new List<TextInsert>();
-        foreach (var spec in manifest.Inserts)
+        foreach (var written in manifest.Inserts)
         {
-            if (spec.If is not null && !Condition.Evaluate(spec.If, values)) continue;
-            var path = TemplateText.ReplaceTokens(spec.File, tokens);
-            var text = TemplateText.ReplaceTokens(spec.Text, tokens);
+            if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
+            var path = TemplateText.ReplaceTokens(written.File, tokens);
+            var text = TemplateText.ReplaceTokens(written.Text, tokens);
+            var spec = written with
+            {
+                Anchor = written.Anchor is null ? null : TemplateText.ReplaceTokens(written.Anchor, tokens),
+                Pattern = written.Pattern is null ? null : TemplateText.ReplaceTokens(written.Pattern, tokens),
+            };
             var created = creates.FindIndex(c => c.Path == path && c.Text is not null);
             if (created >= 0)
             {
@@ -74,6 +79,15 @@ public static class Generator
             }
             if (Inserts.Place(existing, spec, text) is { } at) inserts.Add(new TextInsert(path, at.Offset, at.Text, Inserts.Hash(existing)));
             else if (!Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
+        }
+
+        // Checks read the project as it is, before anything here is applied.
+        foreach (var check in manifest.Checks)
+        {
+            if (check.If is not null && !Condition.Evaluate(check.If, values)) continue;
+            var text = project.ReadFile(TemplateText.ReplaceTokens(check.File, tokens));
+            if (text is not null && System.Text.RegularExpressions.Regex.IsMatch(text, check.Pattern, System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)))
+                warnings.Add($"{manifest.Id}: {TemplateText.ReplaceTokens(check.Message, tokens)}");
         }
 
         // A file already in the project with the same text needs nothing; with other text it's a conflict.
