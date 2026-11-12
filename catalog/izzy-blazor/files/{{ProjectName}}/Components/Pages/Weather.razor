@@ -15,7 +15,7 @@
     }
     else
     {
-        <Table Items="forecasts" Caption="Forecast for the next five days">
+        <Table Items="forecasts" Caption="Forecast for the next five days" MaxWidth="Length.Rem(48)">
             <Columns>
                 <PropertyColumn Property="f => f.Date" Title="Date" Format="d" />
                 <PropertyColumn Property="f => f.TemperatureC" Title="Temp. (C)" />

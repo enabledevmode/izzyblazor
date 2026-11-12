@@ -8,7 +8,7 @@
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
-  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "Container", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
+  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
