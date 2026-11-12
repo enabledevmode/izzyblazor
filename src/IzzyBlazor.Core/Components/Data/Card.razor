@@ -33,6 +33,7 @@
     See also: Section, Stat, DescriptionList.
 *@
 
+<CascadingValue Value="_chartButtons" IsFixed="true">
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
     @if (_scope.Shown<CardMedia>() is { } media)
     {
@@ -71,6 +72,7 @@
         </CascadingValue>
     }
 </div>
+</CascadingValue>
 
 @code {
     /// <summary>The heading.</summary>
@@ -112,6 +114,9 @@
     private string? _class;
     private string? _style;
     private PartScope _scope = null!;
+
+    // Which of its chart's buttons are in its CardActions, and its title to name them by (ChartButtonHost).
+    private readonly ChartButtonHost _chartButtons = new();
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
 
@@ -165,5 +170,6 @@
         }
 
         (_class, _style) = BuildRootAttributes();
+        _chartButtons.TitleId = Title is not null ? TitleId : null;
     }
 }

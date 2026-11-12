@@ -105,7 +105,8 @@ public sealed record TileLayoutState(IReadOnlyList<TileState> Tiles)
         values = new int[numbers.Length];
         for (var i = 0; i < numbers.Length; i++)
         {
-            if (!int.TryParse(numbers[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] < 1)
+            // From 1; past the most rows a layout has, the number came from somewhere else.
+            if (!int.TryParse(numbers[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] < 1 || values[i] > TileLayoutContext.MostRows)
             {
                 return false;
             }
@@ -185,6 +186,15 @@ internal readonly record struct TileMove(TileMoveKind Kind, string Id)
 /// </remarks>
 internal sealed class TileLayoutContext(TileLayout owner)
 {
+    /// <summary>
+    /// The most rows a layout with no <c>Rows</c> of its own goes down to: a posted or saved layout
+    /// (which comes from the browser) can't make the server lay out millions of cells.
+    /// </summary>
+    public const int MostRows = 200;
+
+    /// <summary>The rows tiles are kept inside: <c>Rows</c>, or <see cref="MostRows"/>.</summary>
+    public int RowLimit => Owner.Rows > 0 ? Math.Min(Owner.Rows, MostRows) : MostRows;
+
     private readonly ChildOrder<Tile> _tiles = new();
     private Dictionary<Tile, TilePlace[]>? _places;
     private Dictionary<Tile, TilePlace>? _written;
@@ -294,7 +304,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
     // rest in the first free cells.
     private Dictionary<Tile, TilePlace> PlaceWritten(int columns)
     {
-        var rows = Owner.Rows;
+        var rows = RowLimit;
         var taken = new HashSet<(int, int)>();
         var places = new Dictionary<Tile, TilePlace>();
         var sized = new List<(Tile Tile, int? Col, int? Row, int ColSpan, int RowSpan)>();
@@ -303,24 +313,26 @@ internal sealed class TileLayoutContext(TileLayout owner)
             var saved = tile.Id is { } id ? Owner.EffectiveState?.Find(id) : null;
             var maxCols = Math.Min(tile.MaxColSpan ?? columns, columns);
             var colSpan = Math.Clamp(saved?.ColSpan ?? tile.ColSpan, Math.Min(tile.MinColSpan, maxCols), maxCols);
-            var rowSpan = Math.Clamp(saved?.RowSpan ?? tile.RowSpan, tile.MinRowSpan, Math.Max(tile.MinRowSpan, tile.MaxRowSpan ?? int.MaxValue));
-            if (rows > 0)
-            {
-                rowSpan = Math.Min(rowSpan, rows);
-            }
+            var rowSpan = Math.Min(Math.Clamp(saved?.RowSpan ?? tile.RowSpan, tile.MinRowSpan, Math.Max(tile.MinRowSpan, tile.MaxRowSpan ?? int.MaxValue)), rows);
 
             sized.Add((tile, saved?.Col ?? tile.Col, saved?.Row ?? tile.Row, colSpan, rowSpan));
         }
 
+        // Placed tiles where they say, in page order; one that would cover a tile before it (a tile
+        // added since the layout was saved, two saved on the same cells) takes the first free cells
+        // instead, so every tile can still be moved by its menu. AllowOverlap keeps them where they say.
+        var unplaced = new HashSet<Tile>();
         foreach (var (tile, col, row, colSpan, rowSpan) in sized)
         {
             if (col is { } c && row is { } r)
             {
-                var place = new TilePlace(
-                    Math.Clamp(c, 1, columns - colSpan + 1),
-                    rows > 0 ? Math.Clamp(r, 1, rows - rowSpan + 1) : r,
-                    colSpan,
-                    rowSpan);
+                var place = new TilePlace(Math.Clamp(c, 1, columns - colSpan + 1), Math.Clamp(r, 1, rows - rowSpan + 1), colSpan, rowSpan);
+                if (!Owner.AllowOverlap && !Fits(taken, place.Col, place.Row, colSpan, rowSpan))
+                {
+                    unplaced.Add(tile);
+                    continue;
+                }
+
                 places[tile] = place;
                 Take(taken, place);
             }
@@ -328,7 +340,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
 
         foreach (var (tile, col, row, colSpan, rowSpan) in sized)
         {
-            if (col is null || row is null)
+            if (col is null || row is null || unplaced.Contains(tile))
             {
                 var place = NextFree(taken, columns, 1, 1, colSpan, rowSpan);
                 places[tile] = place;
@@ -380,8 +392,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
         }
 
         var columns = Owner.Levels[^1].Columns;
-        var rows = Owner.Rows;
-        if (col < 1 || row < 1 || col + colSpan - 1 > columns || (rows > 0 && row + rowSpan - 1 > rows)
+        if (col < 1 || row < 1 || col + colSpan - 1 > columns || row + rowSpan - 1 > RowLimit
             || colSpan < tile.MinColSpan || colSpan > (tile.MaxColSpan ?? columns)
             || rowSpan < tile.MinRowSpan || rowSpan > (tile.MaxRowSpan ?? int.MaxValue))
         {
@@ -412,7 +423,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
             .Select(p => new TileState(p.Tile.Id!, p.Place.Col, p.Place.Row, p.Place.ColSpan, p.Place.RowSpan))]);
 
     /// <summary>How many rows the grid shows at the widest count: <c>Rows</c>, or one past the lowest tile.</summary>
-    public int GridRows => Owner.Rows > 0 ? Owner.Rows : Written.Values.Select(p => p.Row + p.RowSpan).DefaultIfEmpty(1).Max();
+    public int GridRows => Owner.Rows > 0 ? RowLimit : Math.Min(RowLimit, Written.Values.Select(p => p.Row + p.RowSpan).DefaultIfEmpty(1).Max());
 
     private static bool Overlaps(TilePlace a, TilePlace b) =>
         a.Col < b.Col + b.ColSpan && b.Col < a.Col + a.ColSpan && a.Row < b.Row + b.RowSpan && b.Row < a.Row + a.RowSpan;

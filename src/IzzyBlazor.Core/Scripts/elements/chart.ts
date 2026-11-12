@@ -58,10 +58,11 @@ class Chart extends IzzyElement {
   ibView?: [() => View, (from: number, to: number, report?: boolean, share?: boolean) => void];
 
   protected setup(signal: AbortSignal): void {
-    // The chart's buttons placed outside it (ChartResetZoom, ChartZoom, ChartPause): their own part.
-    if (document.querySelector("[data-ib-chart-act]")) {
-      (import("./parts/chart-outside.js" as string) as Promise<typeof import("./chart-outside")>).then((m) => !signal.aborted && m.outside(this, signal));
-    }
+    // The chart's buttons placed outside it (ChartResetZoom, ChartZoom, ChartPause): their own part,
+    // now or when one arrives later (watchOutside).
+    outsideFor.set(this, signal);
+    signal.addEventListener("abort", () => outsideFor.delete(this));
+    if (outsideModule || document.querySelector("[data-ib-chart-act]")) loadOutside().then((m) => !signal.aborted && m.outside(this, signal));
     // An interactive page can draw the chart again with new data in this same element: set up
     // again from what the server sent, keeping what the legend hides. (Enhanced navigation sets
     // up again too, for what may be another chart: that starts over.)
@@ -916,6 +917,17 @@ class Chart extends IzzyElement {
 // which saves the chart; so does a form with a chart's PNG in it (data-ib-chart-png) being sent,
 // held until the PNG is in (before Blazor's enhanced forms see it). Here, not in the main module:
 // every chart has an <ib-chart>.
+// The charts on the page, for chart-outside.ts: it loads once there's a button outside a chart,
+// drawn with the charts or later (an interactive render), and then follows every chart.
+const outsideFor = new Map<HTMLElement, AbortSignal>();
+let outsideModule: Promise<typeof import("./chart-outside")> | null = null;
+const loadOutside = () => (outsideModule ??= import("./parts/chart-outside.js" as string) as Promise<typeof import("./chart-outside")>);
+new MutationObserver((records) => {
+  if (outsideModule || !records.some((r) => [...r.addedNodes].some((n) => n instanceof Element && (n.matches("[data-ib-chart-act]") || !!n.querySelector("[data-ib-chart-act]"))))) return;
+  loadOutside().then((m) => {
+    for (const [chart, signal] of outsideFor) if (!signal.aborted) m.outside(chart, signal);
+  });
+}).observe(document.documentElement, { childList: true, subtree: true });
 const exporter = () => import("./parts/chart-export.js" as string) as Promise<typeof import("./chart-export")>;
 document.addEventListener("click", (event) => {
   const button = (event.target as Element).closest?.("[data-ib-chart-download]");

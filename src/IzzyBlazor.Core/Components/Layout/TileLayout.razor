@@ -57,7 +57,7 @@
     <ib-tile-layout @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list"
                     data-ib-at="@(Levels[^1].Breakpoint is { } at ? at.Name() : "")"
                     data-ib-cols="@Levels[^1].Columns.ToString(CultureInfo.InvariantCulture)"
-                    data-ib-rows="@Rows.ToString(CultureInfo.InvariantCulture)"
+                    data-ib-rows="@_context.RowLimit.ToString(CultureInfo.InvariantCulture)"
                     data-ib-overlap="@(AllowOverlap ? "" : null)"
                     data-ib-interactive="@(Live ? "" : null)"
                     data-ib-seq="@(RendererInfo.IsInteractive ? _seq.ToString(CultureInfo.InvariantCulture) : null)"
@@ -83,9 +83,9 @@ else
     [Parameter] public Responsive<int> Columns { get; set; } = new() { Base = 1, Md = 12 };
 
     /// <summary>
-    /// How many rows at the widest column count. Tiles are kept inside them, and the layout is as
-    /// tall as all of them, empty ones included. Defaults to 0: as many as the tiles need. At fewer
-    /// columns, as many as the tiles need.
+    /// How many rows at the widest column count, up to 200. Tiles are kept inside them, and the
+    /// layout is as tall as all of them, empty ones included. Defaults to 0: as many as the tiles
+    /// need, up to 200. At fewer columns, as many as the tiles need.
     /// </summary>
     [Parameter] public int Rows { get; set; }
 
@@ -276,9 +276,9 @@ else
 
         Levels = [.. levels.Select(l => (l.Breakpoint, l.Value))];
 
-        if (Rows < 0)
+        if (Rows is < 0 or > TileLayoutContext.MostRows)
         {
-            throw new InvalidOperationException("TileLayout's Rows can't be negative; 0 means as many as the tiles need.");
+            throw new InvalidOperationException($"TileLayout's Rows is 0 (as many as the tiles need, up to {TileLayoutContext.MostRows}) to {TileLayoutContext.MostRows}.");
         }
 
         if (Editable && !Live && string.IsNullOrEmpty(Name))

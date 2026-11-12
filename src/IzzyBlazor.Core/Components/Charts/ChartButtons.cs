@@ -4,6 +4,42 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
+/// What a <see cref="Tile"/> or <see cref="Card"/> tells the chart in it: which of its buttons
+/// (<c>reset</c>, <c>zoom</c>, <c>pause</c>) are in its header, as ChartResetZoom, ChartZoom and
+/// ChartPause with no <c>For</c>. The chart hides its own of those (they stay, as what a press is
+/// passed to) and, when none of its own are left to show, its row of buttons.
+/// </summary>
+internal sealed class ChartButtonHost
+{
+    private readonly HashSet<string> _moved = [];
+
+    /// <summary>
+    /// The id of the tile's or card's title, which the buttons add to their names ("Download as
+    /// PNG, Revenue"), so two charts' buttons on a page are told apart. Null without a title.
+    /// </summary>
+    public string? TitleId { get; set; }
+    private readonly List<Action> _charts = [];
+
+    public bool Moved(string kind) => _moved.Contains(kind);
+
+    public void Add(string kind)
+    {
+        if (_moved.Add(kind))
+        {
+            // A button drawn after the chart (in a Card's actions, or a later render): it draws again.
+            foreach (var render in _charts.ToArray())
+            {
+                render();
+            }
+        }
+    }
+
+    public void Listen(Action render) => _charts.Add(render);
+
+    public void Unlisten(Action render) => _charts.Remove(render);
+}
+
+/// <summary>
 /// A chart's button placed outside the chart, such as in a <see cref="Tile"/>'s <c>HeaderEnd</c>
 /// or a <see cref="Card"/>'s <see cref="CardActions"/>. It acts on the chart named by
 /// <see cref="For"/>, or else the one chart in its tile or card; there, the chart's own row of
@@ -23,6 +59,22 @@ public abstract class ChartButtonBase : IzzyComponentBase
 
     /// <summary>What it does, for the script: <c>download</c>, <c>reset</c>, <c>zoom-out</c>, <c>zoom-in</c> or <c>pause</c>.</summary>
     private protected abstract string Act { get; }
+
+    /// <summary>Which of the chart's own buttons it stands in for: <c>reset</c>, <c>zoom</c> or <c>pause</c>; null for Download.</summary>
+    private protected virtual string? Replaces => null;
+
+    [CascadingParameter] private ChartButtonHost? Host { get; set; }
+
+    private readonly string _id = IdGenerator.Next("ib-chart-button");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (For is null && Replaces is { } kind)
+        {
+            Host?.Add(kind);
+        }
+    }
 
     /// <summary>Opens a button of the chart tools' look, with what the script needs to find its chart.</summary>
     private protected void Open(RenderTreeBuilder builder, string act, string label, bool iconOnly, string? extraClass = null)
@@ -45,6 +97,14 @@ public abstract class ChartButtonBase : IzzyComponentBase
         {
             builder.AddAttribute(8, "aria-label", label);
             builder.AddAttribute(9, "title", label);
+        }
+
+        // Its name, then its tile's or card's title: "Download as PNG, Revenue by channel".
+        if (For is null && Host?.TitleId is { } title)
+        {
+            var id = $"{_id}-{act}";
+            builder.AddAttribute(25, "id", id);
+            builder.AddAttribute(26, "aria-labelledby", $"{id} {title}");
         }
     }
 }
@@ -97,6 +157,8 @@ public sealed class ChartResetZoom : ChartButtonBase
 {
     private protected override string Act => "reset";
 
+    private protected override string? Replaces => "reset";
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -119,6 +181,8 @@ public sealed class ChartResetZoom : ChartButtonBase
 public sealed class ChartZoom : ChartButtonBase
 {
     private protected override string Act => "zoom-out";
+
+    private protected override string? Replaces => "zoom";
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -155,6 +219,8 @@ public sealed class ChartZoom : ChartButtonBase
 public sealed class ChartPause : ChartButtonBase
 {
     private protected override string Act => "pause";
+
+    private protected override string? Replaces => "pause";
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)

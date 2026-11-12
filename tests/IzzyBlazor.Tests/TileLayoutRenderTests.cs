@@ -84,11 +84,11 @@ public class TileLayoutRenderTests : BunitContext
     }
 
     // Two tiles side by side on a 4-column, 2-row board, editable.
-    private IRenderedComponent<TileLayout> RenderEditable(Action<ComponentParameterCollectionBuilder<TileLayout>> more) =>
+    private IRenderedComponent<TileLayout> RenderEditable(Action<ComponentParameterCollectionBuilder<TileLayout>> more, int rows = 2) =>
         Render<TileLayout>(p =>
         {
             p.Add(l => l.Columns, new Responsive<int> { Base = 4 })
-                .Add(l => l.Rows, 2)
+                .Add(l => l.Rows, rows)
                 .Add(l => l.Editable, true)
                 .Add(l => l.ChildContent, b =>
                 {
@@ -155,6 +155,23 @@ public class TileLayoutRenderTests : BunitContext
         Assert.Equal("1", cut.Find("ib-tile-layout").GetAttribute("data-ib-seq"));
         Assert.Equal("2,2,3,1", Place(cut, "b"));
         Assert.Equal("Resized b to 3 by 1 cells", cut.Find("[data-tile-id='b'] [role=status]").TextContent);
+    }
+
+    [Fact]
+    public void A_posted_layout_cant_overlap_tiles_or_run_past_the_most_rows()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        // A tile on the cells another tile was saved to, through a posted row span far past any real one.
+        var cut = RenderEditable(p => p
+            .Add(l => l.Name, "layout")
+            .Add(l => l.Post, new TileLayoutPost { Tiles = "a:3,1,2,1;b:3,1,2,9999" }), rows: 0);
+
+        Assert.Equal("3,1,2,1", Place(cut, "a"));
+        // b's entry runs past the most rows, so it isn't read; b's own place is a's cells, so it
+        // takes the first free ones rather than cover a.
+        Assert.Equal("1,1,2,1", Place(cut, "b"));
+        Assert.False(MenuItem(cut, "b", "Move down").HasAttribute("disabled")); // apart, both can move
+        Assert.Null(TileLayoutState.Parse("a:1,1,1,200000000")); // past the most rows: not a layout
     }
 
     [Fact]

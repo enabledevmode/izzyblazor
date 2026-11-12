@@ -16,14 +16,6 @@
     color: var(--ib-color-on-surface);
   }
 
-  /* A chart whose buttons are in its Card's or Tile's header (ChartDownload and the like, with no
-     For): its own row of them goes, so they aren't there twice. Here, not in chart.css, which is
-     at its budget. */
-  :is(.ib-tile, .ib-card):has([data-ib-chart-act]:not([data-ib-chart-for])) .ib-chart {
-    & .ib-chart-tools { display: none; }
-    &:not(:has(> .ib-chart-label)) { padding-block-start: 0; }
-  }
-
   .ib-card-sm {
     --ib-card-p: var(--ib-space-4);
     --ib-card-gap: var(--ib-space-3);

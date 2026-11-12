@@ -22,7 +22,7 @@
                     {
                         @Action("reset", "Reset layout", ButtonVariant.Ghost, null)
                         @Action("cancel", "Cancel", ButtonVariant.Outline, null)
-                        @Action("done", "Done", ButtonVariant.Solid, Lucide.Check)
+                        @Action("done", "Done", ButtonVariant.Solid, Lucide.Check, focus: _focus)
                         @if (!RendererInfo.IsInteractive)
                         {
                             <input type="hidden" name="editing" value="1" />
@@ -30,7 +30,7 @@
                     }
                     else
                     {
-                        @Action("edit", "Edit layout", ButtonVariant.Outline, Lucide.LayoutDashboard)
+                        @Action("edit", "Edit layout", ButtonVariant.Outline, Lucide.LayoutDashboard, focus: _focus)
                     }
                 </Row>
 
@@ -119,6 +119,10 @@
     private TileLayoutState? _saved;
     private bool _editing;
 
+    // A static page comes back after Edit layout, Done, Cancel or Reset layout: focus goes to the
+    // button that's now in the same place (Done, or Edit layout), not to the first in the row.
+    private bool _focus;
+
     protected override void OnInitialized()
     {
         _saved = Load();
@@ -129,6 +133,7 @@
     // A static page: the button that posted, or a move from a tile's menu (stays in edit mode).
     private void Submitted()
     {
+        _focus = Do is not null;
         switch (Do)
         {
             case "edit":
@@ -165,15 +170,18 @@
         _editing = false;
     }
 
-    private RenderFragment Action(string what, string text, ButtonVariant variant, IconData? icon) => __builder =>
+    // Edit layout only from 1024px up, where tiles can be arranged (the layout's widest columns).
+    private RenderFragment Action(string what, string text, ButtonVariant variant, IconData? icon, bool focus = false) => __builder =>
     {
+        var from = what == "edit" ? Breakpoint.Lg : (Breakpoint?)null;
         if (RendererInfo.IsInteractive)
         {
-            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" OnClick="() => Act(what)">@text</Button>
+            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" VisibleFrom="from" OnClick="() => Act(what)">@text</Button>
         }
         else
         {
-            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" Submit Name="do" Value="@what">@text</Button>
+            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" VisibleFrom="from" Submit Name="do" Value="@what"
+                    autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)">@text</Button>
         }
     };
     @* hide *@
