@@ -278,6 +278,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "action-sheet.css"),
   },
   {
+    // A sheet of its own, linked by Mentions and MentionText.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "mentions.css")],
+    outfile: join(lib, "wwwroot", "mentions.css"),
+  },
+  {
     // A sheet of its own, linked by Comment.
     ...common,
     sourcemap: false,

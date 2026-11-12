@@ -1,0 +1,22 @@
+@* A task note that can mention teammates; the list shows each one's picture and team. *@
+
+<Mentions @bind-Value="_note" Label="Note" Items="Team" ItemText="p => p.Handle"
+          Placeholder="Type @@ to mention someone" Rows="3" MaxWidth="32.Rem" Grow>
+    <ItemTemplate Context="person">
+        <Avatar Name="@person.Name" Size="AvatarSize.Xs" Decorative />
+        <span>@person.Name <span class="ib-option-hint">@@@person.Handle</span></span>
+    </ItemTemplate>
+</Mentions>
+
+@code {
+    private string? _note = "Ready for review. @daniel.kim can you check the totals?";
+
+    private sealed record Person(string Name, string Handle);
+
+    private static readonly Person[] Team =
+    [
+        new("Aisha Bello", "aisha.bello"), new("Daniel Kim", "daniel.kim"),
+        new("Jordan Ellis", "jordan.ellis"), new("Mei Chen", "mei.chen"),
+        new("Priya Nair", "priya.nair"), new("Tomás Ortega", "tomas.ortega"),
+    ];
+}

@@ -1,0 +1,36 @@
+@* A support reply that mentions people with @ and links issues with #: Search gets the trigger and returns a list for each. *@
+
+<Mentions TItem="Suggestion" @bind-Value="_reply" Label="Reply" Prefixes="Prefixes" Search="Find"
+          ItemText="s => s.Key" Placeholder="@@ to mention someone, # to link an issue" Rows="3" MaxWidth="32.Rem" Grow>
+    <ItemTemplate Context="s">
+        <span>@s.Key <span class="ib-option-hint">@s.Detail</span></span>
+    </ItemTemplate>
+</Mentions>
+
+@code {
+    private string? _reply;
+
+    private static readonly string[] Prefixes = ["@", "#"];
+
+    private static Task<IEnumerable<Suggestion>> Find(MentionQuery query, CancellationToken token)
+    {
+        var source = query.Prefix == "#" ? Issues : People;
+        return Task.FromResult(source.Where(s => s.Key.Contains(query.Text, StringComparison.OrdinalIgnoreCase)
+                                              || s.Detail.Contains(query.Text, StringComparison.OrdinalIgnoreCase)));
+    }
+    @* hide *@
+    private sealed record Suggestion(string Key, string Detail);
+
+    private static readonly Suggestion[] People =
+    [
+        new("aisha.bello", "Aisha Bello"), new("daniel.kim", "Daniel Kim"),
+        new("mei.chen", "Mei Chen"), new("priya.nair", "Priya Nair"),
+    ];
+
+    private static readonly Suggestion[] Issues =
+    [
+        new("1042", "Invoice PDF missing the tax line"), new("1057", "Login link expires too soon"),
+        new("1063", "Export times out over 10,000 rows"), new("1071", "Dark mode chart labels too faint"),
+    ];
+    @* /hide *@
+}
