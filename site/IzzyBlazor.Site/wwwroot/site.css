@@ -333,8 +333,9 @@
 /* A card's picture with a tag on its corner (the mode, or the component a demo is about), so the
    card reads picture, title, text. */
 /* The components showcase: a card per group, the real components on top, cropped with a short fade. */
-.site-show { display: flex; flex-direction: column; border: 1px solid var(--ib-color-border); border-radius: var(--ib-radius-xl); overflow: hidden; background: var(--ib-color-surface); }
-.site-show-preview { position: relative; height: 14rem; overflow: hidden; padding: var(--ib-space-4); border-bottom: 1px solid var(--ib-color-border); background: var(--ib-color-fill-subtle); }
+/* A border a third of the way to the outline color, so the cards stand off the page in both schemes. */
+.site-show { --site-show-line: color-mix(in oklab, var(--ib-color-border), var(--ib-color-outline) 35%); display: flex; flex-direction: column; border: 1px solid var(--site-show-line); border-radius: var(--ib-radius-xl); overflow: hidden; background: var(--ib-color-surface); box-shadow: var(--ib-shadow-xs); }
+.site-show-preview { position: relative; height: 17rem; overflow: hidden; padding: var(--ib-space-4); border-bottom: 1px solid var(--site-show-line); background: var(--ib-color-fill-subtle); }
 .site-show-preview::after { content: ""; position: absolute; inset: auto 0 0; height: 1.25rem; background: linear-gradient(transparent, var(--ib-color-fill-subtle)); pointer-events: none; }
 .site-show-body { padding: var(--ib-space-5); }
 .site-show-links { font-size: var(--ib-text-sm); row-gap: var(--ib-space-1); }
@@ -345,7 +346,7 @@
 
 .site-media { position: relative; }
 /* The homepage's mode pictures, a fifth shorter: the drawing's middle. */
-.site-media > .pg { display: block; width: 100%; height: auto; aspect-ratio: 320 / 154; }
+.site-media > .pg { display: block; width: 100%; height: auto; aspect-ratio: 320 / 136; }
 .site-media-tag { position: absolute; top: var(--ib-space-3); left: var(--ib-space-3); display: inline-flex; gap: var(--ib-space-1); }
 
 /* Link cards: they take you somewhere, so they read as links rather than content: a small
