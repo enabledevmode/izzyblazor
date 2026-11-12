@@ -72,6 +72,19 @@
     color: var(--ib-color-primary-text);
   }
 
+  /* Shown, not a link (a page still to come): its text dims, its badge stays readable. */
+  .ib-nav-item-disabled,
+  .ib-nav-item-disabled:hover {
+    background-color: transparent;
+    color: var(--ib-color-disabled);
+    cursor: default;
+  }
+
+  /* Its badge ("Roadmap") dims with it, still readable. */
+  .ib-nav-item-disabled > .ib-badge {
+    --ib-accent-text: var(--ib-color-muted);
+  }
+
 
   /* Long titles wrap in a vertical menu, with the same space above and below as a one-line item
      has (whole pixels); a row (horizontal menu) keeps them on one line. */

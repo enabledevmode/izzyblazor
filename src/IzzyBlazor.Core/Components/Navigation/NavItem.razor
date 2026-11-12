@@ -15,7 +15,8 @@
     <a @attributes="AdditionalAttributes"
        class="@_class"
        style="@_style"
-       href="@Href"
+       href="@(Disabled ? null : Href)"
+       aria-disabled="@(Disabled ? "true" : null)"
        aria-current="@(_active ? (_exact ? "page" : "true") : null)">
         @if (Icon is { } icon)
         {
@@ -30,8 +31,14 @@
 </li>
 
 @code {
-    /// <summary>The destination.</summary>
-    [Parameter, EditorRequired] public string Href { get; set; } = "";
+    /// <summary>The destination. Leave it out of a <see cref="Disabled"/> item with nowhere to go yet.</summary>
+    [Parameter] public string Href { get; set; } = "";
+
+    /// <summary>
+    /// Shows the item but not as a link, such as a page still to come (with a <see cref="Badge"/>
+    /// saying so). It has no address, so it isn't a tab stop, and screen readers hear it as disabled.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
 
     /// <summary>An icon before the text.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -112,6 +119,11 @@
 
     private (bool Active, bool Exact) State(string uri)
     {
+        if (Disabled)
+        {
+            return (false, false);
+        }
+
         if (Current is { } current)
         {
             return current ? (true, LinkMatch.Of(Navigation, Href, uri, NavLinkMatch.All).Active) : (false, false);
@@ -155,6 +167,7 @@
     {
         classes.Add("ib-nav-item");
         classes.Add("ib-nav-item-active", _active);
+        classes.Add("ib-nav-item-disabled", Disabled);
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
