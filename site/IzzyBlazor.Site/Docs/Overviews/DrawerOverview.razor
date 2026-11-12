@@ -42,11 +42,11 @@
 <TextBlock>An app's navigation doesn't need a Drawer. In an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, the <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> becomes a drawer below its breakpoint by itself, opened by a <Code>SidebarToggle</Code>, with JavaScript off too.</TextBlock>
 
 <Heading Level="2">An action sheet</Heading>
-<TextBlock>An action sheet offers a few actions on one thing, such as a photo, from the bottom of a phone's screen. Open a drawer with <Code>Placement="DialogPlacement.Bottom"</Code>, put a full-width button per action in a form, and end with a <Code>DialogClose</Code> for Cancel. Choosing an action closes the sheet, as with a form in a drawer.</TextBlock>
+<TextBlock>An action sheet offers a few actions on one thing, such as a photo, from the bottom of a phone's screen. Open a drawer from the bottom, put a full-width button per action in a form, and end with a <Code>DialogClose</Code> for Cancel. Choosing an action closes the sheet, as with a form in a drawer.</TextBlock>
 <ExampleViewer Example="drawer-action-sheet" />
 <List>
-    <ListItem>Keep the title: it names the sheet. Hide the close button with <Code>ShowCloseButton="false"</Code>, since Cancel does its job.</ListItem>
-    <ListItem>Mark a destructive action with <Code>Accent.Danger</Code>, and leave an unavailable one in place as <Code>Disabled</Code>.</ListItem>
+    <ListItem>Keep the title: it names the sheet. Cancel does the close button's job, so <Code>ShowCloseButton="false"</Code> hides it.</ListItem>
+    <ListItem>Mark a destructive action with <Code>Accent.Danger</Code>.</ListItem>
     <ListItem>For more than a handful of actions, or on wide screens, use a <Anchor Href="docs/components/menu">Menu</Anchor>.</ListItem>
 </List>
 
