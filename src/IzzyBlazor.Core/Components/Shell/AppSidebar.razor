@@ -211,6 +211,9 @@
     private bool _initialized;
     private bool? _remembered;
     private PersistingComponentStateSubscription? _persisting;
+    private Func<Task>? _persist;
+
+    private Task PersistState() => _persist?.Invoke() ?? Task.CompletedTask;
 
     [CascadingParameter] private ShellHeaderLinks? HeaderLinks { get; set; }
 
@@ -304,11 +307,14 @@
         if (state is not null && _remembered is not null)
         {
             var value = _remembered;
-            _persisting = state.RegisterOnPersisting(() =>
+            _persist = () =>
             {
                 PersistedState.Persist(state, key, value, PersistedStateJson.Default.NullableBoolean);
                 return Task.CompletedTask;
-            });
+            };
+            // A method of this component, so Blazor persists by its render mode (and skips a static one);
+            // a lambda alone throws on apps with both Server and WebAssembly.
+            _persisting = state.RegisterOnPersisting(PersistState);
         }
 
         // A bound parent learns the remembered value once the page is interactive.
