@@ -27,7 +27,8 @@
     Editable lets people rearrange the tiles at the widest column count. With script, dragging a
     tile moves it (from anywhere but its controls) and dragging its corner grip resizes it, a cell
     at a time. A tile in the way swaps into the moved tile's old cells when it fits there, else it
-    moves down; then every tile rises to fill the space above it, unless Float. Collision Block
+    moves down. Tiles stay where they're dropped; with Compact, every tile then rises to fill the
+    space above it. Collision Block
     stops a tile at its last free spot instead, and Overlap lets tiles cover each other. Each
     tile's handle opens a menu of the same moves, which with JavaScript off post the form.
 
@@ -61,7 +62,7 @@
                     data-ib-cols="@Levels[^1].Columns.ToString(CultureInfo.InvariantCulture)"
                     data-ib-rows="@_context.RowLimit.ToString(CultureInfo.InvariantCulture)"
                     data-ib-collision="@(Collision == TileCollision.Push ? null : Collision.ToString().ToLowerInvariant())"
-                    data-ib-float="@(Float ? "" : null)"
+                    data-ib-compact="@(Compact ? "" : null)"
                     data-ib-interactive="@(Live ? "" : null)"
                     data-ib-seq="@(RendererInfo.IsInteractive ? _seq.ToString(CultureInfo.InvariantCulture) : null)"
                     data-ib-moved="@TextDefaults.TileMovedTo" data-ib-resized="@TextDefaults.TileResizedTo"
@@ -129,10 +130,10 @@ else
     [Parameter] public TileCollision Collision { get; set; }
 
     /// <summary>
-    /// With <see cref="TileCollision.Push"/>, tiles stay where they're dropped, leaving empty cells.
-    /// By default every tile rises as far as it can after each move.
+    /// With <see cref="TileCollision.Push"/>, every tile rises as far as it can after each move,
+    /// closing the gaps above it. By default tiles stay where they're dropped, empty cells and all.
     /// </summary>
-    [Parameter] public bool Float { get; set; }
+    [Parameter] public bool Compact { get; set; }
 
     /// <summary>
     /// On a static page, the name an editable layout posts under: <c>{Name}.Tiles</c> (the layout

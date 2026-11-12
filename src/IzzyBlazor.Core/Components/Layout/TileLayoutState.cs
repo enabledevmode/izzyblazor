@@ -554,7 +554,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
         bool Changes(List<(Tile Key, TilePlace Place)>? arranged) => arranged is not null && !arranged.TrueForAll(p => written[p.Key] == p.Place);
         List<(Tile Key, TilePlace Place)>? arranged = null;
         if (TileArrange.Jump(layoutNow, tile, kind, place, columns, RowLimit) is { } jump
-            && TileArrange.Arrange(layoutNow, tile, jump.Place, columns, RowLimit, !Owner.Float) is { } leapt
+            && TileArrange.Arrange(layoutNow, tile, jump.Place, columns, RowLimit, Owner.Compact) is { } leapt
             && leapt.Find(p => p.Key == jump.Other).Place is var swapped && swapped.Col == from.Col && swapped.Row == from.Row)
         {
             arranged = leapt;
@@ -562,7 +562,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
 
         if (!Changes(arranged))
         {
-            arranged = TileArrange.Arrange(layoutNow, tile, place, columns, RowLimit, !Owner.Float);
+            arranged = TileArrange.Arrange(layoutNow, tile, place, columns, RowLimit, Owner.Compact);
         }
 
         if (!Changes(arranged))

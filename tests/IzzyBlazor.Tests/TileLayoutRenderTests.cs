@@ -149,8 +149,8 @@ public class TileLayoutRenderTests : BunitContext
         TileLayoutState? changed = null;
         var cut = RenderEditable(p => p.Add(l => l.StateChanged, s => changed = s), collision: TileCollision.Push);
 
-        // Down onto empty cells would rise straight back.
-        Assert.True(MenuItem(cut, "a", "Move down").HasAttribute("disabled"));
+        // Tiles stay where they're dropped, so a can go down onto the empty cells.
+        Assert.False(MenuItem(cut, "a", "Move down").HasAttribute("disabled"));
         MenuItem(cut, "a", "Wider").Click();
 
         Assert.Equal("a:1,1,3,1;b:3,2,2,1", changed!.ToString()); // b can't take a's cells, so it moves down
@@ -199,9 +199,9 @@ public class TileLayoutRenderTests : BunitContext
     }
 
     [Fact]
-    public void After_a_move_tiles_rise_into_the_space_above_unless_they_float()
+    public void With_Compact_tiles_rise_into_the_space_above_after_a_move()
     {
-        // a gets a row shorter: b rises into the freed row, or stays put when floating.
+        // a gets a row shorter: b rises into the freed row when compacting, else stays put.
         var tall = Tiles(("a", 1, 1, 2, 2), ("b", 1, 3, 2, 1));
         Assert.Equal("a:1,1,2,1;b:1,2,2,1", Text(TileArrange.Arrange(tall, "a", new TilePlace(1, 1, 2, 1), 4, 200, compact: true)));
         Assert.Equal("a:1,1,2,1;b:1,3,2,1", Text(TileArrange.Arrange(tall, "a", new TilePlace(1, 1, 2, 1), 4, 200, compact: false)));
