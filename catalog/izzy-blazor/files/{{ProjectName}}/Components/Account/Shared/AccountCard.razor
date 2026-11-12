@@ -1,0 +1,19 @@
+@* The frame of the pages you see before you log in: one card in the middle of the page, its title the page's h1. *@
+<Stack Align="Align.Center">
+    <Card Title="@Title" TitleLevel="1" Description="@Description" Width="Length.Full" MaxWidth="Length.Rem(26)">
+        <Stack Gap="4">
+            @ChildContent
+        </Stack>
+    </Card>
+</Stack>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

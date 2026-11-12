@@ -1,0 +1,34 @@
+@page "/Account/Manage/PersonalData"
+
+@using Microsoft.AspNetCore.Identity
+@using {{RootNamespace}}.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Personal data</PageTitle>
+
+<Heading Level="2">Personal data</Heading>
+<StatusMessage />
+<TextBlock>Your account holds personal data you've given us. Download it, or delete it with your account.</TextBlock>
+<Stack Direction="Direction.Row" Gap="2" Wrap>
+    <form action="Account/Manage/DownloadPersonalData" method="post">
+        <AntiforgeryToken />
+        <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
+    </form>
+    <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
+</Stack>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user  = await UserManager.GetUserAsync(HttpContext.User);
+        if (user is null)
+        {
+            RedirectManager.RedirectToInvalidUser(UserManager, HttpContext);
+        }
+    }
+}

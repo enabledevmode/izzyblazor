@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>{{RootNamespace}}</RootNamespace>
+    <!--#if (IndividualLocalAuth) -->
+    <UserSecretsId>aspnet-{{RootNamespace}}-{{UserSecretsGuid}}</UserSecretsId>
+    <!--#endif -->
     <!--#if (ExcludeLaunchSettings) -->
     <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
     <!--#endif -->
@@ -16,7 +19,24 @@
     <!--#if (UseWebAssembly) -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.15" />
     <!--#endif -->
+    <!--#if (IndividualLocalAuth) -->
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
+    <!--#if (UseLocalDB) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
+    <!--#else -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
+    <!--#endif -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.15" />
+    <!--#endif -->
   </ItemGroup>
+  <!--#if (IndividualLocalAuth && !UseLocalDB) -->
+
+  <ItemGroup>
+    <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+  <!--#endif -->
   <!--#if (UseWebAssembly) -->
 
   <ItemGroup>

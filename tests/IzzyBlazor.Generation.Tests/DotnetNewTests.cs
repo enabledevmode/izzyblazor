@@ -63,7 +63,7 @@ public sealed class DotnetNewTests : IDisposable
 
     /// <summary>
     /// The defaults; each other choice of each choice setting; each switch flipped; a name that needs a safe
-    /// namespace. Ports are given (a picked one is random) and restore is skipped (it changes no files).
+    /// namespace. Ports and GUIDs are given (a picked one is random) and restore is skipped (it changes no files).
     /// </summary>
     static IEnumerable<(string Name, Dictionary<string, string> Settings)> Cases(ItemManifest manifest)
     {
@@ -72,6 +72,7 @@ public sealed class DotnetNewTests : IDisposable
             var settings = new Dictionary<string, string>();
             var port = 5100;
             foreach (var p in manifest.Parameters.Where(p => p.Port is not null)) settings[p.Name] = (port++).ToString();
+            foreach (var p in manifest.Parameters.Where(p => p.Guid)) settings[p.Name] = "0f8fad5b-d9cb-469f-a165-70867728950e";
             foreach (var p in manifest.Parameters.Where(p => p.Name is "SkipRestore" or "NoRestore")) settings[p.Name] = "true";
             foreach (var (key, value) in extra) settings[key] = value;
             return settings;

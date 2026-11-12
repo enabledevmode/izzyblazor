@@ -1,0 +1,20 @@
+<Heading Level="2">Recovery codes</Heading>
+<StatusMessage Message="@StatusMessage" />
+<Alert Status="Status.Warning" Title="Put these codes in a safe place">
+    If you lose your device and don't have the recovery codes, you lose access to your account.
+</Alert>
+<Grid Columns="new() { Base = 2, Sm = 5 }" Gap="2" id="recovery-codes" MaxWidth="Length.Rem(36)">
+    @foreach (var recoveryCode in RecoveryCodes)
+    {
+        <Code>@recoveryCode</Code>
+    }
+</Grid>
+<CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Label="Copy the codes" />
+
+@code {
+    [Parameter]
+    public string[] RecoveryCodes { get; set; } = [];
+
+    [Parameter]
+    public string? StatusMessage { get; set; }
+}

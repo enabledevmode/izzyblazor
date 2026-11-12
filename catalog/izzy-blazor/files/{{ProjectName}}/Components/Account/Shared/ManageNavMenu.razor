@@ -1,0 +1,26 @@
+@using Microsoft.AspNetCore.Identity
+@using {{RootNamespace}}.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+
+<NavMenu aria-label="Account settings">
+    <NavItem Href="Account/Manage" Match="NavLinkMatch.All" Icon="Lucide.User">Profile</NavItem>
+    <NavItem Href="Account/Manage/Email" Icon="Lucide.Mail">Email</NavItem>
+    <NavItem Href="Account/Manage/ChangePassword" Icon="Lucide.Lock">Password</NavItem>
+    @if (hasExternalLogins)
+    {
+        <NavItem Href="Account/Manage/ExternalLogins" Icon="Lucide.Link">External logins</NavItem>
+    }
+    <NavItem Href="Account/Manage/TwoFactorAuthentication" Icon="Lucide.Smartphone">Two-factor authentication</NavItem>
+    <NavItem Href="Account/Manage/Passkeys" Icon="Lucide.KeyRound">Passkeys</NavItem>
+    <NavItem Href="Account/Manage/PersonalData" Icon="Lucide.Database">Personal data</NavItem>
+</NavMenu>
+
+@code {
+    private bool hasExternalLogins;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+}

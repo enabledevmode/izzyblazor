@@ -24,7 +24,7 @@ internal static partial class TemplateText
     /// <summary>Files copied byte for byte: no conditions, no tokens.</summary>
     static readonly HashSet<string> Binary = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".pdf", ".zip", ".dll",
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".pdf", ".zip", ".dll", ".db",
     };
 
     public static bool IsBinary(string path) => Binary.Contains(Path.GetExtension(path));

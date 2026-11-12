@@ -27,9 +27,15 @@
             <NavItem Href="counter">Counter</NavItem>
             <NavItem Href="weather">Weather</NavItem>
             <NavItem Href="contact">Contact</NavItem>
+            @*#if (IndividualLocalAuth) *@
+            <NavItem Href="auth">Auth required</NavItem>
+            @*#endif *@
         </SiteNav>
         @*#endif *@
         <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
+        @*#if (IndividualLocalAuth) *@
+        <AccountMenu />
+        @*#endif *@
     </AppHeader>
     @*#if (SidebarNav) *@
 
@@ -39,6 +45,9 @@
             <NavItem Href="counter" Icon="Lucide.SquarePlus">Counter</NavItem>
             <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
             <NavItem Href="contact" Icon="Lucide.Mail">Contact</NavItem>
+            @*#if (IndividualLocalAuth) *@
+            <NavItem Href="auth" Icon="Lucide.Lock">Auth required</NavItem>
+            @*#endif *@
         </NavMenu>
     </AppSidebar>
     @*#endif *@

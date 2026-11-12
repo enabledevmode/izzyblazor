@@ -1,0 +1,33 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using {{RootNamespace}}.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+
+@if (externalLogins.Length > 0)
+{
+    <Divider Label="or use another service" />
+    <form action="Account/PerformExternalLogin" method="post">
+        <AntiforgeryToken />
+        <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+        <Stack Gap="2">
+            @foreach (var provider in externalLogins)
+            {
+                <Button Submit Name="provider" Value="@provider.Name" Variant="ButtonVariant.Outline" FullWidth title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</Button>
+            }
+        </Stack>
+    </form>
+}
+
+@code {
+    private AuthenticationScheme[] externalLogins = [];
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        externalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToArray();
+    }
+}

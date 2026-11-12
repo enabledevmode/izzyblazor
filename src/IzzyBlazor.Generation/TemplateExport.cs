@@ -93,7 +93,7 @@ public static class TemplateExport
                 ["type"] = "parameter",
                 ["datatype"] = p.Type switch { ParameterType.Bool => "bool", ParameterType.Choice => "choice", ParameterType.Int => "integer", _ => "text" },
             };
-            if (p.Port is null) symbol["defaultValue"] = p.Default;
+            if (p.Port is null && !p.Guid) symbol["defaultValue"] = p.Default;
             if (p.Description is not null) symbol["description"] = p.Description;
             if (p.Type == ParameterType.Choice)
                 symbol["choices"] = new JsonArray(p.Choices.Select(c => (JsonNode)new JsonObject { ["choice"] = c }).ToArray());
@@ -105,6 +105,21 @@ public static class TemplateExport
                 {
                     ["type"] = "generated", ["generator"] = "port",
                     ["parameters"] = new JsonObject { ["low"] = low, ["high"] = high },
+                };
+                symbols[p.Name + "Replacer"] = new JsonObject
+                {
+                    ["type"] = "generated", ["generator"] = "coalesce",
+                    ["parameters"] = new JsonObject { ["sourceVariableName"] = p.Name, ["fallbackVariableName"] = p.Name + "Generated" },
+                    ["replaces"] = "{{" + p.Name + "}}",
+                };
+            }
+            else if (p.Guid)
+            {
+                // As a port: a new GUID, and the given one when there is one.
+                symbols[p.Name + "Generated"] = new JsonObject
+                {
+                    ["type"] = "generated", ["generator"] = "guid",
+                    ["parameters"] = new JsonObject { ["defaultFormat"] = "d" },
                 };
                 symbols[p.Name + "Replacer"] = new JsonObject
                 {
