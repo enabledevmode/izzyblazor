@@ -18,15 +18,16 @@ public static class Generator
         var values = Resolve(manifest, settings);
         var tokens = Tokens(manifest, values, project);
 
-        var excluded = new List<string>();
+        var excluded = new List<Glob>();
         foreach (var rule in manifest.Exclude)
-            if (Condition.Evaluate(rule.If, values)) excluded.AddRange(rule.Paths);
+            if (Condition.Evaluate(rule.If, values)) excluded.AddRange(rule.Paths.Select(p => new Glob(p)));
+        var renames = manifest.Rename.Where(r => Condition.Evaluate(r.If, values)).SelectMany(r => r.Paths).ToList();
 
         var creates = new List<FileCreate>();
         foreach (var (path, bytes) in item.Files)
         {
-            if (excluded.Any(e => Matches(e, path))) continue;
-            var target = TemplateText.ReplaceTokens(path, tokens);
+            if (excluded.Any(e => e.Matches(path))) continue;
+            var target = TemplateText.ReplaceTokens(Renamed(path, renames), tokens);
             if (TemplateText.IsBinary(path))
             {
                 creates.Add(new FileCreate(target, null, bytes));
@@ -82,7 +83,11 @@ public static class Generator
             .Select(p => new PackageReference(p.Id, p.Version))
             .ToList();
 
-        return new Changeset { Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings };
+        return new Changeset
+        {
+            Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings,
+            Restore = manifest.Restore is not null && Condition.Evaluate(manifest.Restore, values),
+        };
     }
 
     /// <summary>The settings as typed values (bool, string, long), defaults filled in, then the computed values.</summary>
@@ -96,6 +101,8 @@ public static class Generator
         foreach (var p in manifest.Parameters)
         {
             var given = settings.FirstOrDefault(s => s.Key.Equals(p.Name, StringComparison.OrdinalIgnoreCase)).Value;
+            // A port with none given is picked from its range, as dotnet new's port generator does.
+            if (given is null && p.Port is var (low, high)) given = Random.Shared.Next(low, high + 1).ToString(CultureInfo.InvariantCulture);
             values[p.Name] = Typed(manifest.Id, p, given ?? p.Default);
         }
         foreach (var (name, expression) in manifest.Computed)
@@ -124,8 +131,21 @@ public static class Generator
         return tokens;
     }
 
-    /// <summary>An exclude path matches itself, or everything under it when it ends in <c>/**</c>.</summary>
-    static bool Matches(string pattern, string path) => pattern.EndsWith("/**", StringComparison.Ordinal)
-        ? path.StartsWith(pattern[..^2], StringComparison.Ordinal)
-        : string.Equals(pattern, path, StringComparison.Ordinal);
+    /// <summary>
+    /// A template path after the renames that hold: the first rule whose source is the path, or a folder (ending
+    /// in <c>/</c>) holding it, moves it. <c>./</c> is the project folder.
+    /// </summary>
+    static string Renamed(string path, List<KeyValuePair<string, string>> renames)
+    {
+        foreach (var (from, to) in renames)
+        {
+            string? moved = null;
+            if (from.EndsWith('/') && path.StartsWith(from, StringComparison.Ordinal)) moved = to + path[from.Length..];
+            else if (path == from) moved = to;
+            if (moved is null) continue;
+            while (moved.StartsWith("./", StringComparison.Ordinal)) moved = moved[2..];
+            return moved;
+        }
+        return path;
+    }
 }

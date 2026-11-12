@@ -1,5 +1,5 @@
 // A small starter that uses every part of the export: each file type's conditions, a computed value, an
-// exclude, tokens in a path, and a binary file. DotnetNewTests checks dotnet new makes what the engine makes.
+// exclude, a rename, tokens in a path, a port, a restore and a binary file. DotnetNewTests checks dotnet new makes what the engine makes.
 {
   "id": "izzy-probe-starter",
   "name": "Probe starter",
@@ -10,9 +10,13 @@
     "properties": {
       "Interactivity": { "type": "string", "enum": ["None", "Server", "Auto"], "default": "Server" },
       "AllInteractive": { "type": "boolean", "default": false },
-      "PageName": { "type": "string", "default": "Home" }
+      "PageName": { "type": "string", "default": "Home" },
+      "HttpPort": { "type": "integer", "x-port": [5000, 5300], "description": "Port for the HTTP endpoint in launchSettings.json." },
+      "SkipRestore": { "type": "boolean", "default": false }
     }
   },
   "computed": { "UseServer": "Interactivity == \"Server\" || Interactivity == \"Auto\"" },
-  "exclude": [ { "if": "!UseServer", "paths": ["Pages/Counter.razor", "Client/**"] } ]
+  "exclude": [ { "if": "!UseServer", "paths": ["Pages/Counter.*", "Client/**"] } ],
+  "rename": [ { "if": "Interactivity == \"None\"", "paths": { "Pages/": "Views/", "Setup.cs": "Startup/Setup.cs" } } ],
+  "restore": "!SkipRestore"
 }

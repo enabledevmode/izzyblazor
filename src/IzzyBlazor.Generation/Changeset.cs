@@ -21,6 +21,9 @@ public sealed class Changeset
 
     /// <summary>What couldn't be done and needs a person, such as an insert whose anchor isn't in the file.</summary>
     public required IReadOnlyList<string> Warnings { get; init; }
+
+    /// <summary>Whether to restore packages once the files are written (a new starter, unless asked not to).</summary>
+    public bool Restore { get; init; }
 }
 
 /// <summary>A file to create.</summary>
