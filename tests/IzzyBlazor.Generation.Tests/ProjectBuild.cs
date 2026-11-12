@@ -6,6 +6,9 @@ namespace IzzyBlazor.Generation.Tests;
 /// <summary>Builds a generated project against this repo's IzzyBlazor projects, not a released package.</summary>
 internal static class ProjectBuild
 {
+    /// <summary>Tests that build this repo's projects share it, so they run one at a time: two builds at once lock each other's output.</summary>
+    public const string Collection = "Builds against the repo";
+
     public static string RepoRoot { get; } = FindRepoRoot();
 
     /// <summary>A catalogue item from /catalog.</summary>

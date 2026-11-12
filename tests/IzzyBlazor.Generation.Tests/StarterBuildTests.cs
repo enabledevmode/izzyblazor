@@ -8,6 +8,7 @@ namespace IzzyBlazor.Generation.Tests;
 /// interactive (the layout and pages in the .Client project) under a name that needs a safe namespace. The
 /// IzzyBlazor packages are swapped for this repo's projects, so it builds against the code here, not a release.
 /// </summary>
+[Collection(ProjectBuild.Collection)]
 public sealed class StarterBuildTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-starter-build-").FullName;

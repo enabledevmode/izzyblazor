@@ -7,6 +7,7 @@ namespace IzzyBlazor.Generation.Tests;
 /// it on Home and imports its folder, warns that Home already has an h1, changes nothing when run again, and
 /// the project builds.
 /// </summary>
+[Collection(ProjectBuild.Collection)]
 public sealed class HeroBlockTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-hero-").FullName;
