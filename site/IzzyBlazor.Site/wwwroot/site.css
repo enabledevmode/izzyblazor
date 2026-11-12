@@ -87,7 +87,6 @@
 }
 /* A deeper Ember on Paper, as the brand's light hero has it: Ember itself is too faint there. */
 .site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
-.site-hero-tagline { color: light-dark(#14161a, #f5f4f1); }
 .site-hero .site-install { background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
 
 /* The app's frames lay out at a desktop's and a phone's width and are scaled down by --s, as a
@@ -341,8 +340,10 @@
 .site-show-links { font-size: var(--ib-text-sm); row-gap: var(--ib-space-1); }
 
 /* The hero's frames are live: a label says so. */
-.site-hero-live { position: absolute; z-index: 2; top: -2.25rem; right: 0; display: inline-flex; align-items: center; gap: var(--ib-space-2); padding: var(--ib-space-1) var(--ib-space-3); border: 1px solid light-dark(#d6d3cc, #2c2f36); border-radius: 999px; background: light-dark(#fff, #1b1d22); font-size: var(--ib-text-xs); color: var(--ib-color-muted); }
+/* Above the app: centered over the phone, then at the window's start once the window shows. */
+.site-hero-live { position: absolute; z-index: 2; top: -2.25rem; left: 50%; transform: translateX(-50%); white-space: nowrap; display: inline-flex; align-items: center; gap: var(--ib-space-2); padding: var(--ib-space-1) var(--ib-space-3); border: 1px solid light-dark(#d6d3cc, #2c2f36); border-radius: 999px; background: light-dark(#fff, #1b1d22); font-size: var(--ib-text-xs); color: var(--ib-color-muted); }
 .site-hero-live i { width: .5rem; height: .5rem; border-radius: 50%; background: #2f9e44; }
+@media (min-width: 64rem) { .site-hero-live { left: 3rem; transform: none; } }
 
 .site-media { position: relative; }
 /* The homepage's mode pictures, a fifth shorter: the drawing's middle. */
