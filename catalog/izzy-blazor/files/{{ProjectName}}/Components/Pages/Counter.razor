@@ -10,13 +10,18 @@
         <Heading Level="1">Counter</Heading>
         <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
     </Stack>
-    <TextBlock Size="TextSize.Xl5" Weight="FontWeight.Semibold" TabularNums>@currentCount</TextBlock>
+    <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
+        <LinearGauge Label="Current count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
+    </Box>
     <LiveRegion Text="@($"Current count: {currentCount}")" />
     <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
 </Stack>
 
 @code {
     private int currentCount = 0;
+
+    // The scale grows by tens as the count passes them: 0 to 10, then 0 to 20, and so on.
+    private int ScaleMax => (currentCount / 10 + 1) * 10;
 
     // Server or WebAssembly once the page is interactive; before that, it was prerendered on the server.
     private string Where => RendererInfo.IsInteractive ? $"Running on {RendererInfo.Name}" : "Prerendered on the server";
