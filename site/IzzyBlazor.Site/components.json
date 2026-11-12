@@ -2068,6 +2068,19 @@
     },
 
     {
+      "id": "error-guard", "icon": "ShieldAlert", "name": "ErrorGuard", "category": "Utilities", "summary": "Keeps the rest of a page working when one part of it throws.", "keywords": ["error boundary", "ErrorBoundary", "exception", "fallback", "crash", "error state"],
+      "features": [
+        { "feature": "Catches what throws while its content renders or loads, and shows an alert in its place" },
+        { "feature": "Catches what throws in an event handler", "noscript": "none", "static": "none", "interactive": "full" },
+        { "feature": "Try again on interactive pages, Reload on static ones" },
+        { "feature": "Clears when the address changes, so it's safe around @Body" },
+        { "feature": "The exception's details, when ShowDetails is set" }
+      ],
+      "examples": [
+        { "id": "error-guard-dashboard", "title": "A card whose service is down", "lead": "Put `ErrorGuard` around a part that can fail, such as a card that calls another service. When it throws, the guard shows an alert in its place and the rest of the page keeps working. In a layout, put it around `@Body` and set `ShowDetails` from the environment, so only Development shows the exception." }
+      ]
+    },
+    {
       "id": "live-region", "icon": "AudioLines", "name": "LiveRegion", "category": "Utilities", "summary": "Tells screen reader users what changed or just happened.", "keywords": ["aria-live", "announcer", "screen reader", "announcement", "status message"], "parts": ["AnnouncerRegion"],
       "features": [
         { "feature": "Hidden text read when it changes (LiveRegion)" },

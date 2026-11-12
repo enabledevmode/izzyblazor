@@ -328,4 +328,15 @@
       transition: none;
     }
   }
+
+  /* ErrorGuard's exception, under a summary that opens it. */
+  .ib-error-guard-details {
+    align-self: stretch;
+    min-inline-size: 0;
+  }
+
+  .ib-error-guard-details > summary {
+    cursor: pointer;
+    margin-block-end: var(--ib-space-2);
+  }
 }

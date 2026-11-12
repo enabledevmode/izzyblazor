@@ -1,0 +1,117 @@
+@namespace IzzyBlazor
+@inherits ErrorBoundary
+@implements IDisposable
+@attribute [ModeSupport(Static = ModeLevel.Partial, NoScript = ModeLevel.Partial, Notes = "On static pages it catches what throws while the page renders on the server, and offers a link that reloads the page; event handlers run only on interactive pages.", NoScriptNotes = "With JavaScript off, the page is static: it catches what throws while rendering, and the Reload link works.")]
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    Keeps one part of a page working when another throws: what's inside it is replaced by a
+    Danger Alert ("Something went wrong", what happened, and a next step) instead of ending the
+    circuit or the page. Built on Blazor's ErrorBoundary, so ErrorContent, MaximumErrorCount and
+    logging through ILogger work as there.
+
+    <ErrorGuard>
+        @Body
+    </ErrorGuard>
+
+    <ErrorGuard ShowDetails="@Environment.IsDevelopment()" OnError="Log">
+        <SalesReport />
+    </ErrorGuard>
+
+    - On an interactive page the next step is Try again, which renders the content again; on a
+      static page it's a Reload link to the same address (a full load, not an enhanced one).
+    - It recovers when the address changes (ResetOnNavigation), so it's safe around @Body in a
+      layout: Blazor's own boundary stays in its error state after the user navigates away.
+    - ShowDetails adds the exception in a collapsed section; set it from the environment so only
+      Development shows it.
+    - A popup that renders outside it (a Dialog, a Menu's panel) isn't inside it; guard the
+      content of the popup too.
+*@
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else if (ErrorContent is not null)
+{
+    @ErrorContent(CurrentException)
+}
+else
+{
+    var text = IzzyText.From(Services);
+    <div class="@ClassName" @attributes="AdditionalAttributes">
+        <Alert Status="Status.Danger" Title="@(Title ?? text.ErrorGuardTitle)">
+            <Stack Gap="3" Align="Align.Start">
+                <span>@(Message ?? text.ErrorGuardMessage)</span>
+                @if (RendererInfo.IsInteractive)
+                {
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.RotateCcw" OnClick="TryAgain">@text.TryAgain</Button>
+                }
+                else
+                {
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.RotateCcw" Href="@Navigation.Uri" data-enhance-nav="false">@text.Reload</Button>
+                }
+                @if (ShowDetails)
+                {
+                    <details class="ib-error-guard-details">
+                        <summary>@text.ErrorDetails</summary>
+                        <Code Block Highlight="false" MaxHeight='Length.Of("16rem")'>@CurrentException.ToString()</Code>
+                    </details>
+                }
+            </Stack>
+        </Alert>
+    </div>
+}
+
+@code {
+    /// <summary>The title, in place of IzzyText's "Something went wrong".</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The message under the title, in place of IzzyText's "This part of the page stopped working."</summary>
+    [Parameter] public string? Message { get; set; }
+
+    /// <summary>
+    /// Adds the exception, message and stack, in a collapsed section. Off by default: set it from the
+    /// environment (<c>ShowDetails="@Environment.IsDevelopment()"</c>) so visitors never see it.
+    /// </summary>
+    [Parameter] public bool ShowDetails { get; set; }
+
+    /// <summary>Recovers when the address changes, so a guard around <c>@Body</c> clears on the next page. On by default.</summary>
+    [Parameter] public bool ResetOnNavigation { get; set; } = true;
+
+    /// <summary>Runs with the exception when what's inside throws, after it's logged; for a toast or your own logging.</summary>
+    [Parameter] public EventCallback<Exception> OnError { get; set; }
+
+    /// <summary>Extra CSS classes on the wrapper of the error view.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Other attributes (<c>id</c>, <c>data-*</c>, <c>aria-*</c>) on the wrapper of the error view.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    private string ClassName => string.IsNullOrWhiteSpace(Class) ? "ib-error-guard" : $"ib-error-guard {Class}";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (ResetOnNavigation) Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnErrorAsync(Exception exception)
+    {
+        await base.OnErrorAsync(exception);
+        await OnError.InvokeAsync(exception);
+    }
+
+    private void TryAgain() => Recover();
+
+    // Recover from an event like this one, never while rendering: a render that recovers can loop.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (CurrentException is not null) _ = InvokeAsync(Recover);
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

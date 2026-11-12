@@ -87,7 +87,7 @@ Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-st
 - **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
 - **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
 - **Charts:** bar, line, area, range bar and area, scatter, bubble, histogram, box plot, violin, candlestick, OHLC, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, BulletChart, Sparkline, Gauge, LinearGauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
-- **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion
+- **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion, ErrorGuard
 
 Build responsive layouts and apply theme tokens through typed component props. If you've used
 Chakra UI or Mantine, the layout props will feel familiar:
