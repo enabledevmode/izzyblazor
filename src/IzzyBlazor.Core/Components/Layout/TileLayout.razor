@@ -25,9 +25,11 @@
     tiles stack below the first breakpoint given.
 
     Editable lets people rearrange the tiles at the widest column count. With script, dragging a
-    tile moves it (from anywhere but its controls) and dragging its corner grip resizes it, a cell at a time; without
-    AllowOverlap a tile stays at its last free spot rather than cover another. Each tile's handle
-    opens a menu of the same moves, which with JavaScript off post the form.
+    tile moves it (from anywhere but its controls) and dragging its corner grip resizes it, a cell
+    at a time. A tile in the way swaps into the moved tile's old cells when it fits there, else it
+    moves down; then every tile rises to fill the space above it, unless Float. Collision Block
+    stops a tile at its last free spot instead, and Overlap lets tiles cover each other. Each
+    tile's handle opens a menu of the same moves, which with JavaScript off post the form.
 
     Accessibility:
     - The layout is a list and each tile an item, named by its title, so screen readers say how
@@ -58,7 +60,8 @@
                     data-ib-at="@(Levels[^1].Breakpoint is { } at ? at.Name() : "")"
                     data-ib-cols="@Levels[^1].Columns.ToString(CultureInfo.InvariantCulture)"
                     data-ib-rows="@_context.RowLimit.ToString(CultureInfo.InvariantCulture)"
-                    data-ib-overlap="@(AllowOverlap ? "" : null)"
+                    data-ib-collision="@(Collision == TileCollision.Push ? null : Collision.ToString().ToLowerInvariant())"
+                    data-ib-float="@(Float ? "" : null)"
                     data-ib-interactive="@(Live ? "" : null)"
                     data-ib-seq="@(RendererInfo.IsInteractive ? _seq.ToString(CultureInfo.InvariantCulture) : null)"
                     data-ib-moved="@TextDefaults.TileMovedTo" data-ib-resized="@TextDefaults.TileResizedTo"
@@ -119,8 +122,17 @@ else
     /// <summary>While <see cref="Editable"/>, outlines every cell, so the user sees where tiles can go.</summary>
     [Parameter] public bool ShowGrid { get; set; }
 
-    /// <summary>Lets a tile move or grow over another. By default a move that would cover a tile isn't offered.</summary>
-    [Parameter] public bool AllowOverlap { get; set; }
+    /// <summary>
+    /// What a move onto another tile does. Defaults to <see cref="TileCollision.Push"/>: the tile in
+    /// the way takes the moved tile's old cells when it fits there, else it moves down.
+    /// </summary>
+    [Parameter] public TileCollision Collision { get; set; }
+
+    /// <summary>
+    /// With <see cref="TileCollision.Push"/>, tiles stay where they're dropped, leaving empty cells.
+    /// By default every tile rises as far as it can after each move.
+    /// </summary>
+    [Parameter] public bool Float { get; set; }
 
     /// <summary>
     /// On a static page, the name an editable layout posts under: <c>{Name}.Tiles</c> (the layout
@@ -214,14 +226,14 @@ else
     // A move from a tile's menu on an interactive page.
     internal async Task MoveAsync(Tile tile, TileMoveKind kind)
     {
-        if (!_context.TryMove(tile, kind, out var to))
+        if (!_context.TryMove(tile, kind, out var layout))
         {
             return;
         }
 
-        var state = _context.CurrentState(tile, to);
+        var state = _context.CurrentState(layout);
         _live = state;
-        Moved(tile, kind, to);
+        Moved(tile, kind, layout[tile]);
         _context.Invalidate();
         _version++;
         await StateChanged.InvokeAsync(state);

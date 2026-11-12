@@ -24,11 +24,16 @@ interface Place {
   rs: number;
 }
 
+/** Every tile's place. */
+type Layout = Map<HTMLElement, Place>;
+
 /**
  * <ib-tile-layout> moves and resizes the tiles of an editable TileLayout, at its widest column
  * count only (the handles hide below it). Every place is in cells: a tile snaps from cell to cell
- * as the pointer crosses them, and without data-ib-overlap it stays at its last free spot rather
- * than covering another tile.
+ * as the pointer crosses them. By default a tile in the way takes the moved tile's old cells when
+ * it fits there, else moves down, and then every tile rises (not with data-ib-float): arrange(),
+ * the same rule as C#'s TileArrange. The other tiles show their new places as the pointer moves.
+ * data-ib-collision="block" stops a tile at its last free spot; "overlap" lets it cover others.
  * - Dragging a tile moves it, from anywhere but the controls in it; dragging its corner grip
  *   resizes it. A mouse drags after a few pixels, a touch after a long press (the handle and grip
  *   at once). Escape puts it back.
@@ -64,6 +69,10 @@ class TileLayout extends IzzyElement {
     return Number(this.dataset.ibRows ?? 0);
   }
 
+  private get collision(): string {
+    return this.dataset.ibCollision ?? "push";
+  }
+
   protected setup(signal: AbortSignal): void {
     this.addEventListener("click", (event) => this.onClick(event), { signal });
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
@@ -91,19 +100,31 @@ class TileLayout extends IzzyElement {
     return { col: read("col"), row: read("row"), cs: read("cs"), rs: read("rs") };
   }
 
-  /** Whether a tile fits at a place: inside the grid, within its limits, over no other tile (unless allowed). */
-  private fits(tile: HTMLElement, p: Place): boolean {
+  /** Every tile's place now. */
+  private layout(): Layout {
+    return new Map(this.tiles().map((tile) => [tile, this.placeOf(tile)]));
+  }
+
+  /**
+   * The layout with the tile at a place, from a layout: null when the place is outside the grid or
+   * the tile's limits, covers a tile (block), pushes one past the rows, or (when a change is
+   * required, as for the menus) changes nothing.
+   */
+  private place(tile: HTMLElement, p: Place, from: Layout, requireChange: boolean): Layout | null {
     const [minCs, maxCs, minRs, maxRs] = (tile.dataset.ibLimits ?? "1,0,1,0").split(",").map(Number);
     const cols = this.columns;
-    const rows = this.rows;
-    if (p.col < 1 || p.row < 1 || p.col + p.cs - 1 > cols || (rows > 0 && p.row + p.rs - 1 > rows)) return false;
-    if (p.cs < minCs || (maxCs > 0 && p.cs > maxCs) || p.rs < minRs || (maxRs > 0 && p.rs > maxRs)) return false;
-    if (this.hasAttribute("data-ib-overlap")) return true;
-    return this.tiles().every((other) => {
-      if (other === tile) return true;
-      const o = this.placeOf(other);
-      return p.col >= o.col + o.cs || o.col >= p.col + p.cs || p.row >= o.row + o.rs || o.row >= p.row + p.rs;
-    });
+    const rows = this.rows || Infinity;
+    if (p.col < 1 || p.row < 1 || p.col + p.cs - 1 > cols || p.row + p.rs - 1 > rows) return null;
+    if (p.cs < minCs || (maxCs > 0 && p.cs > maxCs) || p.rs < minRs || (maxRs > 0 && p.rs > maxRs)) return null;
+    let next: Layout | null;
+    if (this.collision === "push") {
+      next = arrange(from, tile, p, cols, rows, !this.hasAttribute("data-ib-float"));
+    } else {
+      next = new Map(from).set(tile, p);
+      if (this.collision === "block" && [...from].some(([other, o]) => other !== tile && overlaps(p, o))) next = null;
+    }
+    if (next && requireChange && [...next].every(([other, q]) => sameAs(q, from.get(other)!))) return null;
+    return next;
   }
 
   /** Whether editing is on at this width: the handles show only at the widest column count. */
@@ -118,9 +139,10 @@ class TileLayout extends IzzyElement {
     if (!button || !tile || button.disabled || this.live) return;
     // A static page: the move happens here instead of posting the form.
     event.preventDefault();
-    const p = step(this.placeOf(tile), button.dataset.ibMove as Kind);
-    if (!this.fits(tile, p)) return;
-    this.commit(tile, p, isResize(button.dataset.ibMove as Kind));
+    const now = this.layout();
+    const next = this.place(tile, step(now.get(tile)!, button.dataset.ibMove as Kind), now, true);
+    if (!next) return;
+    this.commit(tile, next, isResize(button.dataset.ibMove as Kind));
     tile.querySelector<HTMLElement>(HANDLE)?.focus();
   }
 
@@ -141,14 +163,27 @@ class TileLayout extends IzzyElement {
     tile.querySelector<HTMLButtonElement>(`button[data-ib-move="${kind}"]`)?.click();
   }
 
-  /** A move made here: the tile's place, the posted layout, the menus and the announcement. */
-  private commit(tile: HTMLElement, p: Place, resized: boolean): void {
-    for (const [name, value] of Object.entries(p)) tile.style.setProperty(`--ib-tile-${name}${this.suffix}`, String(value));
-    clearDrag(tile);
+  /** A move made here: every tile's place, the posted layout, the menus and the announcement. */
+  private commit(tile: HTMLElement, layout: Layout, resized: boolean): void {
+    for (const [each, p] of layout) {
+      for (const [name, value] of Object.entries(p)) each.style.setProperty(`--ib-tile-${name}${this.suffix}`, String(value));
+    }
+    this.clearDrags();
     const input = this.querySelector<HTMLInputElement>(':scope > input[type=hidden][name$=".Tiles"]');
     if (input) input.value = this.serialize();
     this.refreshMenus();
-    this.say(tile, p, resized);
+    this.say(tile, layout.get(tile)!, resized);
+  }
+
+  /** Shows a layout while dragging, over the places drawn. */
+  private preview(layout: Layout): void {
+    for (const [tile, p] of layout) {
+      for (const [name, value] of Object.entries(p)) tile.style.setProperty(`--ib-drag-${name}`, String(value));
+    }
+  }
+
+  private clearDrags(): void {
+    for (const tile of this.tiles()) clearDrag(tile);
   }
 
   /** The layout as TileLayoutState writes it: each tile's id and place, by row, then column. */
@@ -161,12 +196,13 @@ class TileLayout extends IzzyElement {
       .join(";");
   }
 
-  /** Each tile's menu offers only the moves that now fit. */
+  /** Each tile's menu offers only the moves that can be made now. */
   private refreshMenus(): void {
+    const now = this.layout();
     for (const tile of this.tiles()) {
-      const p = this.placeOf(tile);
+      const p = now.get(tile)!;
       for (const button of tile.querySelectorAll<HTMLButtonElement>("button[data-ib-move]")) {
-        button.disabled = !this.fits(tile, step(p, button.dataset.ibMove as Kind));
+        button.disabled = !this.place(tile, step(p, button.dataset.ibMove as Kind), now, true);
       }
     }
   }
@@ -204,7 +240,11 @@ class TileLayout extends IzzyElement {
     const startX = event.clientX;
     const startY = event.clientY;
     const from = this.placeOf(tile);
+    // The layout when the drag started, which every step arranges from (tiles pushed aside come
+    // back when the pointer moves on), and the one shown now.
+    const start = this.layout();
     let current = from;
+    let shown: Layout = start;
     let x = startX;
     let y = startY;
     let dragging = false;
@@ -246,9 +286,12 @@ class TileLayout extends IzzyElement {
         ? { ...current, col: clamp(from.col + across, 1, this.columns - from.cs + 1), row: Math.max(1, from.row + down) }
         : { ...current, cs: Math.max(1, from.cs + across), rs: Math.max(1, from.rs + down) };
       if (this.rows > 0 && mode === "move") next.row = Math.min(next.row, this.rows - from.rs + 1);
-      if (sameAs(next, current) || !this.fits(tile, next)) return;
+      if (sameAs(next, current)) return;
+      const arranged = this.place(tile, next, start, false);
+      if (!arranged) return;
       current = next;
-      for (const [name, value] of Object.entries(next)) tile.style.setProperty(`--ib-drag-${name}`, String(value));
+      shown = arranged;
+      this.preview(arranged);
     };
 
     const autoScroll = () => {
@@ -287,12 +330,12 @@ class TileLayout extends IzzyElement {
       };
       if (escaped) document.addEventListener("pointerup", swallowClick, { capture: true, once: true });
       else swallowClick();
-      if (!drop || sameAs(current, from)) {
-        clearDrag(tile);
+      if (!drop || [...shown].every(([each, p]) => sameAs(p, start.get(each)!))) {
+        this.clearDrags();
         return;
       }
-      if (this.live) this.report(tile, current);
-      else this.commit(tile, current, mode === "resize");
+      if (this.live) this.report(tile);
+      else this.commit(tile, shown, mode === "resize");
     };
 
     document.addEventListener("pointermove", (e) => {
@@ -335,14 +378,13 @@ class TileLayout extends IzzyElement {
     return { col: width + colGap || 1, row: height + (parseFloat(style.rowGap) || 0), rtl: style.direction === "rtl" };
   }
 
-  /** An interactive page: C# takes the new layout; the tile holds its place until that render. */
-  private report(tile: HTMLElement, p: Place): void {
+  /** An interactive page: C# takes the layout shown; the tiles hold their places until that render. */
+  private report(tile: HTMLElement): void {
     const id = tile.dataset.tileId;
     if (!id) {
-      clearDrag(tile);
+      this.clearDrags();
       return;
     }
-    for (const [name, value] of Object.entries(p)) tile.style.setProperty(`--ib-drag-${name}`, String(value));
     const tiles = this.serialize();
     const seq = (this.seq = Math.max(this.seq, Number(this.dataset.ibSeq ?? 0)) + 1);
     this.busy = true;
@@ -351,8 +393,8 @@ class TileLayout extends IzzyElement {
       observer.disconnect();
       clearTimeout(timer);
       this.busy = false;
-      // The render drew the new place (or, if C# kept the old one, that shows again).
-      clearDrag(tile);
+      // The render drew the new places (or, if C# kept the old ones, those show again).
+      this.clearDrags();
     };
     const observer = new MutationObserver(() => {
       if (Number(this.dataset.ibSeq ?? 0) >= seq) done();
@@ -377,6 +419,51 @@ function step(p: Place, kind: Kind): Place {
     case "shorter": return { ...p, rs: p.rs - 1 };
     default: return p;
   }
+}
+
+/**
+ * The layout with one tile moved to a place: each other tile, by row then column, that overlaps a
+ * tile already placed takes the moved tile's old cells if it fits there, else moves down below what
+ * it overlaps. Then, when compacting, every tile rises, by row then column, as far as it can. Null
+ * when a tile would be pushed past the rows. The same rule as C#'s TileArrange.Arrange.
+ */
+function arrange(layout: Layout, moved: HTMLElement, target: Place, columns: number, rows: number, compact: boolean): Layout | null {
+  const from = layout.get(moved)!;
+  const placed: [HTMLElement, Place][] = [[moved, target]];
+  const hits = (p: Place, list: [HTMLElement, Place][]) => list.filter(([, o]) => overlaps(p, o));
+  for (const [tile, p] of byReading([...layout].filter(([tile]) => tile !== moved))) {
+    let at = p;
+    if (hits(at, placed).length) {
+      const swap = { ...at, col: from.col, row: from.row };
+      if (swap.col + swap.cs - 1 <= columns && swap.row + swap.rs - 1 <= rows && !hits(swap, placed).length) {
+        at = swap;
+      } else {
+        // Down below every tile it overlaps, until it overlaps none.
+        for (let over = hits(at, placed); over.length; over = hits(at, placed)) {
+          at = { ...at, row: Math.max(...over.map(([, o]) => o.row + o.rs)) };
+        }
+        if (at.row + at.rs - 1 > rows) return null;
+      }
+    }
+    placed.push([tile, at]);
+  }
+  if (!compact) return new Map(placed);
+  const risen: [HTMLElement, Place][] = [];
+  for (const [tile, p] of byReading(placed)) {
+    let at = p;
+    while (at.row > 1 && !hits({ ...at, row: at.row - 1 }, risen).length) at = { ...at, row: at.row - 1 };
+    risen.push([tile, at]);
+  }
+  return new Map(risen);
+}
+
+/** By row, then column; a stable sort, as C#'s OrderBy. */
+function byReading(list: [HTMLElement, Place][]): [HTMLElement, Place][] {
+  return [...list].sort(([, a], [, b]) => a.row - b.row || a.col - b.col);
+}
+
+function overlaps(a: Place, b: Place): boolean {
+  return a.col < b.col + b.cs && b.col < a.col + a.cs && a.row < b.row + b.rs && b.row < a.row + a.rs;
 }
 
 function isResize(kind: Kind): boolean {

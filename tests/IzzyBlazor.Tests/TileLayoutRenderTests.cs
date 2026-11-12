@@ -83,12 +83,13 @@ public class TileLayoutRenderTests : BunitContext
         Assert.Contains("ib-tiles-rows-at-lg", cut.Find(".ib-tiles").ClassName); // all 6 rows, at 12 columns only
     }
 
-    // Two tiles side by side on a 4-column, 2-row board, editable.
-    private IRenderedComponent<TileLayout> RenderEditable(Action<ComponentParameterCollectionBuilder<TileLayout>> more, int rows = 2) =>
+    // Two tiles side by side on a 4-column, 2-row board, editable; Block unless given.
+    private IRenderedComponent<TileLayout> RenderEditable(Action<ComponentParameterCollectionBuilder<TileLayout>> more, int rows = 2, TileCollision collision = TileCollision.Block) =>
         Render<TileLayout>(p =>
         {
             p.Add(l => l.Columns, new Responsive<int> { Base = 4 })
                 .Add(l => l.Rows, rows)
+                .Add(l => l.Collision, collision)
                 .Add(l => l.Editable, true)
                 .Add(l => l.ChildContent, b =>
                 {
@@ -139,6 +140,50 @@ public class TileLayoutRenderTests : BunitContext
         Assert.Equal("1,2,2,1", Place(cut, "a"));
         Assert.Equal("Moved a to column 1, row 2", cut.Find("[data-tile-id='a'] [role=status]").TextContent);
         Assert.False(MenuItem(cut, "a", "Wider").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void By_default_a_move_pushes_the_tile_in_the_way_and_moves_that_change_nothing_are_off()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        TileLayoutState? changed = null;
+        var cut = RenderEditable(p => p.Add(l => l.StateChanged, s => changed = s), collision: TileCollision.Push);
+
+        // Down onto empty cells would rise straight back.
+        Assert.True(MenuItem(cut, "a", "Move down").HasAttribute("disabled"));
+        MenuItem(cut, "a", "Wider").Click();
+
+        Assert.Equal("a:1,1,3,1;b:3,2,2,1", changed!.ToString()); // b can't take a's cells, so it moves down
+        Assert.Equal("3,2,2,1", Place(cut, "b"));
+    }
+
+    // Tiles on a 4-column grid, by id: column, row, column span, row span.
+    private static List<(string Key, TilePlace Place)> Tiles(params (string Id, int Col, int Row, int ColSpan, int RowSpan)[] tiles) =>
+        [.. tiles.Select(t => (t.Id, new TilePlace(t.Col, t.Row, t.ColSpan, t.RowSpan)))];
+
+    private static string Text(List<(string Key, TilePlace Place)>? layout) =>
+        layout is null ? "none" : string.Join(";", layout.OrderBy(p => p.Key).Select(p => $"{p.Key}:{p.Place.Col},{p.Place.Row},{p.Place.ColSpan},{p.Place.RowSpan}"));
+
+    [Fact]
+    public void A_tile_in_the_way_swaps_into_the_old_cells_or_moves_down_pushing_the_tiles_below()
+    {
+        // Two tiles of a size swap.
+        var row = Tiles(("a", 1, 1, 2, 1), ("b", 3, 1, 2, 1));
+        Assert.Equal("a:3,1,2,1;b:1,1,2,1", Text(TileArrange.Arrange(row, "a", new TilePlace(3, 1, 2, 1), 4, 200, compact: true)));
+
+        // b is too wide for a's cells: it moves below a, and pushes c below itself.
+        var stack = Tiles(("a", 1, 1, 1, 1), ("b", 2, 1, 3, 1), ("c", 2, 2, 3, 1));
+        Assert.Equal("a:2,1,1,1;b:2,2,3,1;c:2,3,3,1", Text(TileArrange.Arrange(stack, "a", new TilePlace(2, 1, 1, 1), 4, 200, compact: true)));
+        Assert.Equal("none", Text(TileArrange.Arrange(stack, "a", new TilePlace(2, 1, 1, 1), 4, 2, compact: true))); // c past 2 rows
+    }
+
+    [Fact]
+    public void After_a_move_tiles_rise_into_the_space_above_unless_they_float()
+    {
+        // a gets a row shorter: b rises into the freed row, or stays put when floating.
+        var tall = Tiles(("a", 1, 1, 2, 2), ("b", 1, 3, 2, 1));
+        Assert.Equal("a:1,1,2,1;b:1,2,2,1", Text(TileArrange.Arrange(tall, "a", new TilePlace(1, 1, 2, 1), 4, 200, compact: true)));
+        Assert.Equal("a:1,1,2,1;b:1,3,2,1", Text(TileArrange.Arrange(tall, "a", new TilePlace(1, 1, 2, 1), 4, 200, compact: false)));
     }
 
     [Fact]
