@@ -1,3 +1,4 @@
+@*#if (UseServer) *@
 @page "/counter"
 @*#if (!InteractiveAtRoot) *@
 @rendermode InteractiveServer
@@ -8,8 +9,9 @@
 <Stack Gap="6" Align="Align.Start">
     <Stack Gap="2">
         <Heading Level="1">Counter</Heading>
-        <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
+        <TextBlock>This component demonstrates interactivity: each click runs C# and draws the page again. The badge says where that C# runs.</TextBlock>
     </Stack>
+    <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
     <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
         <LinearGauge Label="Current count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
     </Box>
@@ -31,3 +33,30 @@
         currentCount++;
     }
 }
+@*#else *@
+@page "/counter"
+
+<PageTitle>Counter</PageTitle>
+
+<Stack Gap="6" Align="Align.Start">
+    <Stack Gap="2">
+        <Heading Level="1">Counter</Heading>
+        <TextBlock>This component demonstrates a static page that still answers clicks: each click is a new request, with the count in the address.</TextBlock>
+    </Stack>
+    <Badge Status="Status.Neutral" StartIcon="Lucide.Server">Static: each click is a new request</Badge>
+    <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
+        <LinearGauge Label="Current count" Value="CurrentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
+    </Box>
+    <LiveRegion Text="@($"Current count: {CurrentCount}")" />
+    <Button Href="@($"counter?count={CurrentCount + 1}")" StartIcon="Lucide.Plus">Click me</Button>
+</Stack>
+
+@code {
+    // The count lives in the address, so it works with no circuit and with JavaScript off.
+    [SupplyParameterFromQuery(Name = "count")]
+    private int CurrentCount { get; set; }
+
+    // The scale grows by tens as the count passes them: 0 to 10, then 0 to 20, and so on.
+    private int ScaleMax => (CurrentCount / 10 + 1) * 10;
+}
+@*#endif *@

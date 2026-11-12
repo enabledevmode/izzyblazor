@@ -10,8 +10,9 @@
 <Stack Gap="6" Align="Align.Start">
     <Stack Gap="2">
         <Heading Level="1">Counter</Heading>
-        <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
+        <TextBlock>This component demonstrates interactivity: each click runs C# and draws the page again. The badge says where that C# runs.</TextBlock>
     </Stack>
+    <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
     <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
         <LinearGauge Label="Current count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
     </Box>

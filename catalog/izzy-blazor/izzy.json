@@ -24,7 +24,7 @@
       },
       "Empty": {
         "type": "boolean", "default": false,
-        "description": "Leaves out the sample pages (Counter and Weather) and the sidebar."
+        "description": "Leaves out the sample pages (Counter, Weather and Contact) and the sidebar."
       },
       "Preset": {
         "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
@@ -86,7 +86,7 @@
   },
   "exclude": [
     { "if": "!UseWebAssembly", "paths": ["{{ProjectName}}.Client/**", "*.slnx"] },
-    { "if": "!(UseServer && !UseWebAssembly)", "paths": ["{{ProjectName}}/Components/Pages/Counter.razor"] },
+    { "if": "UseWebAssembly", "paths": ["{{ProjectName}}/Components/Pages/Counter.razor"] },
     { "if": "ExcludeLaunchSettings", "paths": ["{{ProjectName}}/Properties/launchSettings.json"] },
     {
       "if": "!SampleContent",
