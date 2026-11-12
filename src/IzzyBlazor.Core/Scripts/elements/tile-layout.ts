@@ -110,20 +110,25 @@ class TileLayout extends IzzyElement {
    * the tile's limits, covers a tile (block), pushes one past the rows, or (when a change is
    * required, as for the menus) changes nothing.
    */
-  private place(tile: HTMLElement, p: Place, from: Layout, requireChange: boolean): Layout | null {
+  private place(tile: HTMLElement, p: Place, from: Layout, requireChange: boolean, kind?: Kind): Layout | null {
     const [minCs, maxCs, minRs, maxRs] = (tile.dataset.ibLimits ?? "1,0,1,0").split(",").map(Number);
     const cols = this.columns;
     const rows = this.rows || Infinity;
     if (p.col < 1 || p.row < 1 || p.col + p.cs - 1 > cols || p.row + p.rs - 1 > rows) return null;
     if (p.cs < minCs || (maxCs > 0 && p.cs > maxCs) || p.rs < minRs || (maxRs > 0 && p.rs > maxRs)) return null;
     let next: Layout | null;
+    const changes = (layout: Layout | null) => !!layout && [...layout].some(([other, q]) => !sameAs(q, from.get(other)!));
     if (this.collision === "push") {
-      next = arrange(from, tile, p, cols, rows, !this.hasAttribute("data-ib-float"));
+      const compact = !this.hasAttribute("data-ib-float");
+      // A menu's step onto tiles jumps past them first; the step itself when that can't be made.
+      const leap = kind ? jump(from, tile, kind, p, cols, rows) : null;
+      next = leap ? arrange(from, tile, leap, cols, rows, compact) : null;
+      if (!changes(next)) next = arrange(from, tile, p, cols, rows, compact);
     } else {
       next = new Map(from).set(tile, p);
       if (this.collision === "block" && [...from].some(([other, o]) => other !== tile && overlaps(p, o))) next = null;
     }
-    if (next && requireChange && [...next].every(([other, q]) => sameAs(q, from.get(other)!))) return null;
+    if (requireChange && !changes(next)) return null;
     return next;
   }
 
@@ -140,7 +145,8 @@ class TileLayout extends IzzyElement {
     // A static page: the move happens here instead of posting the form.
     event.preventDefault();
     const now = this.layout();
-    const next = this.place(tile, step(now.get(tile)!, button.dataset.ibMove as Kind), now, true);
+    const kind = button.dataset.ibMove as Kind;
+    const next = this.place(tile, step(now.get(tile)!, kind), now, true, kind);
     if (!next) return;
     this.commit(tile, next, isResize(button.dataset.ibMove as Kind));
     tile.querySelector<HTMLElement>(HANDLE)?.focus();
@@ -202,7 +208,8 @@ class TileLayout extends IzzyElement {
     for (const tile of this.tiles()) {
       const p = now.get(tile)!;
       for (const button of tile.querySelectorAll<HTMLButtonElement>("button[data-ib-move]")) {
-        button.disabled = !this.place(tile, step(p, button.dataset.ibMove as Kind), now, true);
+        const kind = button.dataset.ibMove as Kind;
+        button.disabled = !this.place(tile, step(p, kind), now, true, kind);
       }
     }
   }
@@ -287,6 +294,13 @@ class TileLayout extends IzzyElement {
         : { ...current, cs: Math.max(1, from.cs + across), rs: Math.max(1, from.rs + down) };
       if (this.rows > 0 && mode === "move") next.row = Math.min(next.row, this.rows - from.rs + 1);
       if (sameAs(next, current)) return;
+      if (sameAs(next, from)) {
+        // Back where it started: nothing moves.
+        current = next;
+        shown = start;
+        this.clearDrags();
+        return;
+      }
       const arranged = this.place(tile, next, start, false);
       if (!arranged) return;
       current = next;
@@ -330,7 +344,7 @@ class TileLayout extends IzzyElement {
       };
       if (escaped) document.addEventListener("pointerup", swallowClick, { capture: true, once: true });
       else swallowClick();
-      if (!drop || [...shown].every(([each, p]) => sameAs(p, start.get(each)!))) {
+      if (!drop || sameAs(current, from) || [...shown].every(([each, p]) => sameAs(p, start.get(each)!))) {
         this.clearDrags();
         return;
       }
@@ -431,11 +445,12 @@ function arrange(layout: Layout, moved: HTMLElement, target: Place, columns: num
   const from = layout.get(moved)!;
   const placed: [HTMLElement, Place][] = [[moved, target]];
   const hits = (p: Place, list: [HTMLElement, Place][]) => list.filter(([, o]) => overlaps(p, o));
+  const hitsAny = (p: Place, list: [HTMLElement, Place][]) => list.some(([, o]) => overlaps(p, o));
   for (const [tile, p] of byReading([...layout].filter(([tile]) => tile !== moved))) {
     let at = p;
-    if (hits(at, placed).length) {
+    if (hitsAny(at, placed)) {
       const swap = { ...at, col: from.col, row: from.row };
-      if (swap.col + swap.cs - 1 <= columns && swap.row + swap.rs - 1 <= rows && !hits(swap, placed).length) {
+      if (swap.col + swap.cs - 1 <= columns && swap.row + swap.rs - 1 <= rows && !hitsAny(swap, placed)) {
         at = swap;
       } else {
         // Down below every tile it overlaps, until it overlaps none.
@@ -448,13 +463,31 @@ function arrange(layout: Layout, moved: HTMLElement, target: Place, columns: num
     placed.push([tile, at]);
   }
   if (!compact) return new Map(placed);
+  // Each tile rises to just below the lowest tile above it in its columns (the tiles before it,
+  // already risen, are all above it), or to the first row.
   const risen: [HTMLElement, Place][] = [];
   for (const [tile, p] of byReading(placed)) {
-    let at = p;
-    while (at.row > 1 && !hits({ ...at, row: at.row - 1 }, risen).length) at = { ...at, row: at.row - 1 };
-    risen.push([tile, at]);
+    let top = 1;
+    for (const [, o] of risen) if (p.col < o.col + o.cs && o.col < p.col + p.cs) top = Math.max(top, o.row + o.rs);
+    risen.push([tile, { ...p, row: top }]);
   }
   return new Map(risen);
+}
+
+/**
+ * For a step of one cell onto other tiles, the place just past them: the tile's far edge on theirs.
+ * Null for a resize, a step onto no tile, or a place outside the grid. The same as C#'s TileArrange.Jump.
+ */
+function jump(layout: Layout, moved: HTMLElement, kind: Kind, p: Place, columns: number, rows: number): Place | null {
+  const hit = [...layout].filter(([tile, o]) => tile !== moved && overlaps(p, o)).map(([, o]) => o);
+  if (!hit.length) return null;
+  const j: Place | null =
+    kind === "left" ? { ...p, col: Math.min(...hit.map((o) => o.col)) }
+    : kind === "right" ? { ...p, col: Math.max(...hit.map((o) => o.col + o.cs)) - p.cs }
+    : kind === "up" ? { ...p, row: Math.min(...hit.map((o) => o.row)) }
+    : kind === "down" ? { ...p, row: Math.max(...hit.map((o) => o.row + o.rs)) - p.rs }
+    : null;
+  return j && !sameAs(j, p) && j.col >= 1 && j.row >= 1 && j.col + j.cs - 1 <= columns && j.row + j.rs - 1 <= rows ? j : null;
 }
 
 /** By row, then column; a stable sort, as C#'s OrderBy. */

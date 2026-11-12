@@ -157,6 +157,27 @@ public class TileLayoutRenderTests : BunitContext
         Assert.Equal("3,2,2,1", Place(cut, "b"));
     }
 
+    [Fact]
+    public void Move_down_takes_a_tile_past_a_taller_one_below_it()
+    {
+        // What a drag can do, the menu can too: a short tile goes below a tall one, which rises.
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        TileLayoutState? changed = null;
+        var cut = Render<TileLayout>(p => p
+            .Add(l => l.Columns, new Responsive<int> { Base = 4 })
+            .Add(l => l.Editable, true)
+            .Add(l => l.StateChanged, s => changed = s)
+            .Add(l => l.ChildContent, b =>
+            {
+                AddTile(b, "short", 1, 1, 4);
+                AddTile(b, "tall", 1, 2, 4, 2);
+            }));
+
+        MenuItem(cut, "short", "Move down").Click();
+
+        Assert.Equal("tall:1,1,4,2;short:1,3,4,1", changed!.ToString());
+    }
+
     // Tiles on a 4-column grid, by id: column, row, column span, row span.
     private static List<(string Key, TilePlace Place)> Tiles(params (string Id, int Col, int Row, int ColSpan, int RowSpan)[] tiles) =>
         [.. tiles.Select(t => (t.Id, new TilePlace(t.Col, t.Row, t.ColSpan, t.RowSpan)))];

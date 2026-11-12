@@ -207,19 +207,52 @@ internal static class TileArrange
             return placed;
         }
 
+        // Each tile rises to just below the lowest tile above it in its columns (the tiles before
+        // it, already risen, are all above it), or to the first row.
         var risen = new List<(T Key, TilePlace Place)>(placed.Count);
         foreach (var (key, place) in placed.OrderBy(p => p.Place.Row).ThenBy(p => p.Place.Col))
         {
-            var at = place;
-            while (at.Row > 1 && !OverlapsAny(at with { Row = at.Row - 1 }, risen))
+            var top = 1;
+            foreach (var (_, above) in risen)
             {
-                at = at with { Row = at.Row - 1 };
+                if (place.Col < above.Col + above.ColSpan && above.Col < place.Col + place.ColSpan)
+                {
+                    top = Math.Max(top, above.Row + above.RowSpan);
+                }
             }
 
-            risen.Add((key, at));
+            risen.Add((key, place with { Row = top }));
         }
 
         return risen;
+    }
+
+    /// <summary>
+    /// For a step of one cell (left, right, up or down) onto other tiles, the place just past them:
+    /// the tile's far edge on theirs. Null for other moves, a step onto no tile, or a place outside
+    /// the grid. The script's <c>jump</c> is the same.
+    /// </summary>
+    public static TilePlace? Jump<T>(IReadOnlyList<(T Key, TilePlace Place)> layout, T moved, TileMoveKind kind, TilePlace step, int columns, int rows)
+        where T : notnull
+    {
+        var comparer = EqualityComparer<T>.Default;
+        var hit = layout.Where(p => !comparer.Equals(p.Key, moved) && Overlaps(step, p.Place)).Select(p => p.Place).ToList();
+        if (hit.Count == 0)
+        {
+            return null;
+        }
+
+        TilePlace? jump = kind switch
+        {
+            TileMoveKind.Left => step with { Col = hit.Min(p => p.Col) },
+            TileMoveKind.Right => step with { Col = hit.Max(p => p.Col + p.ColSpan) - step.ColSpan },
+            TileMoveKind.Up => step with { Row = hit.Min(p => p.Row) },
+            TileMoveKind.Down => step with { Row = hit.Max(p => p.Row + p.RowSpan) - step.RowSpan },
+            _ => null,
+        };
+
+        return jump is { } j && j != step && j.Col >= 1 && j.Row >= 1 && j.Col + j.ColSpan - 1 <= columns && j.Row + j.RowSpan - 1 <= rows
+            ? j : null;
     }
 
     public static bool Overlaps(TilePlace a, TilePlace b) =>
@@ -514,13 +547,24 @@ internal sealed class TileLayoutContext(TileLayout owner)
                 || !written.Any(p => p.Key != tile && TileArrange.Overlaps(place, p.Value));
         }
 
-        var arranged = TileArrange.Arrange([.. written.Select(p => (p.Key, p.Value))], tile, place, columns, RowLimit, !Owner.Float);
-        if (arranged is null || arranged.TrueForAll(p => written[p.Key] == p.Place))
+        // A step onto tiles jumps past them first (Move down puts a tile below a taller one, which
+        // rises into its cells); the step itself when that can't be made.
+        List<(Tile Key, TilePlace Place)> layoutNow = [.. written.Select(p => (p.Key, p.Value))];
+        bool Changes(List<(Tile Key, TilePlace Place)>? arranged) => arranged is not null && !arranged.TrueForAll(p => written[p.Key] == p.Place);
+        var arranged = TileArrange.Jump(layoutNow, tile, kind, place, columns, RowLimit) is { } jump
+            ? TileArrange.Arrange(layoutNow, tile, jump, columns, RowLimit, !Owner.Float)
+            : null;
+        if (!Changes(arranged))
+        {
+            arranged = TileArrange.Arrange(layoutNow, tile, place, columns, RowLimit, !Owner.Float);
+        }
+
+        if (!Changes(arranged))
         {
             return false;
         }
 
-        layout = arranged.ToDictionary(p => p.Key, p => p.Place);
+        layout = arranged!.ToDictionary(p => p.Key, p => p.Place);
         return true;
     }
 
