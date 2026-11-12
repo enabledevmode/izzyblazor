@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Components;
 namespace IzzyBlazor;
 
 /// <summary>
-/// Chart Download: the button that saves a chart as a PNG, in the tools row across from its title.
+/// The buttons in a chart's own tools row. Download: the button that saves a chart as a PNG, in the tools row across from its title.
 /// chart.ts's click handler loads the code (chart-export.ts) on the first press; a button
 /// of the app's own with <c>data-ib-chart-download="the chart's id"</c> works the same way. With
 /// JavaScript off the button isn't shown (data-ib-script).
 /// </summary>
-internal static class ChartDownload
+internal static class ChartTools
 {
     /// <summary>The download button, for a tools row that has other buttons (Chart's zoom and pause).</summary>
     public static RenderFragment Button(IzzyText text) => builder =>

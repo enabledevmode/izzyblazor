@@ -20,8 +20,9 @@
     content to the tile's edges, for Tabs, a DataGrid or a map.
 
     A Chart that is a tile's only content, with no Height, fills the tile. Name it by the tile's
-    title (TitledBy="@TitleId", set on the tile) rather than its own: with no HeaderEnd, the
-    chart's buttons (Download, Reset zoom, Pause) then sit in the tile's header row. A tile with none of these has no header. In an Editable layout the tile's handle
+    title (set the tile's TitleId and the chart's TitledBy) rather than giving it its own, and put
+    its buttons in HeaderEnd: ChartDownload, ChartResetZoom, ChartZoom and ChartPause act on the
+    tile's chart. A tile with none of these has no header. In an Editable layout the tile's handle
     starts its header, or sits in its top corner when it has none. The handle's menu moves the tile a cell at a time and resizes
     it, within MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
 *@

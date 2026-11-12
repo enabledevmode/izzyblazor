@@ -58,6 +58,10 @@ class Chart extends IzzyElement {
   ibView?: [() => View, (from: number, to: number, report?: boolean, share?: boolean) => void];
 
   protected setup(signal: AbortSignal): void {
+    // The chart's buttons placed outside it (ChartResetZoom, ChartZoom, ChartPause): their own part.
+    if (document.querySelector("[data-ib-chart-act]")) {
+      (import("./parts/chart-outside.js" as string) as Promise<typeof import("./chart-outside")>).then((m) => !signal.aborted && m.outside(this, signal));
+    }
     // An interactive page can draw the chart again with new data in this same element: set up
     // again from what the server sent, keeping what the legend hides. (Enhanced navigation sets
     // up again too, for what may be another chart: that starts over.)
@@ -917,6 +921,7 @@ document.addEventListener("click", (event) => {
   const button = (event.target as Element).closest?.("[data-ib-chart-download]");
   if (button) exporter().then((m) => m.press(button));
 });
+
 document.addEventListener(
   "submit",
   (event) => {
