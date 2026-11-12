@@ -44,13 +44,3 @@ public enum StatTrend
     /// <summary>Stayed the same.</summary>
     Flat,
 }
-
-/// <summary>Which side a <see cref="Comment"/>'s avatar sits on.</summary>
-public enum CommentPlacement
-{
-    /// <summary>The start (left in left-to-right languages), the content after it. The default.</summary>
-    Start,
-
-    /// <summary>The end, the content lined up against it: one side of a two-person exchange.</summary>
-    End,
-}

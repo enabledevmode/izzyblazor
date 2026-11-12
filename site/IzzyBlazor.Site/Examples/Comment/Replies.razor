@@ -1,27 +1,44 @@
+@inject NavigationManager Navigation
+
 @* A question on a pull request and the answers to it, two levels deep, with the rest of the
    replies a click away. *@
-<Comment Author="Marcus Webb" Initials="MW" Time="_now.AddHours(-5)" RelativeTime
+<Comment Author="Marcus Webb" Time="_now.AddHours(-5)" RelativeTime
          Text="Does the retry here back off, or will it hammer the payments API when it's down?">
     <Actions>
         <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Reply</Button>
     </Actions>
     <Replies>
-        <Comment Author="Lena Okafor" Initials="LO" Time="_now.AddHours(-4)" RelativeTime
+        <Comment Author="Lena Okafor" Time="_now.AddHours(-4)" RelativeTime
                  Text="It backs off: 1, 2, then 4 seconds, and gives up after three tries.">
             <Actions>
                 <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Reply</Button>
             </Actions>
             <Replies>
-                <Comment Author="Marcus Webb" Initials="MW" Time="_now.AddHours(-3)" RelativeTime
+                <Comment Author="Marcus Webb" Time="_now.AddHours(-3)" RelativeTime
                          Text="Good. Could the delays go in the config, so ops can change them?" />
-                <Comment Author="Lena Okafor" Initials="LO" Time="_now.AddMinutes(-40)" RelativeTime
+                <Comment Author="Lena Okafor" Time="_now.AddMinutes(-40)" RelativeTime
                          Text="Done, under Payments:RetryDelays." />
             </Replies>
         </Comment>
-        <Button Variant="ButtonVariant.Link" Size="ControlSize.Sm">Show 3 more replies</Button>
+        @if (Thread == "all")
+        {
+            <Comment Author="Priya Shah" Time="_now.AddMinutes(-30)" RelativeTime
+                     Text="Worth logging each retry at Warning, so we see it before it gives up." />
+            <Comment Author="Lena Okafor" Time="_now.AddMinutes(-20)" RelativeTime
+                     Text="Added, with the attempt number in the message." />
+            <Comment Author="Marcus Webb" Time="_now.AddMinutes(-5)" RelativeTime Text="Approved." />
+        }
+        else
+        {
+            @* A link, so it works with JavaScript off: the page comes back with every reply. *@
+            <Button Href="@Navigation.GetUriWithQueryParameter("thread", "all")" Variant="ButtonVariant.Link" Size="ControlSize.Sm">Show 3 more replies</Button>
+        }
     </Replies>
 </Comment>
 
 @code {
+    [SupplyParameterFromQuery(Name = "thread")]
+    private string? Thread { get; set; }
+
     private readonly DateTimeOffset _now = DateTimeOffset.UtcNow;
 }

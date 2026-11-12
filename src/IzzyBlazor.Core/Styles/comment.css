@@ -35,9 +35,11 @@
   }
 
   .ib-comment-author {
+    margin: 0;
     color: var(--ib-color-on-surface);
     font-size: var(--ib-text-sm);
     font-weight: var(--ib-weight-semibold);
+    line-height: inherit;
   }
 
   .ib-comment-content > :first-child { margin-block-start: 0; }
@@ -72,10 +74,4 @@
     padding-block-start: var(--ib-space-4);
   }
 
-  /* End: the avatar at the end, the text lined up against it. */
-  .ib-comment-end { flex-direction: row-reverse; }
-  .ib-comment-end > .ib-comment-body { align-items: flex-end; text-align: end; }
-  .ib-comment-end > .ib-comment-body > :is(.ib-comment-meta, .ib-comment-actions) { justify-content: flex-end; }
-  .ib-comment-end > .ib-comment-body > .ib-comment-actions > .ib-btn-ghost:first-child { margin-inline-start: 0; }
-  .ib-comment-end > .ib-comment-body > .ib-comment-actions > .ib-btn-ghost:last-child { margin-inline-end: calc(-1 * var(--ib-btn-pad)); }
 }

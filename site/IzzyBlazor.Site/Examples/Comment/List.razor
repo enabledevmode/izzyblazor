@@ -8,7 +8,7 @@
         {
             <Divider />
         }
-        <Comment Author="@comment.Author" Initials="@comment.Initials" Time="comment.Time" RelativeTime Text="@comment.Text"
+        <Comment Author="@comment.Author" Time="comment.Time" RelativeTime Text="@comment.Text"
                  Extra="@(comment.Edited ? _edited : null)" Replies="@(comment.Answer is { } answer ? WritersAnswer(answer) : null)" />
     }
 </Stack>
@@ -17,19 +17,19 @@
     private readonly RenderFragment _edited = @<span>Edited</span>;
 
     private static RenderFragment WritersAnswer(Answer answer) =>
-        @<Comment Author="Noor Haddad" Initials="NH" Time="answer.Time" RelativeTime Text="@answer.Text">
+        @<Comment Author="Noor Haddad" Time="answer.Time" RelativeTime Text="@answer.Text">
             <Extra><Badge Size="BadgeSize.Sm">Writer</Badge></Extra>
         </Comment>;
 
     private sealed record Answer(DateTimeOffset Time, string Text);
 
-    private sealed record Feedback(string Author, string Initials, DateTimeOffset Time, string Text, bool Edited = false, Answer? Answer = null);
+    private sealed record Feedback(string Author, DateTimeOffset Time, string Text, bool Edited = false, Answer? Answer = null);
 
     private readonly Feedback[] _comments =
     [
-        new("Tomás Rivera", "TR", DateTimeOffset.UtcNow.AddHours(-2), "Step 3 still shows the old Settings menu. It's under Account now.", Edited: true),
-        new("Grace Liu", "GL", DateTimeOffset.UtcNow.AddDays(-1), "This fixed my export. The note about time zones was the missing piece."),
-        new("Sam Patel", "SP", DateTimeOffset.UtcNow.AddDays(-3), "Could you add how to export only the selected rows?",
+        new("Tomás Rivera", DateTimeOffset.UtcNow.AddHours(-2), "Step 3 still shows the old Settings menu. It's under Account now.", Edited: true),
+        new("Grace Liu", DateTimeOffset.UtcNow.AddDays(-1), "This fixed my export. The note about time zones was the missing piece."),
+        new("Sam Patel", DateTimeOffset.UtcNow.AddDays(-3), "Could you add how to export only the selected rows?",
             Answer: new(DateTimeOffset.UtcNow.AddDays(-2), "Added under Selected rows, with a screenshot of the menu.")),
     ];
 }
