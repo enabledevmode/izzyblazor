@@ -1,0 +1,42 @@
+<Row Gap="3" Wrap Align="Align.Center">
+    <DialogTrigger For="photo-actions" StartIcon="Lucide.Ellipsis" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">IMG_2041.jpg</DialogTrigger>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+</Row>
+
+@* The title names the sheet; Cancel replaces the close button. *@
+<Drawer Id="photo-actions" Title="IMG_2041.jpg" Placement="DialogPlacement.Bottom" ShowCloseButton="false" @bind-Open="_open">
+    <Stack Gap="4">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Taken Oct 12 in Lisbon, 3.2 MB</TextBlock>
+        @* Each action posts the form with its Name=Value. A post closes the sheet on a static page;
+           on an interactive one, Chosen closes it. *@
+        <form method="post" @onsubmit="Chosen" @formname="photo-actions" data-enhance>
+            <AntiforgeryToken />
+            <Stack Gap="1">
+                <Button Submit Name="choice" Value="Shared" OnClick='() => _pressed = "Shared"' Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" FullWidth>Share</Button>
+                <Button Submit Name="choice" Value="Duplicated" OnClick='() => _pressed = "Duplicated"' Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" FullWidth>Duplicate</Button>
+                @* A disabled action stays in its place, so the list keeps its shape. *@
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" FullWidth Disabled>Print</Button>
+                <Button Submit Name="choice" Value="Deleted" OnClick='() => _pressed = "Deleted"' Variant="ButtonVariant.Ghost" Accent="Accent.Danger" FullWidth>Delete</Button>
+            </Stack>
+        </form>
+        @* Set apart at the bottom, as on phones. Escape and a tap outside cancel too. *@
+        <DialogClose FullWidth>Cancel</DialogClose>
+    </Stack>
+</Drawer>
+
+@code {
+    // Static pages: the chosen button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "photo-actions", Name = "choice")]
+    private string? Choice { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which action it was.
+    private string? _pressed;
+    private bool _open;
+    private string _result = "Nothing chosen yet";
+
+    private void Chosen()
+    {
+        _result = $"{Choice ?? _pressed} IMG_2041.jpg";
+        _open = false;
+    }
+}
