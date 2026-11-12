@@ -1,0 +1,66 @@
+@page "/contact"
+@using System.ComponentModel.DataAnnotations
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+<PageTitle>Contact</PageTitle>
+
+<Stack Gap="6" MaxWidth="Length.Rem(32)">
+    <Stack Gap="2">
+        <Heading Level="1">Contact</Heading>
+@*#if (InteractiveAtRoot) *@
+        <TextBlock Color="Color.Muted">This form checks each field as you type, since every page here is interactive. The same form also posts and validates on a static page, with no circuit.</TextBlock>
+@*#elif (UseServer) *@
+        <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit. Add @@rendermode InteractiveServer under @@page and it also checks each field as you type.</TextBlock>
+@*#else *@
+        <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit.</TextBlock>
+@*#endif *@
+    </Stack>
+    <Form Model="Model" FormName="contact" OnValidSubmit="Send">
+        <FormErrors />
+        <TextField @bind-Value="Model!.Name" AutoComplete="name" />
+        <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+        <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
+        <TextArea @bind-Value="Model!.Message" Rows="5" />
+        <FormActions Justify="Justify.Start">
+            <Button Submit StartIcon="Lucide.Send">Send</Button>
+        </FormActions>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "contact")]
+    private ContactMessage? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Send()
+    {
+        // Send or store the message here, then redirect: the toast follows the redirect, and reloading
+        // the page doesn't post it again.
+        Toasts.Success($"Thanks, {Model!.Name}. We'll reply to {Model.Email}.", "Message sent");
+        Navigation.NavigateTo("contact");
+    }
+
+    public sealed class ContactMessage
+    {
+        [Required(ErrorMessage = "Enter your name"), StringLength(80)]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Choose a topic")]
+        public Topic? Topic { get; set; }
+
+        [Required(ErrorMessage = "Write your message"), StringLength(2000)]
+        public string? Message { get; set; }
+    }
+
+    public enum Topic
+    {
+        [Display(Name = "A question")] Question,
+        Sales,
+        Support,
+    }
+}

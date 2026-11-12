@@ -2,12 +2,12 @@
 
 <PageTitle>Home</PageTitle>
 
-<Stack Gap="6">
-    <Stack Gap="2">
-        <Heading Level="1">Hello, world!</Heading>
-        <TextBlock Color="Color.Muted">Welcome to your new app, built with IzzyBlazor. Here's where to go next.</TextBlock>
+<Stack Gap="8" Align="Align.Center" PaddingTop="new() { Base = 0, Md = 8 }">
+    <Stack Gap="2" Align="Align.Center">
+        <Heading Level="1" Align="TextAlign.Center">Hello, world!</Heading>
+        <TextBlock Color="Color.Muted" Align="TextAlign.Center">Welcome to your new app, built with IzzyBlazor. Here's where to go next.</TextBlock>
     </Stack>
-    <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4" MaxWidth="Length.Rem(48)">
+    <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4" MaxWidth="Length.Rem(48)" Width="Length.Full">
         <Card TitleLevel="2" Title="Browse the components" Description="Every component, with live examples, their code and what each does in each render mode." Href="https://izzyblazor.com/docs/components" />
         <Card TitleLevel="2" Title="Theme your app" Description="Pick a preset and a brand color on IzzyTheme in Components/App.razor." Href="https://izzyblazor.com/docs/theming" />
         @*#if (InteractiveAtRoot) *@

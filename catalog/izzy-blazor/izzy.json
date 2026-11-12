@@ -8,7 +8,7 @@
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
-  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
+  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Form", "TextField", "Select", "TextArea", "FormErrors", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
@@ -93,6 +93,7 @@
       "paths": [
         "{{ProjectName}}/Components/Pages/Counter.*",
         "{{ProjectName}}/Components/Pages/Weather.*",
+        "{{ProjectName}}/Components/Pages/Contact.*",
         "{{ProjectName}}/wwwroot/favicon.*",
         "{{ProjectName}}.Client/Pages/**",
         "{{ProjectName}}.Client/wwwroot/**"
@@ -108,6 +109,7 @@
         "{{ProjectName}}/Components/Pages/Home.razor": "./{{ProjectName}}.Client/Pages/Home.razor",
         "{{ProjectName}}/Components/Pages/NotFound.razor": "./{{ProjectName}}.Client/Pages/NotFound.razor",
         "{{ProjectName}}/Components/Pages/Weather.razor": "./{{ProjectName}}.Client/Pages/Weather.razor",
+        "{{ProjectName}}/Components/Pages/Contact.razor": "./{{ProjectName}}.Client/Pages/Contact.razor",
         "{{ProjectName}}/Components/Routes.razor": "./{{ProjectName}}.Client/Routes.razor"
       }
     }
