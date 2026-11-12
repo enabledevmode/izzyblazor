@@ -1,3 +1,5 @@
+using AngleSharp.Dom;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor.Tests;
@@ -79,6 +81,64 @@ public class TileLayoutRenderTests : BunitContext
         Assert.Equal("1,6,1,2", Place(cut, "products"));
         Assert.Contains("ib-tiles-at-md", cut.Find(".ib-tiles").ClassName);
         Assert.Contains("ib-tiles-rows-at-lg", cut.Find(".ib-tiles").ClassName); // all 6 rows, at 12 columns only
+    }
+
+    // Two tiles side by side on a 4-column, 2-row board, editable.
+    private IRenderedComponent<TileLayout> RenderEditable(Action<ComponentParameterCollectionBuilder<TileLayout>> more) =>
+        Render<TileLayout>(p =>
+        {
+            p.Add(l => l.Columns, new Responsive<int> { Base = 4 })
+                .Add(l => l.Rows, 2)
+                .Add(l => l.Editable, true)
+                .Add(l => l.ChildContent, b =>
+                {
+                    AddTile(b, "a", 1, 1, 2);
+                    AddTile(b, "b", 3, 1, 2);
+                });
+            more(p);
+        });
+
+    private static IElement MenuItem(IRenderedComponent<TileLayout> cut, string tile, string text) =>
+        cut.Find($"[data-tile-id='{tile}']").QuerySelectorAll("button.ib-menu-item").Single(b => b.TextContent.Contains(text));
+
+    [Fact]
+    public void A_static_post_shows_the_move_posts_the_new_layout_and_offers_only_moves_that_fit()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = RenderEditable(p => p
+            .Add(l => l.Name, "layout")
+            .Add(l => l.Post, new TileLayoutPost { Tiles = "a:1,1,2,1;b:3,1,2,1", Move = "down:a" }));
+
+        Assert.Equal("1,2,2,1", Place(cut, "a"));
+        var posted = cut.Find("input[type=hidden]");
+        Assert.Equal("layout.Tiles", posted.GetAttribute("name"));
+        Assert.Equal("b:3,1,2,1;a:1,2,2,1", posted.GetAttribute("value"));
+        Assert.Equal("Move a", Assert.Single(cut.FindAll(".ib-tile-handle[autofocus]")).GetAttribute("aria-label"));
+        Assert.Equal("Moved a to column 1, row 2", cut.Find("[data-tile-id='a'] [role=status]").TextContent);
+
+        var up = MenuItem(cut, "a", "Move up");
+        Assert.Equal(("submit", "layout.Move", "up:a"), (up.GetAttribute("type"), up.GetAttribute("name"), up.GetAttribute("value")));
+        Assert.True(MenuItem(cut, "a", "Move down").HasAttribute("disabled")); // past Rows
+        Assert.True(MenuItem(cut, "b", "Move right").HasAttribute("disabled")); // past the columns
+        Assert.False(MenuItem(cut, "b", "Move left").HasAttribute("disabled")); // a moved out of the way
+        Assert.True(MenuItem(cut, "b", "Shorter").HasAttribute("disabled")); // already one row
+    }
+
+    [Fact]
+    public void A_live_move_happens_in_place_and_raises_StateChanged()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        TileLayoutState? changed = null;
+        var cut = RenderEditable(p => p.Add(l => l.StateChanged, s => changed = s));
+
+        Assert.Empty(cut.FindAll("input"));
+        Assert.True(MenuItem(cut, "a", "Wider").HasAttribute("disabled")); // b is in the way
+        MenuItem(cut, "a", "Move down").Click();
+
+        Assert.Equal("b:3,1,2,1;a:1,2,2,1", changed!.ToString());
+        Assert.Equal("1,2,2,1", Place(cut, "a"));
+        Assert.Equal("Moved a to column 1, row 2", cut.Find("[data-tile-id='a'] [role=status]").TextContent);
+        Assert.False(MenuItem(cut, "a", "Wider").HasAttribute("disabled"));
     }
 
     [Fact]

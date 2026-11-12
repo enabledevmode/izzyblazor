@@ -99,6 +99,12 @@
       "parts": ["Tile"],
       "examples": [
         { "id": "tile-layout-dashboard", "title": "A dashboard", "lead": "Put a `Tile` for each panel in a `TileLayout`. `Col` and `Row` place it, from 1, and `ColSpan` and `RowSpan` size it. `Columns` and `RowHeight` set the grid.", "after": ["A tile's `Title` and `Icon` make its header, and `Actions` puts buttons at its end. `Header` replaces the title with your own content. A tile with none of them has no header.", "A tile without `Col` and `Row` takes the first free cells, row by row, in the order written. Cells no tile covers stay empty.", "`Columns` can change by breakpoint. Places and spans are for the widest count; at fewer columns, spans shrink in proportion and the tiles wrap in reading order, by row and then by column. At one column they stack."] },
+        { "id": "tile-layout-edit", "title": "Rearranging the tiles", "lead": "Set `Editable` to let people move and resize the tiles. Each tile gets a handle whose menu moves it a cell at a time, or makes it wider, narrower, taller or shorter.", "after": ["A move that would leave the grid, break a tile's `MinColSpan`, `MaxColSpan`, `MinRowSpan` or `MaxRowSpan`, or cover another tile is disabled. `AllowOverlap` lets tiles cover each other.", "`ShowGrid` outlines every cell while editing, and `Rows` keeps the empty rows. Editing works at the widest column count; with fewer columns the handles hide.", "Each tile needs an `Id`, and a `Title` or `Label` to name its handle."],
+          "notes": {
+            "noscript": "Give the layout a `Name` inside a form, and pass the posted `TileLayoutPost` back as `Post`. Each move posts the form and the page comes back with the tile moved. Save `Post.State` when the form's own button posted.",
+            "static": "Each move posts the form, as with JavaScript off, and focus comes back to the moved tile's handle.",
+            "interactive": "The tile moves in place, and `@bind-State` gets the new layout after each move."
+          } },
         { "id": "tile-layout-saved-layout", "title": "A saved layout", "lead": "To show a layout someone arranged, pass it as `State`. It places and sizes each tile by its `Id`, over the tile's own values.", "after": ["`ToString` writes a `TileLayoutState` as a short string, for a cookie or a database column, and `TileLayoutState.Parse` reads it back.", "Tiles the state doesn't name keep their own place, and entries for tiles that aren't there are ignored."] }
       ]
     },

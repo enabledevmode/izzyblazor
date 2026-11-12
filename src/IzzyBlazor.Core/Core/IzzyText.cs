@@ -1104,16 +1104,16 @@ public class IzzyText
     /// <summary>A ListView item's ⋯ button, which opens its ItemMenu: "Actions for Ada". {0} is the item's label.</summary>
     public virtual string ItemMenu { get; set; } = "Actions for {0}";
 
-    /// <summary>A ListView item's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
+    /// <summary>A ListView item's or TileLayout tile's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
     public virtual string MoveItem { get; set; } = "Move {0}";
 
     /// <summary>The submenu holding the moves in a ListView item's ⋯ menu, beside its own items.</summary>
     public virtual string MoveMenu { get; set; } = "Move";
 
-    /// <summary>A ListView item's move menu: one place earlier.</summary>
+    /// <summary>A ListView item's move menu: one place earlier. A TileLayout tile's: one row up.</summary>
     public virtual string MoveUp { get; set; } = "Move up";
 
-    /// <summary>A ListView item's move menu: one place later.</summary>
+    /// <summary>A ListView item's move menu: one place later. A TileLayout tile's: one row down.</summary>
     public virtual string MoveDown { get; set; } = "Move down";
 
     /// <summary>A ListView item's move menu: to the first place.</summary>
@@ -1133,6 +1133,30 @@ public class IzzyText
 
     /// <summary>Announced when a move is cancelled: "Ada wasn't moved".</summary>
     public virtual string MoveCancelled { get; set; } = "{0} wasn't moved";
+
+    /// <summary>A TileLayout tile's move menu: one column to the left.</summary>
+    public virtual string MoveLeft { get; set; } = "Move left";
+
+    /// <summary>A TileLayout tile's move menu: one column to the right.</summary>
+    public virtual string MoveRight { get; set; } = "Move right";
+
+    /// <summary>A TileLayout tile's move menu: one column wider.</summary>
+    public virtual string TileWider { get; set; } = "Wider";
+
+    /// <summary>A TileLayout tile's move menu: one column narrower.</summary>
+    public virtual string TileNarrower { get; set; } = "Narrower";
+
+    /// <summary>A TileLayout tile's move menu: one row taller.</summary>
+    public virtual string TileTaller { get; set; } = "Taller";
+
+    /// <summary>A TileLayout tile's move menu: one row shorter.</summary>
+    public virtual string TileShorter { get; set; } = "Shorter";
+
+    /// <summary>Announced after a tile moves: "Moved Revenue to column 3, row 1".</summary>
+    public virtual string TileMovedTo { get; set; } = "Moved {0} to column {1}, row {2}";
+
+    /// <summary>Announced after a tile's size changes: "Resized Revenue to 6 by 2 cells" (columns by rows).</summary>
+    public virtual string TileResizedTo { get; set; } = "Resized {0} to {1} by {2} cells";
 
     /// <summary>The column of a DataGrid's row handles, named for screen readers.</summary>
     public virtual string MoveColumn { get; set; } = "Move";

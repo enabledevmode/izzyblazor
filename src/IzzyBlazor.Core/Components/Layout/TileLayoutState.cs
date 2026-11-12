@@ -116,6 +116,63 @@ public sealed record TileLayoutState(IReadOnlyList<TileState> Tiles)
 }
 
 /// <summary>
+/// What an editable <see cref="TileLayout"/> posts on a static page: the layout it showed, and the
+/// move its menu asked for. Bind it with <c>[SupplyParameterFromForm(FormName = "...", Name = "...")]</c>
+/// under the layout's <c>Name</c> and pass it back as <see cref="TileLayout.Post"/>, so the layout
+/// shows the move. Save <see cref="State"/> when the form's own submit posted
+/// (<see cref="Move"/> is null).
+/// </summary>
+/// <remarks>
+/// Everything here came from the browser. The layout keeps what it shows inside its grid, but
+/// <see cref="State"/> is only parsed: it can name tiles that aren't there, or overlap them.
+/// </remarks>
+public sealed class TileLayoutPost
+{
+    /// <summary>The layout as shown, written by <see cref="TileLayoutState.ToString"/>.</summary>
+    public string? Tiles { get; set; }
+
+    /// <summary>The move a tile's menu posted, such as <c>right:revenue</c>; null when the form's own submit posted.</summary>
+    public string? Move { get; set; }
+
+    /// <summary>The layout as shown, without <see cref="Move"/>; null when none posted.</summary>
+    public TileLayoutState? State => TileLayoutState.Parse(Tiles);
+}
+
+/// <summary>A move from a tile's menu: by one cell, or one cell bigger or smaller.</summary>
+internal enum TileMoveKind
+{
+    Left,
+    Right,
+    Up,
+    Down,
+    Wider,
+    Narrower,
+    Taller,
+    Shorter,
+}
+
+/// <summary>A tile's move as posted: <c>right:revenue</c>.</summary>
+internal readonly record struct TileMove(TileMoveKind Kind, string Id)
+{
+    public override string ToString() => $"{Kind.ToString().ToLowerInvariant()}:{Id}";
+
+    public static bool TryParse(string? text, out TileMove move)
+    {
+        move = default;
+        var colon = text?.IndexOf(':') ?? -1;
+        if (colon <= 0 || colon == text!.Length - 1 || char.IsDigit(text[0])
+            || !Enum.TryParse<TileMoveKind>(text[..colon], ignoreCase: true, out var kind)
+            || !Enum.IsDefined(kind))
+        {
+            return false;
+        }
+
+        move = new TileMove(kind, text[(colon + 1)..]);
+        return true;
+    }
+}
+
+/// <summary>
 /// What a <see cref="TileLayout"/> shares with its tiles: the tiles in page order, and where each
 /// one goes at each column count.
 /// </summary>
@@ -130,6 +187,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
 {
     private readonly ChildOrder<Tile> _tiles = new();
     private Dictionary<Tile, TilePlace[]>? _places;
+    private Dictionary<Tile, TilePlace>? _written;
 
     public TileLayout Owner { get; } = owner;
 
@@ -137,12 +195,14 @@ internal sealed class TileLayoutContext(TileLayout owner)
     {
         _tiles.Add(tile);
         _places = null;
+        _written = null;
     }
 
     public void Unregister(Tile tile)
     {
         _tiles.Remove(tile);
         _places = null;
+        _written = null;
     }
 
     /// <summary>The layout is rendering: its tiles will say they're there, in page order.</summary>
@@ -150,6 +210,7 @@ internal sealed class TileLayoutContext(TileLayout owner)
     {
         _tiles.BeginPass();
         _places = null;
+        _written = null;
     }
 
     /// <summary>A tile's parameters were set: places are worked out again on the next read.</summary>
@@ -157,9 +218,17 @@ internal sealed class TileLayoutContext(TileLayout owner)
     {
         _tiles.Seen(tile);
         _places = null;
+        _written = null;
     }
 
     /// <summary>The tile's place at each of the layout's <see cref="TileLayout.Levels"/>, in the same order.</summary>
+    /// <summary>The state changed outside a render pass (a move on an interactive page).</summary>
+    public void Invalidate()
+    {
+        _places = null;
+        _written = null;
+    }
+
     public TilePlace[] PlacesOf(Tile tile)
     {
         _places ??= Place();
@@ -171,6 +240,13 @@ internal sealed class TileLayoutContext(TileLayout owner)
         var levels = Owner.Levels;
         var widest = levels[^1].Columns;
         var written = PlaceWritten(widest);
+        _written = written;
+        if (Owner.PendingMove is { } move && written.Keys.FirstOrDefault(t => t.Id == move.Id) is { } moved
+            && TryMove(moved, move.Kind, out var to))
+        {
+            written[moved] = to;
+            Owner.Moved(moved, move.Kind, to);
+        }
 
         // Reading order of the written layout, which every narrower count keeps.
         var reading = written.OrderBy(p => p.Value.Row).ThenBy(p => p.Value.Col).Select(p => p.Key).ToList();
@@ -214,9 +290,10 @@ internal sealed class TileLayoutContext(TileLayout owner)
         var sized = new List<(Tile Tile, int? Col, int? Row, int ColSpan, int RowSpan)>();
         foreach (var tile in _tiles.Items)
         {
-            var saved = tile.Id is { } id ? Owner.State?.Find(id) : null;
-            var colSpan = Math.Clamp(saved?.ColSpan ?? tile.ColSpan, 1, columns);
-            var rowSpan = Math.Max(1, saved?.RowSpan ?? tile.RowSpan);
+            var saved = tile.Id is { } id ? Owner.EffectiveState?.Find(id) : null;
+            var maxCols = Math.Min(tile.MaxColSpan ?? columns, columns);
+            var colSpan = Math.Clamp(saved?.ColSpan ?? tile.ColSpan, Math.Min(tile.MinColSpan, maxCols), maxCols);
+            var rowSpan = Math.Clamp(saved?.RowSpan ?? tile.RowSpan, tile.MinRowSpan, Math.Max(tile.MinRowSpan, tile.MaxRowSpan ?? int.MaxValue));
             if (rows > 0)
             {
                 rowSpan = Math.Min(rowSpan, rows);
@@ -251,6 +328,84 @@ internal sealed class TileLayoutContext(TileLayout owner)
 
         return places;
     }
+
+    // The layout at the widest count. Set by Place before it makes a posted move, which reads it.
+    private Dictionary<Tile, TilePlace> Written
+    {
+        get
+        {
+            if (_written is null)
+            {
+                _places = Place();
+            }
+
+            return _written!;
+        }
+    }
+
+    /// <summary>
+    /// Where a move from the tile's menu would put it, at the widest count: false when it would
+    /// leave the grid, pass the tile's span limits, or (without <c>AllowOverlap</c>) cover another tile.
+    /// </summary>
+    public bool TryMove(Tile tile, TileMoveKind kind, out TilePlace place)
+    {
+        var written = Written;
+        place = default;
+        if (!written.TryGetValue(tile, out var from))
+        {
+            return false;
+        }
+
+        var (col, row, colSpan, rowSpan) = (from.Col, from.Row, from.ColSpan, from.RowSpan);
+        switch (kind)
+        {
+            case TileMoveKind.Left: col--; break;
+            case TileMoveKind.Right: col++; break;
+            case TileMoveKind.Up: row--; break;
+            case TileMoveKind.Down: row++; break;
+            case TileMoveKind.Wider: colSpan++; break;
+            case TileMoveKind.Narrower: colSpan--; break;
+            case TileMoveKind.Taller: rowSpan++; break;
+            case TileMoveKind.Shorter: rowSpan--; break;
+        }
+
+        var columns = Owner.Levels[^1].Columns;
+        var rows = Owner.Rows;
+        if (col < 1 || row < 1 || col + colSpan - 1 > columns || (rows > 0 && row + rowSpan - 1 > rows)
+            || colSpan < tile.MinColSpan || colSpan > (tile.MaxColSpan ?? columns)
+            || rowSpan < tile.MinRowSpan || rowSpan > (tile.MaxRowSpan ?? int.MaxValue))
+        {
+            return false;
+        }
+
+        place = new TilePlace(col, row, colSpan, rowSpan);
+        if (!Owner.AllowOverlap)
+        {
+            foreach (var (other, at) in written)
+            {
+                if (other != tile && Overlaps(place, at))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>The layout at the widest count, in reading order; with a tile put somewhere else when given.</summary>
+    public TileLayoutState CurrentState(Tile? moved = null, TilePlace to = default) =>
+        new([.. Written
+            .Select(p => (Tile: p.Key, Place: p.Key == moved ? to : p.Value))
+            .Where(p => p.Tile.Id is not null)
+            .OrderBy(p => p.Place.Row).ThenBy(p => p.Place.Col)
+            .Select(p => new TileState(p.Tile.Id!, p.Place.Col, p.Place.Row, p.Place.ColSpan, p.Place.RowSpan))]);
+
+    /// <summary>How many rows the grid shows at the widest count: <c>Rows</c>, or one past the lowest tile.</summary>
+    public int GridRows => Owner.Rows > 0 ? Owner.Rows : Written.Values.Select(p => p.Row + p.RowSpan).DefaultIfEmpty(1).Max();
+
+    private static bool Overlaps(TilePlace a, TilePlace b) =>
+        a.Col < b.Col + b.ColSpan && b.Col < a.Col + a.ColSpan && a.Row < b.Row + b.RowSpan && b.Row < a.Row + a.RowSpan;
 
     // The first cells, at or after the given one in row-major order, that the tile fits in.
     private static TilePlace NextFree(HashSet<(int, int)> taken, int columns, int fromCol, int fromRow, int colSpan, int rowSpan)

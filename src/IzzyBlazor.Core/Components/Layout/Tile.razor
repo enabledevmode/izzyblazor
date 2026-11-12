@@ -16,13 +16,25 @@
     </Tile>
 
     Header replaces the icon and title with your own content; Actions stay at the end of the
-    header. A tile with none of these has no header.
+    header. A tile with none of these has no header. In an Editable layout the tile's handle
+    starts its header, or sits in its top corner when it has none. The handle's menu moves the tile a cell at a time and resizes
+    it, within MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
 *@
 
-<div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem" aria-labelledby="@(HasTitle ? _titleId : null)" data-tile-id="@Id">
+<div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem"
+     aria-labelledby="@(HasTitle ? _titleId : null)" aria-label="@(HasTitle ? null : Label)" data-tile-id="@Id">
+    @if (Editing && !HasHeader)
+    {
+        @* No header to hold it: the handle sits in the corner, so editing doesn't change the tile's size. *@
+        <div class="ib-tile-corner">@HandleMenu</div>
+    }
     @if (HasHeader)
     {
         <div class="ib-tile-header">
+            @if (Editing)
+            {
+                @HandleMenu
+            }
             @if (Header is not null)
             {
                 <div class="ib-tile-heading" id="@_titleId">@Header</div>
@@ -47,6 +59,10 @@
         </div>
     }
     <div class="ib-tile-body">@ChildContent</div>
+    @if (Editing)
+    {
+        <div class="ib-visually-hidden" role="status">@(Context!.Owner.Announcement is { } said && said.Tile == this ? said.Text : null)</div>
+    }
 </div>
 
 @code {
@@ -67,6 +83,24 @@
 
     /// <summary>How many rows it spans. Defaults to 1.</summary>
     [Parameter] public int RowSpan { get; set; } = 1;
+
+    /// <summary>
+    /// Names the tile for screen readers when it has no <see cref="Title"/>, such as a tile holding
+    /// a <c>Stat</c>, and its handle in an editable layout ("Move Revenue").
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The fewest columns its menu can narrow it to. Defaults to 1.</summary>
+    [Parameter] public int MinColSpan { get; set; } = 1;
+
+    /// <summary>The most columns its menu can widen it to. Defaults to the layout's columns.</summary>
+    [Parameter] public int? MaxColSpan { get; set; }
+
+    /// <summary>The fewest rows its menu can shorten it to. Defaults to 1.</summary>
+    [Parameter] public int MinRowSpan { get; set; } = 1;
+
+    /// <summary>The most rows its menu can make it. Defaults to no limit (the layout's <c>Rows</c>, when set).</summary>
+    [Parameter] public int? MaxRowSpan { get; set; }
 
     /// <summary>The heading in its header. Names the tile for screen readers.</summary>
     [Parameter] public string? Title { get; set; }
@@ -94,6 +128,49 @@
     private bool HasTitle => Header is not null || Title is { Length: > 0 };
 
     private bool HasHeader => HasTitle || Icon is not null || Actions is not null;
+
+    private bool Editing => Context?.Owner.Editable == true;
+
+    /// <summary>The tile's name in its handle and announcements: its <see cref="Title"/>, else its <see cref="Label"/>.</summary>
+    internal string AccessibleName => Title is { Length: > 0 } title ? title : Label ?? Id ?? "";
+
+    // The handle: a button whose menu moves and resizes the tile. Each move it can't make is
+    // disabled. On a static page each posts the form; on an interactive one it moves in place.
+    private RenderFragment HandleMenu => __builder =>
+    {
+        var focus = !Context!.Owner.Live && Id is not null && Id == Context.Owner.FocusId;
+        <Menu>
+            <Trigger Context="wire">
+                <IconButton Icon="Lucide.GripVertical" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-tile-handle"
+                            autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+            </Trigger>
+            <ChildContent>
+                @MoveItem(TileMoveKind.Left, TextDefaults.MoveLeft, Lucide.ArrowLeft)
+                @MoveItem(TileMoveKind.Right, TextDefaults.MoveRight, Lucide.ArrowRight)
+                @MoveItem(TileMoveKind.Up, TextDefaults.MoveUp, Lucide.ArrowUp)
+                @MoveItem(TileMoveKind.Down, TextDefaults.MoveDown, Lucide.ArrowDown)
+                <MenuDivider />
+                @MoveItem(TileMoveKind.Wider, TextDefaults.TileWider, Lucide.ChevronsLeftRight)
+                @MoveItem(TileMoveKind.Narrower, TextDefaults.TileNarrower, Lucide.ChevronsRightLeft)
+                @MoveItem(TileMoveKind.Taller, TextDefaults.TileTaller, Lucide.ChevronsUpDown)
+                @MoveItem(TileMoveKind.Shorter, TextDefaults.TileShorter, Lucide.ChevronsDownUp)
+            </ChildContent>
+        </Menu>
+    };
+
+    private RenderFragment MoveItem(TileMoveKind kind, string text, IconData icon) => __builder =>
+    {
+        var disabled = !Context!.TryMove(this, kind, out _);
+        if (Context.Owner.Live)
+        {
+            <MenuItem Icon="icon" Disabled="disabled" OnClick="() => Context.Owner.MoveAsync(this, kind)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="icon" Disabled="disabled" Submit Name="@($"{Context.Owner.Name}.Move")" Value="@(new TileMove(kind, Id!).ToString())">@text</MenuItem>
+        }
+    };
 
     // Where the tile goes depends on the tiles around it, which have all said they're there by the
     // time any of them renders; so it's worked out here, not when the parameters are set.
@@ -156,9 +233,19 @@
             throw new InvalidOperationException("A Tile's Col and Row start at 1.");
         }
 
-        if (Context!.Owner.State is not null && string.IsNullOrEmpty(Id))
+        if ((Context!.Owner.State is not null || Context.Owner.Editable) && string.IsNullOrEmpty(Id))
         {
-            throw new InvalidOperationException("A Tile in a TileLayout with State needs an Id: the saved layout finds the tile by it.");
+            throw new InvalidOperationException("A Tile in a TileLayout with State or Editable needs an Id: the saved layout finds the tile by it.");
+        }
+
+        if (Context.Owner.Editable && Title is not { Length: > 0 } && string.IsNullOrEmpty(Label))
+        {
+            throw new InvalidOperationException($"Tile \"{Id}\" in an Editable TileLayout needs a Title or a Label: it names the tile's handle (\"Move ...\") for screen readers.");
+        }
+
+        if (MinColSpan < 1 || MinRowSpan < 1 || MaxColSpan < MinColSpan || MaxRowSpan < MinRowSpan)
+        {
+            throw new InvalidOperationException("A Tile's MinColSpan and MinRowSpan are at least 1, and each Max at least its Min.");
         }
 
         Context.Seen(this);
