@@ -1,0 +1,17 @@
+@page "/auth"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@*#if (UseServer && !InteractiveAtRoot) *@
+@rendermode InteractiveAuto
+@*#elif (!InteractiveAtRoot) *@
+@rendermode InteractiveWebAssembly
+@*#endif *@
+
+<PageTitle>Auth</PageTitle>
+
+<Stack Gap="2">
+    <Heading Level="1">You are authenticated</Heading>
+    <AuthorizeView>
+        <TextBlock>Hello @context.User.Identity?.Name!</TextBlock>
+    </AuthorizeView>
+</Stack>

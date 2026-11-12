@@ -14,12 +14,13 @@ internal static class ProjectBuild
     /// <summary>A catalogue item from /catalog.</summary>
     public static ItemDefinition Item(string id) => ItemDefinition.FromDirectory(Path.Combine(RepoRoot, "catalog", id));
 
-    /// <summary>The settings for izzy-blazor with its ports given, so nothing is random.</summary>
+    /// <summary>The settings for izzy-blazor with its ports and GUID given, so nothing is random.</summary>
     public static Dictionary<string, string> StarterSettings(string settings = "")
     {
         var values = settings.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Split('=')).ToDictionary(s => s[0], s => s[1]);
         values["KestrelHttpPort"] = "5100";
         values["KestrelHttpsPort"] = "7100";
+        values["UserSecretsGuid"] = "0f8fad5b-d9cb-469f-a165-70867728950e";
         return values;
     }
 

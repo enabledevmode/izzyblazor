@@ -1,0 +1,38 @@
+@implements IDisposable
+@inject NavigationManager NavigationManager
+
+@* Signed in: your name, with a menu to manage your account or log out. Signed out: Log in and Register. *@
+<AuthorizeView>
+    <Authorized>
+        <Menu Label="@(context.User.Identity?.Name ?? "Account")" StartIcon="Lucide.CircleUser" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Placement="Placement.BottomEnd">
+            <MenuItem Href="Account/Manage" Icon="Lucide.UserCog">Manage account</MenuItem>
+            <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
+        </Menu>
+        <form id="logout-form" action="Account/Logout" method="post" hidden>
+            <AntiforgeryToken />
+            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Log in</Button>
+        <Button Href="Account/Register">Register</Button>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose() => NavigationManager.LocationChanged -= OnLocationChanged;
+}

@@ -10,6 +10,11 @@ public class Program
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
         builder.Services.AddIzzyBlazorCore();
+#if (IndividualLocalAuth)
+        builder.Services.AddAuthorizationCore();
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddAuthenticationStateDeserialization();
+#endif
 
         await builder.Build().RunAsync();
     }
@@ -19,6 +24,11 @@ public class Program
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddIzzyBlazorCore();
+#if (IndividualLocalAuth)
+builder.Services.AddAuthorizationCore();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthenticationStateDeserialization();
+#endif
 
 await builder.Build().RunAsync();
 #endif

@@ -27,6 +27,12 @@ public sealed class ItemParameter
     /// </summary>
     public (int Low, int High)? Port { get; init; }
 
+    /// <summary>
+    /// For a GUID (<c>"x-guid": true</c>): a new one, lowercase with hyphens, when none is given, as
+    /// <c>dotnet new</c>'s guid generator makes, such as a user secrets id. Such a setting is text with no default.
+    /// </summary>
+    public bool Guid { get; init; }
+
     /// <summary>The command-line option, without dashes: <c>"x-option"</c>, else the name in kebab case (<c>AllInteractive</c> → <c>all-interactive</c>).</summary>
     public required string Option { get; init; }
 
@@ -61,6 +67,9 @@ public sealed class ItemParameter
                     throw new GenerationException($"Parameter \"{name}\" has x-port, so it's an integer with no default.");
                 port = ((int)range[0]!, (int)range[1]!);
             }
+            var guid = (bool?)p["x-guid"] ?? false;
+            if (guid && (kind != ParameterType.Text || p["default"] is not null))
+                throw new GenerationException($"Parameter \"{name}\" has x-guid, so it's a string with no default.");
             list.Add(new ItemParameter
             {
                 Name = name,
@@ -69,6 +78,7 @@ public sealed class ItemParameter
                 Default = p["default"] is { } d ? Text(d) : fallback,
                 Description = (string?)p["description"],
                 Port = port,
+                Guid = guid,
                 Option = (string?)p["x-option"] ?? TemplateExport.OptionName(name),
                 Hidden = (bool?)p["x-hidden"] ?? false,
                 Pattern = (string?)p["pattern"],

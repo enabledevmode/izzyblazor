@@ -2,13 +2,15 @@
 // defaults, its pages drawn with IzzyBlazor's components and theme instead of Bootstrap. Its files are ported
 // from Microsoft's template (MIT, dotnet/aspnetcore). With WebAssembly or Auto it's a solution with a .Client
 // project; with every page interactive in the browser, the layout and pages move to the .Client project.
+// With --auth Individual, Microsoft's Identity pages (Components/Account) keep their C# and are drawn with
+// IzzyBlazor's components: Microsoft's code-behind is unchanged, so its fixes port by diff.
 {
   "id": "izzy-blazor",
   "name": "IzzyBlazor Blazor Web App",
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
-  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Form", "TextField", "Select", "TextArea", "FormErrors", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
+  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Form", "TextField", "Select", "TextArea", "FormErrors", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme", "Card", "Checkbox", "PasswordField", "PinField", "Divider", "Menu", "MenuItem", "QrCode", "CopyButton", "Code", "FormActions"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
@@ -21,6 +23,15 @@
       "AllInteractive": {
         "type": "boolean", "default": false,
         "description": "Makes every page interactive. Otherwise pages are static by default, and you mark the ones that need it."
+      },
+      "Auth": {
+        "type": "string", "enum": ["None", "Individual"], "default": "None",
+        "description": "The authentication: None, or Individual (accounts stored in the app's database, with ASP.NET Core Identity's pages drawn in IzzyBlazor).",
+        "x-priority": "important"
+      },
+      "UseLocalDB": {
+        "type": "boolean", "default": false,
+        "description": "With Individual authentication, stores accounts in SQL Server LocalDB instead of SQLite."
       },
       "Empty": {
         "type": "boolean", "default": false,
@@ -62,6 +73,10 @@
         "description": "Puts the project name in a .dev.localhost address, such as https://myapp.dev.localhost:7000."
       },
       "NoRestore": { "type": "boolean", "default": false, "description": "Doesn't restore packages after creating the project." },
+      "UserSecretsGuid": {
+        "type": "string", "x-guid": true, "x-hidden": true,
+        "description": "The GUID in the user secrets id and the LocalDB database name, with Individual authentication."
+      },
       "KestrelHttpPort": {
         "type": "integer", "x-port": [5000, 5300], "x-option": "kestrelHttpPort", "x-hidden": true,
         "description": "The HTTP port in launchSettings.json."
@@ -77,7 +92,9 @@
     "UseWebAssembly": "Interactivity == \"WebAssembly\" || Interactivity == \"Auto\"",
     "InteractiveAtRoot": "AllInteractive && Interactivity != \"None\"",
     "SampleContent": "!Empty",
-    "HasHttpsProfile": "!NoHttps",
+    "IndividualLocalAuth": "Auth == \"Individual\"",
+    "RequiresHttps": "IndividualLocalAuth",
+    "HasHttpsProfile": "RequiresHttps || !NoHttps",
     "SidebarNav": "Nav == \"Sidebar\"",
     "PlainShell": "Shell == \"Tinted\"",
     "AutoWidth": "ContentWidth == \"Auto\"",
@@ -87,6 +104,21 @@
   "exclude": [
     { "if": "!UseWebAssembly", "paths": ["{{ProjectName}}.Client/**", "*.slnx"] },
     { "if": "UseWebAssembly", "paths": ["{{ProjectName}}/Components/Pages/Counter.razor"] },
+    {
+      "if": "!IndividualLocalAuth",
+      "paths": [
+        "{{ProjectName}}/Components/Account/**",
+        "{{ProjectName}}/Components/Layout/AccountMenu.razor",
+        "{{ProjectName}}/Data/**",
+        "{{ProjectName}}/Components/Pages/Auth.razor",
+        "{{ProjectName}}.Client/Pages/Auth.razor"
+      ]
+    },
+    { "if": "!(IndividualLocalAuth && !UseLocalDB)", "paths": ["{{ProjectName}}/Data/app.db"] },
+    { "if": "UseWebAssembly", "paths": ["{{ProjectName}}/Components/Pages/Auth.razor"] },
+    { "if": "!UseServer", "paths": ["{{ProjectName}}/Components/Account/IdentityRevalidatingAuthenticationStateProvider.cs"] },
+    { "if": "UseLocalDB", "paths": ["{{ProjectName}}/Data/SqlLite/**"] },
+    { "if": "!UseLocalDB", "paths": ["{{ProjectName}}/Data/SqlServer/**"] },
     { "if": "ExcludeLaunchSettings", "paths": ["{{ProjectName}}/Properties/launchSettings.json"] },
     {
       "if": "!SampleContent",
@@ -94,6 +126,7 @@
         "{{ProjectName}}/Components/Pages/Counter.*",
         "{{ProjectName}}/Components/Pages/Weather.*",
         "{{ProjectName}}/Components/Pages/Contact.*",
+        "{{ProjectName}}/Components/Pages/Auth.*",
         "{{ProjectName}}/wwwroot/favicon.*",
         "{{ProjectName}}.Client/Pages/**",
         "{{ProjectName}}.Client/wwwroot/**"
@@ -101,6 +134,8 @@
     }
   ],
   "rename": [
+    { "if": "UseWebAssembly", "paths": { "{{ProjectName}}/Data/SqlServer/": "{{ProjectName}}/Data/Migrations/", "{{ProjectName}}/Data/SqlLite/": "{{ProjectName}}/Data/Migrations/", "{{ProjectName}}/Components/Account/Shared/RedirectToLogin.razor": "./{{ProjectName}}.Client/RedirectToLogin.razor" } },
+    { "if": "!UseWebAssembly", "paths": { "{{ProjectName}}/Data/SqlServer/": "Data/Migrations/", "{{ProjectName}}/Data/SqlLite/": "Data/Migrations/" } },
     { "if": "!UseWebAssembly", "paths": { "{{ProjectName}}/": "./" } },
     {
       "if": "UseWebAssembly && InteractiveAtRoot",

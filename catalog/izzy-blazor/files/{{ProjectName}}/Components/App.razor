@@ -25,6 +25,8 @@
     @*#endif *@
     @*#if (!InteractiveAtRoot) *@
     <HeadOutlet />
+    @*#elif (IndividualLocalAuth) *@
+    <HeadOutlet @rendermode="PageRenderMode" />
     @*#elif (UseServer && UseWebAssembly) *@
     <HeadOutlet @rendermode="InteractiveAuto" />
     @*#elif (UseServer) *@
@@ -37,6 +39,8 @@
 <body>
     @*#if (!InteractiveAtRoot) *@
     <Routes />
+    @*#elif (IndividualLocalAuth) *@
+    <Routes @rendermode="PageRenderMode" />
     @*#elif (UseServer && UseWebAssembly) *@
     <Routes @rendermode="InteractiveAuto" />
     @*#elif (UseServer) *@
@@ -48,6 +52,29 @@
     <ReconnectDialog />
     @*#endif *@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    @*#if (IndividualLocalAuth) *@
+    <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
+    @*#endif *@
 </body>
 
 </html>
+@*#if (InteractiveAtRoot && IndividualLocalAuth) *@
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    // The account pages are static (ExcludeFromInteractiveRouting): they set cookies, which needs the
+    // HTTP response.
+@*#if (UseServer && UseWebAssembly) *@
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveAuto : null;
+@*#elif (UseServer) *@
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+@*#else *@
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveWebAssembly : null;
+@*#endif *@
+}
+@*#endif *@

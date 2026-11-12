@@ -20,3 +20,4 @@
 *.dll binary
 *.exe binary
 *.pdb binary
+*.db binary

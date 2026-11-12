@@ -126,6 +126,7 @@ public static class Generator
             var given = settings.FirstOrDefault(s => s.Key.Equals(p.Name, StringComparison.OrdinalIgnoreCase)).Value;
             // A port with none given is picked from its range, as dotnet new's port generator does.
             if (given is null && p.Port is var (low, high)) given = Random.Shared.Next(low, high + 1).ToString(CultureInfo.InvariantCulture);
+            if (given is null && p.Guid) given = System.Guid.NewGuid().ToString("D");
             values[p.Name] = Typed(manifest.Id, p, given ?? p.Default);
         }
         foreach (var (name, expression) in manifest.Computed)

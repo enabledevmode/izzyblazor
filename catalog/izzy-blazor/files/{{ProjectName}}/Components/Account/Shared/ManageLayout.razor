@@ -1,0 +1,16 @@
+@inherits LayoutComponentBase
+@*#if (UseWebAssembly && InteractiveAtRoot) *@
+@layout {{RootNamespace}}.Client.Layout.MainLayout
+@*#else *@
+@layout {{RootNamespace}}.Components.Layout.MainLayout
+@*#endif *@
+
+<Stack Gap="6">
+    <Heading Level="1">Manage your account</Heading>
+    <Grid Columns="new() { Base = 1, Lg = 4 }" Gap="8" Align="Align.Start">
+        <ManageNavMenu />
+        <Stack Gap="4" ColSpan="new() { Lg = 3 }" MaxWidth="Length.Rem(40)">
+            @Body
+        </Stack>
+    </Grid>
+</Stack>
