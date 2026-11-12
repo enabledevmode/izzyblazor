@@ -139,6 +139,111 @@ public sealed class TileLayoutPost
     public TileLayoutState? State => TileLayoutState.Parse(Tiles);
 }
 
+/// <summary>What happens when a <see cref="TileLayout"/>'s tile is moved or resized onto another.</summary>
+public enum TileCollision
+{
+    /// <summary>
+    /// The tile takes the cells. A tile in the way takes the moved tile's old cells when it fits
+    /// there (two tiles of a size swap), else it moves down, pushing the tiles below it.
+    /// </summary>
+    Push,
+
+    /// <summary>The move isn't made: a dragged tile stays at its last free spot.</summary>
+    Block,
+
+    /// <summary>The tile covers the other.</summary>
+    Overlap,
+}
+
+/// <summary>
+/// Where every tile goes when one moves, with <see cref="TileCollision.Push"/>. The script's
+/// <c>arrange</c> (tile-layout.ts) is the same rule, step for step.
+/// </summary>
+internal static class TileArrange
+{
+    /// <summary>
+    /// The layout with <paramref name="moved"/> at <paramref name="target"/>: each other tile, by row
+    /// then column, that overlaps a tile already placed takes the moved tile's old cells if it fits
+    /// there, else moves down below what it overlaps. Then, when <paramref name="compact"/>, every
+    /// tile rises, by row then column, as far as it can. Null when a tile would be pushed past
+    /// <paramref name="rows"/>.
+    /// </summary>
+    public static List<(T Key, TilePlace Place)>? Arrange<T>(IReadOnlyList<(T Key, TilePlace Place)> layout, T moved, TilePlace target, int columns, int rows, bool compact)
+        where T : notnull
+    {
+        var comparer = EqualityComparer<T>.Default;
+        var from = layout.First(p => comparer.Equals(p.Key, moved)).Place;
+        var placed = new List<(T Key, TilePlace Place)> { (moved, target) };
+        foreach (var (key, place) in layout.Where(p => !comparer.Equals(p.Key, moved)).OrderBy(p => p.Place.Row).ThenBy(p => p.Place.Col))
+        {
+            var at = place;
+            if (OverlapsAny(at, placed))
+            {
+                var swap = at with { Col = from.Col, Row = from.Row };
+                if (swap.Col + swap.ColSpan - 1 <= columns && swap.Row + swap.RowSpan - 1 <= rows && !OverlapsAny(swap, placed))
+                {
+                    at = swap;
+                }
+                else
+                {
+                    // Down below every tile it overlaps, until it overlaps none.
+                    for (var below = Below(at, placed); below > 0; below = Below(at, placed))
+                    {
+                        at = at with { Row = below };
+                    }
+
+                    if (at.Row + at.RowSpan - 1 > rows)
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            placed.Add((key, at));
+        }
+
+        if (!compact)
+        {
+            return placed;
+        }
+
+        var risen = new List<(T Key, TilePlace Place)>(placed.Count);
+        foreach (var (key, place) in placed.OrderBy(p => p.Place.Row).ThenBy(p => p.Place.Col))
+        {
+            var at = place;
+            while (at.Row > 1 && !OverlapsAny(at with { Row = at.Row - 1 }, risen))
+            {
+                at = at with { Row = at.Row - 1 };
+            }
+
+            risen.Add((key, at));
+        }
+
+        return risen;
+    }
+
+    public static bool Overlaps(TilePlace a, TilePlace b) =>
+        a.Col < b.Col + b.ColSpan && b.Col < a.Col + a.ColSpan && a.Row < b.Row + b.RowSpan && b.Row < a.Row + a.RowSpan;
+
+    private static bool OverlapsAny<T>(TilePlace place, List<(T Key, TilePlace Place)> others) =>
+        others.Exists(p => Overlaps(place, p.Place));
+
+    // The row just below the lowest tile this one overlaps; 0 when it overlaps none.
+    private static int Below<T>(TilePlace place, List<(T Key, TilePlace Place)> others)
+    {
+        var below = 0;
+        foreach (var (_, other) in others)
+        {
+            if (Overlaps(place, other))
+            {
+                below = Math.Max(below, other.Row + other.RowSpan);
+            }
+        }
+
+        return below;
+    }
+}
+
 /// <summary>A move from a tile's menu: by one cell, or one cell bigger or smaller.</summary>
 internal enum TileMoveKind
 {
@@ -262,10 +367,11 @@ internal sealed class TileLayoutContext(TileLayout owner)
         var written = PlaceWritten(widest);
         _written = written;
         if (Owner.PendingMove is { } move && written.Keys.FirstOrDefault(t => t.Id == move.Id) is { } moved
-            && TryMove(moved, move.Kind, out var to))
+            && TryMove(moved, move.Kind, out var after))
         {
-            written[moved] = to;
-            Owner.Moved(moved, move.Kind, to);
+            written = after;
+            _written = after;
+            Owner.Moved(moved, move.Kind, after[moved]);
         }
 
         // Reading order of the written layout, which every narrower count keeps.
@@ -320,14 +426,14 @@ internal sealed class TileLayoutContext(TileLayout owner)
 
         // Placed tiles where they say, in page order; one that would cover a tile before it (a tile
         // added since the layout was saved, two saved on the same cells) takes the first free cells
-        // instead, so every tile can still be moved by its menu. AllowOverlap keeps them where they say.
+        // instead, so every tile can still be moved by its menu. Overlap keeps them where they say.
         var unplaced = new HashSet<Tile>();
         foreach (var (tile, col, row, colSpan, rowSpan) in sized)
         {
             if (col is { } c && row is { } r)
             {
                 var place = new TilePlace(Math.Clamp(c, 1, columns - colSpan + 1), Math.Clamp(r, 1, rows - rowSpan + 1), colSpan, rowSpan);
-                if (!Owner.AllowOverlap && !Fits(taken, place.Col, place.Row, colSpan, rowSpan))
+                if (Owner.Collision != TileCollision.Overlap && !Fits(taken, place.Col, place.Row, colSpan, rowSpan))
                 {
                     unplaced.Add(tile);
                     continue;
@@ -366,13 +472,14 @@ internal sealed class TileLayoutContext(TileLayout owner)
     }
 
     /// <summary>
-    /// Where a move from the tile's menu would put it, at the widest count: false when it would
-    /// leave the grid, pass the tile's span limits, or (without <c>AllowOverlap</c>) cover another tile.
+    /// The layout at the widest count after a move from the tile's menu: false when it would leave
+    /// the grid, pass the tile's span limits, push a tile past <c>Rows</c>, cover another tile (with
+    /// <see cref="TileCollision.Block"/>), or change nothing.
     /// </summary>
-    public bool TryMove(Tile tile, TileMoveKind kind, out TilePlace place)
+    public bool TryMove(Tile tile, TileMoveKind kind, out Dictionary<Tile, TilePlace> layout)
     {
         var written = Written;
-        place = default;
+        layout = written;
         if (!written.TryGetValue(tile, out var from))
         {
             return false;
@@ -399,34 +506,33 @@ internal sealed class TileLayoutContext(TileLayout owner)
             return false;
         }
 
-        place = new TilePlace(col, row, colSpan, rowSpan);
-        if (!Owner.AllowOverlap)
+        var place = new TilePlace(col, row, colSpan, rowSpan);
+        if (Owner.Collision != TileCollision.Push)
         {
-            foreach (var (other, at) in written)
-            {
-                if (other != tile && Overlaps(place, at))
-                {
-                    return false;
-                }
-            }
+            layout = new Dictionary<Tile, TilePlace>(written) { [tile] = place };
+            return Owner.Collision == TileCollision.Overlap
+                || !written.Any(p => p.Key != tile && TileArrange.Overlaps(place, p.Value));
         }
 
+        var arranged = TileArrange.Arrange([.. written.Select(p => (p.Key, p.Value))], tile, place, columns, RowLimit, !Owner.Float);
+        if (arranged is null || arranged.TrueForAll(p => written[p.Key] == p.Place))
+        {
+            return false;
+        }
+
+        layout = arranged.ToDictionary(p => p.Key, p => p.Place);
         return true;
     }
 
-    /// <summary>The layout at the widest count, in reading order; with a tile put somewhere else when given.</summary>
-    public TileLayoutState CurrentState(Tile? moved = null, TilePlace to = default) =>
-        new([.. Written
-            .Select(p => (Tile: p.Key, Place: p.Key == moved ? to : p.Value))
-            .Where(p => p.Tile.Id is not null)
-            .OrderBy(p => p.Place.Row).ThenBy(p => p.Place.Col)
-            .Select(p => new TileState(p.Tile.Id!, p.Place.Col, p.Place.Row, p.Place.ColSpan, p.Place.RowSpan))]);
+    /// <summary>The layout at the widest count, in reading order; or the given one, such as a move's.</summary>
+    public TileLayoutState CurrentState(Dictionary<Tile, TilePlace>? layout = null) =>
+        new([.. (layout ?? Written)
+            .Where(p => p.Key.Id is not null)
+            .OrderBy(p => p.Value.Row).ThenBy(p => p.Value.Col)
+            .Select(p => new TileState(p.Key.Id!, p.Value.Col, p.Value.Row, p.Value.ColSpan, p.Value.RowSpan))]);
 
     /// <summary>How many rows the grid shows at the widest count: <c>Rows</c>, or one past the lowest tile.</summary>
     public int GridRows => Owner.Rows > 0 ? RowLimit : Math.Min(RowLimit, Written.Values.Select(p => p.Row + p.RowSpan).DefaultIfEmpty(1).Max());
-
-    private static bool Overlaps(TilePlace a, TilePlace b) =>
-        a.Col < b.Col + b.ColSpan && b.Col < a.Col + a.ColSpan && a.Row < b.Row + b.RowSpan && b.Row < a.Row + a.RowSpan;
 
     // The first cells, at or after the given one in row-major order, that the tile fits in.
     private static TilePlace NextFree(HashSet<(int, int)> taken, int columns, int fromCol, int fromRow, int colSpan, int rowSpan)
