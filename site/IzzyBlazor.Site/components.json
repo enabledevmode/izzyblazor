@@ -5,7 +5,7 @@
 //
 // An example's id names its file: "button-multi-submit" is Examples/Button/MultiSubmit.razor.
 {
-  "categories": ["Layout", "App shell", "Typography", "Actions", "Forms", "Inputs", "Date & time", "Selection", "Overlays", "Navigation", "Feedback", "Data", "Display", "Charts"],
+  "categories": ["Layout", "App shell", "Typography", "Actions", "Inputs", "Date & time", "Selection", "Overlays", "Navigation", "Feedback", "Data", "Display", "Charts"],
   "components": [
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "Renders a block that accepts every style prop.",
@@ -689,7 +689,7 @@
     },
 
     {
-      "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts its fields on static pages and validates them live on interactive pages.", "keywords": ["unsaved changes", "confirm leave", "exit prompt", "navigation lock", "beforeunload", "dirty form"], "parts": ["FormActions", "FormErrors"],
+      "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Inputs", "summary": "Posts its fields on static pages and validates them live on interactive pages.", "keywords": ["unsaved changes", "confirm leave", "exit prompt", "navigation lock", "beforeunload", "dirty form"], "parts": ["FormActions", "FormErrors"],
       "examples": [
         { "id": "home-settings", "title": "A settings form, static or interactive",
           "notes": {
@@ -749,7 +749,7 @@
       ]
     },
     {
-      "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend.",
+      "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Inputs", "summary": "Groups related fields under a legend.",
       "examples": [
         { "id": "fieldset-address", "title": "Label and description", "lead": "To head the group, set `Label`. For a line under it, set `Description`; screen readers can read it with the group's name." },
         { "id": "fieldset-columns", "title": "Columns", "lead": "To lay the group's fields out side by side, set `Columns`. The columns follow the group's own width." },
@@ -1298,14 +1298,14 @@
       ]
     },
     {
-      "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Forms", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
+      "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Inputs", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
       "examples": [
         { "id": "field-frame-custom", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
         { "id": "field-frame-addons", "title": "Add-ons", "lead": "To attach text or a button to the start or end of your own control, use `FieldAddons`." }
       ]
     },
     {
-      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "summary": "Lets the user ask detailed questions of a grid's data, such as \"open orders over $500 from Europe\".",
+      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Data", "summary": "Lets the user ask detailed questions of a grid's data, such as \"open orders over $500 from Europe\".",
       "features": [
         { "feature": "Groups and rules, from a type's fields, applied with a button", "noscript": "none" },
         { "feature": "The filter in the URL, or bound to C#", "noscript": "partial" }
@@ -1315,7 +1315,7 @@
       ]
     },
     {
-      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Puts a search and filters in the URL for the page to read.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterDate", "FilterCheckbox"],
+      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Data", "summary": "Puts a search and filters in the URL for the page to read.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterDate", "FilterCheckbox"],
       "features": [
         { "feature": "Filters in the URL, applied with Apply or Enter; Clear removes them" },
         { "feature": "Keeps the rest of the URL and goes back to page 1" },
