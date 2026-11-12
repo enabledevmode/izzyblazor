@@ -1,0 +1,17 @@
+@* A support lead's own arrangement of the team dashboard, read back from where it was saved. *@
+<TileLayout Columns="6" RowHeight="Length.Rem(7)" State="_saved" aria-label="Support dashboard">
+    <Tile Id="open" Col="1" Row="1" ColSpan="2">
+        <Stat Label="Open tickets" Value="42" Change="5" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="since Monday" />
+    </Tile>
+    <Tile Id="response" Col="3" Row="1" ColSpan="2">
+        <Stat Label="First response" Value="38 min" Change="6 min" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
+    </Tile>
+    <Tile Id="satisfaction" Col="5" Row="1" ColSpan="2">
+        <Stat Label="Satisfaction" Value="94%" Change="1 pt" Trend="StatTrend.Up" Description="last 30 days" />
+    </Tile>
+</TileLayout>
+
+@code {
+    // Saved with _saved.ToString() in a cookie or the user's profile; here, read from the text.
+    private readonly TileLayoutState? _saved = TileLayoutState.Parse("satisfaction:1,1,3,1;open:4,1,3,1;response:1,2,6,1");
+}
