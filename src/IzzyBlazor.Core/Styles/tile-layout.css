@@ -16,6 +16,7 @@
 
   /* A surface like an outline Card's, as tall as its rows; the content scrolls inside. */
   .ib-tile {
+    position: relative;
     display: flex;
     flex-direction: column;
     grid-column: var(--ib-drag-col, var(--ib-tile-col)) / span var(--ib-drag-cs, var(--ib-tile-cs));
@@ -34,6 +35,7 @@
     display: flex;
     flex: none;
     align-items: center;
+    min-block-size: calc(2rem + var(--ib-space-3));
     gap: var(--ib-space-2);
     padding: var(--ib-space-3) var(--ib-space-4) 0;
   }
@@ -63,7 +65,7 @@
     white-space: nowrap;
   }
 
-  .ib-tile-actions {
+  .ib-tile-end {
     display: flex;
     flex: none;
     align-items: center;
@@ -72,7 +74,13 @@
   }
 
   /* A column that fills the tile, so content can fill it too (Grow), and scrolls when longer. */
+  .ib-tile-flush > .ib-tile-body { padding: 0; }
+
+  /* The body clips its own content at the tile's rounded corners (the tile itself doesn't while
+     editing, so the pill handle can stand out over its edge). */
   .ib-tile-body {
+    border-end-start-radius: calc(var(--ib-radius-xl) - 1px);
+    border-end-end-radius: calc(var(--ib-radius-xl) - 1px);
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -102,15 +110,76 @@
 
   .ib-tiles-editing > .ib-tile { position: relative; z-index: 1; }
 
-  /* A tile with no header keeps its handle in the top end corner, over its content. */
-  .ib-tile-corner {
+  /* A tile with no header: its handle is a pill over the middle of its top edge, half in the gap
+     above, clear of what tiles keep in their corners (a stat's icon, a chart's buttons) and of a
+     row of tabs. The layout leaves room above its first row for it. */
+  .ib-tiles-editing > .ib-tile { overflow: visible; }
+  .ib-tiles-editing > .ib-tile:not(:has(> .ib-tile-header)) > .ib-tile-body { border-radius: calc(var(--ib-radius-xl) - 1px); }
+  .ib-tiles-editing:has(> .ib-tile > .ib-tile-pill) { margin-block-start: 0.75rem; }
+
+  .ib-tile-pill {
     position: absolute;
-    inset-block-start: var(--ib-space-1);
-    inset-inline-end: var(--ib-space-1);
-    z-index: 1;
+    inset-block-start: -0.75rem;
+    inset-inline-start: 50%;
+    z-index: 7;
+    translate: -50% 0;
   }
 
-  .ib-tile-corner .ib-tile-handle { margin: 0; }
+  .ib-tile-pill:dir(rtl) { translate: 50% 0; }
+
+  .ib-tile-pill .ib-tile-handle {
+    min-block-size: 1.5rem;
+    block-size: 1.5rem;
+    inline-size: 2.5rem;
+    margin: 0;
+    border: 1px solid var(--ib-color-border);
+    border-radius: 999px;
+    background-color: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-xs);
+  }
+
+  /* A chart in a tile. With no Height of its own, it fills the tile (the plot takes what the
+     title, legend and Show data leave, down to 6rem, past which the tile scrolls). */
+  .ib-tile-body > .ib-chart:only-child:not(:has([style*="--ib-chart-height"])) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+
+    & > ib-chart,
+    & > ib-chart > .ib-chart-main {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-block-size: 0;
+    }
+
+    & .ib-chart-frame {
+      flex: 1 1 auto;
+      min-block-size: 6rem;
+      grid-template-rows: minmax(0, 1fr) auto;
+    }
+  }
+
+  /* Named by the tile's title (no title of its own) in a tile with no HeaderEnd: its buttons share
+     the tile's header row instead of taking a row of their own. The header lies over the top of
+     the body, short of the buttons' room, and the chart's own row for its buttons lines up with
+     it; the buttons stay in the body, which would clip anything moved out of it. */
+  /* (No :has inside :has: the browser drops a rule that nests them.) */
+  .ib-tile:has(> .ib-tile-header .ib-tile-title):has(> .ib-tile-body > .ib-chart:only-child .ib-chart-tools):not(:has(> .ib-tile-header > .ib-tile-end)):not(:has(> .ib-tile-body > .ib-chart > .ib-chart-label)) {
+    &:has(.ib-chart-reset) { --ib-tile-tools-reset: 13rem; }
+    &:has(.ib-chart-pause) { --ib-tile-tools-pause: 2.5rem; }
+    &:has(.ib-chart-download) { --ib-tile-tools-download: 2.5rem; }
+
+    & > .ib-tile-header {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0 calc(var(--ib-space-4) + var(--ib-tile-tools-reset, 0rem) + var(--ib-tile-tools-pause, 0rem) + var(--ib-tile-tools-download, 0rem));
+      z-index: 7;
+    }
+
+    & > .ib-tile-body { padding-block-start: var(--ib-space-3); }
+  }
 
   /* The resize grip, at the bottom end corner: dragged with script, so hidden without it (the
      menu resizes then). Two short diagonal strokes, as a window's. */
@@ -139,23 +208,6 @@
   @media (scripting: enabled) {
     .ib-tiles-editing > .ib-tile { cursor: move; user-select: none; }
     .ib-tiles-editing .ib-tile-handle { touch-action: none; }
-  }
-
-  /* Where there's hover, the handle and grip show on the tile under the pointer, the one being
-     moved, or the one with focus (Tab to the handle shows it), so an always-editable dashboard
-     isn't covered in marks. Touch has no hover: they stay, the handle being the way in without
-     dragging. Faded rather than removed, so the handle keeps its place and its Tab stop. */
-  @media (hover: hover) {
-    .ib-tiles-editing > .ib-tile :is(.ib-tile-handle, .ib-tile-grip) { opacity: 0; }
-
-    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-handle,
-    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-grip { opacity: 0.7; }
-
-    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-handle { opacity: 1; }
-  }
-
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .ib-tiles-editing > .ib-tile :is(.ib-tile-handle, .ib-tile-grip) { transition: opacity 120ms ease; }
   }
 
   .ib-tiles-dragging, .ib-tiles-dragging * { cursor: move !important; user-select: none; }

@@ -9,14 +9,19 @@
     first free cells.
 
     <Tile Id="revenue" Title="Revenue" Icon="Lucide.ChartLine" Col="1" Row="1" ColSpan="8" RowSpan="2">
-        <Actions>
+        <HeaderEnd>
             <IconButton Icon="Lucide.RefreshCw" Label="Refresh" />
-        </Actions>
+        </HeaderEnd>
         <ChildContent>...</ChildContent>
     </Tile>
 
-    Header replaces the icon and title with your own content; Actions stay at the end of the
-    header. A tile with none of these has no header. In an Editable layout the tile's handle
+    Header replaces the icon and title with your own content. HeaderEnd sits at the end of the
+    header: buttons such as a refresh or a Menu, or a figure across from the title. Flush runs the
+    content to the tile's edges, for Tabs, a DataGrid or a map.
+
+    A Chart that is a tile's only content, with no Height, fills the tile. Name it by the tile's
+    title (TitledBy="@TitleId", set on the tile) rather than its own: with no HeaderEnd, the
+    chart's buttons (Download, Reset zoom, Pause) then sit in the tile's header row. A tile with none of these has no header. In an Editable layout the tile's handle
     starts its header, or sits in its top corner when it has none. The handle's menu moves the tile a cell at a time and resizes
     it, within MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
 *@
@@ -27,7 +32,7 @@
     @if (Editing && !HasHeader)
     {
         @* No header to hold it: the handle sits in the corner, so editing doesn't change the tile's size. *@
-        <div class="ib-tile-corner">@HandleMenu</div>
+        <div class="ib-tile-pill">@HandleMenu</div>
     }
     @if (HasHeader)
     {
@@ -53,9 +58,9 @@
                     }
                 </div>
             }
-            @if (Actions is not null)
+            @if (HeaderEnd is not null)
             {
-                <div class="ib-tile-actions">@Actions</div>
+                <div class="ib-tile-end">@HeaderEnd</div>
             }
         </div>
     }
@@ -117,20 +122,34 @@
     /// <summary>Your own header content in place of the icon and title. It names the tile for screen readers.</summary>
     [Parameter] public RenderFragment? Header { get; set; }
 
-    /// <summary>Buttons at the end of the header, such as a refresh or a <c>Menu</c>.</summary>
-    [Parameter] public RenderFragment? Actions { get; set; }
+    /// <summary>
+    /// What sits at the end of the header, across from the title: buttons such as a refresh or a
+    /// <c>Menu</c>, or a figure such as a count.
+    /// </summary>
+    [Parameter] public RenderFragment? HeaderEnd { get; set; }
+
+    /// <summary>
+    /// An id for the title's heading, for content to take its name from, such as a <c>Chart</c>
+    /// with <c>TitledBy</c> set to it. Generated when not set.
+    /// </summary>
+    [Parameter] public string? TitleId { get; set; }
+
+    /// <summary>Runs the content to the tile's edges, without padding: for <c>Tabs</c>, a <c>DataGrid</c> or a map.</summary>
+    [Parameter] public bool Flush { get; set; }
 
     /// <summary>The tile's content. It scrolls inside the tile when longer.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [CascadingParameter] private TileLayoutContext? Context { get; set; }
 
-    private readonly string _titleId = IdGenerator.Next("ib-tile-title");
+    private readonly string _ownTitleId = IdGenerator.Next("ib-tile-title");
+
+    private string _titleId => TitleId ?? _ownTitleId;
     private string? _class;
 
     private bool HasTitle => Header is not null || Title is { Length: > 0 };
 
-    private bool HasHeader => HasTitle || Icon is not null || Actions is not null;
+    private bool HasHeader => HasTitle || Icon is not null || HeaderEnd is not null;
 
     private bool Editing => Context?.Owner.Editable == true;
 
@@ -144,7 +163,7 @@
         var focus = !Context!.Owner.Live && Id is not null && Id == Context.Owner.FocusId;
         <Menu>
             <Trigger Context="wire">
-                <IconButton Icon="Lucide.GripVertical" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
+                <IconButton Icon="@(HasHeader ? Lucide.GripVertical : Lucide.GripHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-tile-handle"
                             aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+Shift+ArrowLeft Alt+Shift+ArrowRight Alt+Shift+ArrowUp Alt+Shift+ArrowDown"
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
@@ -259,7 +278,7 @@
         }
 
         Context.Seen(this);
-        _class = new ClassBuilder().Add("ib-tile").Add(VisibilityClasses).Add(Class).ToString();
+        _class = new ClassBuilder().Add("ib-tile").Add("ib-tile-flush", Flush).Add(VisibilityClasses).Add(Class).ToString();
     }
 
     /// <summary>Draws again at its new place, after a move on an interactive page.</summary>
