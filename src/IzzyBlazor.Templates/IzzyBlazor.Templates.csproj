@@ -24,6 +24,11 @@
     <ProjectReference Include="..\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- izzy-blazor is ported from Microsoft's template (MIT); its notice ships with the package. -->
+    <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
   <Target Name="ExportTemplates" AfterTargets="Build">
     <RemoveDir Directories="$(TemplatesOut)" />
     <Exec Command="dotnet &quot;$(TargetPath)&quot; &quot;$(CatalogDir)&quot; &quot;$(TemplatesOut)&quot;" />

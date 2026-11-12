@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      //#if (UseWebAssembly)
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      //#endif
+      //#if (LocalhostTld)
+      "applicationUrl": "http://{{HostName}}.dev.localhost:{{KestrelHttpPort}}",
+      //#else
+      "applicationUrl": "http://localhost:{{KestrelHttpPort}}",
+      //#endif
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    //#if (HasHttpsProfile)
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      //#if (UseWebAssembly)
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      //#endif
+      //#if (LocalhostTld)
+      "applicationUrl": "https://{{HostName}}.dev.localhost:{{KestrelHttpsPort}};http://{{HostName}}.dev.localhost:{{KestrelHttpPort}}",
+      //#else
+      "applicationUrl": "https://localhost:{{KestrelHttpsPort}};http://localhost:{{KestrelHttpPort}}",
+      //#endif
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    //#endif
+    }
+  }
+}
