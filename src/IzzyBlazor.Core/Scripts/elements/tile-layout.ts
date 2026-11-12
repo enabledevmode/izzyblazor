@@ -120,9 +120,12 @@ class TileLayout extends IzzyElement {
     const changes = (layout: Layout | null) => !!layout && [...layout].some(([other, q]) => !sameAs(q, from.get(other)!));
     if (this.collision === "push") {
       const compact = !this.hasAttribute("data-ib-float");
-      // A menu's step onto tiles jumps past them first; the step itself when that can't be made.
+      // A menu's step onto one tile jumps past it when that swaps the two; else it's the step itself.
+      const old = from.get(tile)!;
       const leap = kind ? jump(from, tile, kind, p, cols, rows) : null;
-      next = leap ? arrange(from, tile, leap, cols, rows, compact) : null;
+      next = leap ? arrange(from, tile, leap.place, cols, rows, compact) : null;
+      const swapped = leap && next?.get(leap.other);
+      if (!swapped || swapped.col !== old.col || swapped.row !== old.row) next = null;
       if (!changes(next)) next = arrange(from, tile, p, cols, rows, compact);
     } else {
       next = new Map(from).set(tile, p);
@@ -475,19 +478,21 @@ function arrange(layout: Layout, moved: HTMLElement, target: Place, columns: num
 }
 
 /**
- * For a step of one cell onto other tiles, the place just past them: the tile's far edge on theirs.
- * Null for a resize, a step onto no tile, or a place outside the grid. The same as C#'s TileArrange.Jump.
+ * For a step of one cell onto exactly one other tile, the place just past it (the tile's far edge on
+ * its far edge) and that tile. Null for a resize, a step onto no tile or several, or a place outside
+ * the grid. The same as C#'s TileArrange.Jump.
  */
-function jump(layout: Layout, moved: HTMLElement, kind: Kind, p: Place, columns: number, rows: number): Place | null {
-  const hit = [...layout].filter(([tile, o]) => tile !== moved && overlaps(p, o)).map(([, o]) => o);
-  if (!hit.length) return null;
+function jump(layout: Layout, moved: HTMLElement, kind: Kind, p: Place, columns: number, rows: number): { place: Place; other: HTMLElement } | null {
+  const hit = [...layout].filter(([tile, o]) => tile !== moved && overlaps(p, o));
+  if (hit.length !== 1) return null;
+  const [other, o] = hit[0];
   const j: Place | null =
-    kind === "left" ? { ...p, col: Math.min(...hit.map((o) => o.col)) }
-    : kind === "right" ? { ...p, col: Math.max(...hit.map((o) => o.col + o.cs)) - p.cs }
-    : kind === "up" ? { ...p, row: Math.min(...hit.map((o) => o.row)) }
-    : kind === "down" ? { ...p, row: Math.max(...hit.map((o) => o.row + o.rs)) - p.rs }
+    kind === "left" ? { ...p, col: o.col }
+    : kind === "right" ? { ...p, col: o.col + o.cs - p.cs }
+    : kind === "up" ? { ...p, row: o.row }
+    : kind === "down" ? { ...p, row: o.row + o.rs - p.rs }
     : null;
-  return j && !sameAs(j, p) && j.col >= 1 && j.row >= 1 && j.col + j.cs - 1 <= columns && j.row + j.rs - 1 <= rows ? j : null;
+  return j && !sameAs(j, p) && j.col >= 1 && j.row >= 1 && j.col + j.cs - 1 <= columns && j.row + j.rs - 1 <= rows ? { place: j, other } : null;
 }
 
 /** By row, then column; a stable sort, as C#'s OrderBy. */
