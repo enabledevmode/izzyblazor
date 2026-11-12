@@ -41,12 +41,48 @@ public static class Generator
         }
         creates.Sort((a, b) => string.CompareOrdinal(a.Path, b.Path));
 
+        var warnings = new List<string>();
+        var inserts = new List<TextInsert>();
+        foreach (var spec in manifest.Inserts)
+        {
+            if (spec.If is not null && !Condition.Evaluate(spec.If, values)) continue;
+            var path = TemplateText.ReplaceTokens(spec.File, tokens);
+            var text = TemplateText.ReplaceTokens(spec.Text, tokens);
+            var created = creates.FindIndex(c => c.Path == path && c.Text is not null);
+            if (created >= 0)
+            {
+                var file = creates[created].Text!;
+                if (Inserts.Place(file, spec, text) is { } place) creates[created] = creates[created] with { Text = file.Insert(place.Offset, place.Text) };
+                else if (!Inserts.AlreadyThere(file, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
+                continue;
+            }
+            var existing = project.ReadFile(path);
+            if (existing is null)
+            {
+                warnings.Add($"{manifest.Id}: {path} isn't in the project, so this wasn't added to it:\n{text}");
+                continue;
+            }
+            if (Inserts.Place(existing, spec, text) is { } at) inserts.Add(new TextInsert(path, at.Offset, at.Text, Inserts.Hash(existing)));
+            else if (!Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
+        }
+
+        // A file already in the project with the same text needs nothing; with other text it's a conflict.
+        var conflicts = new List<string>();
+        creates.RemoveAll(c =>
+        {
+            var existing = project.ReadFile(c.Path);
+            if (existing is null) return false;
+            if (c.Text is not null && existing == c.Text) return true;
+            conflicts.Add(c.Path);
+            return false;
+        });
+
         var packages = manifest.Packages
             .Where(p => p.If is null || Condition.Evaluate(p.If, values))
             .Select(p => new PackageReference(p.Id, p.Version))
             .ToList();
 
-        return new Changeset { Creates = creates, Packages = packages };
+        return new Changeset { Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings };
     }
 
     /// <summary>The settings as typed values (bool, string, long), defaults filled in, then the computed values.</summary>
