@@ -87,7 +87,7 @@
   .ib-tile-handle {
     flex: none;
     margin-inline-start: calc(var(--ib-space-2) * -1);
-    cursor: grab;
+    cursor: move;
   }
 
   /* ShowGrid's cells, under the tiles: each at its column and row of the widest count. */
@@ -134,13 +134,33 @@
     .ib-tile-grip { display: none; }
   }
 
-  /* With script, the header drags the tile, and the handle never scrolls the page on touch. */
+  /* With script, the whole tile drags (its controls keep their own cursor), and the handle never
+     scrolls the page on touch. */
   @media (scripting: enabled) {
-    .ib-tiles-editing .ib-tile-header { cursor: grab; user-select: none; }
+    .ib-tiles-editing > .ib-tile { cursor: move; user-select: none; }
     .ib-tiles-editing .ib-tile-handle { touch-action: none; }
   }
 
-  .ib-tiles-dragging, .ib-tiles-dragging * { cursor: grabbing !important; user-select: none; }
+  /* Where there's hover, the handle and grip show on the tile under the pointer, the one being
+     moved, or the one with focus (Tab to the handle shows it), so an always-editable dashboard
+     isn't covered in marks. Touch has no hover: they stay, the handle being the way in without
+     dragging. Faded rather than removed, so the handle keeps its place and its Tab stop. */
+  @media (hover: hover) {
+    .ib-tiles-editing > .ib-tile :is(.ib-tile-handle, .ib-tile-grip) { opacity: 0; }
+
+    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-handle,
+    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-grip { opacity: 0.7; }
+
+    .ib-tiles-editing > .ib-tile:is(:hover, :focus-within, .ib-tile-dragging, .ib-tile-resizing) .ib-tile-handle { opacity: 1; }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .ib-tiles-editing > .ib-tile :is(.ib-tile-handle, .ib-tile-grip) { transition: opacity 120ms ease; }
+  }
+
+  .ib-tiles-dragging, .ib-tiles-dragging * { cursor: move !important; user-select: none; }
+  .ib-tiles-dragging:has(> .ib-tile-resizing), .ib-tiles-dragging:has(> .ib-tile-resizing) * { cursor: nwse-resize !important; }
+  .ib-tiles-dragging:has(> .ib-tile-resizing):dir(rtl), .ib-tiles-dragging:has(> .ib-tile-resizing):dir(rtl) * { cursor: nesw-resize !important; }
 
   /* The tile being moved or resized lifts above the rest. */
   .ib-tile-dragging,

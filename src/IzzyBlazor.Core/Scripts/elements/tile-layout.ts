@@ -3,11 +3,11 @@ import { IzzyElement, defineElement } from "../izzy-element";
 const TILE = ".ib-tile";
 const HANDLE = ".ib-tile-handle";
 const GRIP = ".ib-tile-grip";
-// A press on these in a header stays theirs: the tile's actions, its own links and fields.
-const CONTROL = "a[href], button:not(.ib-tile-handle), input, select, textarea, label, summary, [contenteditable]:not([contenteditable=false]), [popover], [role=menu], [data-ib-role=menu]";
+// A press on these stays theirs: the tile's actions, links, fields and the overlays they open.
+const CONTROL = "a[href], button:not(.ib-tile-handle), input, select, textarea, label, summary, video, audio, iframe, [contenteditable]:not([contenteditable=false]), [popover], dialog, [role=dialog], [role=menu], [data-ib-role=menu], [role=listbox], [role=slider], [role=tab]";
 // A press moving less than this is a click (the handle's menu), not a drag.
 const THRESHOLD = 4;
-// A touch on a header (not the handle) is a long press this long, so the page still scrolls.
+// A touch on the tile (not its handle) is a long press this long, so the page still scrolls.
 const LONG_PRESS = 250;
 const SLOP = 8;
 // Within this distance of the scroll area's edge it scrolls, faster nearer the edge.
@@ -29,8 +29,9 @@ interface Place {
  * count only (the handles hide below it). Every place is in cells: a tile snaps from cell to cell
  * as the pointer crosses them, and without data-ib-overlap it stays at its last free spot rather
  * than covering another tile.
- * - Dragging a tile's header or handle moves it; dragging its corner grip resizes it. A mouse drags
- *   after a few pixels, a touch on the header after a long press. Escape puts it back.
+ * - Dragging a tile moves it, from anywhere but the controls in it; dragging its corner grip
+ *   resizes it. A mouse drags after a few pixels, a touch after a long press (the handle and grip
+ *   at once). Escape puts it back.
  * - Alt+arrows on the handle move it a cell, Alt+Shift+arrows resize it, by clicking the matching
  *   item of its menu (data-ib-move).
  * - On a static page a menu item moves the tile here instead of posting: its place variables and
@@ -188,9 +189,9 @@ class TileLayout extends IzzyElement {
     if (!tile || !this.editingHere(tile)) return;
     const grip = target.closest(GRIP);
     const handle = target.closest(HANDLE);
-    const header = target.closest(".ib-tile-header");
-    // The grip resizes; the handle or the header (not a control in it) moves.
-    if (!grip && !handle && !(header && !target.closest(CONTROL))) return;
+    // The grip resizes. The handle moves, and so does the rest of the tile: not a control in it,
+    // a press its content took (a chart's zoom), or a scrollbar.
+    if (!grip && !handle && (target.closest(CONTROL) || event.defaultPrevented || onScrollbar(target, event))) return;
     this.dropped = false;
     this.track(tile, event, grip ? "resize" : "move", !grip && !handle && event.pointerType !== "mouse" ? LONG_PRESS : 0);
   }
@@ -396,6 +397,15 @@ function clamp(value: number, min: number, max: number): number {
 
 function clearDrag(tile: HTMLElement): void {
   for (const name of ["col", "row", "cs", "rs"]) tile.style.removeProperty(`--ib-drag-${name}`);
+}
+
+/** Whether a press is on an element's own scrollbar, past its content box. */
+function onScrollbar(el: Element, event: PointerEvent): boolean {
+  if (!(el instanceof HTMLElement) || (el.scrollHeight <= el.clientHeight && el.scrollWidth <= el.clientWidth)) return false;
+  const box = el.getBoundingClientRect();
+  const rtl = getComputedStyle(el).direction === "rtl";
+  const x = rtl ? box.right - event.clientX : event.clientX - box.left;
+  return x > el.clientLeft + el.clientWidth || event.clientY - box.top > el.clientTop + el.clientHeight;
 }
 
 /** The nearest ancestor that scrolls vertically, or the page. */
