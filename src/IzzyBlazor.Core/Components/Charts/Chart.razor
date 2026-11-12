@@ -301,7 +301,7 @@
 
     private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 
-    [CascadingParameter] private ChartButtonHost? ButtonHost { get; set; }
+    [CascadingParameter] private HeaderHost? ButtonHost { get; set; }
 
     private void Redraw() => StateHasChanged();
 

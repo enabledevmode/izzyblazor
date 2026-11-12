@@ -83,7 +83,7 @@
 *@
 
 <ib-scheduler @attributes="AdditionalAttributes" class="@_class" style="@_style" role="region" aria-label="@(Label ?? TextDefaults.SchedulerName)"
-              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-movable="@(Movable ? "" : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart">
+              data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-movable="@(Movable ? "" : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart" data-ib-scheduler-id="@(_partLinks.Any(l => l.HasParts) ? PartsId : null)">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     @{
         var culture = CultureInfo.CurrentCulture;
@@ -100,7 +100,16 @@
        own items in ToolbarContent; the rest keep these places. *@
     @{
         var placed = SchedulerToolbarItem.Placed(ToolbarContent);
+        placed.UnionWith(PartTypes.Where(PlacedOutside));
+        // Its parts outside it draw what it has now.
+        foreach (var link in _partLinks)
+        {
+            link.Drew();
+        }
     }
+    @* No toolbar when every part is outside it and there's nothing of yours. *@
+    @if (ToolbarContent is not null || PartTypes.Any(t => !placed.Contains(t) && PartShows(t)))
+    {
     <div class="ib-sched-bar">
         @* Around the toolbar, not inside it: its items keep the order they join in. *@
         <CascadingValue TValue="ISchedulerToolbar" Value="this">
@@ -133,6 +142,7 @@
             </Toolbar>
         </CascadingValue>
     </div>
+    }
 
     @if (_moveRefusal is { Count: > 0 } why)
     {
@@ -521,9 +531,56 @@
         if (RendererInfo.IsInteractive) Navigation.LocationChanged += Moved;
     }
 
+    // ---- Its toolbar parts placed outside it, such as SchedulerToday in a tile's header (PartLink). ----
+
+    private static readonly Type[] PartTypes = [typeof(SchedulerToday), typeof(SchedulerArrows), typeof(SchedulerPeriod), typeof(SchedulerCategories), typeof(SchedulerViews), typeof(SchedulerNew)];
+
+    [CascadingParameter] private HeaderHost? PartsHost { get; set; }
+
+    private readonly List<PartLink> _partLinks = [];
+    private Action? _partsRedraw;
+    private string? _partsId;
+
+    private string PartsId => _partsId ??= IdGenerator.Next("ib-sched");
+
+    string ISchedulerToolbar.PartsId => PartsId;
+
+    private bool PlacedOutside(Type part) => _partLinks.Any(l => l.IsPlaced(part));
+
+    // Whether the Scheduler shows a part: Categories with categories, the view menu with more than one view, New when editable.
+    private bool PartShows(Type part) =>
+        part == typeof(SchedulerCategories) ? Kinds.Count > 0
+        : part == typeof(SchedulerViews) ? Views.Count > 1
+        : part != typeof(SchedulerNew) || Editable;
+
+    // Its tile's or card's link, and its id's, unless another Scheduler has it.
+    private void ClaimParts()
+    {
+        _partsRedraw ??= StateHasChanged;
+        var claimed = new List<PartLink>();
+        if (PartsHost?.Parts(typeof(ISchedulerToolbar)) is { } host && host.Claim(this, _partsRedraw))
+        {
+            claimed.Add(host);
+        }
+
+        if (PartLinks.IdOf(AdditionalAttributes) is { } id && PartLinks.From(Services)?.Of(typeof(ISchedulerToolbar), id) is { } named && named.Claim(this, _partsRedraw))
+        {
+            claimed.Add(named);
+        }
+
+        foreach (var link in _partLinks.Except(claimed))
+        {
+            link.Release(this);
+        }
+
+        _partLinks.Clear();
+        _partLinks.AddRange(claimed);
+    }
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        ClaimParts();
         if (Start is null || End is null || Title is null)
         {
             throw new InvalidOperationException("Scheduler needs a Start, an End and a Title for each appointment, such as b => b.Start, b => b.End and b => b.Subject.");
@@ -695,6 +752,10 @@
     {
         Navigation.LocationChanged -= Moved;
         _loadCts?.Cancel();
+        foreach (var link in _partLinks)
+        {
+            link.Release(this);
+        }
     }
 
     // The appointments that touch the days shown.

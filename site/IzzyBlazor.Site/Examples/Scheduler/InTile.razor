@@ -1,0 +1,39 @@
+@* A dashboard's calendar tile: the Scheduler's navigation and view menu sit in the tile's header,
+   so the tile has one header row. *@
+<TileLayout Columns="1" aria-label="Studio">
+    <Tile Id="bookings" Title="Studio bookings" RowSpan="4" Flush>
+        <HeaderEnd>
+            <SchedulerToday />
+            <SchedulerArrows />
+            <SchedulerPeriod />
+            <SchedulerViews />
+        </HeaderEnd>
+        <ChildContent>
+            <Scheduler TItem="Booking" Items="Bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Client"
+                       View="SchedulerView.WorkWeek" ViewOptions="[SchedulerView.Day, SchedulerView.WorkWeek, SchedulerView.Month]" QueryPrefix="tile-" Label="Studio bookings" />
+        </ChildContent>
+    </Tile>
+</TileLayout>
+
+@code {
+    private sealed record Booking(string Client, DateTime Start, DateTime End);
+
+    private static readonly DateOnly Monday = WeekMonday();
+
+    private static DateOnly WeekMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        return today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+    }
+
+    private static DateTime At(int day, int hour) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, 0));
+
+    private static readonly List<Booking> Bookings =
+    [
+        new("Northwind podcast", At(0, 10), At(0, 12)),
+        new("Lumen Records", At(1, 13), At(1, 17)),
+        new("Vox choir", At(2, 9), At(2, 11)),
+        new("Ad read: Contoso", At(3, 15), At(3, 16)),
+        new("Lumen Records", At(4, 10), At(4, 13)),
+    ];
+}

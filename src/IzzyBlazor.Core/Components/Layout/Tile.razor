@@ -25,6 +25,11 @@
     its buttons in HeaderEnd: ChartDownload, ChartResetZoom, ChartZoom and ChartPause act on the
     tile's chart.
 
+    A DataGrid's tools (DataGridSearch, DataGridExport, DataGridColumnPicker and the rest) and a
+    Scheduler's parts (SchedulerToday, SchedulerArrows, SchedulerPeriod, SchedulerViews and the rest)
+    written in HeaderEnd act on the tile's grid or Scheduler, which leaves them out of its own
+    toolbar, so the tile has one header row.
+
     In an Editable layout the tile's handle is a pill on the middle of its top edge, so turning
     editing on moves nothing. Its menu moves the tile a cell at a time and resizes it, within
     MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
@@ -144,8 +149,8 @@
 
     [CascadingParameter] private TileLayoutContext? Context { get; set; }
 
-    // Which of its chart's buttons are in its header, and its title to name them by (ChartButtonHost).
-    private readonly ChartButtonHost _chartButtons = new();
+    // Which of its chart's buttons are in its header, and its title to name them by (HeaderHost).
+    private readonly HeaderHost _chartButtons = new();
 
     // The live region; after a move posted with JavaScript off it also describes the focused
     // handle, since text already on the page when it loads isn't announced.

@@ -115,8 +115,8 @@
     private string? _style;
     private PartScope _scope = null!;
 
-    // Which of its chart's buttons are in its CardActions, and its title to name them by (ChartButtonHost).
-    private readonly ChartButtonHost _chartButtons = new();
+    // Which of its chart's buttons are in its CardActions, and its title to name them by (HeaderHost).
+    private readonly HeaderHost _chartButtons = new();
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
 

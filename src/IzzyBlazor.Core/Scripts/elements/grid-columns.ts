@@ -75,6 +75,12 @@ class GridColumns extends IzzyElement {
       else control!.removeAttribute("aria-keyshortcuts");
     }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
+    // Its column picker placed outside it, such as in a tile's header (a .ib-part named by its id).
+    if (host.dataset.ibGridId) {
+      const outside = (event: Event) => event.target instanceof Element && !host.contains(event.target) && !!this.#mine(event.target);
+      document.addEventListener("click", (event) => outside(event) && this.#onClick(event), { signal });
+      document.addEventListener("change", (event) => outside(event) && this.#onChange(event), { signal });
+    }
     table.addEventListener("pointerdown", (event) => this.#onPointerDown(event, signal), { signal });
     table.addEventListener("dblclick", (event) => this.#onDoubleClick(event), { signal });
     table.addEventListener("keydown", (event) => this.#onKey(event), { signal, capture: true });
@@ -383,7 +389,7 @@ class GridColumns extends IzzyElement {
     }
     else if (action === "choose") {
       // The toolbar's picker, as if its button were pressed.
-      this.#host?.querySelector<HTMLElement>(".ib-col-picker [popovertarget]")?.click();
+      (this.#host?.querySelector<HTMLElement>(".ib-col-picker [popovertarget]") ?? this.#outside(".ib-col-picker [popovertarget]"))?.click();
     }
     else if (th && action === "reset-width") {
       delete this.#entry(columns, key!).w;
@@ -437,9 +443,18 @@ class GridColumns extends IzzyElement {
     void this.#save(columns, true, focus);
   }
 
-  // This grid's own: not a grid's in one of its details.
+  // This grid's own: not a grid's in one of its details. Or in one of its parts outside it.
   #mine<T extends Element>(el: T | null | undefined): T | null {
-    return el?.closest("ib-table") === this.#host ? el : null;
+    const table = el?.closest("ib-table");
+    if (table) return table === this.#host ? el! : null;
+    const id = this.#host?.dataset.ibGridId;
+    return id && el?.closest<HTMLElement>(".ib-part")?.dataset.ibGrid === id ? el : null;
+  }
+
+  // An element in one of its parts outside it.
+  #outside(selector: string): HTMLElement | null {
+    const id = this.#host?.dataset.ibGridId;
+    return id ? document.querySelector<HTMLElement>(`.ib-part[data-ib-grid="${CSS.escape(id)}"] ${selector}`) : null;
   }
 
   #onChange(event: Event): void {

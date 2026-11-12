@@ -68,6 +68,13 @@ class Scheduler extends IzzyElement {
     // pages too, through Blazor's navigation.
     this.addEventListener("change", (e) => this.#jump(e), { signal });
     this.addEventListener("submit", (e) => this.#jump(e), { signal });
+    // Its period outside it, such as in a tile's header (a .ib-part named by its id).
+    const id = this.dataset.ibSchedulerId;
+    if (id) {
+      const outside = (e: Event) => e.target instanceof Element && !this.contains(e.target) && e.target.closest<HTMLElement>(".ib-part")?.dataset.ibScheduler === id;
+      document.addEventListener("change", (e) => outside(e) && this.#jump(e), { signal });
+      document.addEventListener("submit", (e) => outside(e) && this.#jump(e), { signal });
+    }
 
     // An appointment's card, placed beside it where CSS anchor positioning isn't there. Opened by
     // a press (read-only), focus goes to it (a dialog, read by its title; closing it puts focus
@@ -154,7 +161,9 @@ class Scheduler extends IzzyElement {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
     const t = e.target as Element;
     if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]:not(.ib-sched-event)")) return;
-    const link = this.querySelector<HTMLElement>(`[data-ib-key="${e.key.toLowerCase()}"]`);
+    const key = `[data-ib-key="${e.key.toLowerCase()}"]`;
+    const id = this.dataset.ibSchedulerId;
+    const link = this.querySelector<HTMLElement>(key) ?? (id ? document.querySelector<HTMLElement>(`.ib-part[data-ib-scheduler="${CSS.escape(id)}"] ${key}`) : null);
     if (!link) return;
     e.preventDefault();
     link.click();

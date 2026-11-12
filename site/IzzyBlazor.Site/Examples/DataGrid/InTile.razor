@@ -1,0 +1,22 @@
+@* A dashboard's orders tile: the grid's search, columns and export sit in the tile's header, so the
+   tile has one header row. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<TileLayout Columns="1" aria-label="Sales">
+    <Tile Id="orders" Title="Recent orders" RowSpan="3" Flush>
+        <HeaderEnd>
+            <DataGridSearch />
+            <DataGridExport />
+            <DataGridColumnPicker />
+        </HeaderEnd>
+        <ChildContent>
+            <DataGrid Items="Rows.All" PageSize="5" Caption="Recent orders" Searchable ColumnPicker LayoutKey="tile-orders" QueryPrefix="tile-" ExportCsvHref="/examples/orders.csv" Grow>
+                <Columns>
+                    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="8.Rem" />
+                    <PropertyColumn Property="o => o.Customer" Sortable />
+                    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+                    <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+                </Columns>
+            </DataGrid>
+        </ChildContent>
+    </Tile>
+</TileLayout>

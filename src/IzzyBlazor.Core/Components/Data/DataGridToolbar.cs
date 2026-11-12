@@ -40,15 +40,24 @@ internal interface IDataGridToolbar
     RenderFragment ExportBar(bool showText);
 
     RenderFragment ExportMenu { get; }
+
+    /// <summary>An id for the grid's element, which its parts outside it carry so its script finds them.</summary>
+    string PartsId { get; }
 }
 
 /// <summary>
 /// One of a <c>DataGrid</c>'s own tools, written in its <c>ToolbarContent</c> to put it among your
-/// items, in the order they're written. The grid's parameter still turns the tool on; without it this
-/// draws nothing. A tool you don't write keeps its usual place. Write them directly in
-/// <c>ToolbarContent</c>, as inside a component of your own the grid can't see them and draws its own
-/// as well. One turned on later (its grid parameter set) keeps its place among the others.
+/// items, in the order they're written, or outside the grid, such as in a <c>Tile</c>'s
+/// <c>HeaderEnd</c>. The grid's parameter still turns the tool on; without it this draws nothing. A
+/// tool you don't write keeps its usual place. Write them directly in <c>ToolbarContent</c>, as inside
+/// a component of your own the grid can't see them and draws its own as well. One turned on later (its
+/// grid parameter set) keeps its place among the others.
 /// </summary>
+/// <remarks>
+/// Outside the grid it acts on the grid whose <c>id</c> is <see cref="For"/>, or else the one grid in
+/// its <c>Tile</c> or <c>Card</c>, and the grid leaves its own out. With every tool outside and no
+/// <c>ToolbarContent</c>, the grid has no toolbar.
+/// </remarks>
 public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -60,9 +69,26 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     [CascadingParameter] private ToolbarContext? Toolbar { get; set; }
 
+    /// <summary>
+    /// The <c>id</c> of the grid it acts on, when it's outside the grid. Leave it out in the grid's
+    /// <c>ToolbarContent</c>, or in a <c>Tile</c> or <c>Card</c> with one grid: it acts on that one.
+    /// </summary>
+    [Parameter] public string? For { get; set; }
+
     [CascadingParameter] private IDataGridToolbar? GridValue { get; set; }
 
-    private protected IDataGridToolbar Grid => GridValue ?? throw new InvalidOperationException($"{GetType().Name} must be in a DataGrid's ToolbarContent.");
+    [CascadingParameter] private HeaderHost? Host { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    private PartLink? _link;
+    private Action? _redraw;
+    private bool _joined;
+
+    // Outside the grid, the grid it draws from once that grid has drawn.
+    private IDataGridToolbar? Target => _link is not null ? _link.Target as IDataGridToolbar : GridValue;
+
+    private protected IDataGridToolbar Grid => Target ?? throw new InvalidOperationException($"{GetType().Name} must be in a DataGrid's ToolbarContent.");
 
     private protected abstract bool On { get; }
 
@@ -77,7 +103,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     private protected abstract double? ItemWidth { get; }
 
     /// <summary>What the toolbar reckons for it on the first paint.</summary>
-    internal double? EstimatedWidth => ItemWidth;
+    internal double? EstimatedWidth => Target is null ? null : ItemWidth;
 
     // A table's small icons are 18px (data.css), where the estimate counts a small button's 16.
     private protected const double TableIconExtra = 2;
@@ -89,22 +115,72 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     bool IToolbarItem.Separator => false;
 
     // Off, it keeps its place, so turned on later it comes back where it was.
-    bool IToolbarItem.Hidden => !On;
+    bool IToolbarItem.Hidden => Target is null || !On;
 
-    RenderFragment IToolbarItem.Bar => ItemBar;
+    RenderFragment IToolbarItem.Bar => Target is null ? _ => { } : OutsideParts.Wrap(_link is null ? null : Grid.PartsId, "data-ib-grid", null, ItemBar);
 
-    RenderFragment? IToolbarItem.Menu => ItemMenu;
+    RenderFragment? IToolbarItem.Menu => Target is null ? null : ItemMenu;
 
-    double? IToolbarItem.Width => ItemWidth;
-
-    /// <inheritdoc />
-    protected override void OnParametersSet() => _slot.Join(Toolbar);
+    double? IToolbarItem.Width => EstimatedWidth;
 
     /// <inheritdoc />
-    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => _slot.Rendered();
+    protected override void OnParametersSet()
+    {
+        if (For is null && GridValue is not null)
+        {
+            Leave();
+            _joined = true;
+            _slot.Join(Toolbar);
+            return;
+        }
+
+        var link = For is { Length: > 0 } id ? PartLinks.For(Services, typeof(IDataGridToolbar), id, GetType().Name)
+            : Host?.Parts(typeof(IDataGridToolbar))
+            ?? throw new InvalidOperationException($"{GetType().Name} must be in a DataGrid's ToolbarContent, in a Tile or Card with a DataGrid, or name its grid with For.");
+        if (!ReferenceEquals(link, _link))
+        {
+            Leave();
+            _link = link;
+            link.Place(GetType(), _redraw ??= StateHasChanged);
+        }
+
+        // In a toolbar of the page's, it's one of its items.
+        _joined = Toolbar is not null && !ReferenceEquals(Toolbar, ToolbarContext.Outside);
+        if (_joined)
+        {
+            _slot.Join(Toolbar);
+        }
+    }
 
     /// <inheritdoc />
-    public void Dispose() => _slot.Dispose();
+    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        if (_joined)
+        {
+            _slot.Rendered();
+        }
+        else if (Target is not null && On)
+        {
+            // As in the grid's own toolbar: small, neutral, ghost buttons.
+            builder.AddContent(0, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", ButtonGroup.Defaults(Accent.Neutral, ButtonVariant.Ghost, ControlSize.Sm), ItemBar));
+        }
+    }
+
+    private void Leave()
+    {
+        if (_link is not null)
+        {
+            _link.Unplace(GetType(), _redraw!);
+            _link = null;
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Leave();
+        _slot.Dispose();
+    }
 
     // Which of these a grid's ToolbarContent writes, so the rest go in their usual places on the first
     // render, with or without script. Run here only to read it, as Code reads its text.

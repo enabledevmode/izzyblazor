@@ -16,7 +16,7 @@
     // The grid, drawn by DataGrid and TreeList.
     internal RenderFragment Grid => __builder =>
     {
-        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)" data-ib-cascade="@CascadeMode" data-ib-tree-drag="@TreeDragKey">
+        <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(ActivePaging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-select-click="@(SelectOnClick ? (MultiSelect ? "multiple" : "single") : null)" data-ib-cascade="@CascadeMode" data-ib-tree-drag="@TreeDragKey" data-ib-grid-id="@(_partLinks.Any(l => l.HasParts) ? ((IDataGridToolbar)this).PartsId : null)">
             <ib-grid hidden></ib-grid>
             @if (CanEdit || CanDelete)
             {
@@ -1762,6 +1762,7 @@
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
+        ClaimParts();
         if (SelectOnClick && !Selectable)
         {
             throw new InvalidOperationException($"{nameof(SelectOnClick)} selects rows, so it needs a {nameof(SelectionMode)}.");
@@ -2327,7 +2328,48 @@
     bool IDataGridToolbar.HasColumnPicker => HasPicker;
 
     /// <inheritdoc />
-    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd;
+    internal override bool SelectionTakesToolbar => HasOwnToolbar;
+
+    // A toolbar of its own: content of yours, or a tool that's on and not placed outside the grid.
+    private bool HasOwnToolbar => ToolbarContent is not null || OwnTool<DataGridSearch>(HasSearchTool) || OwnTool<DataGridColumnPicker>(HasPicker) || OwnTool<DataGridExport>(HasExportTool) || OwnTool<DataGridFilterBuilder>(FilterBuilder) || OwnTool<DataGridAdd>(CanAdd);
+
+    private bool OwnTool<T>(bool on) where T : DataGridToolbarItem => on && !PlacedOutside(typeof(T));
+
+    // ---- Its tools placed outside it, such as a DataGridSearch in a tile's header (PartLink). ----
+
+    [CascadingParameter] private HeaderHost? PartsHost { get; set; }
+
+    private readonly List<PartLink> _partLinks = [];
+    private Action? _partsRedraw;
+    private string? _partsId;
+
+    string IDataGridToolbar.PartsId => _partsId ??= IdGenerator.Next("ib-grid");
+
+    private bool PlacedOutside(Type part) => _partLinks.Any(l => l.IsPlaced(part));
+
+    // Its tile's or card's link, and its id's, unless another grid has it.
+    private void ClaimParts()
+    {
+        _partsRedraw ??= StateHasChanged;
+        var claimed = new List<PartLink>();
+        if (PartsHost?.Parts(typeof(IDataGridToolbar)) is { } host && host.Claim(this, _partsRedraw))
+        {
+            claimed.Add(host);
+        }
+
+        if (PartLinks.IdOf(AdditionalAttributes) is { } id && PartLinks.From(Services)?.Of(typeof(IDataGridToolbar), id) is { } named && named.Claim(this, _partsRedraw))
+        {
+            claimed.Add(named);
+        }
+
+        foreach (var link in _partLinks.Except(claimed))
+        {
+            link.Release(this);
+        }
+
+        _partLinks.Clear();
+        _partLinks.AddRange(claimed);
+    }
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 
@@ -2575,10 +2617,17 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd)
+        // Its tools outside it draw what it has now.
+        foreach (var link in _partLinks)
+        {
+            link.Drew();
+        }
+
+        if (HasOwnToolbar)
         {
             var placed = DataGridToolbarItem.Placed(ToolbarContent);
-            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !FilterBuilder && !CanAdd ? "ib-grid-toolbar-picker-only" : null)">
+            placed.UnionWith(new[] { typeof(DataGridSearch), typeof(DataGridFilterBuilder), typeof(DataGridExport), typeof(DataGridColumnPicker), typeof(DataGridAdd) }.Where(PlacedOutside));
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !OwnTool<DataGridSearch>(HasSearchTool) && !OwnTool<DataGridExport>(HasExportTool) && !OwnTool<DataGridFilterBuilder>(FilterBuilder) && !OwnTool<DataGridAdd>(CanAdd) ? "ib-grid-toolbar-picker-only" : null)">
                 @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
                 <CascadingValue TValue="IDataGridToolbar" Value="this">
                     <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
@@ -2672,6 +2721,11 @@
     public override void Dispose()
     {
         base.Dispose();
+        foreach (var link in _partLinks)
+        {
+            link.Release(this);
+        }
+
         _persisting?.Dispose();
         _searchDelay?.Cancel();
     }

@@ -80,6 +80,16 @@ class GridEdit extends IzzyElement {
       click.stopPropagation();
       void this.#open(root, link);
     }, { signal });
+    // Its Add outside it, such as in a tile's header (a .ib-part named by the grid's id).
+    const parts = root.getAttribute("data-ib-grid-id");
+    if (parts) document.addEventListener("click", (event) => {
+      const click = event as MouseEvent;
+      const link = (click.target as Element).closest?.<HTMLAnchorElement>("a[data-ib-edit]");
+      if (!link || root.contains(link) || link.closest<HTMLElement>(".ib-part")?.dataset.ibGrid !== parts || !root.hasAttribute("data-ib-stays-static") || click.ctrlKey || click.metaKey || click.shiftKey) return;
+      click.preventDefault();
+      click.stopPropagation();
+      void this.#open(root, link);
+    }, { signal });
     signal.addEventListener("abort", () => gone.disconnect());
   }
 
@@ -335,6 +345,12 @@ class GridEdit extends IzzyElement {
     }
     for (const tool of [...root.querySelectorAll<HTMLAnchorElement>(".ib-grid-toolbar a[data-ib-edit]")].filter((t) => t.closest("ib-table") === root)) {
       const href = own(fresh, `.ib-grid-toolbar a[data-ib-edit="${CSS.escape(tool.dataset.ibEdit!)}"]`)?.getAttribute("href");
+      if (href) tool.setAttribute("href", href);
+    }
+    // Its Add outside it, such as in a tile's header: each page names the grid's parts its own way.
+    const [id, freshId] = [root.getAttribute("data-ib-grid-id"), fresh?.getAttribute("data-ib-grid-id")];
+    if (id && freshId) for (const tool of document.querySelectorAll<HTMLAnchorElement>(`.ib-part[data-ib-grid="${CSS.escape(id)}"] a[data-ib-edit]`)) {
+      const href = page.querySelector(`.ib-part[data-ib-grid="${CSS.escape(freshId)}"] a[data-ib-edit="${CSS.escape(tool.dataset.ibEdit!)}"]`)?.getAttribute("href");
       if (href) tool.setAttribute("href", href);
     }
     const form = ":scope > form[data-ib-edit-for]";

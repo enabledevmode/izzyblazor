@@ -33,6 +33,12 @@ public static class IzzyBlazorCoreServiceCollectionExtensions
             services.AddScoped<StyleNonce>();
         }
 
+        // Toolbar parts outside their component (DataGridSearch For="orders" in a tile's header).
+        if (!services.Any(d => d.ServiceType == typeof(PartLinks)))
+        {
+            services.AddScoped<PartLinks>();
+        }
+
         return services;
     }
 }

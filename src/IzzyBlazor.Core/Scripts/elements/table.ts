@@ -296,12 +296,18 @@ class Table extends IzzyElement {
   }
 
   #setupFilters(signal: AbortSignal): void {
-    if (!this.querySelector("[data-ib-filter]")) return;
+    if (!this.#filters().length) return;
     const isFilter = (target: EventTarget | null): target is HTMLInputElement | HTMLSelectElement =>
-      target instanceof HTMLElement && target.matches("[data-ib-filter]") && target.closest("ib-table") === this;
+      target instanceof HTMLElement && target.matches("[data-ib-filter]") && this.#mine(target);
+    // On the table, and for its filters outside it (a search box in a tile's header) on the document.
+    const outside = (event: Event) => event.target instanceof Element && !this.contains(event.target) && isFilter(event.target);
+    const listen = <K extends keyof HTMLElementEventMap>(type: K, handler: (event: HTMLElementEventMap[K]) => void, options: AddEventListenerOptions) => {
+      this.addEventListener(type, handler, options);
+      if (this.dataset.ibGridId) document.addEventListener(type, (event) => outside(event) && handler(event), options);
+    };
 
-    this.addEventListener("compositionstart", () => (this.#typing.composing = true), { signal });
-    this.addEventListener(
+    listen("compositionstart", () => (this.#typing.composing = true), { signal });
+    listen(
       "compositionend",
       (event) => {
         this.#typing.composing = false;
@@ -311,7 +317,7 @@ class Table extends IzzyElement {
       },
       { signal }
     );
-    this.addEventListener(
+    listen(
       "input",
       (event) => {
         if ((event as InputEvent).isComposing || this.#typing.composing) return;
@@ -320,7 +326,7 @@ class Table extends IzzyElement {
       },
       { signal }
     );
-    this.addEventListener(
+    listen(
       "change",
       (event) => {
         const target = event.target;
@@ -349,7 +355,7 @@ class Table extends IzzyElement {
       },
       { signal }
     );
-    this.addEventListener(
+    listen(
       "keydown",
       (event) => {
         // Escape closes the panel and leaves the filter as it is (a search box would clear itself first); a value
@@ -403,7 +409,7 @@ class Table extends IzzyElement {
       },
       { capture: true, signal }
     );
-    this.addEventListener(
+    listen(
       "focusout",
       (event) => {
         // A tick waits for its pause wherever focus goes, and so does what's typed, which a response
@@ -441,9 +447,7 @@ class Table extends IzzyElement {
     if (this.#popped) {
       this.#popped = false;
       // An interactive page's render sets its values as properties, so the defaults here are old.
-      if (!this.hasAttribute("data-ib-interactive")) for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
-        if (control.closest("ib-table") === this) asDrawn(control);
-      }
+      if (!this.hasAttribute("data-ib-interactive")) for (const control of this.#filters()) asDrawn(control);
     }
 
     // A response for an earlier value has just arrived: what's been typed since goes back, and below,
@@ -452,7 +456,7 @@ class Table extends IzzyElement {
 
     // A filter changed before this script arrived, or put back above: apply it now rather than drop
     // it; one still being typed in, after the usual pause. A panel's goes on waiting for its Apply.
-    const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);
+    const filters = this.#filters();
     // Not on an interactive page, whose render sets values as properties (see filter-form.ts).
     if (!this.hasAttribute("data-ib-interactive") && changedFromServer(filters)) {
       for (const control of filters) if (changedFromServer([control])) this.#touch(control);
@@ -461,6 +465,22 @@ class Table extends IzzyElement {
       if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date" && !isTick(active)) this.#typed(active);
       else if (filters.some((control) => changedFromServer([control]) && !this.#waits(control))) this.#apply(false);
     }
+  }
+
+  /** This table's filter controls: not a table's in one of its details, and its search outside it (a .ib-part named by its id). */
+  #filters(): (HTMLInputElement | HTMLSelectElement)[] {
+    const id = this.dataset.ibGridId;
+    return [
+      ...[...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this),
+      ...(id ? document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(`.ib-part[data-ib-grid="${CSS.escape(id)}"] [data-ib-filter]`) : []),
+    ];
+  }
+
+  #mine(control: Element): boolean {
+    const table = control.closest("ib-table");
+    if (table) return table === this;
+    const id = this.dataset.ibGridId;
+    return !!id && control.closest<HTMLElement>(".ib-part")?.dataset.ibGrid === id;
   }
 
   /**
@@ -510,7 +530,7 @@ class Table extends IzzyElement {
     if (this.#typing.composing || !this.isConnected) return false;
     this.#typing.restore();
     const url = new URL(location.href);
-    const own = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !c.hasAttribute("data-ib-row"));
+    const own = this.#filters().filter((c) => c.name && !c.hasAttribute("data-ib-row"));
     // A date part way through stays as the address has it, as in a panel.
     for (const edit of this.#rowEdits) {
       const twin = own.find((c) => c.name === edit.name);
