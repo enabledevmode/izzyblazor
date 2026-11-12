@@ -47,10 +47,14 @@ class Mentions extends IzzyElement {
   // Escape closed the list for this text; it opens again once the text changes.
   #dismissed: string | null = null;
   #announced = -1;
+  // Just chose: the input event that follows mustn't open the list again (Split "").
+  #chose = false;
   // Page fetch: each trigger's first results, the text the options answer, the wait and the request.
   #fetchKey: string | null = null;
   #first = new Map<string, Node[]>();
   #answered = "";
+  // Page fetch: the text whose fetch has finished, answered or not.
+  #settled = "";
   #timer = 0;
   #request: AbortController | null = null;
 
@@ -70,11 +74,14 @@ class Mentions extends IzzyElement {
       this.#first.set(prefix, [...(this.#first.get(prefix) ?? []), option.cloneNode(true)]);
     }
     this.dataset.ready = "";
+    // Only once there's a list to offer: without script it's a plain text area.
+    area.setAttribute("aria-autocomplete", "list");
+    area.setAttribute("aria-controls", list.id);
 
     area.addEventListener("input", () => this.update(true), { signal });
     area.addEventListener("click", () => this.update(false), { signal });
     area.addEventListener("keyup", (event) => {
-      if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) this.update(false);
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) this.update(false);
     }, { signal });
     area.addEventListener("keydown", (event) => this.onKey(event), { signal });
     area.addEventListener("blur", () => this.close(), { signal });
@@ -94,9 +101,13 @@ class Mentions extends IzzyElement {
       if (option && option !== this.#active && !option.hidden) this.activate(option, false);
     }, { signal });
 
-    // Blazor's results (or new Items) came: narrow them again and show them.
+    // Blazor's results (or new Items) came: narrow them again and show them, for the mention
+    // the caret is in now (it may have moved without an input).
     const observer = new MutationObserver(() => {
-      if (this.#query && document.activeElement === area) this.show();
+      if (!this.#query || document.activeElement !== area) return;
+      const q = this.find();
+      if (!q || this.key(q) !== this.key(this.#query) || q.start !== this.#query.start) this.update(false);
+      else this.show();
     });
     observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-busy", "data-query"] });
     signal.addEventListener("abort", () => {
@@ -104,6 +115,8 @@ class Mentions extends IzzyElement {
       clearTimeout(this.#timer);
       this.#request?.abort();
       this.close();
+      area.removeAttribute("aria-autocomplete");
+      area.removeAttribute("aria-controls");
       delete this.dataset.ready;
     });
   }
@@ -133,7 +146,8 @@ class Mentions extends IzzyElement {
     const area = this.#area;
     if (area.selectionStart !== area.selectionEnd) return null;
     const before = area.value.slice(0, area.selectionStart);
-    const start = Math.max(before.lastIndexOf(" "), before.lastIndexOf("\n"), before.lastIndexOf("\t")) + 1;
+    // After any white space, as Mention.Parse (a no-break or ideographic space too).
+    const start = before.search(/\S*$/);
     const word = before.slice(start);
     const prefix = this.#prefixes.find((p) => word.startsWith(p));
     return prefix ? { prefix, text: word.slice(prefix.length), start } : null;
@@ -142,8 +156,21 @@ class Mentions extends IzzyElement {
   /** After typing (`typed`) or moving the caret: look for a mention and ask for its suggestions. */
   private update(typed: boolean): void {
     if (this.#area.readOnly || this.#area.disabled) return;
+    if (this.#chose) {
+      this.#chose = false;
+      this.#query = null;
+      this.close();
+      return;
+    }
     const q = this.find();
     const before = this.#query;
+    // Only typing opens the list; moving the caret keeps it for the same mention or closes it, so
+    // a click onto a finished mention leaves Enter and Tab alone.
+    if (!typed && (!q || !before || this.key(before) !== this.key(q) || before.start !== q.start)) {
+      this.#query = null;
+      this.close();
+      return;
+    }
     this.#query = q;
     if (!q) {
       this.close();
@@ -154,11 +181,17 @@ class Mentions extends IzzyElement {
     this.show();
   }
 
+  /** Whether a search for what's typed hasn't answered yet: the list waits, "Searching…", rather than closing. */
+  private pending(key: string): boolean {
+    if (this.querySelector(":scope > .ib-mentions-query")) return this.#list.dataset.query !== key;
+    return !!this.#fetchKey && this.#settled !== key;
+  }
+
   /** Asks for the suggestions for what's typed: Blazor on interactive pages, the page on static ones. */
   private ask(q: Query): void {
     const reset = this.querySelector<HTMLInputElement>(":scope > .ib-mentions-query");
     if (reset) {
-      if (this.#list.dataset.query === this.key(q)) return;
+      // Even when the list answers this text already: a search for other text may be on its way.
       reset.value = this.key(q);
       reset.dispatchEvent(new Event("input", { bubbles: true }));
       return;
@@ -166,7 +199,8 @@ class Mentions extends IzzyElement {
     if (!this.#fetchKey) return;
     clearTimeout(this.#timer);
     this.#request?.abort();
-    if (!q.text) this.take(q.prefix, this.#first.get(q.prefix) ?? [], "");
+    this.#list.removeAttribute("aria-busy");
+    if (!q.text) this.take(q.prefix, this.#first.get(q.prefix) ?? [], this.key(q));
     else if (this.key(q) !== this.#answered) {
       this.#timer = window.setTimeout(() => this.fetchFor(q), Number(this.dataset.ibDebounce ?? 250));
     }
@@ -191,10 +225,11 @@ class Mentions extends IzzyElement {
     this.#request = null;
     // No answer: the options stay, narrowed here.
     if (answer) this.take(q.prefix, [...answer.querySelectorAll(":scope > [role=option]")], this.key(q));
+    this.#settled = this.key(q);
     this.#list.removeAttribute("aria-busy");
   }
 
-  /** Page fetch: puts in a trigger's options, answering `answered` ("" for its first results). */
+  /** Page fetch: puts in a trigger's options, answering `answered` (the trigger alone for its first results). */
   private take(prefix: string, options: Node[], answered: string): void {
     const empty = this.#list.querySelector(".ib-combobox-empty");
     for (const o of this.options) if ((o.dataset.prefix ?? "") === prefix) o.remove();
@@ -203,8 +238,9 @@ class Mentions extends IzzyElement {
       o.id = `${this.#list.id}-${i}`;
       o.hidden = false;
       o.removeAttribute("data-active");
+      o.removeAttribute("aria-selected");
     });
-    this.#answered = answered;
+    this.#answered = this.#settled = answered;
   }
 
   /** Narrows the options to the mention being typed and opens, keeps or closes the list. */
@@ -219,7 +255,8 @@ class Mentions extends IzzyElement {
       option.hidden = !((prefix === "" || prefix === q.prefix) && (answered || fold(option.dataset.text ?? "").includes(typed)));
     }
     const visible = this.visible;
-    if (this.#dismissed === key || (!visible.length && !this.busy)) {
+    const waiting = this.busy || this.pending(key);
+    if (this.#dismissed === key || (!visible.length && !waiting)) {
       this.close();
       return;
     }
@@ -231,11 +268,16 @@ class Mentions extends IzzyElement {
       }
       this.#announced = -1;
       this.placeCaret();
+      this.fit();
       this.#untrack = track(this.#list, this.#caret, this.hasAttribute("data-top") ? "top-start" : "bottom-start");
+    } else {
+      // The word may have wrapped to the next line, or the field grown.
+      this.placeCaret();
+      this.fit();
     }
     const keep = this.#active && visible.includes(this.#active) ? this.#active : null;
     this.activate(keep ?? visible[0] ?? null);
-    if (visible.length !== this.#announced && !this.busy) {
+    if (visible.length !== this.#announced && !waiting) {
       this.#announced = visible.length;
       this.say(visible.length === 1 ? (this.dataset.countOne ?? "1 suggestion.") : (this.dataset.count ?? "{0} suggestions.").replace("{0}", String(visible.length)));
     }
@@ -247,6 +289,8 @@ class Mentions extends IzzyElement {
     if (this.#list?.matches(":popover-open")) this.#list.hidePopover();
     this.activate(null);
     this.#announced = -1;
+    // So the same count is said again when it opens next.
+    this.say("");
   }
 
   private say(text: string): void {
@@ -255,7 +299,12 @@ class Mentions extends IzzyElement {
   }
 
   private onKey(event: KeyboardEvent): void {
-    if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey || !this.isOpen) return;
+    if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!this.isOpen) {
+      // Escape while its suggestions are on their way: they mustn't open the list after it.
+      if (event.key === "Escape" && this.#query) this.#dismissed = this.key(this.#query);
+      return;
+    }
     const options = this.visible;
     const index = this.#active ? options.indexOf(this.#active) : -1;
     switch (event.key) {
@@ -268,6 +317,11 @@ class Mentions extends IzzyElement {
       }
       case "Enter":
       case "Tab":
+        // Shift+Tab goes back, as anywhere.
+        if (event.key === "Tab" && event.shiftKey) {
+          this.close();
+          return;
+        }
         if (!this.#active) return;
         event.preventDefault();
         this.choose(this.#active);
@@ -284,9 +338,12 @@ class Mentions extends IzzyElement {
 
   private activate(option: HTMLElement | null, scroll = true): void {
     this.#active?.removeAttribute("data-active");
+    this.#active?.removeAttribute("aria-selected");
     this.#active = option;
     if (option) {
       option.setAttribute("data-active", "");
+      // Highlighted is selected, for a list whose choice is written into the text.
+      option.setAttribute("aria-selected", "true");
       this.#area?.setAttribute("aria-activedescendant", option.id);
       if (scroll) option.scrollIntoView({ block: "nearest" });
     } else {
@@ -294,22 +351,59 @@ class Mentions extends IzzyElement {
     }
   }
 
-  /** Writes the trigger and the option's text over the mention being typed, then the split. */
+  /** Writes the trigger and the option's text over the whole mention the caret is in, then the split. */
   private choose(option: HTMLElement): void {
-    const q = this.#query;
-    if (!q) return;
+    // Where the caret is now, not where the list was opened.
+    const q = this.find();
+    if (!q) {
+      this.close();
+      return;
+    }
     const area = this.#area;
-    const end = area.selectionStart;
+    const end = area.selectionStart + (area.value.slice(area.selectionStart).match(/^\S*/)?.[0].length ?? 0);
     const split = this.dataset.split ?? " ";
     const after = area.value.slice(end);
     const text = q.prefix + (option.dataset.text ?? "") + (split && !after.startsWith(split) ? split : "");
-    area.setRangeText(text, q.start, end, "end");
-    // Past a split that was already there.
-    if (split && after.startsWith(split)) area.setSelectionRange(area.selectionStart + split.length, area.selectionStart + split.length);
+    // The browser doesn't hold a script to maxlength: a name that doesn't fit isn't written.
+    if (area.maxLength >= 0 && area.value.length - (end - q.start) + text.length > area.maxLength) {
+      this.close();
+      return;
+    }
     this.#query = null;
     this.close();
-    area.dispatchEvent(new Event("input", { bubbles: true }));
+    this.#chose = true;
+    // As typing, so Ctrl+Z takes it back (setRangeText isn't in the undo history); it fires input.
+    area.setSelectionRange(q.start, end);
+    let typed = false;
+    try {
+      typed = document.execCommand("insertText", false, text);
+    } catch {
+      typed = false;
+    }
+    if (!typed) {
+      area.setRangeText(text, q.start, end, "end");
+      area.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    this.#chose = false;
+    // Past a split that was already there.
+    if (split && after.startsWith(split)) area.setSelectionRange(area.selectionStart + split.length, area.selectionStart + split.length);
     area.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  /**
+   * On a narrow screen, moves the mark back from the edge the list grows toward, so the list has
+   * its full width (anchor positioning would squeeze it into the room beside the mark).
+   */
+  private fit(): void {
+    const list = this.#list;
+    const room = document.documentElement.clientWidth;
+    list.style.inlineSize = "max-content";
+    const width = Math.min(list.getBoundingClientRect().width, room - 16);
+    list.style.inlineSize = "";
+    const mark = this.#caret.getBoundingClientRect();
+    const rtl = getComputedStyle(this.#area).direction === "rtl";
+    const shift = rtl ? Math.max(0, 8 + width - mark.left) : Math.min(0, room - 8 - width - mark.left);
+    if (shift) this.#caret.style.left = `${parseFloat(this.#caret.style.left) + shift}px`;
   }
 
   /** Moves the caret mark to the caret's line, measured with a hidden copy of the text area. */
@@ -326,13 +420,15 @@ class Mentions extends IzzyElement {
     copy.style.overflowWrap = "break-word";
     copy.style.overflowY = area.scrollHeight > area.clientHeight ? "scroll" : "hidden";
     const at = this.#query?.start ?? area.selectionStart;
+    const prefix = this.#query?.prefix ?? ".";
     copy.textContent = area.value.slice(0, at);
+    // Only the trigger in the mark, so its edge is the trigger's in either direction.
     const mark = document.createElement("span");
-    mark.textContent = area.value.slice(at) || ".";
-    copy.append(mark);
+    mark.textContent = prefix;
+    copy.append(mark, area.value.slice(at + prefix.length));
     document.body.append(copy);
     const top = mark.offsetTop - area.scrollTop;
-    const left = mark.offsetLeft - area.scrollLeft;
+    const left = mark.offsetLeft + (style.direction === "rtl" ? mark.offsetWidth : 0) - area.scrollLeft;
     const line = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
     copy.remove();
     // Kept inside the text area when the caret's line is scrolled out of it.

@@ -39,9 +39,10 @@ public class MentionsRenderTests : BunitContext
         var cut = Reply();
 
         Assert.Equal([new MentionQuery("@", ""), new MentionQuery("#", "")], _searches);
+        // The script links the list once it runs; without it the text area is plain.
         var area = cut.Find("textarea");
-        Assert.Equal("list", area.GetAttribute("aria-autocomplete"));
-        var list = cut.Find("#" + area.GetAttribute("aria-controls"));
+        Assert.Null(area.GetAttribute("aria-autocomplete"));
+        var list = cut.Find($"#{area.Id}-list");
         Assert.Equal("listbox", list.GetAttribute("role"));
         Assert.Equal(["@aisha.bello", "@daniel.kim", "@mei.chen", "#1042", "#1057", "#1063"],
             list.QuerySelectorAll("[role=option]").Select(o => o.GetAttribute("data-prefix") + o.GetAttribute("data-text")));
@@ -64,6 +65,7 @@ public class MentionsRenderTests : BunitContext
     {
         const string text = "Thanks @daniel.kim! Mail ops@example.com, then #1063.";
         Assert.Equal([new Mention("@", "daniel.kim", 7), new Mention("#", "1063", 47)], Mention.Parse(text, "@", "#"));
+        Assert.Equal(["ana", "ana", "j.doe"], Mention.Parse("“ask @ana”, @ana’s PR, cc @j.doe.").Select(m => m.Text));
 
         var cut = Render<MentionText>(p => p
             .Add(c => c.Text, text)
