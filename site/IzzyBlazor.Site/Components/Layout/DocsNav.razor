@@ -35,6 +35,11 @@
                     <NavItem Href="@Registry.OverviewHref(component)">@component.DisplayName</NavItem>
                 }
             }
+            @* Planned, not built yet: shown, not a link. *@
+            @foreach (var planned in Registry.Roadmap.Where(r => r.Category == category))
+            {
+                <NavItem Disabled Badge="Roadmap">@planned.Name</NavItem>
+            }
         }
     }
     else

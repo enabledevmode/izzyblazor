@@ -32,7 +32,9 @@ public sealed class Registry
         AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c)
             .OrderBy(x => !x.Base).ThenBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)).ToList();
         Components = AllComponents.Where(c => !c.Preview).ToList();
-        var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id).ToList();
+        Roadmap = file.Roadmap;
+        var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id)
+            .Concat(file.Roadmap.Where(r => !Categories.Contains(r.Category)).Select(r => r.Name)).ToList();
         if (stray.Count > 0)
         {
             throw new InvalidOperationException($"components.json: unknown category for {string.Join(", ", stray)}.");
@@ -76,6 +78,9 @@ public sealed class Registry
     public RegistryComponent? OwnerOfPart(string name) => _byPart.GetValueOrDefault(name);
 
     public IEnumerable<RegistryComponent> InCategory(string category) => Components.Where(c => c.Category == category);
+
+    /// <summary>Components planned and not built, listed in the sidebar (disabled, "Roadmap").</summary>
+    public IReadOnlyList<RegistryRoadmapItem> Roadmap { get; }
 
     public (RegistryComponent Component, RegistryExample Example)? Example(string id) =>
         _examples.TryGetValue(id, out var found) ? found : null;
@@ -157,6 +162,14 @@ public sealed record RegistryFile
 {
     public required List<string> Categories { get; init; }
     public required List<RegistryComponent> Components { get; init; }
+    public List<RegistryRoadmapItem> Roadmap { get; init; } = [];
+}
+
+/// <summary>A component planned and not built: a disabled entry, after its group's components, in the sidebar.</summary>
+public sealed record RegistryRoadmapItem
+{
+    public required string Name { get; init; }
+    public required string Category { get; init; }
 }
 
 public sealed record RegistryComponent
