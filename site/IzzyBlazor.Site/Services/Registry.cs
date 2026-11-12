@@ -104,7 +104,6 @@ public sealed class Registry
         "App shell" => "PanelsTopLeft",
         "Typography" => "Type",
         "Actions" => "MousePointerClick",
-        "Forms" => "ClipboardList",
         "Inputs" => "TextCursorInput",
         "Date & time" => "CalendarClock",
         "Selection" => "ListChecks",
