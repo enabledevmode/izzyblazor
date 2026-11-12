@@ -1616,7 +1616,13 @@
             "interactive": "Show orders runs C# and closes the drawer through @bind-Open."
           } },
         { "id": "drawer-edges", "title": "Edges and widths", "lead": "At the end edge, `Size` sets the drawer's width. For a sheet along the bottom, set `Placement` to `DialogPlacement.Bottom`." },
-        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "For navigation that slides in from the start edge, set `Placement` to `DialogPlacement.Start` with a small `Size`." }
+        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "For navigation that slides in from the start edge, set `Placement` to `DialogPlacement.Start` with a small `Size`." },
+        { "id": "drawer-action-sheet", "title": "An action sheet", "lead": "For a short list of actions on phones, open a drawer from the bottom with a button per action and Cancel set apart below them.",
+          "notes": {
+            "noscript": "An action posts the form, and the page reloads with the sheet closed.",
+            "static": "An action posts without a full reload, and the sheet closes.",
+            "interactive": "An action runs C# and closes the sheet through @bind-Open."
+          } }
       ]
     },
     {

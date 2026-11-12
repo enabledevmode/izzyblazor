@@ -1,6 +1,6 @@
 @* Drawer's Overview, written by hand after Dialog's, which it is: opening it (as a dialog), a form in
-   a drawer previewed in each mode, edges and widths, a menu from the start edge, then what it
-   shares with Dialog. Accessibility and See also come from the doc comment. *@
+   a drawer previewed in each mode, edges and widths, a menu from the start edge, an action sheet, then what
+   it shares with Dialog. Accessibility and See also come from the doc comment. *@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
@@ -40,6 +40,15 @@
 <TextBlock>A drawer from the start edge suits navigation that slides in, such as a site's menu on phones. Set <Code>Placement="DialogPlacement.Start"</Code> and <Code>Size="DialogSize.Sm"</Code>.</TextBlock>
 <ExampleViewer Example="drawer-nav" />
 <TextBlock>An app's navigation doesn't need a Drawer. In an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, the <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> becomes a drawer below its breakpoint by itself, opened by a <Code>SidebarToggle</Code>, with JavaScript off too.</TextBlock>
+
+<Heading Level="2">An action sheet</Heading>
+<TextBlock>An action sheet offers a few actions on one thing, such as a photo, from the bottom of a phone's screen. Open a drawer with <Code>Placement="DialogPlacement.Bottom"</Code>, put a full-width button per action in a form, and end with a <Code>DialogClose</Code> for Cancel. Choosing an action closes the sheet, as with a form in a drawer.</TextBlock>
+<ExampleViewer Example="drawer-action-sheet" />
+<List>
+    <ListItem>Keep the title: it names the sheet. Hide the close button with <Code>ShowCloseButton="false"</Code>, since Cancel does its job.</ListItem>
+    <ListItem>Mark a destructive action with <Code>Accent.Danger</Code>, and leave an unavailable one in place as <Code>Disabled</Code>.</ListItem>
+    <ListItem>For more than a handful of actions, or on wide screens, use a <Anchor Href="docs/components/menu">Menu</Anchor>.</ListItem>
+</List>
 
 <Heading Level="2">Header, footer and closing</Heading>
 <TextBlock>Put the content in a <Code>DialogBody</Code> and the buttons in a <Code>DialogFooter</Code> after it. The body fills the drawer's height, so the footer sits at its bottom. Without a body, the footer follows the content partway down.</TextBlock>
