@@ -91,12 +91,7 @@
 
   .ib-tiles-rows-at-base { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
 
-  /* Editing: the handle at the header's start, pulled into the padding so the title keeps its line. */
-  .ib-tile-handle {
-    flex: none;
-    margin-inline-start: calc(var(--ib-space-2) * -1);
-    cursor: move;
-  }
+  .ib-tile-handle { cursor: move; }
 
   /* ShowGrid's cells, under the tiles: each at its column and row of the widest count. */
   .ib-tiles-cell {
@@ -110,12 +105,11 @@
 
   .ib-tiles-editing > .ib-tile { position: relative; z-index: 1; }
 
-  /* A tile with no header: its handle is a pill over the middle of its top edge, half in the gap
-     above, clear of what tiles keep in their corners (a stat's icon, a chart's buttons) and of a
-     row of tabs. The layout leaves room above its first row for it. */
+  /* The handle: a pill over the middle of a tile's top edge, half in the gap above, clear of the
+     title (at the start), HeaderEnd and what tiles keep in their corners (a stat's icon, a chart's
+     buttons) and of a row of tabs. Nothing moves to make room for it. */
   .ib-tiles-editing > .ib-tile { overflow: visible; }
   .ib-tiles-editing > .ib-tile:not(:has(> .ib-tile-header)) > .ib-tile-body { border-radius: calc(var(--ib-radius-xl) - 1px); }
-  .ib-tiles-editing:has(> .ib-tile > .ib-tile-pill) { margin-block-start: 0.75rem; }
 
   .ib-tile-pill {
     position: absolute;

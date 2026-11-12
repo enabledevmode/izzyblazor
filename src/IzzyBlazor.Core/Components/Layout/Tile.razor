@@ -16,32 +16,31 @@
     </Tile>
 
     Header replaces the icon and title with your own content. HeaderEnd sits at the end of the
-    header: buttons such as a refresh or a Menu, or a figure across from the title. Flush runs the
-    content to the tile's edges, for Tabs, a DataGrid or a map.
+    header: buttons such as a refresh or a Menu, or a figure across from the title. A tile with
+    none of these has no header. Flush runs the content to the tile's edges, for Tabs, a DataGrid
+    or a map.
 
     A Chart that is a tile's only content, with no Height, fills the tile. Name it by the tile's
     title (set the tile's TitleId and the chart's TitledBy) rather than giving it its own, and put
     its buttons in HeaderEnd: ChartDownload, ChartResetZoom, ChartZoom and ChartPause act on the
-    tile's chart. A tile with none of these has no header. In an Editable layout the tile's handle
-    starts its header, or sits in its top corner when it has none. The handle's menu moves the tile a cell at a time and resizes
-    it, within MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
+    tile's chart.
+
+    In an Editable layout the tile's handle is a pill on the middle of its top edge, so turning
+    editing on moves nothing. Its menu moves the tile a cell at a time and resizes it, within
+    MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem"
      aria-labelledby="@(HasTitle ? _titleId : null)" aria-label="@(HasTitle ? null : Label)" data-tile-id="@Id"
      data-ib-label="@(Editing ? AccessibleName : null)" data-ib-limits="@(Editing ? Limits : null)">
-    @if (Editing && !HasHeader)
+    @if (Editing)
     {
-        @* No header to hold it: the handle sits in the corner, so editing doesn't change the tile's size. *@
+        @* The handle: a pill over the middle of the tile's top edge, so editing moves nothing. *@
         <div class="ib-tile-pill">@HandleMenu</div>
     }
     @if (HasHeader)
     {
         <div class="ib-tile-header">
-            @if (Editing)
-            {
-                @HandleMenu
-            }
             @if (Header is not null)
             {
                 <div class="ib-tile-heading" id="@_titleId">@Header</div>
@@ -164,7 +163,7 @@
         var focus = !Context!.Owner.Live && Id is not null && Id == Context.Owner.FocusId;
         <Menu>
             <Trigger Context="wire">
-                <IconButton Icon="@(HasHeader ? Lucide.GripVertical : Lucide.GripHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
+                <IconButton Icon="Lucide.GripHorizontal" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-tile-handle"
                             aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+Shift+ArrowLeft Alt+Shift+ArrowRight Alt+Shift+ArrowUp Alt+Shift+ArrowDown"
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
