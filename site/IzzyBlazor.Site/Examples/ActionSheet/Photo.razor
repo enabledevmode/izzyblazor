@@ -6,11 +6,14 @@
         <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
     </Row>
 
-    <ActionSheet Id="photo-actions" Title="IMG_2041.jpg">
+    <ActionSheet Id="photo-actions" Title="IMG_2041.jpg" Description="Taken Oct 12 in Lisbon, 3.2 MB">
         @* Static pages post the chosen item's Name=Value; interactive ones run OnClick. *@
-        <ActionSheetItem Submit Name="choice" Value="Shared" OnClick='() => _pressed = "Shared"'>Share</ActionSheetItem>
-        <ActionSheetItem Submit Name="choice" Value="Duplicated" OnClick='() => _pressed = "Duplicated"'>Duplicate</ActionSheetItem>
-        <ActionSheetItem Submit Name="choice" Value="Deleted" OnClick='() => _pressed = "Deleted"' Accent="Accent.Danger">Delete</ActionSheetItem>
+        <ActionSheetItem Submit Name="choice" Value="Shared" OnClick='() => _pressed = "Shared"'
+                         Icon="Lucide.Share2">Share</ActionSheetItem>
+        <ActionSheetItem Submit Name="choice" Value="Duplicated" OnClick='() => _pressed = "Duplicated"'
+                         Icon="Lucide.Copy">Duplicate</ActionSheetItem>
+        <ActionSheetItem Submit Name="choice" Value="Deleted" OnClick='() => _pressed = "Deleted"'
+                         Accent="Accent.Danger" Icon="Lucide.Trash">Delete</ActionSheetItem>
     </ActionSheet>
 </form>
 

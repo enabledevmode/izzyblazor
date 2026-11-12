@@ -4,7 +4,8 @@
 
 @*
     ActionSheet: a few actions on one thing, such as a photo or a message, in a sheet that slides
-    up from the bottom, with Cancel last. It suits phones; on wide screens a Menu fits better.
+    up from the bottom, with Cancel last. It suits phones; on wide screens a Menu fits better. Its
+    items are a menu's rows, made larger for a finger, with an optional icon each.
 
     <DialogTrigger For="photo">IMG_2041.jpg</DialogTrigger>
     <ActionSheet Id="photo" Title="IMG_2041.jpg">
@@ -20,37 +21,40 @@
     the sheet: a link or a post renders the page with it closed, and on an interactive page the
     sheet closes after OnClick. Put the sheet inside the form its items post, as with a Menu.
 
-    The sheet is centered and 40rem wide at most, the full width on phones. Cancel (CancelText)
-    closes it, as do Escape and a tap outside.
+    The sheet is centered and 40rem wide at most, the full width on phones. Cancel (CancelText),
+    after a rule, closes it, as do Escape and a tap outside.
 
     Accessibility:
     - It's a native modal `dialog` named by `Title` (an `h2`); without a Title, pass an
       `aria-label`. The page behind it is inert, and focus returns to the trigger.
-    - Each item is a native `button` or link, so it's reached with Tab and named by its text.
+    - Each item is a native `button` or link, so it's reached with Tab and named by its text. Its
+      icon is decoration.
     - Cancel is a real button, not only a tap outside, so every way out can be reached.
     See also: Menu, Drawer, Dialog.
 *@
 
-<Dialog Id="@Id" Title="@Title" Placement="DialogPlacement.Bottom" Size="Size" ShowCloseButton="false" InsideForm
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/action-sheet.css"]" />
+<Dialog Id="@SheetId" Title="@Title" Placement="DialogPlacement.Bottom" Size="Size" ShowCloseButton="false" InsideForm
         ContentPadding="0" CloseOnBackdrop="CloseOnBackdrop" QueryKey="@QueryKey" Open="_open" OpenChanged="DialogOpenChanged"
         Class="@BuildClass()" Style="@Style" @attributes="AdditionalAttributes">
-    @if (Title is not null)
+    @if (Description is not null)
     {
-        <Divider />
+        <p class="ib-action-sheet-desc">@Description</p>
     }
     <CascadingValue Value="this" IsFixed="true">
-        <Stack Gap="3" PaddingX="6" PaddingY="5">
-            @if (Description is not null)
-            {
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Description</TextBlock>
-            }
-            @ChildContent
-            @if (ShowCancel)
-            {
-                <DialogClose FullWidth>@(CancelText ?? TextDefaults.Cancel)</DialogClose>
-            }
-        </Stack>
+        <div class="ib-action-sheet-list">@ChildContent</div>
     </CascadingValue>
+    @if (ShowCancel)
+    {
+        @* The native close command: the sheet sits in a form, so there's no close form to submit. *@
+        <hr class="ib-action-sheet-rule" />
+        <div class="ib-action-sheet-list">
+            <button type="button" class="ib-menu-item ib-action-sheet-item" commandfor="@SheetId" command="close">
+                <Icon Purpose="IconPurpose.Close" />
+                <span class="ib-menu-label">@(CancelText ?? TextDefaults.Cancel)</span>
+            </button>
+        </div>
+    }
 </Dialog>
 
 @code {
@@ -93,6 +97,9 @@
 
     private bool _open;
     private bool? _lastOpen;
+    private string? _generatedId;
+
+    private string SheetId => Id ?? (_generatedId ??= IdGenerator.Next("ib-action-sheet"));
 
     private string BuildClass() => Class is null ? "ib-action-sheet" : $"ib-action-sheet {Class}";
 

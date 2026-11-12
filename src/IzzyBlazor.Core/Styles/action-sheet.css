@@ -1,0 +1,38 @@
+/*
+ * ActionSheet. Built to wwwroot/action-sheet.css and linked by ActionSheet, so pages without one
+ * don't pay for it. Its rows are menu items (overlay.css), made larger for a finger.
+ */
+@layer izzy.components {
+  .ib-action-sheet-desc {
+    margin: 0;
+    padding: 0 var(--ib-space-6) var(--ib-space-2);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  /* Rows inset by 0.5rem, their text in line with the title. */
+  .ib-action-sheet-list {
+    display: flex;
+    flex-direction: column;
+    padding: var(--ib-space-1) var(--ib-space-2);
+  }
+
+  .ib-action-sheet-list:last-child { padding-block-end: var(--ib-space-3); }
+
+  /* 48px rows and 20px icons: a menu's rows are sized for a pointer. */
+  .ib-action-sheet-item {
+    --ib-icon-size: var(--ib-control-icon-md);
+    gap: var(--ib-space-3);
+    min-height: 3rem;
+    padding-inline: var(--ib-space-4);
+    border-radius: var(--ib-radius-md);
+    font-size: var(--ib-text-md);
+  }
+
+  /* Cancel set apart from the actions. */
+  .ib-action-sheet-rule {
+    margin: var(--ib-space-1) 0;
+    border: 0;
+    border-block-start: 1px solid var(--ib-color-border);
+  }
+}

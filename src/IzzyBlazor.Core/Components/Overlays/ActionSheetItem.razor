@@ -3,14 +3,22 @@
 @using Microsoft.AspNetCore.Components.Web
 
 @*
-    One action in an ActionSheet: a full-width outlined button. It takes MenuItem's parameters, so
-    it acts on static pages too: Href is a link, Submit posts the surrounding form (or Form="id"),
-    and OnClick runs C# on interactive pages, after which the sheet closes.
+    One action in an ActionSheet: a menu row, larger for a finger. It takes MenuItem's parameters,
+    so it acts on static pages too: Href is a link, Submit posts the surrounding form (or
+    Form="id"), and OnClick runs C# on interactive pages, after which the sheet closes.
 *@
 
-<Button Href="@Href" Submit="Submit" Name="@Name" Value="@Value" FormAction="@FormAction" Form="@Form"
-        StartIcon="Icon" Accent="Accent" Disabled="Disabled" Variant="ButtonVariant.Outline" FullWidth
-        OnClick="HandleClick" Class="@Class" Style="@Style" @attributes="AdditionalAttributes">@ChildContent</Button>
+@if (Href is not null)
+{
+    <a @attributes="AdditionalAttributes" class="@_class" style="@_style" href="@(Disabled ? null : Href)"
+       aria-disabled="@(Disabled ? "true" : null)" @onclick="HandleClick">@Content</a>
+}
+else
+{
+    <button @attributes="AdditionalAttributes" type="@(Submit ? "submit" : "button")" class="@_class" style="@_style"
+            disabled="@Disabled" name="@Name" value="@Value" formaction="@FormAction" form="@Form"
+            @onclick="HandleClick">@Content</button>
+}
 
 @code {
     /// <summary>Makes the item a link to this URL.</summary>
@@ -39,8 +47,9 @@
     [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>
-    /// The color. <see cref="Accent.Neutral"/> (the default) is plain; use
-    /// <see cref="Accent.Danger"/> for a destructive action.
+    /// The text color. <see cref="Accent.Neutral"/> (the default) is plain; use
+    /// <see cref="Accent.Danger"/> for a destructive action. A custom color is used as text, mixed
+    /// toward the text color so it stays readable.
     /// </summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
 
@@ -55,6 +64,34 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [CascadingParameter] private ActionSheet? Sheet { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        // A menu row: the same hover, focus, disabled and accent colors as MenuItem.
+        classes.Add("ib-menu-item ib-action-sheet-item");
+        var accent = Accent ?? Accent.Neutral;
+        classes.Add($"ib-menu-item-{accent.Role}", accent.Role is not null && accent != Accent.Neutral);
+        if (accent.Custom is { } custom)
+        {
+            classes.Add("ib-menu-item-custom");
+            styles.AddVar("menu-item-color", ColorOverride.TextTint(custom));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private RenderFragment Content => @<text>
+        @if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        <span class="ib-menu-label">@ChildContent</span>
+    </text>;
 
     private async Task HandleClick(MouseEventArgs e)
     {

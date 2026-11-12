@@ -24,6 +24,7 @@ colorpanel=$(gzip -c src/IzzyBlazor.Core/wwwroot/color-panel.css | wc -c)
 chat=$(gzip -c src/IzzyBlazor.Core/wwwroot/chat.css | wc -c)
 quote=$(gzip -c src/IzzyBlazor.Core/wwwroot/blockquote.css | wc -c)
 comment=$(gzip -c src/IzzyBlazor.Core/wwwroot/comment.css | wc -c)
+sheet=$(gzip -c src/IzzyBlazor.Core/wwwroot/action-sheet.css | wc -c)
 rangesel=$(gzip -c src/IzzyBlazor.Core/wwwroot/range-selector.css | wc -c)
 sched=$(gzip -c src/IzzyBlazor.Core/wwwroot/scheduler.css | wc -c)
 echo "CSS gzip: $css bytes (budget 52224)"
@@ -47,6 +48,7 @@ echo "color-panel.css gzip: $colorpanel bytes (budget 2048; only pages with a Co
 echo "chat.css gzip: $chat bytes (budget 2048; only pages with a Chat load it)"
 echo "blockquote.css gzip: $quote bytes (budget 1024; only pages with a Blockquote load it)"
 echo "comment.css gzip: $comment bytes (budget 1024; only pages with a Comment load it)"
+echo "action-sheet.css gzip: $sheet bytes (budget 1024; only pages with an ActionSheet load it)"
 echo "range-selector.css gzip: $rangesel bytes (budget 2048; only charts with a RangeSelector load it)"
 echo "scheduler.css gzip: $sched bytes (budget 3072; only pages with a Scheduler load it)"
 echo "JS gzip:  $js bytes (budget 15424; every page loads it)"
@@ -74,4 +76,4 @@ for f in src/IzzyBlazor.Core/wwwroot/elements/parts/*.js; do
 done
 echo "Largest on-demand element: $big bytes (budget 6656)"
 echo "rich-text.js: $richcore bytes (budget 8192; its tables, images, links, formats and Markdown are parts)"
-test "$css" -le 52224 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$treeselect" -le 1024 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3072 && test "$js" -le 15424 && test "$big" -le 6656 && test "$richcore" -le 8192
+test "$css" -le 52224 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$treeselect" -le 1024 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$sheet" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3072 && test "$js" -le 15424 && test "$big" -le 6656 && test "$richcore" -le 8192

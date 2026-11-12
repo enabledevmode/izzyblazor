@@ -271,6 +271,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "treemap.css"),
   },
   {
+    // A sheet of its own, linked by ActionSheet.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "action-sheet.css")],
+    outfile: join(lib, "wwwroot", "action-sheet.css"),
+  },
+  {
     // A sheet of its own, linked by Comment.
     ...common,
     sourcemap: false,
