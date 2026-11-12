@@ -1,24 +1,48 @@
-@* A support lead arranging the team dashboard. On a static page each move posts the form and the
-   layout comes back moved; Save keeps the layout when its own button posted. *@
+@* A support lead arranging the team dashboard. Edit layout turns on editing; Save layout keeps the
+   new layout and Cancel drops it. On a static page the buttons post the form (the layout travels
+   in it), and with JavaScript off so does each move from a tile's menu. *@
 <Stack Grow>
-    <Form Model="this" FormName="tile-layout-edit" OnValidSubmit="Save">
-        <TileLayout Columns="new() { Base = 1, Md = 6 }" Rows="3" RowHeight="Length.Rem(7)" Editable ShowGrid
-                    Name="layout" Post="Posted" @bind-State="_layout" aria-label="Support dashboard">
-            <Tile Id="open" Label="Open tickets" Col="1" Row="1" ColSpan="2" MinColSpan="2">
-                <Stat Label="Open tickets" Value="42" Change="5" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="since Monday" />
-            </Tile>
-            <Tile Id="response" Label="First response" Col="3" Row="1" ColSpan="2" MinColSpan="2">
-                <Stat Label="First response" Value="38 min" Change="6 min" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
-            </Tile>
-            <Tile Id="satisfaction" Label="Satisfaction" Col="1" Row="2" ColSpan="2" MinColSpan="2">
-                <Stat Label="Satisfaction" Value="94%" Change="1 pt" Trend="StatTrend.Up" Description="last 30 days" />
-            </Tile>
-        </TileLayout>
-        <FormActions><Button Submit>Save layout</Button></FormActions>
-        @if (_saved is not null)
-        {
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @_saved</TextBlock>
-        }
+    <Form Model="this" FormName="tile-layout-edit" OnValidSubmit="Submitted">
+        <Stack Gap="3">
+            <Row Gap="2" Align="Align.Center" Wrap>
+                <TextBlock Weight="FontWeight.Medium" Grow>Support dashboard</TextBlock>
+                @if (_editing)
+                {
+                    @Action("cancel", "Cancel", ButtonVariant.Outline, null)
+                    @Action("save", "Save layout", ButtonVariant.Solid, Lucide.Check, focus: _focus)
+                    @if (!RendererInfo.IsInteractive)
+                    {
+                        <input type="hidden" name="editing" value="1" />
+                    }
+                }
+                else
+                {
+                    @Action("edit", "Edit layout", ButtonVariant.Outline, Lucide.LayoutDashboard, focus: _focus)
+                }
+                @* hide *@
+                @if (!RendererInfo.IsInteractive && _saved is not null)
+                {
+                    <input type="hidden" name="saved" value="@_saved" />
+                }
+                @* /hide *@
+            </Row>
+            <TileLayout Columns="new() { Base = 1, Md = 6 }" Rows="3" RowHeight="Length.Rem(7)" aria-label="Support dashboard"
+                        Editable="_editing" ShowGrid="_editing" Name="layout" Post="@(_editing ? Posted : null)" @bind-State="_layout">
+                <Tile Id="open" Label="Open tickets" Col="1" Row="1" ColSpan="2" MinColSpan="2">
+                    <Stat Label="Open tickets" Value="42" Change="5" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="since Monday" />
+                </Tile>
+                <Tile Id="response" Label="First response" Col="3" Row="1" ColSpan="2" MinColSpan="2">
+                    <Stat Label="First response" Value="38 min" Change="6 min" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
+                </Tile>
+                <Tile Id="satisfaction" Label="Satisfaction" Col="1" Row="2" ColSpan="2" MinColSpan="2">
+                    <Stat Label="Satisfaction" Value="94%" Change="1 pt" Trend="StatTrend.Up" Description="last 30 days" />
+                </Tile>
+            </TileLayout>
+            @if (_saved is not null && !_editing)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @_saved</TextBlock>
+            }
+        </Stack>
     </Form>
 </Stack>
 
@@ -26,18 +50,78 @@
     [SupplyParameterFromForm(FormName = "tile-layout-edit", Name = "layout")]
     private TileLayoutPost? Posted { get; set; }
 
-    private TileLayoutState? _layout;
-    private string? _saved;
+    // Which button posted (static pages); null for a move from a tile's menu.
+    [SupplyParameterFromForm(FormName = "tile-layout-edit", Name = "do")]
+    private string? Do { get; set; }
 
-    private void Save()
+    // Set while editing, so a move from a tile's menu (JavaScript off) stays in edit mode.
+    [SupplyParameterFromForm(FormName = "tile-layout-edit", Name = "editing")]
+    private string? EditingPosted { get; set; }
+
+    // The layout shown (and, while editing, being changed), and the one saved.
+    private TileLayoutState? _layout;
+    private TileLayoutState? _saved;
+    private bool _editing;
+
+    // A static page comes back after a button posted: focus goes to the button now in its place.
+    private bool _focus;
+
+    protected override void OnInitialized()
     {
-        // A move from a tile's menu posts too; only the Save button saves.
-        if (Posted?.Move is not null)
+        _saved = Load();
+        _layout = _saved;
+        _editing = EditingPosted == "1";
+    }
+
+    // A static page: the button that posted, or a move from a tile's menu (stays in edit mode).
+    private void Submitted()
+    {
+        _focus = Do is not null;
+        if (Do is not null)
         {
-            return;
+            Act(Do);
+        }
+    }
+
+    private void Act(string what)
+    {
+        switch (what)
+        {
+            case "edit":
+                _editing = true;
+                return;
+            case "save":
+                // Static: the layout came in the post. Interactive: @bind-State kept it.
+                // An app saves it per user, as a TileLayoutState string.
+                _saved = RendererInfo.IsInteractive ? _layout : Posted?.State ?? _saved;
+                break;
         }
 
-        _layout = Posted?.State ?? _layout;
-        _saved = _layout?.ToString() ?? "the layout as written";
+        _layout = _saved;
+        _editing = false;
     }
+
+    // Edit layout only from the Md breakpoint up, where the tiles can be arranged.
+    private RenderFragment Action(string what, string text, ButtonVariant variant, IconData? icon, bool focus = false) => __builder =>
+    {
+        var accent = variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral;
+        var from = what == "edit" ? Breakpoint.Md : (Breakpoint?)null;
+        if (RendererInfo.IsInteractive)
+        {
+            <Button Variant="variant" Accent="accent" StartIcon="icon" VisibleFrom="from" OnClick="() => Act(what)">@text</Button>
+        }
+        else
+        {
+            <Button Variant="variant" Accent="accent" StartIcon="icon" VisibleFrom="from" Submit Name="do" Value="@what"
+                    autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)">@text</Button>
+        }
+    };
+    @* hide *@
+
+    // The example has no database: on static pages the saved layout rides along in the form.
+    [SupplyParameterFromForm(FormName = "tile-layout-edit", Name = "saved")]
+    private string? SavedPosted { get; set; }
+
+    private TileLayoutState? Load() => SavedPosted is { Length: > 0 } raw ? TileLayoutState.Parse(raw) : null;
+    @* /hide *@
 }
