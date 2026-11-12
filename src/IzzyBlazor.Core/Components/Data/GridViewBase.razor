@@ -2340,7 +2340,9 @@
     [CascadingParameter] private HeaderHost? PartsHost { get; set; }
 
     private readonly List<PartLink> _partLinks = [];
+    private readonly List<PartLink> _partsAsked = [];
     private Action? _partsRedraw;
+    private Action? _partsRetry;
     private string? _partsId;
 
     string IDataGridToolbar.PartsId => _partsId ??= IdGenerator.Next("ib-grid");
@@ -2351,24 +2353,32 @@
     private void ClaimParts()
     {
         _partsRedraw ??= StateHasChanged;
-        var claimed = new List<PartLink>();
-        if (PartsHost?.Parts(typeof(IDataGridToolbar)) is { } host && host.Claim(this, _partsRedraw))
+        _partsRetry ??= () =>
         {
-            claimed.Add(host);
+            ClaimParts();
+            StateHasChanged();
+        };
+        var asked = new List<PartLink>();
+        if (PartsHost?.Parts(typeof(IDataGridToolbar)) is { } host)
+        {
+            asked.Add(host);
         }
 
-        if (PartLinks.IdOf(AdditionalAttributes) is { } id && PartLinks.From(Services)?.Of(typeof(IDataGridToolbar), id) is { } named && named.Claim(this, _partsRedraw))
+        if (PartLinks.IdOf(AdditionalAttributes) is { } id && PartLinks.From(Services)?.Of(typeof(IDataGridToolbar), id) is { } named)
         {
-            claimed.Add(named);
+            asked.Add(named);
         }
 
-        foreach (var link in _partLinks.Except(claimed))
+        // Links it had or waited on and no longer asks for (its id changed).
+        foreach (var link in _partsAsked.Except(asked))
         {
             link.Release(this);
         }
 
+        _partsAsked.Clear();
+        _partsAsked.AddRange(asked);
         _partLinks.Clear();
-        _partLinks.AddRange(claimed);
+        _partLinks.AddRange(asked.Where(link => link.Claim(this, _partsRedraw, _partsRetry)));
     }
 
     bool IDataGridToolbar.HasExport => HasExportTool;
@@ -2721,7 +2731,7 @@
     public override void Dispose()
     {
         base.Dispose();
-        foreach (var link in _partLinks)
+        foreach (var link in _partsAsked)
         {
             link.Release(this);
         }

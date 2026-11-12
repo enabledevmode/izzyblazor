@@ -81,15 +81,18 @@ class GridEdit extends IzzyElement {
       void this.#open(root, link);
     }, { signal });
     // Its Add outside it, such as in a tile's header (a .ib-part named by the grid's id).
-    const parts = root.getAttribute("data-ib-grid-id");
-    if (parts) document.addEventListener("click", (event) => {
+    // Always: an interactive page can add one after this runs, so the id is read on the click. Capture,
+    // before Blazor's enhanced navigation (on the document too) follows the link as well.
+    document.addEventListener("click", (event) => {
+      const parts = root.getAttribute("data-ib-grid-id");
+      if (!parts) return;
       const click = event as MouseEvent;
       const link = (click.target as Element).closest?.<HTMLAnchorElement>("a[data-ib-edit]");
       if (!link || root.contains(link) || link.closest<HTMLElement>(".ib-part")?.dataset.ibGrid !== parts || !root.hasAttribute("data-ib-stays-static") || click.ctrlKey || click.metaKey || click.shiftKey) return;
       click.preventDefault();
       click.stopPropagation();
       void this.#open(root, link);
-    }, { signal });
+    }, { signal, capture: true });
     signal.addEventListener("abort", () => gone.disconnect());
   }
 
@@ -125,7 +128,10 @@ class GridEdit extends IzzyElement {
     const action = "[data-ib-edit]:not([popover] *)";
     // Not a button that's folded into the menu (DataGridSmallScreen).
     const shown = (selector: string) => [...root.querySelectorAll<HTMLElement>(selector)].find((found) => found.closest("ib-table") === root && found.checkVisibility());
-    (shown(`${row} ${action}`) ?? shown(`${row} [data-ib-row-menu]`) ?? shown(action))?.focus();
+    // With the row gone, its Add outside the grid (a tile's header) comes first, as the grid's own toolbar would.
+    const id = root.getAttribute("data-ib-grid-id");
+    const add = id ? [...document.querySelectorAll<HTMLElement>(`.ib-part[data-ib-grid="${CSS.escape(id)}"] ${action}`)].find((found) => found.checkVisibility()) : undefined;
+    (shown(`${row} ${action}`) ?? shown(`${row} [data-ib-row-menu]`) ?? add ?? shown(action))?.focus();
   }
 
   // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes

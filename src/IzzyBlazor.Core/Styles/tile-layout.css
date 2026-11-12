@@ -31,9 +31,11 @@
     box-shadow: var(--ib-shadow-xs);
   }
 
+  /* What's at the end goes under the title when both don't fit (a calendar's navigation on a phone). */
   .ib-tile-header {
     display: flex;
     flex: none;
+    flex-wrap: wrap;
     align-items: center;
     min-block-size: calc(2rem + var(--ib-space-3));
     gap: var(--ib-space-2);
@@ -67,9 +69,13 @@
 
   .ib-tile-end {
     display: flex;
-    flex: none;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--ib-space-1);
+    min-inline-size: 0;
+    margin-inline-start: auto;
     margin-inline-end: calc(var(--ib-space-2) * -1);
   }
 

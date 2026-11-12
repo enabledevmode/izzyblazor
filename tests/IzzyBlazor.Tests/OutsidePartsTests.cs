@@ -40,6 +40,20 @@ public class OutsidePartsTests : BunitContext
         Assert.Empty(cut.FindAll("ib-scheduler .ib-sched-bar"));
     }
 
+    [Fact]
+    public void A_grid_replaced_by_a_new_key_takes_over_the_search_in_its_tiles_header()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "grid-keyed"));
+
+        // The new grid draws before the old one is gone.
+        cut.Render(p => p.Add(c => c.Version, 1));
+
+        var search = cut.Find(".ib-tile-end input[type=search]");
+        Assert.Equal(cut.Find("ib-table").GetAttribute("data-ib-grid-id"), search.Closest(".ib-part")!.GetAttribute("data-ib-grid"));
+        Assert.Empty(cut.FindAll("ib-table input[type=search]"));
+    }
+
     private sealed class NoCookies : IRequestCookies
     {
         public string? Get(string name) => null;

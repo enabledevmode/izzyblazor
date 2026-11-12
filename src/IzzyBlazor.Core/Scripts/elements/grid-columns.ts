@@ -76,11 +76,10 @@ class GridColumns extends IzzyElement {
     }, { signal });
     host.addEventListener("change", (event) => this.#onChange(event), { signal });
     // Its column picker placed outside it, such as in a tile's header (a .ib-part named by its id).
-    if (host.dataset.ibGridId) {
-      const outside = (event: Event) => event.target instanceof Element && !host.contains(event.target) && !!this.#mine(event.target);
-      document.addEventListener("click", (event) => outside(event) && this.#onClick(event), { signal });
-      document.addEventListener("change", (event) => outside(event) && this.#onChange(event), { signal });
-    }
+    // Always: an interactive page can add one after this runs.
+    const outside = (event: Event) => !!host.dataset.ibGridId && event.target instanceof Element && !host.contains(event.target) && !!this.#mine(event.target);
+    document.addEventListener("click", (event) => outside(event) && this.#onClick(event), { signal });
+    document.addEventListener("change", (event) => outside(event) && this.#onChange(event), { signal });
     table.addEventListener("pointerdown", (event) => this.#onPointerDown(event, signal), { signal });
     table.addEventListener("dblclick", (event) => this.#onDoubleClick(event), { signal });
     table.addEventListener("keydown", (event) => this.#onKey(event), { signal, capture: true });

@@ -54,6 +54,9 @@ internal sealed class PartLink
     private readonly Dictionary<Type, int> _placed = [];
     private readonly List<Action> _parts = [];
     private Action? _redrawOwner;
+    // Components that asked while another had the link: on an interactive page a new grid can draw
+    // before the one it replaces (a changed @key) is gone. Asked again when it lets go.
+    private readonly Dictionary<object, Action> _waiting = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The component the parts draw from, or null until it draws.</summary>
     public object? Target { get; private set; }
@@ -64,14 +67,24 @@ internal sealed class PartLink
     /// <summary>Whether a part of this type is placed outside, so the component leaves out its own.</summary>
     public bool IsPlaced(Type part) => _placed.ContainsKey(part);
 
-    /// <summary>Takes the link for <paramref name="target"/>, unless another component has it. Its parts draw again.</summary>
-    public bool Claim(object target, Action redraw)
+    /// <summary>
+    /// Takes the link for <paramref name="target"/>, unless another component has it; then
+    /// <paramref name="retry"/> runs when that one lets go. Its parts draw again.
+    /// </summary>
+    public bool Claim(object target, Action redraw, Action retry)
     {
         if (Target is not null)
         {
-            return ReferenceEquals(Target, target);
+            if (ReferenceEquals(Target, target))
+            {
+                return true;
+            }
+
+            _waiting[target] = retry;
+            return false;
         }
 
+        _waiting.Remove(target);
         Target = target;
         _redrawOwner = redraw;
         Drew();
@@ -81,11 +94,21 @@ internal sealed class PartLink
     /// <summary>Lets go of the link, when the component leaves; its parts draw nothing.</summary>
     public void Release(object target)
     {
+        _waiting.Remove(target);
         if (ReferenceEquals(Target, target))
         {
             Target = null;
             _redrawOwner = null;
             Drew();
+            // One that was waiting takes it now.
+            foreach (var retry in _waiting.Values.ToArray())
+            {
+                retry();
+                if (Target is not null)
+                {
+                    break;
+                }
+            }
         }
     }
 
