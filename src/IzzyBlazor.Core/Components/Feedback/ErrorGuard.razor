@@ -81,7 +81,8 @@ else
     [Parameter] public bool ResetOnNavigation { get; set; } = true;
 
     /// <summary>Runs with the exception when what's inside throws, after it's logged; for a toast or your own logging.</summary>
-    [Parameter] public EventCallback<Exception> OnError { get; set; }
+    [Parameter, ModeSupport(Notes = "Runs on static pages too, for what throws while the page renders on the server.")]
+    public EventCallback<Exception> OnError { get; set; }
 
     /// <summary>Extra CSS classes on the wrapper of the error view.</summary>
     [Parameter] public string? Class { get; set; }

@@ -57,6 +57,12 @@ public sealed partial class ExampleCatalog
                 (_files.TryGetValue(id, out var files) ? files : _files[id] = []).Add((fileName, Clean(fileReader.ReadToEnd())));
             }
         }
+
+        // An example is a .razor file; a component in a .cs file beside one is part of that example.
+        foreach (var id in _types.Keys.Where(id => !_sources.ContainsKey(id)).ToList())
+        {
+            _types.Remove(id);
+        }
     }
 
     public IEnumerable<string> Ids => _types.Keys;
