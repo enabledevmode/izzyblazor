@@ -7,17 +7,46 @@
 
 <PageTitle>Counter</PageTitle>
 
-<Stack Gap="3" Align="Align.Start">
-    <Heading Level="1">Counter</Heading>
-    <TextBlock role="status">Current count: @currentCount</TextBlock>
-    <Button OnClick="IncrementCount">Click me</Button>
+<Stack Gap="6" MaxWidth="Length.Rem(32)">
+    <Stack Gap="2">
+        <Heading Level="1">Counter</Heading>
+        <TextBlock Color="Color.Muted">Each click runs C# and draws the page again. The badge says where that C# is running.</TextBlock>
+    </Stack>
+    <Card>
+        <Stack Gap="5" Align="Align.Start">
+            <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
+            <Stat Label="Current count" Value="@currentCount.ToString("N0")" Sparkline="history" SparklineLabel="The count after each of the last 20 clicks" />
+            <LiveRegion Text="@($"Current count: {currentCount}")" />
+            <SegmentedControl @bind-Value="step" Items="Steps" ItemText="@(s => $"+{s}")" Label="Step" />
+            <Row Gap="2" Wrap>
+                <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
+                <Button OnClick="DecrementCount" StartIcon="Lucide.Minus" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Down</Button>
+                <Button OnClick="Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
+            </Row>
+        </Stack>
+    </Card>
 </Stack>
 
 @code {
-    private int currentCount = 0;
+    private static readonly int[] Steps = [1, 5, 10];
 
-    private void IncrementCount()
+    private int currentCount = 0;
+    private int step = 1;
+    private readonly List<double?> history = [0];
+
+    // Server or WebAssembly once interactive; before that the page was prerendered on the server.
+    private string Where => RendererInfo.IsInteractive ? $"Running on {RendererInfo.Name}" : "Prerendered on the server";
+
+    private void IncrementCount() => Count(currentCount + step);
+
+    private void DecrementCount() => Count(currentCount - step);
+
+    private void Reset() => Count(0);
+
+    private void Count(int value)
     {
-        currentCount++;
+        currentCount = value;
+        history.Add(value);
+        if (history.Count > 20) history.RemoveAt(0);
     }
 }
