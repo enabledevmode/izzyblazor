@@ -114,7 +114,14 @@ class Table extends IzzyElement {
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
     // A FilterBuilder in a panel is done with the panel.
-    this.addEventListener("ibfilterapplied", (event) => (event.target as Element).closest<HTMLElement>("[popover]:popover-open")?.hidePopover(), { signal });
+    const closeApplied = (event: Event) => (event.target as Element).closest<HTMLElement>("[popover]:popover-open")?.hidePopover();
+    this.addEventListener("ibfilterapplied", closeApplied, { signal });
+    // Its builder outside it, such as in a tile's header (a .ib-part named by its id).
+    document.addEventListener("ibfilterapplied", (event) => {
+      const target = event.target as Element;
+      const id = this.dataset.ibGridId;
+      if (id && !this.contains(target) && target.closest<HTMLElement>(".ib-part")?.dataset.ibGrid === id) closeApplied(event);
+    }, { signal });
     this.addEventListener(
       "toggle",
       (event) => {
@@ -157,7 +164,7 @@ class Table extends IzzyElement {
           const to = new URL(stale.href);
           const now = new URLSearchParams(location.search);
           // A list's own key says it has nothing ticked.
-          for (const key of new Set([...this.querySelectorAll<HTMLInputElement>("[data-ib-filter], ib-filter-list[data-ib-none]")].map((c) => c.name ?? c.dataset.ibNone!))) {
+          for (const key of new Set([...this.#filters(), ...this.querySelectorAll<HTMLElement>("ib-filter-list[data-ib-none]")].map((c) => (c as HTMLInputElement).name ?? c.dataset.ibNone!))) {
             to.searchParams.delete(key);
             for (const value of now.getAll(key)) to.searchParams.append(key, value);
           }
@@ -303,7 +310,8 @@ class Table extends IzzyElement {
     const outside = (event: Event) => event.target instanceof Element && !this.contains(event.target) && isFilter(event.target);
     const listen = <K extends keyof HTMLElementEventMap>(type: K, handler: (event: HTMLElementEventMap[K]) => void, options: AddEventListenerOptions) => {
       this.addEventListener(type, handler, options);
-      if (this.dataset.ibGridId) document.addEventListener(type, (event) => outside(event) && handler(event), options);
+      // Always: an interactive page can give the grid parts outside after this runs; #mine reads the id when it's needed.
+      document.addEventListener(type, (event) => outside(event) && handler(event), options);
     };
 
     listen("compositionstart", () => (this.#typing.composing = true), { signal });

@@ -17,6 +17,22 @@
             </Tile>
         </TileLayout>
         break;
+    case "grid-keyed":
+        <TileLayout Columns="1">
+        <Tile Id="orders" Title="Orders" Flush>
+            <HeaderEnd>
+                <DataGridSearch />
+            </HeaderEnd>
+            <ChildContent>
+                <DataGrid @key="Version" Items="Rows" Searchable>
+                    <Columns>
+                        <PropertyColumn Property="r => r.Name" />
+                    </Columns>
+                </DataGrid>
+            </ChildContent>
+        </Tile>
+        </TileLayout>
+        break;
     case "scheduler-for":
         <div class="page-bar">
             <SchedulerToday For="bookings" />
@@ -29,6 +45,8 @@
 
 @code {
     [Parameter] public string Kind { get; set; } = "";
+
+    [Parameter] public int Version { get; set; }
 
     public sealed record Row(string Name, DateTime Start);
 

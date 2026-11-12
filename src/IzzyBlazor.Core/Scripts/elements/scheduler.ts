@@ -63,6 +63,12 @@ class Scheduler extends IzzyElement {
     this.#scroll();
 
     this.addEventListener("keydown", (e) => this.#key(e), { signal });
+    // Its parts outside it (a tile's header) keep the shortcuts they advertise.
+    document.addEventListener("keydown", (e) => {
+      const id = this.dataset.ibSchedulerId;
+      const t = e.target as Element;
+      if (id && !this.contains(t) && t.closest?.<HTMLElement>(".ib-part")?.dataset.ibScheduler === id) this.#key(e);
+    }, { signal });
 
     // The title's calendar: a day chosen goes there at once (Go is for no script), interactive
     // pages too, through Blazor's navigation.
@@ -157,13 +163,18 @@ class Scheduler extends IzzyElement {
 
   // The toolbar's shortcuts, while focus is in the Scheduler and not in a field, a menu (its
   // type-ahead) or the form.
+  // An element in one of its parts outside it (a .ib-part named by its id).
+  #outside(selector: string): HTMLElement | null {
+    const id = this.dataset.ibSchedulerId;
+    return id ? document.querySelector<HTMLElement>(`.ib-part[data-ib-scheduler="${CSS.escape(id)}"] ${selector}`) : null;
+  }
+
   #key(e: KeyboardEvent): void {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
     const t = e.target as Element;
     if (t.closest("input, textarea, select, [contenteditable], dialog, [popover], [role^=menu], [aria-haspopup]:not(.ib-sched-event)")) return;
     const key = `[data-ib-key="${e.key.toLowerCase()}"]`;
-    const id = this.dataset.ibSchedulerId;
-    const link = this.querySelector<HTMLElement>(key) ?? (id ? document.querySelector<HTMLElement>(`.ib-part[data-ib-scheduler="${CSS.escape(id)}"] ${key}`) : null);
+    const link = this.querySelector<HTMLElement>(key) ?? this.#outside(key);
     if (!link) return;
     e.preventDefault();
     link.click();
@@ -214,7 +225,7 @@ class Scheduler extends IzzyElement {
     }
     sessionStorage.removeItem(FOCUS);
     const item = key && key !== "new" ? this.querySelector<HTMLElement>(`[data-ib-item="${CSS.escape(key)}"]`) : null;
-    (item ?? this.querySelector<HTMLElement>(".ib-sched-new"))?.focus();
+    (item ?? this.querySelector<HTMLElement>(".ib-sched-new") ?? this.#outside(".ib-sched-new"))?.focus();
   }
 
   #hovered: HTMLElement | null = null;

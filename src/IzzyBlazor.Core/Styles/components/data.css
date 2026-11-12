@@ -1374,6 +1374,13 @@
     display: contents;
   }
 
+  /* Its search counts as 8rem, so a header's title keeps its row on a phone, and grows to 14rem. */
+  .ib-part > .ib-toolbar-item:has(> .ib-field input[type="search"]) {
+    flex: 1 1 8rem;
+    width: 8rem !important;
+    max-inline-size: 14rem;
+  }
+
   .ib-grid-toolbar {
     display: flex;
     align-items: center;
