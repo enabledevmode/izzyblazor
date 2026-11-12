@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject IConfiguration Configuration
 @*#if (SampleContent) *@
 
 <AppShell>
@@ -21,13 +22,17 @@
 
     <AppMain>
         <Box Padding="new() { Base = 4, Md = 8 }">
-            @Body
+            <ErrorGuard ShowDetails="DetailedErrors">
+                @Body
+            </ErrorGuard>
         </Box>
     </AppMain>
 </AppShell>
 @*#else *@
 
-@Body
+<ErrorGuard ShowDetails="DetailedErrors">
+    @Body
+</ErrorGuard>
 @*#endif *@
 
 <ToastRegion />
@@ -39,3 +44,9 @@
     <span class="dismiss">🗙</span>
 </div>
 @*#endif *@
+
+@code {
+    // A page that throws shows an alert in its place; the exception itself only where
+    // DetailedErrors is on, as appsettings.Development.json sets it.
+    private bool DetailedErrors => Configuration.GetValue<bool>("DetailedErrors");
+}

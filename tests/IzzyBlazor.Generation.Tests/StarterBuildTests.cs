@@ -42,14 +42,22 @@ public sealed class StarterBuildTests : IDisposable
             File.WriteAllText(project, text);
         }
 
+        // No MSBuild nodes or compiler server left running: they'd inherit the redirected output and keep
+        // it open after the build ends.
         var start = new ProcessStartInfo("dotnet") { WorkingDirectory = _work, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var arg in new[] { "build", "-nologo", "-v", "q", "-p:SkipAssetBuild=true" }) start.ArgumentList.Add(arg);
+        foreach (var arg in new[] { "build", "-nologo", "-v", "q", "-nodeReuse:false", "-p:UseSharedCompilation=false", "-p:SkipAssetBuild=true" })
+            start.ArgumentList.Add(arg);
         start.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         start.Environment["DOTNET_NOLOGO"] = "1";
+        start.Environment["MSBUILDDISABLENODEREUSE"] = "1";
         using var process = Process.Start(start)!;
         var output = Task.WhenAll(process.StandardOutput.ReadToEndAsync(), process.StandardError.ReadToEndAsync());
-        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        await process.WaitForExitAsync(timeout.Token);
+        var finished = Task.WhenAll(process.WaitForExitAsync(), output);
+        if (await Task.WhenAny(finished, Task.Delay(TimeSpan.FromMinutes(5))) != finished)
+        {
+            process.Kill(entireProcessTree: true);
+            Assert.Fail($"{name} {settings}: the build didn't finish in five minutes.");
+        }
         var printed = await output;
         Assert.True(process.ExitCode == 0, $"{name} {settings} didn't build:\n{printed[0]}\n{printed[1]}");
     }

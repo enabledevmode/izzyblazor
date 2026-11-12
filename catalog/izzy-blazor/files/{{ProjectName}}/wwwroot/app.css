@@ -1,12 +1,1 @@
 /* Your styles. IzzyBlazor's stylesheet is in cascade layers, so every rule here wins over it. */
-
-/* What an <ErrorBoundary> shows by default when a component inside it throws. */
-.blazor-error-boundary {
-    padding: 1rem;
-    background: var(--ib-color-danger);
-    color: var(--ib-color-on-danger);
-}
-
-.blazor-error-boundary::after {
-    content: "An error has occurred.";
-}
