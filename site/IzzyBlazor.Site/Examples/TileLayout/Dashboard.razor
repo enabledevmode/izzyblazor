@@ -1,5 +1,5 @@
 @* A store's week at a glance: four figures across the top, revenue and best sellers under them. *@
-<TileLayout Columns="12" RowHeight="Length.Rem(7)" aria-label="Store dashboard">
+<TileLayout Columns="new() { Base = 1, Md = 6, Lg = 12 }" RowHeight="Length.Rem(7)" aria-label="Store dashboard">
     <Tile Id="revenue" Col="1" Row="1" ColSpan="3">
         <Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week" />
     </Tile>

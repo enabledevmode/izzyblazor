@@ -14,10 +14,6 @@
     min-inline-size: 0;
   }
 
-  .ib-tiles-rows {
-    grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h));
-  }
-
   /* A surface like an outline Card's, as tall as its rows; the content scrolls inside. */
   .ib-tile {
     display: flex;
@@ -82,29 +78,46 @@
     padding: var(--ib-space-3) var(--ib-space-4) var(--ib-space-4);
   }
 
-  /* Below StackBelow: one column, in reading order, each tile keeping its rows' height. */
-  @media (width < 640px) {
-    .ib-tiles-stack-sm { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-    .ib-tiles-stack-sm > .ib-tile { grid-column: 1; grid-row: auto / span var(--ib-tile-rs); order: var(--ib-tile-order); }
+  .ib-tiles-rows-at-base { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
+
+  /* Each column count from its breakpoint up; the server places every tile at each one. */
+  @media (width >= 640px) {
+    .ib-tiles-at-sm { grid-template-columns: repeat(var(--ib-tiles-cols-sm), minmax(0, 1fr)); }
+    .ib-tiles-at-sm > .ib-tile {
+      grid-column: var(--ib-tile-col-sm) / span var(--ib-tile-cs-sm);
+      grid-row: var(--ib-tile-row-sm) / span var(--ib-tile-rs-sm);
+    }
+
+    .ib-tiles-rows-at-sm { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
   }
 
-  @media (width < 768px) {
-    .ib-tiles-stack-md { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-    .ib-tiles-stack-md > .ib-tile { grid-column: 1; grid-row: auto / span var(--ib-tile-rs); order: var(--ib-tile-order); }
+  @media (width >= 768px) {
+    .ib-tiles-at-md { grid-template-columns: repeat(var(--ib-tiles-cols-md), minmax(0, 1fr)); }
+    .ib-tiles-at-md > .ib-tile {
+      grid-column: var(--ib-tile-col-md) / span var(--ib-tile-cs-md);
+      grid-row: var(--ib-tile-row-md) / span var(--ib-tile-rs-md);
+    }
+
+    .ib-tiles-rows-at-md { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
   }
 
-  @media (width < 1024px) {
-    .ib-tiles-stack-lg { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-    .ib-tiles-stack-lg > .ib-tile { grid-column: 1; grid-row: auto / span var(--ib-tile-rs); order: var(--ib-tile-order); }
+  @media (width >= 1024px) {
+    .ib-tiles-at-lg { grid-template-columns: repeat(var(--ib-tiles-cols-lg), minmax(0, 1fr)); }
+    .ib-tiles-at-lg > .ib-tile {
+      grid-column: var(--ib-tile-col-lg) / span var(--ib-tile-cs-lg);
+      grid-row: var(--ib-tile-row-lg) / span var(--ib-tile-rs-lg);
+    }
+
+    .ib-tiles-rows-at-lg { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
   }
 
-  @media (width < 1280px) {
-    .ib-tiles-stack-xl { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-    .ib-tiles-stack-xl > .ib-tile { grid-column: 1; grid-row: auto / span var(--ib-tile-rs); order: var(--ib-tile-order); }
-  }
+  @media (width >= 1280px) {
+    .ib-tiles-at-xl { grid-template-columns: repeat(var(--ib-tiles-cols-xl), minmax(0, 1fr)); }
+    .ib-tiles-at-xl > .ib-tile {
+      grid-column: var(--ib-tile-col-xl) / span var(--ib-tile-cs-xl);
+      grid-row: var(--ib-tile-row-xl) / span var(--ib-tile-rs-xl);
+    }
 
-  @media (width < 1536px) {
-    .ib-tiles-stack-xxl { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-    .ib-tiles-stack-xxl > .ib-tile { grid-column: 1; grid-row: auto / span var(--ib-tile-rs); order: var(--ib-tile-order); }
+    .ib-tiles-rows-at-xl { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
   }
 }

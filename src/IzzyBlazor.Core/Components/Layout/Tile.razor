@@ -101,13 +101,18 @@
     {
         get
         {
-            var place = Context!.PlaceOf(this);
-            var styles = new StyleBuilder()
-                .AddVar("tile-col", place.Col.ToString(CultureInfo.InvariantCulture))
-                .AddVar("tile-row", place.Row.ToString(CultureInfo.InvariantCulture))
-                .AddVar("tile-cs", place.ColSpan.ToString(CultureInfo.InvariantCulture))
-                .AddVar("tile-rs", place.RowSpan.ToString(CultureInfo.InvariantCulture))
-                .AddVar("tile-order", place.Order.ToString(CultureInfo.InvariantCulture));
+            var styles = new StyleBuilder();
+            var places = Context!.PlacesOf(this);
+            for (var i = 0; i < places.Length; i++)
+            {
+                var place = places[i];
+                var suffix = Context.Owner.Levels[i].Breakpoint is { } b ? "-" + b.Name() : "";
+                styles.AddVar("tile-col" + suffix, place.Col.ToString(CultureInfo.InvariantCulture))
+                    .AddVar("tile-row" + suffix, place.Row.ToString(CultureInfo.InvariantCulture))
+                    .AddVar("tile-cs" + suffix, place.ColSpan.ToString(CultureInfo.InvariantCulture))
+                    .AddVar("tile-rs" + suffix, place.RowSpan.ToString(CultureInfo.InvariantCulture));
+            }
+
             styles.AddRaw(Style);
             return styles.ToString();
         }

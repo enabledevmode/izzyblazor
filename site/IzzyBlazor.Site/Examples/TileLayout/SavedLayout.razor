@@ -1,5 +1,5 @@
 @* A support lead's own arrangement of the team dashboard, read back from where it was saved. *@
-<TileLayout Columns="6" RowHeight="Length.Rem(7)" State="_saved" aria-label="Support dashboard">
+<TileLayout Columns="new() { Base = 1, Md = 6 }" RowHeight="Length.Rem(7)" State="_saved" aria-label="Support dashboard">
     <Tile Id="open" Col="1" Row="1" ColSpan="2">
         <Stat Label="Open tickets" Value="42" Change="5" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="since Monday" />
     </Tile>
