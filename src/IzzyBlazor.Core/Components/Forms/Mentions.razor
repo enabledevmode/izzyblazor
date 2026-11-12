@@ -27,8 +27,8 @@
     full name in ItemTemplate.
 
     Accessibility:
-    - The text area keeps its own role (a multi-line text box, which is what it is) and has
-      `aria-autocomplete="list"` and `aria-controls` naming the list of suggestions; the
+    - The text area keeps its own role (a multi-line text box, which is what it is). Once the
+      script runs it has `aria-autocomplete="list"` and `aria-controls` naming the list; the
       highlighted suggestion is its `aria-activedescendant`. ARIA's combobox role is for one-line
       inputs and isn't allowed on a text area.
     - When the list opens, a status says how many suggestions there are; the first is highlighted,
@@ -67,8 +67,6 @@
                   maxlength="@(MaxLength ?? AnnotatedMaxLength)"
                   disabled="@IsDisabled"
                   readonly="@IsReadOnly"
-                  aria-autocomplete="list"
-                  aria-controls="@ListId"
                   aria-invalid="@(Invalid ? "true" : null)"
                   aria-describedby="@DescribedBy"></textarea>
         <span class="ib-mentions-caret" aria-hidden="true" style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"></span>
@@ -97,7 +95,6 @@
                          class="ib-combobox-option ib-mentions-option"
                          data-prefix="@prefix"
                          data-text="@text"
-                         aria-selected="false"
                          aria-disabled="@(ItemDisabled?.Invoke(item) == true ? "true" : null)">
                         @if (ItemTemplate is not null)
                         {

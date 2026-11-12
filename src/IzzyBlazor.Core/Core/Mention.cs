@@ -64,6 +64,12 @@ public readonly record struct Mention(string Prefix, string Text, int Index)
                 stop--;
             }
 
+            // A possessive: "@ana's PR" mentions ana.
+            if (stop - start > 2 && text[stop - 1] is 's' or 'S' && text[stop - 2] is '\'' or '\u2019')
+            {
+                stop -= 2;
+            }
+
             if (stop > start)
             {
                 found.Add(new Mention(prefix, text[start..stop], at));
@@ -75,7 +81,9 @@ public readonly record struct Mention(string Prefix, string Text, int Index)
         return found;
     }
 
-    private static bool IsTrailing(char c) => c is '.' or ',' or ';' or ':' or '!' or '?' or ')' or ']' or '}' or '"' or '\'' or '…';
+    // Punctuation that ends a sentence or closes a quote or bracket, typographic and CJK too.
+    private static bool IsTrailing(char c) => c is '.' or ',' or ';' or ':' or '!' or '?' or ')' or ']' or '}' or '"' or '\'' or '…'
+        or '\u2019' or '\u201D' or '\u00BB' or '\u203A' or '\u3002' or '\uFF0C' or '\u3001' or '\uFF09' or '\u300D' or '\u300F' or '\uFF01' or '\uFF1F';
 }
 
 /// <summary>What <see cref="Mentions{TItem}"/>'s <c>Search</c> is asked for: a trigger and the text typed after it.</summary>
