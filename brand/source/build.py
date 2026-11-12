@@ -14,8 +14,10 @@ FD = "node_modules/@fontsource"
 INK, PAPER, EMBER, AMBER = "#14161A", "#F5F4F1", "#F26A1B", "#FFB020"
 STEEL, GREY_L, GREY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
 TAGLINE = "Blazor components. No circuit required."
-SUBHEAD = "A complete component library for every render mode, static SSR included."
+SUBHEAD = "A complete component library for every render mode."
 MODES = ["Static", "Interactive"]
+# The marketing badge names every render mode Blazor has; static is amber, the interactive ones ember.
+RENDER_MODES = ["Static SSR", "Server", "WebAssembly", "Auto"]
 
 class Font:
     def __init__(self, path):
@@ -280,17 +282,18 @@ os.remove(nu)
 
 # ============ 3. banners ============
 def mode_badge(x, y, h, active="Static", dark=True):
-    """The render-mode switch. active=None shows both modes as supported (a dot each), for marketing."""
+    """The render-mode switch. active=None shows every render mode as supported (a dot each), for marketing."""
+    modes = RENDER_MODES if active is None else MODES
     fs = h * 0.42; padx = h * 0.42; gap = h * 0.08; inset = h * 0.12
     dot = h * 0.13; dgap = h * 0.22
     extra = (dot * 2 + dgap) if active is None else 0
-    widths = [text("m600", l, fs, 0, 0, "#000")[1] + 2 * padx + extra for l in MODES]
-    total = sum(widths) + gap * (len(MODES) - 1) + inset * 2
+    widths = [text("m600", l, fs, 0, 0, "#000")[1] + 2 * padx + extra for l in modes]
+    total = sum(widths) + gap * (len(modes) - 1) + inset * 2
     bg, border, idle = ("#1E2126", "#3A3F48", STEEL) if dark else ("#FFFFFF", "#D6D3CC", "#6B717B")
     s = f'<rect x="{x:.2f}" y="{y:.2f}" width="{total:.2f}" height="{h:.2f}" rx="{h/2:.2f}" fill="{bg}" stroke="{border}" stroke-width="{h*0.03:.2f}"/>'
     cx = x + inset
-    col = {"Static": AMBER, "Interactive": EMBER}
-    for l, w in zip(MODES, widths):
+    col = {"Static": AMBER, "Interactive": EMBER, "Static SSR": AMBER, "Server": EMBER, "WebAssembly": EMBER, "Auto": EMBER}
+    for l, w in zip(modes, widths):
         fill = idle
         if active is None:
             fill = PAPER if dark else INK
@@ -338,7 +341,7 @@ p = card(1280, 640, 132, 40, 25, 46, 96, "github/social-preview.svg", glow_r=120
 png(p, "github/social-preview.png", width=1280)
 p = card(1200, 630, 124, 38, 24, 44, 90, "social/og-image.svg", glow_r=115)
 png(p, "social/og-image.png", width=1200)
-p = card(1500, 500, 120, 36, 23, 0, 110, "social/banner-1500x500.svg", glow_r=110, show_badge=False)
+p = card(1500, 500, 112, 34, 22, 40, 110, "social/banner-1500x500.svg", glow_r=110)
 png(p, "social/banner-1500x500.png", width=1500)
 
 def readme_banner(scheme):
@@ -361,7 +364,7 @@ def hero(scheme="dark"):
     fg, sub, panel, line = (PAPER, GREY_D, "#1E2126", "#3A3F48") if dark else (INK, GREY_L, "#FFFFFF", "#D6D3CC")
     accent = EMBER if dark else "#E0590F"
     w, h = 1600, 800; left = 120; body = glow(w - 160, h / 2, 140)
-    base = 300
+    base = 250
     wm, b, _ = placed_wordmark(145, left, base, scheme)
     body += wm
     y = base + b[3] + 88
@@ -376,7 +379,8 @@ def hero(scheme="dark"):
     body += f'<rect x="{left}" y="{y}" width="{cw+56:.1f}" height="56" rx="12" fill="{panel}" stroke="{line}" stroke-width="1.5"/>'
     body += text("m600", "$", 22, left + 24, y + 36, STEEL)[0]
     body += text("m600", cmd, 22, left + 46, y + 36, fg)[0]
-    bs, _ = mode_badge(left + cw + 56 + 24, y + 4, 48, None, dark)
+    # Every render mode is too wide beside the command, so the badge takes its own row.
+    bs, _ = mode_badge(left, y + 56 + 24, 48, None, dark)
     body += bs
     return svg_doc(w, h, body, bg=INK if dark else PAPER)
 for sc in ("dark", "light"):
