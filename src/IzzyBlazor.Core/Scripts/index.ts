@@ -102,6 +102,12 @@ export const izzyEvents: IzzyEventDefinition[] = [
     createEventArgs: (event) => ({ layout: (event as CustomEvent<{ layout: string }>).detail?.layout ?? "" }),
   },
   {
+    // A TileLayout's tile was dragged or resized (elements/tile-layout.ts); its detail is
+    // IzzyTilesEventArgs as is: { tiles, id, seq }.
+    name: "ibtiles",
+    createEventArgs: (event) => (event as CustomEvent).detail,
+  },
+  {
     // ColorSchemeSwitch reports the user's choice for @bind-Value.
     name: "ibscheme",
     createEventArgs: (event) => ({ scheme: (event as CustomEvent<{ scheme: string }>).detail?.scheme ?? null }),

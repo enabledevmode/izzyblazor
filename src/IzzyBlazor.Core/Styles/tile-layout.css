@@ -18,8 +18,8 @@
   .ib-tile {
     display: flex;
     flex-direction: column;
-    grid-column: var(--ib-tile-col) / span var(--ib-tile-cs);
-    grid-row: var(--ib-tile-row) / span var(--ib-tile-rs);
+    grid-column: var(--ib-drag-col, var(--ib-tile-col)) / span var(--ib-drag-cs, var(--ib-tile-cs));
+    grid-row: var(--ib-drag-row, var(--ib-tile-row)) / span var(--ib-drag-rs, var(--ib-tile-rs));
     min-inline-size: 0;
     min-block-size: 0;
     overflow: hidden;
@@ -71,8 +71,11 @@
     margin-inline-end: calc(var(--ib-space-2) * -1);
   }
 
+  /* A column that fills the tile, so content can fill it too (Grow), and scrolls when longer. */
   .ib-tile-body {
+    display: flex;
     flex: 1 1 auto;
+    flex-direction: column;
     min-block-size: 0;
     overflow: auto;
     padding: var(--ib-space-3) var(--ib-space-4) var(--ib-space-4);
@@ -109,12 +112,54 @@
 
   .ib-tile-corner .ib-tile-handle { margin: 0; }
 
+  /* The resize grip, at the bottom end corner: dragged with script, so hidden without it (the
+     menu resizes then). Two short diagonal strokes, as a window's. */
+  .ib-tile-grip {
+    position: absolute;
+    inset-block-end: 2px;
+    inset-inline-end: 2px;
+    z-index: 1;
+    inline-size: 14px;
+    block-size: 14px;
+    cursor: nwse-resize;
+    touch-action: none;
+    background:
+      linear-gradient(135deg, transparent 0 55%, var(--ib-color-muted) 55% 62%, transparent 62% 75%, var(--ib-color-muted) 75% 82%, transparent 82%);
+    opacity: 0.7;
+  }
+
+  .ib-tile-grip:dir(rtl) { cursor: nesw-resize; transform: scaleX(-1); }
+
+  @media (scripting: none) {
+    .ib-tile-grip { display: none; }
+  }
+
+  /* With script, the header drags the tile, and the handle never scrolls the page on touch. */
+  @media (scripting: enabled) {
+    .ib-tiles-editing .ib-tile-header { cursor: grab; user-select: none; }
+    .ib-tiles-editing .ib-tile-handle { touch-action: none; }
+  }
+
+  .ib-tiles-dragging, .ib-tiles-dragging * { cursor: grabbing !important; user-select: none; }
+
+  /* The tile being moved or resized lifts above the rest. */
+  .ib-tile-dragging,
+  .ib-tile-resizing {
+    z-index: 2;
+    box-shadow: var(--ib-shadow-lg);
+    border-color: var(--ib-color-primary, var(--ib-color-border));
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ib-tiles-editing > .ib-tile { transition: box-shadow 120ms ease; }
+  }
+
   /* Each column count from its breakpoint up; the server places every tile at each one. */
   @media (width >= 640px) {
     .ib-tiles-at-sm { grid-template-columns: repeat(var(--ib-tiles-cols-sm), minmax(0, 1fr)); }
     .ib-tiles-at-sm > .ib-tile {
-      grid-column: var(--ib-tile-col-sm) / span var(--ib-tile-cs-sm);
-      grid-row: var(--ib-tile-row-sm) / span var(--ib-tile-rs-sm);
+      grid-column: var(--ib-drag-col, var(--ib-tile-col-sm)) / span var(--ib-drag-cs, var(--ib-tile-cs-sm));
+      grid-row: var(--ib-drag-row, var(--ib-tile-row-sm)) / span var(--ib-drag-rs, var(--ib-tile-rs-sm));
     }
 
     .ib-tiles-rows-at-sm { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
@@ -123,8 +168,8 @@
   @media (width >= 768px) {
     .ib-tiles-at-md { grid-template-columns: repeat(var(--ib-tiles-cols-md), minmax(0, 1fr)); }
     .ib-tiles-at-md > .ib-tile {
-      grid-column: var(--ib-tile-col-md) / span var(--ib-tile-cs-md);
-      grid-row: var(--ib-tile-row-md) / span var(--ib-tile-rs-md);
+      grid-column: var(--ib-drag-col, var(--ib-tile-col-md)) / span var(--ib-drag-cs, var(--ib-tile-cs-md));
+      grid-row: var(--ib-drag-row, var(--ib-tile-row-md)) / span var(--ib-drag-rs, var(--ib-tile-rs-md));
     }
 
     .ib-tiles-rows-at-md { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
@@ -133,8 +178,8 @@
   @media (width >= 1024px) {
     .ib-tiles-at-lg { grid-template-columns: repeat(var(--ib-tiles-cols-lg), minmax(0, 1fr)); }
     .ib-tiles-at-lg > .ib-tile {
-      grid-column: var(--ib-tile-col-lg) / span var(--ib-tile-cs-lg);
-      grid-row: var(--ib-tile-row-lg) / span var(--ib-tile-rs-lg);
+      grid-column: var(--ib-drag-col, var(--ib-tile-col-lg)) / span var(--ib-drag-cs, var(--ib-tile-cs-lg));
+      grid-row: var(--ib-drag-row, var(--ib-tile-row-lg)) / span var(--ib-drag-rs, var(--ib-tile-rs-lg));
     }
 
     .ib-tiles-rows-at-lg { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
@@ -143,8 +188,8 @@
   @media (width >= 1280px) {
     .ib-tiles-at-xl { grid-template-columns: repeat(var(--ib-tiles-cols-xl), minmax(0, 1fr)); }
     .ib-tiles-at-xl > .ib-tile {
-      grid-column: var(--ib-tile-col-xl) / span var(--ib-tile-cs-xl);
-      grid-row: var(--ib-tile-row-xl) / span var(--ib-tile-rs-xl);
+      grid-column: var(--ib-drag-col, var(--ib-tile-col-xl)) / span var(--ib-drag-cs, var(--ib-tile-cs-xl));
+      grid-row: var(--ib-drag-row, var(--ib-tile-row-xl)) / span var(--ib-drag-rs, var(--ib-tile-rs-xl));
     }
 
     .ib-tiles-rows-at-xl { grid-template-rows: repeat(var(--ib-tiles-rows), var(--ib-tiles-row-h)); }
@@ -155,24 +200,28 @@
 @layer izzy.components {
   @media (width < 640px) {
     .ib-tiles-edit-from-sm .ib-tile-handle,
+    .ib-tiles-edit-from-sm .ib-tile-grip,
     .ib-tiles-edit-from-sm > .ib-tiles-cell { display: none; }
   }
 }
 @layer izzy.components {
   @media (width < 768px) {
     .ib-tiles-edit-from-md .ib-tile-handle,
+    .ib-tiles-edit-from-md .ib-tile-grip,
     .ib-tiles-edit-from-md > .ib-tiles-cell { display: none; }
   }
 }
 @layer izzy.components {
   @media (width < 1024px) {
     .ib-tiles-edit-from-lg .ib-tile-handle,
+    .ib-tiles-edit-from-lg .ib-tile-grip,
     .ib-tiles-edit-from-lg > .ib-tiles-cell { display: none; }
   }
 }
 @layer izzy.components {
   @media (width < 1280px) {
     .ib-tiles-edit-from-xl .ib-tile-handle,
+    .ib-tiles-edit-from-xl .ib-tile-grip,
     .ib-tiles-edit-from-xl > .ib-tiles-cell { display: none; }
   }
 }

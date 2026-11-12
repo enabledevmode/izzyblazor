@@ -222,11 +222,21 @@ internal sealed class TileLayoutContext(TileLayout owner)
     }
 
     /// <summary>The tile's place at each of the layout's <see cref="TileLayout.Levels"/>, in the same order.</summary>
-    /// <summary>The state changed outside a render pass (a move on an interactive page).</summary>
+    /// <summary>The tile with this id, if any.</summary>
+    public Tile? Find(string id) => _tiles.Items.FirstOrDefault(t => t.Id == id);
+
+    /// <summary>
+    /// The state changed outside a render pass (a move on an interactive page): places are worked
+    /// out again, and every tile draws again, since one whose parameters didn't change wouldn't.
+    /// </summary>
     public void Invalidate()
     {
         _places = null;
         _written = null;
+        foreach (var tile in _tiles.Items)
+        {
+            tile.Refresh();
+        }
     }
 
     public TilePlace[] PlacesOf(Tile tile)
