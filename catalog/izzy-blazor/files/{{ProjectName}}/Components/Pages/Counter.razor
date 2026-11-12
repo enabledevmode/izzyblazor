@@ -5,46 +5,24 @@
 
 <PageTitle>Counter</PageTitle>
 
-<Stack Gap="6" MaxWidth="Length.Rem(32)">
+<Stack Gap="6" Align="Align.Start">
     <Stack Gap="2">
         <Heading Level="1">Counter</Heading>
-        <TextBlock Color="Color.Muted">Each click runs C# and draws the page again. The badge says where that C# is running.</TextBlock>
+        <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
     </Stack>
-    <Card>
-        <Stack Gap="5" Align="Align.Start">
-            <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
-            <Stat Label="Current count" Value="@currentCount.ToString("N0")" Sparkline="history" SparklineLabel="The count after each of the last 20 clicks" />
-            <LiveRegion Text="@($"Current count: {currentCount}")" />
-            <SegmentedControl @bind-Value="step" Items="Steps" ItemText="@(s => $"+{s}")" Label="Step" />
-            <Row Gap="2" Wrap>
-                <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
-                <Button OnClick="DecrementCount" StartIcon="Lucide.Minus" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Down</Button>
-                <Button OnClick="Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
-            </Row>
-        </Stack>
-    </Card>
+    <TextBlock Size="TextSize.Xl5" Weight="FontWeight.Semibold" TabularNums>@currentCount</TextBlock>
+    <LiveRegion Text="@($"Current count: {currentCount}")" />
+    <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
 </Stack>
 
 @code {
-    private static readonly int[] Steps = [1, 5, 10];
-
     private int currentCount = 0;
-    private int step = 1;
-    private readonly List<double?> history = [0];
 
-    // Server or WebAssembly once interactive; before that the page was prerendered on the server.
+    // Server or WebAssembly once the page is interactive; before that, it was prerendered on the server.
     private string Where => RendererInfo.IsInteractive ? $"Running on {RendererInfo.Name}" : "Prerendered on the server";
 
-    private void IncrementCount() => Count(currentCount + step);
-
-    private void DecrementCount() => Count(currentCount - step);
-
-    private void Reset() => Count(0);
-
-    private void Count(int value)
+    private void IncrementCount()
     {
-        currentCount = value;
-        history.Add(value);
-        if (history.Count > 20) history.RemoveAt(0);
+        currentCount++;
     }
 }
