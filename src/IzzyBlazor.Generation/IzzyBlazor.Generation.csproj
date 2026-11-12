@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>IzzyBlazor.Generation</PackageId>
+    <RootNamespace>IzzyBlazor.Generation</RootNamespace>
+    <Description>The engine behind IzzyBlazor's templates and blocks: applies an item's manifest and settings and returns the changes as data (files to create, text to insert, packages to add). Used by the izzy CLI and the IDE plugins.</Description>
+    <PackageTags>blazor;templates;scaffolding;code-generation;izzyblazor</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Not published until phase 1 (the engine, two items, the dotnet new package) passes its tests. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IzzyBlazor.Generation.Tests" />
+  </ItemGroup>
+
+</Project>
