@@ -22,7 +22,8 @@
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem"
-     aria-labelledby="@(HasTitle ? _titleId : null)" aria-label="@(HasTitle ? null : Label)" data-tile-id="@Id">
+     aria-labelledby="@(HasTitle ? _titleId : null)" aria-label="@(HasTitle ? null : Label)" data-tile-id="@Id"
+     data-ib-label="@(Editing ? AccessibleName : null)" data-ib-limits="@(Editing ? Limits : null)">
     @if (Editing && !HasHeader)
     {
         @* No header to hold it: the handle sits in the corner, so editing doesn't change the tile's size. *@
@@ -61,6 +62,8 @@
     <div class="ib-tile-body">@ChildContent</div>
     @if (Editing)
     {
+        @* The resize grip: dragged with script; without, the menu resizes. *@
+        <span class="ib-tile-grip" aria-hidden="true"></span>
         <div class="ib-visually-hidden" role="status">@(Context!.Owner.Announcement is { } said && said.Tile == this ? said.Text : null)</div>
     }
 </div>
@@ -143,34 +146,41 @@
             <Trigger Context="wire">
                 <IconButton Icon="Lucide.GripVertical" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-tile-handle"
+                            aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+Shift+ArrowLeft Alt+Shift+ArrowRight Alt+Shift+ArrowUp Alt+Shift+ArrowDown"
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
             </Trigger>
             <ChildContent>
-                @MoveItem(TileMoveKind.Left, TextDefaults.MoveLeft, Lucide.ArrowLeft)
-                @MoveItem(TileMoveKind.Right, TextDefaults.MoveRight, Lucide.ArrowRight)
-                @MoveItem(TileMoveKind.Up, TextDefaults.MoveUp, Lucide.ArrowUp)
-                @MoveItem(TileMoveKind.Down, TextDefaults.MoveDown, Lucide.ArrowDown)
+                @MoveItem(TileMoveKind.Left, TextDefaults.MoveLeft, Lucide.ArrowLeft, "Alt+←")
+                @MoveItem(TileMoveKind.Right, TextDefaults.MoveRight, Lucide.ArrowRight, "Alt+→")
+                @MoveItem(TileMoveKind.Up, TextDefaults.MoveUp, Lucide.ArrowUp, "Alt+↑")
+                @MoveItem(TileMoveKind.Down, TextDefaults.MoveDown, Lucide.ArrowDown, "Alt+↓")
                 <MenuDivider />
-                @MoveItem(TileMoveKind.Wider, TextDefaults.TileWider, Lucide.ChevronsLeftRight)
-                @MoveItem(TileMoveKind.Narrower, TextDefaults.TileNarrower, Lucide.ChevronsRightLeft)
-                @MoveItem(TileMoveKind.Taller, TextDefaults.TileTaller, Lucide.ChevronsUpDown)
-                @MoveItem(TileMoveKind.Shorter, TextDefaults.TileShorter, Lucide.ChevronsDownUp)
+                @MoveItem(TileMoveKind.Wider, TextDefaults.TileWider, Lucide.ChevronsLeftRight, "Alt+Shift+→")
+                @MoveItem(TileMoveKind.Narrower, TextDefaults.TileNarrower, Lucide.ChevronsRightLeft, "Alt+Shift+←")
+                @MoveItem(TileMoveKind.Taller, TextDefaults.TileTaller, Lucide.ChevronsUpDown, "Alt+Shift+↓")
+                @MoveItem(TileMoveKind.Shorter, TextDefaults.TileShorter, Lucide.ChevronsDownUp, "Alt+Shift+↑")
             </ChildContent>
         </Menu>
     };
 
-    private RenderFragment MoveItem(TileMoveKind kind, string text, IconData icon) => __builder =>
+    // Each move carries its kind (data-ib-move) for the script: Alt+arrows click it, and on a static
+    // page with script it moves the tile in place instead of posting. The shortcuts need the script.
+    private RenderFragment MoveItem(TileMoveKind kind, string text, IconData icon, string shortcut) => __builder =>
     {
         var disabled = !Context!.TryMove(this, kind, out _);
+        var move = kind.ToString().ToLowerInvariant();
         if (Context.Owner.Live)
         {
-            <MenuItem Icon="icon" Disabled="disabled" OnClick="() => Context.Owner.MoveAsync(this, kind)">@text</MenuItem>
+            <MenuItem Icon="icon" Shortcut="@shortcut" Disabled="disabled" data-ib-move="@move" OnClick="() => Context.Owner.MoveAsync(this, kind)">@text</MenuItem>
         }
         else
         {
-            <MenuItem Icon="icon" Disabled="disabled" Submit Name="@($"{Context.Owner.Name}.Move")" Value="@(new TileMove(kind, Id!).ToString())">@text</MenuItem>
+            <MenuItem Icon="icon" Shortcut="@shortcut" Disabled="disabled" data-ib-move="@move" Submit Name="@($"{Context.Owner.Name}.Move")" Value="@(new TileMove(kind, Id!).ToString())">@text</MenuItem>
         }
     };
+
+    // The span limits for the script: min and max columns, then rows (0 for none).
+    private string Limits => string.Create(CultureInfo.InvariantCulture, $"{MinColSpan},{MaxColSpan ?? 0},{MinRowSpan},{MaxRowSpan ?? 0}");
 
     // Where the tile goes depends on the tiles around it, which have all said they're there by the
     // time any of them renders; so it's worked out here, not when the parameters are set.
@@ -251,6 +261,9 @@
         Context.Seen(this);
         _class = new ClassBuilder().Add("ib-tile").Add(VisibilityClasses).Add(Class).ToString();
     }
+
+    /// <summary>Draws again at its new place, after a move on an interactive page.</summary>
+    internal void Refresh() => StateHasChanged();
 
     /// <inheritdoc />
     public void Dispose() => Context?.Unregister(this);

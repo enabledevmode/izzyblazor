@@ -142,6 +142,22 @@ public class TileLayoutRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_live_drag_reported_by_the_script_applies_and_renders_its_seq()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        TileLayoutState? changed = null;
+        var cut = RenderEditable(p => p.Add(l => l.StateChanged, s => changed = s));
+
+        // The script dropped "b" a row down, one column wider; it holds the tile there until seq 1 renders.
+        cut.Find("ib-tile-layout").TriggerEvent("onibtiles", new IzzyTilesEventArgs { Tiles = "a:1,1,2,1;b:2,2,3,1", Id = "b", Seq = 1 });
+
+        Assert.Equal("a:1,1,2,1;b:2,2,3,1", changed!.ToString());
+        Assert.Equal("1", cut.Find("ib-tile-layout").GetAttribute("data-ib-seq"));
+        Assert.Equal("2,2,3,1", Place(cut, "b"));
+        Assert.Equal("Resized b to 3 by 1 cells", cut.Find("[data-tile-id='b'] [role=status]").TextContent);
+    }
+
+    [Fact]
     public void A_layout_round_trips_through_its_string_and_skips_entries_that_dont_read()
     {
         var state = new TileLayoutState([new("revenue;q4", 1, 1, 8, 2), new("orders", 9, 1, 4, 1)]);

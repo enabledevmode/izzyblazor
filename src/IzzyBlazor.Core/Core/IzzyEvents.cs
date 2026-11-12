@@ -71,6 +71,27 @@ public sealed class IzzyLayoutEventArgs : EventArgs
     public string? Layout { get; set; }
 }
 
+/// <summary>
+/// Data for the <c>ibtiles</c> event, which IzzyBlazor's script raises when a tile of an editable
+/// <c>TileLayout</c> is dragged or resized on an interactive page. The layout applies it; apps use
+/// its <c>@bind-State</c>.
+/// </summary>
+public sealed class IzzyTilesEventArgs : EventArgs
+{
+    /// <summary>The layout after the change, as <see cref="TileLayoutState.ToString"/> writes it.</summary>
+    public string? Tiles { get; set; }
+
+    /// <summary>The tile that moved or changed size.</summary>
+    public string? Id { get; set; }
+
+    /// <summary>
+    /// How many changes the browser has reported for this layout, this one included. The layout
+    /// renders the last it has handled, and the script holds the tile where it was dropped until
+    /// that render arrives. Set by IzzyBlazor's script.
+    /// </summary>
+    public int Seq { get; set; }
+}
+
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
 /// <remarks>
 /// Within this assembly, Razor compiles <c>@onibmove:stopPropagation</c> on these events as a plain
@@ -82,6 +103,7 @@ public sealed class IzzyLayoutEventArgs : EventArgs
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("oniblayout", typeof(IzzyLayoutEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onibtiles", typeof(IzzyTilesEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibscheme", typeof(IzzySchemeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers
 {

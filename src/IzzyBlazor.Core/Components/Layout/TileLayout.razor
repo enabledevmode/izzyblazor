@@ -24,6 +24,11 @@
     row and then by column, with no empty cells. At 1 column they stack. Unless Base is set, the
     tiles stack below the first breakpoint given.
 
+    Editable lets people rearrange the tiles at the widest column count. With script, dragging a
+    tile's header moves it and dragging its corner grip resizes it, a cell at a time; without
+    AllowOverlap a tile stays at its last free spot rather than cover another. Each tile's handle
+    opens a menu of the same moves, which with JavaScript off post the form.
+
     Accessibility:
     - The layout is a list and each tile an item, named by its title, so screen readers say how
       many tiles there are and which one they're in.
@@ -32,16 +37,39 @@
     - Screen readers and the Tab key follow the order the tiles are written in, not where they're
       drawn. Write them in reading order (by row, then by column), or sort the tiles you render
       from a list by their saved place.
+    - In an editable layout, each tile's handle is a button named "Move" and the tile's name, whose
+      menu moves and resizes it; nothing needs dragging. Each move is announced: "Moved Revenue to
+      column 3, row 1", "Resized Revenue to 6 by 2 cells".
+
+    Keyboard:
+    - Alt+Left, Alt+Right, Alt+Up, Alt+Down | On a tile's handle, move the tile a cell (Left and
+      Right reversed on right-to-left pages)
+    - Alt+Shift+Right, Alt+Shift+Left | On a tile's handle, make it a column wider or narrower
+    - Alt+Shift+Down, Alt+Shift+Up | On a tile's handle, make it a row taller or shorter
+    - Escape | While dragging, put the tile back
     See also: Grid, Card, Stat.
 *@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/tile-layout.css"]" />
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list">
-    <CascadingValue Value="_context" IsFixed="true">
-        @ChildContent
-        @Extras
-    </CascadingValue>
-</div>
+@if (Editable)
+{
+    @* The script: dragging and resizing, and the menu's moves in place on a static page. *@
+    <ib-tile-layout @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list"
+                    data-ib-at="@(Levels[^1].Breakpoint is { } at ? at.Name() : "")"
+                    data-ib-cols="@Levels[^1].Columns.ToString(CultureInfo.InvariantCulture)"
+                    data-ib-rows="@Rows.ToString(CultureInfo.InvariantCulture)"
+                    data-ib-overlap="@(AllowOverlap ? "" : null)"
+                    data-ib-interactive="@(Live ? "" : null)"
+                    data-ib-seq="@(RendererInfo.IsInteractive ? _seq.ToString(CultureInfo.InvariantCulture) : null)"
+                    data-ib-moved="@TextDefaults.TileMovedTo" data-ib-resized="@TextDefaults.TileResizedTo"
+                    @onibtiles="OnTilesAsync" __internal_stopPropagation_onibtiles="@RendererInfo.IsInteractive">
+        @Inner
+    </ib-tile-layout>
+}
+else
+{
+    <div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="list">@Inner</div>
+}
 
 @code {
     /// <summary>The <see cref="Tile"/>s.</summary>
@@ -113,6 +141,14 @@
     internal IReadOnlyList<(Breakpoint? Breakpoint, int Columns)> Levels { get; private set; } = [];
     private string? _class;
     private string? _style;
+    private RenderFragment Inner => __builder =>
+    {
+        <CascadingValue Value="_context" IsFixed="true">
+            @ChildContent
+            @Extras
+        </CascadingValue>
+    };
+
     // Drawn after the tiles, which it needs placed. (Internal, so built here rather than as a tag.)
     private RenderFragment Extras => builder =>
     {
@@ -123,6 +159,9 @@
     };
 
     private TileLayoutState? _live;
+
+    // The last change from the script this layout has handled (an interactive page's drag).
+    private int _seq;
     private TileLayoutState? _lastState;
     private int _version;
 
@@ -148,6 +187,28 @@
             ? string.Format(CultureInfo.CurrentCulture, TextDefaults.TileMovedTo, tile.AccessibleName, to.Col, to.Row)
             : string.Format(CultureInfo.CurrentCulture, TextDefaults.TileResizedTo, tile.AccessibleName, to.ColSpan, to.RowSpan);
         Announcement = (tile, text);
+    }
+
+    // A tile dragged or resized on an interactive page: the script sends the whole layout.
+    private async Task OnTilesAsync(IzzyTilesEventArgs e)
+    {
+        _seq = Math.Max(_seq, e.Seq);
+        if (TileLayoutState.Parse(e.Tiles) is not { } state)
+        {
+            return;
+        }
+
+        if (e.Id is { } id && _context.Find(id) is { } tile && state.Find(id) is { } now)
+        {
+            var was = _context.PlacesOf(tile)[^1];
+            Moved(tile, now.ColSpan != was.ColSpan || now.RowSpan != was.RowSpan ? TileMoveKind.Wider : TileMoveKind.Left,
+                new TilePlace(now.Col, now.Row, now.ColSpan, now.RowSpan));
+        }
+
+        _live = state;
+        _context.Invalidate();
+        _version++;
+        await StateChanged.InvokeAsync(state);
     }
 
     // A move from a tile's menu on an interactive page.
