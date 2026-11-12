@@ -24,7 +24,7 @@
                 <TextField @bind-Value="Model!.Name" AutoComplete="name" />
                 <TextField @bind-Value="Model!.Email" AutoComplete="email" />
                 <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
-                <TextField @bind-Value="Model!.Phone" AutoComplete="tel" />
+                <TextField @bind-Value="Model!.Phone" AutoComplete="tel" Type="TextFieldType.Tel" />
             </Grid>
             <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
             <RadioGroup @bind-Value="Model!.Reach" Orientation="Orientation.Horizontal" />
@@ -76,7 +76,7 @@
         [StringLength(80)]
         public string? Company { get; set; }
 
-        [Phone(ErrorMessage = "Enter a phone number")]
+        [StringLength(30)]
         public string? Phone { get; set; }
 
         [Required(ErrorMessage = "Choose a topic")]
