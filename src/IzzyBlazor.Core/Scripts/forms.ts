@@ -18,7 +18,10 @@ export function installSubmitFeedback(): void {
       if (form instanceof HTMLFormElement && form.classList.contains("ib-form") && form.querySelector(".ib-btn-loading[aria-busy]")) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        return;
       }
+      // Here, before Blazor's own handler prevents the default to post it with fetch.
+      if (form instanceof HTMLFormElement && form.querySelector('input[name="_handler"]')) posted = form;
     },
     true
   );
@@ -47,6 +50,21 @@ export function installSubmitFeedback(): void {
       el.removeAttribute("aria-busy");
     });
   });
+}
+
+let posted: HTMLFormElement | null = null;
+
+/**
+ * After an enhanced post, the form that was sent. When the server answered with no field errors
+ * (it saved, often redirecting), enhanced navigation keeps the same inputs, and the browser still
+ * counts them as edited: emptied required fields would match :user-invalid and show red. A reset
+ * forgets the edits; the values are already the server's, so nothing on screen changes. A post
+ * that failed keeps its fields as they are.
+ */
+export function settlePosted(): void {
+  const form = posted;
+  posted = null;
+  if (form?.isConnected && !form.querySelector(".ib-field-invalid")) form.reset();
 }
 
 /** Which of a field's messages answers each failed browser check. */

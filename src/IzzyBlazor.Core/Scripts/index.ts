@@ -19,7 +19,7 @@ import type { ToastDetail } from "./elements/toasts";
 import { applySavedScheme, installSchemeSync } from "./scheme";
 import { installDismissMemory, keepDismissed } from "./dismiss";
 import { clearClosedDialogQuery, installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
-import { installDateZones, installStaleErrors, installSubmitFeedback, installValidityMessages } from "./forms";
+import { installDateZones, installStaleErrors, installSubmitFeedback, installValidityMessages, settlePosted } from "./forms";
 import { installSelects, syncSelects } from "./select";
 import { installKeepPlace, keepPlaceArrived, openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
@@ -134,6 +134,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
   registerEvents(blazor);
   installKeepPlace();
   blazor.addEventListener?.("enhancedload", () => {
+    settlePosted();
     keepPlaceArrived();
     openActiveNavGroups();
     resetShellScroll();
