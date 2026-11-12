@@ -217,13 +217,7 @@
 
     @if (DataTable != ChartDataTable.None)
     {
-        <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-            <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
-                <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
-                <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
-                    {<span class="ib-visually-hidden">, @Title</span>}</span>
-            </summary>
-            <div class="ib-chart-table-scroll">
+        RenderFragment dataTable = @<div class="ib-chart-table-scroll">
                 <table class="ib-chart-table" aria-labelledby="@NameId">
                     <thead>
                         <tr>
@@ -246,8 +240,8 @@
                         }
                     </tbody>
                 </table>
-            </div>
-        </details>
+            </div>;
+        @ChartTools.Data(DataTable, _labelId, Title, TitledBy, TextDefaults, dataTable)
     }
     @if (Download)
     {

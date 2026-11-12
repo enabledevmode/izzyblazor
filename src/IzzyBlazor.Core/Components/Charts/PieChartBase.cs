@@ -100,8 +100,8 @@ public abstract class PieChartBase<TItem> : LayoutItemBase, IDisposable
     /// </summary>
     [Parameter] public ChartAlign? LegendAlign { get; set; }
 
-    /// <summary>The values as a table: in a closed "Show data" disclosure under the chart, by default.</summary>
-    [Parameter] public ChartDataTable DataTable { get; set; }
+    /// <summary>The values as a table: by default behind a "Show data" button that opens it over the chart; <see cref="ChartDataTable.Collapsed"/> puts it in a disclosure under the chart.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; } = ChartDataTable.Popover;
 
     private protected readonly string _labelId = IdGenerator.Next("ib-chart");
     private Expression<Func<TItem, object?>>? _lastArgument;

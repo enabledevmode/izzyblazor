@@ -191,8 +191,8 @@
     /// </summary>
     [Parameter] public bool Tooltip { get; set; } = true;
 
-    /// <summary>The values as a table, a column per month and a row per day of the month: in a closed "Show data" disclosure under the chart, by default.</summary>
-    [Parameter] public ChartDataTable DataTable { get; set; }
+    /// <summary>The values as a table, a column per month and a row per day of the month: by default behind a "Show data" button that opens it over the chart; <see cref="ChartDataTable.Collapsed"/> puts it in a disclosure under the chart.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; } = ChartDataTable.Popover;
 
     /// <summary><see cref="HeatmapRange"/>s, your own classes, and a <see cref="HeatmapTooltip{TItem}"/> (its Date the day, Column the day as text, Row the weekday).</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -366,13 +366,7 @@
         {
             var culture = CultureInfo.CurrentCulture;
             var years = model.Months.Count > 0 && model.Months[0].Year != model.Months[^1].Year;
-            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
-                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
-                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
-                        {<span class="ib-visually-hidden">, @Title</span>}</span>
-                </summary>
-                <div class="ib-chart-table-scroll">
+            RenderFragment dataTable = @<div class="ib-chart-table-scroll">
                     <table class="ib-chart-table" aria-labelledby="@NameId">
                         <thead>
                             <tr>
@@ -396,8 +390,8 @@
                             }
                         </tbody>
                     </table>
-                </div>
-            </details>
+                </div>;
+            @ChartTools.Data(DataTable, _labelId, Title, TitledBy, TextDefaults, dataTable)
         }
     }
 
