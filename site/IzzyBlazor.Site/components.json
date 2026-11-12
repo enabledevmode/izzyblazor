@@ -10,6 +10,7 @@
   "roadmap": [
     { "name": "FileManager", "category": "Data" },
     { "name": "Gantt", "category": "Data" },
+    { "name": "PivotDataGrid", "category": "Data" },
     { "name": "Vector map", "category": "Charts" }
   ],
   "components": [
