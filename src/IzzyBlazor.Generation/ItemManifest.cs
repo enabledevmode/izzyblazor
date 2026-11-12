@@ -48,6 +48,12 @@ public sealed class ItemManifest
     /// <summary>Text added to files: ones this item creates, or ones already in the project.</summary>
     public IReadOnlyList<InsertSpec> Inserts { get; init; } = [];
 
+    /// <summary>Paths moved when a condition holds, applied in order before tokens (a starter's folder layout per mode).</summary>
+    public IReadOnlyList<RenameRule> Rename { get; init; } = [];
+
+    /// <summary>When packages are restored after a starter is made: a condition over the settings, or null for never.</summary>
+    public string? Restore { get; init; }
+
     /// <summary>Reads a manifest from the text of an <c>izzy.json</c>.</summary>
     public static ItemManifest Parse(string json)
     {
@@ -74,6 +80,10 @@ public sealed class ItemManifest
             Packages = (root["packages"] as JsonArray)?.Select(p => new PackageSpec(
                 Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"])).ToList() ?? [],
             Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() ?? [],
+            Rename = (root["rename"] as JsonArray)?.Select(r => new RenameRule(
+                Required(r!.AsObject(), "if"),
+                (r["paths"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>())).ToList() ?? [],
+            Restore = (string?)root["restore"],
         };
     }
 
@@ -112,8 +122,13 @@ public enum ItemTier
 
 /// <summary>Files left out when <see cref="If"/> holds.</summary>
 /// <param name="If">A condition expression over the settings.</param>
-/// <param name="Paths">Paths in the item's <c>files</c> folder, as written there.</param>
+/// <param name="Paths">Globs over paths in the item's <c>files</c> folder: <c>*</c> within a folder, <c>**</c> across folders.</param>
 public sealed record ExcludeRule(string If, IReadOnlyList<string> Paths);
+
+/// <summary>Paths moved when <see cref="If"/> holds.</summary>
+/// <param name="If">A condition expression over the settings.</param>
+/// <param name="Paths">From → to: a folder (ending in <c>/</c>) moves everything under it, a file moves itself; <c>./</c> is the project folder.</param>
+public sealed record RenameRule(string If, IReadOnlyDictionary<string, string> Paths);
 
 /// <summary>A NuGet package the item adds.</summary>
 /// <param name="Id">The package id.</param>

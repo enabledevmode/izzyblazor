@@ -21,6 +21,12 @@ public sealed class ItemParameter
     /// <summary>Help shown beside the field.</summary>
     public string? Description { get; init; }
 
+    /// <summary>
+    /// For a port (<c>"x-port": [5000, 5300]</c>): the range a port is picked from when none is given, as
+    /// <c>dotnet new</c> does for launchSettings.json. Such a setting has no default.
+    /// </summary>
+    public (int Low, int High)? Port { get; init; }
+
     internal static IReadOnlyList<ItemParameter> FromSchema(JsonObject schema)
     {
         if (schema["properties"] is not JsonObject properties) return [];
@@ -39,6 +45,13 @@ public sealed class ItemParameter
                 _ => throw new GenerationException($"Parameter \"{name}\" has type \"{type}\"; use boolean, integer or string (with enum for a choice)."),
             };
             var fallback = kind switch { ParameterType.Bool => "false", ParameterType.Int => "0", ParameterType.Choice => choices[0], _ => "" };
+            (int, int)? port = null;
+            if (p["x-port"] is JsonArray { Count: 2 } range)
+            {
+                if (kind != ParameterType.Int || p["default"] is not null)
+                    throw new GenerationException($"Parameter \"{name}\" has x-port, so it's an integer with no default.");
+                port = ((int)range[0]!, (int)range[1]!);
+            }
             list.Add(new ItemParameter
             {
                 Name = name,
@@ -46,6 +59,7 @@ public sealed class ItemParameter
                 Choices = choices,
                 Default = p["default"] is { } d ? Text(d) : fallback,
                 Description = (string?)p["description"],
+                Port = port,
             });
         }
         return list;

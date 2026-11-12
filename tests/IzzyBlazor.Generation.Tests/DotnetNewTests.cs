@@ -61,18 +61,31 @@ public sealed class DotnetNewTests : IDisposable
         Assert.True(failures.Count == 0, string.Join("\n\n", failures));
     }
 
-    /// <summary>The defaults; each other choice of each choice setting; each switch flipped; a name that needs a safe namespace.</summary>
+    /// <summary>
+    /// The defaults; each other choice of each choice setting; each switch flipped; a name that needs a safe
+    /// namespace. Ports are given (a picked one is random) and restore is skipped (it changes no files).
+    /// </summary>
     static IEnumerable<(string Name, Dictionary<string, string> Settings)> Cases(ItemManifest manifest)
     {
-        yield return ("MyApp", []);
-        foreach (var p in manifest.Parameters)
+        Dictionary<string, string> With(params (string Key, string Value)[] extra)
+        {
+            var settings = new Dictionary<string, string>();
+            var port = 5100;
+            foreach (var p in manifest.Parameters.Where(p => p.Port is not null)) settings[p.Name] = (port++).ToString();
+            if (manifest.Parameters.Any(p => p.Name == "SkipRestore")) settings["SkipRestore"] = "true";
+            foreach (var (key, value) in extra) settings[key] = value;
+            return settings;
+        }
+
+        yield return ("MyApp", With());
+        foreach (var p in manifest.Parameters.Where(p => p.Name != "SkipRestore"))
         {
             if (p.Type == ParameterType.Choice)
-                foreach (var choice in p.Choices.Where(c => c != p.Default)) yield return ("MyApp", new() { [p.Name] = choice });
+                foreach (var choice in p.Choices.Where(c => c != p.Default)) yield return ("MyApp", With((p.Name, choice)));
             if (p.Type == ParameterType.Bool)
-                yield return ("MyApp", new() { [p.Name] = p.Default == "true" ? "false" : "true" });
+                yield return ("MyApp", With((p.Name, p.Default == "true" ? "false" : "true")));
         }
-        yield return ("My-App.2", []);
+        yield return ("My-App.2", With());
     }
 
     static void Dotnet(params string[] args)

@@ -78,17 +78,32 @@ public static class TemplateExport
             {
                 ["type"] = "parameter",
                 ["datatype"] = p.Type switch { ParameterType.Bool => "bool", ParameterType.Choice => "choice", ParameterType.Int => "integer", _ => "text" },
-                ["defaultValue"] = p.Default,
             };
+            if (p.Port is null) symbol["defaultValue"] = p.Default;
             if (p.Description is not null) symbol["description"] = p.Description;
             if (p.Type == ParameterType.Choice)
                 symbol["choices"] = new JsonArray(p.Choices.Select(c => (JsonNode)new JsonObject { ["choice"] = c }).ToArray());
-            if (p.Type != ParameterType.Bool)
+            symbols[p.Name] = symbol;
+            if (p.Port is var (low, high))
+            {
+                // Microsoft's pattern: a generated port, and the given one when there is one.
+                symbols[p.Name + "Generated"] = new JsonObject
+                {
+                    ["type"] = "generated", ["generator"] = "port",
+                    ["parameters"] = new JsonObject { ["low"] = low, ["high"] = high },
+                };
+                symbols[p.Name + "Replacer"] = new JsonObject
+                {
+                    ["type"] = "generated", ["generator"] = "coalesce",
+                    ["parameters"] = new JsonObject { ["sourceVariableName"] = p.Name, ["fallbackVariableName"] = p.Name + "Generated" },
+                    ["replaces"] = "{{" + p.Name + "}}",
+                };
+            }
+            else if (p.Type != ParameterType.Bool)
             {
                 symbol["replaces"] = "{{" + p.Name + "}}";
                 symbol["fileRename"] = "{{" + p.Name + "}}";
             }
-            symbols[p.Name] = symbol;
         }
         foreach (var (name, expression) in manifest.Computed)
             symbols[name] = new JsonObject { ["type"] = "computed", ["value"] = $"({expression})" };
@@ -112,15 +127,29 @@ public static class TemplateExport
         {
             ["copyOnly"] = new JsonArray(TemplateText.BinaryExtensions.Order(StringComparer.Ordinal).Select(e => (JsonNode)("**/*" + e)).ToArray()),
         };
-        if (manifest.Exclude.Count > 0)
+        var modifiers = manifest.Exclude.Select(rule => (JsonNode)new JsonObject
         {
-            source["modifiers"] = new JsonArray(manifest.Exclude.Select(rule => (JsonNode)new JsonObject
-            {
-                ["condition"] = $"({rule.If})",
-                ["exclude"] = new JsonArray(rule.Paths.Select(path => (JsonNode)path).ToArray()),
-            }).ToArray());
-        }
+            ["condition"] = $"({rule.If})",
+            ["exclude"] = new JsonArray(rule.Paths.Select(path => (JsonNode)path).ToArray()),
+        }).Concat(manifest.Rename.Select(rule => (JsonNode)new JsonObject
+        {
+            ["condition"] = $"({rule.If})",
+            ["rename"] = new JsonObject(rule.Paths.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
+        })).ToArray();
+        if (modifiers.Length > 0) source["modifiers"] = new JsonArray(modifiers);
         template["sources"] = new JsonArray(source);
+        if (manifest.Restore is not null)
+        {
+            template["postActions"] = new JsonArray(new JsonObject
+            {
+                ["id"] = "restore",
+                ["condition"] = $"({manifest.Restore})",
+                ["description"] = "Restore NuGet packages required by this project.",
+                ["manualInstructions"] = new JsonArray(new JsonObject { ["text"] = "Run 'dotnet restore'" }),
+                ["actionId"] = "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+                ["continueOnError"] = true,
+            });
+        }
         return template.ToJsonString(Indented) + "\n";
     }
 }
