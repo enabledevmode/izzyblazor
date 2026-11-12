@@ -5,16 +5,17 @@
   </picture>
 </h1>
 
-<p align="center">A complete component library for every render mode, static SSR included.</p>
+<p align="center"><strong>Every component. Every render mode.</strong></p>
 
-IzzyBlazor is a component library for .NET 10 and .NET 11 Blazor apps in every render mode: Interactive
-Server, WebAssembly, Auto, and static SSR. Components render as HTML on the server and bind to C# on
-interactive pages. On static pages they gain browser behavior through lightweight custom elements, with
-no SignalR circuit or WebAssembly runtime.
+IzzyBlazor is an open-source library of 150+ Blazor components for .NET 10 and later, built for static
+server-side rendering first. Every component works in static SSR, Interactive Server, WebAssembly and Auto:
+forms, data grids, charts, scheduling, dialogs and complete app layouts.
+
+On static pages, components render as HTML, and native browser behavior and lightweight custom elements make
+them work without a SignalR circuit or WebAssembly runtime. On interactive pages, the same components bind
+to C# with events and two-way binding.
 
 Choose each page's render mode for what the page needs, not for what your component library can handle.
-Build forms, data grids, charts, scheduling, dialogs and complete app layouts with the same components
-on every page.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -25,9 +26,10 @@ on every page.
 
 > **Status:** preview (`0.1.0-alpha.23`). APIs may change during preview.
 
-## Static and Interactive
+## Built for every render mode
 
-The same components work in all of Blazor's render modes, static or interactive, so you choose each page's mode for what that page does.
+The same components work in static SSR, Interactive Server, WebAssembly and Auto. On a static page, URLs,
+forms and the browser's own elements do the work; on an interactive page, C# events and binding do.
 
 | | Static | Interactive |
 | --- | --- | --- |
@@ -40,6 +42,9 @@ The same components work in all of Blazor's render modes, static or interactive,
 
 Every page starts as working HTML: before IzzyBlazor's script loads, and while an interactive page prerenders. So
 nothing is broken while a page wakes up.
+
+Interactive Server pages hold a SignalR circuit, as in any Blazor app. ReconnectDialog, the one component made
+for that connection, shows its state when it drops.
 
 ## Getting started
 
@@ -69,7 +74,7 @@ Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-st
 
 ## What's included
 
-More than 140 components, in the same groups as the docs:
+150+ components, in the same groups as the docs:
 
 - **Layout:** Box, Row, Column, Stack, Grid, Container, Section, Center, Spacer, AspectRatio, Divider, TileLayout, Splitter, AppShell (header, collapsible sidebar, aside, footer), AppSidebar
 - **Typography:** Heading, TextBlock, List, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight, MentionText, Icon (all of Lucide, plus brand logos)
@@ -81,7 +86,7 @@ More than 140 components, in the same groups as the docs:
 - **Feedback:** Alert, Banner, Toast, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
 - **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
 - **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
-- **Charts:** bar, line, area, scatter, bubble, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, Sparkline, Gauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
+- **Charts:** bar, line, area, range bar and area, scatter, bubble, histogram, box plot, violin, candlestick, OHLC, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, BulletChart, Sparkline, Gauge, LinearGauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
 - **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion
 
 Build responsive layouts and apply theme tokens through typed component props. If you've used

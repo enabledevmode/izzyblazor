@@ -2,8 +2,8 @@
 @layout HomeLayout
 @inject Registry Registry
 
-<PageMeta Title="IzzyBlazor: Blazor components. No circuit required."
-          Description="A complete Blazor component library for every render mode, including static SSR. Pick each page's render mode for the page, not for the library.">
+<PageMeta Title="IzzyBlazor: Blazor components for every render mode"
+          Description="@Description">
     @* The brand's display face, for the hero's headline only. *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,10 +27,11 @@
             </svg>
             <SiteLogo />
             <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
-                Blazor components.<br /><span>No circuit required.</span>
+                Every component.<br /><span>Every render mode.</span>
             </Heading>
+            <TextBlock Size="TextSize.Xl" Weight="FontWeight.Semibold" Class="site-hero-tagline">Blazor components. No circuit required.</TextBlock>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                A complete component library for every render mode, static SSR included.
+                @Registry.ComponentCountLabel components for static SSR, Interactive Server, WebAssembly and Auto. Start with server-rendered HTML, and make a page interactive when it needs C#.
             </TextBlock>
             <Row Gap="3" Wrap>
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
@@ -70,7 +71,7 @@
         <Stack Gap="2">
             <Heading Level="2" Size="TextSize.Xl2">Pick the render mode per page, not per library.</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-why-intro">
-                Most component libraries need a circuit or WebAssembly before anything works. IzzyBlazor's components work in every render mode, so a page that doesn't need C# can stay static, and a page that does can be interactive.
+                Many Blazor components rely on interactive rendering for their behavior. Every IzzyBlazor component works in static SSR as well as the interactive render modes, so a page that doesn't need C# can stay static, and a page that does can be interactive.
             </TextBlock>
         </Stack>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
@@ -165,6 +166,8 @@
     private static readonly Accent Ember = Accent.Of("#F26A1B");
 
     private const string Install = "dotnet add package IzzyBlazor --prerelease";
+
+    private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that work in static SSR, Interactive Server, WebAssembly and Auto. Pick each page's render mode for the page.";
 
     private static readonly HashSet<string> Featured =
     [
