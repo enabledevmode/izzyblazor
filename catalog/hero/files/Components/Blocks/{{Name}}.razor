@@ -6,7 +6,7 @@
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="12" Align="Align.Center">
             <Stack Gap="6" Align="Align.Start">
                 @*#if (HasEyebrow) *@
-                <Badge Pill>{{Eyebrow}}</Badge>
+                <Badge Status="Status.Info">{{Eyebrow}}</Badge>
                 @*#endif *@
                 <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Headline}}</Heading>
                 <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Subhead}}</TextBlock>
@@ -28,9 +28,9 @@
     @*#else *@
         <Stack Gap="6" Align="Align.Center">
             @*#if (HasEyebrow) *@
-            <Badge Pill>{{Eyebrow}}</Badge>
+            <Badge Status="Status.Info">{{Eyebrow}}</Badge>
             @*#endif *@
-            <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+            <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(40)">{{Subhead}}</TextBlock>
             <Row Gap="3" Wrap Justify="Justify.Center">
                 <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>

@@ -139,6 +139,8 @@ public static class Generator
         ParameterType.Int => long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var n) ? n : throw new GenerationException($"{id}: \"{p.Name}\" is a whole number, not \"{text}\"."),
         ParameterType.Choice => p.Choices.FirstOrDefault(c => c.Equals(text, StringComparison.OrdinalIgnoreCase))
             ?? throw new GenerationException($"{id}: \"{p.Name}\" is one of {string.Join(", ", p.Choices)}, not \"{text}\"."),
+        _ when p.Pattern is not null && !System.Text.RegularExpressions.Regex.IsMatch(text, p.Pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1))
+            => throw new GenerationException($"{id}: \"{text}\" isn't a valid {p.Name}. {p.Description}"),
         _ => text,
     };
 

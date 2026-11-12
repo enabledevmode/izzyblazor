@@ -18,6 +18,7 @@ public sealed class StarterBuildTests : IDisposable
         { "MyApp", "" },
         { "MyApp", "Interactivity=None;Empty=true;UseProgramMain=true" },
         { "My-App.2", "Interactivity=Auto;AllInteractive=true" },
+        { "MyApp", "Nav=Top;Preset=Compact;Brand=#0a7d5a;Shell=Inset;ContentWidth=64" },
     };
 
     [Theory]

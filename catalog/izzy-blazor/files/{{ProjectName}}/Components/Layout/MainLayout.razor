@@ -2,13 +2,37 @@
 @inject IConfiguration Configuration
 @*#if (SampleContent) *@
 
+@*#if (WidthOnShell && AutoWidth && PlainShell) *@
+<AppShell ContentWidth="Length.Rem(72)">
+@*#elif (WidthOnShell && AutoWidth) *@
+<AppShell Variant="ShellVariant.{{Shell}}" ContentWidth="Length.Rem(72)">
+@*#elif (WidthOnShell && PlainShell) *@
+<AppShell ContentWidth="Length.Rem({{ContentWidth}})">
+@*#elif (WidthOnShell) *@
+<AppShell Variant="ShellVariant.{{Shell}}" ContentWidth="Length.Rem({{ContentWidth}})">
+@*#elif (PlainShell) *@
 <AppShell>
+@*#else *@
+<AppShell Variant="ShellVariant.{{Shell}}">
+@*#endif *@
     <AppHeader>
+        @*#if (SidebarNav) *@
         <SidebarToggle />
+        @*#endif *@
         <AppBrand Href="" Icon="Lucide.Blocks" Label="{{ProjectName}}" />
         <Box Grow />
+        @*#if (!SidebarNav) *@
+        <SiteNav>
+            <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
+            @*#if (UseServer || UseWebAssembly) *@
+            <NavItem Href="counter">Counter</NavItem>
+            @*#endif *@
+            <NavItem Href="weather">Weather</NavItem>
+        </SiteNav>
+        @*#endif *@
         <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
     </AppHeader>
+    @*#if (SidebarNav) *@
 
     <AppSidebar>
         <NavMenu>
@@ -19,8 +43,13 @@
             <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
         </NavMenu>
     </AppSidebar>
+    @*#endif *@
 
+    @*#if (WidthOnMain) *@
+    <AppMain ContentWidth="Length.Rem({{ContentWidth}})">
+    @*#else *@
     <AppMain>
+    @*#endif *@
         <Box Padding="new() { Base = 4, Md = 8 }">
             <ErrorGuard ShowDetails="DetailedErrors">
                 @Body
