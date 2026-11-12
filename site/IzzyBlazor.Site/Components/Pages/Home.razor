@@ -1,6 +1,8 @@
 @page "/"
 @layout HomeLayout
 @inject Registry Registry
+@inject ApiMetadata Api
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
 
 <PageMeta Title="IzzyBlazor: Blazor components for every render mode"
           Description="@Description">
@@ -52,6 +54,7 @@
            lays out as it would there. The desktop window is left out below 1024px, where only the
            phone fits. *@
         <div class="site-hero-stage">
+            <span class="site-hero-live"><i aria-hidden="true"></i>Live demo · Static SSR · No circuit</span>
             <div class="site-hero-window">
                 <div class="site-hero-window-bar" aria-hidden="true">
                     <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
@@ -74,53 +77,127 @@
                 Many Blazor components rely on interactive rendering for their behavior. Every IzzyBlazor component works in static SSR as well as the interactive render modes, so a page that doesn't need C# can stay static, and a page that does can be interactive.
             </TextBlock>
         </Stack>
-        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="8" Class="site-why">
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">One component library. Every render mode.</Heading>
+                    <Heading Level="3" Size="TextSize.Md">One library. Every render mode.</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Use the same IzzyBlazor components across Interactive Server, WebAssembly, Auto, and static SSR. Make a page interactive when it needs C#, without switching libraries.</TextBlock>
+                <TextBlock Color="Color.Muted">The same components work in static SSR, Interactive Server, WebAssembly and Auto, so each page's mode follows what that page does.</TextBlock>
             </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.MemoryStick" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">No circuits to maintain</Heading>
+                    <Heading Level="3" Size="TextSize.Md">No circuit on static pages</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Static pages don't hold a live server connection or reserve circuit memory for every open tab. Serve each request and move on.</TextBlock>
+                <TextBlock Color="Color.Muted">A static page needs no SignalR circuit and no WebAssembly runtime. Each request is served and done, and a deployment disconnects no one.</TextBlock>
             </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.RefreshCw" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">Deploy with less disruption</Heading>
+                    <Pictogram Icon="Lucide.MousePointerClick" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">Interactive when you need it</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">No live circuits means no sessions to disconnect during a restart or deployment. The next navigation is a fresh request.</TextBlock>
+                <TextBlock Color="Color.Muted">Make a page interactive when it needs C# events and state. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and event handlers there.</TextBlock>
             </Stack>
+        </Grid>
+    </Stack>
+</Section>
+
+@* The components by what they're for: each card's top is the real component, inert (a picture of
+   it, so the page has no extra tab stops), cropped and fading at the bottom. *@
+<Section>
+    <Stack Gap="6">
+        <Row Gap="4" Justify="Justify.Between" Align="Align.End" Wrap>
             <Stack Gap="2">
-                <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.Zap" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">Content comes first</Heading>
-                </Row>
-                <TextBlock Color="Color.Muted">Pages arrive as HTML, ready for the browser to display. Users can start reading without waiting for a .NET runtime to download.</TextBlock>
+                <Heading Level="2" Size="TextSize.Xl2">Components for real applications</Heading>
+                <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Registry.ComponentCountLabel components, each with live examples, their code and the full API.</TextBlock>
             </Stack>
+            <Anchor Href="docs/components">Browse all components</Anchor>
+        </Row>
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+            @foreach (var group in Showcase)
+            {
+                <div class="site-show">
+                    <div class="site-show-preview" inert>
+                        @switch (group.Key)
+                        {
+                            case "data":
+                                <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Recent orders" QueryPrefix="home-" Size="ControlSize.Sm"
+                                          InitialSort="-total" SelectionMode="SelectionMode.Multiple" @bind-Selection="_picked" RowLabel='o => $"order {o.Number}"'>
+                                    <SelectionActions>
+                                        <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+                                    </SelectionActions>
+                                    <Columns>
+                                        <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="9.Rem" />
+                                        <TemplateColumn Title="Status" Width="7.Rem">
+                                            <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
+                                        </TemplateColumn>
+                                        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="6.Rem" />
+                                    </Columns>
+                                </DataGrid>
+                                break;
+                            case "charts":
+                                @Budget
+                                break;
+                            case "forms":
+                                <Grid Columns="2" Gap="3">
+                                    <TextField Label="Full name" @bind-Value="_name" />
+                                    <TextField Label="Email" @bind-Value="_email" />
+                                    <Select Label="Plan" Items="Plans" @bind-Value="_plan" />
+                                    <DateField Label="Start date" @bind-Value="_start" />
+                                    <Switch Label="Send me product updates" @bind-Value="_updates" />
+                                </Grid>
+                                break;
+                            case "app":
+                                <Stack Gap="3">
+                                    <Breadcrumb>
+                                        <BreadcrumbItem Href="#">Store</BreadcrumbItem>
+                                        <BreadcrumbItem Href="#">Orders</BreadcrumbItem>
+                                        <BreadcrumbItem>#1064</BreadcrumbItem>
+                                    </Breadcrumb>
+                                    <Tabs Label="Order">
+                                        <Tab Label="Details" Icon="Lucide.ReceiptText"><TextBlock Color="Color.Muted">Contoso Ltd · 3 items · $412.80</TextBlock></Tab>
+                                        <Tab Label="Shipping" Icon="Lucide.Truck">Shipping</Tab>
+                                        <Tab Label="History" Icon="Lucide.Clock">History</Tab>
+                                    </Tabs>
+                                    <Alert Status="Status.Warning" Title="2 items are waiting on stock" />
+                                </Stack>
+                                break;
+                        }
+                    </div>
+                    <Stack Gap="2" Class="site-show-body">
+                        <Row Gap="4" Justify="Justify.Between" Align="Align.Baseline">
+                            <Heading Level="3" Size="TextSize.Lg">@group.Title</Heading>
+                            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@Count(group) components</TextBlock>
+                        </Row>
+                        <TextBlock Color="Color.Muted">@group.Lead</TextBlock>
+                        <Row Gap="3" Wrap Class="site-show-links">
+                            @foreach (var name in group.Names)
+                            {
+                                if (Registry.ByName(name) is { } component)
+                                {
+                                    <Anchor Href="@Registry.OverviewHref(component)">@component.DisplayName</Anchor>
+                                }
+                            }
+                        </Row>
+                    </Stack>
+                </div>
+            }
         </Grid>
     </Stack>
 </Section>
 
 <Section>
     <Stack Gap="6">
-        <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">Static and Interactive</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Static or interactive, the same components work in all of Blazor's render modes, so you choose each page's mode for what that page does.</TextBlock>
-        </Stack>
+        <Heading Level="2" Size="TextSize.Xl2">Static when you want it. Interactive when you need it.</Heading>
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <Card Title="Static: no circuit" Variant="CardVariant.Outline">
                 <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
-                <TextBlock>Pages render as complete HTML on the server, and IzzyBlazor's small script adds keyboard controls, live values, dragging and drop zones. No SignalR connection, no WebAssembly runtime. Every page is working HTML before the script loads, so nothing is broken while it wakes up.</TextBlock>
+                <TextBlock>Pages render as HTML on the server. The browser's own elements, links and forms do the work, and IzzyBlazor's small script adds keyboard controls, live values and dragging. No SignalR connection, no WebAssembly runtime.</TextBlock>
             </Card>
             <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
                 <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
-                <TextBlock>Choose Server, WebAssembly or Auto for a page that needs C#. The same components add <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and while the page prerenders they're the same working HTML, until the circuit or runtime is ready.</TextBlock>
+                <TextBlock>Choose Server, WebAssembly or Auto for a page that needs C#. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and prerender as the same working HTML.</TextBlock>
             </Card>
         </Grid>
     </Stack>
@@ -130,16 +207,16 @@
     <Stack Gap="6">
         <Heading Level="2" Size="TextSize.Xl2">Start from your project</Heading>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
-            <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, add the stylesheet and IzzyTheme, map the endpoints." Size="ControlSize.Sm" Class="site-linkcard">
+            <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, then add its stylesheet and IzzyTheme." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
-            </Card>
-            <Card Title="WebAssembly or Auto" Href="docs/get-started/webassembly-and-auto" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
             </Card>
             <Card Title="Existing application" Href="docs/get-started/existing-app" Description="Add it page by page, next to Bootstrap and your own components." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.PackagePlus" /></CardHeader>
             </Card>
-            <Card Title="Browse components" Href="docs/components" Description="Live examples and the full API for every component." Size="ControlSize.Sm" Class="site-linkcard">
+            <Card Title="WebAssembly or Auto" Href="docs/get-started/webassembly-and-auto" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
+                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
+            </Card>
+            <Card Title="Browse components" Href="docs/components" Description="Live examples, their code and the full API for every component." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
             </Card>
         </Grid>
@@ -147,17 +224,22 @@
 </Section>
 
 <Section>
-    <Stack Gap="4">
-        <Row Gap="4" Align="Align.Baseline" Wrap>
-            <Heading Level="2" Size="TextSize.Xl2">Components</Heading>
-            <Anchor Href="docs/components">@Registry.ComponentCountLabel components</Anchor>
-        </Row>
-        <Row Gap="2" Wrap>
-            @foreach (var component in Registry.Components.Where(c => Featured.Contains(c.Name)))
-            {
-                <Tag Href="@Registry.OverviewHref(component)">@component.DisplayName</Tag>
-            }
-        </Row>
+    <Stack Gap="6">
+        <Heading Level="2" Size="TextSize.Xl2">Built for developers. Ready for agents.</Heading>
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+            <Card Title="Accessible from the start" Href="docs/accessibility/overview" Size="ControlSize.Sm" Class="site-linkcard"
+                  Description="Components build to WCAG 2.2 level AA on the browser's own elements, with keyboard support, visible focus and screen reader announcements. Each documents its keyboard and ARIA behavior, and the guide lists the gaps that remain.">
+                <CardHeader><Pictogram Icon="Lucide.Accessibility" /></CardHeader>
+            </Card>
+            <Card Title="Docs your coding agent can use" Href="docs/get-started/ai-assistants" Size="ControlSize.Sm" Class="site-linkcard"
+                  Description="IzzyBlazor's MCP server at izzyblazor.com/mcp gives agents component search, each component's API and working examples, checks known issues, and reports gaps it finds.">
+                <CardHeader><Pictogram Icon="Lucide.Bot" /></CardHeader>
+            </Card>
+        </Grid>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            IzzyBlazor is in preview (@Api.Version): APIs may change before 1.0. It's MIT licensed, for .NET 10 and later.
+            <Anchor Href="https://github.com/enabledevmode/izzyblazor">Source and issues on GitHub</Anchor>
+        </TextBlock>
     </Stack>
 </Section>
 
@@ -169,9 +251,34 @@
 
     private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that work in static SSR, Interactive Server, WebAssembly and Auto. Pick each page's render mode for the page.";
 
-    private static readonly HashSet<string> Featured =
+    // The showcase: each card counts the catalog groups it covers.
+    private sealed record ShowGroup(string Key, string Title, string Lead, string[] Groups, string[] Names);
+
+    private static readonly ShowGroup[] Showcase =
     [
-        "AppShell", "Button", "Form", "TextField", "NumberField", "Select", "Combobox", "FileUpload", "Tabs", "Menu",
-        "Dialog", "Drawer", "ToastRegion", "Table", "Card", "Stat", "Timeline", "Code",
+        new("data", "Data", "Grids, trees, lists and scheduling, with sorting, filtering, editing and export.",
+            ["Data", "Display"], ["DataGrid", "TreeList", "Table", "Scheduler", "TreeView", "ListView"]),
+        new("charts", "Charts", "More than twenty chart types and gauges, drawn on the server as SVG, with zoom and drill-down.",
+            ["Charts"], ["Chart", "SankeyChart", "PieChart", "HeatmapChart", "Gauge", "Sparkline"]),
+        new("forms", "Forms and inputs", "Validated fields, selection, dates and file uploads, for static and interactive forms.",
+            ["Inputs", "Dropdowns", "Buttons"], ["Form", "TextField", "DateField", "Combobox", "MultiSelect", "FileUpload"]),
+        new("app", "App structure", "App shells, navigation, tabs, dialogs, drawers and feedback.",
+            ["Layout", "Navigation", "Overlays", "Feedback"], ["AppShell", "TileLayout", "Tabs", "Dialog", "Drawer", "ToastRegion"]),
     ];
+
+    private int Count(ShowGroup group) => group.Groups.Sum(g => Registry.InCategory(g).Count());
+
+    // The Charts card's Sankey: the docs' own example.
+    private static readonly RenderFragment Budget = b =>
+    {
+        b.OpenComponent<global::IzzyBlazor.Site.Examples.SankeyChart.Usage>(0);
+        b.CloseComponent();
+    };
+
+    // The Data card's grid: two orders ticked. The Forms card's fields.
+    private Selection? _picked = Selection.Of("1011", "1022");
+    private static readonly string[] Plans = ["Starter", "Team", "Business"];
+    private string? _name = "Ada Lovelace", _email = "ada@example.com", _plan = "Team";
+    private DateOnly? _start = new DateOnly(2026, 12, 1);
+    private bool _updates = true;
 }
