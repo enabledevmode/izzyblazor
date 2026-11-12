@@ -210,9 +210,11 @@ class TileLayout extends IzzyElement {
     let dragging = false;
     let frame = 0;
     let held = 0;
-    // The cell of the tile that was grabbed, so the tile keeps it under the pointer.
-    let grabCol = 0;
-    let grabRow = 0;
+    // A cell's width and height with the gap after it, and where the layout was, at the start: the
+    // tile moves (or grows) by as many cells as the pointer has moved, past half a cell, wherever
+    // it was grabbed (the pill handle sits over the tile's edge), and with the page as it scrolls.
+    let pitch = { col: 1, row: 1, rtl: false };
+    let startTop = 0;
     const scroller = scrollParent(this);
 
     try {
@@ -223,9 +225,8 @@ class TileLayout extends IzzyElement {
 
     const begin = () => {
       dragging = true;
-      const cell = this.cellAt(startX, startY);
-      grabCol = cell.col - from.col;
-      grabRow = cell.row - from.row;
+      pitch = this.pitch();
+      startTop = this.getBoundingClientRect().top;
       tile.classList.add(mode === "move" ? "ib-tile-dragging" : "ib-tile-resizing");
       this.classList.add("ib-tiles-dragging");
       frame = requestAnimationFrame(autoScroll);
@@ -239,10 +240,11 @@ class TileLayout extends IzzyElement {
     }
 
     const update = () => {
-      const cell = this.cellAt(x, y);
+      const across = Math.round(((x - startX) * (pitch.rtl ? -1 : 1)) / pitch.col);
+      const down = Math.round((y - startY + startTop - this.getBoundingClientRect().top) / pitch.row);
       const next: Place = mode === "move"
-        ? { ...current, col: clamp(cell.col - grabCol, 1, this.columns - from.cs + 1), row: Math.max(1, cell.row - grabRow) }
-        : { ...current, cs: Math.max(1, cell.col - from.col + 1), rs: Math.max(1, cell.row - from.row + 1) };
+        ? { ...current, col: clamp(from.col + across, 1, this.columns - from.cs + 1), row: Math.max(1, from.row + down) }
+        : { ...current, cs: Math.max(1, from.cs + across), rs: Math.max(1, from.rs + down) };
       if (this.rows > 0 && mode === "move") next.row = Math.min(next.row, this.rows - from.rs + 1);
       if (sameAs(next, current) || !this.fits(tile, next)) return;
       current = next;
@@ -324,19 +326,13 @@ class TileLayout extends IzzyElement {
     this.addEventListener("touchmove", (e) => dragging && e.cancelable && e.preventDefault(), { signal, passive: false });
   }
 
-  /** The cell under a point, from 1, at the widest column count (past the last row, the rows go on). */
-  private cellAt(x: number, y: number): { col: number; row: number } {
-    const box = this.getBoundingClientRect();
+  /** A cell's width and height, each with the gap after it, at the widest column count. */
+  private pitch(): { col: number; row: number; rtl: boolean } {
     const style = getComputedStyle(this);
     const colGap = parseFloat(style.columnGap) || 0;
-    const rowGap = parseFloat(style.rowGap) || 0;
-    const width = (box.width - colGap * (this.columns - 1)) / this.columns;
+    const width = (this.getBoundingClientRect().width - colGap * (this.columns - 1)) / this.columns;
     const height = parseFloat(style.gridAutoRows) || parseFloat(style.gridTemplateRows) || 1;
-    const along = style.direction === "rtl" ? box.right - x : x - box.left;
-    return {
-      col: Math.floor(along / (width + colGap)) + 1,
-      row: Math.floor((y - box.top) / (height + rowGap)) + 1,
-    };
+    return { col: width + colGap || 1, row: height + (parseFloat(style.rowGap) || 0), rtl: style.direction === "rtl" };
   }
 
   /** An interactive page: C# takes the new layout; the tile holds its place until that render. */

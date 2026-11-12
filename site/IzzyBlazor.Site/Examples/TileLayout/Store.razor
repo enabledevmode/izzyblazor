@@ -1,0 +1,244 @@
+@* A store's overview that each person arranges. Edit layout turns on editing: tiles drag and
+   resize, and their handles' menus move them. Done saves the layout, Cancel drops the changes and
+   Reset layout goes back to the default. On a static page the buttons post the form (the layout
+   travels in it); on an interactive one they act in place. *@
+@using Microsoft.AspNetCore.Http
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Store" Label="Northwind" />
+        <Box Grow />
+        <Avatar Name="Maya Patel" Size="AvatarSize.Sm" />
+    </AppHeader>
+
+    <AppMain>
+        <Form Model="this" FormName="store-tiles" OnValidSubmit="Submitted">
+            <Stack Gap="5" Padding="new() { Base = 4, Md = 6 }">
+                <Row Gap="3" Align="Align.Center" Wrap>
+                    <Stack Gap="1" Grow>
+                        <Heading Level="1" Size="TextSize.Xl2">Store overview</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(_editing ? "Drag a tile to move it, or its corner to resize it." : "This week, against last week.")</TextBlock>
+                    </Stack>
+                    @if (_editing)
+                    {
+                        @Action("reset", "Reset layout", ButtonVariant.Ghost, null)
+                        @Action("cancel", "Cancel", ButtonVariant.Outline, null)
+                        @Action("done", "Done", ButtonVariant.Solid, Lucide.Check)
+                        @if (!RendererInfo.IsInteractive)
+                        {
+                            <input type="hidden" name="editing" value="1" />
+                        }
+                    }
+                    else
+                    {
+                        @Action("edit", "Edit layout", ButtonVariant.Outline, Lucide.LayoutDashboard)
+                    }
+                </Row>
+
+                <TileLayout Columns="new() { Base = 1, Md = 6, Lg = 12 }" RowHeight="Length.Rem(7)" aria-label="Store overview"
+                            Editable="_editing" ShowGrid="_editing" Name="tiles" Post="@(_editing ? Posted : null)" @bind-State="_layout">
+                    <Tile Id="revenue" Label="Revenue" Col="1" Row="1" ColSpan="3" MinColSpan="2">
+                        <Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week" />
+                    </Tile>
+                    <Tile Id="orders" Label="Orders" Col="4" Row="1" ColSpan="3" MinColSpan="2">
+                        <Stat Label="Orders" Value="1,284" Change="6.1%" Trend="StatTrend.Up" Description="vs last week" />
+                    </Tile>
+                    <Tile Id="average" Label="Average order" Col="7" Row="1" ColSpan="3" MinColSpan="2">
+                        <Stat Label="Average order" Value="$65.67" Change="3.0%" Trend="StatTrend.Up" Description="vs last week" />
+                    </Tile>
+                    <Tile Id="returns" Label="Returns" Col="10" Row="1" ColSpan="3" MinColSpan="2">
+                        <Stat Label="Returns" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
+                    </Tile>
+                    <Tile Id="channels" Title="Revenue by channel" TitleId="store-channels-title" TitleLevel="2" Col="1" Row="2" ColSpan="8" RowSpan="3" MinColSpan="4" MinRowSpan="2">
+                        <HeaderEnd>
+                            <ChartDownload />
+                        </HeaderEnd>
+                        <ChildContent>
+                            <Chart Items="_channels" Argument="m => m.Month" TitledBy="store-channels-title" Stacking="ChartStacking.Normal">
+                                <ChartValueAxis Format="$#,##0,K" />
+                                <ChartBarSeries Value="m => m.Online" Name="Online store" />
+                                <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
+                                <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
+                            </Chart>
+                        </ChildContent>
+                    </Tile>
+                    <Tile Id="products" Title="Top products" TitleLevel="2" Col="9" Row="2" ColSpan="4" RowSpan="3" MinColSpan="3" MinRowSpan="2">
+                        <Stack Gap="3">
+                            @foreach (var product in _top)
+                            {
+                                <Row Gap="3" Align="Align.Center">
+                                    <Avatar Name="@product.Name" Size="AvatarSize.Sm" Decorative />
+                                    <TextBlock Size="TextSize.Sm" Grow>@product.Name</TextBlock>
+                                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums>@product.Sold sold</TextBlock>
+                                </Row>
+                            }
+                        </Stack>
+                    </Tile>
+                    <Tile Id="visitors" Title="Visitors" TitleId="store-visitors-title" TitleLevel="2" Col="1" Row="5" ColSpan="4" RowSpan="2" MinColSpan="3" MinRowSpan="2">
+                        <HeaderEnd>
+                            <TextBlock Size="TextSize.Xl2" Weight="FontWeight.Light" TabularNums>12.4K</TextBlock>
+                        </HeaderEnd>
+                        <ChildContent>
+                            <Chart Items="_visitors" Argument="d => d.Day" TitledBy="store-visitors-title">
+                                <ChartLineSeries Value="d => d.Count" Name="Visitors" />
+                            </Chart>
+                        </ChildContent>
+                    </Tile>
+                    <Tile Id="recent" Title="Recent orders" TitleLevel="2" Col="5" Row="5" ColSpan="8" RowSpan="2" MinColSpan="4" MinRowSpan="2">
+                        <Stack Gap="2">
+                            @foreach (var order in _recent)
+                            {
+                                <Row Gap="3" Align="Align.Center">
+                                    <TextBlock Size="TextSize.Sm" TabularNums Color="Color.Muted">#@order.Number</TextBlock>
+                                    <TextBlock Size="TextSize.Sm" Grow>@order.Customer</TextBlock>
+                                    <Badge Status="@order.Status" Variant="BadgeVariant.Soft">@order.State</Badge>
+                                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums>@order.Total.ToString("C")</TextBlock>
+                                </Row>
+                            }
+                        </Stack>
+                    </Tile>
+                </TileLayout>
+            </Stack>
+        </Form>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromForm(FormName = "store-tiles", Name = "tiles")]
+    private TileLayoutPost? Posted { get; set; }
+
+    // Which button posted (static pages); null for a move from a tile's menu.
+    [SupplyParameterFromForm(FormName = "store-tiles", Name = "do")]
+    private string? Do { get; set; }
+
+    // Set while editing, so a move from a tile's menu (JavaScript off) stays in edit mode.
+    [SupplyParameterFromForm(FormName = "store-tiles", Name = "editing")]
+    private string? EditingPosted { get; set; }
+
+    // The layout shown (and, while editing on an interactive page, being changed), and the one saved.
+    private TileLayoutState? _layout;
+    private TileLayoutState? _saved;
+    private bool _editing;
+
+    protected override void OnInitialized()
+    {
+        _saved = Load();
+        _layout = _saved;
+        _editing = EditingPosted == "1";
+    }
+
+    // A static page: the button that posted, or a move from a tile's menu (stays in edit mode).
+    private void Submitted()
+    {
+        switch (Do)
+        {
+            case "edit":
+                _editing = true;
+                break;
+            case "done":
+                Act("done");
+                break;
+            case "cancel" or "reset":
+                Act(Do);
+                break;
+        }
+    }
+
+    private void Act(string what)
+    {
+        switch (what)
+        {
+            case "edit":
+                _editing = true;
+                return;
+            case "done":
+                // Static: the layout came in the post. Interactive: @bind-State kept it.
+                _saved = RendererInfo.IsInteractive ? _layout : Posted?.State ?? _saved;
+                Save(_saved);
+                break;
+            case "reset":
+                _saved = null;
+                Save(null);
+                break;
+        }
+
+        _layout = _saved;
+        _editing = false;
+    }
+
+    private RenderFragment Action(string what, string text, ButtonVariant variant, IconData? icon) => __builder =>
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" OnClick="() => Act(what)">@text</Button>
+        }
+        else
+        {
+            <Button Variant="variant" Accent="@(variant == ButtonVariant.Solid ? Accent.Primary : Accent.Neutral)" StartIcon="icon" Submit Name="do" Value="@what">@text</Button>
+        }
+    };
+    @* hide *@
+
+    // The demo has no database: on static pages it keeps the layout in a cookie (TileLayoutState's
+    // short string); interactive pages keep it while the page is open. An app saves it per user.
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private const string Cookie = "izzy-store-tiles";
+
+    // Only on static pages: an interactive one's prerender would show the cookie's layout, then its
+    // circuit (which can't read it) the default.
+    private TileLayoutState? Load() =>
+        HttpContext is not null && AssignedRenderMode is null && HttpContext.Request.Cookies.TryGetValue(Cookie, out var raw) ? TileLayoutState.Parse(raw) : _saved;
+
+    private void Save(TileLayoutState? layout)
+    {
+        if (HttpContext is null || AssignedRenderMode is not null || HttpContext.Response.HasStarted)
+        {
+            return;
+        }
+
+        if (layout is null)
+        {
+            HttpContext.Response.Cookies.Delete(Cookie);
+        }
+        else
+        {
+            HttpContext.Response.Cookies.Append(Cookie, layout.ToString(),
+                new() { HttpOnly = true, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromDays(1) });
+        }
+    }
+
+    private record ChannelMonth(string Month, decimal Online, decimal Marketplace, decimal Wholesale);
+
+    private readonly ChannelMonth[] _channels =
+    [
+        new("Jun", 151_000, 60_000, 47_000), new("Jul", 149_000, 63_000, 45_000), new("Aug", 157_000, 66_000, 48_000),
+        new("Sep", 162_000, 68_000, 52_000), new("Oct", 171_000, 72_000, 55_000), new("Nov", 178_000, 75_000, 57_000),
+    ];
+
+    private record Product(string Name, int Sold);
+
+    private readonly Product[] _top =
+    [
+        new("Stoneware mug", 214), new("Linen throw", 168), new("Oak serving board", 131), new("Beeswax candle", 97),
+        new("Wool blanket", 84), new("Ceramic planter", 72),
+    ];
+
+    private record DayCount(DateOnly Day, int Count);
+
+    private static readonly DayCount[] _visitors =
+    [
+        .. new[] { 1510, 1620, 1580, 1740, 1960, 2210, 1830, 1690, 1720, 1850, 1910, 2140, 2380, 1980 }
+            .Select((count, i) => new DayCount(new DateOnly(2026, 11, 1).AddDays(i), count)),
+    ];
+
+    private record Order(int Number, string Customer, string State, Status Status, decimal Total);
+
+    private readonly Order[] _recent =
+    [
+        new(1064, "Contoso Ltd", "Paid", Status.Success, 412.80m),
+        new(1063, "Ana Ruiz", "Processing", Status.Warning, 64.50m),
+        new(1062, "Fabrikam", "Shipped", Status.Info, 1_208.00m),
+        new(1061, "Sam Lee", "Refunded", Status.Neutral, 38.00m),
+    ];
+    @* /hide *@
+}
