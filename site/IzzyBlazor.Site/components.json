@@ -9,6 +9,7 @@
   // Planned and not built: disabled entries, after their group's components, in the sidebar.
   "roadmap": [
     { "name": "FileManager", "category": "Data" },
+    { "name": "Gantt", "category": "Data" },
     { "name": "Vector map", "category": "Charts" }
   ],
   "components": [
