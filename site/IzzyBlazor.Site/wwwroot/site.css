@@ -87,6 +87,7 @@
 }
 /* A deeper Ember on Paper, as the brand's light hero has it: Ember itself is too faint there. */
 .site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
+.site-hero-tagline { color: light-dark(#14161a, #f5f4f1); }
 .site-hero .site-install { background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
 
 /* The app's frames lay out at a desktop's and a phone's width and are scaled down by --s, as a

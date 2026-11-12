@@ -2,11 +2,13 @@
 
 **Blazor components. No circuit required.**
 
-IzzyBlazor is a component library for .NET 10 and .NET 11 Blazor apps in every render mode: Interactive Server, WebAssembly, Auto, and static SSR. Components render as HTML on the server and bind to C# on interactive pages. On static pages they gain browser behavior through lightweight custom elements, with no SignalR circuit or WebAssembly runtime.
+**150+ components. Every Blazor render mode.**
 
-Choose each page's render mode for what the page needs, not for what your component library can handle. Build forms, data grids, charts, scheduling, dialogs, and complete app layouts with the same components on every page.
+IzzyBlazor is an open-source component library for .NET 10 and later, built for static server-side rendering first. Every component works in static SSR, Interactive Server, WebAssembly and Auto. On static pages, components render as HTML, and native browser behavior and lightweight custom elements make them work without a SignalR circuit or WebAssembly runtime. On interactive pages, the same components bind to C# with events and two-way binding.
 
-More than 140 components: layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeView, Scheduler, Chat, a rich text editor, and fourteen chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
+Choose each page's render mode for what the page needs, not for what your component library can handle.
+
+The components cover layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeList, TreeView, Scheduler, Chat, a rich text editor, and more than twenty chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -14,9 +16,9 @@ More than 140 components: layout and app shell, inputs, date and time fields, se
 
 > **Preview:** `0.1.0-alpha.23`. APIs may change during preview.
 
-## Static and Interactive
+## Built for every render mode
 
-The same components work in all of Blazor's render modes, static or interactive, so you choose each page's mode for what that page does.
+The same components work in static SSR, Interactive Server, WebAssembly and Auto. On a static page, URLs, forms and the browser's own elements do the work; on an interactive page, C# events and binding do.
 
 | Component | Static | Interactive |
 | --- | --- | --- |
