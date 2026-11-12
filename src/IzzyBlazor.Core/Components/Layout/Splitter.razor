@@ -80,6 +80,9 @@
     private string? _class;
     private string? _style;
     private PersistingComponentStateSubscription? _persisting;
+    private Func<Task>? _persist;
+
+    private Task PersistState() => _persist?.Invoke() ?? Task.CompletedTask;
 
     internal string CookieName => $"ib-split-{LayoutKey}";
 
@@ -114,7 +117,7 @@
         _context.Kept = SplitterLayout.Parse(kept);
         if (state is not null && _context.Kept is not null)
         {
-            _persisting = state.RegisterOnPersisting(() =>
+            _persist = () =>
             {
                 try
                 {
@@ -126,7 +129,10 @@
                 }
 
                 return Task.CompletedTask;
-            });
+            };
+            // A method of this component, so Blazor persists by its render mode (and skips a static one);
+            // a lambda alone throws on apps with both Server and WebAssembly.
+            _persisting = state.RegisterOnPersisting(PersistState);
         }
     }
 
