@@ -19,7 +19,8 @@
     writing". Replies step in by one avatar's width at each level. RelativeTime shows "2 hours
     ago" in place of the date, computed when the page renders, with the full date on hover.
     Placement End mirrors it, for one side of a two-person exchange; for a conversation as it
-    happens, Chat suits better.
+    happens, Chat suits better. Extra adds to the author's line after the time: a Badge, "Edited",
+    or a Menu.
 
     Accessibility:
     - Each comment is an `article` named by its author, its replies nested inside it, so screen
@@ -36,18 +37,23 @@
         <Avatar Name="@Author" Src="@Avatar" Initials="@Initials" Size="AvatarSize.Sm" Decorative Class="ib-comment-avatar" />
     }
     <div class="ib-comment-body">
-        @if (Author is { Length: > 0 } || Time is not null)
+        @if (Author is { Length: > 0 } || Time is not null || Extra is not null)
         {
-            <p class="ib-comment-meta">
+            <div class="ib-comment-meta">
                 @if (Author is { Length: > 0 } author)
                 {
                     <span class="ib-comment-author" id="@_authorId">@author</span>
                 }
                 @if (Time is { } time)
                 {
+                    @if (Author is { Length: > 0 })
+                    {
+                        <span class="ib-comment-dot" aria-hidden="true">·</span>
+                    }
                     <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)" title="@(RelativeTime ? time.ToString("f", CultureInfo.CurrentCulture) : null)">@TimeText(time)</time>
                 }
-            </p>
+                @Extra
+            </div>
         }
         @if (ChildContent is not null)
         {
@@ -86,6 +92,12 @@
     /// on hover. Comments older than a week show their date. Worked out when the page renders.
     /// </summary>
     [Parameter] public bool RelativeTime { get; set; }
+
+    /// <summary>
+    /// More on the author's line, after the time: a <see cref="Badge"/> such as "Author" or
+    /// "Moderator", the word "Edited", or a <see cref="Menu"/> of what you can do with it.
+    /// </summary>
+    [Parameter] public RenderFragment? Extra { get; set; }
 
     /// <summary>The comment as plain text, its line breaks kept.</summary>
     [Parameter] public string? Text { get; set; }
