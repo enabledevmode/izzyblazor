@@ -139,8 +139,9 @@
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
 
     /// <summary>
-    /// Center (the default), a full-height drawer on the start or end side, or a full-width sheet along
-    /// the top or bottom. A <see cref="Drawer"/> defaults to <see cref="DialogPlacement.End"/>.
+    /// Center (the default), a full-height drawer on the start or end side, or a sheet along the top
+    /// or bottom, centered and 40rem wide at most (<see cref="Size"/> changes it; the full width on
+    /// phones). A <see cref="Drawer"/> defaults to <see cref="DialogPlacement.End"/>.
     /// </summary>
     [Parameter] public DialogPlacement Placement { get; set; } = DialogPlacement.Center;
 
@@ -192,8 +193,8 @@
 
     /// <summary>
     /// A dialog isn't in the page layout: <c>Width</c> replaces the <see cref="Size"/>'s width
-    /// through the size's own variables, which keep a margin on small screens. Top and bottom
-    /// sheets span the screen and ignore it.
+    /// through the size's own variables, which keep a margin on small screens. A top or bottom
+    /// sheet narrower than the screen is centered.
     /// </summary>
     private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps) =>
         ApplyResponsive(classes, styles, Width, "ib-dialog-sized", "dlgw", StyleValues.Length);
