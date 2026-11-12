@@ -30,6 +30,7 @@
     MinColSpan, MaxColSpan, MinRowSpan and MaxRowSpan.
 *@
 
+<CascadingValue Value="_chartButtons" IsFixed="true">
 <div @attributes="AdditionalAttributes" class="@_class" style="@PlacedStyle" role="listitem"
      aria-labelledby="@(HasTitle ? _titleId : null)" aria-label="@(HasTitle ? null : Label)" data-tile-id="@Id"
      data-ib-label="@(Editing ? AccessibleName : null)" data-ib-limits="@(Editing ? Limits : null)">
@@ -69,9 +70,10 @@
     {
         @* The resize grip: dragged with script; without, the menu resizes. *@
         <span class="ib-tile-grip" aria-hidden="true"></span>
-        <div class="ib-visually-hidden" role="status">@(Context!.Owner.Announcement is { } said && said.Tile == this ? said.Text : null)</div>
+        <div class="ib-visually-hidden" role="status" id="@_statusId">@(Context!.Owner.Announcement is { } said && said.Tile == this ? said.Text : null)</div>
     }
 </div>
+</CascadingValue>
 
 @code {
     /// <summary>
@@ -142,6 +144,13 @@
 
     [CascadingParameter] private TileLayoutContext? Context { get; set; }
 
+    // Which of its chart's buttons are in its header, and its title to name them by (ChartButtonHost).
+    private readonly ChartButtonHost _chartButtons = new();
+
+    // The live region; after a move posted with JavaScript off it also describes the focused
+    // handle, since text already on the page when it loads isn't announced.
+    private readonly string _statusId = IdGenerator.Next("ib-tile-status");
+
     private readonly string _ownTitleId = IdGenerator.Next("ib-tile-title");
 
     private string _titleId => TitleId ?? _ownTitleId;
@@ -166,7 +175,7 @@
                 <IconButton Icon="Lucide.GripHorizontal" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, AccessibleName)"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-tile-handle"
                             aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight Alt+ArrowUp Alt+ArrowDown Alt+Shift+ArrowLeft Alt+Shift+ArrowRight Alt+Shift+ArrowUp Alt+Shift+ArrowDown"
-                            autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+                            autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" aria-describedby="@(focus ? _statusId : null)" @attributes="wire" />
             </Trigger>
             <ChildContent>
                 @MoveItem(TileMoveKind.Left, TextDefaults.MoveLeft, Lucide.ArrowLeft, "Alt+←")
@@ -278,6 +287,7 @@
         }
 
         Context.Seen(this);
+        _chartButtons.TitleId = HasTitle ? _titleId : null;
         _class = new ClassBuilder().Add("ib-tile").Add("ib-tile-flush", Flush).Add(VisibilityClasses).Add(Class).ToString();
     }
 

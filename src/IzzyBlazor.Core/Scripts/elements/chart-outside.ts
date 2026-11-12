@@ -32,6 +32,14 @@ document.addEventListener("click", (event) => {
   chartOf(button, true)?.querySelector<HTMLButtonElement>(`ib-chart ${inner}`)?.click();
 });
 
+// Each chart's mirror, run again when buttons are added to the page (an interactive render).
+const mirrors = new Set<() => void>();
+// Once a frame at most: a live chart changes the page often.
+let frame = 0;
+new MutationObserver(() => {
+  if (!frame) frame = requestAnimationFrame(() => (frame = 0, mirrors.forEach((m) => m())));
+}).observe(document.documentElement, { childList: true, subtree: true });
+
 /** Keeps the buttons outside a chart in step with its own. */
 export function outside(chart: HTMLElement, signal: AbortSignal): void {
   const figure = chart.closest("figure");
@@ -48,6 +56,10 @@ export function outside(chart: HTMLElement, signal: AbortSignal): void {
   };
   const watch = new MutationObserver(mirror);
   watch.observe(chart, { attributes: true, subtree: true, attributeFilter: ["data-ib-zoomed", "disabled", "aria-pressed"] });
-  signal.addEventListener("abort", () => watch.disconnect());
+  mirrors.add(mirror);
+  signal.addEventListener("abort", () => {
+    watch.disconnect();
+    mirrors.delete(mirror);
+  });
   mirror();
 }

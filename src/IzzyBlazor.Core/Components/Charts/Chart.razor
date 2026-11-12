@@ -301,9 +301,14 @@
 
     private static string Num(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 
+    [CascadingParameter] private ChartButtonHost? ButtonHost { get; set; }
+
+    private void Redraw() => StateHasChanged();
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        ButtonHost?.Listen(Redraw);
         _context = new ChartContext<TItem>();
         if (RendererInfo.IsInteractive) Navigation.LocationChanged += OnLocation;
         PlotFragment = builder =>
@@ -445,6 +450,7 @@
     /// <inheritdoc />
     public void Dispose()
     {
+        ButtonHost?.Unlisten(Redraw);
         Navigation.LocationChanged -= OnLocation;
         _refreshing?.Cancel();
         _refreshing?.Dispose();
@@ -761,23 +767,29 @@
         }
         @if (zoomTools || pause || Download)
         {
+            // Buttons that stand in for these in its Tile's or Card's header: those stay, hidden, as
+            // what a press there is passed to; with none of its own left to show, so does the row.
+            var resetOut = ButtonHost?.Moved("reset") == true;
+            var zoomOut = ButtonHost?.Moved("zoom") == true;
+            var pauseOut = ButtonHost?.Moved("pause") == true;
+            var rowOut = !Download && (!pause || pauseOut) && (!zoomTools || (resetOut && (zoomOut || !_zoomOn)));
             @* In the title's row across from the title (chart.css). *@
-            <div class="ib-chart-tools">
+            <div class="@(rowOut ? "ib-chart-tools-out" : "ib-chart-tools")" hidden="@rowOut">
                 @if (zoomTools)
                 {
                     @* Reset zoom shows while zoomed in. Zoom out and in are the wheel's, pinch's and
                        the box's way for a pointer that doesn't drag (chart-gesture.ts); out waits
                        until there's something to zoom out of. *@
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset">@TextDefaults.ChartResetZoom</button>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-chart-reset" hidden="@resetOut">@TextDefaults.ChartResetZoom</button>
                     @* A chart that only follows a synced group's view takes no zoom of its own: Reset zoom alone. *@
                     @if (_zoomOn)
                     {
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="2"
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="2" hidden="@zoomOut"
                             aria-label="@TextDefaults.ChartZoomOut" title="@TextDefaults.ChartZoomOut" aria-keyshortcuts="-"
                             disabled="@(model.View?.Share is null)">
                         <Icon Name="Lucide.ZoomOut" />
                     </button>
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="0.5"
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only" data-ib-zoom-by="0.5" hidden="@zoomOut"
                             aria-label="@TextDefaults.ChartZoomIn" title="@TextDefaults.ChartZoomIn" aria-keyshortcuts="+">
                         <Icon Name="Lucide.ZoomIn" />
                     </button>
@@ -786,7 +798,7 @@
                 @if (pause)
                 {
                     @* Pause updates, at the end; pressed, the chart keeps its drawing. *@
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause" data-ib-script
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-btn-icon-only ib-chart-pause" data-ib-script hidden="@pauseOut"
                             aria-label="@TextDefaults.ChartPauseUpdates" aria-pressed="@(_paused ? "true" : "false")" @onclick="TogglePause">
                         <Icon Purpose="IconPurpose.Pause" Class="ib-chart-pause-icon" />
                         <Icon Purpose="IconPurpose.Play" Class="ib-chart-play-icon" />

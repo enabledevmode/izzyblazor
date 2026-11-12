@@ -251,12 +251,13 @@
   }
 }
 
-/* Editing is at the widest count only: below it, no handles and no cells. */
+/* Editing is at the widest count only: below it, no handles, grips or cells, and no move cursor. */
 @layer izzy.components {
   @media (width < 640px) {
     .ib-tiles-edit-from-sm .ib-tile-handle,
     .ib-tiles-edit-from-sm .ib-tile-grip,
     .ib-tiles-edit-from-sm > .ib-tiles-cell { display: none; }
+    .ib-tiles-edit-from-sm > .ib-tile { cursor: auto; user-select: auto; }
   }
 }
 @layer izzy.components {
@@ -264,6 +265,7 @@
     .ib-tiles-edit-from-md .ib-tile-handle,
     .ib-tiles-edit-from-md .ib-tile-grip,
     .ib-tiles-edit-from-md > .ib-tiles-cell { display: none; }
+    .ib-tiles-edit-from-md > .ib-tile { cursor: auto; user-select: auto; }
   }
 }
 @layer izzy.components {
@@ -271,6 +273,7 @@
     .ib-tiles-edit-from-lg .ib-tile-handle,
     .ib-tiles-edit-from-lg .ib-tile-grip,
     .ib-tiles-edit-from-lg > .ib-tiles-cell { display: none; }
+    .ib-tiles-edit-from-lg > .ib-tile { cursor: auto; user-select: auto; }
   }
 }
 @layer izzy.components {
@@ -278,5 +281,6 @@
     .ib-tiles-edit-from-xl .ib-tile-handle,
     .ib-tiles-edit-from-xl .ib-tile-grip,
     .ib-tiles-edit-from-xl > .ib-tiles-cell { display: none; }
+    .ib-tiles-edit-from-xl > .ib-tile { cursor: auto; user-select: auto; }
   }
 }
