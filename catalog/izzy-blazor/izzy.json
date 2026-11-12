@@ -8,7 +8,7 @@
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
-  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
+  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
@@ -25,6 +25,27 @@
       "Empty": {
         "type": "boolean", "default": false,
         "description": "Leaves out the sample pages (Counter and Weather) and the sidebar."
+      },
+      "Preset": {
+        "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
+        "description": "The theme preset: Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
+      },
+      "Brand": {
+        "type": "string", "default": "",
+        "pattern": "^$|^(blue|ink|indigo|violet|teal|green|rose)$|^#([0-9a-f]{3}|[0-9a-f]{6})$",
+        "description": "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
+      },
+      "Nav": {
+        "type": "string", "enum": ["Sidebar", "Top"], "default": "Sidebar",
+        "description": "Where the navigation goes: a sidebar, or links across the top bar that fold into a menu on phones."
+      },
+      "ContentWidth": {
+        "type": "string", "enum": ["Auto", "Full", "64", "72", "80"], "default": "Auto",
+        "description": "How wide pages get, in rem: Full fills the screen; 64, 72 or 80 center a column. Auto is full beside a sidebar and 72 under a top bar."
+      },
+      "Shell": {
+        "type": "string", "enum": ["Tinted", "Inset", "Flat", "Canvas"], "default": "Tinted",
+        "description": "How the app shell looks: Tinted (the sidebar takes the page tint), Inset (the main area a raised panel in a tinted frame), Flat (lines alone separate the parts) or Canvas (the main area tinted, for content in cards)."
       },
       "Framework": {
         "type": "string", "enum": ["net10.0"], "default": "net10.0",
@@ -56,7 +77,12 @@
     "UseWebAssembly": "Interactivity == \"WebAssembly\" || Interactivity == \"Auto\"",
     "InteractiveAtRoot": "AllInteractive && Interactivity != \"None\"",
     "SampleContent": "!Empty",
-    "HasHttpsProfile": "!NoHttps"
+    "HasHttpsProfile": "!NoHttps",
+    "SidebarNav": "Nav == \"Sidebar\"",
+    "PlainShell": "Shell == \"Tinted\"",
+    "AutoWidth": "ContentWidth == \"Auto\"",
+    "WidthOnShell": "Nav == \"Top\" && ContentWidth != \"Full\"",
+    "WidthOnMain": "Nav == \"Sidebar\" && ContentWidth != \"Full\" && ContentWidth != \"Auto\""
   },
   "exclude": [
     { "if": "!UseWebAssembly", "paths": ["{{ProjectName}}.Client/**", "*.slnx"] },

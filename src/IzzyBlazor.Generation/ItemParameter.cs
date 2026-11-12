@@ -33,6 +33,9 @@ public sealed class ItemParameter
     /// <summary>Left out of help and forms (<c>"x-hidden": true</c>), such as the ports, but still accepted.</summary>
     public bool Hidden { get; init; }
 
+    /// <summary>For text: a regular expression the whole value must match (JSON Schema's <c>pattern</c>), checked ignoring case.</summary>
+    public string? Pattern { get; init; }
+
     internal static IReadOnlyList<ItemParameter> FromSchema(JsonObject schema)
     {
         if (schema["properties"] is not JsonObject properties) return [];
@@ -68,6 +71,7 @@ public sealed class ItemParameter
                 Port = port,
                 Option = (string?)p["x-option"] ?? TemplateExport.OptionName(name),
                 Hidden = (bool?)p["x-hidden"] ?? false,
+                Pattern = (string?)p["pattern"],
             });
         }
         return list;
