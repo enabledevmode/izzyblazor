@@ -446,6 +446,8 @@ const builds = [
       "elements/parts/chart-sync": join(lib, "Scripts", "elements", "chart-sync.ts"),
       // The RangeSelector's window, handles and buttons, loaded where there's one.
       "elements/parts/chart-select": join(lib, "Scripts", "elements", "chart-select.ts"),
+      // A chart's buttons placed outside it (ChartResetZoom, ChartZoom, ChartPause), loaded where there's one.
+      "elements/parts/chart-outside": join(lib, "Scripts", "elements", "chart-outside.ts"),
       // A chart saved as a PNG (Download), loaded on the first press of a download button.
       "elements/parts/chart-export": join(lib, "Scripts", "elements", "chart-export.ts"),
       // TreemapChart's tooltip and keys, loaded where there's a treemap.

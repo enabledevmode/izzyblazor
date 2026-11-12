@@ -13,12 +13,17 @@
         <Stat Label="Returns" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="vs last week" />
     </Tile>
     <Tile Id="channels" Title="Revenue by channel" TitleId="tiles-channels-title" Icon="Lucide.ChartColumn" Col="1" Row="2" ColSpan="8" RowSpan="3">
-        <Chart Items="_channels" Argument="m => m.Month" TitledBy="tiles-channels-title" Stacking="ChartStacking.Normal" Download>
-            <ChartValueAxis Format="$#,##0,K" />
-            <ChartBarSeries Value="m => m.Online" Name="Online store" />
-            <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
-            <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
-        </Chart>
+        <HeaderEnd>
+            <ChartDownload />
+        </HeaderEnd>
+        <ChildContent>
+            <Chart Items="_channels" Argument="m => m.Month" TitledBy="tiles-channels-title" Stacking="ChartStacking.Normal">
+                <ChartValueAxis Format="$#,##0,K" />
+                <ChartBarSeries Value="m => m.Online" Name="Online store" />
+                <ChartBarSeries Value="m => m.Marketplace" Name="Marketplaces" />
+                <ChartBarSeries Value="m => m.Wholesale" Name="Wholesale" />
+            </Chart>
+        </ChildContent>
     </Tile>
     <Tile Id="products" Title="Top products" Icon="Lucide.Package" Col="9" Row="2" ColSpan="4" RowSpan="3">
         <Stack Gap="3">

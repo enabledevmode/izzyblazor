@@ -161,26 +161,6 @@
     }
   }
 
-  /* Named by the tile's title (no title of its own) in a tile with no HeaderEnd: its buttons share
-     the tile's header row instead of taking a row of their own. The header lies over the top of
-     the body, short of the buttons' room, and the chart's own row for its buttons lines up with
-     it; the buttons stay in the body, which would clip anything moved out of it. */
-  /* (No :has inside :has: the browser drops a rule that nests them.) */
-  .ib-tile:has(> .ib-tile-header .ib-tile-title):has(> .ib-tile-body > .ib-chart:only-child .ib-chart-tools):not(:has(> .ib-tile-header > .ib-tile-end)):not(:has(> .ib-tile-body > .ib-chart > .ib-chart-label)) {
-    &:has(.ib-chart-reset) { --ib-tile-tools-reset: 13rem; }
-    &:has(.ib-chart-pause) { --ib-tile-tools-pause: 2.5rem; }
-    &:has(.ib-chart-download) { --ib-tile-tools-download: 2.5rem; }
-
-    & > .ib-tile-header {
-      position: absolute;
-      inset-block-start: 0;
-      inset-inline: 0 calc(var(--ib-space-4) + var(--ib-tile-tools-reset, 0rem) + var(--ib-tile-tools-pause, 0rem) + var(--ib-tile-tools-download, 0rem));
-      z-index: 7;
-    }
-
-    & > .ib-tile-body { padding-block-start: var(--ib-space-3); }
-  }
-
   /* The resize grip, at the bottom end corner: dragged with script, so hidden without it (the
      menu resizes then). Two short diagonal strokes, as a window's. */
   .ib-tile-grip {

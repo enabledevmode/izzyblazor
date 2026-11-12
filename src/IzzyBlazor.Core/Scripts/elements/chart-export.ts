@@ -49,13 +49,15 @@ let defaults: Document | undefined;
 const defaultStyles = new Map<string, Map<string, string>>();
 
 /**
- * A press on a download button: saves its chart (the figure it's in, or the one whose id it names),
+ * A press on a download button: saves its chart (the figure it's in, the one whose id it names,
+ * or the one chart in its Tile or Card),
  * the button busy meanwhile so a second press doesn't make a second file.
  */
 export function press(button: Element): void {
   if (button.matches(":disabled, [aria-busy=true]")) return;
   const id = button.getAttribute("data-ib-chart-download");
-  const figure = id ? document.getElementById(id) : button.closest<HTMLElement>("figure");
+  const charts = button.closest(".ib-tile, .ib-card")?.querySelectorAll<HTMLElement>("figure:has(> ib-chart)");
+  const figure = id ? document.getElementById(id) : button.closest<HTMLElement>("figure") ?? (charts?.length === 1 ? charts[0] : null);
   if (!figure) return;
   button.setAttribute("aria-busy", "true");
   downloadChart(figure)
