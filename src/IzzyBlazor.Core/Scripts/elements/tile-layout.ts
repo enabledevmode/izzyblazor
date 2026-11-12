@@ -31,7 +31,7 @@ type Layout = Map<HTMLElement, Place>;
  * <ib-tile-layout> moves and resizes the tiles of an editable TileLayout, at its widest column
  * count only (the handles hide below it). Every place is in cells: a tile snaps from cell to cell
  * as the pointer crosses them. By default a tile in the way takes the moved tile's old cells when
- * it fits there, else moves down, and then every tile rises (not with data-ib-float): arrange(),
+ * it fits there, else moves down, and with data-ib-compact every tile then rises: arrange(),
  * the same rule as C#'s TileArrange. The other tiles show their new places as the pointer moves.
  * data-ib-collision="block" stops a tile at its last free spot; "overlap" lets it cover others.
  * - Dragging a tile moves it, from anywhere but the controls in it; dragging its corner grip
@@ -119,7 +119,7 @@ class TileLayout extends IzzyElement {
     let next: Layout | null;
     const changes = (layout: Layout | null) => !!layout && [...layout].some(([other, q]) => !sameAs(q, from.get(other)!));
     if (this.collision === "push") {
-      const compact = !this.hasAttribute("data-ib-float");
+      const compact = this.hasAttribute("data-ib-compact");
       // A menu's step onto one tile jumps past it when that swaps the two; else it's the step itself.
       const old = from.get(tile)!;
       const leap = kind ? jump(from, tile, kind, p, cols, rows) : null;
