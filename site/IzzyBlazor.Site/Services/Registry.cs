@@ -57,8 +57,11 @@ public sealed class Registry
     /// <summary>The listed components and the previews, whose pages only the components page links to.</summary>
     public IReadOnlyList<RegistryComponent> AllComponents { get; }
 
-    /// <summary>The component count rounded down to ten, as "80+", for links and marketing copy.</summary>
-    public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{Components.Count / 10 * 10}+";
+    /// <summary>
+    /// The component count as "N+", for links and marketing copy: the last ten it's more than, so 160
+    /// reads "150+" and 161 "160+" (Israel, Nov 12: "150+" until there are more than 160).
+    /// </summary>
+    public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{(Components.Count - 1) / 10 * 10}+";
 
     public static Registry Load(ApiMetadata api)
     {

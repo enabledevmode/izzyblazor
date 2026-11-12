@@ -981,8 +981,20 @@ public class IzzyText
     /// <summary>ReconnectDialog's button for a paused session.</summary>
     public virtual string Resume { get; set; } = "Resume";
 
-    /// <summary>ReconnectDialog's button when the session can't come back.</summary>
+    /// <summary>ReconnectDialog's button when the session can't come back, and ErrorGuard's link on static pages.</summary>
     public virtual string Reload { get; set; } = "Reload";
+
+    /// <summary>ErrorGuard's title when what it guards throws.</summary>
+    public virtual string ErrorGuardTitle { get; set; } = "Something went wrong";
+
+    /// <summary>ErrorGuard's message, under its title.</summary>
+    public virtual string ErrorGuardMessage { get; set; } = "This part of the page stopped working.";
+
+    /// <summary>ErrorGuard's button on interactive pages, which renders what it guards again.</summary>
+    public virtual string TryAgain { get; set; } = "Try again";
+
+    /// <summary>ErrorGuard's summary over the exception, when ShowDetails is set.</summary>
+    public virtual string ErrorDetails { get; set; } = "Details";
 
     /// <summary>Alert's and Banner's status, read before the message (Info).</summary>
     public virtual string StatusInfo { get; set; } = "Info";
