@@ -45,6 +45,9 @@ public sealed class ItemManifest
     /// <summary>NuGet packages the item needs.</summary>
     public IReadOnlyList<PackageSpec> Packages { get; init; } = [];
 
+    /// <summary>Text added to files: ones this item creates, or ones already in the project.</summary>
+    public IReadOnlyList<InsertSpec> Inserts { get; init; } = [];
+
     /// <summary>Reads a manifest from the text of an <c>izzy.json</c>.</summary>
     public static ItemManifest Parse(string json)
     {
@@ -70,10 +73,11 @@ public sealed class ItemManifest
                 (e["paths"] as JsonArray)?.Select(p => (string)p!).ToList() ?? [])).ToList() ?? [],
             Packages = (root["packages"] as JsonArray)?.Select(p => new PackageSpec(
                 Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"])).ToList() ?? [],
+            Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() ?? [],
         };
     }
 
-    static string Required(JsonObject o, string name) =>
+    internal static string Required(JsonObject o, string name) =>
         (string?)o[name] is { Length: > 0 } value ? value : throw new GenerationException($"izzy.json needs \"{name}\".");
 
     static T ParseEnum<T>(string value, string name) where T : struct, Enum =>
@@ -116,3 +120,42 @@ public sealed record ExcludeRule(string If, IReadOnlyList<string> Paths);
 /// <param name="Version">The version to reference.</param>
 /// <param name="If">A condition expression; the package is added only when it holds. Null adds it always.</param>
 public sealed record PackageSpec(string Id, string Version, string? If);
+
+/// <summary>
+/// Text added to a file, beside the line that holds an anchor. Skipped when the file already holds the text, so
+/// generating twice changes nothing; a file without the anchor gets a warning, not a guess.
+/// </summary>
+/// <param name="File">The file, relative to the project folder; tokens allowed.</param>
+/// <param name="Anchor">Text a line holds, such as a marker comment (<c>@* izzy:nav *@</c>), or null with <paramref name="Pattern"/>.</param>
+/// <param name="Pattern">A regular expression a line matches, when there's no marker to look for.</param>
+/// <param name="Position">Whether the text goes before or after that line.</param>
+/// <param name="Text">The text, with tokens; it takes the file's line endings.</param>
+/// <param name="If">A condition expression; the insert happens only when it holds. Null always.</param>
+public sealed record InsertSpec(string File, string? Anchor, string? Pattern, InsertPosition Position, string Text, string? If)
+{
+    internal static InsertSpec Parse(JsonObject o)
+    {
+        var anchor = (string?)o["anchor"];
+        var pattern = (string?)o["pattern"];
+        if (anchor is null == pattern is null) throw new GenerationException("An insert needs \"anchor\" or \"pattern\", not both.");
+        var position = (string?)o["position"] ?? "before";
+        return new InsertSpec(
+            ItemManifest.Required(o, "file"), anchor, pattern,
+            position switch
+            {
+                "before" => InsertPosition.Before,
+                "after" => InsertPosition.After,
+                _ => throw new GenerationException($"An insert's \"position\" is before or after, not \"{position}\"."),
+            },
+            ItemManifest.Required(o, "text"), (string?)o["if"]);
+    }
+}
+
+/// <summary>Where inserted text goes, next to the anchor's line.</summary>
+public enum InsertPosition
+{
+    /// <summary>On the lines above it.</summary>
+    Before,
+    /// <summary>On the lines below it.</summary>
+    After,
+}
