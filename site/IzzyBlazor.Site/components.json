@@ -420,6 +420,13 @@
       ]
     },
     {
+      "id": "mention-text", "icon": "AtSign", "name": "MentionText", "category": "Typography", "summary": "Shows text written in a Mentions field, with each @name marked or linked.", "keywords": ["mentions", "at mention", "hashtag", "comment", "activity"],
+      "examples": [
+        { "id": "mention-text-comment", "title": "Mentions in a comment", "lead": "Set `Text` to the saved text: each mention is marked, and `Href` links it to a profile; here the link opens it under the comment. Its lines are kept.",
+          "after": ["`Prefixes` sets the triggers to find, as on the `Mentions` field that wrote the text. `Mention.Parse` finds the same names in C#, to notify the people mentioned."] }
+      ]
+    },
+    {
       "id": "icon", "icon": "Shapes", "name": "Icon", "category": "Typography", "summary": "Renders Lucide icons as inline SVG on the server.",
       "examples": [
         { "id": "icon-beside-text", "title": "Beside text", "lead": "Set `Name` to an icon such as `Lucide.House`. An icon is sized in em and uses the text color, so it matches the text it sits in." },
@@ -1410,21 +1417,19 @@
     },
     {
       "id": "mentions", "icon": "AtSign", "name": "Mentions", "category": "Inputs", "summary": "Suggests people or tags as the user types @ or # in a text area, and writes the chosen name into the text.", "keywords": ["mention", "at mention", "tag", "hashtag", "@", "typeahead", "comment box"],
-      "parts": ["MentionText"],
       "features": [
         { "feature": "The value is the plain text, posted with the form" },
         { "feature": "Typing a trigger suggests names at the caret, narrowed as you type", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Search fills each trigger's suggestions when the page loads" },
-        { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" },
-        { "feature": "MentionText shows saved text with the names marked or linked" }
+        { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "mentions-people", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
           "after": ["A mention ends at a space, so `ItemText` should be a handle without spaces. `Placement=\"MentionsPlacement.Top\"` opens the list above the line, for a box at the bottom of the page."] },
         { "id": "mentions-search", "title": "Searching a directory", "lead": "For a list too long to send whole, set `Search`. It gets a `MentionQuery`, the trigger and what's typed after it, and returns the first matches. Each pause in typing asks again." },
-        { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows." },
-        { "id": "mentions-triggers", "title": "People and issues", "lead": "`Prefixes` sets the triggers. `Search` gets the one typed, so `@` can list people and `#` issues." },
-        { "id": "mentions-in-comment", "title": "Showing mentions", "lead": "To show saved text, use `MentionText`: it marks each mention, and `Href` links it to a profile; here the link opens it under the comment. Its lines are kept." }
+        { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows.",
+          "after": ["`MentionText` shows the saved text with its names marked or linked."] },
+        { "id": "mentions-triggers", "title": "People and issues", "lead": "`Prefixes` sets the triggers. `Search` gets the one typed, so `@` can list people and `#` issues." }
       ]
     },
     {
