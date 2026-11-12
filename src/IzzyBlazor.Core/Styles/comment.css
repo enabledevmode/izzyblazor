@@ -22,10 +22,13 @@
     min-inline-size: 0;
   }
 
+  /* The author near body size, the time and the dot between them small and muted. */
   .ib-comment-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ib-space-2);
+    align-items: center;
+    column-gap: var(--ib-space-2);
+    row-gap: var(--ib-space-1);
     margin: 0;
     color: var(--ib-color-muted);
     font-size: var(--ib-text-xs);
@@ -33,6 +36,7 @@
 
   .ib-comment-author {
     color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
     font-weight: var(--ib-weight-semibold);
   }
 
@@ -55,13 +59,15 @@
   /* Neutral ghost buttons are muted, as the meta line is, until hovered. */
   .ib-comment-actions > .ib-btn-ghost.ib-btn-neutral:not(:hover) { --ib-accent-text: var(--ib-color-muted); }
 
-  /* A ghost button's text lines up with the comment's, its padding hanging outside. */
+  /* A ghost button's text or icon lines up with the comment's text, its padding hanging outside. */
   .ib-comment-actions > .ib-btn-ghost:first-child { margin-inline-start: calc(-1 * var(--ib-btn-pad)); }
+  .ib-comment-actions > .ib-btn-ghost.ib-btn-icon-only:first-child { margin-inline-start: calc((var(--ib-icon-size) - var(--ib-btn-h)) / 2); }
 
   /* Replies sit in the body, so each level steps in by the avatar and the gap after it. */
   .ib-comment-replies {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--ib-space-6);
     padding-block-start: var(--ib-space-4);
   }

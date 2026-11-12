@@ -3125,9 +3125,9 @@
     {
       "id": "comment", "icon": "MessageSquareText", "name": "Comment", "category": "Display", "summary": "Shows a comment in a discussion, with who wrote it, when, and replies nested under it.", "keywords": ["comments", "discussion", "thread", "reply", "feedback", "review"],
       "examples": [
-        { "id": "comment-actions", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`, with `Avatar` or `Initials` for the picture. `Actions` holds buttons for what you can do with it." },
-        { "id": "comment-replies", "title": "Replies", "lead": "To answer a comment, put `Comment`s in its `Replies`. Each level steps in by one avatar.", "after": ["`RelativeTime` shows how long ago (\"5 hours ago\") with the full date on hover, worked out when the page renders. Comments older than a week show their date."] },
-        { "id": "comment-list", "title": "A list of comments", "lead": "For a page's comments, put them in a `Stack` with a count above and a `Divider` between." },
+        { "id": "comment-actions", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`, with `Avatar` or `Initials` for the picture. `Actions` holds buttons for what you can do with it, here votes and Reply." },
+        { "id": "comment-replies", "title": "Replies", "lead": "To answer a comment, put `Comment`s in its `Replies`. Each level steps in by one avatar.", "after": ["A link button after the replies loads the rest when a thread is long.", "`RelativeTime` shows how long ago (\"5 hours ago\") with the full date on hover, worked out when the page renders. Comments older than a week show their date."] },
+        { "id": "comment-list", "title": "A list of comments", "lead": "For a page's comments, put them in a `Stack` with a count above and a `Divider` between.", "after": ["`Extra` adds to the author's line after the time: here \"Edited\", and a `Badge` on the writer's answer. A `Menu` of what you can do with a comment fits there too."] },
         { "id": "comment-reply-form", "title": "Adding a comment", "lead": "For a box to write in, put a form in a `Comment` that has only your avatar: it lines up with the comments above.", "after": ["`Placement=\"CommentPlacement.End\"` puts the avatar at the end, for one side of a two-person exchange. For a conversation as it happens, `Chat` suits better."] }
       ]
     },
