@@ -2183,7 +2183,7 @@
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
         { "feature": "Axis titles, set steps, log scales, grid lines and a second axis" },
         { "feature": "Value labels, reference lines and bands, notes and trends" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips from a template, on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" },
         { "feature": "Zoom and pan by dragging, Ctrl+wheel, a pinch or the keys, with no round trip", "noscript": "none" },
@@ -2200,7 +2200,7 @@
         {
           "id": "series", "title": "Bars and lines", "summary": "Bar and line series in one chart, such as each month's revenue against its plan, each in its own color and dash, with formatted values.", "members": ["ChartBarSeries", "ChartLineSeries", "ChartBarSeries.Color", "ChartLineSeries.LineStyle", "ChartValueAxis.Format"],
           "examples": [
-            { "id": "chart-usage", "title": "Bar and line series", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against.", "after": ["`Color` sets a series' color in place of the palette's next one. Here the revenue is in the theme's primary color and the plan in its text color, and `LineStyle` dashes the plan's line.", "A `ChartValueAxis` with a `Format` formats the values on the axis and in the Show data table under the chart. Leave the axes out and they take their defaults.", "The chart is rendered on the server with the page, so it shows with JavaScript off."] }
+            { "id": "chart-usage", "title": "Bar and line series", "lead": "Give `Chart` the `Items`, what each is plotted at as `Argument`, and a `Title`. Each series draws one `Value` per item: `ChartBarSeries` as bars, and `ChartLineSeries` as a line, here the plan each month's revenue is measured against.", "after": ["`Color` sets a series' color in place of the palette's next one. Here the revenue is in the theme's primary color and the plan in its text color, and `LineStyle` dashes the plan's line.", "A `ChartValueAxis` with a `Format` formats the values on the axis and in the Show data table. Leave the axes out and they take their defaults.", "The chart is rendered on the server with the page, so it shows with JavaScript off."] }
           ]
         },
         {
@@ -2334,7 +2334,7 @@
         { "feature": "Grouped side by side, stacked, or stacked to 100%" },
         { "feature": "A target tick across each bar, such as a quota" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
@@ -2354,7 +2354,7 @@
         { "feature": "Dashes and marker shapes that tell lines apart besides color" },
         { "feature": "Each line's name at its end, nudged apart where lines end close together" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
@@ -2371,7 +2371,7 @@
         { "feature": "Areas over dates, numbers or names, straight, smooth or stepped" },
         { "feature": "Stacked, or stacked to 100%" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
@@ -2385,7 +2385,7 @@
         { "feature": "Two measures on number or date scales" },
         { "feature": "Groups split into series by a value, each with its own marker shape" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
@@ -2400,7 +2400,7 @@
         { "feature": "An optional size key of reference circles" },
         { "feature": "Each bubble named on the chart" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Legend items that hide and show a series", "noscript": "none" }
       ],
@@ -2416,7 +2416,7 @@
         { "feature": "A value axis that fits the ranges, not drawn down to zero" },
         { "feature": "Each range read low first, such as \"1°C – 9°C\", in tooltips, labels and the table" },
         { "feature": "Legend items that hide and show a range", "noscript": "none" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
@@ -2432,7 +2432,7 @@
         { "feature": "A value axis that fits the band, not drawn down to zero" },
         { "feature": "Each range read low first in tooltips and the table" },
         { "feature": "Legend items that hide and show the band", "noscript": "none" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
@@ -2446,7 +2446,7 @@
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
         { "feature": "A moving average or other line drawn over the prices, and volume in a synced chart beneath" },
         { "feature": "Each period's four prices in its tooltip and the table" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Zoom and pan along the dates", "noscript": "none" }
       ],
@@ -2462,7 +2462,7 @@
         { "feature": "High-low-close, with no open" },
         { "feature": "Trading days side by side, with no gaps for weekends and holidays, labeled where weeks, months and years begin" },
         { "feature": "Each period's prices in its tooltip and the table" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" },
         { "feature": "Zoom and pan along the dates", "noscript": "none" }
       ],
@@ -2497,7 +2497,7 @@
         { "feature": "Boxes split by a group, side by side within each argument" },
         { "feature": "Upright, or lying across for long names" },
         { "feature": "Each box's numbers in its tooltip and the table" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
@@ -2514,7 +2514,7 @@
         { "feature": "Every violin as wide at its densest, so shapes compare" },
         { "feature": "Violins split by a group, side by side, upright or across" },
         { "feature": "Each violin's median and middle half in its tooltip, every number in the table" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
@@ -2528,7 +2528,7 @@
         { "feature": "Changes written signed, so color isn't the only cue" },
         { "feature": "Bars across for line items, columns for changes over time" },
         { "feature": "Drawn on the server, as wide as its container, with labels that thin out as it narrows" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [
@@ -2674,7 +2674,7 @@
         { "feature": "Legend items that hide and show slices, the rest closing up", "noscript": "none" },
         { "feature": "Labels by their slices with short lines, or in the slices, beside a legend or in its place" },
         { "feature": "Labels you write with a template" },
-        { "feature": "A table of the values in a \"Show data\" disclosure" },
+        { "feature": "A table of the values behind a \"Show data\" button" },
         { "feature": "Tooltips on hover and from the keyboard", "noscript": "none" }
       ],
       "examples": [

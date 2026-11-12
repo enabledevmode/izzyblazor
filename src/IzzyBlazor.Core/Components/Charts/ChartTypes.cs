@@ -122,11 +122,21 @@ public enum ChartAlign
 /// <summary>How a chart offers its values as a table.</summary>
 public enum ChartDataTable
 {
-    /// <summary>A "Show data" disclosure under the chart, closed until opened.</summary>
+    /// <summary>
+    /// A "Show data" button under the chart that opens the table in a popover over it, so nothing
+    /// on the page moves (the default). It works with JavaScript off.
+    /// </summary>
+    Popover,
+
+    /// <summary>
+    /// A "Show data" disclosure under the chart, closed until opened, that pushes what's below
+    /// down: for a report read top to bottom, with the chart and table seen together.
+    /// </summary>
     Collapsed,
 
     /// <summary>The table shows under the chart.</summary>
     Visible,
+
 
     /// <summary>No table, for a page that lists the values elsewhere.</summary>
     None,

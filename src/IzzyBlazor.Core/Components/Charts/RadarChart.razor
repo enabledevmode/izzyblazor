@@ -183,8 +183,8 @@
     /// </summary>
     [Parameter] public bool? Tooltip { get; set; }
 
-    /// <summary>The values as a table, spokes by series: in a closed "Show data" disclosure under the chart, by default.</summary>
-    [Parameter] public ChartDataTable DataTable { get; set; }
+    /// <summary>The values as a table, spokes by series: by default behind a "Show data" button that opens it over the chart; <see cref="ChartDataTable.Collapsed"/> puts it in a disclosure under the chart.</summary>
+    [Parameter] public ChartDataTable DataTable { get; set; } = ChartDataTable.Popover;
 
     /// <summary><see cref="RadarSeries{TItem}"/>s, and a <see cref="ChartTooltip{TItem}"/> for your own tooltip.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -420,13 +420,7 @@
 
         @if (DataTable != ChartDataTable.None)
         {
-            <details class="ib-collapsible ib-disclosure ib-chart-data" open="@(DataTable == ChartDataTable.Visible)">
-                <summary class="ib-collapsible-trigger" aria-labelledby="@(TitledBy is null ? null : $"{_labelId}-show {TitledBy}")">
-                    <Icon Purpose="IconPurpose.ChevronRight" Class="ib-collapsible-chevron" />
-                    <span id="@(_labelId)-show">@TextDefaults.ChartShowData@if (Title is not null)
-                        {<span class="ib-visually-hidden">, @Title</span>}</span>
-                </summary>
-                <div class="ib-chart-table-scroll">
+            RenderFragment dataTable = @<div class="ib-chart-table-scroll">
                     <table class="ib-chart-table" aria-labelledby="@NameId">
                         <thead>
                             <tr>
@@ -451,8 +445,8 @@
                             }
                         </tbody>
                     </table>
-                </div>
-            </details>
+                </div>;
+            @ChartTools.Data(DataTable, _labelId, Title, TitledBy, TextDefaults, dataTable)
         }
     }
 

@@ -832,7 +832,7 @@ public class ChartRenderTests : BunitContext
         // Series named from their properties, in the legend and the table.
         Assert.Equal(["Revenue", "Costs"], cut.FindAll(".ib-chart-legend li").Select(li => li.TextContent.Trim()));
         // Each "Show data" says which chart it is, and its table is named by the caption.
-        Assert.Equal("Show data, Revenue and costs", cut.Find("details.ib-chart-data > summary").TextContent.Trim());
+        Assert.Equal("Show data, Revenue and costs", cut.Find("button.ib-chart-data-button").TextContent.Trim());
         Assert.Equal(caption.Id, cut.Find(".ib-chart-table").GetAttribute("aria-labelledby"));
         Assert.Equal(["Name", "Revenue", "Costs"], cut.FindAll(".ib-chart-table thead th").Select(th => th.TextContent));
         Assert.Equal(["Feb", "120.0", "70.5"], cut.FindAll(".ib-chart-table tbody tr")[1].Children.Select(c => c.TextContent));
@@ -1151,8 +1151,8 @@ public class ChartRenderTests : BunitContext
         Assert.Equal("revenue-heading", cut.Find("figure").GetAttribute("aria-labelledby"));
         Assert.Equal("revenue-heading", cut.Find("[role=img]").GetAttribute("aria-labelledby"));
         Assert.Equal("revenue-heading", cut.Find(".ib-chart-table").GetAttribute("aria-labelledby"));
-        // "Show data" is read with the heading, so each chart's is told apart.
-        var summary = cut.Find("details.ib-chart-data > summary");
+        // "Show data" (a button opening the table over the chart) is read with the heading, so each chart's is told apart.
+        var summary = cut.Find("button.ib-chart-data-button");
         Assert.EndsWith(" revenue-heading", summary.GetAttribute("aria-labelledby"));
         Assert.Equal("Show data", cut.Find("#" + summary.GetAttribute("aria-labelledby")!.Split(' ')[0]).TextContent);
     }

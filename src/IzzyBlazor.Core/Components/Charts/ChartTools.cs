@@ -34,4 +34,76 @@ internal static class ChartTools
         builder.AddContent(2, Button(text));
         builder.CloseElement();
     };
+
+    /// <summary>
+    /// A chart's table of values: a "Show data" button that opens it in a popover over the chart
+    /// (<see cref="ChartDataTable.Popover"/>, the default), or a "Show data" disclosure under the
+    /// chart (<see cref="ChartDataTable.Collapsed"/>, or open with <see cref="ChartDataTable.Visible"/>).
+    /// </summary>
+    public static RenderFragment Data(ChartDataTable mode, string labelId, string? title, string? titledBy, IzzyText text, RenderFragment table) => builder =>
+    {
+        if (mode == ChartDataTable.None)
+        {
+            return;
+        }
+
+        // Its name: "Show data", then the chart's title (hidden) or the title it's named by.
+        var labelledBy = titledBy is null ? null : $"{labelId}-show {titledBy}";
+        RenderFragment name = b =>
+        {
+            b.OpenElement(0, "span");
+            b.AddAttribute(1, "id", $"{labelId}-show");
+            b.AddContent(2, text.ChartShowData);
+            if (title is not null)
+            {
+                b.OpenElement(3, "span");
+                b.AddAttribute(4, "class", "ib-visually-hidden");
+                b.AddContent(5, $", {title}");
+                b.CloseElement();
+            }
+
+            b.CloseElement();
+        };
+
+        if (mode == ChartDataTable.Popover)
+        {
+            builder.OpenComponent<Popover>(10);
+            builder.AddComponentParameter(11, nameof(Popover.Placement), Placement.TopStart);
+            builder.AddComponentParameter(12, nameof(Popover.Title), title ?? text.ChartShowData);
+            builder.AddComponentParameter(13, nameof(Popover.Class), "ib-chart-data-pop");
+            // As wide as the table, up to the screen's width.
+            builder.AddComponentParameter(16, nameof(Popover.PanelWidth), Length.MaxContent);
+            builder.AddComponentParameter(14, nameof(Popover.Trigger), (RenderFragment<IReadOnlyDictionary<string, object>>)(wire => b =>
+            {
+                b.OpenElement(0, "button");
+                b.AddMultipleAttributes(1, wire);
+                b.AddAttribute(2, "type", "button");
+                b.AddAttribute(3, "class", "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-chart-data-button");
+                b.AddAttribute(4, "aria-labelledby", labelledBy);
+                b.OpenComponent<Icon>(5);
+                b.AddComponentParameter(6, nameof(Icon.Name), Lucide.Table2);
+                b.CloseComponent();
+                b.AddContent(7, name);
+                b.CloseElement();
+            }));
+            builder.AddComponentParameter(15, nameof(Popover.ChildContent), table);
+            builder.CloseComponent();
+            return;
+        }
+
+        builder.OpenElement(20, "details");
+        builder.AddAttribute(21, "class", "ib-collapsible ib-disclosure ib-chart-data");
+        builder.AddAttribute(22, "open", mode == ChartDataTable.Visible);
+        builder.OpenElement(23, "summary");
+        builder.AddAttribute(24, "class", "ib-collapsible-trigger");
+        builder.AddAttribute(25, "aria-labelledby", labelledBy);
+        builder.OpenComponent<Icon>(26);
+        builder.AddComponentParameter(27, nameof(Icon.Purpose), IconPurpose.ChevronRight);
+        builder.AddComponentParameter(28, nameof(Icon.Class), "ib-collapsible-chevron");
+        builder.CloseComponent();
+        builder.AddContent(29, name);
+        builder.CloseElement();
+        builder.AddContent(30, table);
+        builder.CloseElement();
+    };
 }
