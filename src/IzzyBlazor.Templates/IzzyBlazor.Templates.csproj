@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The dotnet new package: after it builds, this program exports each starter in /catalog as a template
+       folder (TemplateExport), and packing puts those folders under content/. The program itself isn't shipped. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackageId>IzzyBlazor.Templates</PackageId>
+    <PackageType>Template</PackageType>
+    <Title>IzzyBlazor templates</Title>
+    <Description>dotnet new templates for IzzyBlazor: Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode.</Description>
+    <PackageTags>blazor;templates;dotnet-new;izzyblazor;components</PackageTags>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <!-- Not published until phase 1 (the engine, two items, the dotnet new package) passes its tests. -->
+    <IsPackable>false</IsPackable>
+    <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
+    <CatalogDir Condition="'$(CatalogDir)' == ''">$(RepoRoot)catalog</CatalogDir>
+    <TemplatesOut>$(MSBuildThisFileDirectory)$(BaseIntermediateOutputPath)templates</TemplatesOut>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
+  </ItemGroup>
+
+  <Target Name="ExportTemplates" AfterTargets="Build">
+    <RemoveDir Directories="$(TemplatesOut)" />
+    <Exec Command="dotnet &quot;$(TargetPath)&quot; &quot;$(CatalogDir)&quot; &quot;$(TemplatesOut)&quot;" />
+  </Target>
+
+  <Target Name="PackTemplates" BeforeTargets="_GetPackageFiles" DependsOnTargets="ExportTemplates">
+    <ItemGroup>
+      <!-- NuGet adds each file's folder under content/ itself (RecursiveDir). -->
+      <None Include="$(TemplatesOut)/**/*" Pack="true" PackagePath="content/" />
+    </ItemGroup>
+  </Target>
+
+</Project>

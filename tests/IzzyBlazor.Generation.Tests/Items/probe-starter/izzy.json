@@ -1,0 +1,18 @@
+// A small starter that uses every part of the export: each file type's conditions, a computed value, an
+// exclude, tokens in a path, and a binary file. DotnetNewTests checks dotnet new makes what the engine makes.
+{
+  "id": "izzy-probe-starter",
+  "name": "Probe starter",
+  "kind": "starter",
+  "summary": "Test data for the dotnet new export.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Interactivity": { "type": "string", "enum": ["None", "Server", "Auto"], "default": "Server" },
+      "AllInteractive": { "type": "boolean", "default": false },
+      "PageName": { "type": "string", "default": "Home" }
+    }
+  },
+  "computed": { "UseServer": "Interactivity == \"Server\" || Interactivity == \"Auto\"" },
+  "exclude": [ { "if": "!UseServer", "paths": ["Pages/Counter.razor", "Client/**"] } ]
+}

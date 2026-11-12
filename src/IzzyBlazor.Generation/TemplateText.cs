@@ -29,6 +29,8 @@ internal static partial class TemplateText
 
     public static bool IsBinary(string path) => Binary.Contains(Path.GetExtension(path));
 
+    public static IEnumerable<string> BinaryExtensions => Binary;
+
     /// <summary>Applies the conditions for this file's type, then replaces each <c>{{Token}}</c>.</summary>
     public static string Apply(string path, string text, IReadOnlyDictionary<string, object> values, IReadOnlyDictionary<string, string> tokens)
     {

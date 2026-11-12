@@ -15,6 +15,13 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- Template items are data: copied for the tests, never compiled. -->
+  <ItemGroup>
+    <Compile Remove="Items/**" />
+    <None Remove="Items/**" />
+    <None Include="Items/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
   </ItemGroup>
