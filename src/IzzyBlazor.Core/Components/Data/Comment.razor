@@ -4,75 +4,41 @@
 @attribute [ModeSupport]
 
 @*
-    Comment: one comment in a discussion, with who wrote it, when, what they said, actions under it
-    and replies nested inside it.
+    Comment: one comment in a discussion, such as feedback under an article or a review on a pull
+    request. Replies nest inside it. For messages exchanged as they happen, see Chat.
 
     <Comment Author="Ana Ruiz" Avatar="/img/ana.jpg" Time="posted" Text="Shipped on Tuesday.">
         <Actions><Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">Reply</Button></Actions>
         <Replies>
-            <Comment Author="Sam Lee" Initials="SL" Time="later" Text="Thanks!" />
+            <Comment Author="Sam Lee" Time="later" Text="Thanks!" />
         </Replies>
     </Comment>
 
     The content is Text (plain, its lines kept) or anything else as ChildContent, which is also
-    where a reply form goes: a Comment with only an Avatar and a TextArea inside reads as "you,
-    writing". Replies step in by one avatar's width at each level. RelativeTime shows "2 hours
-    ago" in place of the date, computed when the page renders, with the full date on hover.
-    Placement End mirrors it, for one side of a two-person exchange; for a conversation as it
-    happens, Chat suits better. Extra adds to the author's line after the time: a Badge, "Edited",
-    or a Menu.
+    where a reply form goes: a Comment with only an Avatar or Initials and a TextArea inside reads
+    as "you, writing". Replies step in by one avatar's width at each level. RelativeTime shows
+    "2 hours ago" in place of the date, computed when the page renders, with the full date on hover.
+    Extra adds to the author's line after the time: a Badge, "Edited", or a Menu.
 
     Accessibility:
-    - Each comment is an `article` named by its author, its replies nested inside it, so screen
-      readers can move between comments and tell a reply from the comment it answers.
+    - The author's name is a heading (HeadingLevel, 3 by default), so screen readers can jump from
+      comment to comment, as they do on GitHub.
+    - Each comment is an `article` named by its author, its replies nested inside it, so a reply
+      can be told from the comment it answers. Without an Author (a reply form) it's a plain `div`.
     - The time is a `time` element with the exact date and time in `datetime`.
     - The avatar is decoration: the author's name is next to it.
     See also: Chat, Timeline, Avatar.
 *@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/comment.css"]" />
-<article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@(Author is { Length: > 0 } ? _authorId : null)">
-    @if (Avatar is not null || Initials is not null)
-    {
-        <Avatar Name="@Author" Src="@Avatar" Initials="@Initials" Size="AvatarSize.Sm" Decorative Class="ib-comment-avatar" />
-    }
-    <div class="ib-comment-body">
-        @if (Author is { Length: > 0 } || Time is not null || Extra is not null)
-        {
-            <div class="ib-comment-meta">
-                @if (Author is { Length: > 0 } author)
-                {
-                    <span class="ib-comment-author" id="@_authorId">@author</span>
-                }
-                @if (Time is { } time)
-                {
-                    @if (Author is { Length: > 0 })
-                    {
-                        <span class="ib-comment-dot" aria-hidden="true">·</span>
-                    }
-                    <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)" title="@(RelativeTime ? time.ToString("f", CultureInfo.CurrentCulture) : null)">@TimeText(time)</time>
-                }
-                @Extra
-            </div>
-        }
-        @if (ChildContent is not null)
-        {
-            <div class="ib-comment-content">@ChildContent</div>
-        }
-        else if (!string.IsNullOrEmpty(Text))
-        {
-            <p class="ib-comment-content ib-comment-text">@Text</p>
-        }
-        @if (Actions is not null)
-        {
-            <div class="ib-comment-actions">@Actions</div>
-        }
-        @if (Replies is not null)
-        {
-            <div class="ib-comment-replies">@Replies</div>
-        }
-    </div>
-</article>
+@if (HasAuthor)
+{
+    <article @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_authorId">@Inner</article>
+}
+else
+{
+    <div @attributes="AdditionalAttributes" class="@_class" style="@_style">@Inner</div>
+}
 
 @code {
     /// <summary>Who wrote it. Names the comment for screen readers.</summary>
@@ -81,10 +47,14 @@
     /// <summary>The address of the author's picture.</summary>
     [Parameter] public string? Avatar { get; set; }
 
-    /// <summary>Letters for the avatar when there's no picture, such as <c>AR</c>.</summary>
+    /// <summary>The avatar's letters, in place of the author's initials. With no <see cref="Author"/>, they alone show the avatar (a reply form's "you").</summary>
     [Parameter] public string? Initials { get; set; }
 
-    /// <summary>When it was written, shown after the author: the date and time, or how long ago with <see cref="RelativeTime"/>.</summary>
+    /// <summary>
+    /// When it was written, shown after the author: the date and time, or how long ago with
+    /// <see cref="RelativeTime"/>. The date is in the value's own offset, so give it in the
+    /// reader's (the server can't know their time zone).
+    /// </summary>
     [Parameter] public DateTimeOffset? Time { get; set; }
 
     /// <summary>
@@ -108,14 +78,11 @@
     /// <summary>A row under the comment for things to do with it, such as Reply and Like buttons.</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
-    /// <summary>Replies: more <see cref="Comment"/>s, nested inside this one and stepped in.</summary>
+    /// <summary>Replies: more <see cref="Comment"/>s, nested inside this one and stepped in, and a link to load more.</summary>
     [Parameter] public RenderFragment? Replies { get; set; }
 
-    /// <summary>
-    /// Which side the avatar sits on. <see cref="CommentPlacement.End"/> mirrors the comment, the
-    /// text lined up at the end.
-    /// </summary>
-    [Parameter] public CommentPlacement Placement { get; set; }
+    /// <summary>The author's heading level, 2 to 6. Replies use the same level.</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 3;
 
     private readonly string _authorId = IdGenerator.Next("ib-comment-author");
     private string? _class;
@@ -125,12 +92,74 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-comment");
-        classes.Add("ib-comment-end", Placement == CommentPlacement.End);
         base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        if (HeadingLevel is < 2 or > 6)
+        {
+            throw new InvalidOperationException("Comment's HeadingLevel is 2 to 6.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private bool HasAuthor => Author is { Length: > 0 };
+
+    private RenderFragment Inner => __builder =>
+    {
+        @if (HasAuthor || Avatar is not null || Initials is not null)
+        {
+            <Avatar Name="@Author" Src="@Avatar" Initials="@Initials" Size="AvatarSize.Sm" Decorative Class="ib-comment-avatar" />
+        }
+        <div class="ib-comment-body">
+            @if (HasAuthor || Time is not null || Extra is not null)
+            {
+                <div class="ib-comment-meta">
+                    @if (HasAuthor)
+                    {
+                        @AuthorHeading
+                    }
+                    @if (Time is { } time)
+                    {
+                        @if (HasAuthor)
+                        {
+                            <span class="ib-comment-dot" aria-hidden="true">·</span>
+                        }
+                        <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)" title="@(RelativeTime ? time.ToString("f", CultureInfo.CurrentCulture) : null)">@TimeText(time)</time>
+                    }
+                    @Extra
+                </div>
+            }
+            @if (ChildContent is not null)
+            {
+                <div class="ib-comment-content">@ChildContent</div>
+            }
+            else if (!string.IsNullOrEmpty(Text))
+            {
+                <p class="ib-comment-content ib-comment-text">@Text</p>
+            }
+            @if (Actions is not null)
+            {
+                <div class="ib-comment-actions">@Actions</div>
+            }
+            @if (Replies is not null)
+            {
+                <div class="ib-comment-replies">@Replies</div>
+            }
+        </div>
+    };
+
+    private void AuthorHeading(RenderTreeBuilder builder)
+    {
+        builder.OpenElement(0, $"h{HeadingLevel}");
+        builder.AddAttribute(1, "class", "ib-comment-author");
+        builder.AddAttribute(2, "id", _authorId);
+        builder.AddContent(3, Author);
+        builder.CloseElement();
+    }
 
     private string TimeText(DateTimeOffset time)
     {
@@ -151,7 +180,7 @@
             { TotalDays: < 1 } => string.Format(culture, text.CommentHoursAgo, (int)ago.TotalHours),
             { TotalDays: < 2 } => text.CommentDayAgo,
             { TotalDays: < 7 } => string.Format(culture, text.CommentDaysAgo, (int)ago.TotalDays),
-            _ => time.Year == DateTimeOffset.Now.Year
+            _ => time.Year == DateTimeOffset.UtcNow.ToOffset(time.Offset).Year
                 ? time.ToString(culture.DateTimeFormat.MonthDayPattern, culture)
                 : time.ToString("d", culture),
         };

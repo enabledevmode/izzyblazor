@@ -8,7 +8,6 @@ public class CommentRenderTests : BunitContext
         var posted = new DateTimeOffset(2026, 11, 4, 14, 20, 0, TimeSpan.Zero);
         var cut = Render<Comment>(p => p
             .Add(c => c.Author, "Marcus Webb")
-            .Add(c => c.Initials, "MW")
             .Add(c => c.Time, posted)
             .Add(c => c.Text, "Does the retry back off?")
             .Add(c => c.Replies, b =>
@@ -24,6 +23,7 @@ public class CommentRenderTests : BunitContext
         var article = cut.Find("article.ib-comment");
         var author = cut.Find("#" + article.GetAttribute("aria-labelledby"));
         Assert.Equal("Marcus Webb", author.TextContent);
+        Assert.Equal("H3", author.TagName); // so screen readers jump between comments
         Assert.Equal(posted.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
             article.QuerySelector(":scope > .ib-comment-body > .ib-comment-meta > time")!.GetAttribute("datetime"));
 
@@ -31,5 +31,6 @@ public class CommentRenderTests : BunitContext
         var reply = article.QuerySelector(".ib-comment-replies > article.ib-comment")!;
         Assert.Contains("It does.", reply.TextContent);
         Assert.Equal("3 hours ago", reply.QuerySelector("time")!.TextContent);
+        Assert.NotNull(reply.QuerySelector(":scope > .ib-comment-avatar")); // from Author alone
     }
 }
