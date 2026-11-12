@@ -153,6 +153,15 @@
       min-block-size: 6rem;
       grid-template-rows: minmax(0, 1fr) auto;
     }
+
+    /* Show data open: the chart at its usual height with the table under it, and the tile scrolls. */
+    &:has(> .ib-chart-data[open]) {
+      & > ib-chart,
+      & > ib-chart > .ib-chart-main,
+      & .ib-chart-frame { flex: none; }
+
+      & .ib-chart-frame { grid-template-rows: var(--ib-chart-height, 18rem) auto; }
+    }
   }
 
   /* The resize grip, at the bottom end corner: dragged with script, so hidden without it (the
