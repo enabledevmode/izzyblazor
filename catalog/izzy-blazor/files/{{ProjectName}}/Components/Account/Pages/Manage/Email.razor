@@ -26,7 +26,8 @@
     <Form Model="Input" FormName="change-email" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         <Column Gap="1">
             <TextField Label="Email" Value="@email" ValueExpression="() => email" ReadOnly Type="TextFieldType.Email"
-                       Hint="@(isEmailConfirmed ? "Verified." : "Not verified yet.")" />
+                       Hint="@(isEmailConfirmed ? "Verified." : "Not verified yet.")"
+                       HintStatus="@(isEmailConfirmed ? Status.Success : Status.Warning)" />
             @if (!isEmailConfirmed)
             {
                 <Button Submit Form="send-verification-form" Variant="ButtonVariant.Link">Send verification email</Button>
