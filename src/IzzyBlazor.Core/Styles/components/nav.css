@@ -339,6 +339,14 @@
     font-size: var(--ib-text-md);
   }
 
+  .ib-site-nav-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-3) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+  }
+
   .ib-site-nav-foot {
     display: flex;
     flex-wrap: wrap;
@@ -467,6 +475,15 @@
 @layer izzy.components {
   .ib-shell:has(> .ib-shell-sidebar) ib-site-nav > :is(.ib-site-nav-toggle, .ib-site-nav-panel) {
     display: none;
+  }
+
+  /* A SiteNavHeader above them: its content's edge lines up with the links' text. */
+  .ib-shell-sidebar-links-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-1) var(--ib-space-3) var(--ib-space-2);
   }
 
   /* The line under them is inset like NavDivider, so it matches the sidebar's own dividers. */

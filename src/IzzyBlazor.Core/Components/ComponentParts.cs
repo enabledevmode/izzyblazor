@@ -86,6 +86,22 @@ internal sealed class PartScope
         _render = () => { };
     }
 
+    private PartScope(Type standsIn, Action render)
+    {
+        _standsIn = standsIn;
+        _render = render;
+    }
+
+    // The host type this scope takes parts for without being one (StandingIn).
+    private readonly Type? _standsIn;
+
+    /// <summary>
+    /// Collects the parts of content rendered a second time away from its host, such as a SiteNav's
+    /// links in the sidebar, so the place showing them can draw some (a SiteNavHeader) and drop the rest.
+    /// <paramref name="render"/> re-renders that place.
+    /// </summary>
+    public static PartScope StandingIn(Type hostType, Action render) => new(hostType, render);
+
     /// <summary>
     /// Takes any part and draws none: for content rendered a second time, such as a SiteNav's links
     /// in the sidebar, so its parts aren't added twice or refused.
@@ -94,13 +110,13 @@ internal sealed class PartScope
 
     public PartScope? Parent { get; }
 
-    private bool Discards => _host is null;
+    private bool Discards => _host is null && _standsIn is null;
 
     public PartScope? Find(Type hostType)
     {
         for (var scope = this; scope is not null; scope = scope.Parent)
         {
-            if (scope.Discards || hostType.IsInstanceOfType(scope._host))
+            if (scope.Discards || hostType.IsInstanceOfType(scope._host) || scope._standsIn == hostType)
             {
                 return scope;
             }

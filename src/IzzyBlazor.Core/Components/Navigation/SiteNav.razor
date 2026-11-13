@@ -64,6 +64,10 @@
            reaching the page underneath. *@
         <button type="button" class="ib-site-nav-scrim" popovertarget="@PanelId" popovertargetaction="hide" tabindex="-1" aria-hidden="true"></button>
         <div class="ib-site-nav-sheet">
+            @if (_scope.Shown<SiteNavHeader>() is { } header)
+            {
+                <div class="ib-site-nav-head">@_scope.Outlet(header)</div>
+            }
             <nav class="ib-site-nav-body" aria-label="@NavLabel">
                 <ul class="ib-nav ib-nav-vertical">
                     <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
@@ -79,7 +83,7 @@
 </ib-site-nav>
 
 @code {
-    /// <summary>The links: <see cref="NavItem"/>, plus <see cref="NavDivider"/> or <see cref="NavLabel"/>, and any <see cref="SiteNavFooter"/>.</summary>
+    /// <summary>The links: <see cref="NavItem"/>, plus <see cref="NavDivider"/> or <see cref="NavLabel"/>, any <see cref="SiteNavHeader"/>, and any <see cref="SiteNavFooter"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Below this width the links fold into the menu button. Defaults to <see cref="Breakpoint.Md"/>.</summary>
