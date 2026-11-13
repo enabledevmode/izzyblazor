@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="options" MaxWidth="24.Rem" Grow>
+<Form Model="Model" FormName="select-usage" MaxWidth="24.Rem" Grow>
     @* An enum: its values are the options, named by [Display(Name)]. *@
     <Select @bind-Value="Model!.Plan" />
     @* A list of your own, with the text for each. *@
@@ -9,7 +9,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "options")]
+    [SupplyParameterFromForm(FormName = "select-usage")]
     private Signup? Model { get; set; }
 
     private static readonly Dictionary<string, string> Countries = new()

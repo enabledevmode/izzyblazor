@@ -7,17 +7,16 @@
     Blazor marks the selected option itself when rendering statically, from the select's bound value.
 
     A native select. Options come from Items, or from an enum's values when the bound property is
-    an enum (Model.Plan here).
-    <Select @bind-Value="Model.Plan" />
-    <Select @bind-Value="Model.CountryId"
-            Items="Countries"
-            ItemText="c => Names[c]"
-            Placeholder="Choose a country" />
+    an enum.
 
     Where the browser supports the customizable select (appearance: base-select), the open list
     is themed and ItemTemplate's markup is shown in it and in the closed field. Elsewhere the
     browser's own list shows ItemText, so keep both.
-    <Select @bind-Value="Model.Plan" ItemTemplate="plan => @<span>@plan <small class="ib-option-hint">@Prices[plan]</small></span>" />
+    <Select @bind-Value="Model.Plan">
+        <ItemTemplate Context="plan">
+            @plan <small class="ib-option-hint">@Prices[plan]</small>
+        </ItemTemplate>
+    </Select>
 
     Accessibility:
     - It renders a native `select` with a `label` linked to it, so the keyboard, typing to jump

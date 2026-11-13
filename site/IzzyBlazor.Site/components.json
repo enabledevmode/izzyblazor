@@ -1552,7 +1552,7 @@
     {
       "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Dropdowns", "summary": "Shows a native select, themed where the browser allows.", "keywords": ["dropdown", "picker"],
       "examples": [
-        { "id": "select-options", "title": "Options" },
+        { "id": "select-usage", "title": "Options" },
         { "id": "select-rich", "title": "Rich options",
           "notes": {
             "noscript": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"). With IzzyBlazor's script, ItemText shows in its place."
@@ -1578,7 +1578,7 @@
         { "feature": "Each pause in typing asks Search for new options", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "combobox-filtering", "title": "Typing to filter", "lead": "For a long list the user searches by typing, set `Items` and `ItemText`. Typing filters the options, ignoring case and accents.",
+        { "id": "combobox-usage", "title": "Typing to filter", "lead": "For a long list the user searches by typing, set `Items` and `ItemText`. Typing filters the options, ignoring case and accents.",
           "notes": {
             "noscript": "A plain dropdown of every country, with no typing to filter.",
             "static": "IzzyBlazor's script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
@@ -1614,7 +1614,7 @@
         { "feature": "Each pause in typing asks Search or ItemsProvider for new suggestions", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "autocomplete-cities", "title": "Suggestions from a list", "lead": "An `Autocomplete` binds to a string. Set `Items` to suggest from a list; the user can pick one or type anything else.",
+        { "id": "autocomplete-usage", "title": "Suggestions from a list", "lead": "An `Autocomplete` binds to a string. Set `Items` to suggest from a list; the user can pick one or type anything else.",
           "notes": {
             "noscript": "The browser's own suggestions (a datalist). Save posts whatever was typed.",
             "static": "IzzyBlazor's script narrows the suggestions in the browser as you type, ignoring case and accents: \"krak\" finds Kraków.",
@@ -1639,7 +1639,7 @@
         { "feature": "@bind-Value follows each choice", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "multi-select-chips", "title": "Chips", "lead": "A `MultiSelect` binds to a collection, with the options in `Items`. Each chosen option posts as a repeated form field.",
+        { "id": "multi-select-usage", "title": "Chips", "lead": "A `MultiSelect` binds to a collection, with the options in `Items`. Each chosen option posts as a repeated form field.",
           "notes": {
             "noscript": "A plain multiple-select list, without chips or typing to filter. Save posts every chosen skill.",
             "static": "Chosen skills show as chips, typing filters the list, choosing keeps it open, and Backspace removes the last chip."
@@ -1675,7 +1675,7 @@
         { "feature": "@bind-Value follows the choice", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "tree-select-category", "title": "A category", "lead": "Set `Items` to the top level and `ItemChildren` to each item's children. `ItemValue` is what binds and posts, here an id, and `ItemText` names each item.", "after": ["Any item can be chosen, a parent too. The tree opens on the chosen item, and `Searchable` adds a box that narrows it."],
+        { "id": "tree-select-usage", "title": "A category", "lead": "Set `Items` to the top level and `ItemChildren` to each item's children. `ItemValue` is what binds and posts, here an id, and `ItemText` names each item.", "after": ["Any item can be chosen, a parent too. The tree opens on the chosen item, and `Searchable` adds a box that narrows it."],
           "notes": {
             "noscript": "The field opens the tree as radio buttons in branches. The field's text changes once the form posts, and there's no search box or clear button.",
             "static": "Choosing closes the tree and shows the category in the field at once; Save posts it."
@@ -1702,7 +1702,7 @@
         { "feature": "@bind-Value follows each change", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "multi-tree-select-share", "title": "Teams to share with", "lead": "A `MultiTreeSelect` binds to a collection, and `ItemValue` is what each checked item adds. Checking a department checks its teams, and the value contains every checked item, departments included.", "after": ["A department checked whole shows as one chip. To require a choice, put `[Required]` and `[MinLength(1)]` on the property."],
+        { "id": "multi-tree-select-usage", "title": "Teams to share with", "lead": "A `MultiTreeSelect` binds to a collection, and `ItemValue` is what each checked item adds. Checking a department checks its teams, and the value contains every checked item, departments included.", "after": ["A department checked whole shows as one chip. To require a choice, put `[Required]` and `[MinLength(1)]` on the property."],
           "notes": {
             "noscript": "The field opens the tree as checkboxes in branches, and checking a department doesn't check its teams. The chips change once the form posts.",
             "static": "Checking a department checks its teams and the chips follow at once; a chip's × or Backspace on the field unchecks it."

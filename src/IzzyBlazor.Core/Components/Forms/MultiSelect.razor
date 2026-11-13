@@ -9,8 +9,6 @@
     HashSet<T> or an interface they implement. Both types are inferred, from the bound property
     and from Items; for an enum, pass its values (Items="Enum.GetValues<Skill>()").
 
-    <MultiSelect @bind-Value="Model.Skills" Items="AllSkills" Placeholder="Add skills" />
-
     How it works three ways:
     - No script: a native <select multiple> holds and posts the values (repeated form fields,
       which Blazor binds to the collection).

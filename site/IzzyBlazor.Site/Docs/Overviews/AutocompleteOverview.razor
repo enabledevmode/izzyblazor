@@ -2,13 +2,11 @@
    provider (each previewed in each mode), keys, and without script. Accessibility and See also
    come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>An autocomplete is a text field that suggests as the user types. Whatever is typed is the value; a suggestion only fills it in. When the value must be one of the options, use a <Anchor Href="docs/components/combobox">Combobox</Anchor>.</TextBlock>
 
 <Heading Level="2">Suggestions from a list</Heading>
 <TextBlock>An autocomplete binds to a string. Set <Code>Items</Code> to the suggestions. Typing shows the ones that contain the text, ignoring case and accents, and the list opens only when something matches.</TextBlock>
-<ExampleViewer Example="autocomplete-cities" />
+<ExampleViewer Example="autocomplete-usage" />
 <TextBlock>The value is free text, so validate it like any text field, such as with <Code>[StringLength]</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Suggestions from a provider</Heading>
@@ -48,13 +46,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Autocomplete @bind-Value="Model.City" Items="Cities" />
-
-        @* From a database, with the provider signature a Table takes. *@
-        <Autocomplete @bind-Value="Model.Product" ItemsProvider="FindProducts" />
-        """;
 
     private const string Provider = """
         private async ValueTask<DataResult<string>> FindProducts(DataRequest<string> request) =>

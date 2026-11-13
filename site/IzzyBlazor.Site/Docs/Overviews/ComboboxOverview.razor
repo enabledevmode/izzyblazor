@@ -2,14 +2,12 @@
    server previewed in each mode, a required combobox with a placeholder, sizes
    and states, and its own words. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A combobox is a text field with a list of options under it: the user types to narrow the list, then picks one. It suits long lists the user finds an option in by typing.</TextBlock>
 <TextBlock>For a short list, see <Anchor Href="docs/components/select">Select</Anchor>, which is simpler. For several choices, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Typing to filter</Heading>
 <TextBlock>As the user types, the list shows only the options that contain the text, ignoring case and accents. Pass the options to <Code>Items</Code>, and set <Code>ItemText</Code> to the text shown for each.</TextBlock>
-<ExampleViewer Example="combobox-filtering" />
+<ExampleViewer Example="combobox-usage" />
 <TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. When you bind an enum, its values are the options, named by their <Code>[Display(Name)]</Code>, and <Code>Items</Code> isn't needed.</TextBlock>
 
 <Heading Level="2">Groups</Heading>
@@ -76,15 +74,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* A list people filter by typing. *@
-        <Combobox @bind-Value="Model!.Country" Items="Countries.Keys"
-                  ItemText="code => Countries.GetValueOrDefault(code!, code!)"
-                  Placeholder="Search countries" />
-
-        @* A list searched as you type, by your code. *@
-        <Combobox @bind-Value="Model!.OwnerId" Search="FindPeople"
-                  ItemText="id => People.GetValueOrDefault(id!.Value)?.Name ?? id.ToString()!" />
-        """;
 }
