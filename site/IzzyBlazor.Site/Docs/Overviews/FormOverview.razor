@@ -31,6 +31,10 @@
     <ListItem>On interactive pages, the form submits to C#, with no form post.</ListItem>
 </List>
 
+<Heading Level="2">Asking before leaving</Heading>
+<TextBlock>To ask before the user leaves with unsaved changes, set <Code>ConfirmLeave</Code>. A link or another form's post opens a dialog; a reload or closing the tab shows the browser's own prompt. A save, or putting the values back, ends the asking.</TextBlock>
+<ExampleViewer Example="form-confirm-leave" />
+
 <Heading Level="2">Errors</Heading>
 <TextBlock>An error summary lists every message at the top of the form after a failed submit. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>
 <ExampleViewer Example="form-errors" />

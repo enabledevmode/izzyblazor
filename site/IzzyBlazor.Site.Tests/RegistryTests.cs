@@ -67,6 +67,33 @@ public class RegistryTests
         }
     }
 
+    // A hand-written Overview shows only the examples it places, so a registered example it leaves out
+    // (and no other page shows) is on no page at all.
+    [Fact]
+    public void Every_example_of_a_hand_written_overview_is_on_a_page()
+    {
+        var site = SiteFolder();
+        var overviews = Path.Combine(site, "Docs", "Overviews");
+        var examples = Path.Combine(site, "Examples") + Path.DirectorySeparatorChar;
+        var pages = string.Concat(Directory.GetFiles(site, "*.razor", SearchOption.AllDirectories)
+            .Where(f => !f.StartsWith(examples, StringComparison.Ordinal))
+            .Select(File.ReadAllText));
+        var unshown = Registry.Components
+            .Where(c => File.Exists(Path.Combine(overviews, c.Name + "Overview.razor")))
+            .SelectMany(c => c.Examples.Where(e => !pages.Contains($"\"{e.Id}\"", StringComparison.Ordinal)).Select(e => $"{c.Name}: {e.Id}"))
+            .ToList();
+        Assert.Empty(unshown);
+    }
+
+    private static string SiteFolder([System.Runtime.CompilerServices.CallerFilePath] string here = "")
+    {
+        var inRepo = Path.Combine("site", "IzzyBlazor.Site");
+        return new[] { Path.Combine(Path.GetDirectoryName(here)!, "..", ".."), AppContext.BaseDirectory, Environment.CurrentDirectory }
+            .SelectMany(start => Ancestors(start))
+            .Select(dir => Path.Combine(dir, inRepo))
+            .FirstOrDefault(dir => Directory.Exists(Path.Combine(dir, "Docs"))) ?? throw new DirectoryNotFoundException($"No {inRepo} above the tests.");
+    }
+
     // Each hand-written Overview's `const string Usage = """…"""`, dedented as C# does.
     private static IEnumerable<(string Name, string Code)> HandWrittenUsage([System.Runtime.CompilerServices.CallerFilePath] string here = "")
     {
