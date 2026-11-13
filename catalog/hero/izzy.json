@@ -6,7 +6,7 @@
   "kind": "block",
   "category": "Marketing",
   "summary": "The top of a landing page: a headline, a sentence, two buttons and a screenshot or image.",
-  "components": ["Section", "Container", "Grid", "Stack", "Row", "Badge", "Heading", "TextBlock", "Button", "BrowserFrame", "Image"],
+  "components": ["Section", "Container", "Grid", "Stack", "Box", "Tag", "Heading", "TextBlock", "Button", "BrowserFrame", "Image"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
@@ -15,17 +15,19 @@
         "type": "string", "enum": ["Centered", "Split"], "default": "Centered", "x-priority": "important",
         "description": "Centered stacks everything in the middle; Split puts the image or screenshot beside the text."
       },
-      "Eyebrow": { "type": "string", "default": "", "description": "A short pill above the headline, such as \"New in 2.0\". Empty leaves it out." },
-      "Headline": { "type": "string", "default": "Ship your next app faster", "x-priority": "important", "description": "The headline: what you offer, in a few words." },
-      "Subhead": { "type": "string", "default": "One or two sentences on what it does and who it's for.", "description": "The sentence under the headline." },
+      "Eyebrow": { "type": "string", "default": "", "description": "A short pill above the headline, such as \"Now in public beta\". Empty leaves it out." },
+      "EyebrowHref": { "type": "string", "default": "", "description": "Makes the eyebrow a link, such as to the announcement. Empty leaves it plain." },
+      "Headline": { "type": "string", "default": "Ship your app with less code", "x-priority": "important", "description": "The headline: what you offer, in a few words." },
+      "Subhead": { "type": "string", "default": "One place for your team to plan, track and ship work. Start free, with no card needed.", "description": "The sentence under the headline." },
       "PrimaryText": { "type": "string", "default": "Get started", "description": "The main button." },
       "PrimaryHref": { "type": "string", "default": "get-started", "description": "Where the main button goes." },
-      "SecondaryText": { "type": "string", "default": "Learn more", "description": "The second button. Empty leaves it out." },
+      "SecondaryText": { "type": "string", "default": "See how it works", "description": "The second button. Empty leaves it out." },
       "SecondaryHref": { "type": "string", "default": "about", "description": "Where the second button goes." },
       "Media": {
         "type": "string", "enum": ["Screenshot", "Image", "None"], "default": "Screenshot",
         "description": "Screenshot frames the image in a browser window; Image shows it as it is."
       },
+      "Address": { "type": "string", "default": "myapp.com", "description": "The address in the screenshot's browser bar. Empty shows only the dots." },
       "ImageSrc": { "type": "string", "default": "images/hero-screenshot.svg", "description": "The image, from wwwroot. The default is a placeholder to replace." },
       "ImageAlt": { "type": "string", "default": "A screenshot of the app", "description": "What the image shows, for screen readers. Empty marks it decorative." },
       "HeadingLevel": { "type": "string", "enum": ["1", "2"], "default": "1", "description": "1 makes the headline the page's main heading; use 2 when the page has its own." },
@@ -36,7 +38,10 @@
   "computed": {
     "HasMedia": "Media != \"None\"",
     "Split": "Layout == \"Split\" && Media != \"None\"",
+    "Centered": "Layout == \"Centered\"",
     "Screenshot": "Media == \"Screenshot\"",
+    "HasAddress": "Address != \"\"",
+    "EyebrowLink": "EyebrowHref != \"\"",
     "HasEyebrow": "Eyebrow != \"\"",
     "HasSecondary": "SecondaryText != \"\"",
     "Placeholder": "Media != \"None\" && ImageSrc == \"images/hero-screenshot.svg\""
