@@ -3,6 +3,11 @@
 
 <PageTitle>Not found</PageTitle>
 
-<EmptyState Icon="Lucide.SearchX" Title="Not found" TitleLevel="1" Description="Sorry, the content you are looking for does not exist.">
-    <Button Href="">Go to the home page</Button>
-</EmptyState>
+@* A page that's only a message: the narrow column (24rem), centered at a fixed distance from the
+   top, the title, then the one way on. *@
+<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 8, Md = 16 }">
+    <Column Gap="8">
+        <PageHeader Title="Not found" Description="There's nothing at this address." Size="ControlSize.Lg" />
+        <Button Href="" FullWidth>Go to the home page</Button>
+    </Column>
+</Container>

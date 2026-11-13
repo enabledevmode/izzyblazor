@@ -30,17 +30,14 @@
 }
 <ListView Items="currentPasskeys ?? []" ItemKey="@(p => Base64Url.EncodeToString(p.CredentialId))" ItemText="@(p => p.Name ?? "Unnamed passkey")"
           ItemDescription="@(p => $"Added {p.CreatedAt:d}")" ItemIcon="@(_ => Lucide.FingerprintPattern)" Dividers Context="passkey">
-    <ItemActions>
+    <ItemMenu>
         @{
             var credentialId = Base64Url.EncodeToString(passkey.CredentialId);
         }
-        <Button Href="@($"Account/Manage/RenamePasskey/{credentialId}")" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" aria-label="@($"Rename {passkey.Name}")">Rename</Button>
-        <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post">
-            <AntiforgeryToken />
-            <input type="hidden" name="CredentialId" value="@credentialId" />
-            <Button Submit Name="Action" Value="delete" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger" aria-label="@($"Delete {passkey.Name}")">Delete</Button>
-        </form>
-    </ItemActions>
+        <MenuItem Href="@($"Account/Manage/RenamePasskey/{credentialId}")" Icon="Lucide.Pencil">Rename</MenuItem>
+        <MenuDivider />
+        <MenuItem Submit Form="delete-passkey" Name="CredentialId" Value="@credentialId" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+    </ItemMenu>
     <EmptyContent>
         <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.FingerprintPattern" Title="No passkeys yet" Description="Add one to log in without typing a password.">
             <EmptyStateActions>
@@ -52,6 +49,9 @@
         </EmptyState>
     </EmptyContent>
 </ListView>
+<form id="delete-passkey" @formname="delete-passkey" @onsubmit="DeletePasskey" method="post" hidden>
+    <AntiforgeryToken />
+</form>
 
 @code {
     private const int MaxPasskeyCount = 100;
@@ -62,10 +62,7 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm]
-    private string? Action { get; set; }
-
-    [SupplyParameterFromForm]
+    [SupplyParameterFromForm(FormName = "delete-passkey")]
     private string? CredentialId { get; set; }
 
     [SupplyParameterFromForm(FormName = "add-passkey")]
@@ -127,22 +124,6 @@
         // Immediately prompt the user to enter a name for the credential
         var credentialIdBase64Url = Base64Url.EncodeToString(attestationResult.Passkey.CredentialId);
         RedirectManager.RedirectTo($"Account/Manage/RenamePasskey/{credentialIdBase64Url}");
-    }
-
-    private async Task UpdatePasskey()
-    {
-        switch (Action)
-        {
-            case "rename":
-                RedirectManager.RedirectTo($"Account/Manage/RenamePasskey/{CredentialId}");
-                break;
-            case "delete":
-                await DeletePasskey();
-                break;
-            default:
-                RedirectManager.RedirectToCurrentPageWithStatus($"Error: Unknown action '{Action}'.", HttpContext);
-                break;
-        }
     }
 
     private async Task DeletePasskey()

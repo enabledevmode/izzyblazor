@@ -13,8 +13,7 @@
 <PageHeader Title="Rename passkey" TitleLevel="2" Size="ControlSize.Sm"
             Description="@(passkey?.Name is { } name ? $"Give \"{name}\" a name you'll recognize." : "Give it a name you'll recognize.")" />
 <Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
-    <Form Model="Input" OnValidSubmit="Rename" FormName="rename-passkey">
-        <FormErrors />
+    <Form Model="Input" OnValidSubmit="Rename" FormName="rename-passkey" RequiredMark="RequiredMark.Optional">
         <TextField @bind-Value="Input.Name" Label="Passkey name" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Save</Button>

@@ -13,8 +13,7 @@
 
 <AccountPanel Title="Use a recovery code" Description="Enter one of your saved recovery codes.">
     <StatusMessage Message="@message" />
-    <Form Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync">
-        <FormErrors />
+    <Form Model="Input" FormName="login-with-recovery-code" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         <TextField @bind-Value="Input.RecoveryCode" Label="Recovery code" AutoComplete="off" />
         <Button Submit FullWidth>Log in</Button>
     </Form>

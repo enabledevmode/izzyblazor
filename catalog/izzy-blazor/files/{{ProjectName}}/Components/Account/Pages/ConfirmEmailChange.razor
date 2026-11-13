@@ -11,13 +11,14 @@
 
 <PageTitle>Confirm email change</PageTitle>
 
-<AccountPanel Title="Confirm your new email" Description="We've checked the link sent to your new address.">
-    <StatusMessage Message="@message" />
+@* The outcome is the title. *@
+<AccountPanel Title="@(changed ? "Email changed" : "This link didn't work")"
+              Description="@(changed ? "You now log in with your new address." : "It's invalid or has expired. Request the change again.")">
     <Button Href="Account/Manage/Email" FullWidth>Back to your email settings</Button>
 </AccountPanel>
 
 @code {
-    private string? message;
+    private bool changed;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -43,7 +44,6 @@
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            message = "Unable to find user with Id '{userId}'";
             return;
         }
 
@@ -51,7 +51,6 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            message = "Error changing email.";
             return;
         }
 
@@ -60,11 +59,10 @@
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {
-            message = "Error changing user name.";
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        message = "Thank you for confirming your email change.";
+        changed = true;
     }
 }

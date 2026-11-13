@@ -16,8 +16,7 @@
 <StatusMessage Message="@message" />
 <Alert Status="Status.Danger">Deleting this data removes your account for good. It can't be recovered.</Alert>
 <Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
-    <Form Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync">
-        <FormErrors />
+    <Form Model="Input" FormName="delete-user" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         @if (requirePassword)
         {
             <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" Hint="To confirm it's you." />

@@ -16,21 +16,29 @@
 <StatusMessage />
 <ListView Items="currentLogins ?? []" ItemKey="@(l => l.LoginProvider)" ItemText="@(l => l.ProviderDisplayName ?? l.LoginProvider)"
           ItemDescription="@(_ => "Linked")" ItemIcon="@(_ => Lucide.Globe)" Dividers Context="login">
-    <ItemActions>
+    <ItemMenu>
         @if (showRemoveButton)
         {
-            <form @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
-                <AntiforgeryToken />
-                <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
-                <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" aria-label="@($"Remove {login.ProviderDisplayName}")">Remove</Button>
-            </form>
+            <MenuItem Submit Form="@($"remove-login-{login.LoginProvider}")" Icon="Lucide.Unlink" Accent="Accent.Danger">Remove</MenuItem>
         }
-    </ItemActions>
+    </ItemMenu>
     <EmptyContent>
         <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.Globe" Title="No services linked" />
     </EmptyContent>
 </ListView>
+@* Each row's Remove posts its own form; the forms sit outside the list, since a menu's items
+   aren't where a form can go. *@
+@if (showRemoveButton)
+{
+    @foreach (var login in currentLogins ?? [])
+    {
+        <form id="@($"remove-login-{login.LoginProvider}")" @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post" hidden>
+            <AntiforgeryToken />
+            <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
+            <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
+        </form>
+    }
+}
 @if (otherLogins?.Count > 0)
 {
     <PageHeader Title="Add another service" TitleLevel="3" Size="ControlSize.Sm" Description="Log in with it instead of your password." />

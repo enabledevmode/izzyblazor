@@ -29,7 +29,7 @@
         </Column>
     </Column>
 
-    <Form Model="Model" FormName="contact" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
+    <Form Model="Model" FormName="contact" RequiredMark="RequiredMark.Optional" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
         <FormErrors />
         <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
             <TextField @bind-Value="Model!.Name" AutoComplete="name" />

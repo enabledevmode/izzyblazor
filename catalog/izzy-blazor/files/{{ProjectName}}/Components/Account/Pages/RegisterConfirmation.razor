@@ -12,16 +12,17 @@
 
 <PageTitle>Register confirmation</PageTitle>
 
-<AccountPanel Title="Confirm your email" Description="@(emailConfirmationLink is null ? "We've emailed you a confirmation link." : "This app can't send email yet.")">
+@* The title says what to do now. Until the app can send email, the link it would have sent is
+   shown here instead, under a warning: that state must not ship. *@
+<AccountPanel Title="@(emailConfirmationLink is null ? "Check your email" : "Confirm your email")"
+              Description="@(emailConfirmationLink is null ? "We've sent you a link to confirm your account." : "This app can't send email yet.")">
     <StatusMessage Message="@statusMessage" />
     @if (emailConfirmationLink is not null)
     {
-        <Alert Status="Status.Info" Title="No email sender yet">
-            In development, use this link to confirm the account.
-            <AlertActions>
-                <Button Href="@emailConfirmationLink" Size="ControlSize.Sm">Confirm your account</Button>
-            </AlertActions>
+        <Alert Status="Status.Warning" Title="Development only">
+            No email sender is set up, so the confirmation link is shown here instead of emailed.
         </Alert>
+        <Button Href="@emailConfirmationLink" FullWidth>Confirm your account</Button>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             To send real email, see <Anchor Href="https://aka.ms/aspaccountconf" External>Microsoft's guide to account confirmation</Anchor>.
         </TextBlock>

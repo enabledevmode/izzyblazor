@@ -16,8 +16,7 @@
 <AccountPanel Title="Log in" Description="Use your email and password, or a passkey.">
     <StatusMessage Message="@errorMessage" />
     <Column Gap="3">
-        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
-            <FormErrors />
+        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login" RequiredMark="RequiredMark.Optional">
             <TextField @bind-Value="Input.Email" AutoComplete="username webauthn" />
             <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
             <Row Justify="Justify.Between" Align="Align.Center" Wrap>
