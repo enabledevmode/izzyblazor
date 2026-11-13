@@ -843,3 +843,7 @@ html:has(> body > .frame) body { margin: 0; }
 }
 .frame-block { padding: var(--ib-space-6) var(--ib-space-4); }
 .site-block-components { margin: 0; padding: 0; list-style: none; }
+/* A block's settings: the choices and a default stay on one line, but for a sentence-long default,
+   which wraps at 16rem; the description takes the rest of the width. */
+.site-settings :is(.site-choices, .site-default) { white-space: nowrap; }
+.site-settings .site-default-long { display: inline-block; width: 16rem; white-space: normal; }
