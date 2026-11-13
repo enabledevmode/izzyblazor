@@ -35,7 +35,7 @@
     See also: DateField, DateRangeField, Calendar, MultiSelect.
 *@
 
-<FieldFrame Class="@WrapperClass("date-multi")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
+<FieldFrame Class="@WrapperClass("date-multi", Inline ? "ib-field-calendar" : null)" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     @if (IsReadOnly || IsDisabled)
     {
