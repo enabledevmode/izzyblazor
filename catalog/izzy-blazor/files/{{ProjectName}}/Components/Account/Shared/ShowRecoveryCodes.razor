@@ -1,4 +1,4 @@
-<Heading Level="2">Recovery codes</Heading>
+<ManageHeader Title="Recovery codes" />
 <StatusMessage Message="@StatusMessage" />
 <Alert Status="Status.Warning" Title="Put these codes in a safe place">
     If you lose your device and don't have the recovery codes, you lose access to your account.
@@ -9,7 +9,9 @@
         <Code>@recoveryCode</Code>
     }
 </Grid>
-<CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Label="Copy the codes" />
+<div>
+    <CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Variant="ButtonVariant.Outline">Copy codes</CopyButton>
+</div>
 
 @code {
     [Parameter]

@@ -15,7 +15,7 @@
     <StatusMessage Message="@message" />
     <Form Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync">
         <FormErrors />
-        <TextField @bind-Value="Input.RecoveryCode" AutoComplete="off" />
+        <TextField @bind-Value="Input.RecoveryCode" Label="Recovery code" AutoComplete="off" />
         <Button Submit FullWidth>Log in</Button>
     </Form>
 </AccountCard>

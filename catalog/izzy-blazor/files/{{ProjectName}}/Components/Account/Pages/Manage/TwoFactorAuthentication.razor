@@ -10,7 +10,7 @@
 
 <PageTitle>Two-factor authentication</PageTitle>
 
-<Heading Level="2">Two-factor authentication</Heading>
+<ManageHeader Title="Two-factor authentication" Description="Ask for a code from your phone at login, on top of your password." />
 <StatusMessage />
 @if (canTrack)
 {
@@ -40,7 +40,7 @@
             <Button Href="Account/Manage/Disable2fa" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off two-factor authentication</Button>
         </Stack>
     }
-    <Heading Level="3">Authenticator app</Heading>
+    <Heading Level="3" Size="TextSize.Md">Authenticator app</Heading>
     @if (!hasAuthenticator)
     {
         <Stack Direction="Direction.Row" Gap="2" Wrap>
