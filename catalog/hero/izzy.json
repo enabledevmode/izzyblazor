@@ -53,7 +53,7 @@
     "A linked eyebrow is a plain link named by its text."
   ],
   "variations": [
-    { "key": "layout", "label": "Layout", "setting": "Layout", "options": { "Centered": "Centered", "Split": "Split" } },
+    { "key": "layout", "label": "Layout", "setting": "Layout", "options": { "Split": "Split", "Centered": "Centered" } },
     { "key": "media", "label": "Media", "setting": "Media", "options": { "Screenshot": "Screenshot", "Image": "Image", "None": "None" } },
     { "key": "eyebrow", "label": "Eyebrow", "setting": "Eyebrow", "options": { "On": "Now in public beta", "Off": "" } },
     { "key": "second", "label": "Second button", "setting": "SecondaryText", "options": { "On": "See how it works", "Off": "" } }
