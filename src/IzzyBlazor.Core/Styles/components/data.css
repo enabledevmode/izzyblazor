@@ -9,10 +9,12 @@
     --_card: flex;
     --_card-pt: var(--ib-card-gap);
     --_card-mh: auto;
+    --_card-mc: none;
+    --ib-card-media-w: 40%;
 
     display: var(--_card);
     flex-direction: column;
-    grid-template: auto 1fr / var(--ib-card-media-w, 40%) minmax(0, 1fr);
+    grid-template: auto 1fr / var(--ib-card-media-w) minmax(0, 1fr);
     min-width: 0;
     overflow: hidden;
     border: 1px var(--ib-bst-now, solid) transparent;
@@ -85,8 +87,11 @@
 
   /* Orientation Horizontal: the media at the start, down the card's whole height; the heading and
      body beside it. The grid's rows and columns only count while it's a grid. */
+  /* Beside the text, the media takes the card's height rather than giving it one (contain: size),
+     so a tall photo doesn't stretch the card. */
   .ib-card-media {
     grid-area: 1 / 1 / 3;
+    contain: var(--_card-mc);
   }
 
   .ib-card-header {
@@ -105,26 +110,27 @@
     --_card: grid;
     --_card-pt: var(--ib-card-p);
     --_card-mh: 100%;
+    --_card-mc: size;
   }
 
   @media (width >= 640px) {
-    .ib-card-h-sm { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
-    .ib-card-v-sm { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+    .ib-card-h-sm { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; --_card-mc: size; }
+    .ib-card-v-sm { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; --_card-mc: none; }
   }
 
   @media (width >= 768px) {
-    .ib-card-h-md { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
-    .ib-card-v-md { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+    .ib-card-h-md { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; --_card-mc: size; }
+    .ib-card-v-md { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; --_card-mc: none; }
   }
 
   @media (width >= 1024px) {
-    .ib-card-h-lg { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
-    .ib-card-v-lg { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+    .ib-card-h-lg { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; --_card-mc: size; }
+    .ib-card-v-lg { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; --_card-mc: none; }
   }
 
   @media (width >= 1280px) {
-    .ib-card-h-xl { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
-    .ib-card-v-xl { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+    .ib-card-h-xl { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; --_card-mc: size; }
+    .ib-card-v-xl { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; --_card-mc: none; }
   }
 
   /* No media: nothing to put beside. */

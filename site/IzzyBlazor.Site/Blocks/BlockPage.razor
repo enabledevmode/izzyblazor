@@ -74,13 +74,17 @@
                     </TabNav>
                 </div>
             }
-            <div class="site-block-switch site-block-width">
-                <span class="site-block-switch-label">Width</span>
-                <TabNav Label="Preview width" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
-                    <TabLink Href="@SwitchHref("width", null)" Label="Desktop" Current="!_phone" />
-                    <TabLink Href="@SwitchHref("width", "phone")" Label="Phone" Current="_phone" />
-                </TabNav>
-            </div>
+            @* A Pro block has only its picture until the generation service draws its previews. *@
+            @if (_block.Free)
+            {
+                <div class="site-block-switch site-block-width">
+                    <span class="site-block-switch-label">Width</span>
+                    <TabNav Label="Preview width" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                        <TabLink Href="@SwitchHref("width", null)" Label="Desktop" Current="!_phone" />
+                        <TabLink Href="@SwitchHref("width", "phone")" Label="Phone" Current="_phone" />
+                    </TabNav>
+                </div>
+            }
         </div>
 
         @if (_phone)
@@ -210,7 +214,7 @@
             .ToDictionary(p => p.Key, p => p.Value.ToString());
         _variant = BlockCatalog.Variant(_block, key => _query.GetValueOrDefault(key));
         _previewType = BlockCatalog.PreviewType(_variant);
-        _phone = _query.GetValueOrDefault("width") == "phone";
+        _phone = _block.Free && _query.GetValueOrDefault("width") == "phone";
         _code = _block.Free ? BlockCatalog.Code(_variant) : [];
         _settings = _block.Manifest.Parameters.Where(p => !p.Hidden).ToList();
 

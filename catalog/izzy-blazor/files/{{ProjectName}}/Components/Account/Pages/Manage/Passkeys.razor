@@ -49,6 +49,8 @@
         </EmptyState>
     </EmptyContent>
 </ListView>
+@* One of two changes to Microsoft's code (izzy.json): its UpdatePasskey form posted a field named
+   Action, which clobbers form.action, so Rename is a link to RenamePasskey and Delete posts here. *@
 <form id="delete-passkey" @formname="delete-passkey" @onsubmit="DeletePasskey" method="post" hidden>
     <AntiforgeryToken />
 </form>

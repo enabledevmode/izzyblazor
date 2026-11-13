@@ -50,7 +50,10 @@
             new("Personal data", "Account/Manage/PersonalData", "PersonalData", "DeletePersonalData"),
         ];
         var page = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].TrimEnd('/');
-        current = sections.FirstOrDefault(s => s.Pages.Any(p => page.Equals(p.Length == 0 ? "Account/Manage" : "Account/Manage/" + p, StringComparison.OrdinalIgnoreCase)))
+        // A page, or one with a key after it (RenamePasskey/{Id}).
+        current = sections.FirstOrDefault(s => s.Pages.Any(p => p.Length == 0
+                ? page.Equals("Account/Manage", StringComparison.OrdinalIgnoreCase)
+                : page.Equals("Account/Manage/" + p, StringComparison.OrdinalIgnoreCase) || page.StartsWith("Account/Manage/" + p + "/", StringComparison.OrdinalIgnoreCase)))
             ?? sections[0];
     }
 }

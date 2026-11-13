@@ -129,11 +129,17 @@ class PopoverRoot extends IzzyElement {
     );
 
     // A link in the panel closes it, as SiteNav's does: enhanced navigation keeps the page, so the
-    // panel would stay open over the page the link went to. (A menu's items close it already.)
+    // panel would stay open over the page the link went to. (A menu's items close it already.) Not
+    // a link that leaves this page where it is: a new tab or window, a download, a canceled click.
     panel.addEventListener(
       "click",
       (event) => {
-        if ((event.target as Element).closest("a[href]")?.closest("[popover]") === panel) panel.hidePopover();
+        const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+        if (!link || link.closest("[popover]") !== panel) return;
+        const e = event as MouseEvent;
+        if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        if ((link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+        panel.hidePopover();
       },
       { signal }
     );

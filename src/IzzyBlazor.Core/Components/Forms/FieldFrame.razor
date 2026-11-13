@@ -121,7 +121,8 @@ else
         _ => null,
     };
 
-    private RenderFragment? RequiredText => Required && AnnounceRequired ? RenderRequiredText : null;
+    // Said with the mark: not for a field that takes no input (read-only or disabled).
+    private RenderFragment? RequiredText => Required && AnnounceRequired && !NoInput ? RenderRequiredText : null;
 
     private void RenderRequiredText(RenderTreeBuilder builder)
     {
