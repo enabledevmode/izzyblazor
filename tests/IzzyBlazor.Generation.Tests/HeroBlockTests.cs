@@ -27,7 +27,7 @@ public sealed class HeroBlockTests : IDisposable
 
         var component = changes.Creates[0].Text!;
         Assert.Contains("<Grid Columns=", component);
-        Assert.Contains("<Badge Status=\"Status.Info\" Pill>New in 2.0</Badge>", component);
+        Assert.Contains("<Tag Label=\"New in 2.0\" Accent=\"Accent.Primary\" Pill", component);
         Assert.Contains("<Heading Level=\"1\"", component);
         Assert.DoesNotContain("#if", component);
         Assert.DoesNotContain("{{", component);

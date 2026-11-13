@@ -1,50 +1,88 @@
 @* The top of the landing page, from izzy add hero. It's yours: change the words, the buttons and
-   the image here. *@
-<Section Spacing="SectionSpacing.Lg">
-    <Container Size="ContainerSize.Xl" PaddingX="0">
+   the image here. It keeps to the page's column, so the content below lines up with it. *@
+<Section Spacing="SectionSpacing.None" FullBleed="false" PaddingTop="new() { Base = 2, Md = 6 }" PaddingBottom="new() { Base = 12, Md = 14 }" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
     @*#if (Split) *@
-        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="12" Align="Align.Center">
-            <Stack Gap="6" Align="Align.Start">
+        <Grid Columns="new() { Base = 1, Lg = 11 }" Gap="new() { Base = 10, Lg = 12 }" Align="Align.Center">
+            <Stack ColSpan="new() { Lg = 5 }" Align="Align.Start">
                 @*#if (HasEyebrow) *@
-                <Badge Status="Status.Info" Pill>{{Eyebrow}}</Badge>
+                <Tag Label="{{Eyebrow}}" Accent="Accent.Primary" Pill
+                @*#if (EyebrowLink) *@
+                     Href="{{EyebrowHref}}"
                 @*#endif *@
-                <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Headline}}</Heading>
-                <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Subhead}}</TextBlock>
-                <Row Gap="3" Wrap>
+                     MarginBottom="new() { Base = 4, Md = 5 }" />
+                @*#endif *@
+                <Heading Level="{{HeadingLevel}}" id="{{Name}}-title" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(36)" MarginTop="new() { Base = 4, Md = 5 }">{{Subhead}}</TextBlock>
+                <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" AlignSelf="new() { Base = Align.Stretch, Sm = Align.Start }" MarginTop="new() { Base = 7, Md = 8 }">
                     <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>
                     @*#if (HasSecondary) *@
                     <Button Href="{{SecondaryHref}}" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">{{SecondaryText}}</Button>
                     @*#endif *@
-                </Row>
+                </Stack>
+            </Stack>
+            <Box ColSpan="new() { Lg = 6 }" MinWidth="Length.Rem(0)">
+            @*#if (Screenshot) *@
+                <BrowserFrame
+                @*#if (HasAddress) *@
+                              Address="{{Address}}"
+                @*#endif *@
+                              Shadow="Shadow.Lg">
+                    <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
+                </BrowserFrame>
+            @*#else *@
+                <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
+            @*#endif *@
+            </Box>
+        </Grid>
+    @*#elif (Centered) *@
+        <Stack Gap="new() { Base = 10, Md = 13 }" Align="Align.Center">
+            <Stack Align="Align.Center" MaxWidth="Length.Rem(48)">
+                @*#if (HasEyebrow) *@
+                <Tag Label="{{Eyebrow}}" Accent="Accent.Primary" Pill
+                @*#if (EyebrowLink) *@
+                     Href="{{EyebrowHref}}"
+                @*#endif *@
+                     MarginBottom="new() { Base = 4, Md = 5 }" />
+                @*#endif *@
+                <Heading Level="{{HeadingLevel}}" id="{{Name}}-title" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(36)" MarginTop="new() { Base = 4, Md = 5 }">{{Subhead}}</TextBlock>
+                <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" AlignSelf="new() { Base = Align.Stretch, Sm = Align.Center }" MarginTop="new() { Base = 7, Md = 8 }">
+                    <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>
+                    @*#if (HasSecondary) *@
+                    <Button Href="{{SecondaryHref}}" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">{{SecondaryText}}</Button>
+                    @*#endif *@
+                </Stack>
             </Stack>
             @*#if (Screenshot) *@
-            <BrowserFrame Shadow="Shadow.Lg">
+            <BrowserFrame
+            @*#if (HasAddress) *@
+                          Address="{{Address}}"
+            @*#endif *@
+                          Shadow="Shadow.Lg" AlignSelf="Align.Stretch">
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
             </BrowserFrame>
-            @*#else *@
-            <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" />
+            @*#elif (HasMedia) *@
+            <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
             @*#endif *@
-        </Grid>
+        </Stack>
     @*#else *@
-        <Stack Gap="6" Align="Align.Center">
+        <Stack Align="Align.Start" MaxWidth="Length.Rem(40)">
             @*#if (HasEyebrow) *@
-            <Badge Status="Status.Info" Pill>{{Eyebrow}}</Badge>
+            <Tag Label="{{Eyebrow}}" Accent="Accent.Primary" Pill
+            @*#if (EyebrowLink) *@
+                 Href="{{EyebrowHref}}"
             @*#endif *@
-            <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(40)">{{Subhead}}</TextBlock>
-            <Row Gap="3" Wrap Justify="Justify.Center">
+                 MarginBottom="new() { Base = 4, Md = 5 }" />
+            @*#endif *@
+            <Heading Level="{{HeadingLevel}}" id="{{Name}}-title" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance">{{Headline}}</Heading>
+            <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(36)" MarginTop="new() { Base = 4, Md = 5 }">{{Subhead}}</TextBlock>
+            <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" AlignSelf="new() { Base = Align.Stretch, Sm = Align.Start }" MarginTop="new() { Base = 7, Md = 8 }">
                 <Button Href="{{PrimaryHref}}" Size="ControlSize.Lg">{{PrimaryText}}</Button>
                 @*#if (HasSecondary) *@
                 <Button Href="{{SecondaryHref}}" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">{{SecondaryText}}</Button>
                 @*#endif *@
-            </Row>
-            @*#if (Screenshot) *@
-            <BrowserFrame Shadow="Shadow.Lg" MarginTop="6" MaxWidth="Length.Rem(64)">
-                <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
-            </BrowserFrame>
-            @*#elif (HasMedia) *@
-            <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" MarginTop="6" MaxWidth="Length.Rem(64)" />
-            @*#endif *@
+            </Stack>
         </Stack>
     @*#endif *@
     </Container>
