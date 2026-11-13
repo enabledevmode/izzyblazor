@@ -1,7 +1,7 @@
 @using System.Globalization
 
 <Form Model="Model" FormName="calendar-culture">
-    <Row Gap="6" Wrap Align="Align.Start">
+    <Row Gap="10" Wrap Align="Align.Start">
         <Calendar @bind-Value="Model!.Day" Label="German, with week numbers" Culture="@(new CultureInfo("de-DE"))" ShowWeekNumbers />
         <Calendar @bind-Value="Model!.Other" Label="Monday first, this month only" FirstDayOfWeek="DayOfWeek.Monday" ShowAdjacentDays="false" />
     </Row>
