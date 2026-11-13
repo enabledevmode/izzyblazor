@@ -344,11 +344,14 @@
 
   /*
    * Grow, Width, MinWidth or Basis size the wrapper, the element the anchor is on, so the trigger
-   * fills it: the panel then lines up with what you see. Content of the tooltip and closed panels
-   * aren't flex items (positioned or display: none).
+   * fills it: the panel then lines up with what you see. min-width: 0 lets the trigger shrink to
+   * the wrapper too, so one with long text (an email in an account menu) truncates instead of
+   * running past it. Content of the tooltip and closed panels aren't flex items (positioned or
+   * display: none).
    */
   :is(.ib-pop-root, .ib-tooltip-root):is(.ib-grow, .ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl, .ib-minw, .ib-minw-sm, .ib-minw-md, .ib-minw-lg, .ib-minw-xl, .ib-basis, .ib-basis-sm, .ib-basis-md, .ib-basis-lg, .ib-basis-xl) > :not([popover], .ib-tooltip) {
     flex-grow: 1;
+    min-width: 0;
   }
 
   .ib-tooltip {
