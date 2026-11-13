@@ -6,7 +6,7 @@
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="12" Align="Align.Center">
             <Stack Gap="6" Align="Align.Start">
                 @*#if (HasEyebrow) *@
-                <Badge Status="Status.Info">{{Eyebrow}}</Badge>
+                <Badge Status="Status.Info" Pill>{{Eyebrow}}</Badge>
                 @*#endif *@
                 <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl4" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Headline}}</Heading>
                 <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Subhead}}</TextBlock>
@@ -18,9 +18,9 @@
                 </Row>
             </Stack>
             @*#if (Screenshot) *@
-            <Box Border="1" Radius="Radius.Lg" Shadow="Shadow.Lg" Overflow="Overflow.Hidden">
+            <BrowserFrame Shadow="Shadow.Lg">
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
-            </Box>
+            </BrowserFrame>
             @*#else *@
             <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" />
             @*#endif *@
@@ -28,7 +28,7 @@
     @*#else *@
         <Stack Gap="6" Align="Align.Center">
             @*#if (HasEyebrow) *@
-            <Badge Status="Status.Info">{{Eyebrow}}</Badge>
+            <Badge Status="Status.Info" Pill>{{Eyebrow}}</Badge>
             @*#endif *@
             <Heading Level="{{HeadingLevel}}" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Headline}}</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(40)">{{Subhead}}</TextBlock>
@@ -39,9 +39,9 @@
                 @*#endif *@
             </Row>
             @*#if (Screenshot) *@
-            <Box Border="1" Radius="Radius.Lg" Shadow="Shadow.Lg" MarginTop="6" MaxWidth="Length.Rem(64)" Overflow="Overflow.Hidden">
+            <BrowserFrame Shadow="Shadow.Lg" MarginTop="6" MaxWidth="Length.Rem(64)">
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
-            </Box>
+            </BrowserFrame>
             @*#elif (HasMedia) *@
             <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" MarginTop="6" MaxWidth="Length.Rem(64)" />
             @*#endif *@
