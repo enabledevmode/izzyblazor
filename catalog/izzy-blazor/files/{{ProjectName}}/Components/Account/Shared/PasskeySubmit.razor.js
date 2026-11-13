@@ -59,6 +59,14 @@ customElements.define('passkey-submit', class extends HTMLElement {
             }
         });
 
+        // A click on the passkey button starts the request itself, so the form isn't submitted
+        // first: a submit, even one that skips validation, marks the browser's empty required
+        // fields as edited, and they'd show as invalid behind the passkey dialog.
+        this.internals.form.querySelector('button[name="__passkeySubmit"]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            this.obtainAndSubmitCredential();
+        });
+
         this.tryAutofillPasskey();
     }
 
