@@ -10,64 +10,78 @@
 
 <PageTitle>Two-factor authentication</PageTitle>
 
+@* A settings row per part of two-factor authentication: what it is and its state, with its action at
+   the end; turning it off comes last, on its own. *@
 <Card Title="Two-factor authentication" TitleLevel="2" Description="Ask for a code from your phone at login, on top of your password." Dividers>
+    <CardActions>
+        <Badge Status="@(is2faEnabled ? Status.Success : Status.Neutral)" Dot>@(is2faEnabled ? "On" : "Off")</Badge>
+    </CardActions>
     @if (canTrack)
     {
-        if (is2faEnabled)
+        <CardBody>
+            <StatusMessage />
+            <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+                <Column Gap="1">
+                    <Heading Level="3" Size="TextSize.Md">Authenticator app</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(hasAuthenticator ? "Set up. Your codes come from the app." : "Not set up yet.")</TextBlock>
+                </Column>
+                @if (!hasAuthenticator)
+                {
+                    <Button Href="Account/Manage/EnableAuthenticator" StartIcon="Lucide.Smartphone">Add an authenticator app</Button>
+                }
+                else
+                {
+                    <Row Gap="2" Wrap>
+                        <Button Href="Account/Manage/EnableAuthenticator" Variant="ButtonVariant.Outline">Set up again</Button>
+                        <Button Href="Account/Manage/ResetAuthenticator" Variant="ButtonVariant.Outline">Reset key</Button>
+                    </Row>
+                }
+            </Row>
+        </CardBody>
+        @if (is2faEnabled)
         {
             <CardBody>
-                <StatusMessage />
+                <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+                    <Column Gap="1">
+                        <Heading Level="3" Size="TextSize.Md">Recovery codes</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(recoveryCodesLeft == 1 ? "1 code left" : $"{recoveryCodesLeft} codes left"). Use one to log in if you lose your phone.</TextBlock>
+                    </Column>
+                    <Button Href="Account/Manage/GenerateRecoveryCodes" Variant="ButtonVariant.Outline">Generate new codes</Button>
+                </Row>
                 @if (recoveryCodesLeft == 0)
                 {
-                    <Alert Status="Status.Danger" Title="You have no recovery codes left">
-                        Generate a new set before you can log in with one.
-                        <AlertActions>
-                            <Button Href="Account/Manage/GenerateRecoveryCodes" Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Generate recovery codes</Button>
-                        </AlertActions>
-                    </Alert>
+                    <Alert Status="Status.Danger">You have no recovery codes left. Generate a new set before you can log in with one.</Alert>
                 }
                 else if (recoveryCodesLeft <= 3)
                 {
-                    <Alert Status="Status.Warning" Title="@(recoveryCodesLeft == 1 ? "You have 1 recovery code left" : $"You have {recoveryCodesLeft} recovery codes left")">
-                        Generate a new set before you run out.
-                        <AlertActions>
-                            <Button Href="Account/Manage/GenerateRecoveryCodes" Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Generate recovery codes</Button>
-                        </AlertActions>
-                    </Alert>
+                    <Alert Status="Status.Warning">You're running low on recovery codes. Generate a new set before you run out.</Alert>
                 }
-                <Row Gap="2" Wrap>
-                    @if (isMachineRemembered)
-                    {
+            </CardBody>
+            @if (isMachineRemembered)
+            {
+                <CardBody>
+                    <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+                        <Column Gap="1">
+                            <Heading Level="3" Size="TextSize.Md">This browser</Heading>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Remembered, so it doesn't ask for a code.</TextBlock>
+                        </Column>
                         <form @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
                             <AntiforgeryToken />
                             <Button Submit Variant="ButtonVariant.Outline">Forget this browser</Button>
                         </form>
-                    }
-                    <Button Href="Account/Manage/GenerateRecoveryCodes" Variant="ButtonVariant.Outline">Reset recovery codes</Button>
-                    <Button Href="Account/Manage/Disable2fa" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off two-factor authentication</Button>
+                    </Row>
+                </CardBody>
+            }
+            <CardBody>
+                <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+                    <Column Gap="1">
+                        <Heading Level="3" Size="TextSize.Md">Turn off two-factor authentication</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Log in with your password alone.</TextBlock>
+                    </Column>
+                    <Button Href="Account/Manage/Disable2fa" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off</Button>
                 </Row>
             </CardBody>
         }
-        <CardBody>
-            @if (!is2faEnabled)
-            {
-                <StatusMessage />
-            }
-            <Heading Level="3" Size="TextSize.Md">Authenticator app</Heading>
-            @if (!hasAuthenticator)
-            {
-                <Row>
-                    <Button Href="Account/Manage/EnableAuthenticator" StartIcon="Lucide.Smartphone">Add an authenticator app</Button>
-                </Row>
-            }
-            else
-            {
-                <Row Gap="2" Wrap>
-                    <Button Href="Account/Manage/EnableAuthenticator" Variant="ButtonVariant.Outline">Set up authenticator app</Button>
-                    <Button Href="Account/Manage/ResetAuthenticator" Variant="ButtonVariant.Outline">Reset authenticator app</Button>
-                </Row>
-            }
-        </CardBody>
     }
     else
     {

@@ -8,15 +8,29 @@
 
 <PageTitle>Personal data</PageTitle>
 
-<Card Title="Personal data" TitleLevel="2" Description="Your account holds personal data you've given us. Download it, or delete it with your account.">
-    <StatusMessage />
-    <Row Gap="2" Wrap>
-        <form action="Account/Manage/DownloadPersonalData" method="post">
-            <AntiforgeryToken />
-            <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
-        </form>
-        <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
-    </Row>
+<Card Title="Personal data" TitleLevel="2" Description="The data your account holds, from what you've given us." Dividers>
+    <CardBody>
+        <StatusMessage />
+        <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+            <Column Gap="1">
+                <Heading Level="3" Size="TextSize.Md">Download your data</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">A JSON file of everything your account holds.</TextBlock>
+            </Column>
+            <form action="Account/Manage/DownloadPersonalData" method="post">
+                <AntiforgeryToken />
+                <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
+            </form>
+        </Row>
+    </CardBody>
+    <CardBody>
+        <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
+            <Column Gap="1">
+                <Heading Level="3" Size="TextSize.Md">Delete your account</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Removes your account and its data for good.</TextBlock>
+            </Column>
+            <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
+        </Row>
+    </CardBody>
 </Card>
 
 @code {

@@ -14,7 +14,7 @@
     <StatusMessage />
     <Form Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync">
         <FormErrors />
-        <TextField Value="@username" ValueExpression="() => username" ReadOnly Label="Username" />
+        <TextField Value="@username" ValueExpression="() => username" ReadOnly Label="Username" Hint="Your username is your email. Change it on the Email page." />
         <TextField @bind-Value="Input.PhoneNumber" Type="TextFieldType.Tel" AutoComplete="tel" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Save</Button>

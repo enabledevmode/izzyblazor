@@ -23,7 +23,10 @@ else
         </Alert>
         <form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
             <AntiforgeryToken />
-            <Button Submit>Generate recovery codes</Button>
+            <Row Gap="2" Wrap>
+                <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                <Button Submit>Generate recovery codes</Button>
+            </Row>
         </form>
     </Card>
 }

@@ -9,8 +9,9 @@
             <Code>@recoveryCode</Code>
         }
     </Grid>
-    <Row>
+    <Row Gap="2" Wrap>
         <CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Variant="ButtonVariant.Outline">Copy codes</CopyButton>
+        <Button Href="Account/Manage/TwoFactorAuthentication">Done</Button>
     </Row>
 </Card>
 
