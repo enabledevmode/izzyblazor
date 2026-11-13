@@ -1,9 +1,9 @@
 <Form Model="Model" FormName="calendar-states">
-    <Row Gap="6" Wrap Align="Align.Start">
+    <Row Gap="10" Wrap Align="Align.Start">
         <Calendar @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
         <Calendar @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
     </Row>
-    <Row Gap="6" Wrap Align="Align.Start">
+    <Row Gap="10" Wrap Align="Align.Start">
         <Calendar @bind-Value="Model!.Signed" Label="Signed on" ReadOnly Hint="Read-only: posted, but can't be changed." />
         <Calendar @bind-Value="Model!.Renews" Label="Renews on" Disabled Hint="Disabled: not posted." />
     </Row>

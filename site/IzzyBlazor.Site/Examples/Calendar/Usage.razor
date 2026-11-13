@@ -1,7 +1,7 @@
 @using System.ComponentModel.DataAnnotations
 
 <Form Model="Model" FormName="calendar-usage" OnValidSubmit="Save">
-    <Row Gap="6" Wrap Align="Align.Start">
+    <Row Gap="10" Wrap Align="Align.Start">
         <Calendar @bind-Value="Model!.Delivery" Hint="In March 2027." />
         <Calendar @bind-Value="Model!.Pickup" Min="@(new DateOnly(2027, 3, 8))" Max="@(new DateOnly(2027, 3, 19))" Hint="From March 8 to 19." />
     </Row>

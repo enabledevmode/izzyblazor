@@ -6,7 +6,7 @@
 </style>
 
 <Form Model="Model" FormName="calendar-days" OnValidSubmit="Save">
-    <Row Gap="6" Wrap Align="Align.Start">
+    <Row Gap="10" Wrap Align="Align.Start">
         <Calendar @bind-Value="Model!.Visit" DateDisabled="IsWeekend" DateDisabledWindow="TimeSpan.FromDays(90)" Hint="On a weekday, within 90 days." />
         <Calendar @bind-Value="Model!.Transfer" DayClass="@(day => day.Day == 15 ? "pay-day" : null)" Hint="Paydays are outlined." />
     </Row>
