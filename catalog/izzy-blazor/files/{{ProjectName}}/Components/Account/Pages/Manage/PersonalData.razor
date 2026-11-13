@@ -8,15 +8,16 @@
 
 <PageTitle>Personal data</PageTitle>
 
-<ManageHeader Title="Personal data" Description="Your account holds personal data you've given us. Download it, or delete it with your account." />
-<StatusMessage />
-<Stack Direction="Direction.Row" Gap="2" Wrap>
-    <form action="Account/Manage/DownloadPersonalData" method="post">
-        <AntiforgeryToken />
-        <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
-    </form>
-    <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
-</Stack>
+<Card Title="Personal data" TitleLevel="2" Description="Your account holds personal data you've given us. Download it, or delete it with your account.">
+    <StatusMessage />
+    <Row Gap="2" Wrap>
+        <form action="Account/Manage/DownloadPersonalData" method="post">
+            <AntiforgeryToken />
+            <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
+        </form>
+        <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
+    </Row>
+</Card>
 
 @code {
     [CascadingParameter]

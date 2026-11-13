@@ -10,16 +10,17 @@
 
 <PageTitle>Profile</PageTitle>
 
-<ManageHeader Title="Profile" Description="The name and phone number on your account." />
-<StatusMessage />
-<Form Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync">
-    <FormErrors />
-    <TextField Value="@username" ValueExpression="() => username" ReadOnly Label="Username" />
-    <TextField @bind-Value="Input.PhoneNumber" Type="TextFieldType.Tel" AutoComplete="tel" />
-    <FormActions Justify="Justify.Start">
-        <Button Submit>Save</Button>
-    </FormActions>
-</Form>
+<Card Title="Profile" TitleLevel="2" Description="The name and phone number on your account.">
+    <StatusMessage />
+    <Form Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync">
+        <FormErrors />
+        <TextField Value="@username" ValueExpression="() => username" ReadOnly Label="Username" />
+        <TextField @bind-Value="Input.PhoneNumber" Type="TextFieldType.Tel" AutoComplete="tel" />
+        <FormActions Justify="Justify.Start">
+            <Button Submit>Save</Button>
+        </FormActions>
+    </Form>
+</Card>
 
 @code {
     private ApplicationUser? user;

@@ -11,42 +11,49 @@
 
 <PageTitle>Manage your external logins</PageTitle>
 
-<ManageHeader Title="External logins" Description="Services you can log in with instead of a password." />
-<StatusMessage />
-@if (currentLogins?.Count > 0)
-{
-    <Table Items="currentLogins" Caption="Registered logins">
-        <Columns>
-            <PropertyColumn Property="login => login.ProviderDisplayName" Title="Service" />
-            <TemplateColumn Title="Actions">
-                @if (showRemoveButton)
-                {
-                    <form @formname="@($"remove-login-{context.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="@nameof(LoginProvider)" value="@context.LoginProvider" />
-                        <input type="hidden" name="@nameof(ProviderKey)" value="@context.ProviderKey" />
-                        <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" title="@($"Remove this {context.ProviderDisplayName} login from your account")">Remove</Button>
-                    </form>
-                }
-            </TemplateColumn>
-        </Columns>
-    </Table>
-}
-@if (otherLogins?.Count > 0)
-{
-    <Heading Level="3" Size="TextSize.Md">Add another service to log in</Heading>
-    <form action="Account/Manage/LinkExternalLogin" method="post">
-        <AntiforgeryToken />
-        <Stack Direction="Direction.Row" Gap="2" Wrap>
-            @foreach (var provider in otherLogins)
-            {
-                <Button Submit Name="Provider" Value="@provider.Name" Variant="ButtonVariant.Outline" title="@($"Log in using your {provider.DisplayName} account")">
-                    @provider.DisplayName
-                </Button>
-            }
-        </Stack>
-    </form>
-}
+<Card Title="External logins" TitleLevel="2" Description="Services you can log in with instead of a password." Dividers>
+    <CardBody>
+        <StatusMessage />
+        @if (currentLogins?.Count > 0)
+        {
+            <Table Items="currentLogins" Caption="Registered logins">
+                <Columns>
+                    <PropertyColumn Property="login => login.ProviderDisplayName" Title="Service" />
+                    <TemplateColumn Title="Actions">
+                        @if (showRemoveButton)
+                        {
+                            <form @formname="@($"remove-login-{context.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="@nameof(LoginProvider)" value="@context.LoginProvider" />
+                                <input type="hidden" name="@nameof(ProviderKey)" value="@context.ProviderKey" />
+                                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Remove</Button>
+                            </form>
+                        }
+                    </TemplateColumn>
+                </Columns>
+            </Table>
+        }
+        else
+        {
+            <TextBlock Color="Color.Muted">No external logins yet.</TextBlock>
+        }
+    </CardBody>
+    @if (otherLogins?.Count > 0)
+    {
+        <CardBody>
+            <Heading Level="3" Size="TextSize.Md">Add another service to log in</Heading>
+            <form action="Account/Manage/LinkExternalLogin" method="post">
+                <AntiforgeryToken />
+                <Row Gap="2" Wrap>
+                    @foreach (var provider in otherLogins)
+                    {
+                        <Button Submit Name="Provider" Value="@provider.Name" Variant="ButtonVariant.Outline">Continue with @provider.DisplayName</Button>
+                    }
+                </Row>
+            </form>
+        </CardBody>
+    }
+</Card>
 
 @code {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";

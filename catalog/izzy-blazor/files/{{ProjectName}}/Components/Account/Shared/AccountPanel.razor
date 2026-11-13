@@ -2,21 +2,21 @@
    title, a 22rem column centered across the page and in the top 70% of the screen (a little above
    the middle); on phones it starts at the top. The title is the page's h1. *@
 <Center MinHeight="new() { Md = Length.Dvh(70) }" PaddingY="new() { Base = 4, Md = 8 }">
-    <Stack Gap="6" Width="Length.Full" MaxWidth="Length.Rem(22)">
+    <Column Gap="6" Width="Length.Full" MaxWidth="Length.Rem(22)">
         @if (Title is not null)
         {
-            <Stack Gap="2">
+            <Column Gap="2">
                 <Heading Level="1" Size="TextSize.Xl3">@Title</Heading>
                 @if (Description is not null)
                 {
                     <TextBlock Color="Color.Muted">@Description</TextBlock>
                 }
-            </Stack>
+            </Column>
         }
-        <Stack Gap="4">
+        <Column Gap="4">
             @ChildContent
-        </Stack>
-    </Stack>
+        </Column>
+    </Column>
 </Center>
 
 @code {

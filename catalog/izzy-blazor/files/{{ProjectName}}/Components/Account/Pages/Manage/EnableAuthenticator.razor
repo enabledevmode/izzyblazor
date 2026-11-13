@@ -20,45 +20,46 @@
 }
 else
 {
-    <ManageHeader Title="Set up an authenticator app" />
-    <StatusMessage Message="@message" />
-    <List Ordered Gap="4">
-        <ListItem>
-            <TextBlock>
-                Install an authenticator app, such as Microsoft Authenticator
-                (<Anchor Href="https://go.microsoft.com/fwlink/?Linkid=825072" External>Android</Anchor>,
-                <Anchor Href="https://go.microsoft.com/fwlink/?Linkid=825073" External>iOS</Anchor>)
-                or Google Authenticator
-                (<Anchor Href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en" External>Android</Anchor>,
-                <Anchor Href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8" External>iOS</Anchor>).
-            </TextBlock>
-        </ListItem>
-        <ListItem>
-            <Stack Gap="3">
-                <TextBlock>Scan this QR code with the app, or enter the key instead. Spaces and case don't matter.</TextBlock>
-                @if (authenticatorUri is not null)
-                {
-                    <QrCode Value="@authenticatorUri" Label="QR code for your authenticator app" Size="Length.Rem(12)" />
-                }
-                <Stack Direction="Direction.Row" Gap="2" Align="Align.Center" Wrap>
-                    <Code id="authenticator-key">@sharedKey</Code>
-                    <CopyButton For="authenticator-key" Label="Copy the key" />
-                </Stack>
-            </Stack>
-        </ListItem>
-        <ListItem>
-            <Stack Gap="3">
-                <TextBlock>Enter the code the app shows.</TextBlock>
-                <Form Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync">
-                    <FormErrors />
-                    <PinField @bind-Value="Input.Code" Length="6" AutoComplete="one-time-code" Label="Verification code" />
-                    <FormActions Justify="Justify.Start">
-                        <Button Submit>Verify</Button>
-                    </FormActions>
-                </Form>
-            </Stack>
-        </ListItem>
-    </List>
+    <Card Title="Set up an authenticator app" TitleLevel="2">
+        <StatusMessage Message="@message" />
+        <List Ordered Gap="4">
+            <ListItem>
+                <TextBlock>
+                    Install an authenticator app, such as Microsoft Authenticator
+                    (<Anchor Href="https://go.microsoft.com/fwlink/?Linkid=825072" External>Android</Anchor>,
+                    <Anchor Href="https://go.microsoft.com/fwlink/?Linkid=825073" External>iOS</Anchor>)
+                    or Google Authenticator
+                    (<Anchor Href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&amp;hl=en" External>Android</Anchor>,
+                    <Anchor Href="https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8" External>iOS</Anchor>).
+                </TextBlock>
+            </ListItem>
+            <ListItem>
+                <Column Gap="3">
+                    <TextBlock>Scan this QR code with the app, or enter the key instead. Spaces and case don't matter.</TextBlock>
+                    @if (authenticatorUri is not null)
+                    {
+                        <QrCode Value="@authenticatorUri" Label="QR code for your authenticator app" Size="Length.Rem(12)" />
+                    }
+                    <Row Gap="2" Align="Align.Center" Wrap>
+                        <Code id="authenticator-key">@sharedKey</Code>
+                        <CopyButton For="authenticator-key" Label="Copy the key" />
+                    </Row>
+                </Column>
+            </ListItem>
+            <ListItem>
+                <Column Gap="3">
+                    <TextBlock>Enter the code the app shows.</TextBlock>
+                    <Form Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync">
+                        <FormErrors />
+                        <PinField @bind-Value="Input.Code" Length="6" AutoComplete="one-time-code" Label="Verification code" />
+                        <FormActions Justify="Justify.Start">
+                            <Button Submit>Verify</Button>
+                        </FormActions>
+                    </Form>
+                </Column>
+            </ListItem>
+        </List>
+    </Card>
 }
 
 @code {

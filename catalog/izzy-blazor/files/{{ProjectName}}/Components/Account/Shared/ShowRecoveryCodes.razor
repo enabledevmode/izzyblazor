@@ -1,17 +1,18 @@
-<ManageHeader Title="Recovery codes" />
-<StatusMessage Message="@StatusMessage" />
-<Alert Status="Status.Warning" Title="Put these codes in a safe place">
-    If you lose your device and don't have the recovery codes, you lose access to your account.
-</Alert>
-<Grid Columns="new() { Base = 2, Sm = 5 }" Gap="2" id="recovery-codes" MaxWidth="Length.Rem(36)">
-    @foreach (var recoveryCode in RecoveryCodes)
-    {
-        <Code>@recoveryCode</Code>
-    }
-</Grid>
-<div>
-    <CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Variant="ButtonVariant.Outline">Copy codes</CopyButton>
-</div>
+<Card Title="Recovery codes" TitleLevel="2">
+    <StatusMessage Message="@StatusMessage" />
+    <Alert Status="Status.Warning" Title="Put these codes in a safe place">
+        If you lose your device and don't have the recovery codes, you lose access to your account.
+    </Alert>
+    <Grid Columns="new() { Base = 2, Sm = 5 }" Gap="2" id="recovery-codes" MaxWidth="Length.Rem(36)">
+        @foreach (var recoveryCode in RecoveryCodes)
+        {
+            <Code>@recoveryCode</Code>
+        }
+    </Grid>
+    <Row>
+        <CopyButton Text="@string.Join(Environment.NewLine, RecoveryCodes)" Variant="ButtonVariant.Outline">Copy codes</CopyButton>
+    </Row>
+</Card>
 
 @code {
     [Parameter]
