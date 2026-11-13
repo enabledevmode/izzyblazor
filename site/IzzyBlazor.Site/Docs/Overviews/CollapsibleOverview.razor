@@ -1,14 +1,12 @@
 @* Collapsible's Overview, written by hand after Accordion's: show more, your own trigger, and open
    from the server or C# (code). Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A collapsible is one section that the user opens and closes, without an accordion's frame. It suits a single section most users can skip. It's a native <Code>details</Code> element, so it opens and closes <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
 <TextBlock>For several sections, see <Anchor Href="docs/components/accordion">Accordion</Anchor>. For a panel over the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
 <Heading Level="2">Show more</Heading>
 <TextBlock>A "show more" is a line of text with a chevron that opens the section below it. It suits advanced options, or details most users can skip. Set <Code>Label</Code> to the text beside the chevron.</TextBlock>
-<ExampleViewer Example="collapsible-show-more" />
+<ExampleViewer Example="collapsible-usage" />
 
 <Heading Level="2">A custom trigger</Heading>
 <TextBlock>The trigger is what the user clicks to open the section. To replace the label and chevron with inline content of your own, set <Code>Trigger</Code>.</TextBlock>
@@ -39,12 +37,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Collapsible Label="Advanced options">
-            <TextField @bind-Value="Model!.BuildCommand" />
-        </Collapsible>
-        """;
 
     private const string OpenCode = """
         @* Open after a post that found a problem in the advanced options. *@

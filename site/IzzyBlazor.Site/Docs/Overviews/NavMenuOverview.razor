@@ -4,13 +4,11 @@
    current page (code), badges and counts, a row of links, and the landmark around it. Parts,
    Accessibility and See also come from the metadata and the doc comments. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A nav menu is a list of links that marks the link to the current page. It suits a sidebar or a row of section links. The server works out the current page from the URL, so the menu works the same on <Anchor Href="docs/common/render-modes">static and interactive pages</Anchor>, and with JavaScript off.</TextBlock>
 
 <Heading Level="2">Organizing a sidebar</Heading>
 <TextBlock>A sidebar's links can be organized into sections. To name a section, add a <Code>NavLabel</Code>; for a line between sections, add a <Code>NavDivider</Code>. To fold some links away, put them in a <Code>NavGroup</Code>.</TextBlock>
-<ExampleViewer Example="nav-menu-sidebar" />
+<ExampleViewer Example="nav-menu-usage" />
 <TextBlock>A group is a native <Code>details</Code> element, so it opens and closes with JavaScript off. To start a group open, set <Code>Open</Code>; to open it on the pages at or below a path, such as <Code>/projects</Code>, set <Code>ActivePrefix</Code>. With IzzyBlazor's script, a group that contains the current page also opens itself.</TextBlock>
 
 <Heading Level="2">The current page</Heading>
@@ -63,18 +61,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <AppSidebar>
-            <NavMenu>
-                <NavItem Href="/" Icon="Lucide.House">Home</NavItem>
-                <NavItem Href="/projects" Icon="Lucide.Folder">Projects</NavItem>
-                <NavItem Href="/inbox" Icon="Lucide.Inbox" Badge="4">Inbox</NavItem>
-                <NavDivider />
-                <NavItem Href="/settings" Icon="Lucide.Settings">Settings</NavItem>
-            </NavMenu>
-        </AppSidebar>
-        """;
 
     private const string Current = """
         @* Current on /projects and on /projects/42 *@

@@ -11,9 +11,6 @@
     [SupplyParameterFromQuery]. On interactive pages, @bind-Page turns the links into buttons
     that update C# without touching the URL.
 
-    <Pagination PageCount="12" />                       reads and writes ?page=
-    <Pagination @bind-Page="page" PageCount="12" />     interactive, no URL
-
     Accessibility:
     - It renders a `nav` named "Pagination" (`Label`); give each one on a page its own `Label`.
     - Page numbers are read as "Page 3" (`PageLabel`), and the current page has

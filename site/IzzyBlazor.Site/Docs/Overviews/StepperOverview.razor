@@ -1,16 +1,18 @@
 @inject ApiMetadata Api
 
-@* Stepper's Overview, written by hand after the selection Overviews: a checkout (the demo, in a
-   frame with a phone width), vertical with descriptions, a step that only sometimes applies, sizes,
-   and the ends. Parts, Accessibility and See also come from the metadata and the doc
-   comments. *@
+@* Stepper's Overview, written by hand after the selection Overviews: the current step, a checkout
+   (the demo, in a frame with a phone width), vertical with descriptions, a step that only
+   sometimes applies, sizes, and the ends. Parts, Accessibility and See also come from the metadata
+   and the doc comments. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A stepper shows where the user is in a process, such as a checkout or a setup wizard. It's an ordered list that works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>, so it looks the same on every page. Your page sets which step is <Code>Current</Code>.</TextBlock>
 
-<Heading Level="2">Steps of a checkout</Heading>
+<Heading Level="2">The current step</Heading>
 <TextBlock>The current step is the one the user is on, counting from 1, and the steps before it show as done. Set <Code>Current</Code>. To make a step's label a link, such as back to a finished step, set the <Code>Step</Code>'s <Code>Href</Code>.</TextBlock>
+<ExampleViewer Example="stepper-usage" />
+
+<Heading Level="2">Steps of a checkout</Heading>
+<TextBlock>A stepper usually heads the form for each step, beside what the user has chosen so far.</TextBlock>
 <ExampleViewer Example="stepper-checkout" WidthSwitch />
 <TextBlock>This example keeps the step in the URL as <Code>?step=</Code>. Each step's form moves on to the next step once it's valid: with a form post on static pages, and in C# on interactive pages. So it works with JavaScript off too.</TextBlock>
 <TextBlock>Below 640px, the steps stay a row of markers, and only the current step's label shows. A finished step's link is still there, on its marker.</TextBlock>
@@ -69,12 +71,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Stepper Current="2" Label="Sign-up progress">
-            <Step Label="Account" Href="/signup/account" />
-            <Step Label="Profile" Description="Name and photo" />
-            <Step Label="Done" />
-        </Stepper>
-        """;
 }

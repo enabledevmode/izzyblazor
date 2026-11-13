@@ -4,15 +4,6 @@
 
 @*
     A list of navigation links: vertical for sidebars, horizontal for headers.
-    <NavMenu>
-        <NavLabel>Workspace</NavLabel>
-        <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Home</NavItem>
-        <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="/projects">
-            <NavItem Href="/projects/active">Active</NavItem>
-        </NavGroup>
-        <NavDivider />
-        <NavItem Href="/settings" Icon="Lucide.Settings">Settings</NavItem>
-    </NavMenu>
 
     Accessibility:
     - It renders a `ul` of links, not a landmark: put it in an AppSidebar (a `nav` named "Main")

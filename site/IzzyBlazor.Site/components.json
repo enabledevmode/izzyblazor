@@ -286,6 +286,13 @@
         { "feature": "Focus moves to the first link when the panel opens", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "The links move into an AppSidebar on phones" }
       ],
+      "examples": [
+        { "id": "site-nav-usage", "title": "Links in the header", "height": 400, "page": true,
+          "notes": {
+            "noscript": "At phone width the menu button opens the links in a native popover, and focus stays on the button.",
+            "static": "Opening the panel moves focus to the first link, and following a link closes the panel."
+          } }
+      ],
       "scenarios": [
         { "id": "content-site", "title": "Content site", "member": "Breakpoint",
           "description": "A site with no sidebar: a hero and a band of project cards on a 72rem column. From 768px up SiteNav is a row of links in the header; below it a menu button opens the same links in a panel, with SiteNavFooter's button under them.",
@@ -1860,7 +1867,7 @@
     {
       "id": "nav-menu", "icon": "Navigation", "name": "NavMenu", "category": "Navigation", "summary": "Lists links and marks the current page.", "keywords": ["sidebar navigation"], "parts": ["NavItem", "NavGroup", "NavLabel", "NavDivider"],
       "examples": [
-        { "id": "nav-menu-sidebar", "title": "Labels, groups and badges", "lead": "To organize a sidebar's links, add `NavLabel`, `NavGroup` and `NavDivider`. For a count or a label on an item, set its `Badge`." },
+        { "id": "nav-menu-usage", "title": "Labels, groups and badges", "lead": "Put a `NavItem` for each link in a `NavMenu`; the server marks the one for the current page. To organize a sidebar's links, add `NavLabel`, `NavGroup` and `NavDivider`. For a count or a label on an item, set its `Badge`." },
         { "id": "nav-menu-horizontal", "title": "Horizontal", "lead": "For a row of section links, set `Orientation` to `Orientation.Horizontal`." },
         { "id": "nav-menu-counts", "title": "Quiet counts", "lead": "For totals with no fill, as docs and mail sidebars show them, set an item's `BadgeVariant` to `BadgeVariant.Plain`. Long labels wrap." }
       ]
@@ -1880,7 +1887,7 @@
         { "feature": "Delete closes the focused tab", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "tabs-modes", "title": "Tabs in each render mode",
+        { "id": "tabs-usage", "title": "Tabs in each render mode",
           "notes": {
             "noscript": "Radio buttons and CSS switch the panels, and the arrow keys work. C# isn't told.",
             "static": "IzzyBlazor's script makes them ARIA tabs, with roving focus. C# still isn't told, since there's no circuit.",
@@ -1918,14 +1925,14 @@
         { "feature": "A tab marked current from C# (TabLink Current)" }
       ],
       "examples": [
-        { "id": "tab-nav-settings", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] }
+        { "id": "tab-nav-usage", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] }
       ]
     },
 
     {
       "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "Shows where a page sits in the site, with a link back up to each level.", "parts": ["BreadcrumbItem"],
       "examples": [
-        { "id": "breadcrumb-path", "title": "Links and the current page", "lead": "A breadcrumb links to the pages above the current one. Give each `BreadcrumbItem` an `Href`, and leave it off the last, which is the current page. `Icon` adds an icon, such as a house for Home." },
+        { "id": "breadcrumb-usage", "title": "Links and the current page", "lead": "A breadcrumb links to the pages above the current one. Give each `BreadcrumbItem` an `Href`, and leave it off the last, which is the current page. `Icon` adds an icon, such as a house for Home." },
         { "id": "breadcrumb-slash", "title": "Slashes", "lead": "To separate items with slashes in place of chevrons, set `Separator` to `BreadcrumbSeparator.Slash`." }
       ]
     },
@@ -1937,7 +1944,7 @@
         { "feature": "Page bound to C#, with buttons in place of links", "member": "Page" }
       ],
       "examples": [
-        { "id": "pagination-url", "title": "Pages in the URL", "lead": "Each page is a link that sets `?page=`, so paging survives a reload and can be shared. Set `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`." },
+        { "id": "pagination-usage", "title": "Pages in the URL", "lead": "Each page is a link that sets `?page=`, so paging survives a reload and can be shared. Set `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`." },
         { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "To match buttons and fields, set `Size`. `Siblings` sets how many pages show on each side of the current one, and `Boundaries` how many always show at each end." },
         { "id": "pagination-bound", "title": "Bound to C#", "lead": "On interactive pages, `@bind-Page` pages in C#, with buttons in place of links.",
           "notes": {
@@ -1951,7 +1958,7 @@
     {
       "id": "prev-next", "icon": "ArrowRightLeft", "name": "PrevNext", "category": "Navigation", "summary": "Links to the pages before and after.",
       "examples": [
-        { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "To end an article with links to the pages around it, set `PreviousHref` and `NextHref`, each with its page's title. On the first or last page, leave out that side." },
+        { "id": "prev-next-usage", "title": "Previous and next pages", "lead": "To end an article with links to the pages around it, set `PreviousHref` and `NextHref`, each with its page's title. On the first or last page, leave out that side." },
         { "id": "prev-next-first-page", "title": "First page and link text", "lead": "With only `NextHref`, the next page's card stays at the end. To change the small text above its title, set `NextText`; `PreviousText` does the same for the other card." }
       ]
     },
@@ -1959,7 +1966,7 @@
     {
       "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "Lists links to the page's headings, rendered on the server with the page.", "keywords": ["table of contents", "toc"],
       "examples": [
-        { "id": "on-this-page-guide", "title": "A guide with its outline", "height": 640, "page": true,
+        { "id": "on-this-page-usage", "title": "A guide with its outline", "height": 640, "page": true,
           "lead": "To list the page's headings beside the content as links, put an `OnThisPage` in an `AppAside`. Each `Heading` in `AppMain` lists itself, h2 and h3 by default, with h3 indented.", "after": ["With IzzyBlazor's script, headings in raw HTML, such as a `Prose` block, are listed too when they have ids."],
           "notes": {
             "noscript": "The section in view isn't marked, and the two headings in the Prose block (What's new in 1.4, Upgrading) aren't listed.",
@@ -1971,6 +1978,7 @@
     {
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Shows where the user is in a process of steps.", "keywords": ["wizard", "steps"], "parts": ["Step"],
       "examples": [
+        { "id": "stepper-usage", "title": "The current step", "lead": "Put a `Step` for each step in a `Stepper`, and set `Current`, counting from 1; the steps before it show as done. To link back to a finished step, set its `Href`." },
         { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "To keep the steps in a column on every screen, set `Orientation` to `Orientation.Vertical`. A `Step` can have a `Description`, and an `Icon` that shows until the step is done." },
         { "id": "stepper-sizes", "title": "Sizes", "lead": "To scale the markers and text, set `Size`." },
         { "id": "stepper-optional", "title": "A step that only sometimes applies", "lead": "To leave out a step that doesn't apply this time, such as a gift message, set `Visible` to false. The steps after it keep their numbers in order." }
@@ -3447,6 +3455,7 @@
         { "feature": "An item's Open bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
+        { "id": "accordion-usage", "title": "Sections", "lead": "Put an `AccordionItem` for each section in an `Accordion`, and set its `Title`. To start an item open, set `Open`." },
         { "id": "accordion-variants", "title": "Variants", "lead": "A variant sets how the items are framed: separate cards (the default), one bordered box, or flush with the page. To choose one, set `Variant`." },
         { "id": "accordion-exclusive", "title": "One open at a time", "lead": "To keep one item open at a time, set `Exclusive`: opening another closes it. The browser does this, so it works with JavaScript off. To stop an item opening, set `Disabled`." },
         { "id": "accordion-content", "title": "Rich headers and content", "lead": "For a title with more than text, such as a badge, use an `AccordionHeader`. The content is a column with a gap, so text, buttons and lists need no wrapper." },
@@ -3473,7 +3482,7 @@
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
-        { "id": "collapsible-show-more", "title": "Show more", "lead": "A collapsible hides advanced options or details most users can skip. `Label` sets the text beside the chevron." },
+        { "id": "collapsible-usage", "title": "Show more", "lead": "A collapsible hides advanced options or details most users can skip. `Label` sets the text beside the chevron." },
         { "id": "collapsible-custom-trigger", "title": "Custom trigger", "lead": "To replace the label and chevron with inline content of your own, set `Trigger`." }
       ]
     }

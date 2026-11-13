@@ -10,11 +10,6 @@
     (/settings/profile, /settings/billing): a nav of real links drawn as tabs, with no panels and
     no script needed. The server marks the tab for the current URL.
 
-    <TabNav Label="Settings">
-        <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
-        <TabLink Href="settings/billing" Label="Billing" Badge="2" />
-    </TabNav>
-
     Accessibility:
     - It's a `nav` of plain links that Tab moves between (no arrow keys, as these aren't ARIA tabs).
     - The current page's link has `aria-current`; a disabled one is a link with no `href`, announced

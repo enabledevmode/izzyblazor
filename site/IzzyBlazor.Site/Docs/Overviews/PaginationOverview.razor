@@ -2,14 +2,12 @@
    than one on a page (code), sizes and how many pages show, and bound to C#. Accessibility and See
    also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>Pagination is a row of links to the pages of a long list. It suits a list too long for one page. Each page is a link that sets <Code>?page=</Code> and keeps the rest of the URL, so paging works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off, survives a reload, and can be shared.</TextBlock>
 <TextBlock>Pagination only renders the links: your page reads the number and shows its own rows. A <Anchor Href="docs/components/table">Table</Anchor> pages itself with the same links.</TextBlock>
 
 <Heading Level="2">Pages in the URL</Heading>
 <TextBlock>The page number is in the URL, and your page reads it to show that page's rows. To set how many pages there are, set <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>. To show the page's rows, read the page number with <Code>[SupplyParameterFromQuery]</Code>.</TextBlock>
-<ExampleViewer Example="pagination-url" />
+<ExampleViewer Example="pagination-usage" />
 <List Gap="2">
     <ListItem>Page 1 leaves the key out of the URL.</ListItem>
     <ListItem>Pagination treats a number past the last page as the last page. Clamp the number you read the same way.</ListItem>
@@ -65,22 +63,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @foreach (var order in Orders.Skip((Page - 1) * 20).Take(20))
-        {
-            <OrderRow Order="order" />
-        }
-        <Pagination TotalItems="Orders.Count" PageSize="20" Label="Orders pages" />
-
-        @code {
-            [SupplyParameterFromQuery(Name = "page")]
-            private int? CurrentPage { get; set; }
-
-            private int PageCount => Math.Max(1, (Orders.Count + 19) / 20);
-            private int Page => Math.Clamp(CurrentPage ?? 1, 1, PageCount);
-        }
-        """;
 
     private const string Several = """
         <Pagination TotalItems="Orders.Count" QueryKey="orders-page" Label="Orders pages" />

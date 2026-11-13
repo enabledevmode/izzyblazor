@@ -3,13 +3,11 @@
    vertical tabs, the tab in the address, tabs in a form and panel padding.
    Parts, Accessibility and See also come from the doc comments and components.json. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>Tabs are a row of labels over panels of content, such as a record's details and its history; the user picks a tab to show its panel. They switch <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For sections the user opens one by one, see <Anchor Href="docs/components/accordion">Accordion</Anchor>.</TextBlock>
 
 <Heading Level="2">Picking a tab</Heading>
 <TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>.</TextBlock>
-<ExampleViewer Example="tabs-modes" />
+<ExampleViewer Example="tabs-usage" />
 <TextBlock>A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
 <TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tab-nav">TabNav</Anchor> link.</TextBlock>
 
@@ -82,11 +80,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Tabs Label="Account">
-            <Tab Label="Profile" Icon="Lucide.User">...</Tab>
-            <Tab Label="Billing" Badge="2">...</Tab>
-        </Tabs>
-        """;
 }

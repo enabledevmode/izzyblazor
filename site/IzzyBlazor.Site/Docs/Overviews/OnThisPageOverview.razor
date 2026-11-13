@@ -2,14 +2,12 @@
    which levels it lists, headings the server can't see, and pages without an AppShell.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>An on-this-page outline is a list of a long page's sections beside it, so the user sees what's there and can jump to a section. It suits long guides and reference pages. The list is in the server's response, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>; with IzzyBlazor's script, it marks the section in view as the page scrolls.</TextBlock>
 <TextBlock>For links between pages, use a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor> in the sidebar and <Anchor Href="docs/components/prev-next">PrevNext</Anchor> at the end of each page.</TextBlock>
 
 <Heading Level="2">A guide with its outline</Heading>
 <TextBlock>A guide's outline sits in the aside, beside the article. Put OnThisPage in an <Code>AppAside</Code>. Each <Anchor Href="docs/components/heading">Heading</Anchor> in <Code>AppMain</Code> adds itself while the page renders, with an id taken from its text, so its link works with no setup.</TextBlock>
-<ExampleViewer Example="on-this-page-guide" />
+<ExampleViewer Example="on-this-page-usage" />
 <TextBlock>The aside shows from its <Code>Breakpoint</Code> up, 1024px by default. This example sets it lower to fit the window.</TextBlock>
 
 <Heading Level="2">Which headings</Heading>
@@ -58,17 +56,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <AppShell>
-            <AppMain>
-                <Heading Level="1">Deploy your app</Heading>
-                <Heading Level="2">Build the image</Heading>
-                ...
-            </AppMain>
-            <AppAside>
-                <OnThisPage />
-            </AppAside>
-        </AppShell>
-        """;
 }
