@@ -21,7 +21,9 @@
         <TextField @bind-Value="Input.Email" AutoComplete="username" />
         <Button Submit FullWidth>Resend</Button>
     </Form>
-    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center"><Anchor Href="Account/Login">Back to log in</Anchor></TextBlock>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+        Already confirmed? <Anchor Href="Account/Login">Log in</Anchor>
+    </TextBlock>
 </AccountPanel>
 
 @code {

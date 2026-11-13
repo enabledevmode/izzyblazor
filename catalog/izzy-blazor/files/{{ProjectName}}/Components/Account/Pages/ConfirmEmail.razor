@@ -10,9 +10,16 @@
 
 <PageTitle>Confirm email</PageTitle>
 
-<AccountPanel Title="Confirm email">
+<AccountPanel Title="Confirm your email" Description="We've checked the link from your email.">
     <StatusMessage Message="@statusMessage" />
-    <Button Href="Account/Login" FullWidth>Log in</Button>
+    @if (statusMessage?.StartsWith("Error") == true)
+    {
+        <Button Href="Account/ResendEmailConfirmation" FullWidth>Send a new confirmation link</Button>
+    }
+    else
+    {
+        <Button Href="Account/Login" FullWidth>Log in</Button>
+    }
 </AccountPanel>
 
 @code {
