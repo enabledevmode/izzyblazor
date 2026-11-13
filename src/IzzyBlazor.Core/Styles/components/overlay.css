@@ -385,6 +385,15 @@
     inset: calc(var(--ib-tooltip-gap) * -1);
   }
 
+  /* The tooltip's colors are the page's inverted, so a Kbd in it draws from the tooltip's. */
+  .ib-tooltip .ib-kbd {
+    border-color: color-mix(in oklab, currentColor 30%, transparent);
+    background-color: color-mix(in oklab, currentColor 10%, transparent);
+    color: inherit;
+  }
+
+  .ib-tooltip .ib-kbd-separator { color: inherit; }
+
   /*
    * Without script (no popover), a hidden tooltip is out of the layout, so one placed past the
    * page's edge doesn't make the page scroll sideways. It still fades: display switches with the
