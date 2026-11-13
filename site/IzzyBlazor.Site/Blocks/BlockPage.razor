@@ -86,6 +86,13 @@
                 <iframe class="site-block-frame" src="@($"frame/blocks/{_block.Id}?{_variant.Query}")" title="@($"{_block.Name} preview at a phone's width")"></iframe>
             </div>
         }
+        else if (!_block.Free)
+        {
+            @* A Pro block's template isn't in the site, so its preview is a render of it. *@
+            <div class="site-block-stage">
+                <Image Src="@_block.Picture" Alt="@($"The {_block.Name} block")" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture" />
+            </div>
+        }
         else if (_previewType is not null)
         {
             @* The library's default theme, not the site's: a preview shows what an app gets. A
