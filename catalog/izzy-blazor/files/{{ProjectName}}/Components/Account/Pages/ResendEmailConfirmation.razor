@@ -16,8 +16,7 @@
 
 <AccountPanel Title="Resend confirmation" Description="We'll email you the confirmation link again.">
     <StatusMessage Message="@message" />
-    <Form Model="Input" FormName="resend-email-confirmation" OnValidSubmit="OnValidSubmitAsync">
-        <FormErrors />
+    <Form Model="Input" FormName="resend-email-confirmation" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         <TextField @bind-Value="Input.Email" AutoComplete="username" />
         <Button Submit FullWidth>Resend</Button>
     </Form>

@@ -37,8 +37,7 @@
     </ListItem>
 </List>
 <Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
-    <Form Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync">
-        <FormErrors />
+    <Form Model="Input" FormName="change-email" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         <TextField @bind-Value="Input.NewEmail" AutoComplete="email" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Change email</Button>

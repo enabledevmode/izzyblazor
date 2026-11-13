@@ -18,13 +18,9 @@
 
 <PageTitle>Register</PageTitle>
 
-<AccountPanel Title="Finish registering" Description="@($"Associate your {ProviderDisplayName} account.")">
+<AccountPanel Title="Finish registering" Description="@($"You've signed in with {ProviderDisplayName}. Choose the email to use here.")">
     <StatusMessage Message="@message" />
-    <Alert Status="Status.Info">
-        You've signed in with <strong>@ProviderDisplayName</strong>. Enter an email address for this site and press Register to finish logging in.
-    </Alert>
-    <Form Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation">
-        <FormErrors />
+    <Form Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" RequiredMark="RequiredMark.Optional">
         <TextField @bind-Value="Input.Email" AutoComplete="email" />
         <Button Submit FullWidth>Register</Button>
     </Form>

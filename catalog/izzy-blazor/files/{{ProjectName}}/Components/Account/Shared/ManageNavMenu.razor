@@ -4,26 +4,33 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager NavigationManager
 
-@* The sections, beside the page from Md up; on phones a dropdown whose button names the section
-   you're in. A section's own steps (set up, reset, rename, delete) keep it current. *@
-<NavMenu aria-label="Account" VisibleFrom="Breakpoint.Md">
-    @Items
-</NavMenu>
+@* The sections as tabs under the page header from Md up; on phones a dropdown whose button
+   names the section you're in. A section's own steps (set up, reset, rename, delete) keep it
+   current. *@
+<TabNav Label="Account settings" VisibleFrom="Breakpoint.Md">
+    @foreach (var section in sections)
+    {
+        <TabLink Href="@section.Href" Label="@section.Title" Current="@(section == current)" />
+    }
+</TabNav>
 <Popover HiddenFrom="Breakpoint.Md" Width="Length.Full" PanelWidth="Length.Full">
     <Trigger Context="trigger">
-        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" StartIcon="@current.Icon" EndIcon="Lucide.ChevronDown" @attributes="trigger">
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" EndIcon="Lucide.ChevronDown" @attributes="trigger">
             <TextBlock As="span" Align="TextAlign.Start" Truncate Grow>@current.Title</TextBlock>
         </Button>
     </Trigger>
     <ChildContent>
-        <NavMenu aria-label="Account">
-            @Items
+        <NavMenu aria-label="Account settings">
+            @foreach (var section in sections)
+            {
+                <NavItem Href="@section.Href" Current="@(section == current)">@section.Title</NavItem>
+            }
         </NavMenu>
     </ChildContent>
 </Popover>
 
 @code {
-    private sealed record Section(string Title, string Href, IconData Icon, params string[] Pages);
+    private sealed record Section(string Title, string Href, params string[] Pages);
 
     private Section[] sections = [];
     private Section current = null!;
@@ -33,25 +40,17 @@
         var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
         sections =
         [
-            new("Profile", "Account/Manage", Lucide.User, ""),
-            new("Email", "Account/Manage/Email", Lucide.AtSign, "Email"),
-            new("Password", "Account/Manage/ChangePassword", Lucide.KeyRound, "ChangePassword", "SetPassword"),
-            .. hasExternalLogins ? [new Section("External logins", "Account/Manage/ExternalLogins", Lucide.Link, "ExternalLogins")] : Array.Empty<Section>(),
-            new("Two-factor authentication", "Account/Manage/TwoFactorAuthentication", Lucide.Shield,
+            new("Profile", "Account/Manage", ""),
+            new("Email", "Account/Manage/Email", "Email"),
+            new("Password", "Account/Manage/ChangePassword", "ChangePassword", "SetPassword"),
+            .. hasExternalLogins ? [new Section("External logins", "Account/Manage/ExternalLogins", "ExternalLogins")] : Array.Empty<Section>(),
+            new("Two-factor authentication", "Account/Manage/TwoFactorAuthentication",
                 "TwoFactorAuthentication", "EnableAuthenticator", "ResetAuthenticator", "Disable2fa", "GenerateRecoveryCodes"),
-            new("Passkeys", "Account/Manage/Passkeys", Lucide.FingerprintPattern, "Passkeys", "RenamePasskey"),
-            new("Personal data", "Account/Manage/PersonalData", Lucide.Database, "PersonalData", "DeletePersonalData"),
+            new("Passkeys", "Account/Manage/Passkeys", "Passkeys", "RenamePasskey"),
+            new("Personal data", "Account/Manage/PersonalData", "PersonalData", "DeletePersonalData"),
         ];
         var page = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].TrimEnd('/');
         current = sections.FirstOrDefault(s => s.Pages.Any(p => page.Equals(p.Length == 0 ? "Account/Manage" : "Account/Manage/" + p, StringComparison.OrdinalIgnoreCase)))
             ?? sections[0];
     }
-
-    private RenderFragment Items => __builder =>
-    {
-        foreach (var section in sections)
-        {
-            <NavItem Href="@section.Href" Icon="section.Icon" Current="@(section == current)">@section.Title</NavItem>
-        }
-    };
 }

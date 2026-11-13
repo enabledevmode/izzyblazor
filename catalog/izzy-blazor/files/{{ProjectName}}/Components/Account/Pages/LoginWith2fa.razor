@@ -13,10 +13,9 @@
 
 <AccountPanel Title="Verify it's you" Description="Enter the code from your authenticator app.">
     <StatusMessage Message="@message" />
-    <Form Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync">
+    <Form Model="Input" FormName="login-with-2fa" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
         <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
         <input type="hidden" name="RememberMe" value="@RememberMe" />
-        <FormErrors />
         <PinField @bind-Value="Input.TwoFactorCode" Label="Authenticator code" Length="6" AutoComplete="one-time-code" />
         <Checkbox @bind-Value="Input.RememberMachine" Label="Remember this browser" />
         <Button Submit FullWidth>Log in</Button>

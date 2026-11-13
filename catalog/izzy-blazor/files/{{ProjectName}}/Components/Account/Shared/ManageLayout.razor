@@ -6,19 +6,17 @@
 @*#endif *@
 
 @* The settings page: the Wide column (64rem) from the main area's edge, the page header, then the
-   section nav (15rem, so "Two-factor authentication" fits on a line) beside the Medium column
-   (48rem) the section draws in. On phones the nav is a dropdown above the section, naming the one
-   you're in. *@
+   sections as tabs, whose line runs the full width and sets the nav apart from the page. The
+   section draws in the Medium column (48rem) under it. On phones the tabs are a dropdown naming
+   the section you're in. *@
 <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
-    <Column Gap="new() { Base = 6, Md = 8 }">
-        <PageHeader Title="Manage your account" Description="Your sign-in details, security and data." />
-        <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "15rem 1fr" })" Gap="8" Align="Align.Start">
-            <ManageNavMenu />
-            <Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
-                <Column Gap="6">
-                    @Body
-                </Column>
-            </Container>
-        </Grid>
+    <Column Gap="6">
+        <PageHeader Title="Manage your account" />
+        <ManageNavMenu />
+        <Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false" MarginTop="2">
+            <Column Gap="6">
+                @Body
+            </Column>
+        </Container>
     </Column>
 </Container>

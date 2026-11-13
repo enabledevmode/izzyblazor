@@ -10,23 +10,22 @@
 
 <PageTitle>Confirm email</PageTitle>
 
-<AccountPanel Title="Confirm your email" Description="We've checked the link from your email.">
-    <StatusMessage Message="@statusMessage" />
-    @if (statusMessage?.StartsWith("Error") == true)
-    {
-        <Button Href="Account/ResendEmailConfirmation" FullWidth>Send a new confirmation link</Button>
-    }
-    else
-    {
+@* The outcome is the title, and each has its next step. *@
+@if (confirmed)
+{
+    <AccountPanel Title="Email confirmed" Description="Thanks for confirming. You can log in now.">
         <Button Href="Account/Login" FullWidth>Log in</Button>
-    }
-</AccountPanel>
+    </AccountPanel>
+}
+else
+{
+    <AccountPanel Title="This link didn't work" Description="It's invalid or has expired. Send yourself a new one.">
+        <Button Href="Account/ResendEmailConfirmation" FullWidth>Send a new confirmation link</Button>
+    </AccountPanel>
+}
 
 @code {
-    private string? statusMessage;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private bool confirmed;
 
     [SupplyParameterFromQuery]
     private string? UserId { get; set; }
@@ -42,17 +41,13 @@
             return;
         }
 
+        // An unknown user gets the same answer as a bad link.
         var user = await UserManager.FindByIdAsync(UserId);
-        if (user is null)
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = $"Error loading user with ID {UserId}";
-        }
-        else
+        if (user is not null)
         {
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
             var result = await UserManager.ConfirmEmailAsync(user, code);
-            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            confirmed = result.Succeeded;
         }
     }
 }

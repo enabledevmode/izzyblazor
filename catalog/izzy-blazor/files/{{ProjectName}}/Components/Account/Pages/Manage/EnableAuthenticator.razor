@@ -61,8 +61,7 @@ else
         <ListItem>
             <Column Gap="3">
                 <Heading Level="3" Size="TextSize.Md">Enter the code the app shows</Heading>
-                <Form Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync">
-                    <FormErrors />
+                <Form Model="Input" FormName="send-code" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
                     <PinField @bind-Value="Input.Code" Length="6" AutoComplete="one-time-code" Label="Verification code" />
                     <FormActions Justify="Justify.Start">
                         <Button Submit>Verify</Button>
