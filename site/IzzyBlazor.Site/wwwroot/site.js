@@ -123,7 +123,8 @@
   // The example a navigating link or form belongs to: its own, or for a toast's action, the one
   // that last posted on this page.
   function exampleOf(element) {
-    const own = element.closest(".ex[id]");
+    // An example, or a region that reloads the page in place the same way (a block page's preview).
+    const own = element.closest(".ex[id], [data-site-return][id]");
     if (own) return own;
     if (!element.closest(".ib-toast-region")) return null;
     const last = read(LAST);

@@ -480,7 +480,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
      link or form loaded the page again (App's script in <head>, site.js). */
   scroll-margin-top: 5rem;
 }
-.ex:target {
+.ex:target, [data-site-return]:target {
   scroll-margin-top: var(--site-return-top, 5rem);
 }
 .ex > .ex-tabs { display: contents; }
