@@ -7,14 +7,14 @@
 
 @if (externalLogins.Length > 0)
 {
-    <Divider Label="or use another service" />
+    <Divider Label="or continue with" />
     <form action="Account/PerformExternalLogin" method="post">
         <AntiforgeryToken />
         <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
         <Stack Gap="2">
             @foreach (var provider in externalLogins)
             {
-                <Button Submit Name="provider" Value="@provider.Name" Variant="ButtonVariant.Outline" FullWidth title="@($"Log in using your {provider.DisplayName} account")">@provider.DisplayName</Button>
+                <Button Submit Name="provider" Value="@provider.Name" Variant="ButtonVariant.Outline" FullWidth>Continue with @provider.DisplayName</Button>
             }
         </Stack>
     </form>
