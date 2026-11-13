@@ -10,7 +10,7 @@
 
 <PageTitle>Rename passkey</PageTitle>
 
-<Heading Level="2">@(passkey?.Name is { } name ? $"Rename your \"{name}\" passkey" : "Name your passkey")</Heading>
+<ManageHeader Title="@(passkey?.Name is { } name ? $"Rename your \"{name}\" passkey" : "Name your passkey")" />
 <Form Model="Input" OnValidSubmit="Rename" FormName="rename-passkey">
     <FormErrors />
     <TextField @bind-Value="Input.Name" Label="Passkey name" />

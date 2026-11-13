@@ -14,9 +14,9 @@
 
 <PageTitle>Manage email</PageTitle>
 
-<Heading Level="2">Email</Heading>
+<ManageHeader Title="Email" Description="The address you log in with and get account email at." />
 <StatusMessage Message="@message" />
-<form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
+<form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post" hidden>
     <AntiforgeryToken />
 </form>
 <Form Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync">

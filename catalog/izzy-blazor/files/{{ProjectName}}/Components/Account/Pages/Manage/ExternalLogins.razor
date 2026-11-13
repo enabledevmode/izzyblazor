@@ -11,7 +11,7 @@
 
 <PageTitle>Manage your external logins</PageTitle>
 
-<Heading Level="2">External logins</Heading>
+<ManageHeader Title="External logins" Description="Services you can log in with instead of a password." />
 <StatusMessage />
 @if (currentLogins?.Count > 0)
 {
@@ -34,7 +34,7 @@
 }
 @if (otherLogins?.Count > 0)
 {
-    <Heading Level="3">Add another service to log in</Heading>
+    <Heading Level="3" Size="TextSize.Md">Add another service to log in</Heading>
     <form action="Account/Manage/LinkExternalLogin" method="post">
         <AntiforgeryToken />
         <Stack Direction="Direction.Row" Gap="2" Wrap>

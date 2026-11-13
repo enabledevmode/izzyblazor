@@ -1,0 +1,16 @@
+@* The top of each Manage page: its title and an optional line on what it's for. *@
+<Stack Gap="1">
+    <Heading Level="2" Size="TextSize.Lg">@Title</Heading>
+    @if (Description is not null)
+    {
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Description</TextBlock>
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public string? Description { get; set; }
+}

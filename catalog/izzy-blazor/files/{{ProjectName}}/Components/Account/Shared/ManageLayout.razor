@@ -5,12 +5,21 @@
 @layout {{RootNamespace}}.Components.Layout.MainLayout
 @*#endif *@
 
-<Stack Gap="6">
-    <Heading Level="1">Manage your account</Heading>
-    <Grid Columns="new() { Base = 1, Lg = 4 }" Gap="8" Align="Align.Start">
-        <ManageNavMenu />
-        <Stack Gap="4" ColSpan="new() { Lg = 3 }" MaxWidth="Length.Rem(40)">
-            @Body
-        </Stack>
+@* shadcn's settings layout: the title and a line under it, then the nav in a small card beside the
+   page in its own card (the nav stacks above it on phones), all held to 72rem. *@
+<Stack Gap="6" MaxWidth="Length.Rem(72)">
+    <Stack Gap="1">
+        <Heading Level="1" Size="TextSize.Xl2">Manage your account</Heading>
+        <TextBlock Color="Color.Muted">Change your profile, how you log in, and the data your account holds.</TextBlock>
+    </Stack>
+    <Grid Columns="new() { Base = 1, Lg = 4 }" Gap="6" Align="Align.Start">
+        <Card Size="ControlSize.Sm">
+            <ManageNavMenu />
+        </Card>
+        <Card ColSpan="new() { Lg = 3 }" MaxWidth="Length.Rem(42)">
+            <Stack Gap="6">
+                @Body
+            </Stack>
+        </Card>
     </Grid>
 </Stack>

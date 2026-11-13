@@ -2,18 +2,19 @@
 @using {{RootNamespace}}.Data
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
 
 <NavMenu aria-label="Account settings">
     <NavItem Href="Account/Manage" Match="NavLinkMatch.All" Icon="Lucide.User">Profile</NavItem>
     <NavItem Href="Account/Manage/Email" Icon="Lucide.Mail">Email</NavItem>
-    <NavItem Href="Account/Manage/ChangePassword" Icon="Lucide.Lock">Password</NavItem>
+    <NavItem Href="Account/Manage/ChangePassword" Current="@On("ChangePassword", "SetPassword")" Icon="Lucide.Lock">Password</NavItem>
     @if (hasExternalLogins)
     {
         <NavItem Href="Account/Manage/ExternalLogins" Icon="Lucide.Link">External logins</NavItem>
     }
-    <NavItem Href="Account/Manage/TwoFactorAuthentication" Icon="Lucide.Smartphone">Two-factor authentication</NavItem>
-    <NavItem Href="Account/Manage/Passkeys" Icon="Lucide.KeyRound">Passkeys</NavItem>
-    <NavItem Href="Account/Manage/PersonalData" Icon="Lucide.Database">Personal data</NavItem>
+    <NavItem Href="Account/Manage/TwoFactorAuthentication" Current="@On("TwoFactorAuthentication", "EnableAuthenticator", "ResetAuthenticator", "Disable2fa", "GenerateRecoveryCodes")" Icon="Lucide.Smartphone">Two-factor authentication</NavItem>
+    <NavItem Href="Account/Manage/Passkeys" Current="@On("Passkeys", "RenamePasskey")" Icon="Lucide.KeyRound">Passkeys</NavItem>
+    <NavItem Href="Account/Manage/PersonalData" Current="@On("PersonalData", "DeletePersonalData")" Icon="Lucide.Database">Personal data</NavItem>
 </NavMenu>
 
 @code {
@@ -22,5 +23,12 @@
     protected override async Task OnInitializedAsync()
     {
         hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+
+    // A page's steps (set up, reset, rename, delete) keep its item current.
+    private bool On(params string[] pages)
+    {
+        var page = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0];
+        return pages.Any(p => page.Equals("Account/Manage/" + p, StringComparison.OrdinalIgnoreCase));
     }
 }
