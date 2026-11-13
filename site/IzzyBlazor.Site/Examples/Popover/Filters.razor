@@ -1,7 +1,7 @@
 @using System.ComponentModel.DataAnnotations
 
 <Row Gap="3" Wrap Align="Align.Center">
-    <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues">
+    <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues" @bind-Open="_open">
         <Form Model="Model" FormName="issue-filters" OnValidSubmit="Apply" Gap="3">
             <Checkbox @bind-Value="Model!.Open" />
             <Checkbox @bind-Value="Model!.Closed" />
@@ -17,6 +17,7 @@
     private IssueFilters? Model { get; set; }
 
     private string _summary = "Showing open issues";
+    private bool _open;
 
     protected override void OnInitialized() => Model ??= new();
 
@@ -30,6 +31,7 @@
             _ => "no issues",
         };
         _summary = $"Showing {states}" + (Model.Mine ? " assigned to you" : "");
+        _open = false;
     }
 
     public sealed class IssueFilters
