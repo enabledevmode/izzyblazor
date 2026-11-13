@@ -120,17 +120,52 @@ public enum ContainerSize
     Full,
 }
 
-/// <summary>Centers content at a readable width, with side padding that grows on larger screens.</summary>
-/// <example><code>&lt;Container Size="ContainerSize.Lg"&gt;...&lt;/Container&gt;</code></example>
+/// <summary>Where a <see cref="Container"/> sits when its parent is wider than it.</summary>
+public enum ContainerAlign
+{
+    /// <summary>In the middle (the default).</summary>
+    Center,
+
+    /// <summary>At the start, such as a page column beside a sidebar.</summary>
+    Start,
+
+    /// <summary>At the end.</summary>
+    End,
+}
+
+/// <summary>
+/// Caps content at a readable width, with side padding that grows on larger screens: centered by
+/// default, or at the start for a page column beside a sidebar.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Container Size="ContainerSize.Lg"&gt;...&lt;/Container&gt;
+///
+/// &lt;Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false"&gt;
+///     &lt;PageHeader Title="Settings" /&gt;
+///     ...
+/// &lt;/Container&gt;
+/// </code>
+/// </example>
 /// <seealso cref="Section"/>
 /// <seealso cref="Box"/>
 /// <seealso cref="Center"/>
 /// <seealso cref="AppShell"/>
+/// <seealso cref="PageHeader"/>
 [ModeSupport]
 public class Container : Box
 {
     /// <summary>The widest it gets. Defaults to <see cref="ContainerSize.Xl"/>.</summary>
     [Parameter] public ContainerSize Size { get; set; } = ContainerSize.Xl;
+
+    /// <summary>Where it sits in a wider parent. Defaults to <see cref="ContainerAlign.Center"/>.</summary>
+    [Parameter] public ContainerAlign Align { get; set; } = ContainerAlign.Center;
+
+    /// <summary>
+    /// The side padding. Defaults to true; set false inside a frame that has its own, such as an
+    /// app's main area, so the content lines up with the rest of the page.
+    /// </summary>
+    [Parameter] public bool Gutters { get; set; } = true;
 
     /// <inheritdoc />
     protected override string BaseClass => "ib-container";
@@ -140,6 +175,9 @@ public class Container : Box
     {
         base.BuildAttributes(classes, styles);
         classes.Add($"ib-container-{Size.ToString().ToLowerInvariant()}");
+        classes.Add("ib-container-start", Align == ContainerAlign.Start);
+        classes.Add("ib-container-end", Align == ContainerAlign.End);
+        classes.Add("ib-container-flush", !Gutters);
     }
 }
 

@@ -67,7 +67,16 @@
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
         { "id": "container-reading", "title": "Content width", "lead": "A container caps the content's width and centers it. To change the cap, set `Size`, from Sm (40rem) for forms and short text to Xl (80rem, the default). Where the parent is narrower, the container fills it, with padding at the sides." },
-        { "id": "container-bands", "title": "Bands that reach the edges", "lead": "For bands of color that reach the page's edges, put the color on a `Box` around each `Container`. The bands run the full width, and their content keeps the same width and side padding, so the edges line up." }
+        { "id": "container-bands", "title": "Bands that reach the edges", "lead": "For bands of color that reach the page's edges, put the color on a `Box` around each `Container`. The bands run the full width, and their content keeps the same width and side padding, so the edges line up." },
+        { "id": "container-start", "title": "A page column beside a sidebar", "lead": "In an app's main area, a page usually starts at the edge beside the sidebar. To cap its width there, set `Align=\"ContainerAlign.Start\"`. The main area has its own padding, so set `Gutters=\"false\"` to line the content up with the rest of the page." }
+      ]
+    },
+
+    {
+      "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderActions"],
+      "examples": [
+        { "id": "page-header-actions", "title": "Title, description and actions", "lead": "A page header names the page and says what it's for. Set `Title` and `Description`. For the page's main actions or its status, add `PageHeaderActions`; they sit at the end and wrap under the text on a phone." },
+        { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." }
       ]
     },
 
@@ -335,14 +344,6 @@
         { "id": "text-block-colors", "title": "Text colors", "lead": "For less emphasis, set `Color` to `Muted`, `Subtle` or `Disabled`. For status text that stays readable, use the `*Text` accents." },
         { "id": "text-block-overflow", "title": "Truncate and line clamp", "lead": "To keep text on one line, set `Truncate`. To stop it after a number of lines, set `LineClamp`. Either way, the text ends with an ellipsis." },
         { "id": "text-block-numbers", "title": "Tabular numbers", "lead": "To give digits equal widths, so numbers line up in columns, set `TabularNums`." }
-      ]
-    },
-
-    {
-      "id": "list", "icon": "List", "name": "List", "category": "Typography", "summary": "Renders bulleted, numbered, plain or icon lists.", "parts": ["ListItem"],
-      "examples": [
-        { "id": "list-kinds", "title": "Bulleted, numbered and plain", "lead": "A list is bulleted by default. For a numbered list, set `Ordered`; for one with no bullets or indent, set `Plain`." },
-        { "id": "list-checklist", "title": "Icon lists", "lead": "To put an icon in place of each bullet, set `Icon` and `IconColor` on the list. An item's own `Icon` overrides it." }
       ]
     },
 
@@ -3305,6 +3306,15 @@
         { "id": "kanban", "title": "Kanban board", "member": "SubmitOnMove",
           "description": "A team's board in an app shell: four columns with counts, In progress limited to three, and cards with a label, a due date and an owner. Cards drag from anywhere, and the column under the pointer opens a space where the card will land. A click opens a card beside the board (a link), and every move saves, so the link shows the board as it was left. The ⋯ menu has Assign to me and Archive, which post the form on static pages.",
           "example": { "id": "drop-zone-group-kanban", "title": "Spring conference", "height": 760, "page": true } }
+      ]
+    },
+
+    {
+      "id": "list", "icon": "List", "name": "List", "category": "Data", "summary": "Lists items you write out: bullets, numbers, icons, or rows with actions.", "keywords": ["settings list", "check list", "bullets"], "parts": ["ListItem", "ListItemActions"],
+      "examples": [
+        { "id": "list-kinds", "title": "Bulleted, numbered and plain", "lead": "A list is bulleted by default. For a numbered list, set `Ordered`; for one with no bullets or indent, set `Plain`." },
+        { "id": "list-checklist", "title": "Icon lists", "lead": "To put an icon in place of each bullet, set `Icon` and `IconColor` on the list. An item's own `Icon` overrides it." },
+        { "id": "list-settings", "title": "Rows with actions", "lead": "A list of settings names each one, says its state and offers what you can do about it. Give each `ListItem` a `Description` and add `ListItemActions`; set `Dividers` on the list for a line between rows.", "after": ["The actions wrap under the text when a row gets narrow.", "For items that come from data, such as a list of devices, use `ListView`."] }
       ]
     },
 

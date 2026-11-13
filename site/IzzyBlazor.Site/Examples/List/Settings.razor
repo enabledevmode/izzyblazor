@@ -1,0 +1,23 @@
+<Card Title="Security" TitleLevel="2" Description="How you log in, and what keeps your account safe."
+      MaxWidth="Length.Rem(40)">
+    <List Plain Dividers Gap="4">
+        <ListItem Icon="Lucide.KeyRound" Description="Last changed 3 months ago.">
+            Password
+            <ListItemActions>
+                <Button Variant="ButtonVariant.Outline">Change</Button>
+            </ListItemActions>
+        </ListItem>
+        <ListItem Icon="Lucide.Smartphone" Description="On. Your codes come from an authenticator app.">
+            Two-factor authentication
+            <ListItemActions>
+                <Button Variant="ButtonVariant.Outline">Manage</Button>
+            </ListItemActions>
+        </ListItem>
+        <ListItem Icon="Lucide.MonitorSmartphone" Description="Logged in on 2 other devices.">
+            Sessions
+            <ListItemActions>
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Danger">Log out everywhere</Button>
+            </ListItemActions>
+        </ListItem>
+    </List>
+</Card>

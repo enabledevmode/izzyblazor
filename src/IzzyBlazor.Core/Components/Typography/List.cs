@@ -9,8 +9,10 @@ namespace IzzyBlazor;
 public sealed record ListContext(IconData? Icon, Color? IconColor);
 
 /// <summary>
-/// A bulleted, numbered or icon list of <see cref="ListItem"/>s, spaced with <see cref="Gap"/>.
-/// <c>&lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list.
+/// A list of <see cref="ListItem"/>s you write out: bulleted, numbered or with icons, spaced with
+/// <see cref="Gap"/>, or rows with a muted line and actions at the end, such as a settings page.
+/// <c>&lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list. For
+/// items that come from data, use <see cref="ListView{TItem}"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -23,6 +25,15 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 ///     &lt;ListItem&gt;Install the package.&lt;/ListItem&gt;
 ///     &lt;ListItem&gt;Add IzzyTheme to App.razor.&lt;/ListItem&gt;
 /// &lt;/List&gt;
+///
+/// &lt;List Plain Dividers Gap="4"&gt;
+///     &lt;ListItem Icon="Lucide.KeyRound" Description="Last changed 3 months ago."&gt;
+///         Password
+///         &lt;ListItemActions&gt;
+///             &lt;Button Href="/account/password" Variant="ButtonVariant.Outline"&gt;Change&lt;/Button&gt;
+///         &lt;/ListItemActions&gt;
+///     &lt;/ListItem&gt;
+/// &lt;/List&gt;
 /// </code>
 /// </example>
 /// <accessibility>
@@ -30,8 +41,10 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 /// <item>It renders a <c>ul</c>, or an <c>ol</c> when <see cref="Ordered"/>, of <c>li</c> items, so screen readers announce a list and its count.</item>
 /// <item>Lists without bullets (<see cref="Plain"/> or an <see cref="Icon"/>) keep <c>role="list"</c>, which Safari otherwise drops from a list with no markers.</item>
 /// <item>Item icons are decorative and hidden from screen readers, so the item's text must carry the meaning, such as "Included" or "Not included".</item>
+/// <item>An item's actions follow its text in reading order; name each so it makes sense beside the item's text, such as "Change" after "Password".</item>
 /// </list>
 /// </accessibility>
+/// <seealso cref="ListView{TItem}"/>
 /// <seealso cref="DescriptionList"/>
 /// <seealso cref="Prose"/>
 /// <seealso cref="Timeline"/>
@@ -56,6 +69,11 @@ public class List : Box
     /// <summary>Space between items, on the spacing scale. Defaults to 2 (8px).</summary>
     [Parameter] public Responsive<int> Gap { get; set; } = 2;
 
+    /// <summary>
+    /// A line between items, in the middle of the <see cref="Gap"/>, as in a list of settings.
+    /// </summary>
+    [Parameter] public bool Dividers { get; set; }
+
     /// <inheritdoc />
     protected override string BaseClass => "ib-list";
 
@@ -68,6 +86,7 @@ public class List : Box
         classes.Add("ib-list-ordered", Ordered && !Plain && Icon is null);
         classes.Add("ib-list-plain", Plain || Icon is not null);
         classes.Add("ib-list-icons", Icon is not null);
+        classes.Add("ib-list-dividers", Dividers);
         ApplyResponsive(classes, styles, Gap, "ib-gap", "gap", StyleValues.Spacing);
     }
 
@@ -102,10 +121,14 @@ public class List : Box
     }
 }
 
-/// <summary>An item in a <see cref="List"/>: a <c>li</c>, with the list's icon or its own.</summary>
+/// <summary>
+/// An item in a <see cref="List"/>: a <c>li</c>, with the list's icon or its own. With a
+/// <see cref="Description"/> or <see cref="ListItemActions"/>, it's a row: the icon, the text with
+/// a muted line under it, and the actions at the end, which wrap under the text when it's narrow.
+/// </summary>
 public class ListItem : IzzyComponentBase
 {
-    /// <summary>The content.</summary>
+    /// <summary>The content: the item's text, and any <see cref="ListItemActions"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>An icon for this item, in place of the list's.</summary>
@@ -114,10 +137,20 @@ public class ListItem : IzzyComponentBase
     /// <summary>This item's icon color, in place of the list's.</summary>
     [Parameter] public Color? IconColor { get; set; }
 
+    /// <summary>A muted line under the item's text: its state or what it does.</summary>
+    [Parameter] public string? Description { get; set; }
+
     /// <summary>The list this item belongs to.</summary>
     [CascadingParameter] public ListContext? List { get; set; }
 
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    private PartScope _scope = null!;
+
     private IconData? ResolvedIcon => Icon ?? List?.Icon;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _scope = new PartScope(this, OuterScope, StateHasChanged);
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -129,10 +162,12 @@ public class ListItem : IzzyComponentBase
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        var actions = _scope.Shown<ListItemActions>();
+        var row = Description is not null || actions is not null;
         var (cssClass, style) = BuildRootAttributes();
         builder.OpenElement(0, "li");
         builder.AddMultipleAttributes(1, AdditionalAttributes);
-        builder.AddAttribute(2, "class", cssClass);
+        builder.AddAttribute(2, "class", row ? $"{cssClass} ib-list-item-row" : cssClass);
         builder.AddAttribute(3, "style", style);
         if (ResolvedIcon is { } icon)
         {
@@ -145,16 +180,58 @@ public class ListItem : IzzyComponentBase
             }
 
             builder.CloseComponent();
+        }
+
+        var wrap = row || ResolvedIcon is not null;
+        if (wrap)
+        {
             builder.OpenElement(8, "div");
             builder.AddAttribute(9, "class", "ib-list-content");
-            builder.AddContent(10, ChildContent);
+        }
+
+        builder.OpenComponent<CascadingValue<PartScope>>(10);
+        builder.AddComponentParameter(11, "Value", _scope);
+        builder.AddComponentParameter(12, "IsFixed", true);
+        builder.AddComponentParameter(13, "ChildContent", ChildContent);
+        builder.CloseComponent();
+        if (Description is not null)
+        {
+            builder.OpenElement(14, "p");
+            builder.AddAttribute(15, "class", "ib-list-description");
+            builder.AddContent(16, Description);
             builder.CloseElement();
         }
-        else
+
+        if (wrap)
         {
-            builder.AddContent(11, ChildContent);
+            builder.CloseElement();
+        }
+
+        if (actions is not null)
+        {
+            builder.OpenElement(17, "div");
+            builder.AddAttribute(18, "class", "ib-list-actions");
+            builder.AddContent(19, _scope.Outlet(actions));
+            builder.CloseElement();
         }
 
         builder.CloseElement();
     }
+}
+
+/// <summary>
+/// Buttons, links, a switch or a badge at the end of a <see cref="ListItem"/>. Write it directly in
+/// the item, after its text; it's drawn at the item's end and wraps under the text when it's
+/// narrow.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;ListItemActions&gt;
+///     &lt;Button Href="/account/password" Variant="ButtonVariant.Outline"&gt;Change&lt;/Button&gt;
+/// &lt;/ListItemActions&gt;
+/// </code>
+/// </example>
+public sealed class ListItemActions : ComponentPart
+{
+    internal override Type HostType => typeof(ListItem);
 }
