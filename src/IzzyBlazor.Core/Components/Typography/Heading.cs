@@ -8,12 +8,6 @@ namespace IzzyBlazor;
 /// A heading. <see cref="Level"/> sets the element (<c>h1</c> to <c>h6</c>) and a default
 /// size; <c>Size</c> overrides the look without changing the document structure.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Heading Level="1"&gt;Build a multi-step wizard&lt;/Heading&gt;
-/// &lt;Heading Level="2" Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }"&gt;...&lt;/Heading&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Defaults: bold, tight line height, balanced wrapping, no margins. Every default can be
 /// overridden with the typography props.

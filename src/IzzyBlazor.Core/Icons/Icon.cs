@@ -8,13 +8,6 @@ namespace IzzyBlazor;
 /// Renders an icon as inline SVG on the server: no font or script to load, works on static
 /// pages, and follows the text color and size around it.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Icon Name="Lucide.House" /&gt;
-/// &lt;Icon Name="Lucide.TriangleAlert" Size="IconSize.Lg" Color="Color.WarningText" Label="Warning" /&gt;
-/// &lt;Icon Purpose="IconPurpose.Close" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>Without a <see cref="Label"/> it's decorative: <c>aria-hidden="true"</c>, which is right when visible text sits next to it.</item>

@@ -334,7 +334,7 @@
     {
       "id": "heading", "icon": "Heading", "name": "Heading", "category": "Typography", "summary": "Renders headings 1 to 6, with fluid sizes and section links.",
       "examples": [
-        { "id": "heading-levels", "title": "Levels", "lead": "A heading's level sets its element, `h1` to `h6`, and its default size. To choose it, set `Level`." },
+        { "id": "heading-usage", "title": "Levels", "lead": "A heading's level sets its element, `h1` to `h6`, and its default size. To choose it, set `Level`." },
         { "id": "heading-size-level", "title": "Size apart from level", "lead": "To change how a heading looks without changing its level, set `Size`, per breakpoint or fluid with `MinSize`." }
       ]
     },
@@ -342,6 +342,7 @@
     {
       "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Sets paragraphs, captions and labels in the library's text styles.",
       "examples": [
+        { "id": "text-block-usage", "title": "Paragraphs", "lead": "A `TextBlock` is a paragraph, a `p`, in the body text's size and color. `Size` and `Color` set others, such as a smaller, muted note.", "after": ["To render another element, such as a `span` inside a line, set `As`."] },
         { "id": "text-block-scale", "title": "Size scale", "lead": "To pick a step on the type scale, from `Xs` to `Xl6`, set `Size`." },
         { "id": "text-block-styles", "title": "Weight, family and decoration", "lead": "To style text without CSS, set `Weight`, `Family`, `Italic` and `Decoration`." },
         { "id": "text-block-colors", "title": "Text colors", "lead": "For less emphasis, set `Color` to `Muted`, `Subtle` or `Disabled`. For status text that stays readable, use the `*Text` accents." },
@@ -353,7 +354,7 @@
     {
       "id": "prose", "icon": "FileText", "name": "Prose", "category": "Typography", "summary": "Styles plain HTML, such as rendered Markdown.",
       "examples": [
-        { "id": "prose-markdown", "title": "HTML from Markdown", "lead": "To style plain HTML you trust, such as rendered Markdown, put it inside a `Prose`. Its headings, links, lists, quotes, code and tables take the library's look.", "after": ["For HTML people write, such as a rich text field, use `RichText`, which sanitizes it first."] },
+        { "id": "prose-usage", "title": "HTML from Markdown", "lead": "To style plain HTML you trust, such as rendered Markdown, put it inside a `Prose`. Its headings, links, lists, quotes, code and tables take the library's look.", "after": ["For HTML people write, such as a rich text field, use `RichText`, which sanitizes it first."] },
         { "id": "prose-sizes", "title": "Sizes", "lead": "Prose comes in three text sizes: `Sm` for asides, `Md` (the default), and `Lg` for long reading. To choose one, set `Size`." }
       ],
       "scenarios": [
@@ -367,7 +368,7 @@
       "id": "rich-text", "icon": "FileCheck", "name": "RichText", "category": "Typography", "summary": "Displays HTML from an editor or a CMS safely in the page.",
       "keywords": ["html", "sanitize", "sanitizer", "xss", "safe html", "markup", "cms"],
       "examples": [
-        { "id": "rich-text-saved", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML. Under the page's own title, set `TopHeading` to 2, as on the editor that wrote it." },
+        { "id": "rich-text-usage", "title": "Saved content", "lead": "RichText shows HTML people wrote, such as a rich text editor's value or a CMS field, styled as `Prose`. Set `Html` to the saved HTML. Under the page's own title, set `TopHeading` to 2, as on the editor that wrote it." },
         { "id": "rich-text-sanitized", "title": "What it removes", "lead": "RichText sanitizes the HTML every time it renders: scripts, event handlers, styles and `javascript:` links go, and other markup becomes the elements a rich text editor makes. HTML saved before you sanitized it can't run script on the page. To clean HTML yourself, call `RichTextSanitizer.Sanitize`." }
       ]
     },
@@ -376,13 +377,14 @@
       "id": "markdown", "icon": "Hash", "name": "Markdown", "category": "Typography", "summary": "Shows Markdown as HTML, sanitized and styled as Prose.",
       "keywords": ["markdown", "md", "commonmark", "gfm", "readme", "release notes", "sanitize"],
       "examples": [
-        { "id": "markdown-release-notes", "title": "Release notes", "lead": "Set `Text` to the Markdown. It's CommonMark, with GitHub's tables, task lists, strikethrough and links from bare URLs. Under the page's own title, set `TopHeading` to 2.", "after": ["The Markdown becomes HTML on the server and is sanitized as `RichText` sanitizes HTML, so HTML written in it can't run script. A fenced code block's language is highlighted.", "To turn Markdown into safe HTML yourself, call `RichTextMarkdown.ToHtml`."] }
+        { "id": "markdown-usage", "title": "Release notes", "lead": "Set `Text` to the Markdown. It's CommonMark, with GitHub's tables, task lists, strikethrough and links from bare URLs. Under the page's own title, set `TopHeading` to 2.", "after": ["The Markdown becomes HTML on the server and is sanitized as `RichText` sanitizes HTML, so HTML written in it can't run script. A fenced code block's language is highlighted.", "To turn Markdown into safe HTML yourself, call `RichTextMarkdown.ToHtml`."] }
       ]
     },
 
     {
       "id": "anchor", "icon": "Link", "name": "Anchor", "category": "Typography", "summary": "Renders a text link, internal or external.",
       "examples": [
+        { "id": "anchor-usage", "title": "A link in text", "lead": "Put an `Anchor` in running text and set `Href`." },
         { "id": "anchor-new-tab", "title": "Internal and external links", "lead": "To open a link in a new tab, set `External`. The link gets an icon and a note for screen readers." },
         { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Links are underlined by default. For links whose place already marks them as links, such as a nav, set `Underline` to `Hover` or `None`. To use the color of the text around a link, set `InheritColor`." }
       ]
@@ -391,7 +393,7 @@
     {
       "id": "code", "icon": "Code", "name": "Code", "category": "Typography", "summary": "Shows inline code or a code block, highlighted on the server.",
       "examples": [
-        { "id": "code-inline-block", "title": "Inline and block", "lead": "`Code` alone marks a name in running text. To show code on its own lines, set `Block`.", "after": ["A block scrolls sideways."],
+        { "id": "code-usage", "title": "Inline and block", "lead": "`Code` alone marks a name in running text. To show code on its own lines, set `Block`.", "after": ["A block scrolls sideways."],
           "notes": {
             "noscript": "The block has no copy button, but the command can still be selected."
           } },
@@ -423,7 +425,7 @@
         { "feature": "Side by side, unified when narrow" }
       ],
       "examples": [
-        { "id": "diff-versions", "title": "Two versions", "lead": "A diff shows the lines two texts differ by. Set `OldText` and `NewText` to the two texts, and `Language` to color them. Unchanged lines away from the changes fold." },
+        { "id": "diff-usage", "title": "Two versions", "lead": "A diff shows the lines two texts differ by. Set `OldText` and `NewText` to the two texts, and `Language` to color them. Unchanged lines away from the changes fold." },
         { "id": "diff-side-by-side", "title": "Side by side", "lead": "To show the old text beside the new, set `Layout=\"DiffLayout.Split\"`. Below 45rem wide, the diff shows as unified." },
         { "id": "diff-every-line", "title": "Showing unchanged lines", "lead": "A short text reads better whole. To show every unchanged line, set `Fold=\"false\"`; to leave the line numbers out, set `LineNumbers=\"false\"`." },
         { "id": "diff-computed", "title": "A diff computed first", "lead": "To show a diff you computed first, such as to count the changes, pass it to `Lines`. It can come from `TextDiff.Compare` or elsewhere." },
@@ -439,7 +441,7 @@
     {
       "id": "code-example", "icon": "SquareCode", "name": "CodeExample", "category": "Typography", "summary": "Shows a live example with its source under it.", "parts": ["CodeExampleFile"],
       "examples": [
-        { "id": "code-example-source", "title": "Preview and source", "lead": "To show an example's source under its live preview, colored and with a copy button, set `Code`.",
+        { "id": "code-example-usage", "title": "Preview and source", "lead": "To show an example's source under its live preview, colored and with a copy button, set `Code`.",
           "notes": {
             "noscript": "The source has no copy button."
           } },
@@ -457,7 +459,7 @@
     {
       "id": "blockquote", "icon": "Quote", "name": "Blockquote", "category": "Typography", "summary": "Sets a quotation apart, with who said it and where.", "keywords": ["quote", "pull quote", "citation"],
       "examples": [
-        { "id": "blockquote-attribution", "title": "Author and source", "lead": "To say who said it, set `Author`; for the work it's from, `Source`. `Cite` links the source." },
+        { "id": "blockquote-usage", "title": "Author and source", "lead": "Put the quote in a `Blockquote`. To say who said it, set `Author`; for the work it's from, `Source`. `Cite` links the source." },
         { "id": "blockquote-looks", "title": "Looks", "lead": "`Variant` sets the look: a line at the start (`Bar`, the default), a tinted panel (`Subtle`) or neither (`Plain`). `Accent` colors the line and the tint." },
         { "id": "blockquote-pull-quote", "title": "Pull quote", "lead": "For a line lifted out of an article, center it with `Align`, enlarge it with `Size` and add `QuoteMark`." }
       ]
@@ -466,7 +468,7 @@
     {
       "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "Shows a key or a key combination.", "keywords": ["keyboard shortcut"],
       "examples": [
-        { "id": "kbd-combinations", "title": "Keys and combinations", "lead": "For a combination such as \"Ctrl+K\", set `Keys`. Each key gets its own box." },
+        { "id": "kbd-usage", "title": "Keys and combinations", "lead": "Write a key in a `Kbd`, as in \"Press Esc\". For a combination such as \"Ctrl+K\", set `Keys`, and each key gets its own box." },
         { "id": "kbd-sequence", "title": "Sequences and Mac shortcuts", "lead": "The separator is what shows between the keys, \"+\" by default. For a sequence of keys, set `Separator` to a word, such as \"then\". For a Mac shortcut, set it to an empty string." }
       ]
     },
@@ -474,7 +476,7 @@
     {
       "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Marks the words of a search in a text.", "keywords": ["mark", "search results"],
       "examples": [
-        { "id": "highlight-results", "title": "Search results", "lead": "A highlight marks the words of a search in a text, such as a search result. Set `Text` to the text and `Query` to the search. Each word of the search is marked where a word of the text starts, inside PascalCase names too." },
+        { "id": "highlight-usage", "title": "Search results", "lead": "A highlight marks the words of a search in a text, such as a search result. Set `Text` to the text and `Query` to the search. Each word of the search is marked where a word of the text starts, inside PascalCase names too." },
         { "id": "highlight-anywhere", "title": "Matching anywhere", "lead": "To mark a word wherever it appears, such as a code inside a part number, set `Match` to `Anywhere`." }
       ]
     },
@@ -482,7 +484,7 @@
     {
       "id": "mention-text", "icon": "AtSign", "name": "MentionText", "category": "Typography", "summary": "Shows text written in a Mentions field, with each @name marked or linked.", "keywords": ["mentions", "at mention", "hashtag", "comment", "activity"],
       "examples": [
-        { "id": "mention-text-comment", "title": "Mentions in a comment", "lead": "Set `Text` to the saved text: each mention is marked, and `Href` links it to a profile; here the link opens it under the comment. Its lines are kept.",
+        { "id": "mention-text-usage", "title": "Mentions in a comment", "lead": "Set `Text` to the saved text: each mention is marked, and `Href` links it to a profile; here the link opens it under the comment. Its lines are kept.",
           "after": ["`Prefixes` sets the triggers to find, as on the `Mentions` field that wrote the text. `Mention.Parse` finds the same names in C#, to notify the people mentioned."] }
       ]
     },
@@ -490,7 +492,7 @@
     {
       "id": "icon", "icon": "Shapes", "name": "Icon", "category": "Typography", "summary": "Renders Lucide icons as inline SVG on the server.",
       "examples": [
-        { "id": "icon-beside-text", "title": "Beside text", "lead": "Set `Name` to an icon such as `Lucide.House`. An icon is sized in em and uses the text color, so it matches the text it sits in." },
+        { "id": "icon-usage", "title": "Beside text", "lead": "Set `Name` to an icon such as `Lucide.House`. An icon is sized in em and uses the text color, so it matches the text it sits in." },
         { "id": "icon-sizes", "title": "Sizes", "lead": "To scale an icon relative to the text around it, set `Size`." },
         { "id": "icon-color-stroke", "title": "Color, stroke width and spin", "lead": "To style an icon, set `Color`, `StrokeWidth` and `Spin`. To name an icon that stands alone, set `Label`." },
         { "id": "icon-roles", "title": "Semantic roles", "lead": "To ask for an icon by its purpose rather than its picture, set `Purpose`. One icon set can then change every icon the library shows." },

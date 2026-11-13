@@ -7,13 +7,6 @@ namespace IzzyBlazor;
 /// Text written in a <see cref="Mentions{TItem}"/> field, shown with each mention marked, or linked
 /// with <see cref="Href"/>. Its lines are kept.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;MentionText Text="@comment.Body" /&gt;
-/// &lt;MentionText Text="@note" Prefixes="Triggers"
-///              Href="@(m => $"/people/{m.Text}")" /&gt;
-/// </code>
-/// </example>
 /// <remarks>Mentions are found as <see cref="Mention.Parse"/> finds them.</remarks>
 /// <accessibility>
 /// <list type="bullet">

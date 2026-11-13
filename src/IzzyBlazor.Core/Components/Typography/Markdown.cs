@@ -6,11 +6,6 @@ namespace IzzyBlazor;
 /// Shows Markdown, such as release notes or a chat reply: turned into HTML on the server,
 /// sanitized, then styled as <see cref="Prose"/>.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Markdown Text="@release.Notes" TopHeading="2" /&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// <see cref="RichTextMarkdown"/> reads <see cref="Text"/> as CommonMark, with GitHub's tables,
 /// task lists, strikethrough and links from bare URLs, and <see cref="RichTextSanitizer"/> cleans

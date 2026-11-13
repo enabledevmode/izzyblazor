@@ -7,13 +7,6 @@ namespace IzzyBlazor;
 /// A key or a key combination, as people type it: <c>kbd</c> elements, nested for a combination
 /// the way the HTML spec describes. Sized in em, so it fits the text around it.
 /// </summary>
-/// <example>
-/// <code>
-/// Press &lt;Kbd&gt;Esc&lt;/Kbd&gt; to close.
-/// &lt;Kbd Keys="Ctrl+K" /&gt;
-/// &lt;Kbd Keys="⌘+Shift+P" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>kbd</c>; a combination is a <c>kbd</c> holding one <c>kbd</c> per key, as the HTML spec describes.</item>

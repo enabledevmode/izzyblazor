@@ -20,12 +20,6 @@ public enum AnchorUnderline
 /// A text link in the accent color. <see cref="External"/> opens it in a new tab, with an icon
 /// and a note for screen readers.
 /// </summary>
-/// <example>
-/// <code>
-/// Read the &lt;Anchor Href="/docs"&gt;docs&lt;/Anchor&gt;.
-/// &lt;Anchor Href="https://github.com/..." External&gt;GitHub&lt;/Anchor&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>a</c> with an <c>href</c>, so Enter and focus work as the browser defines them.</item>
