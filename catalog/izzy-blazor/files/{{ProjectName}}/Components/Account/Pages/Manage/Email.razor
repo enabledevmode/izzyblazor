@@ -17,30 +17,34 @@
 <form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post" hidden>
     <AntiforgeryToken />
 </form>
-<Card Title="Email" TitleLevel="2" Description="The address you log in with and get account email at.">
-    <StatusMessage Message="@message" />
-    <Form Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync">
-        <FormErrors />
-        <Column Gap="2">
-            <TextField Value="@email" ValueExpression="() => email" ReadOnly Label="Current email" />
+<PageHeader Title="Email" TitleLevel="2" Size="ControlSize.Sm"
+            Description="The address you log in with and get account email at." />
+<StatusMessage Message="@message" />
+<List Plain>
+    <ListItem Icon="Lucide.Mail" Description="@email">
+        Current email
+        <ListItemActions>
             @if (isEmailConfirmed)
             {
-                <Row><Badge Status="Status.Success" Dot>Verified</Badge></Row>
+                <Badge Status="Status.Success" Dot>Verified</Badge>
             }
             else
             {
-                <Row Gap="2" Align="Align.Center" Wrap>
-                    <Badge Status="Status.Warning" Dot>Not verified</Badge>
-                    <Button Submit Form="send-verification-form" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" StartIcon="Lucide.Mail">Send verification email</Button>
-                </Row>
+                <Badge Status="Status.Warning" Dot>Not verified</Badge>
+                <Button Submit Form="send-verification-form" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Send verification email</Button>
             }
-        </Column>
+        </ListItemActions>
+    </ListItem>
+</List>
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
+    <Form Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync">
+        <FormErrors />
         <TextField @bind-Value="Input.NewEmail" AutoComplete="email" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Change email</Button>
         </FormActions>
     </Form>
-</Card>
+</Container>
 
 @code {
     private string? message;

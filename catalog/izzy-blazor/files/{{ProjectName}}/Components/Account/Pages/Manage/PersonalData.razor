@@ -8,30 +8,31 @@
 
 <PageTitle>Personal data</PageTitle>
 
-<Card Title="Personal data" TitleLevel="2" Description="The data your account holds, from what you've given us." Dividers>
-    <CardBody>
-        <StatusMessage />
-        <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-            <Column Gap="1">
-                <Heading Level="3" Size="TextSize.Md">Download your data</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">A JSON file of everything your account holds.</TextBlock>
-            </Column>
-            <form action="Account/Manage/DownloadPersonalData" method="post">
-                <AntiforgeryToken />
-                <Button Submit Variant="ButtonVariant.Outline" StartIcon="Lucide.Download">Download</Button>
-            </form>
-        </Row>
-    </CardBody>
-    <CardBody>
-        <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-            <Column Gap="1">
-                <Heading Level="3" Size="TextSize.Md">Delete your account</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Removes your account and its data for good.</TextBlock>
-            </Column>
-            <Button Href="Account/Manage/DeletePersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
-        </Row>
-    </CardBody>
-</Card>
+<PageHeader Title="Personal data" TitleLevel="2" Size="ControlSize.Sm"
+            Description="The data your account holds, from what you've given us." />
+<StatusMessage />
+<Column Gap="5">
+    <List Plain>
+        <ListItem Icon="Lucide.Download" Description="A JSON file of everything your account holds.">
+            Download your data
+            <ListItemActions>
+                <form action="Account/Manage/DownloadPersonalData" method="post">
+                    <AntiforgeryToken />
+                    <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Download</Button>
+                </form>
+            </ListItemActions>
+        </ListItem>
+    </List>
+    <Divider />
+    <List Plain>
+        <ListItem Icon="Lucide.Trash" IconColor="Color.DangerText" Description="Removes your account and its data for good.">
+            Delete your account
+            <ListItemActions>
+                <Button Href="Account/Manage/DeletePersonalData" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Delete</Button>
+            </ListItemActions>
+        </ListItem>
+    </List>
+</Column>
 
 @code {
     [CascadingParameter]

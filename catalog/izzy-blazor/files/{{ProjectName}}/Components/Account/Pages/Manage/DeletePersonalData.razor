@@ -11,21 +11,23 @@
 
 <PageTitle>Delete personal data</PageTitle>
 
-<Card Title="Delete personal data" TitleLevel="2">
-    <StatusMessage Message="@message" />
-    <Alert Status="Status.Danger">Deleting this data removes your account for good. It can't be recovered.</Alert>
+<PageHeader Title="Delete personal data" TitleLevel="2" Size="ControlSize.Sm"
+            Description="Close your account and remove its data." />
+<StatusMessage Message="@message" />
+<Alert Status="Status.Danger">Deleting this data removes your account for good. It can't be recovered.</Alert>
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
     <Form Model="Input" FormName="delete-user" OnValidSubmit="OnValidSubmitAsync">
         <FormErrors />
         @if (requirePassword)
         {
-            <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" Hint="Enter your password to confirm." />
+            <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" Hint="To confirm it's you." />
         }
         <FormActions Justify="Justify.Start">
-            <Button Href="Account/Manage/PersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
             <Button Submit Accent="Accent.Danger">Delete data and close my account</Button>
+            <Button Href="Account/Manage/PersonalData" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
         </FormActions>
     </Form>
-</Card>
+</Container>
 
 @code {
     private string? message;
