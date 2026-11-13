@@ -101,11 +101,17 @@ public sealed class ItemManifest
             Restore = (string?)root["restore"],
             Checks = (root["checks"] as JsonArray)?.Select(c => new CheckSpec(
                 (string?)c!["if"], Required(c.AsObject(), "file"), Required(c.AsObject(), "pattern"), Required(c.AsObject(), "message"))).ToList() ?? [],
-            Accessibility = (root["accessibility"] as JsonArray)?.Select(a => (string)a!).ToList() ?? [],
+            Accessibility = (root["accessibility"] as JsonArray)?.Select(a => Text(a, "accessibility")).ToList() ?? [],
             Variations = (root["variations"] as JsonArray)?.Select(v => VariationSpec.Parse(v!.AsObject())).ToList() ?? [],
-            PreviewSettings = (root["preview"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
+            PreviewSettings = (root["preview"] as JsonObject)?.ToDictionary(p => p.Key, p => Text(p.Value, $"preview.{p.Key}")) ?? new Dictionary<string, string>(),
         };
     }
+
+    // A value that must be text, such as a preview setting ("2", not 2).
+    internal static string Text(JsonNode? node, string name) =>
+        node is JsonValue value && value.TryGetValue<string>(out var text)
+            ? text
+            : throw new GenerationException($"izzy.json \"{name}\" must be text in quotes.");
 
     internal static string Required(JsonObject o, string name) =>
         (string?)o[name] is { Length: > 0 } value ? value : throw new GenerationException($"izzy.json needs \"{name}\".");
@@ -213,8 +219,9 @@ public sealed record VariationSpec(string Key, string Label, string Setting, IRe
         ItemManifest.Required(o, "key"),
         ItemManifest.Required(o, "label"),
         ItemManifest.Required(o, "setting"),
-        (o["options"] as JsonObject)?.Select(p => new VariationOption(p.Key, (string?)p.Value ?? "")).ToList()
-            ?? throw new GenerationException($"izzy.json: the variation \"{(string?)o["key"]}\" needs \"options\"."));
+        (o["options"] as JsonObject is { Count: > 0 } options
+            ? options.Select(p => new VariationOption(p.Key, ItemManifest.Text(p.Value, $"options.{p.Key}"))).ToList()
+            : throw new GenerationException($"izzy.json: the variation \"{(string?)o["key"]}\" needs \"options\", at least one.")));
 }
 
 /// <summary>One option of a <see cref="VariationSpec"/>.</summary>

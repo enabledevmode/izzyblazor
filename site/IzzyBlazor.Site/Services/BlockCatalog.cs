@@ -23,6 +23,9 @@ public sealed record Block(ItemDefinition Definition)
     /// <summary>Its page.</summary>
     public string Href => $"blocks/{Id}";
 
+    /// <summary>Its name as a C# identifier, for its previews' folder and namespace, such as <c>FeatureGrid</c>.</summary>
+    public string TypeName => BlockCatalog.Identifier(Name.Replace(" ", ""));
+
     /// <summary>The picture on its card, a render of its first preview (<c>wwwroot/img/blocks</c>).</summary>
     public string Picture => $"img/blocks/{Id}.webp";
 }
@@ -32,8 +35,8 @@ public sealed record Block(ItemDefinition Definition)
 /// </summary>
 public sealed record BlockVariant(Block Block, IReadOnlyList<VariationOption> Picks)
 {
-    /// <summary>The generated component's name, such as <c>Hero_split_screenshot_on_off</c>.</summary>
-    public string ComponentName => string.Join('_', Picks.Select(p => p.Slug.Replace('-', '_')).Prepend(Block.Name));
+    /// <summary>The generated component's name, such as <c>Hero_split_screenshot_on_off</c>: letters, digits and underscores.</summary>
+    public string ComponentName => string.Join('_', Picks.Select(p => BlockCatalog.Identifier(p.Slug)).Prepend(Block.TypeName));
 
     /// <summary>The settings it's generated with: the variations' values over the preview's own.</summary>
     public Dictionary<string, string> Settings(bool preview)
@@ -89,6 +92,13 @@ public sealed class BlockCatalog
     /// <summary>A category's blocks, A to Z.</summary>
     public IEnumerable<Block> InCategory(string category) => All.Where(b => b.Category == category);
 
+    /// <summary>Text as a C# identifier: anything but letters, digits and underscores becomes an underscore.</summary>
+    public static string Identifier(string text)
+    {
+        var name = new string(text.Select(c => char.IsAsciiLetterOrDigit(c) ? c : '_').ToArray());
+        return name.Length == 0 || char.IsAsciiDigit(name[0]) ? "_" + name : name;
+    }
+
     /// <summary>A category's anchor and filter value, such as <c>heroes</c>.</summary>
     public static string CategoryAnchor(string category) => Heading.SlugOf(category);
 
@@ -125,18 +135,24 @@ public sealed class BlockCatalog
 
     /// <summary>
     /// The generated preview components, by path under the site: each variant's Razor, named for it, with
-    /// the preview settings; and the block's own wwwroot files (its placeholder images).
+    /// the preview settings; and the block's own wwwroot files (its placeholder images). None for a Pro
+    /// block: its template never reaches the site's source, so its page shows its picture.
     /// </summary>
     public static IEnumerable<(string Path, byte[] Content)> PreviewFiles(Block block)
     {
+        if (!block.Free)
+        {
+            yield break;
+        }
+
         foreach (var variant in Variants(block))
         {
             var settings = variant.Settings(preview: true);
             settings["Name"] = variant.ComponentName;
             var changes = Generator.Generate(block.Definition, settings, ProjectInfo.ForNewProject("MyApp"));
-            var razor = changes.Creates.Single(c => c.Path.EndsWith(".razor", StringComparison.Ordinal));
+            var razor = changes.Creates.First(c => c.Path.EndsWith(".razor", StringComparison.Ordinal));
             var text = $"@* Generated from catalog/{block.Id} by BlockPreviewTests: don't edit. *@\n" + razor.Text!.Replace("\r\n", "\n");
-            yield return ($"{PreviewFolder}/{block.Name}/{variant.ComponentName}.razor", System.Text.Encoding.UTF8.GetBytes(text));
+            yield return ($"{PreviewFolder}/{block.TypeName}/{variant.ComponentName}.razor", System.Text.Encoding.UTF8.GetBytes(text));
         }
         foreach (var (path, content) in block.Definition.Files.Where(f => f.Key.StartsWith("wwwroot/", StringComparison.Ordinal)))
         {
@@ -146,5 +162,7 @@ public sealed class BlockCatalog
 
     /// <summary>A variant's preview component, or null if it hasn't been generated.</summary>
     public static Type? PreviewType(BlockVariant variant) =>
-        typeof(BlockCatalog).Assembly.GetType($"IzzyBlazor.Site.{PreviewFolder.Replace('/', '.')}.{variant.Block.Name}.{variant.ComponentName}");
+        variant.Block.Free
+            ? typeof(BlockCatalog).Assembly.GetType($"IzzyBlazor.Site.{PreviewFolder.Replace('/', '.')}.{variant.Block.TypeName}.{variant.ComponentName}")
+            : null;
 }
