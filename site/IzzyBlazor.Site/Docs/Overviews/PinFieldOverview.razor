@@ -2,13 +2,11 @@
    a PIN and letters, what posts, and its own words. Accessibility and See also come from the doc
    comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A pin field accepts a short code, with a box for each character, such as a one-time code from an authenticator app, a text message or an email, or a PIN. The boxes sit under a single text input, so pasting a whole code, a phone's autofill and screen readers work as in any text field. To show the QR code that sets up an authenticator app, see <Anchor Href="docs/components/qr-code#setting-up-two-factor-sign-in">QrCode</Anchor>.</TextBlock>
 
 <Heading Level="2">A one-time code</Heading>
 <TextBlock>A pin field binds to a string and accepts six digits by default. Phones offer a code that just arrived by text message or email (<Code>autocomplete="one-time-code"</Code>), and show the number keyboard.</TextBlock>
-<ExampleViewer Example="pin-field-verify" />
+<ExampleViewer Example="pin-field-usage" />
 <TextBlock>Spaces and dashes are dropped, so a code pasted as "123 456" or "123-456" becomes 123456. The form doesn't validate until the code has every digit, on the server too, and the message says how many: "The Verification code field must be 6 digits." Check that the code is right in <Code>OnValidSubmit</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 <TextBlock>The form doesn't submit when the last digit is entered, since a user who pastes a code or corrects a digit may not be done. Add a button that submits it.</TextBlock>
 
@@ -51,10 +49,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <PinField @bind-Value="Model.Code" Label="Code from the app" />
-
-        @* A PIN: masked, kept by password managers. *@
-        <PinField @bind-Value="Model.Pin" Label="PIN" Length="4" Secret AutoComplete="current-password" />
-        """;
 }

@@ -2,14 +2,12 @@
    color (previewed in each mode), empty values, the browser's picker, states and its own words. Accessibility and See also come from the doc
    comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A color picker is a field for choosing a color: a swatch and a hex box. The swatch opens a <Anchor Href="docs/components/color-panel">ColorPanel</Anchor> in a popover, with swatches, a picker and fields; changes apply at once. Its value is a hex string such as <Code>#2563eb</Code>.</TextBlock>
 <TextBlock>Underneath is a native color input, so the field posts with the form and opens the browser's own picker <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. To show the colors without a popover, use a ColorPanel.</TextBlock>
 
 <Heading Level="2">Swatches</Heading>
 <TextBlock>The panel offers 21 colors by default. Set <Code>Swatches</Code> to offer your own, and <Code>SwatchText</Code> to name them: screen readers hear "Teal" rather than "dark cyan", and the name is the swatch's tooltip. An empty list shows none.</TextBlock>
-<ExampleViewer Example="color-picker-swatches" />
+<ExampleViewer Example="color-picker-usage" />
 <TextBlock>The user can still pick or type any color. If the value must be one of the swatches, check it on the server.</TextBlock>
 
 <Heading Level="2">The panel's parts</Heading>
@@ -80,17 +78,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* A hex string; the swatch opens a panel. *@
-        <ColorPicker @bind-Value="Model!.Brand" />
-
-        @* A few colors, and nothing else. *@
-        <ColorPicker @bind-Value="Model!.Tag"
-                     Swatches="@(["#2563eb", "#0f766e", "#be123c"])"
-                     ShowPicker="false"
-                     ShowFields="false" />
-
-        @* Any color, with opacity: "#2563ebcc". *@
-        <ColorPicker @bind-Value="Model!.Overlay" Swatches="[]" ShowAlpha />
-        """;
 }

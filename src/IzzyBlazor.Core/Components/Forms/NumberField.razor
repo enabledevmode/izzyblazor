@@ -8,11 +8,6 @@
     in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
     decrease buttons appear (hold to repeat) and the browser's own spin buttons are hidden; with
     JavaScript off the browser's spin buttons show instead, unless StepButtons is None.
-    <NumberField @bind-Value="Model.Quantity" Min="1" Max="99" />
-    <NumberField @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
-    <NumberField @bind-Value="Model.Price" Step="0.01">
-        <StartAddon>$</StartAddon>
-    </NumberField>
 
     Accessibility:
     - It renders a native number `input` (a spin button to screen readers): Up and Down arrows step

@@ -2,13 +2,11 @@
    growing with a count (previewed in each mode), required with a length, and states.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A text area is a field for several lines of text, such as comments, descriptions and messages. Like a <Anchor Href="docs/components/text-field">TextField</Anchor>, it gets its label, hint, required mark and limits from the model. For one line, such as a name or a title, use a text field.</TextBlock>
 
 <Heading Level="2">Rows and placeholder</Heading>
 <TextBlock>A text area shows 4 lines by default. To show more or fewer, set <Code>Rows</Code>. Longer text scrolls, and the user can drag the corner to make the field taller.</TextBlock>
-<ExampleViewer Example="text-area-rows" />
+<ExampleViewer Example="text-area-usage" />
 <TextBlock>A placeholder disappears as the user types, so put anything they need while writing in the <Code>Hint</Code>.</TextBlock>
 
 <Heading Level="2">Growing, with a count</Heading>
@@ -50,12 +48,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* Label, required mark and limits from the model. *@
-        <TextArea @bind-Value="Model!.Description" />
-
-        @* A short bio that grows and counts toward its [StringLength]. *@
-        <TextArea @bind-Value="Model!.Bio" Rows="2" AutoGrow ShowCount
-                  Hint="Up to 160 characters, shown on your profile." />
-        """;
 }

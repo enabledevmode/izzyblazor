@@ -13,7 +13,7 @@ public sealed class RatingTests(SiteFixture site) : IClassFixture<SiteFixture>
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/rating?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         await page.WaitForFunctionAsync("() => customElements.get('ib-rating')");
-        var example = page.Locator("[data-ex='rating-review']");
+        var example = page.Locator("[data-ex='rating-usage']");
         var two = example.GetByRole(AriaRole.Radio, new() { Name = "2 stars" });
         var save = example.GetByRole(AriaRole.Button, new() { Name = "Save" });
 

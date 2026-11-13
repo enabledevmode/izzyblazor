@@ -6,11 +6,6 @@
     Two whole days, both included: the browser's own date inputs in one box, so each posts with the
     form, as {name}.Start and {name}.End, and takes a typed date, and the library's months to choose
     from. Bind it to a DateRange.
-    <DateRangeField @bind-Value="Model.Period" />
-    <DateRangeField @bind-Value="Model.Period" Min="@today" MaxDays="90" />
-    <DateRangeField @bind-Value="Model.Period" DisplayMonths="1" />
-    <DateRangeField @bind-Value="Model.Period" Presets="DateRangePreset.Common(today)" />
-    <DateRangeField @bind-Value="Model.Period" UseNative />
 
     The months write the inputs when the second day is chosen, so anything else that closes them
     changes nothing. A first day shades the days it can run to, and days past MinDays, MaxDays or a

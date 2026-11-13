@@ -13,7 +13,7 @@ public sealed class PickListTests(SiteFixture site) : IClassFixture<SiteFixture>
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/pick-list?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         await page.WaitForFunctionAsync("() => customElements.get('ib-pick-list')");
-        var example = page.Locator("[data-ex='pick-list-columns']");
+        var example = page.Locator("[data-ex='pick-list-usage']");
         var available = example.GetByRole(AriaRole.Listbox, new() { Name = "Columns Available" });
         var chosen = example.GetByRole(AriaRole.Listbox, new() { Name = "Columns Chosen" });
 
@@ -38,7 +38,7 @@ public sealed class PickListTests(SiteFixture site) : IClassFixture<SiteFixture>
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, HasTouch = true });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/pick-list?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         await page.WaitForFunctionAsync("() => customElements.get('ib-pick-list')");
-        var chosen = page.Locator("[data-ex='pick-list-columns']").GetByRole(AriaRole.Listbox, new() { Name = "Columns Chosen" });
+        var chosen = page.Locator("[data-ex='pick-list-usage']").GetByRole(AriaRole.Listbox, new() { Name = "Columns Chosen" });
         var order = chosen.GetByRole(AriaRole.Option, new() { Name = "Order" });
         var total = chosen.GetByRole(AriaRole.Option, new() { Name = "Total" });
 

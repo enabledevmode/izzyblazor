@@ -3,14 +3,12 @@
    states.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A checkbox group is a list of checkboxes, one for each option, from which the user checks any number. It suits short lists where every option should be in view.</TextBlock>
 <TextBlock>For a long list, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>, which needs less room. For one yes-or-no choice, see <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
 
 <Heading Level="2">Several choices</Heading>
 <TextBlock>The group's value is the collection of checked options. Set <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>. Each checked box posts its value, so the group works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
-<ExampleViewer Example="checkbox-group-toppings" />
+<ExampleViewer Example="checkbox-group-usage" />
 <List>
     <ListItem>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code>, or an interface they implement.</ListItem>
     <ListItem>For an enum, pass its values to <Code>Items</Code>: <Code>Enum.GetValues&lt;Topping&gt;()</Code>.</ListItem>
@@ -84,11 +82,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* An enum's values. *@
-        <CheckboxGroup @bind-Value="Model!.Toppings" Items="Enum.GetValues<Topping>()" />
-
-        @* Strings, in a row. *@
-        <CheckboxGroup @bind-Value="Model!.Sizes" Items="AllSizes" Orientation="Orientation.Horizontal" />
-        """;
 }

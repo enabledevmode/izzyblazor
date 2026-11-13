@@ -10,7 +10,7 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 1000 }, Locale = "en-US", JavaScriptEnabled = script });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/calendar?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        return (page, page.Locator("[data-ex='calendar-limits'] form"), browser);
+        return (page, page.Locator("[data-ex='calendar-usage'] form"), browser);
     }
 
     private static ILocator Pickup(ILocator form) => form.Locator("ib-calendar").Nth(1);
@@ -121,7 +121,7 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
             await input.FillAsync("2027-03-11");
             await form.GetByRole(AriaRole.Button, new() { Name = "Book" }).ClickAsync();
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-            form = page.Locator("[data-ex='calendar-limits'] form");
+            form = page.Locator("[data-ex='calendar-usage'] form");
             await Assertions.Expect(form).ToContainTextAsync("Booked:");
             await Assertions.Expect(Pickup(form).Locator("td[aria-selected=true] button")).ToHaveAttributeAsync("aria-label", "Thursday, March 11, 2027");
         }

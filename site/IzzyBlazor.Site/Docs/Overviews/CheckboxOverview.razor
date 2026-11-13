@@ -3,22 +3,20 @@
    row's layout (shown on Switch's page) and states.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A checkbox is a box with a label that the user checks for one yes-or-no choice. It suits a single choice, such as agreeing to the terms.</TextBlock>
 <TextBlock>For a setting that reads as on or off, see <Anchor Href="docs/components/switch">Switch</Anchor>. For several choices from a list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>.</TextBlock>
 
-<Heading Level="2">What it posts</Heading>
-<TextBlock>A checked box posts <Code>true</Code>. An unchecked box posts <Code>false</Code> from a hidden field that follows it, so a property that defaults to true can be turned off on <Anchor Href="docs/common/render-modes">static pages</Anchor>. A disabled box posts nothing.</TextBlock>
-
 <Heading Level="2">Agreeing to terms</Heading>
 <TextBlock>A terms box must be checked before the form can be saved, and its label often has a link. For a label with markup, such as a link, write it as the checkbox's <Code>ChildContent</Code>. To require the box to be checked, add <Code>[Required]</Code> and <Code>[Range(typeof(bool), "true", "true")]</Code> to the property.</TextBlock>
-<ExampleViewer Example="checkbox-terms" />
+<ExampleViewer Example="checkbox-usage" />
 <List>
     <ListItem><Code>[Required]</Code> makes the browser stop the form post until the box is checked.</ListItem>
     <ListItem>A bool is never null, so <Code>[Required]</Code> always passes on the server. <Code>[Range]</Code> is the check there.</ListItem>
     <ListItem>Give both the same <Code>ErrorMessage</Code>. With IzzyBlazor's script, the browser shows it too.</ListItem>
 </List>
+
+<Heading Level="2">What it posts</Heading>
+<TextBlock>A checked box posts <Code>true</Code>. An unchecked box posts <Code>false</Code> from a hidden field that follows it, so a property that defaults to true can be turned off on <Anchor Href="docs/common/render-modes">static pages</Anchor>. A disabled box posts nothing.</TextBlock>
 
 <Heading Level="2">Indeterminate state</Heading>
 <TextBlock>The indeterminate state is a dash in the box. It shows that only some of what the box stands for is checked, as on a box that selects a list of others. Set <Code>Indeterminate</Code> to show it, and on interactive pages set the other boxes from the box's <Code>ValueChanged</Code>.</TextBlock>
@@ -54,14 +52,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* The label comes from the property's [Display(Name)], or Label. *@
-        <Checkbox @bind-Value="Model!.Subscribe" />
-        <Checkbox @bind-Value="Model!.RememberMe" Label="Keep me signed in" />
-
-        @* A label with markup. *@
-        <Checkbox @bind-Value="Model!.AcceptTerms">
-            I agree to the <Anchor Href="terms">terms of service</Anchor>
-        </Checkbox>
-        """;
 }

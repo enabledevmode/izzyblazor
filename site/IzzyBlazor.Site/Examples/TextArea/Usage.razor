@@ -1,9 +1,9 @@
-<Form Model="Model" FormName="text-area-rows" MaxWidth="28.Rem" Grow>
+<Form Model="Model" FormName="text-area-usage" MaxWidth="28.Rem" Grow>
     <TextArea @bind-Value="Model!.Notes" Rows="6" Placeholder="Steps to reproduce, what you expected, what happened" />
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "text-area-rows")]
+    [SupplyParameterFromForm(FormName = "text-area-usage")]
     private BugReport? Model { get; set; }
 
     protected override void OnInitialized() => Model ??= new();

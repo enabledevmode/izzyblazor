@@ -2,13 +2,11 @@
    code alone where a preview would show nothing new (types change the keyboard, not the look).
    Mode support, accessibility and the parameters follow; the API page has the full reference. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A text field is a field for one line of text, such as a name or an email address. It's a native input, so it posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For several lines, a number or a password, see <Anchor Href="docs/components/text-area">TextArea</Anchor>, <Anchor Href="docs/components/number-field">NumberField</Anchor> or <Anchor Href="docs/components/password-field">PasswordField</Anchor>.</TextBlock>
 
 <Heading Level="2">Labels and hints</Heading>
 <TextBlock>A field's label comes from the model: its <Code>[Display(Name)]</Code>, or the property name in words. <Code>[Required]</Code> adds a required mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
-<ExampleViewer Example="text-field-labels" />
+<ExampleViewer Example="text-field-usage" />
 
 <Heading Level="2">A hint that states a status</Heading>
 <TextBlock>A hint can state a status, such as whether an address is verified. To show it as one, set <Code>HintStatus</Code>: the hint takes that status's color and icon, and its words still carry the meaning. Every field with a <Code>Hint</Code> takes it.</TextBlock>
@@ -102,19 +100,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* Label, type and limits from the model's attributes. *@
-        <TextField @bind-Value="Model.Email" />
-
-        @* Your own label and a hint. *@
-        <TextField @bind-Value="Model.Dept" Label="Department" Hint="On your profile." />
-
-        @* Text attached to the field. *@
-        <TextField @bind-Value="Model.Website">
-            <StartAddon>https://</StartAddon>
-        </TextField>
-        """;
 
     private const string Types = """
         @* [Phone] on the property: type="tel". *@

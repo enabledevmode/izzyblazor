@@ -12,7 +12,7 @@ public sealed class TimeFieldRuleTests(SiteFixture site) : IClassFixture<SiteFix
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/time-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var form = page.Locator("[data-ex='time-field-limits'] form");
+        var form = page.Locator("[data-ex='time-field-usage'] form");
 
         // As a crafted post would, or a phone that ignored the limit.
         await form.EvaluateAsync("f => { f.noValidate = true; f.querySelectorAll('input[min], input[max]').forEach(i => { i.removeAttribute('min'); i.removeAttribute('max'); }); }");

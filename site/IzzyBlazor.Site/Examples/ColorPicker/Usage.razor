@@ -1,11 +1,11 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="color-picker-swatches" MaxWidth="20.Rem" Grow>
+<Form Model="Model" FormName="color-picker-usage" MaxWidth="20.Rem" Grow>
     <ColorPicker @bind-Value="Model!.Brand" Swatches="BrandColors.Keys" SwatchText="hex => BrandColors[hex]" Hint="Used for buttons, links and focus rings." />
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "color-picker-swatches")]
+    [SupplyParameterFromForm(FormName = "color-picker-usage")]
     private Branding? Model { get; set; }
 
     // Each swatch's name, which screen readers hear instead of a color name. In order.

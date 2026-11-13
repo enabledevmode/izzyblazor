@@ -2,13 +2,11 @@
    clearing it, showing one read-only, and states. Accessibility and See also come from the doc
    comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A rating is a radio button for each star in a fieldset. It posts with the form, and hovering fills the stars up to the pointer. For a score on a longer scale, use a <Anchor Href="docs/components/slider">Slider</Anchor> or a <Anchor Href="docs/components/number-field">NumberField</Anchor>.</TextBlock>
 
 <Heading Level="2">Saving a rating</Heading>
 <TextBlock>A rating binds to <Code>int</Code> or <Code>int?</Code>, from 1 to <Code>Max</Code> (5 by default). The value posts as a number with the form.</TextBlock>
-<ExampleViewer Example="rating-review" />
+<ExampleViewer Example="rating-usage" />
 <TextBlock>A form post can send any number, so check the range on the server, with <Code>[Range(1, 5)]</Code>. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
 <Heading Level="2">Clearing a rating</Heading>
@@ -59,10 +57,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <Rating @bind-Value="Model.Stars" Label="Your rating" />
-
-        @* Read-only: any value, filled to the fraction. *@
-        <Rating Value="4.3" ReadOnly Label="Average" />
-        """;
 }

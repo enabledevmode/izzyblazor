@@ -7,10 +7,6 @@
     an opacity slider, and hex and RGB fields, each optional. Bound to a hex string, "#2563eb", or
     "#2563ebcc" with ShowAlpha.
 
-    <ColorPanel @bind-Value="Model.Accent" Label="Accent color" />
-    <ColorPanel @bind-Value="Model.Tag" Label="Tag color" ShowPicker="false" ShowFields="false" />
-    <ColorPanel @bind-Value="Model.Overlay" Label="Overlay" Swatches="[]" ShowAlpha />
-
     Changes apply at once. With no script, the swatches are radios and post as the field; with none,
     the hex field does. With script, all parts write one value, kept in a hidden field that posts.
 

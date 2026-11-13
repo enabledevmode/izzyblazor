@@ -1,4 +1,4 @@
-<Form Model="Model" FormName="year-field-model-year" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+<Form Model="Model" FormName="year-field-usage" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
     <YearField @bind-Value="Model!.Year" Label="Model year" Min="2000" Max="2030" />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved)
@@ -8,7 +8,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "year-field-model-year")]
+    [SupplyParameterFromForm(FormName = "year-field-usage")]
     private Vehicle? Model { get; set; }
 
     // What was saved, not the field: on an interactive page it follows what's chosen.

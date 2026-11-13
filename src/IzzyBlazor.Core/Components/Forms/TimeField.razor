@@ -8,11 +8,6 @@
     Step before posting and takes a typed time, and the library's list of times to choose from. Bind
     it to TimeOnly or TimeOnly?. For a length of time, as in a timeout, a TimeSpan isn't a time of
     day and doesn't bind here.
-    <TimeField @bind-Value="Model.Opens" />
-    <TimeField @bind-Value="Model.Opens" Min="@nine" Max="@five" Step="TimeSpan.FromMinutes(15)" />
-    <TimeField @bind-Value="Model.Shift" Min="@ten" Max="@six" /> a window across midnight
-    <TimeField @bind-Value="Model.Opens" TimeDisabled="t => t.Hour == 12" />
-    <TimeField @bind-Value="Model.Opens" UseNative />
 
     A time has no date or zone, so nothing converts it. The input shows 12 or 24 hours as the browser
     does, which the page can't set; the list follows the page's culture.

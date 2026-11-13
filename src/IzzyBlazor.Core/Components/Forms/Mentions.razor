@@ -9,12 +9,6 @@
     value is the plain text; Mention.Parse finds the names in it, and MentionText shows it with
     the names marked.
 
-    <Mentions @bind-Value="Model.Note" Label="Note"
-              Items="People" ItemText="p => p.Handle" />
-    <Mentions @bind-Value="Model.Note" Label="Note"
-              Prefixes="Triggers" Search="Find"
-              Rows="1" AutoGrow />
-
     Suggestions come from Items (narrowed in the browser, for every trigger) or from Search, called
     with the trigger and the text typed after it ("" when the trigger is first typed), so each
     trigger can have its own: people for @, tags for #. On interactive pages each pause in typing

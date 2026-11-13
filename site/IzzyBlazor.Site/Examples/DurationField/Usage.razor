@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="duration-field-limits" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+<Form Model="Model" FormName="duration-field-usage" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
     <DurationField @bind-Value="Model!.Timeout" Hint="From a second to an hour." />
     <DurationField @bind-Value="Model!.Retention" LargestUnit="DurationUnit.Days" SmallestUnit="DurationUnit.Hours" Max="TimeSpan.FromDays(90)" Hint="Up to 90 days." />
     <Row><Button Submit>Save settings</Button></Row>
@@ -11,7 +11,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "duration-field-limits")]
+    [SupplyParameterFromForm(FormName = "duration-field-usage")]
     private Settings? Model { get; set; }
 
     // What was saved, not the fields: on an interactive page they follow typing.

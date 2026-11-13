@@ -2,13 +2,11 @@
    posted (previewed in each mode), several files, required and disabled, checking on the server,
    interactive pages and its own words. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them, such as a photo or a document for a form. The zone is a real file input, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off: the file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
 
 <Heading Level="2">Types, size and posting</Heading>
 <TextBlock>The zone can limit the file types it offers and the largest file it accepts, and it shows both under the prompt ("PNG or JPEG · up to 2 MB"). Set <Code>Accept</Code> to the types, and <Code>MaxFileSize</Code> to the largest size in bytes. On static pages, bind the file to an <Code>IFormFile</Code> property with <Code>[SupplyParameterFromForm]</Code>, named like the field.</TextBlock>
-<ExampleViewer Example="file-upload-photo" />
+<ExampleViewer Example="file-upload-usage" />
 <TextBlock>Both limits only guide the browser. The picker's "All files" choice gets past <Code>Accept</Code>, and with JavaScript off nothing checks the size. Check both on the server, as this example does by size and by the file's first bytes.</TextBlock>
 
 <Heading Level="2">Several files</Heading>
@@ -81,20 +79,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Form Model="Model" FormName="profile" Multipart OnValidSubmit="Save">
-            <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg"
-                        MaxFileSize="2_000_000" />
-            <Button Submit>Save</Button>
-        </Form>
-
-        @code {
-            // The file binds by its Name; check its size and type in Save.
-            [SupplyParameterFromForm(FormName = "profile")]
-            private IFormFile? Avatar { get; set; }
-        }
-        """;
 
     private const string Limits = """
         using Microsoft.AspNetCore.Http.Features;

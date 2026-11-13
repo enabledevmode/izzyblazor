@@ -1,4 +1,4 @@
-<Form Model="Model" FormName="multi-date-field-days-off" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+<Form Model="Model" FormName="multi-date-field-usage" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
     <MultiDateField @bind-Value="Model!.DaysOff" Label="Days off" Min="@First" DateDisabled="IsWeekend" Clearable Required
                     Hint="Weekends are off already." />
     <Row><Button Submit>Save</Button></Row>
@@ -11,7 +11,7 @@
 @code {
     private static readonly DateOnly First = new(2027, 3, 1);
 
-    [SupplyParameterFromForm(FormName = "multi-date-field-days-off")]
+    [SupplyParameterFromForm(FormName = "multi-date-field-usage")]
     private Request? Model { get; set; }
 
     private int? _saved;

@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="pin-field-verify" OnValidSubmit="Check" MaxWidth="24.Rem" Grow>
+<Form Model="Model" FormName="pin-field-usage" OnValidSubmit="Check" MaxWidth="24.Rem" Grow>
     <PinField @bind-Value="Model!.Code" Hint="We sent a code to ada@example.com. This example takes 123456." />
     <Row><Button Submit>Verify</Button></Row>
     @if (_verified is { } verified)
@@ -10,7 +10,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "pin-field-verify")]
+    [SupplyParameterFromForm(FormName = "pin-field-usage")]
     private EmailCheck? Model { get; set; }
 
     private bool? _verified;

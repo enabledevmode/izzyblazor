@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="calendar-limits" OnValidSubmit="Save">
+<Form Model="Model" FormName="calendar-usage" OnValidSubmit="Save">
     <Calendar @bind-Value="Model!.Delivery" Hint="In March 2027." />
     <Calendar @bind-Value="Model!.Pickup" Min="@(new DateOnly(2027, 3, 8))" Max="@(new DateOnly(2027, 3, 19))" Hint="From March 8 to 19." />
     <Row><Button Submit>Book</Button></Row>
@@ -11,7 +11,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "calendar-limits")]
+    [SupplyParameterFromForm(FormName = "calendar-usage")]
     private Booking? Model { get; set; }
 
     // What was saved, not the fields: on an interactive page they follow typing.

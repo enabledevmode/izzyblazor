@@ -10,7 +10,7 @@ public sealed class MultiDateFieldTests(SiteFixture site) : IClassFixture<SiteFi
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/multi-date-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        return (browser, page, page.Locator("[data-ex='multi-date-field-days-off']"));
+        return (browser, page, page.Locator("[data-ex='multi-date-field-usage']"));
     }
 
     [Theory]

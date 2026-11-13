@@ -2,14 +2,12 @@
    it, naming the thumbs, what holds without script, vertical and states.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A range slider picks a span, such as a price filter's lowest and highest prices. It's two native range inputs on one track, so both ends post with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. When the exact numbers matter, use two <Anchor Href="docs/components/number-field">NumberFields</Anchor>.</TextBlock>
 
 <Heading Level="2">Filtering by a range</Heading>
 <TextBlock>Bind the slider to a <Code>NumberRange</Code> of any number type, such as <Code>NumberRange&lt;int&gt;</Code> or <Code>NumberRange&lt;decimal&gt;</Code>. It holds <Code>Start</Code> and <Code>End</Code>, both included, and <Code>Contains</Code> tests a value against them. The ends post as <Code>Price.Start</Code> and <Code>Price.End</Code>, so a <Code>[SupplyParameterFromForm]</Code> model binds them on a static page.</TextBlock>
 <TextBlock>The scale runs from 0 to 100 by default. To change it, set <Code>Min</Code> and <Code>Max</Code>; to set the increments, set <Code>Step</Code>.</TextBlock>
-<ExampleViewer Example="range-slider-price" />
+<ExampleViewer Example="range-slider-usage" />
 <TextBlock>To show each thumb's value in a tooltip over it, set <Code>ValueTooltip</Code> to <Code>SliderTooltip.Active</Code> (while it's hovered, focused or dragged) or <Code>SliderTooltip.Always</Code>. To label the ends of the track, set <Code>ShowEnds</Code>; for marks, set <Code>Marks</Code> or <Code>ShowStepMarks</Code>, as on <Anchor Href="docs/components/slider">Slider</Anchor>. To set how values read, such as <Code>"${0}"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
 <TextBlock>With no value, the thumbs sit at the ends of the scale, as a filter that hasn't narrowed anything.</TextBlock>
 
@@ -45,12 +43,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* 0 to 100; Price is a NumberRange<int>. *@
-        <RangeSlider @bind-Value="Model!.Price" />
-
-        @* Its own scale and steps, each value over its thumb in dollars. *@
-        <RangeSlider @bind-Value="Model!.Price" Max="400" Step="10"
-                     ValueFormat="${0}" ValueTooltip="SliderTooltip.Always" ShowEnds />
-        """;
 }

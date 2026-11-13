@@ -2,14 +2,12 @@
    in each mode), following it live on an interactive page, empty values and states.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A slider is a native range input for a value the user judges by eye, such as a volume. It posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. When the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
 
 <Heading Level="2">Showing the value</Heading>
 <TextBlock>A slider can show its value in a tooltip over the thumb. To show it while the thumb is hovered, focused or dragged, set <Code>ValueTooltip</Code> to <Code>SliderTooltip.Active</Code>; to show it all the time, <Code>SliderTooltip.Always</Code>.</TextBlock>
 <TextBlock>The ends are 0 and 100 by default. To change them, set <Code>[Range]</Code> on the property, or <Code>Min</Code> and <Code>Max</Code> on the slider. To set the increments, set <Code>Step</Code>.</TextBlock>
-<ExampleViewer Example="slider-value" />
+<ExampleViewer Example="slider-usage" />
 <TextBlock>To label the ends of the track with the lowest and highest values, set <Code>ShowEnds</Code>. To set how values read, such as <Code>"{0}%"</Code>, set <Code>ValueFormat</Code>.</TextBlock>
 
 <Heading Level="2">Marks</Heading>
@@ -62,15 +60,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* 0 to 100, the value over the thumb while it's moved. *@
-        <Slider @bind-Value="Model!.Volume" ValueTooltip="SliderTooltip.Active" />
-
-        @* Its own ends and steps, read as a percentage. *@
-        <Slider @bind-Value="Model!.Discount" Min="0" Max="50" Step="5"
-                ValueFormat="{0}%" ShowEnds ShowStepMarks />
-
-        @* Upright, the lowest value at the bottom. *@
-        <Slider @bind-Value="Model!.Microphone" Orientation="Orientation.Vertical" />
-        """;
 }

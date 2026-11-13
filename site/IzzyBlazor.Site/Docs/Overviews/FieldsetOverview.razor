@@ -2,14 +2,12 @@
    columns, a list of settings with dividers, and icons on sections (each a form previewed in each
    mode). Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A fieldset is a group of fields under a heading, in one part of a form, such as an address or a set of notification settings. Screen readers announce that heading as the group's name when focus moves into it.</TextBlock>
 <TextBlock>A <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> is a group already, so it needs no Fieldset of its own. For a part of a page that isn't a form, see <Anchor Href="docs/components/card">Card</Anchor> or <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
 
 <Heading Level="2">Label and description</Heading>
 <TextBlock>A fieldset has a heading, and can have a short line of description under it. Set <Code>Label</Code> to the heading; every fieldset needs one. To add a description, set <Code>Description</Code>.</TextBlock>
-<ExampleViewer Example="fieldset-address" />
+<ExampleViewer Example="fieldset-usage" />
 <TextBlock>Screen readers can read the description with the group's name. Help for one field still goes in that field's <Code>Hint</Code>.</TextBlock>
 
 <Heading Level="2">Columns</Heading>
@@ -51,12 +49,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <Form Model="Model" FormName="checkout">
-            <Fieldset Label="Shipping address" Description="Where we send your order.">
-                <TextField @bind-Value="Model.Street" />
-                <TextField @bind-Value="Model.City" />
-            </Fieldset>
-        </Form>
-        """;
 }
