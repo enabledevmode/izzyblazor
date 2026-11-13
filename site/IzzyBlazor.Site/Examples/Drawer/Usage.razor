@@ -6,7 +6,7 @@
 </Row>
 
 <Drawer Id="order-filters" Title="Filters" Size="DialogSize.Sm" @bind-Open="_open">
-    <Form Model="Model" FormName="order-filters" OnValidSubmit="Apply">
+    <Form Model="Model" FormName="drawer-usage" OnValidSubmit="Apply">
         @* DialogBody fills the drawer's height, so the footer after it sits at the bottom. *@
         <DialogBody Gap="5">
             <RadioGroup @bind-Value="Model!.Status" />
@@ -22,7 +22,7 @@
 </Drawer>
 
 @code {
-    [SupplyParameterFromForm(FormName = "order-filters")]
+    [SupplyParameterFromForm(FormName = "drawer-usage")]
     private OrderFilters? Model { get; set; }
 
     private bool _open;

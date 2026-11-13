@@ -1713,7 +1713,7 @@
     {
       "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "Opens a native modal dialog from a trigger, a link or C#.", "keywords": ["modal", "popup"], "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"],
       "examples": [
-        { "id": "dialog-open", "title": "Opening it",
+        { "id": "dialog-usage", "title": "Opening it",
           "notes": {
             "noscript": "The trigger opens it as a modal. The link loads the page with it open but not modal, so focus can leave it.",
             "static": "The link opens it as a modal too, and closing it removes ?dialog= from the URL.",
@@ -1753,7 +1753,7 @@
         { "feature": "Focus moves in when opened and back when closed", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "action-sheet-photo", "title": "A photo's actions", "lead": "Open the sheet with a `DialogTrigger`, give it a `Title` that names what the actions act on, and write an `ActionSheetItem` per action. Mark a destructive one with `Accent.Danger`. To post the choice, put the sheet inside the form and give each item `Submit`, `Name` and `Value`.",
+        { "id": "action-sheet-usage", "title": "A photo's actions", "lead": "Open the sheet with a `DialogTrigger`, give it a `Title` that names what the actions act on, and write an `ActionSheetItem` per action. Mark a destructive one with `Accent.Danger`. To post the choice, put the sheet inside the form and give each item `Submit`, `Name` and `Value`.",
           "notes": {
             "noscript": "An item posts the form, and the page reloads with the sheet closed.",
             "static": "An item posts without a full reload, and the sheet closes.",
@@ -1765,7 +1765,7 @@
     {
       "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "Opens a dialog that slides in from an edge.", "keywords": ["sheet", "side panel"],
       "examples": [
-        { "id": "drawer-filters", "title": "A form in a drawer", "lead": "A drawer can contain a form. Put a `Form` in the `Drawer` and end it with `FormActions`, whose buttons become the drawer's footer. To keep the footer at the bottom, put the fields in a `DialogBody`, which fills the drawer.",
+        { "id": "drawer-usage", "title": "A form in a drawer", "lead": "A drawer can contain a form. Put a `Form` in the `Drawer` and end it with `FormActions`, whose buttons become the drawer's footer. To keep the footer at the bottom, put the fields in a `DialogBody`, which fills the drawer.",
           "notes": {
             "noscript": "Show orders posts the form, and the page reloads with the drawer closed.",
             "static": "Show orders posts without a full reload, and the drawer closes.",
@@ -1784,7 +1784,7 @@
         { "feature": "Focus goes back where it was", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "context-menu-folder", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it. Right-click can't be seen, so give its actions another way in, here the toolbar. For a menu with a button that also opens by right-click, use a Menu's `ContextFor`.",
+        { "id": "context-menu-usage", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it. Right-click can't be seen, so give its actions another way in, here the toolbar. For a menu with a button that also opens by right-click, use a Menu's `ContextFor`.",
           "notes": {
             "noscript": "Right-click shows the browser's own menu; the toolbar has the same actions.",
             "static": "IzzyBlazor's script opens the menu at the pointer. Its items are links."
@@ -1795,7 +1795,7 @@
     {
       "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Opens a popover menu of links, form posts and actions.", "keywords": ["dropdown menu", "actions menu", "right-click menu"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
-        { "id": "menu-actions", "title": "Links, posts and actions",
+        { "id": "menu-usage", "title": "Links, posts and actions",
           "notes": {
             "noscript": "The menu opens and closes with JavaScript off, but the arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
             "static": "IzzyBlazor's script adds the menu roles and keys: arrows, Home, End and type-ahead. Duplicate and Delete post without a full reload.",
@@ -1827,7 +1827,7 @@
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
-        { "id": "popover-filters", "title": "A form in a popover", "lead": "A popover's `Title` heads the panel and names it for screen readers. Anything can go inside, such as a small filter form.",
+        { "id": "popover-usage", "title": "A form in a popover", "lead": "A popover's `Title` heads the panel and names it for screen readers. Anything can go inside, such as a small filter form.",
           "notes": {
             "noscript": "The popover opens and closes with JavaScript off, but focus stays on the button until the user tabs into the panel. Apply posts the form, and the page reloads with the panel closed.",
             "static": "Opening it moves focus into the panel, and closing it from inside returns focus to the button. Apply posts without a full reload and closes the panel.",
@@ -1848,12 +1848,12 @@
         { "feature": "In the top layer, where nothing clips it", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "tooltip-sides", "title": "Placement", "lead": "A tooltip shows above its trigger by default. To show it below, before or after, set `Placement`." },
-        { "id": "tooltip-icon-buttons", "title": "Icon buttons and shortcuts", "lead": "For more than plain text, such as a keyboard shortcut, set `Content`. `Delay` sets how long a hover waits.",
+        { "id": "tooltip-usage", "title": "Icon buttons and shortcuts", "lead": "Wrap the button in a `Tooltip` and set `Text`. For markup, such as a keyboard shortcut, set `Content`. `Delay` sets how long a hover waits.",
           "notes": {
             "noscript": "The tooltip is CSS alone: it shows on hover and focus, but Escape doesn't hide it and screen readers don't hear it.",
             "static": "IzzyBlazor's script links the tooltip to its button with aria-describedby and moves it to the top layer, where nothing can clip it. Escape hides it."
-          } }
+          } },
+        { "id": "tooltip-sides", "title": "Placement", "lead": "A tooltip shows above its trigger by default. To show it below, before or after, set `Placement`." }
       ]
     },
 

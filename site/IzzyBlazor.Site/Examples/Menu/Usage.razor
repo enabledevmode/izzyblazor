@@ -1,6 +1,6 @@
 @inject NavigationManager Navigation
 
-<form method="post" @onsubmit="Posted" @formname="project" data-enhance>
+<form method="post" @onsubmit="Posted" @formname="menu-usage" data-enhance>
     <AntiforgeryToken />
     <Row Gap="3" Wrap Align="Align.Center">
         <Menu Label="Project" StartIcon="Lucide.Folder">
@@ -20,7 +20,7 @@
     private string? Opened { get; set; }
 
     // Static pages: the chosen item's Name=Value posts with the form.
-    [SupplyParameterFromForm(FormName = "project", Name = "intent")]
+    [SupplyParameterFromForm(FormName = "menu-usage", Name = "intent")]
     private string? Intent { get; set; }
 
     // Interactive pages post nothing, so OnClick says which item it was.

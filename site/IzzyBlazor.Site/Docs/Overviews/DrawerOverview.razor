@@ -2,8 +2,6 @@
    a drawer previewed in each mode, edges and widths, a menu from the start edge, then what
    it shares with Dialog. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A drawer is a panel that slides in from an edge of the screen, the end edge by default. It suits content that goes with the page rather than interrupting it, such as filters or a navigation menu. A drawer is a <Anchor Href="docs/components/dialog">Dialog</Anchor> with a different <Code>Placement</Code>, so everything a dialog does, it does too.</TextBlock>
 
 <Heading Level="2">Opening the drawer</Heading>
@@ -12,7 +10,7 @@
 
 <Heading Level="2">A form in a drawer</Heading>
 <TextBlock>A drawer can contain a form, such as a list of filters, with its buttons at the bottom. Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer, with its fields in a <Code>DialogBody</Code> and its <Code>FormActions</Code> last. The body fills the drawer's height, so the buttons sit at its bottom as the footer and still submit the form.</TextBlock>
-<ExampleViewer Example="drawer-filters" />
+<ExampleViewer Example="drawer-usage" />
 <List>
     <ListItem>A form post on static pages closes the drawer.</ListItem>
     <ListItem>On interactive pages, the submit runs C# instead, so close the drawer there with <Code>@@bind-Open</Code>, as this example does.</ListItem>
@@ -65,21 +63,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <DialogTrigger For="filters">Filters</DialogTrigger>
-
-        <Drawer Id="filters" Title="Filters" Size="DialogSize.Sm" @bind-Open="_open">
-            <Form Model="Filters" FormName="filters" OnValidSubmit="ApplyAsync">
-                <DialogBody Gap="5">
-                    <RadioGroup @bind-Value="Filters!.Status" />
-                </DialogBody>
-                <FormActions>
-                    <Button Submit>Apply</Button>
-                </FormActions>
-            </Form>
-        </Drawer>
-
-        @* ApplyAsync ends with _open = false, which closes it on an interactive page. *@
-        """;
 }

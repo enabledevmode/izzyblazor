@@ -3,13 +3,11 @@
    (links and posts work on static pages), groups, a custom trigger, checked items kept in the
    address, and submenus. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A menu is a list of actions or links that opens from a button. It suits secondary actions, which it keeps out of the way until the user needs them. For a choice that sets a form field's value, see <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Links, posts and actions</Heading>
 <TextBlock>A menu item can go to a page, post a form, or run C#. Set <Code>Href</Code> on a <Code>MenuItem</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on <Anchor Href="docs/common/render-modes">interactive pages</Anchor>. Links and form posts work on static pages, with JavaScript off too.</TextBlock>
-<ExampleViewer Example="menu-actions" />
+<ExampleViewer Example="menu-usage" />
 <List>
     <ListItem>A submit item posts its <Code>Name</Code> and <Code>Value</Code>, so one form can tell its items apart.</ListItem>
     <ListItem>To post to another URL, set <Code>FormAction</Code>. To post a form the menu isn't in, set <Code>Form</Code> to its id.</ListItem>
@@ -75,17 +73,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Menu Label="Project" StartIcon="Lucide.Folder">
-            @* A link, on any page. *@
-            <MenuItem Href="settings" Icon="Lucide.Settings">Settings</MenuItem>
-
-            @* Posts the form the menu is in, on any page. *@
-            <MenuItem Submit Name="intent" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
-
-            @* C# on click, on interactive pages. *@
-            <MenuItem OnClick="Duplicate" Icon="Lucide.Copy">Duplicate</MenuItem>
-        </Menu>
-        """;
 }

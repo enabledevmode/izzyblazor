@@ -2,7 +2,7 @@
 
 <Row Gap="3" Wrap Align="Align.Center">
     <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues" @bind-Open="_open">
-        <Form Model="Model" FormName="issue-filters" OnValidSubmit="Apply" Gap="3">
+        <Form Model="Model" FormName="popover-usage" OnValidSubmit="Apply" Gap="3">
             <Checkbox @bind-Value="Model!.Open" />
             <Checkbox @bind-Value="Model!.Closed" />
             <Checkbox @bind-Value="Model!.Mine" />
@@ -13,7 +13,7 @@
 </Row>
 
 @code {
-    [SupplyParameterFromForm(FormName = "issue-filters")]
+    [SupplyParameterFromForm(FormName = "popover-usage")]
     private IssueFilters? Model { get; set; }
 
     private string _summary = "Showing open issues";

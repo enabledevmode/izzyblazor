@@ -7,14 +7,6 @@
     up from the bottom, with Cancel last. It suits phones; on wide screens a Menu fits better. Its
     items are a menu's rows, made larger for a finger, with an optional icon each.
 
-    <DialogTrigger For="photo">IMG_2041.jpg</DialogTrigger>
-    <ActionSheet Id="photo" Title="IMG_2041.jpg">
-        <ActionSheetItem Submit Name="choice" Value="share">Share</ActionSheetItem>
-        <ActionSheetItem Href="photos/2041/edit">Edit</ActionSheetItem>
-        <ActionSheetItem Submit Name="choice" Value="delete"
-                         Accent="Accent.Danger">Delete</ActionSheetItem>
-    </ActionSheet>
-
     It opens as a Dialog does: a DialogTrigger, a ?dialog=id link, or @bind-Open. Its items take
     MenuItem's parameters, so they act on static pages too: Href is a link, Submit posts the form
     the sheet is in (or Form="id"), and OnClick runs C# on interactive pages. Choosing one closes

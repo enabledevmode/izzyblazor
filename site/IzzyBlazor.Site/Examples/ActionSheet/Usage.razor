@@ -1,5 +1,5 @@
 @* A photo's actions on a phone. The sheet is inside the form its items post. *@
-<form method="post" @onsubmit="Chosen" @formname="photo-actions" data-enhance>
+<form method="post" @onsubmit="Chosen" @formname="action-sheet-usage" data-enhance>
     <AntiforgeryToken />
     <Row Gap="3" Wrap Align="Align.Center">
         <DialogTrigger For="photo-actions" StartIcon="Lucide.Ellipsis" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">IMG_2041.jpg</DialogTrigger>
@@ -18,7 +18,7 @@
 </form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "photo-actions", Name = "choice")]
+    [SupplyParameterFromForm(FormName = "action-sheet-usage", Name = "choice")]
     private string? Choice { get; set; }
 
     private string? _pressed;
