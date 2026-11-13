@@ -30,7 +30,7 @@
         """;
 
     // An app links to its profile page, such as $"/people/{m.Text}".
-    private string ProfileOf(Mention m) => Navigation.GetUriWithQueryParameter("profile", m.Text) + "#ex-mention-text-comment";
+    private string ProfileOf(Mention m) => Navigation.GetUriWithQueryParameter("profile", m.Text) + "#ex-mention-text-usage";
     @* hide *@
     private sealed record Person(string Name, string Role);
 

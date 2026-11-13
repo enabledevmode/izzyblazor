@@ -19,11 +19,6 @@ public enum ProseSize
 /// Styles plain HTML inside it, such as Markdown output or a CMS field: headings, paragraphs,
 /// links, lists, quotes, code, tables, images and rules, in the library's type and colors.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Prose&gt;@((MarkupString)html)&lt;/Prose&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The rules have the lowest weight (<c>:where()</c>), so library components inside keep their
 /// own look, and your own classes win. Only render HTML you trust or have sanitized.

@@ -7,12 +7,6 @@ namespace IzzyBlazor;
 /// Text with the words of a search marked: each match in a <c>mark</c>, for search results, a
 /// filtered list or a table filtered by a <see cref="FilterForm"/>.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Highlight Text="@product.Name" Query="@Query" /&gt;
-/// &lt;Highlight Text="@product.Description" Query="@Query" Match="HighlightMatch.Anywhere" /&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The query is split into words at spaces and punctuation, and each word is marked wherever it
 /// matches, ignoring case. By default a word matches the start of a word in the text, and the

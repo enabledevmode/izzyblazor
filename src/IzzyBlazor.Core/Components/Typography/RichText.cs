@@ -6,11 +6,6 @@ namespace IzzyBlazor;
 /// Shows saved rich text, such as a rich text editor's value or HTML from a CMS: sanitized, then
 /// styled as <see cref="Prose"/>.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;RichText Html="@post.Body" /&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// It runs <see cref="RichTextSanitizer"/> on <see cref="Html"/> every time it renders, so HTML
 /// saved before you sanitized it, or written by another system, can't run script on the page.

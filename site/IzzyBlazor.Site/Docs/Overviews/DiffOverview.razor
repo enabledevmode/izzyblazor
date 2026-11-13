@@ -2,14 +2,12 @@
    line, a diff computed first (TextDiff), the notes, then large texts (prose). Accessibility and See
    also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A diff shows the changes between two versions of a text, line by line, such as a change to a config file. Removed and added lines carry a <Code>−</Code> or <Code>+</Code> and their old or new line number. The numbers and signs aren't copied when the user selects the lines.</TextBlock>
 <TextBlock>The diff is computed and colored on the server, so it looks the same <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>.</TextBlock>
 
 <Heading Level="2">Two versions</Heading>
 <TextBlock>A diff compares an old and a new text, and folds the unchanged lines away from the changes. Set <Code>OldText</Code> and <Code>NewText</Code> to the two texts. To color them as code, set <Code>Language</Code>.</TextBlock>
-<ExampleViewer Example="diff-versions" />
+<ExampleViewer Example="diff-usage" />
 <List>
     <ListItem>Each text is colored whole before it's split into lines, so a comment or value across several lines keeps its color.</ListItem>
     <ListItem>In a removed line beside an added one, the changed words are marked, unless most of the line changed. To turn this off, set <Code>MarkWords="false"</Code>.</ListItem>
@@ -74,9 +72,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <Diff OldText="@older.Xml" NewText="@newer.Xml" Language="xml" Title="v3 → v4" />
-
-        <Diff OldText="@before" NewText="@after" Language="csharp" Layout="DiffLayout.Split" />
-        """;
 }
