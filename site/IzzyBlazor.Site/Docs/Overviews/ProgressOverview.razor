@@ -2,14 +2,12 @@
    indeterminate bar, and a bar that C# moves on an interactive page. Accessibility and See also
    come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A progress bar shows how far along a task is, such as an upload or an import. Without a value, it shows that the task is still working.</TextBlock>
 <TextBlock>For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>. For content that's still loading, put a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place. For the steps of a form, use a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
 
 <Heading Level="2">Value and label</Heading>
 <TextBlock>The bar fills to its <Code>Value</Code>, out of <Code>Max</Code> (100 by default). Its <Code>Label</Code> is the line above the bar, and also its name for screen readers. To show the percentage at the end of that line, set <Code>ShowValue</Code>, or for your own text, such as "3 of 5 files", set <Code>ValueText</Code>.</TextBlock>
-<ExampleViewer Example="progress-values" />
+<ExampleViewer Example="progress-usage" />
 <TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value below 0 or above <Code>Max</Code> shows as the nearest end.</TextBlock>
 
 <Heading Level="2">Sizes and colors</Heading>
@@ -49,13 +47,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Progress Value="40" Label="Uploading report.pdf" ShowValue />
-        <Progress Value="3" Max="5" Label="Importing" ValueText="3 of 5 files" />
-
-        @* No value: a bar that sweeps until the work is done. *@
-        <Progress Label="Preparing export" />
-
-        """;
 }

@@ -7,14 +7,6 @@ namespace IzzyBlazor;
 /// A shimmering placeholder in the shape of content that's still loading: lines of text, a
 /// block (an image, a card) or a circle (an avatar).
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Skeleton Lines="3" /&gt;
-/// &lt;Skeleton Circle Width="Length.Rem(3)" /&gt;
-/// &lt;Skeleton Height="Length.Rem(10)" /&gt;   @* a block, such as an image or a card *@
-/// &lt;Skeleton Loaded="_order is not null" Lines="2"&gt;@_order.Summary&lt;/Skeleton&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>The placeholder has <c>aria-hidden="true"</c>, so screen readers skip it.</item>

@@ -8,12 +8,6 @@ namespace IzzyBlazor;
 /// matches the text beside it, and announced to screen readers as <see cref="Label"/>.
 /// Pure CSS: it spins on static pages too.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Spinner /&gt;
-/// &lt;Spinner Size="IconSize.Xl2" Color="Color.Primary" Label="Loading orders" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It has <c>role="status"</c> and visually hidden text, <see cref="Label"/> (default "Loading"); the ring itself is hidden from screen readers.</item>
