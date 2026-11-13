@@ -2,7 +2,7 @@
 @inject IServiceProvider Services
 
 @* formnovalidate: a passkey needs no password, so the browser's checks mustn't stop the submit that starts it. *@
-<Button Submit Name="__passkeySubmit" formnovalidate Variant="Variant" Accent="Accent" StartIcon="StartIcon" FullWidth="FullWidth" @attributes="AdditionalAttributes">@ChildContent</Button>
+<Button Submit Name="__passkeySubmit" formnovalidate Variant="Variant" Accent="Accent" Size="Size" StartIcon="StartIcon" FullWidth="FullWidth" @attributes="AdditionalAttributes">@ChildContent</Button>
 <passkey-submit
     operation="@Operation"
     name="@Name"
@@ -36,6 +36,9 @@
 
     [Parameter]
     public Accent Accent { get; set; } = Accent.Primary;
+
+    [Parameter]
+    public ControlSize Size { get; set; } = ControlSize.Md;
 
     [Parameter]
     public IconData? StartIcon { get; set; } = Lucide.KeyRound;

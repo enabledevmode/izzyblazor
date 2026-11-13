@@ -11,49 +11,39 @@
 
 <PageTitle>Manage your external logins</PageTitle>
 
-<Card Title="External logins" TitleLevel="2" Description="Services you can log in with instead of a password." Dividers>
-    <CardBody>
-        <StatusMessage />
-        @if (currentLogins?.Count > 0)
+<PageHeader Title="External logins" TitleLevel="2" Size="ControlSize.Sm"
+            Description="Services you can log in with instead of a password." />
+<StatusMessage />
+<ListView Items="currentLogins ?? []" ItemKey="@(l => l.LoginProvider)" ItemText="@(l => l.ProviderDisplayName ?? l.LoginProvider)"
+          ItemDescription="@(_ => "Linked")" ItemIcon="@(_ => Lucide.Globe)" Dividers Context="login">
+    <ItemActions>
+        @if (showRemoveButton)
         {
-            <Table Items="currentLogins" Caption="Registered logins">
-                <Columns>
-                    <PropertyColumn Property="login => login.ProviderDisplayName" Title="Service" />
-                    <TemplateColumn Title="Actions" Align="CellAlign.End">
-                        @if (showRemoveButton)
-                        {
-                            <form @formname="@($"remove-login-{context.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
-                                <AntiforgeryToken />
-                                <input type="hidden" name="@nameof(LoginProvider)" value="@context.LoginProvider" />
-                                <input type="hidden" name="@nameof(ProviderKey)" value="@context.ProviderKey" />
-                                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Remove</Button>
-                            </form>
-                        }
-                    </TemplateColumn>
-                </Columns>
-            </Table>
-        }
-        else
-        {
-            <TextBlock Color="Color.Muted">No external logins yet.</TextBlock>
-        }
-    </CardBody>
-    @if (otherLogins?.Count > 0)
-    {
-        <CardBody>
-            <Heading Level="3" Size="TextSize.Md">Add another service to log in</Heading>
-            <form action="Account/Manage/LinkExternalLogin" method="post">
+            <form @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
                 <AntiforgeryToken />
-                <Row Gap="2" Wrap>
-                    @foreach (var provider in otherLogins)
-                    {
-                        <Button Submit Name="Provider" Value="@provider.Name" Variant="ButtonVariant.Outline">Continue with @provider.DisplayName</Button>
-                    }
-                </Row>
+                <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
+                <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" aria-label="@($"Remove {login.ProviderDisplayName}")">Remove</Button>
             </form>
-        </CardBody>
-    }
-</Card>
+        }
+    </ItemActions>
+    <EmptyContent>
+        <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.Globe" Title="No services linked" />
+    </EmptyContent>
+</ListView>
+@if (otherLogins?.Count > 0)
+{
+    <PageHeader Title="Add another service" TitleLevel="3" Size="ControlSize.Sm" Description="Log in with it instead of your password." />
+    <form action="Account/Manage/LinkExternalLogin" method="post">
+        <AntiforgeryToken />
+        <Row Gap="2" Wrap>
+            @foreach (var provider in otherLogins)
+            {
+                <Button Submit Name="Provider" Value="@provider.Name" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Continue with @provider.DisplayName</Button>
+            }
+        </Row>
+    </form>
+}
 
 @code {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";

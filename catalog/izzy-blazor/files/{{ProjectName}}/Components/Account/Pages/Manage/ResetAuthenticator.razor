@@ -10,20 +10,20 @@
 
 <PageTitle>Reset authenticator key</PageTitle>
 
-<Card Title="Reset authenticator key" TitleLevel="2">
-    <StatusMessage />
-    <Alert Status="Status.Warning" Title="Your authenticator app stops working until you set it up again">
-        Resetting the key turns off two-factor authentication until you verify your authenticator app.
-        If you don't finish setting it up, you may lose access to your account.
-    </Alert>
-    <form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
-        <AntiforgeryToken />
-        <Row Gap="2" Wrap>
-            <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
-            <Button Submit Accent="Accent.Danger">Reset authenticator key</Button>
-        </Row>
-    </form>
-</Card>
+<PageHeader Title="Reset authenticator key" TitleLevel="2" Size="ControlSize.Sm"
+            Description="Get a new key for your authenticator app." />
+<StatusMessage />
+<Alert Status="Status.Warning" Title="Your authenticator app stops working until you set it up again">
+    Resetting the key turns off two-factor authentication until you verify your authenticator app.
+    If you don't finish setting it up, you may lose access to your account.
+</Alert>
+<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
+    <AntiforgeryToken />
+    <Row Gap="2" Wrap>
+        <Button Submit Accent="Accent.Danger">Reset authenticator key</Button>
+        <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+    </Row>
+</form>
 
 @code {
     [CascadingParameter]

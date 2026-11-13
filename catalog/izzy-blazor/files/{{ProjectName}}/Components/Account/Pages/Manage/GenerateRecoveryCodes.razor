@@ -15,20 +15,19 @@
 }
 else
 {
-    <Card Title="Generate recovery codes" TitleLevel="2">
-        <Alert Status="Status.Warning" Title="Put these codes in a safe place">
-            If you lose your device and don't have the recovery codes, you lose access to your account.
-            New codes don't change the key your authenticator app uses; to change it,
-            <Anchor Href="Account/Manage/ResetAuthenticator">reset your authenticator key</Anchor>.
-        </Alert>
-        <form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
-            <AntiforgeryToken />
-            <Row Gap="2" Wrap>
-                <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
-                <Button Submit>Generate recovery codes</Button>
-            </Row>
-        </form>
-    </Card>
+    <PageHeader Title="Generate new recovery codes" TitleLevel="2" Size="ControlSize.Sm"
+                Description="Replace your recovery codes with ten new ones." />
+    <Alert Status="Status.Warning" Title="Your old codes stop working">
+        Put the new ones in a safe place. New codes don't change the key your authenticator app uses;
+        to change it, <Anchor Href="Account/Manage/ResetAuthenticator">reset your authenticator key</Anchor>.
+    </Alert>
+    <form @formname="generate-recovery-codes" @onsubmit="OnSubmitAsync" method="post">
+        <AntiforgeryToken />
+        <Row Gap="2" Wrap>
+            <Button Submit>Generate recovery codes</Button>
+            <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+        </Row>
+    </form>
 }
 
 @code {
