@@ -18,7 +18,10 @@
     </Alert>
     <form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
         <AntiforgeryToken />
-        <Button Submit Accent="Accent.Danger">Reset authenticator key</Button>
+        <Row Gap="2" Wrap>
+            <Button Href="Account/Manage/TwoFactorAuthentication" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <Button Submit Accent="Accent.Danger">Reset authenticator key</Button>
+        </Row>
     </form>
 </Card>
 
