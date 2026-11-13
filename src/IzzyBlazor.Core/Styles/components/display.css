@@ -549,8 +549,9 @@
   .ib-browser-frame-address {
     min-width: 0;
     max-width: 24rem;
-    padding: 0.1875rem var(--ib-space-4);
+    padding: 0.125rem var(--ib-space-4);
     overflow: hidden;
+    border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-full);
     background: var(--ib-color-surface);
     color: var(--ib-color-muted);
@@ -559,6 +560,24 @@
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* A phone-sized window: a slimmer bar. */
+  @media (width < 640px) {
+    .ib-browser-frame-bar {
+      min-height: 1.75rem;
+      padding-block: 0.3125rem;
+    }
+
+    .ib-browser-frame-dots > span {
+      width: 0.5rem;
+      height: 0.5rem;
+    }
+
+    .ib-browser-frame-address {
+      padding-inline: 0.625rem;
+      font-size: 0.625rem;
+    }
   }
 
   .ib-browser-frame-content {
