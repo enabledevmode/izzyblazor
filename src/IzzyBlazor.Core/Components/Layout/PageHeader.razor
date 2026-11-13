@@ -1,0 +1,92 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@attribute [ModeSupport]
+
+@*
+    The top of a page: its title, a muted line on what it's for, and actions or a status at the
+    end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
+
+    <PageHeader Title="Invoices" Description="Everything you've billed, newest first.">
+        <PageHeaderActions>
+            <Button Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</Button>
+        </PageHeaderActions>
+    </PageHeader>
+
+    Accessibility:
+    - `Title` is a heading, an `h1` by default; set `TitleLevel` when the page has its own h1.
+    - The actions follow the title in reading order, so they come after it for keyboard and
+      screen reader users too.
+    See also: Heading, Container, Card, Breadcrumb.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <div class="ib-page-header-text">
+        @TitleElement
+        @if (Description is not null)
+        {
+            <p class="ib-page-header-description">@Description</p>
+        }
+        @if (ChildContent is not null)
+        {
+            <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
+        }
+    </div>
+    @if (_scope.Shown<PageHeaderActions>() is { } actions)
+    {
+        <div class="ib-page-header-actions">@_scope.Outlet(actions)</div>
+    }
+</div>
+
+@code {
+    /// <summary>The page's title, such as "Invoices".</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>The heading level of <see cref="Title"/>, 1 to 6. Defaults to 1, the page's main heading.</summary>
+    [Parameter] public int TitleLevel { get; set; } = 1;
+
+    /// <summary>A muted line under the title: what the page is for, in a sentence.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Anything else under the description, such as a status line, and any
+    /// <see cref="PageHeaderActions"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// The title and description size: <see cref="ControlSize.Sm"/> for a section inside a page,
+    /// <see cref="ControlSize.Md"/> (the default) for most pages, <see cref="ControlSize.Lg"/>
+    /// for a page with little else on it, such as a sign-in form.
+    /// </summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _scope = new PartScope(this, OuterScope, StateHasChanged);
+
+    private string? _class;
+    private string? _style;
+
+    private RenderFragment TitleElement => builder =>
+    {
+        builder.OpenElement(0, $"h{Math.Clamp(TitleLevel, 1, 6)}");
+        builder.AddAttribute(1, "class", "ib-page-header-title");
+        builder.AddContent(2, Title);
+        builder.CloseElement();
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-page-header");
+        classes.Add("ib-page-header-sm", Size == ControlSize.Sm);
+        classes.Add("ib-page-header-lg", Size == ControlSize.Lg);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

@@ -47,6 +47,54 @@
   .ib-container-md { max-width: 48rem; }
   .ib-container-lg { max-width: 64rem; }
   .ib-container-xl { max-width: 80rem; }
+  .ib-container-start { margin-inline: 0 auto; }
+  .ib-container-end { margin-inline: auto 0; }
+  .ib-container-flush { padding-inline: 0; }
+
+  /* PageHeader: the text takes the row, the actions sit at the end and wrap under it when it
+     gets narrower than 16rem. */
+  .ib-page-header {
+    --ib-ph-title: var(--ib-text-2xl);
+    --ib-ph-text: var(--ib-text-md);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ib-space-4);
+  }
+
+  .ib-page-header-sm { --ib-ph-title: var(--ib-text-xl); --ib-ph-text: var(--ib-text-sm); }
+  .ib-page-header-lg { --ib-ph-title: var(--ib-text-3xl); }
+
+  .ib-page-header-text {
+    display: flex;
+    flex: 1 1 16rem;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+  }
+
+  .ib-page-header-title {
+    margin: 0;
+    font-family: var(--ib-font-heading);
+    font-size: var(--ib-ph-title);
+    font-weight: var(--ib-weight-heading, var(--ib-weight-semibold));
+    line-height: var(--ib-leading-tight);
+    text-wrap: balance;
+  }
+
+  .ib-page-header-description {
+    margin: 0;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-ph-text);
+  }
+
+  .ib-page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
 
   .ib-center {
     display: flex;
