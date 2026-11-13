@@ -60,7 +60,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         await using (browser)
         {
             var page = await OpenAsync(browser, "docs/components/split-button", mode);
-            const string ex = "split-button-actions";
+            const string ex = "split-button-usage";
             await ReadyAsync(page, ex, mode);
             var toggle = page.Locator(Example(ex)).GetByRole(AriaRole.Button, new() { Name = "More save options" });
 
@@ -116,7 +116,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         await using (browser)
         {
             var page = await OpenAsync(browser, "docs/components/split-button", mode);
-            const string ex = "split-button-actions";
+            const string ex = "split-button-usage";
             await ReadyAsync(page, ex, mode);
 
             for (var i = 0; i < 3; i++)

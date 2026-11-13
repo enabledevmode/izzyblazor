@@ -509,6 +509,7 @@
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
+        { "id": "button-usage", "title": "Save and cancel", "lead": "In a form, `Submit` makes a button post it. With `Href`, a button is a link, such as Cancel back to the list. Both work on any page, with JavaScript off too." },
         { "id": "button-variants", "title": "Accents and variants" },
         { "id": "button-submit-reset", "title": "Submit and reset",
           "notes": {
@@ -545,7 +546,7 @@
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
-        { "id": "floating-button-main", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and set `Label` to name it; the label is required.", "after": ["Keep one per page. To make it round, set `Round`."] },
+        { "id": "floating-button-usage", "title": "A floating action button", "height": 360, "page": true, "lead": "A floating button stays in the window's bottom corner, raised and large, for the page's main action. Set `Icon`, and set `Label` to name it; the label is required.", "after": ["Keep one per page. To make it round, set `Round`."] },
         { "id": "floating-button-with-label", "title": "With its label", "height": 360, "page": true, "lead": "For a main action an icon alone wouldn't name, set `ShowLabel` to show the label beside the icon. `Placement` puts this one at the bottom center. For several actions from one button, use a SpeedDial." }
       ]
     },
@@ -559,7 +560,7 @@
         { "feature": "Arrow keys between the actions", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "speed-dial-create", "title": "Things to create", "height": 400, "page": true, "lead": "Set `Label` to name the button, and give each `SpeedDialAction` an `Icon` and a `Label`, shown beside it. An action is a link (`Href`), a form post (`Submit`) or C# (`OnClick`). The button spins into a close button while the actions show; `SpinIcon=\"false\"` swaps the icons without turning." },
+        { "id": "speed-dial-usage", "title": "Things to create", "height": 400, "page": true, "lead": "Set `Label` to name the button, and give each `SpeedDialAction` an `Icon` and a `Label`, shown beside it. An action is a link (`Href`), a form post (`Submit`) or C# (`OnClick`). The button spins into a close button while the actions show; `SpinIcon=\"false\"` swaps the icons without turning." },
         { "id": "speed-dial-hover", "title": "Icons that open on hover", "height": 360, "page": true, "lead": "To show only the icons, with the labels as tooltips, set `ShowLabels=\"false\"`. To open as the pointer comes over the button, set `OpenOn=\"SpeedDialTrigger.Hover\"`; a click or tap still opens it. `Direction` opens the actions down, or toward the start or end, `Icon` and `OpenIcon` change the button's icons, and `Round` makes it round, as here.",
           "notes": {
             "noscript": "Hover needs script: a click opens the actions."
@@ -575,7 +576,7 @@
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
-        { "id": "icon-button-variants", "title": "Labels and variants", "lead": "An icon button's label is its name for screen readers and its tooltip. Set `Label`; it's required. Like Button, an icon button accepts `Variant`, `Accent` and `Href`." },
+        { "id": "icon-button-usage", "title": "Labels and variants", "lead": "An icon button's label is its name for screen readers and its tooltip. Set `Label`; it's required. Like Button, an icon button accepts `Variant`, `Accent` and `Href`." },
         { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Icon buttons have the same sizes and states as Button. `Size`, `Loading` and `Disabled` work as they do there." },
         { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "A button on a row can act on that row. For a link, set `Href`. To post which row the button is on, set `Submit` with `Name` and `Value`; on interactive pages, `OnClick` does the same in C#.",
           "notes": {
@@ -589,7 +590,7 @@
     {
       "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Buttons", "summary": "Joins or spaces buttons and gives them shared defaults.", "keywords": ["segmented buttons"],
       "examples": [
-        { "id": "button-group-joined", "title": "Joined buttons", "lead": "Buttons and icon buttons in a group are joined into one control. To name the group for screen readers, set `Label`." },
+        { "id": "button-group-usage", "title": "Joined buttons", "lead": "Buttons and icon buttons in a group are joined into one control. To name the group for screen readers, set `Label`." },
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "A group can set its buttons' defaults, so you set a look once. Set `Variant`, `Accent` and `Size` on the group. A button's own setting overrides them." },
         { "id": "button-group-spaced", "title": "Spaced apart", "lead": "To space the buttons apart instead of joining them, set `Attached=\"false\"`." },
         { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "To stack the buttons, set `Orientation`. To share the container's width among them, set `FullWidth`." }
@@ -605,7 +606,7 @@
         { "feature": "ValueChanged runs C# at once", "member": "ValueChanged" }
       ],
       "examples": [
-        { "id": "toggle-button-filters", "title": "Toggle buttons", "lead": "A toggle button turns something on and off, such as a filter. Bind it with `@bind-Value`, and keep its text the same whether it's on or off. It's a checkbox drawn as a button, so screen readers hear \"checked\" or \"not checked\".", "modes": ["interactive"] },
+        { "id": "toggle-button-usage", "title": "Toggle buttons", "lead": "A toggle button turns something on and off, such as a filter. Bind it with `@bind-Value`, and keep its text the same whether it's on or off. It's a checkbox drawn as a button, so screen readers hear \"checked\" or \"not checked\".", "modes": ["interactive"] },
         { "id": "toggle-button-icon-only", "title": "Icon only", "lead": "To show only the icon, set `IconOnly` and `Label`: the label is its name for screen readers and its tooltip. To show the state in the icon, such as a muted microphone, set `CheckedIcon`, shown while it's checked in place of `Icon`; the label stays the same.", "modes": ["interactive"] },
         { "id": "toggle-button-submit-on-change", "title": "Applying at once", "lead": "On static pages a toggle changes nothing until its form posts. To post the form as it changes, set `SubmitOnChange`. With JavaScript off, give the form a submit button, here in a `noscript`.",
           "notes": {
@@ -618,7 +619,7 @@
     {
       "id": "toggle-group", "icon": "Rows2", "name": "ToggleGroup", "category": "Buttons", "summary": "Joins toggle buttons that any of can be on, such as text styles.", "keywords": ["toggle group", "toggle button group", "multiple toggle group", "formatting buttons"],
       "examples": [
-        { "id": "toggle-group-text-style", "title": "Text styles", "lead": "To make toggles that belong together, such as bold, italic and underline, read as one control, put them in a `ToggleGroup` and name it with `Label`. Each toggle keeps its own value, and any of them can be on.", "after": ["For one choice of several, such as text alignment, use a SegmentedControl: the single-selection toggle group of other libraries."], "modes": ["interactive"] }
+        { "id": "toggle-group-usage", "title": "Text styles", "lead": "To make toggles that belong together, such as bold, italic and underline, read as one control, put them in a `ToggleGroup` and name it with `Label`. Each toggle keeps its own value, and any of them can be on.", "after": ["For one choice of several, such as text alignment, use a SegmentedControl: the single-selection toggle group of other libraries."], "modes": ["interactive"] }
       ]
     },
 
@@ -631,7 +632,7 @@
         { "feature": "OnClick on the main button and the items", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "split-button-actions", "title": "The main action and its menu",
+        { "id": "split-button-usage", "title": "The main action and its menu",
           "notes": {
             "noscript": "Save and the items post the form, and the page reloads. Open drafts is a link. The arrow keys don't move through the menu: Tab to the arrow and press Enter.",
             "static": "IzzyBlazor's script adds the menu's keys, and Alt+Down on Save. Save and the items post without a full reload.",
@@ -661,7 +662,7 @@
         { "feature": "OnClick runs from the bar or the menu", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "toolbar-editor", "title": "Editor toolbar",
+        { "id": "toolbar-usage", "title": "Editor toolbar",
           "notes": {
             "noscript": "The server works out the widths and chooses what moves into the … menu. Each control is its own tab stop.",
             "static": "IzzyBlazor's script measures the widths and adds the keys: Tab reaches the toolbar once, and the arrow keys move along it."
@@ -713,7 +714,7 @@
         { "feature": "OnConfirm runs C#", "member": "OnConfirm" }
       ],
       "examples": [
-        { "id": "confirm-button-form-post", "title": "Confirming a form post", "lead": "In a form, a `ConfirmButton` can post which action was confirmed: set its `Name` and `Value`. On interactive pages, `OnConfirm` runs C# instead.",
+        { "id": "confirm-button-usage", "title": "Confirming a form post", "lead": "In a form, a `ConfirmButton` can post which action was confirmed: set its `Name` and `Value`. On interactive pages, `OnConfirm` runs C# instead.",
           "notes": {
             "noscript": "Confirming posts the form with intent=archive or intent=delete. The buttons open the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a full reload, and the dialog closes.",
@@ -731,7 +732,7 @@
     {
       "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Buttons", "summary": "Copies text, such as an install command.", "keywords": ["clipboard"],
       "examples": [
-        { "id": "copy-button-command", "title": "Copying fixed text", "lead": "To copy a fixed value, such as an install command, set `Text`.",
+        { "id": "copy-button-usage", "title": "Copying fixed text", "lead": "To copy a fixed value, such as an install command, set `Text`.",
           "notes": {
             "noscript": "The button doesn't appear, but the command can still be selected."
           } },

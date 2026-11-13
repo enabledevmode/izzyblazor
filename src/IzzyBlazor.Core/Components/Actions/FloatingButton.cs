@@ -10,7 +10,6 @@ namespace IzzyBlazor;
 /// icon alone by default, named by <see cref="Label"/>; <see cref="ShowLabel"/> shows the label
 /// beside it. In an <see cref="AppShell"/> it sits above a sticky footer.
 /// </summary>
-/// <example><code>&lt;FloatingButton Icon="Lucide.Plus" Label="New invoice" Href="invoices/new" /&gt;</code></example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, named by <see cref="Label"/>; with only the icon showing, the label is its <c>aria-label</c> and, with script, its tooltip.</item>
