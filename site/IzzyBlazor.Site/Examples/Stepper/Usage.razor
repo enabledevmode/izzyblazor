@@ -1,0 +1,14 @@
+@inject NavigationManager Navigation
+
+@* The third step is current, so the two before it show as done; their labels link back. *@
+<Stepper Current="3" Label="Checkout progress" Grow>
+    <Step Label="Cart" Href='@To("cart")' />
+    <Step Label="Shipping" Href='@To("shipping")' />
+    <Step Label="Payment" />
+    <Step Label="Review" />
+</Stepper>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

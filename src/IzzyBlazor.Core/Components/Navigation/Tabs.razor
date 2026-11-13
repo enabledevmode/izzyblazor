@@ -15,11 +15,6 @@
         roving focus) and, with QueryKey, keeps the URL in step so the tab can be linked to.
       - Interactive: @bind-Selected follows the radios' change events and can set the tab from C#.
 
-    <Tabs @bind-Selected="tab" Label="Account">
-        <Tab Label="Profile" Icon="Lucide.User">...</Tab>
-        <Tab Label="Billing" Badge="2">...</Tab>
-    </Tabs>
-
     Orientation="Orientation.Vertical" puts the tabs in a column beside the panels from 640px up
     (a scrolling row above them on phones). For tabs that link to pages of their own, use TabNav.
     Up to 30 tabs show their panels: the CSS has a rule for each position.

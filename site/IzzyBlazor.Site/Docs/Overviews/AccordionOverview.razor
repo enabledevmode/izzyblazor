@@ -1,12 +1,15 @@
 @inject ApiMetadata Api
-@* Accordion's Overview, written by hand after the selection and feedback Overviews: variants, one
-   open at a time, rich headers and content, sizes, forms in sections (previewed in each mode) and
-   following an item from C#. Accessibility and See also come from the doc comment. *@
+@* Accordion's Overview, written by hand after the selection and feedback Overviews: sections,
+   variants, one open at a time, rich headers and content, sizes, forms in sections (previewed in
+   each mode) and following an item from C#. Accessibility and See also come from the doc
+   comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>An accordion is a stack of sections, each with a title the user clicks to open or close it. It suits sections the user opens one by one, such as FAQs or settings. Each item is a native <Code>details</Code> element, so the browser opens and closes it, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
 <TextBlock>For a single "show more", see <Anchor Href="docs/components/collapsible">Collapsible</Anchor>. For views the user switches between, see <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+
+<Heading Level="2">Sections</Heading>
+<TextBlock>Each section is an <Code>AccordionItem</Code>, with its <Code>Title</Code> on the line the user clicks. Items start closed; to start one open, set <Code>Open</Code>.</TextBlock>
+<ExampleViewer Example="accordion-usage" />
 
 <Heading Level="2">Variants</Heading>
 <TextBlock>A variant sets how the items are framed. <Code>Separated</Code> (the default) shows each item as its own card, <Code>Bordered</Code> puts them in one bordered box, and <Code>Flush</Code> sets them flush with the page. Set <Code>Variant</Code> to choose one.</TextBlock>
@@ -62,15 +65,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Accordion>
-            <AccordionItem Title="How do refunds work?" Open>
-                Refunds go back to the original card within 5 business days.
-            </AccordionItem>
-            <AccordionItem Title="Can I change my plan later?">
-                Yes. Changes apply from your next billing date.
-            </AccordionItem>
-        </Accordion>
-        """;
 }

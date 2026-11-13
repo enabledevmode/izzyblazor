@@ -5,13 +5,11 @@
    phone width. Parts, Accessibility and See also come from the metadata and the doc comments; See
    also adds the content site demo. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A site nav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header. It suits a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
 
 <Heading Level="2">Links that fold into a menu</Heading>
 <TextBlock>On narrow screens, the links fold into a menu button that opens them in a panel under the header. The same button closes the panel, so the header with the site's name stays in view. The links fold below 768px by default; to change that width, set <Code>Breakpoint</Code>.</TextBlock>
-<ExampleViewer Example="site-nav-content-site" WidthSwitch />
+<ExampleViewer Example="site-nav-usage" WidthSwitch />
 <TextBlock>The panel is a native popover, so it opens and closes with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, and Escape or a tap outside closes it. With IzzyBlazor's script, opening the panel moves focus to the first link, and following a link closes it.</TextBlock>
 
 <Heading Level="2">Under the links</Heading>
@@ -65,21 +63,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <AppShell Variant="ShellVariant.Flat">
-            <AppHeader>
-                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
-                <Box Grow />
-                <SiteNav>
-                    <NavItem Href="/projects">Projects</NavItem>
-                    <NavItem Href="/articles">Articles</NavItem>
-                    <NavItem Href="/about">About</NavItem>
-                </SiteNav>
-            </AppHeader>
-            <AppMain>@Body</AppMain>
-        </AppShell>
-        """;
 
     private const string WithSidebar = """
         <AppShell>

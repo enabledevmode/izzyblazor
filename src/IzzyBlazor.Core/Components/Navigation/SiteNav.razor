@@ -9,18 +9,6 @@
     (its icon turns into a close icon), so the header, with the site's name, stays in view. For
     sites with no sidebar; an app with a sidebar puts its links there and uses SidebarToggle.
 
-    <AppHeader>
-        <AppBrand Href="/" Label="Acme" />
-        <Box Grow />
-        <SiteNav>
-            <NavItem Href="/projects">Projects</NavItem>
-            <NavItem Href="/articles">Articles</NavItem>
-            <SiteNavFooter>
-                <ColorSchemeSwitch />
-            </SiteNavFooter>
-        </SiteNav>
-    </AppHeader>
-
     The items render twice, once in the row and once in the panel; only one of them shows at a time.
     The panel is a native popover opened by its button, so it works with JavaScript off (light
     dismiss and Escape come from the browser). It sits under the header through CSS anchor

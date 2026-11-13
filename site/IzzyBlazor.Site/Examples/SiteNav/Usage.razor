@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+
+@* A site's links in the header: a row from 768px up, and below it a menu button that opens the
+   same links in a panel under the header. *@
+<AppShell Variant="ShellVariant.Flat">
+    <AppHeader>
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <SiteNav>
+            <NavItem Href="@To(null)">Projects</NavItem>
+            <NavItem Href='@To("articles")'>Articles</NavItem>
+            <NavItem Href='@To("about")'>About</NavItem>
+        </SiteNav>
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="4" Padding="new() { Base = 4, Md = 8 }">
+            <Heading Level="1" Size="TextSize.Xl2">Projects</Heading>
+            <Card Title="Rulebook console" Description="A rules engine admin, from empty repo to deployed." />
+            <Card Title="Invoice kit" Description="Billing with PDFs, email and a customer portal." />
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
