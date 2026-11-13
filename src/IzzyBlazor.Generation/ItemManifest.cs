@@ -57,6 +57,18 @@ public sealed class ItemManifest
     /// <summary>Things to tell the user about the project as it is, such as a page that already has an h1.</summary>
     public IReadOnlyList<CheckSpec> Checks { get; init; } = [];
 
+    /// <summary>What the item does for accessibility, one point each, for its docs page.</summary>
+    public IReadOnlyList<string> Accessibility { get; init; } = [];
+
+    /// <summary>
+    /// The settings its docs page previews, each a switch: every combination of their options is a preview.
+    /// Generation ignores them.
+    /// </summary>
+    public IReadOnlyList<VariationSpec> Variations { get; init; } = [];
+
+    /// <summary>Settings every preview uses, such as a heading level that fits the docs page. Generation ignores them.</summary>
+    public IReadOnlyDictionary<string, string> PreviewSettings { get; init; } = new Dictionary<string, string>();
+
     /// <summary>Reads a manifest from the text of an <c>izzy.json</c>.</summary>
     public static ItemManifest Parse(string json)
     {
@@ -89,6 +101,9 @@ public sealed class ItemManifest
             Restore = (string?)root["restore"],
             Checks = (root["checks"] as JsonArray)?.Select(c => new CheckSpec(
                 (string?)c!["if"], Required(c.AsObject(), "file"), Required(c.AsObject(), "pattern"), Required(c.AsObject(), "message"))).ToList() ?? [],
+            Accessibility = (root["accessibility"] as JsonArray)?.Select(a => (string)a!).ToList() ?? [],
+            Variations = (root["variations"] as JsonArray)?.Select(v => VariationSpec.Parse(v!.AsObject())).ToList() ?? [],
+            PreviewSettings = (root["preview"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
         };
     }
 
@@ -186,3 +201,28 @@ public enum InsertPosition
     /// <summary>On the lines below it.</summary>
     After,
 }
+
+/// <summary>A switch on an item's docs page: a setting and the values it's previewed with.</summary>
+/// <param name="Key">The switch's name in the address, such as <c>layout</c>.</param>
+/// <param name="Label">Its label, such as "Layout".</param>
+/// <param name="Setting">The setting it sets.</param>
+/// <param name="Options">Each option's label and the setting's value; the first is shown first.</param>
+public sealed record VariationSpec(string Key, string Label, string Setting, IReadOnlyList<VariationOption> Options)
+{
+    internal static VariationSpec Parse(JsonObject o) => new(
+        ItemManifest.Required(o, "key"),
+        ItemManifest.Required(o, "label"),
+        ItemManifest.Required(o, "setting"),
+        (o["options"] as JsonObject)?.Select(p => new VariationOption(p.Key, (string?)p.Value ?? "")).ToList()
+            ?? throw new GenerationException($"izzy.json: the variation \"{(string?)o["key"]}\" needs \"options\"."));
+}
+
+/// <summary>One option of a <see cref="VariationSpec"/>.</summary>
+/// <param name="Label">What the switch shows, such as "Split".</param>
+/// <param name="Value">The setting's value, such as <c>Split</c>, or empty text to leave a part out.</param>
+public sealed record VariationOption(string Label, string Value)
+{
+    /// <summary>The option in the address, such as <c>split</c>.</summary>
+    public string Slug => Label.ToLowerInvariant().Replace(' ', '-');
+}
+
