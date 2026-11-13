@@ -10,7 +10,8 @@ import { emitToggle, isBehind } from "../toggle";
  *   - for menus: focus on open, arrow keys, Home and End, type-ahead, and closing after a choice.
  *   - for submenus (an <ib-popover> inside a menu): opening on hover and with the arrow key toward
  *     it, closing with the arrow key back; choosing an item closes the whole menu.
- *   - for popovers (role="dialog"): focus moves into the panel when the user opens it.
+ *   - for popovers (role="dialog"): focus moves into the panel when the user opens it, and a link
+ *     in it closes it (enhanced navigation would leave it open over the next page).
  *   - on close, focus goes back to the trigger if it was inside the panel.
  *
  * Menu roles promise arrow keys, so static pages render them as data-ib-role, data-ib-checked
@@ -123,6 +124,16 @@ class PopoverRoot extends IzzyElement {
       "focusout",
       (event) => {
         if (!(event as FocusEvent).relatedTarget) this.#focusLeftAt = Date.now();
+      },
+      { signal }
+    );
+
+    // A link in the panel closes it, as SiteNav's does: enhanced navigation keeps the page, so the
+    // panel would stay open over the page the link went to. (A menu's items close it already.)
+    panel.addEventListener(
+      "click",
+      (event) => {
+        if ((event.target as Element).closest("a[href]")?.closest("[popover]") === panel) panel.hidePopover();
       },
       { signal }
     );
