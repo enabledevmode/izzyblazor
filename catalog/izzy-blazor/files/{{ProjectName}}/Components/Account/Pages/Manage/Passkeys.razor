@@ -11,44 +11,52 @@
 
 <PageTitle>Manage your passkeys</PageTitle>
 
-<ManageHeader Title="Passkeys" Description="Log in with your device's fingerprint, face or PIN instead of a password." />
-<StatusMessage />
-@if (currentPasskeys is { Count: > 0 })
-{
-    <Table Items="currentPasskeys" Caption="Your passkeys">
-        <Columns>
-            <PropertyColumn Property="passkey => passkey.Name" Title="Name" />
-            <TemplateColumn Title="Actions">
-                @{
-                    var credentialId = Base64Url.EncodeToString(context.CredentialId);
-                }
-                <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post">
-                    <AntiforgeryToken />
-                    <input type="hidden" name="CredentialId" value="@credentialId" />
-                    <Stack Direction="Direction.Row" Gap="2">
-                        <Button Submit Name="Action" Value="rename" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" title="Rename this passkey">Rename</Button>
-                        <Button Submit Name="Action" Value="delete" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger" title="Remove this passkey from your account">Delete</Button>
-                    </Stack>
-                </form>
-            </TemplateColumn>
-        </Columns>
-    </Table>
-}
-else
-{
-    <TextBlock Color="Color.Muted">No passkeys are registered.</TextBlock>
-}
-<form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
-    <AntiforgeryToken />
-    @if (currentPasskeys is { Count: >= MaxPasskeyCount })
+<Card Title="Passkeys" TitleLevel="2" Description="Log in with your device's fingerprint, face or PIN instead of a password.">
+    <StatusMessage />
+    @if (currentPasskeys is { Count: > 0 })
     {
-        <Alert Status="Status.Warning">You have the most passkeys allowed. Delete one before adding another.</Alert>
+        <Table Items="currentPasskeys" Caption="Your passkeys">
+            <Columns>
+                <PropertyColumn Property="passkey => passkey.Name" Title="Name" />
+                <TemplateColumn Title="Actions">
+                    @{
+                        var credentialId = Base64Url.EncodeToString(context.CredentialId);
+                    }
+                    <form @formname="@($"update-passkey-{credentialId}")" @onsubmit="UpdatePasskey" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="CredentialId" value="@credentialId" />
+                        <Row Gap="2">
+                            <Button Submit Name="Action" Value="rename" Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Rename</Button>
+                            <Button Submit Name="Action" Value="delete" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Delete</Button>
+                        </Row>
+                    </form>
+                </TemplateColumn>
+            </Columns>
+        </Table>
+        @if (currentPasskeys.Count >= MaxPasskeyCount)
+        {
+            <Alert Status="Status.Warning">You have the most passkeys allowed. Delete one before adding another.</Alert>
+        }
+        else
+        {
+            <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
+                <AntiforgeryToken />
+                <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" Variant="ButtonVariant.Solid">Add a passkey</PasskeySubmit>
+            </form>
+        }
     }
     else
     {
-        <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" Variant="ButtonVariant.Solid">Add a passkey</PasskeySubmit>
+        <EmptyState Icon="Lucide.KeyRound" Title="No passkeys yet" Description="Add one to log in without typing a password.">
+            <EmptyStateActions>
+                <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
+                    <AntiforgeryToken />
+                    <PasskeySubmit Operation="PasskeyOperation.Create" Name="Input" Variant="ButtonVariant.Solid">Add a passkey</PasskeySubmit>
+                </form>
+            </EmptyStateActions>
+        </EmptyState>
     }
-</form>
+</Card>
 
 @code {
     private const int MaxPasskeyCount = 100;

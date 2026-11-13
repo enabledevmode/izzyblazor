@@ -9,15 +9,16 @@
 
 <PageTitle>Turn off two-factor authentication</PageTitle>
 
-<ManageHeader Title="Turn off two-factor authentication" />
-<StatusMessage />
-<Alert Status="Status.Warning" Title="This only turns off two-factor authentication">
-    The key your authenticator app uses stays the same. To change it, <Anchor Href="Account/Manage/ResetAuthenticator">reset your authenticator key</Anchor>.
-</Alert>
-<form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
-    <AntiforgeryToken />
-    <Button Submit Accent="Accent.Danger">Turn off two-factor authentication</Button>
-</form>
+<Card Title="Turn off two-factor authentication" TitleLevel="2">
+    <StatusMessage />
+    <Alert Status="Status.Warning" Title="This only turns off two-factor authentication">
+        The key your authenticator app uses stays the same. To change it, <Anchor Href="Account/Manage/ResetAuthenticator">reset your authenticator key</Anchor>.
+    </Alert>
+    <form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
+        <AntiforgeryToken />
+        <Button Submit Accent="Accent.Danger">Turn off two-factor authentication</Button>
+    </form>
+</Card>
 
 @code {
     private ApplicationUser? user;

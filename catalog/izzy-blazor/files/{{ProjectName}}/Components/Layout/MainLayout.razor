@@ -29,11 +29,18 @@
             <NavItem Href="contact">Contact</NavItem>
             @*#if (IndividualLocalAuth) *@
             <NavItem Href="auth">Auth required</NavItem>
+            <SiteNavFooter>
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <Button Href="Account/Register" FullWidth>Register</Button>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </SiteNavFooter>
             @*#endif *@
         </SiteNav>
         @*#endif *@
         <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
-        @*#if (IndividualLocalAuth) *@
+        @*#if (IndividualLocalAuth && !SidebarNav) *@
         <AccountMenu />
         @*#endif *@
     </AppHeader>
@@ -49,6 +56,11 @@
             <NavItem Href="auth" Icon="Lucide.Lock">Auth required</NavItem>
             @*#endif *@
         </NavMenu>
+        @*#if (IndividualLocalAuth) *@
+        <SidebarFooter>
+            <AccountMenu />
+        </SidebarFooter>
+        @*#endif *@
     </AppSidebar>
     @*#endif *@
 
