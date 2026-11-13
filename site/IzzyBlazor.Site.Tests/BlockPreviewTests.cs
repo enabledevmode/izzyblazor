@@ -10,7 +10,7 @@ public class BlockPreviewTests
     [Fact]
     public void Each_blocks_previews_are_generated_from_its_template()
     {
-        var site = SiteFolder();
+        var site = RegistryTests.SiteFolder();
         var catalog = new BlockCatalog(Path.Combine(site, "..", "..", "catalog"));
         Assert.NotEmpty(catalog.All);
         var update = Environment.GetEnvironmentVariable("IZZY_UPDATE_PREVIEWS") == "1";
@@ -51,7 +51,4 @@ public class BlockPreviewTests
         Assert.True(update || stale.Count == 0,
             $"Block previews are out of date; set IZZY_UPDATE_PREVIEWS=1 and run this test: {string.Join(", ", stale)}");
     }
-
-    private static string SiteFolder([System.Runtime.CompilerServices.CallerFilePath] string here = "") =>
-        Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "IzzyBlazor.Site"));
 }

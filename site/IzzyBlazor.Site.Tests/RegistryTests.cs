@@ -85,7 +85,7 @@ public class RegistryTests
         Assert.Empty(unshown);
     }
 
-    private static string SiteFolder([System.Runtime.CompilerServices.CallerFilePath] string here = "")
+    internal static string SiteFolder([System.Runtime.CompilerServices.CallerFilePath] string here = "")
     {
         var inRepo = Path.Combine("site", "IzzyBlazor.Site");
         return new[] { Path.Combine(Path.GetDirectoryName(here)!, "..", ".."), AppContext.BaseDirectory, Environment.CurrentDirectory }
