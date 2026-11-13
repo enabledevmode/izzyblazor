@@ -81,7 +81,13 @@
     @*#else *@
     <AppMain>
     @*#endif *@
-        <Box Padding="new() { Base = 4, Md = 8 }">
+        @* With a content width, the shell's column already has a gutter that lines the page up with
+           the header, so the page adds space above and below only; otherwise it pads every side. *@
+        @*#if (WidthOnShell || WidthOnMain) *@
+        <Box PaddingY="new() { Base = 6, Md = 10 }">
+        @*#else *@
+        <Box PaddingX="new() { Base = 4, Md = 10 }" PaddingY="new() { Base = 6, Md = 10 }">
+        @*#endif *@
             <ErrorGuard ShowDetails="DetailedErrors">
                 @Body
             </ErrorGuard>

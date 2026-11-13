@@ -3,50 +3,45 @@
 @inject ToastService Toasts
 @inject NavigationManager Navigation
 
-<PageTitle>Contact</PageTitle>
+<PageTitle>Contact us</PageTitle>
 
-@* The split contact layout: the title, what the form does and the other ways to reach us in a column
-   beside the form, their tops level; on phones they come first, then the form. *@
-<Grid Columns="new() { Base = 1, Lg = 3 }" Gap="new() { Base = 8, Lg = 12 }" Align="Align.Start" MaxWidth="Length.Rem(64)">
-    <Column Gap="8">
-        <Column Gap="2">
-            <Heading Level="1">Contact</Heading>
+@* A real form posting and validating, with the other ways to reach the business beside it as a
+   quiet aside (above the form on phones). Two columns pair the short fields, so nine fit in about
+   two-thirds the height. *@
+<Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
 @*#if (InteractiveAtRoot) *@
-            <TextBlock Color="Color.Muted">This form checks each field as you type, since every page here is interactive. The same form also posts and validates on a static page, with no circuit.</TextBlock>
-@*#elif (UseServer) *@
-            <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit. Add @@rendermode InteractiveServer under @@page and it also checks each field as you type.</TextBlock>
+        <PageHeader Title="Contact us" Description="Fields are checked as you type, and again when you send." />
 @*#else *@
-            <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit.</TextBlock>
+        <PageHeader Title="Contact us" Description="Send us a message. We check it on the server when you send it." />
 @*#endif *@
-        </Column>
-        <Column Gap="4">
-            <Heading Level="2" Size="TextSize.Lg">Other ways to reach us</Heading>
-            <DescriptionList Orientation="Orientation.Vertical">
-                <DescriptionItem Term="Email"><Anchor Href="mailto:hello@example.com">hello@example.com</Anchor></DescriptionItem>
-                <DescriptionItem Term="Replies">Within one working day</DescriptionItem>
-                <DescriptionItem Term="Hours">Monday to Friday, 9:00 to 17:00</DescriptionItem>
-            </DescriptionList>
-        </Column>
-    </Column>
-
-    <Form Model="Model" FormName="contact" RequiredMark="RequiredMark.Optional" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
-        <FormErrors />
-        <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
-            <TextField @bind-Value="Model!.Name" AutoComplete="name" />
-            <TextField @bind-Value="Model!.Email" AutoComplete="email" />
-            <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
-            <TextField @bind-Value="Model!.Phone" AutoComplete="tel" Type="TextFieldType.Tel" />
+        <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "1fr 2fr" })" Gap="new() { Base = 8, Md = 12 }" Align="Align.Start">
+            <Column Gap="4">
+                <Heading Level="2" Size="TextSize.Md">Other ways to reach us</Heading>
+                <DescriptionList Orientation="Orientation.Vertical">
+                    <DescriptionItem Term="Email"><Anchor Href="mailto:hello@example.com">hello@example.com</Anchor></DescriptionItem>
+                    <DescriptionItem Term="Replies">Within one working day</DescriptionItem>
+                    <DescriptionItem Term="Hours">Monday to Friday, 9:00–17:00</DescriptionItem>
+                </DescriptionList>
+            </Column>
+            <Form Model="Model" FormName="contact" RequiredMark="RequiredMark.Optional" OnValidSubmit="Send" Columns="2">
+                <FormErrors />
+                <TextField @bind-Value="Model!.Name" AutoComplete="name" />
+                <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+                <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
+                <TextField @bind-Value="Model!.Phone" AutoComplete="tel" Type="TextFieldType.Tel" />
+                <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
+                <RadioGroup @bind-Value="Model!.Reach" Orientation="Orientation.Horizontal" />
+                <DateField @bind-Value="Model!.CallOn" Min="@Tomorrow" DateDisabled="IsWeekend" Clearable Hint="We call on weekdays." />
+                <TextArea @bind-Value="Model!.Message" Rows="5" ShowCount ColSpan="GridSpan.Full" />
+                <Checkbox @bind-Value="Model!.News" ColSpan="GridSpan.Full" />
+                <FormActions Justify="Justify.Start">
+                    <Button Submit StartIcon="Lucide.Send">Send message</Button>
+                </FormActions>
+            </Form>
         </Grid>
-        <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
-        <RadioGroup @bind-Value="Model!.Reach" Orientation="Orientation.Horizontal" />
-        <DateField @bind-Value="Model!.CallOn" Min="@Tomorrow" DateDisabled="IsWeekend" Clearable Hint="We call on weekdays." />
-        <TextArea @bind-Value="Model!.Message" Rows="5" ShowCount />
-        <Switch @bind-Value="Model!.News" />
-        <FormActions Justify="Justify.Start">
-            <Button Submit StartIcon="Lucide.Send">Send</Button>
-        </FormActions>
-    </Form>
-</Grid>
+    </Column>
+</Container>
 
 @code {
     [SupplyParameterFromForm(FormName = "contact")]
@@ -62,17 +57,16 @@
     {
         // Send or store the message here, then redirect: the toast follows the redirect, and reloading
         // the page doesn't post it again.
-        var how = Model!.Reach == ContactMethod.Phone && Model.Phone is { Length: > 0 } phone ? $"call you on {phone}" : $"reply to {Model.Email}";
-        Toasts.Success($"Thanks, {Model.Name}. We'll {how}.", "Message sent");
+        Toasts.Success("We'll reply within one working day.", "Message sent");
         Navigation.NavigateTo("contact");
     }
 
     public sealed class ContactMessage
     {
-        [Required(ErrorMessage = "Enter your name"), StringLength(80)]
+        [Required(ErrorMessage = "Enter your name."), StringLength(80)]
         public string? Name { get; set; }
 
-        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        [Required(ErrorMessage = "Enter your email."), EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string? Email { get; set; }
 
         [StringLength(80)]
@@ -81,19 +75,19 @@
         [StringLength(30)]
         public string? Phone { get; set; }
 
-        [Required(ErrorMessage = "Choose a topic")]
+        [Required(ErrorMessage = "Choose a topic.")]
         public Topic? Topic { get; set; }
 
-        [Display(Name = "How should we reach you?")]
+        [Required, Display(Name = "How should we reach you?")]
         public ContactMethod Reach { get; set; } = ContactMethod.Email;
 
         [Display(Name = "Best day to call")]
         public DateOnly? CallOn { get; set; }
 
-        [Required(ErrorMessage = "Write your message"), StringLength(1000)]
+        [Required(ErrorMessage = "Write a message."), StringLength(1000)]
         public string? Message { get; set; }
 
-        [Display(Name = "Send me product news now and then")]
+        [Display(Name = "Send me product news")]
         public bool News { get; set; }
     }
 

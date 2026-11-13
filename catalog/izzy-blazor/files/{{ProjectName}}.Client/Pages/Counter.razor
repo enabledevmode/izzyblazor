@@ -7,18 +7,29 @@
 
 <PageTitle>Counter</PageTitle>
 
-<Stack Gap="6" Align="Align.Start">
-    <Stack Gap="2">
-        <Heading Level="1">Counter</Heading>
-        <TextBlock>This component demonstrates interactivity: each click runs C# and draws the page again. The badge says where that C# runs.</TextBlock>
-    </Stack>
-    <Badge Status="@(RendererInfo.IsInteractive ? Status.Success : Status.Neutral)" StartIcon="Lucide.Cpu">@Where</Badge>
-    <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
-        <LinearGauge Label="Current count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
-    </Box>
-    <LiveRegion Text="@($"Current count: {currentCount}")" />
-    <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
-</Stack>
+@* Where the C# runs is the point of the page, so it's the badge beside the title. The demo is in a
+   card, apart from the page's text; the line beside the button says what a click just did. *@
+<Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="Counter" Description="Click the button and watch where the C# runs.">
+            <PageHeaderActions>
+                <Badge Status="@Mode.Status" Pill Dot>@Mode.Text</Badge>
+            </PageHeaderActions>
+        </PageHeader>
+        <Card>
+            <CardBody Gap="5">
+                <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
+                    <LinearGauge Label="Count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
+                </Box>
+                <LiveRegion Text="@($"Count: {currentCount}")" />
+                <Row Gap="4" Wrap Align="Align.Center">
+                    <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Mode.Note</TextBlock>
+                </Row>
+            </CardBody>
+        </Card>
+    </Column>
+</Container>
 
 @code {
     private int currentCount = 0;
@@ -26,8 +37,16 @@
     // The scale grows by tens as the count passes them: 0 to 10, then 0 to 20, and so on.
     private int ScaleMax => (currentCount / 10 + 1) * 10;
 
-    // Server or WebAssembly once the page is interactive; before that, it was prerendered on the server.
-    private string Where => RendererInfo.IsInteractive ? $"Running on {RendererInfo.Name}" : "Prerendered on the server";
+    // Where the C# runs now. Auto starts on the server and moves to the browser once the
+    // WebAssembly runtime has downloaded; before the page is interactive, it was prerendered.
+    private (string Text, Status Status, string Note) Mode => (RendererInfo.IsInteractive, RendererInfo.Name, AssignedRenderMode is InteractiveAutoRenderMode) switch
+    {
+        (false, _, _) => ("Prerendered on the server", Status.Neutral, "Clicks work once the page is interactive."),
+        (_, "WebAssembly", true) => ("Auto: now in your browser", Status.Success, "The WebAssembly runtime arrived, so clicks now run in your browser."),
+        (_, "WebAssembly", false) => ("C# runs in your browser", Status.Success, "Each click runs in the browser. Nothing goes to the server."),
+        (_, _, true) => ("Auto: on the server for now", Status.Info, "Runs on the server until the WebAssembly runtime arrives, then in your browser."),
+        _ => ("C# runs on the server", Status.Info, "Each click calls the server over a live connection."),
+    };
 
     private void IncrementCount()
     {

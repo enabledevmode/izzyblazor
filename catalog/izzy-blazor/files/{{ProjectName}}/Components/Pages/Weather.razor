@@ -6,17 +6,21 @@
 <PageTitle>Weather</PageTitle>
 
 @* The data page: the Medium column (48rem) from the main area's edge, the page header, then the
-   table, bordered, at the column's width. While the forecast loads, the table shows placeholder
-   rows at the height the rows will take, so nothing moves when they arrive. *@
+   grid at the column's width. While the forecast loads, it shows placeholder rows at the height the
+   rows will take, so nothing moves when they arrive. On a phone the columns that don't fit hide,
+   lowest priority first (Temp. F, which repeats Temp. C, then Summary), and each row's
+   button shows them under it.
+   Sorting and filtering go through the address, so they work on a static page. *@
 <Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
     <Column Gap="new() { Base = 6, Md = 8 }">
         <PageHeader Title="Weather" Description="Five days of forecasts. Sort and filter through the address." />
-        <Table Items="forecasts ?? []" Loading="forecasts is null" Caption="Forecast" Striped InitialSort="date" FilterPanel>
+        <DataGrid Items="forecasts ?? []" Loading="forecasts is null" Caption="Forecast" Striped InitialSort="date" FilterPanel
+                  ItemKey="@(f => f.Date.ToString("O"))" RowLabel="@(f => f.Date.ToLongDateString())" SmallScreen="DataGridSmallScreen.HideColumns">
             <Columns>
-                <PropertyColumn Property="f => f.Date" Title="Date" Format="d" Sortable Filterable />
-                <PropertyColumn Property="f => f.TemperatureC" Title="Temp. (C)" Align="CellAlign.End" Sortable Filterable />
-                <PropertyColumn Property="f => f.TemperatureF" Title="Temp. (F)" Align="CellAlign.End" Sortable />
-                <PropertyColumn Property="f => f.Summary" Title="Summary" Sortable Filterable />
+                <PropertyColumn Property="f => f.Date" Title="Date" Format="d" Width="Length.Rem(7.5)" Sortable Filterable />
+                <PropertyColumn Property="f => f.TemperatureC" Title="Temp. C" Align="CellAlign.End" Width="Length.Rem(9)" Sortable Filterable Priority="2" />
+                <PropertyColumn Property="f => f.TemperatureF" Title="Temp. F" Align="CellAlign.End" Width="Length.Rem(7)" Sortable Priority="0" />
+                <PropertyColumn Property="f => f.Summary" Title="Summary" MinWidth="Length.Rem(8)" Sortable Filterable Priority="1" />
             </Columns>
             <EmptyContent>
                 <EmptyState Size="ControlSize.Sm" Icon="Lucide.Funnel" Title="No matching days" Description="Change or clear the filters.">
@@ -25,7 +29,7 @@
                     </EmptyStateActions>
                 </EmptyState>
             </EmptyContent>
-        </Table>
+        </DataGrid>
     </Column>
 </Container>
 

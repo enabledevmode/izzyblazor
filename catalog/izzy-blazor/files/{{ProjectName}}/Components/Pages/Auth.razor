@@ -2,11 +2,25 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
-<PageTitle>Auth</PageTitle>
+<PageTitle>You're signed in</PageTitle>
 
-<Stack Gap="2">
-    <Heading Level="1">You are authenticated</Heading>
-    <AuthorizeView>
-        <TextBlock>Hello @context.User.Identity?.Name!</TextBlock>
-    </AuthorizeView>
-</Stack>
+@* The page only signed-in users reach. The two lines that make it so are what a developer came to
+   see; the note says how to try the redirect. *@
+<Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <AuthorizeView>
+            <PageHeader Title="You're signed in" Description="@($"Hello, {context.User.Identity?.Name}. Only signed-in users can see this page.")" />
+        </AuthorizeView>
+        <Column Gap="3">
+            <Code Block Language="razor" Title="Components/Pages/Auth.razor">@Source</Code>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Log out and open this page again: you'll be sent to Log in, then brought back here.</TextBlock>
+        </Column>
+    </Column>
+</Container>
+
+@code {
+    private const string Source = """
+        @page "/auth"
+        @attribute [Authorize]
+        """;
+}
