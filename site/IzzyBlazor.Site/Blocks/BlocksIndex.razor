@@ -13,44 +13,49 @@
         <div class="site-lead">Page sections and screens you add with one command and then own.</div>
     </Stack>
 
-    @if (Filterable)
-    {
-        <div class="site-filter-row">
-            <FilterForm Label="Filter the blocks">
-                <FilterSelect Name="category" Label="Category" AllText="All categories"
-                              Items="Blocks.Categories.Select(BlockCatalog.CategoryAnchor)" ItemText="CategoryText" />
-                <FilterSelect Name="tier" Label="Tier" AllText="All tiers" Items="Tiers" ItemText="TierText" />
-            </FilterForm>
-            <p role="status" class="site-search-count">@($"{_shown.Count} of {Blocks.All.Count} blocks")</p>
-        </div>
-    }
-
+    @* Each point: an icon in a bordered square beside its title and one line. The titles stay out of
+       "On this page", which lists the panel's own heading. *@
     <section class="site-blocks-how" aria-labelledby="how-blocks-work">
-        <Heading Level="2" Size="TextSize.Lg" id="how-blocks-work">How blocks work</Heading>
+        <Heading Level="2" Size="TextSize.Md" id="how-blocks-work">How blocks work</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5">
             <div class="site-blocks-point">
                 <span class="site-blocks-point-icon"><Icon Name="Lucide.Terminal" /></span>
-                <Heading Level="3" Size="TextSize.Md">Add it with one command</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">It's written into your project.</TextBlock>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">Add it with one command</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">It's written into your project.</TextBlock>
+                </div>
             </div>
             <div class="site-blocks-point">
-                <span class="site-blocks-point-icon"><Icon Name="Lucide.FileCode" /></span>
-                <Heading Level="3" Size="TextSize.Md">It's your code</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Edit it like any file of yours.</TextBlock>
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.CodeXml" /></span>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">It's your code</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Edit it like any file of yours.</TextBlock>
+                </div>
             </div>
             <div class="site-blocks-point">
                 <span class="site-blocks-point-icon"><Icon Name="Lucide.KeyRound" /></span>
-                <Heading Level="3" Size="TextSize.Md">Pro needs a license key</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                    Anyone can browse them.
-                    @if (SiteLinks.Pricing is { } pricing)
-                    {
-                        <Anchor Href="@pricing">See pricing</Anchor>
-                    }
-                </TextBlock>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">Pro needs a license key</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                        Anyone can browse them.
+                        @if (SiteLinks.Pricing is { } pricing)
+                        {
+                            <Anchor Href="@pricing">See pricing</Anchor>
+                        }
+                    </TextBlock>
+                </div>
             </div>
         </Grid>
     </section>
+
+    <div class="site-filter-row">
+        <FilterForm Label="Filter the blocks">
+            <FilterSelect Name="category" Label="Category" AllText="All categories"
+                          Items="Blocks.Categories.Select(BlockCatalog.CategoryAnchor)" ItemText="CategoryText" />
+            <FilterSelect Name="tier" Label="Tier" AllText="All tiers" Items="Tiers" ItemText="TierText" />
+        </FilterForm>
+        <p role="status" class="site-search-count">@($"{_shown.Count} of {Blocks.All.Count} {(Blocks.All.Count == 1 ? "block" : "blocks")}")</p>
+    </div>
 
     @if (_shown.Count == 0)
     {
@@ -66,10 +71,10 @@
         {
             var anchor = BlockCatalog.CategoryAnchor(group.Key);
             <section class="site-blocks-group" aria-labelledby="@anchor">
-                <Row Gap="2" Align="Align.Baseline">
+                <div class="site-blocks-group-head">
                     <Heading Level="2" Size="TextSize.Xl" id="@anchor">@group.Key</Heading>
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@group.Count()</TextBlock>
-                </Row>
+                    <span class="site-blocks-count">@group.Count()</span>
+                </div>
                 <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5" Class="site-block-cards">
                     @foreach (var block in group)
                     {
@@ -84,7 +89,7 @@
                 </Grid>
             </section>
         }
-        @if (!Filterable)
+        @if (Blocks.Categories.Count == 1)
         {
             <TextBlock Color="Color.Muted">More blocks are on the way: features, pricing, testimonials and whole app pages.</TextBlock>
         }
@@ -99,9 +104,6 @@
     private static readonly string[] Tiers = ["free", "pro"];
 
     private List<Block> _shown = [];
-
-    // The filters show once there's more than one category to choose from.
-    private bool Filterable => Blocks.Categories.Count > 1;
 
     private string CategoryText(string anchor)
     {

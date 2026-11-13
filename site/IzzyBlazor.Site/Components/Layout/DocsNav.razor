@@ -13,7 +13,7 @@
     @if (_area == DocsArea.Blocks)
     {
         @* Every block under its category's heading; the free ones say so, in small text, not a chip. *@
-        <NavItem Href="blocks" Icon="Lucide.LayoutTemplate" Match="NavLinkMatch.All">All blocks</NavItem>
+        <NavItem Href="blocks" Match="NavLinkMatch.All">Overview</NavItem>
         @foreach (var category in Blocks.Categories)
         {
             <NavLabel>@category</NavLabel>
