@@ -5,13 +5,15 @@
     }
 </style>
 
-<Form Model="Model" FormName="calendar-days" OnValidSubmit="Save" Columns="2">
-    <Calendar @bind-Value="Model!.Visit" DateDisabled="IsWeekend" DateDisabledWindow="TimeSpan.FromDays(90)" Hint="On a weekday, within 90 days." />
-    <Calendar @bind-Value="Model!.Transfer" DayClass="@(day => day.Day == 15 ? "pay-day" : null)" Hint="Paydays are outlined." />
-    <Row ColSpan="GridSpan.Full"><Button Submit>Save dates</Button></Row>
+<Form Model="Model" FormName="calendar-days" OnValidSubmit="Save">
+    <Row Gap="6" Wrap Align="Align.Start">
+        <Calendar @bind-Value="Model!.Visit" DateDisabled="IsWeekend" DateDisabledWindow="TimeSpan.FromDays(90)" Hint="On a weekday, within 90 days." />
+        <Calendar @bind-Value="Model!.Transfer" DayClass="@(day => day.Day == 15 ? "pay-day" : null)" Hint="Paydays are outlined." />
+    </Row>
+    <Row><Button Submit>Save dates</Button></Row>
     @if (_saved is { } saved)
     {
-        <Alert ColSpan="GridSpan.Full" Status="Status.Success">Saved: visit on @saved.</Alert>
+        <Alert Status="Status.Success">Saved: visit on @saved.</Alert>
     }
 </Form>
 
