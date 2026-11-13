@@ -8,9 +8,9 @@
    the foot of the drawer. *@
 <AuthorizeView>
     <Authorized>
-        <Menu Placement="Placement.TopStart">
+        <Menu Placement="Placement.TopStart" Width="Length.Full">
             <Trigger Context="trigger">
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Lg" FullWidth EndIcon="Lucide.ChevronsUpDown" @attributes="trigger">
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Lg" EndIcon="Lucide.ChevronsUpDown" @attributes="trigger">
                     <Avatar Name="@context.User.Identity?.Name" Size="AvatarSize.Xs" Decorative />
                     <TextBlock As="span" Size="TextSize.Sm" Align="TextAlign.Start" Truncate Grow>@context.User.Identity?.Name</TextBlock>
                 </Button>
