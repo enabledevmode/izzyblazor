@@ -2,8 +2,9 @@
 @inject NavigationManager NavigationManager
 
 @* At the end of the header, in both nav layouts. Signed out: Log in and Register (on phones they're
-   at the foot of the menu panel instead). Signed in: your avatar, opening a menu headed by your
-   email, to manage your account or log out. Signing in swaps one for the other in the same place. *@
+   at the foot of the menu panel instead; an --empty app has no panel, so they stay here). Signed
+   in: your avatar, opening a menu headed by your email, to manage your account or log out. Signing
+   in swaps one for the other in the same place. *@
 <AuthorizeView>
     <Authorized>
         <Menu Placement="Placement.BottomEnd">
@@ -26,8 +27,14 @@
         </form>
     </Authorized>
     <NotAuthorized>
+        @*#if (SampleContent) *@
         <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Log in</Button>
         <Button Href="Account/Register" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Register</Button>
+        @*#else *@
+        @* No menu panel in an --empty app, so they stay here at every width. *@
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Log in</Button>
+        <Button Href="Account/Register" Size="ControlSize.Sm">Register</Button>
+        @*#endif *@
     </NotAuthorized>
 </AuthorizeView>
 

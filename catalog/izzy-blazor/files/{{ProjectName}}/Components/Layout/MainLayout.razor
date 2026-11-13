@@ -1,6 +1,5 @@
 @inherits LayoutComponentBase
 @inject IConfiguration Configuration
-@*#if (SampleContent) *@
 
 @*#if (WidthOnShell && AutoWidth && PlainShell) *@
 <AppShell ContentWidth="Length.Rem(72)">
@@ -19,11 +18,11 @@
        the color scheme and, at the end, the account control. On phones both layouts open a panel
        under the header, with Log in and Register at its foot. *@
     <AppHeader>
-        @*#if (SidebarNav) *@
+        @*#if (SidebarNav && SampleContent) *@
         <SidebarToggle />
         @*#endif *@
-        <AppBrand Href="" Icon="Lucide.Blocks" Label="{{ProjectName}}" />
-        @*#if (!SidebarNav) *@
+        <AppBrand Href="" Icon="Lucide.Box" Label="{{ProjectName}}" />
+        @*#if (!SidebarNav && SampleContent) *@
         <SiteNav MenuButtonPosition="MenuButtonPosition.Start">
             <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
             <NavItem Href="counter">Counter</NavItem>
@@ -35,8 +34,8 @@
                 <AuthorizeView>
                     <NotAuthorized>
                         <Row Gap="2" Grow>
-                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Grow>Log in</Button>
-                            <Button Href="Account/Register" Grow>Register</Button>
+                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                            <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
                         </Row>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -50,7 +49,7 @@
         <AccountMenu />
         @*#endif *@
     </AppHeader>
-    @*#if (SidebarNav) *@
+    @*#if (SidebarNav && SampleContent) *@
 
     <AppSidebar SmallScreen="SidebarSmallScreen.Panel">
         <NavMenu>
@@ -67,8 +66,8 @@
             <AuthorizeView>
                 <NotAuthorized>
                     <Row Gap="2" HiddenFrom="Breakpoint.Md">
-                        <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Grow>Log in</Button>
-                        <Button Href="Account/Register" Grow>Register</Button>
+                        <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                        <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
                     </Row>
                 </NotAuthorized>
             </AuthorizeView>
@@ -89,12 +88,6 @@
         </Box>
     </AppMain>
 </AppShell>
-@*#else *@
-
-<ErrorGuard ShowDetails="DetailedErrors">
-    @Body
-</ErrorGuard>
-@*#endif *@
 
 <ToastRegion />
 @*#if (UseServer || UseWebAssembly) *@

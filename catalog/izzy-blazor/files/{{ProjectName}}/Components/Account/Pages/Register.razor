@@ -18,7 +18,7 @@
 
 <PageTitle>Register</PageTitle>
 
-<AccountPanel Title="Create an account">
+<AccountPanel Title="Create an account" Description="Use your email and a password.">
     <StatusMessage Message="@Message" />
     <Form Model="Input" OnValidSubmit="RegisterUser" FormName="register">
         <FormErrors />
@@ -28,7 +28,7 @@
         <Button Submit FullWidth>Register</Button>
     </Form>
     <ExternalLoginPicker />
-    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
         Already have an account? <Anchor Href="Account/Login">Log in</Anchor>
     </TextBlock>
 </AccountPanel>

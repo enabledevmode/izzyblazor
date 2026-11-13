@@ -26,7 +26,7 @@
             </Row>
             <Button Submit FullWidth>Log in</Button>
             @* The passkey button stays in the form: Microsoft's passkey-submit element posts it. *@
-            <Column Gap="3">
+            <Column Gap="3" MarginTop="6">
                 <Divider Label="or" />
                 <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email"
                                Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Log in with a passkey</PasskeySubmit>
@@ -34,7 +34,7 @@
         </Form>
         <ExternalLoginPicker Divider="false" />
     </Column>
-    <Column Gap="1">
+    <Column Gap="1" MarginTop="6">
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
         </TextBlock>

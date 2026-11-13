@@ -62,9 +62,18 @@ customElements.define('passkey-submit', class extends HTMLElement {
         // A click on the passkey button starts the request itself, so the form isn't submitted
         // first: a submit, even one that skips validation, marks the browser's empty required
         // fields as edited, and they'd show as invalid behind the passkey dialog.
-        this.internals.form.querySelector('button[name="__passkeySubmit"]')?.addEventListener('click', (event) => {
+        // While the browser's passkey prompt is open, the button shows it's waiting.
+        const button = this.internals.form.querySelector('button[name="__passkeySubmit"]');
+        button?.addEventListener('click', async (event) => {
             event.preventDefault();
-            this.obtainAndSubmitCredential();
+            if (button.getAttribute('aria-busy') === 'true') return;
+            button.classList.add('ib-btn-loading');
+            button.setAttribute('aria-busy', 'true');
+            const submitted = await this.obtainAndSubmitCredential();
+            if (!submitted) {
+                button.classList.remove('ib-btn-loading');
+                button.removeAttribute('aria-busy');
+            }
         });
 
         this.tryAutofillPasskey();
@@ -106,13 +115,13 @@ customElements.define('passkey-submit', class extends HTMLElement {
         } catch (error) {
             if (error.name === 'AbortError') {
                 // The user explicitly canceled the operation - return without error.
-                return;
+                return false;
             }
             console.error(error);
             if (useConditionalMediation) {
                 // An error occurred during conditional mediation, which is not user-initiated.
                 // We log the error in the console but do not relay it to the user.
-                return;
+                return false;
             }
             const errorMessage = error.name === 'NotAllowedError'
                 ? 'No passkey was provided by the authenticator.'
@@ -121,6 +130,7 @@ customElements.define('passkey-submit', class extends HTMLElement {
         }
         this.internals.setFormValue(formData);
         this.internals.form.submit();
+        return true;
     }
 
     async tryAutofillPasskey() {
