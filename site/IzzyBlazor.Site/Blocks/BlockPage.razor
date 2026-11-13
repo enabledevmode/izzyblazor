@@ -123,14 +123,17 @@
             Each setting is a flag on <code>izzy add</code>. The flag syntax isn't final; for now it looks like this:
         </TextBlock>
         <Code Block Language="bash">@FlagExample</Code>
-        <Table Items="_settings" Caption="@($"{_block.Name} settings")" Size="ControlSize.Sm" Class="site-params" Bordered="false" SmallScreen="TableSmallScreen.Stack">
+        <Table Items="_settings" Caption="@($"{_block.Name} settings")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack">
             <Columns>
                 <TemplateColumn Title="Name"><code class="site-member-name">@context!.Name</code></TemplateColumn>
-                <TemplateColumn Title="Type or choices"><code class="site-type">@TypeText(context!)</code></TemplateColumn>
+                <TemplateColumn Title="Type or choices">
+                    <code class="site-type site-choices">@TypeText(context!)</code>
+                </TemplateColumn>
                 <TemplateColumn Title="Default">
                     @if (context!.Default.Length > 0)
                     {
-                        <code class="site-default">@context.Default</code>
+                        @* A sentence-long default wraps in a box of its own; any other stays on one line. *@
+                        <code class="@(context.Default.Length > 32 ? "site-default site-default-long" : "site-default")">@context.Default</code>
                     }
                     else
                     {
