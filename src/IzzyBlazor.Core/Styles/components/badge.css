@@ -131,6 +131,16 @@
     --ib-tag-x-icon: 0.875rem;
   }
 
+  /* Rounded ends: the link and remove control follow, and the sides get more room for the curve. */
+  .ib-tag-pill {
+    --ib-tag-px: calc(var(--ib-tag-h) / 2.5);
+    border-radius: var(--ib-radius-full);
+  }
+
+  .ib-tag-pill :is(.ib-tag-link, .ib-tag-remove) {
+    border-radius: var(--ib-radius-full);
+  }
+
   .ib-tag-removable {
     padding-inline-end: 2px;
   }

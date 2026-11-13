@@ -2180,7 +2180,7 @@
       ],
       "examples": [
         { "id": "tag-variants", "title": "Status and variants", "lead": "A tag's color comes from a status or an accent, and its weight from a variant. To set the color, set `Status` or `Accent`. To set the weight, set `Variant`." },
-        { "id": "tag-links-sizes", "title": "Links, icons and sizes", "lead": "To make a tag a link, set `Href`. To add an icon, set `StartIcon`. To match a tag to controls of the same `ControlSize`, set `Size`." },
+        { "id": "tag-links-sizes", "title": "Links, icons, pills and sizes", "lead": "To make a tag a link, set `Href`; for rounded ends, set `Pill`. To add an icon, set `StartIcon`. To match a tag to controls of the same `ControlSize`, set `Size`." },
         { "id": "tag-remove", "title": "Removable", "lead": "For a remove link that works on any page, set `RemoveHref`. On interactive pages, `OnRemove` runs C# instead.",
           "notes": {
             "noscript": "Each remove control is a link to this page without that filter.",
