@@ -13,7 +13,6 @@
                 <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Lg" @attributes="trigger">
                     <Avatar Name="@context.User.Identity?.Name" Size="AvatarSize.Sm" Decorative />
                     <TextBlock As="span" Size="TextSize.Sm" Align="TextAlign.Start" Truncate Grow>@context.User.Identity?.Name</TextBlock>
-                    <Icon Name="Lucide.ChevronsUpDown" Size="IconSize.Sm" Color="Color.Muted" />
                 </Button>
             </Trigger>
             <ChildContent>
