@@ -5,15 +5,32 @@
 <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
     <Column Gap="new() { Base = 6, Md = 8 }">
         <PageHeader Title="Hello, world!" Description="Your IzzyBlazor app is running. Here's where to go next." />
+        @* Four next steps, none above the others. Each leaves the app for the docs site, so its arrow
+           points out. *@
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
-            <Card TitleLevel="2" Title="Browse the components" Description="Every component, with live examples, their code and what each does in each render mode." Href="https://izzyblazor.com/docs/components" />
-            <Card TitleLevel="2" Title="Theme your app" Description="Pick a preset and a brand color on IzzyTheme in Components/App.razor." Href="https://izzyblazor.com/docs/theming" />
-            @*#if (InteractiveAtRoot) *@
-            <Card TitleLevel="2" Title="Choose a render mode" Description="Every page here is interactive. IzzyBlazor's components also work on static pages, which need no circuit or download." Href="https://izzyblazor.com/docs/common/render-modes" />
-            @*#else *@
-            <Card TitleLevel="2" Title="Choose a render mode" Description="Pages are static by default. Add @@rendermode to the ones that need C# running in the browser or over a circuit." Href="https://izzyblazor.com/docs/common/render-modes" />
-            @*#endif *@
-            <Card TitleLevel="2" Title="Use an AI assistant" Description="Connect your assistant to IzzyBlazor's docs, so it writes code that fits each render mode." Href="https://izzyblazor.com/docs/get-started/ai-assistants" />
+            <Card TitleLevel="2" Title="Browse the components" Description="Every component, with examples you can copy." Href="https://izzyblazor.com/docs/components">
+                <CardHeader><Avatar Icon="Lucide.LayoutGrid" Square Accent="Accent.Primary" Decorative /></CardHeader>
+                <CardActions><Icon Name="Lucide.ArrowUpRight" Color="Color.Muted" /></CardActions>
+            </Card>
+            <Card TitleLevel="2" Title="Theme your app" Description="Presets, brand colors, dark mode and your own tokens." Href="https://izzyblazor.com/docs/theming">
+                <CardHeader><Avatar Icon="Lucide.Palette" Square Accent="Accent.Primary" Decorative /></CardHeader>
+                <CardActions><Icon Name="Lucide.ArrowUpRight" Color="Color.Muted" /></CardActions>
+            </Card>
+@*#if (InteractiveAtRoot) *@
+            <Card TitleLevel="2" Title="Choose a render mode" Description="Every page is interactive. See when a static page would serve better." Href="https://izzyblazor.com/docs/common/render-modes">
+                <CardHeader><Avatar Icon="Lucide.Zap" Square Accent="Accent.Primary" Decorative /></CardHeader>
+                <CardActions><Icon Name="Lucide.ArrowUpRight" Color="Color.Muted" /></CardActions>
+            </Card>
+@*#else *@
+            <Card TitleLevel="2" Title="Choose a render mode" Description="Pages are static. Make one interactive when it needs to be." Href="https://izzyblazor.com/docs/common/render-modes">
+                <CardHeader><Avatar Icon="Lucide.Zap" Square Accent="Accent.Primary" Decorative /></CardHeader>
+                <CardActions><Icon Name="Lucide.ArrowUpRight" Color="Color.Muted" /></CardActions>
+            </Card>
+@*#endif *@
+            <Card TitleLevel="2" Title="Use an AI assistant" Description="Give your assistant the docs, so it writes IzzyBlazor." Href="https://izzyblazor.com/docs/get-started/ai-assistants">
+                <CardHeader><Avatar Icon="Lucide.Sparkles" Square Accent="Accent.Primary" Decorative /></CardHeader>
+                <CardActions><Icon Name="Lucide.ArrowUpRight" Color="Color.Muted" /></CardActions>
+            </Card>
         </Grid>
     </Column>
 </Container>

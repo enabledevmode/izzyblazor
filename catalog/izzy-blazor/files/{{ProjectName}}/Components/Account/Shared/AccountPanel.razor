@@ -1,7 +1,7 @@
 @* The frame of the sign-in and one-message pages: the Narrow column (24rem), centered across the
    page at a fixed distance under the header, so the title never moves when an alert appears. The
    text starts at the column's edge; the title is the page's h1. *@
-<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 8, Md = 16 }">
+<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 2, Md = 14 }">
     <Column Gap="new() { Base = 6, Md = 8 }">
         <PageHeader Title="@(Title ?? "")" Description="@Description" Size="ControlSize.Lg" />
         @ChildContent

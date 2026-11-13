@@ -3,28 +3,28 @@
 
 <PageTitle>Error</PageTitle>
 
-@* A page that's only a message, in the same column as Not found: what happened, the request ID
-   to look the error up by, then the way on. *@
-<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 8, Md = 16 }">
+@* A page that's only a message, in the same column as Not found. The visitor's part comes first
+   and is complete on its own; the developer's part is folded away under it. *@
+<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 2, Md = 14 }">
     <Column Gap="8">
-        <PageHeader Title="Something went wrong" Description="The error has been logged with its request ID." Size="ControlSize.Lg" />
-        <Alert Status="Status.Danger">
-            An error occurred while processing your request.
-            @if (ShowRequestId)
-            {
-                <br />
-                <text>Request ID: </text><Code>@RequestId</Code>
-            }
-        </Alert>
-        <Button Href="" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Go to the home page</Button>
-        <Column Gap="1">
-            <Heading Level="2" Size="TextSize.Sm">Development mode</Heading>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                To see details of the error, set the <Code>ASPNETCORE_ENVIRONMENT</Code> environment variable to
-                <Code>Development</Code> and restart the app. Don't do this in production: it shows sensitive
-                information to users.
-            </TextBlock>
-        </Column>
+        <PageHeader Title="Something went wrong" Description="We couldn't finish your request. Try again, or go back to the home page." Size="ControlSize.Lg" />
+        <Button Href="" FullWidth>Go to the home page</Button>
+        <Collapsible Label="Details for developers">
+            <Column Gap="3" PaddingTop="3">
+                @if (ShowRequestId)
+                {
+                    <Row Gap="2" Align="Align.Center" Wrap>
+                        <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Request ID</TextBlock>
+                        <Code id="request-id">@RequestId</Code>
+                        <CopyButton For="request-id" Label="Copy request ID" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    </Row>
+                }
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    To see the error's details, set <Code>ASPNETCORE_ENVIRONMENT</Code> to <Code>Development</Code> and
+                    restart the app. Don't do this in production: it shows sensitive information to anyone who sees the page.
+                </TextBlock>
+            </Column>
+        </Collapsible>
     </Column>
 </Container>
 
