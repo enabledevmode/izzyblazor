@@ -1,4 +1,4 @@
-<Form Model="Model" FormName="calendar-periods" OnValidSubmit="Save" Grow>
+<Form Model="Model" FormName="calendar-periods" OnValidSubmit="Save">
     <Calendar @bind-Value="Model!.Starts" Type="CalendarType.Month" />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved is { } saved)
