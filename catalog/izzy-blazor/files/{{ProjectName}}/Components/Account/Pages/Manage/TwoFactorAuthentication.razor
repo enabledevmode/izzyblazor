@@ -10,88 +10,87 @@
 
 <PageTitle>Two-factor authentication</PageTitle>
 
-@* A settings row per part of two-factor authentication: what it is and its state, with its action at
-   the end; turning it off comes last, on its own. *@
-<Card Title="Two-factor authentication" TitleLevel="2" Description="Ask for a code from your phone at login, on top of your password." Dividers>
-    <CardActions>
+@* A section of the settings page: its header (with the On/Off state), the status slot, then a row
+   per part with its action at the end; turning it off is set apart, last. *@
+<PageHeader Title="Two-factor authentication" TitleLevel="2" Size="ControlSize.Sm"
+            Description="Ask for a code from your phone at login, on top of your password.">
+    <PageHeaderActions>
         <Badge Status="@(is2faEnabled ? Status.Success : Status.Neutral)" Dot>@(is2faEnabled ? "On" : "Off")</Badge>
-    </CardActions>
-    @if (canTrack)
+    </PageHeaderActions>
+</PageHeader>
+<StatusMessage />
+@if (!canTrack)
+{
+    <Alert Status="Status.Warning" Title="Accept the cookie policy first">
+        Two-factor authentication needs it to remember this browser.
+    </Alert>
+}
+else
+{
+    @if (is2faEnabled && recoveryCodesLeft == 0)
     {
-        <CardBody>
-            <StatusMessage />
-            <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-                <Column Gap="1">
-                    <Heading Level="3" Size="TextSize.Md">Authenticator app</Heading>
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(hasAuthenticator ? "Set up. Your codes come from the app." : "Not set up yet.")</TextBlock>
-                </Column>
-                @if (!hasAuthenticator)
+        <Alert Status="Status.Danger" Title="You have no recovery codes left">
+            Generate new ones before you can log in with a recovery code.
+        </Alert>
+    }
+    else if (is2faEnabled && recoveryCodesLeft <= 3)
+    {
+        <Alert Status="Status.Warning" Title="@(recoveryCodesLeft == 1 ? "You have 1 recovery code left" : $"You have {recoveryCodesLeft} recovery codes left")">
+            Generate new ones before you run out.
+        </Alert>
+    }
+    <Column Gap="5">
+        <List Plain Dividers Gap="5">
+            <ListItem Icon="Lucide.Smartphone" Description="@(hasAuthenticator ? "Set up. Codes come from your app." : "Not set up yet.")">
+                Authenticator app
+                <ListItemActions>
+                    @if (hasAuthenticator)
+                    {
+                        <Button Href="Account/Manage/EnableAuthenticator" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Set up again</Button>
+                        <Button Href="Account/Manage/ResetAuthenticator" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Reset key</Button>
+                    }
+                    else
+                    {
+                        <Button Href="Account/Manage/EnableAuthenticator" Size="ControlSize.Sm">Add an authenticator app</Button>
+                    }
+                </ListItemActions>
+            </ListItem>
+            @if (is2faEnabled)
+            {
+                <ListItem Icon="Lucide.LifeBuoy" Description="@(recoveryCodesLeft == 1 ? "1 code left." : $"{recoveryCodesLeft} codes left.")">
+                    Recovery codes
+                    <ListItemActions>
+                        <Button Href="Account/Manage/GenerateRecoveryCodes" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Generate new codes</Button>
+                    </ListItemActions>
+                </ListItem>
+                @if (isMachineRemembered)
                 {
-                    <Button Href="Account/Manage/EnableAuthenticator" StartIcon="Lucide.Smartphone">Add an authenticator app</Button>
+                    <ListItem Icon="Lucide.Monitor" Description="Remembered: you won't be asked for a code here.">
+                        This browser
+                        <ListItemActions>
+                            <form @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
+                                <AntiforgeryToken />
+                                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Forget this browser</Button>
+                            </form>
+                        </ListItemActions>
+                    </ListItem>
                 }
-                else
-                {
-                    <Row Gap="2" Wrap>
-                        <Button Href="Account/Manage/EnableAuthenticator" Variant="ButtonVariant.Outline">Set up again</Button>
-                        <Button Href="Account/Manage/ResetAuthenticator" Variant="ButtonVariant.Outline">Reset key</Button>
-                    </Row>
-                }
-            </Row>
-        </CardBody>
+            }
+        </List>
         @if (is2faEnabled)
         {
-            <CardBody>
-                <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-                    <Column Gap="1">
-                        <Heading Level="3" Size="TextSize.Md">Recovery codes</Heading>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(recoveryCodesLeft == 1 ? "1 code left" : $"{recoveryCodesLeft} codes left"). Use one to log in if you lose your phone.</TextBlock>
-                    </Column>
-                    <Button Href="Account/Manage/GenerateRecoveryCodes" Variant="ButtonVariant.Outline">Generate new codes</Button>
-                </Row>
-                @if (recoveryCodesLeft == 0)
-                {
-                    <Alert Status="Status.Danger">You have no recovery codes left. Generate a new set before you can log in with one.</Alert>
-                }
-                else if (recoveryCodesLeft <= 3)
-                {
-                    <Alert Status="Status.Warning">You're running low on recovery codes. Generate a new set before you run out.</Alert>
-                }
-            </CardBody>
-            @if (isMachineRemembered)
-            {
-                <CardBody>
-                    <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-                        <Column Gap="1">
-                            <Heading Level="3" Size="TextSize.Md">This browser</Heading>
-                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Remembered, so it doesn't ask for a code.</TextBlock>
-                        </Column>
-                        <form @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
-                            <AntiforgeryToken />
-                            <Button Submit Variant="ButtonVariant.Outline">Forget this browser</Button>
-                        </form>
-                    </Row>
-                </CardBody>
-            }
-            <CardBody>
-                <Row Justify="Justify.Between" Align="Align.Center" Gap="4" Wrap>
-                    <Column Gap="1">
-                        <Heading Level="3" Size="TextSize.Md">Turn off two-factor authentication</Heading>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Log in with your password alone.</TextBlock>
-                    </Column>
-                    <Button Href="Account/Manage/Disable2fa" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off</Button>
-                </Row>
-            </CardBody>
+            <Divider />
+            <List Plain>
+                <ListItem Icon="Lucide.ShieldOff" IconColor="Color.DangerText" Description="You'll log in with your password alone. Your app's key stays.">
+                    Turn off two-factor authentication
+                    <ListItemActions>
+                        <Button Href="Account/Manage/Disable2fa" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off</Button>
+                    </ListItemActions>
+                </ListItem>
+            </List>
         }
-    }
-    else
-    {
-        <CardBody>
-            <Alert Status="Status.Warning" Title="The privacy and cookie policy hasn't been accepted">
-                Accept the policy before you turn on two-factor authentication.
-            </Alert>
-        </CardBody>
-    }
-</Card>
+    </Column>
+}
 
 @code {
     private bool canTrack;

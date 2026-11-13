@@ -1,22 +1,22 @@
 @implements IDisposable
 @inject NavigationManager NavigationManager
 
-@*#if (SidebarNav) *@
-@* In the sidebar's footer, as shadcn's dashboards and AppSidebar's docs place the account. Signed in:
-   a button of your avatar and email that opens a menu to manage your account or log out. Signed
-   out, Log in and Register are in the header from Md up (MainLayout); on phones they're here, at
-   the foot of the drawer. *@
+@* At the end of the header, in both nav layouts. Signed out: Log in and Register (on phones they're
+   at the foot of the menu panel instead). Signed in: your avatar, opening a menu headed by your
+   email, to manage your account or log out. Signing in swaps one for the other in the same place. *@
 <AuthorizeView>
     <Authorized>
-        <Menu Placement="Placement.TopStart" Width="Length.Full">
+        <Menu Placement="Placement.BottomEnd">
             <Trigger Context="trigger">
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Lg" @attributes="trigger">
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="Account" @attributes="trigger">
                     <Avatar Name="@context.User.Identity?.Name" Size="AvatarSize.Sm" Decorative />
-                    <TextBlock As="span" Size="TextSize.Sm" Align="TextAlign.Start" Truncate Grow>@context.User.Identity?.Name</TextBlock>
                 </Button>
             </Trigger>
             <ChildContent>
-                <MenuItem Href="Account/Manage" Icon="Lucide.UserCog">Manage account</MenuItem>
+                <MenuGroup Label="@(context.User.Identity?.Name ?? "Account")">
+                    <MenuItem Href="Account/Manage" Icon="Lucide.User">Manage account</MenuItem>
+                </MenuGroup>
+                <MenuDivider />
                 <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
             </ChildContent>
         </Menu>
@@ -26,40 +26,10 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        <Grid Columns="2" Gap="2" HiddenFrom="Breakpoint.Md">
-            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Log in</Button>
-            <Button Href="Account/Register" FullWidth>Register</Button>
-        </Grid>
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Log in</Button>
+        <Button Href="Account/Register" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Register</Button>
     </NotAuthorized>
 </AuthorizeView>
-@*#else *@
-@* In the header. Signed in: an account button whose menu names you and lets you manage your account
-   or log out (GitHub's pattern, so a long email never crowds the header). Signed out: Log in and
-   Register from Md up; on phones they're in the SiteNav's panel (MainLayout). *@
-<AuthorizeView>
-    <Authorized>
-        <Menu Placement="Placement.BottomEnd">
-            <Trigger Context="trigger">
-                <IconButton Icon="Lucide.CircleUser" Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="trigger" />
-            </Trigger>
-            <ChildContent>
-                <MenuGroup Label="@(context.User.Identity?.Name ?? "Account")">
-                    <MenuItem Href="Account/Manage" Icon="Lucide.UserCog">Manage account</MenuItem>
-                    <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
-                </MenuGroup>
-            </ChildContent>
-        </Menu>
-        <form id="logout-form" action="Account/Logout" method="post" hidden>
-            <AntiforgeryToken />
-            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-        </form>
-    </Authorized>
-    <NotAuthorized>
-        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="Breakpoint.Md">Log in</Button>
-        <Button Href="Account/Register" VisibleFrom="Breakpoint.Md">Register</Button>
-    </NotAuthorized>
-</AuthorizeView>
-@*#endif *@
 
 @code {
     private string? currentUrl;

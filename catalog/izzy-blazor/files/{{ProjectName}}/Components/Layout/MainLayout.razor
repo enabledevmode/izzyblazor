@@ -15,12 +15,14 @@
 @*#else *@
 <AppShell Variant="ShellVariant.{{Shell}}">
 @*#endif *@
+    @* One header for both nav layouts: the menu button (phones), the brand, the links (top bar),
+       the color scheme and, at the end, the account control. On phones both layouts open a panel
+       under the header, with Log in and Register at its foot. *@
     <AppHeader>
         @*#if (SidebarNav) *@
         <SidebarToggle />
         @*#endif *@
         <AppBrand Href="" Icon="Lucide.Blocks" Label="{{ProjectName}}" />
-        <Box Grow />
         @*#if (!SidebarNav) *@
         <SiteNav MenuButtonPosition="MenuButtonPosition.Start">
             <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
@@ -32,34 +34,28 @@
             <SiteNavFooter>
                 <AuthorizeView>
                     <NotAuthorized>
-                        <Grid Columns="2" Gap="2" Grow>
-                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Log in</Button>
-                            <Button Href="Account/Register" FullWidth>Register</Button>
-                        </Grid>
+                        <Row Gap="2" Grow>
+                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Grow>Log in</Button>
+                            <Button Href="Account/Register" Grow>Register</Button>
+                        </Row>
                     </NotAuthorized>
                 </AuthorizeView>
             </SiteNavFooter>
             @*#endif *@
         </SiteNav>
         @*#endif *@
-        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
-        @*#if (IndividualLocalAuth && SidebarNav) *@
-        <AuthorizeView>
-            <NotAuthorized>
-                <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="Breakpoint.Md">Log in</Button>
-                <Button Href="Account/Register" VisibleFrom="Breakpoint.Md">Register</Button>
-            </NotAuthorized>
-        </AuthorizeView>
-        @*#elif (IndividualLocalAuth) *@
+        <Spacer />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Menu" />
+        @*#if (IndividualLocalAuth) *@
         <AccountMenu />
         @*#endif *@
     </AppHeader>
     @*#if (SidebarNav) *@
 
-    <AppSidebar>
+    <AppSidebar SmallScreen="SidebarSmallScreen.Panel">
         <NavMenu>
             <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.House">Home</NavItem>
-            <NavItem Href="counter" Icon="Lucide.SquarePlus">Counter</NavItem>
+            <NavItem Href="counter" Icon="Lucide.CirclePlus">Counter</NavItem>
             <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
             <NavItem Href="contact" Icon="Lucide.Mail">Contact</NavItem>
             @*#if (IndividualLocalAuth) *@
@@ -68,7 +64,14 @@
         </NavMenu>
         @*#if (IndividualLocalAuth) *@
         <SidebarFooter>
-            <AccountMenu />
+            <AuthorizeView>
+                <NotAuthorized>
+                    <Row Gap="2" HiddenFrom="Breakpoint.Md">
+                        <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Grow>Log in</Button>
+                        <Button Href="Account/Register" Grow>Register</Button>
+                    </Row>
+                </NotAuthorized>
+            </AuthorizeView>
         </SidebarFooter>
         @*#endif *@
     </AppSidebar>

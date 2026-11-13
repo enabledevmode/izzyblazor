@@ -7,14 +7,17 @@
 
 @if (externalLogins.Length > 0)
 {
-    <Divider Label="or continue with" />
+    @if (Divider)
+    {
+        <Divider Label="or" />
+    }
     <form action="Account/PerformExternalLogin" method="post">
         <AntiforgeryToken />
         <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-        <Column Gap="2">
+        <Column Gap="3">
             @foreach (var provider in externalLogins)
             {
-                <Button Submit Name="provider" Value="@provider.Name" Variant="ButtonVariant.Outline" FullWidth>Continue with @provider.DisplayName</Button>
+                <Button Submit Name="provider" Value="@provider.Name" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Continue with @provider.DisplayName</Button>
             }
         </Column>
     </form>
@@ -22,6 +25,10 @@
 
 @code {
     private AuthenticationScheme[] externalLogins = [];
+
+    /// <summary>An "or" divider above the buttons. Off where the page already has one, as Log in does.</summary>
+    [Parameter]
+    public bool Divider { get; set; } = true;
 
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }

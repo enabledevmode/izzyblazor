@@ -13,26 +13,32 @@
 
 <PageTitle>Log in</PageTitle>
 
-<AccountPanel Title="Log in">
+<AccountPanel Title="Log in" Description="Use your email and password, or a passkey.">
     <StatusMessage Message="@errorMessage" />
-    <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
-        <FormErrors />
-        <TextField @bind-Value="Input.Email" AutoComplete="username webauthn" />
-        <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
-        <Row Justify="Justify.Between" Align="Align.Center" Wrap>
-            <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
-            <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot your password?</Anchor></TextBlock>
-        </Row>
-        <Button Submit FullWidth>Log in</Button>
-        <Divider Label="or" />
-        <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" FullWidth>Log in with a passkey</PasskeySubmit>
-    </Form>
-    <ExternalLoginPicker />
-    <Column Gap="2">
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+    <Column Gap="3">
+        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
+            <FormErrors />
+            <TextField @bind-Value="Input.Email" AutoComplete="username webauthn" />
+            <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
+            <Row Justify="Justify.Between" Align="Align.Center" Wrap>
+                <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
+                <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot your password?</Anchor></TextBlock>
+            </Row>
+            <Button Submit FullWidth>Log in</Button>
+            @* The passkey button stays in the form: Microsoft's passkey-submit element posts it. *@
+            <Column Gap="3">
+                <Divider Label="or" />
+                <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email"
+                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Log in with a passkey</PasskeySubmit>
+            </Column>
+        </Form>
+        <ExternalLoginPicker Divider="false" />
+    </Column>
+    <Column Gap="1">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
         </TextBlock>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Didn't get the confirmation email? <Anchor Href="Account/ResendEmailConfirmation">Resend it</Anchor>
         </TextBlock>
     </Column>

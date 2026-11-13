@@ -5,19 +5,20 @@
 @layout {{RootNamespace}}.Components.Layout.MainLayout
 @*#endif *@
 
-@* shadcn's settings layout: the title and a line under it, then the nav in a small card beside the
-   page, which is a Card of its own (the nav stacks above it on phones), all held to 72rem. *@
-<Column Gap="6" MaxWidth="Length.Rem(72)">
-    <Column Gap="1">
-        <Heading Level="1" Size="TextSize.Xl2">Manage your account</Heading>
-        <TextBlock Color="Color.Muted">Change your profile, how you log in, and the data your account holds.</TextBlock>
-    </Column>
-    <Grid Columns="new() { Base = 1, Lg = 4 }" Gap="6" Align="Align.Start">
-        <Card Size="ControlSize.Sm">
+@* The settings page: the Wide column (64rem) from the main area's edge, the page header, then the
+   section nav (15rem, so "Two-factor authentication" fits on a line) beside the Medium column
+   (48rem) the section draws in. On phones the nav is a dropdown above the section, naming the one
+   you're in. *@
+<Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="Manage your account" Description="Your sign-in details, security and data." />
+        <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "15rem 1fr" })" Gap="8" Align="Align.Start">
             <ManageNavMenu />
-        </Card>
-        <Column Gap="6" ColSpan="new() { Lg = 3 }" MaxWidth="Length.Rem(42)">
-            @Body
-        </Column>
-    </Grid>
-</Column>
+            <Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+                <Column Gap="6">
+                    @Body
+                </Column>
+            </Container>
+        </Grid>
+    </Column>
+</Container>
