@@ -104,6 +104,9 @@ public class GridItem : Box
 /// <summary>How wide a <see cref="Container"/> gets.</summary>
 public enum ContainerSize
 {
+    /// <summary>24rem: a narrow column, such as a sign-in form.</summary>
+    Xs,
+
     /// <summary>40rem: forms and short text.</summary>
     Sm,
 

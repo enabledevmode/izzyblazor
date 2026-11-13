@@ -43,6 +43,7 @@
     }
   }
 
+  .ib-container-xs { max-width: 24rem; }
   .ib-container-sm { max-width: 40rem; }
   .ib-container-md { max-width: 48rem; }
   .ib-container-lg { max-width: 64rem; }

@@ -54,9 +54,10 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
-    /// The title and description size: <see cref="ControlSize.Sm"/> for a section inside a page,
-    /// <see cref="ControlSize.Md"/> (the default) for most pages, <see cref="ControlSize.Lg"/>
-    /// for a page with little else on it, such as a sign-in form.
+    /// The title and description size: <see cref="ControlSize.Sm"/> (a 20px title, 14px
+    /// description) for a section inside a page, <see cref="ControlSize.Md"/> (24px and 16px, the
+    /// default) for most pages, <see cref="ControlSize.Lg"/> (30px and 16px) for a page with little
+    /// else on it, such as a sign-in form.
     /// </summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 

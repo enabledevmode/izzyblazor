@@ -66,7 +66,7 @@
     {
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
-        { "id": "container-reading", "title": "Content width", "lead": "A container caps the content's width and centers it. To change the cap, set `Size`, from Sm (40rem) for forms and short text to Xl (80rem, the default). Where the parent is narrower, the container fills it, with padding at the sides." },
+        { "id": "container-reading", "title": "Content width", "lead": "A container caps the content's width and centers it. To change the cap, set `Size`, from Xs (24rem) for a sign-in form to Xl (80rem, the default). Where the parent is narrower, the container fills it, with padding at the sides." },
         { "id": "container-bands", "title": "Bands that reach the edges", "lead": "For bands of color that reach the page's edges, put the color on a `Box` around each `Container`. The bands run the full width, and their content keeps the same width and side padding, so the edges line up." },
         { "id": "container-start", "title": "A page column beside a sidebar", "lead": "In an app's main area, a page usually starts at the edge beside the sidebar. To cap its width there, set `Align=\"ContainerAlign.Start\"`. The main area has its own padding, so set `Gutters=\"false\"` to line the content up with the rest of the page." }
       ]
