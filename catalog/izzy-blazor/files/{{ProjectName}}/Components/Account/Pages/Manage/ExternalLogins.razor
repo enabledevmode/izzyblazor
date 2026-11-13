@@ -19,7 +19,7 @@
             <Table Items="currentLogins" Caption="Registered logins">
                 <Columns>
                     <PropertyColumn Property="login => login.ProviderDisplayName" Title="Service" />
-                    <TemplateColumn Title="Actions">
+                    <TemplateColumn Title="Actions" Align="CellAlign.End">
                         @if (showRemoveButton)
                         {
                             <form @formname="@($"remove-login-{context.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
