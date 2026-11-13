@@ -89,6 +89,9 @@ else
     /// <summary>Help text.</summary>
     [Parameter] public string? Hint { get; set; }
 
+    /// <summary>The hint's status, if it states one: drawn in that status's color with its icon.</summary>
+    [Parameter] public Status? HintStatus { get; set; }
+
     /// <summary>The hint element's id.</summary>
     [Parameter] public string? HintId { get; set; }
 
@@ -150,7 +153,14 @@ else
     private RenderFragment Footer => @<text>
         @if (!string.IsNullOrEmpty(Hint))
         {
-            <p class="ib-field-hint" id="@HintId">@Hint</p>
+            @if (HintStatus is { } status and not Status.Neutral)
+            {
+                <p class="ib-field-hint ib-field-hint-status" id="@HintId" style="color: var(--ib-color-@(status.ToString().ToLowerInvariant())-text)"><Icon Name="Alert.DefaultIcon(status)" /> @Hint</p>
+            }
+            else
+            {
+                <p class="ib-field-hint" id="@HintId">@Hint</p>
+            }
         }
         @if (Errors is { Count: > 0 })
         {

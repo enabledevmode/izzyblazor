@@ -826,6 +826,7 @@
       ],
       "examples": [
         { "id": "text-field-labels", "title": "Labels and hints" },
+        { "id": "text-field-hint-status", "title": "A hint that states a status", "lead": "To show a hint as a status, such as \"Verified.\", set `HintStatus`. The hint takes the status's color and icon; its words still carry the meaning." },
         { "id": "text-field-clearable", "title": "A clear button", "lead": "A clear button empties the field, and shows while the field has a value. To add it, set `Clearable`. Every field whose value can be empty has it, and a `Select` goes back to its `Placeholder`.",
           "notes": {
             "noscript": "The button stays hidden, and the user can empty the field by hand."

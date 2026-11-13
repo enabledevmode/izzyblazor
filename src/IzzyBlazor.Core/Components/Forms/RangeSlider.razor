@@ -36,7 +36,7 @@
 *@
 
 <FieldFrame Class="@WrapperClass("range-slider", Vertical ? "ib-field-slider-vertical" : null)" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="false" Group
-            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+            Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="@ControlClass" style="@ControlStyle">
         <div class="ib-slider-track ib-range-slider-track">
             @SliderScale.Draw(ShownMarks, ShowEnds, ResolvedMin, ResolvedMax, Said)

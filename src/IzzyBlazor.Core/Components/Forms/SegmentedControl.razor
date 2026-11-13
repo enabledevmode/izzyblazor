@@ -27,7 +27,7 @@
 *@
 
 <FieldFrame Class="@WrapperClass("segmented")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput" Group
-            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+            Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <div class="@SegmentsClass">
         @foreach (var (item, index) in Options.Select((o, i) => (o, i)))
         {

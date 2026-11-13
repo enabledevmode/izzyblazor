@@ -1,0 +1,19 @@
+@* An account's addresses, read-only, each with whether it's verified as its hint. The words say it;
+   the color and icon repeat it. *@
+<Form Model="Model" FormName="hint-status" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model.Email" Label="Email" Type="TextFieldType.Email" ReadOnly
+               Hint="Verified." HintStatus="Status.Success" />
+    <TextField @bind-Value="Model.Recovery" Label="Recovery email" Type="TextFieldType.Email" ReadOnly
+               Hint="Not verified yet. Check your inbox for the link." HintStatus="Status.Warning" />
+</Form>
+
+@code {
+    private Addresses Model { get; } = new();
+
+    private sealed class Addresses
+    {
+        public string? Email { get; set; } = "ada@example.com";
+
+        public string? Recovery { get; set; } = "ada.lovelace@example.org";
+    }
+}

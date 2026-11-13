@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
 }
 <FieldFrame Class="@WrapperClass("color")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
-            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+            Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-color-picker class="@(ShowsReadOnlyHex ? "ib-color-picker ib-color-readonly" : "ib-color-picker")">
         <span class="ib-color-box">
             @if (UseNative)
