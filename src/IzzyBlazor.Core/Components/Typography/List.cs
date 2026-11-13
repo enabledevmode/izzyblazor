@@ -26,7 +26,7 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 ///     &lt;ListItem&gt;Add IzzyTheme to App.razor.&lt;/ListItem&gt;
 /// &lt;/List&gt;
 ///
-/// &lt;List Plain Dividers Gap="4"&gt;
+/// &lt;List Plain Dividers Gap="5"&gt;
 ///     &lt;ListItem Icon="Lucide.KeyRound" Description="Last changed 3 months ago."&gt;
 ///         Password
 ///         &lt;ListItemActions&gt;
