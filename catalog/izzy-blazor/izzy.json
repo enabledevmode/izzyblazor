@@ -3,14 +3,16 @@
 // from Microsoft's template (MIT, dotnet/aspnetcore). With WebAssembly or Auto it's a solution with a .Client
 // project; with every page interactive in the browser, the layout and pages move to the .Client project.
 // With --auth Individual, Microsoft's Identity pages (Components/Account) keep their C# and are drawn with
-// IzzyBlazor's components: Microsoft's code-behind is unchanged, so its fixes port by diff.
+// IzzyBlazor's components: Microsoft's code-behind is kept, so its fixes port by diff. Two changes, each
+// commented where it is: Passkeys renames on its own page and deletes through a form (Microsoft's field
+// named Action clobbers form.action), and ConfirmEmailChange says when the user name didn't change.
 {
   "id": "izzy-blazor",
   "name": "IzzyBlazor Blazor Web App",
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
-  "components": ["AppShell", "AppHeader", "AppBrand", "AppSidebar", "SidebarToggle", "NavMenu", "NavItem", "AppMain", "SiteNav", "ColorSchemeSwitch", "Table", "Form", "TextField", "Select", "TextArea", "FormErrors", "Button", "Spinner", "EmptyState", "Prose", "Alert", "ReconnectDialog", "ToastRegion", "IzzyTheme", "Card", "Checkbox", "PasswordField", "PinField", "Divider", "Menu", "MenuItem", "QrCode", "CopyButton", "Code", "FormActions"],
+  "components": ["Alert", "Anchor", "AppShell", "AppSidebar", "Avatar", "Badge", "Box", "Button", "Card", "Checkbox", "Code", "Collapsible", "ColorSchemeSwitch", "Column", "Container", "CopyButton", "DataGrid", "DateField", "DescriptionList", "Divider", "EmptyState", "ErrorGuard", "Form", "Grid", "Heading", "IzzyTheme", "LinearGauge", "List", "ListView", "LiveRegion", "Menu", "NavMenu", "PageHeader", "PasswordField", "PinField", "Popover", "QrCode", "RadioGroup", "ReconnectDialog", "Row", "Section", "Select", "SiteNav", "Spacer", "TabNav", "TextArea", "TextBlock", "TextField", "ToastRegion"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
