@@ -4,8 +4,7 @@
 @*#if (SidebarNav) *@
 @* In the sidebar's footer, as shadcn's dashboards and AppSidebar's docs place the account. Signed in:
    your avatar and email, and a menu to manage your account or log out. Signed out, Log in and Register
-   are in the header (MainLayout); on phones, where the header has room only for Log in, Register is
-   here at the foot of the drawer. *@
+   are in the header from Md up (MainLayout); on phones they're here, at the foot of the drawer. *@
 <AuthorizeView>
     <Authorized>
         <Row Gap="2" Align="Align.Center">
@@ -27,13 +26,16 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        <Button Href="Account/Register" FullWidth HiddenFrom="Breakpoint.Md">Register</Button>
+        <Grid Columns="2" Gap="2" HiddenFrom="Breakpoint.Md">
+            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Log in</Button>
+            <Button Href="Account/Register" FullWidth>Register</Button>
+        </Grid>
     </NotAuthorized>
 </AuthorizeView>
 @*#else *@
 @* In the header. Signed in: an account button whose menu names you and lets you manage your account
-   or log out (GitHub's pattern, so a long email never crowds the header). Signed out: Log in, and
-   Register from Md up; below that, Register is in the SiteNav's panel (MainLayout). *@
+   or log out (GitHub's pattern, so a long email never crowds the header). Signed out: Log in and
+   Register from Md up; on phones they're in the SiteNav's panel (MainLayout). *@
 <AuthorizeView>
     <Authorized>
         <Menu Placement="Placement.BottomEnd">
@@ -53,7 +55,7 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Log in</Button>
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="Breakpoint.Md">Log in</Button>
         <Button Href="Account/Register" VisibleFrom="Breakpoint.Md">Register</Button>
     </NotAuthorized>
 </AuthorizeView>
