@@ -794,16 +794,9 @@ html:has(> body > .frame) body { margin: 0; }
   line-clamp: 2;
   overflow: hidden;
 }
-/* Phones: a row each, the picture 120px wide at the start. Card has no media-at-the-start layout
-   (a library gap: Card Orientation, or CardMedia Placement Start), so the site lays it out. */
+/* Phones: a row each (Card Orientation Horizontal), a line between the picture and the text. */
 @media (width < 768px) {
-  .site-block-card {
-    display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    align-items: start;
-  }
-  .site-block-card > .ib-card-media { grid-row: 1 / span 2; align-self: stretch; }
-  .site-block-card > .ib-card-media .site-block-picture { height: 100%; aspect-ratio: auto; border-bottom: 0; border-inline-end: 1px solid var(--ib-color-border); }
+  .site-block-picture { border-bottom: 0; border-inline-end: 1px solid var(--ib-color-border); }
   .site-block-card > .ib-card-header { flex-wrap: wrap; }
 }
 

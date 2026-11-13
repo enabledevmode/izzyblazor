@@ -1,6 +1,6 @@
 @inject ApiMetadata Api
 @* Card's Overview, written by hand after Button's and Form's: the header and variants, sizes, a
-   linked card with media, a heading of your own, the body and footer, flush content, sections, a
+   linked card with media, media at the side, a heading of your own, the body and footer, flush content, sections, a
    form in a card (each mode posts it differently) and a grid of cards. Accessibility, Parts and
    See also come from the doc comment and components.json. *@
 
@@ -25,6 +25,10 @@
     <ListItem>Media that only decorates needs <Code>alt=""</Code> on an <Code>img</Code>, or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>.</ListItem>
     <ListItem>On a linked card, an image is part of the link, and a video's controls stay usable above it.</ListItem>
 </List>
+
+<Heading Level="2">Picture at the side</Heading>
+<TextBlock>A card with its picture at the side suits a list, where each card is a row, such as articles or search results. Set <Code>Orientation</Code> to <Code>Horizontal</Code> to put the <Code>CardMedia</Code> at the start, and set its <Code>Width</Code> (40% of the card by default). <Code>Orientation</Code> can change by breakpoint: these cards are rows until 1024px, then tiles with the picture on top.</TextBlock>
+<ExampleViewer Example="card-side" />
 
 <Heading Level="2">Header content</Heading>
 <TextBlock>The card's heading row can contain more than the title: content above it, such as who wrote the post, and buttons at its end. Put content above the title in a <Code>CardHeader</Code>. Put buttons or a <Anchor Href="docs/components/menu">Menu</Anchor> at the end of the heading row in a <Code>CardActions</Code>.</TextBlock>

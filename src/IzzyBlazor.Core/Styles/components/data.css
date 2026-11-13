@@ -6,8 +6,13 @@
     --ib-card-title: var(--ib-text-lg);
 
     position: relative;
-    display: flex;
+    --_card: flex;
+    --_card-pt: var(--ib-card-gap);
+    --_card-mh: auto;
+
+    display: var(--_card);
     flex-direction: column;
+    grid-template: auto 1fr / var(--ib-card-media-w, 40%) minmax(0, 1fr);
     min-width: 0;
     overflow: hidden;
     border: 1px var(--ib-bst-now, solid) transparent;
@@ -74,8 +79,57 @@
   .ib-card-media > :is(img, video, picture, svg) {
     display: block;
     width: 100%;
-    height: auto;
+    height: var(--_card-mh);
     object-fit: cover;
+  }
+
+  /* Orientation Horizontal: the media at the start, down the card's whole height; the heading and
+     body beside it. The grid's rows and columns only count while it's a grid. */
+  .ib-card-media {
+    grid-area: 1 / 1 / 3;
+  }
+
+  .ib-card-header {
+    grid-area: 1 / 2;
+  }
+
+  .ib-card-body {
+    grid-area: 2 / 2;
+  }
+
+  .ib-card-media + * {
+    padding-top: var(--_card-pt);
+  }
+
+  .ib-card-h {
+    --_card: grid;
+    --_card-pt: var(--ib-card-p);
+    --_card-mh: 100%;
+  }
+
+  @media (width >= 640px) {
+    .ib-card-h-sm { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
+    .ib-card-v-sm { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+  }
+
+  @media (width >= 768px) {
+    .ib-card-h-md { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
+    .ib-card-v-md { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+  }
+
+  @media (width >= 1024px) {
+    .ib-card-h-lg { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
+    .ib-card-v-lg { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+  }
+
+  @media (width >= 1280px) {
+    .ib-card-h-xl { --_card: grid; --_card-pt: var(--ib-card-p); --_card-mh: 100%; }
+    .ib-card-v-xl { --_card: flex; --_card-pt: var(--ib-card-gap); --_card-mh: auto; }
+  }
+
+  /* No media: nothing to put beside. */
+  .ib-card:not(:has(> .ib-card-media)) {
+    --_card: flex;
   }
 
   .ib-card-header {
