@@ -44,7 +44,7 @@
 *@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/mentions.css"]" />
-<FieldFrame Class="@WrapperClass("mentions")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("mentions")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-mentions class="ib-field-control ib-mentions"
                  data-prefixes="@string.Join("\n", PrefixList)"

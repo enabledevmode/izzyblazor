@@ -27,7 +27,7 @@
     See also: TextField, QrCode.
 *@
 
-<FieldFrame Class="@WrapperClass("pin")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("pin")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-pin-field class="ib-field-control ib-pin" style="@($"--ib-pin-length:{Length}{(Letters ? ";--ib-pin-ch:2.2ch" : "")}")">
         <input @attributes="ControlAttributes"

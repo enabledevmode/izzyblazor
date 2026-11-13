@@ -153,7 +153,7 @@ else
     /// Which fields are marked beside their labels: <see cref="RequiredMark.Required"/> (an asterisk
     /// on required fields, the default), <see cref="RequiredMark.Optional"/> ("(optional)" on the
     /// others) or <see cref="RequiredMark.None"/>. Whether a field is required still comes from
-    /// <c>[Required]</c> or its own <c>Required</c>.
+    /// <c>[Required]</c> or its own <c>Required</c>. A read-only or disabled field gets neither mark.
     /// </summary>
     [Parameter] public RequiredMark RequiredMark { get; set; } = RequiredMark.Required;
 

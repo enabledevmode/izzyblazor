@@ -52,7 +52,7 @@
     See also: DateField, TextField, Form.
 *@
 
-<FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
         <ib-field-control class="@ControlClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}" : null)">

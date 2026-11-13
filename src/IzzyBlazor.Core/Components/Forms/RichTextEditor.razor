@@ -72,7 +72,7 @@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-text.css"]" />
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/rich-content.css"]" />
-<FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("rich-text")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-rich-text @ref="_host" class="ib-rich-text" data-ib-markdown="@(MarkdownShortcuts ? null : "off")" data-ib-max="@MaxLength" data-ib-top="@Top" data-ib-fonts="@(Fonts is { Count: > 0 } ? string.Join('|', Fonts) : null)" data-ib-font-sizes="@(FontSizes is { Count: > 0 } ? string.Join('|', FontSizes) : null)"
                   data-ib-image-upload="@ImageUploadUrl" data-ib-data-images="@(AllowDataImages ? "" : null)" data-ib-custom-colors="@(CustomColors ? "" : null)" data-ib-image-max="@MaxImageSize"
