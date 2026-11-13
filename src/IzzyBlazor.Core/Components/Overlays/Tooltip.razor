@@ -7,10 +7,6 @@
     JavaScript it moves to the top layer (popover="hint"), so overflow never clips it, and
     links itself to the trigger with aria-describedby.
 
-    <Tooltip Text="Copy to clipboard">
-        <IconButton Icon="Lucide.Copy" Label="Copy" />
-    </Tooltip>
-
     Accessibility:
     - It's a `tooltip` the script links to the first focusable element inside with
       `aria-describedby`, unless that element's `aria-label` already says the same.

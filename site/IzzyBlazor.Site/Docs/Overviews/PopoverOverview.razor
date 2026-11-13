@@ -2,14 +2,12 @@
    each mode, placement and width, staying open, your own trigger, and opening it from the server
    or C# (code). Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A popover is a panel beside its trigger that the user can leave without choosing anything. It suits filters, a small form or an explanation.</TextBlock>
 <TextBlock>For a list of actions, use a <Anchor Href="docs/components/menu">Menu</Anchor>. For a task that needs an answer, use a <Anchor Href="docs/components/dialog">Dialog</Anchor>. For a short label on hover, use a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 
 <Heading Level="2">A form in a popover</Heading>
 <TextBlock>A popover can contain anything, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page. To give the panel a heading, set <Code>Title</Code>; it also names the panel for screen readers.</TextBlock>
-<ExampleViewer Example="popover-filters" />
+<ExampleViewer Example="popover-usage" />
 <TextBlock>On a static page, submitting a form in the panel closes it, and it opens again if the form comes back with errors. On an interactive page, close it from the submit handler: bind <Code>@@bind-Open</Code> and set it to false.</TextBlock>
 
 <Heading Level="2">Placement and width</Heading>
@@ -67,24 +65,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues">
-            <Form Model="Filters" FormName="filters" OnValidSubmit="ApplyAsync">
-                <Checkbox @bind-Value="Filters!.Mine" />
-                <FormActions>
-                    <Button Submit Size="ControlSize.Sm">Apply</Button>
-                </FormActions>
-            </Form>
-        </Popover>
-
-        @code {
-            [SupplyParameterFromForm(FormName = "filters")]
-            private IssueFilters? Filters { get; set; }
-
-            protected override void OnInitialized() => Filters ??= new();
-        }
-        """;
 
     private const string FromCode = """
         @* Interactive page: opens when C# sets _tipOpen, and follows the user. *@

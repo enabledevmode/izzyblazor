@@ -1,21 +1,19 @@
-@* Tooltip's Overview, written by hand after Popover's: placement, icon buttons with shortcuts
-   (previewed in each mode). Accessibility (what the trigger needs, what a tooltip can't hold) and
-   See also come from the doc comment. *@
+@* Tooltip's Overview, written by hand after Popover's: icon buttons with shortcuts (previewed
+   in each mode), then placement. Accessibility (what the trigger needs, what a tooltip can't
+   hold) and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A tooltip is a short hint about a control that shows on hover and on keyboard focus. It suits what an icon does, or its shortcut. For a panel the user clicks to open, with links or a form, use a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+
+<Heading Level="2">Icon buttons and shortcuts</Heading>
+<TextBlock>An icon button shows only an icon, so a tooltip says what it does. Wrap the button in a <Code>Tooltip</Code> and set <Code>Text</Code>. For markup, such as a keyboard shortcut in a <Anchor Href="docs/components/kbd">Kbd</Anchor>, set <Code>Content</Code>.</TextBlock>
+<ExampleViewer Example="tooltip-usage" />
+<TextBlock>A hover waits 300 milliseconds before the tooltip shows; to change that, set <Code>Delay</Code>. Keyboard focus shows it at once.</TextBlock>
+<TextBlock>Inside a tooltip, an <Anchor Href="docs/components/icon-button">IconButton</Anchor> leaves out its own <Code>title</Code>, so hovering shows one tooltip, not two. The IconButton still requires its <Code>Label</Code>.</TextBlock>
 
 <Heading Level="2">Placement</Heading>
 <TextBlock>A tooltip shows above its trigger by default. To show it below, before or after the trigger, set <Code>Placement</Code>.</TextBlock>
 <ExampleViewer Example="tooltip-sides" />
 <TextBlock>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, a tooltip with no room on its side, such as above a button at the top of the window, shows on the opposite side. With JavaScript off, it keeps its side.</TextBlock>
-
-<Heading Level="2">Icon buttons and shortcuts</Heading>
-<TextBlock>A tooltip can show more than plain text, such as a keyboard shortcut in a <Anchor Href="docs/components/kbd">Kbd</Anchor>. Set <Code>Content</Code> to the markup.</TextBlock>
-<ExampleViewer Example="tooltip-icon-buttons" />
-<TextBlock>A hover waits 300 milliseconds before the tooltip shows; to change that, set <Code>Delay</Code>. Keyboard focus shows it at once.</TextBlock>
-<TextBlock>Inside a tooltip, an <Anchor Href="docs/components/icon-button">IconButton</Anchor> leaves out its own <Code>title</Code>, so hovering shows one tooltip, not two. The IconButton still requires its <Code>Label</Code>.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
@@ -41,18 +39,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Tooltip Text="Copy to clipboard">
-            <IconButton Icon="Lucide.Copy" Label="Copy" />
-        </Tooltip>
-
-        @* Below the trigger, with a shortcut. *@
-        <Tooltip Placement="Placement.Bottom">
-            <Content>Save <Kbd Keys="Ctrl+S" /></Content>
-            <ChildContent>
-                <Button>Save</Button>
-            </ChildContent>
-        </Tooltip>
-        """;
 }

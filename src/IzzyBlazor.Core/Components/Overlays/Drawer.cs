@@ -8,12 +8,6 @@ namespace IzzyBlazor;
 /// Xl 40rem, Full). Use <see cref="DialogPlacement.Bottom"/> for a sheet on phones: it's centered,
 /// Sm 24rem, Md 40rem, Lg 48rem, Xl 64rem wide at most, or Full for the screen's width.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;DialogTrigger For="filters"&gt;Filters&lt;/DialogTrigger&gt;
-/// &lt;Drawer Id="filters" Title="Filters"&gt;...&lt;/Drawer&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It's a native modal <c>dialog</c>: the page behind it is inert, Escape closes it, and focus returns to the <see cref="DialogTrigger"/> that opened it.</item>

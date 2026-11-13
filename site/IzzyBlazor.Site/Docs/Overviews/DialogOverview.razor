@@ -4,14 +4,12 @@
    a dialog inside a form, and DialogService (Interactive only). Accessibility and See also come from the
    doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A dialog is a window over the page that the user deals with before going back to it. It suits a short form or a question.</TextBlock>
 <TextBlock>For a panel that slides in from an edge, see <Anchor Href="docs/components/drawer">Drawer</Anchor>. For a small panel next to a button that doesn't block the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
 
 <Heading Level="2">Opening the dialog</Heading>
 <TextBlock>A dialog opens three ways: from a button, from a link, or from C#. For a button, add a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>; for a link, add <Code>?dialog=</Code> and the id to the URL. From C#, set <Code>@@bind-Open</Code>.</TextBlock>
-<ExampleViewer Example="dialog-open" />
+<ExampleViewer Example="dialog-usage" />
 <List>
     <ListItem>The trigger and the link work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too.</ListItem>
     <ListItem>To change the key the link uses, set <Code>QueryKey</Code>. Closing the dialog removes the key from the URL. Set it to null to turn links off.</ListItem>
@@ -92,20 +90,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <DialogTrigger For="invite">Invite people</DialogTrigger>
-
-        <Dialog Id="invite" Title="Invite people">
-            <Form Model="Invite" FormName="invite" OnValidSubmit="SendAsync">
-                <TextField @bind-Value="Invite!.Email" autofocus />
-                <FormActions>
-                    <DialogClose>Cancel</DialogClose>
-                    <Button Submit>Send invite</Button>
-                </FormActions>
-            </Form>
-        </Dialog>
-        """;
 
 
     private const string Inside = """
