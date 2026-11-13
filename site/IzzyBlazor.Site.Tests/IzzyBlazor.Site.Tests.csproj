@@ -39,4 +39,13 @@
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The catalogue beside the tests too, as the site has it (its CopyCatalog), so the site the
+       tests run has its Blocks pages. -->
+  <Target Name="CopyCatalog" AfterTargets="Build">
+    <ItemGroup>
+      <CatalogFile Include="..\..\catalog\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(CatalogFile)" DestinationFiles="@(CatalogFile->'$(OutDir)catalog\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
