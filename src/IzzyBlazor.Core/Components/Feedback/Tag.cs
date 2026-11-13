@@ -59,6 +59,9 @@ public class Tag : LayoutItemBase
     /// <summary>Size: 20, 24 (the default) or 28px tall.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
+    /// <summary>Fully rounded ends, as for topics or an announcement link above a heading.</summary>
+    [Parameter] public bool Pill { get; set; }
+
     /// <summary>An icon before the text.</summary>
     [Parameter] public IconData? StartIcon { get; set; }
 
@@ -102,6 +105,7 @@ public class Tag : LayoutItemBase
         classes.Add($"ib-tag-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-tag-sm", Size == ControlSize.Sm);
         classes.Add("ib-tag-lg", Size == ControlSize.Lg);
+        classes.Add("ib-tag-pill", Pill);
         classes.Add("ib-tag-removable", RemoveButton || RemoveHref is not null);
         if (Accent is { } accent)
         {
