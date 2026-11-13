@@ -26,7 +26,7 @@ public sealed record Block(ItemDefinition Definition)
     /// <summary>Its name as a C# identifier, for its previews' folder and namespace, such as <c>FeatureGrid</c>.</summary>
     public string TypeName => BlockCatalog.Identifier(Name.Replace(" ", ""));
 
-    /// <summary>The picture on its card, a render of its first preview (<c>wwwroot/img/blocks</c>).</summary>
+    /// <summary>The picture on its card, a render of its first preview (<c>wwwroot/img/blocks</c>, taken by the site tests' BlockPictureTests).</summary>
     public string Picture => $"img/blocks/{Id}.webp";
 }
 
