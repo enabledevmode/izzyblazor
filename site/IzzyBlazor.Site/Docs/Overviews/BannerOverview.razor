@@ -3,13 +3,11 @@
    mode) and how long it's remembered, the stays-dismissed demo, its place in an app (code) and a
    banner shown later. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A banner is a message about the whole app or site, such as planned maintenance, a trial that's ending or an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it has a row of its own above the header. For a message about part of a page, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status and color</Heading>
 <TextBlock>The status is the kind of message, and it sets the banner's color and icon. Set <Code>Status</Code> to choose one. For an announcement in your brand's color, set <Code>Accent</Code> and <Code>Icon</Code> instead.</TextBlock>
-<ExampleViewer Example="banner-statuses" />
+<ExampleViewer Example="banner-usage" />
 <List>
     <ListItem>With <Code>Accent</Code>, the status still sets the icon and the word screen readers hear.</ListItem>
     <ListItem><Code>Title</Code> sets a bold lead-in on the same line as the text.</ListItem>
@@ -86,15 +84,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
-            Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
-            <BannerActions>
-                <Anchor Href="/status">Details</Anchor>
-            </BannerActions>
-        </Banner>
-        """;
 
     private const string InShell = """
         <AppShell>

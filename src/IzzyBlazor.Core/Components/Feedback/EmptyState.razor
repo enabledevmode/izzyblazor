@@ -6,14 +6,6 @@
     What to show when there's nothing yet: no results, an empty inbox, a first-run screen. An
     icon, a title, a line of explanation and the action that fills it. Centered; no script.
 
-    <EmptyState Icon="Lucide.Inbox"
-                Title="No invoices yet"
-                Description="Invoices you send appear here.">
-        <EmptyStateActions>
-            <Button Href="/invoices/new">New invoice</Button>
-        </EmptyStateActions>
-    </EmptyState>
-
     Accessibility:
     - `Title` is a heading, an `h3` by default; set `TitleLevel` to fit the page's outline.
     - The icon is hidden from screen readers.

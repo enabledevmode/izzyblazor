@@ -7,8 +7,6 @@
     and the label under it. Without a Value it's indeterminate (an arc that turns). Rendered on the
     server, so it works on static pages; on interactive pages, update Value from C#.
 
-    <ProgressCircle Value="72" ShowValue Label="Profile" />
-
     Accessibility:
     - It renders `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`;
       screen readers hear `ValueText` or the percentage.

@@ -3,14 +3,12 @@
    variants, dismissing (previewed in each mode), an alert a post renders, and its labels.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>An alert is a message on the page, next to what it's about. It suits the result of a form, or a warning above a table.</TextBlock>
 <TextBlock>For a message about the whole app, see <Anchor Href="docs/components/banner">Banner</Anchor>. For a short notice that doesn't need a place on the page, show a toast from the <Anchor Href="docs/components/toast-region">ToastRegion</Anchor>.</TextBlock>
 
 <Heading Level="2">Status</Heading>
 <TextBlock>The status is the kind of message: neutral, info, success, warning or danger. It sets the color, the icon, and the word screen readers hear before the message. Set <Code>Status</Code> to choose one.</TextBlock>
-<ExampleViewer Example="alert-statuses" />
+<ExampleViewer Example="alert-usage" />
 <TextBlock>To show a different icon, set <Code>Icon</Code>. To show none, set <Code>HideIcon</Code>.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
@@ -74,19 +72,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Alert Status="Status.Success" Title="Saved">Your changes are live.</Alert>
-
-        @* A close button that works with JavaScript off too. *@
-        <Alert Status="Status.Warning" Dismissible>Your trial ends in 3 days.</Alert>
-
-        @* Buttons or links under the message, written last. *@
-        <Alert Status="Status.Danger" Title="Couldn't save">
-            The server didn't respond.
-            <AlertActions>
-                <Button Size="ControlSize.Sm">Try again</Button>
-            </AlertActions>
-        </Alert>
-        """;
 }

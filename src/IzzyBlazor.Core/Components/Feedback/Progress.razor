@@ -7,10 +7,6 @@
     indeterminate (a bar that moves, for "working on it"). Rendered on the server, so it works on
     static pages; on interactive pages, update Value from C#.
 
-    <Progress Value="40" Label="Uploading" ShowValue />
-    <Progress Value="3" Max="5" ValueText="3 of 5 files" Accent="Accent.From(Color.Success)" />
-    <Progress Label="Preparing export" />                       (indeterminate)
-
     Accessibility:
     - It renders `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`;
       screen readers hear `ValueText` or the percentage.

@@ -1999,7 +1999,7 @@
         { "feature": "Dismissed bound to C#", "member": "Dismissed" }
       ],
       "examples": [
-        { "id": "alert-statuses", "title": "Status", "lead": "A status sets what the message means: its color, its icon and what screen readers hear. To choose one, set `Status`." },
+        { "id": "alert-usage", "title": "Status", "lead": "Put the message in an `Alert`, with a `Title` if it needs one. A status sets what the message means: its color, its icon and what screen readers hear. To choose one, set `Status`." },
         { "id": "alert-variants", "title": "Variants", "lead": "A variant sets how strongly the alert stands out: `Soft` (the default), `Outline` or `Solid`. To choose one, set `Variant`." },
         { "id": "alert-dismiss", "title": "Actions and dismissing", "lead": "To add a close button that works with JavaScript off, set `Dismissible`. For buttons under the message, add `AlertActions`.",
           "notes": {
@@ -2026,7 +2026,7 @@
         { "feature": "Dismissed bound to C#", "member": "Dismissed" }
       ],
       "examples": [
-        { "id": "banner-statuses", "title": "Status and color", "lead": "A status sets what the message means, and its color and icon. To choose one, set `Status`. For an announcement in your brand's color, set `Accent` and `Icon` instead." },
+        { "id": "banner-usage", "title": "Status and color", "lead": "Put the message in a `Banner` at the top of the page. A status sets what the message means, and its color and icon. To choose one, set `Status`.", "after": ["For an announcement in your brand's color, set `Accent` and `Icon` instead."] },
         { "id": "banner-dismiss", "title": "Dismissing", "lead": "To add a close button, set `Dismissible`. The banner then stays closed on later pages, remembered under its `RememberKey`.",
           "notes": {
             "noscript": "The close button hides the banner on this page only: with JavaScript off, nothing is remembered. If it was closed in another render mode first, the cookie keeps it out of this one too.",
@@ -2054,7 +2054,7 @@
         { "feature": "An action's OnClick runs C#", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "toast-region-show", "title": "Showing a toast", "lead": "A toast is a short message about something that just happened, such as a save. To show one, call `ToastService` from a form post or a C# handler. The `ToastRegion` in your layout displays it.",
+        { "id": "toast-region-usage", "title": "Showing a toast", "lead": "A toast is a short message about something that just happened, such as a save. To show one, call `ToastService` from a form post or a C# handler. The `ToastRegion` in your layout displays it.",
           "notes": {
             "noscript": "Each button posts its form, and the page reloads with the toast, which stays until closed.",
             "static": "The post updates the page without a full reload. The success toast closes after 5 seconds; the error stays until closed.",
@@ -2308,22 +2308,23 @@
     {
       "id": "spinner", "icon": "LoaderCircle", "name": "Spinner", "category": "Feedback", "summary": "Shows a loading ring sized like an icon.", "keywords": ["loader", "loading indicator"],
       "examples": [
-        { "id": "spinner-sizes", "title": "Sizes and color", "lead": "A spinner is sized on the icon scale. To change its size, set `Size`. To change the ring's color, set `Color`.", "after": ["Screen readers hear \"Loading\". To change it, set `Label`."] },
-        { "id": "spinner-beside-text", "title": "Beside text", "lead": "At its default size, 1em, a spinner matches the text beside it." }
+        { "id": "spinner-usage", "title": "Beside text", "lead": "Put a `Spinner` beside what's loading. At its default size, 1em, it matches the text beside it.", "after": ["Screen readers hear \"Loading\". To change it, set `Label`."] },
+        { "id": "spinner-sizes", "title": "Sizes and color", "lead": "A spinner is sized on the icon scale. To change its size, set `Size`. To change the ring's color, set `Color`." }
       ]
     },
 
     {
       "id": "progress-circle", "icon": "CircleDashed", "name": "ProgressCircle", "category": "Feedback", "summary": "Shows progress as a ring, with the value in its middle.", "keywords": ["circular progress", "progress ring", "radial progress", "donut progress"],
       "examples": [
-        { "id": "progress-circle-sizes", "title": "Values, sizes and colors", "lead": "To show the value in the middle of the ring, set `ShowValue`, or `ValueText` for text of your own. `Size` sets the diameter: 2rem, 3rem or 5rem.", "after": ["The ring fills clockwise from the top, and the `Label` goes under it. At Sm, the value goes beside the label. For any other diameter, set `Width`.", "Without a `Value`, an arc turns around the ring."] }
+        { "id": "progress-circle-usage", "title": "Value and label", "lead": "Set `Value`, out of `Max` (100 by default), and name the ring with `Label`, which goes under it. To show the value in the middle, set `ShowValue`, or `ValueText` for text of your own.", "after": ["The ring fills clockwise from the top."] },
+        { "id": "progress-circle-sizes", "title": "Sizes and colors", "lead": "`Size` sets the diameter: 2rem, 3rem or 5rem. To change the ring's color, set `Accent`.", "after": ["At Sm, the value goes beside the label. For any other diameter, set `Width`.", "Without a `Value`, an arc turns around the ring."] }
       ]
     },
 
     {
       "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "Shows a progress bar, with or without a known value.", "keywords": ["progress bar", "loading bar"],
       "examples": [
-        { "id": "progress-values", "title": "Value and label", "lead": "The value is how far along the work is, out of a maximum. Set `Value` and `Max`, and name the bar with `Label`. To show the amount, set `ShowValue` or `ValueText`." },
+        { "id": "progress-usage", "title": "Value and label", "lead": "The value is how far along the work is, out of a maximum. Set `Value` and `Max`, and name the bar with `Label`. To show the amount, set `ShowValue` or `ValueText`." },
         { "id": "progress-sizes", "title": "Sizes and colors", "lead": "To change the bar's thickness, set `Size`. To change its color, set `Accent`." },
         { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "When the work has no known length, leave out `Value`. The bar sweeps instead." },
         { "id": "progress-from-code", "title": "Updating from C#", "lead": "On interactive pages, changing `Value` from C# moves the bar.", "modes": ["interactive"] }
@@ -2333,7 +2334,7 @@
     {
       "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content that's still loading.", "keywords": ["placeholder", "shimmer"],
       "examples": [
-        { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "For text, set `Lines`. For a block such as an image, set `Height`; for an avatar, set `Circle`." },
+        { "id": "skeleton-usage", "title": "Lines, blocks and circles", "lead": "Put a `Skeleton` where the content will go, shaped like it. For text, set `Lines`. For a block such as an image, set `Height`; for an avatar, set `Circle`." },
         { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "To show the real content in place of the placeholder once it arrives, set `Loaded`. A placeholder as tall as the content it stands for keeps the page from moving.", "modes": ["interactive"] }
       ]
     },
@@ -2341,7 +2342,7 @@
     {
       "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "Shows what to do when there's nothing yet.", "keywords": ["no results", "blank slate"], "parts": ["EmptyStateActions"],
       "examples": [
-        { "id": "empty-state-actions", "title": "Icon, title and actions", "lead": "An empty state tells the user why an area is empty and what to do about it. To explain why, set `Icon`, `Title` and `Description`. To offer the action that fills the area, add `EmptyStateActions`." },
+        { "id": "empty-state-usage", "title": "Icon, title and actions", "lead": "An empty state tells the user why an area is empty and what to do about it. To explain why, set `Icon`, `Title` and `Description`. To offer the action that fills the area, add `EmptyStateActions`." },
         { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "For an empty area inside a page, set `Bordered`. For a smaller one, set `Size`." }
       ]
     },
