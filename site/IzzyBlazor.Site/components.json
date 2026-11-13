@@ -2198,6 +2198,13 @@
     },
 
     {
+      "id": "browser-frame", "icon": "AppWindow", "name": "BrowserFrame", "category": "Display", "summary": "Shows a screenshot inside a browser window.", "keywords": ["browser mockup", "screenshot", "window frame", "device mockup", "hero image"],
+      "examples": [
+        { "id": "browser-frame-screenshot", "title": "A screenshot", "lead": "Put an `Image` inside, and give its `Alt` what the screenshot shows. To show an address in the top bar, set `Address`; without it, the bar shows only the dots. For a landing page, add `Shadow`." }
+      ]
+    },
+
+    {
       "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Display", "summary": "Shows a YouTube video that loads when played.",
       "examples": [
         { "id": "video-embed-play", "title": "Playing a video", "lead": "The poster shows first, and YouTube's player loads only when the user plays the video. Set `YouTubeId` and `Label`.",
