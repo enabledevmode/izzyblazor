@@ -6,7 +6,7 @@
   "kind": "block",
   "category": "Marketing",
   "summary": "The top of a landing page: a headline, a sentence, two buttons and a screenshot or image.",
-  "components": ["Section", "Container", "Grid", "Stack", "Row", "Badge", "Heading", "TextBlock", "Button", "Box", "Image"],
+  "components": ["Section", "Container", "Grid", "Stack", "Row", "Badge", "Heading", "TextBlock", "Button", "BrowserFrame", "Image"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
