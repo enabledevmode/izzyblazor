@@ -21,19 +21,19 @@
         <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
         <Stack Direction="Direction.Row" Justify="Justify.Between" Align="Align.Center" Wrap>
             <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
-            <Anchor Href="Account/ForgotPassword">Forgot your password?</Anchor>
+            <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot your password?</Anchor></TextBlock>
         </Stack>
         <Button Submit FullWidth>Log in</Button>
         <Divider Label="or" />
         <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" FullWidth>Log in with a passkey</PasskeySubmit>
     </Form>
     <ExternalLoginPicker />
-    <Stack Gap="1">
-        <TextBlock>
+    <Stack Gap="2">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
             New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
         </TextBlock>
-        <TextBlock>
-            <Anchor Href="Account/ResendEmailConfirmation">Resend email confirmation</Anchor>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+            Didn't get the confirmation email? <Anchor Href="Account/ResendEmailConfirmation">Resend it</Anchor>
         </TextBlock>
     </Stack>
 </AccountPanel>
