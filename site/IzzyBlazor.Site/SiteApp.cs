@@ -21,6 +21,20 @@ public static class SiteApp
     private const string PagesRateLimit = "pages";
     private const string BusyPartition = "busy";
 
+    // Whether the browser says the request came from one of the site's own pages: Sec-Fetch-Site
+    // (every current browser), else a Referer on this host (older Safari).
+    private static bool FromThisSite(HttpRequest request)
+    {
+        var site = request.Headers["Sec-Fetch-Site"].ToString();
+        if (site.Length > 0)
+        {
+            return site == "same-origin";
+        }
+
+        return Uri.TryCreate(request.Headers.Referer.ToString(), UriKind.Absolute, out var referer)
+            && string.Equals(referer.Host, request.Host.Host, StringComparison.OrdinalIgnoreCase);
+    }
+
     // A page render with a query string that came through Fly's proxy: the crawlable, endless kind.
     // Not the examples' frames (a page loads many at once), the circuit, the framework's files,
     // MCP, static files (a dot in the last segment), or an error page re-executed for a request
@@ -233,6 +247,17 @@ public static class SiteApp
             if (IsQueryPage(context) && ClientKey(context) is var client && rejectionLog.AttemptAcquire("q " + client).IsAcquired)
             {
                 queryLog.LogInformation("Query page {Client} ({UserAgent}): {Path}", client, agent, context.Request.Path + context.Request.QueryString);
+            }
+
+            // A page with a query string opened from outside the site goes to the page without it.
+            // Readers reach the examples' states by clicking on the site, which the browser marks
+            // (Sec-Fetch-Site, or a Referer from here); a crawler asks for them straight, and each
+            // is a fresh render of an endless set (Nov 13, 2026: DataGrid's states, 13 to 15 seconds
+            // a page on the shared CPU). A link with a state pasted from elsewhere opens the plain page.
+            if (IsQueryPage(context) && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)) && !FromThisSite(context.Request))
+            {
+                context.Response.Redirect(context.Request.PathBase + context.Request.Path);
+                return Task.CompletedTask;
             }
 
             return next(context);
