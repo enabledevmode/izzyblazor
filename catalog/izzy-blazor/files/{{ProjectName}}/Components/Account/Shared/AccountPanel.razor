@@ -1,23 +1,12 @@
-@* The frame of the pages you see before you log in, after shadcn's sign-in form: no card, a large
-   title, a 22rem column centered across the page and in the top 70% of the screen (a little above
-   the middle); on phones it starts at the top. The title is the page's h1. *@
-<Center MinHeight="new() { Md = Length.Dvh(70) }" PaddingY="new() { Base = 4, Md = 8 }">
-    <Column Gap="6" Width="Length.Full" MaxWidth="Length.Rem(22)">
-        @if (Title is not null)
-        {
-            <Column Gap="2">
-                <Heading Level="1" Size="TextSize.Xl3">@Title</Heading>
-                @if (Description is not null)
-                {
-                    <TextBlock Color="Color.Muted">@Description</TextBlock>
-                }
-            </Column>
-        }
-        <Column Gap="4">
-            @ChildContent
-        </Column>
+@* The frame of the sign-in and one-message pages: the Narrow column (24rem), centered across the
+   page at a fixed distance under the header, so the title never moves when an alert appears. The
+   text starts at the column's edge; the title is the page's h1. *@
+<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 8, Md = 16 }">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="@(Title ?? "")" Description="@Description" Size="ControlSize.Lg" />
+        @ChildContent
     </Column>
-</Center>
+</Container>
 
 @code {
     [Parameter]

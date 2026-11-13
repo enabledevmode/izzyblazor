@@ -48,7 +48,7 @@
   ],
   "checks": [
     {
-      "if": "HeadingLevel == \"1\"", "file": "{{Into}}", "pattern": "<h1[ >]|Level=\"1\"",
+      "if": "HeadingLevel == \"1\"", "file": "{{Into}}", "pattern": "<h1[ >]|Level=\"1\"|<PageHeader(?![^>]*TitleLevel=\"[2-6]\")",
       "message": "{{Into}} already has a level-1 heading, and the hero's headline is one too. Remove one, or set HeadingLevel to 2."
     }
   ]

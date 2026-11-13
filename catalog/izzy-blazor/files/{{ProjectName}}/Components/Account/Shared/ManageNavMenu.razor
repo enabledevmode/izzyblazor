@@ -4,31 +4,54 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager NavigationManager
 
-<NavMenu aria-label="Account settings">
-    <NavItem Href="Account/Manage" Match="NavLinkMatch.All" Icon="Lucide.User">Profile</NavItem>
-    <NavItem Href="Account/Manage/Email" Icon="Lucide.Mail">Email</NavItem>
-    <NavItem Href="Account/Manage/ChangePassword" Current="@On("ChangePassword", "SetPassword")" Icon="Lucide.Lock">Password</NavItem>
-    @if (hasExternalLogins)
-    {
-        <NavItem Href="Account/Manage/ExternalLogins" Icon="Lucide.Link">External logins</NavItem>
-    }
-    <NavItem Href="Account/Manage/TwoFactorAuthentication" Current="@On("TwoFactorAuthentication", "EnableAuthenticator", "ResetAuthenticator", "Disable2fa", "GenerateRecoveryCodes")" Icon="Lucide.Smartphone">Two-factor authentication</NavItem>
-    <NavItem Href="Account/Manage/Passkeys" Current="@On("Passkeys", "RenamePasskey")" Icon="Lucide.KeyRound">Passkeys</NavItem>
-    <NavItem Href="Account/Manage/PersonalData" Current="@On("PersonalData", "DeletePersonalData")" Icon="Lucide.Database">Personal data</NavItem>
+@* The sections, beside the page from Md up; on phones a dropdown whose button names the section
+   you're in. A section's own steps (set up, reset, rename, delete) keep it current. *@
+<NavMenu aria-label="Account" VisibleFrom="Breakpoint.Md">
+    @Items
 </NavMenu>
+<Popover HiddenFrom="Breakpoint.Md" Width="Length.Full" PanelWidth="Length.Full">
+    <Trigger Context="trigger">
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="@current.Icon" EndIcon="Lucide.ChevronDown" @attributes="trigger">
+            <TextBlock As="span" Align="TextAlign.Start" Truncate Grow>@current.Title</TextBlock>
+        </Button>
+    </Trigger>
+    <ChildContent>
+        <NavMenu aria-label="Account">
+            @Items
+        </NavMenu>
+    </ChildContent>
+</Popover>
 
 @code {
-    private bool hasExternalLogins;
+    private sealed record Section(string Title, string Href, IconData Icon, params string[] Pages);
+
+    private Section[] sections = [];
+    private Section current = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+        var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+        sections =
+        [
+            new("Profile", "Account/Manage", Lucide.User, ""),
+            new("Email", "Account/Manage/Email", Lucide.AtSign, "Email"),
+            new("Password", "Account/Manage/ChangePassword", Lucide.KeyRound, "ChangePassword", "SetPassword"),
+            .. hasExternalLogins ? [new Section("External logins", "Account/Manage/ExternalLogins", Lucide.Link, "ExternalLogins")] : Array.Empty<Section>(),
+            new("Two-factor authentication", "Account/Manage/TwoFactorAuthentication", Lucide.Shield,
+                "TwoFactorAuthentication", "EnableAuthenticator", "ResetAuthenticator", "Disable2fa", "GenerateRecoveryCodes"),
+            new("Passkeys", "Account/Manage/Passkeys", Lucide.FingerprintPattern, "Passkeys", "RenamePasskey"),
+            new("Personal data", "Account/Manage/PersonalData", Lucide.Database, "PersonalData", "DeletePersonalData"),
+        ];
+        var page = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0].TrimEnd('/');
+        current = sections.FirstOrDefault(s => s.Pages.Any(p => page.Equals(p.Length == 0 ? "Account/Manage" : "Account/Manage/" + p, StringComparison.OrdinalIgnoreCase)))
+            ?? sections[0];
     }
 
-    // A page's steps (set up, reset, rename, delete) keep its item current.
-    private bool On(params string[] pages)
+    private RenderFragment Items => __builder =>
     {
-        var page = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?', '#')[0];
-        return pages.Any(p => page.Equals("Account/Manage/" + p, StringComparison.OrdinalIgnoreCase));
-    }
+        foreach (var section in sections)
+        {
+            <NavItem Href="@section.Href" Icon="section.Icon" Current="@(section == current)">@section.Title</NavItem>
+        }
+    };
 }

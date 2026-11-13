@@ -5,26 +5,29 @@
 
 <PageTitle>Weather</PageTitle>
 
-<Stack Gap="3">
-    <Heading Level="1">Weather</Heading>
-    <TextBlock>This component demonstrates showing data.</TextBlock>
-
-    @if (forecasts == null)
-    {
-        <Spinner Label="Loading the forecast" />
-    }
-    else
-    {
-        <Table Items="forecasts" Caption="Forecast for the next five days" Striped MaxWidth="Length.Rem(48)">
+@* The data page: the Medium column (48rem) from the main area's edge, the page header, then the
+   table, bordered, at the column's width. While the forecast loads, the table shows placeholder
+   rows at the height the rows will take, so nothing moves when they arrive. *@
+<Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="Weather" Description="Five days of forecasts. Sort and filter through the address." />
+        <Table Items="forecasts ?? []" Loading="forecasts is null" Caption="Forecast" Striped InitialSort="date" FilterPanel>
             <Columns>
                 <PropertyColumn Property="f => f.Date" Title="Date" Format="d" Sortable Filterable />
-                <PropertyColumn Property="f => f.TemperatureC" Title="Temp. (C)" Sortable Filterable />
-                <PropertyColumn Property="f => f.TemperatureF" Title="Temp. (F)" Sortable />
+                <PropertyColumn Property="f => f.TemperatureC" Title="Temp. (C)" Align="CellAlign.End" Sortable Filterable />
+                <PropertyColumn Property="f => f.TemperatureF" Title="Temp. (F)" Align="CellAlign.End" Sortable />
                 <PropertyColumn Property="f => f.Summary" Title="Summary" Sortable Filterable />
             </Columns>
+            <EmptyContent>
+                <EmptyState Size="ControlSize.Sm" Icon="Lucide.Funnel" Title="No matching days" Description="Change or clear the filters.">
+                    <EmptyStateActions>
+                        <Button Href="weather" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+                    </EmptyStateActions>
+                </EmptyState>
+            </EmptyContent>
         </Table>
-    }
-</Stack>
+    </Column>
+</Container>
 
 @code {
     private WeatherForecast[]? forecasts;
