@@ -214,6 +214,9 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
+    /// <summary>Whether the field takes no input (read-only or disabled), so its label gets no required or optional mark.</summary>
+    protected bool TakesNoInput => IsReadOnly || IsDisabled;
+
     /// <summary>Whether there's something for <see cref="ClearButton"/> to empty.</summary>
     private protected virtual bool HoldsValue => !string.IsNullOrEmpty(CurrentValueAsString?.Trim('/'));
 

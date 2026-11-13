@@ -72,6 +72,12 @@ else
     [Parameter] public bool Required { get; set; }
 
     /// <summary>
+    /// The field takes no input (read-only or disabled), so it gets neither the asterisk nor
+    /// "(optional)": neither says anything about a value the user can't give.
+    /// </summary>
+    [Parameter] public bool NoInput { get; set; }
+
+    /// <summary>
     /// Says "(required)" to screen readers after the label of a required field
     /// (<see cref="IzzyText.Required"/>), for controls that can't be marked <c>required</c>
     /// themselves, such as a group of checkboxes. Whatever the form's <c>RequiredMark</c>.
@@ -105,7 +111,7 @@ else
         ? string.Join(' ', new[] { string.IsNullOrEmpty(Hint) ? null : HintId, Errors is { Count: > 0 } ? ErrorId : null }.Where(x => x is not null)) is { Length: > 0 } ids ? ids : null
         : null;
 
-    private RenderFragment? RequiredMark => (FormOptions?.RequiredMark ?? IzzyBlazor.RequiredMark.Required) switch
+    private RenderFragment? RequiredMark => NoInput ? null : (FormOptions?.RequiredMark ?? IzzyBlazor.RequiredMark.Required) switch
     {
         IzzyBlazor.RequiredMark.Required when Required => RenderRequiredMark,
         IzzyBlazor.RequiredMark.Optional when !Required => RenderOptionalMark,

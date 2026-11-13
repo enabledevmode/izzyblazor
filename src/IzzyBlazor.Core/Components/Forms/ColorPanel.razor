@@ -41,7 +41,7 @@
 *@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/color-panel.css"]" />
-<FieldFrame Class="@WrapperClass("color-panel")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("color-panel")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ColorPanelView Value="@CurrentValueAsString" OnChange="OnChanged" Text="TextDefaults" ScriptName="@FormName" PostName="@FormName" Attributes="PanelAttributes"
                     ControlId="@FieldId" LabelId="@LabelId" DescribedBy="@DescribedBy" Disabled="IsDisabled" ReadOnly="IsReadOnly" Invalid="Invalid"
