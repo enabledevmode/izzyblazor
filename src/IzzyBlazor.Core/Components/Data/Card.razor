@@ -8,7 +8,7 @@
     and CardFooter stay clickable. No script involved.
 
     Content between the tags is the body. The other parts are components written among it, directly
-    in the card: CardMedia (drawn at the top), CardHeader (custom heading content, above the title),
+    in the card: CardMedia (drawn at the top, or at the start with Orientation Horizontal), CardHeader (custom heading content, above the title),
     CardActions (at the end of the heading row), CardBody (the body with layout props) and
     CardFooter (the bottom row, drawn last). CardMedia, CardHeader and CardActions are drawn at the
     card's level, so a form or cascading value they're written inside doesn't reach them.
@@ -34,8 +34,9 @@
 *@
 
 <CascadingValue Value="_chartButtons" IsFixed="true">
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
-    @if (_scope.Shown<CardMedia>() is { } media)
+@{ var media = _scope.Shown<CardMedia>(); }
+<div @attributes="AdditionalAttributes" class="@_class" style="@(media?.Width is { } width ? $"--ib-card-media-w:{width};{_style}" : _style)">
+    @if (media is not null)
     {
         <div class="ib-card-media">@_scope.Outlet(media)</div>
     }
@@ -105,6 +106,14 @@
     /// </summary>
     [Parameter] public bool Dividers { get; set; }
 
+    /// <summary>
+    /// Where <see cref="CardMedia"/> goes: on top (<see cref="IzzyBlazor.Orientation.Vertical"/>, the
+    /// default) or at the start, the heading and body beside it (<see cref="IzzyBlazor.Orientation.Horizontal"/>).
+    /// It can change by breakpoint: <c>new() { Base = Orientation.Horizontal, Md = Orientation.Vertical }</c>
+    /// makes rows on phones and tiles from 768px. Without a CardMedia it changes nothing.
+    /// </summary>
+    [Parameter] public Responsive<Orientation> Orientation { get; set; }
+
     /// <summary>How it's drawn. Defaults to <see cref="CardVariant.Outline"/>.</summary>
     [Parameter] public CardVariant Variant { get; set; } = CardVariant.Outline;
 
@@ -157,6 +166,11 @@
         classes.Add("ib-card-lg", Size == ControlSize.Lg);
         classes.Add("ib-card-linked", Href is not null && Title is not null);
         classes.Add("ib-card-dividers", Dividers);
+        foreach (var (breakpoint, orientation) in Orientation.Entries)
+        {
+            var side = orientation == IzzyBlazor.Orientation.Horizontal ? "h" : "v";
+            classes.Add(breakpoint is { } b ? $"ib-card-{side}-{b.ToString().ToLowerInvariant()}" : $"ib-card-{side}");
+        }
         base.BuildAttributes(classes, styles);
     }
 

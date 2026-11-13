@@ -78,8 +78,9 @@
                 <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5" Class="site-block-cards">
                     @foreach (var block in group)
                     {
-                        <Card Title="@block.Name" TitleLevel="3" Description="@block.Manifest.Summary" Href="@block.Href" Class="site-block-card">
-                            <CardMedia><Image Src="@block.Picture" Alt="" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture" /></CardMedia>
+                        <Card Title="@block.Name" TitleLevel="3" Description="@block.Manifest.Summary" Href="@block.Href" Class="site-block-card"
+                              Orientation="new() { Base = Orientation.Horizontal, Md = Orientation.Vertical }">
+                            <CardMedia Width="Length.Px(120)"><Image Src="@block.Picture" Alt="" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture" /></CardMedia>
                             @if (block.Free)
                             {
                                 <CardActions><Badge Status="Status.Success">Free</Badge></CardActions>

@@ -1,0 +1,28 @@
+<Grid MinChildWidth="18.Rem" Gap="4" Grow>
+    @foreach (var article in _articles)
+    {
+        <Card Title="@article.Title" Description="@article.Summary" Href="@article.Href"
+              Orientation="new() { Base = Orientation.Horizontal, Lg = Orientation.Vertical }">
+            <CardMedia Width="Length.Rem(7.5)">
+                <svg viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                    <rect width="400" height="225" fill="@article.Color" />
+                    <circle cx="300" cy="60" r="110" fill="#fff" fill-opacity="0.18" />
+                </svg>
+            </CardMedia>
+            <CardFooter>
+                <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">@article.Minutes min read</TextBlock>
+            </CardFooter>
+        </Card>
+    }
+</Grid>
+
+@code {
+    private sealed record Article(string Title, string Summary, string Href, int Minutes, string Color);
+
+    private readonly Article[] _articles =
+    [
+        new("Static pages that still feel fast", "Enhanced navigation keeps the page where it was.", "#static-pages", 6, "#4f46e5"),
+        new("Forms without a circuit", "Validate on the server and keep what was typed.", "#forms", 9, "#0e7490"),
+        new("Choosing a render mode", "When an interactive island earns its place.", "#render-modes", 5, "#b45309"),
+    ];
+}

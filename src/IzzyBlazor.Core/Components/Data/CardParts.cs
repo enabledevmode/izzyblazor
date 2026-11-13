@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// An image or video at the top of a <see cref="Card"/>, edge to edge. Write it directly in the card.
+/// An image or video at the top of a <see cref="Card"/>, edge to edge, or at its start with the
+/// card's <c>Orientation</c> Horizontal. Write it directly in the card.
 /// </summary>
 /// <example>
 /// <code>
@@ -16,6 +17,12 @@ namespace IzzyBlazor;
 public sealed class CardMedia : ComponentPart
 {
     internal override Type HostType => typeof(Card);
+
+    /// <summary>
+    /// Its width beside the rest of the card, when the card's <c>Orientation</c> is Horizontal,
+    /// such as <c>Length.Px(120)</c>. Defaults to 40% of the card. On top it's always the card's width.
+    /// </summary>
+    [Parameter] public Length? Width { get; set; }
 }
 
 /// <summary>

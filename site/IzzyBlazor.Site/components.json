@@ -2111,6 +2111,7 @@
         { "id": "card-variants", "title": "Variants", "lead": "A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`. To give the card a header, set `Title` and `Description`." },
         { "id": "card-sizes", "title": "Sizes", "lead": "A card's size sets its padding and its title's size. To change it, set `Size`." },
         { "id": "card-linked", "title": "A linked card", "lead": "To make the whole card a link through its title, set `Href`. Buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
+        { "id": "card-side", "title": "Picture at the side", "lead": "To put `CardMedia` at the start, set `Orientation` to `Horizontal`; `Width` on `CardMedia` sets its width. Here they're rows until 1024px, then tiles." },
         { "id": "card-post", "title": "Header content", "lead": "For content above the title, such as who wrote the post, add a `CardHeader`. For a menu at the end of the heading row, add `CardActions`." },
         { "id": "card-footer", "title": "Body and footer", "lead": "To lay out the body, such as with a `Gap`, put it in a `CardBody`. For a row of buttons at the bottom, add a `CardFooter`." },
         { "id": "card-flush", "title": "Flush content", "lead": "To run a table or list to the card's edges, set `Flush` on `CardBody`." },
