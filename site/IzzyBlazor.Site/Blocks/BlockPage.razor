@@ -58,6 +58,9 @@
         </Stack>
 
         <Heading Level="2" id="preview">Preview</Heading>
+        @* The switches reload the page; site.js keeps this region where it was on the screen (as for an
+           example's own links), and without script the address's fragment brings it into view. *@
+        <div id="block-preview" data-site-return>
         <div class="site-block-switches">
             @foreach (var (variation, i) in _block.Manifest.Variations.Select((v, i) => (v, i)))
             {
@@ -103,6 +106,7 @@
                 </CodeExample>
             </ThemeScope>
         }
+        </div>
 
         @if (_block.Free && _code.Count > 0)
         {
@@ -228,7 +232,7 @@
         var keys = _block!.Manifest.Variations.Select(v => v.Key).Append("width");
         var parts = keys.Where(query.ContainsKey).Select(k => $"{k}={Uri.EscapeDataString(query[k])}");
         var text = string.Join('&', parts);
-        return $"blocks/{_block.Id}{(text.Length > 0 ? "?" + text : "")}#preview";
+        return $"blocks/{_block.Id}{(text.Length > 0 ? "?" + text : "")}#block-preview";
     }
 
     // "Writes Components/Blocks/Hero.razor and places it on Home, after <PageTitle>."
