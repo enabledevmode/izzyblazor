@@ -159,7 +159,6 @@
   .site-hero-grid {
     grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
     gap: var(--ib-space-12);
-    margin-inline-end: min(0px, calc((100% - 100vw) / 2 + 1.5rem));
   }
   .site-hero-stage { --s: 0.5; container: hero-stage / inline-size; display: block; padding-block-end: 5rem; padding-inline-start: 3rem; }
   .site-hero-window { --s: 0.3; display: block; }
@@ -748,10 +747,14 @@ html:has(> body > .frame) body { margin: 0; }
   margin-block-end: var(--ib-space-6);
 }
 .site-filter-row > .site-search-count { margin-block-end: var(--ib-space-2); }
+/* The form takes the row's free width, so its fields sit side by side rather than stacking. */
+.site-filter-row > :first-child { flex: 1 1 auto; min-width: 0; }
 
 /* The Blocks sidebar: a free block says so in small success text, not a chip. */
+/* The label fills the row, so "Free" sits at its end, where a chip would. */
+.ib-nav-text:has(> .site-nav-free) { display: flex; flex: 1; align-items: baseline; gap: var(--ib-space-2); }
 .site-nav-free {
-  margin-inline-start: var(--ib-space-2);
+  margin-inline-start: auto;
   font-size: var(--ib-text-xs);
   font-weight: var(--ib-weight-medium);
   color: var(--ib-color-success-text);
@@ -762,23 +765,27 @@ html:has(> body > .frame) body { margin: 0; }
   display: flex;
   flex-direction: column;
   gap: var(--ib-space-4);
-  margin-block-end: var(--ib-space-10);
-  padding: var(--ib-space-6);
+  margin-block-end: var(--ib-space-8);
+  padding: var(--ib-space-5) var(--ib-space-6);
   border-radius: var(--ib-radius-lg);
   background: var(--ib-color-fill-subtle);
 }
-.site-blocks-point { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ib-space-1); }
+.site-blocks-point { display: flex; align-items: flex-start; gap: var(--ib-space-3); }
+.site-blocks-point > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .site-blocks-point-icon {
   display: inline-grid;
   place-items: center;
+  flex: none;
   width: 2.25rem;
   height: 2.25rem;
-  margin-block-end: var(--ib-space-2);
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-md);
   background: var(--ib-color-surface);
 }
 .site-blocks-group { display: flex; flex-direction: column; gap: var(--ib-space-4); margin-block-end: var(--ib-space-10); }
+/* No gap: the heading already leaves room after its text for its # link. */
+.site-blocks-group-head { display: flex; align-items: baseline; }
+.site-blocks-count { font-size: var(--ib-text-md); color: var(--ib-color-muted); }
 .site-block-picture { border-bottom: 1px solid var(--ib-color-border); object-position: top; }
 .site-block-cards .ib-card-description {
   display: -webkit-box;
