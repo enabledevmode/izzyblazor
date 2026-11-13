@@ -18,7 +18,7 @@ public sealed class AutocompleteTests(SiteFixture site) : IClassFixture<SiteFixt
     {
         var (browser, page) = await OpenAsync("static");
         await using var _ = browser;
-        var example = page.Locator("[data-ex='autocomplete-cities']");
+        var example = page.Locator("[data-ex='autocomplete-usage']");
         await example.Locator("ib-combobox[data-ready]").WaitForAsync();
         var city = example.GetByRole(AriaRole.Combobox);
         var save = example.GetByRole(AriaRole.Button, new() { Name = "Save" });

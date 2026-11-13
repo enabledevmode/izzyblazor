@@ -2,14 +2,12 @@
    several (previewed in each mode), at least one with ids for values, enum options with icons,
    sizes and states, and its own words. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A multi-select is a field where the user picks several options from a long list, typing to narrow it. The chosen options show as chips in the field.</TextBlock>
 <TextBlock>For a short list, see <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor>, which shows every option at once. For one choice, see <Anchor Href="docs/components/combobox">Combobox</Anchor> or <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Choosing several</Heading>
 <TextBlock>The field's value is the collection of chosen options. Set <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>. Typing filters the list, ignoring case and accents, and the list stays open as the user chooses.</TextBlock>
-<ExampleViewer Example="multi-select-chips" />
+<ExampleViewer Example="multi-select-usage" />
 <List>
     <ListItem>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code>, or an interface they implement.</ListItem>
     <ListItem>Each choice posts as a repeated form field.</ListItem>
@@ -88,16 +86,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* Strings: each is its own text. *@
-        <MultiSelect @bind-Value="Model!.Skills" Items="AllSkills" Placeholder="Add skills" />
-
-        @* Ids, named for people. *@
-        <MultiSelect @bind-Value="Model!.ReviewerIds" Items="People.Keys"
-                     ItemText="id => People.GetValueOrDefault(id, id.ToString())" />
-
-        @* An enum's values. *@
-        <MultiSelect @bind-Value="Model!.Days" Items="Enum.GetValues<DayOfWeek>()" />
-        """;
 }

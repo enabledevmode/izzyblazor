@@ -3,14 +3,12 @@
    sizes and states, and what to use when a change should filter the page. Accessibility and See
    also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A select is a field with a list of options, one of which the user picks, for short lists. It's a native select, so it posts with the form, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
 <TextBlock>For a long list, see <Anchor Href="docs/components/combobox">Combobox</Anchor>, which the user types to filter. For several choices, see <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Options</Heading>
 <TextBlock>Bound to an enum, a Select shows each value as an option, named by its <Code>[Display(Name)]</Code>. For any other type, pass <Code>Items</Code>, and set <Code>ItemText</Code> for how each option reads. To add an empty first option, set <Code>Placeholder</Code>.</TextBlock>
-<ExampleViewer Example="select-options" />
+<ExampleViewer Example="select-usage" />
 <TextBlock>The label and required mark come from the model, as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>. The label is the <Code>[Display(Name)]</Code>, or the property name in words, and <Code>[Required]</Code> adds the mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
 
 <Heading Level="2">Rich options</Heading>
@@ -57,15 +55,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* An enum: its values are the options. *@
-        <Select @bind-Value="Model!.Plan" />
-
-        @* Your own list, with the text for each. *@
-        <Select @bind-Value="Model!.Country" Items="CountryCodes" ItemText="code => CountryNames[code!]"
-                Placeholder="Choose a country" />
-        """;
 
     private const string Filter = """
         @* Any page: sets ?status= *@

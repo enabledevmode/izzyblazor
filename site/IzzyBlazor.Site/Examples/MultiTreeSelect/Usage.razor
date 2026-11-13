@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="multi-tree-select-share" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+<Form Model="Model" FormName="multi-tree-select-usage" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
     <MultiTreeSelect @bind-Value="Model!.TeamIds" Items="Departments" ItemChildren="d => d.Teams"
                      ItemValue="d => d.Id" ItemText="d => d.Name" Placeholder="Choose teams" Searchable Clearable />
     <Row><Button Submit>Share report</Button></Row>
@@ -11,7 +11,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "multi-tree-select-share")]
+    [SupplyParameterFromForm(FormName = "multi-tree-select-usage")]
     private Report? Model { get; set; }
 
     private string? _shared;

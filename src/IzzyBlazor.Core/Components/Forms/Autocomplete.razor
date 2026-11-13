@@ -7,10 +7,6 @@
     A text field that suggests as you type. Whatever is typed is the value; a suggestion only
     fills it in. (A Combobox's value must be one of its options.)
 
-    <Autocomplete @bind-Value="Model.City" Items="Cities" />
-    <Autocomplete @bind-Value="Model.Tag" Search="FindTags" />
-    <Autocomplete @bind-Value="Model.Product" ItemsProvider="FindProducts" />
-
     Suggestions come from Items, from Search (called with the typed text), or from ItemsProvider
     (a DataRequest whose Search is the typed text and whose Take is MaxSuggestions). On
     interactive pages each pause in typing asks again for new suggestions. Static pages do too,

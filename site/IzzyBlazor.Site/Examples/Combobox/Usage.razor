@@ -1,11 +1,11 @@
-<Form Model="Model" FormName="combobox-filtering" MaxWidth="24.Rem" Grow>
+<Form Model="Model" FormName="combobox-usage" MaxWidth="24.Rem" Grow>
     <Combobox @bind-Value="Model!.Country" Items="Countries.Keys"
               ItemText="code => Countries.GetValueOrDefault(code!, code!)"
               Placeholder="Search countries" />
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "combobox-filtering")]
+    [SupplyParameterFromForm(FormName = "combobox-usage")]
     private Shipping? Model { get; set; }
 
     protected override void OnInitialized() => Model ??= new();
