@@ -6,12 +6,6 @@
     The top of a page: its title, a muted line on what it's for, and actions or a status at the
     end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
 
-    <PageHeader Title="Invoices" Description="Everything you've billed, newest first.">
-        <PageHeaderActions>
-            <Button Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</Button>
-        </PageHeaderActions>
-    </PageHeader>
-
     Accessibility:
     - `Title` is a heading, an `h1` by default; set `TitleLevel` when the page has its own h1.
     - The actions follow the title in reading order, so they come after it for keyboard and

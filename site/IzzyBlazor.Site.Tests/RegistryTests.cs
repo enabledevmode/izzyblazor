@@ -45,18 +45,20 @@ public class RegistryTests
         Assert.True(nested.Count == 0, $"Usage lines with a child element on the same line:\n{string.Join("\n", nested)}");
     }
 
-    // Every component page opens with a Usage: a series presented as its own chart (Bar chart is
+    // Every component page opens with a Usage, its first example {id}-usage (or, until each group
+    // moves to those, a doc comment <example>): a series presented as its own chart (Bar chart is
     // ChartBarSeries) shows the whole chart, as any other component does.
     [Fact]
     public void Every_component_page_has_a_usage()
     {
         var handWritten = HandWrittenUsage().Select(u => u.Name[..^"Overview".Length]).ToHashSet();
         var missing = Registry.AllComponents
-            .Where(c => Api.Component(c.Name)?.Examples is not { Count: > 0 } && !handWritten.Contains(c.Name))
+            .Where(c => Api.Component(c.Name)?.Examples is not { Count: > 0 } && !handWritten.Contains(c.Name)
+                && c.Examples.FirstOrDefault()?.Id != $"{c.Id}-usage")
             .Select(c => c.Name)
             .ToList();
 
-        Assert.True(missing.Count == 0, $"Add an <example><code> to: {string.Join(", ", missing)}");
+        Assert.True(missing.Count == 0, $"Add a runnable {{id}}-usage example, first on the page, to: {string.Join(", ", missing)}");
     }
 
     private static IEnumerable<string> Ancestors(string start)

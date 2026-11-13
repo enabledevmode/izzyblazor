@@ -17,6 +17,7 @@
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "Renders a block that accepts every style prop.",
       "examples": [
+        { "id": "box-usage", "title": "A panel", "lead": "A `Box` is one element, a `div` unless `As` names another, that takes every style prop: padding, background, border, radius, width. Use it for a panel or band that no other component shapes.", "after": ["A style prop takes one value or a breakpoint map, as `Padding` does here: 4 spacing steps on phones and 6 from Md (768px)."] },
         { "id": "box-borders", "title": "Bands, borders and a dashed card" },
         { "id": "box-scheme", "title": "A color scheme for part of a page" },
         { "id": "box-surfaces", "title": "Surfaces", "lead": "To set a background by its place on the page, set `Bg`: `Background` for the page and `Surface` for cards on it.", "after": ["Inside a surface, the three fills, `FillSubtle`, `Fill` and `FillStrong`, each sit a step further from it.", "`SurfaceSunken` sits below the surface in light and dark, for an area that has cards of its own, such as a board's columns. `SurfaceOverlay` is for what floats above, with a `Border` and a `Shadow`."] },
@@ -29,6 +30,7 @@
     {
       "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lines up buttons, badges or fields side by side, with a gap between them.",
       "examples": [
+        { "id": "row-usage", "title": "Side by side", "lead": "Put the items in a `Row`. `Gap` sets the space between them, in spacing steps, and `Align=\"Align.Center\"` lines them up on one center line, here a heading and two badges.", "after": ["`Wrap` lets the badges move to a new line when the row runs out of room, as on a phone."] },
         { "id": "row-alignment", "title": "Alignment", "lead": "Alignment sets where children sit across the row, between its top and bottom. By default they stretch to the row's height. To line them up on one center line, as the avatar, text and button are here, set `Align` to `Align.Center`." },
         { "id": "row-distribute", "title": "Distributing the free space", "lead": "To share the free space along the row, set `Justify`. `Justify.Between` puts the count at the start and the buttons at the end." },
         { "id": "row-wrapping", "title": "Wrapping", "lead": "Children stay on one line by default. To let them flow onto more lines when they don't fit, set `Wrap`." },
@@ -39,6 +41,7 @@
     {
       "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Stacks fields, cards or text from top to bottom, with even spacing.",
       "examples": [
+        { "id": "column-usage", "title": "Top to bottom", "lead": "Put the items in a `Column`, first at the top. `Gap` sets the space between them, in spacing steps.", "after": ["`MaxWidth=\"Length.Prose\"` stops the text at a comfortable line length."] },
         { "id": "column-spacing", "title": "Space between children", "lead": "To change the space between a column's children, set `Gap`. For a tighter group inside the column, nest a column with a smaller gap.", "after": ["Here the plan's name and description use `Gap=\"1\"` (4px), and the groups `Gap=\"5\"` (20px)."] },
         { "id": "column-alignment", "title": "Alignment", "lead": "Children stretch to the column's width by default. To keep each one at its own width, as the button here, set `Align=\"Align.Start\"`." }
       ]
@@ -47,7 +50,7 @@
     {
       "id": "stack", "icon": "Layers", "name": "Stack", "category": "Layout", "summary": "Lays out its children in a row or a column, changing with the screen width.",
       "examples": [
-        { "id": "stack-breakpoints", "title": "Direction by breakpoint", "lead": "A stack can be a row on wide screens and a column on phones. Set `Direction` with a breakpoint map: these features sit side by side from Sm (640px) and stack in a column on phones." },
+        { "id": "stack-usage", "title": "Direction by breakpoint", "lead": "A stack can be a row on wide screens and a column on phones. Set `Direction` with a breakpoint map: these features sit side by side from Sm (640px) and stack in a column on phones." },
         { "id": "stack-page-header", "title": "Page header", "lead": "Alignment can change with the screen width too, since `Align` accepts a breakpoint map. In this page header, the title and actions share a line from Sm, spread apart by `Justify.Between`. On phones the actions stack under the title." }
       ]
     },
@@ -55,7 +58,7 @@
     {
       "id": "grid", "icon": "LayoutGrid", "name": "Grid", "category": "Layout", "summary": "Lays out its children in columns set by breakpoint, by minimum width or by template.", "parts": ["GridItem"],
       "examples": [
-        { "id": "grid-breakpoints", "title": "Columns by breakpoint", "lead": "To set a number of equal columns per breakpoint, set `Columns` with a breakpoint map. Here there's one column on phones, two from Sm (640px) and three from Lg (1024px)." },
+        { "id": "grid-usage", "title": "Columns by breakpoint", "lead": "Put the items in a `Grid` and set `Columns` to the number of equal columns, here with a breakpoint map. Here there's one column on phones, two from Sm (640px) and three from Lg (1024px)." },
         { "id": "grid-min-width", "title": "As many columns as fit", "lead": "To fit as many columns as there's room for, set `MinChildWidth`. Each column is at least that wide, and there are no breakpoints to pick." },
         { "id": "grid-few-items", "title": "Fewer items than columns", "lead": "With `MinChildWidth`, a row with fewer items keeps its empty columns, so every item has the same width (top). To let the items fill the row, add `Stretch` (bottom)." },
         { "id": "grid-side-column", "title": "Custom column sizes", "lead": "To set CSS column sizes per breakpoint, set `Template`. Here, from Sm, a 12rem side column sits beside the results; on phones there's one column." },
@@ -66,7 +69,7 @@
     {
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
-        { "id": "container-reading", "title": "Content width", "lead": "A container caps the content's width and centers it. To change the cap, set `Size`, from Xs (24rem) for a sign-in form to Xl (80rem, the default). Where the parent is narrower, the container fills it, with padding at the sides." },
+        { "id": "container-usage", "title": "Content width", "lead": "A container caps the content's width and centers it. To change the cap, set `Size`, from Xs (24rem) for a sign-in form to Xl (80rem, the default). Where the parent is narrower, the container fills it, with padding at the sides." },
         { "id": "container-bands", "title": "Bands that reach the edges", "lead": "For bands of color that reach the page's edges, put the color on a `Box` around each `Container`. The bands run the full width, and their content keeps the same width and side padding, so the edges line up." },
         { "id": "container-start", "title": "A page column beside a sidebar", "lead": "In an app's main area, a page usually starts at the edge beside the sidebar. To cap its width there, set `Align=\"ContainerAlign.Start\"`. The main area has its own padding, so set `Gutters=\"false\"` to line the content up with the rest of the page." }
       ]
@@ -75,7 +78,7 @@
     {
       "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderActions"],
       "examples": [
-        { "id": "page-header-actions", "title": "Title, description and actions", "lead": "A page header names the page and says what it's for. Set `Title` and `Description`. For the page's main actions or its status, add `PageHeaderActions`; they sit at the end and wrap under the text on a phone." },
+        { "id": "page-header-usage", "title": "Title, description and actions", "lead": "A page header names the page and says what it's for. Set `Title` and `Description`. For the page's main actions or its status, add `PageHeaderActions`; they sit at the end and wrap under the text on a phone." },
         { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." }
       ]
     },
@@ -83,23 +86,23 @@
     {
       "id": "section", "icon": "PanelTop", "name": "Section", "category": "Layout", "summary": "Renders a full-width band of a page, such as a hero.",
       "examples": [
-        { "id": "section-hero", "title": "A hero", "lead": "A hero or a closing call to action needs more room. Set `Spacing=\"SectionSpacing.Lg\"` and a `Bg`, and put a `Container` inside to keep the content at a readable width." },
-        { "id": "section-bands", "title": "Band spacing", "lead": "A band's spacing is its padding above and below. `Md`, the default, suits most bands. For a slimmer band, such as this sign-up, set `Spacing` to `SectionSpacing.Sm`." }
+        { "id": "section-usage", "title": "Bands", "lead": "Put each band of a page in a `Section`, with a `Container` inside to keep its content at a readable width. `Bg` colors the band from edge to edge.", "after": ["A section pads its top and bottom. `Md`, the default, suits most bands; for a slimmer one, such as this sign-up, set `Spacing` to `SectionSpacing.Sm`."] },
+        { "id": "section-hero", "title": "A hero", "lead": "A hero or a closing call to action needs more room. Set `Spacing=\"SectionSpacing.Lg\"` and a `Bg`, and put a `Container` inside to keep the content at a readable width." }
       ]
     },
 
     {
       "id": "center", "icon": "Crosshair", "name": "Center", "category": "Layout", "summary": "Centers its content both ways.",
       "examples": [
-        { "id": "center-icon-tiles", "title": "Icon tiles", "lead": "To put an icon in the middle of a square tile, give `Center` a `Width` and `Height`. `Bg` and `Radius` style the tile." },
-        { "id": "center-loading", "title": "Centering in a panel", "lead": "To center content in a panel, such as a spinner while a report loads, give `Center` a `Height`." }
+        { "id": "center-usage", "title": "Centering in a panel", "lead": "Give `Center` a `Height`, and it centers its content both ways in that space, here a spinner while a report loads." },
+        { "id": "center-icon-tiles", "title": "Icon tiles", "lead": "To put an icon in the middle of a square tile, give `Center` a `Width` and `Height`. `Bg` and `Radius` style the tile." }
       ]
     },
 
     {
       "id": "spacer", "icon": "MoveHorizontal", "name": "Spacer", "category": "Layout", "summary": "Pushes the rest of a row to the end.",
       "examples": [
-        { "id": "spacer-app-bar", "title": "Pushing items to a row's end", "lead": "A `Spacer` between groups in a `Row` pushes everything after it to the end, here the header's buttons." },
+        { "id": "spacer-usage", "title": "Pushing items to a row's end", "lead": "A `Spacer` between groups in a `Row` pushes everything after it to the end, here the header's buttons." },
         { "id": "spacer-plans", "title": "Pushing items to a column's bottom", "lead": "In a `Column`, a `Spacer` fills the free height instead, so both buttons sit at the bottom of their cards however long the text above them." }
       ]
     },
@@ -107,7 +110,7 @@
     {
       "id": "aspect-ratio", "icon": "Ratio", "name": "AspectRatio", "category": "Layout", "summary": "Keeps media at a fixed shape, 16:9 by default.",
       "examples": [
-        { "id": "aspect-ratio-shapes", "title": "Shapes", "lead": "The ratio is the box's shape, as width over height. To change it from 16:9, the default, set `Ratio`. Here the same picture shows at 16:9, 1:1 and 4:5, cropped to fill each." },
+        { "id": "aspect-ratio-usage", "title": "Shapes", "lead": "Put a picture or video in an `AspectRatio`, and it fills the box's width at a fixed shape, 16:9 by default. To set another, set `Ratio`, as width over height. Here the same picture shows at 16:9, 1:1 and 4:5, cropped to fill each." },
         { "id": "aspect-ratio-thumbnails", "title": "Matching thumbnails", "lead": "Thumbnails with the same shape keep a grid's rows lined up. Give each one the same `Ratio`, and pictures of any shape, here a wide one and a tall one, crop to it. Other content fills the box too, such as a `Center` with an icon where there's no picture." }
       ]
     },
@@ -115,7 +118,7 @@
     {
       "id": "divider", "icon": "SeparatorHorizontal", "name": "Divider", "category": "Layout", "summary": "Separates content with a line: plain, dashed, labeled or vertical.", "keywords": ["separator", "rule"],
       "examples": [
-        { "id": "divider-receipt", "title": "Plain and dashed", "lead": "A `Divider` is an `hr` line. For a lighter break, such as the one before the total, set `Dashed`." },
+        { "id": "divider-usage", "title": "Plain and dashed", "lead": "A `Divider` is an `hr` line. For a lighter break, such as the one before the total, set `Dashed`." },
         { "id": "divider-labeled", "title": "With a label", "lead": "To put text in the middle of the line, such as `or` between two ways to sign in, set `Label`." },
         { "id": "divider-vertical", "title": "Vertical", "lead": "To separate items in a `Row`, set `Orientation=\"Orientation.Vertical\"`. The line is as tall as the row." }
       ]
@@ -125,7 +128,7 @@
       "id": "tile-layout", "icon": "LayoutDashboard", "name": "TileLayout", "category": "Layout", "summary": "Places a dashboard's panels on a grid of columns and rows, each spanning as many as it needs.", "keywords": ["dashboard", "tiles", "widgets", "panels", "grid layout", "dashboard layout"],
       "parts": ["Tile"],
       "examples": [
-        { "id": "tile-layout-dashboard", "title": "A dashboard", "lead": "For a dashboard people rearrange and keep, put a `Tile` for each panel in a `TileLayout`; one that never changes is a `Grid` of `Card`s. `Col` and `Row` place it, from 1, and `ColSpan` and `RowSpan` size it. `Columns` and `RowHeight` set the grid.", "after": ["A tile's `Title` and `Icon` make its header, and `HeaderEnd` puts buttons or a figure at its end. `Header` replaces the title with your own content. `Flush` runs the content to the tile's edges, for `Tabs` or a `DataGrid`.", "A `Chart` that is a tile's only content, with no `Height`, fills the tile. Name it by the tile's title: set the tile's `TitleId` and the chart's `TitledBy`. Put its buttons in `HeaderEnd`: `ChartDownload`, `ChartResetZoom`, `ChartZoom` and `ChartPause` act on the tile's chart.", "A tile without `Col` and `Row` takes the first free cells, row by row, in the order written. Cells no tile covers stay empty.", "`Columns` can change by breakpoint. Places and spans are for the widest count; at fewer columns, spans shrink in proportion and the tiles wrap in reading order, by row and then by column. At one column they stack."] },
+        { "id": "tile-layout-usage", "title": "A dashboard", "lead": "For a dashboard people rearrange and keep, put a `Tile` for each panel in a `TileLayout`; one that never changes is a `Grid` of `Card`s. `Col` and `Row` place it, from 1, and `ColSpan` and `RowSpan` size it. `Columns` and `RowHeight` set the grid.", "after": ["A tile's `Title` and `Icon` make its header, and `HeaderEnd` puts buttons or a figure at its end. `Header` replaces the title with your own content. `Flush` runs the content to the tile's edges, for `Tabs` or a `DataGrid`.", "A `Chart` that is a tile's only content, with no `Height`, fills the tile. Name it by the tile's title: set the tile's `TitleId` and the chart's `TitledBy`. Put its buttons in `HeaderEnd`: `ChartDownload`, `ChartResetZoom`, `ChartZoom` and `ChartPause` act on the tile's chart.", "A tile without `Col` and `Row` takes the first free cells, row by row, in the order written. Cells no tile covers stay empty.", "`Columns` can change by breakpoint. Places and spans are for the widest count; at fewer columns, spans shrink in proportion and the tiles wrap in reading order, by row and then by column. At one column they stack."] },
         { "id": "tile-layout-edit", "title": "Rearranging the tiles", "lead": "Set `Editable` to let people move and resize the tiles. Dragging a tile moves it a cell at a time, and dragging its corner grip resizes it. Most dashboards turn editing on with an Edit layout button, and off with Save or Cancel.", "after": ["A tile in the way takes the moved tile's old cells when it fits there, so two tiles of a size swap. Otherwise it moves down, and the tiles below it move with it. Tiles stay where they're dropped, so cells can stay empty; set `Compact` to have every tile rise into the space above it after each move.", "`Collision` changes what a move onto a tile does: `Block` stops the tile at its last free spot, and `Overlap` lets it cover the other. A move that would leave the grid or break a tile's `MinColSpan`, `MaxColSpan`, `MinRowSpan` or `MaxRowSpan` is disabled.", "`ShowGrid` outlines every cell while editing, and `Rows` keeps the empty rows. Editing works at the widest column count; with fewer columns the handles hide.", "Each tile's handle opens a menu of the same moves. Each tile needs an `Id`, and a `Title` or `Label` to name its handle."],
           "notes": {
             "noscript": "Give the layout a `Name` inside a form, and pass the posted `TileLayoutPost` back as `Post`. Each move posts the form and the page comes back with the tile moved. Save `Post.State` when the form's own button posted.",
@@ -151,7 +154,7 @@
         { "feature": "Panes that collapse and restore", "noscript": "none" }
       ],
       "examples": [
-        { "id": "splitter-mail", "title": "Three panes", "lead": "Put a `SplitterPane` for each pane in a `Splitter`, which needs a height. A pane with a `Size` starts at it, and a pane with none fills the rest.", "after": ["`Min` and `Max` hold a pane between them. `Collapsible` adds a button on the bar that collapses the pane.", "To keep the sizes each person leaves, set `LayoutKey`. The server renders them on the next visit."] },
+        { "id": "splitter-usage", "title": "Three panes", "lead": "Put a `SplitterPane` for each pane in a `Splitter`, which needs a height. A pane with a `Size` starts at it, and a pane with none fills the rest.", "after": ["`Min` and `Max` hold a pane between them. `Collapsible` adds a button on the bar that collapses the pane.", "To keep the sizes each person leaves, set `LayoutKey`. The server renders them on the next visit."] },
         { "id": "splitter-stacked", "title": "Stacked", "lead": "To stack the panes, set `Orientation` to `Vertical`. A `Size` in percent keeps the pane's share as the splitter resizes." }
       ]
     },
@@ -159,7 +162,7 @@
     {
       "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "Layout", "summary": "Arranges a header, sidebar, main area, aside and footer with CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AsideToggle", "AppFooter"],
       "examples": [
-        { "id": "app-shell-parts", "title": "The parts", "height": 600, "page": true,
+        { "id": "app-shell-usage", "title": "The parts", "height": 600, "page": true,
           "notes": {
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
@@ -241,7 +244,7 @@
         { "feature": "Collapsed bound to C#", "member": "Collapsed" }
       ],
       "examples": [
-        { "id": "app-sidebar-drawer", "title": "A drawer on phones", "height": 460, "page": true,
+        { "id": "app-sidebar-usage", "title": "A drawer on phones", "height": 460, "page": true,
           "notes": {
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."

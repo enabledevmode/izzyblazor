@@ -7,12 +7,6 @@
     A grid of tiles, each placed at a column and row and spanning some of each, such as the panels
     of a dashboard. The server draws the layout as it is, with no script, and cells can stay empty.
 
-    <TileLayout Columns="new() { Base = 1, Md = 6, Lg = 12 }" RowHeight="Length.Rem(7)" State="_layout">
-        <Tile Id="revenue" Title="Revenue" Col="1" Row="1" ColSpan="8" RowSpan="2">...</Tile>
-        <Tile Id="orders" Title="Orders" Col="9" Row="1" ColSpan="4">...</Tile>
-        <Tile Id="tickets" Title="Open tickets" ColSpan="4">...</Tile>
-    </TileLayout>
-
     A Tile with both Col and Row goes there; one without them takes the first free cells, row by
     row, in the order written. State, a TileLayoutState saved for this person, overrides each
     tile's place and size by its Id; tiles it doesn't name keep their own. Spans are kept inside

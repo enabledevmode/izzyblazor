@@ -10,13 +10,6 @@ namespace IzzyBlazor;
 /// <item><see cref="MinChildWidth"/>: as many columns as fit, with no breakpoints.</item>
 /// </list>
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="4"&gt;...&lt;/Grid&gt;
-/// &lt;Grid MinChildWidth="16.Rem" Gap="4"&gt;...&lt;/Grid&gt;
-/// &lt;Grid Template='new() { Base = "1fr", Md = "240px 1fr" }' Gap="6"&gt;...&lt;/Grid&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>div</c> with no role: a layout, not a data grid. For rows and columns of data, use <see cref="Table{TItem}"/>.</item>
@@ -140,16 +133,6 @@ public enum ContainerAlign
 /// Caps content at a readable width, with side padding that grows on larger screens: centered by
 /// default, or at the start for a page column beside a sidebar.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Container Size="ContainerSize.Lg"&gt;...&lt;/Container&gt;
-///
-/// &lt;Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false"&gt;
-///     &lt;PageHeader Title="Settings" /&gt;
-///     ...
-/// &lt;/Container&gt;
-/// </code>
-/// </example>
 /// <seealso cref="Section"/>
 /// <seealso cref="Box"/>
 /// <seealso cref="Center"/>
@@ -185,13 +168,6 @@ public class Container : Box
 }
 
 /// <summary>Centers its children both ways, such as an icon in a square or an empty state in a panel.</summary>
-/// <example>
-/// <code>
-/// &lt;Center Height="Length.Rem(12)"&gt;
-///     &lt;Spinner /&gt;
-/// &lt;/Center&gt;
-/// </code>
-/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Box"/>
 /// <seealso cref="EmptyState"/>
@@ -214,15 +190,6 @@ public class Center : Box
 }
 
 /// <summary>Takes up the free space in a <see cref="Stack"/> or <see cref="Row"/>, pushing what follows to the end.</summary>
-/// <example>
-/// <code>
-/// &lt;Row&gt;
-///     &lt;Logo /&gt;
-///     &lt;Spacer /&gt;
-///     &lt;Button&gt;Sign in&lt;/Button&gt;
-/// &lt;/Row&gt;
-/// </code>
-/// </example>
 /// <seealso cref="Row"/>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Box"/>
@@ -237,13 +204,6 @@ public class Spacer : Box
 /// Keeps its content at a fixed shape, such as 16:9 for a video or 1:1 for an avatar. Images
 /// and videos inside fill it and are cropped to fit.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;AspectRatio Ratio="16 / 9.0"&gt;
-///     &lt;img src="..." alt="..." /&gt;
-/// &lt;/AspectRatio&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It adds no name or role: an <c>img</c> inside still needs its <c>alt</c>, an <c>iframe</c> its <c>title</c>.</item>

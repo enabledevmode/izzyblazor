@@ -8,15 +8,6 @@
 @*
     Panes side by side, or stacked, with a bar between each two that resizes them.
 
-    <Splitter LayoutKey="mail" Height="Length.Full">
-        <SplitterPane Label="Folders"
-                      Size="Length.Rem(16)"
-                      Min="Length.Rem(12)"
-                      Collapsible>...</SplitterPane>
-        <SplitterPane Label="Messages" Size="Length.Percent(35)">...</SplitterPane>
-        <SplitterPane Label="Message">...</SplitterPane>
-    </Splitter>
-
     A pane with a Size starts at it; a pane with none fills what's left (if every pane has a size,
     the last fills). Min and Max hold a pane between them. Each pane scrolls its own content. The
     page gives the splitter its height, as Height="Length.Full" in an app shell's main area. For a
