@@ -1,4 +1,4 @@
-<Form Model="Model" FormName="multi-date-field-inline" OnValidSubmit="Save" Grow>
+<Form Model="Model" FormName="multi-date-field-inline" OnValidSubmit="Save">
     <MultiDateField @bind-Value="Model!.Sessions" Inline />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved is { } saved)
