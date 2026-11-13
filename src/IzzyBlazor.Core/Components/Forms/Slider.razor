@@ -29,7 +29,7 @@
 *@
 
 <FieldFrame Class="@WrapperClass("slider", Vertical ? "ib-field-slider-vertical" : null)" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
-            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+            Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="@ControlClass" style="@ControlStyle">
         <div class="ib-slider-track">
             @SliderScale.Draw(ShownMarks, ShowEnds, ResolvedMin, ResolvedMax, Said)

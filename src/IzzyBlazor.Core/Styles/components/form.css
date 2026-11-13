@@ -81,7 +81,8 @@
     color: var(--ib-color-danger-text);
   }
 
-  .ib-field-error p {
+  .ib-field-error p,
+  .ib-field-hint-status {
     display: flex;
     align-items: center;
     gap: 0.375em;

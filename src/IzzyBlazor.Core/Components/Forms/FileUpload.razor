@@ -37,7 +37,7 @@
 *@
 
 <FieldFrame Class="@_class" Style="@_style" Id="@InputId" Label="@Label" LabelId="@LabelId" HideLabel="HideLabel"
-            Required="Required" Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+            Required="Required" Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-many="@TextDefaults.FilesChosen" data-ib-interactive="@(IsInteractive ? "" : null)">
         <span class="ib-file-badge"><Icon Name="Icon ?? IconSet.Current.Get(IconPurpose.Upload)" Class="ib-file-icon" /></span>
         <span class="ib-file-prompt"><label class="ib-file-choose" for="@InputId">@(ChooseText ?? (Multiple ? TextDefaults.ChooseFiles : TextDefaults.ChooseFile))</label> <span class="ib-file-drag">@(DragText ?? (Multiple ? TextDefaults.DragFilesHere : TextDefaults.DragFileHere))</span></span>
@@ -76,6 +76,9 @@
 
     /// <summary>Help text under the zone.</summary>
     [Parameter] public string? Hint { get; set; }
+
+    /// <summary>A status the <see cref="Hint"/> states: the hint takes that status's color and icon.</summary>
+    [Parameter] public Status? HintStatus { get; set; }
 
     /// <summary>Whether a file must be chosen before the form posts.</summary>
     [Parameter] public bool Required { get; set; }

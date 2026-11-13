@@ -47,6 +47,13 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Help text shown under the field and linked to it for screen readers.</summary>
     [Parameter] public string? Hint { get; set; }
 
+    /// <summary>
+    /// A status the <see cref="Hint"/> states, such as <see cref="Status.Success"/> for "Verified.":
+    /// the hint takes that status's color and icon. The words carry the meaning; the color and icon
+    /// only repeat it. Leave it out for ordinary help text.
+    /// </summary>
+    [Parameter] public Status? HintStatus { get; set; }
+
     /// <summary>Whether a value is required. Defaults to whether the property has <c>[Required]</c>.</summary>
     [Parameter] public bool? Required { get; set; }
 
