@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Http
 
-<Form Model="Model" FormName="checkbox-group-toppings" OnValidSubmit="Save" Grow>
+<Form Model="Model" FormName="checkbox-group-usage" OnValidSubmit="Save" Grow>
     <CheckboxGroup @bind-Value="Model!.Toppings" Items="Enum.GetValues<Topping>()" ItemText="ToppingText" Orientation="Orientation.Horizontal" />
     <Row Gap="3" Align="Align.Center" Wrap>
         <Button Submit>Add to order</Button>
@@ -14,7 +14,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "checkbox-group-toppings")]
+    [SupplyParameterFromForm(FormName = "checkbox-group-usage")]
     private Pizza? Model { get; set; }
 
     private bool _saved;
@@ -27,7 +27,7 @@
     {
         // This form's own post: another form on the page posts too.
         var posted = HttpContext?.Request.HasFormContentType == true
-            && HttpContext.Request.Form["_handler"] == "checkbox-group-toppings";
+            && HttpContext.Request.Form["_handler"] == "checkbox-group-usage";
         Model ??= posted ? new() : new() { Toppings = [Topping.Cheese] };
     }
 

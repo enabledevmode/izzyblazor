@@ -1,7 +1,7 @@
 @using System.ComponentModel.DataAnnotations
 
 @* A team announcement: the editor's value is sanitized HTML, shown back with RichText. *@
-<Form Model="Model" FormName="rich-text-editor-announcement" OnValidSubmit="Post">
+<Form Model="Model" FormName="rich-text-editor-usage" OnValidSubmit="Post">
     <TextField @bind-Value="Model!.Title" />
     <RichTextEditor @bind-Value="Model.Body" Hint="Shown on the team page." />
     <FormActions>
@@ -16,7 +16,7 @@
 }
 
 @code {
-    [SupplyParameterFromForm(FormName = "rich-text-editor-announcement")]
+    [SupplyParameterFromForm(FormName = "rich-text-editor-usage")]
     private TeamPost? Model { get; set; }
 
     private (string? Title, string? Body)? _posted;

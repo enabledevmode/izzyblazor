@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="time-field-limits" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+<Form Model="Model" FormName="time-field-usage" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
     <TimeField @bind-Value="Model!.Opens" Hint="Doors open in the morning." />
     <TimeField @bind-Value="Model!.Closes" Min="Model!.Opens" />
     <TimeField @bind-Value="Model!.Night" Label="Night shift starts" Min="new TimeOnly(22, 0)" Max="new TimeOnly(6, 0)" Hint="Between 10 PM and 6 AM." />
@@ -12,7 +12,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "time-field-limits")]
+    [SupplyParameterFromForm(FormName = "time-field-usage")]
     private Hours? Model { get; set; }
 
     // What was saved, not the fields: on an interactive page they follow typing.

@@ -1,4 +1,4 @@
-<Form Model="Model" FormName="month-field-starts" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+<Form Model="Model" FormName="month-field-usage" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
     <MonthField @bind-Value="Model!.Starts" Min="@First" Clearable />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved)
@@ -10,7 +10,7 @@
 @code {
     private static readonly DateOnly First = new(2027, 1, 1);
 
-    [SupplyParameterFromForm(FormName = "month-field-starts")]
+    [SupplyParameterFromForm(FormName = "month-field-usage")]
     private Plan? Model { get; set; }
 
     // What was saved, not the field: on an interactive page it follows what's chosen.

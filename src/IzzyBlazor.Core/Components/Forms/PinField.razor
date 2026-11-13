@@ -7,9 +7,6 @@
     email, or a PIN. A single text input over the boxes contains the whole code, so pasting,
     autofill, screen readers and form posts work as in any text field.
 
-    <PinField @bind-Value="Model.Code" Label="Code from the app" />
-    <PinField @bind-Value="Model.Pin" Length="4" Secret AutoComplete="current-password" Label="PIN" />
-
     Spaces and dashes are dropped from the value ("123 456" is "123456"), and letters are
     upper-cased with Letters. The form doesn't validate until the code has Length characters.
 

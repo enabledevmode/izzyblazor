@@ -11,7 +11,7 @@ public sealed class PinFieldTests(SiteFixture site) : IClassFixture<SiteFixture>
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/pin-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var example = page.Locator("[data-ex='pin-field-verify']");
+        var example = page.Locator("[data-ex='pin-field-usage']");
         await example.Locator("ib-pin-field").WaitForAsync();
         var code = example.GetByRole(AriaRole.Textbox, new() { Name = "Verification code" });
 

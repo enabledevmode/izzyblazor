@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Http
 
-<Form Model="Model" FormName="file-upload-photo" Multipart OnValidSubmit="Save" MaxWidth="26.Rem" Grow>
+<Form Model="Model" FormName="file-upload-usage" Multipart OnValidSubmit="Save" MaxWidth="26.Rem" Grow>
     <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg" MaxFileSize="MaxSize"
                 Hint="Square images work best." OnChange="Chosen" />
     <Row><Button Submit StartIcon="Lucide.Upload">Upload</Button></Row>
@@ -13,11 +13,11 @@
 @code {
     private const long MaxSize = 2_000_000;
 
-    [SupplyParameterFromForm(FormName = "file-upload-photo")]
+    [SupplyParameterFromForm(FormName = "file-upload-usage")]
     private Upload? Model { get; set; }
 
     // Static pages: the file posts with the form, bound by its Name.
-    [SupplyParameterFromForm(FormName = "file-upload-photo")]
+    [SupplyParameterFromForm(FormName = "file-upload-usage")]
     private IFormFile? Avatar { get; set; }
 
     // Interactive pages: OnChange gets the file as it's chosen.

@@ -11,14 +11,6 @@
         the next post checks it again; a FormErrors summary keeps them.
       - Interactive page: EditForm validation as usual.
 
-    <Form Model="Model" FormName="profile" OnValidSubmit="Save">
-        <TextField @bind-Value="Model.Name" />
-        <TextField @bind-Value="Model.Email" />
-        <FormActions>
-            <Button Submit>Save</Button>
-        </FormActions>
-    </Form>
-
     Accessibility:
     - It renders a native `form`. With `NativeValidation` (the default), the browser stops a submit
       with a missing or malformed value, focuses that field and shows its own message.

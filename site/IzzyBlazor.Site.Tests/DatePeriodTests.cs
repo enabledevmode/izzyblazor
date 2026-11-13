@@ -26,14 +26,14 @@ public sealed class DatePeriodTests(SiteFixture site) : IClassFixture<SiteFixtur
         await using var _ = browser;
         var open = page.Locator("[popover]:popover-open ib-period-grid");
 
-        var month = await GoToAsync(page, "month-field", "month-field-starts", mode);
+        var month = await GoToAsync(page, "month-field", "month-field-usage", mode);
         await month.GetByRole(AriaRole.Button, new() { Name = "Change month, March 2027" }).ClickAsync();
         await open.GetByRole(AriaRole.Button, new() { Name = "July 2027" }).ClickAsync();
         await Assertions.Expect(open).ToHaveCountAsync(0);
         await month.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(month).ToContainTextAsync("Starts July 2027.");
 
-        var year = await GoToAsync(page, "year-field", "year-field-model-year", mode);
+        var year = await GoToAsync(page, "year-field", "year-field-usage", mode);
         await year.GetByRole(AriaRole.Button, new() { Name = "Choose year" }).ClickAsync();
         await open.GetByRole(AriaRole.Button, new() { Name = "2025", Exact = true }).ClickAsync();
         await year.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
@@ -46,12 +46,12 @@ public sealed class DatePeriodTests(SiteFixture site) : IClassFixture<SiteFixtur
         var (browser, page) = await OpenAsync();
         await using var _ = browser;
 
-        var month = await GoToAsync(page, "month-field", "month-field-starts", "noscript");
+        var month = await GoToAsync(page, "month-field", "month-field-usage", "noscript");
         await month.Locator("input[type=month]").FillAsync("2027-05");
         await month.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(month).ToContainTextAsync("Starts May 2027.");
 
-        var year = await GoToAsync(page, "year-field", "year-field-model-year", "noscript");
+        var year = await GoToAsync(page, "year-field", "year-field-usage", "noscript");
         await year.GetByLabel("Model year").FillAsync("2029");
         await year.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(year).ToContainTextAsync("Model year 2029.");

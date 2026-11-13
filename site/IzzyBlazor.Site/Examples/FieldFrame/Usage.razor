@@ -2,7 +2,7 @@
 
 @* NativeValidation="false" skips the browser's check, so the server's message shows. The form takes
    an EditContext so the frame can show the field's messages and the input can point at them. *@
-<Form EditContext="_edit" FormName="field-frame-custom" OnValidSubmit="Save" NativeValidation="false" MaxWidth="20.Rem" Grow>
+<Form EditContext="_edit" FormName="field-frame-usage" OnValidSubmit="Save" NativeValidation="false" MaxWidth="20.Rem" Grow>
     <FieldFrame Class="ib-field" Id="due-date" Label="Due date" Required Hint="Reminders go out the day before." HintId="due-date-hint"
                 Errors="Errors" ErrorId="due-date-error">
         <div class="ib-field-control">
@@ -19,7 +19,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "field-frame-custom")]
+    [SupplyParameterFromForm(FormName = "field-frame-usage")]
     private Assignment? Model { get; set; }
 
     private EditContext _edit = null!;

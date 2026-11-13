@@ -8,9 +8,6 @@
     segments. Posts like a RadioGroup, arrow keys move between options, and it works with
     JavaScript off. Options come from Items, or automatically from an enum.
 
-    <SegmentedControl @bind-Value="Model.View" HideLabel />
-    <SegmentedControl @bind-Value="Model.Align" ItemIcon="AlignIcon" IconOnly />
-
     Accessibility:
     - Screen readers hear a radio group: a `fieldset` named by its `legend`, with a native radio
       in each segment, so Tab reaches the group and the arrow keys move the choice.

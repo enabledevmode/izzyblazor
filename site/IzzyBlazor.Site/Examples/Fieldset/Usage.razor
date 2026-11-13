@@ -1,6 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="fieldset-address" MaxWidth="28.Rem" Grow>
+<Form Model="Model" FormName="fieldset-usage" MaxWidth="28.Rem" Grow>
     <Fieldset Label="Shipping address" Description="Where we send your order.">
         <TextField @bind-Value="Model!.Street" AutoComplete="street-address" />
         <Row Gap="3">
@@ -11,7 +11,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "fieldset-address")]
+    [SupplyParameterFromForm(FormName = "fieldset-usage")]
     private Order? Model { get; set; }
 
     protected override void OnInitialized() => Model ??= new();

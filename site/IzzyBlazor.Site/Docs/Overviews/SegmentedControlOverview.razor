@@ -2,11 +2,13 @@
    full width with a hidden label, and sizes and states. It posts like a RadioGroup, whose page
    covers options from a list. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A segmented control is a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> shown as joined buttons. It suits two to five short options. It posts the same way and works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>.</TextBlock>
 <TextBlock>For more options, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>. To switch between panels of content, use <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
 <TextBlock>A form post can contain a value that isn't among the options, so check it on the server. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
+
+<Heading Level="2">An enum</Heading>
+<TextBlock>Bind a segmented control to an enum property, and each value is a segment, named by its <Code>[Display(Name)]</Code> or its name in words. It posts with the form like a radio group.</TextBlock>
+<ExampleViewer Example="segmented-control-usage" />
 
 <Heading Level="2">Icons</Heading>
 <TextBlock>An option can show an icon before its text, or only an icon. To put an icon before each option's text, set <Code>ItemIcon</Code>. To show only the icons, set <Code>IconOnly</Code> too.</TextBlock>
@@ -43,14 +45,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* An enum: each value is a segment, named by its [Display(Name)]. *@
-        <SegmentedControl @bind-Value="Model!.View" />
-
-        @* Icons only. *@
-        <SegmentedControl @bind-Value="Model!.Align" ItemIcon="AlignIcon" IconOnly />
-
-        @* Other values, with ItemText for each one's text. *@
-        <SegmentedControl @bind-Value="Model!.Range" Items="Ranges.Keys" ItemText="key => Ranges[key]" />
-        """;
 }

@@ -2,14 +2,12 @@
    options stacked or in a row, options from a list, a required choice that starts empty, and
    states. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A radio group is a set of options, one of which the user chooses. It suits short lists where every option should be in view.</TextBlock>
 <TextBlock>For two to five short options, a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> needs less room. For a long list, use a <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Stacked or in a row</Heading>
 <TextBlock>Options stack by default. To put a few short options in a row, set <Code>Orientation.Horizontal</Code>; the row wraps when there isn't room. Bound to an enum, the group shows each value as an option, named by its <Code>[Display(Name)]</Code>.</TextBlock>
-<ExampleViewer Example="radio-group-horizontal" />
+<ExampleViewer Example="radio-group-usage" />
 
 <Heading Level="2">Chips</Heading>
 <TextBlock><Code>Chips</Code> shows the options as chips in a wrapping row, the chosen one filled with a check. They're still radio buttons, so the group posts, takes the arrow keys and reads to screen readers as before. For a few options joined in one row, use a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor>.</TextBlock>
@@ -54,12 +52,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        @* An enum: its values are the options, named by their [Display(Name)]. *@
-        <RadioGroup @bind-Value="Model!.Digest" />
-
-        @* Other values, with ItemText for each one's text. *@
-        <RadioGroup @bind-Value="Model!.Rate" Items="Rates.Keys" ItemText="RateText"
-                    Orientation="Orientation.Horizontal" />
-        """;
 }

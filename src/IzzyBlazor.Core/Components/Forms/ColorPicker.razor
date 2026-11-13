@@ -4,11 +4,6 @@
 
 @*
     A color field bound to a hex string ("#2563eb", or "#2563ebcc" with ShowAlpha).
-    <ColorPicker @bind-Value="Model.Brand" />
-    <ColorPicker @bind-Value="Model.Tag"
-                 Swatches="@(["#2563eb", "#0f766e", "#be123c"])"
-                 ShowPicker="false"
-                 ShowFields="false" />
 
     A swatch and a hex box. The swatch opens a ColorPanel in a popover: swatches, a picker and
     fields, each optional as on ColorPanel. Changes apply at once; Escape or a click outside

@@ -6,7 +6,6 @@ namespace IzzyBlazor;
 /// An on/off switch: a checkbox with <c>role="switch"</c> and a track-and-thumb look. Use it for
 /// settings that apply immediately or read as on/off; use <see cref="Checkbox"/> for agreeing or choosing.
 /// </summary>
-/// <example><code>&lt;Switch @bind-Value="Model.EmailNotifications" Label="Email notifications" /&gt;</code></example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native checkbox with <c>role="switch"</c> inside its <c>label</c>, so Space toggles it and screen readers hear "on" or "off".</item>

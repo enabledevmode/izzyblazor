@@ -11,7 +11,7 @@ public sealed class RangeSliderTests(SiteFixture site) : IClassFixture<SiteFixtu
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/range-slider?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var example = page.Locator("[data-ex='range-slider-price']");
+        var example = page.Locator("[data-ex='range-slider-usage']");
         var low = example.GetByRole(AriaRole.Slider, new() { Name = "Minimum" });
         var high = example.GetByRole(AriaRole.Slider, new() { Name = "Maximum" });
 
@@ -43,13 +43,13 @@ public sealed class RangeSliderTests(SiteFixture site) : IClassFixture<SiteFixtu
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = false });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/range-slider?mode=static").ToString());
-        var example = page.Locator("[data-ex='range-slider-price']");
+        var example = page.Locator("[data-ex='range-slider-usage']");
 
         await example.GetByRole(AriaRole.Slider, new() { Name = "Minimum" }).FillAsync("350");
         await example.GetByRole(AriaRole.Slider, new() { Name = "Maximum" }).FillAsync("120");
         await example.GetByRole(AriaRole.Button, new() { Name = "Show headphones" }).ClickAsync();
 
-        example = page.Locator("[data-ex='range-slider-price']");
+        example = page.Locator("[data-ex='range-slider-usage']");
         await Assertions.Expect(example.Locator("li")).ToHaveTextAsync(["Travel noise-cancelling · $140", "Open-back studio · $210", "Premium noise-cancelling · $330"]);
         await Assertions.Expect(example.GetByRole(AriaRole.Slider, new() { Name = "Minimum" })).ToHaveValueAsync("120");
     }

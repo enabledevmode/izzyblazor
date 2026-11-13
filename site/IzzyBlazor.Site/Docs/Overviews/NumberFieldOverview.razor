@@ -2,13 +2,11 @@
    from the model (previewed in each mode), decimals and units, step buttons, empty values, and
    states. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A number field is a native number input for a value the user types, such as a quantity or a price. It posts with the form, the browser checks its limits before the form post, and phones show a number keyboard. For a value the user judges by eye rather than types, such as a volume, use a <Anchor Href="docs/components/slider">Slider</Anchor>.</TextBlock>
 
 <Heading Level="2">Limits from the model</Heading>
 <TextBlock>Limits set the lowest and highest values the field accepts. Set <Code>[Range]</Code> on the property, or <Code>Min</Code> and <Code>Max</Code> on the field.</TextBlock>
-<ExampleViewer Example="number-field-limits" />
+<ExampleViewer Example="number-field-usage" />
 <TextBlock>The browser checks the range before the form post, and the validator checks it again on the server. Once <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> runs, the browser shows the attribute's <Code>ErrorMessage</Code>. Without an <Code>ErrorMessage</Code>, it shows the browser's default message.</TextBlock>
 <TextBlock>On static pages, a posted value that isn't a number binds as empty, null or 0, with no message of its own. Only a crafted form post can send one. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
@@ -69,19 +67,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* Label from [Display(Name)], limits from [Range]. *@
-        <NumberField @bind-Value="Model!.Quantity" />
-
-        @* Cents, with the currency attached. *@
-        <NumberField @bind-Value="Model!.Price" Step="0.01">
-            <StartAddon>$</StartAddon>
-        </NumberField>
-
-        @* Buttons at both ends, for a small count. *@
-        <NumberField @bind-Value="Model!.Guests" StepButtons="StepButtons.Split" />
-        """;
 
     private const string Empty = """
         @* Empty means "no limit": null when it posts empty. *@

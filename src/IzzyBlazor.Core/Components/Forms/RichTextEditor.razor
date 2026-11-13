@@ -10,9 +10,6 @@
     rest of what RichTextSanitizer allows. Its value is that HTML, sanitized on the server every
     time it binds, with no styles or classes, so it shows the same anywhere (show it with RichText).
 
-    <RichTextEditor @bind-Value="Model.Body" Label="Message" />
-    <RichTextEditor @bind-Value="Model.Notes" Label="Notes" Tools="RichTextTools.Basic" Rows="4" />
-
     The page renders the formatted text before any script runs, and a text box beside it, hidden
     with script, holds the HTML: the script keeps it current as you type, so the field posts in a
     plain form, and on an interactive page Value changes when you leave the field. The look is

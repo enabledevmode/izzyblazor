@@ -746,7 +746,7 @@
     {
       "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Inputs", "summary": "Posts its fields on static pages and validates them live on interactive pages.", "keywords": ["unsaved changes", "confirm leave", "exit prompt", "navigation lock", "beforeunload", "dirty form"], "parts": ["FormActions", "FormErrors"],
       "examples": [
-        { "id": "home-settings", "title": "A settings form, static or interactive",
+        { "id": "form-usage", "title": "A settings form, static or interactive",
           "notes": {
             "noscript": "Every control still works, and Save posts the form, checks it and shows the result.",
             "static": "IzzyBlazor's script adds the slider's live value and keyboard handling.",
@@ -807,7 +807,7 @@
     {
       "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Inputs", "summary": "Groups related fields under a legend.",
       "examples": [
-        { "id": "fieldset-address", "title": "Label and description", "lead": "To head the group, set `Label`. For a line under it, set `Description`; screen readers can read it with the group's name." },
+        { "id": "fieldset-usage", "title": "Label and description", "lead": "To head the group, set `Label`. For a line under it, set `Description`; screen readers can read it with the group's name." },
         { "id": "fieldset-columns", "title": "Columns", "lead": "To lay the group's fields out side by side, set `Columns`. The columns follow the group's own width." },
         { "id": "fieldset-dividers", "title": "A list of settings", "lead": "To put a line between rows, as in a list of settings, set `Dividers`." },
         { "id": "fieldset-icons", "title": "Icons on sections", "lead": "To tell sections apart at a glance, set `Icon`. The icon is decorative." }
@@ -817,7 +817,7 @@
     {
       "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Inputs", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
       "examples": [
-        { "id": "field-frame-custom", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
+        { "id": "field-frame-usage", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
         { "id": "field-frame-addons", "title": "Add-ons", "lead": "To attach text or a button to the start or end of your own control, use `FieldAddons`." }
       ]
     },
@@ -831,7 +831,7 @@
         { "feature": "Masks, formatted as typed and on the server", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "text-field-labels", "title": "Labels and hints" },
+        { "id": "text-field-usage", "title": "Labels and hints" },
         { "id": "text-field-hint-status", "title": "A hint that states a status", "lead": "To show a hint as a status, such as \"Verified.\", set `HintStatus`. The hint takes the status's color and icon; its words still carry the meaning." },
         { "id": "text-field-clearable", "title": "A clear button", "lead": "A clear button empties the field, and shows while the field has a value. To add it, set `Clearable`. Every field whose value can be empty has it, and a `Select` goes back to its `Placeholder`.",
           "notes": {
@@ -864,7 +864,7 @@
         { "feature": "A new password's requirements, checked off as typed and checked on the server", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "password-field-reveal", "title": "Show and hide",
+        { "id": "password-field-usage", "title": "Show and hide",
           "notes": {
             "noscript": "A plain password input, with no show/hide button.",
             "static": "IzzyBlazor's script adds the show/hide button."
@@ -893,7 +893,7 @@
         { "feature": "The count follows typing (ShowCount)", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "To set how many lines show, set `Rows`. Longer text scrolls." },
+        { "id": "text-area-usage", "title": "Rows and placeholder", "lead": "To set how many lines show, set `Rows`. Longer text scrolls." },
         { "id": "text-area-count", "title": "Growing, with a count", "lead": "To grow the box with the text, set `AutoGrow`. To count against the limit from `[StringLength]`, set `ShowCount`.",
           "notes": {
             "noscript": "The count shows the length the page loaded with, and doesn't follow the typing.",
@@ -917,7 +917,7 @@
         { "feature": "Toolbar, shortcuts and paste", "noscript": "none" }
       ],
       "examples": [
-        { "id": "rich-text-editor-announcement", "title": "In a form", "lead": "A RichTextEditor's value is HTML: headings, lists, quotes, code, bold, italic and the like, with no styles or classes. It's sanitized on the server whenever it binds, so the model only ever holds safe HTML. To show it, use `RichText`.",
+        { "id": "rich-text-editor-usage", "title": "In a form", "lead": "A RichTextEditor's value is HTML: headings, lists, quotes, code, bold, italic and the like, with no styles or classes. It's sanitized on the server whenever it binds, so the model only ever holds safe HTML. To show it, use `RichText`.",
           "notes": {
             "noscript": "The field is a text box holding the HTML. It still posts, and is sanitized.",
             "static": "IzzyBlazor's script makes the text editable and keeps the field's value current as the user types, so it posts with the form."
@@ -1042,7 +1042,7 @@
         { "feature": "Each pause in typing asks Search for new suggestions", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "mentions-people", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
+        { "id": "mentions-usage", "title": "Mentioning teammates", "lead": "`Mentions` binds to a string. Typing `@` lists `Items`; choosing one writes `@` and its `ItemText` into the text, then a space. `ItemTemplate` shows more in the list, such as a picture and a full name.",
           "after": ["A mention ends at a space, so `ItemText` should be a handle without spaces. `Placement=\"MentionsPlacement.Top\"` opens the list above the line, for a box at the bottom of the page."] },
         { "id": "mentions-search", "title": "Searching a directory", "lead": "For a list too long to send whole, set `Search`. It gets a `MentionQuery`, the trigger and what's typed after it, and returns the first matches. Each pause in typing asks again." },
         { "id": "mentions-form", "title": "In a form", "lead": "`Mention.Parse` finds the names in the text, for a rule such as \"name at least two people\" or to notify them after saving. `Rows=\"1\"` with `AutoGrow` gives a one-line field that grows.",
@@ -1059,7 +1059,7 @@
         { "feature": "Increase and decrease buttons (hold to repeat)", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "number-field-limits", "title": "Limits from the model", "lead": "Limits set the smallest and largest numbers the user can enter. `Min` and `Max` come from `[Range]` on the property. The browser checks them before the form posts.",
+        { "id": "number-field-usage", "title": "Limits from the model", "lead": "Limits set the smallest and largest numbers the user can enter. `Min` and `Max` come from `[Range]` on the property. The browser checks them before the form posts.",
           "notes": {
             "noscript": "The browser stops a quantity outside 1 to 99, with its default message.",
             "static": "The browser stops a quantity outside 1 to 99, with your `[Range]` message.",
@@ -1086,7 +1086,7 @@
         { "feature": "Spaces and dashes dropped, the length checked on the server" }
       ],
       "examples": [
-        { "id": "pin-field-verify", "title": "A one-time code", "lead": "A `PinField` binds to a string. It accepts six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
+        { "id": "pin-field-usage", "title": "A one-time code", "lead": "A `PinField` binds to a string. It accepts six digits by default, and phones offer a code from a text message or email. Pasting \"123 456\" gives 123456.",
           "notes": {
             "noscript": "Verify posts the code; the field is one wide text box, not boxes.",
             "static": "Verify posts the code without a full reload.",
@@ -1099,7 +1099,7 @@
     {
       "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Inputs", "summary": "Shows a checkbox styled to match the fields.",
       "examples": [
-        { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
+        { "id": "checkbox-usage", "title": "Agreeing to terms", "lead": "For a label with a link, put it in `ChildContent`. For a box that must be checked, put `[Required]` and `[Range]` on the bool.",
           "notes": {
             "noscript": "The browser stops the post until the box is checked, with its default message.",
             "static": "The browser stops the post until the box is checked, with your `[Required]` message.",
@@ -1113,7 +1113,7 @@
     {
       "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Inputs", "summary": "Lets the user pick several choices from a list of checkboxes.",
       "examples": [
-        { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "A `CheckboxGroup` binds to a collection: an array, `List` or `HashSet`. Pass the options to `Items`. Each checked box posts its value, so the group works with JavaScript off." },
+        { "id": "checkbox-group-usage", "title": "Several choices", "lead": "A `CheckboxGroup` binds to a collection: an array, `List` or `HashSet`. Pass the options to `Items`. Each checked box posts its value, so the group works with JavaScript off." },
         { "id": "checkbox-group-chips", "title": "Filter chips", "lead": "To show the options as filter chips in a wrapping row, set `Chips`. They're still checkboxes: posting, keys and what screen readers hear don't change." },
         { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "To add a line under each option's name, set `ItemDescription`. Screen readers read it as the box's description." },
         { "id": "checkbox-group-everything", "title": "Select all", "lead": "To add a box above the options that checks or clears them all, set `SelectAll`. `SelectAllText` sets its text.",
@@ -1133,7 +1133,7 @@
     {
       "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Inputs", "summary": "Shows an on/off switch that posts like a checkbox.", "keywords": ["toggle"],
       "examples": [
-        { "id": "switch-control-end", "title": "At the end of the row", "lead": "To put the switch at the end of the row, with the hint under the label, as in a list of settings, set `ControlPosition` to `ControlPosition.End`." },
+        { "id": "switch-usage", "title": "At the end of the row", "lead": "To put the switch at the end of the row, with the hint under the label, as in a list of settings, set `ControlPosition` to `ControlPosition.End`." },
         { "id": "switch-icons", "title": "Icons on rows", "lead": "To put a decorative icon at the start of the row, set `Icon`. Give every row in a group an icon, or none." },
         { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "On interactive pages, `@bind-Value:after` can save each change as it happens. On static pages, add a Save button.",
           "notes": {
@@ -1153,7 +1153,7 @@
     {
       "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Inputs", "summary": "Lets the user pick one choice from a list of radio buttons.",
       "examples": [
-        { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default. To put a few short ones in a row, set `Orientation` to `Orientation.Horizontal`; they wrap when space runs out." },
+        { "id": "radio-group-usage", "title": "Stacked or in a row", "lead": "Options stack by default. To put a few short ones in a row, set `Orientation` to `Orientation.Horizontal`; they wrap when space runs out." },
         { "id": "radio-group-chips", "title": "Chips", "lead": "To show the options as chips in a wrapping row, set `Chips`. They're still radio buttons: posting, keys and what screen readers hear don't change." },
         { "id": "radio-group-shipping", "title": "Options from a list", "lead": "For options that aren't an enum, set `Items`. `ItemText` sets how each option reads." },
         { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "To start with nothing chosen and require a choice, bind a nullable property with `[Required]`.",
@@ -1169,6 +1169,7 @@
     {
       "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Inputs", "summary": "Lets the user pick one of a few choices from joined buttons.", "keywords": ["exclusive toggle group", "single toggle group", "single select button group", "radio buttons as buttons"],
       "examples": [
+        { "id": "segmented-control-usage", "title": "An enum", "lead": "Bind a `SegmentedControl` to an enum property, and each value is a segment, named by its `[Display(Name)]` or its name in words. It posts with the form like a radio group." },
         { "id": "segmented-control-icons", "title": "Icons", "lead": "To put an icon before each option's text, set `ItemIcon`. To show only the icons, set `IconOnly`; the text becomes a tooltip and stays for screen readers." },
         { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "To share the width equally between the segments, set `FullWidth`. To keep the label for screen readers only, set `HideLabel`." },
         { "id": "segmented-control-sizes", "title": "Sizes and disabled", "lead": "To match the control to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` control doesn't post." }
@@ -1184,7 +1185,7 @@
         { "feature": "The chosen items post in their order" }
       ],
       "examples": [
-        { "id": "pick-list-columns", "title": "Columns, in order", "lead": "Bind `Value` to a collection and set `Items`. To let people set the order, set `Reorderable`: Move up and Move down sit beside the chosen list, and items drag within it. The chosen items post in their order." },
+        { "id": "pick-list-usage", "title": "Columns, in order", "lead": "Bind `Value` to a collection and set `Items`. To let people set the order, set `Reorderable`: Move up and Move down sit beside the chosen list, and items drag within it. The chosen items post in their order." },
         { "id": "pick-list-team", "title": "Search and a template", "lead": "For a longer list, set `Searchable`: a search box goes over each list, and Move all moves only the matches. To draw each item, set `ItemTemplate`; `ItemText` is what search matches." }
       ]
     },
@@ -1198,7 +1199,7 @@
         { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "slider-value", "title": "Showing the value", "lead": "To show the value in a tooltip over the thumb, set `ValueTooltip`; to label the ends, `ShowEnds`. `ValueFormat` sets how values read, both shown and announced. `[Range]` sets the ends.",
+        { "id": "slider-usage", "title": "Showing the value", "lead": "To show the value in a tooltip over the thumb, set `ValueTooltip`; to label the ends, `ShowEnds`. `ValueFormat` sets how values read, both shown and announced. `[Range]` sets the ends.",
           "notes": {
             "noscript": "A plain range input with its ends labelled: no fill, and no tooltip.",
             "static": "IzzyBlazor's script fills the track to the thumb, and the tooltip follows as the user drags."
@@ -1236,7 +1237,7 @@
         { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "range-slider-price", "title": "Filtering by price",
+        { "id": "range-slider-usage", "title": "Filtering by price",
           "notes": {
             "noscript": "Show headphones posts both ends; the thumbs can pass each other, and the server puts the ends in order.",
             "static": "The thumbs stop at each other, and Show headphones posts both ends without a full reload.",
@@ -1257,7 +1258,7 @@
         { "feature": "A read-only display filled to any value" }
       ],
       "examples": [
-        { "id": "rating-review", "title": "Saving a rating", "lead": "A `Rating` binds to `int` or `int?`. Bound to `int?` and not required, it can be empty: clicking the chosen star clears it, and the arrow keys reach \"No rating\".",
+        { "id": "rating-usage", "title": "Saving a rating", "lead": "A `Rating` binds to `int` or `int?`. Bound to `int?` and not required, it can be empty: clicking the chosen star clears it, and the arrow keys reach \"No rating\".",
           "notes": {
             "noscript": "Save posts the chosen star. Clicking it again doesn't clear it; the arrow keys reach \"No rating\".",
             "static": "Save posts the chosen star without a full reload.",
@@ -1276,7 +1277,7 @@
         { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "date-field-limits", "title": "Limits from the model", "lead": "Limits set the earliest and latest dates the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. This example sets the check-out date's `Min` from the check-in date.",
+        { "id": "date-field-usage", "title": "Limits from the model", "lead": "Bind a `DateField` to a `DateOnly`, `DateTime` or `DateTimeOffset` property in a form. Limits set the earliest and latest dates the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field.", "after": ["This example sets the check-out date's `Min` from the check-in date."],
           "notes": {
             "noscript": "The browser stops a check-in outside 2027, with its default message.",
             "static": "The browser stops a check-in outside 2027, with your `[Range]` message.",
@@ -1304,7 +1305,7 @@
         { "feature": "Binds TimeOnly, and a window across midnight when Min is after Max" }
       ],
       "examples": [
-        { "id": "time-field-limits", "title": "Limits", "lead": "To limit the times the user can choose, set `Min` and `Max` on the field, or put `[Range]` on the property. This example sets the closing time's `Min` from the opening time.", "after": ["For a window across midnight, such as a night shift from 10 PM to 6 AM, set `Min` later than `Max`."],
+        { "id": "time-field-usage", "title": "Limits", "lead": "Bind a `TimeField` to a `TimeOnly` property in a form. To limit the times the user can choose, set `Min` and `Max` on the field, or put `[Range]` on the property. This example sets the closing time's `Min` from the opening time.", "after": ["For a window across midnight, such as a night shift from 10 PM to 6 AM, set `Min` later than `Max`."],
           "notes": {
             "static": "The server rejects a time outside the limits, whatever the browser let through."
           } },
@@ -1325,7 +1326,7 @@
         { "feature": "Binds DateRange, whose days keep midnight out of it, with Contains and ToUtc for queries" }
       ],
       "examples": [
-        { "id": "date-range-field-limits", "title": "Limits", "lead": "The server enforces `Min`, `Max`, `MinDays` and `MaxDays`, even if the browser lets a value through. `DateDisabled` rejects a range with a disabled day in it; with `AllowDisabledInRange`, only the ends are checked.",
+        { "id": "date-range-field-usage", "title": "Limits", "lead": "Bind a `DateRangeField` to a `DateRange` property in a form. The server enforces `Min`, `Max`, `MinDays` and `MaxDays`, even if the browser lets a value through. `DateDisabled` rejects a range with a disabled day in it; with `AllowDisabledInRange`, only the ends are checked.",
           "notes": {
             "static": "The server rejects a range outside the rules, whatever the browser let through."
           } },
@@ -1345,7 +1346,7 @@
         { "feature": "Binds an array, List or HashSet of DateOnly" }
       ],
       "examples": [
-        { "id": "multi-date-field-days-off", "title": "Days off", "lead": "Choosing a day toggles it and writes the value at once, so the panel stays open. With `Required`, the user must choose at least one day. The server checks the rules for each date.",
+        { "id": "multi-date-field-usage", "title": "Days off", "lead": "Choosing a day toggles it and writes the value at once, so the panel stays open. With `Required`, the user must choose at least one day. The server checks the rules for each date.",
           "notes": {
             "noscript": "A date input shows for each date, plus an empty one, so the user can add one more date with each post."
           } },
@@ -1361,7 +1362,7 @@
         { "feature": "Min and Max compare whole months, and are checked again on the server" }
       ],
       "examples": [
-        { "id": "month-field-starts", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
+        { "id": "month-field-usage", "title": "A month", "lead": "A month field holds the month as its 1st day. On a desktop the user chooses it from a page of twelve; on a phone it's the browser's month input. `Min` and `Max` compare whole months, so a `Min` of March 15 allows March.",
           "notes": {
             "noscript": "The browser's month input shows, or a text box taking YYYY-MM where the browser has none.",
             "static": "On a desktop, the user chooses the month rather than typing it. On a phone it's the browser's month input."
@@ -1376,7 +1377,7 @@
         { "feature": "Binds an int" }
       ],
       "examples": [
-        { "id": "year-field-model-year", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
+        { "id": "year-field-usage", "title": "A year", "lead": "A year field holds a year in an `int`: a number input, with a page of twelve years to choose from beside it on a desktop. `Min` and `Max` set the earliest and latest year.",
           "notes": {
             "noscript": "A number input, with no page of years."
           } }
@@ -1391,7 +1392,7 @@
         { "feature": "Binds TimeSpan, with a sign when Min is negative" }
       ],
       "examples": [
-        { "id": "duration-field-limits", "title": "Units and limits", "lead": "To choose which boxes the field shows, from days to seconds, set `LargestUnit` and `SmallestUnit`. To limit the duration, set `Min` and `Max` on the field, or put `[Range]` on the property.", "after": ["The server checks the limits when the form posts."],
+        { "id": "duration-field-usage", "title": "Units and limits", "lead": "Bind a `DurationField` to a `TimeSpan` property in a form. To choose which boxes the field shows, from days to seconds, set `LargestUnit` and `SmallestUnit`. To limit the duration, set `Min` and `Max` on the field, or put `[Range]` on the property.", "after": ["The server checks the limits when the form posts."],
           "notes": {
             "noscript": "One text box accepts the length as hh:mm:ss, or d.hh:mm:ss with days."
           } },
@@ -1407,7 +1408,7 @@
         { "feature": "Binds DateOnly, on the Gregorian calendar" }
       ],
       "examples": [
-        { "id": "calendar-limits", "title": "Limits", "lead": "Limits set the earliest and latest days the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field. Days outside them are marked.",
+        { "id": "calendar-usage", "title": "Limits", "lead": "Bind a `Calendar` to a `DateOnly` property in a form. Limits set the earliest and latest days the user can choose. They come from `[Range]` on the property, or you can set `Min` and `Max` on the field.", "after": ["Days outside them are marked."],
           "notes": {
             "static": "The server rejects a date outside the limits, whatever the browser let through."
           } },
@@ -1429,7 +1430,7 @@
         { "feature": "A hex box to type or paste in", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "color-picker-swatches", "title": "Swatches", "lead": "The swatch opens a panel with swatches, a picker and fields. To offer your own colors, set `Swatches`, and name them for screen readers with `SwatchText`. The value is a hex string such as `#2563eb`.",
+        { "id": "color-picker-usage", "title": "Swatches", "lead": "The swatch opens a panel with swatches, a picker and fields. To offer your own colors, set `Swatches`, and name them for screen readers with `SwatchText`. The value is a hex string such as `#2563eb`.",
           "notes": {
             "noscript": "The swatch fills the field and opens the browser's picker instead of the panel. There's no hex box.",
             "static": "IzzyBlazor's script adds the hex box, and the swatch opens the panel."
@@ -1474,7 +1475,7 @@
         { "feature": "OnChange gets the files", "member": "OnChange" }
       ],
       "examples": [
-        { "id": "file-upload-photo", "title": "Types, size and posting", "lead": "The field accepts files of the types and size you allow, and lists them as its hint. Set `Accept` and `MaxFileSize`. Set `Multipart` on the Form so the file posts.",
+        { "id": "file-upload-usage", "title": "Types, size and posting", "lead": "The field accepts files of the types and size you allow, and lists them as its hint. Set `Accept` and `MaxFileSize`. Set `Multipart` on the Form so the file posts.",
           "notes": {
             "noscript": "Choose a file opens the picker, the browser names the chosen file under the prompt, and Upload posts the photo. Dropping a file and the size check need IzzyBlazor's script.",
             "static": "The user can also drop a photo on the zone. A photo over 2 MB is flagged before posting, and the chosen file's name and size replace the line of types and size.",

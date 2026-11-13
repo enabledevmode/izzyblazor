@@ -6,11 +6,6 @@
 @*
     Several separate days, chosen from a month. Bind it to a collection of DateOnly: an array, List<T>,
     HashSet<T> or an interface they implement. The dates come back in order, each once.
-    <MultiDateField @bind-Value="Model.DaysOff" />
-    <MultiDateField @bind-Value="Model.DaysOff"
-                    Min="@today"
-                    DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
-    <MultiDateField @bind-Value="Model.DaysOff" Inline />
 
     A day toggles and writes at once, so the panel stays open with nothing to confirm. `Inline` shows the
     month on the page in place of the button. `Min`, `Max` and DateDisabled are checked for each date on the

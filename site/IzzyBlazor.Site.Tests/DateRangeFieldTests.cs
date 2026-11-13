@@ -14,7 +14,7 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/date-range-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var form = page.Locator("[data-ex='date-range-field-limits'] form");
+        var form = page.Locator("[data-ex='date-range-field-usage'] form");
         var save = form.GetByRole(AriaRole.Button, new() { Name = "Book the stay" });
 
         async Task NoBrowserChecksAsync()
@@ -42,7 +42,7 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = width, Height = 1000 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/date-range-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var form = page.Locator("[data-ex='date-range-field-limits'] form");
+        var form = page.Locator("[data-ex='date-range-field-usage'] form");
         if (mode == "interactive") await form.Locator("[data-ib-range-value]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         await form.Locator("ib-calendar[data-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         return (page, form, form.GetByLabel("Start"), form.GetByLabel("End"), browser);

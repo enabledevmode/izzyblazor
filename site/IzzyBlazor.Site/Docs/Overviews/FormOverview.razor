@@ -4,13 +4,11 @@
    as code. The Forms and validation article covers the model's attributes at more length.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A form is a set of fields bound to a model, which it validates and submits to your handler, for any data the user enters and saves. It works the same on <Anchor Href="docs/common/render-modes">static pages</Anchor> and interactive pages. <Anchor Href="docs/common/forms">Forms and validation</Anchor> covers the model's attributes at more length.</TextBlock>
 
 <Heading Level="2">Fields</Heading>
 <TextBlock>Each field in a form is bound to a property of the model, and gets its label, required mark, type and limits from the property's attributes. Bind each field with <Code>@@bind-Value</Code>. The fields post with the form.</TextBlock>
-<ExampleViewer Example="home-settings" />
+<ExampleViewer Example="form-usage" />
 <TextBlock><Anchor Href="docs/common/forms">Forms and validation</Anchor> lists what each attribute does.</TextBlock>
 
 <Heading Level="2">Posting and submitting</Heading>
@@ -102,25 +100,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Form Model="Profile" FormName="profile" OnValidSubmit="SaveAsync">
-            <FormErrors />
-            <TextField @bind-Value="Profile!.Name" />
-            <TextField @bind-Value="Profile!.Email" />
-            <FormActions>
-                <Button Submit>Save</Button>
-            </FormActions>
-        </Form>
-
-        @code {
-            // A post on a static page fills it; the same name as FormName.
-            [SupplyParameterFromForm(FormName = "profile")]
-            private ProfileModel? Profile { get; set; }
-
-            protected override void OnInitialized() => Profile ??= new();
-        }
-        """;
 
     private const string Validation = """
         @* Blazored.FluentValidation's validator, in place of DataAnnotations. *@

@@ -1,7 +1,7 @@
 @using Microsoft.AspNetCore.Http
 
 @* A report's columns, in the order chosen: Save posts them in that order, on a static page too. *@
-<Form Model="Model" FormName="pick-list-columns" OnValidSubmit="Save" MaxWidth="36.Rem" Grow>
+<Form Model="Model" FormName="pick-list-usage" OnValidSubmit="Save" MaxWidth="36.Rem" Grow>
     <PickList Label="Columns" @bind-Value="Model!.Columns" Items="AllColumns" Reorderable />
     <Row Gap="3" Align="Align.Center" Wrap>
         <Button Submit>Save</Button>
@@ -13,7 +13,7 @@
 </Form>
 
 @code {
-    [SupplyParameterFromForm(FormName = "pick-list-columns")]
+    [SupplyParameterFromForm(FormName = "pick-list-usage")]
     private Report? Model { get; set; }
 
     private bool _saved;
@@ -23,7 +23,7 @@
     // A post with nothing chosen sends nothing for the field: the defaults only when this form didn't post.
     protected override void OnInitialized()
     {
-        var posted = HttpContext?.Request.HasFormContentType == true && HttpContext.Request.Form["_handler"] == "pick-list-columns";
+        var posted = HttpContext?.Request.HasFormContentType == true && HttpContext.Request.Form["_handler"] == "pick-list-usage";
         Model ??= posted ? new() : new() { Columns = ["Order", "Customer", "Total"] };
     }
 

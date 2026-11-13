@@ -6,8 +6,6 @@
 @*
     A month field, such as a card's expiry: the month is held as the 1st of it, in a DateOnly or
     DateTime, or a nullable one. A page of twelve months opens to choose from.
-    <MonthField @bind-Value="Model.Expires" />
-    <MonthField @bind-Value="Model.Starts" Min="@(new DateOnly(2026, 1, 1))" />
 
     On a desktop a month is chosen, not typed, and its button shows it, since browsers other than
     Chromium's have no month input. A phone and UseNative keep the browser's input, and with no script
