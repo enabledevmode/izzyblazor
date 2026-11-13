@@ -46,6 +46,17 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* Content with a part that grows (Grow), such as the email in an account row with an avatar:
+     the label lays its parts out in a row across the button, so that part takes the free space
+     and the rest sit at the start and end, instead of the whole label centering as one block. */
+  .ib-btn-label:has(> .ib-grow) {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5em;
+  }
+
   .ib-btn:is(:focus-visible, :has(:focus-visible)) {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
