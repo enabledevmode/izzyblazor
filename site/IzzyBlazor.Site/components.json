@@ -276,7 +276,7 @@
     },
 
     {
-      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "Navigation", "summary": "Shows header links that fold into a menu on phones.", "keywords": ["navbar", "top navigation"], "parts": ["SiteNavFooter"],
+      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "Navigation", "summary": "Shows header links that fold into a menu on phones.", "keywords": ["navbar", "top navigation"], "parts": ["SiteNavHeader", "SiteNavFooter"],
       "features": [
         { "feature": "A row of links from the breakpoint up" },
         { "feature": "A menu button on phones; Escape or a tap outside closes the panel" },

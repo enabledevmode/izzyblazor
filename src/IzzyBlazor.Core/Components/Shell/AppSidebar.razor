@@ -94,10 +94,14 @@
         <div class="ib-shell-sidebar-body">
             @if (HeaderLinks?.Links is { } links)
             {
-                @* A SiteNav's links, shown here below its breakpoint (see SiteNav). A SiteNavFooter among
-                   them isn't shown here (the sidebar has its own SidebarFooter), so it's discarded. *@
+                @* A SiteNav's links, shown here below its breakpoint (see SiteNav), under its SiteNavHeader.
+                   A SiteNavFooter among them isn't shown (the sidebar has its own SidebarFooter). *@
+                @if (_headerLinkParts.Shown<SiteNavHeader>() is { } linksHeader)
+                {
+                    <div class="@($"ib-shell-sidebar-links-head ib-shell-sidebar-links-bp-{HeaderLinks.Breakpoint.Name()}")">@_headerLinkParts.Outlet(linksHeader)</div>
+                }
                 <ul class="@($"ib-nav ib-nav-vertical ib-shell-sidebar-links ib-shell-sidebar-links-bp-{HeaderLinks.Breakpoint.Name()}")">
-                    <CascadingValue Value="PartScope.Discard" IsFixed="true"><CascadingValue Value="_headerLinkList" IsFixed="true">@links</CascadingValue></CascadingValue>
+                    <CascadingValue Value="_headerLinkParts" IsFixed="true"><CascadingValue Value="_headerLinkList" IsFixed="true">@links</CascadingValue></CascadingValue>
                 </ul>
             }
             <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
@@ -226,6 +230,9 @@
     // The SiteNav links shown here: of links to one page told apart by the query, one is current.
     private readonly NavLinks _headerLinkList = new();
 
+    // The SiteNav links' parts: its SiteNavHeader is drawn above them; the rest are dropped.
+    private PartScope _headerLinkParts = null!;
+
     private void OnHeaderLinksChanged() => _ = InvokeAsync(StateHasChanged);
 
     // The close links clear :target, written with the page's path (a bare "#..." resolves against
@@ -283,6 +290,7 @@
     protected override async Task OnInitializedAsync()
     {
         _scope = new PartScope(this, OuterScope, StateHasChanged);
+        _headerLinkParts = PartScope.StandingIn(typeof(SiteNav), StateHasChanged);
         Navigation.LocationChanged += OnLocationChanged;
         if (!Collapsible || !RememberState)
         {
