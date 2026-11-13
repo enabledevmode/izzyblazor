@@ -739,9 +739,14 @@
     margin-inline-start: auto;
   }
 
-  /* The line sits in the middle of the gap: the gap above it, the same again below. */
+  /* The line sits in the middle of the gap: the gap above it, the same again below. The gap is
+     read on the list (--ib-gap-now doesn't inherit) into a property its items inherit. */
+  .ib-list-dividers {
+    --ib-list-gap: var(--ib-gap-now, 0px);
+  }
+
   .ib-list-dividers > .ib-list-item + .ib-list-item {
-    padding-top: var(--ib-gap-now, 0);
+    padding-top: var(--ib-list-gap);
     border-top: 1px solid var(--ib-color-border);
   }
 }
