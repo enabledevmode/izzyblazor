@@ -13,7 +13,7 @@
 
 <PageTitle>Log in</PageTitle>
 
-<AccountCard Title="Log in">
+<AccountPanel Title="Log in">
     <StatusMessage Message="@errorMessage" />
     <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
         <FormErrors />
@@ -36,7 +36,7 @@
             <Anchor Href="Account/ResendEmailConfirmation">Resend email confirmation</Anchor>
         </TextBlock>
     </Stack>
-</AccountCard>
+</AccountPanel>
 
 @code {
     private string? errorMessage;

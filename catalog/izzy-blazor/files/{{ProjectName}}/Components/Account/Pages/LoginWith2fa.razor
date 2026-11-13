@@ -11,7 +11,7 @@
 
 <PageTitle>Two-factor authentication</PageTitle>
 
-<AccountCard Title="Two-factor authentication" Description="Your login is protected with an authenticator app. Enter the code it shows.">
+<AccountPanel Title="Verify it's you" Description="Enter the code from your authenticator app.">
     <StatusMessage Message="@message" />
     <Form Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidSubmitAsync">
         <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
@@ -22,9 +22,9 @@
         <Button Submit FullWidth>Log in</Button>
     </Form>
     <TextBlock>
-        No access to your authenticator app? <Anchor Href="@($"Account/LoginWithRecoveryCode?ReturnUrl={ReturnUrl}")">Log in with a recovery code</Anchor>.
+        Lost your device? <Anchor Href="@($"Account/LoginWithRecoveryCode?ReturnUrl={ReturnUrl}")">Use a recovery code</Anchor>
     </TextBlock>
-</AccountCard>
+</AccountPanel>
 
 @code {
     private string? message;

@@ -12,7 +12,7 @@
 
 <PageTitle>Register confirmation</PageTitle>
 
-<AccountCard Title="Confirm your email">
+<AccountPanel Title="Confirm your email">
     <StatusMessage Message="@statusMessage" />
     @if (emailConfirmationLink is not null)
     {
@@ -26,7 +26,7 @@
     {
         <Alert Status="Status.Info" Announce>Check your email to confirm your account.</Alert>
     }
-</AccountCard>
+</AccountPanel>
 
 @code {
     private string? emailConfirmationLink;

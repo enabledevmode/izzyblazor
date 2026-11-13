@@ -11,14 +11,15 @@
 
 <PageTitle>Recovery code verification</PageTitle>
 
-<AccountCard Title="Log in with a recovery code" Description="This login isn't remembered until you enter an authenticator app code at log in, or turn off two-factor authentication and log in again.">
+<AccountPanel Title="Use a recovery code" Description="Enter one of your saved recovery codes.">
     <StatusMessage Message="@message" />
     <Form Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync">
         <FormErrors />
         <TextField @bind-Value="Input.RecoveryCode" Label="Recovery code" AutoComplete="off" />
         <Button Submit FullWidth>Log in</Button>
     </Form>
-</AccountCard>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">This browser isn't remembered until you log in with your authenticator app, or turn off two-factor authentication.</TextBlock>
+</AccountPanel>
 
 @code {
     private string? message;
