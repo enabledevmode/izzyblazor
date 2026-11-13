@@ -5,46 +5,48 @@
 
 <PageTitle>Contact</PageTitle>
 
-<Column Gap="6" MaxWidth="Length.Rem(64)">
-    <Column Gap="2" MaxWidth="Length.Rem(40)">
-        <Heading Level="1">Contact</Heading>
+@* The split contact layout: the title, what the form does and the other ways to reach us in a column
+   beside the form, their tops level; on phones they come first, then the form. *@
+<Grid Columns="new() { Base = 1, Lg = 3 }" Gap="new() { Base = 8, Lg = 12 }" Align="Align.Start" MaxWidth="Length.Rem(64)">
+    <Column Gap="8">
+        <Column Gap="2">
+            <Heading Level="1">Contact</Heading>
 @*#if (InteractiveAtRoot) *@
-        <TextBlock Color="Color.Muted">This form checks each field as you type, since every page here is interactive. The same form also posts and validates on a static page, with no circuit.</TextBlock>
+            <TextBlock Color="Color.Muted">This form checks each field as you type, since every page here is interactive. The same form also posts and validates on a static page, with no circuit.</TextBlock>
 @*#elif (UseServer) *@
-        <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit. Add @@rendermode InteractiveServer under @@page and it also checks each field as you type.</TextBlock>
+            <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit. Add @@rendermode InteractiveServer under @@page and it also checks each field as you type.</TextBlock>
 @*#else *@
-        <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit.</TextBlock>
+            <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit.</TextBlock>
 @*#endif *@
-    </Column>
-
-    <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="8" Align="Align.Start">
-        <Card TitleLevel="2" Title="Other ways to reach us">
-            <DescriptionList>
+        </Column>
+        <Column Gap="4">
+            <Heading Level="2" Size="TextSize.Lg">Other ways to reach us</Heading>
+            <DescriptionList Orientation="Orientation.Vertical">
                 <DescriptionItem Term="Email"><Anchor Href="mailto:hello@example.com">hello@example.com</Anchor></DescriptionItem>
                 <DescriptionItem Term="Replies">Within one working day</DescriptionItem>
                 <DescriptionItem Term="Hours">Monday to Friday, 9:00 to 17:00</DescriptionItem>
             </DescriptionList>
-        </Card>
+        </Column>
+    </Column>
 
-        <Form Model="Model" FormName="contact" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
-            <FormErrors />
-            <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
-                <TextField @bind-Value="Model!.Name" AutoComplete="name" />
-                <TextField @bind-Value="Model!.Email" AutoComplete="email" />
-                <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
-                <TextField @bind-Value="Model!.Phone" AutoComplete="tel" Type="TextFieldType.Tel" />
-            </Grid>
-            <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
-            <RadioGroup @bind-Value="Model!.Reach" Orientation="Orientation.Horizontal" />
-            <DateField @bind-Value="Model!.CallOn" Min="@Tomorrow" DateDisabled="IsWeekend" Clearable Hint="We call on weekdays." />
-            <TextArea @bind-Value="Model!.Message" Rows="5" ShowCount />
-            <Switch @bind-Value="Model!.News" />
-            <FormActions Justify="Justify.Start">
-                <Button Submit StartIcon="Lucide.Send">Send</Button>
-            </FormActions>
-        </Form>
-    </Grid>
-</Column>
+    <Form Model="Model" FormName="contact" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
+        <FormErrors />
+        <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
+            <TextField @bind-Value="Model!.Name" AutoComplete="name" />
+            <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+            <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
+            <TextField @bind-Value="Model!.Phone" AutoComplete="tel" Type="TextFieldType.Tel" />
+        </Grid>
+        <Select @bind-Value="Model!.Topic" Placeholder="Choose a topic" />
+        <RadioGroup @bind-Value="Model!.Reach" Orientation="Orientation.Horizontal" />
+        <DateField @bind-Value="Model!.CallOn" Min="@Tomorrow" DateDisabled="IsWeekend" Clearable Hint="We call on weekdays." />
+        <TextArea @bind-Value="Model!.Message" Rows="5" ShowCount />
+        <Switch @bind-Value="Model!.News" />
+        <FormActions Justify="Justify.Start">
+            <Button Submit StartIcon="Lucide.Send">Send</Button>
+        </FormActions>
+    </Form>
+</Grid>
 
 @code {
     [SupplyParameterFromForm(FormName = "contact")]
