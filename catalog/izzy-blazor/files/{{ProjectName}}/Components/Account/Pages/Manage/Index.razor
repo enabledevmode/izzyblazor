@@ -13,16 +13,12 @@
 <PageHeader Title="Profile" TitleLevel="2" Size="ControlSize.Sm"
             Description="The name and phone number on your account." />
 <StatusMessage />
-<List Plain>
-    <ListItem Icon="Lucide.User" Description="@($"{username} · it's your email address")">
-        Username
-        <ListItemActions>
-            <Button Href="Account/Manage/Email" Variant="ButtonVariant.Link">Change your email</Button>
-        </ListItemActions>
-    </ListItem>
-</List>
+@* Header, fields, button: the username is read-only (focusable and readable, unlike a disabled
+   field), and its hint says where it's changed. *@
 <Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
     <Form Model="Input" FormName="profile" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
+        <TextField Label="Username" Value="@username" ValueExpression="() => username" ReadOnly Type="TextFieldType.Email" AutoComplete="username"
+                   Hint="It's your email address. To change it, go to Email." />
         <TextField @bind-Value="Input.PhoneNumber" Type="TextFieldType.Tel" AutoComplete="tel" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Save</Button>

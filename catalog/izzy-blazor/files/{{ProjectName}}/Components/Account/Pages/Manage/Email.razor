@@ -20,24 +20,18 @@
 <PageHeader Title="Email" TitleLevel="2" Size="ControlSize.Sm"
             Description="The address you log in with and get account email at." />
 <StatusMessage Message="@message" />
-<List Plain>
-    <ListItem Icon="Lucide.Mail" Description="@email">
-        Current email
-        <ListItemActions>
-            @if (isEmailConfirmed)
-            {
-                <Badge Status="Status.Success" Dot>Verified</Badge>
-            }
-            else
-            {
-                <Badge Status="Status.Warning" Dot>Not verified</Badge>
-                <Button Submit Form="send-verification-form" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Send verification email</Button>
-            }
-        </ListItemActions>
-    </ListItem>
-</List>
+@* The current address and the new one are both fields, so the page reads top to bottom; whether
+   the current one is verified is its hint. *@
 <Container Size="ContainerSize.Xs" Align="ContainerAlign.Start" Gutters="false">
     <Form Model="Input" FormName="change-email" RequiredMark="RequiredMark.Optional" OnValidSubmit="OnValidSubmitAsync">
+        <Column Gap="1">
+            <TextField Label="Email" Value="@email" ValueExpression="() => email" ReadOnly Type="TextFieldType.Email"
+                       Hint="@(isEmailConfirmed ? "Verified." : "Not verified yet.")" />
+            @if (!isEmailConfirmed)
+            {
+                <Button Submit Form="send-verification-form" Variant="ButtonVariant.Link">Send verification email</Button>
+            }
+        </Column>
         <TextField @bind-Value="Input.NewEmail" AutoComplete="email" />
         <FormActions Justify="Justify.Start">
             <Button Submit>Change email</Button>
@@ -71,7 +65,6 @@
         email = await UserManager.GetEmailAsync(user);
         isEmailConfirmed = await UserManager.IsEmailConfirmedAsync(user);
 
-        Input.NewEmail ??= email;
     }
 
     private async Task OnValidSubmitAsync()

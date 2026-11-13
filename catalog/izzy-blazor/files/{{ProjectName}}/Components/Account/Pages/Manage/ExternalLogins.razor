@@ -14,44 +14,41 @@
 <PageHeader Title="External logins" TitleLevel="2" Size="ControlSize.Sm"
             Description="Services you can log in with instead of a password." />
 <StatusMessage />
-<ListView Items="currentLogins ?? []" ItemKey="@(l => l.LoginProvider)" ItemText="@(l => l.ProviderDisplayName ?? l.LoginProvider)"
-          ItemDescription="@(_ => "Linked")" ItemIcon="@(_ => Lucide.Globe)" Dividers Context="login">
-    <ItemMenu>
-        @if (showRemoveButton)
-        {
-            <MenuItem Submit Form="@($"remove-login-{login.LoginProvider}")" Icon="Lucide.Unlink" Accent="Accent.Danger">Remove</MenuItem>
-        }
-    </ItemMenu>
-    <EmptyContent>
-        <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.Globe" Title="No services linked" />
-    </EmptyContent>
-</ListView>
-@* Each row's Remove posts its own form; the forms sit outside the list, since a menu's items
-   aren't where a form can go. *@
-@if (showRemoveButton)
-{
+@* Every provider is a row with its state and the one thing you can do to it: the linked ones
+   first, then the rest. Remove shows only while another way to log in remains, as in Microsoft's
+   page. Provider icons are generic: no brand logos. *@
+<List Plain Dividers Gap="5">
     @foreach (var login in currentLogins ?? [])
     {
-        <form id="@($"remove-login-{login.LoginProvider}")" @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post" hidden>
-            <AntiforgeryToken />
-            <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
-            <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-        </form>
-    }
-}
-@if (otherLogins?.Count > 0)
-{
-    <PageHeader Title="Add another service" TitleLevel="3" Size="ControlSize.Sm" Description="Log in with it instead of your password." />
-    <form action="Account/Manage/LinkExternalLogin" method="post">
-        <AntiforgeryToken />
-        <Row Gap="2" Wrap>
-            @foreach (var provider in otherLogins)
+        var name = login.ProviderDisplayName ?? login.LoginProvider;
+        <ListItem Icon="Lucide.Globe" Description="@($"Linked. You can log in with {name}.")">
+            @name
+            @if (showRemoveButton)
             {
-                <Button Submit Name="Provider" Value="@provider.Name" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Continue with @provider.DisplayName</Button>
+                <ListItemActions>
+                    <form @formname="@($"remove-login-{login.LoginProvider}")" @onsubmit="OnSubmitAsync" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
+                        <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
+                        <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" aria-label="@($"Remove {name}")">Remove</Button>
+                    </form>
+                </ListItemActions>
             }
-        </Row>
-    </form>
-}
+        </ListItem>
+    }
+    @foreach (var provider in otherLogins ?? [])
+    {
+        <ListItem Icon="Lucide.Globe" Description="Not linked.">
+            @provider.DisplayName
+            <ListItemActions>
+                <form action="Account/Manage/LinkExternalLogin" method="post">
+                    <AntiforgeryToken />
+                    <Button Submit Name="Provider" Value="@provider.Name" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" aria-label="@($"Link {provider.DisplayName}")">Link</Button>
+                </form>
+            </ListItemActions>
+        </ListItem>
+    }
+</List>
 
 @code {
     public const string LinkLoginCallbackAction = "LinkLoginCallback";
