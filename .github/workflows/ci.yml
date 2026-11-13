@@ -38,8 +38,19 @@ jobs:
           pw=site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1
           pwsh $pw install --with-deps chromium || { echo "::warning::System packages didn't install; installing Chromium alone."; pwsh $pw install chromium; }
 
+      # Browser tests that fail now and then on these runners, never locally: each saves a Playwright
+      # trace (TestBrowser), uploaded when the job fails. Open one with `playwright show-trace`.
       - name: Unit and render tests
+        env:
+          IZZY_TRACE: SchedulerTests,DateFieldPanelTests
         run: dotnet test izzyblazor.sln --configuration Release --no-build --logger "trx;LogFileName=results.trx"
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: traces
+          path: site/IzzyBlazor.Site.Tests/bin/Release/net10.0/traces/*.zip
+          if-no-files-found: ignore
 
       - name: Asset size budget
         shell: bash
@@ -92,4 +103,13 @@ jobs:
       # One test left out: bUnit's net10 build fakes Virtualize's script by calling its internal
       # OnSpacerBeforeVisible, whose parameters .NET 11 changed (bUnit's net11.0 build has the fix).
       - name: Unit and render tests
+        env:
+          IZZY_TRACE: SchedulerTests,DateFieldPanelTests
         run: dotnet test izzyblazor.sln --configuration Release --no-build --filter "FullyQualifiedName!~Virtual_rows_stay_where_they_are_for_a_parents_render"
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: traces-dotnet-11
+          path: site/IzzyBlazor.Site.Tests/bin/Release/net10.0/traces/*.zip
+          if-no-files-found: ignore
