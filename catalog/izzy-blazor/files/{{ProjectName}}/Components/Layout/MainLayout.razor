@@ -22,7 +22,7 @@
         <AppBrand Href="" Icon="Lucide.Blocks" Label="{{ProjectName}}" />
         <Box Grow />
         @*#if (!SidebarNav) *@
-        <SiteNav>
+        <SiteNav MenuButtonPosition="MenuButtonPosition.Start">
             <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
             <NavItem Href="counter">Counter</NavItem>
             <NavItem Href="weather">Weather</NavItem>
@@ -32,7 +32,10 @@
             <SiteNavFooter>
                 <AuthorizeView>
                     <NotAuthorized>
-                        <Button Href="Account/Register" FullWidth>Register</Button>
+                        <Grid Columns="2" Gap="2" Grow>
+                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Log in</Button>
+                            <Button Href="Account/Register" FullWidth>Register</Button>
+                        </Grid>
                     </NotAuthorized>
                 </AuthorizeView>
             </SiteNavFooter>
@@ -43,7 +46,7 @@
         @*#if (IndividualLocalAuth && SidebarNav) *@
         <AuthorizeView>
             <NotAuthorized>
-                <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Log in</Button>
+                <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="Breakpoint.Md">Log in</Button>
                 <Button Href="Account/Register" VisibleFrom="Breakpoint.Md">Register</Button>
             </NotAuthorized>
         </AuthorizeView>
