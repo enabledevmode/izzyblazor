@@ -21,7 +21,7 @@
         <Checkbox @bind-Value="Input.RememberMachine" Label="Remember this browser" />
         <Button Submit FullWidth>Log in</Button>
     </Form>
-    <TextBlock>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
         Lost your device? <Anchor Href="@($"Account/LoginWithRecoveryCode?ReturnUrl={ReturnUrl}")">Use a recovery code</Anchor>
     </TextBlock>
 </AccountPanel>
