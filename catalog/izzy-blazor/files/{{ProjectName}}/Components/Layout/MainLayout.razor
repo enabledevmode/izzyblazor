@@ -40,7 +40,14 @@
         </SiteNav>
         @*#endif *@
         <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
-        @*#if (IndividualLocalAuth && !SidebarNav) *@
+        @*#if (IndividualLocalAuth && SidebarNav) *@
+        <AuthorizeView>
+            <NotAuthorized>
+                <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Log in</Button>
+                <Button Href="Account/Register" VisibleFrom="Breakpoint.Md">Register</Button>
+            </NotAuthorized>
+        </AuthorizeView>
+        @*#elif (IndividualLocalAuth) *@
         <AccountMenu />
         @*#endif *@
     </AppHeader>
