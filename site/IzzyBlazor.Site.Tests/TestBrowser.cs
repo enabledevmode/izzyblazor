@@ -36,6 +36,9 @@ internal sealed class TestBrowser : IAsyncDisposable
     private static async Task<IBrowser> StartAsync()
     {
         Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
+        // CI's runners share their CPU among four test threads and the site: there an enhanced
+        // navigation of a docs page (~700 KB) can take 5 to 8 seconds, past the 5-second default.
+        Microsoft.Playwright.Assertions.SetDefaultExpectTimeout(15_000);
         var playwright = await Playwright.CreateAsync();
         return await playwright.Chromium.LaunchAsync();
     }
