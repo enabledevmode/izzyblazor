@@ -8,15 +8,6 @@ namespace IzzyBlazor;
 /// A square button showing one icon. <see cref="Label"/> is required: it becomes the
 /// accessible name and the hover tooltip, so an icon-only button is never unlabeled.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;IconButton Icon="Lucide.Pencil"
-///             Label="Edit"
-///             Variant="ButtonVariant.Ghost"
-///             Accent="Accent.Neutral" /&gt;
-/// &lt;IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>

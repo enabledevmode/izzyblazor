@@ -10,17 +10,6 @@ namespace IzzyBlazor;
 /// <see cref="OnClick"/> runs C#. Use a link for navigation ("Start the project") and a button
 /// for actions.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Button Submit&gt;Save&lt;/Button&gt;
-/// &lt;Button Accent="Accent.Danger"
-///         Variant="ButtonVariant.Outline"
-///         StartIcon="Lucide.Trash"&gt;Delete&lt;/Button&gt;
-/// &lt;Button Submit Name="intent" Value="publish"&gt;Publish&lt;/Button&gt;
-/// &lt;Button Href="/courses/wizard" EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/Button&gt;
-/// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c> or <c>a</c>, so Enter, Space and focus work as the browser defines them.</item>

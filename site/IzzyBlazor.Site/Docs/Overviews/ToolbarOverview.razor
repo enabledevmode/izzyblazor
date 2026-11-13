@@ -3,8 +3,6 @@
    other controls, an app header, and how it works with JavaScript off. What doesn't fit and actions are
    topics of their own (Docs/Topics/Toolbar*Topic). Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A toolbar is a row of controls that stays on one line, such as an editor's actions. What doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. The toolbar works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, so a phone on a slow connection gets the same toolbar.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
@@ -12,7 +10,7 @@
 
 <Heading Level="2">An editor toolbar</Heading>
 <TextBlock>A toolbar has its own versions of <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>: <Code>ToolbarButton</Code>, <Code>ToolbarIconButton</Code>, <Code>ToolbarButtonGroup</Code> and <Code>ToolbarMenu</Code>. They accept the same parameters, and they move into the … menu when the toolbar runs out of room; a group moves as one. Narrow the window to see them move.</TextBlock>
-<ExampleViewer Example="toolbar-editor" />
+<ExampleViewer Example="toolbar-usage" />
 <TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out. Put any other control in a <Code>ToolbarItem</Code>. Placed directly in the toolbar, it throws.</TextBlock>
 
 <Heading Level="2">Start, center and end</Heading>
@@ -88,24 +86,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Toolbar Label="Editor">
-            <ToolbarButtonGroup Label="History">
-                <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
-                <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
-            </ToolbarButtonGroup>
-            <ToolbarSeparator />
-            <ToolbarButton StartIcon="Lucide.Link" Priority="1">Link</ToolbarButton>
-            @* The main action, at the end, never moves into the … menu; Print is only ever there. *@
-            <ToolbarButton Position="ToolbarPosition.End"
-                           Overflow="ToolbarOverflow.Never"
-                           Accent="Accent.Primary"
-                           Variant="ButtonVariant.Solid">Publish</ToolbarButton>
-            <ToolbarButton StartIcon="Lucide.Printer"
-                           Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
-        </Toolbar>
-        """;
 
     private const string InHeader = """
         <AppHeader>

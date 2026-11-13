@@ -2,13 +2,11 @@
    (each previewed in the modes it has), what happens without script or clipboard access, and its
    own words. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A copy button is a button that copies text to the clipboard, such as an install command or an API key. It suits text outside a Code block, such as a single line of code or a field. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in.</TextBlock>
 
 <Heading Level="2">Copying fixed text</Heading>
 <TextBlock>A copy button can copy a fixed value, such as a command shown beside it. Set <Code>Text</Code> to the value. By default it's a ghost icon button, so give it a <Code>Label</Code> that names what it copies; the label is its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
-<ExampleViewer Example="copy-button-command" />
+<ExampleViewer Example="copy-button-usage" />
 <TextBlock>After a copy, the icon turns to a check for a moment, and screen readers hear "Copied". The button keeps its name.</TextBlock>
 
 <Heading Level="2">Copying a field's value</Heading>
@@ -59,15 +57,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <Code>dotnet add package IzzyBlazor</Code>
-        <CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" />
-
-        @* Copies the field's value when pressed. *@
-        <TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly>
-            <EndAddon>
-                <CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton>
-            </EndAddon>
-        </TextField>
-        """;
 }

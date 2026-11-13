@@ -5,11 +5,6 @@
 @*
     Related buttons in a row, joined into one control by default. Accent, Variant and Size here
     become the defaults for the buttons inside; a button's own setting wins.
-    <ButtonGroup Label="Text alignment" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
-        <IconButton Icon="Lucide.TextAlignStart" Label="Align left" />
-        <IconButton Icon="Lucide.TextAlignCenter" Label="Center" />
-    </ButtonGroup>
-
     Accessibility:
     - It renders a `div` with `role="group"`, named by `Label`, such as "Text alignment"; without
       one, screen readers don't hear what the buttons share.

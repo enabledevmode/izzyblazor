@@ -3,13 +3,11 @@
    downloads, icon only, its looks and states, OnClick, a Toolbar, and what it does without script.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A split button is a button with a main action and, beside it, an arrow that opens a menu of related ones. It suits a set of actions where one is the usual one; when none is, use a <Anchor Href="docs/components/menu">Menu</Anchor>. Clicking the main button only runs its action, and the arrow only opens the menu.</TextBlock>
 
 <Heading Level="2">The main action and its menu</Heading>
 <TextBlock>The main button acts like a <Anchor Href="docs/components/button">Button</Anchor>: to post a form, set <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. For the other choices, put <Code>MenuItem</Code>s inside the SplitButton.</TextBlock>
-<ExampleViewer Example="split-button-actions" />
+<ExampleViewer Example="split-button-usage" />
 <TextBlock>Choosing an item runs that item, and the main action stays as it was. The SplitButton doesn't remember the last choice. To make it the default, change <Code>Label</Code> and <Code>Href</Code> or <Code>OnClick</Code> yourself.</TextBlock>
 
 <Heading Level="2">Links and downloads</Heading>
@@ -91,18 +89,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <SplitButton Label="Save" StartIcon="Lucide.Save" OnClick="Save" MenuLabel="More save options">
-            <MenuItem OnClick="SaveAs">Save as…</MenuItem>
-            <MenuItem Href="/drafts">Open drafts</MenuItem>
-        </SplitButton>
-
-        @* A link and a download, which work with JavaScript off *@
-        <SplitButton Label="Download PDF" Href="/report.pdf" download MenuLabel="Other formats">
-            <MenuItem Href="/report.csv" download>CSV</MenuItem>
-        </SplitButton>
-        """;
 
     private const string InToolbar = """
         <Toolbar Label="Document">

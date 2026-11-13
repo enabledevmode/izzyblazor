@@ -2,9 +2,11 @@
    it shows something the code doesn't, code alone where there's nothing new to see. Mode support,
    accessibility and the parameters follow the examples; the API page has the full reference. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A button is a control the user clicks to run an action. It suits posting a form, opening a page or running C#. For a button with only an icon, see <Anchor Href="docs/components/icon-button">IconButton</Anchor>.</TextBlock>
+
+<Heading Level="2">Save and cancel</Heading>
+<TextBlock>In a form, <Code>Submit</Code> makes a button post it. With <Code>Href</Code>, a button is a link, such as Cancel back to the list. Both work on any page, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
+<ExampleViewer Example="button-usage" />
 
 <Heading Level="2">Accents and variants</Heading>
 <TextBlock>The accent sets a button's color, and the variant sets how strongly it stands out, from a solid fill to a link. Set <Code>Accent</Code> and <Code>Variant</Code>. Keep one solid primary button per area, for its main action.</TextBlock>
@@ -77,17 +79,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* In a form: posts it, on any page. *@
-        <Button Submit>Save</Button>
-
-        @* A link that looks like a button. *@
-        <Button Href="docs/get-started">Get started</Button>
-
-        @* C# on click, on interactive pages. *@
-        <Button OnClick="Refresh" Variant="ButtonVariant.Outline">Refresh</Button>
-        """;
 
     private const string SeveralSubmit = """
         <Form Model="Post" FormName="post" OnValidSubmit="Save">

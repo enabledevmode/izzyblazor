@@ -1,0 +1,30 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="contact-email" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model!.Email" Label="Email" Type="TextFieldType.Email" />
+    <Row Gap="2">
+        <Button Submit>Save</Button>
+        <Button Href="docs/components/button" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+    </Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Saved @_saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "contact-email")]
+    private Contact? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Email;
+
+    public sealed class Contact
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = "ada@example.com";
+    }
+}

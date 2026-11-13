@@ -12,21 +12,6 @@
     works with JavaScript off: the server works out the widths at which each item moves, as container
     queries. The script measures the real widths and corrects them, and adds arrow-key movement.
 
-    <Toolbar Label="Editor">
-        <ToolbarButtonGroup Label="History">
-            <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
-            <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
-        </ToolbarButtonGroup>
-        <ToolbarSeparator />
-        <ToolbarButton StartIcon="Lucide.Link" Priority="1">Link</ToolbarButton>
-        <ToolbarButton Position="ToolbarPosition.End"
-                       Overflow="ToolbarOverflow.Never"
-                       Accent="Accent.Primary"
-                       Variant="ButtonVariant.Solid">Publish</ToolbarButton>
-        <ToolbarButton StartIcon="Lucide.Printer"
-                       Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
-    </Toolbar>
-
     Each item takes a Position (Start, the default; Center; End), a Priority (higher stays longer)
     and an Overflow: Never for the main action, Always for what's only ever in the menu. Only
     toolbar items go directly in it: other controls throw there. ToolbarText is text that stays;

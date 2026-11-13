@@ -8,18 +8,6 @@ namespace IzzyBlazor;
 /// the value or text of the element <see cref="For"/> names, and shows a check and "Copied" for a
 /// moment, like a <see cref="Code"/> block's copy button.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Code&gt;dotnet add package IzzyBlazor&lt;/Code&gt;
-/// &lt;CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" /&gt;
-///
-/// &lt;TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly&gt;
-///     &lt;EndAddon&gt;
-///         &lt;CopyButton For="api-key" Variant="ButtonVariant.Outline"&gt;Copy&lt;/CopyButton&gt;
-///     &lt;/EndAddon&gt;
-/// &lt;/TextField&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Copying needs JavaScript (and a secure page), so the button shows only where the browser runs
 /// script, from the first paint (it copies once IzzyBlazor's script has loaded); with JavaScript
