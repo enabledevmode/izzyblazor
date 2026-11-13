@@ -10,6 +10,7 @@
 <Heading Level="2">A form in a popover</Heading>
 <TextBlock>A popover can contain anything, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page. To give the panel a heading, set <Code>Title</Code>; it also names the panel for screen readers.</TextBlock>
 <ExampleViewer Example="popover-filters" />
+<TextBlock>On a static page, submitting a form in the panel closes it, and it opens again if the form comes back with errors. On an interactive page, close it from the submit handler: bind <Code>@@bind-Open</Code> and set it to false.</TextBlock>
 
 <Heading Level="2">Placement and width</Heading>
 <TextBlock>A popover opens below its trigger, aligned to its start (<Code>BottomStart</Code>), by default. To open it on another side, set <Code>Placement</Code>. It's as wide as its content, up to 24rem; for a set width, set <Code>PanelWidth</Code>.</TextBlock>

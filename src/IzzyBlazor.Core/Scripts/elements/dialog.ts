@@ -205,6 +205,8 @@ export function installCommandFallback(): void {
 
 /** The dialog whose own form was just posted, to reopen if the response shows errors. */
 let postedFrom: string | null = null;
+/** The same for a popover, by its form's name: a popover's generated id changes with each render. */
+let postedPopoverForm: string | null = null;
 const ERRORS = ".ib-field-invalid, .ib-form-errors, [aria-invalid='true']";
 
 /**
@@ -212,12 +214,22 @@ const ERRORS = ".ib-field-invalid, .ib-form-errors, [aria-invalid='true']";
  * ConfirmButton's confirm, say), or a link in it navigates. With enhanced navigation or an
  * enhanced form post the page isn't reloaded, so the open dialog would otherwise stay on top
  * of the response. Without script the browser loads a new page, which closes it anyway.
+ * A Popover's panel closes on a submit from inside it the same way, so a filter form's Apply
+ * shows its result.
  */
 export function installDialogAutoClose(): void {
   document.addEventListener("submit", (event) => {
     const form = event.target;
     const submitter = (event as SubmitEvent).submitter;
     if (!(form instanceof HTMLFormElement) || form.method === "dialog" || !submitter) return;
+    // A Popover's panel (not a menu, whose items close it themselves). Interactive: C# decides.
+    const panel = submitter.closest<HTMLElement>("ib-popover:not([data-ib-interactive]) > [popover][role='dialog']");
+    if (panel?.matches(":popover-open")) {
+      const name = form.closest("[popover]") === panel ? form.querySelector<HTMLInputElement>("input[name='_handler']")?.value : null;
+      postedPopoverForm = name ?? null;
+      queueMicrotask(() => panel.hidePopover());
+      return;
+    }
     const dialog = submitter.closest("dialog");
     if (!dialog?.open) return;
     // Interactive dialogs: the submit is handled in C#, which decides whether to close.
@@ -238,11 +250,21 @@ export function installDialogAutoClose(): void {
 }
 
 /**
- * After an enhanced form post: if the form came from a dialog and the response shows validation
- * errors in it, reopen the dialog so they're seen. Without script, a dialog opened by ?dialog=id
- * posts to the same address, so the server renders it open again anyway.
+ * After an enhanced form post: if the form came from a dialog or a popover and the response shows
+ * validation errors in it, reopen it so they're seen. Without script, a dialog opened by
+ * ?dialog=id posts to the same address, so the server renders it open again anyway.
  */
 export function reopenAfterPost(): void {
+  const formName = postedPopoverForm;
+  postedPopoverForm = null;
+  if (formName) {
+    const input = [...document.querySelectorAll<HTMLInputElement>("input[name='_handler']")].find((i) => i.value === formName);
+    const panel = input?.closest<HTMLElement>("ib-popover > [popover]");
+    if (!panel?.querySelector(ERRORS)) return;
+    if (!panel.matches(":popover-open")) panel.showPopover();
+    panel.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
+    return;
+  }
   const id = postedFrom;
   postedFrom = null;
   if (!id) return;
