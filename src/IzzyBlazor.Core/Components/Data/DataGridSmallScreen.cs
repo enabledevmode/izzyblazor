@@ -134,7 +134,8 @@ public abstract partial class GridViewBase<TItem>
                 }
                 else
                 {
-                    unset.Add(column.MinWidth is { } min ? Rem(StyleValues.Length(min)) ?? DefaultMinRem : DefaultMinRem);
+                    // As the stylesheet's least: its MinWidth, else wide enough for its header (GridStyle).
+                    unset.Add(Rem(column.MinWidth is { } min ? StyleValues.Length(min) : HeaderMinWidth(column)) ?? DefaultMinRem);
                 }
             }
 
