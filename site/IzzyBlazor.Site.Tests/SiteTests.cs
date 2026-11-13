@@ -148,6 +148,32 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Equal(HttpStatusCode.NotFound, (await site.Client.GetAsync("docs/components/data-grid/nonsense")).StatusCode);
     }
 
+    // An example's state in the address, asked for from outside the site (a crawler), goes to the
+    // plain page; a click on the site keeps it. Only through Fly's proxy (Fly-Client-IP).
+    [Fact]
+    public async Task A_query_page_from_outside_the_site_goes_to_the_plain_page()
+    {
+        using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = site.Client.BaseAddress };
+
+        async Task<HttpResponseMessage> Get(string? fetchSite)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "docs/components/pagination?page=3");
+            request.Headers.Add("Fly-Client-IP", "203.0.113.7");
+            if (fetchSite is not null)
+            {
+                request.Headers.Add("Sec-Fetch-Site", fetchSite);
+            }
+
+            return await client.SendAsync(request);
+        }
+
+        var crawled = await Get(null);
+        Assert.Equal(HttpStatusCode.Redirect, crawled.StatusCode);
+        Assert.Equal("/docs/components/pagination", crawled.Headers.Location?.OriginalString);
+        Assert.Equal(HttpStatusCode.Redirect, (await Get("cross-site")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Get("same-origin")).StatusCode);
+    }
+
     [Theory]
     [MemberData(nameof(Modes))]
     public async Task Every_example_renders_in_a_page_in_each_mode(string mode)
