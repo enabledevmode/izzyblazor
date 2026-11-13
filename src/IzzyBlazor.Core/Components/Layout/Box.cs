@@ -7,11 +7,6 @@ namespace IzzyBlazor;
 /// The base surface. Renders one element with the style props applied; every
 /// other layout primitive is a Box with defaults.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Box As="section" Padding="new() { Base = 6, Md = 10 }" Bg="Color.Fill" Radius="Radius.Md"&gt;...&lt;/Box&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>div</c>; <see cref="As"/> makes it another element, such as <c>nav</c> or <c>ul</c>, so a landmark or list needs no extra wrapper.</item>

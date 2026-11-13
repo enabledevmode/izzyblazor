@@ -7,13 +7,6 @@ namespace IzzyBlazor;
 /// A line between pieces of content: an <c>hr</c>, a vertical separator in a <see cref="Row"/>,
 /// or a line with a label in the middle ("or").
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Divider /&gt;
-/// &lt;Divider Label="or" /&gt;
-/// &lt;Row&gt;...&lt;Divider Orientation="Orientation.Vertical" /&gt;...&lt;/Row&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>A plain horizontal divider is an <c>hr</c>; a vertical one is a <c>div</c> with <c>role="separator"</c> and <c>aria-orientation="vertical"</c>.</item>

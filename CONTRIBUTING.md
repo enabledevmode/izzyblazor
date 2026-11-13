@@ -135,7 +135,7 @@ parameter tables and defaults are never written by hand.
   a submit with errors, and after a valid one with its message, not only as it loads.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
-  summary, its example as Usage, each of the component's examples in `components.json` under its
+  summary, each of the component's examples in `components.json` under its
   title and `lead` (one or two sentences: what the feature does and the parameter that turns it
   on; backticks mark code), then `after`, a list of short paragraphs under the example for the
   details, caveats and mode differences (a site test keeps a lead or an `after` paragraph to 60
@@ -233,7 +233,10 @@ An Overview is for using the component; the API page is the reference. Follow Bu
    looks like: the example shows that. A new chart type gets one, and its doc comment's summary
    is one sentence, with the details in remarks.
 
-1. **Usage**: a short code block of the common cases, ready to copy.
+1. **Usage**: a runnable example of the common case, `{id}-usage` (`Examples/{Name}/Usage.razor`),
+   first in its `examples`, short enough to copy. Its lead says what to give the component. It
+   replaces a doc comment `<example>` (or the code in a .razor header), and the docs MCP gives
+   its source as the Usage.
 2. **A section per feature**, in this order: what it is, as the user sees it; when to use it,
    next to the alternatives; how to turn it on; then the details. "A filter row is a row of
    fields under the column titles. The user types in a field to filter that column without
@@ -267,7 +270,7 @@ For each section, pick how to show it by what the reader needs:
 | Show | When | Such as |
 | --- | --- | --- |
 | A preview (`<ExampleViewer />`), source a click away | It looks or behaves differently, or Off · Static · Live changes the result | Sizes, variants, states, interactions, OnClick |
-| Code only (`<Code Block>`) | There's something to copy, and a preview would show nothing new | Usage, setup, a pattern to paste, behavior seen only after a post |
+| Code only (`<Code Block>`) | There's something to copy, and a preview would show nothing new | Setup (a layout file, Program.cs), a pattern to paste, behavior seen only after a post |
 | Prose only | Nothing renders | Accessibility, gotchas |
 
 The test: would the preview show something the code doesn't? If not, show the code. Give an

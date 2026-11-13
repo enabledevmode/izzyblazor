@@ -48,13 +48,6 @@ public abstract class FlexBase : Box
 /// which can change per breakpoint. For a direction that never changes, <see cref="Row"/> and
 /// <see cref="Column"/> say it in the name.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }"
-///        Gap="4"
-///        Align="Align.Center"&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>div</c> with no role; <c>As</c> makes it another element, such as <c>ul</c>.</item>
@@ -76,16 +69,6 @@ public class Stack : FlexBase
 }
 
 /// <summary>Lays children out horizontally. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
-/// <example>
-/// <code>
-/// &lt;Row Gap="2" Align="Align.Center"&gt;
-///     &lt;Avatar Name="Ada Lovelace" /&gt;
-///     &lt;TextBlock&gt;Ada Lovelace&lt;/TextBlock&gt;
-///     &lt;Spacer /&gt;
-///     &lt;Button Size="ControlSize.Sm"&gt;Follow&lt;/Button&gt;
-/// &lt;/Row&gt;
-/// </code>
-/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Column"/>
 /// <seealso cref="Spacer"/>
@@ -108,14 +91,6 @@ public class Row : FlexBase
 }
 
 /// <summary>Lays children out vertically. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
-/// <example>
-/// <code>
-/// &lt;Column Gap="1"&gt;
-///     &lt;Heading Level="3"&gt;Pro plan&lt;/Heading&gt;
-///     &lt;TextBlock Color="Color.Muted"&gt;Billed yearly.&lt;/TextBlock&gt;
-/// &lt;/Column&gt;
-/// </code>
-/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Row"/>
 /// <seealso cref="Grid"/>

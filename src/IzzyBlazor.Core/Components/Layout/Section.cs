@@ -24,13 +24,6 @@ public enum SectionSpacing
 /// <c>ContentWidth</c>, it spans the whole main area (full bleed) while its content stays on the
 /// column, lined up with the rest of the page.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Section Bg="Color.FillSubtle"&gt;
-///     &lt;Heading Level="2"&gt;Get the newsletter&lt;/Heading&gt; ...
-/// &lt;/Section&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// It works out the bleed from the main area and the column, so put it at the page's top level or
 /// in containers without side padding of their own. It works with no script.

@@ -211,6 +211,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         {
             text.Append("\n## Usage\n\n").AppendJoin("\n\n", usage.Select(u => Markdown.Fence(u, "razor"))).Append('\n');
         }
+        else if (owner?.Name == component.Name && catalog.SourceOf($"{owner.Id}-usage") is { } example)
+        {
+            // A component whose Usage is a runnable example ({id}-usage) gives that example's source.
+            text.Append($"\n## Usage\n\n{Markdown.Fence(example.Source, "razor")}\n");
+        }
 
         ModeSupport(text, component, owner);
         Members(text, "Parameters", component.Properties, component);

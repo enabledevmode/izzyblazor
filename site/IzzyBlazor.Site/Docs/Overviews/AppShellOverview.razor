@@ -5,19 +5,20 @@
    code. Width and scrolling, and asides, are topics of their own (Docs/Topics/AppShell*Topic).
    Parts, Accessibility and See also come from the metadata and the doc comments; See also adds the demos. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor" Title="MainLayout.razor">@Usage</Code>
 <TextBlock>An app shell is the frame around every page of an app: a header, a sidebar and the main area, and optionally an aside and a footer. It suits apps whose pages share the same navigation.</TextBlock>
+
+<Heading Level="2">Page regions</Heading>
+<TextBlock>Each part of the shell is a region of the page: <Code>AppHeader</Code>, <Code>AppSidebar</Code>, <Code>AppMain</Code>, <Code>AppAside</Code> and <Code>AppFooter</Code>. Write the ones you need, in any order. Each part goes to its own place, and a part you leave out leaves no gap.</TextBlock>
+<ExampleViewer Example="app-shell-usage" WidthSwitch />
+<TextBlock>At phone width the sidebar becomes a drawer behind the menu button (<Code>SidebarToggle</Code>), and the aside hides. Each changes below its own <Code>Breakpoint</Code>; this example sets 768px for both. The <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> page covers the drawer, an icon rail and a panel under the header.</TextBlock>
+
+<Heading Level="2">In your layout</Heading>
 <TextBlock>Put it in your layout, around <Code>@@Body</Code>. The parts arrange themselves with CSS alone, so <Anchor Href="docs/common/render-modes">static pages</Anchor> arrive laid out and work with JavaScript off.</TextBlock>
+<Code Block Language="razor" Title="MainLayout.razor">@Layout</Code>
 <TextBlock>The shell starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>. To change the id, set <Code>MainId</Code> on the shell.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
 <OverviewTopics Component="Component" />
-
-<Heading Level="2">Page regions</Heading>
-<TextBlock>Each part of the shell is a region of the page: <Code>AppHeader</Code>, <Code>AppSidebar</Code>, <Code>AppMain</Code>, <Code>AppAside</Code> and <Code>AppFooter</Code>. Write the ones you need, in any order. Each part goes to its own place, and a part you leave out leaves no gap.</TextBlock>
-<ExampleViewer Example="app-shell-parts" WidthSwitch />
-<TextBlock>At phone width the sidebar becomes a drawer behind the menu button (<Code>SidebarToggle</Code>), and the aside hides. Each changes below its own <Code>Breakpoint</Code>; this example sets 768px for both. The <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> page covers the drawer, an icon rail and a panel under the header.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
 <TextBlock>A variant sets how the parts are layered. Set <Code>Variant</Code> to choose one:</TextBlock>
@@ -80,7 +81,7 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
+    private const string Layout = """
         @inherits LayoutComponentBase
 
         <AppShell>
