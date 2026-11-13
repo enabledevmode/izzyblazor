@@ -5,8 +5,8 @@
 
 <PageTitle>Contact</PageTitle>
 
-<Stack Gap="6" MaxWidth="Length.Rem(64)">
-    <Stack Gap="2" MaxWidth="Length.Rem(40)">
+<Column Gap="6" MaxWidth="Length.Rem(64)">
+    <Column Gap="2" MaxWidth="Length.Rem(40)">
         <Heading Level="1">Contact</Heading>
 @*#if (InteractiveAtRoot) *@
         <TextBlock Color="Color.Muted">This form checks each field as you type, since every page here is interactive. The same form also posts and validates on a static page, with no circuit.</TextBlock>
@@ -15,9 +15,17 @@
 @*#else *@
         <TextBlock Color="Color.Muted">This form posts and validates on the server, with no circuit.</TextBlock>
 @*#endif *@
-    </Stack>
+    </Column>
 
     <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="8" Align="Align.Start">
+        <Card TitleLevel="2" Title="Other ways to reach us">
+            <DescriptionList>
+                <DescriptionItem Term="Email"><Anchor Href="mailto:hello@example.com">hello@example.com</Anchor></DescriptionItem>
+                <DescriptionItem Term="Replies">Within one working day</DescriptionItem>
+                <DescriptionItem Term="Hours">Monday to Friday, 9:00 to 17:00</DescriptionItem>
+            </DescriptionList>
+        </Card>
+
         <Form Model="Model" FormName="contact" OnValidSubmit="Send" ColSpan="new() { Lg = 2 }">
             <FormErrors />
             <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
@@ -35,16 +43,8 @@
                 <Button Submit StartIcon="Lucide.Send">Send</Button>
             </FormActions>
         </Form>
-
-        <Card TitleLevel="2" Title="Other ways to reach us">
-            <DescriptionList>
-                <DescriptionItem Term="Email"><Anchor Href="mailto:hello@example.com">hello@example.com</Anchor></DescriptionItem>
-                <DescriptionItem Term="Replies">Within one working day</DescriptionItem>
-                <DescriptionItem Term="Hours">Monday to Friday, 9:00 to 17:00</DescriptionItem>
-            </DescriptionList>
-        </Card>
     </Grid>
-</Stack>
+</Column>
 
 @code {
     [SupplyParameterFromForm(FormName = "contact")]
