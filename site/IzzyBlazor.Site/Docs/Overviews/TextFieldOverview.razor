@@ -10,6 +10,10 @@
 <TextBlock>A field's label comes from the model: its <Code>[Display(Name)]</Code>, or the property name in words. <Code>[Required]</Code> adds a required mark. To replace the label, set <Code>Label</Code>; to add help under the field, set <Code>Hint</Code>.</TextBlock>
 <ExampleViewer Example="text-field-labels" />
 
+<Heading Level="2">A hint that states a status</Heading>
+<TextBlock>A hint can state a status, such as whether an address is verified. To show it as one, set <Code>HintStatus</Code>: the hint takes that status's color and icon, and its words still carry the meaning. Every field with a <Code>Hint</Code> takes it.</TextBlock>
+<ExampleViewer Example="text-field-hint-status" />
+
 <Heading Level="2">Types</Heading>
 <TextBlock>A field's type sets the on-screen keyboard, and for email and URL, the browser's check. To make the field an email, phone, URL or search field, set <Code>Type</Code>.</TextBlock>
 <Code Block Language="razor">@Types</Code>
