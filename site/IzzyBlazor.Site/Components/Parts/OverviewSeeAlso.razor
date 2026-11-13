@@ -1,12 +1,13 @@
 @inject Registry Registry
 @inject ApiMetadata Api
+@inject BlockCatalog Blocks
 
 @* An Overview's See also section, from the doc comment's See also: each documented component
    linked to its Overview with its components.json summary, a part to its place on its owner's
    API page with its doc summary, then a link to each of the component's demos and the troubleshooting articles about it. Nothing when
    there's nothing to list. *@
 
-@if (_entries.Count > 0 || Component.Scenarios.Count > 0 || TroubleshootingLinks.Any(Component.Name))
+@if (_entries.Count > 0 || Component.Scenarios.Count > 0 || _blocks.Count > 0 || TroubleshootingLinks.Any(Component.Name))
 {
     <Heading Level="2">See also</Heading>
     <List Gap="2">
@@ -38,6 +39,16 @@
                 }
             </ListItem>
         }
+        @if (_blocks.Count > 0)
+        {
+            <ListItem>
+                Blocks that use it:
+                @foreach (var (block, i) in _blocks.Select((b, i) => (b, i)))
+                {
+                    <Anchor Href="@block.Href">@block.Name</Anchor>@(i < _blocks.Count - 1 ? ", " : ".")
+                }
+            </ListItem>
+        }
         <TroubleshootingLinks Component="@Component.Name" />
     </List>
 }
@@ -49,8 +60,13 @@
 
     private List<(string Name, string? Href, string? Text)> _entries = [];
 
-    protected override void OnParametersSet() =>
+    private List<Block> _blocks = [];
+
+    protected override void OnParametersSet()
+    {
         _entries = (ApiComponent.SeeAlso ?? []).Where(n => n != Component.Name).Select(Entry).ToList();
+        _blocks = Blocks.Using(Component.Name).ToList();
+    }
 
     private (string, string?, string?) Entry(string name)
     {

@@ -5,7 +5,7 @@
 
 <AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-docs">
     <SiteHeader Sidebar ContentWidth="Length.Rem(SiteWidths.Bars)" />
-    <AppSidebar Label="@(DocsNav.AreaOf(Navigation) == DocsArea.Components ? "Components" : "Docs")">
+    <AppSidebar Label="@(DocsNav.AreaOf(Navigation) switch { DocsArea.Components => "Components", DocsArea.Blocks => "Blocks", _ => "Docs" })">
         <DocsNav />
     </AppSidebar>
     <AppMain>

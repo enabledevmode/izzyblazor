@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.WebUtilities
 @inject Registry Registry
+@inject BlockCatalog Blocks
 @inject NavigationManager Navigation
 
 @* The docs sidebar, one of two by the header's area (as ng-zorro's): on the articles, every
@@ -9,7 +10,26 @@
    with topics is a group of its own, open on its pages. *@
 
 <NavMenu>
-    @if (_area == DocsArea.Components)
+    @if (_area == DocsArea.Blocks)
+    {
+        @* Every block under its category's heading; the free ones say so, in small text, not a chip. *@
+        <NavItem Href="blocks" Icon="Lucide.LayoutTemplate" Match="NavLinkMatch.All">All blocks</NavItem>
+        @foreach (var category in Blocks.Categories)
+        {
+            <NavLabel>@category</NavLabel>
+            @foreach (var block in Blocks.InCategory(category))
+            {
+                <NavItem Href="@block.Href">
+                    @block.Name
+                    @if (block.Free)
+                    {
+                        <span class="site-nav-free">Free</span>
+                    }
+                </NavItem>
+            }
+        }
+    }
+    else if (_area == DocsArea.Components)
     {
         <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
         @foreach (var category in Registry.Categories)
@@ -69,9 +89,14 @@
     // On docs/components, the group it shows (?group=), whose heading is current.
     private string? _group;
 
-    /// <summary>Which sidebar a docs page has: the components' under docs/components, else the articles'.</summary>
-    public static DocsArea AreaOf(NavigationManager navigation) =>
-        Parts(navigation) is ["docs", "components", ..] ? DocsArea.Components : Parts(navigation) is ["docs", ..] ? DocsArea.Articles : DocsArea.None;
+    /// <summary>Which sidebar a docs page has: the components' under docs/components, the blocks' under blocks, else the articles'.</summary>
+    public static DocsArea AreaOf(NavigationManager navigation) => Parts(navigation) switch
+    {
+        ["docs", "components", ..] => DocsArea.Components,
+        ["docs", ..] => DocsArea.Articles,
+        ["blocks", ..] => DocsArea.Blocks,
+        _ => DocsArea.None,
+    };
 
     private static string[] Parts(NavigationManager navigation) =>
         navigation.ToBaseRelativePath(navigation.Uri).Split('?', '#')[0].Split('/');

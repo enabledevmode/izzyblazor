@@ -524,15 +524,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
 /* The note's lines line up after the mode's name, not under it. */
 .ex-note { display: flex; align-items: baseline; gap: var(--ib-space-2); margin: 0; text-wrap: pretty; }
-/* The mode's name, drawn like the mode switch's selected option, so the note reads as about it. */
-.ex-note-mode {
-  flex: none;
-  padding: 0 var(--ib-space-2);
-  border-radius: var(--ib-radius-sm);
-  background: var(--ib-color-fill-strong);
-  color: var(--ib-color-on-surface);
-  font-weight: 500;
-}
+/* The mode's name, a badge as the mode chips are, so the note reads as about it. */
+.ex-note-mode { flex: none; }
 /* The home page's phone frame scrolls with no scrollbar, as a phone's browser does. */
 html:has(.frame-no-scrollbar) { scrollbar-width: none; }
 .ex-frame {
@@ -740,3 +733,113 @@ html:has(> body > .frame) body { margin: 0; }
   .site-search-dialog { width: 100%; height: 100dvh; max-height: none; border-radius: 0; }
   .site-search-foot { display: none; }
 }
+
+/* The header: the version tag after the logo, then the areas, about 20px on. */
+.site-version { margin-inline-start: calc(-1 * var(--ib-space-1)); }
+.site-header-nav { margin-inline-start: var(--ib-space-3); }
+
+/* A filter row (the Blocks and Components indexes): the filters at the start, the count at the end. */
+.site-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--ib-space-2) var(--ib-space-4);
+  margin-block-end: var(--ib-space-6);
+}
+.site-filter-row > .site-search-count { margin-block-end: var(--ib-space-2); }
+
+/* The Blocks sidebar: a free block says so in small success text, not a chip. */
+.site-nav-free {
+  margin-inline-start: var(--ib-space-2);
+  font-size: var(--ib-text-xs);
+  font-weight: var(--ib-weight-medium);
+  color: var(--ib-color-success-text);
+}
+
+/* The Blocks index. */
+.site-blocks-how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ib-space-4);
+  margin-block-end: var(--ib-space-10);
+  padding: var(--ib-space-6);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-fill-subtle);
+}
+.site-blocks-point { display: flex; flex-direction: column; align-items: flex-start; gap: var(--ib-space-1); }
+.site-blocks-point-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-block-end: var(--ib-space-2);
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-md);
+  background: var(--ib-color-surface);
+}
+.site-blocks-group { display: flex; flex-direction: column; gap: var(--ib-space-4); margin-block-end: var(--ib-space-10); }
+.site-block-picture { border-bottom: 1px solid var(--ib-color-border); object-position: top; }
+.site-block-cards .ib-card-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+/* Phones: a row each, the picture 120px wide at the start. Card has no media-at-the-start layout
+   (a library gap: Card Orientation, or CardMedia Placement Start), so the site lays it out. */
+@media (width < 768px) {
+  .site-block-card {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: start;
+  }
+  .site-block-card > .ib-card-media { grid-row: 1 / span 2; align-self: stretch; }
+  .site-block-card > .ib-card-media .site-block-picture { height: 100%; aspect-ratio: auto; border-bottom: 0; border-inline-end: 1px solid var(--ib-color-border); }
+  .site-block-card > .ib-card-header { flex-wrap: wrap; }
+}
+
+/* A block's page. */
+.site-block-command { display: flex; flex-direction: column; gap: var(--ib-space-2); max-width: 40rem; }
+.site-block-command .ib-code-block, .site-block-command pre { margin: 0; }
+.site-block-pro > .ib-icon { color: var(--ib-color-muted); }
+.site-block-switches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--ib-space-3) var(--ib-space-5);
+  margin-block-end: var(--ib-space-3);
+}
+.site-block-switch { display: flex; flex-direction: column; gap: var(--ib-space-1); }
+.site-block-switch-label { font-size: var(--ib-text-xs); font-weight: var(--ib-weight-medium); color: var(--ib-color-muted); }
+.site-block-width { margin-inline-start: auto; }
+@media (width < 768px) { .site-block-width { display: none; } }
+.site-block-stage {
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+  --ib-example-padding: var(--ib-space-8) var(--ib-space-6);
+  overflow: hidden;
+}
+@media (width < 768px) { .site-block-stage { --ib-example-padding: var(--ib-space-4); } }
+.site-block-phone {
+  display: grid;
+  place-items: center;
+  padding: var(--ib-space-6) var(--ib-space-4);
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-fill-subtle);
+}
+.site-block-frame {
+  display: block;
+  width: 390px;
+  max-width: 100%;
+  height: 760px;
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+  color-scheme: normal;
+}
+.frame-block { padding: var(--ib-space-6) var(--ib-space-4); }
+.site-block-components { margin: 0; padding: 0; list-style: none; }

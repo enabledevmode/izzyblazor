@@ -1,0 +1,134 @@
+@page "/blocks"
+@inject BlockCatalog Blocks
+
+@* Every block, under its category's heading: a card with a render of it, its name, its summary and,
+   for a free one, a "Free" chip (Pro has none). A filter (a GET form, so it works with JavaScript
+   off) narrows them by category and tier, once there's more than one category. *@
+
+<PageMeta Title="Blocks · IzzyBlazor" Description="Page sections and screens you add to your app with one command and then own: heroes, features, pricing and whole app pages, built from IzzyBlazor components." />
+
+<article class="site-article site-article-wide">
+    <Stack Gap="3" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Blocks</Heading>
+        <div class="site-lead">Page sections and screens you add with one command and then own.</div>
+    </Stack>
+
+    @if (Filterable)
+    {
+        <div class="site-filter-row">
+            <FilterForm Label="Filter the blocks">
+                <FilterSelect Name="category" Label="Category" AllText="All categories"
+                              Items="Blocks.Categories.Select(BlockCatalog.CategoryAnchor)" ItemText="CategoryText" />
+                <FilterSelect Name="tier" Label="Tier" AllText="All tiers" Items="Tiers" ItemText="TierText" />
+            </FilterForm>
+            <p role="status" class="site-search-count">@($"{_shown.Count} of {Blocks.All.Count} blocks")</p>
+        </div>
+    }
+
+    <section class="site-blocks-how" aria-labelledby="how-blocks-work">
+        <Heading Level="2" Size="TextSize.Lg" id="how-blocks-work">How blocks work</Heading>
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5">
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.Terminal" /></span>
+                <Heading Level="3" Size="TextSize.Md">Add it with one command</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">It's written into your project.</TextBlock>
+            </div>
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.FileCode" /></span>
+                <Heading Level="3" Size="TextSize.Md">It's your code</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Edit it like any file of yours.</TextBlock>
+            </div>
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.KeyRound" /></span>
+                <Heading Level="3" Size="TextSize.Md">Pro needs a license key</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    Anyone can browse them.
+                    @if (SiteLinks.Pricing is { } pricing)
+                    {
+                        <Anchor Href="@pricing">See pricing</Anchor>
+                    }
+                </TextBlock>
+            </div>
+        </Grid>
+    </section>
+
+    @if (_shown.Count == 0)
+    {
+        <EmptyState Icon="Lucide.Funnel" Title="No blocks match" TitleLevel="2" Description="@NoMatchText" Bordered>
+            <EmptyStateActions>
+                <Button Href="blocks" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+            </EmptyStateActions>
+        </EmptyState>
+    }
+    else
+    {
+        @foreach (var group in _shown.GroupBy(b => b.Category))
+        {
+            var anchor = BlockCatalog.CategoryAnchor(group.Key);
+            <section class="site-blocks-group" aria-labelledby="@anchor">
+                <Row Gap="2" Align="Align.Baseline">
+                    <Heading Level="2" Size="TextSize.Xl" id="@anchor">@group.Key</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@group.Count()</TextBlock>
+                </Row>
+                <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5" Class="site-block-cards">
+                    @foreach (var block in group)
+                    {
+                        <Card Title="@block.Name" TitleLevel="3" Description="@block.Manifest.Summary" Href="@block.Href" Class="site-block-card">
+                            <CardMedia><Image Src="@block.Picture" Alt="" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture" /></CardMedia>
+                            @if (block.Free)
+                            {
+                                <CardActions><Badge Status="Status.Success">Free</Badge></CardActions>
+                            }
+                        </Card>
+                    }
+                </Grid>
+            </section>
+        }
+        @if (!Filterable)
+        {
+            <TextBlock Color="Color.Muted">More blocks are on the way: features, pricing, testimonials and whole app pages.</TextBlock>
+        }
+    }
+</article>
+
+@code {
+    [SupplyParameterFromQuery(Name = "category")] public string? Category { get; set; }
+
+    [SupplyParameterFromQuery(Name = "tier")] public string? Tier { get; set; }
+
+    private static readonly string[] Tiers = ["free", "pro"];
+
+    private List<Block> _shown = [];
+
+    // The filters show once there's more than one category to choose from.
+    private bool Filterable => Blocks.Categories.Count > 1;
+
+    private string CategoryText(string anchor)
+    {
+        var category = Blocks.Categories.First(c => BlockCatalog.CategoryAnchor(c) == anchor);
+        return $"{category} ({Blocks.InCategory(category).Count()})";
+    }
+
+    private static string TierText(string tier) => tier == "free" ? "Free" : "Pro";
+
+    // "No Pro blocks in Heroes." and the like: the filters, named.
+    private string NoMatchText
+    {
+        get
+        {
+            var category = Blocks.Categories.FirstOrDefault(c => BlockCatalog.CategoryAnchor(c) == Category);
+            var tier = Tier is "free" or "pro" ? $"{TierText(Tier)} " : "";
+            return category is null ? $"There are no {tier}blocks yet." : $"There are no {tier}blocks in {category} yet.";
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var category = Blocks.Categories.FirstOrDefault(c => BlockCatalog.CategoryAnchor(c) == Category);
+        _shown = Blocks.Categories
+            .Where(c => category is null || c == category)
+            .SelectMany(Blocks.InCategory)
+            .Where(b => Tier switch { "free" => b.Free, "pro" => !b.Free, _ => true })
+            .ToList();
+    }
+}

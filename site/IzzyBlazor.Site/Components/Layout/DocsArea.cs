@@ -11,4 +11,7 @@ public enum DocsArea
 
     /// <summary>The components: docs/components/.</summary>
     Components,
+
+    /// <summary>The blocks: blocks/.</summary>
+    Blocks,
 }

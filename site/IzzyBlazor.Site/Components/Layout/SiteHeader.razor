@@ -1,7 +1,9 @@
 @inject ApiMetadata Api
 @inject NavigationManager Navigation
 
-@* The header every page shares: brand, version, the three areas, GitHub and the scheme switch. *@
+@* The header every page shares: brand, version, the four areas next to them, then search, GitHub
+   and the scheme switch. Below Md the version and GitHub move to the top of the menu (SiteNavHeader:
+   the sidebar's drawer on docs pages, SiteNav's panel on the others). *@
 
 <AppHeader ContentWidth="ContentWidth">
     @if (Sidebar)
@@ -13,18 +15,24 @@
             <SiteLogo />
         </Logo>
     </AppBrand>
-    <Badge Variant="BadgeVariant.Outline" VisibleFrom="Breakpoint.Sm">@(Demos ? "Demos · latest" : Api.Version)</Badge>
-    <Box Grow />
+    @* A version selector (a Menu on a Ghost Sm button) will take this spot. *@
+    <VersionTag Demos="Demos" VisibleFrom="Breakpoint.Md" />
     @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
        pages have SidebarToggle, so the button doesn't change sides between pages. *@
-    <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start">
-        <NavItem Href="docs" Current="@InDocs">Docs</NavItem>
-        <NavItem Href="docs/components">Components</NavItem>
+    <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
+        <NavItem Href="docs" Current="@(Area == DocsArea.Articles)">Docs</NavItem>
+        <NavItem Href="docs/components" Current="@(Area == DocsArea.Components)">Components</NavItem>
+        <NavItem Href="blocks" Current="@(Area == DocsArea.Blocks)">Blocks</NavItem>
         <NavItem Href="demos">Demos</NavItem>
+        <SiteNavHeader>
+            <VersionTag Demos="Demos" />
+            <Box Grow />
+            <GitHubLink />
+        </SiteNavHeader>
     </SiteNav>
+    <Box Grow />
     <SiteSearch />
-    <IconButton Icon="Brands.GitHub" Label="IzzyBlazor on GitHub" Href="https://github.com/enabledevmode/izzyblazor"
-                Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    <GitHubLink VisibleFrom="Breakpoint.Md" />
     <ColorSchemeSwitch />
 </AppHeader>
 
@@ -38,7 +46,7 @@
     /// <summary>Lines the header's content up with the page's centered columns.</summary>
     [Parameter] public Length? ContentWidth { get; set; }
 
-    // Docs is current on the articles (docs/...), Components on docs/components/...; each has its
-    // own sidebar (DocsNav).
-    private bool InDocs => DocsNav.AreaOf(Navigation) == DocsArea.Articles;
+    // Docs is current on the articles (docs/...), Components on docs/components/..., Blocks on
+    // blocks/...; each has its own sidebar (DocsNav). Null elsewhere, so each link matches its own path.
+    private DocsArea Area => DocsNav.AreaOf(Navigation);
 }
