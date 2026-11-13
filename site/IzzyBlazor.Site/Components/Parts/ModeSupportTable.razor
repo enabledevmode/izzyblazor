@@ -6,7 +6,7 @@
 @if (_rows.Count > 0)
 {
     <Stack Gap="2">
-        <Table Items="_rows" Caption="@($"What works in each mode, {Component.DisplayName}")" Size="ControlSize.Sm">
+        <Table Items="_rows" Caption="@($"What works in each mode, {Component?.DisplayName ?? Name}")" Size="ControlSize.Sm">
             <Columns>
                 <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
                 <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>
@@ -44,20 +44,34 @@
 }
 
 @code {
-    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+    /// <summary>The component: its feature rows and [ModeSupport]. Or set <see cref="Name"/> and <see cref="Rows"/>.</summary>
+    [Parameter] public RegistryComponent? Component { get; set; }
+
+    /// <summary>What the rows are about, such as a block's name, when there's no <see cref="Component"/>.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The rows, when there's no <see cref="Component"/>, such as a block's one "Everything".</summary>
+    [Parameter] public IReadOnlyList<RegistryFeature>? Rows { get; set; }
 
     [Parameter] public ApiComponent? ApiComponent { get; set; }
 
     private List<RegistryFeature> _rows = [];
     private List<RegistryFeature> _noScript = [];
 
-    private string? Notes => Component.Features.Count == 0 ? ApiComponent?.Modes?.Notes : null;
+    private string? Notes => Component?.Features.Count == 0 ? ApiComponent?.Modes?.Notes : null;
 
     // The component's own word on the fallback, with or without feature rows (they rarely say it).
     private string? NoScriptNotes => ApiComponent?.Modes?.NoScriptNotes;
 
     protected override void OnParametersSet()
     {
+        if (Component is null)
+        {
+            _rows = Rows?.ToList() ?? [];
+            _noScript = [];
+            return;
+        }
+
         _rows = Component.Features.Count > 0
             ? Component.Features.Select(FromMember).ToList()
             : ApiComponent?.Modes is { } modes

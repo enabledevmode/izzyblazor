@@ -1,0 +1,24 @@
+@* Generated from catalog/hero by BlockPreviewTests: don't edit. *@
+@* The top of the landing page, from izzy add hero. It's yours: change the words, the buttons and
+   the image here. It keeps to the page's column, so the content below lines up with it. *@
+<Section Spacing="SectionSpacing.None" FullBleed="false" PaddingTop="new() { Base = 2, Md = 6 }" PaddingBottom="new() { Base = 12, Md = 14 }" aria-labelledby="Hero_centered_screenshot_on_on-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
+        <Stack Gap="new() { Base = 10, Md = 13 }" Align="Align.Center">
+            <Stack Align="Align.Center" MaxWidth="Length.Rem(48)">
+                <Tag Label="Now in public beta" Accent="Accent.Primary" Pill
+                     MarginBottom="new() { Base = 4, Md = 5 }" />
+                <Heading Level="2" id="Hero_centered_screenshot_on_on-title" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center" Wrap="TextWrap.Balance">Ship your app with less code</Heading>
+                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(36)" MarginTop="new() { Base = 4, Md = 5 }">One place for your team to plan, track and ship work. Start free, with no card needed.</TextBlock>
+                <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" AlignSelf="new() { Base = Align.Stretch, Sm = Align.Center }" MarginTop="new() { Base = 7, Md = 8 }">
+                    <Button Href="blocks/hero" Size="ControlSize.Lg">Get started</Button>
+                    <Button Href="blocks/hero" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">See how it works</Button>
+                </Stack>
+            </Stack>
+            <BrowserFrame
+                          Address="myapp.com"
+                          Shadow="Shadow.Lg" AlignSelf="Align.Stretch">
+                <Image Src="images/hero-screenshot.svg" Alt="A screenshot of the app" Lazy="false" />
+            </BrowserFrame>
+        </Stack>
+    </Container>
+</Section>

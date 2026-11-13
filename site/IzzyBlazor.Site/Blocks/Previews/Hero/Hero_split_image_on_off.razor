@@ -1,0 +1,21 @@
+@* Generated from catalog/hero by BlockPreviewTests: don't edit. *@
+@* The top of the landing page, from izzy add hero. It's yours: change the words, the buttons and
+   the image here. It keeps to the page's column, so the content below lines up with it. *@
+<Section Spacing="SectionSpacing.None" FullBleed="false" PaddingTop="new() { Base = 2, Md = 6 }" PaddingBottom="new() { Base = 12, Md = 14 }" aria-labelledby="Hero_split_image_on_off-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
+        <Grid Columns="new() { Base = 1, Lg = 11 }" Gap="new() { Base = 10, Lg = 12 }" Align="Align.Center">
+            <Stack ColSpan="new() { Lg = 5 }" Align="Align.Start">
+                <Tag Label="Now in public beta" Accent="Accent.Primary" Pill
+                     MarginBottom="new() { Base = 4, Md = 5 }" />
+                <Heading Level="2" id="Hero_split_image_on_off-title" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance">Ship your app with less code</Heading>
+                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Wrap="TextWrap.Pretty" MaxWidth="Length.Rem(36)" MarginTop="new() { Base = 4, Md = 5 }">One place for your team to plan, track and ship work. Start free, with no card needed.</TextBlock>
+                <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" AlignSelf="new() { Base = Align.Stretch, Sm = Align.Start }" MarginTop="new() { Base = 7, Md = 8 }">
+                    <Button Href="blocks/hero" Size="ControlSize.Lg">Get started</Button>
+                </Stack>
+            </Stack>
+            <Box ColSpan="new() { Lg = 6 }" MinWidth="Length.Rem(0)">
+                <Image Src="images/hero-screenshot.svg" Alt="A screenshot of the app" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
+            </Box>
+        </Grid>
+    </Container>
+</Section>

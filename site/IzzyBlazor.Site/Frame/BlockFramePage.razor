@@ -1,0 +1,38 @@
+@page "/frame/blocks/{Id}"
+@layout FrameLayout
+@inject BlockCatalog Blocks
+@inject NavigationManager Navigation
+
+@* A block's preview on a bare page, for the block page's phone-width frame: the variant the query
+   picks, in the library's default theme, with a page's padding around it. *@
+
+<PageTitle>@_title</PageTitle>
+<HeadContent><meta name="robots" content="noindex" /></HeadContent>
+
+@if (_type is not null)
+{
+    <ThemeScope Brand="blue" Gray="neutral" Class="frame frame-page frame-block">
+        <DynamicComponent Type="_type" />
+    </ThemeScope>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private Type? _type;
+    private string _title = "";
+
+    protected override void OnParametersSet()
+    {
+        if (Blocks.ById(Id) is not { } block)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+        var variant = BlockCatalog.Variant(block, key => query.TryGetValue(key, out var v) ? v.ToString() : null);
+        _type = BlockCatalog.PreviewType(variant);
+        _title = $"{block.Name} block preview";
+    }
+}

@@ -1,0 +1,268 @@
+@page "/blocks/{Id}"
+@using IzzyBlazor.Generation
+@inject BlockCatalog Blocks
+@inject Registry Registry
+@inject NavigationManager Navigation
+
+@*
+    A block's page, generated from its manifest (catalog/<id>/izzy.json), in the component page's
+    frame: the command, a preview switched between its variations (links, so it works with
+    JavaScript off), the code izzy add writes for that variation (free blocks only: a Pro block's
+    template never reaches the page), its settings, mode support, accessibility and the components
+    it uses. Blocks are static SSR, so there's no mode switch.
+*@
+
+@if (_block is not null)
+{
+    <PageMeta Title="@($"{_block.Name} block · IzzyBlazor")" Description="@(_block.Manifest.Summary ?? _block.Name)" />
+
+    <article class="site-article">
+        <Stack Gap="4" Class="site-pagehead">
+            <Breadcrumb>
+                <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+                <BreadcrumbItem Href="blocks">Blocks</BreadcrumbItem>
+                <BreadcrumbItem Href="@($"blocks?category={BlockCatalog.CategoryAnchor(_block.Category)}")">@_block.Category</BreadcrumbItem>
+            </Breadcrumb>
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Heading Level="1" Size="TextSize.Xl3">@_block.Name</Heading>
+                @if (_block.Free)
+                {
+                    <Badge Status="Status.Success">Free</Badge>
+                }
+                else
+                {
+                    <Badge Variant="BadgeVariant.Outline">Pro</Badge>
+                }
+            </Row>
+            <div class="site-lead">@_block.Manifest.Summary</div>
+            <div class="site-block-command">
+                <Code Block Language="bash">izzy add @_block.Id</Code>
+                @if (_block.Free)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@WritesText</TextBlock>
+                }
+                else
+                {
+                    <Row Gap="2" Align="Align.Center" Wrap Class="site-block-pro">
+                        <Icon Name="Lucide.Lock" Size="IconSize.Sm" />
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                            Needs a Pro license key. <code>izzy add</code> asks for it the first time.
+                            @if (SiteLinks.Pricing is { } pricing)
+                            {
+                                <Anchor Href="@pricing">See pricing</Anchor>
+                            }
+                        </TextBlock>
+                    </Row>
+                }
+            </div>
+        </Stack>
+
+        <Heading Level="2" id="preview">Preview</Heading>
+        <div class="site-block-switches">
+            @foreach (var (variation, i) in _block.Manifest.Variations.Select((v, i) => (v, i)))
+            {
+                <div class="site-block-switch">
+                    <span class="site-block-switch-label" id="@($"switch-{variation.Key}")">@variation.Label</span>
+                    <TabNav Label="@variation.Label" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                        @foreach (var option in variation.Options)
+                        {
+                            <TabLink Href="@SwitchHref(variation.Key, option.Slug)" Label="@option.Label" Current="@(option == _variant.Picks[i])" />
+                        }
+                    </TabNav>
+                </div>
+            }
+            <div class="site-block-switch site-block-width">
+                <span class="site-block-switch-label">Width</span>
+                <TabNav Label="Preview width" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                    <TabLink Href="@SwitchHref("width", null)" Label="Desktop" Current="!_phone" />
+                    <TabLink Href="@SwitchHref("width", "phone")" Label="Phone" Current="_phone" />
+                </TabNav>
+            </div>
+        </div>
+
+        @if (_phone)
+        {
+            <div class="site-block-phone">
+                <iframe class="site-block-frame" src="@($"frame/blocks/{_block.Id}?{_variant.Query}")" title="@($"{_block.Name} preview at a phone's width")"></iframe>
+            </div>
+        }
+        else if (_previewType is not null)
+        {
+            @* The library's default theme, not the site's: a preview shows what an app gets. A
+               CodeExample with no code keeps the block's headings out of "On this page". *@
+            <ThemeScope Brand="blue" Gray="neutral" Class="ex-theme">
+                <CodeExample Class="site-block-stage">
+                    <DynamicComponent Type="_previewType" />
+                </CodeExample>
+            </ThemeScope>
+        }
+
+        @if (_block.Free && _code.Count > 0)
+        {
+            <Heading Level="2">Code</Heading>
+            <TextBlock>What <code>izzy add @_block.Id</code> writes for the variation above.</TextBlock>
+            @foreach (var (path, text) in _code)
+            {
+                <Code Block Language="razor" Title="@path" LineNumbers>@text</Code>
+            }
+        }
+
+        <Heading Level="2">Settings</Heading>
+        <TextBlock>
+            Each setting is a flag on <code>izzy add</code>. The flag syntax isn't final; for now it looks like this:
+        </TextBlock>
+        <Code Block Language="bash">@FlagExample</Code>
+        <Table Items="_settings" Caption="@($"{_block.Name} settings")" Size="ControlSize.Sm" Class="site-params" Bordered="false" SmallScreen="TableSmallScreen.Stack">
+            <Columns>
+                <TemplateColumn Title="Name"><code class="site-member-name">@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Type or choices"><code class="site-type">@TypeText(context!)</code></TemplateColumn>
+                <TemplateColumn Title="Default">
+                    @if (context!.Default.Length > 0)
+                    {
+                        <code class="site-default">@context.Default</code>
+                    }
+                    else
+                    {
+                        <span class="site-none">Empty</span>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Description">@context!.Description</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Mode support</Heading>
+        <ModeSupportTable Name="@_block.Name" Rows="Everything" />
+
+        @if (_block.Manifest.Accessibility.Count > 0)
+        {
+            <Heading Level="2">Accessibility</Heading>
+            <List Gap="2">
+                @foreach (var point in _block.Manifest.Accessibility)
+                {
+                    <ListItem>@point</ListItem>
+                }
+            </List>
+        }
+
+        <Heading Level="2">Components used</Heading>
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="3" As="ul" Class="site-block-components">
+            @foreach (var name in _block.Manifest.Components)
+            {
+                <li>
+                    @if (Registry.ByName(name) is { } component)
+                    {
+                        <Anchor Href="@Registry.OverviewHref(component)">@component.DisplayName</Anchor><text>: </text>@component.Summary
+                    }
+                    else
+                    {
+                        <code>@name</code>
+                    }
+                </li>
+            }
+        </Grid>
+
+        <PrevNext PreviousHref="@_previous?.Href" PreviousTitle="@_previous?.Name"
+                  NextHref="@_next?.Href" NextTitle="@_next?.Name" />
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private Block? _block;
+    private BlockVariant _variant = null!;
+    private Type? _previewType;
+    private bool _phone;
+    private IReadOnlyList<(string Path, string Text)> _code = [];
+    private List<ItemParameter> _settings = [];
+    private Block? _previous;
+    private Block? _next;
+
+    // A block is static SSR throughout: one row, working in both.
+    private static readonly RegistryFeature[] Everything = [new() { Feature = "Everything", Static = ModeLevel.Full, Interactive = ModeLevel.Full }];
+
+    private Dictionary<string, string> _query = [];
+
+    protected override void OnParametersSet()
+    {
+        _block = Blocks.ById(Id);
+        if (_block is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query)
+            .ToDictionary(p => p.Key, p => p.Value.ToString());
+        _variant = BlockCatalog.Variant(_block, key => _query.GetValueOrDefault(key));
+        _previewType = BlockCatalog.PreviewType(_variant);
+        _phone = _query.GetValueOrDefault("width") == "phone";
+        _code = _block.Free ? BlockCatalog.Code(_variant) : [];
+        _settings = _block.Manifest.Parameters.Where(p => !p.Hidden).ToList();
+
+        // In the catalogue's order: by category, then A to Z, as the sidebar lists them.
+        var order = Blocks.Categories.SelectMany(Blocks.InCategory).ToList();
+        var index = order.IndexOf(_block);
+        _previous = index > 0 ? order[index - 1] : null;
+        _next = index < order.Count - 1 ? order[index + 1] : null;
+    }
+
+    // The page with one switch changed and the others kept, at the preview.
+    private string SwitchHref(string key, string? value)
+    {
+        var query = new Dictionary<string, string>(_query);
+        query.Remove(key);
+        if (value is not null)
+        {
+            query[key] = value;
+        }
+
+        // In the switches' order, so each variant has one address.
+        var keys = _block!.Manifest.Variations.Select(v => v.Key).Append("width");
+        var parts = keys.Where(query.ContainsKey).Select(k => $"{k}={Uri.EscapeDataString(query[k])}");
+        var text = string.Join('&', parts);
+        return $"blocks/{_block.Id}{(text.Length > 0 ? "?" + text : "")}#preview";
+    }
+
+    // "Writes Components/Blocks/Hero.razor and places it on Home, after <PageTitle>."
+    private string WritesText
+    {
+        get
+        {
+            var writes = string.Join(" and ", BlockCatalog.Writes(_block!));
+            if (_block!.Manifest.Inserts.FirstOrDefault(i => i.File.Contains("{{Into}}", StringComparison.Ordinal)) is not { } insert
+                || _block.Manifest.Parameters.FirstOrDefault(p => p.Name == "Into") is not { } into)
+            {
+                return $"Writes {writes}.";
+            }
+
+            var page = Path.GetFileNameWithoutExtension(into.Default);
+            var where = insert.Pattern ?? insert.Anchor;
+            return $"Writes {writes} and places it on {page}, {(insert.Position == InsertPosition.After ? "after" : "before")} {where}.";
+        }
+    }
+
+    // izzy add hero --layout Split --eyebrow "Now in public beta": the first two variations, picked.
+    private string FlagExample
+    {
+        get
+        {
+            var flags = _block!.Manifest.Variations.Take(2).Select((v, i) =>
+            {
+                var option = v.Options.Count > 1 ? v.Options[1] : v.Options[0];
+                var flag = _block.Manifest.Parameters.FirstOrDefault(p => p.Name == v.Setting)?.Option ?? v.Key;
+                var value = option.Value.Contains(' ') ? $"\"{option.Value}\"" : option.Value;
+                return $"--{flag} {value}";
+            });
+            return $"izzy add {_block.Id} {string.Join(' ', flags)}";
+        }
+    }
+
+    private static string TypeText(ItemParameter p) => p.Type switch
+    {
+        ParameterType.Choice => string.Join(" | ", p.Choices),
+        ParameterType.Bool => "true | false",
+        ParameterType.Int => "number",
+        _ => "text",
+    };
+}

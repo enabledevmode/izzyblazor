@@ -94,6 +94,8 @@ public static class SiteApp
         builder.Services.AddSingleton(new SearchIndex(registry, api));
         builder.Services.AddSingleton<NoScriptCss>();
         builder.Services.AddSingleton<ExampleCatalog>();
+        // The blocks' manifests and templates, copied beside the site from catalog/ (see the .csproj).
+        builder.Services.AddSingleton(new BlockCatalog(Path.Combine(AppContext.BaseDirectory, "catalog")));
         // The Chat examples' stand-in model (canned answers, no API key).
         builder.Services.AddSingleton<Microsoft.Extensions.AI.IChatClient, Services.CannedChatClient>();
 
@@ -346,7 +348,7 @@ public static class SiteApp
         }
 
         app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
-        app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
+        app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry, BlockCatalog blocks) => Results.Text(Sitemap.Xml(registry, blocks), "application/xml"));
         app.MapMethods("/izzyblazor.api.json", ["GET", "HEAD"], (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapMethods("/llms.txt", ["GET", "HEAD"], (Registry registry, ApiMetadata api) => Results.Text(LlmsTxt.Of(registry, api), "text/plain; charset=utf-8"));
         app.MapMcp(McpPath).RequireRateLimiting(McpRateLimit);

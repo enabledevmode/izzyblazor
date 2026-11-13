@@ -245,7 +245,7 @@
     {
         @if (Note is { } note)
         {
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note"><span class="ex-note-mode">@ModeChip.Name(_mode)<span class="ib-visually-hidden">:</span></span> @note</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="ex-note-mode">@ModeChip.Name(_mode)<span class="ib-visually-hidden">:</span></Badge> @note</TextBlock>
         }
     };
 }

@@ -1,0 +1,24 @@
+@inject ApiMetadata Api
+
+@* The release the docs describe, short ("v0.1 alpha"), with the full version as its title. *@
+<Badge Variant="BadgeVariant.Outline" Pill Size="BadgeSize.Sm" VisibleFrom="VisibleFrom" title="@Api.Version" Class="site-version">@Text</Badge>
+
+@code {
+    /// <summary>In the demos area, which always shows the latest release.</summary>
+    [Parameter] public bool Demos { get; set; }
+
+    /// <summary>Shown from this width up only.</summary>
+    [Parameter] public Breakpoint? VisibleFrom { get; set; }
+
+    // 0.1.0-alpha.23 → v0.1 alpha; 1.2.0 → v1.2.
+    private string Text
+    {
+        get
+        {
+            var (number, pre) = Api.Version.Split('-', 2) is [var n, var p] ? (n, p.Split('.')[0]) : (Api.Version, null);
+            var parts = number.Split('.');
+            var version = $"v{parts[0]}.{(parts.Length > 1 ? parts[1] : "0")}{(pre is null ? "" : $" {pre}")}";
+            return Demos ? $"Demos · {version}" : version;
+        }
+    }
+}
