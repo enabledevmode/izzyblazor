@@ -4,7 +4,7 @@
   "id": "hero",
   "name": "Hero",
   "kind": "block",
-  "category": "Marketing",
+  "category": "Heroes",
   "summary": "The top of a landing page: a headline, a sentence, two buttons and a screenshot or image.",
   "components": ["Section", "Container", "Grid", "Stack", "Box", "Tag", "Heading", "TextBlock", "Button", "BrowserFrame", "Image"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
@@ -46,6 +46,20 @@
     "HasSecondary": "SecondaryText != \"\"",
     "Placeholder": "Media != \"None\" && ImageSrc == \"images/hero-screenshot.svg\""
   },
+  "accessibility": [
+    "The section is named by its headline, which is the page's h1 (HeadingLevel 1) or an h2 under the page's own heading (HeadingLevel 2).",
+    "The buttons are links, the main one first in reading order. On phones they stack at full width.",
+    "The screenshot's browser bar is hidden from screen readers, so they read only the image's alt text. Empty alt text marks the image decorative.",
+    "A linked eyebrow is a plain link named by its text."
+  ],
+  "variations": [
+    { "key": "layout", "label": "Layout", "setting": "Layout", "options": { "Centered": "Centered", "Split": "Split" } },
+    { "key": "media", "label": "Media", "setting": "Media", "options": { "Screenshot": "Screenshot", "Image": "Image", "None": "None" } },
+    { "key": "eyebrow", "label": "Eyebrow", "setting": "Eyebrow", "options": { "On": "Now in public beta", "Off": "" } },
+    { "key": "second", "label": "Second button", "setting": "SecondaryText", "options": { "On": "See how it works", "Off": "" } }
+  ],
+  // Previews sit under the docs page's own h1, and their buttons stay on the docs page.
+  "preview": { "HeadingLevel": "2", "PrimaryHref": "blocks/hero", "SecondaryHref": "blocks/hero" },
   "exclude": [ { "if": "!Placeholder", "paths": ["wwwroot/images/hero-screenshot.svg"] } ],
   "inserts": [
     { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "text": "\n<{{Name}} />\n" },
