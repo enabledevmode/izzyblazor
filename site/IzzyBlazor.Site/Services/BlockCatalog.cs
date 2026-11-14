@@ -129,14 +129,27 @@ public sealed class BlockCatalog
     public static IReadOnlyList<(string Path, string Text)> Code(BlockVariant variant)
     {
         var changes = Generator.Generate(variant.Block.Definition, variant.Settings(preview: false), ProjectInfo.ForNewProject("MyApp"));
-        return changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))
+        var code = changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))
             .Concat(changes.Creates.Where(c => c.Path.EndsWith(".cs", StringComparison.Ordinal)))
             .Select(c => (c.Path, c.Text!)).ToList();
+        return code.Count > 0 ? code : [(RecipeTitle, Recipe(variant.Block, variant.Settings(preview: false)))];
+    }
+
+    /// <summary>The title over a recipe's code, which goes on your page rather than in a file of its own.</summary>
+    public const string RecipeTitle = "Your page, at the line you give with --at";
+
+    // A recipe's markup, as izzy add --at puts it on a page: generated onto an empty one.
+    static string Recipe(Block block, IReadOnlyDictionary<string, string> settings)
+    {
+        const string page = "Page.razor";
+        var project = ProjectInfo.ForNewProject("MyApp") with { ReadFile = path => path == page ? "" : null };
+        var changes = Generator.Generate(block.Definition, settings, project, new IzzyBlazor.Generation.Placement(page, 1));
+        return changes.Inserts.Single(i => i.Path == page).Text;
     }
 
     /// <summary>The files <c>izzy add</c> writes, such as <c>Components/Blocks/Hero.razor</c>: its code files, with the default name.</summary>
     public static IReadOnlyList<string> Writes(Block block) =>
-        Code(Variant(block, _ => null)).Select(c => c.Path).ToList();
+        Code(Variant(block, _ => null)).Select(c => c.Path).Where(p => p != RecipeTitle).ToList();
 
     /// <summary>
     /// The generated preview components, by path under the site: each variant's Razor, named for it, with
@@ -153,10 +166,10 @@ public sealed class BlockCatalog
         foreach (var variant in Variants(block))
         {
             var settings = variant.Settings(preview: true);
-            settings["Name"] = variant.ComponentName;
+            if (block.Manifest.Parameters.Any(p => p.Name == "Name")) settings["Name"] = variant.ComponentName;
             var changes = Generator.Generate(block.Definition, settings, ProjectInfo.ForNewProject("MyApp"));
-            var razor = changes.Creates.First(c => c.Path.EndsWith(".razor", StringComparison.Ordinal));
-            var text = $"@* Generated from catalog/{block.Id} by BlockPreviewTests: don't edit. *@\n" + razor.Text!.Replace("\r\n", "\n");
+            var razor = changes.Creates.FirstOrDefault(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))?.Text ?? Recipe(block, settings);
+            var text = $"@* Generated from catalog/{block.Id} by BlockPreviewTests: don't edit. *@\n" + razor.Replace("\r\n", "\n");
             yield return ($"{PreviewFolder}/{block.TypeName}/{variant.ComponentName}.razor", System.Text.Encoding.UTF8.GetBytes(text));
         }
         foreach (var (path, content) in block.Definition.Files.Where(f => f.Key.StartsWith("wwwroot/", StringComparison.Ordinal)))

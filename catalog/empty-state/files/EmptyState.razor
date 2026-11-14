@@ -1,0 +1,26 @@
+@*#if (Kind == "FirstUse") *@
+@* Nothing added yet: what's missing, what to do, and the one action. Hide the page's own add
+   button while the list is empty, so there's only one. *@
+<EmptyState Bordered PaddingY="14" Icon="Lucide.Users" Accent="Accent.Primary" TitleLevel="2" Title="No customers yet"
+            Description="Add your first customer to see them here.">
+    <EmptyStateActions>
+@*#if (Href == "") *@
+        <Button Href="customers/new" StartIcon="Lucide.Plus">New customer</Button>
+@*#else *@
+        <Button Href="{{Href}}" StartIcon="Lucide.Plus">New customer</Button>
+@*#endif *@
+    </EmptyStateActions>
+</EmptyState>
+@*#else *@
+@* A search or filter that matched nothing: keep the filters above it, so people see what they
+   searched for, and offer to clear them. *@
+<EmptyState Bordered PaddingY="12" TitleLevel="2" Title="No customers match" Description="Try another name or status.">
+    <EmptyStateActions>
+@*#if (Href == "") *@
+        <Button Href="customers" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+@*#else *@
+        <Button Href="{{Href}}" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+@*#endif *@
+    </EmptyStateActions>
+</EmptyState>
+@*#endif *@
