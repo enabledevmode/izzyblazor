@@ -11,12 +11,6 @@
     Values over two dimensions, such as orders by weekday and hour, as a grid of cells whose color
     grows with the value.
 
-    <HeatmapChart Items="orders"
-                  Column="o => o.Hour"
-                  Row="o => o.Day"
-                  Value="o => o.Orders"
-                  Title="Orders by hour" />
-
     Columns and rows keep the order the items first name them in, the first row at the top. A
     cell with no item, or a null value, is drawn as no data, never as a zero. Colors are classes:
     five even steps from round bounds, light to dark, by default (Steps, Min, Max), a diverging

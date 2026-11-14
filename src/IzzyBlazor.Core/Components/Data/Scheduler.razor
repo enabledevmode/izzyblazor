@@ -15,8 +15,6 @@
     the date are in the page's address, so its toolbar's arrows, Today and views are links, and
     Back goes to the page before. The period's title opens a month to go to any date.
 
-    <Scheduler Items="bookings" Start="b => b.Start" End="b => b.End" Title="b => b.Room" />
-
     Only the days shown are read: an IQueryable (an EF Core query) is filtered by the database, and
     ItemsProvider is asked for them from anywhere else. On an interactive page, @bind-View and
     @bind-Date keep the view and date in the component instead of the address.

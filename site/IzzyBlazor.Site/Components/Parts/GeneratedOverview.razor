@@ -3,7 +3,7 @@
 
 @* The Overview of a component without a hand-written one, built from its doc comment and
    components.json in the order CONTRIBUTING's "Writing an Overview" gives: the summary, Usage (the
-   doc comment's example, then the {id}-usage example), the topics, a section per other registered
+   {id}-usage example, or else the doc comment's), the topics, a section per other registered
    example, the remarks, the parts, then Mode support, Accessibility, Keyboard, Parameters and See
    also. A section with nothing to show is left out. *@
 
@@ -17,18 +17,19 @@ else if (ApiComponent.Summary is not null)
     <DocHtml Html="@ApiComponent.Summary" Context="_prose" Size="ProseSize.Md" />
 }
 
-@if (ApiComponent.Examples is { Count: > 0 } usage)
+@* The doc comment's snippet stays in IntelliSense; the page shows it only for a component that
+   can't run in a page. *@
+@if (_usage is not null)
+{
+    @Section(_usage)
+}
+else if (ApiComponent.Examples is { Count: > 0 } usage)
 {
     <Heading Level="2">Usage</Heading>
     @foreach (var snippet in usage)
     {
         <Code Block Language="razor">@snippet</Code>
     }
-}
-
-@if (_usage is not null)
-{
-    @Section(_usage)
 }
 
 @if (Component.Topics.Count > 0)

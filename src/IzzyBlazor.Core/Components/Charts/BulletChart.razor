@@ -11,11 +11,6 @@
     Bullet graphs, a row per item: each measure's value against its target and the ranges that
     say how good it is, such as a KPI scorecard.
 
-    <BulletChart Items="kpis" Title="Q3 against plan"
-                 Label="k => k.Name" Value="k => k.Actual" Target="k => k.Goal"
-                 Max="k => k.Max" Ranges="k => k.Thresholds"
-                 RangeLabels="@(["Poor", "Fair", "Good"])" />
-
     With Max, each row has a scale of its own (revenue and margin side by side, each readable),
     with its ticks under it; without, the rows share one scale and one axis. Ranges gives each row
     its ranges (the ends of all but the last, which runs to its max); GaugeBand children give every

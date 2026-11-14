@@ -11,14 +11,9 @@
     A few things compared across several measures on one scale, such as two phones' review
     scores.
 
-    <RadarChart Items="scores" Argument="s => s.Quality" Title="Review scores">
-        <RadarSeries Value="s => s.PhoneA" Name="Phone A" />
-        <RadarSeries Value="s => s.PhoneB" Name="Phone B" />
-    </RadarChart>
-
     Spokes keep the order the items first name them in, the first at the top and the rest
     clockwise (StartAngle turns them): the shape depends on that order, so put related measures
-    side by side. Items can each be a spoke with a value per series, as above, or each hold one
+    side by side. Items can each be a spoke with a value per series, or each hold one
     value, with SeriesBy splitting them into a series per key. Every spoke shares one scale from
     Min (0 by default) to a round Max; for measures in different units, scale them to the same
     range first. A missing value leaves a gap in its outline, never a point at the center. A radar

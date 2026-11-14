@@ -11,12 +11,6 @@
     Amounts moving through stages, such as a household's income through its budget into what it
     was spent on.
 
-    <SankeyChart Items="flows"
-                 From="f => f.From"
-                 To="f => f.To"
-                 Value="f => f.Amount"
-                 Title="October's budget" />
-
     Each item is one flow. Nodes come from the flows' names, so there's no list of them; a
     SankeyNode inside the chart gives one its own color or label. Flows between the same two nodes
     add up; zero, negative and missing values are left out. A node is as tall as the larger of what
