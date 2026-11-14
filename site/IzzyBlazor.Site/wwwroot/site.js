@@ -18,6 +18,19 @@
       if (!link || link.target || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
       const url = new URL(link.href, location.href);
       if (url.protocol !== "http:" && url.protocol !== "https:") return;
+      // A link to a section of this page scrolls the frame only: the browser's own jump would scroll
+      // the docs page around the frame too. A frame later, so a disclosure the link closed is folded.
+      if (url.origin === location.origin && url.pathname === location.pathname && url.search === location.search && url.hash) {
+        event.preventDefault();
+        history.pushState(history.state, "", url.hash);
+        requestAnimationFrame(() => {
+          const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+          if (!target) return;
+          const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+          window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - margin });
+        });
+        return;
+      }
       if (url.origin === location.origin && url.pathname === location.pathname) return;
       // IzzyBlazor's own endpoints (the scheme switch's links) belong to the example: its script
       // handles them, and without it they return to the frame.
