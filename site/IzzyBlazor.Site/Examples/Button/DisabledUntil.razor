@@ -1,0 +1,31 @@
+@using System.ComponentModel.DataAnnotations
+
+@* Deleting a workspace: the button waits for the box, and the server checks it too, for a page
+   with JavaScript off. *@
+<Form Model="Model" FormName="delete-workspace" OnValidSubmit="Delete" MaxWidth="28.Rem" Grow>
+    <TextBlock>Deleting Marketing removes its 14 projects and their files for everyone.</TextBlock>
+    <Checkbox @bind-Value="Model!.Understood" id="delete-understood" />
+    <Button Submit Accent="Accent.Danger" DisabledUntil="delete-understood" AlignSelf="Align.Start">Delete workspace</Button>
+    @if (_deleted)
+    {
+        <Alert Status="Status.Success">Marketing would be deleted now. This example keeps it.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "delete-workspace")]
+    private Confirmation? Model { get; set; }
+
+    private bool _deleted;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Delete() => _deleted = true;
+
+    public sealed class Confirmation
+    {
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Tick the box to delete the workspace.")]
+        [Display(Name = "I understand this can't be undone (required)")]
+        public bool Understood { get; set; }
+    }
+}

@@ -72,6 +72,15 @@ public class Button : ButtonBase
     /// <summary>The id of a form elsewhere on the page that this button submits (native <c>form</c>).</summary>
     [Parameter] public string? Form { get; set; }
 
+    /// <summary>
+    /// The id of a checkbox this button waits for: it's disabled until the box is ticked, such as a
+    /// sign-up's consent. Set the same <c>id</c> on the <see cref="Checkbox"/>. Done by the library's
+    /// script, so with JavaScript off the button stays enabled and the server checks the box; say
+    /// why it waits in the box's label, as in "I agree to the terms (required)". Not for a link.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial)]
+    public string? DisabledUntil { get; set; }
+
     /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
@@ -110,6 +119,7 @@ public class Button : ButtonBase
         builder.AddAttribute(4, "formaction", FormAction);
         builder.AddAttribute(5, "form", Form);
         builder.AddAttribute(6, "disabled", Disabled);
+        builder.AddAttribute(7, "data-ib-disabled-until", DisabledUntil);
         if (Loading)
         {
             // Not "disabled": the button keeps focus while busy. CSS blocks clicks.

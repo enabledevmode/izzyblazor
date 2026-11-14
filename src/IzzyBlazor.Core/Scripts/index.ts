@@ -23,7 +23,7 @@ import { installDateZones, installStaleErrors, installSubmitFeedback, installVal
 import { installSelects, syncSelects } from "./select";
 import { installKeepPlace, keepPlaceArrived, openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
-import { installIndeterminate, installSelectAll, syncIndeterminate } from "./checkbox";
+import { installDisabledUntil, installIndeterminate, installSelectAll, syncDisabledUntil, syncIndeterminate } from "./checkbox";
 import { focusMarked, installFocusRescue, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
@@ -39,6 +39,7 @@ installDateZones();
 installSelects();
 installIndeterminate();
 installSelectAll();
+installDisabledUntil();
 installScrollbarWidth();
 installTabScroll();
 announceRendered(true);
@@ -144,6 +145,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     revealSelectedTabs();
     syncSelects();
     syncIndeterminate();
+    syncDisabledUntil();
     reopenAfterPost();
     clearClosedDialogQuery();
     keepDismissed();

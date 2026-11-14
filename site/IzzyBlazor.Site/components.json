@@ -542,6 +542,12 @@
         { "id": "button-links", "title": "Links that look like buttons" },
         { "id": "button-sizes-icons", "title": "Sizes and icons" },
         { "id": "button-states", "title": "Loading and disabled" },
+        { "id": "button-disabled-until", "title": "Waiting for a checkbox",
+          "notes": {
+            "noscript": "The button stays enabled: Delete posts, and the server says to tick the box.",
+            "static": "Delete waits until the box is ticked. The server checks the box too.",
+            "interactive": "Delete waits until the box is ticked. The form checks the box too."
+          } },
         { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
         { "id": "button-state-in-address", "title": "A count in the URL",
           "notes": {
