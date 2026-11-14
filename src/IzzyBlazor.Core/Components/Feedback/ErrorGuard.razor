@@ -11,14 +11,6 @@
     circuit or the page. Built on Blazor's ErrorBoundary, so ErrorContent, MaximumErrorCount and
     logging through ILogger work as there.
 
-    <ErrorGuard>
-        @Body
-    </ErrorGuard>
-
-    <ErrorGuard ShowDetails="@Environment.IsDevelopment()" OnError="Log">
-        <SalesReport />
-    </ErrorGuard>
-
     - On an interactive page the next step is Try again, which renders the content again; on a
       static page it's a Reload link to the same address (a full load, not an enhanced one).
     - It recovers when the address changes (ResetOnNavigation), so it's safe around @Body in a

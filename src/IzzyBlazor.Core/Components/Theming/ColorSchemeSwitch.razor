@@ -10,10 +10,9 @@
     Lets the user pick light, dark or system. The choice is kept in the ib-scheme cookie, which
     IzzyTheme reads on the server, so every page arrives in the chosen scheme with no flash.
 
-    <ColorSchemeSwitch />                                         an icon button with a menu (default)
-    <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />     one icon button: light <-> dark
-    <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" />  System, Light, Dark side by side
-    <ColorSchemeSwitch @bind-Value="scheme" />                    interactive pages: follow it from C#
+    Variant sets its look: an icon button with a menu (the default), one button that toggles
+    light and dark, or System, Light and Dark side by side. On interactive pages, @bind-Value
+    follows the choice from C#.
 
     The icon shows the page's scheme as it is (sun or moon), worked out in CSS, so it's right even
     when the device decides. The script sets the cookie and the page's scheme without a request,
