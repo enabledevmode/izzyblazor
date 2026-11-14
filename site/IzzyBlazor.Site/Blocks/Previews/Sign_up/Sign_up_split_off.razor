@@ -1,0 +1,74 @@
+@* Generated from catalog/signup by BlockPreviewTests: don't edit. *@
+@using System.ComponentModel.DataAnnotations
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+@* One email address with as little thought as possible, from izzy add signup. It's yours: change
+   the words in @code, and store the address in SaveAsync. The form posts with no circuit, is
+   checked on the server, has a honeypot for bots, and answers with a toast after a redirect. *@
+<Section Spacing="SectionSpacing.Lg" Bg="Color.FillSubtle" BorderY="1" aria-labelledby="Sign_up_split_off-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "1fr 1fr" })" Gap="new() { Base = 8, Md = 14 }" Align="Align.Center">
+            <SectionHeader Title="@Title" TitleId="Sign_up_split_off-title" Description="@Lead" Align="TextAlign.Start" />
+            <Form Model="Model" FormName="Sign_up_split_off-signup" Honeypot OnValidSubmit="Join" OnSpam="Done">
+                @if (_failed)
+                {
+                    <Alert Status="Status.Danger">We couldn't add you to the list. Please try again.</Alert>
+                }
+                <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" />
+                <Button Submit Size="ControlSize.Lg">@Action</Button>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Fine <Anchor Href="blocks/signup" Style="white-space: nowrap">Privacy policy</Anchor></TextBlock>
+            </Form>
+        </Grid>
+    </Container>
+</Section>
+
+@code {
+    // The words, kept together so they're easy to change.
+    private const string Title = "Be the first to try MyApp";
+    private const string Lead = "Join the waitlist, and we'll email you when there's a place for you.";
+    private const string Action = "Join the waitlist";
+    private const string Fine = "A few emails before launch. Unsubscribe any time.";
+    private const string Joined = "You're on the list";
+    private const string ConsentMissing = "Required to join the waitlist.";
+
+    [SupplyParameterFromForm(FormName = "Sign_up_split_off-signup")]
+    private Signup? Model { get; set; }
+
+    private bool _failed;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private async Task Join()
+    {
+        try
+        {
+            await SaveAsync(Model!.Email!);
+        }
+        catch (Exception)
+        {
+            // The address stays in the field, and the button says what it said.
+            _failed = true;
+            return;
+        }
+        Done();
+    }
+
+    // Store the address here and send the confirmation email. An address already on the list gets
+    // the same answer and nothing stored twice, so only its owner learns it was there.
+    private Task SaveAsync(string email) => Task.CompletedTask;
+
+    // A person and a caught bot get the same answer: a toast after a redirect, so reloading
+    // doesn't post again, and the field is empty.
+    private void Done()
+    {
+        Toasts.Success("Check your inbox to confirm your email.", Joined);
+        Navigation.NavigateTo(Navigation.Uri);
+    }
+
+    public sealed class Signup
+    {
+        [Required(ErrorMessage = "Enter an email address, like name@example.com."), EmailAddress(ErrorMessage = "Enter an email address, like name@example.com.")]
+        public string? Email { get; set; }
+    }
+}

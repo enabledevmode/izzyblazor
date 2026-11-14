@@ -1,0 +1,53 @@
+// The free sign-up section: one email field and one button for a waitlist or a newsletter, written
+// into the project as a component you own (Components/Blocks/SignUp.razor) and added at the end of
+// a page, such as under the hero on Home.
+{
+  "id": "signup",
+  "name": "Sign-up",
+  "kind": "block",
+  "category": "Calls to action",
+  "summary": "One email field and one button for a waitlist or a newsletter, with what they'll get and the reassurance right under it.",
+  "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Card", "Form", "Alert", "TextField", "Checkbox", "Button", "Stack", "TextBlock", "Anchor"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Band", "Split", "Card"], "default": "Band", "x-priority": "important",
+        "description": "Band centers it on a tinted band across the page; Split puts the words beside the form; Card is a bordered panel in the page's column, for pages where a band is too loud."
+      },
+      "Kind": {
+        "type": "string", "enum": ["Waitlist", "Newsletter"], "default": "Waitlist", "x-priority": "important",
+        "description": "Sets the words: \"Join the waitlist\" or \"Subscribe\", and what they'll get."
+      },
+      "Consent": {
+        "type": "boolean", "default": false,
+        "description": "Adds a required checkbox to agree to the emails. The button waits until it's ticked; with JavaScript off, the server checks it."
+      },
+      "PrivacyHref": { "type": "string", "default": "privacy", "description": "Where \"Privacy policy\" in the small print goes." },
+      "Name": { "type": "string", "default": "SignUp", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "Band": "Layout == \"Band\"",
+    "Split": "Layout == \"Split\"",
+    "Waitlist": "Kind == \"Waitlist\""
+  },
+  "accessibility": [
+    "The section is named by its heading, an h2. The email field has a label: shown in Split and with consent, read to screen readers in a single row.",
+    "An invalid address shows its message under the field after a post, with the address kept.",
+    "The consent box says \"(required)\" in its label, so the reason the button waits is on screen.",
+    "The honeypot field is hidden from screen readers and skipped by the Tab key.",
+    "Signing up answers with a toast after a redirect, read by screen readers, with no script needed."
+  ],
+  "variations": [
+    { "key": "layout", "label": "Layout", "setting": "Layout", "options": { "Band": "Band", "Split": "Split", "Card": "Card" } },
+    { "key": "consent", "label": "Consent", "setting": "Consent", "options": { "Off": "false", "On": "true" } }
+  ],
+  "preview": { "PrivacyHref": "blocks/signup" },
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}

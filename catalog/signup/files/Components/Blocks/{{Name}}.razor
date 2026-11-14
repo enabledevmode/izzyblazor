@@ -1,0 +1,146 @@
+@using System.ComponentModel.DataAnnotations
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+@* One email address with as little thought as possible, from izzy add signup. It's yours: change
+   the words in @code, and store the address in SaveAsync. The form posts with no circuit, is
+   checked on the server, has a honeypot for bots, and answers with a toast after a redirect. *@
+@*#if (Band) *@
+<Section Spacing="SectionSpacing.Lg" Bg="Color.FillSubtle" BorderY="1" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Sm" Align="ContainerAlign.Center" Gutters="false">
+        <Column Gap="6" Align="Align.Center">
+            <SectionHeader Title="@Title" TitleId="{{Name}}-title" Description="@Lead" AlignSelf="Align.Stretch" />
+            <Form Model="Model" FormName="{{Name}}-signup" Honeypot OnValidSubmit="Join" OnSpam="Done" AlignSelf="Align.Stretch">
+                @if (_failed)
+                {
+                    <Alert Status="Status.Danger">We couldn't add you to the list. Please try again.</Alert>
+                }
+                @*#if (Consent) *@
+                <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" />
+                <Checkbox @bind-Value="Model!.Consent" id="{{Name}}-consent" />
+                <Button Submit Size="ControlSize.Lg" DisabledUntil="{{Name}}-consent">@Action</Button>
+                @*#else *@
+                <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" Align="new() { Base = Align.Stretch, Sm = Align.Start }">
+                    <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" HideLabel Grow />
+                    <Button Submit Size="ControlSize.Lg">@Action</Button>
+                </Stack>
+                @*#endif *@
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@Fine <Anchor Href="{{PrivacyHref}}" Style="white-space: nowrap">Privacy policy</Anchor></TextBlock>
+            </Form>
+        </Column>
+    </Container>
+</Section>
+@*#elif (Split) *@
+<Section Spacing="SectionSpacing.Lg" Bg="Color.FillSubtle" BorderY="1" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "1fr 1fr" })" Gap="new() { Base = 8, Md = 14 }" Align="Align.Center">
+            <SectionHeader Title="@Title" TitleId="{{Name}}-title" Description="@Lead" Align="TextAlign.Start" />
+            <Form Model="Model" FormName="{{Name}}-signup" Honeypot OnValidSubmit="Join" OnSpam="Done">
+                @if (_failed)
+                {
+                    <Alert Status="Status.Danger">We couldn't add you to the list. Please try again.</Alert>
+                }
+                <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" />
+                @*#if (Consent) *@
+                <Checkbox @bind-Value="Model!.Consent" id="{{Name}}-consent" />
+                <Button Submit Size="ControlSize.Lg" DisabledUntil="{{Name}}-consent">@Action</Button>
+                @*#else *@
+                <Button Submit Size="ControlSize.Lg">@Action</Button>
+                @*#endif *@
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Fine <Anchor Href="{{PrivacyHref}}" Style="white-space: nowrap">Privacy policy</Anchor></TextBlock>
+            </Form>
+        </Grid>
+    </Container>
+</Section>
+@*#else *@
+<Section Spacing="SectionSpacing.Lg" FullBleed="false" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        <Card Variant="CardVariant.Outline">
+            <Grid Template="@(new Responsive<string> { Base = "1fr", Md = "1fr 1fr" })" Gap="new() { Base = 6, Md = 10 }" Align="Align.Center">
+                <SectionHeader Title="@Title" TitleId="{{Name}}-title" Description="@Lead" Align="TextAlign.Start" Size="ControlSize.Sm" />
+                <Form Model="Model" FormName="{{Name}}-signup" Honeypot OnValidSubmit="Join" OnSpam="Done">
+                    @if (_failed)
+                    {
+                        <Alert Status="Status.Danger">We couldn't add you to the list. Please try again.</Alert>
+                    }
+                    @*#if (Consent) *@
+                    <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" />
+                    <Checkbox @bind-Value="Model!.Consent" id="{{Name}}-consent" />
+                    <Button Submit DisabledUntil="{{Name}}-consent">@Action</Button>
+                    @*#else *@
+                    <Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }" Gap="3" Align="new() { Base = Align.Stretch, Sm = Align.Start }">
+                        <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" HideLabel Grow />
+                        <Button Submit>@Action</Button>
+                    </Stack>
+                    @*#endif *@
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Fine <Anchor Href="{{PrivacyHref}}" Style="white-space: nowrap">Privacy policy</Anchor></TextBlock>
+                </Form>
+            </Grid>
+        </Card>
+    </Container>
+</Section>
+@*#endif *@
+
+@code {
+    // The words, kept together so they're easy to change.
+@*#if (Waitlist) *@
+    private const string Title = "Be the first to try {{ProjectName}}";
+    private const string Lead = "Join the waitlist, and we'll email you when there's a place for you.";
+    private const string Action = "Join the waitlist";
+    private const string Fine = "A few emails before launch. Unsubscribe any time.";
+    private const string Joined = "You're on the list";
+    private const string ConsentMissing = "Required to join the waitlist.";
+@*#else *@
+    private const string Title = "Get the {{ProjectName}} newsletter";
+    private const string Lead = "What's new and what we learned, in one short email every two weeks.";
+    private const string Action = "Subscribe";
+    private const string Fine = "A short email every two weeks. Unsubscribe any time.";
+    private const string Joined = "You're subscribed";
+    private const string ConsentMissing = "Required to subscribe.";
+@*#endif *@
+
+    [SupplyParameterFromForm(FormName = "{{Name}}-signup")]
+    private Signup? Model { get; set; }
+
+    private bool _failed;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private async Task Join()
+    {
+        try
+        {
+            await SaveAsync(Model!.Email!);
+        }
+        catch (Exception)
+        {
+            // The address stays in the field, and the button says what it said.
+            _failed = true;
+            return;
+        }
+        Done();
+    }
+
+    // Store the address here and send the confirmation email. An address already on the list gets
+    // the same answer and nothing stored twice, so only its owner learns it was there.
+    private Task SaveAsync(string email) => Task.CompletedTask;
+
+    // A person and a caught bot get the same answer: a toast after a redirect, so reloading
+    // doesn't post again, and the field is empty.
+    private void Done()
+    {
+        Toasts.Success("Check your inbox to confirm your email.", Joined);
+        Navigation.NavigateTo(Navigation.Uri);
+    }
+
+    public sealed class Signup
+    {
+        [Required(ErrorMessage = "Enter an email address, like name@example.com."), EmailAddress(ErrorMessage = "Enter an email address, like name@example.com.")]
+        public string? Email { get; set; }
+@*#if (Consent) *@
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = ConsentMissing), Display(Name = "I agree to get emails about {{ProjectName}} (required)")]
+        public bool Consent { get; set; }
+@*#endif *@
+    }
+}
