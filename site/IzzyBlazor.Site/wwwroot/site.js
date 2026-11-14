@@ -205,12 +205,28 @@
 
   const watched = new WeakSet();
 
+  // A frame is ready once its page has loaded and has the page's scheme: the home page's hero
+  // keeps its frames invisible until then (site.css, .site-hero-screen), so they show in one step.
+  function loaded(frame) {
+    try {
+      const doc = frame.contentDocument;
+      return !!doc && doc.readyState === "complete" && doc.URL !== "about:blank";
+    } catch {
+      return true;
+    }
+  }
+
   function frames() {
     for (const frame of document.querySelectorAll("iframe.ex-frame")) {
       scheme(frame);
+      // Loaded before this ran, or kept by enhanced navigation, which drops the mark.
+      if (loaded(frame)) frame.dataset.ready = "";
       if (watched.has(frame)) continue;
       watched.add(frame);
-      frame.addEventListener("load", () => scheme(frame));
+      frame.addEventListener("load", () => {
+        scheme(frame);
+        frame.dataset.ready = "";
+      });
     }
   }
 
