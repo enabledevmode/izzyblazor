@@ -6,7 +6,7 @@
   "kind": "block",
   "category": "Blog and content",
   "summary": "The latest posts as cards: a cover, the category, the title, a short excerpt, and who wrote it and when.",
-  "components": ["Section", "Container", "Stack", "Column", "Grid", "Box", "Image", "AspectRatio", "Heading", "TextBlock", "Anchor", "Icon", "Spacer"],
+  "components": ["Section", "SectionHeader", "Container", "Stack", "Column", "Grid", "Box", "Image", "AspectRatio", "Heading", "TextBlock", "Anchor", "Icon", "Spacer"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",

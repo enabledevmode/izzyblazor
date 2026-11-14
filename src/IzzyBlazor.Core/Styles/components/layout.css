@@ -104,6 +104,37 @@
     gap: var(--ib-space-2);
   }
 
+  /* SectionHeader: a column whose lines keep to a readable width, centered or at the start by
+     the ib-align and ib-ta utilities; sizes come in as --ib-sh-title and --ib-sh-text. */
+  .ib-section-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-width: 0;
+  }
+
+  .ib-section-header > * { max-width: 40rem; margin: 0; }
+
+  .ib-section-header-eyebrow {
+    color: var(--ib-color-primary-text);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-section-header-title {
+    font-family: var(--ib-font-heading);
+    font-size: var(--ib-sh-title);
+    font-weight: var(--ib-weight-heading, var(--ib-weight-semibold));
+    line-height: var(--ib-leading-tight);
+    text-wrap: balance;
+  }
+
+  .ib-section-header-description {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-sh-text);
+    text-wrap: pretty;
+  }
+
   .ib-center {
     display: flex;
     align-items: center;

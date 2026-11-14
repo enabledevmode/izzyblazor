@@ -5,10 +5,7 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* The intro is centered over the grid from 768px up; on phones it starts at the edge, like the features. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="new() { Base = Align.Start, Md = Align.Center }">
-                <Heading Level="2" id="Features_three-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Balance">Everything you need to run your work</Heading>
-                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Pretty">The parts every app needs, built in and ready the day you start.</TextBlock>
-            </Column>
+            <SectionHeader Title="Everything you need to run your work" TitleId="Features_three-title" Description="The parts every app needs, built in and ready the day you start." Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = 3 }" Gap="new() { Base = 10, Md = 12 }" AlignSelf="Align.Stretch">
                 @foreach (var feature in Features)
                 {

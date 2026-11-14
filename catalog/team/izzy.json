@@ -6,7 +6,7 @@
   "kind": "block",
   "category": "Team",
   "summary": "The people behind the product: a photo or initials, a name and a role for each, and a link to open roles.",
-  "components": ["Section", "Container", "Column", "Grid", "Avatar", "Heading", "TextBlock", "Anchor", "Icon"],
+  "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Avatar", "TextBlock", "Anchor", "Icon"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",

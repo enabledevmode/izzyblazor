@@ -5,9 +5,7 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* Centered from 768px up; on phones everything starts at the edge, like the answers. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="new() { Base = Align.Start, Md = Align.Center }">
-                <Heading Level="2" id="FAQ_closed_off-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Balance">Questions and answers</Heading>
-            </Column>
+            <SectionHeader Title="Questions and answers" TitleId="FAQ_closed_off-title" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             <Container Size="ContainerSize.Md" Gutters="false">
                 <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg">
                     <AccordionItem Title="Is there a free plan?">
