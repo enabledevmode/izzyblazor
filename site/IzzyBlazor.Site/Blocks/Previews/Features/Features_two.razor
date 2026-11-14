@@ -6,11 +6,11 @@
         @* The intro is centered over the grid from 768px up; on phones it starts at the edge, like the features. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
             <SectionHeader Title="Everything you need to run your work" TitleId="Features_two-title" Description="The parts every app needs, built in and ready the day you start." Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
-            <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = 2 }" Gap="new() { Base = 10, Md = 12 }" AlignSelf="Align.Stretch">
+            <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = 2 }" Gap="10" AlignSelf="Align.Stretch">
                 @foreach (var feature in Features)
                 {
                     <Column As="li" Gap="2" Align="Align.Start">
-                        <Center Width="Length.Rem(2.5)" Height="Length.Rem(2.5)" Bg="Color.PrimarySoft" Radius="Radius.Md" MarginBottom="2">
+                        <Center Width="Length.Rem(2.5)" Height="Length.Rem(2.5)" Bg="Color.PrimarySoft" Radius="Radius.Md">
                             <Icon Name="feature.Icon" Size="IconSize.Lg" Color="Color.PrimaryText" />
                         </Center>
                         <Heading Level="3" Size="TextSize.Lg">@feature.Title</Heading>
