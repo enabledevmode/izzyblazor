@@ -96,7 +96,8 @@ public static class TemplateExport
             if (p.Port is null && !p.Guid) symbol["defaultValue"] = p.Default;
             if (p.Description is not null) symbol["description"] = p.Description;
             if (p.Type == ParameterType.Choice)
-                symbol["choices"] = new JsonArray(p.Choices.Select(c => (JsonNode)new JsonObject { ["choice"] = c }).ToArray());
+                // dotnet new has no Pro catalogue, so it offers only the free choices.
+                symbol["choices"] = new JsonArray(p.Choices.Except(p.ProChoices).Select(c => (JsonNode)new JsonObject { ["choice"] = c }).ToArray());
             symbols[p.Name] = symbol;
             if (p.Port is var (low, high))
             {

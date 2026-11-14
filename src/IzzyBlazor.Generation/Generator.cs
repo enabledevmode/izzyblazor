@@ -25,6 +25,7 @@ public static class Generator
     {
         var manifest = item.Manifest;
         var values = Resolve(manifest, settings);
+        if (!item.IncludesPro) RefusePro(manifest, values);
         var tokens = Tokens(manifest, values, project);
 
         var excluded = new List<Glob>();
@@ -111,6 +112,15 @@ public static class Generator
             Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings,
             Restore = manifest.Restore is not null && Condition.Evaluate(manifest.Restore, values),
         };
+    }
+
+    static void RefusePro(ItemManifest manifest, Dictionary<string, object> values)
+    {
+        if (manifest.Tier == ItemTier.Pro)
+            throw new ProRequiredException($"{manifest.Id} is a Pro item.");
+        foreach (var p in manifest.Parameters)
+            if (p.ProChoices.Contains(values[p.Name] as string))
+                throw new ProRequiredException($"{p.Name} {values[p.Name]} is a Pro choice of {manifest.Id}. Free choices: {string.Join(", ", p.Choices.Except(p.ProChoices))}.");
     }
 
     /// <summary>The settings as typed values (bool, string, long), defaults filled in, then the computed values.</summary>
