@@ -1,0 +1,32 @@
+@* Generated from catalog/faq by BlockPreviewTests: don't edit. *@
+@* The questions that stop people signing up, from izzy add faq. It's yours: change the questions
+   and answers below (links are fine in an answer). Five to eight read well. *@
+<Section Spacing="SectionSpacing.Lg" aria-labelledby="FAQ_closed_off-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        @* Centered from 768px up; on phones everything starts at the edge, like the answers. *@
+        <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
+            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="new() { Base = Align.Start, Md = Align.Center }">
+                <Heading Level="2" id="FAQ_closed_off-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Balance">Questions and answers</Heading>
+            </Column>
+            <Container Size="ContainerSize.Md" Gutters="false">
+                <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg">
+                    <AccordionItem Title="Is there a free plan?">
+                        <TextBlock Color="Color.Muted">Yes. The free plan has every feature for up to three people, with no time limit and no card needed.</TextBlock>
+                    </AccordionItem>
+                    <AccordionItem Title="Can I cancel at any time?">
+                        <TextBlock Color="Color.Muted">Yes. Cancel from your account's billing page and you won't be charged again. Your plan runs to the end of the period you paid for.</TextBlock>
+                    </AccordionItem>
+                    <AccordionItem Title="What happens to my data if I leave?">
+                        <TextBlock Color="Color.Muted">Export everything as CSV or JSON before you go. We delete your data 30 days after you close your account.</TextBlock>
+                    </AccordionItem>
+                    <AccordionItem Title="Do you offer discounts?">
+                        <TextBlock Color="Color.Muted">Nonprofits and schools get half off any plan. Paying yearly costs the same as ten months.</TextBlock>
+                    </AccordionItem>
+                    <AccordionItem Title="How do I get help?">
+                        <TextBlock Color="Color.Muted">Read the guides, or <Anchor Href="blocks/faq">write to us</Anchor> and a person answers within one working day.</TextBlock>
+                    </AccordionItem>
+                </Accordion>
+            </Container>
+        </Column>
+    </Container>
+</Section>

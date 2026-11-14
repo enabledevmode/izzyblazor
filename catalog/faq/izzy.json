@@ -1,0 +1,50 @@
+// The free FAQ block: questions that open to their answers, written into the project as a component
+// you own (Components/Blocks/Faq.razor) and added at the end of a page. Its Split layout is Pro:
+// that file lives only in the Pro catalogue.
+{
+  "id": "faq",
+  "name": "FAQ",
+  "kind": "block",
+  "category": "FAQ",
+  "summary": "The questions that stop people signing up, each opening to its answer, with a way to ask your own.",
+  "components": ["Section", "Container", "Column", "Heading", "TextBlock", "Accordion", "Anchor", "Icon"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Stacked", "Split"], "default": "Stacked", "x-tiers": { "Split": "pro" }, "x-priority": "important",
+        "description": "Stacked puts the questions under the heading; Split puts the heading beside them."
+      },
+      "Title": { "type": "string", "default": "Questions and answers", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "", "description": "A sentence under the heading. Empty leaves it out." },
+      "OpenFirst": { "type": "boolean", "default": true, "description": "Opens the first answer, so the section shows what an answer looks like." },
+      "Exclusive": { "type": "boolean", "default": false, "description": "Closes the open answer when another opens. Off by default: people compare answers." },
+      "ContactPrompt": { "type": "string", "default": "Can't find your answer?", "description": "The line over the contact link." },
+      "ContactText": { "type": "string", "default": "Contact support", "description": "The contact link. Empty leaves both lines out." },
+      "ContactHref": { "type": "string", "default": "contact", "description": "Where the contact link goes." },
+      "Name": { "type": "string", "default": "Faq", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "HasLead": "Lead != \"\"",
+    "HasContact": "ContactText != \"\""
+  },
+  "accessibility": [
+    "The section is named by its heading, an h2. The questions aren't headings, so the page's outline stays short.",
+    "Each question is a native disclosure: it opens and closes with Enter or Space, and with JavaScript off.",
+    "The contact link's arrow is decorative; the link is named by its text."
+  ],
+  "variations": [
+    { "key": "first", "label": "First answer", "setting": "OpenFirst", "options": { "Open": "true", "Closed": "false" } },
+    { "key": "contact", "label": "Contact link", "setting": "ContactText", "options": { "On": "Contact support", "Off": "" } }
+  ],
+  "preview": { "ContactHref": "blocks/faq" },
+  "exclude": [ { "if": "Layout != \"Stacked\"", "paths": ["layouts/Stacked.razor"] } ],
+  "rename": [ { "if": "Layout == \"Stacked\"", "paths": { "layouts/Stacked.razor": "Components/Blocks/{{Name}}.razor" } } ],
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}
