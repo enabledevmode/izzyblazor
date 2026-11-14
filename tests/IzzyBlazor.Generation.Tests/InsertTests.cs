@@ -81,5 +81,38 @@ public sealed class InsertTests : IDisposable
         Assert.StartsWith("@page", Read("Components/Pages/Reports.razor"));
     }
 
+    [Fact]
+    public void A_recipe_puts_its_snippet_at_the_line_and_writes_no_file()
+    {
+        var recipe = new ItemDefinition
+        {
+            Manifest = ItemManifest.Parse("""
+                {
+                  "id": "empty", "name": "Empty", "kind": "block",
+                  "parameters": { "type": "object", "properties": {
+                    "Kind": { "type": "string", "enum": ["FirstUse", "NoResults"], "default": "FirstUse" },
+                    "Into": { "type": "string", "default": "" } } },
+                  "inserts": [ { "file": "{{Into}}", "position": "end", "place": true, "textFrom": "Snippet.razor" } ]
+                }
+                """),
+            Files = new Dictionary<string, byte[]>
+            {
+                ["Snippet.razor"] = Encoding.UTF8.GetBytes("@*#if (Kind == \"FirstUse\") *@\n<p>None yet</p>\n@*#else *@\n<p>No match</p>\n@*#endif *@\n"),
+            },
+        };
+        Write("App.csproj", "<Project Sdk=\"Microsoft.NET.Sdk.Web\" />");
+        Write("Components/Pages/List.razor", "<h1>List</h1>\n<p>The end.</p>\n");
+
+        var changes = Generator.Generate(recipe, new Dictionary<string, string> { ["Kind"] = "NoResults" },
+            ProjectInfo.FromDirectory(_project), new Placement("Components/Pages/List.razor", 2));
+        Assert.Empty(changes.Creates);
+        ChangesetWriter.Apply(changes, _project);
+        Assert.Equal("<h1>List</h1>\n<p>No match</p>\n<p>The end.</p>\n", Read("Components/Pages/List.razor"));
+
+        // With no line and no page, it says where to put it and shows the markup.
+        var unplaced = Generator.Generate(recipe, new Dictionary<string, string>(), ProjectInfo.FromDirectory(_project));
+        Assert.Contains("<p>None yet</p>", Assert.Single(unplaced.Warnings));
+    }
+
     public void Dispose() => Directory.Delete(_project, recursive: true);
 }

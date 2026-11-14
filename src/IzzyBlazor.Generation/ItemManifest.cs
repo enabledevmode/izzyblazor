@@ -179,7 +179,7 @@ public sealed record PackageSpec(string Id, string Version, string? If);
 /// <param name="Anchor">Text a line holds, such as a marker comment (<c>@* izzy:nav *@</c>), or null with <paramref name="Pattern"/>.</param>
 /// <param name="Pattern">A regular expression a line matches, when there's no marker to look for.</param>
 /// <param name="Position">Whether the text goes before or after that line.</param>
-/// <param name="Text">The text, with tokens; it takes the file's line endings.</param>
+/// <param name="Text">The text, with tokens; it takes the file's line endings. Empty with <see cref="TextFrom"/>.</param>
 /// <param name="If">A condition expression; the insert happens only when it holds. Null always.</param>
 public sealed record InsertSpec(string File, string? Anchor, string? Pattern, InsertPosition Position, string Text, string? If)
 {
@@ -189,11 +189,21 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
     /// </summary>
     public bool Place { get; init; }
 
+    /// <summary>
+    /// A file in the item's <c>files</c> folder whose text is inserted instead of <see cref="Text"/>
+    /// (<c>"textFrom": "EmptyState.razor"</c>), with its conditions and tokens applied as for any file;
+    /// the file itself isn't written. For a recipe: markup put on a page, too long for a JSON string.
+    /// </summary>
+    public string? TextFrom { get; init; }
+
     internal static InsertSpec Parse(JsonObject o)
     {
         var anchor = (string?)o["anchor"];
         var pattern = (string?)o["pattern"];
         var position = (string?)o["position"] ?? "before";
+        var text = (string?)o["text"];
+        var textFrom = (string?)o["textFrom"];
+        if (text is null == textFrom is null) throw new GenerationException("An insert needs \"text\" or \"textFrom\", not both.");
         if (position == "end")
         {
             if (anchor is not null || pattern is not null) throw new GenerationException("An insert at the end takes no \"anchor\" or \"pattern\".");
@@ -208,7 +218,7 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
                 "end" => InsertPosition.End,
                 _ => throw new GenerationException($"An insert's \"position\" is before, after or end, not \"{position}\"."),
             },
-            ItemManifest.Required(o, "text"), (string?)o["if"]) { Place = (bool?)o["place"] ?? false };
+            text ?? "", (string?)o["if"]) { Place = (bool?)o["place"] ?? false, TextFrom = textFrom };
     }
 }
 

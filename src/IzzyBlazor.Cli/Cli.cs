@@ -187,7 +187,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         if (changes.Creates.Count == 0 && changes.Inserts.Count == 0 && changes.Packages.Count == 0)
         {
-            if (!flags.Json) output.WriteLine($"Nothing to change: {item.Manifest.Id} is already there with these settings.");
+            // An item with no file of its own and no page named (a recipe without --at) was printed above.
+            if (!flags.Json && !changes.Warnings.Any(w => w.Contains("isn't placed on a page", StringComparison.Ordinal)))
+                output.WriteLine($"Nothing to change: {item.Manifest.Id} is already there with these settings.");
             return 0;
         }
         if (!write)
