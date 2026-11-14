@@ -3,7 +3,7 @@ using Microsoft.Playwright;
 
 namespace IzzyBlazor.Site.Tests;
 
-// Each block's card picture (wwwroot/img/blocks/{id}.webp) is its first preview at a desktop's
+// Each block's card pictures (wwwroot/img/blocks/{id}.webp, and {id}-dark.webp in the dark scheme) are its first preview at a desktop's
 // width, taken in its own 1280px viewport so it lays out as on a desktop: the block with a margin
 // around it, at the card's 16:10, scaled down.
 // To retake them after changing a block: set IZZY_UPDATE_PREVIEWS=1 and run this test.
@@ -23,17 +23,20 @@ public sealed class BlockPictureTests(SiteFixture site) : IClassFixture<SiteFixt
 
         if (Environment.GetEnvironmentVariable("IZZY_UPDATE_PREVIEWS") != "1")
         {
-            var missing = blocks.Where(b => !File.Exists(Path.Combine(folder, b.Picture))).Select(b => b.Picture).ToList();
+            var missing = blocks.SelectMany(b => new[] { b.Picture, b.PictureDark }).Where(p => !File.Exists(Path.Combine(folder, p))).ToList();
             Assert.True(missing.Count == 0, $"Blocks with no picture; set IZZY_UPDATE_PREVIEWS=1 and run this test: {string.Join(", ", missing)}");
             return;
         }
 
         var browser = await TestBrowser.OpenAsync();
         await using var _ = browser;
+        // Each block in the light scheme and the dark one: the Blocks pages show the one the site is in.
+        foreach (var (scheme, dark) in new[] { (Microsoft.Playwright.ColorScheme.Light, false), (Microsoft.Playwright.ColorScheme.Dark, true) })
+        {
         var page = await browser.NewPageAsync(new()
         {
             ViewportSize = new() { Width = Width, Height = Height },
-            ColorScheme = Microsoft.Playwright.ColorScheme.Light,
+            ColorScheme = scheme,
             ReducedMotion = ReducedMotion.Reduce,
             Locale = "en-US",
         });
@@ -96,7 +99,9 @@ public sealed class BlockPictureTests(SiteFixture site) : IClassFixture<SiteFixt
                 }
                 """,
                 new object[] { png, Saved, Saved * Height / Width, (double)box[4], (double)box[5], (double)box[6] });
-            await File.WriteAllBytesAsync(Path.Combine(folder, block.Picture), Convert.FromBase64String(webp));
+            await File.WriteAllBytesAsync(Path.Combine(folder, dark ? block.PictureDark : block.Picture), Convert.FromBase64String(webp));
+        }
+        await page.CloseAsync();
         }
     }
 }

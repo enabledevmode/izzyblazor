@@ -97,7 +97,7 @@
         {
             @* A Pro block's template isn't in the site, so its preview is a render of it. *@
             <div class="site-block-stage">
-                <Image Src="@_block.Picture" Alt="@($"The {_block.Name} block")" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture" />
+                <BlockPicture Block="_block" Alt="@($"The {_block.Name} block")" />
             </div>
         }
         else if (_previewType is not null)

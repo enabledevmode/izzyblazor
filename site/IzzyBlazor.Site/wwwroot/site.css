@@ -880,3 +880,12 @@ html:has(> body > .frame) body { margin: 0; }
    which wraps at 16rem; the description takes the rest of the width. */
 .site-settings :is(.site-choices, .site-default) { white-space: nowrap; }
 .site-settings .site-default-long { display: inline-block; width: 16rem; white-space: normal; }
+
+/* Block pictures follow the site's scheme: the root's explicit choice, else the system's. */
+.site-pic-dark { display: none; }
+:root[data-ib-color-scheme="dark"] .site-pic-light { display: none; }
+:root[data-ib-color-scheme="dark"] .site-pic-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ib-color-scheme="light"]) .site-pic-light { display: none; }
+  :root:not([data-ib-color-scheme="light"]) .site-pic-dark { display: block; }
+}
