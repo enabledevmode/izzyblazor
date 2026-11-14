@@ -429,14 +429,6 @@ public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// Bars, one per item, to compare amounts across names such as products or regions.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="months" Argument="m =&gt; m.Month" Title="Revenue by month, 2026"&gt;
-///     &lt;ChartValueAxis Format="C0" /&gt;
-///     &lt;ChartBarSeries Value="m =&gt; m.Revenue" Name="Revenue" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Bars stand upright, or lie across with the chart's <c>Orientation="Orientation.Horizontal"</c>,
 /// which suits long names and rankings. Several bar series sit side by side, or stack with the
@@ -470,14 +462,6 @@ public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 /// A line through each item's value, to show how a measure changes over time.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="months" Argument="m =&gt; m.Month" Title="Weekly active users by app, 2026"&gt;
-///     &lt;ChartLineSeries Value="m =&gt; m.Web" Name="Web" EndLabel /&gt;
-///     &lt;ChartLineSeries Value="m =&gt; m.Ios" Name="iOS" EndLabel /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Each line series is one line, and several lines differ by dash as well as by color.
 /// </remarks>
@@ -525,17 +509,6 @@ public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 /// A filled area under a line through each item's value, to show a quantity over time.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="months"
-///        Argument="m =&gt; m.Month"
-///        Title="Visits by channel, 2026"
-///        Stacking="ChartStacking.Normal"&gt;
-///     &lt;ChartAreaSeries Value="m =&gt; m.Search" Name="Search" /&gt;
-///     &lt;ChartAreaSeries Value="m =&gt; m.Direct" Name="Direct" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The chart's <c>Stacking</c> stacks area series, so the parts add up to the whole, such as visits
 /// by channel.
@@ -581,15 +554,6 @@ public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 /// how they relate.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="pages" Argument="p =&gt; p.LoadSeconds" Title="Load time against bounce rate"&gt;
-///     &lt;ChartValueAxis Format="P0" Title="Bounce rate" /&gt;
-///     &lt;ChartArgumentAxis Title="Load time (s)" /&gt;
-///     &lt;ChartScatterSeries Value="p =&gt; p.BounceRate" Name="Pages" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 [ModeSupport]
 public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 {
@@ -600,15 +564,6 @@ public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 /// A circle per item at two measures, sized by a third.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="products" Argument="p =&gt; p.Growth" Title="Growth, margin and revenue, 2026"&gt;
-///     &lt;ChartValueAxis Format="P0" Title="Gross margin" /&gt;
-///     &lt;ChartArgumentAxis Format="P0" Title="Revenue growth" /&gt;
-///     &lt;ChartBubbleSeries Value="p =&gt; p.Margin" Size="p =&gt; p.Revenue" Name="Products" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Each circle's area is in proportion to its <see cref="Size"/>.
 /// </remarks>
@@ -648,14 +603,6 @@ public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 /// costs to profit.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="lines" Argument="l =&gt; l.Name" Title="Profit and loss, Q3 2026"&gt;
-///     &lt;ChartValueAxis Format="C0" /&gt;
-///     &lt;ChartWaterfallSeries Value="l =&gt; l.Amount" Total="l =&gt; l.IsTotal" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The first bar, the starting amount, and each item that's a <see cref="Total"/> stand on the
 /// baseline, a total showing everything so far. Rises, falls and totals each take a color, and the
@@ -774,14 +721,6 @@ public abstract class ChartRangeSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// temperature.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="days" Argument="d =&gt; d.Day" Title="Temperature, March 2026"&gt;
-///     &lt;ChartValueAxis Format="0°C" /&gt;
-///     &lt;ChartRangeBarSeries Low="d =&gt; d.Low" High="d =&gt; d.High" Name="Daily range" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Bars stand upright, or lie across with the chart's <c>Orientation="Orientation.Horizontal"</c>.
 /// The value axis needn't start at zero: a range bar's length is the spread, not the amount.
@@ -804,15 +743,6 @@ public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 /// A band from each item's low value to its high one, such as a forecast's interval.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="forecast" Argument="f =&gt; f.Month" Title="Revenue forecast, 2027"&gt;
-///     &lt;ChartValueAxis Format="C0" /&gt;
-///     &lt;ChartRangeAreaSeries Low="f =&gt; f.Low" High="f =&gt; f.High" Name="80% interval" /&gt;
-///     &lt;ChartLineSeries Value="f =&gt; f.Expected" Name="Expected" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Draw the measure inside it (the forecast, the average) as a <see cref="ChartLineSeries{TItem}"/>
 /// on top, and say in the band's <c>Name</c> what it spans, such as "80% interval".
@@ -915,18 +845,6 @@ public abstract class ChartPriceSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// Prices over time as candlesticks, from each item's open, high, low and close.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="days" Argument="d =&gt; d.Date" Title="ACME, March 2026"&gt;
-///     &lt;ChartValueAxis Format="C2" /&gt;
-///     &lt;ChartCandlestickSeries Open="d =&gt; d.Open"
-///                             High="d =&gt; d.High"
-///                             Low="d =&gt; d.Low"
-///                             Close="d =&gt; d.Close"
-///                             Name="ACME" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// A candle is hollow when the price closed above its open and filled when it closed below, in the
 /// chart's increase and decrease colors (blue and red by default, which stay apart for red-green
@@ -961,18 +879,6 @@ public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 /// Prices over time as OHLC bars, from each item's open, high, low and close.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="days" Argument="d =&gt; d.Date" Title="EUR/USD, daily"&gt;
-///     &lt;ChartValueAxis Format="0.000" /&gt;
-///     &lt;ChartOhlcSeries Open="d =&gt; d.Open"
-///                      High="d =&gt; d.High"
-///                      Low="d =&gt; d.Low"
-///                      Close="d =&gt; d.Close"
-///                      Name="EUR/USD" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Thinner than candlesticks, bars stay readable over many items, such as a year of days. Without
 /// an <see cref="Open"/>, high-low-close: an item is up when it closed at or above the one before.

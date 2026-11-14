@@ -143,14 +143,6 @@ public abstract class ChartBoxSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// values spread across groups.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="deliveries" Argument="d =&gt; d.Carrier" Title="Delivery time by carrier"&gt;
-///     &lt;ChartValueAxis Title="Days" /&gt;
-///     &lt;ChartBoxPlotSeries Value="d =&gt; d.Days" Name="Delivery time" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Each box shows the quartiles and median, with whiskers and outliers by <see cref="Whiskers"/>.
 /// <c>SeriesBy</c> puts a box per group side by side; the chart's
@@ -186,14 +178,6 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 /// shape of each group's values.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="deliveries" Argument="d =&gt; d.Carrier" Title="Delivery time by carrier"&gt;
-///     &lt;ChartValueAxis Title="Days" /&gt;
-///     &lt;ChartViolinSeries Value="d =&gt; d.Days" Name="Delivery time" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Inside, a slim box from the first quartile to the third, a line at the median, and a line to
 /// Tukey's whiskers; outliers past them are circles. The density is a Gaussian kernel with

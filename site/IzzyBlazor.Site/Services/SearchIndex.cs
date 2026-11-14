@@ -287,10 +287,17 @@ public sealed partial class SearchIndex
             else if (api.Component(component.Name) is { } apiComponent)
             {
                 // A generated Overview (GeneratedOverview): a section per example, under its title.
+                // The {id}-usage example comes ahead of the topics.
                 var headings = new List<string>();
                 if (apiComponent.Examples is { Count: > 0 })
                 {
                     headings.Add("Usage");
+                }
+
+                var usage = component.Examples.FirstOrDefault() is { } first && first.Id == $"{component.Id}-usage" ? first : null;
+                if (usage is not null)
+                {
+                    headings.Add(usage.Title);
                 }
 
                 if (component.Topics.Count > 0)
@@ -298,7 +305,7 @@ public sealed partial class SearchIndex
                     headings.Add("Topics");
                 }
 
-                headings.AddRange(component.Examples.Select(e => e.Title));
+                headings.AddRange(component.Examples.Where(e => e != usage).Select(e => e.Title));
                 if (apiComponent.Remarks is not null)
                 {
                     headings.Add("Details");

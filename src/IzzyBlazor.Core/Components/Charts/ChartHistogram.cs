@@ -55,14 +55,6 @@ public sealed record ChartBins
 /// delivery times.
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
-/// <example>
-/// <code>
-/// &lt;Chart Items="orders" Title="Delivery time, March 2026"&gt;
-///     &lt;ChartArgumentAxis Title="Days from order to delivery" /&gt;
-///     &lt;ChartHistogramSeries Value="o =&gt; o.DeliveryDays" Name="Orders" /&gt;
-/// &lt;/Chart&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The bars touch, the axis along the bottom is the values' own scale with the bins' edges marked,
 /// and the value axis counts from zero. <see cref="Bins"/> sets how they're cut. The chart takes no
