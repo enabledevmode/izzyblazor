@@ -1,0 +1,43 @@
+// The free footer: one line with the brand, the copyright and the legal links, written into the
+// project as a component you own (Components/Blocks/SiteFooter.razor). It belongs to the layout,
+// so it isn't placed anywhere unless --at (or Into) says where. Its Columns layout is Pro.
+{
+  "id": "footer",
+  "name": "Footer",
+  "kind": "block",
+  "category": "Headers and footers",
+  "summary": "The end of every page: your name, the copyright and the links people look for at the bottom.",
+  "components": ["Section", "Container", "Stack", "Row", "AppBrand", "TextBlock", "Spacer", "Anchor"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Simple", "Columns"], "default": "Simple", "x-tiers": { "Columns": "pro" }, "x-priority": "important",
+        "description": "Simple is one line; Columns adds groups of links under headings."
+      },
+      "ShowBrand": { "type": "boolean", "default": true, "description": "Shows the app's name and icon at the start." },
+      "Holder": { "type": "string", "default": "", "description": "Who holds the copyright, such as \"MyApp, Inc.\". Empty uses the project's name." },
+      "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each link's address; the docs previews use it to keep their links on the page." },
+      "Name": { "type": "string", "default": "SiteFooter", "description": "The component's name." },
+      "Into": { "type": "string", "default": "", "description": "A page or layout to add it to, at the end. Empty adds it nowhere: put it in your layout." }
+    }
+  },
+  "computed": {
+    "HasHolder": "Holder != \"\""
+  },
+  "accessibility": [
+    "The links are in a navigation landmark named \"Footer\", so screen readers can find them and tell them from the main menu.",
+    "In the layout after the page's main content, the footer reads last. Placed inside an AppFooter, it's the page's contentinfo landmark."
+  ],
+  "variations": [
+    { "key": "brand", "label": "Brand", "setting": "ShowBrand", "options": { "On": "true", "Off": "false" } }
+  ],
+  "preview": { "LinkBase": "blocks/footer?link=" },
+  "exclude": [ { "if": "Layout != \"Simple\"", "paths": ["layouts/Simple.razor"] } ],
+  "rename": [ { "if": "Layout == \"Simple\"", "paths": { "layouts/Simple.razor": "Components/Blocks/{{Name}}.razor" } } ],
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}

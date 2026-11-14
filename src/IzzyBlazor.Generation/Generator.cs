@@ -71,6 +71,12 @@ public static class Generator
             if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
             var path = TemplateText.ReplaceTokens(written.File, tokens);
             var text = TemplateText.ReplaceTokens(written.Text, tokens);
+            // A block that belongs to a layout (a footer) has no page of its own unless one is named.
+            if (written == place && at is null && path.Length == 0)
+            {
+                warnings.Add($"{manifest.Id} isn't placed on a page: add {text.Trim()} where it goes, or place it with --at <file>:<line>.");
+                continue;
+            }
             if (at is not null && written == place)
             {
                 path = at.Path;

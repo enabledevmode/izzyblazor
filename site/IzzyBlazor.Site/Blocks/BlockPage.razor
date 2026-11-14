@@ -255,6 +255,14 @@
             }
 
             var page = Path.GetFileNameWithoutExtension(into.Default);
+            if (page.Length == 0)
+            {
+                return $"Writes {writes}. Put it in your layout, or place it with --at.";
+            }
+            if (insert.Position == InsertPosition.End)
+            {
+                return $"Writes {writes} and adds it at the end of {page}.";
+            }
             var where = insert.Pattern ?? insert.Anchor;
             return $"Writes {writes} and places it on {page}, {(insert.Position == InsertPosition.After ? "after" : "before")} {where}.";
         }
