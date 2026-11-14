@@ -198,10 +198,9 @@ outside the Release workflow and broke the Live examples until it was removed.
 - The Release workflow deploys it after the packages are pushed, so the docs match the release.
   `fly deploy --remote-only --ha=false` deploys main by hand, but the site builds the library from
   source, so that also puts unreleased library changes on the site.
-- `www.izzyblazor.com`, `izzyblazor.dev` and `www.izzyblazor.dev` redirect to izzyblazor.com with a
-  301 that keeps the path and query (`Services/CanonicalHost.cs`). It names those hosts rather than
-  redirecting every other one, since Fly's health checks and `izzyblazor.fly.dev` arrive with other
-  hosts.
+- `www.izzyblazor.com` redirects to izzyblazor.com with a 301 that keeps the path and query
+  (`Services/CanonicalHost.cs`). It names that host rather than redirecting every other one, since
+  Fly's health checks and `izzyblazor.fly.dev` arrive with other hosts.
 - Crawlers: the examples keep their state in the query (Pagination's `?page=&small=...`), so their
   links make endless addresses. On Oct 27, 2026 GPTBot walked them at about two requests a second,
   which throttled the shared CPU and slowed every page to 2-6s (pages render in ~30ms). robots.txt
