@@ -15,17 +15,21 @@
             <Grid Columns="new() { Base = 1, Md = 2, Lg = Tiers.Length }" Gap="5" AlignSelf="Align.Stretch">
                 @foreach (var tier in Tiers)
                 {
-                    <Card Title="@tier.Name" TitleLevel="TierLevel" Description="@tier.For"
+                    <Card Title="@tier.Name" TitleLevel="TierLevel" Description="@tier.For" Size="ControlSize.Lg"
                           Border="@(tier.Popular ? 2 : default(Responsive<int>))" BorderColor="@(tier.Popular ? Color.Primary : default(Responsive<Color>))">
                         @if (tier.Popular)
                         {
                             <CardActions><Badge Accent="Accent.Primary">Most popular</Badge></CardActions>
                         }
-                        <CardBody Gap="4">
-                            <Column Gap="1">
+                        <CardBody Gap="6">
+                            <Column MarginTop="4">
                                 <TextBlock>
                                     <TextBlock As="span" Size="TextSize.Xl4" Weight="FontWeight.Semibold" TabularNums>@Amount(tier)</TextBlock>
-                                    @if (Period(tier) is { } period)
+                                    @if (tier.Monthly == 0)
+                                    {
+                                        <TextBlock As="span" Color="Color.Muted"> forever</TextBlock>
+                                    }
+                                    else if (Period(tier) is { } period)
                                     {
                                         <TextBlock As="span" Color="Color.Muted" aria-hidden="true"> / @period</TextBlock>
                                         <VisuallyHidden> per @period</VisuallyHidden>
@@ -47,7 +51,7 @@
                             {
                                 <TextBlock Weight="FontWeight.Medium">@tier.Includes</TextBlock>
                             }
-                            <List Plain Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="2">
+                            <List Plain Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="3">
                                 @foreach (var feature in tier.Features)
                                 {
                                     <ListItem>@feature</ListItem>
@@ -71,11 +75,11 @@
     // a line under the price, the button, whether it's the one to pick, and what it includes.
     private static readonly Tier[] Tiers =
     [
-        new("Free", "For trying it on your own.", 0, 0, "Free forever, no card needed.", "Start free", "blocks/pricing?plan-link=sign-up", false,
+        new("Free", "For trying MyApp on your own.", 0, 0, null, "Start free", "blocks/pricing?plan-link=sign-up", false,
             null, ["One person", "Three projects", "Community help"]),
-        new("Team", "For small teams.", 29, 290, "Per person. Cancel any time.", "Start a free trial", "blocks/pricing?plan-link=sign-up?plan=team", true,
+        new("Team", "For small teams.", 29, 290, "per person", "Start a free trial", "blocks/pricing?plan-link=sign-up?plan=team", true,
             "Everything in Free, plus:", ["Up to 25 people", "Unlimited projects", "Roles and permissions", "Help by email in one working day"]),
-        new("Business", "For security reviews and SSO.", 79, 790, "Per person, billed to one invoice.", "Talk to sales", "blocks/pricing?plan-link=contact", false,
+        new("Business", "For companies with more to manage.", 79, 790, "per person", "Talk to sales", "blocks/pricing?plan-link=contact", false,
             "Everything in Team, plus:", ["Single sign-on", "Audit log", "Data kept in the EU or US", "A named contact for help"]),
     ];
 

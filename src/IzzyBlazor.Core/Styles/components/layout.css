@@ -109,17 +109,11 @@
   .ib-section-header {
     display: flex;
     flex-direction: column;
-    gap: var(--ib-space-3);
+    gap: var(--ib-space-2);
     min-width: 0;
   }
 
   .ib-section-header > * { max-width: 40rem; margin: 0; }
-
-  .ib-section-header-eyebrow {
-    color: var(--ib-color-primary-text);
-    font-size: var(--ib-text-sm);
-    font-weight: var(--ib-weight-semibold);
-  }
 
   .ib-section-header-title {
     font-family: var(--ib-font-heading);
