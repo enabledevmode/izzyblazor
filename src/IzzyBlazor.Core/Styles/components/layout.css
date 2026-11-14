@@ -13,6 +13,14 @@
     display: inline-flex;
   }
 
+  /* Sticky: in view while the page scrolls, below the shell's sticky bars (--ib-shell-top). At the
+     start of its row or column, so stretching doesn't leave it nowhere to move. */
+  .ib-sticky {
+    position: sticky;
+    top: calc(var(--ib-shell-top, 0px) + var(--ib-space-6));
+    align-self: start;
+  }
+
   /* A Grid or Stack rendered as a list (As="ul") lays out its items; it doesn't bullet or indent them. */
   :is(ul, ol):is(.ib-grid, .ib-stack) {
     list-style: none;
