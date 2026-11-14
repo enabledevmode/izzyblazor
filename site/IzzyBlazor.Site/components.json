@@ -316,7 +316,7 @@
     {
       "id": "theme-scope", "icon": "PaintBucket", "name": "ThemeScope", "category": "Utilities", "summary": "Themes part of a page: its brand color, density, shape or color scheme.", "keywords": ["nested theme", "theme provider", "inverse", "dark panel"],
       "examples": [
-        { "id": "theme-scope-panel", "title": "A panel in another theme", "lead": "Put the content inside a ThemeScope, and set any of `Brand`, a built-in `Gray`, `Radius`, `Density`, `Preset` (shape, density and depth) and `ColorScheme`, which here can also be `Inverse`. What it doesn't set comes from the theme around it." }
+        { "id": "theme-scope-usage", "title": "A panel in another theme", "lead": "Put the content inside a ThemeScope, and set any of `Brand`, a built-in `Gray`, `Radius`, `Density`, `Preset` (shape, density and depth) and `ColorScheme`, which here can also be `Inverse`. What it doesn't set comes from the theme around it." }
       ]
     },
 
@@ -328,7 +328,7 @@
         { "feature": "Value bound to C#", "member": "Value" }
       ],
       "examples": [
-        { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented",
+        { "id": "color-scheme-switch-usage", "title": "Menu, toggle and segmented", "lead": "Put one `ColorSchemeSwitch` in the app's header. `Variant` sets its look: a menu (the default), a toggle or three segments.",
           "notes": {
             "noscript": "The switch is hidden, and the page follows the device or a choice saved earlier.",
             "static": "The scheme changes at once, and other open tabs follow.",
@@ -2094,7 +2094,7 @@
         { "feature": "The exception's details, when ShowDetails is set" }
       ],
       "examples": [
-        { "id": "error-guard-dashboard", "title": "A card whose service is down", "lead": "Put `ErrorGuard` around a part that can fail, such as a card that calls another service. When it throws, the guard shows an alert in its place and the rest of the page keeps working. In a layout, put it around `@Body` and set `ShowDetails` from the environment, so only Development shows the exception." }
+        { "id": "error-guard-usage", "title": "A card whose service is down", "lead": "Put `ErrorGuard` around a part that can fail, such as a card that calls another service. When it throws, the guard shows an alert in its place and the rest of the page keeps working. In a layout, put it around `@Body` and set `ShowDetails` from the environment, so only Development shows the exception." }
       ]
     },
     {
@@ -2105,7 +2105,7 @@
         { "feature": "Polite or assertive" }
       ],
       "examples": [
-        { "id": "live-region-results", "title": "Reading a count", "lead": "A `LiveRegion` holds hidden text that describes the page, such as a filtered list's count. Screen readers read it each time `Text` changes.",
+        { "id": "live-region-usage", "title": "Reading a count", "lead": "Set a `LiveRegion`'s `Text` to hidden text that describes the page, such as a filtered list's count. Screen readers read it each time it changes.",
           "notes": {
             "noscript": "Each search loads a new page, and text a page loads with isn't read.",
             "static": "Each search updates the page without a full reload, and the new count is read.",

@@ -8,7 +8,6 @@ namespace IzzyBlazor;
 /// For text that shows on the page, put <c>role="status"</c> on the element that shows it instead.
 /// For something that just happened ("Row deleted"), use <see cref="Announcer"/>.
 /// </summary>
-/// <example><code>&lt;LiveRegion Text="@($"{orders.Count} orders")" /&gt;</code></example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>Polite (<c>role="status"</c>): read when the screen reader is done with what it's saying. <see cref="Assertive"/> (<c>role="alert"</c>) interrupts; keep it for errors that stop the task.</item>

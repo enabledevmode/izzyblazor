@@ -2,8 +2,6 @@
    messages about what just happened (Announcer, with AnnouncerRegion for static pages), each
    previewed in each mode. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>Screen readers read the page where the user is. When something changes elsewhere, such as a list that filters or a row that disappears, screen reader users don't hear about it unless the page tells them. IzzyBlazor tells them two ways:</TextBlock>
 <List Gap="2">
     <ListItem><Code>LiveRegion</Code> holds hidden text that describes the page's state, such as "4 people". Screen readers read it each time the text changes.</ListItem>
@@ -13,7 +11,7 @@
 
 <Heading Level="2">Reading a count</Heading>
 <TextBlock>Put a <Code>LiveRegion</Code> next to the content it describes, and set its <Code>Text</Code> from the same data. This list reads the number of people after each search:</TextBlock>
-<ExampleViewer Example="live-region-results" />
+<ExampleViewer Example="live-region-usage" />
 <TextBlock>Screen readers only notice changes in a region that was already on the page, so put the LiveRegion on the page from the start, not inside an <Code>@@if</Code>. Its first text isn't read. Setting the same text again isn't read either, since nothing changed.</TextBlock>
 <TextBlock>For a status that shows on the page, such as a visible "4 of 8 people", put <Code>role="status"</Code> on the element that shows it rather than repeating it in a LiveRegion.</TextBlock>
 
@@ -51,19 +49,6 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        @* State: read each time the text changes *@
-        <LiveRegion Text="@($"{matches.Count} people")" />
-
-        @* Something that just happened *@
-        @inject Announcer Announcer
-
-        Announcer.Announce("Revoked the invite.");
-
-        @* MainLayout.razor, once for the app, for static pages (a ToastRegion has one) *@
-        <AnnouncerRegion />
-        """;
 
     private const string Assertive = """
         <LiveRegion Text="@uploadError" Assertive />

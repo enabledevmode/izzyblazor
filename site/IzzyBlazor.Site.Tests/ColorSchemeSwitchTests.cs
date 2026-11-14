@@ -5,7 +5,7 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>ColorSchemeSwitch in Chromium: each look changes the page and the cookie at once, and with no script it's hidden.</summary>
 public sealed class ColorSchemeSwitchTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private const string Example = "[data-ex=\"color-scheme-switch-variants\"]";
+    private const string Example = "[data-ex=\"color-scheme-switch-usage\"]";
 
     private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, bool script = true)
     {
