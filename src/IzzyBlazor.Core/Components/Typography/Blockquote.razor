@@ -159,7 +159,7 @@ else
     protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
 
     private RenderFragment? Mark() => QuoteMark
-        ? @<span class="ib-blockquote-mark" aria-hidden="true"><Icon Name="Lucide.Quote" /></span>
+        ? @<span class="ib-blockquote-mark" aria-hidden="true">&#x201C;</span>
         : null;
 
     // "Author, Source", the one the Cite links being the Source when there is one.
