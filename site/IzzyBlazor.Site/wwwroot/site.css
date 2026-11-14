@@ -96,9 +96,19 @@
 .site-hero-stage iframe {
   display: block;
   border: 0;
-  background: var(--ib-color-bg);
+  background: var(--ib-color-background) var(--site-hero-poster) 0 0 / 100% 100% no-repeat;
   transform: scale(var(--s));
   transform-origin: 0 0;
+}
+/* Until a frame paints, a picture of it shows in its place (HomePosterTests takes them), so the
+   hero looks whole at the page's first paint. The frame's own page covers it once it paints. */
+.site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-light.webp"); }
+.site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-light.webp"); }
+:root[data-ib-color-scheme="dark"] .site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
+:root[data-ib-color-scheme="dark"] .site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ib-color-scheme="light"]) .site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
+  :root:not([data-ib-color-scheme="light"]) .site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
 }
 .site-hero-window { display: none; }
 .site-hero-phone {
