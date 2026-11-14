@@ -21,6 +21,8 @@ public static class SiteApp
     private const string McpRateLimit = "mcp";
     private const string PagesRateLimit = "pages";
     private const string BusyPartition = "busy";
+    private const string ReadersPartition = "readers";
+    private const string VisitorsPartition = "visitors";
 
     // Whether the browser says the request came from one of the site's own pages: Sec-Fetch-Site
     // (every current browser), else a Referer on this host (older Safari).
@@ -51,6 +53,23 @@ public static class SiteApp
             && !request.Path.StartsWithSegments("/frame")
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
+            && !request.Path.StartsWithSegments(McpPath)
+            && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
+    }
+
+    // Any page render (frames too) that came through Fly's proxy: not the circuit, the framework's
+    // files, MCP, static files, the search box's results, or an error page re-executed for a
+    // request already let through.
+    internal static bool IsPageRender(HttpContext context)
+    {
+        var request = context.Request;
+        var path = request.Path.Value ?? "";
+        return request.Headers.ContainsKey("Fly-Client-IP")
+            && context.Features.Get<IStatusCodeReExecuteFeature>() is null
+            && context.Features.Get<IExceptionHandlerFeature>() is null
+            && !request.Path.StartsWithSegments("/_blazor")
+            && !request.Path.StartsWithSegments("/_framework")
+            && !request.Path.StartsWithSegments("/search")
             && !request.Path.StartsWithSegments(McpPath)
             && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
     }
@@ -201,9 +220,18 @@ public static class SiteApp
             // robots.txt walked Table's and Pagination's example states from many addresses, each under
             // the limit above; renders piled up on the one shared CPU until the machine ran out of
             // memory. A few render at a time and a short queue waits; the rest get a 503 to retry.
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context => IsQueryPage(context) || WasRedirected(context)
-                ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
-                : RateLimitPartition.GetNoLimiter("unlimited"));
+            // Every other page render waits for a slot too, so no crawl, whatever it asks for, can
+            // swamp the one shared CPU: a first visit from outside (no cookie, not from a page of the
+            // site, and not answered by FirstVisitCache) has 2 slots, which a crawler from many
+            // addresses fills first; readers already on the site have 6 of their own.
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                IsQueryPage(context) || WasRedirected(context)
+                    ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
+                : !IsPageRender(context)
+                    ? RateLimitPartition.GetNoLimiter("unlimited")
+                : FromThisSite(context.Request) || context.Request.Headers.Cookie.Count > 0
+                    ? RateLimitPartition.GetConcurrencyLimiter(ReadersPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 6, QueueLimit = 100, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
+                    : RateLimitPartition.GetConcurrencyLimiter(VisitorsPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 30, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
         });
 
         var app = builder.Build();
@@ -274,6 +302,8 @@ public static class SiteApp
 
             return next(context);
         });
+        // Before the limiter, so a copy served takes no render slot.
+        app.UseMiddleware<FirstVisitCache>();
         app.UseRateLimiter();
 
         // A link that opens a page in a mode (?mode=noscript, the mode switch) keeps it for the next
