@@ -294,6 +294,16 @@
     padding-inline: var(--ib-bleed-pad, 0px);
   }
 
+  /* A band with a background keeps its content off its edges where there's no column to line up
+     with (outside an AppMain with a ContentWidth, or a band kept on the column). */
+  .ib-section-bleed.ib-bg {
+    padding-inline: var(--ib-bleed-pad, var(--ib-space-6));
+  }
+
+  .ib-section.ib-bg:not(.ib-section-bleed) {
+    padding-inline: var(--ib-space-6);
+  }
+
   /* Splitter: panes in a flex row (or column), sized on the server. A pane's size is its basis,
      held between its min and max; a pane with none fills. The bar's line is 1px; its hit area is
      wider and lies over the panes' edges. */
