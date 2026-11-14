@@ -5,9 +5,9 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* Centered from 768px up; on phones everything starts at the edge, like the answers. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <SectionHeader Title="Questions and answers" TitleId="FAQ_closed_off-title" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
+            <SectionHeader Title="Questions, answered" TitleId="FAQ_closed_off-title" Description="Everything you might ask before you start." Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             <Container Size="ContainerSize.Md" Gutters="false">
-                <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg">
+                <Accordion Variant="AccordionVariant.Flush">
                     <AccordionItem Title="Is there a free plan?">
                         <TextBlock Color="Color.Muted">Yes. The free plan has every feature for up to three people, with no time limit and no card needed.</TextBlock>
                     </AccordionItem>
