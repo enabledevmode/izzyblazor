@@ -1,0 +1,110 @@
+@inject NavigationManager Navigation
+
+@* Plans side by side, from izzy add pricing. It's yours: change the plans in @code below. The
+   button sits under the price, so buttons line up whatever the lengths of the lists. *@
+<Section Spacing="SectionSpacing.Lg" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        <Column Gap="new() { Base = 8, Md = 10 }" Align="Align.Center">
+            @*#if (HasLead) *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" Description="{{Lead}}" AlignSelf="Align.Stretch" />
+            @*#else *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" AlignSelf="Align.Stretch" />
+            @*#endif *@
+            @*#if (Yearly) *@
+            @* Links, so the switch works on a static page and a yearly price can be linked to. *@
+            <TabNav Label="Billing period" Variant="TabsVariant.Segmented">
+                <TabLink Href="@BillingHref("monthly")" Label="Monthly" Current="!_yearly" />
+                <TabLink Href="@BillingHref("yearly")" Label="Yearly" Badge="2 months free" Current="_yearly" />
+            </TabNav>
+            @*#endif *@
+            <Grid Columns="new() { Base = 1, Md = 2, Lg = Tiers.Length }" Gap="5" AlignSelf="Align.Stretch">
+                @foreach (var tier in Tiers)
+                {
+                    <Card Title="@tier.Name" TitleLevel="TierLevel" Description="@tier.For"
+                          Border="@(tier.Popular ? 2 : default(Responsive<int>))" BorderColor="@(tier.Popular ? Color.Primary : default(Responsive<Color>))">
+                        @if (tier.Popular)
+                        {
+                            <CardActions><Badge Accent="Accent.Primary">Most popular</Badge></CardActions>
+                        }
+                        <CardBody Gap="4">
+                            <Column Gap="1">
+                                <TextBlock>
+                                    <TextBlock As="span" Size="TextSize.Xl4" Weight="FontWeight.Semibold" TabularNums>@Amount(tier)</TextBlock>
+                                    @if (Period(tier) is { } period)
+                                    {
+                                        <TextBlock As="span" Color="Color.Muted" aria-hidden="true"> / @period</TextBlock>
+                                        <VisuallyHidden> per @period</VisuallyHidden>
+                                    }
+                                </TextBlock>
+                                @* Always there, empty or not, so prices and buttons line up across the plans. *@
+                                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(tier.Note ?? " ")</TextBlock>
+                            </Column>
+                            @if (tier.Popular)
+                            {
+                                <Button Href="@tier.Href" FullWidth>@tier.Action</Button>
+                            }
+                            else
+                            {
+                                <Button Href="@tier.Href" FullWidth Variant="ButtonVariant.Outline" Accent="Accent.Neutral">@tier.Action</Button>
+                            }
+                            <Divider />
+                            @if (tier.Includes is not null)
+                            {
+                                <TextBlock Weight="FontWeight.Medium">@tier.Includes</TextBlock>
+                            }
+                            <List Plain Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="2">
+                                @foreach (var feature in tier.Features)
+                                {
+                                    <ListItem>@feature</ListItem>
+                                }
+                            </List>
+                        </CardBody>
+                    </Card>
+                }
+            </Grid>
+            @*#if (HasCompare) *@
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                Prices in US dollars, before tax. <Anchor Href="{{CompareHref}}">Compare all features</Anchor>
+            </TextBlock>
+            @*#endif *@
+        </Column>
+    </Container>
+</Section>
+
+@code {
+    // Each plan: name, who it's for, the price a month and a year (null for Custom; 0 is free),
+    // a line under the price, the button, whether it's the one to pick, and what it includes.
+    private static readonly Tier[] Tiers =
+    [
+        new("Free", "For trying it on your own.", 0, 0, "Free forever, no card needed.", "Start free", "{{LinkBase}}sign-up", false,
+            null, ["One person", "Three projects", "Community help"]),
+        new("Team", "For small teams.", 29, 290, "Per person. Cancel any time.", "Start a free trial", "{{LinkBase}}sign-up?plan=team", true,
+            "Everything in Free, plus:", ["Up to 25 people", "Unlimited projects", "Roles and permissions", "Help by email in one working day"]),
+        new("Business", "For security reviews and SSO.", 79, 790, "Per person, billed to one invoice.", "Talk to sales", "{{LinkBase}}contact", false,
+            "Everything in Team, plus:", ["Single sign-on", "Audit log", "Data kept in the EU or US", "A named contact for help"]),
+    ];
+
+    private const int TierLevel = {{HeadingLevel}} + 1;
+
+    [SupplyParameterFromQuery(Name = "billing")]
+    private string? Billing { get; set; }
+
+    private bool _yearly;
+
+    protected override void OnParametersSet() => _yearly = Billing == "yearly";
+
+    private string BillingHref(string billing) => Navigation.GetUriWithQueryParameter("billing", billing);
+
+    // A free plan doesn't change with the period; yearly shows what's charged for the year.
+    private string Amount(Tier tier) => tier.Monthly switch
+    {
+        null => "Custom",
+        0 => "$0",
+        _ => $"${(_yearly ? tier.Yearly : tier.Monthly):N0}",
+    };
+
+    private string? Period(Tier tier) => tier.Monthly is null or 0 ? null : _yearly ? "year" : "month";
+
+    private sealed record Tier(string Name, string For, decimal? Monthly, decimal? Yearly, string? Note, string Action, string Href,
+        bool Popular, string? Includes, string[] Features);
+}
