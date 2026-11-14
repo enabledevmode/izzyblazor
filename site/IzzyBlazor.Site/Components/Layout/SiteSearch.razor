@@ -42,9 +42,12 @@
 
     private string? _query;
 
+    private bool Mac => HttpContext is not null && IsApple(HttpContext.Request);
+
     // Chromium says the platform in a client hint; Safari and Firefox only in the user agent.
-    private bool Mac => HttpContext?.Request.Headers["Sec-CH-UA-Platform"].ToString() is { Length: > 0 } platform
+    // FirstVisitCache keys its copies by it too, since the shortcut's keys are in the page.
+    internal static bool IsApple(HttpRequest request) => request.Headers["Sec-CH-UA-Platform"].ToString() is { Length: > 0 } platform
         ? platform.Contains("macOS", StringComparison.OrdinalIgnoreCase) || platform.Contains("iOS", StringComparison.OrdinalIgnoreCase)
-        : HttpContext?.Request.Headers.UserAgent.ToString() is { } agent
+        : request.Headers.UserAgent.ToString() is { } agent
           && (agent.Contains("Macintosh", StringComparison.Ordinal) || agent.Contains("iPhone", StringComparison.Ordinal) || agent.Contains("iPad", StringComparison.Ordinal));
 }
