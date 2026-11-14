@@ -29,6 +29,14 @@
         </CardBody>
     </Card>
 }
+else
+{
+    @* The docs preview: what the visitor chose, as the real notice would leave it, and a way back. *@
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+        @(Choice == "accept" ? "Accepted all cookies." : "Rejected analytics cookies.") The notice won't show again.
+        <Anchor Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["choice"] = null, ["returnUrl"] = null })">Show it again</Anchor>
+    </TextBlock>
+}
 
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
@@ -42,6 +50,10 @@
 
     protected override void OnInitialized()
     {
-        Show = true;
+        Show = Choice is null;
     }
+
+    // The docs preview's buttons put the choice in the address instead of posting it.
+    [SupplyParameterFromQuery(Name = "choice")]
+    private string? Choice { get; set; }
 }
