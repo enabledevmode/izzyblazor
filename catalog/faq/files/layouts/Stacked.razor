@@ -3,7 +3,7 @@
 <Section Spacing="SectionSpacing.Lg" aria-labelledby="{{Name}}-title">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* Centered from 768px up; on phones everything starts at the edge, like the answers. *@
-        <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
+        <Column Gap="8" Align="new() { Base = Align.Start, Md = Align.Center }">
             @*#if (HasLead) *@
             <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Description="{{Lead}}" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             @*#else *@
@@ -11,9 +11,9 @@
             @*#endif *@
             <Container Size="ContainerSize.Md" Gutters="false">
                 @*#if (Exclusive) *@
-                <Accordion Variant="AccordionVariant.Flush" Exclusive>
+                <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg" Exclusive>
                 @*#else *@
-                <Accordion Variant="AccordionVariant.Flush">
+                <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg">
                 @*#endif *@
                     @*#if (OpenFirst) *@
                     <AccordionItem Title="Is there a free plan?" Open>
