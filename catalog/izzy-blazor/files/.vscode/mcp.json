@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "izzyblazor": {
+      "type": "http",
+      "url": "https://izzyblazor.com/mcp"
+    }
+  }
+}
