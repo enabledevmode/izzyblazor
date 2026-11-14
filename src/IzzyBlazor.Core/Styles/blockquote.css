@@ -77,17 +77,17 @@
     border-radius: var(--ib-radius-md) 0 0 var(--ib-radius-md);
   }
 
-  /* A typographic opening quote, filled and in a serif, sized off the quote and cropped to its ink. */
+  /* A typographic opening quote, filled and in a serif: 4.5 times the quote's size, its line
+     cropped to the glyph's ink (0.44em), so it sits just above the quote. */
   .ib-blockquote-mark {
     display: block;
-    height: 0.45em;
-    margin-block-end: var(--ib-space-1);
-    overflow: visible;
+    height: 0.44em;
+    margin-block-end: calc(var(--ib-space-1) - 0.06em);
     color: var(--ib-quote-mark);
     font-family: Georgia, "Times New Roman", serif;
-    font-size: 2.125em;
+    font-size: 4.5em;
     font-weight: 400;
-    line-height: 0.6;
+    line-height: 1;
   }
 
   /* A pull quote breathes: 24px between its mark, the quote and who said it. */
@@ -96,7 +96,7 @@
   }
 
   .ib-blockquote-pull .ib-blockquote-mark {
-    margin-block-end: var(--ib-space-6);
+    margin-block-end: calc(var(--ib-space-6) - 0.06em);
   }
 
   .ib-blockquote-pull .ib-blockquote-person {
