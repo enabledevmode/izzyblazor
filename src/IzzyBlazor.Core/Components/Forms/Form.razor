@@ -40,7 +40,7 @@
               Enhance="Enhance"
               OnValidSubmit="ValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
-              OnSubmit="OnSubmit"
+              OnSubmit="Submit"
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
@@ -60,7 +60,7 @@ else
               Enhance="Enhance"
               OnValidSubmit="ValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
-              OnSubmit="OnSubmit"
+              OnSubmit="Submit"
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
@@ -167,6 +167,21 @@ else
     /// </remarks>
     [Parameter] public bool ConfirmLeave { get; set; }
 
+    /// <summary>
+    /// Adds a field bots fill and people never see. A post with it filled skips
+    /// <see cref="OnValidSubmit"/> (and <see cref="OnSubmit"/>) and calls <see cref="OnSpam"/>
+    /// instead, so nothing is saved. Checked on static pages, where bots post; an interactive page
+    /// never posts the field.
+    /// </summary>
+    [Parameter] public bool Honeypot { get; set; }
+
+    /// <summary>
+    /// Called in place of <see cref="OnValidSubmit"/> when a bot filled the <see cref="Honeypot"/>.
+    /// Answer it as you answer a person, such as with the same redirect, so a bot can't tell it
+    /// was caught.
+    /// </summary>
+    [Parameter] public EventCallback<EditContext> OnSpam { get; set; }
+
     /// <summary>The fields and buttons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -178,14 +193,32 @@ else
 
     private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
-    // OnValidSubmit, then (with ConfirmLeave, on an interactive page) the form counts as saved.
+    // OnValidSubmit, then (with ConfirmLeave, on an interactive page) the form counts as saved; a
+    // filled honeypot goes to OnSpam instead.
     private EventCallback<EditContext> ValidSubmit =>
-        ConfirmLeave && OnValidSubmit.HasDelegate ? _validSubmit ??= EventCallback.Factory.Create<EditContext>(this, SubmitValid) : OnValidSubmit;
+        (ConfirmLeave || Honeypot) && OnValidSubmit.HasDelegate ? _validSubmit ??= EventCallback.Factory.Create<EditContext>(this, SubmitValid) : OnValidSubmit;
 
     private EventCallback<EditContext>? _validSubmit;
 
+    // OnSubmit, or OnSpam for a filled honeypot. Wrapped only when set: EditForm takes OnSubmit or OnValidSubmit, not both.
+    private EventCallback<EditContext> Submit =>
+        Honeypot && OnSubmit.HasDelegate ? _submit ??= EventCallback.Factory.Create<EditContext>(this, SubmitAny) : OnSubmit;
+
+    private EventCallback<EditContext>? _submit;
+
+    // Set from the post by the honeypot field, before the submit's handlers run.
+    private bool _spam;
+
+    private Task SubmitAny(EditContext context) => Honeypot && _spam ? OnSpam.InvokeAsync(context) : OnSubmit.InvokeAsync(context);
+
     private async Task SubmitValid(EditContext context)
     {
+        if (Honeypot && _spam)
+        {
+            await OnSpam.InvokeAsync(context);
+            return;
+        }
+
         await OnValidSubmit.InvokeAsync(context);
         if (RendererInfo.IsInteractive)
         {
@@ -202,8 +235,18 @@ else
             builder.CloseComponent();
         }
 
-        builder.AddContent(2, Fields);
+        if (Honeypot)
+        {
+            builder.OpenComponent<FormHoneypot>(2);
+            builder.AddComponentParameter(3, nameof(FormHoneypot.Label), TextDefaults.HoneypotLabel);
+            builder.AddComponentParameter(4, nameof(FormHoneypot.Report), _report ??= filled => _spam = filled);
+            builder.CloseComponent();
+        }
+
+        builder.AddContent(5, Fields);
     };
+
+    private Action<bool>? _report;
 
     private static RenderFragment LeaveGuard(EditContext context) => builder =>
     {
