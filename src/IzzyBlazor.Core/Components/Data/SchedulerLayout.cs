@@ -55,6 +55,13 @@ internal static class SchedulerLayout
         _ => (date, Math.Max(1, agendaDays)),
     };
 
+    /// <summary>The day nearest a date that its view shows: a Saturday in a work week is that week's Friday.</summary>
+    public static DateOnly Shown(SchedulerView view, DateOnly date, DayOfWeek firstDay, int agendaDays)
+    {
+        var (first, days) = Range(view, date, firstDay, agendaDays);
+        return date < first ? first : date > first.AddDays(days - 1) ? first.AddDays(days - 1) : date;
+    }
+
     /// <summary>The date a view's previous or next page opens on.</summary>
     public static DateOnly Step(SchedulerView view, DateOnly date, int by, int agendaDays) => view switch
     {

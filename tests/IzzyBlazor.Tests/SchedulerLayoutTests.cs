@@ -7,6 +7,15 @@ public class SchedulerLayoutTests
     private static DateTime At(int day, int hour, int minute = 0) => Monday.AddDays(day).ToDateTime(new TimeOnly(hour, minute));
 
     [Fact]
+    public void A_new_appointment_on_a_weekend_goes_on_a_day_the_work_week_shows()
+    {
+        // Saturday and Sunday: the week's Friday and the next week's Monday, as the view shows them.
+        Assert.Equal(Monday.AddDays(4), SchedulerLayout.Shown(SchedulerView.WorkWeek, Monday.AddDays(5), DayOfWeek.Sunday, 7));
+        Assert.Equal(Monday.AddDays(7), SchedulerLayout.Shown(SchedulerView.WorkWeek, Monday.AddDays(6), DayOfWeek.Sunday, 7));
+        Assert.Equal(Monday.AddDays(2), SchedulerLayout.Shown(SchedulerView.WorkWeek, Monday.AddDays(2), DayOfWeek.Sunday, 7));
+    }
+
+    [Fact]
     public void Overlapping_appointments_sit_side_by_side_and_a_later_one_reuses_a_free_column()
     {
         SchedulerEntry[] entries =

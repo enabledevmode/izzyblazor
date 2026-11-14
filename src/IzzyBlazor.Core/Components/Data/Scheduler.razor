@@ -1305,7 +1305,8 @@
 
     RenderFragment? ISchedulerToolbar.NewPart => !Editable ? null : __builder =>
     {
-        var date = CurrentDate;
+        // A day the view shows, so the new appointment is where the reader can see it.
+        var date = SchedulerLayout.Shown(CurrentView, CurrentDate, FirstDay, AgendaDays);
             <a class="ib-btn ib-btn-primary ib-btn-solid ib-sched-new" href="@NewHref(date)" data-ib-key="@Key("c")" aria-keyshortcuts="@Key("C")" aria-label="@TextDefaults.SchedulerNew" title="@TextDefaults.SchedulerNew">
                 <Icon Purpose="IconPurpose.Plus" /><span class="ib-sched-new-text">@TextDefaults.SchedulerNewShort</span>
             </a>
