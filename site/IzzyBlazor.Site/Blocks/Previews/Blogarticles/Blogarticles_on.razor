@@ -5,7 +5,7 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 10, Md = 12 }">
             <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="new() { Base = Align.Start, Md = Align.End }" Justify="Justify.Between">
-                <SectionHeader Title="From the blog" TitleId="Blogarticles_on-title" Description="What we're building, and what we learn along the way." Align="TextAlign.Start" />
+                <SectionHeader Title="From the blog" TitleId="Blogarticles_on-title" Description="Guides, product news and how we build MyApp." Align="TextAlign.Start" />
                 <TextBlock Weight="FontWeight.Medium"><Anchor Href="blocks/articles" Underline="AnchorUnderline.Hover">All posts <Icon Name="Lucide.ArrowRight" /></Anchor></TextBlock>
             </Stack>
             <Grid As="ul" Columns="new() { Base = 1, Md = 3 }" Gap="new() { Base = 10, Md = 8 }">
@@ -51,15 +51,15 @@
     // and a cover image from wwwroot to show instead.
     private static readonly Post[] Posts =
     [
-        new("blocks/articles?post=blog/static-first", "Engineering", "Why our pages render on the server first",
-            "Most of what people do in the app is read. Here's how rendering on the server made every page faster, and what still runs in the browser.",
-            "Kenji Watanabe", new DateOnly(2026, 11, 3), 7, "primary"),
-        new("blocks/articles?post=blog/customer-interviews", "Product", "What forty customer interviews taught us",
-            "We asked teams how they plan their week. The answers changed our roadmap for next year.",
-            "Lena Fischer", new DateOnly(2026, 10, 21), 5, "success"),
-        new("blocks/articles?post=blog/support-queue", "Company", "Moving support from an inbox to a queue",
-            "Every ticket now has an owner from the moment it arrives. The median first reply fell from six hours to under an hour.",
-            "Omar Haddad", new DateOnly(2026, 10, 8), 4, "warning"),
+        new("blocks/articles?post=blog/static-pages-live-feel", "Engineering", "Static pages, live feel: how we built MyApp",
+            "Most of MyApp renders on the server. Here's how a small script makes it feel instant anyway.",
+            "Jonas Weber", new DateOnly(2026, 11, 10), 6, "primary"),
+        new("blocks/articles?post=blog/shorter-planning-meetings", "Guides", "Five ways to run a shorter planning meeting",
+            "Agendas, owners and a hard stop: the habits our customers swear by.",
+            "Sara Costa", new DateOnly(2026, 11, 3), 4, "success"),
+        new("blocks/articles?post=blog/whats-new-in-november", "Product", "What's new in November",
+            "Invoices, a faster dashboard and a dozen smaller fixes.",
+            "Fatima Ali", new DateOnly(2026, 11, 1), 3, "warning"),
     ];
 
     // Where each placeholder's circle sits, post by post.

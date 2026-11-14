@@ -5,7 +5,7 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* The intro is centered over the grid from 768px up; on phones it starts at the edge, like the features. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <SectionHeader Title="Everything you need to run your work" TitleId="Features_three-title" Description="The parts every app needs, built in and ready the day you start." Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
+            <SectionHeader Title="Everything your team needs to ship" TitleId="Features_three-title" Description="Plan, track and release in one place, without the busywork." Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = 3 }" Gap="10" AlignSelf="Align.Stretch">
                 @foreach (var feature in Features)
                 {
@@ -26,12 +26,12 @@
     // Each feature: an icon (any Lucide icon), a title and one sentence.
     private static readonly Feature[] Features =
     [
-        new(Lucide.Zap, "Fast by default", "Pages render on the server and arrive ready to read, with no loading spinners."),
-        new(Lucide.ShieldCheck, "Secure sign-in", "Accounts, two-factor sign-in and passkeys, ready the day you start."),
-        new(Lucide.Users, "Built for teams", "Invite your team, give each person a role and see who changed what."),
-        new(Lucide.ChartColumn, "Reports that answer", "Charts and tables you can filter, export and share with a link."),
-        new(Lucide.Smartphone, "Works on every screen", "Every page fits a phone, a tablet and a wide monitor."),
-        new(Lucide.LifeBuoy, "Help when you need it", "Guides for every feature, and a real person when you're stuck."),
+        new(Lucide.Calendar, "Plans that stay current", "Roadmaps update as work moves, so nobody chases status."),
+        new(Lucide.Zap, "Fast by default", "Pages render on the server and load in a blink."),
+        new(Lucide.Plug, "Works with your tools", "Connect GitHub, Slack and your calendar in minutes."),
+        new(Lucide.Shield, "Private by design", "Roles and single sign-on keep the right people in."),
+        new(Lucide.ChartColumn, "Reports without spreadsheets", "See progress by team, project or week."),
+        new(Lucide.LifeBuoy, "Help when you need it", "Real people answer, usually within the hour."),
     ];
 
     private sealed record Feature(IconData Icon, string Title, string Text);

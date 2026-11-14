@@ -15,8 +15,9 @@
         "type": "string", "enum": ["MonthlyAndYearly", "MonthlyOnly"], "default": "MonthlyAndYearly", "x-priority": "important",
         "description": "MonthlyAndYearly adds a switch between the two, kept in the address (?billing=yearly); MonthlyOnly shows monthly prices alone."
       },
-      "Title": { "type": "string", "default": "Plans that grow with your team", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "Start free. Upgrade when you need more people or single sign-on.", "description": "The sentence under the heading. Empty leaves it out." },
+      "Eyebrow": { "type": "string", "default": "Pricing", "description": "A short pill above the heading. Empty leaves it out." },
+      "Title": { "type": "string", "default": "Simple, fair pricing", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "Start free. Upgrade when your team grows.", "description": "The sentence under the heading. Empty leaves it out." },
       "HeadingLevel": { "type": "string", "enum": ["2", "1"], "default": "2", "description": "2 under the page's own heading; 1 when the plans are the page, such as /pricing. The plans' names are a level below." },
       "CompareHref": { "type": "string", "default": "features", "description": "Where \"Compare all features\" goes, under the plans. Empty leaves the line out." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each plan's address; the docs previews use it to keep their links on the page." },

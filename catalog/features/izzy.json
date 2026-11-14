@@ -20,8 +20,8 @@
         "type": "string", "enum": ["3", "2"], "default": "3",
         "description": "Columns on a wide screen. Three suits six or nine features; two suits four."
       },
-      "Title": { "type": "string", "default": "Everything you need to run your work", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "The parts every app needs, built in and ready the day you start.", "description": "The sentence under the heading. Empty leaves it out." },
+      "Title": { "type": "string", "default": "Everything your team needs to ship", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "Plan, track and release in one place, without the busywork.", "description": "The sentence under the heading. Empty leaves it out." },
       "Name": { "type": "string", "default": "Features", "description": "The component's name." },
       "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }

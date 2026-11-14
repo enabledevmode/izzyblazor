@@ -6,9 +6,9 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 8, Md = 10 }" Align="Align.Center">
             @*#if (HasLead) *@
-            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" Description="{{Lead}}" AlignSelf="Align.Stretch" />
+            <SectionHeader Eyebrow="{{Eyebrow}}" Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" Description="{{Lead}}" AlignSelf="Align.Stretch" />
             @*#else *@
-            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" AlignSelf="Align.Stretch" />
+            <SectionHeader Eyebrow="{{Eyebrow}}" Title="{{Title}}" TitleId="{{Name}}-title" TitleLevel="{{HeadingLevel}}" AlignSelf="Align.Stretch" />
             @*#endif *@
             @*#if (Yearly) *@
             @* Links, so the switch works on a static page and a yearly price can be linked to. *@
@@ -88,12 +88,12 @@
     // a line under the price, the button, whether it's the one to pick, and what it includes.
     private static readonly Tier[] Tiers =
     [
-        new("Free", "For trying {{ProjectName}} on your own.", 0, 0, null, "Start free", "{{LinkBase}}sign-up", false,
-            null, ["One person", "Three projects", "Community help"]),
-        new("Team", "For small teams shipping together.", 29, 290, "per person", "Start a free trial", "{{LinkBase}}sign-up?plan=team", true,
-            "Everything in Free, plus:", ["Up to 25 people", "Unlimited projects", "Roles and permissions", "Help by email in one working day"]),
-        new("Business", "For companies with more to manage.", 79, 790, "per person", "Talk to sales", "{{LinkBase}}contact", false,
-            "Everything in Team, plus:", ["Single sign-on", "Audit log", "Data kept in the EU or US", "A named contact for help"]),
+        new("Starter", "For trying {{ProjectName}} on your own.", 0, 0, null, "Start free", "{{LinkBase}}sign-up", false,
+            null, ["1 project", "Up to 3 people", "Community support"]),
+        new("Team", "For small teams shipping together.", 12, 120, "per person", "Start free trial", "{{LinkBase}}sign-up?plan=team", true,
+            null, ["Unlimited projects", "Up to 25 people", "Email support", "Single sign-on"]),
+        new("Business", "For companies with more to manage.", 29, 290, "per person", "Start free trial", "{{LinkBase}}sign-up?plan=business", false,
+            "Everything in Team, plus:", ["Unlimited people", "Audit log", "SAML and SCIM"]),
     ];
 
     private const int TierLevel = {{HeadingLevel}} + 1;
