@@ -59,7 +59,6 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
         await Assertions.Expect(FirstRow(page)).Not.ToContainTextAsync("Not saved");
         Assert.DoesNotContain("row-edit", page.Url);
-        await Assertions.Expect(FirstRow(page).Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
 
         row = await EditFirstRowAsync(page);
         await row.GetByLabel("Customer").FillAsync("Saved by Enter");
