@@ -2055,6 +2055,7 @@
       ],
       "examples": [
         { "id": "banner-usage", "title": "Status and color", "lead": "Put the message in a `Banner` at the top of the page. A status sets what the message means, and its color and icon. To choose one, set `Status`.", "after": ["For an announcement in your brand's color, set `Accent` and `Icon` instead."] },
+        { "id": "banner-announcement-bar", "title": "Announcement bar" },
         { "id": "banner-dismiss", "title": "Dismissing", "lead": "To add a close button, set `Dismissible`. The banner then stays closed on later pages, remembered under its `RememberKey`.",
           "notes": {
             "noscript": "The close button hides the banner on this page only: with JavaScript off, nothing is remembered. If it was closed in another render mode first, the cookie keeps it out of this one too.",

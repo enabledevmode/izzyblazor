@@ -41,6 +41,10 @@
 <Code Block Language="razor" Title="MainLayout.razor">@InShell</Code>
 <TextBlock>A sticky banner pushes the sticky header and sidebar down by its height. When the message wraps to a second line, IzzyBlazor's script measures the new height. With JavaScript off, the banner keeps room for one line.</TextBlock>
 
+<Heading Level="2">Announcement bar</Heading>
+<TextBlock>An announcement bar puts one line of news across the top of every page. Set <Code>Accent</Code> to your brand's color with <Code>Variant="AlertVariant.Solid"</Code>, and <Code>Center</Code> to center the message. A <Code>Badge</Code> in a solid banner takes the banner's text color, as the "New" here. Give each announcement its own <Code>RememberKey</Code>, so a new one shows again to people who closed the last.</TextBlock>
+<ExampleViewer Example="banner-announcement-bar" />
+
 <Heading Level="2">Shown after the page loads</Heading>
 <TextBlock>A banner can appear in response to something, such as a lost connection on interactive pages. Set <Code>Announce</Code> so screen readers read it out when it appears. Screen readers find a banner that's there when the page loads as a labeled region instead.</TextBlock>
 <Code Block Language="razor">@Later</Code>
