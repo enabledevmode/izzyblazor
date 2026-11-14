@@ -12,6 +12,9 @@
     <meta property="og:image" content="@($"{Navigation.BaseUri}og-image.png")" />
     <meta property="og:site_name" content="IzzyBlazor" />
     <meta name="twitter:card" content="summary_large_image" />
+    @* Inter's Latin file, fetched with the stylesheet rather than once text is laid out, so text
+       doesn't paint in the fallback font and then rewrap in Inter (the same URL izzyblazor.css uses). *@
+    <link rel="preload" href="_content/IzzyBlazor.Core/fonts/inter-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
     @* A no-script page reads the library's stylesheet as JavaScript off would (NoScriptCss). *@
     <link rel="stylesheet" href="@(NoScriptPage ? NoScript.Href : Assets[NoScriptCss.LibraryPath])" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
