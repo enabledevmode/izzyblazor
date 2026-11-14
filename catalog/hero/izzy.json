@@ -28,7 +28,7 @@
         "description": "Screenshot frames the image in a browser window; Image shows it as it is."
       },
       "Address": { "type": "string", "default": "myapp.com", "description": "The address in the screenshot's browser bar. Empty shows only the dots." },
-      "ImageSrc": { "type": "string", "default": "images/hero-screenshot.svg", "description": "The image, from wwwroot. The default is a placeholder to replace." },
+      "ImageSrc": { "type": "string", "default": "", "description": "The image, from wwwroot. Empty uses a placeholder to replace: a dashboard for Screenshot, a landscape for Image." },
       "ImageAlt": { "type": "string", "default": "A screenshot of the app", "description": "What the image shows, for screen readers. Empty marks it decorative." },
       "HeadingLevel": { "type": "string", "enum": ["1", "2"], "default": "1", "description": "1 makes the headline the page's main heading; use 2 when the page has its own." },
       "Name": { "type": "string", "default": "Hero", "description": "The component's name." },
@@ -44,7 +44,9 @@
     "EyebrowLink": "EyebrowHref != \"\"",
     "HasEyebrow": "Eyebrow != \"\"",
     "HasSecondary": "SecondaryText != \"\"",
-    "Placeholder": "Media != \"None\" && ImageSrc == \"images/hero-screenshot.svg\""
+    "OwnImage": "ImageSrc != \"\"",
+    "ShotPlaceholder": "Media == \"Screenshot\" && ImageSrc == \"\"",
+    "PicturePlaceholder": "Media == \"Image\" && ImageSrc == \"\""
   },
   "accessibility": [
     "The section is named by its headline, which is the page's h1 (HeadingLevel 1) or an h2 under the page's own heading (HeadingLevel 2).",
@@ -60,7 +62,10 @@
   ],
   // Previews sit under the docs page's own h1, and their buttons stay on the docs page.
   "preview": { "HeadingLevel": "2", "PrimaryHref": "blocks/hero", "SecondaryHref": "blocks/hero" },
-  "exclude": [ { "if": "!Placeholder", "paths": ["wwwroot/images/hero-screenshot.svg"] } ],
+  "exclude": [
+    { "if": "!ShotPlaceholder", "paths": ["wwwroot/images/hero-screenshot.svg"] },
+    { "if": "!PicturePlaceholder", "paths": ["wwwroot/images/hero-image.svg"] }
+  ],
   "inserts": [
     { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }

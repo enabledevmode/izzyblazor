@@ -28,10 +28,18 @@
                               Address="{{Address}}"
                 @*#endif *@
                               Shadow="Shadow.Lg">
+                    @*#if (OwnImage) *@
                     <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
+                    @*#else *@
+                    <Image Src="images/hero-screenshot.svg" Alt="{{ImageAlt}}" Lazy="false" />
+                    @*#endif *@
                 </BrowserFrame>
             @*#else *@
+                @*#if (OwnImage) *@
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
+                @*#else *@
+                <Image Src="images/hero-image.svg" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
+                @*#endif *@
             @*#endif *@
             </Box>
         </Grid>
@@ -60,10 +68,18 @@
                           Address="{{Address}}"
             @*#endif *@
                           Shadow="Shadow.Lg" AlignSelf="Align.Stretch">
+                @*#if (OwnImage) *@
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" />
+                @*#else *@
+                <Image Src="images/hero-screenshot.svg" Alt="{{ImageAlt}}" Lazy="false" />
+                @*#endif *@
             </BrowserFrame>
             @*#elif (HasMedia) *@
+            @*#if (OwnImage) *@
             <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
+            @*#else *@
+            <Image Src="images/hero-image.svg" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
+            @*#endif *@
             @*#endif *@
         </Stack>
     @*#else *@
