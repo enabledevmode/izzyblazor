@@ -252,14 +252,19 @@
     padding: var(--ib-space-6) var(--ib-space-4);
   }
 
+  /* A page that's only a message: a 72px circle, 20px to the title, 8px to the message, 32px to the button. */
   .ib-empty-lg {
-    --ib-empty-icon: 4rem;
-    --ib-empty-glyph: 2rem;
+    --ib-empty-icon: 4.5rem;
+    --ib-empty-glyph: 1.75rem;
     --ib-empty-title: var(--ib-text-xl);
     --ib-empty-text: var(--ib-text-md);
 
     padding: var(--ib-space-16) var(--ib-space-8);
   }
+
+  .ib-empty-lg > .ib-empty-icon { margin-bottom: var(--ib-space-5); }
+  .ib-empty-lg > .ib-empty-description { margin-top: var(--ib-space-2); }
+  .ib-empty-lg > .ib-empty-actions { margin-top: var(--ib-space-8); }
 
   .ib-empty-bordered {
     border: 1px var(--ib-bst-now, dashed) var(--ib-color-outline);
@@ -317,6 +322,8 @@
   .ib-empty-actions {
     display: flex;
     flex-wrap: wrap;
+    /* The full width, so a button can be full width on phones; the buttons stay centered. */
+    align-self: stretch;
     justify-content: center;
     gap: var(--ib-space-2);
     margin-top: var(--ib-space-5);
