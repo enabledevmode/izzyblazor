@@ -1,0 +1,42 @@
+@* What the product does, from izzy add features. It's yours: change the intro and the features
+   in @code below. Three to nine read well; each is an icon, a title and one sentence. *@
+<Section Spacing="SectionSpacing.Lg" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        @* The intro is centered over the grid from 768px up; on phones it starts at the edge, like the features. *@
+        <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
+            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="new() { Base = Align.Start, Md = Align.Center }">
+                <Heading Level="2" id="{{Name}}-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Balance">{{Title}}</Heading>
+                @*#if (HasLead) *@
+                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Pretty">{{Lead}}</TextBlock>
+                @*#endif *@
+            </Column>
+            <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = {{Columns}} }" Gap="new() { Base = 10, Md = 12 }" AlignSelf="Align.Stretch">
+                @foreach (var feature in Features)
+                {
+                    <Column As="li" Gap="2" Align="Align.Start">
+                        <Center Width="Length.Rem(2.5)" Height="Length.Rem(2.5)" Bg="Color.PrimarySoft" Radius="Radius.Md" MarginBottom="2">
+                            <Icon Name="feature.Icon" Size="IconSize.Lg" Color="Color.PrimaryText" />
+                        </Center>
+                        <Heading Level="3" Size="TextSize.Lg">@feature.Title</Heading>
+                        <TextBlock Color="Color.Muted" Wrap="TextWrap.Pretty">@feature.Text</TextBlock>
+                    </Column>
+                }
+            </Grid>
+        </Column>
+    </Container>
+</Section>
+
+@code {
+    // Each feature: an icon (any Lucide icon), a title and one sentence.
+    private static readonly Feature[] Features =
+    [
+        new(Lucide.Zap, "Fast by default", "Pages render on the server and arrive ready to read, with no loading spinners."),
+        new(Lucide.ShieldCheck, "Secure sign-in", "Accounts, two-factor sign-in and passkeys, ready the day you start."),
+        new(Lucide.Users, "Built for teams", "Invite your team, give each person a role and see who changed what."),
+        new(Lucide.ChartColumn, "Reports that answer", "Charts and tables you can filter, export and share with a link."),
+        new(Lucide.Smartphone, "Works on every screen", "Every page fits a phone, a tablet and a wide monitor."),
+        new(Lucide.LifeBuoy, "Help when you need it", "Guides for every feature, and a real person when you're stuck."),
+    ];
+
+    private sealed record Feature(IconData Icon, string Title, string Text);
+}

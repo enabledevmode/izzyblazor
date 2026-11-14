@@ -1,0 +1,46 @@
+// The free features block: a grid of icons, titles and sentences, written into the project as a
+// component you own (Components/Blocks/Features.razor) and added at the end of a page. Its Rows
+// layout is Pro: that file lives only in the Pro catalogue.
+{
+  "id": "features",
+  "name": "Features",
+  "kind": "block",
+  "category": "Features",
+  "summary": "What the product does: a heading over a grid of features, each an icon, a title and one sentence.",
+  "components": ["Section", "Container", "Column", "Grid", "Center", "Icon", "Heading", "TextBlock"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Grid", "Rows"], "default": "Grid", "x-tiers": { "Rows": "pro" }, "x-priority": "important",
+        "description": "Grid sets the features out in columns; Rows gives each a row of its own beside a picture."
+      },
+      "Columns": {
+        "type": "string", "enum": ["3", "2"], "default": "3",
+        "description": "Columns on a wide screen. Three suits six or nine features; two suits four."
+      },
+      "Title": { "type": "string", "default": "Everything you need to run your work", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "The parts every app needs, built in and ready the day you start.", "description": "The sentence under the heading. Empty leaves it out." },
+      "Name": { "type": "string", "default": "Features", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "HasLead": "Lead != \"\""
+  },
+  "accessibility": [
+    "The section is named by its heading, an h2; each feature's title is an h3 under it.",
+    "The features are a list, so screen readers say how many there are.",
+    "The icons are decorative: each feature's title says what it is."
+  ],
+  "variations": [
+    { "key": "columns", "label": "Columns", "setting": "Columns", "options": { "Three": "3", "Two": "2" } }
+  ],
+  "exclude": [ { "if": "Layout != \"Grid\"", "paths": ["layouts/Grid.razor"] } ],
+  "rename": [ { "if": "Layout == \"Grid\"", "paths": { "layouts/Grid.razor": "Components/Blocks/{{Name}}.razor" } } ],
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}

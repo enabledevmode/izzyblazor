@@ -193,15 +193,20 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
     {
         var anchor = (string?)o["anchor"];
         var pattern = (string?)o["pattern"];
-        if (anchor is null == pattern is null) throw new GenerationException("An insert needs \"anchor\" or \"pattern\", not both.");
         var position = (string?)o["position"] ?? "before";
+        if (position == "end")
+        {
+            if (anchor is not null || pattern is not null) throw new GenerationException("An insert at the end takes no \"anchor\" or \"pattern\".");
+        }
+        else if (anchor is null == pattern is null) throw new GenerationException("An insert needs \"anchor\" or \"pattern\", not both.");
         return new InsertSpec(
             ItemManifest.Required(o, "file"), anchor, pattern,
             position switch
             {
                 "before" => InsertPosition.Before,
                 "after" => InsertPosition.After,
-                _ => throw new GenerationException($"An insert's \"position\" is before or after, not \"{position}\"."),
+                "end" => InsertPosition.End,
+                _ => throw new GenerationException($"An insert's \"position\" is before, after or end, not \"{position}\"."),
             },
             ItemManifest.Required(o, "text"), (string?)o["if"]) { Place = (bool?)o["place"] ?? false };
     }
@@ -214,6 +219,8 @@ public enum InsertPosition
     Before,
     /// <summary>On the lines below it.</summary>
     After,
+    /// <summary>At the end of the file, with no anchor: a section added below a page's others.</summary>
+    End,
 }
 
 /// <summary>A switch on an item's docs page: a setting and the values it's previewed with.</summary>

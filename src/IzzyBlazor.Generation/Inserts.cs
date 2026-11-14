@@ -17,6 +17,11 @@ internal static class Inserts
         var eol = file.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
         var body = Normalize(text).Replace("\n", eol, StringComparison.Ordinal);
         if (!body.EndsWith(eol, StringComparison.Ordinal)) body += eol;
+        if (spec.Position == InsertPosition.End)
+        {
+            // After the last line; a file with no final line break gets one first.
+            return file.Length == 0 || file.EndsWith('\n') ? (file.Length, body) : (file.Length, eol + body);
+        }
 
         var start = 0;
         while (start < file.Length || start == 0)
