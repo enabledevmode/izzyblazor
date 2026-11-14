@@ -28,6 +28,9 @@ public sealed record Block(ItemDefinition Definition)
 
     /// <summary>The picture on its card, a render of its first preview (<c>wwwroot/img/blocks</c>, taken by the site tests' BlockPictureTests).</summary>
     public string Picture => $"img/blocks/{Id}.webp";
+
+    /// <summary>The same picture in the dark scheme (<c>img/blocks/{id}-dark.webp</c>).</summary>
+    public string PictureDark => $"img/blocks/{Id}-dark.webp";
 }
 
 /// <summary>
