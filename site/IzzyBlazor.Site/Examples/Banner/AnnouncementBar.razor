@@ -1,0 +1,7 @@
+@* The design's announcement bar: one line of news on the brand color, a New pill, a link and a
+   close button that's remembered. In an app it goes in MainLayout, above the AppHeader. *@
+<Banner Status="Status.Neutral" Accent="Accent.Primary" Variant="AlertVariant.Solid" HideIcon Center Dismissible
+        Remember="DismissMemory.Persistent" RememberKey="invoices-2026-11" DismissLabel="Dismiss announcement" Grow>
+    <Badge Pill Size="BadgeSize.Sm" MarginEnd="1">New</Badge> Invoices are here: bill customers in four steps.
+    <Anchor Href="docs/components/banner" Style="white-space: nowrap">Read the announcement</Anchor>
+</Banner>
