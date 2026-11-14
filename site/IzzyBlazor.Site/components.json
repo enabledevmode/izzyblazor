@@ -481,6 +481,13 @@
     },
 
     {
+      "id": "visually-hidden", "icon": "EyeOff", "name": "VisuallyHidden", "category": "Typography", "summary": "Gives screen readers words the screen doesn't show.", "keywords": ["sr-only", "screen reader only", "skip link"],
+      "examples": [
+        { "id": "visually-hidden-usage", "title": "Words for screen readers", "lead": "Put words only screen readers need in a `VisuallyHidden`, such as \"per month\" for a price shown as \"$29 / month\", and hide the visible slash with `aria-hidden`. For a skip link, set `Focusable`, and it shows while it has focus." }
+      ]
+    },
+
+    {
       "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Marks the words of a search in a text.", "keywords": ["mark", "search results"],
       "examples": [
         { "id": "highlight-usage", "title": "Search results", "lead": "A highlight marks the words of a search in a text, such as a search result. Set `Text` to the text and `Query` to the search. Each word of the search is marked where a word of the text starts, inside PascalCase names too." },
