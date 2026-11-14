@@ -23,7 +23,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Usage:
           izzy list [--kind starter|page|block|section|recipe] [--json]
           izzy describe <item> [--json]
-          izzy add <item> [--<setting> <value> ...] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new <starter> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
 
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
@@ -150,9 +150,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var (directory, csproj) = FindProject(args.Take("project"));
         if (!ReferencesIzzyBlazor(File.ReadAllText(csproj)))
             throw new UsageException($"{Path.GetFileName(csproj)} doesn't reference IzzyBlazor. Add the IzzyBlazor package first.");
+        var at = Placement(args.Take("at"), directory);
         var flags = Flags(args);
         var project = ProjectInfo.FromDirectory(directory);
-        var changes = Generator.Generate(item, Settings(item.Manifest, args), project);
+        var changes = Generator.Generate(item, Settings(item.Manifest, args), project, at);
         return Finish(item, changes, project, directory, csproj, flags);
     }
 
@@ -302,6 +303,18 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             1 => projects[0],
             _ => throw new UsageException($"More than one .csproj file in {directory}; pick one with --project."),
         };
+    }
+
+    // --at <file>:<line>, the file relative to here (or absolute, as an editor gives it), inside the project.
+    Placement? Placement(string? at, string projectDirectory)
+    {
+        if (at is null) return null;
+        var colon = at.LastIndexOf(':');
+        if (colon <= 0 || !int.TryParse(at[(colon + 1)..], out var line) || line < 1)
+            throw new UsageException($"--at is <file>:<line>, such as Components/Pages/Home.razor:12, not \"{at}\".");
+        var path = Path.GetRelativePath(projectDirectory, Path.GetFullPath(at[..colon], workingDirectory)).Replace('\\', '/');
+        if (path.StartsWith("../", StringComparison.Ordinal) || Path.IsPathRooted(path)) throw new UsageException($"{at[..colon]} isn't in the project.");
+        return new Placement(path, line);
     }
 
     static bool ReferencesIzzyBlazor(string csproj) =>

@@ -94,7 +94,9 @@ public sealed class ItemManifest
                 (e["paths"] as JsonArray)?.Select(p => (string)p!).ToList() ?? [])).ToList() ?? [],
             Packages = (root["packages"] as JsonArray)?.Select(p => new PackageSpec(
                 Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"])).ToList() ?? [],
-            Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() ?? [],
+            Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() is { } inserts
+                ? inserts.Count(i => i.Place) <= 1 ? inserts : throw new GenerationException("Only one insert can be the item's place.")
+                : [],
             Rename = (root["rename"] as JsonArray)?.Select(r => new RenameRule(
                 Required(r!.AsObject(), "if"),
                 (r["paths"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>())).ToList() ?? [],
@@ -181,6 +183,12 @@ public sealed record PackageSpec(string Id, string Version, string? If);
 /// <param name="If">A condition expression; the insert happens only when it holds. Null always.</param>
 public sealed record InsertSpec(string File, string? Anchor, string? Pattern, InsertPosition Position, string Text, string? If)
 {
+    /// <summary>
+    /// Whether this is where the item itself goes on a page (<c>"place": true</c>), such as a block's tag; a
+    /// <see cref="Placement"/> (the CLI's <c>--at</c>, an editor's cursor) moves it there. One per item.
+    /// </summary>
+    public bool Place { get; init; }
+
     internal static InsertSpec Parse(JsonObject o)
     {
         var anchor = (string?)o["anchor"];
@@ -195,7 +203,7 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
                 "after" => InsertPosition.After,
                 _ => throw new GenerationException($"An insert's \"position\" is before or after, not \"{position}\"."),
             },
-            ItemManifest.Required(o, "text"), (string?)o["if"]);
+            ItemManifest.Required(o, "text"), (string?)o["if"]) { Place = (bool?)o["place"] ?? false };
     }
 }
 
