@@ -6,7 +6,7 @@
 <Section Spacing="SectionSpacing.Lg" aria-labelledby="Pricing_monthly_and_yearly-title">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 8, Md = 10 }" Align="Align.Center">
-            <SectionHeader Title="Plans that grow with your team" TitleId="Pricing_monthly_and_yearly-title" TitleLevel="2" Description="Start free. Upgrade when you need more people or single sign-on." AlignSelf="Align.Stretch" />
+            <SectionHeader Eyebrow="Pricing" Title="Simple, fair pricing" TitleId="Pricing_monthly_and_yearly-title" TitleLevel="2" Description="Start free. Upgrade when your team grows." AlignSelf="Align.Stretch" />
             @* Links, so the switch works on a static page and a yearly price can be linked to. *@
             <TabNav Label="Billing period" Variant="TabsVariant.Segmented">
                 <TabLink Href="@BillingHref("monthly")" Label="Monthly" Current="!_yearly" />
@@ -81,12 +81,12 @@
     // a line under the price, the button, whether it's the one to pick, and what it includes.
     private static readonly Tier[] Tiers =
     [
-        new("Free", "For trying MyApp on your own.", 0, 0, null, "Start free", "blocks/pricing?plan-link=sign-up", false,
-            null, ["One person", "Three projects", "Community help"]),
-        new("Team", "For small teams shipping together.", 29, 290, "per person", "Start a free trial", "blocks/pricing?plan-link=sign-up?plan=team", true,
-            "Everything in Free, plus:", ["Up to 25 people", "Unlimited projects", "Roles and permissions", "Help by email in one working day"]),
-        new("Business", "For companies with more to manage.", 79, 790, "per person", "Talk to sales", "blocks/pricing?plan-link=contact", false,
-            "Everything in Team, plus:", ["Single sign-on", "Audit log", "Data kept in the EU or US", "A named contact for help"]),
+        new("Starter", "For trying MyApp on your own.", 0, 0, null, "Start free", "blocks/pricing?plan-link=sign-up", false,
+            null, ["1 project", "Up to 3 people", "Community support"]),
+        new("Team", "For small teams shipping together.", 12, 120, "per person", "Start free trial", "blocks/pricing?plan-link=sign-up?plan=team", true,
+            null, ["Unlimited projects", "Up to 25 people", "Email support", "Single sign-on"]),
+        new("Business", "For companies with more to manage.", 29, 290, "per person", "Start free trial", "blocks/pricing?plan-link=sign-up?plan=business", false,
+            "Everything in Team, plus:", ["Unlimited people", "Audit log", "SAML and SCIM"]),
     ];
 
     private const int TierLevel = 2 + 1;

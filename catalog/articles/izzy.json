@@ -12,7 +12,7 @@
     "type": "object",
     "properties": {
       "Title": { "type": "string", "default": "From the blog", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "What we're building, and what we learn along the way.", "description": "The sentence under the heading. Empty leaves it out." },
+      "Lead": { "type": "string", "default": "Guides, product news and how we build {{ProjectName}}.", "description": "The sentence under the heading. Empty leaves it out." },
       "AllText": { "type": "string", "default": "All posts", "description": "A link to the blog, beside the heading. Empty leaves it out." },
       "AllHref": { "type": "string", "default": "blog", "description": "Where that link goes." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each post's address; the docs previews use it to keep their links on the page." },

@@ -11,8 +11,8 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "Title": { "type": "string", "default": "Meet the team", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "A small team that answers its own support email.", "description": "The sentence under the heading. Empty leaves it out." },
+      "Title": { "type": "string", "default": "The people behind {{ProjectName}}", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "A small team in four countries, working on one product.", "description": "The sentence under the heading. Empty leaves it out." },
       "HiringText": { "type": "string", "default": "We're hiring: see open roles", "description": "A link under the people. Empty leaves it out." },
       "HiringHref": { "type": "string", "default": "careers", "description": "Where the link goes." },
       "Name": { "type": "string", "default": "Team", "description": "The component's name." },
