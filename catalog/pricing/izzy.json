@@ -1,0 +1,46 @@
+// The free pricing block: plans side by side with a monthly or yearly switch, written into the
+// project as a component you own (Components/Blocks/Pricing.razor) and added at the end of a page.
+{
+  "id": "pricing",
+  "name": "Pricing",
+  "kind": "block",
+  "category": "Pricing",
+  "summary": "Plans side by side: what each costs, who it's for and what it includes, with a monthly or yearly switch.",
+  "components": ["Section", "SectionHeader", "Container", "Column", "TabNav", "Grid", "Card", "Badge", "TextBlock", "VisuallyHidden", "Button", "Divider", "List", "Anchor"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Billing": {
+        "type": "string", "enum": ["MonthlyAndYearly", "MonthlyOnly"], "default": "MonthlyAndYearly", "x-priority": "important",
+        "description": "MonthlyAndYearly adds a switch between the two, kept in the address (?billing=yearly); MonthlyOnly shows monthly prices alone."
+      },
+      "Title": { "type": "string", "default": "Plans that grow with your team", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "Start free. Upgrade when you need more people or single sign-on.", "description": "The sentence under the heading. Empty leaves it out." },
+      "HeadingLevel": { "type": "string", "enum": ["2", "1"], "default": "2", "description": "2 under the page's own heading; 1 when the plans are the page, such as /pricing. The plans' names are a level below." },
+      "CompareHref": { "type": "string", "default": "features", "description": "Where \"Compare all features\" goes, under the plans. Empty leaves the line out." },
+      "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each plan's address; the docs previews use it to keep their links on the page." },
+      "Name": { "type": "string", "default": "Pricing", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "HasLead": "Lead != \"\"",
+    "Yearly": "Billing == \"MonthlyAndYearly\"",
+    "HasCompare": "CompareHref != \"\""
+  },
+  "accessibility": [
+    "The section is named by its heading; each plan is a card headed by its name, a level below.",
+    "A price reads as \"$29 per month\": the slash is hidden from screen readers and \"per month\" is hidden from the screen.",
+    "The period switch is a set of links in a navigation landmark named \"Billing period\", the current one marked, so it works with JavaScript off.",
+    "The plan to pick is marked by its \"Most popular\" badge and its solid button, not by color alone."
+  ],
+  "variations": [
+    { "key": "period", "label": "Billing", "setting": "Billing", "options": { "Monthly and yearly": "MonthlyAndYearly", "Monthly only": "MonthlyOnly" } }
+  ],
+  "preview": { "CompareHref": "blocks/pricing", "LinkBase": "blocks/pricing?plan-link=" },
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}
