@@ -67,12 +67,29 @@
   translate: -50% -50%;
   /* The rings are drawn at dark mode's strength; on Paper two thirds of it is enough. On Ink, less
      than that mixes Ember to brown. */
-  opacity: 0.667;
+  opacity: var(--site-hero-glow);
   pointer-events: none;
 }
-:root[data-ib-color-scheme="dark"] .site-hero-glow { opacity: 1; }
+/* The hero's light and dark: the glow's strength and the frames' pictures (below). The scheme is
+   decided as the library decides it (tokens.css): data-ib-color-scheme on <html>, else IzzyTheme's
+   meta (the user's choice, from its cookie, there at the first paint, before any script sets the
+   attribute), else the system's. */
+:root {
+  --site-hero-glow: 0.667;
+  --site-hero-poster-desktop: url("img/home/store-desktop-light.webp");
+  --site-hero-poster-phone: url("img/home/store-phone-light.webp");
+}
+:root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
+  --site-hero-glow: 1;
+  --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
+  --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
+}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme="light"]) .site-hero-glow { opacity: 1; }
+  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
+    --site-hero-glow: 1;
+    --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
+    --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
+  }
 }
 @media (max-width: 63.98rem) {
   .site-hero-glow { top: -2rem; left: auto; right: -14rem; width: 32rem; height: 32rem; translate: 0 -50%; }
@@ -114,14 +131,8 @@
   .site-hero-screen iframe { transition: opacity 0.2s ease-out; }
 }
 @keyframes site-hero-reveal { to { opacity: 1; } }
-.site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-light.webp"); }
-.site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-light.webp"); }
-:root[data-ib-color-scheme="dark"] .site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
-:root[data-ib-color-scheme="dark"] .site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme="light"]) .site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
-  :root:not([data-ib-color-scheme="light"]) .site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
-}
+.site-hero-window .site-hero-screen { --site-hero-poster: var(--site-hero-poster-desktop); }
+.site-hero-phone .site-hero-screen { --site-hero-poster: var(--site-hero-poster-phone); }
 .site-hero-window { display: none; }
 .site-hero-phone {
   position: relative;
