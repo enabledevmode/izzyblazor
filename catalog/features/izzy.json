@@ -7,7 +7,7 @@
   "kind": "block",
   "category": "Features",
   "summary": "What the product does: a heading over a grid of features, each an icon, a title and one sentence.",
-  "components": ["Section", "Container", "Column", "Grid", "Center", "Icon", "Heading", "TextBlock"],
+  "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Center", "Icon", "Heading", "TextBlock"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",

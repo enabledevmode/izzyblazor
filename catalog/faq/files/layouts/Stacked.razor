@@ -4,12 +4,11 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         @* Centered from 768px up; on phones everything starts at the edge, like the answers. *@
         <Column Gap="new() { Base = 10, Md = 12 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="new() { Base = Align.Start, Md = Align.Center }">
-                <Heading Level="2" id="{{Name}}-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Balance">{{Title}}</Heading>
-                @*#if (HasLead) *@
-                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" Wrap="TextWrap.Pretty">{{Lead}}</TextBlock>
-                @*#endif *@
-            </Column>
+            @*#if (HasLead) *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Description="{{Lead}}" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
+            @*#else *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
+            @*#endif *@
             <Container Size="ContainerSize.Md" Gutters="false">
                 @*#if (Exclusive) *@
                 <Accordion Variant="AccordionVariant.Flush" Size="ControlSize.Lg" Exclusive>

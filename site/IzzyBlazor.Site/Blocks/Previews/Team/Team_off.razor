@@ -4,10 +4,7 @@
 <Section Spacing="SectionSpacing.Lg" aria-labelledby="Team_off-title">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 10, Md = 12 }" Align="Align.Center">
-            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="Align.Center">
-                <Heading Level="2" id="Team_off-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="TextAlign.Center" Wrap="TextWrap.Balance">Meet the team</Heading>
-                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty">A small team that answers its own support email.</TextBlock>
-            </Column>
+            <SectionHeader Title="Meet the team" TitleId="Team_off-title" Description="A small team that answers its own support email." AlignSelf="Align.Stretch" />
             <Grid As="ul" Columns="new() { Base = 2, Md = 4 }" Gap="new() { Base = 8, Md = 10 }" AlignSelf="Align.Stretch">
                 @foreach (var person in People)
                 {

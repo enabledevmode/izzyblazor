@@ -84,6 +84,14 @@
     },
 
     {
+      "id": "section-header", "icon": "Heading", "name": "SectionHeader", "category": "Layout", "summary": "Introduces a section of a landing page: an eyebrow, a heading and a sentence.", "keywords": ["section title", "intro", "landing page", "marketing"],
+      "examples": [
+        { "id": "section-header-usage", "title": "Eyebrow, title and description", "lead": "A section header introduces a section of a landing page. Set `Title` and `Description`, and `Eyebrow` for a short line above them. It's an h2 by default; set `TitleLevel` for another level." },
+        { "id": "section-header-align", "title": "Alignment", "lead": "Centered by default. Over content that starts at the edge on phones, such as a list of features, set `Align` per breakpoint, so the section has one left edge on a narrow screen." }
+      ]
+    },
+
+    {
       "id": "section", "icon": "PanelTop", "name": "Section", "category": "Layout", "summary": "Renders a full-width band of a page, such as a hero.",
       "examples": [
         { "id": "section-usage", "title": "Bands", "lead": "Put each band of a page in a `Section`, with a `Container` inside to keep its content at a readable width. `Bg` colors the band from edge to edge.", "after": ["A section pads its top and bottom. `Md`, the default, suits most bands; for a slimmer one, such as this sign-up, set `Spacing` to `SectionSpacing.Sm`."] },

@@ -4,12 +4,11 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 10, Md = 12 }">
             <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="new() { Base = Align.Start, Md = Align.End }" Justify="Justify.Between">
-                <Column Gap="3" MaxWidth="Length.Rem(40)">
-                    <Heading Level="2" id="{{Name}}-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Title}}</Heading>
-                    @*#if (HasLead) *@
-                    <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Lead}}</TextBlock>
-                    @*#endif *@
-                </Column>
+                @*#if (HasLead) *@
+                <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Description="{{Lead}}" Align="TextAlign.Start" />
+                @*#else *@
+                <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Align="TextAlign.Start" />
+                @*#endif *@
                 @*#if (HasAll) *@
                 <TextBlock Weight="FontWeight.Medium"><Anchor Href="{{AllHref}}" Underline="AnchorUnderline.Hover">{{AllText}} <Icon Name="Lucide.ArrowRight" /></Anchor></TextBlock>
                 @*#endif *@

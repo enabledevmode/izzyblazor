@@ -3,12 +3,11 @@
 <Section Spacing="SectionSpacing.Lg" aria-labelledby="{{Name}}-title">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 10, Md = 12 }" Align="Align.Center">
-            <Column Gap="3" MaxWidth="Length.Rem(40)" Align="Align.Center">
-                <Heading Level="2" id="{{Name}}-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Align="TextAlign.Center" Wrap="TextWrap.Balance">{{Title}}</Heading>
-                @*#if (HasLead) *@
-                <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Align="TextAlign.Center" Wrap="TextWrap.Pretty">{{Lead}}</TextBlock>
-                @*#endif *@
-            </Column>
+            @*#if (HasLead) *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Description="{{Lead}}" AlignSelf="Align.Stretch" />
+            @*#else *@
+            <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" AlignSelf="Align.Stretch" />
+            @*#endif *@
             <Grid As="ul" Columns="new() { Base = 2, Md = 4 }" Gap="new() { Base = 8, Md = 10 }" AlignSelf="Align.Stretch">
                 @foreach (var person in People)
                 {

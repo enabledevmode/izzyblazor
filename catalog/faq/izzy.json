@@ -7,7 +7,7 @@
   "kind": "block",
   "category": "FAQ",
   "summary": "The questions that stop people signing up, each opening to its answer, with a way to ask your own.",
-  "components": ["Section", "Container", "Column", "Heading", "TextBlock", "Accordion", "Anchor", "Icon"],
+  "components": ["Section", "SectionHeader", "Container", "Column", "TextBlock", "Accordion", "Anchor", "Icon"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
