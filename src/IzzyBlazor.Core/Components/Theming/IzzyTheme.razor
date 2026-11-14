@@ -18,6 +18,9 @@
     To theme part of a page, use ThemeScope. For one exact value, use CSS: its variable in your
     stylesheet (izzyblazor.com/docs/theming/tokens).
 
+    With the default body font, it preloads Inter's Latin file. An app that sets its own body font
+    should set it here, as `BodyFont`, rather than in CSS: then nothing is preloaded.
+
     Accessibility:
     - It renders nothing people interact with: tags in the `head`.
     - With `ColorScheme` unset the page follows the device's light or dark setting, and a choice
@@ -28,6 +31,13 @@
     See also: ThemeScope, ColorSchemeSwitch, AppShell.
 *@
 
+@if (string.IsNullOrWhiteSpace(BodyFont) && Preset != ThemePreset.Editorial)
+{
+    @* Inter, the default body font: its Latin file, fetched with the stylesheet rather than once text
+       is laid out, so text doesn't paint in a fallback font and then rewrap. The URL is the one
+       izzyblazor.css uses. *@
+    <link rel="preload" href="_content/IzzyBlazor.Core/fonts/inter-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
+}
 @if (Preset is { } preset)
 {
     <meta name="ib-preset" content="@Name(preset)" />

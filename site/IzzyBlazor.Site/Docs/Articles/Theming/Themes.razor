@@ -75,7 +75,9 @@
         <Heading Level="2">Fonts</Heading>
         <TextBlock>
             Body text is Inter, which ships with IzzyBlazor. Browsers download only the character sets a page uses, and
-            nothing once you name another font. To use your own fonts, set <Code>BodyFont</Code>, <Code>HeadingFont</Code>
+            nothing once you name another font. IzzyTheme preloads Inter's Latin set, so text doesn't paint in a fallback
+            font first; name another body font with <Code>BodyFont</Code>, not in CSS, so Inter isn't preloaded for
+            nothing. To use your own fonts, set <Code>BodyFont</Code>, <Code>HeadingFont</Code>
             and <Code>MonoFont</Code>. To change the headings' weight, set <Code>HeadingWeight</Code>. Load any font other
             than Inter yourself:
         </TextBlock>
