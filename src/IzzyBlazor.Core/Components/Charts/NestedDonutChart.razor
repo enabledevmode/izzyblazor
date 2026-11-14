@@ -9,14 +9,6 @@
     A donut with a ring for each measure of the same items, such as a country's exports and its
     imports.
 
-    <NestedDonutChart Items="countries"
-                      Argument="c => c.Country"
-                      Title="Trade by partner, 2025"
-                      ValueFormat="C0">
-        <DonutRing Value="c => c.Exports" Name="Exports" />
-        <DonutRing Value="c => c.Imports" Name="Imports" />
-    </NestedDonutChart>
-
     The first ring is the outer one; each item has one color in every ring and one row in the
     legend. A line under the title says which ring is which.
 

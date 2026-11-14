@@ -24,17 +24,6 @@
     column and frozen ones stay. It goes by the grid's own width, worked out on the server, so it's right
     at the first paint with no script. The grid takes the whole width it's given, and needs an ItemKey.
 
-    <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
-        <Columns>
-            <PropertyColumn Property="o => o.Id"
-                            Title="Order"
-                            Width="8.Rem"
-                            Frozen="ColumnFrozen.Start" />
-            <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
-            <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
-        </Columns>
-    </DataGrid>
-
     `Groupable` lets people group by columns from a header's menu, and `InitialGroup` or `Group` starts
     grouped. The grouping and what's open are in the address (`?group=status&open=Shipped`), so a group's
     row is a link and this works with no script. A page counts top-level groups, a group is never split,

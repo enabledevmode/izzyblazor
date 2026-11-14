@@ -11,12 +11,6 @@
     Parts of a whole, such as a cloud bill by service, as tiles sized by their share, in groups
     with Group.
 
-    <TreemapChart Items="costs"
-                  Name="c => c.Service"
-                  Value="c => c.Amount"
-                  Group="c => c.Category"
-                  Title="Cloud costs by service" />
-
     Groups take the rectangle largest first, then each group's tiles take its space, the largest
     at the top left; tiles stay as near square as they can. The chart keeps its shape at every
     width (AspectRatio, 2:1 by default; square on a phone), so the tiles do too. Zero, negative and

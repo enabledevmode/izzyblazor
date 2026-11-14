@@ -30,12 +30,6 @@
     branch, drawn or not: Selection.ApplyTree finds every row it means. SelectOnClick selects a row
     by a click on it.
 
-    <TreeList Items="employees" ItemKey="e => e.Id.ToString()"
-              ItemParentKey="e => e.ManagerId?.ToString()">
-        <PropertyColumn Property="e => e.Name" />
-        <PropertyColumn Property="e => e.Title" />
-    </TreeList>
-
     Accessibility:
     - With script, the table is a treegrid: each row has its level, its place among its siblings and,
       with rows under it, whether it's open.

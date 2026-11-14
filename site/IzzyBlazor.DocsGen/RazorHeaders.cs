@@ -104,7 +104,8 @@ public sealed partial class RazorHeaders
         var at = blocks.FindIndex(b => b.Code is not null || b.Items.Any(i => i.Code is not null));
         if (at < 0)
         {
-            return Html(blocks) is { } only ? new Header(only, null, null, accessibility, seeAlso, keyboard)
+            // No example (the page's usage is a runnable one): the first paragraph is the summary.
+            return Html(blocks.Take(1)) is { } summary ? new Header(summary, null, Html(blocks.Skip(1)), accessibility, seeAlso, keyboard)
                 : keyboard is not null ? new Header(null, null, null, accessibility, seeAlso, keyboard) : null;
         }
 
