@@ -277,6 +277,11 @@
     color: var(--ib-color-muted);
   }
 
+  .ib-empty-info > .ib-empty-icon { background-color: var(--ib-color-info-soft); color: var(--ib-color-info-text); }
+  .ib-empty-success > .ib-empty-icon { background-color: var(--ib-color-success-soft); color: var(--ib-color-success-text); }
+  .ib-empty-warning > .ib-empty-icon { background-color: var(--ib-color-warning-soft); color: var(--ib-color-warning-text); }
+  .ib-empty-danger > .ib-empty-icon { background-color: var(--ib-color-danger-soft); color: var(--ib-color-danger-text); }
+
   .ib-empty-icon > .ib-icon {
     width: var(--ib-empty-glyph);
     height: var(--ib-empty-glyph);

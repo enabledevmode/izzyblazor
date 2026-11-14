@@ -69,6 +69,14 @@
     /// <summary>Icon, text size and spacing. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
+    /// <summary>
+    /// Tints the icon's circle, for a page that's only a message: <see cref="Status.Danger"/> for
+    /// an error, <see cref="Status.Warning"/> for no access, <see cref="Status.Info"/> for
+    /// maintenance. Defaults to <see cref="Status.Neutral"/>, a gray circle. The title says what
+    /// happened, so color is never the only sign.
+    /// </summary>
+    [Parameter] public Status Status { get; set; } = Status.Neutral;
+
     private string? _class;
     private string? _style;
 
@@ -87,6 +95,14 @@
         classes.Add("ib-empty-bordered", Bordered);
         classes.Add("ib-empty-sm", Size == ControlSize.Sm);
         classes.Add("ib-empty-lg", Size == ControlSize.Lg);
+        classes.Add(Status switch
+        {
+            Status.Info => "ib-empty-info",
+            Status.Success => "ib-empty-success",
+            Status.Warning => "ib-empty-warning",
+            Status.Danger => "ib-empty-danger",
+            _ => null,
+        });
         base.BuildAttributes(classes, styles);
     }
 

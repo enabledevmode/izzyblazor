@@ -3,11 +3,13 @@
 
 <PageTitle>Not found</PageTitle>
 
-@* A page that's only a message: the narrow column (24rem), centered at a fixed distance from the
-   top, the title, then the one way on. *@
-<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 2, Md = 14 }">
-    <Column Gap="8">
-        <PageHeader Title="Page not found" Description="There's nothing at this address." Size="ControlSize.Lg" />
-        <Button Href="" FullWidth>Go to the home page</Button>
-    </Column>
+@* A page that's only a message: centered in a narrow column, a tinted icon, the title, what
+   happened, and the one way on (full width on phones). *@
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+    <EmptyState Size="ControlSize.Lg" Icon="Lucide.Compass" TitleLevel="1" Title="Page not found"
+                Description="There's nothing at this address. Check it for typos, or start again from the home page.">
+        <EmptyStateActions>
+            <Button Href="" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>
+        </EmptyStateActions>
+    </EmptyState>
 </Container>
