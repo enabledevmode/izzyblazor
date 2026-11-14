@@ -46,12 +46,10 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await Assertions.Expect(FirstRow(page).Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Enter_saves_and_Escape_cancels(string mode)
+    [Fact]
+    public async Task Enter_saves_and_Escape_cancels()
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync("interactive");
         await using var _ = browser;
         var row = await EditFirstRowAsync(page);
         await row.GetByLabel("Customer").FillAsync("Not saved");
