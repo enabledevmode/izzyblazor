@@ -16,8 +16,8 @@
         "type": "string", "enum": ["Stacked", "Split"], "default": "Stacked", "x-tiers": { "Split": "pro" }, "x-priority": "important",
         "description": "Stacked puts the questions under the heading; Split puts the heading beside them."
       },
-      "Title": { "type": "string", "default": "Questions and answers", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "", "description": "A sentence under the heading. Empty leaves it out." },
+      "Title": { "type": "string", "default": "Questions, answered", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "Everything you might ask before you start.", "description": "A sentence under the heading. Empty leaves it out." },
       "OpenFirst": { "type": "boolean", "default": true, "description": "Opens the first answer, so the section shows what an answer looks like." },
       "Exclusive": { "type": "boolean", "default": false, "description": "Closes the open answer when another opens. Off by default: people compare answers." },
       "ContactPrompt": { "type": "string", "default": "Can't find your answer?", "description": "The line over the contact link." },
