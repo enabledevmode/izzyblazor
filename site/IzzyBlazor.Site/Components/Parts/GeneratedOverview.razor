@@ -3,8 +3,9 @@
 
 @* The Overview of a component without a hand-written one, built from its doc comment and
    components.json in the order CONTRIBUTING's "Writing an Overview" gives: the summary, Usage (the
-   doc comment's example), a section per registered example, the remarks, the parts, then Mode
-   support, Accessibility, Keyboard, Parameters and See also. A section with nothing to show is left out. *@
+   doc comment's example, then the {id}-usage example), the topics, a section per other registered
+   example, the remarks, the parts, then Mode support, Accessibility, Keyboard, Parameters and See
+   also. A section with nothing to show is left out. *@
 
 @* A chart opens with when to use it; its doc comment's summary, which says what it draws, is on the API page. *@
 @if (Component.Use is { } use)
@@ -25,28 +26,20 @@ else if (ApiComponent.Summary is not null)
     }
 }
 
+@if (_usage is not null)
+{
+    @Section(_usage)
+}
+
 @if (Component.Topics.Count > 0)
 {
     <Heading Level="2">Topics</Heading>
     <OverviewTopics Component="Component" />
 }
 
-@foreach (var example in Component.Examples)
+@foreach (var example in Component.Examples.Where(e => e != _usage))
 {
-    <Heading Level="2">@example.Title</Heading>
-    @if (example.Lead is { } lead)
-    {
-        <TextBlock><InlineCode Text="@lead" /></TextBlock>
-    }
-    @if (example.Info is { } info)
-    {
-        <Alert Status="Status.Info" Title="@info.Title"><InlineCode Text="@info.Text" /></Alert>
-    }
-    <ExampleViewer Example="@example.Id" />
-    @foreach (var paragraph in example.After)
-    {
-        <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
-    }
+    @Section(example)
 }
 
 @if (ApiComponent.Remarks is not null)
@@ -95,5 +88,29 @@ else
 
     private ApiPageContext _prose = null!;
 
-    protected override void OnParametersSet() => _prose = Context with { Overview = true };
+    // The {id}-usage example opens the page, ahead of the topics.
+    private RegistryExample? _usage;
+
+    protected override void OnParametersSet()
+    {
+        _prose = Context with { Overview = true };
+        _usage = Component.Examples.FirstOrDefault() is { } first && first.Id == $"{Component.Id}-usage" ? first : null;
+    }
+
+    private static RenderFragment Section(RegistryExample example) => @<text>
+        <Heading Level="2">@example.Title</Heading>
+        @if (example.Lead is { } lead)
+        {
+            <TextBlock><InlineCode Text="@lead" /></TextBlock>
+        }
+        @if (example.Info is { } info)
+        {
+            <Alert Status="Status.Info" Title="@info.Title"><InlineCode Text="@info.Text" /></Alert>
+        }
+        <ExampleViewer Example="@example.Id" />
+        @foreach (var paragraph in example.After)
+        {
+            <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
+        }
+    </text>;
 }

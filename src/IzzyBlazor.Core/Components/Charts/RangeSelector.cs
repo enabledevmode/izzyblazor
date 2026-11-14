@@ -110,13 +110,6 @@ public sealed class ChartRangeSelector : RangeSelectorBase, IDisposable
 /// with a window over the part chosen. Drag the window to pan, its two handles to widen or narrow
 /// it, or click the strip to move there; each handle is a slider for the keyboard.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;RangeSelector Items="days" Argument="d =&gt; d.Day" @bind-View="range"&gt;
-///     &lt;ChartAreaSeries Value="d =&gt; d.Visits" /&gt;
-/// &lt;/RangeSelector&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// It draws its own <see cref="Items"/> by the series inside it, and <see cref="View"/> is the
 /// range chosen. To zoom charts elsewhere on the page, give their <c>Sync</c> name as

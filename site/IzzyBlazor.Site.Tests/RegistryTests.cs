@@ -45,16 +45,15 @@ public class RegistryTests
         Assert.True(nested.Count == 0, $"Usage lines with a child element on the same line:\n{string.Join("\n", nested)}");
     }
 
-    // Every component page opens with a Usage, its first example {id}-usage (or, until each group
-    // moves to those, a doc comment <example>): a series presented as its own chart (Bar chart is
-    // ChartBarSeries) shows the whole chart, as any other component does.
+    // Every component page opens with a Usage, its first example {id}-usage: a series presented as
+    // its own chart (Bar chart is ChartBarSeries) shows the whole chart, as any other component does.
+    // Only components that can't run inside a page keep a snippet instead.
     [Fact]
     public void Every_component_page_has_a_usage()
     {
-        var handWritten = HandWrittenUsage().Select(u => u.Name[..^"Overview".Length]).ToHashSet();
+        string[] snippetOnly = ["IzzyTheme", "ReconnectDialog"];
         var missing = Registry.AllComponents
-            .Where(c => Api.Component(c.Name)?.Examples is not { Count: > 0 } && !handWritten.Contains(c.Name)
-                && c.Examples.FirstOrDefault()?.Id != $"{c.Id}-usage")
+            .Where(c => !snippetOnly.Contains(c.Name) && c.Examples.FirstOrDefault()?.Id != $"{c.Id}-usage")
             .Select(c => c.Name)
             .ToList();
 

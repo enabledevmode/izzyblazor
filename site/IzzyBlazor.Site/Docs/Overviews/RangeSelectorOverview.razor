@@ -1,14 +1,12 @@
-@* RangeSelector's Overview, with ChartRangeSelector, written by hand: they're .cs components, so its usage, accessibility and
+@* RangeSelector's Overview, with ChartRangeSelector, written by hand: they're .cs components, so its accessibility and
    keys are here rather than in a doc comment. In a chart, on its own to filter by, spans of your
    own, labels. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A range selector is a strip that draws a whole range small, such as a year of days, with a window over the part chosen. It suits long runs of dates, where the reader looks closer at a month and needs to see where it sits in the year. To pick a range of plain numbers, such as prices, use a <Anchor Href="docs/components/range-slider">RangeSlider</Anchor>; for two dates typed or picked from a calendar, a <Anchor Href="docs/components/date-range-field">DateRangeField</Anchor>.</TextBlock>
 
 <Heading Level="2">A strip under a chart</Heading>
 <TextBlock>In an upright <Anchor Href="docs/components/chart">Chart</Anchor>, put <Code>&lt;ChartRangeSelector /&gt;</Code> after the series. The strip sits under the plot and draws the chart's series small, and the window is the part of the chart in view. Dragging the window pans the chart, and dragging a handle widens or narrows it.</TextBlock>
-<ExampleViewer Example="range-selector-strip" />
+<ExampleViewer Example="range-selector-usage" />
 <TextBlock><Code>View</Code> opens the chart on the last three months, so the plot shows the days and the strip the three years of seasons around them. A range selector suits a long series like this one, read up close a part at a time.</TextBlock>
 <TextBlock>Clicking the strip outside the window moves the window there. The chart's axis names the dates, so the strip keeps only its coarsest labels, inside it, and each handle's flag shows its date only while the handle is pointed at, focused or dragged. <Code>HideFlags</Code> leaves the flags out; screen readers still hear each handle's value.</TextBlock>
 
@@ -83,19 +81,6 @@
         new(["Page Up", "Page Down"], "Move the handle a tenth of the range later or earlier"),
         new(["Home", "End"], "Move the handle to the first or last item, as far as the other handle allows"),
     ]);
-
-    private const string Usage = """
-        @* In a chart: a strip under the plot that zooms it. *@
-        <Chart Items="days" Argument="d => d.Date" Title="Daily visits">
-            <ChartLineSeries Value="d => d.Visits" />
-            <ChartRangeSelector />
-        </Chart>
-
-        @* On its own: range is the ChartView chosen. *@
-        <RangeSelector Items="days" Argument="d => d.Date" Label="Dates" @bind-View="range">
-            <ChartAreaSeries Value="d => d.Visits" />
-        </RangeSelector>
-        """;
 
     private const string Presets = """
         <ChartRangeSelector Presets="quarters" />

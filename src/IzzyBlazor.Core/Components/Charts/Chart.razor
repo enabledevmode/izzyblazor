@@ -11,13 +11,6 @@
     Draws a list of items as bars, lines, areas, points, ranges, prices, distributions or
     waterfalls, with a series inside it for each.
 
-    <Chart Items="months" Argument="m => m.Month" Title="Revenue and costs, 2026">
-        <ChartValueAxis Format="C0" />
-        <ChartBarSeries Value="m => m.Revenue" />
-        <ChartBarSeries Value="m => m.Costs" />
-        <ChartLineSeries Value="m => m.Target" />
-    </Chart>
-
     The chart is drawn on the server, in the page's HTML, so it shows with no script and no
     circuit, prints, and fills its container's width.
 
