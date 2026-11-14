@@ -7,16 +7,6 @@ namespace IzzyBlazor;
 /// A row of overlapping avatars, such as the people on a project. With <see cref="Max"/>, the
 /// rest collapse into a "+N" avatar.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;AvatarGroup Max="3" Label="Project members"&gt;
-///     @foreach (var person in Members)
-///     {
-///         &lt;Avatar Name="@person.Name" Src="@person.Photo" /&gt;
-///     }
-/// &lt;/AvatarGroup&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// Put the avatars directly inside the group: <see cref="Max"/> hides the extra ones with CSS,
 /// counting the group's children.

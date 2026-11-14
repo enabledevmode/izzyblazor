@@ -35,14 +35,6 @@ public enum BadgeSize
 /// <summary>
 /// A small label for a status, category or count.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Badge Status="Status.Success"&gt;Published&lt;/Badge&gt;
-/// &lt;Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill&gt;3&lt;/Badge&gt;
-/// &lt;Badge Status="Status.Warning" Dot&gt;Pending review&lt;/Badge&gt;
-/// &lt;Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>span</c> with no role: screen readers read its text and nothing more.</item>

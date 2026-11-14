@@ -7,14 +7,6 @@
     A conversation: its entries in a log that scrolls, and a box to write the next message in.
     For an assistant, or for people talking.
 
-    <Chat Label="Assistant" FormName="assistant" OnSend="SendAsync" OnStop="Stop" Status="_status">
-        @foreach (var turn in _turns)
-        {
-            <ChatEntry Mine="turn.Mine" Author="@(turn.Mine ? null : "Assistant")"
-                       Time="turn.Time" Markdown="@turn.Text" Pending="turn.Pending" />
-        }
-    </Chat>
-
     Variant chooses how others' entries look: across the log for an assistant, or in bubbles
     for people talking. Entries in a row from the same person, minutes apart, are grouped: their
     name, avatar and time show once.

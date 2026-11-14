@@ -1,14 +1,12 @@
 @* QrCode's Overview, written by hand: a link, two-factor setup (previewed in each mode), size and
    error correction. Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A QR code shows text, such as a link, for a phone's camera to read. It renders on the server as an SVG, so it works with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>, scales without blurring, and prints.</TextBlock>
 <TextBlock>It's dark on light in both color schemes, since not every scanner reads light on dark. For a product or shipping number read by a barcode scanner, see <Anchor Href="docs/components/barcode">Barcode</Anchor>.</TextBlock>
 
 <Heading Level="2">A link to scan</Heading>
 <TextBlock>Set <Code>Value</Code> to the text, and <Code>Label</Code> to what scanning it does, such as "QR code for this page". Screen readers hear the label, never the value. Beside the code, write what a user without a camera needs, such as the link.</TextBlock>
-<ExampleViewer Example="qr-code-link" />
+<ExampleViewer Example="qr-code-usage" />
 
 <Heading Level="2">Setting up two-factor sign-in</Heading>
 <TextBlock>An authenticator app scans an <Code>otpauth://totp/</Code> link that contains a secret key, then shows a new six-digit code every 30 seconds. Show the key beside the QR code, in groups of four, for a user who types it in instead. Then ask for the first code in a <Anchor Href="docs/components/pin-field">PinField</Anchor>, to confirm the app has the key.</TextBlock>
@@ -40,8 +38,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <QrCode Value="https://example.com/tickets/4417" Label="QR code for ticket 4417" />
-        """;
 }

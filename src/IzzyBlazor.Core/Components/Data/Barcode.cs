@@ -11,12 +11,6 @@ namespace IzzyBlazor;
 /// It works with JavaScript off and scales without blurring. With no value yet, such as while a page
 /// loads it, nothing renders.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Barcode Value="SHIP-2026-0417" /&gt;
-/// &lt;Barcode Value="400638133393" Type="BarcodeType.Ean13" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It's an image (<c>role="img"</c>) named "Barcode" and its value (<c>IzzyText.BarcodeLabel</c>), as the value is printed under it anyway; <see cref="Label"/> replaces "Barcode", and the value still follows.</item>

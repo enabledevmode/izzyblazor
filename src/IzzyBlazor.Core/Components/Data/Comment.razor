@@ -7,13 +7,6 @@
     Comment: one comment in a discussion, such as feedback under an article or a review on a pull
     request. Replies nest inside it. For messages exchanged as they happen, see Chat.
 
-    <Comment Author="Ana Ruiz" Avatar="/img/ana.jpg" Time="posted" Text="Shipped on Tuesday.">
-        <Actions><Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">Reply</Button></Actions>
-        <Replies>
-            <Comment Author="Sam Lee" Time="later" Text="Thanks!" />
-        </Replies>
-    </Comment>
-
     The content is Text (plain, its lines kept) or anything else as ChildContent, which is also
     where a reply form goes: a Comment with only an Avatar or Initials and a TextArea inside reads
     as "you, writing". Replies step in by one avatar's width at each level. RelativeTime shows

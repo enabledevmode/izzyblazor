@@ -10,12 +10,6 @@ namespace IzzyBlazor;
 /// authenticator app's setup key or a ticket number. It works with JavaScript off and scales without
 /// blurring.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;QrCode Value="https://example.com/tickets/4417" Label="QR code for ticket 4417" /&gt;
-/// &lt;QrCode Value="@AuthenticatorUri" Label="QR code for your authenticator app" Size="12.Rem" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It's an image (<c>role="img"</c>) named by <see cref="Label"/>, which is required; say what scanning it does, not what it holds.</item>

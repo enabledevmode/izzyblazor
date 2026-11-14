@@ -4,13 +4,11 @@
    form in a card (each mode posts it differently) and a grid of cards. Accessibility, Parts and
    See also come from the doc comment and components.json. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A card is a framed box around one thing the user looks at or acts on, such as a project, a person or a plan. It suits a grid of things like it. For a band across the page, such as a hero, see <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
 
 <Heading Level="2">Variants</Heading>
 <TextBlock>The variant sets how the card stands apart from the page: <Code>Outline</Code> (the default) has a border, <Code>Elevated</Code> a shadow, and <Code>Filled</Code> a tinted background. Set <Code>Variant</Code> to choose one. To give the card a header, set <Code>Title</Code> and <Code>Description</Code>.</TextBlock>
-<ExampleViewer Example="card-variants" />
+<ExampleViewer Example="card-usage" />
 <TextBlock>The title is an <Code>h3</Code>. To fit the page's outline, set <Code>TitleLevel</Code>. Content between the tags is the body.</TextBlock>
 
 <Heading Level="2">Sizes</Heading>
@@ -83,16 +81,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Card Title="Website" Description="Updated 2 hours ago">
-            <TextBlock>Marketing pages and the docs, deployed from main.</TextBlock>
-            <CardFooter Justify="Justify.End">
-                <Button Href="projects/website" Size="ControlSize.Sm">Open</Button>
-            </CardFooter>
-        </Card>
-
-        @* The whole card is a link, through its title. *@
-        <Card Title="Course app" Description="12 lessons" Href="courses/app" />
-        """;
 }

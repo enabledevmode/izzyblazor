@@ -8,15 +8,6 @@ namespace IzzyBlazor;
 /// <see cref="TimelineItem"/> has a marker on a rail, a title and time, and any content under it
 /// (a link, a description, actions).
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Timeline&gt;
-///     &lt;TimelineItem Title="Add Section" Time="Oct 13" Current&gt;
-///         &lt;Anchor Href="..."&gt;93c85d4&lt;/Anchor&gt;
-///     &lt;/TimelineItem&gt;
-/// &lt;/Timeline&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders an ordered list: an <c>ol</c> with <c>role="list"</c> (which Safari otherwise drops from a list with no markers), with each <see cref="TimelineItem"/> an <c>li</c>, in the order written.</item>

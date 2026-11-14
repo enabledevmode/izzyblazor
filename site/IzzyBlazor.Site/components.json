@@ -2123,7 +2123,7 @@
     {
       "id": "card", "icon": "SquareStack", "name": "Card", "category": "Display", "summary": "Groups media, a header, body sections, actions and a footer in a box.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
       "examples": [
-        { "id": "card-variants", "title": "Variants", "lead": "A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`. To give the card a header, set `Title` and `Description`." },
+        { "id": "card-usage", "title": "Variants", "lead": "Put the card's content between the tags, and give it a header with `Title` and `Description`. A variant sets the card's look: `Outline` (the default), `Elevated` or `Filled`. To choose one, set `Variant`." },
         { "id": "card-sizes", "title": "Sizes", "lead": "A card's size sets its padding and its title's size. To change it, set `Size`." },
         { "id": "card-linked", "title": "A linked card", "lead": "To make the whole card a link through its title, set `Href`. Buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
         { "id": "card-side", "title": "Picture at the side", "lead": "To put `CardMedia` at the start, set `Orientation` to `Horizontal`; `Width` on `CardMedia` sets its width. Here they're rows until 1024px, then tiles." },
@@ -2148,7 +2148,7 @@
     {
       "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Display", "summary": "Shows a figure with its trend, read as words.",
       "examples": [
-        { "id": "stat-trends", "title": "Trends", "lead": "A trend shows which way the figure moved and by how much. Set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
+        { "id": "stat-usage", "title": "Trends", "lead": "Set `Label` and `Value`. A trend shows which way the figure moved and by how much: set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
         { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
         { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Sparkline` the values, such as the last twelve weeks. `SparklineType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparklineLabel`, with its first, last, lowest and highest values formatted by `SparklineFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
       ],
@@ -2162,7 +2162,7 @@
     {
       "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Display", "summary": "Shows a photo, initials or an icon for a person or thing.",
       "examples": [
-        { "id": "avatar-basics", "title": "Initials and icons", "lead": "To show a name's initials, in a color picked from the name, set `Name`. Without a name, the avatar shows a person icon.", "after": ["For teams and companies, set `Square`."] },
+        { "id": "avatar-usage", "title": "Initials and icons", "lead": "Set `Name`, and the avatar shows its initials in a color picked from the name; for a photo, set `Src` too. Without a name, the avatar shows a person icon.", "after": ["For teams and companies, set `Square`."] },
         { "id": "avatar-variants", "title": "Colors and variants", "lead": "A variant sets the avatar's fill, `Soft` or `Solid`. To choose one, set `Variant`. For a color other than the one picked from `Name`, set `Accent`." },
         { "id": "avatar-sizes", "title": "Sizes and status", "lead": "Avatars come in sizes from `Xs` to `Xl2`. To choose one, set `Size`. For a status dot in the corner, set `Status` with a `StatusLabel`." },
         { "id": "avatar-beside-name", "title": "Beside a name", "lead": "When the name is written beside the avatar, set `Decorative`, so screen readers don't hear it twice." }
@@ -2172,7 +2172,7 @@
     {
       "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Display", "summary": "Overlaps avatars and counts the rest.",
       "examples": [
-        { "id": "avatar-group-max", "title": "Counting the rest", "lead": "To show the first few avatars and count the rest in a +N avatar, set `Max`." },
+        { "id": "avatar-group-usage", "title": "Counting the rest", "lead": "Put the `Avatar`s in an `AvatarGroup`, and name the group with `Label`. To show the first few and count the rest in a +N avatar, set `Max`." },
         { "id": "avatar-group-sizes", "title": "Sizes", "lead": "To set the size of every avatar in a group, set `Size` on the group." }
       ]
     },
@@ -2180,7 +2180,7 @@
     {
       "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Display", "summary": "Labels a status, category or count.", "keywords": ["pill", "label"],
       "examples": [
-        { "id": "badge-statuses", "title": "Status", "lead": "A status sets what the badge means, and its color. To choose one, set `Status`. For a color of your own, set `Accent`." },
+        { "id": "badge-usage", "title": "Status", "lead": "Put the label in a `Badge`, and set `Status` for what it means and its color. For a color of your own, set `Accent`." },
         { "id": "badge-variants", "title": "Variants", "lead": "A variant sets how strongly the badge stands out: `Soft` (the default), `Solid`, `Outline` or `Plain`. To choose one, set `Variant`." },
         { "id": "badge-dots-counts", "title": "Dots, counts and icons", "lead": "For a status dot, set `Dot`. For a count, set `Pill`. For an icon before the text, set `StartIcon`." },
         { "id": "badge-inline", "title": "In headings and buttons", "lead": "A badge sits inline, so it fits in a heading. For a count inside a button, set `Size=\"BadgeSize.Sm\"`." }
@@ -2195,7 +2195,7 @@
         { "feature": "Removed by C# (OnRemove)", "member": "OnRemove" }
       ],
       "examples": [
-        { "id": "tag-variants", "title": "Status and variants", "lead": "A tag's color comes from a status or an accent, and its weight from a variant. To set the color, set `Status` or `Accent`. To set the weight, set `Variant`." },
+        { "id": "tag-usage", "title": "Status and variants", "lead": "Set the tag's text with `Label`. To set its color, set `Status` or `Accent`; to set its weight, set `Variant`." },
         { "id": "tag-links-sizes", "title": "Links, icons, pills and sizes", "lead": "To make a tag a link, set `Href`; for rounded ends, set `Pill`. To add an icon, set `StartIcon`. To match a tag to controls of the same `ControlSize`, set `Size`." },
         { "id": "tag-remove", "title": "Removable", "lead": "For a remove link that works on any page, set `RemoveHref`. On interactive pages, `OnRemove` runs C# instead.",
           "notes": {
@@ -2208,7 +2208,7 @@
     {
       "id": "image", "icon": "Image", "name": "Image", "category": "Display", "summary": "Loads an image lazily and keeps its space.",
       "examples": [
-        { "id": "image-fit", "title": "Ratio and fit", "lead": "A ratio gives the image a fixed shape, whatever the picture's own. Set `Ratio`. To choose whether the image fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
+        { "id": "image-usage", "title": "Ratio and fit", "lead": "Set `Src`, and `Alt` to what the picture shows. To give the image a fixed shape, set `Ratio`. To choose whether it fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
         { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." }
       ]
     },
@@ -2216,14 +2216,14 @@
     {
       "id": "browser-frame", "icon": "AppWindow", "name": "BrowserFrame", "category": "Display", "summary": "Shows a screenshot inside a browser window.", "keywords": ["browser mockup", "screenshot", "window frame", "device mockup", "hero image"],
       "examples": [
-        { "id": "browser-frame-screenshot", "title": "A screenshot", "lead": "Put an `Image` inside, and give its `Alt` what the screenshot shows. To show an address in the top bar, set `Address`; without it, the bar shows only the dots. For a landing page, add `Shadow`." }
+        { "id": "browser-frame-usage", "title": "A screenshot", "lead": "Put an `Image` inside, and give its `Alt` what the screenshot shows. To show an address in the top bar, set `Address`; without it, the bar shows only the dots. For a landing page, add `Shadow`." }
       ]
     },
 
     {
       "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Display", "summary": "Shows a YouTube video that loads when played.",
       "examples": [
-        { "id": "video-embed-play", "title": "Playing a video", "lead": "The poster shows first, and YouTube's player loads only when the user plays the video. Set `YouTubeId` and `Label`.",
+        { "id": "video-embed-usage", "title": "Playing a video", "lead": "Set `YouTubeId`, and `Label` to the video's title. The poster shows first, and YouTube's player loads only when the user plays the video.",
           "notes": {
             "noscript": "The play button is a link that opens the video on YouTube.",
             "static": "Clicking plays the video in place, from youtube-nocookie.com."
@@ -2235,7 +2235,7 @@
     {
       "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
       "examples": [
-        { "id": "timeline-commits", "title": "Links and the current item", "lead": "To make an item's title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
+        { "id": "timeline-usage", "title": "Links and the current item", "lead": "Put a `TimelineItem` for each event in a `Timeline`, with its `Title`. To make the title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
         { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
       ]
     },
@@ -2243,7 +2243,7 @@
     {
       "id": "comment", "icon": "MessageSquareText", "name": "Comment", "category": "Display", "summary": "Shows a comment in a discussion, with who wrote it, when, and replies nested under it.", "keywords": ["comments", "discussion", "thread", "reply", "feedback", "review"],
       "examples": [
-        { "id": "comment-actions", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`. The avatar shows the author's initials, or a picture from `Avatar`. To add buttons such as Reply under the comment, set `Actions`." },
+        { "id": "comment-usage", "title": "Author, time and actions", "lead": "Set `Author`, `Time` and `Text`. The avatar shows the author's initials, or a picture from `Avatar`. To add buttons such as Reply under the comment, set `Actions`." },
         { "id": "comment-replies", "title": "Replies", "lead": "To answer a comment, put `Comment`s in its `Replies`. Each level steps in by one avatar.", "after": ["To load the rest of a long thread, put a link button after the replies. As a link, it works with JavaScript off.", "`RelativeTime` shows how long ago (\"5 hours ago\") with the full date on hover, worked out when the page renders. Comments older than a week show their date."] },
         { "id": "comment-list", "title": "A list of comments", "lead": "For a page's comments, put them in a `Stack` with a count above and a `Divider` between.", "after": ["`Extra` adds to the author's line after the time, such as \"Edited\", a `Badge` or a `Menu`."] },
         { "id": "comment-reply-form", "title": "Adding a comment", "lead": "For a box to write in, put a form in a `Comment` that has only the signed-in user's `Initials` or `Avatar`: it lines up with the comments above.", "after": ["For a conversation as it happens, `Chat` suits better."] }
@@ -2260,7 +2260,7 @@
         { "feature": "Replies that stream in", "noscript": "none" }
       ],
       "examples": [
-        { "id": "chat-assistant", "title": "An assistant", "lead": "Put a `ChatEntry` for each message in a `Chat`, oldest first, and set `Mine` on yours. `OnSend` gets what was typed, or the suggestion chosen; add it, then the reply.", "after": ["An assistant's reply is usually Markdown. Set `Markdown` on its entry, and it's shown as `RichText` shows it: sanitized, with code highlighted.", "While the reply is on its way, set `Status` to `Waiting`, then `Streaming`, and set the entry's `Pending`. Send becomes Stop (`OnStop`), and the entry shows dots and then a caret.", "`Suggestions` shows messages to send with one press. `EmptyContent` fills the log before the first entry.", "`AllowFiles` adds a button to attach files, limited by `Accept`, `MaxFileSize` and `MaxFiles`. The files come to `OnSend` as `Files`, checked on the server against those limits. To show an entry's own files, set its `Attachments`."],
+        { "id": "chat-usage", "title": "An assistant", "lead": "Put a `ChatEntry` for each message in a `Chat`, oldest first, and set `Mine` on yours. `OnSend` gets what was typed, or the suggestion chosen; add it, then the reply.", "after": ["An assistant's reply is usually Markdown. Set `Markdown` on its entry, and it's shown as `RichText` shows it: sanitized, with code highlighted.", "While the reply is on its way, set `Status` to `Waiting`, then `Streaming`, and set the entry's `Pending`. Send becomes Stop (`OnStop`), and the entry shows dots and then a caret.", "`Suggestions` shows messages to send with one press. `EmptyContent` fills the log before the first entry.", "`AllowFiles` adds a button to attach files, limited by `Accept`, `MaxFileSize` and `MaxFiles`. The files come to `OnSend` as `Files`, checked on the server against those limits. To show an entry's own files, set its `Attachments`."],
           "notes": {
             "noscript": "Send posts the form, and the page comes back with the whole reply: `CanStream` is false. Enter adds a line.",
             "static": "The form posts without reloading the page. With `[StreamRendering]` on the page, the reply streams as it does interactively: `OnSend`'s `CanStream` is true when the post came with script. There's no Stop: the reply streams in a request a new post can't reach. Keep the conversation yourself between posts, under an id: this example sets `FormAction` to an address with the conversation's id, so each post goes there."
@@ -2287,7 +2287,7 @@
     {
       "id": "barcode", "icon": "Barcode", "name": "Barcode", "category": "Display", "summary": "Shows a value as a barcode: Code 128, EAN-13, EAN-8 or UPC-A.", "keywords": ["barcode", "code 128", "ean", "ean-13", "upc", "upc-a", "gtin", "scan", "label", "shipping label"],
       "examples": [
-        { "id": "barcode-shipping", "title": "A shipping or order number", "lead": "Code 128, the default, accepts any ASCII text. Set `Value`; the value prints under the bars." },
+        { "id": "barcode-usage", "title": "A shipping or order number", "lead": "Set `Value`; it prints under the bars. Code 128, the default, accepts any ASCII text." },
         { "id": "barcode-product", "title": "Products", "lead": "For a retail product, set `Type` to `Ean13`, `UpcA` or `Ean8`. Without the check digit, the barcode adds it; with it, the barcode checks it." }
       ]
     },
@@ -2295,7 +2295,7 @@
     {
       "id": "qr-code", "icon": "QrCode", "name": "QrCode", "category": "Display", "summary": "Shows text, such as a link, as a QR code to scan.", "keywords": ["qr", "qr code", "barcode", "scan", "two-factor", "2fa", "authenticator", "otpauth"],
       "examples": [
-        { "id": "qr-code-link", "title": "A link to scan", "lead": "A QR code renders on the server as an SVG and works with JavaScript off. Set `Value` to the text, and `Label` to what scanning it does. Write the link beside it for a user without a camera." },
+        { "id": "qr-code-usage", "title": "A link to scan", "lead": "Set `Value` to the text, and `Label` to what scanning it does. A QR code renders on the server as an SVG and works with JavaScript off. Write the link beside it for a user without a camera." },
         { "id": "qr-code-two-factor", "title": "Setting up two-factor sign-in", "lead": "An authenticator app scans an `otpauth://` link and shows a new code every 30 seconds. Show the key beside the code for typing in, and a `PinField` for the code the app shows. Scan it with any authenticator app to try it.",
           "notes": {
             "noscript": "Verify posts the code; the field is one wide text box, not boxes. The key's copy button needs IzzyBlazor's script.",
