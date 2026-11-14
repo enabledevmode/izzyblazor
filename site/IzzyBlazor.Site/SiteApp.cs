@@ -81,19 +81,44 @@ public static class SiteApp
             && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
     }
 
-    // The caller's address: Fly's proxy gives it in Fly-Client-IP. IPv6 by its /64, the block one
-    // client usually has, so changing addresses inside it doesn't reset the limit.
+    // Cloudflare's addresses (cloudflare.com/ips-v4 and ips-v6, Nov 14, 2026): a request from one of
+    // them came through Cloudflare's proxy, which gives the visitor in CF-Connecting-IP.
+    private static readonly System.Net.IPNetwork[] Cloudflare = [.. new[]
+    {
+        "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "141.101.64.0/18",
+        "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20", "197.234.240.0/22", "198.41.128.0/17",
+        "162.158.0.0/15", "104.16.0.0/13", "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+        "2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32", "2405:8100::/32",
+        "2a06:98c0::/29", "2c0f:f248::/32",
+    }.Select(System.Net.IPNetwork.Parse)];
+
+    // The visitor's address: Fly's proxy gives its caller in Fly-Client-IP; when that caller is
+    // Cloudflare, the visitor is in CF-Connecting-IP (trusted only from Cloudflare's addresses, as
+    // anyone can send the header). Without Fly, the connection's own address.
+    internal static IPAddress? ClientAddress(HttpContext context)
+    {
+        if (!IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var caller))
+        {
+            return Unmapped(context.Connection.RemoteIpAddress);
+        }
+
+        caller = Unmapped(caller)!;
+        return Cloudflare.Any(n => n.Contains(caller))
+            && IPAddress.TryParse(context.Request.Headers["CF-Connecting-IP"].ToString(), out var visitor)
+            ? Unmapped(visitor) : caller;
+    }
+
+    private static IPAddress? Unmapped(IPAddress? address) =>
+        address is { IsIPv4MappedToIPv6: true } ? address.MapToIPv4() : address;
+
+    // The caller's key for limits: its address, IPv6 by its /64, the block one client usually has,
+    // so changing addresses inside it doesn't reset the limit.
     internal static string ClientKey(HttpContext context)
     {
-        var address = IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var fly) ? fly : context.Connection.RemoteIpAddress;
+        var address = ClientAddress(context);
         if (address is null)
         {
             return "";
-        }
-
-        if (address.IsIPv4MappedToIPv6)
-        {
-            address = address.MapToIPv4();
         }
 
         if (address.AddressFamily != AddressFamily.InterNetworkV6)
@@ -293,9 +318,9 @@ public static class SiteApp
         app.Use((context, next) =>
         {
             var agent = context.Request.Headers.UserAgent.ToString();
-            var from = IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var fly) ? fly : null;
+            var from = context.Request.Headers.ContainsKey("Fly-Client-IP") ? ClientAddress(context) : null;
             if ((blocked.Length > 0 && blocked.Any(b => agent.Contains(b, StringComparison.OrdinalIgnoreCase)))
-                || (from is not null && networks.Any(n => n.Contains(from.IsIPv4MappedToIPv6 ? from.MapToIPv4() : from))))
+                || (from is not null && networks.Any(n => n.Contains(from))))
             {
                 // With a body, so the status code pages don't render the not-found page for it.
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
