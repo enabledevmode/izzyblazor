@@ -19,8 +19,9 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
+        // Waits: on a cold, busy runner the page's script can still be starting when the keys go.
         await page.Keyboard.PressAsync("Control+k");
-        Assert.True(await page.EvaluateAsync<bool>(Open));
+        await page.WaitForFunctionAsync(Open);
         Assert.Equal("q", await page.EvaluateAsync<string>(Focused));
 
         await page.Keyboard.TypeAsync("toggle buttons");
