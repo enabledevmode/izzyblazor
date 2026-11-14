@@ -1,0 +1,15 @@
+@* One strong quote from a customer, from izzy add testimonials. It's yours: the quote and the
+   person are settings, so change them here. Use a real customer's words, with their permission. *@
+<Section Spacing="SectionSpacing.Lg" aria-label="Customer quote">
+    <Container Size="ContainerSize.Md" Align="ContainerAlign.Center" Gutters="false">
+        @*#if (HasPhoto) *@
+        <Blockquote Variant="BlockquoteVariant.Plain" Align="TextAlign.Center" QuoteMark Accent="Accent.Primary" Size="TextSize.Xl3" MinSize="TextSize.Xl2"
+                    Author="{{Author}}" Role="{{Role}}" AvatarSrc="{{Photo}}">
+        @*#else *@
+        <Blockquote Variant="BlockquoteVariant.Plain" Align="TextAlign.Center" QuoteMark Accent="Accent.Primary" Size="TextSize.Xl3" MinSize="TextSize.Xl2"
+                    Author="{{Author}}" Role="{{Role}}" Avatar>
+        @*#endif *@
+            {{Quote}}
+        </Blockquote>
+    </Container>
+</Section>

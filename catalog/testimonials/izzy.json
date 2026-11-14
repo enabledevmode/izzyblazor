@@ -1,0 +1,41 @@
+// The free testimonials block: one customer's quote with their name and role, written into the
+// project as a component you own (Components/Blocks/Testimonials.razor) and added at the end of a
+// page. Its Cards, Logos and Stats layouts are Pro: their files live only in the Pro catalogue.
+{
+  "id": "testimonials",
+  "name": "Testimonials",
+  "kind": "block",
+  "category": "Testimonials and logos",
+  "summary": "Show that others use and like it: one customer's words, with their name, role and avatar.",
+  "components": ["Section", "Container", "Blockquote", "Avatar"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Layout": {
+        "type": "string", "enum": ["Quote", "Cards", "Logos", "Stats"], "default": "Quote",
+        "x-tiers": { "Cards": "pro", "Logos": "pro", "Stats": "pro" }, "x-priority": "important",
+        "description": "Quote is one strong quote; Cards is a row of testimonials; Logos is a strip of customers' logos; Stats is a band of figures."
+      },
+      "Quote": { "type": "string", "default": "We moved three teams onto {{ProjectName}} in a week. Planning meetings went from an hour to fifteen minutes.", "x-priority": "important", "description": "What the customer said." },
+      "Author": { "type": "string", "default": "Maya Chen", "description": "Who said it." },
+      "Role": { "type": "string", "default": "Engineering lead, Northwind", "description": "Their role and company, under their name." },
+      "Photo": { "type": "string", "default": "", "description": "A photo of them, from wwwroot. Empty shows their initials." },
+      "Name": { "type": "string", "default": "Testimonials", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "HasPhoto": "Photo != \"\""
+  },
+  "accessibility": [
+    "The section is a region named \"Customer quote\". The quote is a blockquote in a figure, and the person is its figcaption, so the two are read together.",
+    "The quote mark and the avatar are decorative: the name is written beside it."
+  ],
+  "exclude": [ { "if": "Layout != \"Quote\"", "paths": ["layouts/Quote.razor"] } ],
+  "rename": [ { "if": "Layout == \"Quote\"", "paths": { "layouts/Quote.razor": "Components/Blocks/{{Name}}.razor" } } ],
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}
