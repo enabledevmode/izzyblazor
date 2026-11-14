@@ -9,11 +9,13 @@
     <Title>IzzyBlazor templates</Title>
     <Description>dotnet new templates for IzzyBlazor: Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode.</Description>
     <PackageTags>blazor;templates;dotnet-new;izzyblazor;components</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <NoDefaultExcludes>true</NoDefaultExcludes>
-    <!-- Packed with the solution; release.yml pushes only IzzyBlazor and IzzyBlazor.Core for now. -->
+    <!-- Packed with the solution; release.yml pushes it after IzzyBlazor and IzzyBlazor.Core. -->
     <IsPackable>true</IsPackable>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
     <CatalogDir Condition="'$(CatalogDir)' == ''">$(RepoRoot)catalog</CatalogDir>
@@ -27,6 +29,8 @@
   <ItemGroup>
     <!-- izzy-blazor is ported from Microsoft's template (MIT); its notice ships with the package. -->
     <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(RepoRoot)docs/nuget-readme-templates.md" Pack="true" PackagePath="\README.md" Visible="false" />
+    <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <Target Name="ExportTemplates" AfterTargets="Build">
