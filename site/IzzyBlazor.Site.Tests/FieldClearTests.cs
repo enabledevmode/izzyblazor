@@ -10,6 +10,7 @@ public sealed class FieldClearTests(SiteFixture site) : IClassFixture<SiteFixtur
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 1000 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/{component}?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await TestBrowser.WaitForLiveAsync(page);
         var found = page.Locator($"[data-ex='{example}']");
         await found.Locator("ib-field-clear[data-ready]").First.WaitForAsync(new() { State = WaitForSelectorState.Attached });
         return (found, browser);

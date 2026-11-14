@@ -6,6 +6,12 @@
 {
     <DynamicComponent Type="type" />
 }
+@* Once the circuit has this root: until then the page is its prerender, and typing into it is lost
+   when the circuit draws over it. The site tests wait for it (TestBrowser.WaitForLiveAsync). *@
+@if (RendererInfo.IsInteractive)
+{
+    <span data-ib-live hidden></span>
+}
 
 @code {
     [Parameter, EditorRequired] public string ExampleId { get; set; } = "";
