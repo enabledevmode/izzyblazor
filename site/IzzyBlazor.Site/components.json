@@ -2370,7 +2370,9 @@
       "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "Shows what to do when there's nothing yet.", "keywords": ["no results", "blank slate"], "parts": ["EmptyStateActions"],
       "examples": [
         { "id": "empty-state-usage", "title": "Icon, title and actions", "lead": "An empty state tells the user why an area is empty and what to do about it. To explain why, set `Icon`, `Title` and `Description`. To offer the action that fills the area, add `EmptyStateActions`." },
-        { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "For an empty area inside a page, set `Bordered`. For a smaller one, set `Size`." }
+        { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "For an empty area inside a page, set `Bordered`. For a smaller one, set `Size`." },
+        { "id": "empty-state-no-results", "title": "No results", "lead": "When a search or filter finds nothing, keep the search above the empty state, so people see what they looked for, and offer one way on: clearing it." },
+        { "id": "empty-state-message-page", "title": "A page that's only a message", "lead": "For a page with one message, such as no access or an error, center a large EmptyState in a narrow column, its title the page's heading. `Status` tints the icon: `Warning` for no access, `Danger` for an error, `Info` for maintenance. The starter's Not found and Error pages work this way." }
       ]
     },
 

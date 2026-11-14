@@ -1,0 +1,14 @@
+@* A page that's only a message, here no access: centered in a narrow column, a tinted icon, what
+   happened, the one way on, then a note on the usual cause. The starter's Not found and Error
+   pages are built the same way. *@
+<Column Gap="2" Align="Align.Center" MaxWidth="Length.Rem(27.5)" Grow>
+    <EmptyState Size="ControlSize.Lg" Status="Status.Warning" Icon="Lucide.Lock" TitleLevel="2" Title="You don't have access to this page"
+                Description="It needs the Billing admin role. An owner of your workspace can give it to you.">
+        <EmptyStateActions>
+            <Button Href="docs/components/empty-state" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the dashboard</Button>
+        </EmptyStateActions>
+    </EmptyState>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+        Signed in as ana@example.com. <Anchor Href="docs/components/empty-state">Switch account</Anchor>
+    </TextBlock>
+</Column>

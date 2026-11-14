@@ -3,12 +3,17 @@
 
 <PageTitle>Error</PageTitle>
 
-@* A page that's only a message, in the same column as Not found. The visitor's part comes first
-   and is complete on its own; the developer's part is folded away under it. *@
-<Container Size="ContainerSize.Xs" Gutters="false" MarginTop="new() { Base = 2, Md = 14 }">
-    <Column Gap="8">
-        <PageHeader Title="Something went wrong" Description="We couldn't finish your request. Try again, or go back to the home page." Size="ControlSize.Lg" />
-        <Button Href="" FullWidth>Go to the home page</Button>
+@* A page that's only a message, as Not found: the visitor's part is centered and complete on its
+   own; the developer's part is start-aligned under a line, folded away, since it's technical text. *@
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+    <Column Gap="6">
+        <EmptyState Size="ControlSize.Lg" Status="Status.Danger" Icon="Lucide.TriangleAlert" TitleLevel="1" Title="Something went wrong"
+                    Description="We couldn't finish your request. Try again, or go back to the home page.">
+            <EmptyStateActions>
+                <Button Href="" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>
+            </EmptyStateActions>
+        </EmptyState>
+        <Divider />
         <Collapsible Label="Details for developers">
             <Column Gap="3" PaddingTop="3">
                 @if (ShowRequestId)
