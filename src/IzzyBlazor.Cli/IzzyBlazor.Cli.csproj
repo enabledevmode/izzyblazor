@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The izzy CLI: a .NET tool over the generation engine, with the free catalogue inside it. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackageId>IzzyBlazor.Cli</PackageId>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>izzy</ToolCommandName>
+    <Title>IzzyBlazor CLI</Title>
+    <Description>The izzy command: new IzzyBlazor apps, and blocks and pages added to the app you have, from IzzyBlazor's catalogue. Every change can be shown first as a diff or as JSON.</Description>
+    <PackageTags>blazor;cli;scaffolding;templates;blocks;izzyblazor</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <IncludeSymbols>false</IncludeSymbols>
+    <!-- Not published until phase 2's gate (the CLI builds the demo apps' pages with no hand fixes). -->
+    <IsPackable>false</IsPackable>
+    <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
+    <InternalsVisibleTo Include="IzzyBlazor.Generation.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The free catalogue, beside the tool's dll: catalog/<item-id>/izzy.json and files/. -->
+    <None Include="$(RepoRoot)catalog/**/*" LinkBase="catalog" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(RepoRoot)docs/nuget-readme-cli.md" Pack="true" PackagePath="\README.md" Visible="false" />
+    <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>
