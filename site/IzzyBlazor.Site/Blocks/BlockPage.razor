@@ -118,7 +118,7 @@
             <TextBlock>What <code>izzy add @_block.Id</code> writes for the variation above.</TextBlock>
             @foreach (var (path, text) in _code)
             {
-                <Code Block Language="razor" Title="@path" LineNumbers>@text</Code>
+                <Code Block Language="@(path.EndsWith(".cs") ? "csharp" : "razor")" Title="@path" LineNumbers>@text</Code>
             }
         }
 
@@ -247,7 +247,8 @@
     {
         get
         {
-            var writes = string.Join(" and ", BlockCatalog.Writes(_block!));
+            var files = BlockCatalog.Writes(_block!);
+            var writes = files.Count < 3 ? string.Join(" and ", files) : string.Join(", ", files.SkipLast(1)) + " and " + files[^1];
             if (_block!.Manifest.Inserts.FirstOrDefault(i => i.File.Contains("{{Into}}", StringComparison.Ordinal)) is not { } insert
                 || _block.Manifest.Parameters.FirstOrDefault(p => p.Name == "Into") is not { } into)
             {

@@ -1,0 +1,45 @@
+// The free message pages: a page that's only a message, written into the project as code you own.
+// Maintenance writes the maintenance page (Pages/Maintenance.razor) and the middleware that serves it
+// with status 503 while maintenance is on (Maintenance.cs, app.UseMaintenance() in Program.cs, a
+// "Maintenance" section in appsettings.json). Not found and Error ship in the starter.
+{
+  "id": "message-page",
+  "name": "Message pages",
+  "kind": "block",
+  "category": "Empty and error states",
+  "summary": "A page that's only a message, such as down for maintenance: what happened, what to do, and one way forward.",
+  "components": ["Container", "Column", "EmptyState", "Button", "TextBlock", "IzzyTheme"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Kind": {
+        "type": "string", "enum": ["Maintenance"], "default": "Maintenance", "x-priority": "important",
+        "description": "Maintenance: the page every request gets, with status 503, while maintenance is on."
+      },
+      "StatusPage": { "type": "string", "default": "", "description": "Your status page's address, for See the status page. Empty leaves the button out; it's kept in appsettings.json." },
+      "Route": { "type": "string", "default": "maintenance", "description": "Where the page is always shown, without the leading slash, so you can check it before turning maintenance on." },
+      "Name": { "type": "string", "default": "Maintenance", "description": "The page's component name." },
+      "Standalone": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the page as a whole document; the docs previews show only its content." }
+    }
+  },
+  "accessibility": [
+    "The page's one message is its h1, so it's the first thing a screen reader reads.",
+    "The wrench is decorative; the title and the message say what's happening.",
+    "The page is plain HTML with no script, so it works in any browser while the app is down."
+  ],
+  "preview": { "Standalone": "false", "StatusPage": "blocks/message-page" },
+  "checks": [
+    {
+      "file": "Components/App.razor", "pattern": "<IzzyTheme\\s+[A-Z]",
+      "message": "App.razor sets the theme: give the IzzyTheme in Components/Pages/{{Name}}.razor the same settings, so the maintenance page matches the app."
+    }
+  ],
+  "inserts": [
+    { "file": "Program.cs", "anchor": "app.UseAntiforgery();", "position": "before", "text": "app.UseMaintenance();\n" },
+    {
+      "file": "appsettings.json", "anchor": "\"AllowedHosts\"", "position": "before",
+      "text": "  \"Maintenance\": {\n    \"Enabled\": false,\n    \"Until\": \"\",\n    \"StatusPage\": \"{{StatusPage}}\",\n    \"Secret\": \"\"\n  },\n"
+    }
+  ]
+}

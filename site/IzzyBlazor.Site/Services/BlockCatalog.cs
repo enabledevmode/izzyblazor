@@ -125,14 +125,16 @@ public sealed class BlockCatalog
         return combos.Select(c => new BlockVariant(block, c));
     }
 
-    /// <summary>The Razor files <c>izzy add</c> writes for a variant, by path, as a new app named MyApp gets them.</summary>
+    /// <summary>The code files <c>izzy add</c> writes for a variant (Razor, then C#), by path, as a new app named MyApp gets them.</summary>
     public static IReadOnlyList<(string Path, string Text)> Code(BlockVariant variant)
     {
         var changes = Generator.Generate(variant.Block.Definition, variant.Settings(preview: false), ProjectInfo.ForNewProject("MyApp"));
-        return changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal)).Select(c => (c.Path, c.Text!)).ToList();
+        return changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))
+            .Concat(changes.Creates.Where(c => c.Path.EndsWith(".cs", StringComparison.Ordinal)))
+            .Select(c => (c.Path, c.Text!)).ToList();
     }
 
-    /// <summary>The files <c>izzy add</c> writes, such as <c>Components/Blocks/Hero.razor</c>: its Razor ones, with the default name.</summary>
+    /// <summary>The files <c>izzy add</c> writes, such as <c>Components/Blocks/Hero.razor</c>: its code files, with the default name.</summary>
     public static IReadOnlyList<string> Writes(Block block) =>
         Code(Variant(block, _ => null)).Select(c => c.Path).ToList();
 
