@@ -31,9 +31,29 @@
             @Mark()
             @ChildContent
         </blockquote>
-        <figcaption class="ib-blockquote-caption">
-            <span aria-hidden="true">— </span>@Attribution()
-        </figcaption>
+        @if (HasPerson)
+        {
+            @* A person: their avatar beside their name over their role, as testimonials show it. *@
+            <figcaption class="ib-blockquote-caption ib-blockquote-person">
+                @if (Avatar || AvatarSrc is not null)
+                {
+                    <IzzyBlazor.Avatar Name="@Author" Src="@AvatarSrc" Accent="@Accent" Size="AvatarSize.Lg" Decorative />
+                }
+                <span class="ib-blockquote-who">
+                    <span class="ib-blockquote-name">@Attribution()</span>
+                    @if (!string.IsNullOrWhiteSpace(Role))
+                    {
+                        <span class="ib-blockquote-role">@Role</span>
+                    }
+                </span>
+            </figcaption>
+        }
+        else
+        {
+            <figcaption class="ib-blockquote-caption">
+                <span aria-hidden="true">— </span>@Attribution()
+            </figcaption>
+        }
     </figure>
 }
 else
@@ -87,10 +107,30 @@ else
     /// <summary>The text size of the quote; the attribution is a step smaller. Inherited when not set.</summary>
     [Parameter] public TextSize? Size { get; set; }
 
+    /// <summary>
+    /// The smallest the quote gets on a narrow screen: with <see cref="Size"/>, it scales between the
+    /// two with the screen's width, as a Heading's MinSize does.
+    /// </summary>
+    [Parameter] public TextSize? MinSize { get; set; }
+
+    /// <summary>
+    /// What the <see cref="Author"/> does, such as "Engineering lead, Northwind", shown under their
+    /// name. With it, the attribution is a person's: name over role, with no dash.
+    /// </summary>
+    [Parameter] public string? Role { get; set; }
+
+    /// <summary>Shows the <see cref="Author"/>'s avatar beside their name: their initials, or <see cref="AvatarSrc"/>.</summary>
+    [Parameter] public bool Avatar { get; set; }
+
+    /// <summary>A photo of the <see cref="Author"/>, shown beside their name (it shows the avatar on its own).</summary>
+    [Parameter] public string? AvatarSrc { get; set; }
+
     private string? _class;
     private string? _style;
 
     private bool HasAttribution => !string.IsNullOrWhiteSpace(Author) || !string.IsNullOrWhiteSpace(Source);
+
+    private bool HasPerson => !string.IsNullOrWhiteSpace(Author) && (Avatar || AvatarSrc is not null || !string.IsNullOrWhiteSpace(Role));
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -107,8 +147,10 @@ else
 
         if (Size is { } size)
         {
-            styles.AddVar("quote-fs", StyleValues.TextSize(size));
+            styles.AddVar("quote-fs", MinSize is { } min ? StyleValues.FluidTextSize(min, size) : StyleValues.TextSize(size));
         }
+
+        classes.Add("ib-blockquote-pull", QuoteMark);
 
         base.BuildAttributes(classes, styles);
     }
