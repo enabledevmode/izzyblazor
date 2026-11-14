@@ -169,9 +169,15 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 
         var crawled = await Get(null);
         Assert.Equal(HttpStatusCode.Redirect, crawled.StatusCode);
-        Assert.Equal("/docs/components/pagination", crawled.Headers.Location?.OriginalString);
+        Assert.Equal(new Uri(client.BaseAddress!, "/docs/components/pagination"), crawled.Headers.Location);
         Assert.Equal(HttpStatusCode.Redirect, (await Get("cross-site")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await Get("same-origin")).StatusCode);
+
+        // A path that looks like another site's address stays on this one.
+        using var sneaky = new HttpRequestMessage(HttpMethod.Get, new Uri(client.BaseAddress!.GetLeftPart(UriPartial.Authority) + "//evil.example/?a=1"));
+        sneaky.Headers.Add("Fly-Client-IP", "203.0.113.7");
+        using var away = await client.SendAsync(sneaky);
+        Assert.Equal(client.BaseAddress!.Authority, away.Headers.Location?.Authority);
     }
 
     // A first visit from outside (no cookie, through Fly's proxy) can be served a copy rendered for
@@ -182,12 +188,14 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     {
         using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = site.Client.BaseAddress };
 
+        var hits = new List<bool>();
         async Task<(string Cookie, string Token)> Visit()
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "docs/components/card");
             request.Headers.Add("Fly-Client-IP", "203.0.113.8");
             using var response = await client.SendAsync(request);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            hits.Add(response.Headers.Contains("X-First-Visit-Cache"));
             var html = await response.Content.ReadAsStringAsync();
             var tokens = Regex.Matches(html, "name=\"__RequestVerificationToken\" value=\"([^\"]+)\"").Select(m => m.Groups[1].Value).Distinct().ToList();
             var token = Assert.Single(tokens);
@@ -199,6 +207,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var second = await Visit();
         Assert.NotEqual(first.Token, second.Token);
         Assert.NotEqual(first.Cookie, second.Cookie);
+        Assert.True(hits[1], "The second visit wasn't served from the cache.");
 
         using var post = new HttpRequestMessage(HttpMethod.Post, "docs/components/card")
         {

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.Extensions.Caching.Memory;
+using IzzyBlazor.Site.Components.Layout;
 
 namespace IzzyBlazor.Site.Services;
 
@@ -12,16 +13,20 @@ namespace IzzyBlazor.Site.Services;
 /// pages (seconds each) until the site stopped answering.
 /// </summary>
 /// <remarks>
-/// Only a request that could be anyone's: a GET or HEAD for a page with no query string and no
-/// cookie, which isn't enhanced navigation. Such a request sees the page as everyone does: the
-/// default render mode and the system's color scheme. Each copy served gets this visitor's own
-/// antiforgery cookie, with its token in place of the one rendered into the copy, so forms post
-/// as from a fresh render. A page with server components keeps for 2 minutes, well inside the 5
-/// their markers stay valid for; any other for 10. While a page renders, other requests for it
-/// wait for that render rather than starting their own.
+/// Only a request that could be anyone's: a GET or HEAD for a page with no cookie, no query string
+/// (a demo's frame keeps its query, which is part of its key) and not enhanced navigation. Such a
+/// request sees the page as everyone does: the default render mode and the system's color scheme.
+/// The copies are kept by host, path and whether the browser is Apple's (the search button's
+/// shortcut is in the page). A page with a form gets the visitor's own antiforgery cookie, with
+/// its token in place of the one rendered into the copy, so the form posts as from a fresh render;
+/// a page without one sets no cookie, so the next request is still a first visit. A page with
+/// server components keeps for 2 minutes, well inside the 5 their markers stay valid for; any
+/// other for 10. While a page renders, other requests for it wait for that render; if it fails
+/// or its visitor leaves, the next one renders. A copy served carries X-First-Visit-Cache: hit.
 /// </remarks>
 public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforgery, ILogger<FirstVisitCache> log)
 {
+    internal const string HitHeader = "X-First-Visit-Cache";
     private const string TokenMark = "\u001fib-antiforgery\u001f";
     private static readonly TimeSpan WithServerComponents = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan Otherwise = TimeSpan.FromMinutes(10);
@@ -47,43 +52,72 @@ public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforge
             return;
         }
 
-        var key = context.Request.Path.Value!;
+        var key = Key(context.Request);
         if (_pages.TryGetValue(key, out Page? page) && page is not null)
         {
             await ServeAsync(context, page);
             return;
         }
 
-        // One render per page at a time: the first request renders, the rest wait for its copy.
-        var rendering = new TaskCompletionSource<Page?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var current = _rendering.GetOrAdd(key, rendering.Task);
-        if (current != rendering.Task)
+        // A HEAD never leads a render: it would leave nothing to keep.
+        if (HttpMethods.IsHead(context.Request.Method))
         {
-            var finished = await Task.WhenAny(current, Task.Delay(LongestWait, context.RequestAborted));
-            if (finished == current && await current is { } rendered)
+            await next(context);
+            return;
+        }
+
+        // One render per page at a time: the first request renders, the rest wait for its copy.
+        // A render that keeps nothing (an error, a 503, its visitor gone) hands the lead to the
+        // next request waiting, rather than letting them all render at once.
+        var deadline = DateTime.UtcNow + LongestWait;
+        while (true)
+        {
+            var rendering = new TaskCompletionSource<Page?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var current = _rendering.GetOrAdd(key, rendering.Task);
+            if (current == rendering.Task)
+            {
+                Page? result = null;
+                try
+                {
+                    result = await RenderAsync(context, key);
+                }
+                finally
+                {
+                    _rendering.TryRemove(KeyValuePair.Create(key, current));
+                    rendering.TrySetResult(result);
+                }
+
+                return;
+            }
+
+            var left = deadline - DateTime.UtcNow;
+            Page? rendered = null;
+            if (left > TimeSpan.Zero)
+            {
+                try
+                {
+                    rendered = await current.WaitAsync(left, context.RequestAborted);
+                }
+                catch (TimeoutException)
+                {
+                }
+                catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
+
+            if (rendered is not null || (_pages.TryGetValue(key, out rendered) && rendered is not null))
             {
                 await ServeAsync(context, rendered);
                 return;
             }
 
-            if (context.RequestAborted.IsCancellationRequested)
+            if (DateTime.UtcNow >= deadline)
             {
+                await next(context);
                 return;
             }
-
-            await next(context);
-            return;
-        }
-
-        Page? result = null;
-        try
-        {
-            result = await RenderAsync(context, key);
-        }
-        finally
-        {
-            _rendering.TryRemove(key, out _);
-            rendering.TrySetResult(result);
         }
     }
 
@@ -91,14 +125,17 @@ public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforge
     {
         var request = context.Request;
         return (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))
-            && !request.QueryString.HasValue
+            && (!request.QueryString.HasValue || request.Path.StartsWithSegments("/frame"))
             && request.Headers.Cookie.Count == 0
             && !request.Headers.ContainsKey("blazor-enhanced-nav")
             && SiteApp.IsPageRender(context);
     }
 
-    // Renders the page for this request into a buffer, sends it, and keeps a copy when it's a whole
-    // HTML page.
+    private static string Key(HttpRequest request) =>
+        $"{request.Host.Value?.ToLowerInvariant()}{request.Path}{request.QueryString}|{(SiteSearch.IsApple(request) ? "apple" : "other")}";
+
+    // Renders the page for this request into a buffer, keeps a copy when it's a whole HTML page,
+    // then sends it. The copy is kept before sending, so a visitor who leaves doesn't lose it.
     private async Task<Page?> RenderAsync(HttpContext context, string key)
     {
         var response = context.Response;
@@ -114,39 +151,45 @@ public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforge
             response.Body = body;
         }
 
+        Page? page = null;
+        if (response.StatusCode == StatusCodes.Status200OK
+            && response.ContentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) == true
+            && buffer.Length > 0)
+        {
+            var html = Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
+            // The tokens this render used (generated once a request, so the same ones): the copy
+            // keeps a mark in their place.
+            var token = antiforgery.GetTokens(context).RequestToken;
+            var hasToken = !string.IsNullOrEmpty(token) && html.Contains(token, StringComparison.Ordinal);
+            if (hasToken)
+            {
+                html = html.Replace(token!, TokenMark, StringComparison.Ordinal);
+            }
+
+            var headers = response.Headers
+                .Where(h => !OwnHeaders.Contains(h.Key))
+                .Select(h => KeyValuePair.Create(h.Key, h.Value.Select(v => v ?? "").ToArray()))
+                .ToArray();
+            page = new Page(html, hasToken, headers);
+            var serverComponents = html.Contains("<!--Blazor:{\"type\":\"server\"", StringComparison.Ordinal);
+            _pages.Set(key, page, new MemoryCacheEntryOptions
+            {
+                Size = html.Length * 2L,
+                AbsoluteExpirationRelativeToNow = serverComponents ? WithServerComponents : Otherwise,
+            });
+            log.LogInformation("Cached {Key} ({Kilobytes} KB)", key, html.Length / 1024);
+        }
+
         buffer.Position = 0;
-        await buffer.CopyToAsync(body, context.RequestAborted);
-
-        if (response.StatusCode != StatusCodes.Status200OK
-            || response.ContentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) != true
-            || HttpMethods.IsHead(context.Request.Method)
-            || buffer.Length == 0)
+        try
         {
-            return null;
+            await buffer.CopyToAsync(body, context.RequestAborted);
+        }
+        catch (Exception e) when (e is OperationCanceledException or IOException && context.RequestAborted.IsCancellationRequested)
+        {
+            // The visitor left; the copy is kept for the next one.
         }
 
-        var html = Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
-        // The tokens this render used (generated once a request, so the same ones): the copy keeps
-        // a mark in their place.
-        var token = antiforgery.GetTokens(context).RequestToken;
-        var hasToken = !string.IsNullOrEmpty(token) && html.Contains(token, StringComparison.Ordinal);
-        if (hasToken)
-        {
-            html = html.Replace(token!, TokenMark, StringComparison.Ordinal);
-        }
-
-        var headers = response.Headers
-            .Where(h => !OwnHeaders.Contains(h.Key))
-            .Select(h => KeyValuePair.Create(h.Key, h.Value.Select(v => v ?? "").ToArray()))
-            .ToArray();
-        var page = new Page(html, hasToken, headers);
-        var serverComponents = html.Contains("<!--Blazor:{\"type\":\"server\"", StringComparison.Ordinal);
-        _pages.Set(key, page, new MemoryCacheEntryOptions
-        {
-            Size = html.Length * 2L,
-            AbsoluteExpirationRelativeToNow = serverComponents ? WithServerComponents : Otherwise,
-        });
-        log.LogInformation("Cached {Path} ({Kilobytes} KB)", key, html.Length / 1024);
         return page;
     }
 
@@ -158,9 +201,18 @@ public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforge
             response.Headers[name] = values;
         }
 
-        // This visitor's own cookie and token (and the no-store and frame headers that come with them).
-        var tokens = antiforgery.GetAndStoreTokens(context);
-        var html = page.HasToken ? page.Html.Replace(TokenMark, tokens.RequestToken, StringComparison.Ordinal) : page.Html;
+        response.Headers[HitHeader] = "hit";
+        var html = page.Html;
+        if (page.HasToken)
+        {
+            // This visitor's own cookie and token (and the no-store and frame headers that come with them).
+            html = html.Replace(TokenMark, antiforgery.GetAndStoreTokens(context).RequestToken, StringComparison.Ordinal);
+        }
+        else
+        {
+            response.Headers.CacheControl = "no-cache";
+        }
+
         var bytes = Encoding.UTF8.GetBytes(html);
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentLength = bytes.Length;

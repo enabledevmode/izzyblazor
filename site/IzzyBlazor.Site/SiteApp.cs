@@ -5,6 +5,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Caching.Memory;
 using IzzyBlazor.Site.Components;
@@ -53,20 +54,26 @@ public static class SiteApp
             && !request.Path.StartsWithSegments("/frame")
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
+            && !request.Path.StartsWithSegments("/search")
             && !request.Path.StartsWithSegments(McpPath)
             && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
     }
 
+    // The site's antiforgery cookie, which every page it renders sets: a reader who has been here.
+    private static bool HasAntiforgeryCookie(HttpRequest request) =>
+        request.Cookies.Keys.Any(k => k.StartsWith(".AspNetCore.Antiforgery.", StringComparison.Ordinal));
+
     // Any page render (frames too) that came through Fly's proxy: not the circuit, the framework's
-    // files, MCP, static files, the search box's results, or an error page re-executed for a
-    // request already let through.
-    internal static bool IsPageRender(HttpContext context)
+    // files, MCP, static files or the search box's results. An error or not-found page re-executed
+    // for a request counts only when asked (the render limiter: its slot was given back by then;
+    // not FirstVisitCache, which would keep the not-found page as the path's copy).
+    internal static bool IsPageRender(HttpContext context, bool reExecuted = false)
     {
         var request = context.Request;
         var path = request.Path.Value ?? "";
         return request.Headers.ContainsKey("Fly-Client-IP")
-            && context.Features.Get<IStatusCodeReExecuteFeature>() is null
-            && context.Features.Get<IExceptionHandlerFeature>() is null
+            && (reExecuted || (context.Features.Get<IStatusCodeReExecuteFeature>() is null
+                && context.Features.Get<IExceptionHandlerFeature>() is null))
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
             && !request.Path.StartsWithSegments("/search")
@@ -221,17 +228,19 @@ public static class SiteApp
             // the limit above; renders piled up on the one shared CPU until the machine ran out of
             // memory. A few render at a time and a short queue waits; the rest get a 503 to retry.
             // Every other page render waits for a slot too, so no crawl, whatever it asks for, can
-            // swamp the one shared CPU: a first visit from outside (no cookie, not from a page of the
-            // site, and not answered by FirstVisitCache) has 2 slots, which a crawler from many
-            // addresses fills first; readers already on the site have 6 of their own.
+            // swamp the one shared CPU: a first visit from outside (not from a page of the site, no
+            // antiforgery cookie of the site's, and not answered by FirstVisitCache) has 2 slots,
+            // which a crawler from many addresses fills first; readers already on the site have 6 of
+            // their own. The queues are short, so a long wait becomes a quick 503 with Retry-After.
+            // (A crawler can claim to be a reader; the slots still bound the CPU: 2 + 2 + 6.)
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                 IsQueryPage(context) || WasRedirected(context)
                     ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
-                : !IsPageRender(context)
+                : !IsPageRender(context, reExecuted: true)
                     ? RateLimitPartition.GetNoLimiter("unlimited")
-                : FromThisSite(context.Request) || context.Request.Headers.Cookie.Count > 0
-                    ? RateLimitPartition.GetConcurrencyLimiter(ReadersPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 6, QueueLimit = 100, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
-                    : RateLimitPartition.GetConcurrencyLimiter(VisitorsPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 30, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
+                : FromThisSite(context.Request) || HasAntiforgeryCookie(context.Request)
+                    ? RateLimitPartition.GetConcurrencyLimiter(ReadersPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 6, QueueLimit = 40, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
+                    : RateLimitPartition.GetConcurrencyLimiter(VisitorsPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 20, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
         });
 
         var app = builder.Build();
@@ -254,6 +263,18 @@ public static class SiteApp
             }
 
             site.UseStatusCodePagesWithReExecute("/not-found");
+            // A missing file (a dot in the last segment: scanners' /wp-login.php, /.env) gets a bare
+            // 404, not the not-found page, whose re-executed render no limiter sees.
+            site.Use((context, next) =>
+            {
+                var path = context.Request.Path.Value ?? "";
+                if (path[(path.LastIndexOf('/') + 1)..].Contains('.') && context.Features.Get<IStatusCodePagesFeature>() is { } pages)
+                {
+                    pages.Enabled = false;
+                }
+
+                return next(context);
+            });
         });
         app.UseAntiforgery();
         // Crawlers that ignore robots.txt, by a piece of their user agent: BlockedAgents, comma
@@ -296,7 +317,9 @@ public static class SiteApp
             {
                 redirected.Set(ClientKey(context) + " " + context.Request.Path, true,
                     new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) });
-                context.Response.Redirect(context.Request.PathBase + context.Request.Path);
+                // Absolute, on this host: a path such as //evil.example/ would otherwise be read as
+                // another site's address.
+                context.Response.Redirect(UriHelper.BuildAbsolute(context.Request.Scheme, context.Request.Host, context.Request.PathBase, context.Request.Path));
                 return Task.CompletedTask;
             }
 
