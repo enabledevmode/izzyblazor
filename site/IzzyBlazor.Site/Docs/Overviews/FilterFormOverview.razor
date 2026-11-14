@@ -5,14 +5,12 @@
    saying how many match, and its own words. Parts, Accessibility and See also come from the
    metadata and the doc comments; See also adds the order list demo. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself: the page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
 <TextBlock>To filter a table by its columns instead, use the <Anchor Href="docs/components/table">Table</Anchor>'s own column filters.</TextBlock>
 
 <Heading Level="2">Search, select and checkbox</Heading>
 <TextBlock>A filter form has three kinds of plain filter field. Add a <Code>FilterSearch</Code> for a search box, a <Code>FilterSelect</Code> for a choice with "All" first, and a <Code>FilterCheckbox</Code> for a filter that's on or off, such as <Code>?mine=true</Code>.</TextBlock>
-<ExampleViewer Example="filter-form-issues" />
+<ExampleViewer Example="filter-form-usage" />
 <List>
     <ListItem>A <Code>FilterSearch</Code> writes <Code>?q=</Code> unless you set its <Code>Name</Code>.</ListItem>
     <ListItem>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the search applies after a pause in typing, and the other fields as they change. Each applies without a full reload, and focus stays where it was.</ListItem>
@@ -107,18 +105,6 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <FilterForm Label="Filter customers">
-            <FilterSearch Placeholder="Search customers" />
-            <FilterSelect Name="status" Label="Status" EnumType="typeof(CustomerStatus)" />
-        </FilterForm>
-
-        @code {
-            // The page reads the filters from the address and filters its own data.
-            [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
-            [SupplyParameterFromQuery(Name = "status")] private string? Status { get; set; }
-        }
-        """;
 
     private const string OwnFields = """
         <FilterForm Fields="@(["over"])">

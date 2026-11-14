@@ -11,10 +11,6 @@
     The list sibling of Table: the same Items or ItemsProvider, ItemKey and paging, with one
     template per item instead of columns.
 
-    <ListView Items="people" ItemKey="p => p.Id" ItemHref="@(p => $"/people/{p.Id}")" Context="person">
-        <Avatar Name="@person.Name" /> @person.Name
-    </ListView>
-
     With no template, ItemText, ItemDescription and ItemIcon draw a row of an icon, the text and
     a muted second line. ItemHref makes each item a link (the whole item is clickable; links and
     buttons inside it still work on their own), and ItemCurrent marks the one the page is

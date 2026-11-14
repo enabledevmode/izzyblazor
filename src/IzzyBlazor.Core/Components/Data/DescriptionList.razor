@@ -7,13 +7,6 @@
     Horizontal puts each term beside its detail from 640px up (the term column fits the longest
     term), stacking them on phones; Vertical puts the term above, optionally in Columns. No script.
 
-    <DescriptionList Dividers>
-        <DescriptionItem Term="Status">
-            <Badge Status="Status.Success" Dot>Paid</Badge>
-        </DescriptionItem>
-        <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
-    </DescriptionList>
-
     Accessibility:
     - It renders a native `dl`; each DescriptionItem is a `dt` and a `dd` in a `div`, which HTML
       allows, so the term and its detail stay paired.
