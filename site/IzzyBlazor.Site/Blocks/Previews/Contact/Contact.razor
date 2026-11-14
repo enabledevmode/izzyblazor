@@ -39,7 +39,7 @@
                     <TextArea @bind-Value="Model!.Message" Rows="5" />
                     <Column Gap="3">
                         <Button Submit Size="ControlSize.Lg" AlignSelf="Align.Start">Send message</Button>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">We use your details only to reply to you.</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">We use your details only to reply to you. <TextBlock As="span" Color="Color.OnSurface" Style="white-space: nowrap"><Anchor Href="blocks/contact" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
                     </Column>
                 </Form>
             </Box>
