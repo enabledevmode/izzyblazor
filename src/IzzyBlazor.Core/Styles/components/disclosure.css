@@ -87,6 +87,11 @@
     --ib-acc-px: 0;
   }
 
+  /* With no box around it, the answer starts under its question: the question's own padding is the space between. */
+  .ib-accordion-flush > .ib-accordion-item > .ib-accordion-panel {
+    padding-top: 0;
+  }
+
   .ib-accordion-trigger {
     display: flex;
     align-items: center;
