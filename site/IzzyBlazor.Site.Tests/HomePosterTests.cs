@@ -10,7 +10,7 @@ public sealed class HomePosterTests(SiteFixture site) : IClassFixture<SiteFixtur
 {
     private static readonly (string Name, int Width, int Height, string Query)[] Frames =
     [
-        ("desktop", 1280, 940, "mode=static"),
+        ("desktop", 1280, 940, "mode=static&scrollbar=none"),
         ("phone", 390, 780, "mode=static&scrollbar=none"),
     ];
 
