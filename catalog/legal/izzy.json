@@ -1,0 +1,28 @@
+// The free legal page: a privacy policy (or any long page of prose) with numbered sections and an
+// "On this page" list that stays beside the text, written into the project as a page you own
+// (Components/Pages/Privacy.razor, at /privacy).
+{
+  "id": "legal",
+  "name": "Legal page",
+  "kind": "block",
+  "category": "Legal and long-form",
+  "summary": "A privacy policy, terms or any long page of prose: numbered sections, with an \"On this page\" list that follows you down.",
+  "components": ["Heading", "TextBlock", "Column", "Row", "Box", "List", "Anchor", "Accordion", "OnThisPage"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Title": { "type": "string", "default": "Privacy policy", "x-priority": "important", "description": "The page's heading and title." },
+      "Route": { "type": "string", "default": "privacy", "x-priority": "important", "description": "The page's address, without the leading slash." },
+      "Email": { "type": "string", "default": "privacy@example.com", "description": "Where questions about the policy go." },
+      "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the page's route and title; the docs previews leave them out." },
+      "Name": { "type": "string", "default": "Privacy", "description": "The page component's name." }
+    }
+  },
+  "accessibility": [
+    "The page is an article named by its h1; each section is an h2, and \"Last updated\" is a time element.",
+    "\"On this page\" is a navigation landmark of its own, so screen-reader users can jump to it wherever it sits. With script, the link to the section in view is marked as the current one.",
+    "On narrow screens the list is in a disclosure under the title, closed until opened, so the policy starts at once."
+  ],
+  "preview": { "Routable": "false" }
+}

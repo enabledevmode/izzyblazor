@@ -1,0 +1,63 @@
+@*#if (Routable) *@
+@page "/{{Route}}"
+
+<PageTitle>{{Title}}</PageTitle>
+
+@*#endif *@
+@* A long page of prose, from izzy add legal: a privacy policy to start from. Write your own: this
+   plain-language sample isn't legal advice. Each h2 is a section; "On this page" lists them, marks
+   the one in view as you scroll, and stays beside the text (in a disclosure on narrow screens). *@
+<article aria-labelledby="{{Name}}-title">
+    <Column Gap="new() { Base = 6, Md = 10 }" PaddingTop="new() { Base = 2, Md = 6 }" PaddingBottom="new() { Base = 12, Md = 16 }">
+        <Column Gap="2">
+            <Heading Level="1" id="{{Name}}-title" Size="TextSize.Xl4" MinSize="TextSize.Xl3">{{Title}}</Heading>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Last updated <time datetime="@Updated.ToString("yyyy-MM-dd")">@Updated.ToString("MMMM d, yyyy")</time></TextBlock>
+        </Column>
+        <Accordion Variant="AccordionVariant.Bordered" HiddenFrom="Breakpoint.Lg">
+            <AccordionItem Title="On this page">
+                <OnThisPage HideTitle MaxLevel="2" />
+            </AccordionItem>
+        </Accordion>
+        <Row Gap="16" Justify="Justify.Between" Align="Align.Start">
+            <Column Gap="9" MaxWidth="Length.Rem(42.5)" MinWidth="Length.Rem(0)" Grow>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">1. Who we are</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">{{ProjectName}}, Inc. makes {{ProjectName}}, a tool for planning and tracking work. This policy explains what we collect when you use {{ProjectName}} or this site, and what we do with it.</TextBlock>
+                </Column>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">2. What we collect</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">We collect what you give us (your name, email and the work you put into {{ProjectName}}) and what your browser sends when you visit (pages viewed, device type, an approximate location from your IP address).</TextBlock>
+                    <List Gap="1">
+                        <ListItem>Account details: name, email, password (stored hashed)</ListItem>
+                        <ListItem>Content: projects, tasks and comments you create</ListItem>
+                        <ListItem>Usage: pages viewed and features used, only with analytics on</ListItem>
+                    </List>
+                </Column>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">3. How we use it</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">To run {{ProjectName}}, keep it secure, answer your questions and, if you agree, send you product news. We don't sell your data, and we don't use it for advertising.</TextBlock>
+                </Column>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">4. Cookies</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">Essential cookies keep you signed in and remember your settings. Analytics cookies are off until you accept them, and you can change your choice at any time.</TextBlock>
+                </Column>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">5. Your rights</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">You can see, correct, export or delete your data from your account settings, or by asking us. If you're in the EU or UK, you can also complain to your data protection authority.</TextBlock>
+                </Column>
+                <Column As="section" Gap="2">
+                    <Heading Level="2" Size="TextSize.Xl">6. Contact us</Heading>
+                    <TextBlock LineHeight="LineHeight.Relaxed">Email <Anchor Href="mailto:{{Email}}">{{Email}}</Anchor> with any question about this policy. We answer within 30 days.</TextBlock>
+                </Column>
+            </Column>
+            <Box Sticky VisibleFrom="Breakpoint.Lg" Width="Length.Rem(13.75)" Shrink="false">
+                <OnThisPage MaxLevel="2" />
+            </Box>
+        </Row>
+    </Column>
+</article>
+
+@code {
+    // When the policy last changed: shown at the top, and worth keeping honest.
+    private static readonly DateOnly Updated = new(2026, 11, 1);
+}

@@ -12,7 +12,11 @@
 @if (_type is not null)
 {
     <ThemeScope Brand="blue" Gray="neutral" Class="frame frame-page frame-block">
-        <DynamicComponent Type="_type" />
+        @* In a CodeExample, as on the block page, so a block's own OnThisPage has an outline to read
+           (an app's AppShell gives it one), with the example's border and padding off. *@
+        <CodeExample Class="frame-block-example">
+            <DynamicComponent Type="_type" />
+        </CodeExample>
     </ThemeScope>
 }
 
