@@ -53,6 +53,13 @@ public abstract class StyledComponentBase : LayoutItemBase
     [Parameter] public Responsive<Color> Bg { get; set; }
 
     /// <summary>
+    /// Keeps it in view while the page scrolls past it, 24px below any sticky header or banner, as
+    /// an "On this page" list or an order summary beside a long form. It sticks within its parent,
+    /// so give it a parent taller than itself, such as a grid row.
+    /// </summary>
+    [Parameter] public bool Sticky { get; set; }
+
+    /// <summary>
     /// Text color. When not set and <see cref="Bg"/> is a theme color, the matching contrast color is
     /// used automatically (<c>Bg="Color.Primary"</c> gets <c>Color.OnPrimary</c> text).
     /// </summary>
@@ -128,6 +135,7 @@ public abstract class StyledComponentBase : LayoutItemBase
             LayoutItemProps.ApplyMargins(classes, styles, this);
         }
 
+        classes.Add("ib-sticky", Sticky);
         ApplyResponsive(classes, styles, Bg, "ib-bg", "bg", StyleValues.Color);
         var textColor = Color.IsEmpty ? Bg.Select(bg => bg.ContrastText) : Color;
         ApplyResponsive(classes, styles, textColor, "ib-fg", "fg", StyleValues.Color);

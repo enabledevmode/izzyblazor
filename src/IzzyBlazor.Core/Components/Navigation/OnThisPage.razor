@@ -25,7 +25,7 @@
 
 <ib-on-this-page @attributes="AdditionalAttributes" class="@_class" style="@_style" data-min="@MinLevel" data-max="@MaxLevel" hidden="@(_entries.Count == 0)">
     <nav class="ib-toc-nav" aria-labelledby="@_titleId">
-        <h2 class="ib-toc-title" id="@_titleId">@(Title ?? TextDefaults.OnThisPage)</h2>
+        <h2 class="@(HideTitle ? "ib-visually-hidden" : "ib-toc-title")" id="@_titleId">@(Title ?? TextDefaults.OnThisPage)</h2>
         <ul class="ib-toc-list" role="list">
             @foreach (var entry in _entries)
             {
@@ -40,6 +40,12 @@
 @code {
     /// <summary>The list's heading. Defaults to "On this page".</summary>
     [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Hides the heading from view, keeping it for screen readers, which name the navigation by it:
+    /// for a list inside a disclosure or a menu already labelled "On this page".
+    /// </summary>
+    [Parameter] public bool HideTitle { get; set; }
 
     /// <summary>The highest heading level listed (h2 by default), 1 to 6.</summary>
     [Parameter] public int MinLevel { get; set; } = 2;

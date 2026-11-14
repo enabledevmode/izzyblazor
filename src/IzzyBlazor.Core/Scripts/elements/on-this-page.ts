@@ -30,7 +30,9 @@ class OnThisPage extends IzzyElement {
   }
 
   #build(signal: AbortSignal): void {
-    const main = this.closest("ib-shell")?.querySelector(":scope > main") ?? document.querySelector("main");
+    // In an example, the example's own headings; else the page's main area.
+    const example = this.closest<HTMLElement>(".ib-example-preview");
+    const main = example ?? this.closest("ib-shell")?.querySelector(":scope > main") ?? document.querySelector("main");
     const served = this.querySelector<HTMLElement>(".ib-toc-list:not(.ib-toc-own)");
     if (!main || !served) return;
     this.querySelector(".ib-toc-own")?.remove();
@@ -41,7 +43,7 @@ class OnThisPage extends IzzyElement {
     for (let level = min; level <= max; level++) levels.push(`h${level}[id]`);
     // Not sections: headings of dialogs, popovers, examples and outlines.
     const headings = [...main.querySelectorAll<HTMLElement>(levels.join(","))].filter(
-      (h) => h.dataset.ibOutline !== "false" && h.id && !h.closest("dialog, [popover], ib-on-this-page, .ib-example-preview")
+      (h) => h.dataset.ibOutline !== "false" && h.id && !h.closest("dialog, [popover], ib-on-this-page") && h.closest(".ib-example-preview") === example
     );
 
     const servedLinks = [...served.querySelectorAll<HTMLAnchorElement>("a.ib-toc-link")];
