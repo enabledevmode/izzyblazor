@@ -108,6 +108,11 @@ public static class SiteApp
             ? Unmapped(visitor) : caller;
     }
 
+    // Whether Fly's caller is Cloudflare: the request came through the proxy, not straight to Fly.
+    internal static bool ViaCloudflare(HttpContext context) =>
+        IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var caller)
+        && Cloudflare.Any(n => n.Contains(Unmapped(caller)!));
+
     private static IPAddress? Unmapped(IPAddress? address) =>
         address is { IsIPv4MappedToIPv6: true } ? address.MapToIPv4() : address;
 
@@ -315,9 +320,22 @@ public static class SiteApp
             .OfType<System.Net.IPNetwork>()
             .ToArray();
         var queryLog = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Crawlers");
+        // With RequireCloudflare (a Fly secret, "true"), the site's own name answers only through
+        // Cloudflare: a crawler that calls Fly's address straight, skipping Cloudflare's rules, gets
+        // a short 403 (Nov 14, 2026). izzyblazor.fly.dev and Fly's health checks still go straight.
+        var requireCloudflare = string.Equals(app.Configuration["RequireCloudflare"], "true", StringComparison.OrdinalIgnoreCase);
         app.Use((context, next) =>
         {
             var agent = context.Request.Headers.UserAgent.ToString();
+            if (requireCloudflare && context.Request.Headers.ContainsKey("Fly-Client-IP") && !ViaCloudflare(context)
+                && (string.Equals(context.Request.Host.Host, CanonicalHost.Host, StringComparison.OrdinalIgnoreCase)
+                    || CanonicalHost.Target(context.Request.Host.Host, "/") is not null))
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                return context.Response.WriteAsync("Reach izzyblazor.com by its name.");
+            }
+
             var from = context.Request.Headers.ContainsKey("Fly-Client-IP") ? ClientAddress(context) : null;
             if ((blocked.Length > 0 && blocked.Any(b => agent.Contains(b, StringComparison.OrdinalIgnoreCase)))
                 || (from is not null && networks.Any(n => n.Contains(from))))
@@ -330,7 +348,7 @@ public static class SiteApp
 
             if (IsQueryPage(context) && ClientKey(context) is var client && rejectionLog.AttemptAcquire("q " + client).IsAcquired)
             {
-                queryLog.LogInformation("Query page {Client} ({UserAgent}): {Path}", client, agent, context.Request.Path + context.Request.QueryString);
+                queryLog.LogInformation("Query page {Client} {Via} ({UserAgent}): {Path}", client, ViaCloudflare(context) ? "via Cloudflare" : "direct", agent, context.Request.Path + context.Request.QueryString);
             }
 
             // A page with a query string opened from outside the site goes to the page without it.

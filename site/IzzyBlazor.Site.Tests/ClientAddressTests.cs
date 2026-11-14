@@ -23,4 +23,14 @@ public class ClientAddressTests
 
         Assert.Equal(expected, SiteApp.ClientAddress(context)?.ToString());
     }
+
+    [Theory]
+    [InlineData("162.158.10.1", true)]
+    [InlineData("203.0.113.7", false)]
+    public void Through_Cloudflare_is_a_caller_from_its_addresses(string fly, bool expected)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers["Fly-Client-IP"] = fly;
+        Assert.Equal(expected, SiteApp.ViaCloudflare(context));
+    }
 }
