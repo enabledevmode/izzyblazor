@@ -256,10 +256,10 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var off = await site.Client.GetStringAsync("docs/components/button?mode=noscript");
         var live = await site.Client.GetStringAsync("docs/components/button?mode=interactive");
 
-        Assert.DoesNotContain("blazor.web.js", off);
+        Assert.DoesNotContain("_framework/blazor.web.", off);
         Assert.DoesNotContain("importmap", off);
         Assert.Contains("data-site-noscript", off);
-        Assert.Contains("blazor.web.js", live);
+        Assert.Contains("_framework/blazor.web.", live);
         Assert.DoesNotContain("data-site-noscript", live);
 
         // Its stylesheet: the library's with the scripting rules as JavaScript off reads them.
