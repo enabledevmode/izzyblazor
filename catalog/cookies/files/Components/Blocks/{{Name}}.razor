@@ -1,0 +1,58 @@
+@inject NavigationManager Navigation
+
+@* Asks before anything that isn't essential, from izzy add cookies: a card at the bottom of the
+   window (a sheet on phones) until the visitor chooses. Rejecting is as easy as accepting. The
+   buttons post to /consent (Consent.cs), so it works on every page, with or without script. *@
+@if (Show)
+{
+    @*#if (Floating) *@
+    <Card Pinned Variant="CardVariant.Outline" Shadow="Shadow.Lg" role="region" aria-labelledby="{{Name}}-title">
+    @*#else *@
+    <Card Variant="CardVariant.Outline" Shadow="Shadow.Lg" MaxWidth="Length.Rem(30)" role="region" aria-labelledby="{{Name}}-title">
+    @*#endif *@
+        <CardBody Gap="3">
+            <Heading Level="2" id="{{Name}}-title" Size="TextSize.Md">Cookies on {{ProjectName}}</Heading>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                We use essential cookies to keep you signed in. With your OK, we'd also use analytics cookies to learn how {{ProjectName}} is used.
+                <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="{{PolicyHref}}" InheritColor>Cookie policy</Anchor></TextBlock>
+            </TextBlock>
+            <form method="post" action="consent">
+                <AntiforgeryToken />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                @* Phones: the two choices side by side, then Choose cookies under them at full width. *@
+                <Stack Direction="new() { Base = Direction.ColumnReverse, Sm = Direction.Row }" Gap="2" Align="new() { Base = Align.Stretch, Sm = Align.Center }" MarginTop="1">
+                    <Button Href="@SettingsHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Choose cookies</Button>
+                    <Spacer />
+                    <Grid Columns="2" Gap="2">
+                        <Button Submit Name="choice" Value="reject" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Reject analytics</Button>
+                        <Button Submit Name="choice" Value="accept" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Accept all</Button>
+                    </Grid>
+                </Stack>
+            </form>
+        </CardBody>
+    </Card>
+}
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // Decided on the server while the page renders, and kept for an interactive render after it.
+    [PersistentState] public bool Show { get; set; }
+
+    private string ReturnUrl => "~/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+
+    private string SettingsHref => "{{SettingsRoute}}?returnUrl=" + Uri.EscapeDataString(ReturnUrl);
+
+    protected override void OnInitialized()
+    {
+@*#if (Routable) *@
+        // Not on the settings page itself: it asks the same thing in full.
+        if (HttpContext is not null)
+        {
+            Show = !Consent.Chosen(HttpContext) && !Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("{{SettingsRoute}}", StringComparison.OrdinalIgnoreCase);
+        }
+@*#else *@
+        Show = true;
+@*#endif *@
+    }
+}
