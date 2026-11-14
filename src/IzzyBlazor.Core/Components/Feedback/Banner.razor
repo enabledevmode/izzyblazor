@@ -96,6 +96,12 @@
     [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Soft;
 
     /// <summary>
+    /// Centers the message in the strip, as an announcement bar does: a short line across the top
+    /// of every page. The close button stays at the end.
+    /// </summary>
+    [Parameter] public bool Center { get; set; }
+
+    /// <summary>
     /// Keeps it at the top of the window while the page scrolls, instead of scrolling away with
     /// it. Off by default.
     /// </summary>
@@ -298,6 +304,7 @@
         classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-banner-sticky", Sticky);
+        classes.Add("ib-banner-center", Center);
         if (Accent is { } accent)
         {
             ColorOverride.Apply(styles, accent.ToColor());

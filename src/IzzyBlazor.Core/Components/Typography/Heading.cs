@@ -46,6 +46,13 @@ public class Heading : TextBase, IDisposable
     [Parameter] public bool OnThisPage { get; set; } = true;
 
     /// <summary>
+    /// What the <see cref="IzzyBlazor.OnThisPage"/> lists for this heading, when it should differ from
+    /// the heading's own text: "Who we are" for a heading "1. Who we are", or a shorter name for a
+    /// long heading. Its id comes from this text too.
+    /// </summary>
+    [Parameter] public string? OnThisPageText { get; set; }
+
+    /// <summary>
     /// Makes the heading a link to itself, with a "#" on hover, so a section can be linked. By
     /// default, headings listed in an <see cref="IzzyBlazor.OnThisPage"/> are; true adds the link to any heading
     /// with an id, false removes it. A heading whose content holds a link or button of its own
@@ -102,7 +109,7 @@ public class Heading : TextBase, IDisposable
         As = $"h{Level}";
 
         var content = IzzyBlazor.PageOutline.ReadText(ChildContent);
-        var text = content.Text;
+        var text = string.IsNullOrWhiteSpace(OnThisPageText) ? content.Text : OnThisPageText;
         _hasControl = content.HasControl;
         _mayHaveControl = content.MayHaveControl;
         var outline = OnThisPage ? PageOutline : null;
