@@ -1,0 +1,89 @@
+@*#if (Routable) *@
+@page "/Account/AccessDenied"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Routing.Template
+@inject EndpointDataSource Endpoints
+
+<PageTitle>Access denied</PageTitle>
+
+@*#endif *@
+@* Where sign-in sends someone who is signed in but lacks the role a page needs, from izzy add
+   access-denied. Centered, as the other one-message pages: what happened, which role it needs and
+   who can give it, the one way on, then the usual cause, the wrong account. *@
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+    <Column Gap="5">
+        <EmptyState Size="ControlSize.Lg" PaddingBottom="0" Status="Status.Warning" Icon="Lucide.Lock" TitleLevel="1" Title="You don't have access to this page"
+                    Description="@Message">
+            <EmptyStateActions>
+@*#if (Routable) *@
+                <Button Href="" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>
+@*#else *@
+                <Button Href="#" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>
+@*#endif *@
+            </EmptyStateActions>
+        </EmptyState>
+        @if (SignedInAs is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+@*#if (Routable) *@
+                Signed in as @SignedInAs. <Button Submit Form="switch-account" Variant="ButtonVariant.Link" Accent="Accent.Neutral">Switch account</Button>
+@*#else *@
+                Signed in as @SignedInAs. <Button Href="#" Variant="ButtonVariant.Link" Accent="Accent.Neutral">Switch account</Button>
+@*#endif *@
+            </TextBlock>
+@*#if (Routable) *@
+            @* Switch account: sign out, then sign in again and go back to the page. *@
+            <form id="switch-account" action="Account/Logout" method="post" hidden>
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="@($"Account/Login?ReturnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}")" />
+            </form>
+@*#endif *@
+        }
+    </Column>
+</Container>
+
+@code {
+@*#if (Routable) *@
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // The page they were turned away from, as sign-in passes it.
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+
+    private string? SignedInAs => HttpContext?.User.Identity?.Name;
+
+    private IReadOnlyList<string> Roles => RolesFor(ReturnUrl);
+@*#else *@
+    // The docs preview has no one signed in: the design's sample.
+    private string? SignedInAs => "ada@example.com";
+
+    private IReadOnlyList<string> Roles => ["Admin"];
+@*#endif *@
+
+    private string Message => Roles.Count == 0
+        ? "Ask an admin on your team to give it to you."
+        : $"It needs the {string.Join(" or ", Roles)} role. Ask an admin on your team to give it to you.";
+@*#if (Routable) *@
+
+    // The roles the page at that address asks for in [Authorize(Roles = "...")]; none when it asks
+    // for a policy instead, or the address matches no page.
+    private IReadOnlyList<string> RolesFor(string? returnUrl)
+    {
+        if (string.IsNullOrEmpty(returnUrl) || !Uri.TryCreate(new Uri("http://app/"), returnUrl.TrimStart('~'), out var uri))
+        {
+            return [];
+        }
+        foreach (var endpoint in Endpoints.Endpoints.OfType<RouteEndpoint>().OrderBy(e => e.Order))
+        {
+            var values = new RouteValueDictionary();
+            if (new TemplateMatcher(new RouteTemplate(endpoint.RoutePattern), new RouteValueDictionary()).TryMatch(uri.AbsolutePath, values))
+            {
+                return endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+                    .SelectMany(a => a.Roles?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [])
+                    .Distinct()
+                    .ToList();
+            }
+        }
+        return [];
+    }
+@*#endif *@
+}

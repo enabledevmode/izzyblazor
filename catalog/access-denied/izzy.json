@@ -1,0 +1,30 @@
+// The free access denied page: where sign-in sends someone signed in without the role a page needs,
+// written into the project as code you own. It replaces the sign-in starter's
+// Components/Account/Pages/AccessDenied.razor, so add it with --overwrite there.
+{
+  "id": "access-denied",
+  "name": "Access denied page",
+  "kind": "block",
+  "category": "Empty and error states",
+  "summary": "Where people land without the role a page needs: which role, who can give it, and a way to switch accounts.",
+  "components": ["Container", "Column", "EmptyState", "Button", "TextBlock"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the page's route and real data; the docs previews show the design's sample." }
+    }
+  },
+  "accessibility": [
+    "The page's message is its h1, so it's the first thing a screen reader reads.",
+    "The lock is decorative; the title says what happened.",
+    "Switch account is a button in the sentence that names the account, so it's clear which account it leaves."
+  ],
+  "preview": { "Routable": "false" },
+  "checks": [
+    {
+      "file": "Program.cs", "pattern": "^(?![\\s\\S]*AddIdentityCookies)",
+      "message": "This app has no sign-in (ASP.NET Core Identity), so nothing sends people to /Account/AccessDenied, and Switch account posts to an Account/Logout that isn't there. Start from izzy new izzy-blazor --auth Individual."
+    }
+  ]
+}
