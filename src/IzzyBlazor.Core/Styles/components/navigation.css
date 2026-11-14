@@ -393,7 +393,7 @@
 
   .ib-toc-title {
     margin: 0 0 var(--ib-space-3);
-    color: var(--ib-color-on-surface);
+    color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
     font-weight: var(--ib-weight-semibold);
     line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
@@ -429,9 +429,10 @@
     border-radius: var(--ib-radius-sm);
   }
 
+  /* The section in view: the bar carries the accent, the text stays ink. */
   .ib-toc-link[aria-current] {
     border-inline-start-color: var(--ib-color-primary);
-    color: var(--ib-color-primary-text);
+    color: var(--ib-color-on-surface);
     font-weight: var(--ib-weight-medium);
   }
 }

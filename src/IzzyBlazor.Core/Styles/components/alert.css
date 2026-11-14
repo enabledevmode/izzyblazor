@@ -198,6 +198,23 @@
     color: inherit;
   }
 
+  /* Centered: the message in the middle, the close button still at the end. */
+  .ib-banner-center {
+    align-items: center;
+  }
+
+  .ib-banner-center > .ib-banner-body {
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* A badge in a solid strip, such as "New": a pill of the strip's own text color. */
+  .ib-alert-solid.ib-banner .ib-badge {
+    background-color: color-mix(in oklab, currentColor 20%, transparent);
+    border-color: transparent;
+    color: inherit;
+  }
+
   .ib-banner-close {
     flex: none;
     margin-block: calc((1.25rem - var(--ib-btn-h)) / 2);
