@@ -16,8 +16,13 @@
                 We use essential cookies to keep you signed in. With your OK, we'd also use analytics cookies to learn how {{ProjectName}} is used.
                 <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="{{PolicyHref}}" InheritColor>Cookie policy</Anchor></TextBlock>
             </TextBlock>
+            @*#if (Routable) *@
             <form method="post" action="consent">
                 <AntiforgeryToken />
+            @*#else *@
+            @* The docs preview has no /consent: its buttons only reload the preview. *@
+            <form method="get" action="">
+            @*#endif *@
                 <input type="hidden" name="returnUrl" value="@ReturnUrl" />
                 @* Phones: the two choices side by side, then Choose cookies under them at full width. *@
                 <Stack Direction="new() { Base = Direction.ColumnReverse, Sm = Direction.Row }" Gap="2" Align="new() { Base = Align.Stretch, Sm = Align.Center }" MarginTop="1">
