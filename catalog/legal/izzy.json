@@ -5,7 +5,7 @@
   "id": "legal",
   "name": "Legal page",
   "kind": "block",
-  "category": "Legal and long-form",
+  "category": "Legal and privacy",
   "summary": "A privacy policy, terms or any long page of prose: numbered sections, with an \"On this page\" list that follows you down.",
   "components": ["Heading", "TextBlock", "Column", "Row", "Box", "List", "Accordion", "OnThisPage"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
