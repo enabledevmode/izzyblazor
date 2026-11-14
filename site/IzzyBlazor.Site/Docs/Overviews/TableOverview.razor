@@ -3,8 +3,6 @@
    selection and loading data are topics of their own (Docs/Topics/Table*Topic). From docs/components.md
    (Table) and the dev host's TableDemo. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A table is a list of records in rows and columns, which the user can sort, page and filter. It suits records the user scans and compares, <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For editing rows, grouping and more, see <Anchor Href="docs/components/data-grid">DataGrid</Anchor>.</TextBlock>
 
 <Heading Level="2">Topics</Heading>
@@ -12,7 +10,7 @@
 
 <Heading Level="2">Sorting and paging</Heading>
 <TextBlock>Sorting reorders the rows when the user clicks a column's title. Paging splits the rows into pages, with page links under the table. Set <Code>Sortable</Code> on a column to sort by it, and <Code>PageSize</Code> on the table to page it.</TextBlock>
-<ExampleViewer Example="table-sort-page" />
+<ExampleViewer Example="table-usage" />
 <TextBlock>The column titles and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code> in the URL. Sorting and paging therefore work with JavaScript off, survive a reload, and can be shared as a link.</TextBlock>
 <List Gap="2">
     <ListItem>To set the order before the user picks one, set <Code>InitialSort</Code>. <Code>"-date"</Code> sorts newest first.</ListItem>
@@ -101,18 +99,6 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    private const string Usage = """
-        <Table Items="orders" PageSize="10" Caption="Orders">
-            <Columns>
-                <PropertyColumn Property="o => o.Customer" Sortable Filterable />
-                <PropertyColumn Property="o => o.Total" Format="C" Sortable />
-                <TemplateColumn Title="Status">
-                    <Badge>@context.Status</Badge>
-                </TemplateColumn>
-        
-            </Columns>
-        </Table>
-        """;
 
     private const string RowLinks = """
         <Table Items="orders" RowHref='o => $"orders/{o.Id}"' RowLabel='o => $"order {o.Number}"'>...</Table>

@@ -11,25 +11,6 @@
     placed anywhere in the group's content, which shows the group's items in that zone and
     keeps every ListView option (a template, ItemMenu, ItemActions, ItemHref).
 
-    <DropZoneGroup @bind-Items="tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" OnMove="Moved">
-        <Grid Columns="3">
-            <ListView Zone="todo" Label="To do" Context="task">@task.Title</ListView>
-            <ListView Zone="doing" Label="Doing" MaxItems="3" Context="task">@task.Title</ListView>
-            <ListView Zone="done"
-                      Label="Done"
-                      Accepts="t => t.Reviewed"
-                      Context="task">@task.Title</ListView>
-        </Grid>
-    </DropZoneGroup>
-
-    @code {
-        Task Moved(ListMoveEventArgs<TaskItem> move)
-        {
-            move.Item.Status = move.ToZone!;
-            return db.SaveAsync();
-        }
-    }
-
     Items drag within their zone and to another one that accepts them and has room; the menu of
     moves (the handle's, or the ⋯ menu's Move submenu) adds "Move to" and each such zone. On a
     static page give the group a Name inside a form and pass the posted ListOrder back as Order.

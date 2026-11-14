@@ -10,9 +10,6 @@
     Builds a filter of nested groups and rules from fields. Apply puts it in the address (?filter=),
     or tells C# on an interactive page. A rule with nothing to compare is left out.
 
-    <FilterBuilder Fields="DataFields.Of<Order>()" />
-    <FilterBuilder Fields="fields" @bind-Value="filter" />     interactive pages
-
     The rows are the script's in every mode: the server draws one copy of each field's controls in a
     hidden block, and <ib-filter-builder> clones them. So a value's editor is a native input, a
     date input or a list of checkboxes, chosen by the field's type. With JavaScript off it's hidden.

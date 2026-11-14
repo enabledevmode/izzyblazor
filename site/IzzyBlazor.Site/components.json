@@ -1509,7 +1509,7 @@
         { "feature": "The filter in the URL, or bound to C#", "noscript": "partial" }
       ],
       "examples": [
-        { "id": "filter-builder-orders", "title": "Filtering a list", "lead": "A filter builder combines rules on a list's fields, in groups. To set the fields it offers, set `Fields`. Apply puts the filter in the URL as `?filter=`, and the page reads it with `Filter.TryParse`." }
+        { "id": "filter-builder-usage", "title": "Filtering a list", "lead": "Set `Fields` to the fields a filter can use; the builder combines rules on them, in groups. Apply puts the filter in the URL as `?filter=`, and the page reads it with `Filter.TryParse`." }
       ]
     },
 
@@ -1521,7 +1521,7 @@
         { "feature": "Applies as the user types and on each change, without a full reload", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "filter-form-issues", "title": "Search, select and checkbox", "lead": "A filter form puts a search and filters in the URL. Add a `FilterSearch`, `FilterSelect` or `FilterCheckbox` for each one. The page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
+        { "id": "filter-form-usage", "title": "Search, select and checkbox", "lead": "A filter form puts a search and filters in the URL. Add a `FilterSearch`, `FilterSelect` or `FilterCheckbox` for each one. The page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
           "notes": {
             "noscript": "Press Enter or Apply to filter; Clear is a link that removes every filter.",
             "static": "Filters apply as the user types and when a choice changes, without a full reload.",
@@ -2361,7 +2361,7 @@
         { "feature": "A failed load shows an error with Retry" }
       ],
       "examples": [
-        { "id": "table-sort-page", "title": "Sorting and paging",
+        { "id": "table-usage", "title": "Sorting and paging",
           "notes": {
             "noscript": "Headers and page numbers are links: each click reloads the page.",
             "static": "Headers and page numbers are links; Blazor's enhanced navigation swaps the page in without a full reload.",
@@ -3071,7 +3071,7 @@
         { "feature": "One Tab stop and arrow keys between cells, with selection keys", "noscript": "none" }
       ],
       "examples": [
-        { "id": "data-grid-basic", "title": "A basic grid", "lead": "A data grid shows records as rows that the user can sort, filter and page. Set `Items` and an `ItemKey`, and add a `PropertyColumn` for each property to show.", "after": ["Add `Sortable` to a column to sort by it and `Filterable` to filter it. Set `PageSize` for the rows per page.", "The sort, filters and page are kept in the URL, so the grid works on static pages and with JavaScript off.", "For a plain list of records, use Table, which DataGrid is built on. Choose DataGrid when users edit, group or arrange columns."] },
+        { "id": "data-grid-usage", "title": "A basic grid", "lead": "A data grid shows records as rows that the user can sort, filter and page. Set `Items` and an `ItemKey`, and add a `PropertyColumn` for each property to show.", "after": ["Add `Sortable` to a column to sort by it and `Filterable` to filter it. Set `PageSize` for the rows per page.", "The sort, filters and page are kept in the URL, so the grid works on static pages and with JavaScript off.", "For a plain list of records, use Table, which DataGrid is built on. Choose DataGrid when users edit, group or arrange columns."] },
         { "id": "data-grid-columns", "title": "Columns", "lead": "Columns share the grid's width. To give a column a fixed width, set `Width`.", "after": ["Columns without one share the remaining space, down to their `MinWidth`; below that, the grid scrolls sideways. Shift+click a header to add that column to the sort, or, with another column sorted, pick Add to sort in its column menu."] },
         { "id": "data-grid-appearance", "title": "Row appearance", "lead": "Stripes, lines and a shaded header make rows easier to follow. Set `Striped`, `ColumnLines` or `ShadedHeader`, or set `RowLines` to false to remove the lines between rows.", "after": ["To highlight the row under the pointer, which helps on wide rows, set `RowHover`. It's off by default, because a highlight suggests the row can be clicked. Rows with a `RowHref` always have it."] }
       ],
@@ -3216,7 +3216,7 @@
         { "feature": "Treegrid keys: Right opens a row, Left closes it or goes to its parent", "noscript": "none" }
       ],
       "examples": [
-        { "id": "tree-list-org-chart", "title": "A flat list with parent keys", "lead": "For rows stored with a parent's id, as in most databases, pass every row as `Items` and set `ItemParentKey`. A row with no parent, or one that isn't in the list, is a top row. `ItemExpanded` chooses the rows that start open.", "after": ["Sorting orders each row's children among themselves, so a row never leaves its parent. Open rows are in the address, so a link or a reload keeps them."] },
+        { "id": "tree-list-usage", "title": "A flat list with parent keys", "lead": "Pass every row as `Items`, and set `ItemParentKey` to each row's parent's id, as most databases store it. A row with no parent, or one that isn't in the list, is a top row. `ItemExpanded` chooses the rows that start open.", "after": ["Sorting orders each row's children among themselves, so a row never leaves its parent. Open rows are in the address, so a link or a reload keeps them."] },
         { "id": "tree-list-files", "title": "Nested rows and icons", "lead": "For rows that hold their children, pass the top rows as `Items` and set `ItemChildren`. `ItemIcon` draws an icon before a row's value in the first column, and is told whether the row is open." }
       ],
       "topics": [
@@ -3278,7 +3278,7 @@
         { "feature": "The new order bound to C#", "member": "Items" }
       ],
       "examples": [
-        {"id": "list-view-contacts", "title": "Links and the current item", "lead": "Each item can show text, a description and an icon without a template: set `ItemText`, `ItemDescription` and `ItemIcon`. To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`."},
+        {"id": "list-view-usage", "title": "Links and the current item", "lead": "Set `Items` and an `ItemKey`; without a template, `ItemText`, `ItemDescription` and `ItemIcon` draw each item. To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`."},
         {"id": "list-view-actions", "title": "Actions on items", "lead": "For content at the end of each item, such as a badge or an icon button, set `ItemActions`. For a ⋯ menu of `MenuItem`s, set `ItemMenu`.", "after": ["Keep one or two actions visible and put the rest in the menu. An item whose menu renders nothing has no ⋯ button."], "notes": {"noscript": "Star and each menu item post the form with their Name and Value. The menu opens and closes, but has no arrow keys.", "static": "Star and each menu item post the form with their Name and Value. The menu has arrow keys and type-ahead.", "interactive": "Each button's OnClick runs C#, and nothing is posted."}},
         {"id": "list-view-cards", "title": "Cards in columns", "lead": "To show the items as cards, such as a product gallery, set `Columns`. That many cards fit across from 640px up, and one on phones. With `ItemHref`, each card is a link, and the controls inside it still work."}
       ],
@@ -3320,7 +3320,7 @@
         { "feature": "The moves bound to C#", "member": "Items" }
       ],
       "examples": [
-        { "id": "drop-zone-group-board", "title": "A board", "lead": "To move items between lists, put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group owns the items, and `ZoneOf` returns the zone each one is in.", "after": ["To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`. The Kanban board demo shows them, with cards that drag from anywhere."],
+        { "id": "drop-zone-group-usage", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items in `@bind-Items`, and `ZoneOf` returns the zone each one is in.", "after": ["To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`. The Kanban board demo shows them, with cards that drag from anywhere."],
           "notes": {
             "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page reloads with the task moved and its handle focused.",
             "static": "Drag a handle into another column, or use its menu: the task moves, the move is announced, and the form posts.",
@@ -3337,7 +3337,7 @@
     {
       "id": "list", "icon": "List", "name": "List", "category": "Data", "summary": "Lists items you write out: bullets, numbers, icons, or rows with actions.", "keywords": ["settings list", "check list", "bullets"], "parts": ["ListItem", "ListItemActions"],
       "examples": [
-        { "id": "list-kinds", "title": "Bulleted, numbered and plain", "lead": "A list is bulleted by default. For a numbered list, set `Ordered`; for one with no bullets or indent, set `Plain`." },
+        { "id": "list-usage", "title": "Bulleted, numbered and plain", "lead": "Put a `ListItem` for each item in a `List`; it's bulleted by default. For a numbered list, set `Ordered`; for one with no bullets or indent, set `Plain`." },
         { "id": "list-checklist", "title": "Icon lists", "lead": "To put an icon in place of each bullet, set `Icon` and `IconColor` on the list. An item's own `Icon` overrides it." },
         { "id": "list-settings", "title": "Rows with actions", "lead": "A list of settings names each one, says its state and offers what you can do about it. Give each `ListItem` a `Description` and add `ListItemActions`; set `Dividers` on the list for a line between rows.", "after": ["The actions wrap under the text when a row gets narrow.", "For items that come from data, such as a list of devices, use `ListView`."] }
       ]
@@ -3346,7 +3346,7 @@
     {
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
-        { "id": "description-list-divided", "title": "Terms beside details", "lead": "To add lines between items, set `Dividers`. Terms sit beside their details from 640px up, and above them on phones." },
+        { "id": "description-list-usage", "title": "Terms beside details", "lead": "Put a `DescriptionItem` with a `Term` for each pair, with the detail inside. Terms sit beside their details from 640px up, and above them on phones. To add lines between items, set `Dividers`." },
         { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`." }
       ]
     },
@@ -3364,7 +3364,7 @@
         { "feature": "The open branches bound to C#", "member": "ExpandedItems" }
       ],
       "examples": [
-        { "id": "tree-view-folders", "title": "A tree of links", "lead": "To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`. Its branch arrives open. A link with children gets its own button at its end that opens them." },
+        { "id": "tree-view-usage", "title": "A tree of links", "lead": "Set `Items` to the top level and `ItemChildren` to each item's own, with `ItemKey` and `ItemText`. To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`, and its branch arrives open. A link with children gets its own button at its end that opens them." },
         { "id": "tree-view-teams", "title": "Text and descriptions", "lead": "Set `ItemChildren` to each item's children. With no template, `ItemText`, `ItemDescription` and `ItemIcon` draw each item; to start branches open, set `ItemExpanded`." }
       ],
       "topics": [

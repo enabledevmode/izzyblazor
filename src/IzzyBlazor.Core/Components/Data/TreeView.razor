@@ -8,9 +8,6 @@
     Items nested in items, from data: folders, categories, a company's teams. Items are the top
     level, and ItemChildren gives each item's own.
 
-    <TreeView Items="roots" ItemChildren="f => f.Folders" ItemKey="f => f.Id" ItemText="f => f.Name"
-              ItemHref="@(f => $"files?folder={f.Id}")" ItemCurrent="f => f.Id == folder" />
-
     Each item with children opens and closes, with no script. A branch starts open when it holds
     the current item (ItemCurrent), a selected one, or ItemExpanded says so, so a page arrives with
     its own place in the tree showing. With script, the branches a person opened stay open as they

@@ -15,11 +15,6 @@
         changes, after a pause; without a full reload, and keeping focus where it was.
       - Interactive: the same navigation runs through Blazor; the page's query parameters update.
 
-    <FilterForm>
-        <FilterSearch Placeholder="Search customers" />
-        <FilterSelect Name="status" Label="Status" Items="statuses" />
-    </FilterForm>
-
     Accessibility:
     - It renders a GET `form` with `role="search"`: a search landmark named "Filters" (`Label`).
     - `FilterSearch` and `FilterSelect` have a `Label` that's hidden but names them; `FilterDate`
