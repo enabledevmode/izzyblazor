@@ -24,17 +24,17 @@
                           Border="@(tier.Popular ? 2 : default(Responsive<int>))" BorderColor="@(tier.Popular ? Color.Primary : default(Responsive<Color>))">
                         @* The badge shares the name's line, so the sentence under it runs the card's full width. *@
                         <CardHeader>
-                            <Row Gap="3" Align="Align.Center" Justify="Justify.Between" Wrap>
-                                <Heading Level="TierLevel" Size="TextSize.Xl">@tier.Name</Heading>
+                            <Row Gap="3" Align="Align.Center" Justify="Justify.Between" Wrap MarginBottom="2">
+                                <Heading Level="TierLevel" Size="TextSize.Lg">@tier.Name</Heading>
                                 @if (tier.Popular)
                                 {
-                                    <Badge Accent="Accent.Primary">Most popular</Badge>
+                                    <Badge Accent="Accent.Primary" Pill>Most popular</Badge>
                                 }
                             </Row>
                         </CardHeader>
-                        <CardBody Gap="6">
-                            <Column MarginTop="4">
-                                <TextBlock>
+                        <CardBody Gap="4">
+                            <Column MarginTop="6">
+                                <TextBlock LineHeight="LineHeight.Tight">
                                     <TextBlock As="span" Size="TextSize.Xl4" Weight="FontWeight.Semibold" TabularNums>@Amount(tier)</TextBlock>
                                     @if (tier.Monthly == 0)
                                     {
