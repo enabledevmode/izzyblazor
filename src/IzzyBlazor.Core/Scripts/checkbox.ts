@@ -132,3 +132,34 @@ export function installSelectAll(): void {
     true
   );
 }
+
+/**
+ * Button's DisabledUntil: a button marked data-ib-disabled-until="<checkbox id>" is disabled while
+ * that box is unchecked. The server renders it enabled, so with no script the form still posts and
+ * the server checks the box. Blazor renders no disabled attribute on it, so it leaves this alone.
+ */
+const UNTIL = "button[data-ib-disabled-until]";
+
+function applyUntil(button: HTMLButtonElement): void {
+  const box = document.getElementById(button.getAttribute("data-ib-disabled-until") ?? "");
+  if (box instanceof HTMLInputElement) button.disabled = !box.checked;
+}
+
+/** Sets every DisabledUntil button from its box. Safe to call any time. */
+export function syncDisabledUntil(): void {
+  document.querySelectorAll<HTMLButtonElement>(UNTIL).forEach(applyUntil);
+}
+
+export function installDisabledUntil(): void {
+  document.addEventListener("change", (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.id) return;
+    document.querySelectorAll<HTMLButtonElement>(`${UNTIL}[data-ib-disabled-until="${CSS.escape(input.id)}"]`).forEach(applyUntil);
+  });
+  // A reset changes boxes without a change event, after the reset event itself.
+  document.addEventListener("reset", () => setTimeout(syncDisabledUntil));
+  // The browser can restore a ticked box on back and forward.
+  addEventListener("pageshow", syncDisabledUntil);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncDisabledUntil, { once: true });
+  else syncDisabledUntil();
+}
