@@ -13,8 +13,8 @@
     "type": "object",
     "properties": {
       "Title": { "type": "string", "default": "Talk to us", "x-priority": "important", "description": "The section's heading." },
-      "Lead": { "type": "string", "default": "Tell us what you need, and a person replies within one working day.", "description": "The sentence under the heading: when they'll hear back." },
-      "Privacy": { "type": "string", "default": "We use your details only to reply to you.", "description": "The line under the Send button." },
+      "Lead": { "type": "string", "default": "Questions about plans, a demo for your team, or help with your account. We answer within one working day.", "description": "The sentence under the heading: when they'll hear back." },
+      "Privacy": { "type": "string", "default": "We'll only use your details to reply.", "description": "The line under the Send button." },
       "PrivacyHref": { "type": "string", "default": "privacy", "description": "Where \"Privacy policy\" after that line goes." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each way's address; the docs previews use it to keep their links on the page." },
       "Name": { "type": "string", "default": "ContactSection", "description": "The component's name." },
