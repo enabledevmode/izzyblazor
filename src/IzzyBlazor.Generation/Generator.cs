@@ -192,8 +192,10 @@ public static class Generator
             ["HostName"] = Names.HostName(project.Name),
             ["IzzyBlazorVersion"] = IzzyBlazorVersion,
         };
+        // A setting's value can name the project ("{{ProjectName}} gives your team..."), not other settings.
+        var named = new Dictionary<string, string>(tokens, StringComparer.Ordinal);
         foreach (var p in manifest.Parameters.Where(p => p.Type != ParameterType.Bool))
-            tokens[p.Name] = Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!;
+            tokens[p.Name] = TemplateText.ReplaceTokens(Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!, named);
         return tokens;
     }
 
