@@ -48,6 +48,21 @@ public sealed class CliTests : IDisposable
         Assert.Equal("Split", (string)items[1]!["settings"]!["Layout"]!);
     }
 
+    // An editor's cursor: --at puts the hero on that line, and the page it names is the one checked for an h1.
+    [Fact]
+    public void At_a_line_the_hero_goes_there_instead_of_Home()
+    {
+        Assert.Equal(0, Izzy(_work, "new", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
+        var app = Path.Combine(_work, "Acme");
+        var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor"));
+
+        var added = Izzy(app, "add", "hero", "--at", "Components/Pages/Counter.razor:3");
+        Assert.Equal(0, added.Exit);
+        Assert.Equal("<Hero />", File.ReadAllLines(Path.Combine(app, "Components", "Pages", "Counter.razor"))[2]);
+        Assert.Equal(home, File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor")));
+        Assert.Contains("Components/Pages/Counter.razor already has a level-1 heading", added.Error);
+    }
+
     [Fact]
     public async Task The_packed_tool_installs_and_carries_the_catalogue()
     {

@@ -39,6 +39,28 @@ internal static class Inserts
         return null;
     }
 
+    /// <summary>The offset and text for <paramref name="text"/> at the start of a line (from 1), in the file's line endings.</summary>
+    public static (int Offset, string Text) AtLine(string file, string path, int line, string text)
+    {
+        var eol = file.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        var body = Normalize(text).TrimStart('\n').Replace("\n", eol, StringComparison.Ordinal);
+        if (!body.EndsWith(eol, StringComparison.Ordinal)) body += eol;
+        var offset = 0;
+        for (var at = 1; at < line; at++)
+        {
+            var newline = file.IndexOf('\n', offset);
+            if (newline >= 0)
+            {
+                offset = newline + 1;
+                continue;
+            }
+            // The line just past the last of a file with no final line break: start a line first.
+            if (at == line - 1 && offset < file.Length) return (file.Length, eol + body[..^eol.Length]);
+            throw new GenerationException($"{path} has no line {line}.");
+        }
+        return (offset, body);
+    }
+
     /// <summary>Whether the file already holds the text, line endings aside, so inserting again would repeat it.</summary>
     public static bool AlreadyThere(string file, string text) =>
         Normalize(file).Contains(Normalize(text).TrimEnd('\n'), StringComparison.Ordinal);

@@ -62,7 +62,7 @@
   "preview": { "HeadingLevel": "2", "PrimaryHref": "blocks/hero", "SecondaryHref": "blocks/hero" },
   "exclude": [ { "if": "!Placeholder", "paths": ["wwwroot/images/hero-screenshot.svg"] } ],
   "inserts": [
-    { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "text": "\n<{{Name}} />\n" },
+    { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
   ],
   "checks": [

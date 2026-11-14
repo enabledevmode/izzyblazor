@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace IzzyBlazor.Generation;
 
@@ -21,9 +22,20 @@ public static class Generator
     /// <param name="item">The item.</param>
     /// <param name="settings">Settings by name, as text (<c>true</c>, <c>Auto</c>, <c>3</c>); the rest take their defaults.</param>
     /// <param name="project">The project's name and namespace.</param>
-    public static Changeset Generate(ItemDefinition item, IReadOnlyDictionary<string, string> settings, ProjectInfo project)
+    /// <param name="at">A line to put the item at instead of its own place; null for its own place.</param>
+    public static Changeset Generate(ItemDefinition item, IReadOnlyDictionary<string, string> settings, ProjectInfo project, Placement? at = null)
     {
         var manifest = item.Manifest;
+        var place = manifest.Inserts.FirstOrDefault(i => i.Place);
+        if (at is not null)
+        {
+            if (place is null) throw new GenerationException($"{manifest.Id} isn't placed on a page, so it can't go at a line.");
+            // A place in a file named by a setting ({{Into}}): the setting becomes that file, so checks read it.
+            if (Regex.Match(place.File, @"^\{\{(\w+)\}\}$") is { Success: true } token
+                && manifest.Parameters.Any(p => p.Name == token.Groups[1].Value)
+                && !settings.Keys.Any(k => k.Equals(token.Groups[1].Value, StringComparison.OrdinalIgnoreCase)))
+                settings = new Dictionary<string, string>(settings) { [token.Groups[1].Value] = at.Path };
+        }
         var values = Resolve(manifest, settings);
         if (!item.IncludesPro) RefusePro(manifest, values);
         var tokens = Tokens(manifest, values, project);
@@ -59,6 +71,15 @@ public static class Generator
             if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
             var path = TemplateText.ReplaceTokens(written.File, tokens);
             var text = TemplateText.ReplaceTokens(written.Text, tokens);
+            if (at is not null && written == place)
+            {
+                path = at.Path;
+                var target = project.ReadFile(path) ?? throw new GenerationException($"{path} isn't in the project.");
+                if (Inserts.AlreadyThere(target, text)) continue;
+                var (offset, body) = Inserts.AtLine(target, path, at.Line, text);
+                inserts.Add(new TextInsert(path, offset, body, Inserts.Hash(target)));
+                continue;
+            }
             var spec = written with
             {
                 Anchor = written.Anchor is null ? null : TemplateText.ReplaceTokens(written.Anchor, tokens),
@@ -68,7 +89,7 @@ public static class Generator
             if (created >= 0)
             {
                 var file = creates[created].Text!;
-                if (Inserts.Place(file, spec, text) is { } place) creates[created] = creates[created] with { Text = file.Insert(place.Offset, place.Text) };
+                if (Inserts.Place(file, spec, text) is { } spot) creates[created] = creates[created] with { Text = file.Insert(spot.Offset, spot.Text) };
                 else if (!Inserts.AlreadyThere(file, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
                 continue;
             }
@@ -78,7 +99,7 @@ public static class Generator
                 warnings.Add($"{manifest.Id}: {path} isn't in the project, so this wasn't added to it:\n{text}");
                 continue;
             }
-            if (Inserts.Place(existing, spec, text) is { } at) inserts.Add(new TextInsert(path, at.Offset, at.Text, Inserts.Hash(existing)));
+            if (Inserts.Place(existing, spec, text) is { } found) inserts.Add(new TextInsert(path, found.Offset, found.Text, Inserts.Hash(existing)));
             else if (!Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
         }
 

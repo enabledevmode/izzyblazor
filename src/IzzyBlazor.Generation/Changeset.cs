@@ -49,3 +49,8 @@ public sealed record TextInsert(string Path, int Offset, string Text, string Ori
 /// <param name="Id">The package id.</param>
 /// <param name="Version">The version.</param>
 public sealed record PackageReference(string Id, string Version);
+
+/// <summary>A line in a project file to put an item at, in place of its own place (an editor's cursor, <c>--at</c>).</summary>
+/// <param name="Path">The file, relative to the project folder, with forward slashes.</param>
+/// <param name="Line">The line, from 1; the item goes at its start. One past the last line is the end of the file.</param>
+public sealed record Placement(string Path, int Line);
