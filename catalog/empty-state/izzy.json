@@ -1,0 +1,35 @@
+// The free empty state: what a list shows when there's nothing in it, as markup put on your page
+// at a line (izzy add empty-state --at Components/Pages/Customers.razor:42). EmptyState is the
+// component; this is the recipe: the design's copy, icon, border and one action for each case.
+{
+  "id": "empty-state",
+  "name": "Empty state",
+  "kind": "block",
+  "category": "Empty and error states",
+  "summary": "What a list shows when it's empty: the one action that fills it, or a way to clear the search.",
+  "components": ["EmptyState", "Button"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Kind": {
+        "type": "string", "enum": ["FirstUse", "NoResults"], "default": "FirstUse", "x-priority": "important",
+        "description": "FirstUse: nothing has been added yet, so it offers the one action that adds something. NoResults: a search or filter matched nothing, so it offers to clear it; keep the filters above it."
+      },
+      "Href": { "type": "string", "default": "", "description": "Where the button goes. Empty uses the sample's: customers/new to add, customers to clear." },
+      "Into": { "type": "string", "default": "", "description": "The page it goes on, at the end. Usually left empty and placed with --at." }
+    }
+  },
+  "accessibility": [
+    "The title is a heading, an h2, so the empty list still has a name in the page's outline.",
+    "The icon is decorative; the title says what's missing.",
+    "It isn't a live region: if a search empties the list without a page load, announce the result yourself."
+  ],
+  "variations": [
+    { "key": "kind", "label": "Kind", "setting": "Kind", "options": { "First use": "FirstUse", "No results": "NoResults" } }
+  ],
+  "preview": { "Href": "#" },
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "textFrom": "EmptyState.razor" }
+  ]
+}
