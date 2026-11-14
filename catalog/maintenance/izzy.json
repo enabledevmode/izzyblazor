@@ -1,22 +1,18 @@
-// The free message pages: a page that's only a message, written into the project as code you own.
-// Maintenance writes the maintenance page (Pages/Maintenance.razor) and the middleware that serves it
-// with status 503 while maintenance is on (Maintenance.cs, app.UseMaintenance() in Program.cs, a
-// "Maintenance" section in appsettings.json). Not found and Error ship in the starter.
+// The free maintenance page: what every request gets, with status 503, while maintenance is on,
+// written into the project as code you own: the page (Pages/Maintenance.razor) and the middleware
+// that serves it (Maintenance.cs, app.UseMaintenance() in Program.cs, a "Maintenance" section in
+// appsettings.json). Not found and Error ship in the starter.
 {
-  "id": "message-page",
-  "name": "Message pages",
+  "id": "maintenance",
+  "name": "Maintenance page",
   "kind": "block",
   "category": "Empty and error states",
-  "summary": "A page that's only a message, such as down for maintenance: what happened, what to do, and one way forward.",
+  "summary": "Take the app down for planned work: every request gets a page saying when it's back, with status 503.",
   "components": ["Container", "Column", "EmptyState", "Button", "TextBlock", "IzzyTheme"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
   "parameters": {
     "type": "object",
     "properties": {
-      "Kind": {
-        "type": "string", "enum": ["Maintenance"], "default": "Maintenance", "x-priority": "important",
-        "description": "Maintenance: the page every request gets, with status 503, while maintenance is on."
-      },
       "StatusPage": { "type": "string", "default": "", "description": "Your status page's address, for See the status page. Empty leaves the button out; it's kept in appsettings.json." },
       "Route": { "type": "string", "default": "maintenance", "description": "Where the page is always shown, without the leading slash, so you can check it before turning maintenance on." },
       "Name": { "type": "string", "default": "Maintenance", "description": "The page's component name." },
@@ -28,7 +24,7 @@
     "The wrench is decorative; the title and the message say what's happening.",
     "The page is plain HTML with no script, so it works in any browser while the app is down."
   ],
-  "preview": { "Standalone": "false", "StatusPage": "blocks/message-page" },
+  "preview": { "Standalone": "false", "StatusPage": "blocks/maintenance" },
   "checks": [
     {
       "file": "Components/App.razor", "pattern": "<IzzyTheme\\s+[A-Z]",
