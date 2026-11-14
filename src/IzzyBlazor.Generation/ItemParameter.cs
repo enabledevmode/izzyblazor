@@ -15,6 +15,12 @@ public sealed class ItemParameter
     /// <summary>The allowed values of a <see cref="ParameterType.Choice"/>.</summary>
     public IReadOnlyList<string> Choices { get; init; } = [];
 
+    /// <summary>
+    /// Choices only Pro can generate (<c>"x-tiers": { "Rows": "pro" }</c>), such as a block's Pro layouts; the
+    /// rest are free. Their files are in the Pro catalogue, so the free engine refuses them.
+    /// </summary>
+    public IReadOnlyList<string> ProChoices { get; init; } = [];
+
     /// <summary>The value when none is given, as text (<c>true</c>, <c>Server</c>, <c>3</c>).</summary>
     public required string Default { get; init; }
 
@@ -70,12 +76,27 @@ public sealed class ItemParameter
             var guid = (bool?)p["x-guid"] ?? false;
             if (guid && (kind != ParameterType.Text || p["default"] is not null))
                 throw new GenerationException($"Parameter \"{name}\" has x-guid, so it's a string with no default.");
+            var pro = new List<string>();
+            if (p["x-tiers"] is JsonObject tiers)
+            {
+                if (kind != ParameterType.Choice) throw new GenerationException($"Parameter \"{name}\" has x-tiers, so it needs an enum.");
+                foreach (var (choice, tier) in tiers)
+                {
+                    if (!choices.Contains(choice)) throw new GenerationException($"Parameter \"{name}\": x-tiers names \"{choice}\", which isn't one of its choices.");
+                    if ((string?)tier is not ("pro" or "free")) throw new GenerationException($"Parameter \"{name}\": x-tiers \"{choice}\" is \"pro\" or \"free\".");
+                    if ((string?)tier == "pro") pro.Add(choice);
+                }
+            }
+            var fallbackOrDefault = p["default"] is { } dv ? Text(dv) : fallback;
+            if (pro.Contains(fallbackOrDefault))
+                throw new GenerationException($"Parameter \"{name}\" defaults to \"{fallbackOrDefault}\", a Pro choice; the default must be free.");
             list.Add(new ItemParameter
             {
                 Name = name,
                 Type = kind,
                 Choices = choices,
-                Default = p["default"] is { } d ? Text(d) : fallback,
+                ProChoices = pro,
+                Default = fallbackOrDefault,
                 Description = (string?)p["description"],
                 Port = port,
                 Guid = guid,
