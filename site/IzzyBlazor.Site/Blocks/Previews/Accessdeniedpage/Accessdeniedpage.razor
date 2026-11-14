@@ -1,0 +1,31 @@
+@* Generated from catalog/access-denied by BlockPreviewTests: don't edit. *@
+@* Where sign-in sends someone who is signed in but lacks the role a page needs, from izzy add
+   access-denied. Centered, as the other one-message pages: what happened, which role it needs and
+   who can give it, the one way on, then the usual cause, the wrong account. *@
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+    <Column Gap="5">
+        <EmptyState Size="ControlSize.Lg" PaddingBottom="0" Status="Status.Warning" Icon="Lucide.Lock" TitleLevel="1" Title="You don't have access to this page"
+                    Description="@Message">
+            <EmptyStateActions>
+                <Button Href="#" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>
+            </EmptyStateActions>
+        </EmptyState>
+        @if (SignedInAs is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                Signed in as @SignedInAs. <Button Href="#" Variant="ButtonVariant.Link" Accent="Accent.Neutral">Switch account</Button>
+            </TextBlock>
+        }
+    </Column>
+</Container>
+
+@code {
+    // The docs preview has no one signed in: the design's sample.
+    private string? SignedInAs => "ada@example.com";
+
+    private IReadOnlyList<string> Roles => ["Admin"];
+
+    private string Message => Roles.Count == 0
+        ? "Ask an admin on your team to give it to you."
+        : $"It needs the {string.Join(" or ", Roles)} role. Ask an admin on your team to give it to you.";
+}
