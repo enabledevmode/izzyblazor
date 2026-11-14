@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
+    <ProjectReference Include="..\..\src\IzzyBlazor.Cli\IzzyBlazor.Cli.csproj" />
   </ItemGroup>
 
 </Project>

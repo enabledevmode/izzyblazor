@@ -110,6 +110,7 @@ public static class Generator
         return new Changeset
         {
             Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings,
+            Settings = manifest.Parameters.ToDictionary(p => p.Name, p => values[p.Name] is bool b ? (b ? "true" : "false") : Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!),
             Restore = manifest.Restore is not null && Condition.Evaluate(manifest.Restore, values),
         };
     }

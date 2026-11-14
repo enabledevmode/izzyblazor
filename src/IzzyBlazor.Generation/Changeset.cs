@@ -22,6 +22,12 @@ public sealed class Changeset
     /// <summary>What couldn't be done and needs a person, such as an insert whose anchor isn't in the file.</summary>
     public required IReadOnlyList<string> Warnings { get; init; }
 
+    /// <summary>
+    /// Every setting's value as used, by name (<c>true</c>, <c>Split</c>, <c>5123</c>), defaults and generated
+    /// ports and GUIDs included: what <c>.izzy/items.json</c> records, so the same item can be made again.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Settings { get; init; } = new Dictionary<string, string>();
+
     /// <summary>Whether to restore packages once the files are written (a new starter, unless asked not to).</summary>
     public bool Restore { get; init; }
 }
