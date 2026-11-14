@@ -13,8 +13,9 @@
     height: var(--ib-avatar-size);
     border-radius: var(--ib-radius-full);
     vertical-align: middle;
-    font-size: calc(var(--ib-avatar-size) * 0.4);
-    font-weight: var(--ib-weight-medium);
+    /* Initials grow slower than the circle: 12px at 2rem, 14px at 2.5rem, 28px at 6rem. */
+    font-size: calc(var(--ib-avatar-size) * 0.25 + 0.25rem);
+    font-weight: var(--ib-weight-semibold);
     line-height: 1;
     user-select: none;
   }
