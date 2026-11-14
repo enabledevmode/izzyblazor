@@ -40,6 +40,13 @@
     /// <summary>A small count or label after the title, such as "3".</summary>
     [Parameter] public string? Badge { get; set; }
 
+    /// <summary>
+    /// Colors the badge, solid, so it stands out from the tab's text: <see cref="Status.Success"/>
+    /// for an offer such as "2 months free", <see cref="Status.Danger"/> for something that needs
+    /// attention. Defaults to <see cref="Status.Neutral"/>, a quiet gray count.
+    /// </summary>
+    [Parameter] public Status BadgeStatus { get; set; } = Status.Neutral;
+
     /// <summary>Shows the tab but stops it being selected.</summary>
     [Parameter] public bool Disabled { get; set; }
 
@@ -126,7 +133,7 @@
         ApplyResponsive(classes, styles, padding, "ib-py", "py", StyleValues.Spacing);
     }
 
-    private (string, string?, IconData?, string?, bool, bool, string?)? _shown;
+    private (string, string?, IconData?, string?, Status, bool, bool, string?)? _shown;
 
     /// <summary>The tabs' <c>ContentPadding</c> changed: recompute the panel's padding.</summary>
     internal void ContentPaddingChanged()
@@ -144,7 +151,7 @@
         (_class, _style) = BuildRootAttributes();
 
         // The tab list is rendered by Tabs, so tell it when what it shows has changed.
-        var shown = (Label, Value, Icon, Badge, Disabled, Closable, CloseHref);
+        var shown = (Label, Value, Icon, Badge, BadgeStatus, Disabled, Closable, CloseHref);
         if (_shown is { } previous && previous != shown)
         {
             Context?.Changed();

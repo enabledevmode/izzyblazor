@@ -53,7 +53,9 @@
                 }
             </Grid>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                Prices in US dollars, before tax. <Anchor Href="blocks/pricing">Compare all features</Anchor>
+                @* The link in ink, not the accent: it isn't the section's focus. *@
+                Prices in USD, before tax. Free trials last 14 days, no card needed.
+                <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="blocks/pricing" InheritColor>Compare all features</Anchor></TextBlock>
             </TextBlock>
         </Column>
     </Container>

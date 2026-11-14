@@ -14,7 +14,7 @@
             @* Links, so the switch works on a static page and a yearly price can be linked to. *@
             <TabNav Label="Billing period" Variant="TabsVariant.Segmented">
                 <TabLink Href="@BillingHref("monthly")" Label="Monthly" Current="!_yearly" />
-                <TabLink Href="@BillingHref("yearly")" Label="Yearly" Badge="2 months free" Current="_yearly" />
+                <TabLink Href="@BillingHref("yearly")" Label="Yearly" Badge="2 months free" BadgeStatus="Status.Success" Current="_yearly" />
             </TabNav>
             @*#endif *@
             <Grid Columns="new() { Base = 1, Md = 2, Lg = Tiers.Length }" Gap="5" AlignSelf="Align.Stretch">
@@ -64,7 +64,9 @@
             </Grid>
             @*#if (HasCompare) *@
             <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                Prices in US dollars, before tax. <Anchor Href="{{CompareHref}}">Compare all features</Anchor>
+                @* The link in ink, not the accent: it isn't the section's focus. *@
+                Prices in USD, before tax. Free trials last 14 days, no card needed.
+                <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="{{CompareHref}}" InheritColor>Compare all features</Anchor></TextBlock>
             </TextBlock>
             @*#endif *@
         </Column>
