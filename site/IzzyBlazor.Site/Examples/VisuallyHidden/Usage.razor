@@ -1,0 +1,11 @@
+@* A plan's price, read as "$29 per month": the slash is hidden from screen readers, and the
+   words they read instead are hidden from the screen. *@
+<Card Title="Team" TitleLevel="3" Description="For small teams getting started." MaxWidth="Length.Rem(20)">
+    <CardBody>
+        <TextBlock>
+            <TextBlock As="span" Size="TextSize.Xl4" Weight="FontWeight.Semibold" TabularNums>$29</TextBlock>
+            <TextBlock As="span" Color="Color.Muted" aria-hidden="true"> / month</TextBlock>
+            <VisuallyHidden> per month</VisuallyHidden>
+        </TextBlock>
+    </CardBody>
+</Card>

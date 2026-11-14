@@ -247,8 +247,9 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Visible to screen readers only. */
-  .ib-visually-hidden {
+  /* Visible to screen readers only; the focusable kind shows while it has focus (a skip link). */
+  .ib-visually-hidden,
+  .ib-visually-hidden-focusable:not(:focus, :focus-within) {
     position: absolute;
     width: 1px;
     height: 1px;
