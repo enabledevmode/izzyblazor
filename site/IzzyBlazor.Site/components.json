@@ -799,6 +799,12 @@
             "static": "Change a field and choose Projects or Cancel: the dialog asks. Back and forward don't ask on static pages with enhanced navigation.",
             "interactive": "Change a field and choose Projects or Cancel: the dialog asks. NavigateTo asks too, and back and forward do when the whole app is interactive. After Save it doesn't."
           } },
+        { "id": "form-honeypot", "title": "Keeping bots out",
+          "notes": {
+            "noscript": "Join, and the count goes up. A post that fills the hidden field gets the same message, and the count stays.",
+            "static": "Join, and the count goes up. A post that fills the hidden field gets the same message, and the count stays.",
+            "interactive": "Nothing posts on interactive pages, so the field is never checked: bots post forms, they don't run circuits."
+          } },
         { "id": "form-redirect-after-save", "title": "A redirect after saving",
           "notes": {
             "noscript": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",

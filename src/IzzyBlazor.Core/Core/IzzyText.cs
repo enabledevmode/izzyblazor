@@ -1235,6 +1235,9 @@ public class IzzyText
     /// <summary>An AppAside drawer's close button.</summary>
     public virtual string ClosePanel { get; set; } = "Close panel";
 
+    /// <summary>The label of a Form's honeypot field, which people never see; for anything that reads it anyway.</summary>
+    public virtual string HoneypotLabel { get; set; } = "Leave this field empty";
+
     /// <summary>OnThisPage's heading, which also names its navigation landmark.</summary>
     public virtual string OnThisPage { get; set; } = "On this page";
 

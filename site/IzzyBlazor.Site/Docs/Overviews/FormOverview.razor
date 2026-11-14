@@ -20,6 +20,7 @@
             <tr><td><Code>OnValidSubmit</Code></td><td>When the model is valid, in every render mode</td></tr>
             <tr><td><Code>OnInvalidSubmit</Code></td><td>When the model isn't valid</td></tr>
             <tr><td><Code>OnSubmit</Code></td><td>In place of both, when you validate yourself</td></tr>
+            <tr><td><Code>OnSpam</Code></td><td>In place of the others, when a bot filled the <Code>Honeypot</Code></td></tr>
         </tbody>
     </table>
 </Prose>
@@ -32,6 +33,10 @@
 <Heading Level="2">Asking before leaving</Heading>
 <TextBlock>To ask before the user leaves with unsaved changes, set <Code>ConfirmLeave</Code>. A link or another form's post opens a dialog; a reload or closing the tab shows the browser's own prompt. A save, or putting the values back, ends the asking.</TextBlock>
 <ExampleViewer Example="form-confirm-leave" />
+
+<Heading Level="2">Keeping bots out</Heading>
+<TextBlock>To stop bots that fill every field, set <Code>Honeypot</Code>. It adds a field people never see. A post with it filled skips <Code>OnValidSubmit</Code> and calls <Code>OnSpam</Code>: answer there as you answer a person, so a bot can't tell it was caught. Rate limiting stays your app's job.</TextBlock>
+<ExampleViewer Example="form-honeypot" />
 
 <Heading Level="2">Errors</Heading>
 <TextBlock>An error summary lists every message at the top of the form after a failed submit. Add a <Code>FormErrors</Code> at the top of the form. To skip the browser's checks so the server's messages show at once, set <Code>NativeValidation="false"</Code>.</TextBlock>

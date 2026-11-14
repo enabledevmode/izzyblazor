@@ -1,0 +1,47 @@
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+@* A waitlist with a honeypot: a bot that fills the hidden field gets the same redirect as a
+   person, and isn't added. *@
+<Stack Gap="4" MaxWidth="28.Rem" Grow>
+    @if (Joined)
+    {
+        <Alert Status="Status.Success">You're on the list. We'll write when there's a place for you.</Alert>
+    }
+    <TextBlock Color="Color.Muted">@Waitlist.Count.ToString("N0") people are waiting.</TextBlock>
+    <Form Model="Model" FormName="form-waitlist" Honeypot OnValidSubmit="Join" OnSpam="Done">
+        <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" />
+        <Button Submit>Join the waitlist</Button>
+    </Form>
+</Stack>
+
+@code {
+    // Stands in for your database.
+    private static readonly HashSet<string> Waitlist = new(Enumerable.Range(1, 1204).Select(i => $"person{i}@example.com"), StringComparer.OrdinalIgnoreCase);
+
+    [SupplyParameterFromForm(FormName = "form-waitlist")]
+    private Signup? Model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "joined")]
+    private bool Joined { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Join()
+    {
+        lock (Waitlist)
+        {
+            Waitlist.Add(Model!.Email!);
+        }
+        Done();
+    }
+
+    // A person and a caught bot get the same answer.
+    private void Done() => Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("joined", true));
+
+    public sealed class Signup
+    {
+        [Required, EmailAddress, Display(Name = "Email")]
+        public string? Email { get; set; }
+    }
+}
