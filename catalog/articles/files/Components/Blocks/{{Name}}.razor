@@ -1,0 +1,63 @@
+@* The latest posts, from izzy add articles. It's yours: change the posts in @code below, or load
+   them from your blog. A post without a Cover shows a tinted panel in its place. *@
+<Section Spacing="SectionSpacing.Lg" aria-labelledby="{{Name}}-title">
+    <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
+        <Column Gap="new() { Base = 10, Md = 12 }">
+            <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="new() { Base = Align.Start, Md = Align.End }" Justify="Justify.Between">
+                <Column Gap="3" MaxWidth="Length.Rem(40)">
+                    <Heading Level="2" id="{{Name}}-title" Size="TextSize.Xl3" MinSize="TextSize.Xl2" Wrap="TextWrap.Balance">{{Title}}</Heading>
+                    @*#if (HasLead) *@
+                    <TextBlock Size="TextSize.Lg" MinSize="TextSize.Md" Color="Color.Muted" Wrap="TextWrap.Pretty">{{Lead}}</TextBlock>
+                    @*#endif *@
+                </Column>
+                @*#if (HasAll) *@
+                <TextBlock Weight="FontWeight.Medium"><Anchor Href="{{AllHref}}" Underline="AnchorUnderline.Hover">{{AllText}} <Icon Name="Lucide.ArrowRight" /></Anchor></TextBlock>
+                @*#endif *@
+            </Stack>
+            <Grid As="ul" Columns="new() { Base = 1, Md = 3 }" Gap="new() { Base = 10, Md = 8 }">
+                @foreach (var post in Posts)
+                {
+                    <Column As="li" Gap="2">
+                        @* The cover repeats the title's link, so it's skipped by screen readers and the Tab key. *@
+                        <Box As="a" href="@post.Href" aria-hidden="true" tabindex="-1" MarginBottom="3">
+                            @if (post.Cover is not null)
+                            {
+                                <Image Src="@post.Cover" Alt="" Ratio="1.6" Fit="ImageFit.Cover" Radius="Radius.Lg" />
+                            }
+                            else
+                            {
+                                <AspectRatio Ratio="1.6" Bg="Color.PrimarySoft" Radius="Radius.Lg" />
+                            }
+                        </Box>
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold" Color="Color.PrimaryText">@post.Category</TextBlock>
+                        <Heading Level="3" Size="TextSize.Lg" Wrap="TextWrap.Balance"><Anchor Href="@post.Href" InheritColor Underline="AnchorUnderline.Hover">@post.Title</Anchor></Heading>
+                        <TextBlock Color="Color.Muted" LineClamp="2">@post.Excerpt</TextBlock>
+                        <Spacer />
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="2">
+                            @post.Author · <time datetime="@post.Date.ToString("yyyy-MM-dd")">@post.Date.ToString("MMM d, yyyy")</time> · @post.Minutes min read
+                        </TextBlock>
+                    </Column>
+                }
+            </Grid>
+        </Column>
+    </Container>
+</Section>
+
+@code {
+    // Each post: where it lives, its category, title, a sentence or two, who wrote it, when, how
+    // long it takes to read, and an optional cover image from wwwroot.
+    private static readonly Post[] Posts =
+    [
+        new("{{LinkBase}}blog/static-first", "Engineering", "Why our pages render on the server first",
+            "Most of what people do in the app is read. Here's how rendering on the server made every page faster, and what still runs in the browser.",
+            "Kenji Watanabe", new DateOnly(2026, 11, 3), 7),
+        new("{{LinkBase}}blog/customer-interviews", "Product", "What forty customer interviews taught us",
+            "We asked teams how they plan their week. The answers changed our roadmap for next year.",
+            "Lena Fischer", new DateOnly(2026, 10, 21), 5),
+        new("{{LinkBase}}blog/support-queue", "Company", "Moving support from an inbox to a queue",
+            "Every ticket now has an owner from the moment it arrives. The median first reply fell from six hours to under an hour.",
+            "Omar Haddad", new DateOnly(2026, 10, 8), 4),
+    ];
+
+    private sealed record Post(string Href, string Category, string Title, string Excerpt, string Author, DateOnly Date, int Minutes, string? Cover = null);
+}
