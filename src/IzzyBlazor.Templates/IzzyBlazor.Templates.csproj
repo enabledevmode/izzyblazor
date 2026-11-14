@@ -13,8 +13,8 @@
     <IncludeSymbols>false</IncludeSymbols>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <NoDefaultExcludes>true</NoDefaultExcludes>
-    <!-- Not published until phase 1 (the engine, two items, the dotnet new package) passes its tests. -->
-    <IsPackable>false</IsPackable>
+    <!-- Packed with the solution; release.yml pushes only IzzyBlazor and IzzyBlazor.Core for now. -->
+    <IsPackable>true</IsPackable>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
     <CatalogDir Condition="'$(CatalogDir)' == ''">$(RepoRoot)catalog</CatalogDir>
     <TemplatesOut>$(MSBuildThisFileDirectory)$(BaseIntermediateOutputPath)templates</TemplatesOut>

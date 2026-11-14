@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: bash build/asset-budget.sh
 
-      - name: Pack
+        # IzzyBlazor (server apps), IzzyBlazor.Core (any render mode) and IzzyBlazor.Templates (dotnet new).
         # Both packages: IzzyBlazor (server apps) and IzzyBlazor.Core (any render mode).
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
 
