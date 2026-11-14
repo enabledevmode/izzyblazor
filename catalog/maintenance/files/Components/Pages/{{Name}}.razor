@@ -1,6 +1,6 @@
 @using System.Globalization
 @*#if (Standalone) *@
-@* The maintenance page, from izzy add message-page. UseMaintenance (Maintenance.cs) serves it to
+@* The maintenance page, from izzy add maintenance. UseMaintenance (Maintenance.cs) serves it to
    every request while maintenance is on, with status 503, and at /{{Route}} at any time so you can
    check it. It's a whole document of its own, not a routed page: it needs nothing the app may have
    stopped (no layout, no circuit, no script, no database) and it works in every render mode.

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 namespace {{RootNamespace}}
 {
     /// <summary>
-    /// Maintenance mode, from izzy add message-page: appsettings.json's "Maintenance" section. Turn it
+    /// Maintenance mode, from izzy add maintenance: appsettings.json's "Maintenance" section. Turn it
     /// on with <see cref="Enabled"/>, in the file (it takes effect without a restart) or with an
     /// environment variable such as <c>Maintenance__Enabled=true</c>.
     /// </summary>
@@ -35,7 +35,7 @@ namespace {{RootNamespace}}
 
 namespace Microsoft.AspNetCore.Builder
 {
-    /// <summary>Maintenance mode's middleware, from izzy add message-page: in this namespace so Program.cs needs no using.</summary>
+    /// <summary>Maintenance mode's middleware, from izzy add maintenance: in this namespace so Program.cs needs no using.</summary>
     public static class MaintenanceExtensions
     {
         private const string PagePath = "/{{Route}}";
