@@ -20,9 +20,6 @@ public enum ImageFit
 /// <see cref="Ratio"/> reserve the box, so the page doesn't jump. <see cref="Caption"/> wraps it in a
 /// <c>figure</c>.
 /// </summary>
-/// <example>
-/// <code>&lt;Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" /&gt;</code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>img</c> whose <c>alt</c> is <see cref="Alt"/>, a required parameter: say what the picture shows.</item>
@@ -135,7 +132,6 @@ public class Image : StyledComponentBase
 /// to the video on YouTube. With script, clicking swaps in the player (from youtube-nocookie.com)
 /// in place, so pages don't load YouTube's player, and its cookies, until someone wants it.
 /// </summary>
-/// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form in IzzyBlazor" /&gt;</code></example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>Before play, the poster is a link named "Play video: " and <see cref="Label"/> (<see cref="PlayLabel"/>); the poster image and play icon are hidden.</item>

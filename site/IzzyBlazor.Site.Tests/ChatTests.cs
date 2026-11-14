@@ -12,7 +12,7 @@ public sealed class ChatTests(SiteFixture site) : IClassFixture<SiteFixture>
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/chat?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
-        var chat = page.Locator("[data-ex='chat-assistant'] ib-chat");
+        var chat = page.Locator("[data-ex='chat-usage'] ib-chat");
         var box = chat.GetByRole(AriaRole.Textbox, new() { Name = "Message" });
         await box.FillAsync("How long does shipping take?");
         await chat.GetByRole(AriaRole.Button, new() { Name = "Send" }).ClickAsync();

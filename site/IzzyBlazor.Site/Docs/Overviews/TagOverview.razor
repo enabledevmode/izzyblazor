@@ -2,13 +2,11 @@
    and sizes, removable filters (previewed in each mode). Accessibility and See also come from the
    doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A tag is a small label for a keyword, a category or an applied filter; it can be a link, and the user can remove it. For a small status label or a count, use a <Anchor Href="docs/components/badge">Badge</Anchor>. For choosing several values in a form, use a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
 
 <Heading Level="2">Status and variants</Heading>
 <TextBlock>A tag's status or accent sets its color, and its variant sets its weight. To set a tag's color, set <Code>Status</Code> or <Code>Accent</Code>. To set its weight, set <Code>Variant</Code>: <Code>Soft</Code> (the default), <Code>Solid</Code> or <Code>Outline</Code>.</TextBlock>
-<ExampleViewer Example="tag-variants" />
+<ExampleViewer Example="tag-usage" />
 
 <Heading Level="2">Links, icons, pills and sizes</Heading>
 <TextBlock>A tag can be a link, show an icon and have rounded ends, in one of three sizes. To make a tag a link, set <Code>Href</Code>; to add an icon, set <Code>StartIcon</Code>. For rounded ends, as for topics or an announcement link above a heading, set <Code>Pill</Code>. To choose its size, set <Code>Size</Code>.</TextBlock>
@@ -54,13 +52,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Tag Label="Blazor" Href="/topics/blazor" />
-
-        @* An applied filter: a link on static pages, C# on interactive ones. *@
-        <Tag Label="Status: Paid" Status="Status.Success"
-             RemoveHref="@Navigation.GetUriWithQueryParameter("status", (string?)null)"
-             OnRemove="ClearStatus" />
-        """;
 }

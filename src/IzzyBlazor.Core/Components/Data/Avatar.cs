@@ -42,13 +42,6 @@ public enum AvatarVariant
 /// A picture of a person or thing: an image, else initials from <see cref="Name"/>, else an icon.
 /// When the image fails to load, the initials show through, with no script needed.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Avatar Name="Grace Hopper" Src="/img/grace.jpg" /&gt;
-/// &lt;Avatar Name="Ada Lovelace" Size="AvatarSize.Lg" Status="Status.Success" StatusLabel="Online" /&gt;
-/// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>With a <see cref="Name"/>, it's an image (<c>role="img"</c>) named by the full name; the photo and initials aren't read.</item>

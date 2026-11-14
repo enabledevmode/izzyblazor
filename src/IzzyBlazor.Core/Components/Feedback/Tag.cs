@@ -21,12 +21,6 @@ public enum TagVariant
 /// or removable. Removing is a link on static pages (<see cref="RemoveHref"/>, such as the current
 /// URL without that filter) or C# on interactive ones (<see cref="OnRemove"/>).
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;Tag Label="Blazor" Href="/topics/blazor" /&gt;
-/// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
-/// </code>
-/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>span</c>; with <see cref="Href"/> its text is a link.</item>

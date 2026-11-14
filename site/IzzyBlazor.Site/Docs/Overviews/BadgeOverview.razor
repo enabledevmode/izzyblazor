@@ -2,14 +2,12 @@
    and icons, badges inside headings and buttons, and the badges other components draw themselves.
    Accessibility and See also come from the doc comment. *@
 
-<Heading Level="2">Usage</Heading>
-<Code Block Language="razor">@Usage</Code>
 <TextBlock>A badge is a small label next to something. It suits a status ("Paid"), a category ("Beta") or a count. It's text, not a control.</TextBlock>
 <TextBlock>For a keyword that's a link or can be removed, see <Anchor Href="docs/components/tag">Tag</Anchor>. For a message about something, see <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
 
 <Heading Level="2">Status</Heading>
 <TextBlock>The status is what the badge means, and it sets the badge's color: Neutral (the default), Info, Success, Warning or Danger. Set <Code>Status</Code> to choose one. For a color of your own, set <Code>Accent</Code> instead, such as <Code>Accent.Primary</Code> for a brand-colored label or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
-<ExampleViewer Example="badge-statuses" />
+<ExampleViewer Example="badge-usage" />
 
 <Heading Level="2">Variants</Heading>
 <TextBlock>The variant sets how strongly the badge stands out: <Code>Soft</Code> (the default), <Code>Solid</Code>, <Code>Outline</Code> or <Code>Plain</Code>. Set <Code>Variant</Code> to choose one. <Code>Plain</Code> is the text alone, in the color's text shade; it suits quiet counts, such as the totals beside sidebar links.</TextBlock>
@@ -46,10 +44,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string Usage = """
-        <Badge Status="Status.Success">Paid</Badge>
-        <Badge Status="Status.Warning" Dot>In review</Badge>
-        <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill>12</Badge>
-        """;
 }

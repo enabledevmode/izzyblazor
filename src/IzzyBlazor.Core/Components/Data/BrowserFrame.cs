@@ -7,13 +7,6 @@ namespace IzzyBlazor;
 /// A screenshot or preview shown inside a browser window: a top bar with three dots and an
 /// optional address, a border and rounded corners, as in a landing page's hero.
 /// </summary>
-/// <example>
-/// <code>
-/// &lt;BrowserFrame Address="app.example.com/orders" Shadow="Shadow.Lg"&gt;
-///     &lt;Image Src="img/orders.png" Alt="The orders page, filtered to this week" /&gt;
-/// &lt;/BrowserFrame&gt;
-/// </code>
-/// </example>
 /// <remarks>
 /// The content fills the window's width and the corners clip it, so an image needs no radius of its
 /// own. The frame takes the theme's colors in light and dark.
