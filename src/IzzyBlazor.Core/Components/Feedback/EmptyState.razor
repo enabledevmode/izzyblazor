@@ -77,6 +77,12 @@
     /// </summary>
     [Parameter] public Status Status { get; set; } = Status.Neutral;
 
+    /// <summary>
+    /// A color for the icon's circle in place of <see cref="Status"/>'s, such as <c>Accent.Primary</c>
+    /// for a list that's empty because nothing has been added yet.
+    /// </summary>
+    [Parameter] public Accent? Accent { get; set; }
+
     private string? _class;
     private string? _style;
 
@@ -103,6 +109,11 @@
             Status.Danger => "ib-empty-danger",
             _ => null,
         });
+        if (Accent is { } accent)
+        {
+            ColorOverride.Apply(styles, accent.ToColor());
+            classes.Add("ib-empty-accent");
+        }
         base.BuildAttributes(classes, styles);
     }
 
