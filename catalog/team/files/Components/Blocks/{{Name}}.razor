@@ -9,10 +9,10 @@
             <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" AlignSelf="Align.Stretch" />
             @*#endif *@
             <Grid As="ul" Columns="new() { Base = 2, Md = 4 }" Gap="new() { Base = 8, Md = 10 }" AlignSelf="Align.Stretch">
-                @foreach (var person in People)
+                @foreach (var (person, i) in People.Select((p, i) => (p, i)))
                 {
                     <Column As="li" Align="Align.Center">
-                        <Avatar Name="@person.Name" Src="@person.Photo" Size="AvatarSize.Xl2" Decorative MarginBottom="3" />
+                        <Avatar Name="@person.Name" Src="@person.Photo" Size="AvatarSize.Xl2" Accent="@Tints[i % Tints.Length]" Decorative MarginBottom="3" />
                         <TextBlock Weight="FontWeight.Semibold" Align="TextAlign.Center">@person.Name</TextBlock>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@person.Role</TextBlock>
                     </Column>
@@ -38,6 +38,9 @@
         new("Fatima Ali", "Product"),
         new("Leo Martin", "Sales"),
     ];
+
+    // The initials' tints, in turn, so the grid reads as one set.
+    private static readonly Accent[] Tints = [Accent.Primary, Accent.Token("success"), Accent.Token("warning"), Accent.Token("info")];
 
     private sealed record Person(string Name, string Role, string? Photo = null);
 }
