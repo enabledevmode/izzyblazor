@@ -476,7 +476,8 @@
       "examples": [
         { "id": "blockquote-usage", "title": "Author and source", "lead": "Put the quote in a `Blockquote`. To say who said it, set `Author`; for the work it's from, `Source`. `Cite` links the source." },
         { "id": "blockquote-looks", "title": "Looks", "lead": "`Variant` sets the look: a line at the start (`Bar`, the default), a tinted panel (`Subtle`) or neither (`Plain`). `Accent` colors the line and the tint." },
-        { "id": "blockquote-pull-quote", "title": "Pull quote", "lead": "For a line lifted out of an article, center it with `Align`, enlarge it with `Size` and add `QuoteMark`." }
+        { "id": "blockquote-pull-quote", "title": "Pull quote", "lead": "For a line lifted out of an article, center it with `Align`, enlarge it with `Size` and add `QuoteMark`. With the mark, the quote takes the heading font." },
+        { "id": "blockquote-testimonial", "title": "A customer's words", "lead": "For a testimonial, set `Role` to the person's role and company, and `Avatar` to show their initials, or `AvatarSrc` for a photo. The name sits over the role, beside the avatar." }
       ]
     },
 

@@ -92,4 +92,38 @@
   .ib-blockquote-caption cite {
     font-style: italic;
   }
+
+  /* A pull quote (with its mark) is display text: the heading font, medium weight, balanced lines. */
+  .ib-blockquote-pull > .ib-blockquote-quote {
+    font-family: var(--ib-font-heading);
+    font-weight: var(--ib-weight-medium);
+    line-height: var(--ib-leading-snug);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  /* A person's attribution: avatar, then name over role, at text sizes of its own. */
+  .ib-blockquote-person {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    margin-block-start: var(--ib-space-4);
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-md);
+    text-align: start;
+  }
+
+  .ib-blockquote-who {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-blockquote-name {
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-blockquote-role {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
 }
