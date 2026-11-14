@@ -13,6 +13,13 @@
     display: inline-flex;
   }
 
+  /* A Grid or Stack rendered as a list (As="ul") lays out its items; it doesn't bullet or indent them. */
+  :is(ul, ol):is(.ib-grid, .ib-stack) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
   /* Grid: one column until Columns or MinChildWidth says otherwise. */
   /* A Grid's own items span its columns, not those of a form with columns around it. The Grid
      itself is still an item of that form, so its own ColSpan keeps the form's limit. */

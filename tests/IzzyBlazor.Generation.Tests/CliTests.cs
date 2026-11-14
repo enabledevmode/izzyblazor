@@ -43,8 +43,15 @@ public sealed class CliTests : IDisposable
         Assert.Equal(2, other.Exit);
         Assert.Contains("Components/Blocks/Hero.razor", other.Error);
 
+        // A section goes below what the page already has, so a landing page builds top to bottom.
+        Assert.Equal(0, Izzy(app, "add", "features").Exit);
+        var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor")).TrimEnd();
+        Assert.EndsWith("<Features />", home);
+        Assert.True(home.IndexOf("<Hero />", StringComparison.Ordinal) < home.IndexOf("<Features />", StringComparison.Ordinal));
+        Assert.Equal(3, Izzy(app, "add", "features", "--layout", "Rows").Exit);
+
         var items = JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".izzy", "items.json")))!["items"]!.AsArray();
-        Assert.Equal(["izzy-blazor", "hero"], items.Select(i => (string)i!["id"]!));
+        Assert.Equal(["izzy-blazor", "hero", "features"], items.Select(i => (string)i!["id"]!));
         Assert.Equal("Split", (string)items[1]!["settings"]!["Layout"]!);
     }
 
