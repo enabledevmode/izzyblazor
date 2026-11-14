@@ -247,6 +247,32 @@
  * !important inside a layer only beats normal declarations, so app CSS can still
  * override it with its own !important.
  */
+/* Pinned: over the page at the bottom of the window, above an AppShell's sticky footer and the safe
+   area, under toasts. A sheet on phones (square bottom corners); from 640px a card at the bottom
+   start, 24px in. In utilities, so it wins over the component's own radius and width. */
+@layer izzy.utilities {
+  .ib-pinned {
+    position: fixed;
+    z-index: 20;
+    inset-inline: 0;
+    inset-block-end: 0;
+    max-height: 80dvh;
+    overflow-y: auto;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  @media (width >= 640px) {
+    .ib-pinned {
+      inset-inline: var(--ib-space-6) auto;
+      inset-block-end: calc(max(var(--ib-shell-bottom, 0px), env(safe-area-inset-bottom, 0px)) + var(--ib-space-6));
+      width: min(30rem, calc(100vw - 2 * var(--ib-space-6)));
+      border-end-start-radius: revert-layer;
+      border-end-end-radius: revert-layer;
+    }
+  }
+}
+
 @layer izzy.utilities {
   @media (width >= 640px) { .ib-hidden-from-sm { display: none !important; } }
   @media (width >= 768px) { .ib-hidden-from-md { display: none !important; } }

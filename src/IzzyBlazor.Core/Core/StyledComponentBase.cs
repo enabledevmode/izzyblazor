@@ -60,6 +60,13 @@ public abstract class StyledComponentBase : LayoutItemBase
     [Parameter] public bool Sticky { get; set; }
 
     /// <summary>
+    /// Pins it to the bottom of the window, over the page: a card at the bottom start from 640px
+    /// up (at most 30rem wide), a sheet along the bottom on phones. For a message that waits for an
+    /// answer without blocking the page, such as a cookie notice.
+    /// </summary>
+    [Parameter] public bool Pinned { get; set; }
+
+    /// <summary>
     /// Text color. When not set and <see cref="Bg"/> is a theme color, the matching contrast color is
     /// used automatically (<c>Bg="Color.Primary"</c> gets <c>Color.OnPrimary</c> text).
     /// </summary>
@@ -136,6 +143,7 @@ public abstract class StyledComponentBase : LayoutItemBase
         }
 
         classes.Add("ib-sticky", Sticky);
+        classes.Add("ib-pinned", Pinned);
         ApplyResponsive(classes, styles, Bg, "ib-bg", "bg", StyleValues.Color);
         var textColor = Color.IsEmpty ? Bg.Select(bg => bg.ContrastText) : Color;
         ApplyResponsive(classes, styles, textColor, "ib-fg", "fg", StyleValues.Color);
