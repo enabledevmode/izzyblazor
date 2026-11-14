@@ -17,7 +17,7 @@ namespace IzzyBlazor;
 /// <list type="bullet">
 /// <item><see cref="Title"/> is a heading, an <c>h2</c> by default, so the page's outline goes h1, then a heading per section.</item>
 /// <item>Give the section a name with <c>aria-labelledby</c> pointing at <see cref="TitleId"/>.</item>
-/// <item>The eyebrow is a paragraph before the heading, read before it.</item>
+/// <item>The eyebrow is a tag before the heading, read before it.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Section"/>
@@ -38,7 +38,7 @@ public class SectionHeader : StyledComponentBase
     /// <summary>A muted sentence under the heading: what the section is about.</summary>
     [Parameter] public string? Description { get; set; }
 
-    /// <summary>A short line above the heading in the accent color, such as "Pricing".</summary>
+    /// <summary>A short pill above the heading in the accent color, such as "Pricing". Leave it out on most sections: a pill on every one is noise.</summary>
     [Parameter] public string? Eyebrow { get; set; }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class SectionHeader : StyledComponentBase
 
     /// <summary>
     /// The heading and sentence size: <see cref="ControlSize.Sm"/> (20px and 16px) for a section
-    /// in a card, <see cref="ControlSize.Md"/> (36px and 18px, 28px and 16px on phones; the
+    /// in a card, <see cref="ControlSize.Md"/> (36px and 18px, 30px and 16px on phones; the
     /// default), <see cref="ControlSize.Lg"/> (48px, 36px on phones) for a page made of one section.
     /// </summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
@@ -65,8 +65,8 @@ public class SectionHeader : StyledComponentBase
         var (title, text) = Size switch
         {
             ControlSize.Sm => (StyleValues.TextSize(TextSize.Xl), StyleValues.TextSize(TextSize.Md)),
-            ControlSize.Lg => (StyleValues.FluidTextSize(TextSize.Xl3, TextSize.Xl5), StyleValues.FluidTextSize(TextSize.Md, TextSize.Lg)),
-            _ => (StyleValues.FluidTextSize(TextSize.Xl2, TextSize.Xl3), StyleValues.FluidTextSize(TextSize.Md, TextSize.Lg)),
+            ControlSize.Lg => (StyleValues.FluidTextSize(TextSize.Xl4, TextSize.Xl5), StyleValues.FluidTextSize(TextSize.Md, TextSize.Lg)),
+            _ => (StyleValues.FluidTextSize(TextSize.Xl3, TextSize.Xl4), StyleValues.FluidTextSize(TextSize.Md, TextSize.Lg)),
         };
         styles.AddVar("sh-title", title);
         styles.AddVar("sh-text", text);
@@ -90,24 +90,26 @@ public class SectionHeader : StyledComponentBase
         builder.AddAttribute(3, "style", style);
         if (!string.IsNullOrEmpty(Eyebrow))
         {
-            builder.OpenElement(4, "p");
-            builder.AddAttribute(5, "class", "ib-section-header-eyebrow");
-            builder.AddContent(6, Eyebrow);
-            builder.CloseElement();
+            builder.OpenComponent<Tag>(4);
+            builder.AddComponentParameter(5, nameof(Tag.Label), Eyebrow);
+            builder.AddComponentParameter(6, nameof(Tag.Accent), (Accent?)Accent.Primary);
+            builder.AddComponentParameter(7, nameof(Tag.Pill), true);
+            builder.AddComponentParameter(8, nameof(Tag.MarginBottom), (Responsive<int>)1);
+            builder.CloseComponent();
         }
-        builder.OpenElement(7, $"h{Math.Clamp(TitleLevel, 1, 6)}");
-        builder.AddAttribute(8, "class", "ib-section-header-title");
-        builder.AddAttribute(9, "id", TitleId);
-        builder.AddContent(10, Title);
+        builder.OpenElement(17, $"h{Math.Clamp(TitleLevel, 1, 6)}");
+        builder.AddAttribute(18, "class", "ib-section-header-title");
+        builder.AddAttribute(19, "id", TitleId);
+        builder.AddContent(20, Title);
         builder.CloseElement();
         if (!string.IsNullOrEmpty(Description))
         {
-            builder.OpenElement(11, "p");
-            builder.AddAttribute(12, "class", "ib-section-header-description");
-            builder.AddContent(13, Description);
+            builder.OpenElement(21, "p");
+            builder.AddAttribute(22, "class", "ib-section-header-description");
+            builder.AddContent(23, Description);
             builder.CloseElement();
         }
-        builder.AddContent(14, ChildContent);
+        builder.AddContent(24, ChildContent);
         builder.CloseElement();
     }
 }
