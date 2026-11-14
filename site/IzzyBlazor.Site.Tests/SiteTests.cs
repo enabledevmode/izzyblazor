@@ -174,6 +174,48 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Equal(HttpStatusCode.OK, (await Get("same-origin")).StatusCode);
     }
 
+    // A first visit from outside (no cookie, through Fly's proxy) can be served a copy rendered for
+    // someone else (FirstVisitCache): each visitor still gets an antiforgery cookie and token of
+    // their own, and a form on the page posts.
+    [Fact]
+    public async Task A_first_visit_served_from_the_cache_has_its_own_token_and_its_form_posts()
+    {
+        using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = site.Client.BaseAddress };
+
+        async Task<(string Cookie, string Token)> Visit()
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "docs/components/card");
+            request.Headers.Add("Fly-Client-IP", "203.0.113.8");
+            using var response = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var html = await response.Content.ReadAsStringAsync();
+            var tokens = Regex.Matches(html, "name=\"__RequestVerificationToken\" value=\"([^\"]+)\"").Select(m => m.Groups[1].Value).Distinct().ToList();
+            var token = Assert.Single(tokens);
+            var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith(".AspNetCore.Antiforgery", StringComparison.Ordinal));
+            return (cookie.Split(';')[0], token);
+        }
+
+        var first = await Visit();
+        var second = await Visit();
+        Assert.NotEqual(first.Token, second.Token);
+        Assert.NotEqual(first.Cookie, second.Cookie);
+
+        using var post = new HttpRequestMessage(HttpMethod.Post, "docs/components/card")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["_handler"] = "card-settings",
+                ["__RequestVerificationToken"] = second.Token,
+                ["Model.Name"] = "Platform team",
+            }),
+        };
+        post.Headers.Add("Fly-Client-IP", "203.0.113.8");
+        post.Headers.Add("Cookie", second.Cookie);
+        using var saved = await client.SendAsync(post);
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        Assert.Contains("Saved: Platform team", await saved.Content.ReadAsStringAsync());
+    }
+
     [Theory]
     [MemberData(nameof(Modes))]
     public async Task Every_example_renders_in_a_page_in_each_mode(string mode)
