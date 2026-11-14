@@ -1,0 +1,40 @@
+// The free blog cards: the latest posts, written into the project as a component you own
+// (Components/Blocks/Articles.razor) and added at the end of a page.
+{
+  "id": "articles",
+  "name": "Blog articles",
+  "kind": "block",
+  "category": "Blog and content",
+  "summary": "The latest posts as cards: a cover, the category, the title, a short excerpt, and who wrote it and when.",
+  "components": ["Section", "Container", "Stack", "Column", "Grid", "Box", "Image", "AspectRatio", "Heading", "TextBlock", "Anchor", "Icon", "Spacer"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Title": { "type": "string", "default": "From the blog", "x-priority": "important", "description": "The section's heading." },
+      "Lead": { "type": "string", "default": "What we're building, and what we learn along the way.", "description": "The sentence under the heading. Empty leaves it out." },
+      "AllText": { "type": "string", "default": "All posts", "description": "A link to the blog, beside the heading. Empty leaves it out." },
+      "AllHref": { "type": "string", "default": "blog", "description": "Where that link goes." },
+      "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each post's address; the docs previews use it to keep their links on the page." },
+      "Name": { "type": "string", "default": "Articles", "description": "The component's name." },
+      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+    }
+  },
+  "computed": {
+    "HasLead": "Lead != \"\"",
+    "HasAll": "AllText != \"\""
+  },
+  "accessibility": [
+    "The section is named by its heading, an h2; each post's title is an h3 and its link.",
+    "The cover links to the post too, but it's hidden from screen readers and skipped by the Tab key, so each post is one stop.",
+    "The date is a time element with the date in a form software reads."
+  ],
+  "variations": [
+    { "key": "all", "label": "All posts link", "setting": "AllText", "options": { "On": "All posts", "Off": "" } }
+  ],
+  "preview": { "AllHref": "blocks/articles", "LinkBase": "blocks/articles?post=" },
+  "inserts": [
+    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+  ]
+}
