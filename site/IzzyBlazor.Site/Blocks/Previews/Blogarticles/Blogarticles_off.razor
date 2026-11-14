@@ -1,6 +1,6 @@
 @* Generated from catalog/articles by BlockPreviewTests: don't edit. *@
 @* The latest posts, from izzy add articles. It's yours: change the posts in @code below, or load
-   them from your blog. A post without a Cover shows a tinted panel in its place. *@
+   them from your blog. A post without a Cover shows a placeholder drawn in its Tint. *@
 <Section Spacing="SectionSpacing.Lg" aria-labelledby="Blogarticles_off-title">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Column Gap="new() { Base = 10, Md = 12 }">
@@ -8,7 +8,7 @@
                 <SectionHeader Title="From the blog" TitleId="Blogarticles_off-title" Description="What we're building, and what we learn along the way." Align="TextAlign.Start" />
             </Stack>
             <Grid As="ul" Columns="new() { Base = 1, Md = 3 }" Gap="new() { Base = 10, Md = 8 }">
-                @foreach (var post in Posts)
+                @foreach (var (post, i) in Posts.Select((p, i) => (p, i)))
                 {
                     <Column As="li" Gap="2">
                         @* The cover repeats the title's link, so it's skipped by screen readers and the Tab key. *@
@@ -19,14 +19,22 @@
                             }
                             else
                             {
-                                <AspectRatio Ratio="1.6" Bg="Color.PrimarySoft" Radius="Radius.Lg" />
+                                @* A placeholder in the page's own colors, so it follows light and dark: a circle
+                                   and a card on a tint, arranged differently for each post. *@
+                                var (cx, cy) = Circles[i % Circles.Length];
+                                <AspectRatio Ratio="1.6" Radius="Radius.Lg" Overflow="Overflow.Hidden" Style="@($"background: var(--ib-color-{post.Tint}-soft)")">
+                                    <svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+                                        <circle cx="@cx" cy="@cy" r="30" style="@($"fill: color-mix(in oklab, var(--ib-color-{post.Tint}) 40%, var(--ib-color-{post.Tint}-soft))")" />
+                                        <rect x="102" y="44" width="40" height="40" rx="4" style="fill: var(--ib-color-surface); opacity: 0.7" />
+                                    </svg>
+                                </AspectRatio>
                             }
                         </Box>
-                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold" Color="Color.PrimaryText">@post.Category</TextBlock>
-                        <Heading Level="3" Size="TextSize.Lg" Wrap="TextWrap.Balance"><Anchor Href="@post.Href" InheritColor Underline="AnchorUnderline.Hover">@post.Title</Anchor></Heading>
-                        <TextBlock Color="Color.Muted" LineClamp="2">@post.Excerpt</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Color="Color.PrimaryText">@post.Category</TextBlock>
+                        <Heading Level="3" Size="TextSize.Xl"><Anchor Href="@post.Href" InheritColor Underline="AnchorUnderline.Hover">@post.Title</Anchor></Heading>
+                        <TextBlock Color="Color.Muted" LineClamp="2" MarginTop="1">@post.Excerpt</TextBlock>
                         <Spacer />
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="2">
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="3">
                             @post.Author · <time datetime="@post.Date.ToString("yyyy-MM-dd")">@post.Date.ToString("MMM d, yyyy")</time> · @post.Minutes min read
                         </TextBlock>
                     </Column>
@@ -38,19 +46,23 @@
 
 @code {
     // Each post: where it lives, its category, title, a sentence or two, who wrote it, when, how
-    // long it takes to read, and an optional cover image from wwwroot.
+    // long it takes to read, the placeholder's tint (primary, success, warning, info or danger),
+    // and a cover image from wwwroot to show instead.
     private static readonly Post[] Posts =
     [
         new("blocks/articles?post=blog/static-first", "Engineering", "Why our pages render on the server first",
             "Most of what people do in the app is read. Here's how rendering on the server made every page faster, and what still runs in the browser.",
-            "Kenji Watanabe", new DateOnly(2026, 11, 3), 7),
+            "Kenji Watanabe", new DateOnly(2026, 11, 3), 7, "primary"),
         new("blocks/articles?post=blog/customer-interviews", "Product", "What forty customer interviews taught us",
             "We asked teams how they plan their week. The answers changed our roadmap for next year.",
-            "Lena Fischer", new DateOnly(2026, 10, 21), 5),
+            "Lena Fischer", new DateOnly(2026, 10, 21), 5, "success"),
         new("blocks/articles?post=blog/support-queue", "Company", "Moving support from an inbox to a queue",
             "Every ticket now has an owner from the moment it arrives. The median first reply fell from six hours to under an hour.",
-            "Omar Haddad", new DateOnly(2026, 10, 8), 4),
+            "Omar Haddad", new DateOnly(2026, 10, 8), 4, "warning"),
     ];
 
-    private sealed record Post(string Href, string Category, string Title, string Excerpt, string Author, DateOnly Date, int Minutes, string? Cover = null);
+    // Where each placeholder's circle sits, post by post.
+    private static readonly (int X, int Y)[] Circles = [(44, 50), (86, 20), (48, 82)];
+
+    private sealed record Post(string Href, string Category, string Title, string Excerpt, string Author, DateOnly Date, int Minutes, string Tint, string? Cover = null);
 }
