@@ -57,6 +57,19 @@ internal sealed class TestBrowser : IAsyncDisposable
         return context;
     }
 
+    /// <summary>
+    /// On a <c>?mode=interactive</c> page, waits for each example's circuit (ExampleHost's
+    /// <c>data-ib-live</c>). Until then the page is its prerender: what a test types is drawn over
+    /// when the circuit starts, and a submit posts as a static form.
+    /// </summary>
+    public static async Task WaitForLiveAsync(IPage page)
+    {
+        if (!page.Url.Contains("mode=interactive", StringComparison.Ordinal)) return;
+        await page.WaitForFunctionAsync(
+            "() => [...document.querySelectorAll('[data-ex] .ex-stage')].every(stage => stage.querySelector('[data-ib-live]'))",
+            null, new() { PollingInterval = 100 });
+    }
+
     private async Task TrackAsync(IBrowserContext context)
     {
         _contexts.Add(context);

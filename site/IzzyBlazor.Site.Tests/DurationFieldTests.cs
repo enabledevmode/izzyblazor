@@ -10,6 +10,7 @@ public sealed class DurationFieldTests(SiteFixture site) : IClassFixture<SiteFix
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US", JavaScriptEnabled = script });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/duration-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await TestBrowser.WaitForLiveAsync(page);
         return (page, page.Locator("[data-ex='duration-field-usage'] form"), browser);
     }
 
