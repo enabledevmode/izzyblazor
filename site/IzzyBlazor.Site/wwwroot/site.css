@@ -96,19 +96,31 @@
 .site-hero-stage iframe {
   display: block;
   border: 0;
-  background: var(--ib-color-background) var(--site-hero-poster) 0 0 / 100% 100% no-repeat;
   transform: scale(var(--s));
   transform-origin: 0 0;
 }
-/* Until a frame paints, a picture of it shows in its place (HomePosterTests takes them), so the
-   hero looks whole at the page's first paint. The frame's own page covers it once it paints. */
-.site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-light.webp"); }
-.site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-light.webp"); }
-:root[data-ib-color-scheme="dark"] .site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
-:root[data-ib-color-scheme="dark"] .site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
+/* A frame's page paints in pieces: its background first, then content as its stylesheets and
+   fonts arrive. So a picture of it (HomePosterTests takes them) shows in its place, and the frame
+   stays invisible until site.js marks it ready (loaded, with the page's scheme), then fades in
+   over the picture in one step. Should site.js not run, the frame shows after 4s anyway; with
+   JavaScript off it shows as it paints. */
+.site-hero-screen {
+  overflow: hidden;
+  background: var(--ib-color-background) var(--site-hero-poster) 0 0 / 100% 100% no-repeat;
+}
+.site-hero-phone .site-hero-screen { border-radius: 1.5rem; }
+@media (scripting: enabled) {
+  .site-hero-screen iframe:not([data-ready]) { opacity: 0; animation: site-hero-reveal 0s 4s forwards; }
+  .site-hero-screen iframe { transition: opacity 0.2s ease-out; }
+}
+@keyframes site-hero-reveal { to { opacity: 1; } }
+.site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-light.webp"); }
+.site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-light.webp"); }
+:root[data-ib-color-scheme="dark"] .site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
+:root[data-ib-color-scheme="dark"] .site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme="light"]) .site-hero-window iframe { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
-  :root:not([data-ib-color-scheme="light"]) .site-hero-phone iframe { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
+  :root:not([data-ib-color-scheme="light"]) .site-hero-window .site-hero-screen { --site-hero-poster: url("img/home/store-desktop-dark.webp"); }
+  :root:not([data-ib-color-scheme="light"]) .site-hero-phone .site-hero-screen { --site-hero-poster: url("img/home/store-phone-dark.webp"); }
 }
 .site-hero-window { display: none; }
 .site-hero-phone {
@@ -123,7 +135,6 @@
   width: 390px;
   height: 780px;
   margin: 0 calc(390px * (var(--s) - 1)) calc(780px * (var(--s) - 1)) 0;
-  border-radius: calc(1.5rem / var(--s));
 }
 .site-hero-window {
   position: relative;
