@@ -45,10 +45,15 @@ public static class Generator
             if (Condition.Evaluate(rule.If, values)) excluded.AddRange(rule.Paths.Select(p => new Glob(p)));
         var renames = manifest.Rename.Where(r => Condition.Evaluate(r.If, values)).SelectMany(r => r.Paths).ToList();
 
+        // Files an insert takes its text from are inserted, not written.
+        var snippets = manifest.Inserts.Where(i => i.TextFrom is not null).Select(i => i.TextFrom!).ToHashSet(StringComparer.Ordinal);
+        foreach (var snippet in snippets)
+            if (!item.Files.ContainsKey(snippet)) throw new GenerationException($"{manifest.Id}: an insert's textFrom names {snippet}, which isn't in its files.");
+
         var creates = new List<FileCreate>();
         foreach (var (path, bytes) in item.Files)
         {
-            if (excluded.Any(e => e.Matches(path))) continue;
+            if (excluded.Any(e => e.Matches(path)) || snippets.Contains(path)) continue;
             var target = TemplateText.ReplaceTokens(Renamed(path, renames), tokens);
             if (TemplateText.IsBinary(path))
             {
@@ -70,11 +75,15 @@ public static class Generator
         {
             if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
             var path = TemplateText.ReplaceTokens(written.File, tokens);
-            var text = TemplateText.ReplaceTokens(written.Text, tokens);
+            var text = written.TextFrom is { } from
+                ? TemplateText.Apply(from, StrictUtf8.GetString(item.Files[from]), values, tokens)
+                : TemplateText.ReplaceTokens(written.Text, tokens);
             // A block that belongs to a layout (a footer) has no page of its own unless one is named.
             if (written == place && at is null && path.Length == 0)
             {
-                warnings.Add($"{manifest.Id} isn't placed on a page: add {text.Trim()} where it goes, or place it with --at <file>:<line>.");
+                warnings.Add(text.Trim().Contains('\n')
+                    ? $"{manifest.Id} isn't placed on a page: add this where it goes, or place it with --at <file>:<line>.\n{text.TrimEnd()}"
+                    : $"{manifest.Id} isn't placed on a page: add {text.Trim()} where it goes, or place it with --at <file>:<line>.");
                 continue;
             }
             if (at is not null && written == place)
@@ -88,6 +97,7 @@ public static class Generator
             }
             var spec = written with
             {
+                Text = text,
                 Anchor = written.Anchor is null ? null : TemplateText.ReplaceTokens(written.Anchor, tokens),
                 Pattern = written.Pattern is null ? null : TemplateText.ReplaceTokens(written.Pattern, tokens),
             };
