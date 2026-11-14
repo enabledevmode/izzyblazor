@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Caching.Memory;
 using IzzyBlazor.Site.Components;
 using IzzyBlazor.Site.Components.Parts;
 using IzzyBlazor.Site.Services;
@@ -140,6 +141,15 @@ public static class SiteApp
         // A crawler that ignores its 429s is logged once a minute, not on every request.
         var rejectionLog = PartitionedRateLimiter.Create<string, string>(client => RateLimitPartition.GetFixedWindowLimiter(
             client, _ => new FixedWindowRateLimiterOptions { PermitLimit = 1, Window = TimeSpan.FromMinutes(1) }));
+        // Who was just sent from a page with a query string to the page without it (the redirect
+        // below), by client and page, for two minutes. Their render of the plain page waits in the
+        // same short queue as query pages: on Nov 14, 2026 a crawler from many addresses followed
+        // each redirect to DataGrid's and Table's pages, seconds of render each, and those renders,
+        // unlimited, starved the machine (75-second waits, the home page timing out).
+        var redirected = new MemoryCache(new MemoryCacheOptions { SizeLimit = 50_000 });
+        bool WasRedirected(HttpContext context) =>
+            context.Request.Headers.ContainsKey("Fly-Client-IP")
+            && redirected.TryGetValue(ClientKey(context) + " " + context.Request.Path, out _);
         // Assistants call in bursts; this only stops a runaway client.
         builder.Services.AddRateLimiter(options =>
         {
@@ -191,7 +201,7 @@ public static class SiteApp
             // robots.txt walked Table's and Pagination's example states from many addresses, each under
             // the limit above; renders piled up on the one shared CPU until the machine ran out of
             // memory. A few render at a time and a short queue waits; the rest get a 503 to retry.
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context => IsQueryPage(context)
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context => IsQueryPage(context) || WasRedirected(context)
                 ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
                 : RateLimitPartition.GetNoLimiter("unlimited"));
         });
@@ -256,6 +266,8 @@ public static class SiteApp
             // a page on the shared CPU). A link with a state pasted from elsewhere opens the plain page.
             if (IsQueryPage(context) && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)) && !FromThisSite(context.Request))
             {
+                redirected.Set(ClientKey(context) + " " + context.Request.Path, true,
+                    new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) });
                 context.Response.Redirect(context.Request.PathBase + context.Request.Path);
                 return Task.CompletedTask;
             }
