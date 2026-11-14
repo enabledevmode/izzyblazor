@@ -136,6 +136,17 @@ class OnThisPage extends IzzyElement {
       },
       { capture: true, signal }
     );
+    // In a disclosure (a phone's "On this page"), choosing a section closes it, before the jump, so
+    // the page scrolls to the section with the list already folded and nothing moves after.
+    this.addEventListener(
+      "click",
+      (e) => {
+        if (!(e.target as Element | null)?.closest?.("a.ib-toc-link")) return;
+        const details = this.closest("details");
+        if (details?.open) details.open = false;
+      },
+      { signal }
+    );
     signal.addEventListener("abort", () => cancelAnimationFrame(this.#frame));
     update();
   }
