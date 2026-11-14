@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes both packages to nuget.org when a version tag (v0.1.0-alpha.1) is pushed.
+# Publishes the packages (IzzyBlazor, IzzyBlazor.Core, IzzyBlazor.Templates) to nuget.org when a version tag (v0.1.0-alpha.1) is pushed.
 # Trusted publishing: NuGet/login trades GitHub's OIDC token for a one-hour API key,
 # so no NuGet key is stored anywhere. The nuget.org policy names this file (release.yml),
 # the enabledevmode/izzyblazor repository and the "release" environment.
@@ -118,10 +118,11 @@ jobs:
       - name: Push to nuget.org
         # The key goes in through the environment, never pasted into the script the log shows.
         # The .snupkg symbol packages go up with their .nupkg. Core first: IzzyBlazor depends on it.
+        # The templates last: their projects reference this version of IzzyBlazor.
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
-          for package in artifacts/IzzyBlazor.Core.*.nupkg artifacts/IzzyBlazor.[0-9]*.nupkg; do
+          for package in artifacts/IzzyBlazor.Core.*.nupkg artifacts/IzzyBlazor.[0-9]*.nupkg artifacts/IzzyBlazor.Templates.*.nupkg; do
             dotnet nuget push "$package" --api-key "$NUGET_API_KEY" \
               --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
