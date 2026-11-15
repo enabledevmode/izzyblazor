@@ -1,0 +1,857 @@
+@page "/docs/get-started/from-mudblazor"
+
+@* Moving an app from MudBlazor: running both side by side, setup, a component mapping, render modes, then
+   buttons, fields and forms, data grids, dialogs, toasts, drag and drop and the app shell, each with
+   MudBlazor's code beside IzzyBlazor's and the renamed members. MudBlazor names checked against its source
+   (dev at 0a19a63, release 9.13.0, Nov 13 2026); IzzyBlazor's against its source. Both sides' samples were
+   built against those versions. *@
+
+<ArticlePage Section="get-started" Slug="from-mudblazor">
+    <Lead>
+        Most MudBlazor components have an IzzyBlazor counterpart, so a page moves over by renaming components and members.
+        The larger change is the render mode: MudBlazor needs every page that uses it to be interactive, and IzzyBlazor
+        works on static pages too, with sorting, filters and paging in the URL and forms that post.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Running both libraries</Heading>
+        <TextBlock>
+            The two libraries can run side by side while you move page by page, as in
+            <Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>. Some types have the same name in
+            both, so a file with <Code>@@using</Code> for both gets ambiguous references: <Code>Color</Code>,
+            <Code>Align</Code>, <Code>Justify</Code>, <Code>Orientation</Code>, <Code>Direction</Code>,
+            <Code>Placement</Code>, <Code>Breakpoint</Code>, <Code>SelectionMode</Code>, <Code>Anchor</Code>,
+            <Code>Shadow</Code>, <Code>DateRange</Code>, <Code>DialogService</Code>, <Code>DialogOptions</Code>,
+            <Code>DialogResult</Code>, <Code>DataGridEditMode</Code>, <Code>FilterOperator</Code>,
+            <Code>BreadcrumbItem</Code>, <Code>BreadcrumbSeparator</Code> and <Code>MenuContext</Code>.
+        </TextBlock>
+        <TextBlock>
+            <Code>Color</Code> comes up first, since nearly every MudBlazor component takes <Code>Color="Color.Primary"</Code>.
+            <Code>PropertyColumn</Code> and <Code>TemplateColumn</Code> clash as tags (RZ9985), so a file that imports both
+            libraries can't use either one's grid. Move a file to IzzyBlazor whole, or qualify the name
+            (<Code>MudBlazor.Color.Primary</Code>).
+        </TextBlock>
+
+        <Heading Level="2">Setup</Heading>
+        <TextBlock>
+            Replace MudBlazor's services, stylesheet, font, script and providers. IzzyBlazor's theme is
+            <Code>&lt;IzzyTheme /&gt;</Code> in the head. There's no script tag, because Blazor loads IzzyBlazor's script itself:
+        </TextBlock>
+        @SideBySide(SetupMud, SetupIzzy)
+        <List Gap="2">
+            <ListItem><Code>MudThemeProvider</Code> becomes <Code>IzzyTheme</Code>, with its <Code>Preset</Code>, <Code>Brand</Code> and fonts. It renders on the server, so the theme is there on the first paint. For the user's light or dark choice, add a <Code>ColorSchemeSwitch</Code>.</ListItem>
+            <ListItem><Code>MudPopoverProvider</Code> goes, with nothing in its place: menus, popovers and tooltips use the browser's popover support.</ListItem>
+            <ListItem><Code>MudDialogProvider</Code> becomes <Code>DialogHost</Code>, which must render interactively. In an interactive layout, as a MudBlazor app has, add it as it is. In a static layout, give it a render mode: <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>.</ListItem>
+            <ListItem><Code>MudSnackbarProvider</Code> becomes <Code>ToastRegion</Code>, which works in every render mode.</ListItem>
+        </List>
+        <TextBlock>
+            Replace <Code>@@using MudBlazor</Code> in <Code>_Imports.razor</Code> with <Code>@@using IzzyBlazor</Code>, and remove
+            any CSS you wrote against MudBlazor's <Code>mud-</Code> classes. For the rest of setup, see
+            <Anchor Href="docs/get-started/by-hand">Set up by hand</Anchor> and
+            <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Components</Heading>
+        <TextBlock>
+            Each MudBlazor component below maps to the IzzyBlazor component that does the same job. IzzyBlazor's fields render
+            their own label, hint and errors, and find their property from <Code>@@bind-Value</Code>, so there's no
+            <Code>For</Code>.
+        </TextBlock>
+        @* Two columns, the note under the IzzyBlazor name, so the notes get most of the width. *@
+        <Table Items="Components" Caption="MudBlazor components and their IzzyBlazor counterparts" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudBlazor" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">
+                    @Rich(row.Izzy)
+                    @if (row.Note.Length > 0)
+                    {
+                        <div class="site-param-text site-migrate-note">@Rich(row.Note)</div>
+                    }
+                </TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            See <Anchor Href="docs/components">Components</Anchor> for every component, including ones MudBlazor doesn't have,
+            such as <Code>Combobox</Code>, <Code>TreeList</Code>, <Code>Scheduler</Code> and <Code>RichTextEditor</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Render modes</Heading>
+        <TextBlock>
+            MudBlazor doesn't support static rendering: its providers must render in the same interactive mode as the
+            components that use them, so a MudBlazor app is interactive on every page, or adds the providers to each
+            interactive page. IzzyBlazor's components work on <Anchor Href="docs/common/render-modes">static pages</Anchor>
+            too. An app that keeps every page interactive works as before, and pages can turn static one at a time, with no
+            circuit to hold. Each component's Overview says what it does in each render mode.
+        </TextBlock>
+
+        <Heading Level="2">State in the URL</Heading>
+        <TextBlock>
+            A MudBlazor grid keeps its sort, page and filters in the component, and its <Code>ServerData</Code> reads them from
+            a <Code>GridState</Code>. A <Code>Table</Code> or <Code>DataGrid</Code> keeps them in the URL: a sortable header is
+            a link that sets <Code>?sort=name</Code>, page numbers set <Code>?page=2</Code>, a filter sets
+            <Code>?f-name=</Code>, and the search box <Code>?search=</Code>. The view survives a reload and can be shared, and
+            it works on static pages.
+        </TextBlock>
+        <TextBlock>
+            To keep the state in the component instead, bind it on interactive pages: <Code>@@bind-Sort</Code>,
+            <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code>. <Code>Tabs</Code> and <Code>Pagination</Code> take a
+            <Code>QueryKey</Code> to keep theirs in the URL too, and a dialog opens from <Code>?dialog=id</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Buttons</Heading>
+        <TextBlock>
+            <Code>MudButton</Code> becomes <Code>Button</Code>, with <Code>Color</Code> as <Code>Accent</Code> and
+            <Code>Variant</Code> as a <Code>ButtonVariant</Code>. The defaults differ: MudBlazor's is a text button in the
+            default color, and IzzyBlazor's is a solid button in the primary accent. So a bare <Code>&lt;MudButton&gt;</Code>
+            becomes <Code>Variant="ButtonVariant.Ghost" Accent="Accent.Neutral"</Code>. A button with only an icon is an
+            <Code>IconButton</Code>, which requires a <Code>Label</Code>, and icons are Lucide's (<Code>Lucide.Save</Code>).
+        </TextBlock>
+        @SideBySide(ButtonsMud, ButtonsIzzy)
+        <Table Items="ButtonRenames" Caption="MudButton members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudButton" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            <Code>OnClick</Code> runs on interactive pages; <Code>Href</Code>, <Code>Submit</Code> and <Code>Reset</Code> work
+            everywhere. See <Anchor Href="docs/components/button">Button</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Fields and forms</Heading>
+        <TextBlock>
+            <Code>EditForm</Code> with a <Code>DataAnnotationsValidator</Code>, or a <Code>MudForm</Code>, becomes
+            <Code>Form</Code>, which adds the validator itself. On interactive pages it validates as the user edits; on static
+            pages it posts, even with JavaScript off, and needs a <Code>FormName</Code> with a matching
+            <Code>[SupplyParameterFromForm]</Code>. A field's label comes from <Code>[Display]</Code> or the property's name,
+            and its required mark from <Code>[Required]</Code>:
+        </TextBlock>
+        @SideBySide(FormMud, FormIzzy)
+        <Table Items="FieldRenames" Caption="MudBlazor field members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudBlazor" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            A field's value changes when the user leaves it, not with each key. For live updates, as with
+            <Code>Immediate</Code>, add an <Code>@@oninput</Code> handler, which goes on the input. See
+            <Anchor Href="docs/common/forms">Forms and validation</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Data grids</Heading>
+        <TextBlock>
+            <Code>MudDataGrid</Code> becomes a <Code>DataGrid</Code>, or a <Code>Table</Code> for a plain list of records, and
+            <Code>MudTable</Code> becomes a <Code>Table</Code>. Columns stay in <Code>&lt;Columns&gt;</Code>, with the same
+            <Code>PropertyColumn</Code> and <Code>TemplateColumn</Code> names. <Code>ServerData</Code> becomes an
+            <Code>ItemsProvider</Code>, and <Code>ToResultAsync</Code> applies the search, filters, sort and page to your query,
+            mapping each column's key to its expression, so there's no switch on the sort column:
+        </TextBlock>
+        @SideBySide(GridMud, GridIzzy)
+        <Table Items="GridRenames" Caption="MudDataGrid members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudDataGrid" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="DataGrid and Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>What behaves differently:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Columns opt in.</strong> MudBlazor sorts every property column unless told not to. A column here sorts
+                only with <Code>Sortable</Code> and filters only with <Code>Filterable</Code>.
+            </ListItem>
+            <ListItem>
+                <strong>A template column's content is the template</strong>, with <Code>context</Code> the item, not
+                <Code>context.Item</Code>. To sort it, give it <Code>SortBy</Code>, an expression, and a <Code>SortKey</Code>
+                for the URL.
+            </ListItem>
+            <ListItem>
+                <strong>The selection is kept by key.</strong> With <Code>SelectionMode</Code> and an <Code>ItemKey</Code>,
+                <Code>@@bind-Selection</Code> holds the rows' keys, so a selection survives paging and reloading.
+            </ListItem>
+        </List>
+        <TextBlock>
+            See <Anchor Href="docs/components/data-grid">DataGrid</Anchor> and
+            <Anchor Href="docs/components/table/loading-data">Loading data</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Dialogs</Heading>
+        <TextBlock>
+            Inject <Code>DialogService</Code> (a class, with no interface) in place of <Code>IDialogService</Code>.
+            <Code>OpenAsync&lt;T&gt;</Code> takes the title, the parameters by name and options, and returns the
+            <Code>DialogResult</Code> itself, with no reference to await:
+        </TextBlock>
+        @SideBySide(OpenMud, OpenIzzy, language: "csharp")
+        <TextBlock>
+            Inside the dialog, the cascaded <Code>DialogInstance</Code> takes the place of <Code>IMudDialogInstance</Code>. There
+            are no <Code>DialogContent</Code> or <Code>DialogActions</Code> slots: the content is the dialog's, and a
+            <Code>DialogFooter</Code> written last holds the buttons:
+        </TextBlock>
+        @SideBySide(InsideMud, InsideIzzy)
+        <Table Items="DialogRenames" Caption="IDialogService members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudBlazor" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <List Gap="2">
+            <ListItem>
+                <strong>Close with the data itself.</strong> <Code>Dialog.Close(server.Id)</Code>, not
+                <Code>Close(DialogResult.Ok(server.Id))</Code>: that still compiles, and the caller's <Code>Data</Code> is then a
+                <Code>DialogResult</Code>.
+            </ListItem>
+            <ListItem>
+                <strong>A confirm takes the message first.</strong> <Code>ConfirmAsync(message, title)</Code> is the reverse of
+                <Code>ShowMessageBoxAsync(title, message)</Code>, and it returns a <Code>bool</Code>. It starts on Cancel, and
+                Escape cancels.
+            </ListItem>
+        </List>
+        @SideBySide(ConfirmMud, ConfirmIzzy, language: "csharp")
+        <TextBlock>
+            A dialog written in the page opens with <Code>@@bind-Open</Code>, a <Code>DialogTrigger</Code> or a link to
+            <Code>?dialog=id</Code>; the last two work on static pages. See <Anchor Href="docs/components/dialog">Dialog</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Toasts</Heading>
+        <TextBlock>
+            <Code>ISnackbar</Code> becomes <Code>ToastService</Code>, and its toasts appear in the layout's
+            <Code>ToastRegion</Code>. Call <Code>Success</Code>, <Code>Info</Code>, <Code>Warning</Code> or <Code>Error</Code>
+            with the message and an optional title:
+        </TextBlock>
+        @SideBySide(ToastMud, ToastIzzy, language: "csharp")
+        <TextBlock>
+            Toasts work in every render mode. A toast sent while a static page renders appears in that page, and one sent
+            before a redirect appears on the next page. An action with an <Code>Href</Code> is a link, so it works on static
+            pages too. Error toasts stay until closed, and <Code>Duration: TimeSpan.Zero</Code> keeps any toast, as
+            <Code>RequireInteraction</Code> did. The region's <Code>Placement</Code> and <Code>Duration</Code> take the place
+            of the snackbar configuration. See <Anchor Href="docs/components/toast-region">ToastRegion</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Drag and drop</Heading>
+        <TextBlock>
+            A <Code>MudDropContainer</Code> with <Code>MudDropZone</Code>s becomes a <Code>DropZoneGroup</Code> with a
+            <Code>ListView</Code> per zone. As in MudBlazor, the group holds one list of items and says which zone each is in:
+        </TextBlock>
+        @SideBySide(DropMud, DropIzzy)
+        <Table Items="DropRenames" Caption="MudDropContainer members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudBlazor" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Each item's handle opens a menu with the same moves, so moving works with the keyboard, on touch, and with
+            JavaScript off, where <Code>Name</Code> and <Code>SubmitOnMove</Code> post the moves. Write <Code>TItem</Code> on the
+            group when it has an <Code>OnMove</Code> handler. See <Anchor Href="docs/components/drop-zone-group">DropZoneGroup</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">The app shell</Heading>
+        <TextBlock>
+            <Code>MudLayout</Code>, <Code>MudAppBar</Code>, <Code>MudDrawer</Code> and <Code>MudMainContent</Code> become
+            <Code>AppShell</Code>, <Code>AppHeader</Code>, <Code>AppSidebar</Code> and <Code>AppMain</Code>. A
+            <Code>SidebarToggle</Code> opens the sidebar on small screens with no state of yours, and works with JavaScript
+            off. The style props, such as <Code>Padding</Code>, take the place of utility classes such as <Code>pa-4</Code>:
+        </TextBlock>
+        @SideBySide(ShellMud, ShellIzzy)
+        <Table Items="ShellRenames" Caption="MudLayout members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="MudBlazor" Context="row">@Rich(row.Mud)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            See <Anchor Href="docs/components/app-shell">AppShell</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: Combobox, TreeList, Scheduler and the rest of what you may have built by hand.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what changes when some pages become static.</ListItem>
+            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: CSS variables for your own styles beside the components.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    // MudBlazor's code on the left, IzzyBlazor's on the right; one under the other until the content is
+    // wide enough for both.
+    private static RenderFragment SideBySide(string before, string after, string language = "razor") =>
+        @<Grid MinChildWidth="Length.Rem(26)" Gap="3">
+            <Code Block Language="@language" Title="MudBlazor">@before</Code>
+            <Code Block Language="@language" Title="IzzyBlazor">@after</Code>
+        </Grid>;
+
+    private sealed record Mapping(string Mud, string Izzy, string Note = "");
+
+    private static Mapping Map(string mud, string izzy, string note = "") => new(mud, izzy, note);
+
+    // A table cell: text, with the parts between backticks as code.
+    private static RenderFragment Rich(string text) => builder =>
+    {
+        var parts = text.Split('`');
+        for (var i = 0; i < parts.Length; i++)
+        {
+            if (i % 2 == 1)
+            {
+                builder.OpenElement(0, "code");
+                builder.AddContent(1, parts[i]);
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.AddContent(2, parts[i]);
+            }
+        }
+    };
+
+    private static readonly Mapping[] Components =
+    [
+        // Buttons
+        Map("`MudButton`", "`Button`", "`Color` is `Accent`, and `Variant` a `ButtonVariant`. See Buttons below."),
+        Map("`MudIconButton`", "`IconButton`", "With a required `Label`; add `Variant=\"ButtonVariant.Ghost\" Accent=\"Accent.Neutral\"` for MudBlazor's look."),
+        Map("`MudFab`", "`FloatingButton`", "Fixed to a corner of the window. An inline round button has no equivalent yet."),
+        Map("`MudFabMenu`", "`SpeedDial`", "Its actions are `SpeedDialAction`s."),
+        Map("`MudToggleIconButton`", "`ToggleButton`", "`@bind-Toggled` is `@bind-Value`; `Icon`, `CheckedIcon` and `IconOnly`."),
+        Map("`MudButtonGroup`", "`ButtonGroup`", "`Vertical` is `Orientation`."),
+        Map("`MudToggleGroup`", "`SegmentedControl`, or a `CheckboxGroup` with `Chips`", "One value is a `SegmentedControl` with `Items`; several, a `CheckboxGroup` with `Chips`."),
+        Map("`MudToolBar`", "`Toolbar`", "What doesn't fit moves into a menu."),
+
+        // Fields
+        Map("`MudTextField`", "`TextField`, `TextArea`, `PasswordField`", "`Lines` above one is a `TextArea`, and `InputType.Password` a `PasswordField`. `HelperText` is `Hint`; `Adornment` is `StartIcon` or `EndIcon`."),
+        Map("`MudNumericField`", "`NumberField`", "`Min`, `Max` and `Step` as before; `HideSpinButtons` is `StepButtons`."),
+        Map("`MudSelect`, `MudSelectItem`", "`Select`, or `MultiSelect`", "`Items` and `ItemText` in place of item children: the items are the values. To filter as the user types, use `Combobox`."),
+        Map("`MudAutocomplete`", "`Combobox`, or `Autocomplete` for free text", "`SearchFunc` is `Search`, with the same shape; `ToStringFunc` is `ItemText`."),
+        Map("`MudDatePicker`", "`DateField`", "`@bind-Date` is `@bind-Value`, to a `DateOnly`, `DateTime` or `DateTimeOffset`. `MinDate` and `MaxDate` are `Min` and `Max`. For a calendar on the page, use `Calendar`."),
+        Map("`MudDateRangePicker`", "`DateRangeField`", "Binds an `IzzyBlazor.DateRange` of `DateOnly?`."),
+        Map("`MudTimePicker`", "`TimeField`", "`@bind-Time` (`TimeSpan?`) is `@bind-Value` to a `TimeOnly`. For a length of time, use `DurationField`."),
+        Map("`MudCheckBox`", "`Checkbox`", "Binds a `bool`; `TriState` is `Indeterminate`."),
+        Map("`MudSwitch`", "`Switch`"),
+        Map("`MudRadioGroup`, `MudRadio`", "`RadioGroup`", "`Items` and `ItemText` in place of radio children; `Chips` draws them as chips."),
+        Map("`MudChipSet` (choosing)", "`RadioGroup` or `CheckboxGroup` with `Chips`"),
+        Map("`MudSlider`", "`Slider`, or `RangeSlider` for a range", "`Vertical` is `Orientation`; `ValueLabel` is `ValueTooltip`."),
+        Map("`MudRating`", "`Rating`", "`@bind-SelectedValue` is `@bind-Value`, and `MaxValue` is `Max`."),
+        Map("`MudColorPicker`", "`ColorPicker`, or `ColorPanel` on the page", "The value is a hex string, not a `MudColor`."),
+        Map("`MudFileUpload`", "`FileUpload`", "`FilesChanged` is `OnChange`, and `MaximumFileCount` is `MaxFiles`. On static pages it posts with a `Form` set to `Multipart`."),
+        Map("`MudForm`, `EditForm`", "`Form`", "See Fields and forms below."),
+        Map("`ValidationSummary`", "`FormErrors`", "Takes focus after a failed submit."),
+        Map("`MudField`", "`FieldFrame`", "The label, hint and errors for a control of your own."),
+        Map("`MudExitPrompt`", "`Form` with `ConfirmLeave`"),
+
+        // Data
+        Map("`MudDataGrid`", "`DataGrid`, or `Table`", "Sort, filters, page and search go in the URL. See Data grids below."),
+        Map("`MudTable`", "`Table`", "Columns in place of `RowTemplate` cells; `ServerData` is `ItemsProvider`; `OnRowClick` is `RowHref`."),
+        Map("`MudSimpleTable`", "A `<table>` in `Prose`"),
+        Map("`MudList`", "`List`, or `ListView` for items to select or reorder"),
+        Map("`MudTreeView`", "`TreeView`", "`Items`, `ItemChildren` and `ItemText`; `ServerData` is `ChildrenProvider`."),
+        Map("`MudTimeline`", "`Timeline`"),
+        Map("`MudDropContainer`, `MudDropZone`", "`DropZoneGroup`, with a `ListView` per zone", "See Drag and drop below."),
+        Map("`MudCarousel`", "`Carousel`", "`AutoCycle` is `Autoplay`, `ShowArrows` is `Arrows`, `ShowBullets` is `Dots`, and `SelectedIndex` is `Index`."),
+        Map("`MudChart`", "`Chart`, `PieChart`, `HeatmapChart`, `RadarChart`, `SankeyChart`", "A chart takes `Items` with `Argument` and `Value` expressions, not arrays of series. The rose chart has no equivalent yet."),
+        Map("`MudPagination`", "`Pagination`", "`Count` is `PageCount`, and `@bind-Selected` is `@bind-Page`, or `QueryKey` for the URL."),
+
+        // Overlays and feedback
+        Map("`IDialogService`, `MudDialog`", "`DialogService`, `Dialog`", "Add a `DialogHost` to the layout. See Dialogs below."),
+        Map("`ShowMessageBoxAsync`, `MudMessageBox`", "`ConfirmAsync`, or `ConfirmButton` on static pages", "The message comes first. A three-way message box has no equivalent yet."),
+        Map("`ISnackbar`", "`ToastService`", "Add a `ToastRegion` to the layout. See Toasts below."),
+        Map("`MudPopover`", "`Popover`", "With its own trigger: a `Label`, or a `Trigger` of your own."),
+        Map("`MudMenu`, `MudMenuItem`", "`Menu`, `MenuItem`", "`ActivatorContent` is `Trigger`; a nested `MudMenu` is a `MenuSub`; a right-click menu is a `ContextMenu`."),
+        Map("`MudTooltip`", "`Tooltip`", "`Text` and `Placement`, a different enum with the same name."),
+        Map("`MudDrawer` as a side panel", "`Drawer`", "A dialog that slides in from an edge."),
+        Map("`MudAlert`", "`Alert`, or `Banner` for the whole app", "`Severity` is `Status`; `ShowCloseIcon` is `Dismissible`."),
+        Map("`MudProgressLinear`", "`Progress`", "Leave `Value` out for an indeterminate bar. `Buffer` has no equivalent yet."),
+        Map("`MudProgressCircular`", "`ProgressCircle`, or `Spinner` with no value"),
+        Map("`MudSkeleton`", "`Skeleton`"),
+        Map("`MudBadge`", "`Badge`", "An inline label, or `Badge` on a `NavItem` or `Tab`. A badge over a child has no equivalent yet."),
+        Map("`MudChip` (showing)", "`Tag`", "`OnClose` is `OnRemove`, or `RemoveHref` on static pages."),
+
+        // Navigation and layout
+        Map("`MudLayout`, `MudAppBar`, `MudDrawer`, `MudMainContent`", "`AppShell`, `AppHeader`, `AppSidebar`, `AppMain`", "See The app shell below."),
+        Map("`MudNavMenu`, `MudNavLink`, `MudNavGroup`", "`NavMenu`, `NavItem`, `NavGroup`", "`Title` is `Label`, and `Expanded` is `Open`."),
+        Map("`MudTabs`, `MudTabPanel`", "`Tabs`, `Tab`", "`Text` is `Label`; `ActivePanelIndex` is `Selected`, by the tab's `Value`, or `QueryKey` for the URL. For tabs that go to URLs, use `TabNav`."),
+        Map("`MudBreadcrumbs`", "`Breadcrumb`", "`BreadcrumbItem` children in place of an `Items` list."),
+        Map("`MudStepper`, `MudStep`", "`Stepper`, `Step`", "Shows progress only: the step's content and buttons are yours. `Current` counts from 1, where `ActiveIndex` counts from 0."),
+        Map("`MudLink`", "`Anchor`", "`Target=\"_blank\"` is `External`. For a link drawn as a button, use `Button` with `Href`."),
+        Map("`MudPageContentNavigation`", "`OnThisPage`"),
+        Map("`MudGrid`, `MudItem`", "`Grid`, `GridItem`", "Columns per breakpoint, by minimum width, or by template, in place of 12 spans. `Spacing` is `Gap`. The breakpoints differ: 640, 768, 1024, 1280 and 1536px."),
+        Map("`MudStack`", "`Stack`, `Row`, `Column`", "`Spacing` is `Gap`, and `AlignItems` is `Align`; `Justify` takes `Start`, `Between` and so on."),
+        Map("`MudContainer`", "`Container`", "`MaxWidth` is `Size`."),
+        Map("`MudPaper`", "`Box`, or `Card`", "`Elevation` is `Shadow`; `Bg`, `Border`, `Radius` and `Padding` style the box."),
+        Map("`MudCard`", "`Card`", "`CardHeader`, `CardBody`, `CardActions` and `CardMedia` are its parts."),
+        Map("`MudExpansionPanels`", "`Accordion`", "Opens several items unless `Exclusive`, which MudBlazor's default is. `Text` is `Title`, and `@bind-Expanded` is `@bind-Open`."),
+        Map("`MudCollapse`", "`Collapsible`"),
+        Map("`MudSplitPanel`", "`Splitter`", "Its panes are `SplitterPane`s."),
+        Map("`MudDivider`, `MudSpacer`", "`Divider`, `Spacer`"),
+        Map("`MudHidden`", "`HiddenFrom`, `VisibleFrom`", "On any component, in CSS, so they work on static pages. Breakpoint events in C# have no equivalent yet."),
+        Map("`MudText`", "`TextBlock`, `Heading`", "`Typo.h1` to `h6` are a `Heading`'s `Level`; body text and captions are a `TextBlock`'s `Size`."),
+        Map("`MudIcon`", "`Icon`", "`Name=\"Lucide.Save\"` in place of a Material SVG string; `Title` is `Label`."),
+        Map("`MudAvatar`, `MudImage`", "`Avatar`, `Image`"),
+        Map("`MudHighlighter`", "`Highlight`", "`HighlightedText` is `Query`."),
+        Map("`MudThemeProvider`", "`IzzyTheme`, `ColorSchemeSwitch`", "See Setup above."),
+        Map("`MudPopoverProvider`, `MudRTLProvider`, `MudFocusTrap`", "Not needed", "Popovers use the browser's popover support, layouts follow the page's text direction, and dialogs keep focus in themselves."),
+        Map("`MudHotkey`, `MudSwipeArea`, `MudScrollToTop`, `MudOverlay`", "No equivalent yet"),
+    ];
+
+    private static readonly Mapping[] ButtonRenames =
+    [
+        Map("`Variant.Filled`", "`ButtonVariant.Solid` (the default)"),
+        Map("`Variant.Outlined`", "`ButtonVariant.Outline`"),
+        Map("`Variant.Text` (MudBlazor's default)", "`ButtonVariant.Ghost`"),
+        Map("`Color.Primary`", "`Accent.Primary` (the default)"),
+        Map("`Color.Default` (MudBlazor's default)", "`Accent.Neutral`"),
+        Map("`Color.Error`", "`Accent.Danger`"),
+        Map("`Color.Success`, `Info`, `Warning`", "`Accent.From(Color.Success)` and so on, or `Accent.Of(\"#…\")`"),
+        Map("`Size.Small`, `Medium`, `Large`", "`ControlSize.Sm`, `Md`, `Lg`"),
+        Map("`StartIcon=\"@Icons.Material.Filled.Save\"`", "`StartIcon=\"Lucide.Save\"`"),
+        Map("`Disabled` while it works", "`Loading`: a spinner, and the button stays focusable"),
+        Map("`ButtonType=\"ButtonType.Submit\"`", "`Submit`"),
+        Map("`Href` with `Target=\"_blank\"`", "`Href` with `External`"),
+        Map("`MudIconButton` with `aria-label`", "`IconButton` with `Label`"),
+        Map("`Edge`, `Ripple`, `DropShadow`", "None"),
+    ];
+
+    private static readonly Mapping[] FieldRenames =
+    [
+        Map("`For=\"@(() => model.Name)\"`", "None: `@bind-Value` names the property"),
+        Map("`HelperText`", "`Hint`"),
+        Map("`Required`, `RequiredError`", "`[Required]` on the model, and its message"),
+        Map("`Variant` (Text, Filled, Outlined)", "None: fields have one look"),
+        Map("`Adornment.Start` with `AdornmentIcon`", "`StartIcon`, `EndIcon`, `StartAddon` or `EndAddon`"),
+        Map("`Immediate`, `DebounceInterval`", "An `@oninput` handler"),
+        Map("`Lines=\"4\"`, `AutoGrow`", "`TextArea` with `Rows`, `AutoGrow`"),
+        Map("`Counter` with `MaxLength`", "`MaxLength`, and `ShowCount` on a `TextArea`"),
+        Map("`MudSelect` with `MudSelectItem Value=`", "`Select` with `Items` and `ItemText`"),
+        Map("`MudDatePicker @bind-Date` (`DateTime?`)", "`DateField @bind-Value` (`DateOnly?`, `DateTime?` or `DateTimeOffset?`; times in UTC unless `TimeZone`)"),
+        Map("`MudForm @ref` with `Validate()`", "`Form` with `OnValidSubmit` and `OnInvalidSubmit`"),
+        Map("`Color` on a checkbox or switch", "None"),
+    ];
+
+    private static readonly Mapping[] GridRenames =
+    [
+        Map("`T=\"Server\"`", "`TItem=\"Server\"`, or inferred from `Items`"),
+        Map("`ServerData` with `GridState`, returning `GridData`", "`ItemsProvider` with `DataRequest`, returning `DataResult`; `ToResultAsync` builds it"),
+        Map("`state.Page`, `state.PageSize`", "`request.Skip`, `request.Take`"),
+        Map("`state.SortDefinitions`, `state.FilterDefinitions`", "`request.Sort`, `request.Filter`, `request.Search`"),
+        Map("A search box with `ReloadServerData()`", "`Searchable`"),
+        Map("`RowsPerPage`, `MudDataGridPager`", "`PageSize`; the pager is built in, and `PageSizeOptions` adds a rows-per-page menu"),
+        Map("`Filterable` on the grid", "`Filterable` on each column"),
+        Map("`DataGridFilterMode.ColumnFilterRow`", "`FilterRow`"),
+        Map("`<CellTemplate>` with `context.Item`", "The `TemplateColumn`'s content, with `context` the item"),
+        Map("`ToolBarContent`", "`ToolbarContent`"),
+        Map("`MultiSelection`, `@bind-SelectedItems`", "`SelectionMode=\"SelectionMode.Multiple\"` with `ItemKey`, `@bind-Selection`"),
+        Map("`ChildRowContent`, `HierarchyColumn`", "`DetailTemplate`"),
+        Map("`Groupable`, `GroupBy`", "`Groupable` on the grid, `GroupBy` on a column"),
+        Map("`ColumnResizeMode`, `DragDropColumnReordering`", "`ResizableColumns`, `ReorderableColumns`"),
+        Map("`Hideable`, `ShowColumnOptions`", "`ColumnPicker`"),
+        Map("`EditMode`", "`EditMode` (`DataGridEditMode.Dialog`, `Row` or `Cell`) with `OnSave`"),
+        Map("`Dense`, `Hover`, `Height`", "`Size=\"ControlSize.Sm\"`, `RowHover`, `MaxHeight`"),
+        Map("Column `Hidden`, `StickyLeft`", "`Visible`, `Frozen`"),
+    ];
+
+    private static readonly Mapping[] DialogRenames =
+    [
+        Map("`IDialogService`", "`DialogService`"),
+        Map("`ShowAsync<T>(…)`, then `await dialog.Result`", "`OpenAsync<T>(…)`, which returns the `DialogResult`"),
+        Map("`DialogParameters<T> { { x => x.Server, server } }`", "`new() { [nameof(T.Server)] = server }`"),
+        Map("`IMudDialogInstance`", "`DialogInstance`"),
+        Map("`MudDialog.Close(DialogResult.Ok(x))`", "`Dialog.Close(x)`"),
+        Map("`<TitleContent>`, `<DialogContent>`, `<DialogActions>`", "The title argument or a `DialogHeader`, the content itself, a `DialogFooter`"),
+        Map("`MaxWidth`, `FullWidth`", "`Size` (`DialogSize.Sm` 384px, `Md` 512, `Lg` 768, `Xl` 1024, `Full`) or `Width`"),
+        Map("`CloseButton`, `BackdropClick`", "`ShowCloseButton`, `CloseOnBackdrop`"),
+        Map("`Position`", "`Placement`: `Start` and `End` are side drawers"),
+        Map("`ShowMessageBoxAsync(title, message, yesText, …)` returns `bool?`", "`ConfirmAsync(message, title, options)` returns `bool`"),
+        Map("`yesText`, `cancelText`", "`ConfirmText`, `CancelText`"),
+    ];
+
+    private static readonly Mapping[] DropRenames =
+    [
+        Map("`MudDropContainer T=`", "`DropZoneGroup TItem=`"),
+        Map("`ItemsSelector=\"(item, zone) => item.Status == zone\"`", "`ZoneOf=\"t => t.Status\"`"),
+        Map("`MudDropZone Identifier=\"todo\"`", "`ListView Zone=\"todo\"`"),
+        Map("`ItemRenderer`", "`ItemText`, `Cards`, or the `ListView`'s content"),
+        Map("`CanDrop`", "`Accepts` on each `ListView`, and `MaxItems`"),
+        Map("`ItemDropped` with `MudItemDropInfo`", "`OnMove` with `ListMoveEventArgs`: it runs before the move, and `Cancel` undoes it"),
+        Map("`AllowReorder`", "Built in; for a single list, `ListView` with `Reorderable`"),
+        Map("None", "A required `ItemKey`"),
+    ];
+
+    private static readonly Mapping[] ShellRenames =
+    [
+        Map("`MudDrawer @bind-Open` with a toggling button", "`AppSidebar` with a `SidebarToggle`"),
+        Map("`DrawerVariant.Responsive`, `Temporary`", "`SmallScreen` and `Breakpoint` on `AppSidebar`"),
+        Map("`DrawerVariant.Mini`", "`Collapsible`, with `RememberState`"),
+        Map("`Anchor=\"Anchor.End\"`", "`Position=\"SidebarPosition.End\"`"),
+        Map("`MudText Typo.h6` in the bar", "`AppBrand`, with a required `Label`"),
+        Map("`MudThemeProvider IsDarkMode` with a toggle", "`ColorSchemeSwitch`: System, Light or Dark, kept in a cookie"),
+        Map("None", "`AppFooter`, and `AppAside` for a column at the end"),
+    ];
+
+    private const string SetupMud = """
+        // Program.cs
+        builder.Services.AddMudServices();
+
+        <!-- App.razor, in <head> -->
+        <link href="https://fonts.googleapis.com/css2?family=Roboto…" rel="stylesheet" />
+        <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
+        ...
+        <script src="@Assets["_framework/blazor.web.js"]"></script>
+        <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+
+        <!-- MainLayout.razor -->
+        <MudThemeProvider />
+        <MudPopoverProvider />
+        <MudDialogProvider />
+        <MudSnackbarProvider />
+        """;
+
+    private const string SetupIzzy = """
+        // Program.cs
+        builder.Services.AddIzzyBlazor();
+
+        <!-- App.razor, in <head> -->
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+        <IzzyTheme />
+        ...
+        <script src="@Assets["_framework/blazor.web.js"]"></script>
+
+        <!-- MainLayout.razor -->
+        <ToastRegion />
+        <DialogHost />
+        """;
+
+    private const string ButtonsMud = """
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+
+        <MudButton Variant="Variant.Outlined"
+                   OnClick="Cancel">Cancel</MudButton>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       aria-label="Delete server"
+                       OnClick="@(() => RemoveAsync(server))" />
+
+        <MudButton Href="servers/new" Variant="Variant.Filled"
+                   Color="Color.Primary">Add server</MudButton>
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary">Register</MudButton>
+        """;
+
+    private const string ButtonsIzzy = """
+        <Button StartIcon="Lucide.Save"
+                OnClick="SaveAsync" Loading="_saving">Save</Button>
+
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                OnClick="Cancel">Cancel</Button>
+
+        <IconButton Icon="Lucide.Trash" Label="Delete server"
+                    Variant="ButtonVariant.Ghost" Accent="Accent.Neutral"
+                    OnClick="() => RemoveAsync(server)" />
+
+        <Button Href="servers/new">Add server</Button>
+
+        <Button Submit>Register</Button>
+        """;
+
+    private const string FormMud = """
+        <EditForm Model="@model" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <MudTextField Label="Name" @bind-Value="model.Name"
+                          For="@(() => model.Name)"
+                          HelperText="Shown in the server list." />
+            <MudSelect T="string" Label="Region"
+                       @bind-Value="model.Region">
+                @foreach (var region in Regions)
+                {
+                    <MudSelectItem Value="@region">@region</MudSelectItem>
+                }
+            </MudSelect>
+            <MudDatePicker Label="Go-live date"
+                           @bind-Date="model.GoLive" />
+            <MudSwitch @bind-Value="model.Monitoring"
+                       Label="Monitoring" Color="Color.Primary" />
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary">Create server</MudButton>
+        </EditForm>
+
+        @code {
+            private ServerForm model = new();
+        }
+        """;
+
+    private const string FormIzzy = """
+        <Form Model="Model" FormName="new-server" OnValidSubmit="Save">
+            <FormErrors />
+            <TextField @bind-Value="Model!.Name"
+                       Hint="Shown in the server list." />
+            <Select @bind-Value="Model.Region" Items="Regions"
+                    Placeholder="Choose a region" />
+            <DateField @bind-Value="Model.GoLive"
+                       Label="Go-live date" />
+            <Switch @bind-Value="Model.Monitoring" />
+            <Button Submit>Create server</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "new-server")]
+            private ServerForm? Model { get; set; }
+
+            protected override void OnInitialized() => Model ??= new();
+
+            // In the model, GoLive is a DateOnly? now.
+        }
+        """;
+
+    private const string GridMud = """
+        <MudDataGrid T="Server" ServerData="LoadAsync"
+                     RowsPerPage="25" Filterable="true">
+            <Columns>
+                <PropertyColumn Property="s => s.Name" />
+                <PropertyColumn Property="s => s.CreatedAt"
+                                Title="Created" Format="d" />
+                <TemplateColumn Title="Status"
+                                SortBy="s => s.Online">
+                    <CellTemplate>
+                        @(context.Item.Online ? "Online" : "Offline")
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="Server" />
+            </PagerContent>
+        </MudDataGrid>
+
+        @code {
+            private async Task<GridData<Server>> LoadAsync(
+                GridState<Server> state, CancellationToken token)
+            {
+                var query = Db.Servers.AsNoTracking();
+                // Apply state.SortDefinitions and
+                // state.FilterDefinitions here, by hand.
+                var total = await query.CountAsync(token);
+                var items = await query
+                    .Skip(state.Page * state.PageSize)
+                    .Take(state.PageSize).ToListAsync(token);
+                return new GridData<Server>
+                    { Items = items, TotalItems = total };
+            }
+        }
+        """;
+
+    private const string GridIzzy = """
+        <DataGrid TItem="Server" ItemsProvider="LoadAsync"
+                  ItemKey="s => s.Id.ToString()" PageSize="25"
+                  Searchable Caption="Servers">
+            <Columns>
+                <PropertyColumn Property="s => s.Name"
+                                Sortable Filterable />
+                <PropertyColumn Property="s => s.CreatedAt"
+                                Title="Created" Format="d" Sortable />
+                <TemplateColumn Title="Status" Context="server"
+                                SortBy="s => s.Online" SortKey="status"
+                                Sortable>
+                    @(server.Online ? "Online" : "Offline")
+                </TemplateColumn>
+            </Columns>
+        </DataGrid>
+
+        @code {
+            private async ValueTask<DataResult<Server>> LoadAsync(
+                DataRequest<Server> request) =>
+                await request.ToResultAsync(
+                    Db.Servers.AsNoTracking(),
+                    count: (q, ct) => q.CountAsync(ct),
+                    list: (q, ct) => q.ToListAsync(ct));
+        }
+        """;
+
+    private const string OpenMud = """
+        var parameters = new DialogParameters<DeleteServerDialog>
+            { { x => x.Server, server } };
+        var dialog = await DialogService.ShowAsync<DeleteServerDialog>(
+            "Delete server?", parameters,
+            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall });
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: Guid deleted })
+        {
+            // ...
+        }
+        """;
+
+    private const string OpenIzzy = """
+        var result = await Dialogs.OpenAsync<DeleteServerDialog>(
+            "Delete server?",
+            new() { [nameof(DeleteServerDialog.Server)] = server },
+            new DialogOptions { Size = DialogSize.Sm });
+        if (!result.Canceled && result.Data is Guid deleted)
+        {
+            // ...
+        }
+        """;
+
+    private const string InsideMud = """
+        <MudDialog>
+            <DialogContent>
+                <MudText>@Server.Name stops at once.</MudText>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel">Cancel</MudButton>
+                <MudButton Color="Color.Error"
+                           OnClick="Delete">Delete server</MudButton>
+            </DialogActions>
+        </MudDialog>
+
+        @code {
+            [CascadingParameter]
+            private IMudDialogInstance MudDialog { get; set; } = null!;
+
+            private void Cancel() => MudDialog.Cancel();
+
+            private void Delete() =>
+                MudDialog.Close(DialogResult.Ok(Server.Id));
+        }
+        """;
+
+    private const string InsideIzzy = """
+        <TextBlock>@Server.Name stops at once.</TextBlock>
+        <DialogFooter>
+            <Button Variant="ButtonVariant.Outline"
+                    Accent="Accent.Neutral"
+                    OnClick="() => Dialog.Cancel()">Cancel</Button>
+            <Button Accent="Accent.Danger"
+                    OnClick="Delete">Delete server</Button>
+        </DialogFooter>
+
+        @code {
+            [CascadingParameter]
+            public DialogInstance Dialog { get; set; } = null!;
+
+            private void Delete() => Dialog.Close(Server.Id);
+        }
+        """;
+
+    private const string ConfirmMud = """
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete server?",
+            $"{server.Name} and its backups will be deleted.",
+            yesText: "Delete", cancelText: "Cancel");
+        if (confirmed == true) { ... }
+        """;
+
+    private const string ConfirmIzzy = """
+        if (await Dialogs.ConfirmAsync(
+                $"{server.Name} and its backups will be deleted.",
+                "Delete server?",
+                new ConfirmOptions
+                    { ConfirmText = "Delete", Accent = Accent.Danger }))
+        { ... }
+        """;
+
+    private const string ToastMud = """
+        Snackbar.Add("Server deleted", Severity.Success);
+        Snackbar.Add("Couldn't reach the server.", Severity.Error);
+        Snackbar.Add("Message archived.", Severity.Info, config =>
+        {
+            config.Action = "Undo";
+            config.OnClick = snackbar => UnarchiveAsync();
+        });
+        """;
+
+    private const string ToastIzzy = """
+        Toasts.Success("Server deleted");
+        Toasts.Error("Couldn't reach the server.", "Connection failed");
+        Toasts.Info("Message archived.",
+            action: new("Undo") { OnClick = () => UnarchiveAsync() });
+        """;
+
+    private const string DropMud = """
+        <MudDropContainer T="Ticket" Items="_tickets"
+            ItemsSelector="@((item, zone) => item.Status == zone)"
+            ItemDropped="Dropped">
+            <ChildContent>
+                @foreach (var (zone, label) in Columns)
+                {
+                    <MudText Typo="Typo.h6">@label</MudText>
+                    <MudDropZone T="Ticket" Identifier="@zone"
+                                 AllowReorder="true" />
+                }
+            </ChildContent>
+            <ItemRenderer>
+                <MudPaper Class="pa-3 my-2">@context.Title</MudPaper>
+            </ItemRenderer>
+        </MudDropContainer>
+
+        @code {
+            private void Dropped(MudItemDropInfo<Ticket> drop) =>
+                drop.Item!.Status = drop.DropzoneIdentifier;
+        }
+        """;
+
+    private const string DropIzzy = """
+        <DropZoneGroup TItem="Ticket" @bind-Items="_tickets"
+                       ItemKey="t => t.Id" ZoneOf="t => t.Status"
+                       OnMove="Moved">
+            @foreach (var (zone, label) in Columns)
+            {
+                <ListView Zone="@zone" Label="@label" Cards
+                          ItemText="t => t.Title" />
+            }
+        </DropZoneGroup>
+
+        @code {
+            private void Moved(ListMoveEventArgs<Ticket> move) =>
+                move.Item.Status = move.ToZone!;
+        }
+        """;
+
+    private const string ShellMud = """
+        <MudLayout>
+            <MudAppBar>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                               Color="Color.Inherit" Edge="Edge.Start"
+                               OnClick="@(() => _open = !_open)" />
+                <MudText Typo="Typo.h6">Fleet</MudText>
+            </MudAppBar>
+            <MudDrawer @bind-Open="_open">
+                <MudNavMenu>
+                    <MudNavLink Href="" Match="NavLinkMatch.All"
+                                Icon="@Icons.Material.Filled.Dashboard">
+                        Dashboard</MudNavLink>
+                    <MudNavGroup Title="Settings" Expanded="true">
+                        <MudNavLink Href="users">Users</MudNavLink>
+                    </MudNavGroup>
+                </MudNavMenu>
+            </MudDrawer>
+            <MudMainContent Class="pa-4">@Body</MudMainContent>
+        </MudLayout>
+
+        @code {
+            private bool _open = true;
+        }
+        """;
+
+    private const string ShellIzzy = """
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <AppBrand Href="" Icon="Lucide.Server" Label="Fleet" />
+                <Spacer />
+                <ColorSchemeSwitch />
+            </AppHeader>
+            <AppSidebar>
+                <NavMenu>
+                    <NavItem Href="" Match="NavLinkMatch.All"
+                             Icon="Lucide.LayoutDashboard">
+                        Dashboard</NavItem>
+                    <NavGroup Label="Settings" Open>
+                        <NavItem Href="users">Users</NavItem>
+                    </NavGroup>
+                </NavMenu>
+            </AppSidebar>
+            <AppMain>
+                <Box Padding="new() { Base = 4, Md = 8 }">@Body</Box>
+            </AppMain>
+        </AppShell>
+        """;
+}

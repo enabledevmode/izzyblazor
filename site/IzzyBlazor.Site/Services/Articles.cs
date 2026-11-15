@@ -21,6 +21,8 @@ public static class Articles
                 "Each step izzy init takes, for the server project and a .Client one."),
             new("from-radzen", "Migrating from Radzen", "ArrowRightLeft",
                 "Find the IzzyBlazor counterpart of each Radzen component, which members are renamed, and what behaves differently."),
+            new("from-mudblazor", "Migrating from MudBlazor", "ArrowRightLeft",
+                "Find the IzzyBlazor counterpart of each MudBlazor component, which members are renamed, and what behaves differently."),
             new("ai-assistants", "AI assistants", "Bot",
                 "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
         ]),
