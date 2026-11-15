@@ -28,8 +28,11 @@
             <DataGridAdd FloatBelow="Breakpoint.Sm" />
         </ToolbarContent>
         <EmptyContent>
-            @* No button of its own: Add {{SingularLower}} is right above it. *@
-            <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here." />
+            @* Add {{SingularLower}} is in the toolbar above it; on a phone, where Add floats once there are
+               {{PluralLower}}, the empty state holds the button. *@
+            <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here.">
+                <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add {{SingularLower}}</Button>
+            </EmptyState>
         </EmptyContent>
         <Columns>
 @*#each (Field in Fields) *@
