@@ -93,7 +93,14 @@ public sealed record ProjectInfo(string Name, string RootNamespace)
         {
             var full = Path.GetFullPath(Path.Combine(root, path));
             if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new GenerationException($"{path} is outside the project.");
-            return File.Exists(full) ? File.ReadAllText(full) : null;
+            if (File.Exists(full)) return File.ReadAllText(full);
+            // A name in another case (privacy for Privacy.cshtml), as Windows and macOS find it, on Linux too.
+            var folder = Path.GetDirectoryName(full)!;
+            var name = Path.GetFileName(full);
+            var other = System.IO.Directory.Exists(folder)
+                ? System.IO.Directory.EnumerateFiles(folder).FirstOrDefault(f => Path.GetFileName(f).Equals(name, StringComparison.OrdinalIgnoreCase))
+                : null;
+            return other is null ? null : File.ReadAllText(other);
         };
     }
 
@@ -113,16 +120,28 @@ public sealed record ProjectInfo(string Name, string RootNamespace)
             .Where(r => r is not null)
             .Select(r => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(csproj)!, r!.Replace('\\', Path.DirectorySeparatorChar))));
 
-    // The server project of a .Client one: a project beside it (or one folder further down) that references it.
+    // The server project of a .Client one: a web project beside it (or one folder further down) that references
+    // it, so a test project referencing the .Client isn't taken for it. Folders that can't be read are skipped.
     static string? FindHost(string client)
     {
         var parent = Path.GetDirectoryName(Path.GetDirectoryName(client)!);
         if (parent is null) return null;
-        var near = System.IO.Directory.EnumerateFiles(parent, "*.csproj")
-            .Concat(System.IO.Directory.EnumerateDirectories(parent).SelectMany(d => System.IO.Directory.EnumerateFiles(d, "*.csproj")));
-        return near.FirstOrDefault(p => !p.Equals(client, StringComparison.OrdinalIgnoreCase)
-            && References(p).Any(r => r.Equals(client, StringComparison.OrdinalIgnoreCase)));
+        var near = new List<string>(Projects(parent));
+        foreach (var folder in Safe(() => System.IO.Directory.GetDirectories(parent)) ?? []) near.AddRange(Projects(folder));
+        return near.Order(StringComparer.OrdinalIgnoreCase).FirstOrDefault(p => !p.Equals(client, StringComparison.OrdinalIgnoreCase)
+            && Safe(() => IsWeb(p) && References(p).Any(r => r.Equals(client, StringComparison.OrdinalIgnoreCase))));
+
+        static string[] Projects(string folder) => Safe(() => System.IO.Directory.GetFiles(folder, "*.csproj")) ?? [];
     }
+
+    static T Safe<T>(Func<T> read)
+    {
+        try { return read(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Xml.XmlException) { return default!; }
+    }
+
+    static bool IsWeb(string csproj) =>
+        (XDocument.Load(csproj).Root?.Attribute("Sdk")?.Value ?? "").Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase);
 
     // Whether a .razor file in the folder holds the app's Router.
     static bool HasRouter(string directory) =>

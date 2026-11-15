@@ -46,27 +46,20 @@ internal static class Inserts
         return null;
     }
 
-    // The first match on a line, replaced; a line with nothing else on it is removed whole. Null when no line
-    // holds a match: the replacement is already made, or there was nothing to replace.
+    // The first match in the file (a pattern may span lines, as a <link> written over two does), replaced; lines
+    // left with nothing else on them are removed whole. Null when there's no match: the replacement is already
+    // made, or there was nothing to replace.
     static (int Offset, string Text, int Length)? Replace(string file, InsertSpec spec, string text)
     {
-        var start = 0;
-        while (start < file.Length)
-        {
-            var newline = file.IndexOf('\n', start);
-            var end = newline < 0 ? file.Length : newline + 1;
-            var line = file[start..end];
-            var (at, length) = spec.Anchor is not null
-                ? (line.IndexOf(spec.Anchor, StringComparison.Ordinal), spec.Anchor.Length)
-                : Regex.Match(line.TrimEnd('\r', '\n'), spec.Pattern!, RegexOptions.None, TimeSpan.FromSeconds(1)) is { Success: true } m ? (m.Index, m.Length) : (-1, 0);
-            if (at >= 0)
-            {
-                var left = (line[..at] + text + line[(at + length)..]).Trim();
-                return left.Length == 0 ? (start, "", end - start) : (start + at, text, length);
-            }
-            start = end;
-        }
-        return null;
+        var (at, length) = spec.Anchor is not null
+            ? (file.IndexOf(spec.Anchor, StringComparison.Ordinal), spec.Anchor.Length)
+            : Regex.Match(file, spec.Pattern!, RegexOptions.Multiline, TimeSpan.FromSeconds(1)) is { Success: true } m ? (m.Index, m.Length) : (-1, 0);
+        if (at < 0) return null;
+        var start = at == 0 ? 0 : file.LastIndexOf('\n', at - 1) + 1;
+        var newline = file.IndexOf('\n', at + length);
+        var end = newline < 0 ? file.Length : newline + 1;
+        var left = (file[start..at] + text + file[(at + length)..end]).Trim();
+        return left.Length == 0 ? (start, "", end - start) : (at, text, length);
     }
 
     /// <summary>The offset and text for <paramref name="text"/> at the start of a line (from 1), in the file's line endings.</summary>

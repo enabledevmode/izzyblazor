@@ -138,6 +138,14 @@ public static class Generator
                 warnings.Add($"{manifest.Id}: {TemplateText.ReplaceTokens(check.Message, tokens).Replace(file, InApp(file), StringComparison.Ordinal)}");
         }
 
+        // A component in the server project can't be used from a page in the .Client project, which doesn't
+        // reference it. Before files already there are dropped, so adding the item a second time is checked too.
+        if (project.Client is { } client)
+            foreach (var placed in inserts.Where(i => i.Path.StartsWith(client, StringComparison.Ordinal)))
+                if (creates.FirstOrDefault(c => c.Path.EndsWith(".razor", StringComparison.Ordinal) && !c.Path.StartsWith(client, StringComparison.Ordinal)
+                    && Regex.IsMatch(placed.Text, $@"<{Regex.Escape(Path.GetFileNameWithoutExtension(c.Path))}(?=[\s/>])")) is { } component)
+                    throw new GenerationException($"{manifest.Id}'s {component.Path} is in the server project, and {placed.Path} is in {client}, which can't use it. Place it on a page in the server project.");
+
         // A file already in the project with the same text needs nothing; with other text it's a conflict.
         var conflicts = new List<string>();
         creates.RemoveAll(c =>
@@ -151,14 +159,9 @@ public static class Generator
 
         var packages = manifest.Packages
             .Where(p => p.If is null || Condition.Evaluate(p.If, values))
-            .Select(p => new PackageReference(p.Id, TemplateText.ReplaceTokens(p.Version, tokens)) { Project = TemplateText.ReplaceTokens(p.Project, tokens) is { Length: > 0 } folder ? folder : project.Host })
+            .Select(p => new PackageReference(p.Id, TemplateText.ReplaceTokens(p.Version, tokens)) { Project = TemplateText.ReplaceTokens(p.Project, tokens) is { Length: > 0 } folder ? folder.TrimStart('~', '/') : project.Host })
             .ToList();
 
-        // A component in the server project can't be used from a page in the .Client project, which doesn't reference it.
-        if (project.Client is { } client)
-            foreach (var placed in inserts.Where(i => i.Path.StartsWith(client, StringComparison.Ordinal)))
-                if (creates.FirstOrDefault(c => c.Path.EndsWith(".razor", StringComparison.Ordinal) && !c.Path.StartsWith(client, StringComparison.Ordinal) && placed.Text.Contains($"<{Path.GetFileNameWithoutExtension(c.Path)}", StringComparison.Ordinal)) is { } component)
-                    throw new GenerationException($"{manifest.Id}'s {component.Path} is in the server project, and {placed.Path} is in {client}, which can't use it. Place it on a page in the server project.");
 
         return new Changeset
         {
@@ -224,8 +227,10 @@ public static class Generator
             ["IzzyBlazorVersion"] = IzzyBlazorVersion,
             // Where an item's Components/ files go: the .Client project when the pages run in the browser.
             ["UiNamespace"] = project.LayoutInBrowser && project.ClientNamespace is { } ui ? ui : project.RootNamespace + ".Components",
-            ["Client"] = project.Client ?? "",
-            ["Host"] = project.Host,
+            // A project's folder from the app's (~/MyApp.Client/), so the path stays in that project even when it's
+            // the app's own folder: {{Host}}Components/_Imports.razor is the server's, though the .Client is under it.
+            ["Client"] = project.Client is { } inClient ? "~/" + inClient : "",
+            ["Host"] = "~/" + project.Host,
             ["ClientNamespace"] = project.ClientNamespace ?? "",
         };
         foreach (var (name, value) in project.Tokens) tokens.TryAdd(name, value);

@@ -27,9 +27,11 @@ public static partial class Setup
             throw new GenerationException($"{project.Name} is a standalone Blazor WebAssembly app. IzzyBlazor needs a server, where the theme and the components that read cookies render: make a Blazor Web App with WebAssembly pages instead (izzy new izzy-blazor --interactivity WebAssembly).");
         if (!sdk.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase))
             throw new GenerationException($"{project.Name} isn't an ASP.NET Core app (its project's SDK is {(sdk.Length > 0 ? sdk : "none")}). IzzyBlazor goes in a Blazor Web App, or an MVC or Razor Pages app.");
+        // Only a framework named here, and below 10, is refused: one set in Directory.Build.props or a property isn't known.
         var frameworks = string.Join(";", xml.Descendants().Where(e => e.Name.LocalName is "TargetFramework" or "TargetFrameworks").Select(e => e.Value));
-        if (Regex.Matches(frameworks, @"net(\d+)\.\d").Select(m => int.Parse(m.Groups[1].Value)).DefaultIfEmpty(0).Max() is var version && version < 10)
-            throw new GenerationException($"{project.Name} targets {(frameworks.Length > 0 ? frameworks : "no framework")}; IzzyBlazor needs .NET 10 (net10.0).");
+        var versions = Regex.Matches(frameworks, @"net(\d+)\.\d").Select(m => int.Parse(m.Groups[1].Value)).ToList();
+        if (versions.Count > 0 && versions.Max() < 10)
+            throw new GenerationException($"{project.Name} targets {frameworks}; IzzyBlazor needs .NET 10 (net10.0).");
 
         var program = project.ReadFile(project.Host + "Program.cs")
             ?? throw new GenerationException($"{project.Name} has no Program.cs, where izzy init registers IzzyBlazor's services.");
@@ -37,9 +39,11 @@ public static partial class Setup
         if (!blazor && (program.Contains("MapBlazorHub", StringComparison.Ordinal) || project.ReadFile(project.Host + "Pages/_Host.cshtml") is not null))
             throw new GenerationException($"{project.Name} is a Blazor Server app with a _Host page, from before .NET 8. Move it to a Blazor Web App (App.razor and MapRazorComponents) first: https://learn.microsoft.com/aspnet/core/migration/70-to-80");
 
-        var app = blazor ? project.ReadFile(project.Host + "Components/App.razor") ?? "" : "";
+        // Commented-out markup isn't a link: <!-- --> and @* *@ go first.
+        var app = blazor ? MarkupComment().Replace(project.ReadFile(project.Host + "Components/App.razor") ?? "", "") : "";
         var bootstrap = LinkedBootstrap().Match(app);
-        var appCss = app.Contains("@Assets[\"app.css\"]", StringComparison.Ordinal) && project.ReadFile(project.Host + "wwwroot/app.css") is not null;
+        // Linked through @Assets (.NET 9 on) or as a plain href, as apps begun on .NET 8 still have it.
+        var appCss = AppCssLink().IsMatch(app) && project.ReadFile(project.Host + "wwwroot/app.css") is not null;
         var layout = blazor ? FindLayout(project) : null;
         return project with
         {
@@ -50,11 +54,14 @@ public static partial class Setup
                 ["BootstrapLinked"] = bootstrap.Success,
                 ["AppCss"] = appCss,
                 ["HasLayout"] = layout is not null,
+                ["HasTheme"] = app.Contains("<IzzyTheme", StringComparison.Ordinal),
             },
             Tokens = new Dictionary<string, string>(project.Tokens)
             {
                 ["Layout"] = layout ?? "",
                 ["BootstrapHref"] = bootstrap.Success ? bootstrap.Groups["href"].Value : "",
+                // The same link as a pattern, so the one removed is the one put in a layer.
+                ["BootstrapLink"] = bootstrap.Success ? Regex.Escape(bootstrap.Groups["href"].Value) : "",
             },
         };
     }
@@ -181,15 +188,22 @@ public static partial class Setup
         return null;
     }
 
-    [GeneratedRegex(@"<link[^>]*href=""(?:@Assets\[""(?<href>[^""]*bootstrap[^""]*)""\]|(?<href>[^""]*bootstrap[^""]*))""[^>]*>", RegexOptions.IgnoreCase)]
+    // Bootstrap's own stylesheet (bootstrap.css, bootstrap.min.css), not bootstrap-icons or a theme beside it.
+    [GeneratedRegex(@"<link[^>]*href=""(?:@Assets\[""(?<href>[^""]*bootstrap(?:\.min)?\.css)""\]|(?<href>[^""]*bootstrap(?:\.min)?\.css))""[^>]*>", RegexOptions.IgnoreCase)]
     private static partial Regex LinkedBootstrap();
+
+    [GeneratedRegex(@"@Assets\[""app\.css""\]|href=""app\.css""")]
+    private static partial Regex AppCssLink();
 
     [GeneratedRegex(@"^\s*@namespace\s+([\w.]+)", RegexOptions.Multiline)]
     private static partial Regex Namespace();
 
-    [GeneratedRegex(@"DefaultLayout=""typeof\(([\w.]+)\)""")]
+    [GeneratedRegex(@"DefaultLayout=""@?typeof\(\s*([\w.]+)\s*\)""")]
     private static partial Regex DefaultLayout();
 
     [GeneratedRegex(@"/\*.*?\*/", RegexOptions.Singleline)]
     private static partial Regex Comment();
+
+    [GeneratedRegex(@"<!--.*?-->|@\*.*?\*@", RegexOptions.Singleline)]
+    private static partial Regex MarkupComment();
 }

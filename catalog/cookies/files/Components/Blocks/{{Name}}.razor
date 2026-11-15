@@ -25,7 +25,9 @@
             @* The docs preview has no /consent: its buttons only reload the preview. *@
             <form method="get" action="">
             @*#endif *@
+                @*#if (!LayoutInBrowser) *@
                 <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                @*#endif *@
                 @* Phones: the two choices side by side, then Choose cookies under them at full width. *@
                 <Stack Direction="new() { Base = Direction.ColumnReverse, Sm = Direction.Row }" Gap="2" Align="new() { Base = Align.Stretch, Sm = Align.Center }" MarginTop="1">
                     <Button Href="@SettingsHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Choose cookies</Button>
@@ -60,7 +62,13 @@ else
 
     private string ReturnUrl => "~/" + Navigation.ToBaseRelativePath(Navigation.Uri);
 
+@*#if (LayoutInBrowser) *@
+    // Rendered once per full load, outside the pages that run in the browser: the address it was rendered at
+    // isn't where the visitor is now, so there's no return address and /consent goes back to the posting page.
+    private string SettingsHref => "{{SettingsRoute}}";
+@*#else *@
     private string SettingsHref => "{{SettingsRoute}}?returnUrl=" + Uri.EscapeDataString(ReturnUrl);
+@*#endif *@
 
     protected override void OnInitialized()
     {

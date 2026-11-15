@@ -4,7 +4,7 @@
 // AddIzzyBlazorCore(). Any other ASP.NET Core app (MVC, Razor Pages) gets a Blazor root beside what it has:
 // App, Routes, _Imports and a layout under Components/, and the lines in Program.cs that map it. Bootstrap
 // linked in App.razor goes into a cascade layer, so IzzyBlazor's components win over it. The facts in the
-// conditions (Blazor, AddsBlazor, BootstrapLinked, AppCss, HasLayout, HasClient) are read from the app by
+// conditions (Blazor, AddsBlazor, BootstrapLinked, AppCss, HasLayout, HasTheme, HasClient) are read from the app by
 // izzy init (Setup.Inspect); the CLI also writes the full name of the app's components named like ours.
 {
   "id": "init",
@@ -60,11 +60,11 @@
   ],
   "inserts": [
     { "if": "Blazor", "file": "Program.cs", "anchor": "builder.Services.AddRazorComponents()", "position": "before", "text": "builder.Services.AddIzzyBlazor();\n" },
-    { "if": "Blazor && !Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]|<ImportMap|<HeadOutlet", "position": "before", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
-    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]", "position": "after", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
-    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "<link[^>]*bootstrap[^>]*>", "position": "replace", "text": "" },
+    { "if": "Blazor && !Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]|href=\"app\\.css\"|<ImportMap|<HeadOutlet", "position": "before", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
+    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]|href=\"app\\.css\"", "position": "after", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
+    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "<link[^>]*{{BootstrapLink}}[^>]*>", "position": "replace", "text": "" },
     { "if": "Layered", "file": "wwwroot/app.css", "pattern": "^", "position": "before", "text": "/* Bootstrap in a layer of its own, declared before IzzyBlazor's, so IzzyBlazor's components win over it. */\n@import url(\"{{BootstrapHref}}\") layer(bootstrap);\n\n" },
-    { "if": "Blazor", "file": "Components/App.razor", "pattern": "<ImportMap|<HeadOutlet", "position": "before", "textFrom": "theme.razor" },
+    { "if": "Blazor && !HasTheme", "file": "Components/App.razor", "pattern": "<ImportMap|<HeadOutlet", "position": "before", "textFrom": "theme.razor" },
     { "if": "Blazor", "file": "{{Host}}Components/_Imports.razor", "anchor": "@using Microsoft.JSInterop", "position": "after", "text": "@using IzzyBlazor\n" },
     { "if": "Blazor && HasLayout", "file": "{{Layout}}", "pattern": "^\\s*@Body\\s*$", "position": "after", "text": "<ToastRegion />\n" },
     { "if": "HasClient", "file": "{{Client}}_Imports.razor", "anchor": "@using Microsoft.JSInterop", "position": "after", "text": "@using IzzyBlazor\n" },

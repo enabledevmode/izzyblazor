@@ -73,19 +73,29 @@ public static class ChangesetWriter
     // The lines that differ, from the longest run the two have in common, with three lines around each change.
     static void AppendHunks(StringBuilder diff, string[] before, string[] after)
     {
-        var common = new int[before.Length + 1, after.Length + 1];
-        for (var i = before.Length - 1; i >= 0; i--)
-            for (var j = after.Length - 1; j >= 0; j--)
-                common[i, j] = before[i] == after[j] ? common[i + 1, j + 1] + 1 : Math.Max(common[i + 1, j], common[i, j + 1]);
+        // Only the lines between the same first and last ones are compared, so a big file costs no more than its changes.
+        var head = 0;
+        while (head < before.Length && head < after.Length && before[head] == after[head]) head++;
+        var tail = 0;
+        while (tail < before.Length - head && tail < after.Length - head && before[^(tail + 1)] == after[^(tail + 1)]) tail++;
+        var middleBefore = before[head..^tail];
+        var middleAfter = after[head..^tail];
+        var common = new int[middleBefore.Length + 1, middleAfter.Length + 1];
+        for (var i = middleBefore.Length - 1; i >= 0; i--)
+            for (var j = middleAfter.Length - 1; j >= 0; j--)
+                common[i, j] = middleBefore[i] == middleAfter[j] ? common[i + 1, j + 1] + 1 : Math.Max(common[i + 1, j], common[i, j + 1]);
+        // Each line with its line numbers after it, old and new: the same lines first, the middle, the same lines last.
         var script = new List<(char Op, string Line, int Old, int New)>();
+        for (var i = 0; i < head; i++) script.Add((' ', before[i], i + 1, i + 1));
         int x = 0, y = 0;
-        while (x < before.Length || y < after.Length)
+        while (x < middleBefore.Length || y < middleAfter.Length)
         {
-            if (x < before.Length && y < after.Length && before[x] == after[y]) script.Add((' ', before[x++], x, ++y));
+            if (x < middleBefore.Length && y < middleAfter.Length && middleBefore[x] == middleAfter[y]) script.Add((' ', middleBefore[x++], head + x, head + ++y));
             // A replaced line reads old, then new.
-            else if (x < before.Length && (y == after.Length || common[x + 1, y] >= common[x, y + 1])) script.Add(('-', before[x++], x, y));
-            else script.Add(('+', after[y++], x, y));
+            else if (x < middleBefore.Length && (y == middleAfter.Length || common[x + 1, y] >= common[x, y + 1])) script.Add(('-', middleBefore[x++], head + x, head + y));
+            else script.Add(('+', middleAfter[y++], head + x, head + y));
         }
+        for (var i = 0; i < tail; i++) script.Add((' ', before[head + x + i], head + x + i + 1, head + y + i + 1));
         var changed = script.Select((s, index) => (s, index)).Where(s => s.s.Op != ' ').Select(s => s.index).ToList();
         var k = 0;
         while (k < changed.Count)
@@ -104,13 +114,21 @@ public static class ChangesetWriter
         }
     }
 
-    /// <summary>The original text with every change made at its offset, in the order given when offsets tie.</summary>
+    /// <summary>
+    /// The original text with every change made at its offset, in the order given when offsets tie: an insert
+    /// listed after a replacement at the same offset goes after the replacing text. Changes that overlap are refused.
+    /// </summary>
     static string Merge(string original, IEnumerable<TextInsert> inserts)
     {
-        var result = new StringBuilder(original);
-        foreach (var insert in inserts.Select((i, order) => (i, order)).OrderByDescending(x => x.i.Offset).ThenByDescending(x => x.order))
-            result.Remove(insert.i.Offset, insert.i.Length).Insert(insert.i.Offset, insert.i.Text);
-        return result.ToString();
+        var result = new StringBuilder(original.Length);
+        var copied = 0;
+        foreach (var change in inserts.Select((i, order) => (i, order)).OrderBy(x => x.i.Offset).ThenBy(x => x.order).Select(x => x.i))
+        {
+            if (change.Offset < copied) throw new GenerationException($"Two changes to {change.Path} overlap; nothing was written.");
+            result.Append(original, copied, change.Offset - copied).Append(change.Text);
+            copied = change.Offset + change.Length;
+        }
+        return result.Append(original, copied, original.Length - copied).ToString();
     }
 
     static string[] Lines(string text)
