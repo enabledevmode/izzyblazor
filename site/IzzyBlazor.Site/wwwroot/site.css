@@ -64,25 +64,24 @@
   max-width: 47.5rem;
   text-align: center;
 }
-/* The ember behind the headline (the design agent's hero-ember-preview). In dark mode, rings at 0.7 of
-   their drawn strength, centered on the top of "Blazor components.", so the orange line falls on the
-   fainter outer rings; in light, one soft glow, a little smaller. */
+/* The ember behind the demo (hero-ember-preview, "Behind the demo"): centered --site-hero-glow-drop under
+   the stage's top edge (the window's on wide screens, the phone's below 1024px), so the frame hides the
+   core; clipped at that edge, so only the rings above it show and nothing shows through the frame's
+   faded end. The headline and buttons sit on the faint outer rings: in light mode the Ember line keeps
+   3.1:1. It paints under everything in the grid (z-index -1), the buttons and frames included; nothing
+   between it and the grid may make a stacking context of its own. */
+.site-hero-demo { position: relative; }
 .site-hero-glow {
-  --site-hero-glow-size: calc(44rem * var(--site-hero-glow-scale));
-  --site-hero-glow-y: calc(var(--site-hero-title-size) * var(--site-hero-glow-line));
   position: absolute;
   z-index: -1;
-  top: var(--site-hero-glow-y);
+  top: var(--site-hero-glow-drop);
   left: 50%;
   width: var(--site-hero-glow-size);
   height: var(--site-hero-glow-size);
   translate: -50% -50%;
   overflow: visible;
   opacity: var(--site-hero-glow);
-  /* The ember reaches above the hero's top edge: it fades in from that edge over --site-hero-glow-fade
-     (120px for the rings, 3rem for light mode's glow, whose core sits near the top), so the header never
-     cuts it. */
-  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top) - var(--site-hero-glow-y)), #000 calc(50% + var(--site-hero-glow-fade) - var(--site-hero-top) - var(--site-hero-glow-y)));
+  clip-path: inset(0 0 calc(50% + var(--site-hero-glow-drop)) 0);
   pointer-events: none;
 }
 .site-hero-glow circle { transform-box: fill-box; transform-origin: center; }
@@ -92,7 +91,7 @@
 .site-hero-sparks {
   position: absolute;
   z-index: -1;
-  top: var(--site-hero-glow-y);
+  top: 0;
   left: 50%;
   width: 0;
   height: 0;
@@ -100,8 +99,8 @@
 }
 .site-hero-sparks i {
   position: absolute;
-  left: calc(var(--x) * 44rem * var(--site-hero-glow-scale));
-  top: calc(var(--y) * 44rem * var(--site-hero-glow-scale));
+  left: calc(var(--x) * var(--site-hero-glow-size));
+  top: calc(var(--y) * var(--site-hero-glow-size));
   width: var(--s);
   height: var(--s);
   border-radius: 50%;
@@ -133,12 +132,12 @@
    meta (the user's choice, from its cookie, there at the first paint, before any script sets the
    attribute), else the system's. */
 :root {
-  --site-hero-glow: 1;
-  --site-hero-glow-fade: 3rem;
-  --site-hero-glow-scale: 0.91;
-  --site-hero-glow-line: 0.11;
-  --site-hero-rings: none;
-  --site-hero-soft: inline;
+  /* 860px of rings, centered 100px under the window's top edge (300px and 40px below 1024px). */
+  --site-hero-glow-size: 53.75rem;
+  --site-hero-glow-drop: 100px;
+  --site-hero-glow: 0.85;
+  --site-hero-rings: inline;
+  --site-hero-soft: none;
   --site-hero-flare: #ffb020;
   --site-hero-flare-opacity: 0.25;
   --site-hero-spark: radial-gradient(circle, #f26a1b 0 35%, rgb(224 89 15 / .8) 50%, rgb(224 89 15 / 0) 72%);
@@ -146,10 +145,7 @@
   --site-hero-poster-phone: url("img/home/store-phone-light.webp");
 }
 :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
-  --site-hero-glow: 0.7;
-  --site-hero-glow-scale: 1;
-  --site-hero-glow-line: 0.1;
-  --site-hero-glow-fade: 120px;
+  --site-hero-glow: 1;
   --site-hero-rings: inline;
   --site-hero-soft: none;
   --site-hero-flare: #ffb020;
@@ -160,10 +156,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
-    --site-hero-glow: 0.7;
-    --site-hero-glow-scale: 1;
-    --site-hero-glow-line: 0.1;
-    --site-hero-glow-fade: 120px;
+    --site-hero-glow: 1;
     --site-hero-rings: inline;
     --site-hero-soft: none;
     --site-hero-flare: #ffb020;
@@ -173,14 +166,9 @@
     --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
   }
 }
-/* Phones and tablets: a smaller ember, the sparks with it: 380px in dark, still centered on the top of the
-   first line; 30rem in light, as the design's 375px frame has it, a little lower (0.47 of the headline's size). */
+/* Phones and tablets: the ember no wider than the phone frame, so the clip at its top edge stays hidden. */
 @media (max-width: 63.98rem) {
-  :root { --site-hero-glow-scale: 0.68; --site-hero-glow-line: 0.47; }
-  :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) { --site-hero-glow-scale: 0.54; --site-hero-glow-line: 0.1; }
-}
-@media (max-width: 63.98rem) and (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) { --site-hero-glow-scale: 0.54; --site-hero-glow-line: 0.1; }
+  :root { --site-hero-glow-size: 300px; --site-hero-glow-drop: 40px; }
 }
 
 /* 72px on wide screens, about 35px on phones (clear of the edges, two lines): the library's
@@ -197,6 +185,10 @@
 .site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
 .site-hero-sub { max-width: 34em; margin-block-start: 1.375rem; }
 .site-hero-actions { display: flex; gap: var(--ib-space-3); margin-block-start: var(--ib-space-8); }
+/* Browse components sits on the glow: the page's color as its fill (the Outline variant is clear), so
+   it keeps its shape, and a firmer border in light mode. Hover keeps the library's fill. */
+.site-hero-actions .ib-btn-outline:not(:hover) { background: light-dark(#f5f4f1, #14161a); }
+.site-hero-actions .ib-btn-outline { border-color: light-dark(#cfc9c0, #4a4b52); }
 /* Standalone links (an action, not a link in a sentence): Medium, an arrow, no underline until
    hover. In the accent (Ember text) on their own; in the text color inside the hero's muted label. */
 .site-action { display: inline-flex; align-items: center; gap: var(--ib-space-1); font-weight: 500; }
@@ -303,8 +295,8 @@
 }
 @media (min-width: 64rem) {
   /* As the design draws it (D4, option A): the window as wide as the page's column (1216px, 0.95
-     of its page's 1280px), scaled by --w, with the phone 28px outside its lower start corner; both run into the hero's end, which cuts them off 600px down at full size (the
-     stat cards and the top of the chart show). The frames keep their whole screens, so the page
+     of its page's 1280px), scaled by --w, with the phone 28px outside its lower start corner; both run into the hero's end, which cuts them off 800px down at full size (the
+     stat cards and the whole chart row show; the fade falls below the row, before the orders table). The frames keep their whole screens, so the page
      in them lays out as on a real one (a phone's fixed button stays at its bottom); their boxes
      cut them, and scroll to bring anything focused below the cut into view. */
   .site-hero-grid { gap: var(--ib-space-14); }
@@ -314,7 +306,7 @@
     --s: var(--w);
     display: flex;
     flex-direction: column;
-    height: calc(600px * var(--w));
+    height: calc(800px * var(--w));
     border-block-end: 0;
     border-end-start-radius: 0;
     border-end-end-radius: 0;
@@ -333,21 +325,25 @@
     /* 28px outside the window; less where the screen's edge is closer than that. */
     left: calc(-1 * min(1.75rem, (100vw - 100cqi) / 2 - 0.5rem));
     top: calc(263px * var(--w));
-    height: calc(337px * var(--w));
+    height: calc(537px * var(--w));
     overflow: hidden;
     padding-block-end: 0;
     border-end-start-radius: 0;
     border-end-end-radius: 0;
   }
   .site-hero-phone .site-hero-screen { border-end-start-radius: 0; border-end-end-radius: 0; }
-  /* The cut fades into the hero over its last 120px, below the chart row; it steps aside while
+  /* Beside the window the phone's screen is a taller phone's (390x844, not 780), so the screen runs
+     down to the window's cut (263px + 8px + 844px x 0.62 = about 794px of 800px) instead of ending
+     above it and leaving the bezel's empty lower part in view. */
+  .site-hero-phone iframe { height: 844px; margin-block-end: calc(844px * (var(--s) - 1)); }
+  /* The cut fades into the hero over its last 160px, below the chart row; it steps aside while
      something in the frames has focus, so nothing focused sits under it. */
   .site-hero-stage::after {
     content: "";
     position: absolute;
     z-index: 3;
     inset: auto -2rem 0;
-    height: 7.5rem;
+    height: 10rem;
     background: linear-gradient(transparent, light-dark(#f5f4f1, #14161a));
     pointer-events: none;
   }
@@ -534,7 +530,6 @@
 .site-media { position: relative; }
 /* The homepage's mode pictures, a fifth shorter: the drawing's middle. */
 .site-media > .pg { display: block; width: 100%; height: auto; aspect-ratio: 320 / 136; }
-.site-media-tag { position: absolute; top: var(--ib-space-3); left: var(--ib-space-3); display: inline-flex; gap: var(--ib-space-1); }
 
 /* Link cards: they take you somewhere, so they read as links rather than content: a small
    pictogram on the left, the title and the description beside it. */

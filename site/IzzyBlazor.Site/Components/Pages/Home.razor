@@ -15,13 +15,32 @@
 @* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
    (the headline with its ember line, what it is and the two ways in) over the app the library builds, live: a desktop window as wide as the page, its phone
    over the window's lower start corner, both cut off by the hero's end. Each is a frame of the same
-   page, scaled down as pictures are. The glowing knob is a faint watermark behind the headline. *@
+   page, scaled down as pictures are. The glowing knob rises from behind the window. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
     <div class="site-hero-grid">
         <div class="site-hero-intro">
-            @* The ember (the design agent's hero-ember-preview): rings in dark mode, one soft glow in light,
-               where flat rings on Paper read as a target. On load it lights from the core out, flares once
-               and sends up a few sparks, then rests lit, in under 5 seconds (site.css). *@
+            <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
+                Blazor components.<br /><span>No circuit required.</span>
+            </Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-hero-sub">
+                @Registry.ComponentCountLabel components for every Blazor render mode, static SSR included.
+            </TextBlock>
+            <div class="site-hero-actions">
+                <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
+                <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
+            </div>
+        </div>
+        @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
+           lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
+           part the hero cuts off comes into view. The desktop window is left out below 1024px,
+           where only the phone fits. *@
+        @* The window's bar says it's live, in its address, and links to the code at its end; below
+           1024px, with the phone alone, a line under the phone does both. *@
+        <div class="site-hero-demo">
+            @* The ember (hero-ember-preview, "Behind the demo"): rings centered under the window's top edge,
+               which hides their core and clips them, so they rise above it like a sunrise and frame the demo;
+               the headline and buttons stay on the faint outer rings. On load it lights from the core out,
+               flares once and sends up a few sparks, then rests lit, in under 5 seconds (site.css). *@
             <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
                 <defs>
                     <radialGradient id="site-ember-soft" cx="50%" cy="50%" r="50%">
@@ -41,36 +60,18 @@
                 <circle class="site-ember-ring" style="--i:0" cx="400" cy="400" r="57.3" fill="#F26A1B" fill-opacity="0.135" />
                 <circle class="site-ember-flare" cx="400" cy="400" r="48" fill="#FFB020" fill-opacity="0.22" />
             </svg>
-            @* Sparks, placed against the ember's size (x and y from its center, in its widths), outside the
-               text column. *@
+            @* Sparks, placed against the ember's size (x from its center, y from the window's top edge, in
+               its widths), so they rise from the visible rings. *@
             <div class="site-hero-sparks" aria-hidden="true">
-                <i style="--x:-.611;--y:.054;--s:4px;--d:1.9s;--t:.6s;--sway:-10px"></i>
-                <i style="--x:-.568;--y:.196;--s:3px;--d:1.9s;--t:.8s;--sway:8px"></i>
-                <i style="--x:-.668;--y:.267;--s:3px;--d:1.8s;--t:1s;--sway:-6px"></i>
-                <i style="--x:-.554;--y:-.031;--s:3px;--d:1.9s;--t:1.1s;--sway:12px"></i>
-                <i style="--x:.597;--y:.068;--s:4px;--d:1.9s;--t:.7s;--sway:10px"></i>
-                <i style="--x:.561;--y:.210;--s:3px;--d:1.9s;--t:.9s;--sway:-8px"></i>
-                <i style="--x:.653;--y:.253;--s:3px;--d:1.8s;--t:1.05s;--sway:6px"></i>
-                <i style="--x:.547;--y:-.045;--s:3px;--d:1.9s;--t:1.1s;--sway:-12px"></i>
+                <i style="--x:-.611;--y:-.04;--s:4px;--d:1.9s;--t:.6s;--sway:-10px"></i>
+                <i style="--x:-.568;--y:-.10;--s:3px;--d:1.9s;--t:.8s;--sway:8px"></i>
+                <i style="--x:-.668;--y:-.16;--s:3px;--d:1.8s;--t:1s;--sway:-6px"></i>
+                <i style="--x:-.554;--y:-.22;--s:3px;--d:1.9s;--t:1.1s;--sway:12px"></i>
+                <i style="--x:.597;--y:-.05;--s:4px;--d:1.9s;--t:.7s;--sway:10px"></i>
+                <i style="--x:.561;--y:-.12;--s:3px;--d:1.9s;--t:.9s;--sway:-8px"></i>
+                <i style="--x:.653;--y:-.17;--s:3px;--d:1.8s;--t:1.05s;--sway:6px"></i>
+                <i style="--x:.547;--y:-.23;--s:3px;--d:1.9s;--t:1.1s;--sway:-12px"></i>
             </div>
-            <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
-                Blazor components.<br /><span>No circuit required.</span>
-            </Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-hero-sub">
-                @Registry.ComponentCountLabel components for every Blazor render mode, static SSR included.
-            </TextBlock>
-            <div class="site-hero-actions">
-                <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
-                <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
-            </div>
-        </div>
-        @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
-           lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
-           part the hero cuts off comes into view. The desktop window is left out below 1024px,
-           where only the phone fits. *@
-        @* The window's bar says it's live, in its address, and links to the code at its end; below
-           1024px, with the phone alone, a line under the phone does both. *@
-        <div class="site-hero-demo">
             <div class="site-hero-stage">
                 <div class="site-hero-window">
                     <div class="site-hero-window-bar">
@@ -103,11 +104,11 @@
         </Stack>
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <Card Title="Static: no circuit" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /></div></CardMedia>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">Pages render as HTML on the server. The browser's own elements, links and forms do the work, and IzzyBlazor's small script adds keyboard controls, live values and dragging. No SignalR connection, no WebAssembly runtime.</TextBlock>
             </Card>
             <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /></div></CardMedia>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">Choose Server, WebAssembly or Auto for a page that needs C#. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and prerender as the same working HTML.</TextBlock>
             </Card>
         </Grid>
