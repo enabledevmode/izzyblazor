@@ -312,7 +312,7 @@ class Toolbar extends IzzyElement {
     REGIONS.forEach((selector, region) => {
       const container = this.querySelector(`:scope > ${selector}`);
       for (const child of container?.children ?? []) {
-        if (child.matches(".ib-toolbar-unit, .ib-toolbar-more, style") || child.querySelector(".ib-toolbar-unit") || !child.checkVisibility()) continue;
+        if (child.matches(".ib-toolbar-unit, .ib-toolbar-more, .ib-toolbar-floats, style") || child.querySelector(".ib-toolbar-unit") || !child.checkVisibility()) continue;
         const width = child.getBoundingClientRect().width;
         units.push({ id: `other-${units.length}`, region: region as Region, width, collapsed: width, priority: 0, overflow: "never", separator: false });
       }

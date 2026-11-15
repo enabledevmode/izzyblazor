@@ -1473,6 +1473,16 @@
     display: none;
   }
 
+  /* While its Add floats (DataGridAdd FloatBelow), room under the grid, so the button never covers the
+     last row or the pager. */
+  @media (width < 40rem) {
+    .ib-datagrid:has(.ib-grid-toolbar .ib-toolbar-unit[data-ib-float="sm"]) { padding-block-end: 5rem; }
+  }
+
+  @media (width < 48rem) {
+    .ib-datagrid:has(.ib-grid-toolbar .ib-toolbar-unit[data-ib-float="md"]) { padding-block-end: 5rem; }
+  }
+
   /* The grid's search, not the Columns button, whose popover has a search of its own. */
   .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) {
     flex: 0 1 14rem;

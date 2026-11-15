@@ -261,6 +261,10 @@ internal sealed class ToolbarOutlet : ComponentBase, IDisposable
 {
     private Action? _render;
 
+    /// <summary>The breakpoint below which an item floats instead (toolbar.css hides its units there); null for none.</summary>
+    internal static string? FloatAttribute(IToolbarItem item) =>
+        item.FloatBelow is { } below && item.Floating is not null ? below.ToString().ToLowerInvariant() : null;
+
     [Parameter, EditorRequired] public ToolbarContext Context { get; set; } = null!;
 
     [Parameter] public ToolbarPosition Position { get; set; }
@@ -296,7 +300,8 @@ internal sealed class ToolbarOutlet : ComponentBase, IDisposable
             builder.AddAttribute(4, "data-ib-unit", id.ToString(CultureInfo.InvariantCulture));
             builder.AddAttribute(5, "data-ib-priority", item.Priority == 0 ? null : item.Priority.ToString(CultureInfo.InvariantCulture));
             builder.AddAttribute(6, "data-ib-overflow", item.Overflow == ToolbarOverflow.Auto ? null : item.Overflow.ToString().ToLowerInvariant());
-            builder.AddContent(7, item.Bar);
+            builder.AddAttribute(7, "data-ib-float", FloatAttribute(item));
+            builder.AddContent(8, item.Bar);
             builder.CloseElement();
         }
 
@@ -331,7 +336,7 @@ internal sealed class ToolbarMore : ComponentBase
     [Parameter] public string? Nonce { get; set; }
 
     /// <inheritdoc />
-    protected override void OnInitialized() => Context.OnMenuChanged = StateHasChanged;
+    protected override void OnInitialized() => Context.OnMenuChanged += StateHasChanged;
 
     /// <summary>How it moves, after what it can do: one with nothing to show in the menu stays.</summary>
     private static ToolbarOverflow Effective(IToolbarItem item) => item.Separator || item.Menu is null ? ToolbarOverflow.Never : item.Overflow;
@@ -340,6 +345,8 @@ internal sealed class ToolbarMore : ComponentBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var items = Context.Items.ToList();
+
+
         // Nothing can move and no labels collapse: no "…" and no widths. (With CollapseLabels and
         // nothing to move, the "…" is there but never shows.)
         if (!Context.CollapseLabels && !items.Exists(i => !i.Item.Separator && Effective(i.Item) != ToolbarOverflow.Never))
@@ -381,11 +388,43 @@ internal sealed class ToolbarMore : ComponentBase
                 m.SetKey(item);
                 m.AddAttribute(1, "class", "ib-toolbar-menu-unit");
                 m.AddAttribute(2, "data-ib-unit", id.ToString(CultureInfo.InvariantCulture));
-                m.AddContent(3, item.Menu);
+                m.AddAttribute(3, "data-ib-float", ToolbarOutlet.FloatAttribute(item));
+                m.AddContent(4, item.Menu);
                 m.CloseElement();
             }
         }));
         builder.CloseComponent();
+        builder.CloseElement();
+    }
+}
+
+/// <summary>
+/// The floating buttons of a <see cref="Toolbar"/>'s items that float below a width (<c>FloatBelow</c>), drawn
+/// after the toolbar, outside it: a FloatingButton leaves the page's flow, so it isn't a toolbar control.
+/// </summary>
+internal sealed class ToolbarFloats : ComponentBase
+{
+    [Parameter, EditorRequired] public ToolbarContext Context { get; set; } = null!;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Context.OnMenuChanged += StateHasChanged;
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        var floats = Context.Items.Where(i => i.Item.FloatBelow is not null && i.Item.Floating is not null).ToList();
+        if (floats.Count == 0)
+        {
+            return;
+        }
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-toolbar-floats");
+        foreach (var (item, _) in floats)
+        {
+            builder.AddContent(2, item.Floating);
+        }
+
         builder.CloseElement();
     }
 }

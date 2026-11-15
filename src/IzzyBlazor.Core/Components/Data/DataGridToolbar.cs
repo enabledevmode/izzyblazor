@@ -26,6 +26,8 @@ internal interface IDataGridToolbar
 
     RenderFragment AddMenu { get; }
 
+    RenderFragment AddFloating(Breakpoint below);
+
     bool HasExport { get; }
 
     /// <summary>Whether export opens a menu of its formats, with a chevron beside its icon: a little wider.</summary>
@@ -104,6 +106,10 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     private protected virtual RenderFragment? ItemMenu => null;
 
+    private protected virtual Breakpoint? ItemFloatBelow => null;
+
+    private protected virtual RenderFragment? ItemFloating => null;
+
     private protected abstract double? ItemWidth { get; }
 
     /// <summary>What the toolbar reckons for it on the first paint.</summary>
@@ -124,6 +130,10 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     RenderFragment IToolbarItem.Bar => Target is null ? _ => { } : OutsideParts.Wrap(_link is null ? null : Grid.PartsId, "data-ib-grid", null, ItemBar);
 
     RenderFragment? IToolbarItem.Menu => Target is null ? null : ItemMenu;
+
+    Breakpoint? IToolbarItem.FloatBelow => Target is null ? null : ItemFloatBelow;
+
+    RenderFragment? IToolbarItem.Floating => Target is null ? null : ItemFloating;
 
     double? IToolbarItem.Width => EstimatedWidth;
 
@@ -309,6 +319,12 @@ public sealed class DataGridAdd : DataGridToolbarItem
     /// <summary>When it moves into the "…" menu, as a link there. Defaults to <see cref="ToolbarOverflow.Auto"/>.</summary>
     [Parameter] public ToolbarOverflow Overflow { get; set; }
 
+    /// <summary>
+    /// Below this width it's a floating button at the screen's bottom corner, under the thumb, instead of
+    /// a toolbar button: <c>Breakpoint.Sm</c> on a phone. Off by default; for a page's one main action.
+    /// </summary>
+    [Parameter] public Breakpoint? FloatBelow { get; set; }
+
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
     [Parameter] public bool? ShowLabel { get; set; }
 
@@ -323,6 +339,10 @@ public sealed class DataGridAdd : DataGridToolbarItem
     private protected override RenderFragment ItemBar => Grid.AddBar(Text);
 
     private protected override RenderFragment ItemMenu => Grid.AddMenu;
+
+    private protected override Breakpoint? ItemFloatBelow => FloatBelow;
+
+    private protected override RenderFragment? ItemFloating => FloatBelow is { } below ? Grid.AddFloating(below) : null;
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.AddLabel, startIcon: true, endIcon: false);
 }

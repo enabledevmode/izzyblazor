@@ -938,6 +938,20 @@
         }
     };
 
+    // Floating below its breakpoint (DataGridAdd FloatBelow): the same link, or on an interactive page the same action.
+    RenderFragment IDataGridToolbar.AddFloating(Breakpoint below) => __builder =>
+    {
+        var plus = IconSet.Current.Get(IconPurpose.Plus);
+        @if (UseState)
+        {
+            <FloatingButton Icon="plus" Label="@(AddText ?? TextDefaults.Add)" HiddenFrom="below" OnClick="@(() => { EndCell(); (_stateAdding, _stateAddUnder) = (true, null); })" data-ib-edit />
+        }
+        else
+        {
+            <FloatingButton Icon="plus" Label="@(AddText ?? TextDefaults.Add)" HiddenFrom="below" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
+        }
+    };
+
     // In the "…" menu when the bar has no room: the same link, or on an interactive page the same action.
     RenderFragment IDataGridToolbar.AddMenu => __builder =>
     {

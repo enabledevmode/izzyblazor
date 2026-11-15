@@ -42,9 +42,41 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
     /// </summary>
     [Parameter] public ToolbarOverflow Overflow { get; set; }
 
+    /// <summary>
+    /// Below this width it's a floating button at the screen's bottom corner instead, with its
+    /// <see cref="ButtonBase.StartIcon"/> and <see cref="FloatLabel"/>: <c>Breakpoint.Sm</c> on a phone. Off by
+    /// default; for a page's one main action.
+    /// </summary>
+    [Parameter] public Breakpoint? FloatBelow { get; set; }
+
+    /// <summary>What it does, as the floating button's accessible name ("New invoice"). Needed with <see cref="FloatBelow"/>.</summary>
+    [Parameter] public string? FloatLabel { get; set; }
+
     bool IToolbarItem.Separator => false;
 
     RenderFragment IToolbarItem.Bar => builder => base.BuildRenderTree(builder);
+
+    Breakpoint? IToolbarItem.FloatBelow => FloatBelow;
+
+    RenderFragment? IToolbarItem.Floating => FloatBelow is null ? null : builder =>
+    {
+        builder.OpenComponent<FloatingButton>(0);
+        builder.AddComponentParameter(1, nameof(FloatingButton.Icon), StartIcon ?? throw new InvalidOperationException($"A {nameof(ToolbarButton)} with {nameof(FloatBelow)} needs a {nameof(StartIcon)} for its floating button."));
+        builder.AddComponentParameter(2, nameof(FloatingButton.Label), FloatLabel ?? throw new InvalidOperationException($"A {nameof(ToolbarButton)} with {nameof(FloatBelow)} needs a {nameof(FloatLabel)}: the floating button's name."));
+        builder.AddComponentParameter(3, nameof(FloatingButton.Href), Href);
+        builder.AddComponentParameter(4, nameof(FloatingButton.Submit), Submit);
+        builder.AddComponentParameter(5, nameof(FloatingButton.Name), Name);
+        builder.AddComponentParameter(6, nameof(FloatingButton.Value), Value);
+        builder.AddComponentParameter(7, nameof(FloatingButton.FormAction), FormAction);
+        builder.AddComponentParameter(8, nameof(FloatingButton.Form), Form);
+        builder.AddComponentParameter(9, nameof(FloatingButton.Disabled), Disabled || Loading);
+        builder.AddComponentParameter(11, nameof(FloatingButton.HiddenFrom), FloatBelow);
+        if (OnClick.HasDelegate)
+        {
+            builder.AddComponentParameter(10, nameof(FloatingButton.OnClick), OnClick);
+        }
+        builder.CloseComponent();
+    };
 
     // A menu item can't reset a form, and one wired up by its attributes does more than a menu item can.
     RenderFragment? IToolbarItem.Menu => Reset || !ToolbarControl.CopiesToMenu(AdditionalAttributes) ? null : builder =>

@@ -99,6 +99,8 @@
         </CascadingValue>
     </CascadingValue>
 </ib-toolbar>
+@* Items' floating buttons (FloatBelow): after the toolbar, out of its cascades, since they leave its flow. *@
+@Floats
 
 @code {
     /// <summary>
@@ -194,6 +196,14 @@
         builder.OpenComponent<ToolbarOutlet>(0);
         builder.AddComponentParameter(1, nameof(ToolbarOutlet.Context), _context);
         builder.AddComponentParameter(2, nameof(ToolbarOutlet.Position), position);
+        builder.CloseComponent();
+    };
+
+    // Items' floating buttons, drawn after every item has joined.
+    private RenderFragment Floats => builder =>
+    {
+        builder.OpenComponent<ToolbarFloats>(0);
+        builder.AddComponentParameter(1, nameof(ToolbarFloats.Context), _context);
         builder.CloseComponent();
     };
 
