@@ -1,9 +1,10 @@
 @inject ApiMetadata Api
 @inject NavigationManager Navigation
 
-@* The header every page shares: brand, version, the four areas next to them, then search, GitHub
-   and the scheme switch. Below Md the version and GitHub move to the top of the menu (SiteNavHeader:
-   the sidebar's drawer on docs pages, SiteNav's panel on the others). *@
+@* The header every page shares: the brand, the four areas after it, then search, GitHub and the
+   scheme switch. The version is in the docs and demos sidebars (VersionMenu) and on home's hero.
+   Below Md, GitHub moves to the top of the menu (SiteNavHeader: the sidebar's drawer on docs pages,
+   SiteNav's panel on the others) and search becomes an icon button. *@
 
 <AppHeader ContentWidth="ContentWidth">
     @if (Sidebar)
@@ -15,8 +16,6 @@
             <SiteLogo />
         </Logo>
     </AppBrand>
-    @* A version selector (a Menu on a Ghost Sm button) will take this spot. *@
-    <VersionTag Demos="Demos" VisibleFrom="Breakpoint.Md" />
     @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
        pages have SidebarToggle, so the button doesn't change sides between pages. *@
     <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
@@ -25,23 +24,22 @@
         <NavItem Href="blocks" Current="@(Area == DocsArea.Blocks)">Blocks</NavItem>
         <NavItem Href="demos">Demos</NavItem>
         <SiteNavHeader>
-            <VersionTag Demos="Demos" />
             <Box Grow />
             <GitHubLink />
         </SiteNavHeader>
     </SiteNav>
     <Box Grow />
-    <SiteSearch />
-    <GitHubLink VisibleFrom="Breakpoint.Md" />
-    <ColorSchemeSwitch />
+    @* Search, then the two icon buttons close together: 8px, then 4px. *@
+    <Row Gap="1" Align="Align.Center" Class="site-header-tools">
+        <SiteSearch />
+        <GitHubLink VisibleFrom="Breakpoint.Md" />
+        <ColorSchemeSwitch />
+    </Row>
 </AppHeader>
 
 @code {
     /// <summary>The page has a sidebar, so the header needs its menu button.</summary>
     [Parameter] public bool Sidebar { get; set; }
-
-    /// <summary>In the demos area, which always shows the latest release.</summary>
-    [Parameter] public bool Demos { get; set; }
 
     /// <summary>Lines the header's content up with the page's centered columns.</summary>
     [Parameter] public Length? ContentWidth { get; set; }
