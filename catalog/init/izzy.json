@@ -1,0 +1,81 @@
+// izzy init: IzzyBlazor into an app you have, as the Get started pages set it up by hand. A Blazor Web App
+// gets the package, the stylesheet and theme in App.razor, @using IzzyBlazor, AddIzzyBlazor() and a
+// ToastRegion in its layout; its .Client project, if it has one, gets IzzyBlazor.Core, the @using and
+// AddIzzyBlazorCore(). Any other ASP.NET Core app (MVC, Razor Pages) gets a Blazor root beside what it has:
+// App, Routes, _Imports and a layout under Components/, and the lines in Program.cs that map it. Bootstrap
+// linked in App.razor goes into a cascade layer, so IzzyBlazor's components win over it. The facts in the
+// conditions (Blazor, AddsBlazor, BootstrapLinked, AppCss, HasLayout, HasClient) are read from the app by
+// izzy init (Setup.Inspect); the CLI also writes the full name of the app's components named like ours.
+{
+  "id": "init",
+  "name": "IzzyBlazor setup",
+  "kind": "setup",
+  "summary": "Sets up IzzyBlazor in an app you have: a Blazor Web App, or an MVC or Razor Pages app, which gets a Blazor root beside its pages.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Preset": {
+        "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
+        "description": "The theme preset: Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
+      },
+      "Brand": {
+        "type": "string", "default": "",
+        "pattern": "^$|^(blue|ink|indigo|violet|teal|green|rose)$|^#([0-9a-f]{3}|[0-9a-f]{6})$",
+        "description": "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
+      },
+      "Interactivity": {
+        "type": "string", "enum": ["None", "Server"], "default": "None",
+        "description": "For an MVC or Razor Pages app: None keeps every new page static; Server lets you make a page interactive over a circuit. A Blazor Web App keeps its own."
+      },
+      "KeepCss": {
+        "type": "boolean", "default": false,
+        "description": "Leaves Bootstrap where App.razor links it, instead of putting it in a cascade layer under IzzyBlazor's."
+      },
+      "Mcp": {
+        "type": "boolean", "default": false,
+        "description": "Connects AI assistants to IzzyBlazor's docs server (izzyblazor.com/mcp): .mcp.json for Claude Code and Visual Studio, .vscode/mcp.json for VS Code and .cursor/mcp.json for Cursor."
+      }
+    }
+  },
+  "computed": {
+    "Layered": "BootstrapLinked && AppCss && !KeepCss",
+    "ServerMode": "AddsBlazor && Interactivity == \"Server\""
+  },
+  "exclude": [
+    { "if": "!AddsBlazor", "paths": ["Components/**"] },
+    { "if": "!Mcp", "paths": [".mcp.json", ".vscode/**", ".cursor/**"] }
+  ],
+  "rename": [
+    { "if": "Mcp", "paths": { ".mcp.json": "~/.mcp.json", ".vscode/": "~/.vscode/", ".cursor/": "~/.cursor/" } }
+  ],
+  "packages": [
+    { "id": "IzzyBlazor", "version": "{{IzzyBlazorVersion}}" },
+    { "if": "HasClient", "id": "IzzyBlazor.Core", "version": "{{IzzyBlazorVersion}}", "project": "{{Client}}" }
+  ],
+  "checks": [
+    {
+      "if": "BootstrapLinked && !AppCss && !KeepCss", "file": "Components/App.razor", "pattern": "bootstrap",
+      "message": "App.razor links Bootstrap, and there's no wwwroot/app.css to put it in a layer, so Bootstrap wins over IzzyBlazor's components. See https://izzyblazor.com/docs/get-started/existing-app#keep-bootstrap"
+    }
+  ],
+  "inserts": [
+    { "if": "Blazor", "file": "Program.cs", "anchor": "builder.Services.AddRazorComponents()", "position": "before", "text": "builder.Services.AddIzzyBlazor();\n" },
+    { "if": "Blazor && !Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]|<ImportMap|<HeadOutlet", "position": "before", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
+    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "@Assets\\[\"app\\.css\"\\]", "position": "after", "text": "<link rel=\"stylesheet\" href=\"@Assets[\"_content/IzzyBlazor.Core/izzyblazor.css\"]\" />\n" },
+    { "if": "Blazor && Layered", "file": "Components/App.razor", "pattern": "<link[^>]*bootstrap[^>]*>", "position": "replace", "text": "" },
+    { "if": "Layered", "file": "wwwroot/app.css", "pattern": "^", "position": "before", "text": "/* Bootstrap in a layer of its own, declared before IzzyBlazor's, so IzzyBlazor's components win over it. */\n@import url(\"{{BootstrapHref}}\") layer(bootstrap);\n\n" },
+    { "if": "Blazor", "file": "Components/App.razor", "pattern": "<ImportMap|<HeadOutlet", "position": "before", "textFrom": "theme.razor" },
+    { "if": "Blazor", "file": "{{Host}}Components/_Imports.razor", "anchor": "@using Microsoft.JSInterop", "position": "after", "text": "@using IzzyBlazor\n" },
+    { "if": "Blazor && HasLayout", "file": "{{Layout}}", "pattern": "^\\s*@Body\\s*$", "position": "after", "text": "<ToastRegion />\n" },
+    { "if": "HasClient", "file": "{{Client}}_Imports.razor", "anchor": "@using Microsoft.JSInterop", "position": "after", "text": "@using IzzyBlazor\n" },
+    { "if": "HasClient", "file": "{{Client}}Program.cs", "anchor": "await builder.Build().RunAsync();", "position": "before", "text": "builder.Services.AddIzzyBlazorCore();\n\n" },
+
+    { "if": "AddsBlazor", "file": "Program.cs", "pattern": "^", "position": "before", "text": "using {{RootNamespace}}.Components;\n\n" },
+    { "if": "AddsBlazor", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.AddIzzyBlazor();\n" },
+    { "if": "AddsBlazor && !ServerMode", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.AddRazorComponents();\n\n" },
+    { "if": "ServerMode", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.AddRazorComponents()\n    .AddInteractiveServerComponents();\n\n" },
+    { "if": "AddsBlazor", "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.UseAntiforgery();\n" },
+    { "if": "AddsBlazor && !ServerMode", "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.MapRazorComponents<App>();\n\n" },
+    { "if": "ServerMode", "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.MapRazorComponents<App>()\n    .AddInteractiveServerRenderMode();\n\n" }
+  ]
+}

@@ -1,0 +1,34 @@
+@inherits LayoutComponentBase
+@inject IConfiguration Configuration
+
+@* The layout of every page under Components/Pages, from izzy init: a top bar with the app's name and the
+   color scheme, and the page in a centered column. It's yours: add links to AppHeader, or a sidebar. *@
+<AppShell ContentWidth="Length.Rem(72)">
+    <AppHeader>
+        <AppBrand Href="" Icon="Lucide.Box" Label="{{ProjectName}}" />
+        <Spacer />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Menu" />
+    </AppHeader>
+    <AppMain>
+        <Box PaddingY="new() { Base = 6, Md = 10 }">
+            <ErrorGuard ShowDetails="DetailedErrors">
+                @Body
+            </ErrorGuard>
+        </Box>
+    </AppMain>
+</AppShell>
+
+<ToastRegion />
+@*#if (ServerMode) *@
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+@*#endif *@
+
+@code {
+    // A page that throws shows an alert in its place; the exception itself only where DetailedErrors is on.
+    private bool DetailedErrors => Configuration.GetValue<bool>("DetailedErrors");
+}

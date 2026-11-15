@@ -9,7 +9,7 @@ sealed class UsageException(string message) : Exception(message);
 /// </summary>
 sealed class Args
 {
-    static readonly HashSet<string> Switches = ["json", "dry-run", "diff", "overwrite", "help", "version"];
+    static readonly HashSet<string> Switches = ["json", "dry-run", "diff", "overwrite", "help", "version", "no-build"];
     static readonly Dictionary<string, string> Short = new() { ["n"] = "name", ["o"] = "output", ["h"] = "help" };
 
     public List<string> Words { get; } = [];

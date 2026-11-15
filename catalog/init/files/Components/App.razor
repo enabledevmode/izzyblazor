@@ -1,0 +1,35 @@
+@* The page around every Razor component in this app, from izzy init. Your MVC views and Razor Pages keep
+   their own _Layout.cshtml; the components under Components/ use this, so neither app's CSS meets the other. *@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+    <link rel="stylesheet" href="@Assets["{{ProjectName}}.styles.css"]" />
+    @* The theme: a preset, a brand color and fonts, set on the server so it applies on first paint. See https://izzyblazor.com/docs/theming *@
+    @*#if (Preset == "Standard" && Brand == "") *@
+    <IzzyTheme />
+    @*#elif (Brand == "") *@
+    <IzzyTheme Preset="ThemePreset.{{Preset}}" />
+    @*#elif (Preset == "Standard") *@
+    <IzzyTheme Brand="{{Brand}}" />
+    @*#else *@
+    <IzzyTheme Preset="ThemePreset.{{Preset}}" Brand="{{Brand}}" />
+    @*#endif *@
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    @*#if (ServerMode) *@
+    <ReconnectDialog />
+    @*#endif *@
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

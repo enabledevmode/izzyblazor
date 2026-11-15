@@ -36,11 +36,8 @@ public static class Generator
                 && !settings.Keys.Any(k => k.Equals(token.Groups[1].Value, StringComparison.OrdinalIgnoreCase)))
                 settings = new Dictionary<string, string>(settings) { [token.Groups[1].Value] = at.Path };
         }
-        var values = Resolve(manifest, settings);
+        var values = Resolve(manifest, settings, Facts(project));
         if (!item.IncludesPro) RefusePro(manifest, values);
-        // What the project is like, for conditions: a setting of the same name wins.
-        foreach (var (name, fact) in Facts(project))
-            values.TryAdd(name, fact);
         var tokens = Tokens(manifest, values, project);
         var server = manifest.Server.Select(g => new Glob(TemplateText.ReplaceTokens(g, tokens))).ToList();
         string InApp(string path) => ToApp(path, project, server);
@@ -115,8 +112,8 @@ public static class Generator
             if (created >= 0)
             {
                 var file = creates[created].Text!;
-                if (Inserts.Place(file, spec, text) is { } spot) creates[created] = creates[created] with { Text = file.Insert(spot.Offset, spot.Text) };
-                else if (!Inserts.AlreadyThere(file, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
+                if (Inserts.Place(file, spec, text) is { } spot) creates[created] = creates[created] with { Text = file.Remove(spot.Offset, spot.Length).Insert(spot.Offset, spot.Text) };
+                else if (spec.Position != InsertPosition.Replace && !Inserts.AlreadyThere(file, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
                 continue;
             }
             var existing = project.ReadFile(path);
@@ -125,8 +122,9 @@ public static class Generator
                 warnings.Add($"{manifest.Id}: {path} isn't in the project, so this wasn't added to it:\n{text}");
                 continue;
             }
-            if (Inserts.Place(existing, spec, text) is { } found) inserts.Add(new TextInsert(path, found.Offset, found.Text, Inserts.Hash(existing)));
-            else if (!Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
+            if (Inserts.Place(existing, spec, text) is { } found) inserts.Add(new TextInsert(path, found.Offset, found.Text, Inserts.Hash(existing)) { Length = found.Length });
+            // A replacement with nothing to replace is made already.
+            else if (spec.Position != InsertPosition.Replace && !Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
         }
 
         // Checks read the project as it is, before anything here is applied.
@@ -179,8 +177,11 @@ public static class Generator
                 throw new ProRequiredException($"{p.Name} {values[p.Name]} is a Pro choice of {manifest.Id}. Free choices: {string.Join(", ", p.Choices.Except(p.ProChoices))}.");
     }
 
-    /// <summary>The settings as typed values (bool, string, long), defaults filled in, then the computed values.</summary>
-    internal static Dictionary<string, object> Resolve(ItemManifest manifest, IReadOnlyDictionary<string, string> settings)
+    /// <summary>
+    /// The settings as typed values (bool, string, long), defaults filled in, then what the project is like
+    /// (a setting of the same name wins), then the computed values.
+    /// </summary>
+    internal static Dictionary<string, object> Resolve(ItemManifest manifest, IReadOnlyDictionary<string, string> settings, IEnumerable<KeyValuePair<string, object>>? facts = null)
     {
         foreach (var name in settings.Keys)
             if (!manifest.Parameters.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
@@ -195,6 +196,8 @@ public static class Generator
             if (given is null && p.Guid) given = System.Guid.NewGuid().ToString("D");
             values[p.Name] = Typed(manifest.Id, p, given ?? p.Default);
         }
+        foreach (var (name, fact) in facts ?? [])
+            values.TryAdd(name, fact);
         foreach (var (name, expression) in manifest.Computed)
             values[name] = Condition.Evaluate(expression, values);
         return values;
@@ -222,6 +225,7 @@ public static class Generator
             // Where an item's Components/ files go: the .Client project when the pages run in the browser.
             ["UiNamespace"] = project.LayoutInBrowser && project.ClientNamespace is { } ui ? ui : project.RootNamespace + ".Components",
             ["Client"] = project.Client ?? "",
+            ["Host"] = project.Host,
             ["ClientNamespace"] = project.ClientNamespace ?? "",
         };
         foreach (var (name, value) in project.Tokens) tokens.TryAdd(name, value);
@@ -241,13 +245,16 @@ public static class Generator
     }
 
     /// <summary>
-    /// An item's path (written for one project: Program.cs, Components/Pages/Home.razor) as a path in the app.
+    /// An item's path (written for one project: Program.cs, Components/Pages/Home.razor) as a path in the app;
+    /// <c>~/</c> starts at the app's folder.
     /// A path already in one of its projects stays. With the pages in the .Client project, Components/ files go
     /// there (Components/Pages/Home.razor is MyApp.Client/Pages/Home.razor), except App.razor, the Identity pages
     /// and what the item marks as server-only; everything else is the server project's.
     /// </summary>
     static string ToApp(string path, ProjectInfo project, List<Glob> server)
     {
+        // ~/ is the app's own folder: the one holding both projects (.mcp.json).
+        if (path.StartsWith("~/", StringComparison.Ordinal)) return path[2..];
         if (project.Client is { } client && path.StartsWith(client, StringComparison.Ordinal)) return path;
         if (project.Host.Length > 0 && path.StartsWith(project.Host, StringComparison.Ordinal)) return path;
         const string components = "Components/";
