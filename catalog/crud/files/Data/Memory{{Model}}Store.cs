@@ -37,6 +37,13 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
     }
 #endif
 
+    public Task ExportAsync(Stream output, string? query, CancellationToken cancellationToken = default)
+    {
+        List<{{ModelType}}> rows;
+        lock (_lock) rows = [.. _items];
+        return DataExport.WriteExcelAsync(output, rows.AsQueryable(), query, DataFields.Of<{{ModelType}}>(), "{{ModelPlural}}", cancellationToken: cancellationToken);
+    }
+
     public Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
     {
         lock (_lock) return Task.FromResult(_items.FirstOrDefault(x => x.{{Key}} == id));

@@ -51,7 +51,9 @@
         <Code Block Language="bash">izzy add crud Customer</Code>
         <TextBlock>
             That writes a page at <Code>/customers</Code> whose grid searches, sorts and pages the customers, and adds and
-            edits them in a dialog checked against the model's attributes; delete asks first. It works on a static page,
+            edits them in a dialog checked against the model's attributes; delete asks first. Columns lets each person
+            choose the columns, kept in a cookie, and Export downloads what's shown as an Excel file, from an endpoint
+            in <Code>Data/CustomerExport.cs</Code>. It works on a static page,
             with no circuit, and on an interactive one. The records are read and written through
             <Code>ICustomerStore</Code>: through your DbContext when one has a <Code>DbSet&lt;Customer&gt;</Code>, otherwise
             in memory until the app stops. The page needs signing in when the app has accounts.

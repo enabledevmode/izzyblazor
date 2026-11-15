@@ -10,14 +10,15 @@
 
 <PageTitle>{{Plural}}</PageTitle>
 
-@* The {{PluralLower}} on one page, from izzy add crud --mode grid: the grid adds, edits and deletes in a
-   dialog it makes from the columns, and searches, sorts and pages in the database. Every action is an
-   address and a form post, so it works with no circuit. *@
+@* The {{PluralLower}} on one page, from izzy add crud: the grid adds, edits and deletes in a dialog it makes
+   from the columns, and searches, sorts and pages in the database. Every action is an address and a form
+   post, so it works with no circuit. Columns are kept per person in a cookie; Export downloads what's shown,
+   from {{Model}}Export.cs. *@
 <Stack Gap="new() { Base = 6, Md = 8 }">
     <PageHeader Title="{{Plural}}" />
 
     <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
-              InitialSort="{{InitialSort}}" Searchable ColumnPicker ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
+              InitialSort="{{InitialSort}}" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
               NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
         <Columns>
