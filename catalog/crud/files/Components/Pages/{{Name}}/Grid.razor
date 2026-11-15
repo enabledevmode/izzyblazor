@@ -22,6 +22,11 @@
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
               NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
               NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
+        <ToolbarContent>
+            <DataGridExport />
+            @* On a phone, Add floats at the bottom corner, under the thumb. *@
+            <DataGridAdd FloatBelow="Breakpoint.Sm" />
+        </ToolbarContent>
         <EmptyContent>
             @* No button of its own: Add {{SingularLower}} is right above it. *@
             <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here." />
