@@ -1,0 +1,35 @@
+@inject ApiMetadata Api
+
+@* The release the docs describe, at the top of the docs and demos sidebars (in the drawer on
+   phones): the short version ("v0.1 alpha", the full one as its title) and a menu with the
+   versions and the changelog. One version for now; "main" joins it if the site serves unreleased
+   docs. *@
+<Menu Class="site-version-menu">
+    <Trigger>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Lucide.ChevronDown" FullWidth title="@Api.Version" Class="site-version-trigger" @attributes="context">
+            <span class="site-version-text">@Short(Api.Version)</span>
+            <Badge Size="BadgeSize.Sm" Pill>Latest</Badge>
+        </Button>
+    </Trigger>
+    <ChildContent>
+        <MenuRadioGroup Value="@Api.Version">
+            <MenuItem Value="@Api.Version" Href="docs">@Short(Api.Version)<span class="site-version-note">Latest</span></MenuItem>
+        </MenuRadioGroup>
+        <MenuDivider />
+        @* The site has no changelog page yet: the releases on GitHub stand in. *@
+        <MenuItem Href="@Releases">Changelog</MenuItem>
+    </ChildContent>
+</Menu>
+
+@code {
+    /// <summary>The releases on GitHub, for the changelog until the site has its own.</summary>
+    public const string Releases = "https://github.com/enabledevmode/izzyblazor/releases";
+
+    /// <summary>A version, short: 0.1.0-alpha.23 → v0.1 alpha; 1.2.0 → v1.2.</summary>
+    public static string Short(string version)
+    {
+        var (number, pre) = version.Split('-', 2) is [var n, var p] ? (n, p.Split('.')[0]) : (version, null);
+        var parts = number.Split('.');
+        return $"v{parts[0]}.{(parts.Length > 1 ? parts[1] : "0")}{(pre is null ? "" : $" {pre}")}";
+    }
+}

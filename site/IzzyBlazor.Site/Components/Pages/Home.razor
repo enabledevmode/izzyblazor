@@ -12,13 +12,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap" />
 </PageMeta>
 
-@* The brand's hero (brand/hero/hero-light and hero-dark): Paper in light mode, Ink in dark, the
-   wordmark, the headline with its ember line, and beside it the app the library builds, live: a
-   desktop window and a phone, each a frame of the same page, scaled down as pictures are. The
-   glowing knob is a faint watermark above the text. *@
-<Section Spacing="SectionSpacing.Lg" Class="site-hero">
+@* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
+   (the headline with its ember line, what it is, the two ways in, the install command and the
+   release) over the app the library builds, live: a desktop window as wide as the page, its phone
+   over the window's lower start corner, both cut off by the hero's end. Each is a frame of the same
+   page, scaled down as pictures are. The glowing knob is a faint watermark behind the headline. *@
+<Section Spacing="SectionSpacing.None" Class="site-hero">
     <div class="site-hero-grid">
-        <Stack Gap="6" Class="site-hero-intro">
+        <div class="site-hero-intro">
             <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
                 <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.0375" />
                 <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.0525" />
@@ -27,42 +28,47 @@
                 <circle cx="400" cy="400" r="140" fill="#F26A1B" fill-opacity="0.09" />
                 <circle cx="400" cy="400" r="57.3" fill="#F26A1B" fill-opacity="0.135" />
             </svg>
-            <SiteLogo />
-            <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
+            <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                @Registry.ComponentCountLabel components for static SSR, Interactive Server, WebAssembly, and Auto. Add C# interactivity where you need it.
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-hero-sub">
+                @Registry.ComponentCountLabel components for every Blazor render mode, static SSR included.
             </TextBlock>
-            <Row Gap="3" Wrap>
+            <div class="site-hero-actions">
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
-            </Row>
+            </div>
             <Row Gap="2" Align="Align.Center" Class="site-install">
                 <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
                 <Code>@Install</Code>
                 <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
             </Row>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                The store dashboard here is built with IzzyBlazor and running live, not a screenshot.
-                Every control works, and this page holds no circuit.
-                <Anchor Href="demos/app-shell/store-operations">See it interactive, with its code</Anchor>
-            </TextBlock>
-        </Stack>
+            <p class="site-hero-version">
+                <span title="@Api.Version">@VersionMenu.Short(Api.Version)</span>
+                <span aria-hidden="true">·</span>
+                <Anchor Href="@VersionMenu.Releases" Underline="AnchorUnderline.Hover" Class="site-hero-action">Release notes<Icon Name="Lucide.ArrowRight" /></Anchor>
+            </p>
+        </div>
         @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
-           lays out as it would there. The desktop window is left out below 1024px, where only the
-           phone fits. *@
-        <div class="site-hero-stage">
-            <span class="site-hero-live"><i aria-hidden="true"></i>Live demo · Static SSR · No circuit</span>
-            <div class="site-hero-window">
-                <div class="site-hero-window-bar" aria-hidden="true">
-                    <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
-                    <span class="site-hero-window-url">northwind.example</span>
+           lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
+           part the hero cuts off comes into view. The desktop window is left out below 1024px,
+           where only the phone fits. *@
+        <div class="site-hero-demo">
+            <p class="site-hero-live">
+                <i aria-hidden="true"></i><span>Live demo · Static SSR · No circuit</span><span aria-hidden="true">·</span>
+                <Anchor Href="demos/app-shell/store-operations" Underline="AnchorUnderline.Hover" Class="site-hero-action">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
+            </p>
+            <div class="site-hero-stage">
+                <div class="site-hero-window">
+                    <div class="site-hero-window-bar" aria-hidden="true">
+                        <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
+                        <span class="site-hero-window-url">northwind.example</span>
+                    </div>
+                    <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe></div>
                 </div>
-                <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe></div>
-            </div>
-            <div class="site-hero-phone">
-                <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe></div>
+                <div class="site-hero-phone">
+                    <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe></div>
+                </div>
             </div>
         </div>
     </div>

@@ -6,8 +6,9 @@
    (each demo's page and card name its component). *@
 
 <AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-demos">
-    <SiteHeader Sidebar Demos ContentWidth="Length.Rem(SiteWidths.Bars)" />
+    <SiteHeader Sidebar ContentWidth="Length.Rem(SiteWidths.Bars)" />
     <AppSidebar Label="Demos">
+        <VersionMenu />
         <NavMenu aria-label="Demos">
             <NavItem Href="demos" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All demos</NavItem>
             @foreach (var category in Registry.Categories)

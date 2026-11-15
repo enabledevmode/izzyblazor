@@ -43,31 +43,43 @@
   background: light-dark(#f5f4f1, #14161a);
   border-block-end: 1px solid light-dark(#e4e1da, transparent);
 }
+/* 40px above on phones, 68px on wide screens (between the spacing scale's 64px and 72px);
+   below, the phone gets room to end, and on wide screens the demo runs into the hero's end. */
+.site-hero { --site-hero-top: 2.5rem; padding-block: var(--site-hero-top) 3.5rem; }
+@media (min-width: 64rem) { .site-hero { --site-hero-top: 4.25rem; padding-block-end: 0; } }
 .site-hero-grid {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--ib-space-12);
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: var(--ib-space-10);
 }
-/* The knob as a watermark: Ember alone, the rings adding up to about a quarter at the center in
-   light mode, over a third in dark. Its center sits in the gap between the text and the app, 6rem
-   above the wordmark, so the core clears the text, the app window covers part of the rings, and it
-   lands in the same place at any width. On narrow screens, with the text alone above the phone,
-   it moves to the top end corner. */
-.site-hero-intro { position: relative; }
+.site-hero-intro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 47.5rem;
+  text-align: center;
+}
+/* The knob as a watermark behind the headline: Ember alone, the rings adding up to about a quarter
+   at the center in light mode, over a third in dark, centered on the headline's top so the
+   header doesn't cut through them. */
 .site-hero-glow {
   position: absolute;
   z-index: -1;
-  top: -6rem;
-  left: calc(100% + 3rem);
-  width: 44rem;
-  height: 44rem;
+  top: 0;
+  left: 50%;
+  width: 36rem;
+  height: 36rem;
   translate: -50% -50%;
   /* The rings are drawn at dark mode's strength; on Paper two thirds of it is enough. On Ink, less
      than that mixes Ember to brown. */
   opacity: var(--site-hero-glow);
+  /* The rings reach above the hero's top edge: they fade out before it, so no line cuts them. */
+  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top)), #000 calc(50% + 1.5rem));
   pointer-events: none;
 }
 /* The hero's light and dark: the glow's strength and the frames' pictures (below). The scheme is
@@ -92,23 +104,88 @@
   }
 }
 @media (max-width: 63.98rem) {
-  .site-hero-glow { top: -2rem; left: auto; right: -14rem; width: 32rem; height: 32rem; translate: 0 -50%; }
+  .site-hero-glow { width: 28rem; height: 28rem; }
 }
 
-.site-hero-intro .site-logo { height: 2.25rem; align-self: flex-start; }
-.site-hero-title {
+/* 72px on wide screens, about 35px on phones (clear of the edges, two lines): the library's
+   largest heading size is 60px. */
+.site-hero-title.site-hero-title {
   font-family: "Bricolage Grotesque", var(--ib-font-heading);
+  font-size: clamp(2rem, 9.6vw - 0.1rem, 4.5rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
   color: light-dark(#14161a, #f5f4f1);
 }
 /* A deeper Ember on Paper, as the brand's light hero has it: Ember itself is too faint there. */
 .site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
-.site-hero .site-install { background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
+.site-hero-sub { max-width: 34em; margin-block-start: 1.375rem; }
+.site-hero-actions { display: flex; gap: var(--ib-space-3); margin-block-start: var(--ib-space-8); }
+.site-hero .site-install { margin-block-start: var(--ib-space-5); background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
+.site-hero-version {
+  display: flex;
+  align-items: center;
+  gap: var(--ib-space-2);
+  margin: 0.875rem 0 0;
+  font-size: var(--ib-text-sm);
+  color: var(--ib-color-muted);
+}
+.site-hero-version > span:first-child { font-weight: 600; color: var(--ib-color-on-surface); }
+/* Standalone links: an arrow, no underline until hover. Release notes in Ember, the hero's one
+   accent; See the code in the text color, inside the muted label. */
+.site-hero-action { display: inline-flex; align-items: center; gap: var(--ib-space-1); font-weight: 500; }
+.site-hero-action .ib-icon { width: 0.875rem; height: 0.875rem; }
+.site-hero-version .site-hero-action { color: var(--site-ember-text); }
+.site-hero-live .site-hero-action { color: var(--ib-color-on-surface); }
+@media (max-width: 63.98rem) {
+  /* Phones and tablets: the buttons and the command full width, the main button first. */
+  .site-hero-actions { flex-direction: column; align-self: stretch; }
+  .site-hero .site-install { align-self: stretch; width: auto; }
+}
+@media (max-width: 63.98rem) {
+  /* The command never wraps: should it not fit, it scrolls on its own, fading at the edge, while
+     the $ and the copy button stay in view. */
+  .site-hero .site-install { overflow: hidden; }
+  .site-hero .site-install code {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    text-align: start;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+  }
+  .site-hero .site-install > :last-child { flex: none; }
+}
+@media (max-width: 26rem) {
+  .site-hero .site-install code { font-size: 0.78rem; }
+}
+
+/* The demo under the text: its label, then the frames. */
+.site-hero-demo { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; width: 100%; }
+.site-hero-live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ib-space-2);
+  margin: 0;
+  padding: var(--ib-space-1) var(--ib-space-3);
+  border: 1px solid light-dark(#d6d3cc, #2c2f36);
+  border-radius: 999px;
+  background: light-dark(#fff, #1b1d22);
+  font-size: var(--ib-text-xs);
+  color: var(--ib-color-muted);
+  white-space: nowrap;
+}
+@media (max-width: 26rem) {
+  .site-hero-live { gap: 0.375rem; padding-inline: 0.625rem; }
+}
+/* Narrow phones: the link goes under the rest rather than past the screen's edge. */
+@media (max-width: 23rem) {
+  .site-hero-live { flex-wrap: wrap; justify-content: center; row-gap: 0; border-radius: var(--ib-radius-lg); }
+}
+.site-hero-live i { width: .5rem; height: .5rem; border-radius: 50%; background: #2f9e44; }
 
 /* The app's frames lay out at a desktop's and a phone's width and are scaled down by --s, as a
-   picture would be, so the whole app shows and nothing that takes focus is cut off. Negative
-   margins give back the space the scale takes away. */
+   picture would be. Negative margins give back the space the scale takes away. */
 .site-hero-stage { --s: 0.75; position: relative; display: flex; justify-content: center; }
 .site-hero-stage iframe {
   display: block;
@@ -120,10 +197,11 @@
    fonts arrive. So a picture of it (HomePosterTests takes them) shows in its place, and the frame
    stays invisible until site.js marks it ready (loaded, with the page's scheme), then fades in
    over the picture in one step. Should site.js not run, the frame shows after 4s anyway; with
-   JavaScript off it shows as it paints. */
+   JavaScript off it shows as it paints. The pictures are whole pages, so a frame the hero cuts
+   off shows their top. */
 .site-hero-screen {
   overflow: hidden;
-  background: var(--ib-color-background) var(--site-hero-poster) 0 0 / 100% 100% no-repeat;
+  background: var(--ib-color-background) var(--site-hero-poster) 0 0 / 100% auto no-repeat;
 }
 .site-hero-phone .site-hero-screen { border-radius: 1.5rem; }
 @media (scripting: enabled) {
@@ -150,24 +228,20 @@
 .site-hero-window {
   position: relative;
   overflow: hidden;
-  width: calc(1280px * var(--s) + 2px);
   border: 1px solid light-dark(#d6d3cc, #2c2f36);
   border-radius: var(--ib-radius-lg);
   background: light-dark(#ebe9e4, #1b1d22);
-  box-shadow: 0 1.5rem 4rem -1rem light-dark(rgb(20 22 26 / 0.18), rgb(0 0 0 / 0.7));
+  box-shadow: 0 0.125rem 0.375rem light-dark(rgb(20 22 26 / 0.06), rgb(0 0 0 / 0.3)), 0 1.875rem 5rem -0.5rem light-dark(rgb(20 22 26 / 0.22), rgb(0 0 0 / 0.6));
 }
 /* Focus in the desktop window brings it above the phone, so nothing focused there is covered. */
 .site-hero-window:focus-within { z-index: 2; }
-.site-hero-window iframe {
-  width: 1280px;
-  height: 940px;
-  margin: 0 calc(1280px * (var(--s) - 1)) calc(940px * (var(--s) - 1)) 0;
-}
 .site-hero-window-bar {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--ib-space-4);
-  padding: var(--ib-space-2) var(--ib-space-3);
+  height: 2.25rem;
+  padding-inline: var(--ib-space-3);
   border-bottom: 1px solid light-dark(#d6d3cc, #2c2f36);
 }
 .site-hero-window-dots { display: flex; gap: 0.375rem; }
@@ -186,35 +260,56 @@
   white-space: nowrap;
 }
 @media (min-width: 64rem) {
-  /* Text beside the app: the desktop window, with the phone over its lower start corner. The
-     grid runs past the container to 1.5rem from the window's end, so the app gets the room. */
-  .site-hero-grid {
-    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
-    gap: var(--ib-space-12);
+  /* The window as wide as the page, scaled by --w (1280px wide at 1), with the phone over its lower
+     start corner; both run into the hero's end, which cuts them off 600px down at full size (the
+     stat cards and the top of the chart show). Their pages scroll inside the frames, so whatever
+     takes focus further down scrolls into view there. */
+  .site-hero-grid { gap: var(--ib-space-14); }
+  .site-hero-stage { --w: 0.68; container: hero-stage / inline-size; display: block; width: 100%; max-width: calc(1152px + 2px); }
+  .site-hero-window {
+    --s: var(--w);
+    display: flex;
+    flex-direction: column;
+    height: calc(600px * var(--w));
+    border-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
   }
-  .site-hero-stage { --s: 0.5; container: hero-stage / inline-size; display: block; padding-block-end: 5rem; padding-inline-start: 3rem; }
-  .site-hero-window { --s: 0.3; display: block; }
-  .site-hero-phone { position: absolute; left: 0; bottom: 0; }
+  .site-hero-window .site-hero-screen { flex: 1 1 auto; min-height: 0; }
+  .site-hero-window iframe {
+    width: 1280px;
+    height: calc(600px - 2.25rem / var(--w));
+    margin: 0 calc(1280px * (var(--s) - 1)) calc((600px - 2.25rem / var(--w)) * (var(--s) - 1)) 0;
+  }
+  .site-hero-phone {
+    --s: calc(0.62 * var(--w));
+    position: absolute;
+    left: -1.75rem;
+    top: calc(263px * var(--w));
+    padding-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .site-hero-phone .site-hero-screen { border-end-start-radius: 0; border-end-end-radius: 0; }
+  .site-hero-phone iframe {
+    height: calc((337px * var(--w) - 0.5rem) / var(--s));
+    margin-block-end: calc((337px * var(--w) - 0.5rem) / var(--s) * (var(--s) - 1));
+  }
 }
-@media (min-width: 80rem) {
-  .site-hero-grid { grid-template-columns: minmax(0, 28rem) minmax(0, 1fr); gap: var(--ib-space-16); }
-  .site-hero-stage { --s: 0.62; }
-}
-/* The window as wide as the column lets it be: its 1280px times --s (the container is the stage's
-   content box, after the phone's 3rem). */
-@container hero-stage (min-width: 440px) { .site-hero-window { --s: 0.34; } }
-@container hero-stage (min-width: 500px) { .site-hero-window { --s: 0.38; } }
-@container hero-stage (min-width: 560px) { .site-hero-window { --s: 0.43; } }
-@container hero-stage (min-width: 620px) { .site-hero-window { --s: 0.48; } }
-@container hero-stage (min-width: 680px) { .site-hero-window { --s: 0.52; } }
-@container hero-stage (min-width: 740px) { .site-hero-window { --s: 0.57; } }
-@container hero-stage (min-width: 800px) { .site-hero-window { --s: 0.62; } }
-@container hero-stage (min-width: 860px) { .site-hero-window { --s: 0.67; } }
-@container hero-stage (min-width: 920px) { .site-hero-window { --s: 0.71; } }
-@container hero-stage (min-width: 980px) { .site-hero-window { --s: 0.76; } }
-@container hero-stage (min-width: 1040px) { .site-hero-window { --s: 0.81; } }
-@container hero-stage (min-width: 1100px) { .site-hero-window { --s: 0.85; } }
-@container hero-stage (min-width: 1160px) { .site-hero-window { --s: 0.9; } }
+/* --w: the window's scale: as wide as the stage lets it be, 0.9 at most. */
+@container hero-stage (min-width: 880px) { .site-hero-stage > * { --w: 0.68; } }
+@container hero-stage (min-width: 904px) { .site-hero-stage > * { --w: 0.70; } }
+@container hero-stage (min-width: 928px) { .site-hero-stage > * { --w: 0.72; } }
+@container hero-stage (min-width: 952px) { .site-hero-stage > * { --w: 0.74; } }
+@container hero-stage (min-width: 976px) { .site-hero-stage > * { --w: 0.76; } }
+@container hero-stage (min-width: 1000px) { .site-hero-stage > * { --w: 0.77; } }
+@container hero-stage (min-width: 1024px) { .site-hero-stage > * { --w: 0.79; } }
+@container hero-stage (min-width: 1048px) { .site-hero-stage > * { --w: 0.81; } }
+@container hero-stage (min-width: 1072px) { .site-hero-stage > * { --w: 0.83; } }
+@container hero-stage (min-width: 1096px) { .site-hero-stage > * { --w: 0.85; } }
+@container hero-stage (min-width: 1120px) { .site-hero-stage > * { --w: 0.87; } }
+@container hero-stage (min-width: 1144px) { .site-hero-stage > * { --w: 0.89; } }
+@container hero-stage (min-width: 1154px) { .site-hero-stage > * { --w: 0.9; } }
 
 .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
@@ -372,9 +467,6 @@
 
 /* The hero's frames are live: a label says so. */
 /* Above the app: centered over the phone, then at the window's start once the window shows. */
-.site-hero-live { position: absolute; z-index: 2; top: -2.25rem; left: 50%; transform: translateX(-50%); white-space: nowrap; display: inline-flex; align-items: center; gap: var(--ib-space-2); padding: var(--ib-space-1) var(--ib-space-3); border: 1px solid light-dark(#d6d3cc, #2c2f36); border-radius: 999px; background: light-dark(#fff, #1b1d22); font-size: var(--ib-text-xs); color: var(--ib-color-muted); }
-.site-hero-live i { width: .5rem; height: .5rem; border-radius: 50%; background: #2f9e44; }
-@media (min-width: 64rem) { .site-hero-live { left: 3rem; transform: none; } }
 
 .site-media { position: relative; }
 /* The homepage's mode pictures, a fifth shorter: the drawing's middle. */
@@ -719,7 +811,7 @@ html:has(> body > .frame) body { margin: 0; }
 
 /* The header's search button: room for the word and the shortcut, which shows only with script
    (it needs site.js); its box stays without, so the button is one width either way. */
-.site-search-button { min-width: 12rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
+.site-search-button { width: 15rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
 .site-search-button .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
 @media (scripting: none) {
   .site-search-key { visibility: hidden; }
@@ -765,9 +857,19 @@ html:has(> body > .frame) body { margin: 0; }
   .site-search-foot { display: none; }
 }
 
-/* The header: the version tag after the logo, then the areas, about 20px on. */
-.site-version { margin-inline-start: calc(-1 * var(--ib-space-1)); }
-.site-header-nav { margin-inline-start: var(--ib-space-3); }
+/* The header: the areas start 40px after the wordmark, so the brand reads apart from the four links
+   (24px apart); at the end, search, then 8px to GitHub, then 4px to the scheme switch. */
+/* SiteNav itself has no box (display: contents): the gap goes on its bar. Header gap 12px + item
+   padding 12px + 16px = 40px. */
+.site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-4); }
+
+/* The version, at the top of the docs and demos sidebars: the version and "Latest" at the start of
+   the button, the chevron at its end; in the menu, "Latest" muted at the end of its item. */
+.site-version-trigger { justify-content: space-between; margin-block-end: var(--ib-space-3); }
+.site-version-trigger .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; gap: var(--ib-space-2); }
+.site-version-text { font-weight: 600; }
+.site-version-menu .ib-menu-label { display: flex; flex: 1 1 auto; align-items: center; gap: var(--ib-space-2); }
+.site-version-note { margin-inline-start: auto; font-size: var(--ib-text-xs); color: var(--ib-color-muted); }
 
 /* A filter row (the Blocks and Components indexes): the filters at the start, the count at the end. */
 .site-filter-row {

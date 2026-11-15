@@ -38,10 +38,6 @@
                 <Button Href='@To("view", "products")' StartIcon="Lucide.Plus" VisibleFrom="Breakpoint.Md">Add product</Button>
             </Row>
 
-            <Alert Status="Status.Warning">
-                3 orders are waiting on stock of the Linen throw. <Anchor Href='@To("view", "orders")'>Review them</Anchor>
-            </Alert>
-
             <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
                 <Card><Stat Label="Revenue" Value="$84,320" Change="9.4%" Trend="StatTrend.Up" Description="vs last week"
                             Sparkline="_revenue" SparklineLabel="Weekly revenue, last 12 weeks" SparklineFormat="C0" /></Card>
