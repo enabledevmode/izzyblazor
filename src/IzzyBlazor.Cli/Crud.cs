@@ -92,16 +92,18 @@ static partial class Crud
             // In the model's order, the status first.
             .OrderBy(f => f == status ? -1 : shown.ToList().IndexOf(f))
             .ToList();
+        // The grid page shows the same columns as the list (title, then these); the rest only in its dialog.
+        IReadOnlyCollection<ModelField> columns = [.. new[] { title, subtitle }.OfType<ModelField>(), .. list];
         // Newest first by the last date shown, else by the title.
         var sortDate = list.LastOrDefault(f => f.Kind is FieldKind.Date or FieldKind.DateTime);
         var titleKey = (title ?? info.Key).Name.ToLowerInvariant();
 
         var facts = new Dictionary<string, object>(project.Facts)
         {
-            ["Fields"] = Records(shown, status),
-            ["FormFields"] = Records(form, status),
-            ["ListFields"] = Records(list, status),
-            ["SearchFields"] = Records(search, status),
+            ["Fields"] = Records(shown, status, columns),
+            ["FormFields"] = Records(form, status, columns),
+            ["ListFields"] = Records(list, status, columns),
+            ["SearchFields"] = Records(search, status, columns),
             ["StatusValues"] = status is null ? new List<IReadOnlyDictionary<string, object>>() : Values(status),
             ["HasTitle"] = title is not null,
             ["HasSubtitle"] = subtitle is not null,
@@ -112,8 +114,10 @@ static partial class Crud
             ["KeyIsText"] = info.Key.Kind == FieldKind.Text,
             ["KeyIsGuid"] = info.Key.Kind == FieldKind.Guid,
             ["HasFactory"] = context is not null && Regex.IsMatch(program, $@"AddDbContextFactory\s*<\s*{Regex.Escape(context.Name)}\b"),
-            ["HasContextNamespace"] = context is not null && context.Namespace.Length > 0 && context.Namespace != project.RootNamespace + ".Data",
+            ["HasContextNamespace"] = context is not null && context.Namespace.Length > 0 && context.Namespace != project.RootNamespace + ".Data" && context.Namespace != info.Namespace,
             ["NavIcons"] = NavHasIcons(project),
+            // A run with the other store replaces its registration rather than adding a second.
+            ["HasStoreRegistration"] = Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\s*,"),
         };
         var keyType = info.Key.Type.TrimEnd('?');
         var tokens = new Dictionary<string, string>(project.Tokens)
@@ -124,6 +128,9 @@ static partial class Crud
             ["Article"] = Article(Lower(Words(info.Name))),
             ["Plural"] = Words(name),
             ["PluralLower"] = Lower(Words(name)),
+            // The store is the model's, whatever --name the pages have, so a second run with another name matches it.
+            ["ModelPlural"] = Words(Plural(info.Name)),
+            ["ModelPluralLower"] = Lower(Words(Plural(info.Name))),
             ["Key"] = info.Key.Name,
             ["KeyType"] = keyType,
             ["KeyParse"] = info.Key.Kind switch
@@ -140,7 +147,7 @@ static partial class Crud
                 _ => keyType is "long" or "Int64" ? ":long" : ":int",
             },
             ["TitleField"] = title?.Name ?? info.Key.Name,
-            ["TitleLabel"] = title?.Label ?? Words(info.Name),
+            ["TitleLabel"] = title?.ShortLabel ?? Words(info.Name),
             ["TitleSortKey"] = titleKey,
             ["InitialSort"] = sortDate is not null ? "-" + sortDate.Name.ToLowerInvariant() : titleKey,
             ["SubtitleField"] = subtitle?.Name ?? "",
@@ -150,6 +157,8 @@ static partial class Crud
             ["StatusPlural"] = status is null ? "" : Lower(Plural(status.Label)),
             ["SearchPlaceholder"] = search.Count == 0 ? "" : "Search " + Join(search.Select(f => Lower(f.Label))),
             ["NoMatchHint"] = "Try another " + Join(search.Select(f => Lower(f.Label)).Take(1).Concat(status is null ? [] : [Lower(status.Label)])) + ".",
+            ["StoreClass"] = (context is null ? "Memory" : "Ef") + info.Name + "Store",
+            ["StoreLifetime"] = context is null ? "AddSingleton" : "AddScoped",
             ["Context"] = context?.Name ?? "",
             ["ContextNamespace"] = context?.Namespace ?? "",
             ["Set"] = context?.SetName ?? "",
@@ -157,21 +166,24 @@ static partial class Crud
         return project with { Facts = facts, Tokens = tokens };
     }
 
-    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status) =>
+    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns) =>
         [.. fields.Select(f => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
         {
             ["Name"] = f.Name,
             ["Label"] = f.Label,
+            ["Column"] = f.ShortLabel,
+            ["InList"] = columns.Contains(f),
             ["LabelLower"] = Lower(f.Label),
             ["Article"] = Article(Lower(f.Label)),
             ["Kind"] = f.Kind.ToString(),
             ["Key"] = f.Name.ToLowerInvariant(),
             ["IsStatus"] = f == status,
+            ["PriorityAttr"] = f == status ? " Priority=\"1\"" : "",
             ["Format"] = Format(f.Kind),
             ["HasFormat"] = Format(f.Kind).Length > 0,
             ["FormatAttr"] = Format(f.Kind) is { Length: > 0 } format ? $" Format=\"{format}\"" : "",
             ["EditableAttr"] = f.ReadOnly ? " Editable=\"false\"" : "",
-            ["WidthAttr"] = Width(f.Kind) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
+            ["WidthAttr"] = Width(f.Kind, f.ShortLabel) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
             ["Type"] = f.Type,
             ["EnumType"] = f.Kind == FieldKind.Enum ? f.Type.TrimEnd('?') : "",
             ["Required"] = f.Required,
@@ -206,7 +218,12 @@ static partial class Crud
 
     // A list column's width by what it holds, as the design sizes them (Status 120px, Orders 90px, Joined 130px),
     // so the grid fits them before hiding any; text takes what's left.
-    static double? Width(FieldKind kind) => kind switch
+    static double? Width(FieldKind kind, string title) => ByKind(kind) is { } width
+        // Wide enough for the title and its sort arrow too: about 0.55rem a letter, 2.75rem of padding and arrow.
+        ? Math.Max(width, Math.Ceiling((title.Length * 0.55 + 2.75) * 2) / 2)
+        : null;
+
+    static double? ByKind(FieldKind kind) => kind switch
     {
         FieldKind.Enum => 7.5,
         FieldKind.Bool => 6,

@@ -50,7 +50,7 @@
         }
         else
         {
-            <DataGrid TItem="{{Model}}" ItemsProvider="Find" ItemKey="x => x.{{Key}}.ToString()!" Caption="{{Plural}}" PageSize="10"
+            <DataGrid TItem="{{Model}}" ItemsProvider="Find" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{x.{{TitleField}}}")" Caption="{{Plural}}" PageSize="10"
                       InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
                 <Columns>
 @*#if (HasTitle) *@
@@ -67,13 +67,13 @@
 @*#endif *@
 @*#each (Field in ListFields) *@
 @*#if (Field.IsStatus) *@
-                    <TemplateColumn Title="{{Field.Label}}" SortBy="x => x.{{Field.Name}}" SortKey="{{Field.Key}}" Sortable Priority="1"{{Field.WidthAttr}}>
+                    <TemplateColumn Title="{{Field.Column}}" SortBy="x => x.{{Field.Name}}" SortKey="{{Field.Key}}" Sortable Priority="1"{{Field.WidthAttr}}>
                         <Badge Status="Tone(context.{{Field.Name}})" Dot>@Label(context.{{Field.Name}})</Badge>
                     </TemplateColumn>
 @*#elif (Field.HasFormat) *@
-                    <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Label}}" Format="{{Field.Format}}"{{Field.WidthAttr}} Sortable />
+                    <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}" Format="{{Field.Format}}"{{Field.WidthAttr}} Sortable />
 @*#else *@
-                    <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Label}}"{{Field.WidthAttr}} Sortable />
+                    <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.WidthAttr}} Sortable />
 @*#endif *@
 @*#endeach *@
                     <ActionColumn Context="item" Overflow="RowActionOverflow.Always">

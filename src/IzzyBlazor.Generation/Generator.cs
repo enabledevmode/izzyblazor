@@ -122,7 +122,12 @@ public static class Generator
                 warnings.Add($"{manifest.Id}: {path} isn't in the project, so this wasn't added to it:\n{text}");
                 continue;
             }
-            if (Inserts.Place(existing, spec, text) is { } found) inserts.Add(new TextInsert(path, found.Offset, found.Text, Inserts.Hash(existing)) { Length = found.Length });
+            if (Inserts.Place(existing, spec, text) is { } found)
+            {
+                // A replacement with the text that's there already changes nothing.
+                if (found.Length > 0 && found.Length == found.Text.Length && string.CompareOrdinal(existing, found.Offset, found.Text, 0, found.Length) == 0) continue;
+                inserts.Add(new TextInsert(path, found.Offset, found.Text, Inserts.Hash(existing)) { Length = found.Length });
+            }
             // A replacement with nothing to replace is made already.
             else if (spec.Position != InsertPosition.Replace && !Inserts.AlreadyThere(existing, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
         }

@@ -16,13 +16,18 @@
 <Stack Gap="new() { Base = 6, Md = 8 }">
     <PageHeader Title="{{Plural}}" />
 
-    <DataGrid TItem="{{Model}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" Caption="{{Plural}}" PageSize="10"
+    <DataGrid TItem="{{Model}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{x.{{TitleField}}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" Searchable ColumnPicker ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
               NewItem="() => new {{Model}}()" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
         <Columns>
 @*#each (Field in Fields) *@
-            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Label}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.EditableAttr}} Sortable />
+@*#if (Field.InList) *@
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable />
+@*#else *@
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.EditableAttr}} Visible="false" />
+@*#endif *@
 @*#endeach *@
         </Columns>
     </DataGrid>

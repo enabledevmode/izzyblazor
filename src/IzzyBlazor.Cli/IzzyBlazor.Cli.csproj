@@ -12,6 +12,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <IncludeSymbols>false</IncludeSymbols>
+    <!-- Roslyn's messages in English only: the tool doesn't show them, and the rest are megabytes. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- Not published until phase 2's gate (the CLI builds the demo apps' pages with no hand fixes). -->
     <IsPackable>false</IsPackable>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>

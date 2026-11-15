@@ -10,8 +10,8 @@ using {{ContextNamespace}};
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
-/// The {{PluralLower}} in {{Context}}.{{Set}}, from izzy add crud. Search, sort and paging run in the
-/// database, so a page of {{PluralLower}} is one query and a count.
+/// The {{ModelPluralLower}} in {{Context}}.{{Set}}, from izzy add crud. Search, sort and paging run in the
+/// database, so a page of {{ModelPluralLower}} is one query and a count.
 /// </summary>
 #if (HasFactory)
 public sealed class Ef{{Model}}Store(IDbContextFactory<{{Context}}> factory) : I{{Model}}Store
