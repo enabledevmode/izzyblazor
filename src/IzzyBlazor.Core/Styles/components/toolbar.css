@@ -89,6 +89,32 @@
     display: contents;
   }
 
+  /* An item that floats below a width (FloatBelow): its floating button there, neither its bar copy nor
+     its menu copy. The floats' box takes no room in the bar. */
+  .ib-toolbar-floats {
+    display: contents;
+  }
+
+  @media (width < 40rem) {
+    .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="sm"] { display: none !important; }
+  }
+
+  @media (width < 48rem) {
+    .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="md"] { display: none !important; }
+  }
+
+  @media (width < 64rem) {
+    .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="lg"] { display: none !important; }
+  }
+
+  @media (width < 80rem) {
+    .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="xl"] { display: none !important; }
+  }
+
+  @media (width < 96rem) {
+    .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="xxl"] { display: none !important; }
+  }
+
   .ib-toolbar[data-ib-measured][data-ib-more] .ib-toolbar-more {
     display: flex;
   }

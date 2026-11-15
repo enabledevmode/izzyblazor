@@ -38,6 +38,15 @@ internal interface IToolbarItem
     /// (a DataGrid's export, a Scheduler's Categories) comes back where it was, not at the end.
     /// </summary>
     bool Hidden => false;
+
+    /// <summary>
+    /// Below this width it's a floating button instead (<see cref="Floating"/>), in neither the bar nor the
+    /// menu; null keeps it in the toolbar at every width.
+    /// </summary>
+    Breakpoint? FloatBelow => null;
+
+    /// <summary>Its floating button, shown below <see cref="FloatBelow"/>.</summary>
+    RenderFragment? Floating => null;
 }
 
 /// <summary>
