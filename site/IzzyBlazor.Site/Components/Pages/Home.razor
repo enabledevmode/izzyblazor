@@ -19,14 +19,40 @@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
     <div class="site-hero-grid">
         <div class="site-hero-intro">
+            @* The ember (the design agent's hero-ember-preview): rings in dark mode, one soft glow in light,
+               where flat rings on Paper read as a target. On load it lights from the core out, flares once
+               and sends up a few sparks, then rests lit, in under 5 seconds (site.css). *@
             <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
-                <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.0375" />
-                <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.0525" />
-                <circle cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.0675" />
-                <circle cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.075" />
-                <circle cx="400" cy="400" r="140" fill="#F26A1B" fill-opacity="0.09" />
-                <circle cx="400" cy="400" r="57.3" fill="#F26A1B" fill-opacity="0.135" />
+                <defs>
+                    <radialGradient id="site-ember-soft" cx="50%" cy="50%" r="50%">
+                        <stop offset="0" stop-color="#F26A1B" stop-opacity=".30" />
+                        <stop offset=".18" stop-color="#F26A1B" stop-opacity=".20" />
+                        <stop offset=".42" stop-color="#F26A1B" stop-opacity=".09" />
+                        <stop offset=".7" stop-color="#F26A1B" stop-opacity=".03" />
+                        <stop offset="1" stop-color="#F26A1B" stop-opacity="0" />
+                    </radialGradient>
+                </defs>
+                <circle class="site-ember-soft" cx="400" cy="400" r="400" fill="url(#site-ember-soft)" />
+                <circle class="site-ember-ring" style="--i:5" cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.0375" />
+                <circle class="site-ember-ring" style="--i:4" cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.0525" />
+                <circle class="site-ember-ring" style="--i:3" cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.0675" />
+                <circle class="site-ember-ring" style="--i:2" cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.075" />
+                <circle class="site-ember-ring" style="--i:1" cx="400" cy="400" r="140" fill="#F26A1B" fill-opacity="0.09" />
+                <circle class="site-ember-ring" style="--i:0" cx="400" cy="400" r="57.3" fill="#F26A1B" fill-opacity="0.135" />
+                <circle class="site-ember-flare" cx="400" cy="400" r="48" fill="#FFB020" fill-opacity="0.22" />
             </svg>
+            @* Sparks, placed against the ember's size (x and y from its center, in its widths), outside the
+               text column. *@
+            <div class="site-hero-sparks" aria-hidden="true">
+                <i style="--x:-.611;--y:.054;--s:4px;--d:1.9s;--t:.6s;--sway:-10px"></i>
+                <i style="--x:-.568;--y:.196;--s:3px;--d:1.9s;--t:.8s;--sway:8px"></i>
+                <i style="--x:-.668;--y:.267;--s:3px;--d:1.8s;--t:1s;--sway:-6px"></i>
+                <i style="--x:-.554;--y:-.031;--s:3px;--d:1.9s;--t:1.1s;--sway:12px"></i>
+                <i style="--x:.597;--y:.068;--s:4px;--d:1.9s;--t:.7s;--sway:10px"></i>
+                <i style="--x:.561;--y:.210;--s:3px;--d:1.9s;--t:.9s;--sway:-8px"></i>
+                <i style="--x:.653;--y:.253;--s:3px;--d:1.8s;--t:1.05s;--sway:6px"></i>
+                <i style="--x:.547;--y:-.045;--s:3px;--d:1.9s;--t:1.1s;--sway:-12px"></i>
+            </div>
             <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
