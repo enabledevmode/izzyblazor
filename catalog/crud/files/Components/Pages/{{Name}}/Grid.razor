@@ -18,9 +18,14 @@
     <PageHeader Title="{{Plural}}" />
 
     <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
-              InitialSort="{{InitialSort}}" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
+              InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
-              NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
+              NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+              NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
+        <EmptyContent>
+            @* No button of its own: Add {{SingularLower}} is right above it. *@
+            <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here." />
+        </EmptyContent>
         <Columns>
 @*#each (Field in Fields) *@
 @*#if (Field.InList) *@
