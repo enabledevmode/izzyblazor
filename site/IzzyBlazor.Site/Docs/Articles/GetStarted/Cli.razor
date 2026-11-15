@@ -44,17 +44,21 @@
 
         <Heading Level="2">Add CRUD pages</Heading>
         <TextBlock>
-            <Code>izzy add crud</Code> writes the pages to list, show, add, edit and delete a model's records, for internal
-            tools and admin screens. Name a class from your app; izzy reads it from the source, so the app doesn't have to
-            build first:
+            <Code>izzy add crud</Code> writes a page to list, add, edit and delete a model's records, for internal tools and
+            admin screens. Name a class from your app; izzy reads it from the source, so the app doesn't have to build
+            first:
         </TextBlock>
         <Code Block Language="bash">izzy add crud Customer</Code>
         <TextBlock>
-            That writes a list at <Code>/customers</Code> with search, a status filter, sorting and pages; a page for each
-            customer; and one form for new and edit, checked against the model's attributes. Every page works on a static
-            page, with no circuit, and on an interactive one. The records are read and written through
+            That writes a page at <Code>/customers</Code> whose grid searches, sorts and pages the customers, and adds and
+            edits them in a dialog checked against the model's attributes; delete asks first. It works on a static page,
+            with no circuit, and on an interactive one. The records are read and written through
             <Code>ICustomerStore</Code>: through your DbContext when one has a <Code>DbSet&lt;Customer&gt;</Code>, otherwise
-            in memory until the app stops. The pages need signing in when the app has accounts.
+            in memory until the app stops. The page needs signing in when the app has accounts.
+        </TextBlock>
+        <TextBlock>
+            With IzzyBlazor Pro, <Code>--mode pages</Code> writes the full screens instead: a list with filters and empty
+            states, a page for each customer, and a form page with the errors listed at the top.
         </TextBlock>
         <Table Items="CrudOptions" Caption="izzy add crud options" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
@@ -65,7 +69,7 @@
         <TextBlock>
             Labels come from <Code>[Display(Name)]</Code>, or the property's name in words; column titles from
             <Code>ShortName</Code>. A key the database makes, read-only properties and computed ones stay out of the
-            form; a key people choose, such as an invoice number, is asked for on New and fixed after. Related records, such as a
+            form. A key people choose, such as an invoice number, is asked for on New and fixed after, on the Pro pages. Related records, such as a
             customer's orders, aren't written; izzy names each property it leaves out. After you change the model, run the
             command again with <Code>--diff</Code> to see what changes, and <Code>--overwrite</Code> to take them.
         </TextBlock>
@@ -125,7 +129,7 @@
 
     private static readonly Row[] CrudOptions =
     [
-        new("--mode grid", "One page where the grid adds, edits and deletes in a dialog, for short records such as tags or plans."),
+        new("--mode pages", "Pro: a list with filters, a page for each record and a form page, for records with many fields. Without it, one grid page."),
         new("--name <Plural>", "The folder, the pages' names and the title. Defaults to the model's plural: Customers."),
         new("--singular <words>", "What one record is called on the pages, when it isn't the class's name: --singular \"team member\" for Member. --plural sets the other, when adding an s isn't it."),
         new("--route <path>", "The address the pages start at. Defaults to the name in kebab case: customers."),

@@ -3,9 +3,9 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// izzy add crud as an app uses it: the starter with accounts, a model in its DbContext (the EF store, the pages
-/// behind sign-in), a model named like a type the pages use (Task) on one grid page, and one with a key people type
-/// (an invoice number). They build together, and a second run changes nothing.
+/// izzy add crud as a free user has it: the grid page, in the starter with accounts, for a model in its DbContext
+/// (the EF store, behind sign-in) and one named like a type the pages use (Task). They build together, and a second
+/// run changes nothing. The list, detail and form pages are Pro; a key people type needs them.
 /// </summary>
 [Collection(ProjectBuild.Collection)]
 public sealed class CrudTests : IDisposable
@@ -21,7 +21,7 @@ public sealed class CrudTests : IDisposable
     }
 
     [Fact]
-    public async Task Three_models_of_different_shapes_build_in_one_app()
+    public async Task The_free_grid_builds_for_two_models_and_pages_are_Pro()
     {
         Assert.Equal(0, Izzy(_work, "new", "izzy-blazor", "-n", "Acme", "--auth", "Individual", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
@@ -74,18 +74,20 @@ public sealed class CrudTests : IDisposable
 
         var customers = Izzy(app, "add", "crud", "Customer");
         Assert.True(customers.Exit == 0, customers.Error);
-        Assert.True(Izzy(app, "add", "crud", "Task", "--mode", "grid").Exit == 0);
-        Assert.True(Izzy(app, "add", "crud", "Invoice").Exit == 0);
+        Assert.True(Izzy(app, "add", "crud", "Task").Exit == 0);
+        Assert.Contains("--mode pages (Pro)", Izzy(app, "add", "crud", "Invoice").Error);
+        Assert.Equal(3, Izzy(app, "add", "crud", "Customer", "--mode", "pages").Exit);
 
         var program = File.ReadAllText(Path.Combine(app, "Program.cs"));
         Assert.Contains("AddScoped<Acme.Data.ICustomerStore, Acme.Data.EfCustomerStore>()", program);
         Assert.Contains("[Microsoft.AspNetCore.Authorization.Authorize]", File.ReadAllText(Path.Combine(app, "Components", "Pages", "Customers", "Index.razor")));
+        Assert.False(File.Exists(Path.Combine(app, "Components", "Pages", "Customers", "Edit.razor")));
         // The model named Task is TaskItem in its pages, so Task stays System's.
         Assert.Contains("@using TaskItem = global::Acme.Models.Task", File.ReadAllText(Path.Combine(app, "Components", "Pages", "Tasks", "Index.razor")));
         Assert.Contains("Nothing to change", Izzy(app, "add", "crud", "Customer").Out);
 
         ProjectBuild.PointAtRepo(_work);
-        await ProjectBuild.BuildAsync(app, "Acme with crud for Customer, Task and Invoice");
+        await ProjectBuild.BuildAsync(app, "Acme with crud grids for Customer and Task");
     }
 
     public void Dispose() => Directory.Delete(_work, recursive: true);

@@ -2,9 +2,10 @@
 // project as code you own. The CLI reads the model from the app's source (no build) and gives the
 // item its fields as lists (Fields, FormFields, ListFields, SearchFields, StatusValues), so the
 // templates loop over them; the settings it leaves out get their defaults there (Crud.Prepare).
-// Pages (C1-C3): a list, a detail page and one form for new and edit. Grid (C4): one page whose
-// DataGrid adds, edits and deletes in a dialog. Both read and write through I{Model}Store, kept in
-// memory or over the app's DbContext. Every page works as static SSR, and interactive too.
+// Grid (C4, free, the default): one page whose DataGrid adds, edits and deletes in a dialog. Pages
+// (C1-C3, Pro): a list, a detail page and one form for new and edit; their files are in the private
+// Pro catalogue (izzyblazor-pro-catalog/crud), never here. Both read and write through I{Model}Store,
+// kept in memory or over the app's DbContext. Every page works as static SSR, and interactive too.
 {
   "id": "crud",
   "name": "CRUD pages",
@@ -22,8 +23,8 @@
       "Plural": { "type": "string", "default": "", "description": "What the records are called, such as team members: the title and the nav entry. Defaults to the plural of --singular, else of --name." },
       "Route": { "type": "string", "default": "", "description": "The address the pages start at, such as customers or admin/customers: the name in kebab case by default." },
       "Mode": {
-        "type": "string", "enum": ["Pages", "Grid"], "default": "Pages",
-        "description": "Pages: a list, a detail page and a form, for records with many fields. Grid: one page that adds, edits and deletes in the grid, for short records such as plans or tags."
+        "type": "string", "enum": ["Grid", "Pages"], "default": "Grid", "x-tiers": { "Pages": "pro" },
+        "description": "Grid: one page whose grid adds, edits and deletes in a dialog. Pages: a list with filters, a page for each record and a form page, for records with many fields (Pro)."
       },
       "Store": {
         "type": "string", "enum": ["Ef", "Memory"], "default": "Memory",

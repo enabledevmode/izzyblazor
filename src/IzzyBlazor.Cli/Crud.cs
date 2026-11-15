@@ -65,12 +65,16 @@ static partial class Crud
         else notes.Add($"The {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
         // A key the database doesn't make (an invoice number, or an int with [DatabaseGenerated(None)]) is typed on New.
         var keyInput = !info.KeyGenerated && info.Key.Kind != FieldKind.Guid;
-        if (keyInput && (Given("Mode") ?? "Pages").Equals("Grid", StringComparison.OrdinalIgnoreCase))
-            throw new UsageException($"{info.Name}'s key {info.Key.Name} is typed by people, and the grid's dialog edits it like any field. Use the pages (leave out --mode grid).");
+        if (keyInput && (Given("Mode") ?? "Grid").Equals("Grid", StringComparison.OrdinalIgnoreCase))
+            throw new UsageException($"{info.Name}'s key {info.Key.Name} is typed by people, and the grid can't ask for a key only when adding. Let the database make the key, or use --mode pages (Pro).");
         // The line that registers the store, as crud writes it; a second run with the other store replaces it.
         var registration = new Regex($@"builder\.Services\.Add\w+<[\w.]*\bI{Regex.Escape(info.Name)}Store,\s*[\w.]+>\(\);");
         if (!registration.IsMatch(program) && Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\b"))
             notes.Add($"Program.cs registers I{info.Name}Store in its own way, so it wasn't changed: check it uses the store you want.");
+        // A run with the other store leaves the first one's file in the project, where it breaks the build once the interface changes.
+        var other = $"{project.Host}Data/{(store.Equals("Ef", StringComparison.OrdinalIgnoreCase) ? "Memory" : "Ef")}{info.Name}Store.cs";
+        if (project.ReadFile(other) is not null)
+            notes.Add($"{other} is from a run with the other store and isn't used now: delete it.");
         var authorize = Given("Authorize") ?? (Regex.IsMatch(program, @"\b(AddIdentityCore|AddDefaultIdentity|AddIdentity|AddAuthentication)\b") ? "true" : "false");
 
         settings["Model"] = info.Name;
