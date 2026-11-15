@@ -1,0 +1,9 @@
+@*#if (Preset == "Standard" && Brand == "") *@
+<IzzyTheme />
+@*#elif (Brand == "") *@
+<IzzyTheme Preset="ThemePreset.{{Preset}}" />
+@*#elif (Preset == "Standard") *@
+<IzzyTheme Brand="{{Brand}}" />
+@*#else *@
+<IzzyTheme Preset="ThemePreset.{{Preset}}" Brand="{{Brand}}" />
+@*#endif *@

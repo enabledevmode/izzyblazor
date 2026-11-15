@@ -146,6 +146,8 @@ public enum ItemKind
     Section,
     /// <summary>A worked pattern, with the files it touches.</summary>
     Recipe,
+    /// <summary>IzzyBlazor's own setup, which <c>izzy init</c> runs: not listed, and not added by id.</summary>
+    Setup,
 }
 
 /// <summary>Who can generate an item.</summary>
@@ -230,7 +232,8 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
                 "before" => InsertPosition.Before,
                 "after" => InsertPosition.After,
                 "end" => InsertPosition.End,
-                _ => throw new GenerationException($"An insert's \"position\" is before, after or end, not \"{position}\"."),
+                "replace" => InsertPosition.Replace,
+                _ => throw new GenerationException($"An insert's \"position\" is before, after, end or replace, not \"{position}\"."),
             },
             text ?? "", (string?)o["if"]) { Place = (bool?)o["place"] ?? false, TextFrom = textFrom };
     }
@@ -245,6 +248,9 @@ public enum InsertPosition
     After,
     /// <summary>At the end of the file, with no anchor: a section added below a page's others.</summary>
     End,
+
+    /// <summary>In place of the anchor or the pattern's match, on the first line holding it; a line left blank goes too.</summary>
+    Replace,
 }
 
 /// <summary>A switch on an item's docs page: a setting and the values it's previewed with.</summary>

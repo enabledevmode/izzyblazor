@@ -25,6 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
     <ProjectReference Include="..\..\src\IzzyBlazor.Cli\IzzyBlazor.Cli.csproj" />
+    <!-- For the component names izzy init checks the app's against. -->
+    <ProjectReference Include="..\..\src\IzzyBlazor.Core\IzzyBlazor.Core.csproj" />
   </ItemGroup>
 
 </Project>

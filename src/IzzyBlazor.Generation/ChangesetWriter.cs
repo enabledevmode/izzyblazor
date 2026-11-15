@@ -42,7 +42,7 @@ public static class ChangesetWriter
         foreach (var (full, bytes) in edits) File.WriteAllBytes(full, bytes);
     }
 
-    /// <summary>The changeset as a unified diff against <paramref name="project"/>'s files: new files whole, inserts with three lines around them.</summary>
+    /// <summary>The changeset as a unified diff against <paramref name="project"/>'s files: new files whole, changes with three lines around them.</summary>
     public static string Diff(Changeset changeset, ProjectInfo project)
     {
         var diff = new StringBuilder();
@@ -65,51 +65,52 @@ public static class ChangesetWriter
         {
             var original = project.ReadFile(group.Key) ?? "";
             diff.Append($"--- a/{group.Key}\n+++ b/{group.Key}\n");
-            var oldLines = Lines(original);
-            // Each insert starts at a line boundary: the number of lines before its offset.
-            var added = group
-                .Select((insert, order) => (Line: Lines(original[..insert.Offset]).Length, Order: order, Lines: Lines(insert.Text)))
-                .OrderBy(a => a.Line).ThenBy(a => a.Order).ToList();
-            var shift = 0;
-            foreach (var hunk in Hunks(added.Select(a => a.Line).ToList(), oldLines.Length))
-            {
-                var inHunk = added.Where(a => a.Line >= hunk.Start && a.Line <= hunk.End).ToList();
-                var count = inHunk.Sum(a => a.Lines.Length);
-                var oldCount = Math.Min(hunk.End, oldLines.Length) - hunk.Start;
-                diff.Append($"@@ -{hunk.Start + 1},{oldCount} +{hunk.Start + 1 + shift},{oldCount + count} @@\n");
-                for (var line = hunk.Start; line <= Math.Min(hunk.End, oldLines.Length); line++)
-                {
-                    foreach (var a in inHunk.Where(a => a.Line == line))
-                        foreach (var l in a.Lines) diff.Append('+').Append(l).Append('\n');
-                    if (line < Math.Min(hunk.End, oldLines.Length)) diff.Append(' ').Append(oldLines[line]).Append('\n');
-                }
-                shift += count;
-            }
+            AppendHunks(diff, Lines(original), Lines(Merge(original, group)));
         }
         return diff.ToString();
     }
 
-    /// <summary>The original text with every insert placed at its offset, in the order given when offsets tie.</summary>
+    // The lines that differ, from the longest run the two have in common, with three lines around each change.
+    static void AppendHunks(StringBuilder diff, string[] before, string[] after)
+    {
+        var common = new int[before.Length + 1, after.Length + 1];
+        for (var i = before.Length - 1; i >= 0; i--)
+            for (var j = after.Length - 1; j >= 0; j--)
+                common[i, j] = before[i] == after[j] ? common[i + 1, j + 1] + 1 : Math.Max(common[i + 1, j], common[i, j + 1]);
+        var script = new List<(char Op, string Line, int Old, int New)>();
+        int x = 0, y = 0;
+        while (x < before.Length || y < after.Length)
+        {
+            if (x < before.Length && y < after.Length && before[x] == after[y]) script.Add((' ', before[x++], x, ++y));
+            // A replaced line reads old, then new.
+            else if (x < before.Length && (y == after.Length || common[x + 1, y] >= common[x, y + 1])) script.Add(('-', before[x++], x, y));
+            else script.Add(('+', after[y++], x, y));
+        }
+        var changed = script.Select((s, index) => (s, index)).Where(s => s.s.Op != ' ').Select(s => s.index).ToList();
+        var k = 0;
+        while (k < changed.Count)
+        {
+            var start = Math.Max(0, changed[k] - 3);
+            var end = Math.Min(script.Count, changed[k] + 4);
+            while (k + 1 < changed.Count && changed[k + 1] - 3 <= end) end = Math.Min(script.Count, changed[++k] + 4);
+            k++;
+            var hunk = script.GetRange(start, end - start);
+            var oldStart = (start == 0 ? 0 : script[start - 1].Old) + 1;
+            var newStart = (start == 0 ? 0 : script[start - 1].New) + 1;
+            var oldCount = hunk.Count(h => h.Op != '+');
+            var newCount = hunk.Count(h => h.Op != '-');
+            diff.Append($"@@ -{(oldCount == 0 ? oldStart - 1 : oldStart)},{oldCount} +{(newCount == 0 ? newStart - 1 : newStart)},{newCount} @@\n");
+            foreach (var h in hunk) diff.Append(h.Op).Append(h.Line).Append('\n');
+        }
+    }
+
+    /// <summary>The original text with every change made at its offset, in the order given when offsets tie.</summary>
     static string Merge(string original, IEnumerable<TextInsert> inserts)
     {
         var result = new StringBuilder(original);
         foreach (var insert in inserts.Select((i, order) => (i, order)).OrderByDescending(x => x.i.Offset).ThenByDescending(x => x.order))
-            result.Insert(insert.i.Offset, insert.i.Text);
+            result.Remove(insert.i.Offset, insert.i.Length).Insert(insert.i.Offset, insert.i.Text);
         return result.ToString();
-    }
-
-    /// <summary>Line ranges [Start, End) of context around the insert points, three lines each side, merged when they touch.</summary>
-    static List<(int Start, int End)> Hunks(List<int> points, int lineCount)
-    {
-        var hunks = new List<(int Start, int End)>();
-        foreach (var p in points.Distinct().Order())
-        {
-            var start = Math.Max(0, p - 3);
-            var end = Math.Min(lineCount, p + 3);
-            if (hunks.Count > 0 && start <= hunks[^1].End) hunks[^1] = (hunks[^1].Start, Math.Max(hunks[^1].End, end));
-            else hunks.Add((start, end));
-        }
-        return hunks;
     }
 
     static string[] Lines(string text)

@@ -24,5 +24,11 @@
     "\"On this page\" is a navigation landmark of its own, so screen-reader users can jump to it wherever it sits. With script, the link to the section in view is marked as the current one.",
     "On narrow screens the list is in a disclosure under the title, closed until opened, so the policy starts at once."
   ],
-  "preview": { "Routable": "false" }
+  "preview": { "Routable": "false" },
+  "checks": [
+    {
+      "file": "Pages/{{Name}}.cshtml", "pattern": "^\\s*@page(?!\\s*\")",
+      "message": "Pages/{{Name}}.cshtml, a Razor Page, answers /{{Route}} too, and the new page wins, so yours stops showing. Give this one another address with --route, or remove yours."
+    }
+  ]
 }

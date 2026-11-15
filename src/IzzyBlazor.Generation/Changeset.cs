@@ -38,12 +38,16 @@ public sealed class Changeset
 /// <param name="Bytes">Its bytes, when it's binary.</param>
 public sealed record FileCreate(string Path, string? Text, byte[]? Bytes);
 
-/// <summary>Text to add to a file already in the project.</summary>
+/// <summary>Text to add to a file already in the project, or to put in place of some of its text.</summary>
 /// <param name="Path">Relative to the project folder, with forward slashes.</param>
 /// <param name="Offset">Where it goes, in characters from the start of the file as it was read.</param>
 /// <param name="Text">The text, in the file's line endings.</param>
 /// <param name="OriginalHash">The SHA-256 of the file as it was read (hex); applying refuses when the file has changed since.</param>
-public sealed record TextInsert(string Path, int Offset, string Text, string OriginalHash);
+public sealed record TextInsert(string Path, int Offset, string Text, string OriginalHash)
+{
+    /// <summary>How many characters from <see cref="Offset"/> the text replaces; 0 adds it.</summary>
+    public int Length { get; init; }
+}
 
 /// <summary>A NuGet package to reference.</summary>
 /// <param name="Id">The package id.</param>

@@ -25,7 +25,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new <starter> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
+          izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
 
+        izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
+        gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
@@ -55,7 +58,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "describe" => Describe(args),
                 "add" => Add(args),
                 "new" => New(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new."),
+                "init" => Init(args),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init."),
             };
         }
         catch (ProRequiredException e)
@@ -79,6 +83,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var json = args.Switch("json");
         NoSettings(args);
         var items = Catalog.Items.Values.Select(i => i.Manifest)
+            .Where(m => m.Kind != ItemKind.Setup)
             .Where(m => kind is null || m.Kind.ToString().Equals(kind, StringComparison.OrdinalIgnoreCase)).ToList();
         if (json)
         {
@@ -145,6 +150,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int Add(Args args)
     {
         var item = Item(args, "izzy add <item>");
+        if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind == ItemKind.Starter)
             throw new UsageException($"{item.Manifest.Id} makes a new project: izzy new {item.Manifest.Id} -n <name>.");
         var project = ProjectInfo.FromProject(FindProject(args.Take("project")));
@@ -172,6 +178,81 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         return Finish(item, changes, project, directory, existing: false, flags);
     }
 
+    // IzzyBlazor into the app here: the init item over what Setup reads from the app, the full names of the
+    // app's components named like ours, then a build, so a clash init couldn't fix is reported with its fix.
+    int Init(Args args)
+    {
+        Words(args, 1, "izzy init");
+        var build = !args.Switch("no-build");
+        var project = Setup.Inspect(ProjectInfo.FromProject(FindProject(args.Take("project"))));
+        var flags = Flags(args);
+        var item = Catalog["init"];
+        var settings = Settings(item.Manifest, args);
+        var blazor = (bool)project.Facts["Blazor"];
+        if (blazor && settings.ContainsKey("Interactivity"))
+            throw new UsageException($"{project.Name} is a Blazor Web App, which keeps its own render modes: --interactivity is for MVC and Razor Pages apps.");
+
+        var generated = Generator.Generate(item, settings, project);
+        var warnings = generated.Warnings.ToList();
+        if (blazor && Setup.UnlayeredElementRules(project) is { Count: > 0 } rules)
+            warnings.Add($"{project.Host}wwwroot/app.css styles elements outside a cascade layer, so they win over IzzyBlazor's components: {string.Join("; ", rules)}. "
+                // Bootstrap in a layer now, or from this run.
+                + (project.ReadFile(project.Host + "wwwroot/app.css")!.Contains("layer(bootstrap)", StringComparison.Ordinal)
+                    || (bool)project.Facts["BootstrapLinked"] && (bool)project.Facts["AppCss"] && generated.Settings["KeepCss"] == "false"
+                    ? "Move them into @layer bootstrap { } in app.css to keep them for your pages"
+                    : "Remove them, or keep them only for the pages that need them")
+                + ": https://izzyblazor.com/docs/get-started/existing-app#keep-bootstrap");
+        var changes = new Changeset
+        {
+            Creates = generated.Creates,
+            Inserts = [.. generated.Inserts, .. Setup.QualifyClashes(project)],
+            // A package the project has already is nothing to do.
+            Packages = [.. generated.Packages.Where(p => !References(Path.Combine(project.Directory!, p.Project), p.Id))],
+            Conflicts = generated.Conflicts,
+            Warnings = warnings,
+            Settings = generated.Settings,
+        };
+        var writes = !flags.DryRun && changes.Conflicts.Count == 0 && (changes.Creates.Count > 0 || changes.Inserts.Count > 0);
+        var exit = Finish(item, changes, project, project.Directory!, existing: true, flags);
+        return exit == 0 && writes && build ? Build(project, flags.Json) : exit;
+    }
+
+    static bool References(string folder, string package) =>
+        Directory.GetFiles(folder, "*.csproj").FirstOrDefault() is { } csproj
+        && Regex.IsMatch(File.ReadAllText(csproj), $"Include=\"{Regex.Escape(package)}\"", RegexOptions.IgnoreCase);
+
+    // dotnet build of the server project (and the .Client one it references); a failure prints its errors,
+    // and the fix for a name clash.
+    int Build(ProjectInfo project, bool quiet)
+    {
+        var csproj = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
+        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = project.Directory!, RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var a in new[] { "build", csproj, "-nologo", "-v", "q" }) start.ArgumentList.Add(a);
+        using var process = Process.Start(start) ?? throw new GenerationException("Couldn't start dotnet.");
+        var stdout = process.StandardOutput.ReadToEndAsync();
+        var stderr = process.StandardError.ReadToEndAsync();
+        process.WaitForExit();
+        if (process.ExitCode == 0)
+        {
+            if (!quiet) output.WriteLine($"Built {project.Name}");
+            return 0;
+        }
+        // Each error once, its file from the app's folder, without the project it came from.
+        var root = Path.GetFullPath(project.Directory!).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var errors = (stdout.Result + stderr.Result).Split('\n').Select(l => l.Trim())
+            .Where(l => l.Contains(": error ", StringComparison.Ordinal))
+            .Select(l => Regex.Replace(l.Replace(root, "", StringComparison.OrdinalIgnoreCase), @"\s*\[[^\]]+\.csproj\]$", ""))
+            .Distinct().ToList();
+        error.WriteLine($"{project.Name} doesn't build now:");
+        foreach (var line in errors.Take(10)) error.WriteLine("  " + line);
+        if (errors.Count == 0) error.WriteLine(stdout.Result + stderr.Result);
+        if (errors.Any(e => e.Contains("RZ9985", StringComparison.Ordinal)))
+            error.WriteLine("A component of yours has the name of one of IzzyBlazor's. Rename yours, or write its full name where you use it (<MyApp.Components.Layout.NavMenu />): https://izzyblazor.com/docs/get-started/existing-app#name-clashes");
+        if (errors.Any(e => e.Contains("CS0104", StringComparison.Ordinal)))
+            error.WriteLine("A type of yours has the name of one of IzzyBlazor's, such as Status. Qualify one where it's used (IzzyBlazor.Status.Success), or add an alias to _Imports.razor (@using Status = IzzyBlazor.Status): https://izzyblazor.com/docs/get-started/existing-app#name-clashes");
+        return 1;
+    }
+
     // Shows or writes a changeset, then adds packages, restores and records the item.
     int Finish(ItemDefinition item, Changeset changes, ProjectInfo project, string directory, bool existing, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags)
     {
@@ -189,7 +270,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         {
             // An item with no file of its own and no page named (a recipe without --at) was printed above.
             if (!flags.Json && !changes.Warnings.Any(w => w.Contains("isn't placed on a page", StringComparison.Ordinal)))
-                output.WriteLine($"Nothing to change: {item.Manifest.Id} is already there with these settings.");
+                output.WriteLine(item.Manifest.Kind == ItemKind.Setup
+                    ? "Nothing to change: IzzyBlazor is set up here."
+                    : $"Nothing to change: {item.Manifest.Id} is already there with these settings.");
             return 0;
         }
         if (!write)
@@ -346,7 +429,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             : new JsonObject { ["path"] = f.Path, ["base64"] = Convert.ToBase64String(f.Bytes!) })).ToArray()),
         ["inserts"] = new JsonArray(c.Inserts.Select(i => (JsonNode)new JsonObject
         {
-            ["path"] = i.Path, ["offset"] = i.Offset, ["text"] = i.Text, ["originalHash"] = i.OriginalHash,
+            ["path"] = i.Path, ["offset"] = i.Offset, ["length"] = i.Length, ["text"] = i.Text, ["originalHash"] = i.OriginalHash,
         }).ToArray()),
         ["packages"] = new JsonArray(c.Packages.Select(p => (JsonNode)new JsonObject { ["id"] = p.Id, ["version"] = p.Version }).ToArray()),
         ["conflicts"] = new JsonArray(c.Conflicts.Select(p => (JsonNode)p).ToArray()),

@@ -11,8 +11,9 @@ internal static class Inserts
     /// The offset and text for <paramref name="text"/> beside the first line holding the anchor, in the file's
     /// line endings and ending in one; null when no line holds it, or when the file already holds the text.
     /// </summary>
-    public static (int Offset, string Text)? Place(string file, InsertSpec spec, string text)
+    public static (int Offset, string Text, int Length)? Place(string file, InsertSpec spec, string text)
     {
+        if (spec.Position == InsertPosition.Replace) return Replace(file, spec, text);
         if (AlreadyThere(file, text)) return null;
         var eol = file.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
         var body = Normalize(text).Replace("\n", eol, StringComparison.Ordinal);
@@ -20,7 +21,7 @@ internal static class Inserts
         if (spec.Position == InsertPosition.End)
         {
             // After the last line; a file with no final line break gets one first.
-            return file.Length == 0 || file.EndsWith('\n') ? (file.Length, body) : (file.Length, eol + body);
+            return file.Length == 0 || file.EndsWith('\n') ? (file.Length, body, 0) : (file.Length, eol + body, 0);
         }
 
         var start = 0;
@@ -35,11 +36,34 @@ internal static class Inserts
             if (hit)
             {
                 body = Indented(body, line, eol);
-                if (spec.Position == InsertPosition.Before) return (start, body);
+                if (spec.Position == InsertPosition.Before) return (start, body, 0);
                 // After the last line of a file with no final line break: start a line first.
-                return newline < 0 ? (end, eol + body[..^eol.Length]) : (end, body);
+                return newline < 0 ? (end, eol + body[..^eol.Length], 0) : (end, body, 0);
             }
             if (newline < 0) break;
+            start = end;
+        }
+        return null;
+    }
+
+    // The first match on a line, replaced; a line with nothing else on it is removed whole. Null when no line
+    // holds a match: the replacement is already made, or there was nothing to replace.
+    static (int Offset, string Text, int Length)? Replace(string file, InsertSpec spec, string text)
+    {
+        var start = 0;
+        while (start < file.Length)
+        {
+            var newline = file.IndexOf('\n', start);
+            var end = newline < 0 ? file.Length : newline + 1;
+            var line = file[start..end];
+            var (at, length) = spec.Anchor is not null
+                ? (line.IndexOf(spec.Anchor, StringComparison.Ordinal), spec.Anchor.Length)
+                : Regex.Match(line.TrimEnd('\r', '\n'), spec.Pattern!, RegexOptions.None, TimeSpan.FromSeconds(1)) is { Success: true } m ? (m.Index, m.Length) : (-1, 0);
+            if (at >= 0)
+            {
+                var left = (line[..at] + text + line[(at + length)..]).Trim();
+                return left.Length == 0 ? (start, "", end - start) : (start + at, text, length);
+            }
             start = end;
         }
         return null;
