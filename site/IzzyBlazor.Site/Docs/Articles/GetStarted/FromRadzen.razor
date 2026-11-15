@@ -56,11 +56,17 @@
             render their own label, hint and errors, so a <Code>RadzenFormField</Code> or <Code>RadzenLabel</Code> around
             them goes away.
         </TextBlock>
-        <Table Items="Components" Caption="Radzen components and their IzzyBlazor counterparts" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        @* Two columns, the note under the IzzyBlazor name, so the notes get most of the width. *@
+        <Table Items="Components" Caption="Radzen components and their IzzyBlazor counterparts" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
             <Columns>
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
-                <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
-                <TemplateColumn Title="Notes" Context="row">@Rich(row.Note)</TemplateColumn>
+                <TemplateColumn Title="IzzyBlazor" Context="row">
+                    @Rich(row.Izzy)
+                    @if (row.Note.Length > 0)
+                    {
+                        <div class="site-param-text site-migrate-note">@Rich(row.Note)</div>
+                    }
+                </TemplateColumn>
             </Columns>
         </Table>
         <TextBlock>
@@ -103,7 +109,7 @@
             (<Code>Lucide.X</Code>), not Material names.
         </TextBlock>
         @SideBySide(ButtonsRadzen, ButtonsIzzy)
-        <Table Items="ButtonRenames" Caption="RadzenButton members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="ButtonRenames" Caption="RadzenButton members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
             <Columns>
                 <TemplateColumn Title="RadzenButton" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
@@ -126,7 +132,7 @@
             <Anchor Href="docs/components/tree-list">TreeList</Anchor>.
         </TextBlock>
         @SideBySide(GridRadzen, GridIzzy)
-        <Table Items="GridRenames" Caption="RadzenDataGrid members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="GridRenames" Caption="RadzenDataGrid members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
             <Columns>
                 <TemplateColumn Title="RadzenDataGrid" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="DataGrid and Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
@@ -251,7 +257,7 @@
             <Code>Accent.Danger</Code>:
         </TextBlock>
         @SideBySide(ConfirmRadzen, ConfirmIzzy, language: "csharp")
-        <Table Items="DialogRenames" Caption="DialogService members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="DialogRenames" Caption="DialogService members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
             <Columns>
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
@@ -295,7 +301,7 @@
             A <Code>RadzenDropZoneContainer</Code> with <Code>RadzenDropZone</Code>s becomes a <Code>DropZoneGroup</Code>
             with a <Code>ListView</Code> per zone. As in Radzen, the group has one list of items.
         </TextBlock>
-        <Table Items="DropRenames" Caption="RadzenDropZoneContainer members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="DropRenames" Caption="RadzenDropZoneContainer members" Size="ControlSize.Sm" Class="site-params site-params-pair" Bordered="false">
             <Columns>
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
