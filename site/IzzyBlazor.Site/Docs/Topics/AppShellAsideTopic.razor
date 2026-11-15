@@ -1,5 +1,5 @@
-@* AppShell's Asides page, moved from its Overview: an aside in the layout, a page's own panel, and
-   one that is a drawer on phones. *@
+@* AppShell's Asides page, moved from its Overview: an aside in the layout (a docs article with an
+   outline), a page's own panel, and one that is a drawer on phones. *@
 
 <Heading Level="2">An aside</Heading>
 <TextBlock>An aside is a column on the side opposite the sidebar, such as an outline of the page. Add an <Code>AppAside</Code> to the shell. For an outline, put an <Anchor Href="docs/components/on-this-page">OnThisPage</Anchor> in it, which lists the main area's headings from the server.</TextBlock>
@@ -10,7 +10,7 @@
     <ListItem>Its content stays in view while the page scrolls, and scrolls on its own when it's taller than the window.</ListItem>
     <ListItem>When the aside contains something other than an outline, give it a <Code>Label</Code>, such as "Details". The label names its landmark for screen readers.</ListItem>
 </List>
-<TextBlock>The <Anchor Href="demos/app-shell/docs-outline">docs demo</Anchor> has an outline beside an article.</TextBlock>
+<ExampleViewer Example="app-shell-docs" WidthSwitch />
 
 <Heading Level="2">A panel for the chosen row</Heading>
 <TextBlock>A page can have a panel of its own in the aside column, such as the details of the row chosen in a table. Write an <Code>AppAside</Code> in the page, inside <Code>AppMain</Code>. It fills the shell's aside column, in place of the layout's aside if there is one, and pages without one leave no column.</TextBlock>

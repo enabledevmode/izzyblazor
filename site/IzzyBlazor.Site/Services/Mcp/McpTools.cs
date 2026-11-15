@@ -54,7 +54,7 @@ public sealed class McpTools(McpDocs docs)
         Run(() => docs.GetType(name));
 
     [McpServerTool(Name = "get_example", Title = "Get an IzzyBlazor example", ReadOnly = true, Idempotent = true, OpenWorld = false)]
-    [Description("An example's whole .razor source, as shown in the docs, by its id (button-variants) from get_component or search; a demo's address works too. The best start for working code.")]
+    [Description("An example's whole .razor source, as shown in the docs, by its id (button-variants) from get_component or search, or its anchor (#ex-button-variants). The best start for working code.")]
     public string GetExample(
         [Description("The example's id.")] string id) =>
         Run(() => docs.GetExample(id));

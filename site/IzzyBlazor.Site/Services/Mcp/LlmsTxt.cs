@@ -47,13 +47,6 @@ public static class LlmsTxt
             }
         }
 
-        text.Append($"""
-
-            ## Optional
-
-            - [Demos]({Sitemap.Origin}demos): whole pages built with the components.
-
-            """);
         return text.ToString();
     }
 }

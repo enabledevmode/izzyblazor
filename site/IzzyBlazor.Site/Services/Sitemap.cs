@@ -49,15 +49,6 @@ public static class Sitemap
                 yield return block.Href;
             }
         }
-
-        yield return "demos";
-        foreach (var component in registry.Components)
-        {
-            foreach (var scenario in component.Scenarios)
-            {
-                yield return Registry.ScenarioHref(component, scenario);
-            }
-        }
     }
 
     public static string Xml(Registry registry, BlockCatalog? blocks = null)

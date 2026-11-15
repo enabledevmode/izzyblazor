@@ -27,8 +27,8 @@
 </List>
 
 <Heading Level="2">In an app header</Heading>
-<TextBlock>A toolbar in an app header contains the header's actions, after the brand, and on phones they move into the … menu. Set <Code>Grow</Code> on the toolbar so it fills the rest of the header, and put its items at the end. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
-<Code Block Language="razor">@InHeader</Code>
+<TextBlock>A toolbar in an app header contains the header's actions, after the brand, and on phones they move into the … menu. Set <Code>Grow</Code> on the toolbar so it fills the rest of the header, and put its items at the end.</TextBlock>
+<ExampleViewer Example="toolbar-app-header" WidthSwitch />
 <TextBlock>The header stays the page's banner landmark. Navigation links belong in a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>, because a toolbar is for controls.</TextBlock>
 
 <Heading Level="2">With JavaScript off</Heading>
@@ -86,16 +86,4 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
-
-    private const string InHeader = """
-        <AppHeader>
-            <SidebarToggle />
-            <AppBrand Href="/" Icon="Lucide.Mail" Label="Acme Mail" />
-            <Toolbar Label="Mail actions" Grow>
-                <ToolbarIconButton Icon="Lucide.Search" Label="Search mail" Position="ToolbarPosition.End" />
-                <ToolbarIconButton Icon="Lucide.Bell" Label="Notifications" Position="ToolbarPosition.End" />
-                <ToolbarButton Position="ToolbarPosition.End" Priority="1" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</ToolbarButton>
-            </Toolbar>
-        </AppHeader>
-        """;
 }

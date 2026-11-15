@@ -113,8 +113,6 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 return Call("get_type", type);
             case SearchKind.Example when anchor?.StartsWith("ex-", StringComparison.Ordinal) == true:
                 return Call("get_example", anchor[3..]);
-            case SearchKind.Demo when ScenarioExample(path) is { } id:
-                return Call("get_example", id);
             case SearchKind.Member when entry.Context?.Split(" · ")[0] is { } owner:
                 return Call("get_component", owner);
         }
@@ -125,14 +123,6 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
             : null;
     }
 
-    // demos/{component}/{scenario} to the scenario's example id.
-    private string? ScenarioExample(string path)
-    {
-        var parts = path.Trim('/').Split('/');
-        return parts is ["demos", var id, var scenario] && registry.ById(id) is { } component
-            ? component.Scenarios.FirstOrDefault(s => s.Id == scenario)?.Example.Id
-            : null;
-    }
 
     public string ListComponents(string? category = null)
     {
@@ -250,8 +240,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         {
             // A part can be listed on more than one component (ToolbarSplitButton on SplitButton and Toolbar).
             var sources = registry.Components.Where(c => c.Parts.Contains(component.Name)).Append(owner).Distinct();
-            var examples = sources.SelectMany(c => c.AllExamples.Select(e => (e.Id, e.Title, Lead: e.Lead))
-                .Concat(c.Scenarios.Select(s => (s.Example.Id, $"Demo: {s.Title}", Lead: (string?)s.Description)))).ToList();
+            var examples = sources.SelectMany(c => c.AllExamples.Select(e => (e.Id, e.Title, Lead: e.Lead))).ToList();
             if (owner.Name != component.Name)
             {
                 // A part: only the owner's examples that use it.
@@ -383,19 +372,15 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
     public string GetExample(string id)
     {
         id = Input(id, "an example id");
-        // Accept the forms the site shows: an anchor (#ex-button-variants) or a demo's address.
+        // Accept the form the site shows: an anchor (#ex-button-variants).
         var key = id.Split('#')[^1];
         key = key.StartsWith("ex-", StringComparison.Ordinal) && catalog.SourceOf(key[3..]) is not null ? key[3..] : key;
-        if (catalog.SourceOf(key) is null && ScenarioExample(LocalPath(key)) is { } scenarioId)
-        {
-            key = scenarioId;
-        }
 
         if (catalog.SourceOf(key) is not { } source || registry.Example(key)?.Component.Preview == true)
         {
             if (FindComponentOrNull(key) is { } component && (registry.ByName(component.Name) ?? registry.OwnerOfPart(component.Name)) is { } owner)
             {
-                var ids = owner.AllExamples.Select(e => e.Id).Concat(owner.Scenarios.Select(s => s.Example.Id)).ToList();
+                var ids = owner.AllExamples.Select(e => e.Id).ToList();
                 throw new McpDocsException($"\"{id}\" is a component, not an example id. {owner.Name}'s examples: {string.Join(", ", ids)}.");
             }
 
@@ -407,14 +392,8 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         {
             var (owner, example) = found;
             text.Append($"# {example.Title}\n\n{Release} · an example on {owner.Name}'s page, {Url(Registry.ExamplePageHref(owner, example))}");
-            var scenario = owner.Scenarios.FirstOrDefault(s => s.Example.Id == key);
-            if (scenario is not null)
-            {
-                text.Append($" (a demo: {Url(Registry.ScenarioHref(owner, scenario))})");
-            }
-
             text.Append('\n');
-            if ((scenario?.Description ?? example.Lead) is { } lead)
+            if (example.Lead is { } lead)
             {
                 text.Append($"\n{lead}\n");
             }

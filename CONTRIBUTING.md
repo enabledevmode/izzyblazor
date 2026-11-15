@@ -15,7 +15,7 @@ src/IzzyBlazor.Core/         the components, CSS and JS; runs in any render mode
 src/IzzyBlazor/              server-only pieces: cookie-backed toast carrier and request cookies (IzzyBlazor package)
 tests/IzzyBlazor.TestHost/   dev host: full-page previews at /preview/... (the README screenshot, shell layouts)
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
-site/IzzyBlazor.Site/        the documentation site at izzyblazor.com: /docs and /demos (see "The docs site" below)
+site/IzzyBlazor.Site/        the documentation site at izzyblazor.com: /docs and /blocks (see "The docs site" below)
 site/IzzyBlazor.DocsGen/     writes izzyblazor.api.json, the API metadata, from the built library
 site/IzzyBlazor.Site.Tests/  checks the registry, every example in each mode and the site's links
 build/                       asset build and dev scripts
@@ -110,8 +110,8 @@ comments into `izzyblazor.api.json` (also served at `/izzyblazor.api.json`), so 
 parameter tables and defaults are never written by hand.
 
 - `components.json` lists each documented component: its id (the URL), category, a one-line
-  summary, the parts documented on its page, the mode-support rows for its Overview, its examples
-  and its demo scenarios.
+  summary, the parts documented on its page, the mode-support rows for its Overview, and its
+  examples.
 - An example is a component in `Examples/{Folder}/{Name}.razor`, known by the id
   `{folder}-{name}` (`Examples/Button/MultiSubmit.razor` is `button-multi-submit`). The viewer
   renders it into the page itself, in the page's mode (the Off · Static · Live switch, kept in
@@ -125,8 +125,9 @@ parameter tables and defaults are never written by hand.
   `Name`). Site tests check ids and address keys on every page. A link or form in an example that
   loads the page again brings the reader back to that example (`site.js`). An app-wide part such
   as `ToastRegion` is in the docs layout, not in an example.
-- A demo scenario (`"page": true`) is a page of its own, sized by the window: it shows in a frame
-  of `/frame/{id}?mode=` that is `height` pixels tall and scrolls inside, with a phone width.
+- A page example (`"page": true`), such as an AppShell's, is a page of its own, sized by the
+  window: it shows in a frame of `/frame/{id}?mode=` that is `height` pixels tall and scrolls
+  inside, with a phone width when the viewer or the example (`"widthSwitch": true`) asks for one.
   Off frames are sandboxed without `allow-scripts`; links in them open in the frame.
   Make it look like a real page, not a fragment in the frame's corner: an `AppShell` with an
   `AppHeader` (a made-up brand such as "Acme"), the content centered (`ContentWidth`) or padded,

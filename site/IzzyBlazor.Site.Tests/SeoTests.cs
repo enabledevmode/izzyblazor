@@ -38,9 +38,9 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.DoesNotContain(paths, p => p.Contains('?') || p.Contains('#') || p.StartsWith("not canonical", StringComparison.Ordinal));
         string[] expected =
         [
-            "", "docs", "docs/components", "demos",
+            "", "docs", "docs/components",
             .. Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf).Prepend(s.Href)),
-            .. site.Registry.Components.SelectMany(c => c.Scenarios.Select(s => Registry.ScenarioHref(c, s)).Prepend(Registry.ApiPageHref(c)).Prepend(Registry.OverviewHref(c))),
+            .. site.Registry.Components.SelectMany(c => new[] { Registry.OverviewHref(c), Registry.ApiPageHref(c) }),
         ];
         Assert.Empty(expected.Except(paths));
 
@@ -94,7 +94,7 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public async Task Demo_frames_search_and_missing_pages_are_not_indexed()
+    public async Task Example_frames_search_and_missing_pages_are_not_indexed()
     {
         var demo = site.Registry.AllExamples.First(e => e.Example.Page).Example;
         var frame = await site.Client.GetStringAsync($"/frame/{demo.Id}?mode=static");

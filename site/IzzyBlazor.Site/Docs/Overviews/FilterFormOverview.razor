@@ -3,7 +3,7 @@
 @* FilterForm's Overview, written by hand after Table's and the selection Overviews: the three
    filter fields (previewed in each mode), dates, filtering on demand, with a table, your own inputs,
    saying how many match, and its own words. Parts, Accessibility and See also come from the
-   metadata and the doc comments; See also adds the order list demo. *@
+   metadata and the doc comments. *@
 
 <TextBlock>A filter form is a row of filter fields above a list, such as a search box and a status select. It's a GET form: its values go in the URL, so a filtered view can be bookmarked, shared and reloaded, and it works <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor>. The form doesn't filter anything itself: the page reads the values with <Code>[SupplyParameterFromQuery]</Code> and filters its own data.</TextBlock>
 <TextBlock>To filter a table by its columns instead, use the <Anchor Href="docs/components/table">Table</Anchor>'s own column filters.</TextBlock>
@@ -36,7 +36,7 @@
 <Heading Level="2">With a table</Heading>
 <TextBlock>A filter form above a <Anchor Href="docs/components/table">Table</Anchor> filters the rows by values that aren't tied to a column. Give the table the filtered rows. The form keeps the rest of the URL, such as the table's sort, and removes the page number, so filtering goes back to page 1.</TextBlock>
 <ExampleViewer Example="filter-form-books" />
-<TextBlock>The form removes a table's page number with or without a <Code>QueryPrefix</Code>, such as <Code>books-page</Code>. The <Anchor Href="demos/filter-form/order-list">order list demo</Anchor> does the same for a whole page.</TextBlock>
+<TextBlock>The form removes a table's page number with or without a <Code>QueryPrefix</Code>, such as <Code>books-page</Code>.</TextBlock>
 
 <Heading Level="2">Custom inputs</Heading>
 <TextBlock>A filter form can contain inputs of your own, such as a number. Put any input with a <Code>name</Code> in the form, and list the names in <Code>Fields</Code>, so the form doesn't also carry their old values over from the URL.</TextBlock>

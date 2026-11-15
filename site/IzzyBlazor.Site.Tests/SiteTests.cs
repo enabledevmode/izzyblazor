@@ -116,7 +116,6 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             .Distinct());
         Assert.True(broken.Count == 0, string.Join("\n", broken));
         Assert.Contains("/docs/components/button/api", seen);
-        Assert.Contains("/demos/button/toolbar", seen);
         Assert.Contains("/docs/get-started/existing-app", seen);
         Assert.All(Articles.Sections.SelectMany(s => s.Articles.Select(a => "/" + s.HrefOf(a))), href => Assert.Contains(href, seen));
     }
@@ -229,15 +228,15 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [MemberData(nameof(Modes))]
     public async Task Every_example_renders_in_a_page_in_each_mode(string mode)
     {
-        // Examples render in the page itself, in its mode; only demos have a frame.
+        // Examples render in the page itself, in its mode; only page examples have a frame.
         var shown = new HashSet<string>();
         foreach (var page in ExamplePages)
         {
             var html = await site.Client.GetStringAsync($"{page}?mode={mode}");
             shown.UnionWith(Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value));
-            // A demo (components.json "page") is a page of its own, in a window: the only frames,
+            // A page example (components.json "page") is a page of its own, in a window: the only frames,
             // with the home page's hero, which shows one.
-            Assert.Equal(Regex.Count(html, "<iframe"), Regex.Count(html, "ex-window\"><iframe") + Regex.Count(html, "<iframe class=\"ex-frame\" src=\"frame/home-store"));
+            Assert.Equal(Regex.Count(html, "<iframe"), Regex.Count(html, "ex-window\"><iframe") + Regex.Count(html, "site-hero-screen\"><iframe"));
             var ids = Id().Matches(Template().Replace(html, "")).Select(m => m.Groups[1].Value);
             var repeated = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             Assert.True(repeated.Count == 0, $"/{page} ({mode}) repeats ids: {string.Join(", ", repeated)}");
@@ -283,7 +282,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public async Task Every_demo_renders_in_its_frame_in_each_mode_it_claims()
+    public async Task Every_page_example_renders_in_its_frame_in_each_mode_it_claims()
     {
         foreach (var (_, example) in site.Registry.AllExamples.Where(e => e.Example.Page))
         {
@@ -442,7 +441,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task Unknown_pages_are_not_found()
     {
-        foreach (var path in new[] { "docs/components/nope", "docs/components/nope/api", "demos/button/nope", "frame/nope" })
+        foreach (var path in new[] { "docs/components/nope", "docs/components/nope/api", "demos", "frame/nope" })
         {
             Assert.Equal(HttpStatusCode.NotFound, (await site.Client.GetAsync(path)).StatusCode);
         }
