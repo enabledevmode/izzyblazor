@@ -69,9 +69,15 @@ static partial class Crud
         settings["Authorize"] = authorize;
 
         var shown = info.Fields;
-        var form = shown.Where(f => !f.ReadOnly).ToList();
+        // A Guid other than the key is made by code, not typed: shown, not edited.
+        var form = shown.Where(f => !f.ReadOnly && f.Kind != FieldKind.Guid).ToList();
         if (form.Count == 0) throw new UsageException($"{info.Name} has nothing to edit: every property crud shows is read-only.");
         var title = shown.FirstOrDefault(f => f.Kind == FieldKind.Text);
+        // A first and last name are the title together ("Ada Lindqvist"), sorted by the last.
+        var first = shown.FirstOrDefault(f => f.Kind == FieldKind.Text && f.Name is "FirstName" or "GivenName" or "Forename");
+        var last = shown.FirstOrDefault(f => f.Kind == FieldKind.Text && f.Name is "LastName" or "Surname" or "FamilyName");
+        if (first is not null && last is not null) title = first;
+        else last = null;
         var subtitle = shown.FirstOrDefault(f => f.Kind == FieldKind.Email);
         var search = shown.Where(f => f.Kind is FieldKind.Text or FieldKind.Email).Take(SearchColumns).ToList();
         var status = shown.FirstOrDefault(f => f.Kind == FieldKind.Enum && f.Name == "Status") ?? shown.FirstOrDefault(f => f.Kind == FieldKind.Enum);
@@ -87,34 +93,56 @@ static partial class Crud
             _ => 9,
         };
         var list = (status is null ? [] : new[] { status })
-            .Concat(shown.Where(f => f != status && f != title && f != subtitle && Rank(f) < 9).OrderBy(Rank).ThenBy(f => shown.ToList().IndexOf(f)))
+            .Concat(shown.Where(f => f != status && f != title && f != last && f != subtitle && Rank(f) < 9).OrderBy(Rank).ThenBy(f => shown.ToList().IndexOf(f)))
             .Take(ListColumns - 1)
             // In the model's order, the status first.
             .OrderBy(f => f == status ? -1 : shown.ToList().IndexOf(f))
             .ToList();
         // The grid page shows the same columns as the list (title, then these); the rest only in its dialog.
-        IReadOnlyCollection<ModelField> columns = [.. new[] { title, subtitle }.OfType<ModelField>(), .. list];
+        IReadOnlyCollection<ModelField> columns = [.. new[] { title, last, subtitle }.OfType<ModelField>(), .. list];
         // Newest first by the last date shown, else by the title.
         var sortDate = list.LastOrDefault(f => f.Kind is FieldKind.Date or FieldKind.DateTime);
-        var titleKey = (title ?? info.Key).Name.ToLowerInvariant();
+        var titleKey = (last ?? title ?? info.Key).Name.ToLowerInvariant();
+
+        // The model and its enums by aliases in each file (using Customer = global::Shop.Models.Customer), not
+        // their namespace: a model named Task or Tag would clash with what the pages use, and importing its
+        // namespace would bring the clash to every page. A name the pages use already gets a suffix.
+        var modelType = Alias(info.Name, "Item");
+        var aliases = new Dictionary<string, string> { [modelType] = Global(info.Namespace, info.Name) };
+        var enumTypes = new Dictionary<string, string>();
+        foreach (var e in shown.Where(f => f.Kind == FieldKind.Enum))
+        {
+            var enumName = e.Type.TrimEnd('?');
+            if (enumTypes.ContainsKey(enumName)) continue;
+            enumTypes[enumName] = Alias(enumName, "Value");
+            aliases[enumTypes[enumName]] = Global(e.EnumNamespace, enumName);
+        }
+        string TypeOf(ModelField f) => enumTypes.TryGetValue(f.Type.TrimEnd('?'), out var alias) ? alias : f.Type.TrimEnd('?');
+
+        // The DbContext too, for the EF store, unless it's in the store's own namespace.
+        if (context is not null && context.Namespace != project.RootNamespace + ".Data")
+            aliases[context.Name] = Global(context.Namespace, context.Name);
+        // A type in the global namespace is in scope everywhere, and an alias of its own name would clash with it.
+        foreach (var plain in aliases.Where(a => a.Value == "global::" + a.Key).Select(a => a.Key).ToList()) aliases.Remove(plain);
 
         var facts = new Dictionary<string, object>(project.Facts)
         {
-            ["Fields"] = Records(shown, status, columns),
-            ["FormFields"] = Records(form, status, columns),
-            ["ListFields"] = Records(list, status, columns),
-            ["SearchFields"] = Records(search, status, columns),
+            ["Aliases"] = aliases.Select(a => (IReadOnlyDictionary<string, object>)new Dictionary<string, object> { ["Name"] = a.Key, ["Type"] = a.Value }).ToList(),
+            ["Fields"] = Records(shown, status, columns, TypeOf),
+            ["FormFields"] = Records(form, status, columns, TypeOf),
+            ["ListFields"] = Records(list, status, columns, TypeOf),
+            ["SearchFields"] = Records(search, status, columns, TypeOf),
             ["StatusValues"] = status is null ? new List<IReadOnlyDictionary<string, object>>() : Values(status),
             ["HasTitle"] = title is not null,
             ["HasSubtitle"] = subtitle is not null,
             ["HasSearch"] = search.Count > 0,
             ["HasStatus"] = status is not null,
-            ["HasModelNamespace"] = info.Namespace.Length > 0 && info.Namespace != project.RootNamespace + ".Data",
             ["KeyGenerated"] = info.KeyGenerated,
             ["KeyIsText"] = info.Key.Kind == FieldKind.Text,
             ["KeyIsGuid"] = info.Key.Kind == FieldKind.Guid,
+            // A key people choose (an invoice number): typed on New, fixed after.
+            ["KeyInput"] = info.Key.Kind == FieldKind.Text && !info.KeyGenerated,
             ["HasFactory"] = context is not null && Regex.IsMatch(program, $@"AddDbContextFactory\s*<\s*{Regex.Escape(context.Name)}\b"),
-            ["HasContextNamespace"] = context is not null && context.Namespace.Length > 0 && context.Namespace != project.RootNamespace + ".Data" && context.Namespace != info.Namespace,
             ["NavIcons"] = NavHasIcons(project),
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\s*,"),
@@ -122,7 +150,7 @@ static partial class Crud
         var keyType = info.Key.Type.TrimEnd('?');
         var tokens = new Dictionary<string, string>(project.Tokens)
         {
-            ["ModelNamespace"] = info.Namespace,
+            ["ModelType"] = modelType,
             ["Singular"] = Words(info.Name),
             ["SingularLower"] = Lower(Words(info.Name)),
             ["Article"] = Article(Lower(Words(info.Name))),
@@ -147,12 +175,22 @@ static partial class Crud
                 _ => keyType is "long" or "Int64" ? ":long" : ":int",
             },
             ["TitleField"] = title?.Name ?? info.Key.Name,
-            ["TitleLabel"] = title?.ShortLabel ?? Words(info.Name),
+            // A record's name in an interpolated string over x: its title field, or "Reading 3" when it has none.
+            ["RowName"] = last is not null ? $"{{x.{title!.Name}}} {{x.{last.Name}}}"
+                : title is not null ? $"{{x.{title.Name}}}"
+                : $"{Words(info.Name)} {{x.{info.Key.Name}}}",
+            ["TitleSortField"] = (last ?? title ?? info.Key).Name,
+            // A string key goes in a URL escaped (INV/001); a number or Guid as it is.
+            ["UrlKey"] = info.Key.Kind == FieldKind.Text ? "Uri.EscapeDataString(key)" : "key",
+            ["KeyLabel"] = info.Key.Label,
+            ["KeyLabelLower"] = Lower(info.Key.Label),
+            ["IdInit"] = info.Key.Kind == FieldKind.Text ? " = \"\";" : "",
+            ["TitleLabel"] = last is not null ? "Name" : title?.ShortLabel ?? Words(info.Name),
             ["TitleSortKey"] = titleKey,
             ["InitialSort"] = sortDate is not null ? "-" + sortDate.Name.ToLowerInvariant() : titleKey,
             ["SubtitleField"] = subtitle?.Name ?? "",
             ["StatusField"] = status?.Name ?? "",
-            ["StatusType"] = status?.Type.TrimEnd('?') ?? "",
+            ["StatusType"] = status is null ? "" : TypeOf(status),
             ["StatusLabel"] = status?.Label ?? "",
             ["StatusPlural"] = status is null ? "" : Lower(Plural(status.Label)),
             ["SearchPlaceholder"] = search.Count == 0 ? "" : "Search " + Join(search.Select(f => Lower(f.Label))),
@@ -160,13 +198,29 @@ static partial class Crud
             ["StoreClass"] = (context is null ? "Memory" : "Ef") + info.Name + "Store",
             ["StoreLifetime"] = context is null ? "AddSingleton" : "AddScoped",
             ["Context"] = context?.Name ?? "",
-            ["ContextNamespace"] = context?.Namespace ?? "",
             ["Set"] = context?.SetName ?? "",
         };
         return project with { Facts = facts, Tokens = tokens };
     }
 
-    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns) =>
+    // Names the generated files use for their own types and the library's: a model or enum named one of these is
+    // aliased with a suffix (TaskItem, StatusValue).
+    static readonly HashSet<string> Taken =
+    [
+        "Task", "ValueTask", "Guid", "Enum", "Lock", "List", "IEnumerable", "IQueryable", "StringComparison", "CancellationToken",
+        "DbUpdateException", "EF", "IFormattable", "Math", "String", "Object", "Action", "Func", "DateOnly", "DateTime", "TimeOnly",
+        "System", "Microsoft", "IzzyBlazor", "Index", "Details", "Edit", "Grid", "EditContext", "ValidationMessageStore",
+        "ToastService", "NavigationManager", "DataResult", "DataRequest", "DataGridSave", "DataGridDelete", "Status", "Accent",
+        "Length", "Color", "Orientation", "Justify", "Breakpoint", "ButtonVariant", "ControlSize", "TextSize", "FontWeight",
+        "ContainerSize", "ContainerAlign", "RequiredMark", "TextFieldType", "DateFieldType", "DataGridSmallScreen",
+        "DataGridEditMode", "RowActionOverflow", "Lucide",
+    ];
+
+    static string Alias(string name, string suffix) => Taken.Contains(name) || Setup.ComponentNames.Contains(name) ? name + suffix : name;
+
+    static string Global(string ns, string name) => "global::" + (ns.Length > 0 ? ns + "." : "") + name;
+
+    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns, Func<ModelField, string> typeOf) =>
         [.. fields.Select(f => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
         {
             ["Name"] = f.Name,
@@ -185,7 +239,12 @@ static partial class Crud
             ["EditableAttr"] = f.ReadOnly ? " Editable=\"false\"" : "",
             ["WidthAttr"] = Width(f.Kind, f.ShortLabel) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
             ["Type"] = f.Type,
-            ["EnumType"] = f.Kind == FieldKind.Enum ? f.Type.TrimEnd('?') : "",
+            ["EnumType"] = f.Kind == FieldKind.Enum ? typeOf(f) : "",
+            // A nullable enum's choices are of the nullable type, as its property is.
+            ["EnumParam"] = f.Kind == FieldKind.Enum ? typeOf(f) + (f.Nullable ? "?" : "") : "",
+            ["EnumItems"] = f.Kind != FieldKind.Enum ? "" : f.Nullable
+                ? $"Enum.GetValues<{typeOf(f)}>().Select(v => ({typeOf(f)}?)v)"
+                : $"Enum.GetValues<{typeOf(f)}>()",
             ["Required"] = f.Required,
             // Required by the model but not by an attribute the form reads, such as a string that isn't
             // nullable: the page checks it itself.
@@ -197,7 +256,10 @@ static partial class Crud
             ["Numeric"] = f.Numeric,
             ["Wide"] = f.Kind == FieldKind.LongText,
             ["MaxLength"] = (long)f.MaxLength,
-            ["Radio"] = f.Kind == FieldKind.Enum && f.Values.Count is >= 2 and <= 4,
+            // A nullable enum is a Select that can be cleared; radios can't go back to none.
+            ["Radio"] = f.Kind == FieldKind.Enum && !f.Nullable && f.Values.Count is >= 2 and <= 4,
+            // Cleared, it shows its placeholder again, as the design's optional Country ("Choose a country").
+            ["ClearableAttr"] = f.Nullable && f.Kind is FieldKind.Enum ? $" Placeholder=\"Choose {Article(Lower(f.Label))} {Lower(f.Label)}\" Clearable" : "",
             ["Values"] = Values(f),
         })];
 

@@ -3,9 +3,9 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @*#endif *@
 @using {{RootNamespace}}.Data
-@*#if (HasModelNamespace) *@
-@using {{ModelNamespace}}
-@*#endif *@
+@*#each (Alias in Aliases) *@
+@using {{Alias.Name}} = {{Alias.Type}}
+@*#endeach *@
 @inject I{{Model}}Store Store
 
 <PageTitle>{{Plural}}</PageTitle>
@@ -50,19 +50,19 @@
         }
         else
         {
-            <DataGrid TItem="{{Model}}" ItemsProvider="Find" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{x.{{TitleField}}}")" Caption="{{Plural}}" PageSize="10"
+            <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="Name" Caption="{{Plural}}" PageSize="10"
                       InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
                 <Columns>
 @*#if (HasTitle) *@
-                    <TemplateColumn Title="{{TitleLabel}}" SortBy="x => x.{{TitleField}}" SortKey="{{TitleSortKey}}" Sortable Priority="2">
-                        <Anchor Href="@($"{{Route}}/{context.{{Key}}}")" Weight="FontWeight.Medium">@context.{{TitleField}}</Anchor>
+                    <TemplateColumn Title="{{TitleLabel}}" SortBy="x => x.{{TitleSortField}}" SortKey="{{TitleSortKey}}" Sortable Priority="2">
+                        <Anchor Href="@Url(context.{{Key}})" Weight="FontWeight.Medium">@Name(context)</Anchor>
 @*#if (HasSubtitle) *@
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@context.{{SubtitleField}}</TextBlock>
 @*#endif *@
                     </TemplateColumn>
 @*#else *@
                     <TemplateColumn Title="{{Singular}}" SortBy="x => x.{{Key}}" SortKey="{{TitleSortKey}}" Sortable Priority="2">
-                        <Anchor Href="@($"{{Route}}/{context.{{Key}}}")">@context.{{Key}}</Anchor>
+                        <Anchor Href="@Url(context.{{Key}})">@Name(context)</Anchor>
                     </TemplateColumn>
 @*#endif *@
 @*#each (Field in ListFields) *@
@@ -70,6 +70,8 @@
                     <TemplateColumn Title="{{Field.Column}}" SortBy="x => x.{{Field.Name}}" SortKey="{{Field.Key}}" Sortable Priority="1"{{Field.WidthAttr}}>
                         <Badge Status="Tone(context.{{Field.Name}})" Dot>@Label(context.{{Field.Name}})</Badge>
                     </TemplateColumn>
+@*#elif (Field.Kind == "Bool") *@
+                    <TemplateColumn Title="{{Field.Column}}" SortBy="x => x.{{Field.Name}}" SortKey="{{Field.Key}}" Sortable{{Field.WidthAttr}}>@(context.{{Field.Name}} == true ? "Yes" : "No")</TemplateColumn>
 @*#elif (Field.HasFormat) *@
                     <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}" Format="{{Field.Format}}"{{Field.WidthAttr}} Sortable />
 @*#else *@
@@ -77,8 +79,8 @@
 @*#endif *@
 @*#endeach *@
                     <ActionColumn Context="item" Overflow="RowActionOverflow.Always">
-                        <RowAction Icon="Lucide.Eye" Label="View" Href="@($"{{Route}}/{item.{{Key}}}")" />
-                        <RowAction Icon="Lucide.Pencil" Label="Edit" Href="@($"{{Route}}/{item.{{Key}}}/edit")" />
+                        <RowAction Icon="Lucide.Eye" Label="View" Href="@Url(item.{{Key}})" />
+                        <RowAction Icon="Lucide.Pencil" Label="Edit" Href="@Url(item.{{Key}}, "edit")" />
                     </ActionColumn>
                 </Columns>
             </DataGrid>
@@ -118,18 +120,24 @@
     }
 
 @*#if (HasSearch && HasStatus) *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request, Search, StatusFilter);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request, Search, StatusFilter);
 @*#elif (HasSearch) *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request, Search);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request, Search);
 @*#elif (HasStatus) *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request, null, StatusFilter);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request, null, StatusFilter);
 @*#else *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request, null);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request, null);
 @*#endif *@
+
+    // What the list calls a {{SingularLower}}.
+    private static string Name({{ModelType}} x) => $"{{RowName}}";
+
+    // A {{SingularLower}}'s address, its key escaped for a URL.
+    private static string Url({{KeyType}} key, string? then = null) => $"{{Route}}/{{{UrlKey}}}{(then is null ? "" : "/" + then)}";
 @*#if (HasStatus) *@
 
     // A badge's color for each {{StatusLabel}}: change them to what each means in your app.
-    private static Status Tone({{StatusType}} value) => value switch
+    private static Status Tone({{StatusType}}? value) => value switch
     {
 @*#each (Value in StatusValues) *@
         {{StatusType}}.{{Value.Name}} => IzzyBlazor.Status.{{Value.Tone}},
@@ -137,12 +145,12 @@
         _ => IzzyBlazor.Status.Neutral,
     };
 
-    private static string Label({{StatusType}} value) => value switch
+    private static string Label({{StatusType}}? value) => value switch
     {
 @*#each (Value in StatusValues) *@
         {{StatusType}}.{{Value.Name}} => "{{Value.Label}}",
 @*#endeach *@
-        _ => value.ToString(),
+        _ => value?.ToString() ?? "Not set",
     };
 @*#endif *@
 }

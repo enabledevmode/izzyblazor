@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="IzzyBlazor.Generation.Tests" />
+    <InternalsVisibleTo Include="IzzyBlazor.Cli" />
     <!-- IzzyBlazor's component names, for izzy init's clash check; a test keeps it in step with the library. -->
     <EmbeddedResource Include="components.txt" LogicalName="IzzyBlazor.Generation.components.txt" />
   </ItemGroup>

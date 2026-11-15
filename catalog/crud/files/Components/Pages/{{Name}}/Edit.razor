@@ -5,9 +5,9 @@
 @*#endif *@
 @using Microsoft.AspNetCore.Components.Forms
 @using {{RootNamespace}}.Data
-@*#if (HasModelNamespace) *@
-@using {{ModelNamespace}}
-@*#endif *@
+@*#each (Alias in Aliases) *@
+@using {{Alias.Name}} = {{Alias.Type}}
+@*#endeach *@
 @inject I{{Model}}Store Store
 @inject ToastService Toasts
 @inject NavigationManager Navigation
@@ -30,6 +30,16 @@
         {
             <Form Model="Model" FormName="{{SingularLower}}" RequiredMark="RequiredMark.Optional" Columns="2" OnValidSubmit="SaveAsync">
                 <FormErrors />
+@*#if (KeyInput) *@
+                @if (IsNew)
+                {
+                    <TextField @bind-Value="Model.{{Key}}" Label="{{KeyLabel}}" Required />
+                }
+                else
+                {
+                    <TextField Value="@Id" ValueExpression="() => Id" Label="{{KeyLabel}}" ReadOnly Hint="It's the {{SingularLower}}'s address, so it stays." />
+                }
+@*#endif *@
 @*#each (Field in FormFields) *@
 @*#if (Field.Kind == "Text") *@
                 <TextField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
@@ -52,11 +62,9 @@
 @*#elif (Field.Kind == "Time") *@
                 <TimeField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
 @*#elif (Field.Radio) *@
-                <RadioGroup @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="Enum.GetValues<{{Field.EnumType}}>()" ItemText="{{Field.Name}}Text" Orientation="Orientation.Horizontal" ColSpan="2"{{Field.RequiredAttr}} />
+                <RadioGroup @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="{{Field.EnumItems}}" ItemText="{{Field.Name}}Text" Orientation="Orientation.Horizontal" ColSpan="2"{{Field.RequiredAttr}} />
 @*#elif (Field.Kind == "Enum") *@
-                <Select @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="Enum.GetValues<{{Field.EnumType}}>()" ItemText="{{Field.Name}}Text"{{Field.RequiredAttr}} />
-@*#else *@
-                <TextField Value="@Model.{{Field.Name}}.ToString()" Label="{{Field.Label}}" ReadOnly />
+                <Select @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="{{Field.EnumItems}}" ItemText="{{Field.Name}}Text"{{Field.ClearableAttr}}{{Field.RequiredAttr}} />
 @*#endif *@
 @*#endeach *@
                 <FormActions Justify="Justify.Start">
@@ -72,11 +80,11 @@
     [Parameter] public {{KeyType}}? Id { get; set; }
 
     [SupplyParameterFromForm(FormName = "{{SingularLower}}")]
-    private {{Model}}? Model { get; set; }
+    private {{ModelType}}? Model { get; set; }
 
     private bool IsNew => Id is null;
     private string Title => IsNew ? "New {{SingularLower}}" : "Edit {{SingularLower}}";
-    private string Back => IsNew ? "{{Route}}" : $"{{Route}}/{Id}";
+    private string Back => IsNew ? "{{Route}}" : Url({{IdValue}});
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,16 +109,20 @@
     {
 @*#each (Field in FormFields) *@
 @*#if (Field.CheckRequired) *@
-        if (string.IsNullOrWhiteSpace(Model!.{{Field.Name}})) Error(form, nameof({{Model}}.{{Field.Name}}), "Enter {{Field.Article}} {{Field.LabelLower}}.");
+        if (string.IsNullOrWhiteSpace(Model!.{{Field.Name}})) Error(form, nameof({{ModelType}}.{{Field.Name}}), "Enter {{Field.Article}} {{Field.LabelLower}}.");
 @*#endif *@
 @*#endeach *@
+@*#if (KeyInput) *@
+        if (IsNew && string.IsNullOrWhiteSpace(Model!.{{Key}})) Error(form, nameof({{ModelType}}.{{Key}}), "Enter {{Article}} {{SingularLower}} {{KeyLabelLower}}.");
+        else if (IsNew && await Store.GetAsync(Model!.{{Key}}.Trim()) is not null) Error(form, nameof({{ModelType}}.{{Key}}), "There's already {{Article}} {{SingularLower}} with this {{KeyLabelLower}}.");
+@*#endif *@
         if (form.GetValidationMessages().Any()) return;
 
         if (IsNew)
         {
             await Store.AddAsync(Model!);
             Toasts.Success("{{Singular}} saved");
-            Navigation.NavigateTo($"{{Route}}/{Model!.{{Key}}}");
+            Navigation.NavigateTo(Url(Model!.{{Key}}));
             return;
         }
         var saved = await Store.GetAsync({{IdValue}});
@@ -122,16 +134,19 @@
         Copy(Model!, saved);
         await Store.UpdateAsync(saved);
         Toasts.Success("{{Singular}} saved");
-        Navigation.NavigateTo($"{{Route}}/{Id}");
+        Navigation.NavigateTo(Url({{IdValue}}));
     }
 
     // Only the form's fields: what the form doesn't show is never taken from a post.
-    private static void Copy({{Model}} from, {{Model}} to)
+    private static void Copy({{ModelType}} from, {{ModelType}} to)
     {
 @*#each (Field in FormFields) *@
         to.{{Field.Name}} = from.{{Field.Name}};
 @*#endeach *@
     }
+
+    // A {{SingularLower}}'s address, its key escaped for a URL.
+    private static string Url({{KeyType}} key) => $"{{Route}}/{{{UrlKey}}}";
 
     private static void Error(EditContext form, string field, string message)
     {
@@ -142,12 +157,12 @@
 @*#each (Field in FormFields) *@
 @*#if (Field.Kind == "Enum") *@
 
-    private static string {{Field.Name}}Text({{Field.EnumType}} value) => value switch
+    private static string {{Field.Name}}Text({{Field.EnumParam}} value) => value switch
     {
 @*#each (Value in Field.Values) *@
         {{Field.EnumType}}.{{Value.Name}} => "{{Value.Label}}",
 @*#endeach *@
-        _ => value.ToString(),
+        _ => $"{value}",
     };
 @*#endif *@
 @*#endeach *@

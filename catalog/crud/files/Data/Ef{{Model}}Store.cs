@@ -1,22 +1,20 @@
 using IzzyBlazor;
 using Microsoft.EntityFrameworkCore;
-#if (HasModelNamespace)
-using {{ModelNamespace}};
-#endif
-#if (HasContextNamespace)
-using {{ContextNamespace}};
-#endif
+#each (Alias in Aliases)
+using {{Alias.Name}} = {{Alias.Type}};
+#endeach
 
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
 /// The {{ModelPluralLower}} in {{Context}}.{{Set}}, from izzy add crud. Search, sort and paging run in the
-/// database, so a page of {{ModelPluralLower}} is one query and a count.
+/// database, so a page of {{ModelPluralLower}} is one query and a count. Each call has a context of its own, so an
+/// interactive page, whose services live as long as its circuit, never holds one open or reads stale rows.
 /// </summary>
 #if (HasFactory)
 public sealed class Ef{{Model}}Store(IDbContextFactory<{{Context}}> factory) : I{{Model}}Store
 #else
-public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
+public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}Store
 #endif
 {
 #if (HasStatus)
@@ -27,6 +25,9 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
 #if (HasStatus)
         return await Filter(db.{{Set}}, search, status).CountAsync(cancellationToken);
@@ -36,13 +37,16 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
     }
 
 #if (HasStatus)
-    public async ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search, {{StatusType}}? status)
+    public async ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search, {{StatusType}}? status)
 #else
-    public async ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search)
+    public async ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search)
 #endif
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(request.CancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
 #if (HasStatus)
         var query = Filter(db.{{Set}}.AsNoTracking(), search, status);
@@ -52,18 +56,24 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
         return await request.ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
     }
 
-    public async Task<{{Model}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
+    public async Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
         return await db.{{Set}}.FindAsync([id], cancellationToken);
     }
 
-    public async Task AddAsync({{Model}} item, CancellationToken cancellationToken = default)
+    public async Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
 #if (KeyIsText)
         if (string.IsNullOrEmpty(item.{{Key}})) item.{{Key}} = Guid.NewGuid().ToString("N");
@@ -72,10 +82,13 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync({{Model}} item, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync({{ModelType}} item, CancellationToken cancellationToken = default)
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
         db.{{Set}}.Update(item);
         await db.SaveChangesAsync(cancellationToken);
@@ -85,6 +98,9 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
 #endif
         if (await db.{{Set}}.FindAsync([id], cancellationToken) is not { } item) return true;
         db.{{Set}}.Remove(item);
@@ -101,9 +117,9 @@ public sealed class Ef{{Model}}Store({{Context}} db) : I{{Model}}Store
     }
 
 #if (HasStatus)
-    private static IQueryable<{{Model}}> Filter(IQueryable<{{Model}}> query, string? search, {{StatusType}}? status)
+    private static IQueryable<{{ModelType}}> Filter(IQueryable<{{ModelType}}> query, string? search, {{StatusType}}? status)
 #else
-    private static IQueryable<{{Model}}> Filter(IQueryable<{{Model}}> query, string? search)
+    private static IQueryable<{{ModelType}}> Filter(IQueryable<{{ModelType}}> query, string? search)
 #endif
     {
 #if (HasSearch)
