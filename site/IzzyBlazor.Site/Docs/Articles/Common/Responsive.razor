@@ -24,6 +24,10 @@
             </table>
         </Prose>
         <TextBlock>
+            <Code>HiddenFrom</Code> and <Code>VisibleFrom</Code> also take <Code>Breakpoint.Xxl</Code>, from 1536px. Maps
+            stop at <Code>Xl</Code>.
+        </TextBlock>
+        <TextBlock>
             Each value applies from its breakpoint up, until a larger breakpoint replaces it. Only the values you set
             produce CSS, so <Code>new() { Md = 6 }</Code> keeps the component's own value below 768px.
         </TextBlock>
@@ -55,7 +59,8 @@
         <Heading Level="2">Sized by the container</Heading>
         <TextBlock>
             A <Anchor Href="docs/components/form">Form</Anchor> or <Anchor Href="docs/components/fieldset">Fieldset</Anchor>
-            with <Code>Columns</Code> set to a plain number follows its own width, not the screen's. So the same form fits
+            with <Code>Columns</Code> follows its own width, not the screen's: its <Code>Columns</Code> is a number, not a
+            map. So the same form fits
             a page, a dialog and a drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with
             <Code>MinChildWidth</Code> fits as many columns as there's room for.
         </TextBlock>

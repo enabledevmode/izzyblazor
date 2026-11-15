@@ -6,12 +6,12 @@
 <ArticlePage Section="accessibility" Slug="pointer-and-touch">
     <Lead>
         Targets are at least 24 by 24 pixels, or have room around them, as WCAG 2.2 asks; the one exception is listed
-        below. Most drags can also be done with single clicks, through a button or a menu.
+        below. Every drag can also be done with single clicks, through a button or a menu.
     </Lead>
     <ChildContent>
         <Heading Level="2">Target sizes</Heading>
         <TextBlock>
-            Buttons and icon buttons are at least 32 pixels tall, even at the small size. A checkbox, radio or switch is clicked
+            Buttons and icon buttons are at least 32 pixels tall at the small size, and 28 at Compact density. A checkbox, radio or switch is clicked
             through its whole label. Small icons inside a field or a tab, such as a clear button or a tab's close button, keep
             their small look but take clicks from a 24-pixel area around them.
         </TextBlock>
@@ -55,13 +55,15 @@
         new("DataGrid: change the order of grouping levels", "Click a level's chip for its menu: Move left, Move right"),
         new("DataGrid: choose and order columns", "The column picker's checkboxes and each row's handle menu"),
         new("ListView and DropZoneGroup: move an item", "The handle's or the item's menu, including Move to another zone"),
-        new("PickList: move items across", "The move buttons between the lists, or a double-click"),
+        new("PickList: move items across, or reorder the chosen ones", "The move buttons between the lists, a double-click, or the Move up and Move down buttons"),
+        new("TreeList: move a row under another", "Click the row's handle, or its Move action, for a dialog to choose its new parent"),
+        new("TileLayout: move or resize a tile", "The tile handle's menu: Move left, Move right, Move up, Move down, Wider, Narrower, Taller and Shorter"),
         new("Scheduler: move or resize an appointment", "Click it and change its times in the form"),
         new("Splitter: resize a pane", "Click the bar for its menu: Wider, Narrower, Reset size and Collapse"),
-        new("Chart: zoom and pan", "The Zoom in, Zoom out and Reset zoom buttons by the title; a ChartRangeSelector's preset ranges"),
+        new("Chart: zoom and pan", "The Zoom in, Zoom out and Reset zoom buttons, by the title or as a ChartZoom and ChartResetZoom in a tile or card; a ChartRangeSelector's preset ranges"),
         new("Carousel: swipe", "The previous and next buttons and the dots"),
         new("Slider, RangeSlider, ColorPanel", "Click where you want the value"),
         new("RangeSelector: move the window", "Click the strip, or choose a preset range"),
-        new("FileUpload: drop a file", "The Choose a file link"),
+        new("FileUpload: drop a file", "Its Choose a file (or Choose files) button, which opens the file picker"),
     ];
 }

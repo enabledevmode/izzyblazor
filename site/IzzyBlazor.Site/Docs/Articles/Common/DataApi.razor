@@ -22,14 +22,22 @@
         <Code Block Language="csharp" Title="Program.cs (server)" HighlightLines="8,11">@Server</Code>
         <TextBlock>
             The query string looks like <Code>sort=-placed&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code> (shown
-            unescaped). It adds <Code>total=false</Code> when the component doesn't need the count. To send the request in
+            unescaped). It adds <Code>total=false</Code> when the component doesn't need the count, and a TreeList's
+            <Code>parent</Code> and <Code>branch</Code>. To send the request in
             a POST instead, serialize it with <Code>System.Text.Json</Code>.
         </TextBlock>
         <TextBlock>
             The request names fields by the client's column keys, so the server's fields need the same keys. With the same
             row type they match. A column on a path, such as <Code>o =&gt; o.Customer.Name</Code>, has the key
-            <Code>customer.name</Code>, so give it the <Code>SortKey</Code> of the server's field. See
-            <Anchor Href="docs/common/data#fields">Fields</Anchor>.
+            <Code>customer.name</Code>, so give it the <Code>SortKey</Code> of the server's field. For rows read by
+            <Code>DynamicColumn</Code>, build the server's fields with <Code>DataFields.ByName</Code>, by the same names and
+            types. See <Anchor Href="docs/common/data#fields">Fields</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            A DataGrid's <Code>GroupsProvider</Code> sends a <Code>DataGroupRequest</Code>, and a column's
+            <Code>FilterValues</Code> a <Code>FilterValuesRequest</Code>, the same way: write each with
+            <Code>ToQueryString()</Code>, and read it on the server with <Code>Parse</Code>. Answer a group request with
+            <Code>ToResultAsync</Code> through the same fields, and a value list with <Code>DataFields.LoadValuesAsync</Code>.
         </TextBlock>
 
         <Heading Level="2">Filters as text</Heading>

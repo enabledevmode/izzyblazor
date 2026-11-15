@@ -40,11 +40,13 @@
         <ExampleViewer Example="box-borders" />
         <TextBlock>
             On their own, <Code>BorderColor</Code> recolors a component's border and <Code>BorderStyle</Code> restyles a
-            card's.
+            card's, or a bordered EmptyState's.
         </TextBlock>
         <TextBlock>
-            Size props set a component's width and height. <Code>Width</Code>, <Code>Height</Code> and their minimums and
-            maximums accept a <Code>Length</Code>. <Code>Overflow</Code> sets what happens to content that doesn't fit:
+            Size props set a component's width and height. <Code>Width</Code>, <Code>MinWidth</Code> and <Code>MaxWidth</Code>
+            are on nearly every component. <Code>Height</Code>, <Code>MinHeight</Code>, <Code>MaxHeight</Code> and
+            <Code>Overflow</Code> are on boxes and containers. All of them accept a <Code>Length</Code>. <Code>Overflow</Code>
+            sets what happens to content that doesn't fit:
             <Code>MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"</Code> scrolls it.
         </TextBlock>
 
@@ -78,7 +80,7 @@
         <Code Block Language="razor">@Items</Code>
         <TextBlock>
             For anything the props don't cover, set <Code>Class</Code> and <Code>Style</Code>. They go on the same element as
-            the item props. On <Code>Menu</Code>, <Code>Popover</Code> and <Code>Tooltip</Code>, item props go on the
+            the item props. On <Code>Menu</Code>, <Code>ContextMenu</Code>, <Code>Popover</Code> and <Code>Tooltip</Code>, item props go on the
             trigger, and <Code>Class</Code> and <Code>Style</Code> go on the panel.
         </TextBlock>
 
