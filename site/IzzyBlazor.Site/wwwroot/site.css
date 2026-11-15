@@ -54,6 +54,8 @@
   gap: var(--ib-space-10);
 }
 .site-hero-intro {
+  /* The headline's size, which places the ember on its first line. */
+  --site-hero-title-size: clamp(2rem, 9.6vw - 0.1rem, 4.5rem);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -62,54 +64,126 @@
   max-width: 47.5rem;
   text-align: center;
 }
-/* The knob as a watermark behind the headline: Ember alone, the rings adding up to about a quarter
-   at the center in light mode, over a third in dark, centered on the headline's top so the
-   header doesn't cut through them. */
+/* The ember behind the headline (the design agent's hero-ember-preview). In dark mode, rings centered
+   on the middle of the headline's first line; in light, one soft glow a little higher, so its
+   brightest part sits behind the ink line, and a little smaller. */
 .site-hero-glow {
+  --site-hero-glow-size: calc(44rem * var(--site-hero-glow-scale));
+  --site-hero-glow-y: calc(var(--site-hero-title-size) * var(--site-hero-glow-line));
   position: absolute;
   z-index: -1;
-  top: 0;
+  top: var(--site-hero-glow-y);
   left: 50%;
-  width: 36rem;
-  height: 36rem;
+  width: var(--site-hero-glow-size);
+  height: var(--site-hero-glow-size);
   translate: -50% -50%;
-  /* The rings are drawn at dark mode's strength; on Paper two thirds of it is enough. On Ink, less
-     than that mixes Ember to brown. */
+  overflow: visible;
   opacity: var(--site-hero-glow);
-  /* The rings reach above the hero's top edge: they fade out before it, so no line cuts them. */
-  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top)), #000 calc(50% + 1.5rem));
+  /* The ember reaches above the hero's top edge: it fades in over the hero's first 3rem, so no line
+     cuts it there and its core stays bright. */
+  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top) - var(--site-hero-glow-y)), #000 calc(50% + 3rem - var(--site-hero-top) - var(--site-hero-glow-y)));
   pointer-events: none;
 }
+.site-hero-glow circle { transform-box: fill-box; transform-origin: center; }
+.site-ember-ring { display: var(--site-hero-rings); }
+.site-ember-soft { display: var(--site-hero-soft); }
+.site-ember-flare { opacity: 0; fill: var(--site-hero-flare); fill-opacity: var(--site-hero-flare-opacity); }
+.site-hero-sparks {
+  position: absolute;
+  z-index: -1;
+  top: var(--site-hero-glow-y);
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.site-hero-sparks i {
+  position: absolute;
+  left: calc(var(--x) * 44rem * var(--site-hero-glow-scale));
+  top: calc(var(--y) * 44rem * var(--site-hero-glow-scale));
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: var(--site-hero-spark);
+  opacity: 0;
+}
+/* On load: the core lights and the rings bloom outward one by one, one soft flare, a few sparks rise,
+   then the ember rests lit. Under 5 seconds (WCAG 2.2.2), transform and opacity only, and none of it
+   with reduced motion, which gets the resting ember. */
+@media (prefers-reduced-motion: no-preference) {
+  .site-hero { --site-ember-k: 1.6; }
+  .site-ember-ring { animation: site-ember-in calc(900ms * var(--site-ember-k)) cubic-bezier(.2, .7, .2, 1) calc(var(--i) * 120ms * var(--site-ember-k)) both; }
+  .site-ember-soft { animation: site-ember-in calc(1600ms * var(--site-ember-k)) cubic-bezier(.2, .7, .2, 1) both; }
+  .site-ember-flare { animation: site-ember-breath calc(1400ms * var(--site-ember-k)) ease-in-out calc(1400ms * var(--site-ember-k)) both; }
+  .site-hero-sparks i { animation: site-ember-rise calc(var(--d) * var(--site-ember-k)) ease-out calc(var(--t) * var(--site-ember-k)) both; }
+  .site-shell-home .site-logo-knob { transform-box: fill-box; transform-origin: center; animation: site-ember-knob 1.1s cubic-bezier(.2, .7, .2, 1) both; }
+}
+@keyframes site-ember-in { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: scale(1); } }
+@keyframes site-ember-breath { 0% { opacity: 0; } 45% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes site-ember-rise {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  15% { opacity: .9; }
+  50% { transform: translate(var(--sway), -70px) scale(.85); }
+  100% { opacity: 0; transform: translate(calc(var(--sway) * -.5), -150px) scale(.5); }
+}
+@keyframes site-ember-knob { 0% { opacity: 0; transform: scale(.4); } 60% { opacity: 1; transform: scale(1.15); } 100% { transform: scale(1); } }
 /* The hero's light and dark: the glow's strength and the frames' pictures (below). The scheme is
    decided as the library decides it (tokens.css): data-ib-color-scheme on <html>, else IzzyTheme's
    meta (the user's choice, from its cookie, there at the first paint, before any script sets the
    attribute), else the system's. */
 :root {
-  --site-hero-glow: 0.667;
+  --site-hero-glow: 1;
+  --site-hero-glow-scale: 0.91;
+  --site-hero-glow-line: 0.11;
+  --site-hero-rings: none;
+  --site-hero-soft: inline;
+  --site-hero-flare: #ffb020;
+  --site-hero-flare-opacity: 0.25;
+  --site-hero-spark: radial-gradient(circle, #f26a1b 0 35%, rgb(224 89 15 / .8) 50%, rgb(224 89 15 / 0) 72%);
   --site-hero-poster-desktop: url("img/home/store-desktop-light.webp");
   --site-hero-poster-phone: url("img/home/store-phone-light.webp");
 }
 :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
   --site-hero-glow: 1;
+  --site-hero-glow-scale: 1;
+  --site-hero-glow-line: 0.52;
+  --site-hero-rings: inline;
+  --site-hero-soft: none;
+  --site-hero-flare: #ffb020;
+  --site-hero-flare-opacity: 0.22;
+  --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
   --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
   --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
     --site-hero-glow: 1;
+    --site-hero-glow-scale: 1;
+    --site-hero-glow-line: 0.52;
+    --site-hero-rings: inline;
+    --site-hero-soft: none;
+    --site-hero-flare: #ffb020;
+    --site-hero-flare-opacity: 0.22;
+    --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
     --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
     --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
   }
 }
+/* Phones and tablets, as the design's 375px frame has it: a smaller ember (32rem in dark, 30 in light),
+   the sparks with it, centered lower against the smaller headline (1.06 of its size in dark, 0.47 in light). */
 @media (max-width: 63.98rem) {
-  .site-hero-glow { width: 28rem; height: 28rem; }
+  :root { --site-hero-glow-scale: 0.68; --site-hero-glow-line: 0.47; }
+  :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) { --site-hero-glow-scale: 0.727; --site-hero-glow-line: 1.06; }
+}
+@media (max-width: 63.98rem) and (prefers-color-scheme: dark) {
+  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) { --site-hero-glow-scale: 0.727; --site-hero-glow-line: 1.06; }
 }
 
 /* 72px on wide screens, about 35px on phones (clear of the edges, two lines): the library's
    largest heading size is 60px. */
 .site-hero-title.site-hero-title {
   font-family: "Bricolage Grotesque", var(--ib-font-heading);
-  font-size: clamp(2rem, 9.6vw - 0.1rem, 4.5rem);
+  font-size: var(--site-hero-title-size);
   font-weight: 700;
   line-height: 1.04;
   letter-spacing: -0.03em;
@@ -331,10 +405,11 @@
     padding-inline: max(var(--ib-space-6), round(down, var(--ib-shell-measure-pad), 1px));
   }
   .site-shell-demos .site-article { padding-inline-end: var(--ib-space-6); }
-  /* Home on wide screens: 32px at the sides, as the design's column has (D3, D4). */
+  /* Home on wide screens: 32px at the sides, as the design's column has (D3, D4). The header keeps
+     the docs' inset, so it doesn't move between pages. */
   @media (min-width: 64rem) {
     .site-shell-home > .ib-shell-main { --ib-bleed-gutter: var(--ib-space-8); }
-    .site-shell-home > :is(.ib-shell-header, .ib-shell-footer) {
+    .site-shell-home > .ib-shell-footer {
       padding-inline: max(var(--ib-space-8), round(down, var(--ib-shell-measure-pad), 1px));
     }
   }

@@ -1,9 +1,9 @@
 @inherits LayoutComponentBase
 
-@* The design's column (SiteWidths.Home, boards D3 and D4): the header, the hero and every section
-   on the same 1216px, centered. *@
+@* The design's column (SiteWidths.Home, boards D3 and D4): the hero and every section on the same
+   1216px, centered. The header is the docs' (SiteWidths.Bars), so it doesn't move between pages. *@
 <AppShell ContentWidth="Length.Rem(SiteWidths.Home)" Class="site-shell-home">
-    <SiteHeader />
+    <SiteHeader ContentWidth="Length.Rem(SiteWidths.Bars)" />
     <AppMain>
         @Body
     </AppMain>
