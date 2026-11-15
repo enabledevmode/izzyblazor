@@ -243,14 +243,15 @@
   white-space: nowrap;
 }
 @media (min-width: 64rem) {
-  /* The window as wide as the page, scaled by --w (1280px wide at 1), with the phone over its lower
-     start corner; both run into the hero's end, which cuts them off 600px down at full size (the
+  /* The window as wide as the page's content, lined up with the header and the sections below:
+     scaled by --w (up to 0.9), its page laid out as wide as that takes (1280px or more), with the
+     phone over its lower start corner; both run into the hero's end, which cuts them off 600px down at full size (the
      stat cards and the top of the chart show). The frames keep their whole screens, so the page
      in them lays out as on a real one (a phone's fixed button stays at its bottom); their boxes
      cut them, and scroll to bring anything focused below the cut into view. */
   .site-hero-grid { gap: var(--ib-space-14); }
   .site-hero-note { display: none; }
-  .site-hero-stage { --w: 0.68; container: hero-stage / inline-size; display: block; width: 100%; max-width: calc(1152px + 2px); }
+  .site-hero-stage { --w: 0.68; container: hero-stage / inline-size; display: block; width: 100%; }
   .site-hero-window {
     --s: var(--w);
     display: flex;
@@ -262,14 +263,15 @@
   }
   .site-hero-window .site-hero-screen { flex: 1 1 auto; min-height: 0; }
   .site-hero-window iframe {
-    width: 1280px;
+    --frame-w: calc((100cqi - 2px) / var(--s));
+    width: var(--frame-w);
     height: 940px;
-    margin: 0 calc(1280px * (var(--s) - 1)) calc(940px * (var(--s) - 1)) 0;
+    margin: 0 calc(var(--frame-w) * (var(--s) - 1)) calc(940px * (var(--s) - 1)) 0;
   }
   .site-hero-phone {
     --s: calc(0.62 * var(--w));
     position: absolute;
-    left: -1.75rem;
+    left: calc(-1 * min(1.75rem, var(--ib-bleed-gutter, 1.5rem) - 0.25rem));
     top: calc(263px * var(--w));
     height: calc(337px * var(--w));
     overflow: hidden;
@@ -291,7 +293,7 @@
   }
   .site-hero-stage:focus-within::after { opacity: 0; }
 }
-/* --w: the window's scale: as wide as the stage lets it be, 0.9 at most. */
+/* --w: the window's scale: 1280px of page as wide as the stage, 0.9 at most (wider stages lay the page out wider). */
 @container hero-stage (min-width: 880px) { .site-hero-stage > * { --w: 0.68; } }
 @container hero-stage (min-width: 904px) { .site-hero-stage > * { --w: 0.70; } }
 @container hero-stage (min-width: 928px) { .site-hero-stage > * { --w: 0.72; } }
