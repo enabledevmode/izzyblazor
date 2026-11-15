@@ -333,7 +333,7 @@ static partial class ModelReader
             ? Safe(literal.Token.ValueText) : null;
 
     // A label goes into C# strings and Razor attributes: quotes, backslashes, braces and @ would end or open one.
-    static string Safe(string text) => text.Replace('"', '\'').Replace('\\', '/').Replace('{', '(').Replace('}', ')').Replace("@", " at ");
+    internal static string Safe(string text) => text.Replace('"', '\'').Replace('\\', '/').Replace('{', '(').Replace('}', ')').Replace("@", " at ");
 
     static int MaxLength(SyntaxList<AttributeListSyntax> lists) =>
         (AttributeArgument(lists, "StringLength") ?? AttributeArgument(lists, "MaxLength")) is { } text && int.TryParse(text, out var n) ? n : 0;

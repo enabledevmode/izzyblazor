@@ -127,6 +127,7 @@
     [
         new("--mode grid", "One page where the grid adds, edits and deletes in a dialog, for short records such as tags or plans."),
         new("--name <Plural>", "The folder, the pages' names and the title. Defaults to the model's plural: Customers."),
+        new("--singular <words>", "What one record is called on the pages, when it isn't the class's name: --singular \"team member\" for Member. --plural sets the other, when adding an s isn't it."),
         new("--route <path>", "The address the pages start at. Defaults to the name in kebab case: customers."),
         new("--store ef|memory", "Where the records are kept. ef needs a DbSet of the model; --context picks the DbContext when two have one."),
         new("--authorize", "Only signed-in people can open the pages. On when the app has accounts."),

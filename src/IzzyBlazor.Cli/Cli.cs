@@ -24,7 +24,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy list [--kind starter|page|block|section|recipe] [--json]
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy add crud <Model> [--name <Plural>] [--route <path>] [--mode Pages|Grid] [--store Ef|Memory] [--context <DbContext>] [--authorize]
+          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Pages|Grid] [--store Ef|Memory] [--context <DbContext>] [--authorize]
           izzy new <starter> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
 

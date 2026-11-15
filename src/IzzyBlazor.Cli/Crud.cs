@@ -35,6 +35,9 @@ static partial class Crud
         string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
 
         var name = Given("Name") ?? Plural(info.Name);
+        // The words people see, when the class's name isn't them ("team member" for Member); the plural follows.
+        var singular = Display(Given("Singular")) ?? Words(info.Name);
+        var plural = Display(Given("Plural")) ?? (Given("Singular") is not null ? Plural(singular) : Words(name));
         if (!Regex.IsMatch(name, @"^[A-Za-z_][A-Za-z0-9_]*$"))
             throw new UsageException($"--name is a C# name, such as Customers, not \"{name}\": it names the folder and the components.");
         var route = (Given("Route") ?? Kebab(name)).Trim('/');
@@ -59,7 +62,7 @@ static partial class Crud
             context = contexts[0];
             settings["Context"] = context.Name;
         }
-        else notes.Add($"The {Words(name).ToLowerInvariant()} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
+        else notes.Add($"The {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
         // A key the database doesn't make (an invoice number, or an int with [DatabaseGenerated(None)]) is typed on New.
         var keyInput = !info.KeyGenerated && info.Key.Kind != FieldKind.Guid;
         if (keyInput && (Given("Mode") ?? "Pages").Equals("Grid", StringComparison.OrdinalIgnoreCase))
@@ -72,6 +75,8 @@ static partial class Crud
 
         settings["Model"] = info.Name;
         settings["Name"] = name;
+        settings["Singular"] = singular;
+        settings["Plural"] = plural;
         settings["Route"] = route;
         settings["Store"] = store;
         settings["Authorize"] = authorize;
@@ -163,11 +168,11 @@ static partial class Crud
         var tokens = new Dictionary<string, string>(project.Tokens)
         {
             ["ModelType"] = modelType,
-            ["Singular"] = Words(info.Name),
-            ["SingularLower"] = Lower(Words(info.Name)),
-            ["Article"] = Article(Lower(Words(info.Name))),
-            ["Plural"] = Words(name),
-            ["PluralLower"] = Lower(Words(name)),
+            ["Singular"] = singular,
+            ["SingularLower"] = Lower(singular),
+            ["Article"] = Article(Lower(singular)),
+            ["Plural"] = plural,
+            ["PluralLower"] = Lower(plural),
             // The store is the model's, whatever --name the pages have, so a second run with another name matches it.
             ["ModelPlural"] = Words(Plural(info.Name)),
             ["ModelPluralLower"] = Lower(Words(Plural(info.Name))),
@@ -190,15 +195,15 @@ static partial class Crud
             // A record's name in an interpolated string over x: its title field, or "Reading 3" when it has none.
             ["RowName"] = last is not null ? $"{{x.{title!.Name}}} {{x.{last.Name}}}"
                 : title is { Required: true } ? $"{{x.{title.Name}}}"
-                : title is not null ? $"{{(string.IsNullOrWhiteSpace(x.{title.Name}) ? \"{Words(info.Name)} \" + x.{info.Key.Name} : x.{title.Name})}}"
-                : $"{Words(info.Name)} {{x.{info.Key.Name}}}",
+                : title is not null ? $"{{(string.IsNullOrWhiteSpace(x.{title.Name}) ? \"{singular} \" + x.{info.Key.Name} : x.{title.Name})}}"
+                : $"{singular} {{x.{info.Key.Name}}}",
             ["TitleSortField"] = (last ?? title ?? info.Key).Name,
             // A string key goes in a URL escaped (INV/001); a number or Guid as it is.
             ["UrlKey"] = info.Key.Kind == FieldKind.Text ? "Uri.EscapeDataString(key)" : "key",
             ["KeyLabel"] = info.Key.Label,
             ["KeyLabelLower"] = Lower(info.Key.Label),
             ["IdInit"] = info.Key.Kind == FieldKind.Text ? " = \"\";" : "",
-            ["TitleLabel"] = last is not null ? "Name" : title?.ShortLabel ?? Words(info.Name),
+            ["TitleLabel"] = last is not null ? "Name" : title?.ShortLabel ?? singular,
             ["TitleSortKey"] = titleKey,
             ["InitialSort"] = sortDate is not null ? "-" + sortDate.Name.ToLowerInvariant() : titleKey,
             ["SubtitleField"] = subtitle?.Name ?? "",
@@ -349,6 +354,10 @@ static partial class Crud
         };
         return head + plural;
     }
+
+    // A display name as given, capitalized, without characters that would end a string or attribute; null when none.
+    static string? Display(string? text) =>
+        string.IsNullOrWhiteSpace(text) ? null : ModelReader.Safe(char.ToUpperInvariant(text.Trim()[0]) + text.Trim()[1..]);
 
     static string Kebab(string name) => Regex.Replace(name, @"(?<=[a-z0-9])(?=[A-Z])", "-").ToLowerInvariant();
 
