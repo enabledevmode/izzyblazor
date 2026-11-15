@@ -24,6 +24,12 @@ public static class SiteWidths
     /// <summary>The header and footer content: the columns minus the text inset on each side.</summary>
     public const double Bars = Docs - 2 * TextInset;
 
+    /// <summary>
+    /// The home page's column, header included, as the design draws it (boards D3 and D4): 1280px
+    /// with 32px on each side, so 1216px of content. In rem.
+    /// </summary>
+    public const double Home = 76;
+
     /// <summary>The demos: sidebar and content, the content taking the outline's room. In rem.</summary>
     public const double Demos = Docs;
 }

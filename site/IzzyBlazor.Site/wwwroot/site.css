@@ -119,7 +119,6 @@
 .site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
 .site-hero-sub { max-width: 34em; margin-block-start: 1.375rem; }
 .site-hero-actions { display: flex; gap: var(--ib-space-3); margin-block-start: var(--ib-space-8); }
-.site-hero .site-install { margin-block-start: var(--ib-space-5); background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
 /* Standalone links (an action, not a link in a sentence): Medium, an arrow, no underline until
    hover. In the accent (Ember text) on their own; in the text color inside the hero's muted label. */
 .site-action { display: inline-flex; align-items: center; gap: var(--ib-space-1); font-weight: 500; }
@@ -127,26 +126,8 @@
 .site-action-accent { color: var(--site-ember-text); }
 .site-hero-demo .site-action { color: var(--ib-color-on-surface); }
 @media (max-width: 63.98rem) {
-  /* Phones and tablets: the buttons and the command full width, the main button first. */
+  /* Phones and tablets: the buttons full width, the main button first. */
   .site-hero-actions { flex-direction: column; align-self: stretch; }
-  .site-hero .site-install { align-self: stretch; width: auto; }
-}
-@media (max-width: 63.98rem) {
-  /* The command never wraps: should it not fit, it scrolls on its own, fading at the edge, while
-     the $ and the copy button stay in view. */
-  .site-hero .site-install { overflow: hidden; }
-  .site-hero .site-install code {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-    text-align: start;
-    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
-  }
-  .site-hero .site-install > :last-child { flex: none; }
-}
-@media (max-width: 26rem) {
-  .site-hero .site-install code { font-size: 0.78rem; }
 }
 
 /* The demo under the text. Below 1024px, with the phone alone, a line under it says it's live
@@ -243,9 +224,8 @@
   white-space: nowrap;
 }
 @media (min-width: 64rem) {
-  /* The window as wide as the page's content, lined up with the header and the sections below:
-     scaled by --w (up to 0.9), its page laid out as wide as that takes (1280px or more), with the
-     phone over its lower start corner; both run into the hero's end, which cuts them off 600px down at full size (the
+  /* As the design draws it (D4, option A): the window as wide as the page's column (1216px, 0.95
+     of its page's 1280px), scaled by --w, with the phone 28px outside its lower start corner; both run into the hero's end, which cuts them off 600px down at full size (the
      stat cards and the top of the chart show). The frames keep their whole screens, so the page
      in them lays out as on a real one (a phone's fixed button stays at its bottom); their boxes
      cut them, and scroll to bring anything focused below the cut into view. */
@@ -262,6 +242,7 @@
     border-end-end-radius: 0;
   }
   .site-hero-window .site-hero-screen { flex: 1 1 auto; min-height: 0; }
+  /* Its page fills the window at that scale: 1280px wide, or a little more between the steps. */
   .site-hero-window iframe {
     --frame-w: calc((100cqi - 2px) / var(--s));
     width: var(--frame-w);
@@ -271,7 +252,8 @@
   .site-hero-phone {
     --s: calc(0.62 * var(--w));
     position: absolute;
-    left: calc(-1 * min(1.75rem, var(--ib-bleed-gutter, 1.5rem) - 0.25rem));
+    /* 28px outside the window; less where the screen's edge is closer than that. */
+    left: calc(-1 * min(1.75rem, (100vw - 100cqi) / 2 - 0.5rem));
     top: calc(263px * var(--w));
     height: calc(337px * var(--w));
     overflow: hidden;
@@ -293,7 +275,7 @@
   }
   .site-hero-stage:focus-within::after { opacity: 0; }
 }
-/* --w: the window's scale: 1280px of page as wide as the stage, 0.9 at most (wider stages lay the page out wider). */
+/* --w: the window's scale: 1280px of page as wide as the stage, up to 0.95 (the design's 1216px). */
 @container hero-stage (min-width: 880px) { .site-hero-stage > * { --w: 0.68; } }
 @container hero-stage (min-width: 904px) { .site-hero-stage > * { --w: 0.70; } }
 @container hero-stage (min-width: 928px) { .site-hero-stage > * { --w: 0.72; } }
@@ -306,7 +288,10 @@
 @container hero-stage (min-width: 1096px) { .site-hero-stage > * { --w: 0.85; } }
 @container hero-stage (min-width: 1120px) { .site-hero-stage > * { --w: 0.87; } }
 @container hero-stage (min-width: 1144px) { .site-hero-stage > * { --w: 0.89; } }
-@container hero-stage (min-width: 1154px) { .site-hero-stage > * { --w: 0.9; } }
+@container hero-stage (min-width: 1168px) { .site-hero-stage > * { --w: 0.91; } }
+@container hero-stage (min-width: 1192px) { .site-hero-stage > * { --w: 0.92; } }
+@container hero-stage (min-width: 1216px) { .site-hero-stage > * { --w: 0.94; } }
+@container hero-stage (min-width: 1218px) { .site-hero-stage > * { --w: 0.95; } }
 
 .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
@@ -346,6 +331,13 @@
     padding-inline: max(var(--ib-space-6), round(down, var(--ib-shell-measure-pad), 1px));
   }
   .site-shell-demos .site-article { padding-inline-end: var(--ib-space-6); }
+  /* Home on wide screens: 32px at the sides, as the design's column has (D3, D4). */
+  @media (min-width: 64rem) {
+    .site-shell-home > .ib-shell-main { --ib-bleed-gutter: var(--ib-space-8); }
+    .site-shell-home > :is(.ib-shell-header, .ib-shell-footer) {
+      padding-inline: max(var(--ib-space-8), round(down, var(--ib-shell-measure-pad), 1px));
+    }
+  }
   /* The outline column comes last in the HTML, after the content; the browser paints before it
      arrives, so an auto track would start empty and the whole group would slide over when it
      came. Docs pages always have it from 1536px (AppAside's Xxl breakpoint): keep its 15rem
