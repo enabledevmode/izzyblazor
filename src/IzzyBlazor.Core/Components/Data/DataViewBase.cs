@@ -89,6 +89,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>The text when there are no items. Defaults to "No items".</summary>
     [Parameter] public string? EmptyText { get; set; }
 
+    /// <summary>
+    /// A grid's text when its search matches no rows, with <c>{0}</c> for the words: "No customers match “{0}”".
+    /// Defaults to "No matches for “{0}”". <see cref="EmptyContent"/> is for when there are no rows at all.
+    /// </summary>
+    [Parameter] public string? NoMatchesText { get; set; }
+
     /// <summary>Shown in place of "Couldn't load the rows." when loading fails, before the Retry button.</summary>
     [Parameter] public RenderFragment? ErrorContent { get; set; }
 

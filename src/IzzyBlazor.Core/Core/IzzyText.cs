@@ -457,8 +457,14 @@ public class IzzyText
     /// <summary>For screen readers, when a MultiSelect with <c>AllowCustom</c> takes a typed value: "Added {0}." {0} is the value.</summary>
     public virtual string Added { get; set; } = "Added {0}.";
 
-    /// <summary>Combobox and MultiSelect when nothing matches.</summary>
+    /// <summary>Combobox and MultiSelect when nothing matches; a table whose filters match no rows.</summary>
     public virtual string NoMatches { get; set; } = "No matches";
+
+    /// <summary>A grid whose search matches no rows: "No matches for “{0}”". {0} is what was searched for.</summary>
+    public virtual string NoMatchesFor { get; set; } = "No matches for “{0}”";
+
+    /// <summary>The way back from a search that matched no rows.</summary>
+    public virtual string ClearSearch { get; set; } = "Clear search";
 
     /// <summary>The box above a CheckboxGroup's options that checks or clears them all (<c>SelectAll</c>).</summary>
     public virtual string SelectAll { get; set; } = "Select all";

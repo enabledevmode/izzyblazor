@@ -1267,6 +1267,20 @@
     internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) =>
         base.Shape(request, sortRaw) with { Search = CurrentSearch };
 
+    internal override string? EmptySearch => CurrentSearch;
+
+    internal override string ClearSearchHref => LinkWith(new() { [SearchKey] = null, [PageKey] = null, [CursorKey] = null });
+
+    internal override async Task ClearSearchAsync()
+    {
+        _stateSearch = _searchShown = _reportedSearch = null;
+        var (pageWas, cursorWas) = (_statePage, _stateCursor);
+        (_statePage, _stateCursor) = (1, null);
+        await SearchChanged.InvokeAsync(null);
+        await ReportFirstPageAsync(pageWas, cursorWas);
+        await ReloadIfStaleAsync();
+    }
+
     private async Task OnSearchAsync(ChangeEventArgs e)
     {
         _stateSearch = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : e.Value!.ToString();
@@ -1499,7 +1513,8 @@
             var all = Details.AllOpen;
             var label = all ? TextDefaults.DetailCollapseAll : TextDefaults.DetailExpandAll;
             <th scope="col" class="@ExpanderClass" style="@ExpanderStyle">
-                @if (SingleDetail)
+                @* With no rows there's nothing to open: the column keeps only its name. *@
+                @if (SingleDetail || !IsLoading && _items.Count == 0)
                 {
                     <span class="ib-visually-hidden">@TextDefaults.DetailColumn</span>
                 }
@@ -2616,11 +2631,11 @@
                 <Trigger>
                     @if (showText)
                     {
-                        <Button Class="ib-grid-export" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" @attributes="context">@label</Button>
+                        <Button Class="ib-grid-export" StartIcon="icon" EndIcon="chevron" Disabled="@NothingToExport" @attributes="context">@label</Button>
                     }
                     else
                     {
-                        <Button Class="ib-grid-export ib-grid-export-icons" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" aria-label="@label" title="@label" @attributes="context" />
+                        <Button Class="ib-grid-export ib-grid-export-icons" StartIcon="icon" EndIcon="chevron" Disabled="@NothingToExport" aria-label="@label" title="@label" @attributes="context" />
                     }
                 </Trigger>
                 <ChildContent>@(((IDataGridToolbar)this).ExportMenu)</ChildContent>
@@ -2628,13 +2643,16 @@
         }
         else if (showText)
         {
-            <Button Href="@ExportHref(ExportLinks.First().Href)" StartIcon="icon" Disabled="@(_loadedRequest is null)" download>@label</Button>
+            <Button Href="@ExportHref(ExportLinks.First().Href)" StartIcon="icon" Disabled="@NothingToExport" download>@label</Button>
         }
         else
         {
-            <IconButton Href="@ExportHref(ExportLinks.First().Href)" Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" download />
+            <IconButton Href="@ExportHref(ExportLinks.First().Href)" Icon="icon" Label="@label" Disabled="@NothingToExport" download />
         }
     };
+
+    // Before the rows load, or with none to write, there's nothing to download.
+    private bool NothingToExport => _loadedRequest is null || !IsLoading && _items.Count == 0;
 
     RenderFragment IDataGridToolbar.ExportMenu => __builder =>
     {
@@ -2642,7 +2660,7 @@
         var icon = IconSet.Current.Get(IconPurpose.Export);
         foreach (var (label, href) in ExportLinks)
         {
-            <MenuItem Href="@ExportHref(href)" Icon="icon" Disabled="@(_loadedRequest is null)" download>@label</MenuItem>
+            <MenuItem Href="@ExportHref(href)" Icon="icon" Disabled="@NothingToExport" download>@label</MenuItem>
         }
     };
 

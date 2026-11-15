@@ -349,6 +349,18 @@
                                         {
                                             @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterNoneEmpty, unticked.FullName)
                                         }
+                                        else if (EmptySearch is { } words)
+                                        {
+                                            @* About the search, not the data: what was looked for, and the way back. *@
+                                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, NoMatchesText ?? TextDefaults.NoMatchesFor, words)
+                                            <div class="ib-table-empty-clear">
+                                                @ClearAction(true, () => ClearSearchHref, ClearSearchAsync, TextDefaults.ClearSearch)
+                                            </div>
+                                        }
+                                        else if (HasFilters && ActiveFilterCount > 0)
+                                        {
+                                            @TextDefaults.NoMatches
+                                        }
                                         else if (EmptyContent is not null)
                                         {
                                             @EmptyContent
@@ -801,6 +813,15 @@
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
     }
+
+    /// <summary>A grid's search when it matches no rows; null when there's none (a Table has none).</summary>
+    internal virtual string? EmptySearch => null;
+
+    /// <summary>The address without the search, back to the first page.</summary>
+    internal virtual string ClearSearchHref => "";
+
+    /// <summary>Clears a bound search.</summary>
+    internal virtual Task ClearSearchAsync() => Task.CompletedTask;
 
     private string ClearFiltersHref => LinkWith(
         _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ReadsFilterText ? [FilterTextKey] : []).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
