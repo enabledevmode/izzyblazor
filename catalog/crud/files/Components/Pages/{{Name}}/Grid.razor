@@ -1,0 +1,73 @@
+@page "/{{Route}}"
+@*#if (Authorize) *@
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@*#endif *@
+@using {{RootNamespace}}.Data
+@*#if (HasModelNamespace) *@
+@using {{ModelNamespace}}
+@*#endif *@
+@inject I{{Model}}Store Store
+
+<PageTitle>{{Plural}}</PageTitle>
+
+@* The {{PluralLower}} on one page, from izzy add crud --mode grid: the grid adds, edits and deletes in a
+   dialog it makes from the columns, and searches, sorts and pages in the database. Every action is an
+   address and a form post, so it works with no circuit. *@
+<Stack Gap="new() { Base = 6, Md = 8 }">
+    <PageHeader Title="{{Plural}}" />
+
+    <DataGrid TItem="{{Model}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" Caption="{{Plural}}" PageSize="10"
+              InitialSort="{{InitialSort}}" Searchable ColumnPicker ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
+              EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
+              NewItem="() => new {{Model}}()" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
+        <Columns>
+@*#each (Field in Fields) *@
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Label}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.EditableAttr}} Sortable />
+@*#endeach *@
+        </Columns>
+    </DataGrid>
+</Stack>
+
+@code {
+    // The grid's search goes to the store, which looks in more fields than the grid shows.
+@*#if (HasStatus) *@
+    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request with { Search = null }, request.Search, null);
+@*#else *@
+    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request with { Search = null }, request.Search);
+@*#endif *@
+
+    // The row an edit address (?edit=42) names, which may be on another page.
+    private Task<{{Model}}?> FindAsync(string key) => {{KeyParse}} is { } id ? Store.GetAsync(id) : Task.FromResult<{{Model}}?>(null);
+
+    private async Task SaveAsync(DataGridSave<{{Model}}> save)
+    {
+        var missing = false;
+@*#each (Field in FormFields) *@
+@*#if (Field.CheckRequired) *@
+        if (string.IsNullOrWhiteSpace(save.Item.{{Field.Name}}))
+        {
+            save.AddError(x => x.{{Field.Name}}, "Enter {{Field.Article}} {{Field.LabelLower}}.");
+            missing = true;
+        }
+@*#endif *@
+@*#endeach *@
+        if (missing) return;
+
+        if (save.IsNew)
+        {
+            await Store.AddAsync(save.Item);
+            return;
+        }
+        if (await Store.GetAsync(save.Item.{{Key}}) is { } saved)
+        {
+            save.CopyTo(saved);
+            await Store.UpdateAsync(saved);
+        }
+    }
+
+    private async Task DeleteAsync(DataGridDelete<{{Model}}> delete)
+    {
+        if (!await Store.DeleteAsync(delete.Item.{{Key}}))
+            delete.AddError("Other records point to this {{SingularLower}}. Delete or change those first.");
+    }
+}

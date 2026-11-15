@@ -24,9 +24,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy list [--kind starter|page|block|section|recipe] [--json]
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy add crud <Model> [--name <Plural>] [--route <path>] [--mode Pages|Grid] [--store Ef|Memory] [--context <DbContext>] [--authorize]
           izzy new <starter> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
 
+        izzy add crud makes list, detail and form pages (or one grid page, --mode Grid) for a model class in
+        your app, read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
         gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
@@ -149,7 +152,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int Add(Args args)
     {
-        var item = Item(args, "izzy add <item>");
+        // izzy add crud <Model>: the one item with a word after its id.
+        var crud = args.Words.Count == 3 && args.Words[1] == "crud";
+        if (args.Words is [_, "crud"]) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
+        var item = crud ? Catalog["crud"] : Item(args, "izzy add <item>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind == ItemKind.Starter)
             throw new UsageException($"{item.Manifest.Id} makes a new project: izzy new {item.Manifest.Id} -n <name>.");
@@ -159,7 +165,16 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             throw new UsageException($"{Path.GetFileName(host)} doesn't reference IzzyBlazor. Run izzy init first.");
         var at = Placement(args.Take("at"), project);
         var flags = Flags(args);
-        var changes = Generator.Generate(item, Settings(item.Manifest, args), project, at);
+        var settings = Settings(item.Manifest, args);
+        var notes = new List<string>();
+        if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes);
+        var changes = Generator.Generate(item, settings, project, at);
+        if (notes.Count > 0)
+            changes = new Changeset
+            {
+                Creates = changes.Creates, Inserts = changes.Inserts, Packages = changes.Packages, Conflicts = changes.Conflicts,
+                Warnings = [.. notes, .. changes.Warnings], Settings = changes.Settings, Restore = changes.Restore,
+            };
         return Finish(item, changes, project, project.Directory!, existing: true, flags);
     }
 

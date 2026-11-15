@@ -1,0 +1,154 @@
+@page "/{{Route}}/new"
+@page "/{{Route}}/{Id{{KeyConstraint}}}/edit"
+@*#if (Authorize) *@
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@*#endif *@
+@using Microsoft.AspNetCore.Components.Forms
+@using {{RootNamespace}}.Data
+@*#if (HasModelNamespace) *@
+@using {{ModelNamespace}}
+@*#endif *@
+@inject I{{Model}}Store Store
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+@* One form for a new {{SingularLower}} and for editing one, from izzy add crud. It posts with no circuit,
+   is checked on the server against {{Model}}'s attributes, and lists what to fix at the top. *@
+<PageTitle>@Title</PageTitle>
+
+<Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+    <Stack Gap="new() { Base = 7, Md = 8 }">
+        <Stack Gap="3">
+            <Breadcrumb>
+                <BreadcrumbItem Href="{{Route}}">{{Plural}}</BreadcrumbItem>
+                <BreadcrumbItem>@(IsNew ? Title : "Edit")</BreadcrumbItem>
+            </Breadcrumb>
+            <PageHeader Title="@Title" />
+        </Stack>
+
+        @if (Model is not null)
+        {
+            <Form Model="Model" FormName="{{SingularLower}}" RequiredMark="RequiredMark.Optional" Columns="2" OnValidSubmit="SaveAsync">
+                <FormErrors />
+@*#each (Field in FormFields) *@
+@*#if (Field.Kind == "Text") *@
+                <TextField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Email") *@
+                <TextField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Type="TextFieldType.Email" AutoComplete="email"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Phone") *@
+                <TextField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Type="TextFieldType.Tel" AutoComplete="tel"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Url") *@
+                <TextField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Type="TextFieldType.Url"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "LongText") *@
+                <TextArea @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Rows="4" ColSpan="2"{{Field.RequiredAttr}} />
+@*#elif (Field.Numeric) *@
+                <NumberField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Bool") *@
+                <Switch @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" ColSpan="2" />
+@*#elif (Field.Kind == "Date") *@
+                <DateField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "DateTime") *@
+                <DateField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Type="DateFieldType.DateTime"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Time") *@
+                <TimeField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
+@*#elif (Field.Radio) *@
+                <RadioGroup @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="Enum.GetValues<{{Field.EnumType}}>()" ItemText="{{Field.Name}}Text" Orientation="Orientation.Horizontal" ColSpan="2"{{Field.RequiredAttr}} />
+@*#elif (Field.Kind == "Enum") *@
+                <Select @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="Enum.GetValues<{{Field.EnumType}}>()" ItemText="{{Field.Name}}Text"{{Field.RequiredAttr}} />
+@*#else *@
+                <TextField Value="@Model.{{Field.Name}}.ToString()" Label="{{Field.Label}}" ReadOnly />
+@*#endif *@
+@*#endeach *@
+                <FormActions Justify="Justify.Start">
+                    <Button Submit>@(IsNew ? "Create {{SingularLower}}" : "Save changes")</Button>
+                    <Button Href="@Back" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                </FormActions>
+            </Form>
+        }
+    </Stack>
+</Container>
+
+@code {
+    [Parameter] public {{KeyType}}? Id { get; set; }
+
+    [SupplyParameterFromForm(FormName = "{{SingularLower}}")]
+    private {{Model}}? Model { get; set; }
+
+    private bool IsNew => Id is null;
+    private string Title => IsNew ? "New {{SingularLower}}" : "Edit {{SingularLower}}";
+    private string Back => IsNew ? "{{Route}}" : $"{{Route}}/{Id}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // A post brings the form's values; otherwise start empty, or from the {{SingularLower}} being edited.
+        if (Model is not null) return;
+        if (IsNew)
+        {
+            Model = new();
+            return;
+        }
+        var saved = await Store.GetAsync({{IdValue}});
+        if (saved is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        Model = new();
+        Copy(saved, Model);
+    }
+
+    private async Task SaveAsync(EditContext form)
+    {
+@*#each (Field in FormFields) *@
+@*#if (Field.CheckRequired) *@
+        if (string.IsNullOrWhiteSpace(Model!.{{Field.Name}})) Error(form, nameof({{Model}}.{{Field.Name}}), "Enter {{Field.Article}} {{Field.LabelLower}}.");
+@*#endif *@
+@*#endeach *@
+        if (form.GetValidationMessages().Any()) return;
+
+        if (IsNew)
+        {
+            await Store.AddAsync(Model!);
+            Toasts.Success("{{Singular}} saved");
+            Navigation.NavigateTo($"{{Route}}/{Model!.{{Key}}}");
+            return;
+        }
+        var saved = await Store.GetAsync({{IdValue}});
+        if (saved is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        Copy(Model!, saved);
+        await Store.UpdateAsync(saved);
+        Toasts.Success("{{Singular}} saved");
+        Navigation.NavigateTo($"{{Route}}/{Id}");
+    }
+
+    // Only the form's fields: what the form doesn't show is never taken from a post.
+    private static void Copy({{Model}} from, {{Model}} to)
+    {
+@*#each (Field in FormFields) *@
+        to.{{Field.Name}} = from.{{Field.Name}};
+@*#endeach *@
+    }
+
+    private static void Error(EditContext form, string field, string message)
+    {
+        var messages = new ValidationMessageStore(form);
+        messages.Add(form.Field(field), message);
+        form.NotifyValidationStateChanged();
+    }
+@*#each (Field in FormFields) *@
+@*#if (Field.Kind == "Enum") *@
+
+    private static string {{Field.Name}}Text({{Field.EnumType}} value) => value switch
+    {
+@*#each (Value in Field.Values) *@
+        {{Field.EnumType}}.{{Value.Name}} => "{{Value.Label}}",
+@*#endeach *@
+        _ => value.ToString(),
+    };
+@*#endif *@
+@*#endeach *@
+}
