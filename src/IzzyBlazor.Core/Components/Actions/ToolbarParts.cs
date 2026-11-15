@@ -17,6 +17,31 @@ public enum ToolbarPosition
     End,
 }
 
+/// <summary>Reading an item's <c>Overflow</c>, which can change by breakpoint.</summary>
+internal static class ToolbarOverflows
+{
+    private static readonly IReadOnlyList<(Breakpoint? Breakpoint, ToolbarOverflow Value)> Unset = [(null, ToolbarOverflow.Auto)];
+
+    private static IEnumerable<(Breakpoint? Breakpoint, ToolbarOverflow Value)> Values(Responsive<ToolbarOverflow> overflow) =>
+        overflow.IsEmpty ? Unset : overflow.Entries;
+
+    /// <summary>The value on a wide screen (the widest breakpoint set): what the server plans the first paint with.</summary>
+    public static ToolbarOverflow Wide(Responsive<ToolbarOverflow> overflow) => Values(overflow).Last().Value;
+
+    /// <summary>Whether it stays in the bar at every width.</summary>
+    public static bool Never(Responsive<ToolbarOverflow> overflow) => Values(overflow).All(v => v.Value == ToolbarOverflow.Never);
+
+    /// <summary>
+    /// The width below which it's always in the menu: its base value is <see cref="ToolbarOverflow.Always"/> and a
+    /// breakpoint's isn't. Null otherwise. Lets the stylesheet place it before the script measures.
+    /// </summary>
+    public static Breakpoint? MenuBelow(Responsive<ToolbarOverflow> overflow)
+    {
+        var values = Values(overflow).ToList();
+        return values[0] is { Breakpoint: null, Value: ToolbarOverflow.Always } ? values.Skip(1).FirstOrDefault(v => v.Value != ToolbarOverflow.Always).Breakpoint : null;
+    }
+}
+
 /// <summary>When an item of a <see cref="Toolbar"/> moves into its "…" menu.</summary>
 public enum ToolbarOverflow
 {
@@ -64,8 +89,10 @@ public sealed class ToolbarItem : LayoutItemBase, IToolbarItem, IDisposable
     /// <summary>
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
+    /// It can change by breakpoint: <c>new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }</c> is in the
+    /// menu on a phone, and in the bar from 640px up while there's room.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     /// <summary>What stands in for it in the "…" menu, such as <see cref="MenuItem"/>s. Without it, the item stays in the bar.</summary>
     [Parameter] public RenderFragment? MenuContent { get; set; }
@@ -158,7 +185,7 @@ public sealed class ToolbarText : LayoutItemBase, IToolbarItem, IDisposable
 
     int IToolbarItem.Priority => 0;
 
-    ToolbarOverflow IToolbarItem.Overflow => ToolbarOverflow.Never;
+    Responsive<ToolbarOverflow> IToolbarItem.Overflow => ToolbarOverflow.Never;
 
     bool IToolbarItem.Separator => false;
 
@@ -219,7 +246,7 @@ public sealed class ToolbarSeparator : IzzyComponentBase, IToolbarItem, IDisposa
 
     int IToolbarItem.Priority => 0;
 
-    ToolbarOverflow IToolbarItem.Overflow => ToolbarOverflow.Never;
+    Responsive<ToolbarOverflow> IToolbarItem.Overflow => ToolbarOverflow.Never;
 
     bool IToolbarItem.Separator => true;
 
@@ -299,8 +326,17 @@ internal sealed class ToolbarOutlet : ComponentBase, IDisposable
             builder.AddAttribute(3, "class", item.Separator ? "ib-toolbar-unit ib-toolbar-sep" : "ib-toolbar-unit");
             builder.AddAttribute(4, "data-ib-unit", id.ToString(CultureInfo.InvariantCulture));
             builder.AddAttribute(5, "data-ib-priority", item.Priority == 0 ? null : item.Priority.ToString(CultureInfo.InvariantCulture));
-            builder.AddAttribute(6, "data-ib-overflow", item.Overflow == ToolbarOverflow.Auto ? null : item.Overflow.ToString().ToLowerInvariant());
+            // Its Overflow at the base width, then at each breakpoint it changes (data-ib-overflow-md), which the script reads.
+            var overflows = item.Overflow.IsEmpty ? [] : item.Overflow.Entries.ToList();
+            var baseOverflow = overflows.FirstOrDefault(o => o.Breakpoint is null).Value;
+            builder.AddAttribute(6, "data-ib-overflow", baseOverflow == ToolbarOverflow.Auto ? null : baseOverflow.ToString().ToLowerInvariant());
+            foreach (var (breakpoint, value) in overflows.Where(o => o.Breakpoint is not null))
+            {
+                builder.AddAttribute(10, $"data-ib-overflow-{breakpoint.ToString()!.ToLowerInvariant()}", value.ToString().ToLowerInvariant());
+            }
+
             builder.AddAttribute(7, "data-ib-float", FloatAttribute(item));
+            builder.AddAttribute(9, "data-ib-menu-below", item.Menu is null ? null : ToolbarOverflows.MenuBelow(item.Overflow)?.ToString().ToLowerInvariant());
             builder.AddContent(8, item.Bar);
             builder.CloseElement();
         }
@@ -339,7 +375,9 @@ internal sealed class ToolbarMore : ComponentBase
     protected override void OnInitialized() => Context.OnMenuChanged += StateHasChanged;
 
     /// <summary>How it moves, after what it can do: one with nothing to show in the menu stays.</summary>
-    private static ToolbarOverflow Effective(IToolbarItem item) => item.Separator || item.Menu is null ? ToolbarOverflow.Never : item.Overflow;
+    // On a wide screen, for the server's plan; one that's never in the menu at any width has no copy there.
+    private static ToolbarOverflow Effective(IToolbarItem item) =>
+        item.Separator || item.Menu is null || ToolbarOverflows.Never(item.Overflow) ? ToolbarOverflow.Never : ToolbarOverflows.Wide(item.Overflow);
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)

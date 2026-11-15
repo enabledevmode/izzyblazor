@@ -45,6 +45,9 @@ interface CssState {
 }
 
 const REGIONS = [".ib-toolbar-start", ".ib-toolbar-center", ".ib-toolbar-end"];
+
+/** The library's breakpoints (Breakpoint.cs), smallest first, for an Overflow that changes by width. */
+const BREAKPOINTS: Record<string, string> = { sm: "40rem", md: "48rem", lg: "64rem", xl: "80rem", xxl: "96rem" };
 // A loading link has no href, but a SplitButton's stays focusable.
 const CONTROLS = "a[href], a[aria-busy], button, input, select, textarea";
 // Inputs that aren't typed into; every other input keeps its arrow keys (see #onKey).
@@ -294,7 +297,12 @@ class Toolbar extends IzzyElement {
         absent.add(id);
         continue;
       }
-      const overflow = el.dataset.ibOverflow;
+      // Overflow can change by breakpoint (data-ib-overflow-sm…): the widest one the screen reaches wins.
+      let overflow = el.dataset.ibOverflow;
+      for (const [name, width] of Object.entries(BREAKPOINTS)) {
+        const value = el.getAttribute(`data-ib-overflow-${name}`);
+        if (value && matchMedia(`(width >= ${width})`).matches) overflow = value === "auto" ? undefined : value;
+      }
       units.push({
         id,
         region: regionOf(el),

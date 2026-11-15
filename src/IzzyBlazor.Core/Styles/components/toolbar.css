@@ -99,6 +99,17 @@
     .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="sm"] { display: none !important; }
   }
 
+  /* MenuBelow before the script has measured (or with none): out of the bar, into the menu, by the
+     screen's width. Once measured, the script's own reckoning (which counts these as always in the
+     menu) decides. */
+  @media (width < 40rem) {
+    .ib-toolbar:not([data-ib-measured]) .ib-toolbar-unit[data-ib-menu-below="sm"] { display: none; }
+  }
+
+  @media (width < 48rem) {
+    .ib-toolbar:not([data-ib-measured]) .ib-toolbar-unit[data-ib-menu-below="md"] { display: none; }
+  }
+
   @media (width < 48rem) {
     .ib-toolbar :is(.ib-toolbar-unit, .ib-toolbar-menu-unit)[data-ib-float="md"] { display: none !important; }
   }

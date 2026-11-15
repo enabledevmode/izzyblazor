@@ -100,7 +100,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     private protected virtual int ItemPriority => 0;
 
-    private protected virtual ToolbarOverflow ItemOverflow => ToolbarOverflow.Never;
+    private protected virtual Responsive<ToolbarOverflow> ItemOverflow => ToolbarOverflow.Never;
 
     private protected abstract RenderFragment ItemBar { get; }
 
@@ -120,7 +120,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     int IToolbarItem.Priority => ItemPriority;
 
-    ToolbarOverflow IToolbarItem.Overflow => ItemOverflow;
+    Responsive<ToolbarOverflow> IToolbarItem.Overflow => ItemOverflow;
 
     bool IToolbarItem.Separator => false;
 
@@ -277,10 +277,10 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
     [Parameter] public int Priority { get; set; }
 
     /// <summary>
-    /// When it moves into the "…" menu, where Columns opens the list in a dialog. Defaults to
-    /// <see cref="ToolbarOverflow.Auto"/>.
+    /// When it moves into the "…" menu, where Columns opens the list in a dialog. Defaults to the menu on a
+    /// phone and, from 640px up, the bar while there's room: <c>new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }</c>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; } = new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto };
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
     [Parameter] public bool? ShowLabel { get; set; }
@@ -291,7 +291,7 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 
     private protected override int ItemPriority => Priority;
 
-    private protected override ToolbarOverflow ItemOverflow => Overflow;
+    private protected override Responsive<ToolbarOverflow> ItemOverflow => Overflow;
 
     private protected override RenderFragment ItemBar => Grid.ColumnPickerBar(Text);
 
@@ -316,8 +316,8 @@ public sealed class DataGridAdd : DataGridToolbarItem
     /// </summary>
     [Parameter] public int Priority { get; set; } = 1;
 
-    /// <summary>When it moves into the "…" menu, as a link there. Defaults to <see cref="ToolbarOverflow.Auto"/>.</summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    /// <summary>When it moves into the "…" menu, as a link there. Defaults to <see cref="ToolbarOverflow.Auto"/>; it can change by breakpoint.</summary>
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     /// <summary>
     /// Below this width it's a floating button at the screen's bottom corner, under the thumb, instead of
@@ -334,7 +334,7 @@ public sealed class DataGridAdd : DataGridToolbarItem
 
     private protected override int ItemPriority => Priority;
 
-    private protected override ToolbarOverflow ItemOverflow => Overflow;
+    private protected override Responsive<ToolbarOverflow> ItemOverflow => Overflow;
 
     private protected override RenderFragment ItemBar => Grid.AddBar(Text);
 
@@ -361,8 +361,11 @@ public sealed class DataGridExport : DataGridToolbarItem
     /// <summary>Which items stay longest when there's no room: higher stays longer. Defaults to 0.</summary>
     [Parameter] public int Priority { get; set; }
 
-    /// <summary>When it moves into the "…" menu. Defaults to <see cref="ToolbarOverflow.Auto"/>.</summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    /// <summary>
+    /// When it moves into the "…" menu. Defaults to the menu on a phone and, from 640px up, the bar while
+    /// there's room: <c>new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }</c>.
+    /// </summary>
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; } = new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto };
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
     [Parameter] public bool? ShowLabel { get; set; }
@@ -373,7 +376,7 @@ public sealed class DataGridExport : DataGridToolbarItem
 
     private protected override int ItemPriority => Priority;
 
-    private protected override ToolbarOverflow ItemOverflow => Overflow;
+    private protected override Responsive<ToolbarOverflow> ItemOverflow => Overflow;
 
     private protected override RenderFragment ItemBar => Grid.ExportBar(Text);
 

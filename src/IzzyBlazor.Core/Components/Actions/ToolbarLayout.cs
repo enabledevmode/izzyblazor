@@ -17,7 +17,7 @@ internal interface IToolbarItem
     int Priority { get; }
 
     /// <summary>When it moves into the "…" menu. One with no <see cref="Menu"/> stays in the bar whatever this says.</summary>
-    ToolbarOverflow Overflow { get; }
+    Responsive<ToolbarOverflow> Overflow { get; }
 
     bool Separator { get; }
 

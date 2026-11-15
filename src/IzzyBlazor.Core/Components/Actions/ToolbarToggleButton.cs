@@ -39,7 +39,7 @@ public sealed class ToolbarToggleButton : ToggleButton, IToolbarItem, IDisposabl
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> to keep it in the bar,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     bool IToolbarItem.Separator => false;
 
@@ -61,7 +61,7 @@ public sealed class ToolbarToggleButton : ToggleButton, IToolbarItem, IDisposabl
 
     // With CollapseLabels, one with an icon shows only the icon, unless it never moves into the menu.
     private bool Collapses => ToolbarControl.Of(Toolbar, Group)?.CollapseLabels == true
-        && ((Group as ToolbarButtonGroup)?.Overflow ?? Overflow) != ToolbarOverflow.Never
+        && !ToolbarOverflows.Never((Group as ToolbarButtonGroup)?.Overflow ?? Overflow)
         && Icon is not null && !IconOnly;
 
     double? IToolbarItem.CollapsedWidth => Collapses
