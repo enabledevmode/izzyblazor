@@ -27,6 +27,12 @@
     "On the settings page each switch is named by its category; Essential is on and can't be turned off, and says so."
   ],
   "preview": { "Floating": "false", "Routable": "false", "SettingsRoute": "#", "PolicyHref": "#" },
+  "checks": [
+    {
+      "file": "Components/App.razor", "pattern": "<Routes\\s+@rendermode=\"Interactive",
+      "message": "App.razor makes every page interactive, so the settings page, which is static to save the visitor's choice in a cookie, shows Not found. Give Routes and HeadOutlet a render mode that's null for pages marked [ExcludeFromInteractiveRouting], as a new izzy-blazor app does: @rendermode=\"PageRenderMode\" with PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null."
+    }
+  ],
   "inserts": [
     { "file": "{{Into}}", "pattern": "</AppShell>", "position": "before", "place": true, "text": "    <{{Name}} />\n" },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.MapConsent();\n\n" },

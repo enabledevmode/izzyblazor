@@ -62,9 +62,11 @@
     private Task SaveAsync(string email) => Task.CompletedTask;
 
     // A person and a caught bot get the same answer: a toast after a redirect, so reloading
-    // doesn't post again, and the field is empty.
+    // doesn't post again, and the field is empty (on an interactive page too, where nothing reloads).
     private void Done()
     {
+        Model = new();
+        _failed = false;
         Toasts.Success("Check your inbox to confirm your email.", Joined);
         Navigation.NavigateTo(Navigation.Uri);
     }

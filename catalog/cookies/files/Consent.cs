@@ -19,6 +19,21 @@ namespace {{RootNamespace}}
         public static bool Allows(HttpContext? http, string category) =>
             http?.Request.Cookies[CookieName] is { } value && value.Split(',').Contains(category);
 
+        /// <summary>
+        /// The page a return address ("~/pricing" or "/pricing") names, relative to the app's base: "" for
+        /// the home page, null when it isn't a page on this site ("//evil.example", "/\evil.example").
+        /// </summary>
+        public static string? LocalPath(string? url)
+        {
+            var path = url is null ? null : url.StartsWith("~/") ? url[2..] : url.StartsWith('/') ? url[1..] : null;
+            if (path is null || path.StartsWith('/') || path.StartsWith('\\'))
+            {
+                return null;
+            }
+            // Still this site once resolved, so not "javascript:..." either.
+            return Uri.TryCreate(new Uri("http://app/"), path, out var uri) && uri.Scheme == "http" && uri.Host == "app" ? path : null;
+        }
+
         /// <summary>Saves the categories the visitor allowed, for a year.</summary>
         public static void Write(HttpContext http, IEnumerable<string> allowed)
         {
@@ -48,11 +63,7 @@ namespace Microsoft.AspNetCore.Builder
             app.MapPost("/consent", ([Microsoft.AspNetCore.Mvc.FromForm] string? choice, [Microsoft.AspNetCore.Mvc.FromForm] string? returnUrl, HttpContext http) =>
             {
                 {{RootNamespace}}.Consent.Write(http, choice == "accept" ? {{RootNamespace}}.Consent.Categories : []);
-                return Results.LocalRedirect(IsLocal(returnUrl) ? returnUrl! : "~/");
+                return Results.LocalRedirect("~/" + ({{RootNamespace}}.Consent.LocalPath(returnUrl) ?? ""));
             });
-
-        // A path on this site, never another one ("//evil.example" or "/\evil.example").
-        private static bool IsLocal(string? url) =>
-            url is { Length: > 0 } && (url.StartsWith("~/") || (url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'))));
     }
 }

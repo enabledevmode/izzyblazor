@@ -38,7 +38,8 @@
                 @*#if (OwnImage) *@
                 <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
                 @*#else *@
-                <Image Src="images/hero-image.svg" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
+                @* A placeholder landscape, so no alt text: give yours the words for what it shows. *@
+                <Image Src="images/hero-image.svg" Alt="" Lazy="false" Radius="Radius.Lg" Width="Length.Percent(100)" />
                 @*#endif *@
             @*#endif *@
             </Box>
@@ -78,7 +79,8 @@
             @*#if (OwnImage) *@
             <Image Src="{{ImageSrc}}" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
             @*#else *@
-            <Image Src="images/hero-image.svg" Alt="{{ImageAlt}}" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
+            @* A placeholder landscape, so no alt text: give yours the words for what it shows. *@
+            <Image Src="images/hero-image.svg" Alt="" Lazy="false" Radius="Radius.Lg" AlignSelf="Align.Stretch" />
             @*#endif *@
             @*#endif *@
         </Stack>

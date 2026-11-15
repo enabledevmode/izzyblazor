@@ -67,9 +67,10 @@
     }
 
     // A person and a caught bot get the same answer: a toast after a redirect, so reloading
-    // doesn't post again.
+    // doesn't post again, and the form is empty (on an interactive page too, where nothing reloads).
     private void Done()
     {
+        Model = new();
         Toasts.Success("We'll reply within one working day.", "Message sent");
         Navigation.NavigateTo(Navigation.Uri);
     }

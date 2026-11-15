@@ -89,7 +89,7 @@
         Consent.Write(HttpContext!, allowed);
         Toasts.Success("You can change them here any time.", "Cookie choices saved");
         // Back to the page they came from, or this one.
-        Navigation.NavigateTo(ReturnUrl is { Length: > 1 } back && back.StartsWith("~/") ? back[2..] : "{{SettingsRoute}}");
+        Navigation.NavigateTo(Consent.LocalPath(ReturnUrl) ?? "{{SettingsRoute}}");
     }
 
     public sealed class Choices

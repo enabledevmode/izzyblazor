@@ -1,6 +1,6 @@
 // The free footer: one line with the brand, the copyright and the legal links, written into the
 // project as a component you own (Components/Blocks/SiteFooter.razor). It belongs to the layout,
-// so it isn't placed anywhere unless --at (or Into) says where. Its Columns layout is Pro.
+// so it isn't placed anywhere unless --at (or Into, a layout) says where. Its Columns layout is Pro.
 {
   "id": "footer",
   "name": "Footer",
@@ -21,7 +21,7 @@
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each link's address; the docs previews use it to keep their links on the page." },
       "HomeHref": { "type": "string", "default": "", "x-hidden": true, "description": "Where the brand goes, the home page; the docs previews point it nowhere." },
       "Name": { "type": "string", "default": "SiteFooter", "description": "The component's name." },
-      "Into": { "type": "string", "default": "", "description": "A page or layout to add it to, at the end. Empty adds it nowhere: put it in your layout." }
+      "Into": { "type": "string", "default": "", "description": "The layout to add it to, after the page's body (its ErrorGuard). Empty adds it nowhere: put it in your layout." }
     }
   },
   "computed": {
@@ -38,7 +38,7 @@
   "exclude": [ { "if": "Layout != \"Simple\"", "paths": ["layouts/Simple.razor"] } ],
   "rename": [ { "if": "Layout == \"Simple\"", "paths": { "layouts/Simple.razor": "Components/Blocks/{{Name}}.razor" } } ],
   "inserts": [
-    { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
+    { "file": "{{Into}}", "pattern": "</ErrorGuard>", "position": "after", "place": true, "text": "<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
   ]
 }

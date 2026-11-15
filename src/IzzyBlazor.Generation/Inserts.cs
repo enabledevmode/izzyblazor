@@ -34,6 +34,7 @@ internal static class Inserts
                 : Regex.IsMatch(line, spec.Pattern!, RegexOptions.None, TimeSpan.FromSeconds(1));
             if (hit)
             {
+                body = Indented(body, line, eol);
                 if (spec.Position == InsertPosition.Before) return (start, body);
                 // After the last line of a file with no final line break: start a line first.
                 return newline < 0 ? (end, eol + body[..^eol.Length]) : (end, body);
@@ -64,6 +65,16 @@ internal static class Inserts
             throw new GenerationException($"{path} has no line {line}.");
         }
         return (offset, body);
+    }
+
+    // Text with no indent of its own (app.UseMaintenance();) takes the indent of the line it goes beside,
+    // so it lines up in a Program.cs inside a Main method too.
+    static string Indented(string body, string line, string eol)
+    {
+        var indent = line[..(line.Length - line.TrimStart(' ', '\t').Length)];
+        var first = body.Split(eol).FirstOrDefault(l => l.Length > 0);
+        if (indent.Length == 0 || first is null || first[0] is ' ' or '\t') return body;
+        return string.Join(eol, body.Split(eol).Select(l => l.Length > 0 ? indent + l : l));
     }
 
     /// <summary>Whether the file already holds the text, line endings aside, so inserting again would repeat it.</summary>
