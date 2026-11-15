@@ -42,12 +42,14 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
         lock (_lock) return Task.FromResult(_items.FirstOrDefault(x => x.{{Key}} == id));
     }
 
-    public Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
+    public Task<bool> AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
     {
         lock (_lock)
         {
 #if (KeyIsGuid)
             if (item.{{Key}} == Guid.Empty) item.{{Key}} = Guid.NewGuid();
+#elif (KeyInput)
+            if (_items.Any(x => x.{{Key}} == item.{{Key}})) return Task.FromResult(false);
 #elif (KeyIsText)
             if (string.IsNullOrEmpty(item.{{Key}})) item.{{Key}} = Guid.NewGuid().ToString("N");
 #else
@@ -55,7 +57,7 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
 #endif
             _items.Add(item);
         }
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     // The pages change the {{SingularLower}} GetAsync gave them, which is the one in the list.

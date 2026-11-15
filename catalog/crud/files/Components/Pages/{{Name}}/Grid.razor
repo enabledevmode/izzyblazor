@@ -60,7 +60,7 @@
 
         if (save.IsNew)
         {
-            await Store.AddAsync(save.Item);
+            if (!await Store.AddAsync(save.Item)) save.AddError("This {{SingularLower}} couldn't be saved. Try again.");
             return;
         }
         if (await Store.GetAsync(save.Item.{{Key}}) is { } saved)

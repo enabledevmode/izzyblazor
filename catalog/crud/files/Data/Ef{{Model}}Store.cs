@@ -67,7 +67,7 @@ public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}St
         return await db.{{Set}}.FindAsync([id], cancellationToken);
     }
 
-    public async Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
+    public async Task<bool> AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
     {
 #if (HasFactory)
         await using var db = await factory.CreateDbContextAsync(cancellationToken);
@@ -78,8 +78,20 @@ public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}St
 #if (KeyIsText)
         if (string.IsNullOrEmpty(item.{{Key}})) item.{{Key}} = Guid.NewGuid().ToString("N");
 #endif
+#if (KeyIsGuid)
+        if (item.{{Key}} == Guid.Empty) item.{{Key}} = Guid.NewGuid();
+#endif
         db.{{Set}}.Add(item);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Its key is taken (two people adding the same one at once), or the database refused a value.
+            return false;
+        }
     }
 
     public async Task UpdateAsync({{ModelType}} item, CancellationToken cancellationToken = default)
@@ -107,6 +119,11 @@ public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}St
         try
         {
             await db.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Someone else deleted it first.
             return true;
         }
         catch (DbUpdateException)

@@ -60,6 +60,14 @@ static partial class Crud
             settings["Context"] = context.Name;
         }
         else notes.Add($"The {Words(name).ToLowerInvariant()} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
+        // A key the database doesn't make (an invoice number, or an int with [DatabaseGenerated(None)]) is typed on New.
+        var keyInput = !info.KeyGenerated && info.Key.Kind != FieldKind.Guid;
+        if (keyInput && (Given("Mode") ?? "Pages").Equals("Grid", StringComparison.OrdinalIgnoreCase))
+            throw new UsageException($"{info.Name}'s key {info.Key.Name} is typed by people, and the grid's dialog edits it like any field. Use the pages (leave out --mode grid).");
+        // The line that registers the store, as crud writes it; a second run with the other store replaces it.
+        var registration = new Regex($@"builder\.Services\.Add\w+<[\w.]*\bI{Regex.Escape(info.Name)}Store,\s*[\w.]+>\(\);");
+        if (!registration.IsMatch(program) && Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\b"))
+            notes.Add($"Program.cs registers I{info.Name}Store in its own way, so it wasn't changed: check it uses the store you want.");
         var authorize = Given("Authorize") ?? (Regex.IsMatch(program, @"\b(AddIdentityCore|AddDefaultIdentity|AddIdentity|AddAuthentication)\b") ? "true" : "false");
 
         settings["Model"] = info.Name;
@@ -72,14 +80,16 @@ static partial class Crud
         // A Guid other than the key is made by code, not typed: shown, not edited.
         var form = shown.Where(f => !f.ReadOnly && f.Kind != FieldKind.Guid).ToList();
         if (form.Count == 0) throw new UsageException($"{info.Name} has nothing to edit: every property crud shows is read-only.");
-        var title = shown.FirstOrDefault(f => f.Kind == FieldKind.Text);
-        // A first and last name are the title together ("Ada Lindqvist"), sorted by the last.
+        // A required text field names a record best; an optional one can be empty, and then the name falls back.
+        var title = shown.FirstOrDefault(f => f.Kind == FieldKind.Text && f.Required) ?? shown.FirstOrDefault(f => f.Kind == FieldKind.Text);
+        // A first and last name ahead of any other text are the title together ("Ada Lindqvist"), sorted by the
+        // last; after a Subject, they name the requester, not the record.
         var first = shown.FirstOrDefault(f => f.Kind == FieldKind.Text && f.Name is "FirstName" or "GivenName" or "Forename");
         var last = shown.FirstOrDefault(f => f.Kind == FieldKind.Text && f.Name is "LastName" or "Surname" or "FamilyName");
-        if (first is not null && last is not null) title = first;
+        if (first is not null && last is not null && first == shown.FirstOrDefault(f => f.Kind == FieldKind.Text)) title = first;
         else last = null;
         var subtitle = shown.FirstOrDefault(f => f.Kind == FieldKind.Email);
-        var search = shown.Where(f => f.Kind is FieldKind.Text or FieldKind.Email).Take(SearchColumns).ToList();
+        var search = shown.Where(f => f.Kind is FieldKind.Text or FieldKind.Email && !f.ReadOnly).Take(SearchColumns).ToList();
         var status = shown.FirstOrDefault(f => f.Kind == FieldKind.Enum && f.Name == "Status") ?? shown.FirstOrDefault(f => f.Kind == FieldKind.Enum);
         // The list's columns after the title (with the email under it): the status first, as the design has it.
         // Then what a list compares: choices, numbers and dates, then other required text. Contact details
@@ -109,15 +119,17 @@ static partial class Crud
         // namespace would bring the clash to every page. A name the pages use already gets a suffix.
         var modelType = Alias(info.Name, "Item");
         var aliases = new Dictionary<string, string> { [modelType] = Global(info.Namespace, info.Name) };
+        // Each enum by its full name (a nested Ticket.Kind, or two Status enums in different namespaces).
         var enumTypes = new Dictionary<string, string>();
         foreach (var e in shown.Where(f => f.Kind == FieldKind.Enum))
         {
-            var enumName = e.Type.TrimEnd('?');
-            if (enumTypes.ContainsKey(enumName)) continue;
-            enumTypes[enumName] = Alias(enumName, "Value");
-            aliases[enumTypes[enumName]] = Global(e.EnumNamespace, enumName);
+            if (enumTypes.ContainsKey(e.EnumFullName)) continue;
+            var enumName = Alias(e.EnumFullName[(e.EnumFullName.LastIndexOf('.') + 1)..], "Value");
+            for (var n = 2; aliases.ContainsKey(enumName); n++) enumName = Alias(e.EnumFullName[(e.EnumFullName.LastIndexOf('.') + 1)..], "Value") + n;
+            enumTypes[e.EnumFullName] = enumName;
+            aliases[enumName] = "global::" + e.EnumFullName;
         }
-        string TypeOf(ModelField f) => enumTypes.TryGetValue(f.Type.TrimEnd('?'), out var alias) ? alias : f.Type.TrimEnd('?');
+        string TypeOf(ModelField f) => f.Kind == FieldKind.Enum ? enumTypes[f.EnumFullName] : f.Type.TrimEnd('?');
 
         // The DbContext too, for the EF store, unless it's in the store's own namespace.
         if (context is not null && context.Namespace != project.RootNamespace + ".Data")
@@ -141,11 +153,11 @@ static partial class Crud
             ["KeyIsText"] = info.Key.Kind == FieldKind.Text,
             ["KeyIsGuid"] = info.Key.Kind == FieldKind.Guid,
             // A key people choose (an invoice number): typed on New, fixed after.
-            ["KeyInput"] = info.Key.Kind == FieldKind.Text && !info.KeyGenerated,
+            ["KeyInput"] = keyInput,
             ["HasFactory"] = context is not null && Regex.IsMatch(program, $@"AddDbContextFactory\s*<\s*{Regex.Escape(context.Name)}\b"),
             ["NavIcons"] = NavHasIcons(project),
             // A run with the other store replaces its registration rather than adding a second.
-            ["HasStoreRegistration"] = Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\s*,"),
+            ["HasStoreRegistration"] = registration.IsMatch(program),
         };
         var keyType = info.Key.Type.TrimEnd('?');
         var tokens = new Dictionary<string, string>(project.Tokens)
@@ -177,7 +189,8 @@ static partial class Crud
             ["TitleField"] = title?.Name ?? info.Key.Name,
             // A record's name in an interpolated string over x: its title field, or "Reading 3" when it has none.
             ["RowName"] = last is not null ? $"{{x.{title!.Name}}} {{x.{last.Name}}}"
-                : title is not null ? $"{{x.{title.Name}}}"
+                : title is { Required: true } ? $"{{x.{title.Name}}}"
+                : title is not null ? $"{{(string.IsNullOrWhiteSpace(x.{title.Name}) ? \"{Words(info.Name)} \" + x.{info.Key.Name} : x.{title.Name})}}"
                 : $"{Words(info.Name)} {{x.{info.Key.Name}}}",
             ["TitleSortField"] = (last ?? title ?? info.Key).Name,
             // A string key goes in a URL escaped (INV/001); a number or Guid as it is.
@@ -230,6 +243,8 @@ static partial class Crud
             ["LabelLower"] = Lower(f.Label),
             ["Article"] = Article(Lower(f.Label)),
             ["Kind"] = f.Kind.ToString(),
+            // A bool? can be unset: a Select of Yes and No, not a Switch.
+            ["NullableBool"] = f.Kind == FieldKind.Bool && f.Nullable,
             ["Key"] = f.Name.ToLowerInvariant(),
             ["IsStatus"] = f == status,
             ["PriorityAttr"] = f == status ? " Priority=\"1\"" : "",

@@ -24,8 +24,8 @@ sealed record EnumValue(string Name, string Label);
 /// <param name="Values">An enum's members, for its Select; empty otherwise.</param>
 sealed record ModelField(string Name, string Label, string ShortLabel, FieldKind Kind, string Type, bool Required, bool ReadOnly, int MaxLength, IReadOnlyList<EnumValue> Values)
 {
-    /// <summary>An enum's namespace, where it's declared; empty otherwise or in the global namespace.</summary>
-    public string EnumNamespace { get; init; } = "";
+    /// <summary>An enum's full name, with its namespace and any class it's in (Shop.Models.Ticket.Kind); empty otherwise.</summary>
+    public string EnumFullName { get; init; } = "";
 
     public bool Nullable => Type.EndsWith('?');
     public bool Numeric => Kind is FieldKind.Integer or FieldKind.Decimal or FieldKind.Money;
@@ -78,8 +78,8 @@ static partial class ModelReader
         var parts = byNamespace[0].ToList();
         var ns = byNamespace[0].Key;
 
-        var enums = trees.SelectMany(t => t.Root.DescendantNodes().OfType<EnumDeclarationSyntax>())
-            .GroupBy(e => e.Identifier.Text).ToDictionary(g => g.Key, g => g.First());
+        var allEnums = trees.SelectMany(t => t.Root.DescendantNodes().OfType<EnumDeclarationSyntax>())
+            .GroupBy(e => e.Identifier.Text).ToDictionary(g => g.Key, g => g.ToList());
         var classes = trees.SelectMany(t => t.Root.DescendantNodes().OfType<TypeDeclarationSyntax>()).Select(d => d.Identifier.Text).ToHashSet();
 
         var fields = new List<ModelField>();
@@ -88,13 +88,49 @@ static partial class ModelReader
         var keyGenerated = false;
         // Its base classes in the app come first (an Entity with the Id), as their properties come first at run time.
         var declared = trees.SelectMany(t => t.Root.DescendantNodes().OfType<TypeDeclarationSyntax>()).GroupBy(d => d.Identifier.Text).ToDictionary(g => g.Key, g => g.ToList());
+        // A generic base (Entity<TKey> under Entity<int>) has its type parameters replaced by the arguments given.
         var chain = new List<TypeDeclarationSyntax>();
+        var typeArguments = new Dictionary<TypeDeclarationSyntax, Dictionary<string, TypeSyntax>>();
         var seen = new HashSet<string> { simple };
+        var levelArguments = new Dictionary<string, TypeSyntax>();
         for (var level = parts.Select(p => p.Decl).ToList(); level.Count > 0;)
         {
             chain.InsertRange(0, level);
-            var baseName = level.SelectMany(d => d.BaseList?.Types ?? []).Select(b => BaseName(b.Type)).FirstOrDefault(n => declared.ContainsKey(n) && declared[n].Any(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax));
-            level = baseName is not null && seen.Add(baseName) ? declared[baseName].Where(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax).ToList() : [];
+            foreach (var d in level) typeArguments[d] = levelArguments;
+            var baseType = level.SelectMany(d => d.BaseList?.Types ?? []).Select(b => b.Type)
+                .FirstOrDefault(t => declared.TryGetValue(BaseName(t), out var ds) && ds.Any(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax));
+            if (baseType is null || !seen.Add(BaseName(baseType))) break;
+            var current = levelArguments;
+            level = declared[BaseName(baseType)].Where(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax).ToList();
+            levelArguments = [];
+            if (baseType is GenericNameSyntax generic && level.FirstOrDefault(d => d.TypeParameterList is not null) is { TypeParameterList: { } parameters })
+                for (var i = 0; i < Math.Min(parameters.Parameters.Count, generic.TypeArgumentList.Arguments.Count); i++)
+                {
+                    var argument = generic.TypeArgumentList.Arguments[i];
+                    levelArguments[parameters.Parameters[i].Identifier.Text] =
+                        argument is IdentifierNameSyntax id && current.TryGetValue(id.Identifier.Text, out var outer) ? outer : argument;
+                }
+        }
+        TypeSyntax TypeOf(PropertyDeclarationSyntax p)
+        {
+            var map = p.Parent is TypeDeclarationSyntax owner && typeArguments.TryGetValue(owner, out var m) ? m : [];
+            return p.Type switch
+            {
+                IdentifierNameSyntax id when map.TryGetValue(id.Identifier.Text, out var t) => t,
+                NullableTypeSyntax { ElementType: IdentifierNameSyntax id } when map.TryGetValue(id.Identifier.Text, out var t) => SyntaxFactory.NullableType(t),
+                _ => p.Type,
+            };
+        }
+        // The enum a property names: one declared in the model or its bases, else the one whose full name ends as
+        // written (Models.Level), else one in the model's namespace, else the only one.
+        EnumDeclarationSyntax? EnumFor(TypeSyntax type)
+        {
+            if (!allEnums.TryGetValue(LastName(type), out var candidates)) return null;
+            var written = type.ToString().TrimEnd('?');
+            return candidates.FirstOrDefault(e => e.Parent is TypeDeclarationSyntax t && chain.Contains(t))
+                ?? (written.Contains('.') ? candidates.FirstOrDefault(e => FullName(e) == written || FullName(e).EndsWith("." + written, StringComparison.Ordinal)) : null)
+                ?? candidates.FirstOrDefault(e => NamespaceOf(e) == ns)
+                ?? candidates[0];
         }
         var properties = chain.SelectMany(d => d.Members.OfType<PropertyDeclarationSyntax>())
             .Where(p => p.Modifiers.Any(SyntaxKind.PublicKeyword) && !p.Modifiers.Any(SyntaxKind.StaticKeyword))
@@ -136,9 +172,15 @@ static partial class ModelReader
                 skipped.Add($"{name}: [NotMapped]");
                 continue;
             }
+            // Worked out from other properties (FullName => First + " " + Last): nothing to store, search or sort.
+            if (p.ExpressionBody is not null || p.AccessorList?.Accessors.Any(a => a.Body is not null || a.ExpressionBody is not null) == true)
+            {
+                skipped.Add($"{name}: worked out from other properties, not stored");
+                continue;
+            }
             var setter = p.AccessorList?.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
             var writable = setter is not null && !setter.Modifiers.Any(m => m.Kind() is SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword);
-            var field = Field(name, p.Type, attributes, writable, p.Modifiers.Any(SyntaxKind.RequiredKeyword), enums, classes, NullableAt(p, nullableEnabled), out var why);
+            var field = Field(name, TypeOf(p), attributes, writable, p.Modifiers.Any(SyntaxKind.RequiredKeyword), EnumFor, classes, NullableAt(p, nullableEnabled), out var why);
             if (field is null)
             {
                 skipped.Add($"{name}: {why}");
@@ -148,15 +190,28 @@ static partial class ModelReader
             {
                 key = field;
                 var generated = AttributeArgument(attributes, "DatabaseGenerated");
-                keyGenerated = generated is null ? field.Kind == FieldKind.Integer : !generated.EndsWith("None", StringComparison.Ordinal);
+                // EF makes whole-number and Guid keys unless told not to.
+                keyGenerated = generated is null ? field.Kind is FieldKind.Integer or FieldKind.Guid : !generated.EndsWith("None", StringComparison.Ordinal);
                 continue;
             }
             fields.Add(field);
         }
         if (key is null)
-            throw new UsageException($"{simple} has no key: add an Id property (or {simple}Id, or mark one [Key]), so each record has an address.");
-        if (key.Kind is not (FieldKind.Integer or FieldKind.Guid or FieldKind.Text))
-            throw new UsageException($"{simple}'s key {key.Name} is a {key.Type}: crud handles a whole number, a Guid or a string key.");
+            throw new UsageException(keyName is not null && skipped.FirstOrDefault(s => s.StartsWith(keyName + ":", StringComparison.Ordinal)) is { } skippedKey
+                ? $"{simple}'s key {skippedKey}."
+                : $"{simple} has no key: add an Id property (or {simple}Id, or mark one [Key]), so each record has an address.");
+        // The kinds a Blazor route carries: {Id:int}, {Id:long}, {Id:guid} and text.
+        var keyType = key.Type.TrimEnd('?') switch
+        {
+            "Int32" or "System.Int32" => "int",
+            "Int64" or "System.Int64" => "long",
+            "System.Guid" => "Guid",
+            "String" or "System.String" => "string",
+            var t => t,
+        };
+        if (keyType is not ("int" or "long" or "Guid" or "string"))
+            throw new UsageException($"{simple}'s key {key.Name} is a {key.Type}: crud's addresses carry an int, long, Guid or string key.");
+        key = key with { Type = keyType };
         if (fields.Count == 0)
             throw new UsageException($"{simple} has no properties crud can show besides its key.");
 
@@ -173,7 +228,7 @@ static partial class ModelReader
     }
 
     static ModelField? Field(string name, TypeSyntax type, SyntaxList<AttributeListSyntax> attributes, bool writable, bool required,
-        Dictionary<string, EnumDeclarationSyntax> enums, HashSet<string> classes, bool nullableEnabled, out string why)
+        Func<TypeSyntax, EnumDeclarationSyntax?> enumFor, HashSet<string> classes, bool nullableEnabled, out string why)
     {
         why = "";
         var nullable = type is NullableTypeSyntax;
@@ -219,7 +274,7 @@ static partial class ModelReader
             "DateTime" or "DateTimeOffset" => dataType == "Date" ? FieldKind.Date : FieldKind.DateTime,
             "TimeOnly" => FieldKind.Time,
             "Guid" => FieldKind.Guid,
-            _ when enums.ContainsKey(typeName) => FieldKind.Enum,
+            _ when enumFor(inner) is not null => FieldKind.Enum,
             _ => null,
         };
         if (kind is null)
@@ -236,13 +291,14 @@ static partial class ModelReader
         var readOnly = !writable
             || AttributeArgument(attributes, "Editable") is "false"
             || generated is not null && !generated.EndsWith("None", StringComparison.Ordinal);
-        var values = kind == FieldKind.Enum
-            ? enums[typeName].Members.Select(m => new EnumValue(m.Identifier.Text, DisplayName(m.AttributeLists) ?? Words(m.Identifier.Text))).ToList()
+        var declaration = kind == FieldKind.Enum ? enumFor(inner)! : null;
+        var values = declaration is not null
+            ? declaration.Members.Select(m => new EnumValue(m.Identifier.Text, DisplayName(m.AttributeLists) ?? Words(m.Identifier.Text))).ToList()
             : [];
         var label = DisplayName(attributes) ?? Words(name);
         return new ModelField(name, label, DisplayName(attributes, "ShortName") ?? label, kind.Value, written, isRequired, readOnly, MaxLength(attributes), values)
         {
-            EnumNamespace = kind == FieldKind.Enum ? NamespaceOf(enums[typeName]) : "",
+            EnumFullName = declaration is null ? "" : FullName(declaration),
         };
     }
 
@@ -274,7 +330,10 @@ static partial class ModelReader
     static string? DisplayName(SyntaxList<AttributeListSyntax> lists, string property = "Name") =>
         Attribute(lists, "Display")?.ArgumentList?.Arguments
             .FirstOrDefault(a => a.NameEquals?.Name.Identifier.Text == property)?.Expression is LiteralExpressionSyntax { } literal
-            ? literal.Token.ValueText : null;
+            ? Safe(literal.Token.ValueText) : null;
+
+    // A label goes into C# strings and Razor attributes: quotes, backslashes, braces and @ would end or open one.
+    static string Safe(string text) => text.Replace('"', '\'').Replace('\\', '/').Replace('{', '(').Replace('}', ')').Replace("@", " at ");
 
     static int MaxLength(SyntaxList<AttributeListSyntax> lists) =>
         (AttributeArgument(lists, "StringLength") ?? AttributeArgument(lists, "MaxLength")) is { } text && int.TryParse(text, out var n) ? n : 0;
@@ -299,6 +358,14 @@ static partial class ModelReader
     };
 
     static string BaseName(TypeSyntax type) => LastName(type is GenericNameSyntax g ? g : type);
+
+    // A type's name with its namespace and the types it's declared in: Shop.Models.Ticket.Kind.
+    static string FullName(BaseTypeDeclarationSyntax type)
+    {
+        var names = new List<string> { type.Identifier.Text };
+        for (var parent = type.Parent; parent is TypeDeclarationSyntax outer; parent = parent.Parent) names.Insert(0, outer.Identifier.Text);
+        return (NamespaceOf(type) is { Length: > 0 } space ? space + "." : "") + string.Join('.', names);
+    }
 
     static string NamespaceOf(SyntaxNode node)
     {
