@@ -136,6 +136,12 @@
     [Parameter] public string? MoreLabel { get; set; }
 
     /// <summary>
+    /// The name of the speed dial its floating items share when more than one floats at the same width
+    /// (<c>FloatBelow</c>), such as "Create". Defaults to "Actions".
+    /// </summary>
+    [Parameter] public string? FloatLabel { get; set; }
+
+    /// <summary>
     /// A CSP nonce for the style element that holds the toolbar's widths. Defaults to the
     /// <see cref="IzzyTheme"/>'s <c>Nonce</c> on the page; set it on interactive pages, which don't
     /// see the theme's.
@@ -170,6 +176,7 @@
     {
         _context.Gap = Gap * 4;
         _context.CollapseLabels = CollapseLabels && !Wrap;
+        _context.FloatLabel = FloatLabel ?? TextDefaults.FloatingActions;
         if (_defaults is null || _defaults.Accent != Accent || _defaults.Variant != Variant || _defaults.Size != Size)
         {
             _defaults = ButtonGroup.Defaults(Accent, Variant, Size);

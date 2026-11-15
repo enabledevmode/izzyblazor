@@ -290,7 +290,7 @@ internal sealed class ToolbarOutlet : ComponentBase, IDisposable
 
     /// <summary>The breakpoint below which an item floats instead (toolbar.css hides its units there); null for none.</summary>
     internal static string? FloatAttribute(IToolbarItem item) =>
-        item.FloatBelow is { } below && item.Floating is not null ? below.ToString().ToLowerInvariant() : null;
+        item.FloatBelow?.ToString().ToLowerInvariant();
 
     [Parameter, EditorRequired] public ToolbarContext Context { get; set; } = null!;
 
@@ -450,17 +450,81 @@ internal sealed class ToolbarFloats : ComponentBase
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var floats = Context.Items.Where(i => i.Item.FloatBelow is not null && i.Item.Floating is not null).ToList();
-        if (floats.Count == 0)
+        // By the width they float below: one alone is a floating button; more share a speed dial, so
+        // they never sit on each other in the corner.
+        var groups = Context.Items
+            .Where(i => i.Item.FloatBelow is not null && i.Item.Float is not null)
+            .GroupBy(i => i.Item.FloatBelow!.Value)
+            .ToList();
+        if (groups.Count == 0)
         {
             return;
         }
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-toolbar-floats");
-        foreach (var (item, _) in floats)
+        foreach (var group in groups)
         {
-            builder.AddContent(2, item.Floating);
+            var actions = group.Select(i => i.Item.Float!).ToList();
+            builder.OpenRegion(2);
+            if (actions.Count == 1)
+            {
+                var a = actions[0];
+                builder.OpenComponent<FloatingButton>(0);
+                builder.AddComponentParameter(1, nameof(FloatingButton.Icon), a.Icon);
+                builder.AddComponentParameter(2, nameof(FloatingButton.Label), a.Label);
+                builder.AddComponentParameter(3, nameof(FloatingButton.Href), a.Href);
+                builder.AddComponentParameter(4, nameof(FloatingButton.Submit), a.Submit);
+                builder.AddComponentParameter(5, nameof(FloatingButton.Name), a.Name);
+                builder.AddComponentParameter(6, nameof(FloatingButton.Value), a.Value);
+                builder.AddComponentParameter(7, nameof(FloatingButton.FormAction), a.FormAction);
+                builder.AddComponentParameter(8, nameof(FloatingButton.Form), a.Form);
+                builder.AddComponentParameter(9, nameof(FloatingButton.Disabled), a.Disabled);
+                builder.AddComponentParameter(10, nameof(FloatingButton.HiddenFrom), group.Key);
+                if (a.OnClick.HasDelegate)
+                {
+                    builder.AddComponentParameter(11, nameof(FloatingButton.OnClick), a.OnClick);
+                }
+
+                if (a.Attributes is not null)
+                {
+                    builder.AddMultipleAttributes(12, a.Attributes);
+                }
+
+                builder.CloseComponent();
+            }
+            else
+            {
+                builder.OpenComponent<SpeedDial>(20);
+                builder.AddComponentParameter(21, nameof(SpeedDial.Label), Context.FloatLabel ?? "Actions");
+                builder.AddComponentParameter(22, nameof(SpeedDial.HiddenFrom), group.Key);
+                builder.AddComponentParameter(23, nameof(SpeedDial.ChildContent), (RenderFragment)(d =>
+                {
+                    foreach (var a in actions)
+                    {
+                        d.OpenComponent<SpeedDialAction>(0);
+                        d.SetKey(a);
+                        d.AddComponentParameter(1, nameof(SpeedDialAction.Icon), a.Icon);
+                        d.AddComponentParameter(2, nameof(SpeedDialAction.Label), a.Label);
+                        d.AddComponentParameter(3, nameof(SpeedDialAction.Href), a.Href);
+                        d.AddComponentParameter(4, nameof(SpeedDialAction.Submit), a.Submit);
+                        d.AddComponentParameter(5, nameof(SpeedDialAction.Name), a.Name);
+                        d.AddComponentParameter(6, nameof(SpeedDialAction.Value), a.Value);
+                        d.AddComponentParameter(7, nameof(SpeedDialAction.FormAction), a.FormAction);
+                        d.AddComponentParameter(8, nameof(SpeedDialAction.Form), a.Form);
+                        d.AddComponentParameter(9, nameof(SpeedDialAction.Disabled), a.Disabled);
+                        if (a.OnClick.HasDelegate)
+                        {
+                            d.AddComponentParameter(10, nameof(SpeedDialAction.OnClick), a.OnClick);
+                        }
+
+                        d.CloseComponent();
+                    }
+                }));
+                builder.CloseComponent();
+            }
+
+            builder.CloseRegion();
         }
 
         builder.CloseElement();
