@@ -2638,9 +2638,11 @@
 
     RenderFragment IDataGridToolbar.ExportMenu => __builder =>
     {
+        // With its icon, as in the bar, so the "…" menu's items line up.
+        var icon = IconSet.Current.Get(IconPurpose.Export);
         foreach (var (label, href) in ExportLinks)
         {
-            <MenuItem Href="@ExportHref(href)" Disabled="@(_loadedRequest is null)" download>@label</MenuItem>
+            <MenuItem Href="@ExportHref(href)" Icon="icon" Disabled="@(_loadedRequest is null)" download>@label</MenuItem>
         }
     };
 
