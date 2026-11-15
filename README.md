@@ -48,29 +48,23 @@ for that connection, shows its state when it drops.
 
 ## Getting started
 
-Install the package in your server project:
+Start a new app from the starter, Microsoft's Blazor Web App rebuilt with IzzyBlazor, with the same options as
+`dotnet new blazor`. IzzyBlazor is in preview, so name the latest version from NuGet:
 
 ```bash
-dotnet add package IzzyBlazor --prerelease
+dotnet new install IzzyBlazor.Templates@<version>
+dotnet new izzy-blazor -n MyApp
 ```
 
-Then add the stylesheet and the namespace, and register the services:
+To set up IzzyBlazor in an app you have (a Blazor Web App, or an MVC or Razor Pages app), run `izzy init` in it:
 
-```razor
-@* App.razor, in <head> *@
-<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
-
-@* _Imports.razor *@
-@using IzzyBlazor
+```bash
+dotnet tool install -g IzzyBlazor.Cli --prerelease
+izzy init
 ```
 
-```csharp
-// Program.cs
-builder.Services.AddIzzyBlazor();
-```
-
-IzzyBlazor loads its JavaScript automatically. For toasts and screen reader announcements, add `<ToastRegion />` to your layout (or `<AnnouncerRegion />` for announcements alone). For WebAssembly and
-Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-started/webassembly-and-auto).
+The same CLI adds blocks and pages to the app as code you own (`izzy add hero`). To make each change yourself, see
+[Set up by hand](https://izzyblazor.com/docs/get-started/by-hand).
 
 ## What's included
 

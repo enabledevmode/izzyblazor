@@ -1,0 +1,109 @@
+@page "/docs/get-started/create-app"
+@inject ApiMetadata Api
+
+@* A new app from the izzy-blazor starter (catalog/izzy-blazor, published as IzzyBlazor.Templates). The
+   options are the starter's, as izzy describe izzy-blazor lists them. *@
+
+<ArticlePage Section="get-started" Slug="create-app">
+    <Lead>
+        IzzyBlazor's starter is Microsoft's Blazor Web App rebuilt with IzzyBlazor: its layout, pages and account pages
+        drawn with IzzyBlazor's components and theme, in every render mode. It takes the same options as
+        <Code>dotnet new blazor</Code>.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Install the templates</Heading>
+        <TextBlock>You need the .NET 10 SDK. IzzyBlazor is in preview, so name the version:</TextBlock>
+        <Code Block Language="bash">@Install</Code>
+
+        <Heading Level="2">Create the app</Heading>
+        <Code Block Language="bash">@Create</Code>
+        <TextBlock>
+            Open the address <Code>dotnet run</Code> prints. The app has a sidebar, a home page, and sample Counter, Weather
+            and Contact pages. Its pages are <Anchor Href="docs/common/render-modes">static</Anchor> by default, and a page
+            runs on the server over a circuit once you give it a render mode. Counter has one.
+        </TextBlock>
+
+        <Heading Level="2">Choose the render modes</Heading>
+        <TextBlock>The render mode options are Microsoft's, with the same names and defaults:</TextBlock>
+        <Table Items="RenderModes" Caption="Render mode options" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(17)"><code>@context!.Option</code></TemplateColumn>
+                <TemplateColumn Title="What you get">@context!.Result</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            With WebAssembly or Auto, the app is two projects: <Code>MyApp</Code> on the server and <Code>MyApp.Client</Code>
+            for the components that run in the browser. See
+            <Anchor Href="docs/common/render-modes#pages-in-the-browser">Pages in the browser</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Accounts</Heading>
+        <TextBlock>
+            <Code>--auth Individual</Code> adds sign-in, registration and account management with ASP.NET Core Identity,
+            with accounts in a SQLite database (<Code>--use-local-db</Code> for SQL Server LocalDB). The account pages keep
+            Microsoft's code and are drawn with IzzyBlazor, so Microsoft's fixes still apply to them.
+        </TextBlock>
+
+        <Heading Level="2">Theme and layout</Heading>
+        <TextBlock>IzzyBlazor's own options set the theme and the shell around every page:</TextBlock>
+        <Table Items="Looks" Caption="Theme and layout options" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(17)"><code>@context!.Option</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Result</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>For a dense admin app with links across the top:</TextBlock>
+        <Code Block Language="bash">dotnet new izzy-blazor -n Admin --preset Compact --brand teal --nav Top</Code>
+        <TextBlock>
+            Run <Code>dotnet new izzy-blazor --help</Code> for the rest, such as <Code>--no-https</Code> and
+            <Code>--use-program-main</Code>. You can change the theme later in <Code>IzzyTheme</Code>; see
+            <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">With the izzy CLI</Heading>
+        <TextBlock>
+            <Code>izzy new</Code> makes the same app, with the same options. Install the CLI to add
+            <Anchor Href="blocks">blocks</Anchor> to the app afterwards; see <Anchor Href="docs/get-started/cli">The izzy CLI</Anchor>.
+        </TextBlock>
+        <Code Block Language="bash">izzy new izzy-blazor -n MyApp</Code>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/get-started/cli">The izzy CLI</Anchor>: add a hero, pricing or a sign-up form to the app as code you own.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: <Code>--mcp</Code> connects yours to IzzyBlazor's docs.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Choice(string Option, string Result);
+
+    private string Install => $"dotnet new install IzzyBlazor.Templates@{Api.Version}";
+
+    private const string Create = """
+        dotnet new izzy-blazor -n MyApp
+        cd MyApp
+        dotnet run
+        """;
+
+    private static readonly Choice[] RenderModes =
+    [
+        new("--interactivity Server", "The default. Pages are static, and a page you mark runs on the server over a circuit."),
+        new("--interactivity None", "Every page static. The app never opens a circuit."),
+        new("--interactivity WebAssembly", "A page you mark runs in the browser, from a .Client project."),
+        new("--interactivity Auto", "A page you mark runs on the server at first, and in the browser once WebAssembly has loaded."),
+        new("--all-interactive", "Every page interactive in the chosen mode, except pages marked to stay static, such as the account pages."),
+    ];
+
+    private static readonly Choice[] Looks =
+    [
+        new("--preset <name>", "The theme: Standard, or Compact for data and admin apps, Soft for consumer apps, Editorial for reading and docs."),
+        new("--brand <color>", "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a."),
+        new("--nav Top", "Navigation across the top bar, folding into a menu on phones, in place of the sidebar."),
+        new("--shell <look>", "How the shell sets the page apart: Tinted (the default), Inset (a raised panel), Flat (lines alone) or Canvas (a tinted page for cards)."),
+        new("--content-width <rem>", "How wide pages get: Full, or 64, 72 or 80 rem. Auto, the default, fills the space beside a sidebar and centers 72 under a top bar."),
+        new("--empty", "Leaves out the sample pages and the sidebar."),
+        new("--mcp", "Connects Claude Code, VS Code, Visual Studio and Cursor to IzzyBlazor's docs server."),
+    ];
+}
