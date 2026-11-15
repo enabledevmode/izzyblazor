@@ -64,9 +64,9 @@
   max-width: 47.5rem;
   text-align: center;
 }
-/* The ember behind the headline (the design agent's hero-ember-preview). In dark mode, rings centered
-   on the middle of the headline's first line; in light, one soft glow a little higher, so its
-   brightest part sits behind the ink line, and a little smaller. */
+/* The ember behind the headline (the design agent's hero-ember-preview). In dark mode, rings at 0.7 of
+   their drawn strength, centered on the top of "Blazor components.", so the orange line falls on the
+   fainter outer rings; in light, one soft glow, a little smaller. */
 .site-hero-glow {
   --site-hero-glow-size: calc(44rem * var(--site-hero-glow-scale));
   --site-hero-glow-y: calc(var(--site-hero-title-size) * var(--site-hero-glow-line));
@@ -79,9 +79,10 @@
   translate: -50% -50%;
   overflow: visible;
   opacity: var(--site-hero-glow);
-  /* The ember reaches above the hero's top edge: it fades in over the hero's first 3rem, so no line
-     cuts it there and its core stays bright. */
-  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top) - var(--site-hero-glow-y)), #000 calc(50% + 3rem - var(--site-hero-top) - var(--site-hero-glow-y)));
+  /* The ember reaches above the hero's top edge: it fades in from that edge over --site-hero-glow-fade
+     (120px for the rings, 3rem for light mode's glow, whose core sits near the top), so the header never
+     cuts it. */
+  mask-image: linear-gradient(to bottom, transparent calc(50% - var(--site-hero-top) - var(--site-hero-glow-y)), #000 calc(50% + var(--site-hero-glow-fade) - var(--site-hero-top) - var(--site-hero-glow-y)));
   pointer-events: none;
 }
 .site-hero-glow circle { transform-box: fill-box; transform-origin: center; }
@@ -133,6 +134,7 @@
    attribute), else the system's. */
 :root {
   --site-hero-glow: 1;
+  --site-hero-glow-fade: 3rem;
   --site-hero-glow-scale: 0.91;
   --site-hero-glow-line: 0.11;
   --site-hero-rings: none;
@@ -144,9 +146,10 @@
   --site-hero-poster-phone: url("img/home/store-phone-light.webp");
 }
 :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
-  --site-hero-glow: 1;
+  --site-hero-glow: 0.7;
   --site-hero-glow-scale: 1;
-  --site-hero-glow-line: 0.52;
+  --site-hero-glow-line: 0.1;
+  --site-hero-glow-fade: 120px;
   --site-hero-rings: inline;
   --site-hero-soft: none;
   --site-hero-flare: #ffb020;
@@ -157,9 +160,10 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
-    --site-hero-glow: 1;
+    --site-hero-glow: 0.7;
     --site-hero-glow-scale: 1;
-    --site-hero-glow-line: 0.52;
+    --site-hero-glow-line: 0.1;
+    --site-hero-glow-fade: 120px;
     --site-hero-rings: inline;
     --site-hero-soft: none;
     --site-hero-flare: #ffb020;
@@ -169,14 +173,14 @@
     --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
   }
 }
-/* Phones and tablets, as the design's 375px frame has it: a smaller ember (32rem in dark, 30 in light),
-   the sparks with it, centered lower against the smaller headline (1.06 of its size in dark, 0.47 in light). */
+/* Phones and tablets: a smaller ember, the sparks with it: 380px in dark, still centered on the top of the
+   first line; 30rem in light, as the design's 375px frame has it, a little lower (0.47 of the headline's size). */
 @media (max-width: 63.98rem) {
   :root { --site-hero-glow-scale: 0.68; --site-hero-glow-line: 0.47; }
-  :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) { --site-hero-glow-scale: 0.727; --site-hero-glow-line: 1.06; }
+  :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) { --site-hero-glow-scale: 0.54; --site-hero-glow-line: 0.1; }
 }
 @media (max-width: 63.98rem) and (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) { --site-hero-glow-scale: 0.727; --site-hero-glow-line: 1.06; }
+  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) { --site-hero-glow-scale: 0.54; --site-hero-glow-line: 0.1; }
 }
 
 /* 72px on wide screens, about 35px on phones (clear of the edges, two lines): the library's
@@ -594,7 +598,12 @@
 /* A third for the first column, so its sentence wraps over a few lines, not a word a line. */
 .site-params-wrap :is(td, th):first-child { width: 33%; }
 .site-params-wrap :is(td, th):last-child { width: auto; }
+/* One thing in two libraries, row by row: equal halves, each wrapping. */
+.site-params.site-params-pair :is(td, th) { width: 50%; white-space: normal; }
+.site-params-pair code { overflow-wrap: anywhere; }
 .site-params .site-param-text { margin-block-start: var(--ib-space-1); }
+/* A migration table's note, under the IzzyBlazor name: lighter, so the names scan down the column. */
+.site-migrate-note { color: var(--ib-color-muted); }
 /* Compact (Overviews): prop and its first sentence in one cell, type and default beside it. */
 .site-params-compact td:first-child, .site-params-compact th:first-child { width: 100%; white-space: normal; }
 .site-params-compact td:last-child, .site-params-compact th:last-child { width: auto; }
