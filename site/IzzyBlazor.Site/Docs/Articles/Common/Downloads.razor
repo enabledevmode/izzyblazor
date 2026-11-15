@@ -14,7 +14,7 @@
     <ChildContent>
         <Heading Level="2">A grid's rows</Heading>
         <TextBlock>
-            <Code>ExportExcelHref</Code> and <Code>ExportCsvHref</Code> put an Export button on a DataGrid that links to an
+            <Code>ExportExcelHref</Code> and <Code>ExportCsvHref</Code> put an Export button on a DataGrid or TreeList that links to an
             endpoint you map. The link carries the grid's <Code>filter</Code>, <Code>sort</Code>, <Code>search</Code> and
             <Code>columns</Code>, and <Code>DataExport.WriteExcelAsync</Code> and <Code>WriteCsvAsync</Code> write those rows,
             streamed as they're read:
@@ -27,6 +27,11 @@
                 The fields you give <Code>DataExport</Code> decide what can be written, whatever the URL asks for. See
                 <Anchor Href="docs/components/data-grid/export">DataGrid export</Anchor>.
             </ListItem>
+            <ListItem>
+                The fields need the grid's keys, and a grid with a <Code>FilterCase</Code> needs it as each field's
+                <Code>Case</Code>, or the file can match different rows.
+            </ListItem>
+            <ListItem>For a TreeList, pass <Code>tree:</Code>, so the rows come in the tree's order, with their levels.</ListItem>
         </List>
 
         <Heading Level="2">Other formats</Heading>
@@ -54,8 +59,10 @@
 
         <Heading Level="2">A chart's picture</Heading>
         <TextBlock>
-            <Code>Download</Code> puts a button by a chart's title that saves it as a PNG named after the title. A button of
-            your own does the same with <Code>data-ib-chart-download</Code> set to the chart's <Code>id</Code>:
+            <Code>Download</Code> puts a button by a chart's title that saves it as a PNG named after the title. In a Tile's or
+            Card's header, <Code>&lt;ChartDownload /&gt;</Code> does the same for the chart in it, or the one its
+            <Code>For</Code> names. A button of your own does the same with <Code>data-ib-chart-download</Code> set to the
+            chart's <Code>id</Code>:
         </TextBlock>
         <Code Block Language="razor">@ChartButtons</Code>
         <TextBlock>

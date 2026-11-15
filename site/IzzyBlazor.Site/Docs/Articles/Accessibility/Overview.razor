@@ -81,7 +81,7 @@
 
     private static readonly KnownGap[] Gaps =
     [
-        new("NumberField: the stacked step buttons are 16px tall at the default size.",
+        new("NumberField: the stacked step buttons are 16px tall at the default size, and smaller at the small size or Compact density.",
             "Typing the number does the same. StepButtons=\"StepButtons.Split\" puts full-height buttons on each side."),
         new("Field borders and switch tracks are about 2:1 against the page. WCAG asks for 3:1 when a border is the only thing that shows where a control is; every field also has a visible label above it, so this is a judgment call, and some audits flag it.",
             "If you need strict 3:1, set --ib-color-outline in your theme to a darker gray, such as #8e8e96 on white."),

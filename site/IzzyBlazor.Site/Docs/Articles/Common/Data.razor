@@ -23,9 +23,10 @@
                 <thead><tr><th>Member</th><th>What it is</th></tr></thead>
                 <tbody>
                     <tr><td><code>Skip</code>, <code>Take</code></td><td>The range: how many rows to skip, and how many to take (null for every row). <code>Page</code> gives the same range as a page number, from 1.</td></tr>
-                    <tr><td><code>Sort</code></td><td>A list of <code>SortField</code>s, each a key and whether it's descending. A Table sorts by one column.</td></tr>
+                    <tr><td><code>Sort</code></td><td>A list of <code>SortField</code>s, each a key and whether it's descending. A Table sorts by one column; a DataGrid can sort by several.</td></tr>
                     <tr><td><code>Filter</code></td><td>The filter, or null. A Table's filter is a <code>Filter.All</code> of one condition per filtered column, plus any other conditions of a bound <code>Filter</code>.</td></tr>
-                    <tr><td><code>Search</code></td><td>Free text to look for in the searchable fields. A Table doesn't set it. A provider can set it from your own search box: <code>request with { Search = query }</code>.</td></tr>
+                    <tr><td><code>Search</code></td><td>Free text to look for in the searchable fields. A Table doesn't set it; a DataGrid with <code>Searchable</code> sets it from its search box. A provider can set it from your own search box: <code>request with { Search = query }</code>.</td></tr>
+                    <tr><td><code>Parent</code>, <code>FilterBranch</code></td><td>For a TreeList: the row whose children to load (null for the top rows). Answer it with <code>ToTreeResultAsync</code>.</td></tr>
                     <tr><td><code>Cursor</code></td><td>When the component pages by cursor, the <code>Next</code> or <code>Previous</code> of an earlier result.</td></tr>
                     <tr><td><code>NeedsTotal</code></td><td>Whether the component needs the total count. It's false when the component pages by cursor, where the total is optional.</td></tr>
                     <tr><td><code>CancellationToken</code></td><td>Canceled when a newer request replaces this one. Pass it on to your queries.</td></tr>
@@ -82,8 +83,8 @@
         <TextBlock>
             Where there are no columns, such as on a server, read the fields from a type with
             <Code>DataFields.Of&lt;T&gt;()</Code>. It returns each public top-level property a filter can compare, keyed by
-            its name in lower case. Each field is sortable and filterable, text fields are searchable, and an enum's names
-            are its choices.
+            its name in lower case. Each field is sortable, filterable, groupable and aggregatable, text fields are
+            searchable, and an enum's names are its choices.
         </TextBlock>
         <List Gap="2">
             <ListItem>The caption comes from <Code>[Display(Name)]</Code>.</ListItem>
@@ -93,7 +94,8 @@
         <TextBlock>To choose the fields and what each allows, declare them yourself:</TextBlock>
         <Code Block Language="csharp">@Declared</Code>
         <TextBlock>
-            To limit the operators a field allows, set its <Code>Operators</Code>.
+            To limit the operators a field allows, set its <Code>Operators</Code>. On a column, set
+            <Code>FilterOperators</Code>: the first is the default, and a condition with any other matches nothing.
         </TextBlock>
         <TextBlock>
             A field's own <Code>Filter</Code> builds its condition in your code. Write one for a computed value, or a value
@@ -121,11 +123,11 @@
         </TextBlock>
         <Code Block Language="razor">@Bound</Code>
         <TextBlock>
-            A condition that a column's filter can show appears in that filter:
+            A condition that a column's filter can show appears in that filter. A Table's columns show these by default:
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
-                <thead><tr><th>Column type</th><th>Conditions its filter shows</th></tr></thead>
+                <thead><tr><th>Column type</th><th>A Table column's default filter</th></tr></thead>
                 <tbody>
                     <tr><td>Text</td><td>Contains</td></tr>
                     <tr><td>Number</td><td>Between, at least, at most or equals</td></tr>
@@ -135,7 +137,10 @@
             </table>
         </Prose>
         <TextBlock>
-            Any other condition, such as an or group, still applies. It appears as a tag the user can remove.
+            A DataGrid's columns, and a Table column with <Code>FilterOperators</Code>, choose an operator above the value,
+            so they show any condition with one of their operators. A column with <Code>FilterValues</Code> or
+            <Code>FilterList</Code> shows In as a list of checkboxes. Any other condition, such as an or group, still
+            applies. It appears as a tag the user can remove.
         </TextBlock>
         <TextBlock>
             A provider that passes conditions on to an API reads them with <Code>Find</Code>. It returns the condition on that
@@ -249,6 +254,7 @@
         <List Gap="2">
             <ListItem><Anchor Href="docs/common/data-api">Data from an API</Anchor>: sending the request from WebAssembly, the filter syntax, OData, and the server's limits.</ListItem>
             <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters, paging by cursor and Load more, with state in the URL.</ListItem>
+            <ListItem><Anchor Href="docs/components/data-grid/server-data">DataGrid server data</Anchor>: groups and totals from <Code>GroupsProvider</Code>, and a column's values from <Code>FilterValues</Code>.</ListItem>
             <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: why the Table keeps its state in the URL.</ListItem>
         </List>
     </ChildContent>

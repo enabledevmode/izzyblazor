@@ -27,7 +27,7 @@
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor> starts with a "Skip to content" link to the main area, and it works after enhanced navigation too.</ListItem>
             <ListItem>Dialogs and drawers keep focus inside while open and return it to the control that opened them. A popover or menu takes focus when the user opens it and gives it back when it closes.</ListItem>
-            <ListItem>After a failed submit, <Code>FormErrors</Code> takes focus, with JavaScript off too, so the user starts from the list of problems. A dialog that comes back open with errors focuses its first invalid field.</ListItem>
+            <ListItem>After a failed submit, a <Code>FormErrors</Code> at the top of the form takes focus, with JavaScript off too, so the user starts from the list of problems. Without one, the browser's own validation focuses the field, and on static pages a checkbox, radio or segmented group with an error takes focus. A dialog that comes back open with errors focuses its first invalid field.</ListItem>
             <ListItem>When the focused control goes away, such as a removed tag or a deleted row, focus moves to the nearest control instead of falling back to the top of the page.</ListItem>
             <ListItem>When the user closes a toast that has focus, focus moves to the next open toast, or back to where it was.</ListItem>
         </List>
@@ -43,7 +43,7 @@
         <List Gap="2">
             <ListItem>A component that has several items, such as tabs, a toolbar, a tree, a grid or a chart, is one Tab stop. The arrow keys move inside it, and Home and End go to its ends.</ListItem>
             <ListItem>Arrow keys follow the page's direction: on a right-to-left page, Left moves forward.</ListItem>
-            <ListItem>Shortcuts that aren't part of a standard pattern, such as Alt+Down on a split button or Alt+Arrow keys on a drag handle, are announced with <Code>aria-keyshortcuts</Code>.</ListItem>
+            <ListItem>Shortcuts that aren't part of a standard pattern, such as Alt+Down on a split button or Alt+Arrow keys on a list's, grid row's or tile's drag handle, are announced with <Code>aria-keyshortcuts</Code>.</ListItem>
             <ListItem>Single-letter shortcuts, such as the Scheduler's T for today, work only while focus is inside the component. To turn them off, set <Code>Shortcuts="false"</Code> on the <Anchor Href="docs/components/scheduler">Scheduler</Anchor>.</ListItem>
             <ListItem>Keys that <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds aren't there with JavaScript off. The native ones, such as Space on a checkbox or the arrows in a radio group, still are.</ListItem>
         </List>

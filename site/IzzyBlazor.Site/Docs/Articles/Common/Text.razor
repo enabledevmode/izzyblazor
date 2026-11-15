@@ -33,7 +33,7 @@
 
         <Heading Level="2">What's in it</Heading>
         <TextBlock>
-            <Code>IzzyText</Code> has about 85 strings, each named for its text, and IntelliSense lists them. Here are some,
+            <Code>IzzyText</Code> has about 700 strings, each named for its text, and IntelliSense lists them. Here are some,
             by where they're used:
         </TextBlock>
         <Prose Class="site-table ib-scroll">
@@ -55,8 +55,11 @@
         </TextBlock>
         <Alert Status="Status.Info">
             Validation messages come from your model's attributes. Set <Code>ErrorMessage</Code>, or localize them as you
-            would for any Blazor form. Three messages come from IzzyBlazor, for a value that can't be read: <Code>IzzyText.NumberInvalid</Code>
-            (letters in a number field), <Code>ColorInvalid</Code>, and <Code>ValueInvalid</Code> for any other type.
+            would for any Blazor form. Some come from IzzyBlazor: for a value that can't be read (<Code>IzzyText.NumberInvalid</Code>,
+            <Code>DateInvalid</Code>, <Code>TimeInvalid</Code>, <Code>DurationInvalid</Code>, <Code>ColorInvalid</Code>, and
+            <Code>ValueInvalid</Code> for any other type), and for rules a component sets itself, such as
+            <Code>MaskIncomplete</Code>, <Code>DateRangeTooLong</Code>, <Code>ChoiceRequired</Code>,
+            <Code>PasswordRulesUnmet</Code> and <Code>FileTooLarge</Code>.
         </Alert>
 
         <Heading Level="2">Next steps</Heading>

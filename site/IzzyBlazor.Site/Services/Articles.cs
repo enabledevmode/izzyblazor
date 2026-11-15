@@ -65,7 +65,7 @@ public static class Articles
             new("color-and-motion", "Color, contrast and motion", "Contrast",
                 "Text keeps 4.5:1 contrast with your own colors too, components adapt to high-contrast mode, and motion stops when the user asks."),
             new("pointer-and-touch", "Pointer and touch", "Pointer",
-                "Targets are at least 24 pixels, and most drags have a click-only way to the same result."),
+                "Targets are at least 24 pixels, and every drag has a click-only way to the same result."),
             new("testing", "Testing your app", "ListChecks",
                 "Check your own pages with a keyboard, a screen reader, zoom and automated tools."),
         ]),

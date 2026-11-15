@@ -16,9 +16,11 @@
         <TextBlock>
             The two libraries can run side by side while you move page by page, as in
             <Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>. Some types have the same name in
-            both: <Code>DialogService</Code>, <Code>DialogOptions</Code>, <Code>ConfirmOptions</Code>, <Code>Dialog</Code>,
-            <Code>Tooltip</Code>, <Code>TextAlign</Code>, <Code>Orientation</Code>, <Code>IconStyle</Code>,
-            <Code>SidebarPosition</Code> and <Code>ColorScheme</Code>.
+            both: <Code>ContextMenu</Code>, <Code>DialogService</Code>, <Code>DialogOptions</Code>, <Code>ConfirmOptions</Code>,
+            <Code>Dialog</Code>, <Code>Tooltip</Code>, <Code>DataGridEditMode</Code>, <Code>FilterOperator</Code>,
+            <Code>DateRange</Code>, <Code>TextAlign</Code>, <Code>Orientation</Code>, <Code>IconStyle</Code>,
+            <Code>SidebarPosition</Code> and <Code>ColorScheme</Code>, which in Radzen is a chart palette, not light or
+            dark.
         </TextBlock>
         <TextBlock>
             A file with <Code>@@using</Code> for both libraries gets ambiguous references. Move a file to IzzyBlazor whole, or
@@ -28,7 +30,8 @@
 
         <Heading Level="2">Setup</Heading>
         <TextBlock>
-            Replace Radzen's services, stylesheet, script and <Code>&lt;RadzenComponents /&gt;</Code>. IzzyBlazor's theme is
+            Replace Radzen's services, <Code>&lt;RadzenTheme&gt;</Code> (or its stylesheet), script and
+            <Code>&lt;RadzenComponents /&gt;</Code>. IzzyBlazor's theme is
             <Code>&lt;IzzyTheme /&gt;</Code> in the head. There's no script tag, because Blazor loads
             <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> itself.
         </TextBlock>
@@ -58,7 +61,6 @@
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
                 <TemplateColumn Title="Notes" Context="row">@Rich(row.Note)</TemplateColumn>
-    
             </Columns>
         </Table>
         <TextBlock>
@@ -105,7 +107,6 @@
             <Columns>
                 <TemplateColumn Title="RadzenButton" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
-    
             </Columns>
         </Table>
         <TextBlock>
@@ -120,15 +121,15 @@
             <Code>RadzenDataGrid</Code> becomes a <Code>DataGrid</Code>, or a <Code>Table</Code> for a plain list of records.
             Both accept the same columns. A column bound to a property is a <Code>PropertyColumn</Code>, which accepts an
             expression instead of the property's name. A column with a template is a <Code>TemplateColumn</Code>, whose
-            content is the template. There's no <Code>Columns</Code> wrapper, and <Code>TItem</Code> comes from
-            <Code>Items</Code>.
+            content is the template. Columns go in <Code>&lt;Columns&gt;</Code>, as in Radzen, and <Code>TItem</Code> comes
+            from <Code>Items</Code>. A grid whose rows have child rows, loaded with <Code>LoadChildData</Code>, becomes a
+            <Anchor Href="docs/components/tree-list">TreeList</Anchor>.
         </TextBlock>
         @SideBySide(GridRadzen, GridIzzy)
         <Table Items="GridRenames" Caption="RadzenDataGrid members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
                 <TemplateColumn Title="RadzenDataGrid" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="DataGrid and Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
-    
             </Columns>
         </Table>
         <TextBlock>What behaves differently:</TextBlock>
@@ -151,7 +152,8 @@
             </ListItem>
             <ListItem>
                 <strong>Selection is a checkbox column, kept by key.</strong> Each row has a checkbox, or a radio button for
-                <Code>Single</Code>, rather than selecting on a row click. The table keeps the rows' <Code>ItemKey</Code>, not
+                <Code>Single</Code>. To select on a row click, as Radzen does, set <Code>SelectOnClick</Code> on a
+                <Code>DataGrid</Code>. The table keeps the rows' <Code>ItemKey</Code>, not
                 the items, so a selection survives paging and reloading. Shift-click selects a range.
             </ListItem>
             <ListItem>
@@ -172,6 +174,15 @@
             "next" cursor, with no total. See
             <Anchor Href="docs/components/table/loading-data#data-from-a-database">Data from a database</Anchor> and
             <Anchor Href="docs/components/table/loading-data#paging-without-a-total">Paging without a total</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            Editing moves from the grid's methods to parameters. <Code>EditMode</Code> is
+            <Code>DataGridEditMode.Row</Code> to edit in the row, or <Code>Dialog</Code> for a form. <Code>RowUpdate</Code>
+            and <Code>RowCreate</Code> become <Code>OnSave</Code>, which tells new rows from changed ones, and
+            <Code>NewItem</Code> makes the row an Add starts with. An <Code>ActionColumn</Code> with an
+            <Code>EditAction</Code> and a <Code>DeleteAction</Code> replaces the buttons you wrote in a template column, and
+            <Code>OnDelete</Code> removes the row. A column's <Code>EditTemplate</Code> keeps its name. See
+            <Anchor Href="docs/components/data-grid/editing">DataGrid editing</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Fields</Heading>
@@ -220,7 +231,7 @@
         @SideBySide(OpenRadzen, OpenIzzy, language: "csharp")
         <TextBlock>
             The width is a <Code>Length</Code>, or one of the named sizes: <Code>Sm</Code> is 384px, <Code>Md</Code> (the
-            default) 512px, <Code>Lg</Code> 768px and <Code>Xl</Code> 1024px. On a phone, the dialog still fits the screen.
+            default) 512px, <Code>Lg</Code> 768px, <Code>Xl</Code> 1024px and <Code>Full</Code> the whole screen. On a phone, the dialog still fits the screen.
         </TextBlock>
         <TextBlock>
             Inside the dialog, close it through the <Code>DialogInstance</Code> it cascades, not through the service.
@@ -244,7 +255,6 @@
             <Columns>
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
-    
             </Columns>
         </Table>
         <TextBlock>What behaves differently:</TextBlock>
@@ -289,7 +299,6 @@
             <Columns>
                 <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
                 <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
-    
             </Columns>
         </Table>
         <TextBlock>
@@ -304,7 +313,7 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components">Components</Anchor>: Stepper, SegmentedControl and the rest of what you may have built by hand.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: TreeList, Sparkline, SegmentedControl and the rest of what you may have built by hand.</ListItem>
             <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what changes if some pages become static.</ListItem>
             <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: CSS variables for your own styles beside the components.</ListItem>
         </List>
@@ -349,6 +358,7 @@
         Map("`RadzenButton`", "`Button`, `IconButton`", "A button with only an icon is an `IconButton`, with a required `Label`."),
         Map("`RadzenToggleButton`", "`ToggleButton`", "A checkbox drawn as a button, bound with `@bind-Value`. In a toolbar, use `ToolbarToggleButton`."),
         Map("`RadzenSplitButton`", "`SplitButton`", "A main action with a menu of related ones."),
+        Map("`RadzenFab`", "`FloatingButton`", "`Icon` and a required `Label`; `Placement` sets the corner."),
         Map("`RadzenFabMenu`", "`SpeedDial`", "A floating button that opens a line of `SpeedDialAction`s. For a single action, use `FloatingButton`."),
         Map("`RadzenSpeechToTextButton`, `RadzenSmartPasteButton`", "No equivalent yet"),
 
@@ -362,38 +372,41 @@
         Map("`RadzenListBox`", "`ListView` with `SelectionMode`", "Each item has a checkbox, or a radio button for `Single`. In less space, use `Select` or `MultiSelect`."),
         Map("`RadzenAutoComplete`", "`Autocomplete`", "Suggests as the user types, and takes any text. To make the user choose one of the options, use `Combobox`."),
         Map("`RadzenPickList`", "`PickList`"),
-        Map("`RadzenDatePicker`", "`DateField`", "Times are read in UTC unless you set `TimeZone`. For a `TimeOnly`, use `TimeField`. For a calendar on the page, as with `Inline`, use `Calendar`."),
+        Map("`RadzenDatePicker`", "`DateField`", "Times are read in UTC unless you set `TimeZone`. For a `TimeOnly`, use `TimeField`. For a calendar on the page, as with `Inline`, use `Calendar`. `ShowCalendarWeek` is `ShowWeekNumbers`."),
+        Map("`RadzenDatePicker` with `Multiple`", "`MultiDateField`", "Binds several dates; `Inline` shows the calendar on the page."),
+        Map("`RadzenDatePicker` picking a month or a year", "`MonthField`, `YearField`"),
         Map("`RadzenDateRangePicker`", "`DateRangeField`"),
         Map("`RadzenTimeSpanPicker`", "`DurationField`"),
         Map("`RadzenCheckBox`", "`Checkbox`"),
-        Map("`RadzenCheckBoxList`", "`CheckboxGroup`"),
+        Map("`RadzenCheckBoxList`", "`CheckboxGroup`", "`AllowSelectAll` is `SelectAll`."),
         Map("`RadzenSwitch`", "`Switch`"),
         Map("`RadzenRadioButtonList`", "`RadioGroup`", "`Items` and `ItemText`, as on `Select`."),
-        Map("`RadzenSelectBar`", "`SegmentedControl`, or `ToggleGroup` for several values"),
-        Map("`RadzenChipList`", "`ToggleGroup`, or `Tag`s", "To choose chips, use a `ToggleGroup`. To show chips the user can remove, use `Tag`s."),
+        Map("`RadzenSelectBar`", "`SegmentedControl`", "With `Multiple`, a `CheckboxGroup` with `Chips` binds the list."),
+        Map("`RadzenChipList`", "`RadioGroup` or `CheckboxGroup` with `Chips`", "`Data` is `Items` and `TextProperty` is `ItemText`; for `Multiple`, use `CheckboxGroup`. To show chips the user can remove, use `Tag`s with `OnRemove`."),
         Map("`RadzenSlider`", "`Slider`, or `RangeSlider` for a range"),
         Map("`RadzenRating`", "`Rating`"),
         Map("`RadzenSecurityCode`", "`PinField`"),
         Map("`RadzenColorPicker`", "`ColorPicker`", "For swatches and a picker on the page, use `ColorPanel`."),
-        Map("`RadzenUpload`, `RadzenFileInput`", "`FileUpload`"),
+        Map("`RadzenUpload`, `RadzenFileInput`", "`FileUpload`", "Posts the files with its form, by `Name`; there's no `Url` of its own, and no progress events."),
         Map("`RadzenHtmlEditor`", "`RichTextEditor`"),
         Map("`RadzenMarkdownEditor`", "No equivalent yet", "`RichTextEditor` saves HTML, not Markdown."),
         Map("`RadzenSignaturePad`, `RadzenVirtualKeyboard`", "No equivalent yet"),
         Map("`RadzenTemplateForm`", "`Form`", "Posts on static pages, and validates as the user edits on interactive pages."),
         Map("`RadzenRequiredValidator` and the other validators", "Data annotations on the model", "`Form` validates them, and each field shows its own errors."),
         Map("`RadzenFormField`, `RadzenLabel`", "The field's own `Label` and `Hint`", "For a control of your own, use `FieldFrame`."),
-        Map("`RadzenFieldset`", "`Fieldset`"),
+        Map("`RadzenFieldset`", "`Fieldset`", "`Text` is `Label`. To collapse it, put an `Accordion` or `Collapsible` inside."),
         Map("`RadzenLogin`", "No equivalent yet", "Build the form from `Form`, `TextField` and `PasswordField`."),
 
         // Data
         Map("`RadzenDataGrid`", "`DataGrid`, or `Table`", "Sort, filters and page go in the URL. See Data grids below."),
+        Map("`RadzenDataGrid` with `LoadChildData`", "`TreeList`", "Rows with child rows, by `ItemChildren` or `ItemParentKey`, with DataGrid's columns and editing."),
         Map("`RadzenTable`", "`Table`", "A `Table` takes `Items` and columns, not rows and cells written out."),
         Map("`RadzenPivotDataGrid`, `RadzenSpreadsheet`", "No equivalent yet"),
         Map("`RadzenDataFilter`", "`FilterBuilder`"),
         Map("`RadzenDataList`", "`ListView`"),
         Map("`RadzenPager`", "`Pagination`"),
-        Map("`RadzenTree`", "`TreeView`"),
-        Map("`RadzenScheduler`", "`Scheduler`", "Its views are `SchedulerView`s in `ViewOptions`; `AppointmentSelect` and `SlotSelect` are the built-in form with `OnSave`; the view and date are in the page's address."),
+        Map("`RadzenTree`", "`TreeView`", "`AllowCheckBoxes` is `SelectionMode` with `Cascade`."),
+        Map("`RadzenScheduler`", "`Scheduler`", "`StartProperty`, `EndProperty`, `TextProperty` and `AllDayProperty` are the expressions `Start`, `End`, `Title` and `AllDay`, and `LoadData` is `ItemsProvider`. Its views are `SchedulerView`s in `ViewOptions` (Day, Week, WorkWeek, Month and Agenda); `AppointmentSelect` and `SlotSelect` are the built-in form with `OnSave`; the view and date are in the page's address. Resources, and the year and multi-day views, have no equivalent yet."),
         Map("`RadzenGantt`", "No equivalent yet"),
         Map("`RadzenTimeline`", "`Timeline`"),
         Map("`RadzenCarousel`", "`Carousel`"),
@@ -402,6 +415,8 @@
         // Overlays and feedback
         Map("`DialogService`, `RadzenDialog`", "`DialogService`, `Dialog`", "Add a `DialogHost` to the layout. See Dialogs below."),
         Map("`DialogService.OpenSideAsync`", "`Drawer`, or `Placement` in `DialogOptions`", "`DialogPlacement.End` opens the dialog as a full-height drawer."),
+        Map("`DialogService.OpenAsync(title, RenderFragment)`", "A `Dialog` written in the page", "`OpenAsync` takes a component type."),
+        Map("`DialogService.Alert`", "No equivalent yet", "Use `ConfirmAsync`, a `Dialog` in the page, or a toast."),
         Map("`NotificationService`", "`ToastService`", "Add a `ToastRegion` to the layout. See Notifications below."),
         Map("`RadzenTooltip`, `TooltipService`", "`Tooltip`", "A component around its trigger, not a service."),
         Map("`RadzenContextMenu`, `ContextMenuService`", "`ContextMenu`", "A component, not a service: right-clicking the element whose id is `For` opens it. For a menu with a button that also opens on right-click, use `Menu` with `ContextFor`."),
@@ -413,12 +428,12 @@
         Map("`RadzenLiveRegion`", "`LiveRegion`"),
 
         // Navigation
-        Map("`RadzenTabs`", "`Tabs`", "A `Tab` has its panel as content. For tabs that go to URLs, use `TabNav` with `TabLink`s, marked when the URL matches. `Closable` tabs are `OnClose` on `Tabs`; `Closable=\"false\"` on a `Tab` opts out."),
+        Map("`RadzenTabs`", "`Tabs`", "A `Tab` has its panel as content; `Text` is `Label`, and `SelectedIndex` is `Selected`, by the tab's `Value`. For tabs that go to URLs, use `TabNav` with `TabLink`s, marked when the URL matches. `Closable` tabs are `OnClose` on `Tabs`; `Closable=\"false\"` on a `Tab` opts out."),
         Map("`RadzenMenu`", "`SiteNav`", "Header links that fold into a menu on phones. For a dropdown menu, use `Menu`."),
         Map("`RadzenProfileMenu`", "`Menu`", "A button that opens a list of items."),
         Map("`RadzenPanelMenu`", "`NavMenu`", "A list of links that marks the current page."),
         Map("`RadzenBreadCrumb`", "`Breadcrumb`"),
-        Map("`RadzenSteps`", "`Stepper`", "Shows where the user is in a process."),
+        Map("`RadzenSteps`", "`Stepper`", "Shows progress only: set `Current`, and render each step's content and buttons in the page."),
         Map("`RadzenToc`", "`OnThisPage`", "Lists links to the page's headings, rendered on the server."),
         Map("`RadzenLink`", "`Anchor`", "For a link drawn as a button, use `Button` with `Href`."),
 
@@ -447,6 +462,7 @@
         Map("`RadzenChat`, `RadzenAIChat`", "`Chat`", "Shows the conversation and a box for the next message. You connect it to your assistant or service."),
         Map("`RadzenAIPrompt`, `RadzenInlineAIPrompt`", "No equivalent yet"),
         Map("`RadzenGoogleMap`, `RadzenSSRSViewer`", "No equivalent yet"),
+        Map("`RadzenMediaQuery`", "No equivalent yet", "To show or hide by width, set `HiddenFrom` or `VisibleFrom` on any component."),
 
         // Theming and setup
         Map("`RadzenTheme`", "`IzzyTheme`", "Sets the preset, brand color, fonts and color scheme. See Setup above."),
@@ -469,7 +485,15 @@
         Map("`RadzenSankeyDiagram`", "`SankeyChart`"),
         Map("`RadzenTreemap`", "`TreemapChart`"),
         Map("`RadzenRangeNavigator`, `RadzenChartRangeNavigator`", "`RangeSelector`, `ChartRangeSelector`"),
-        Map("`RadzenCandlestickSeries`, `RadzenOhlcSeries`, `RadzenHighLowSeries`, `RadzenBoxPlotSeries`, `RadzenPyramidSeries`, `RadzenContourSeries`", "No equivalent yet"),
+        Map("`RadzenCandlestickSeries`", "`ChartCandlestickSeries`", "`Open`, `High`, `Low` and `Close` are expressions."),
+        Map("`RadzenOhlcSeries`, `RadzenHighLowSeries`", "`ChartOhlcSeries`", "Without `Open`, it draws high-low-close."),
+        Map("`RadzenBoxPlotSeries`", "`ChartBoxSummarySeries`", "For five values already worked out. `ChartBoxPlotSeries` works them out from raw values."),
+        Map("`RadzenPyramidSeries`", "`FunnelChart` with `Pyramid`"),
+        Map("`RadzenRangeColumnSeries`, `RadzenRangeBarSeries`", "`ChartRangeBarSeries`", "Set the chart's `Orientation` to `Horizontal` for bars across."),
+        Map("`RadzenHorizontalWaterfallSeries`", "`ChartWaterfallSeries`", "With the chart's `Orientation` set to `Horizontal`."),
+        Map("`RadzenSparkline`", "`Sparkline`", "`Values` (numbers) and a required `Label`, not series in a chart; `Type` sets line, area, bar or win-loss."),
+        Map("`RadzenLegend`, `RadzenAxisTitle`, `RadzenGridLines`, `RadzenMarkers`, `RadzenAxisCrosshair`", "Parameters", "Chart options are parameters, not child components: `Legend` and `Crosshair` on the `Chart`, `Title` and `GridLines` on an axis, `Markers` on a line series."),
+        Map("`RadzenStackedLineSeries`, `RadzenSpiderColumnSeries`, `RadzenSeriesModeLine`, `RadzenContourSeries`", "No equivalent yet", "Lines never stack; stack areas instead."),
         Map("`RadzenRadialGauge`, `RadzenArcGauge`", "`Gauge`", "A dial, with a `GaugeBand` for each range and a `GaugePointer` for each needle."),
         Map("`RadzenLinearGauge`", "`LinearGauge`", "Its ranges are `GaugeBand`s and its pointers `GaugePointer`s."),
     ];
@@ -495,7 +519,7 @@
     [
         Map("`Data`", "`Items`"),
         Map("`TItem`", "Inferred from `Items`"),
-        Map("`<Columns>`", "None: columns go straight inside"),
+        Map("`<Columns>`", "`<Columns>`, as in Radzen"),
         Map("`RadzenDataGridColumn Property=\"Email\"`", "`PropertyColumn Property=\"m => m.Email\"`"),
         Map("A column with a `<Template>`", "`TemplateColumn`, with the template as its content"),
         Map("`AllowSorting` on the grid", "`Sortable` on each column"),
@@ -513,6 +537,16 @@
         Map("`SelectionMode=\"DataGridSelectionMode.Multiple\"`", "`SelectionMode=\"SelectionMode.Multiple\"` (with `ItemKey`)"),
         Map("`@bind-Value` (the selected items)", "`@bind-Selection` (their keys, or all matching); `Apply` gives the items"),
         Map("`RowSelect`, `RowDeselect`", "`SelectionChanged`"),
+        Map("`AllowRowSelectOnRowClick`", "`SelectOnClick` on a `DataGrid`"),
+        Map("`EditMode`, `RowUpdate`, `RowCreate`", "`EditMode` (`DataGridEditMode.Row` or `Dialog`), `OnSave`, `NewItem`"),
+        Map("`AllowVirtualization`", "`Virtualize` on a `DataGrid`"),
+        Map("`AllowColumnPicking`", "`ColumnPicker`"),
+        Map("`Template` (row details), `ExpandMode.Single`", "`DetailTemplate`, `SingleDetail` on a `DataGrid`"),
+        Map("`AllowAlternatingRows`, `GridLines`", "`Striped`, `RowLines` and `ColumnLines`"),
+        Map("`IsLoading`, `EmptyTemplate`, `RowRender`", "`Loading`, `EmptyContent` or `EmptyText`, `RowClass`"),
+        Map("`LoadSettings`, `SettingsChanged`", "`Layout`, `LayoutChanged`, or `LayoutKey` to keep it in a cookie"),
+        Map("`FilterMode.CheckBoxList`", "A column's `FilterList` or `FilterValues`"),
+        Map("Column `FormatString`, `Frozen`, `FooterTemplate`", "`Format`, `Frozen`, `Footer` or `Aggregate`"),
     ];
 
     private static readonly Mapping[] DialogRenames =
@@ -540,10 +574,8 @@
         // Program.cs
         builder.Services.AddRadzenComponents();
 
-        <!-- App.razor -->
-        <link rel="stylesheet" href=
-          "_content/Radzen.Blazor/css/standard-base.css"
-        />
+        <!-- App.razor, in <head> -->
+        <RadzenTheme Theme="material" />
         ...
         <script src="_framework/blazor.web.js"></script>
         <script src=
@@ -551,7 +583,7 @@
         </script>
 
         <!-- MainLayout.razor -->
-        <RadzenComponents />
+        <RadzenComponents @rendermode="InteractiveAuto" />
         """;
 
     private const string SetupIzzy = """
@@ -676,7 +708,6 @@
                 Align="CellAlign.End">
                 <Button ...>Remove</Button>
               </TemplateColumn>
-    
             </Columns>
         </DataGrid>
         """;

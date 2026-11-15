@@ -14,7 +14,7 @@
         <List Gap="2">
             <ListItem>Text has at least 4.5:1 contrast against its background in both color schemes; body text has 7:1. Disabled text is lighter, as WCAG allows.</ListItem>
             <ListItem>A field's border and a switch's track are about 2:1 against the page, and every field has a visible label above it. For strict 3:1, darken <Code>--ib-color-outline</Code>; see Known gaps in the <Anchor Href="docs/accessibility/overview">overview</Anchor>.</ListItem>
-            <ListItem>A status, such as success or danger, is never color alone: it comes with an icon and a word.</ListItem>
+            <ListItem>An alert's, a banner's and a toast's status, such as success or danger, comes with an icon and a title as well as its color. A Badge's <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
         </List>
 
         <Heading Level="2">Your own brand and gray</Heading>
@@ -29,7 +29,8 @@
             <Code>Gray</Code> is checked the same way: muted text keeps 4.5:1. See <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
         </TextBlock>
         <TextBlock>
-            A color you set directly, on a component's <Code>Color</Code> or in CSS, isn't checked. Keep the pairs in
+            A color you set directly, through <Code>Accent.Of</Code>, a style prop such as <Code>Color</Code> or
+            <Code>Bg</Code>, or CSS, isn't adjusted for contrast. Keep the pairs in
             <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> together and check them yourself.
         </TextBlock>
 
