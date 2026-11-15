@@ -16,12 +16,13 @@ sealed record EnumValue(string Name, string Label);
 /// </summary>
 /// <param name="Name">The property's name.</param>
 /// <param name="Label">From <c>[Display(Name)]</c>, else the name in words: LifetimeValue is "Lifetime value".</param>
+/// <param name="ShortLabel">A column's title: <c>[Display(ShortName)]</c>, else the label.</param>
 /// <param name="Type">The property's type as written, such as <c>decimal?</c> or <c>CustomerStatus</c>.</param>
 /// <param name="Required">Has to have a value: <c>[Required]</c>, <c>required</c>, a value type that isn't nullable, or a reference type that isn't nullable where nullable is on.</param>
 /// <param name="ReadOnly">Shown but not edited: no public setter, <c>[Editable(false)]</c> or a value the database makes.</param>
 /// <param name="MaxLength">From <c>[StringLength]</c> or <c>[MaxLength]</c>; 0 when there's none.</param>
 /// <param name="Values">An enum's members, for its Select; empty otherwise.</param>
-sealed record ModelField(string Name, string Label, FieldKind Kind, string Type, bool Required, bool ReadOnly, int MaxLength, IReadOnlyList<EnumValue> Values)
+sealed record ModelField(string Name, string Label, string ShortLabel, FieldKind Kind, string Type, bool Required, bool ReadOnly, int MaxLength, IReadOnlyList<EnumValue> Values)
 {
     public bool Nullable => Type.EndsWith('?');
     public bool Numeric => Kind is FieldKind.Integer or FieldKind.Decimal or FieldKind.Money;
@@ -210,7 +211,8 @@ static partial class ModelReader
         var values = kind == FieldKind.Enum
             ? enums[typeName].Members.Select(m => new EnumValue(m.Identifier.Text, DisplayName(m.AttributeLists) ?? Words(m.Identifier.Text))).ToList()
             : [];
-        return new ModelField(name, DisplayName(attributes) ?? Words(name), kind.Value, written, isRequired, readOnly, MaxLength(attributes), values);
+        var label = DisplayName(attributes) ?? Words(name);
+        return new ModelField(name, label, DisplayName(attributes, "ShortName") ?? label, kind.Value, written, isRequired, readOnly, MaxLength(attributes), values);
     }
 
     /// <summary>A name in words, first word capitalized: LifetimeValue is "Lifetime value", PostalCode "Postal code", URL stays.</summary>
@@ -221,9 +223,10 @@ static partial class ModelReader
         return string.Join(' ', words.Select((w, i) => i == 0 || w.All(char.IsUpper) ? w : w.ToLowerInvariant()));
     }
 
-    static string? DisplayName(SyntaxList<AttributeListSyntax> lists) =>
+    // [Display(Name = "...")], or with ShortName, the shorter name grids use for a column.
+    static string? DisplayName(SyntaxList<AttributeListSyntax> lists, string property = "Name") =>
         Attribute(lists, "Display")?.ArgumentList?.Arguments
-            .FirstOrDefault(a => a.NameEquals?.Name.Identifier.Text == "Name")?.Expression is LiteralExpressionSyntax { } literal
+            .FirstOrDefault(a => a.NameEquals?.Name.Identifier.Text == property)?.Expression is LiteralExpressionSyntax { } literal
             ? literal.Token.ValueText : null;
 
     static int MaxLength(SyntaxList<AttributeListSyntax> lists) =>

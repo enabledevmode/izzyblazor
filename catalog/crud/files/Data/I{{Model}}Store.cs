@@ -6,28 +6,28 @@ using {{ModelNamespace}};
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
-/// Where the {{PluralLower}} pages read and write {{PluralLower}}, from izzy add crud. The pages ask only this,
-/// so moving the {{PluralLower}} to another database or an API means a new store, not new pages.
+/// Where the {{ModelPluralLower}} pages read and write {{ModelPluralLower}}, from izzy add crud. The pages ask only this,
+/// so moving the {{ModelPluralLower}} to another database or an API means a new store, not new pages.
 /// </summary>
 public interface I{{Model}}Store
 {
 #if (HasStatus)
-    /// <summary>How many {{PluralLower}} the list's filters keep; with none, how many there are.</summary>
+    /// <summary>How many {{ModelPluralLower}} the list's filters keep; with none, how many there are.</summary>
     Task<int> CountAsync(string? search = null, {{StatusType}}? status = null, CancellationToken cancellationToken = default);
 #else
-    /// <summary>How many {{PluralLower}} the list's search keeps; with none, how many there are.</summary>
+    /// <summary>How many {{ModelPluralLower}} the list's search keeps; with none, how many there are.</summary>
     Task<int> CountAsync(string? search = null, CancellationToken cancellationToken = default);
 #endif
 
 #if (HasStatus)
     /// <summary>
-    /// The page of {{PluralLower}} the grid asks for, sorted as it asks, after the list's own filters:
+    /// The page of {{ModelPluralLower}} the grid asks for, sorted as it asks, after the list's own filters:
     /// text to look for (<paramref name="search"/>), and a {{StatusLabel}}.
     /// </summary>
     ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search, {{StatusType}}? status);
 #else
     /// <summary>
-    /// The page of {{PluralLower}} the grid asks for, sorted as it asks, after the list's own search
+    /// The page of {{ModelPluralLower}} the grid asks for, sorted as it asks, after the list's own search
     /// (<paramref name="search"/>), when it has one.
     /// </summary>
     ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search);

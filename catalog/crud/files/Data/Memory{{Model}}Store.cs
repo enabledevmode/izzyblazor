@@ -6,7 +6,7 @@ using {{ModelNamespace}};
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
-/// {{Plural}} kept in memory, from izzy add crud: one list for the whole app, empty when it starts and gone
+/// {{ModelPlural}} kept in memory, from izzy add crud: one list for the whole app, empty when it starts and gone
 /// when it stops. For trying the pages out; for real use, add a DbSet&lt;{{Model}}&gt; to your DbContext and
 /// run izzy add crud {{Model}} --store ef --overwrite.
 /// </summary>
