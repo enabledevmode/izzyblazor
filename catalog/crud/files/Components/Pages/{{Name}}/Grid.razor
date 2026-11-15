@@ -3,9 +3,9 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @*#endif *@
 @using {{RootNamespace}}.Data
-@*#if (HasModelNamespace) *@
-@using {{ModelNamespace}}
-@*#endif *@
+@*#each (Alias in Aliases) *@
+@using {{Alias.Name}} = {{Alias.Type}}
+@*#endeach *@
 @inject I{{Model}}Store Store
 
 <PageTitle>{{Plural}}</PageTitle>
@@ -16,10 +16,10 @@
 <Stack Gap="new() { Base = 6, Md = 8 }">
     <PageHeader Title="{{Plural}}" />
 
-    <DataGrid TItem="{{Model}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{x.{{TitleField}}}")" Caption="{{Plural}}" PageSize="10"
+    <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" Searchable ColumnPicker ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
-              NewItem="() => new {{Model}}()" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
+              NewItem="() => new {{ModelType}}()" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
         <Columns>
 @*#each (Field in Fields) *@
 @*#if (Field.InList) *@
@@ -36,15 +36,15 @@
 @code {
     // The grid's search goes to the store, which looks in more fields than the grid shows.
 @*#if (HasStatus) *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request with { Search = null }, request.Search, null);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request with { Search = null }, request.Search, null);
 @*#else *@
-    private ValueTask<DataResult<{{Model}}>> Find(DataRequest<{{Model}}> request) => Store.FindAsync(request with { Search = null }, request.Search);
+    private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request with { Search = null }, request.Search);
 @*#endif *@
 
     // The row an edit address (?edit=42) names, which may be on another page.
-    private Task<{{Model}}?> FindAsync(string key) => {{KeyParse}} is { } id ? Store.GetAsync(id) : Task.FromResult<{{Model}}?>(null);
+    private Task<{{ModelType}}?> FindAsync(string key) => {{KeyParse}} is { } id ? Store.GetAsync(id) : Task.FromResult<{{ModelType}}?>(null);
 
-    private async Task SaveAsync(DataGridSave<{{Model}}> save)
+    private async Task SaveAsync(DataGridSave<{{ModelType}}> save)
     {
         var missing = false;
 @*#each (Field in FormFields) *@
@@ -70,7 +70,7 @@
         }
     }
 
-    private async Task DeleteAsync(DataGridDelete<{{Model}}> delete)
+    private async Task DeleteAsync(DataGridDelete<{{ModelType}}> delete)
     {
         if (!await Store.DeleteAsync(delete.Item.{{Key}}))
             delete.AddError("Other records point to this {{SingularLower}}. Delete or change those first.");

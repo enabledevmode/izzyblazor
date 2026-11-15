@@ -1,7 +1,7 @@
 using IzzyBlazor;
-#if (HasModelNamespace)
-using {{ModelNamespace}};
-#endif
+#each (Alias in Aliases)
+using {{Alias.Name}} = {{Alias.Type}};
+#endeach
 
 namespace {{RootNamespace}}.Data;
 
@@ -24,23 +24,23 @@ public interface I{{Model}}Store
     /// The page of {{ModelPluralLower}} the grid asks for, sorted as it asks, after the list's own filters:
     /// text to look for (<paramref name="search"/>), and a {{StatusLabel}}.
     /// </summary>
-    ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search, {{StatusType}}? status);
+    ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search, {{StatusType}}? status);
 #else
     /// <summary>
     /// The page of {{ModelPluralLower}} the grid asks for, sorted as it asks, after the list's own search
     /// (<paramref name="search"/>), when it has one.
     /// </summary>
-    ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search);
+    ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search);
 #endif
 
     /// <summary>The {{SingularLower}} with this {{Key}}, or null when there's none.</summary>
-    Task<{{Model}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default);
+    Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default);
 
     /// <summary>Adds a {{SingularLower}}, giving it its {{Key}}.</summary>
-    Task AddAsync({{Model}} item, CancellationToken cancellationToken = default);
+    Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default);
 
     /// <summary>Saves a {{SingularLower}} read with <see cref="GetAsync"/> and changed.</summary>
-    Task UpdateAsync({{Model}} item, CancellationToken cancellationToken = default);
+    Task UpdateAsync({{ModelType}} item, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the {{SingularLower}} with this {{Key}}. False when it can't be, because other records point to it.

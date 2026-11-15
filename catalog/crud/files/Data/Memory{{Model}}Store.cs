@@ -1,7 +1,7 @@
 using IzzyBlazor;
-#if (HasModelNamespace)
-using {{ModelNamespace}};
-#endif
+#each (Alias in Aliases)
+using {{Alias.Name}} = {{Alias.Type}};
+#endeach
 
 namespace {{RootNamespace}}.Data;
 
@@ -12,7 +12,7 @@ namespace {{RootNamespace}}.Data;
 /// </summary>
 public sealed class Memory{{Model}}Store : I{{Model}}Store
 {
-    private readonly List<{{Model}}> _items = [];
+    private readonly List<{{ModelType}}> _items = [];
     private readonly Lock _lock = new();
 
 #if (HasStatus)
@@ -21,7 +21,7 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
         lock (_lock) return Task.FromResult(Filter(search, status).Count());
     }
 
-    public ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search, {{StatusType}}? status)
+    public ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search, {{StatusType}}? status)
     {
         lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search, status).ToList().AsQueryable()));
     }
@@ -31,18 +31,18 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
         lock (_lock) return Task.FromResult(Filter(search).Count());
     }
 
-    public ValueTask<DataResult<{{Model}}>> FindAsync(DataRequest<{{Model}}> request, string? search)
+    public ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search)
     {
         lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search).ToList().AsQueryable()));
     }
 #endif
 
-    public Task<{{Model}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
+    public Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
     {
         lock (_lock) return Task.FromResult(_items.FirstOrDefault(x => x.{{Key}} == id));
     }
 
-    public Task AddAsync({{Model}} item, CancellationToken cancellationToken = default)
+    public Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default)
     {
         lock (_lock)
         {
@@ -59,7 +59,7 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
     }
 
     // The pages change the {{SingularLower}} GetAsync gave them, which is the one in the list.
-    public Task UpdateAsync({{Model}} item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task UpdateAsync({{ModelType}} item, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public Task<bool> DeleteAsync({{KeyType}} id, CancellationToken cancellationToken = default)
     {
@@ -68,12 +68,12 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
     }
 
 #if (HasStatus)
-    private IEnumerable<{{Model}}> Filter(string? search, {{StatusType}}? status)
+    private IEnumerable<{{ModelType}}> Filter(string? search, {{StatusType}}? status)
 #else
-    private IEnumerable<{{Model}}> Filter(string? search)
+    private IEnumerable<{{ModelType}}> Filter(string? search)
 #endif
     {
-        IEnumerable<{{Model}}> found = _items;
+        IEnumerable<{{ModelType}}> found = _items;
 #if (HasSearch)
         if (!string.IsNullOrWhiteSpace(search))
         {

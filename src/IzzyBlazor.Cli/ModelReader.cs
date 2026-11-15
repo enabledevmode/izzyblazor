@@ -24,6 +24,9 @@ sealed record EnumValue(string Name, string Label);
 /// <param name="Values">An enum's members, for its Select; empty otherwise.</param>
 sealed record ModelField(string Name, string Label, string ShortLabel, FieldKind Kind, string Type, bool Required, bool ReadOnly, int MaxLength, IReadOnlyList<EnumValue> Values)
 {
+    /// <summary>An enum's namespace, where it's declared; empty otherwise or in the global namespace.</summary>
+    public string EnumNamespace { get; init; } = "";
+
     public bool Nullable => Type.EndsWith('?');
     public bool Numeric => Kind is FieldKind.Integer or FieldKind.Decimal or FieldKind.Money;
 }
@@ -83,9 +86,25 @@ static partial class ModelReader
         var skipped = new List<string>();
         ModelField? key = null;
         var keyGenerated = false;
-        var properties = parts.SelectMany(p => p.Decl.Members.OfType<PropertyDeclarationSyntax>())
+        // Its base classes in the app come first (an Entity with the Id), as their properties come first at run time.
+        var declared = trees.SelectMany(t => t.Root.DescendantNodes().OfType<TypeDeclarationSyntax>()).GroupBy(d => d.Identifier.Text).ToDictionary(g => g.Key, g => g.ToList());
+        var chain = new List<TypeDeclarationSyntax>();
+        var seen = new HashSet<string> { simple };
+        for (var level = parts.Select(p => p.Decl).ToList(); level.Count > 0;)
+        {
+            chain.InsertRange(0, level);
+            var baseName = level.SelectMany(d => d.BaseList?.Types ?? []).Select(b => BaseName(b.Type)).FirstOrDefault(n => declared.ContainsKey(n) && declared[n].Any(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax));
+            level = baseName is not null && seen.Add(baseName) ? declared[baseName].Where(d => d is ClassDeclarationSyntax or RecordDeclarationSyntax).ToList() : [];
+        }
+        var properties = chain.SelectMany(d => d.Members.OfType<PropertyDeclarationSyntax>())
             .Where(p => p.Modifiers.Any(SyntaxKind.PublicKeyword) && !p.Modifiers.Any(SyntaxKind.StaticKeyword))
+            // An override or new in the model replaces the base's.
+            .Reverse().DistinctBy(p => p.Identifier.Text).Reverse()
             .ToList();
+        if (parts.Any(p => HasAttribute(p.Decl.AttributeLists, "Keyless")))
+            throw new UsageException($"{simple} is [Keyless], so its records have no address for a detail or edit page.");
+        if (parts.Select(p => Attribute(p.Decl.AttributeLists, "PrimaryKey")).FirstOrDefault(a => a is not null) is { } primaryKey && primaryKey.ArgumentList?.Arguments.Count > 1)
+            throw new UsageException($"{simple} has a key of more than one property ({primaryKey.ArgumentList}): crud's pages need one key, such as an Id.");
         // A positional record (or a class with a primary constructor) can't be made empty.
         var positional = parts.SelectMany(p => p.Decl.ParameterList?.Parameters ?? []).ToList();
 
@@ -93,6 +112,9 @@ static partial class ModelReader
         var constructors = parts.SelectMany(p => p.Decl.Members.OfType<ConstructorDeclarationSyntax>()).Where(c => !c.Modifiers.Any(SyntaxKind.StaticKeyword)).ToList();
         if (positional.Count > 0 || constructors.Count > 0 && !constructors.Any(c => c.ParameterList.Parameters.Count == 0 && c.Modifiers.Any(SyntaxKind.PublicKeyword)))
             throw new UsageException($"{simple} has no public constructor without parameters, which crud's form needs to make one: add public {simple}() {{ }}, or give crud a class with settable properties.");
+        // The edit page changes the saved one: an init-only property can't be set after it's made.
+        if (properties.FirstOrDefault(p => p.AccessorList?.Accessors.Any(a => a.IsKind(SyntaxKind.InitAccessorDeclaration) && !a.Modifiers.Any()) == true) is { } initOnly)
+            throw new UsageException($"{simple}.{initOnly.Identifier.Text} is init-only, and crud's edit page changes a saved {simple}: give its properties set accessors (a record can have them too).");
         if (properties.FirstOrDefault(p => p.Modifiers.Any(SyntaxKind.RequiredKeyword)) is { } requiredMember)
             throw new UsageException($"{simple}.{requiredMember.Identifier.Text} is a required member, so new {simple}() needs it set, and crud's form makes one empty and fills it in. Use [Required] instead of the required keyword.");
 
@@ -116,7 +138,7 @@ static partial class ModelReader
             }
             var setter = p.AccessorList?.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
             var writable = setter is not null && !setter.Modifiers.Any(m => m.Kind() is SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword);
-            var field = Field(name, p.Type, attributes, writable, p.Modifiers.Any(SyntaxKind.RequiredKeyword), enums, classes, nullableEnabled, out var why);
+            var field = Field(name, p.Type, attributes, writable, p.Modifiers.Any(SyntaxKind.RequiredKeyword), enums, classes, NullableAt(p, nullableEnabled), out var why);
             if (field is null)
             {
                 skipped.Add($"{name}: {why}");
@@ -166,6 +188,11 @@ static partial class ModelReader
             typeName = LastName(inner);
             written = inner + "?";
         }
+        if (inner is ArrayTypeSyntax { ElementType: PredefinedTypeSyntax { Keyword.Text: "byte" } })
+        {
+            why = "binary data (a file or a row version)";
+            return null;
+        }
         if (inner is GenericNameSyntax or ArrayTypeSyntax)
         {
             why = "a list (related records are a Pro option)";
@@ -184,8 +211,9 @@ static partial class ModelReader
                 : name is "Description" or "Notes" or "Body" or "Comments" ? FieldKind.LongText
                 : FieldKind.Text,
             _ when Integers.Contains(typeName) => FieldKind.Integer,
+            // Money when it says so, or a decimal named like money; a double is a measurement.
             _ when Decimals.Contains(typeName) =>
-                dataType == "Currency" || Regex.IsMatch(name, "(Price|Total|Value|Amount|Cost|Revenue|Balance|Fee)$") ? FieldKind.Money : FieldKind.Decimal,
+                dataType == "Currency" || typeName is "decimal" or "Decimal" && Regex.IsMatch(name, "(Price|Total|Amount|Cost|Revenue|Balance|Fee|Salary|Subtotal|Tax)$") ? FieldKind.Money : FieldKind.Decimal,
             "bool" or "Boolean" => FieldKind.Bool,
             "DateOnly" => FieldKind.Date,
             "DateTime" or "DateTimeOffset" => dataType == "Date" ? FieldKind.Date : FieldKind.DateTime,
@@ -212,7 +240,26 @@ static partial class ModelReader
             ? enums[typeName].Members.Select(m => new EnumValue(m.Identifier.Text, DisplayName(m.AttributeLists) ?? Words(m.Identifier.Text))).ToList()
             : [];
         var label = DisplayName(attributes) ?? Words(name);
-        return new ModelField(name, label, DisplayName(attributes, "ShortName") ?? label, kind.Value, written, isRequired, readOnly, MaxLength(attributes), values);
+        return new ModelField(name, label, DisplayName(attributes, "ShortName") ?? label, kind.Value, written, isRequired, readOnly, MaxLength(attributes), values)
+        {
+            EnumNamespace = kind == FieldKind.Enum ? NamespaceOf(enums[typeName]) : "",
+        };
+    }
+
+    // Whether nullable reference types are on where the property is: the last #nullable before it in its file
+    // (enable, or disable; restore goes back to the project's), else the project's setting.
+    static bool NullableAt(SyntaxNode node, bool project)
+    {
+        var directive = node.SyntaxTree.GetRoot().DescendantTrivia()
+            .Where(t => t.IsKind(SyntaxKind.NullableDirectiveTrivia) && t.SpanStart < node.SpanStart)
+            .Select(t => (NullableDirectiveTriviaSyntax)t.GetStructure()!)
+            .LastOrDefault(d => d.TargetToken.IsKind(SyntaxKind.None) || d.TargetToken.IsKind(SyntaxKind.AnnotationsKeyword));
+        return directive?.SettingToken.Kind() switch
+        {
+            SyntaxKind.EnableKeyword => true,
+            SyntaxKind.DisableKeyword => false,
+            _ => project,
+        };
     }
 
     /// <summary>A name in words, first word capitalized: LifetimeValue is "Lifetime value", PostalCode "Postal code", URL stays.</summary>

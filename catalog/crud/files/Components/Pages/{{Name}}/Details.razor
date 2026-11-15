@@ -3,9 +3,9 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @*#endif *@
 @using {{RootNamespace}}.Data
-@*#if (HasModelNamespace) *@
-@using {{ModelNamespace}}
-@*#endif *@
+@*#each (Alias in Aliases) *@
+@using {{Alias.Name}} = {{Alias.Type}}
+@*#endeach *@
 @inject I{{Model}}Store Store
 @inject ToastService Toasts
 @inject NavigationManager Navigation
@@ -14,23 +14,23 @@
    Delete posts this page's form, so it works with no circuit and no script. *@
 @if (_item is not null)
 {
-    <PageTitle>@_item.{{TitleField}}</PageTitle>
+    <PageTitle>@Title</PageTitle>
 
     <Stack Gap="new() { Base = 6, Md = 8 }">
         <Stack Gap="3">
             <Breadcrumb>
                 <BreadcrumbItem Href="{{Route}}">{{Plural}}</BreadcrumbItem>
-                <BreadcrumbItem>@_item.{{TitleField}}</BreadcrumbItem>
+                <BreadcrumbItem>@Title</BreadcrumbItem>
             </Breadcrumb>
-            <PageHeader Title="@(_item.{{TitleField}}?.ToString() ?? "")">
+            <PageHeader Title="@Title">
 @*#if (HasStatus) *@
                 <Badge Status="Tone(_item.{{StatusField}})" Dot>@Label(_item.{{StatusField}})</Badge>
 @*#endif *@
                 <PageHeaderActions>
-                    <Button Href="@($"{{Route}}/{Id}/edit")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil">Edit</Button>
+                    <Button Href="@Url(Id, "edit")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil">Edit</Button>
                     <form method="post" @formname="delete-{{SingularLower}}" @onsubmit="DeleteAsync" data-enhance>
                         <AntiforgeryToken />
-                        <ConfirmButton Title="@($"Delete {_item.{{TitleField}}}?")" Message="This can't be undone." ConfirmText="Delete {{SingularLower}}"
+                        <ConfirmButton Title="@($"Delete {Title}?")" Message="This can't be undone." ConfirmText="Delete {{SingularLower}}"
                                        Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</ConfirmButton>
                     </form>
                 </PageHeaderActions>
@@ -39,7 +39,7 @@
 
         @if (_notDeleted)
         {
-            <Alert Status="Status.Danger" Title="@($"{_item.{{TitleField}}} wasn't deleted")">Other records point to this {{SingularLower}}. Delete or change those first.</Alert>
+            <Alert Status="Status.Danger" Title="@($"{Title} wasn't deleted")">Other records point to this {{SingularLower}}. Delete or change those first.</Alert>
         }
 
         <Card Padding="new() { Base = 4, Md = 5 }">
@@ -69,9 +69,15 @@
 @code {
     private const string NotSet = "Not set";
 
-    [Parameter] public {{KeyType}} Id { get; set; }
+    [Parameter] public {{KeyType}} Id { get; set; }{{IdInit}}
 
-    private {{Model}}? _item;
+    private {{ModelType}}? _item;
+
+    // What the page calls this {{SingularLower}}.
+    private string Title => _item is { } x ? $"{{RowName}}" : "";
+
+    // A {{SingularLower}}'s address, its key escaped for a URL.
+    private static string Url({{KeyType}} key, string? then = null) => $"{{Route}}/{{{UrlKey}}}{(then is null ? "" : "/" + then)}";
     private bool _notDeleted;
 
     protected override async Task OnParametersSetAsync()
@@ -101,7 +107,7 @@
 @*#if (HasStatus) *@
 
     // A badge's color for each {{StatusLabel}}: change them to what each means in your app.
-    private static Status Tone({{StatusType}} value) => value switch
+    private static Status Tone({{StatusType}}? value) => value switch
     {
 @*#each (Value in StatusValues) *@
         {{StatusType}}.{{Value.Name}} => Status.{{Value.Tone}},
@@ -109,12 +115,12 @@
         _ => Status.Neutral,
     };
 
-    private static string Label({{StatusType}} value) => value switch
+    private static string Label({{StatusType}}? value) => value switch
     {
 @*#each (Value in StatusValues) *@
         {{StatusType}}.{{Value.Name}} => "{{Value.Label}}",
 @*#endeach *@
-        _ => value.ToString(),
+        _ => value?.ToString() ?? "Not set",
     };
 @*#endif *@
 }
