@@ -1,24 +1,17 @@
-@page "/docs/get-started/blazor-web-app"
+@page "/docs/get-started/by-hand"
 
-@* Setting up a new Blazor Web App. Each step was checked against `dotnet new blazor --empty` on
-   .NET 10: the app builds, serves the stylesheet and posts the first page's form. *@
+@* What izzy init does in a Blazor Web App, step by step. Each step was checked against dotnet new blazor --empty
+   on .NET 10, with and without a .Client project: the app builds, serves the stylesheet and posts the first page's
+   form. *@
 
-<ArticlePage Section="get-started" Slug="blazor-web-app">
+<ArticlePage Section="get-started" Slug="by-hand">
     <Lead>
-        A new Blazor Web App needs one package, a stylesheet, the theme and two lines in <Code>Program.cs</Code>. Pages are
-        <Anchor Href="docs/common/render-modes">static</Anchor> by default, and you make only the pages that need it interactive.
+        The steps <Code>izzy init</Code> takes in a Blazor Web App, done by hand: one package, a stylesheet, the theme and
+        a line in <Code>Program.cs</Code>, and the same for a <Code>.Client</Code> project.
     </Lead>
     <ChildContent>
-        <Heading Level="2">Create the app</Heading>
-        <TextBlock>You need the .NET 10 SDK. Start from the empty template, which has no Bootstrap or sample styles to override IzzyBlazor's:</TextBlock>
-        <Code Block Language="bash">dotnet new blazor --empty -o MyApp</Code>
-        <TextBlock>
-            Its pages are static by default, and any page can be made interactive on the server. For an app that never
-            opens a <Anchor Href="docs/common/render-modes">circuit</Anchor>, add <Code>--interactivity None</Code>. For WebAssembly or Auto, see
-            <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>.
-        </TextBlock>
-
         <Heading Level="2">Install the package</Heading>
+        <TextBlock>In the server project:</TextBlock>
         <Code Block Language="bash">dotnet add package IzzyBlazor --prerelease</Code>
 
         <Heading Level="2">Add the stylesheet and the theme</Heading>
@@ -32,7 +25,6 @@
         </TextBlock>
 
         <Heading Level="2">Import the components</Heading>
-        <TextBlock>Add one line to your imports:</TextBlock>
         <Code Block Language="razor" Title="Components/_Imports.razor">@@using IzzyBlazor</Code>
         <TextBlock>
             Prefer this to a <Code>global using</Code>: it brings the components into <Code>.razor</Code> files only, so names
@@ -40,12 +32,10 @@
         </TextBlock>
 
         <Heading Level="2">Register the services</Heading>
-        <TextBlock>Add IzzyBlazor's services in <Code>Program.cs</Code>:</TextBlock>
         <Code Block Language="csharp" Title="Program.cs" HighlightLines="2">@ProgramCs</Code>
         <TextBlock>
             <Code>AddIzzyBlazor</Code> adds the toast and dialog services, and carries toasts over a redirect. It also lets
-            components read their cookies on the server, such as the color scheme the user picked. Other components don't
-            need it.
+            components read their cookies on the server, such as the color scheme the user picked.
         </TextBlock>
 
         <Heading Level="2">Add toasts and dialogs</Heading>
@@ -66,8 +56,42 @@
             see <Anchor Href="docs/components/dialog">Dialog</Anchor>.
         </TextBlock>
 
+        <Heading Level="2">The .Client project</Heading>
+        <TextBlock>
+            With WebAssembly or Auto, components that run in the browser live in a <Code>.Client</Code> project, which can't
+            use ASP.NET Core's server framework. It gets <Code>IzzyBlazor.Core</Code>, and the server project keeps
+            <Code>IzzyBlazor</Code>:
+        </TextBlock>
+        <Code Block Language="bash">dotnet add MyApp.Client package IzzyBlazor.Core --prerelease</Code>
+        <Code Block Language="razor" Title="MyApp.Client/_Imports.razor">@@using IzzyBlazor</Code>
+        <Code Block Language="csharp" Title="MyApp.Client/Program.cs" HighlightLines="4">@ClientProgram</Code>
+        <TextBlock>
+            An Auto page renders on the server first and in the browser later, so it uses both registrations.
+            <Code>AddIzzyBlazor</Code> on the server includes everything <Code>AddIzzyBlazorCore</Code> adds.
+            <Code>App.razor</Code> always renders on the server, so the stylesheet and theme are set up once, there.
+        </TextBlock>
+        <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Package" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Contains">@context!.Contains</TemplateColumn>
+                <TemplateColumn Title="Install in">@context!.Where</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Every component is in <Code>IzzyBlazor.Core</Code>, and both packages use the <Code>IzzyBlazor</Code> namespace, so
+            the same markup works in either project. Keep them on the same version.
+        </TextBlock>
+
+        <Heading Level="2">From the full template</Heading>
+        <TextBlock>
+            Started without <Code>--empty</Code>? Its styles win over IzzyBlazor's until Bootstrap is in a layer, and its
+            <Code>NavMenu</Code> clashes with IzzyBlazor's. See
+            <Anchor Href="docs/get-started/existing-app#keep-bootstrap">Keep Bootstrap</Anchor> and
+            <Anchor Href="docs/get-started/existing-app#name-clashes">Name clashes</Anchor>.
+        </TextBlock>
+
         <Heading Level="2">Build a first page</Heading>
-        <TextBlock>A form is a good first page, because it shows what static rendering does on its own:</TextBlock>
+        <TextBlock>A form shows what static rendering does on its own:</TextBlock>
         <Code Block Language="razor" Title="Components/Pages/Signup.razor">@Signup</Code>
         <TextBlock>
             Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message with no circuit, and
@@ -75,34 +99,24 @@
             markup runs over a circuit instead. See <Anchor Href="docs/components/form">Form</Anchor> for the rest.
         </TextBlock>
 
-        <Heading Level="2">From the full template</Heading>
-        <TextBlock>
-            Started without <Code>--empty</Code>? Two things in the sample app get in the way:
-        </TextBlock>
-        <List Gap="2">
-            <ListItem>
-                <strong>Its styles win over IzzyBlazor's.</strong> IzzyBlazor's CSS sits in cascade layers, so your own CSS
-                always wins. That includes Bootstrap and the template's <Code>app.css</Code>, so button links turn blue on
-                blue and headings change size. Remove the Bootstrap link and the template's rules in <Code>app.css</Code>, or
-                <Anchor Href="docs/get-started/existing-app#keep-bootstrap">put Bootstrap in a layer</Anchor>.
-            </ListItem>
-            <ListItem>
-                <strong>Its <Code>NavMenu</Code> clashes with IzzyBlazor's.</strong> The build fails with
-                <Code>RZ9985: Multiple components use the tag 'NavMenu'</Code>. Rename the template's component, or write its
-                full name in <Code>MainLayout.razor</Code>: <Code>&lt;MyApp.Components.Layout.NavMenu /&gt;</Code>.
-            </ListItem>
-        </List>
-
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor>: a header, sidebar and main area for your layout.</ListItem>
-            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what components do on static and interactive pages.</ListItem>
             <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
 
 @code {
+    private sealed record Package(string Name, string Contains, string Where);
+
+    private static readonly Package[] Packages =
+    [
+        new("IzzyBlazor", "Everything in IzzyBlazor.Core, plus the server pieces that read and write the request's cookies", "The server project"),
+        new("IzzyBlazor.Core", "Every component, the CSS and IzzyBlazor's script, with no dependency on the ASP.NET Core server", "The .Client project, or a Razor class library"),
+    ];
+
     private const string AppHead = """
         <head>
             <meta charset="utf-8" />
@@ -130,6 +144,15 @@
             .AddInteractiveServerRenderMode();
 
         app.Run();
+        """;
+
+    private const string ClientProgram = """
+        using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
+        var builder = WebAssemblyHostBuilder.CreateDefault(args);
+        builder.Services.AddIzzyBlazorCore();
+
+        await builder.Build().RunAsync();
         """;
 
     private const string Layout = """

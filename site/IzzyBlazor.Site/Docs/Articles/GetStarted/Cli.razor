@@ -1,0 +1,111 @@
+@page "/docs/get-started/cli"
+
+@* The izzy command (src/IzzyBlazor.Cli). Its help text and exit codes are in Cli.cs; keep the two in step. *@
+
+<ArticlePage Section="get-started" Slug="cli">
+    <Lead>
+        The <Code>izzy</Code> command makes new apps, sets up IzzyBlazor in the app you have, and adds
+        <Anchor Href="blocks">blocks</Anchor> and pages to it as code you own. Every change can be shown first, as a diff,
+        or as JSON for agents and scripts.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Install</Heading>
+        <Code Block Language="bash">dotnet tool install -g IzzyBlazor.Cli --prerelease</Code>
+        <TextBlock>
+            The CLI's version is the library's. To update it, run the same command with <Code>update</Code> in place of
+            <Code>install</Code>.
+        </TextBlock>
+        <Table Items="Commands" Caption="Commands" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Command" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Add a block</Heading>
+        <TextBlock>Run <Code>izzy add</Code> in the app's folder, with the block's settings as options:</TextBlock>
+        <Code Block Language="bash">izzy add hero --layout Split</Code>
+        <TextBlock>
+            The block's component goes in <Code>Components/Blocks</Code>, and the block goes on its page: a section at the end
+            of <Code>Home.razor</Code>, a footer in the layout. <Code>--into</Code> names another page, and
+            <Code>--at</Code> puts it on a line, as an editor's cursor does. A recipe, such as an empty state, goes only where
+            you put it:
+        </TextBlock>
+        <Code Block Language="bash">izzy add empty-state --at Components/Pages/Orders.razor:24</Code>
+        <TextBlock>
+            <Code>izzy describe hero</Code> lists a block's settings, and each block's page on this site shows them beside
+            its preview. The settings have the same names as the starter's options in <Code>dotnet new</Code>. What izzy
+            writes is yours: change the words, the layout and the code.
+        </TextBlock>
+        <TextBlock>
+            In an app whose pages run in the browser, blocks go in the <Code>.Client</Code> project with the pages. The
+            parts that read the request, such as the cookie notice's, stay in the server project.
+        </TextBlock>
+
+        <Heading Level="2">See the changes first</Heading>
+        <Table Items="Previews" Caption="Showing changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            <Code>--json</Code> prints the files to create, the text to insert (with its offset and a hash of the file it
+            was read from), the packages, the warnings and the files that clash. An agent can show it for review, then run
+            the same command without <Code>--dry-run</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Files you've changed</Heading>
+        <TextBlock>
+            izzy never replaces a file without <Code>--overwrite</Code>. When a file it would write is there with other
+            content, it writes nothing and names the file; compare the two with <Code>--diff</Code>. A line it adds to one of
+            your files, such as a <Code>@@using</Code>, is skipped when it's there already.
+        </TextBlock>
+        <TextBlock>
+            Each block added is recorded in <Code>.izzy/items.json</Code>, with its version and settings. Commit it with the
+            app.
+        </TextBlock>
+
+        <Heading Level="2">Exit codes</Heading>
+        <Table Items="ExitCodes" Caption="Exit codes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Code" Width="Length.Rem(5)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Meaning">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="blocks">Blocks</Anchor>: every block, with its settings and a live preview.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: IzzyBlazor's docs server for your coding agent.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Commands =
+    [
+        new("izzy new <starter> -n <name>", "Makes a new app, as dotnet new does. See Create an app."),
+        new("izzy init", "Sets up IzzyBlazor in the app you have. See Add to an existing app."),
+        new("izzy add <item>", "Adds a block or page to the app."),
+        new("izzy list", "Lists the catalogue: starters, blocks, pages and recipes. --kind block lists one kind."),
+        new("izzy describe <item>", "An item's settings. With --json, also the components it uses, its support in each render mode and its accessibility notes."),
+    ];
+
+    private static readonly Row[] Previews =
+    [
+        new("--dry-run", "Writes nothing, and lists what would change."),
+        new("--diff", "Shows the changes as a unified diff."),
+        new("--json", "Prints the changes as data. list and describe take it too."),
+    ];
+
+    private static readonly Row[] ExitCodes =
+    [
+        new("0", "Done, or nothing to change."),
+        new("1", "An error, such as an unknown setting, or an app that doesn't build after izzy init."),
+        new("2", "Files there with other content: nothing was written."),
+        new("3", "A Pro item or layout. Pro layouts are listed and marked; they arrive with IzzyBlazor Pro."),
+    ];
+}

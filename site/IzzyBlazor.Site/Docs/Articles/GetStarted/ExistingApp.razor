@@ -1,21 +1,53 @@
 @page "/docs/get-started/existing-app"
 
-@* Adding IzzyBlazor to an app that already has pages, a layout and its own CSS. The Bootstrap
-   layering was checked in Chromium against Bootstrap 5.3 and the .NET 10 template's app.css; the
-   EditForm case against a .NET 10 app. *@
+@* izzy init (catalog/init, Setup.cs) and what's already in an app. Each kind of app was checked against
+   Microsoft's .NET 10 templates (empty and full Blazor Web App, Auto, WebAssembly, MVC, Razor Pages): it builds
+   after init. The Bootstrap layering was checked in Chromium against Bootstrap 5.3 and the template's app.css;
+   the EditForm case against a .NET 10 app. *@
 
 <ArticlePage Section="get-started" Slug="existing-app">
     <Lead>
-        IzzyBlazor can join an app that already has pages, a layout and its own styles. Set it up once, then use it page by
-        page: your existing pages, forms and components keep working beside it.
+        <Code>izzy init</Code> sets up IzzyBlazor in an app you have: a Blazor Web App, or an MVC or Razor Pages app. Your
+        pages, forms and components keep working beside it, and you use IzzyBlazor page by page.
     </Lead>
     <ChildContent>
         <Heading Level="2">Set it up</Heading>
+        <TextBlock>Install the CLI, then run init in the project's folder, or the solution's for an app with a <Code>.Client</Code> project:</TextBlock>
+        <Code Block Language="bash">@Init</Code>
         <TextBlock>
-            IzzyBlazor needs a Blazor Web App (the project shape with an <Code>App.razor</Code>) on .NET 10.
-            Follow the <Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor> steps, and the
-            <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor> ones too if you have a
-            <Code>.Client</Code> project. The rest of this page is about what's already there.
+            Init adds the package and the lines below, then builds the app. To see the changes before anything is written,
+            run <Code>izzy init --dry-run --diff</Code>. Running it again changes nothing.
+        </TextBlock>
+        <Table Items="Changes" Caption="What izzy init changes" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="App" Width="Length.Rem(11)">@context!.App</TemplateColumn>
+                <TemplateColumn Title="What izzy init does">@context!.Change</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Init refuses a standalone Blazor WebAssembly app, a Blazor Server app with a <Code>_Host.cshtml</Code>, and an
+            app below .NET 10, and says why. Its options:
+        </TextBlock>
+        <Table Items="Options" Caption="izzy init options" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(15)"><code>@context!.App</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Change</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            To make each change yourself instead, see <Anchor Href="docs/get-started/by-hand">Set up by hand</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">MVC and Razor Pages</Heading>
+        <TextBlock>
+            Init adds a Blazor root beside your views: <Code>Components/App.razor</Code>, a router and a layout. New pages
+            go in <Code>Components/Pages</Code> as Razor components with <Code>@@page</Code>, and use that layout. Your views
+            and Razor Pages keep <Code>_Layout.cshtml</Code> and Bootstrap, so neither page's CSS meets the other's.
+        </TextBlock>
+        <TextBlock>
+            A component and a Razor Page at the same address don't both answer: the component takes it, and the Razor Page
+            stops showing. <Code>izzy add legal</Code> warns when <Code>Pages/Privacy.cshtml</Code> is there; give the new
+            page another address with <Code>--route</Code>.
         </TextBlock>
 
         <Heading Level="2">Keep Bootstrap</Heading>
@@ -25,21 +57,18 @@
             IzzyBlazor's components: button links turn blue on blue and headings change size.
         </TextBlock>
         <TextBlock>
-            To keep Bootstrap, put it in a layer of its own, declared before IzzyBlazor's:
-        </TextBlock>
-        <List Gap="2">
-            <ListItem>Remove Bootstrap's <Code>&lt;link&gt;</Code>, and import it at the top of your stylesheet instead.</ListItem>
-            <ListItem>Move rules that style bare elements (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer.</ListItem>
-            <ListItem>Link your stylesheet before IzzyBlazor's. The order matters, because your stylesheet now declares a layer.</ListItem>
-        </List>
-        <TextBlock>
-            Your stylesheet and <Code>App.razor</Code> then look like this:
+            When <Code>App.razor</Code> links Bootstrap, init puts it in a layer of its own, declared before IzzyBlazor's: it
+            removes the <Code>&lt;link&gt;</Code>, imports Bootstrap at the top of <Code>app.css</Code>, and links
+            <Code>app.css</Code> before IzzyBlazor's stylesheet. Your stylesheet and <Code>App.razor</Code> then look like this:
         </TextBlock>
         <Code Block Language="css" Title="wwwroot/app.css">@AppCss</Code>
         <Code Block Language="razor" Title="Components/App.razor" HighlightLines="1-2">@AppHead</Code>
         <TextBlock>
             The first layer declared loses to the ones after it, so IzzyBlazor's components win over Bootstrap. Bootstrap's
-            classes keep styling your existing markup. Your rules outside a layer still win over both.
+            classes keep styling your existing markup. Your rules outside a layer still win over both, so init names the
+            ones in <Code>app.css</Code> that style bare elements, such as <Code>a</Code> or <Code>html, body</Code>. Move
+            them into <Code>@@layer bootstrap { }</Code>, as above, to keep them for your pages. <Code>--keep-css</Code>
+            leaves Bootstrap where it was.
         </TextBlock>
         <Alert Status="Status.Info" Title="Your pages get IzzyBlazor's page defaults">
             IzzyBlazor sets the page's font, text color and background, and its focus ring. Once Bootstrap is in a layer, those
@@ -50,21 +79,22 @@
         <TextBlock>
             IzzyBlazor's components have plain names, such as <Code>Button</Code>, <Code>Card</Code> and <Code>NavMenu</Code>.
             When a component of yours has the same name, the build fails with
-            <Code>RZ9985: Multiple components use the tag 'NavMenu'</Code>. The full template's own <Code>NavMenu</Code> is the
-            usual one. Rename yours, or write its full name where you use it:
+            <Code>RZ9985: Multiple components use the tag 'NavMenu'</Code>. Init writes the full name of yours where you use
+            it, as for the full template's own <Code>NavMenu</Code>:
         </TextBlock>
         <Code Block Language="razor">&lt;MyApp.Components.Layout.NavMenu /&gt;</Code>
         <TextBlock>
-            A type with the same name, such as your own <Code>Status</Code> enum, gives an ambiguous reference instead. Qualify one
+            A type with the same name, such as your own <Code>Status</Code> enum, gives an ambiguous reference instead
+            (<Code>CS0104</Code>). Init can't see those until the app builds, so it reports them after its build. Qualify one
             (<Code>IzzyBlazor.Status.Success</Code>) or add an alias to <Code>_Imports.razor</Code>:
         </TextBlock>
         <Code Block Language="razor">@@using Status = IzzyBlazor.Status</Code>
 
         <Heading Level="2">One folder at a time</Heading>
         <TextBlock>
-            <Code>_Imports.razor</Code> applies to its folder and the folders under it. To bring IzzyBlazor in gradually, put
-            <Code>@@using IzzyBlazor</Code> in a folder's own <Code>_Imports.razor</Code> instead of the one in
-            <Code>Components</Code>. Only the pages in that folder see its components.
+            <Code>_Imports.razor</Code> applies to its folder and the folders under it. To bring IzzyBlazor in gradually, move
+            <Code>@@using IzzyBlazor</Code> from the one in <Code>Components</Code> to a folder's own
+            <Code>_Imports.razor</Code>. Only the pages in that folder see its components.
         </TextBlock>
         <TextBlock>
             <Code>App.razor</Code> and any layout built with IzzyBlazor need the <Code>@@using</Code> too, at the top of the
@@ -92,14 +122,38 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
+            <ListItem><Anchor Href="docs/get-started/cli">The izzy CLI</Anchor>: add blocks and pages to the app as code you own.</ListItem>
             <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
             <ListItem><Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor>: match your brand color and fonts.</ListItem>
-            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
 
 @code {
+    private sealed record Row(string App, string Change);
+
+    private const string Init = """
+        dotnet tool install -g IzzyBlazor.Cli --prerelease
+        cd MyApp
+        izzy init
+        """;
+
+    private static readonly Row[] Changes =
+    [
+        new("Blazor Web App", "Adds the IzzyBlazor package, the stylesheet and IzzyTheme in App.razor, @using IzzyBlazor in _Imports.razor, AddIzzyBlazor() in Program.cs, and a ToastRegion in the layout the router uses."),
+        new("With a .Client project", "The same in the server project. The .Client project gets IzzyBlazor.Core, @using IzzyBlazor and AddIzzyBlazorCore()."),
+        new("MVC or Razor Pages", "Adds the IzzyBlazor package and a Blazor root under Components/ (App, Routes, _Imports and a layout), with AddRazorComponents(), UseAntiforgery() and MapRazorComponents<App>() in Program.cs."),
+    ];
+
+    private static readonly Row[] Options =
+    [
+        new("--preset, --brand", "The theme, as in the starter: a preset (Standard, Compact, Soft, Editorial) and a brand color."),
+        new("--interactivity Server", "For MVC and Razor Pages: lets a page run on the server over a circuit. Without it every new page is static."),
+        new("--keep-css", "Leaves Bootstrap where App.razor links it."),
+        new("--mcp", "Connects AI assistants to IzzyBlazor's docs server. A config of yours is kept."),
+        new("--no-build", "Skips the build at the end."),
+    ];
+
     private const string AppCss = """
         /* First: puts Bootstrap in a layer that IzzyBlazor's layers come after. */
         @import url("lib/bootstrap/dist/css/bootstrap.min.css") layer(bootstrap);

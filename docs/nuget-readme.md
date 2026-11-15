@@ -32,7 +32,7 @@ Every page starts as working HTML: before IzzyBlazor's script loads, and while a
 
 ## Getting started
 
-Install the package in your server project:
+For a new app, start from the starter (`dotnet new izzy-blazor`, in the IzzyBlazor.Templates package); in an app you have, run `izzy init` (the IzzyBlazor.Cli tool). See [Get started](https://izzyblazor.com/docs/get-started). To set it up by hand, install the package in your server project:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease
@@ -59,7 +59,7 @@ builder.Services.AddIzzyBlazor();
 
 IzzyBlazor loads its JavaScript automatically. To display toasts and screen reader announcements, add `<ToastRegion />` to your layout (or `<AnnouncerRegion />` for announcements alone).
 
-For WebAssembly and Auto render modes, reference `IzzyBlazor.Core` in your `.Client` project and call `AddIzzyBlazorCore()`. See the [WebAssembly and Auto setup guide](https://izzyblazor.com/docs/get-started/webassembly-and-auto) for details.
+For WebAssembly and Auto render modes, reference `IzzyBlazor.Core` in your `.Client` project and call `AddIzzyBlazorCore()`. See [The .Client project](https://izzyblazor.com/docs/get-started/by-hand#the-client-project) for details.
 
 ## Documentation
 

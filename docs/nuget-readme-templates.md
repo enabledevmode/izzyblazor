@@ -6,8 +6,10 @@
 
 ## Install
 
+IzzyBlazor is in preview, so name the version (this package's):
+
 ```bash
-dotnet new install IzzyBlazor.Templates
+dotnet new install IzzyBlazor.Templates@<version>
 ```
 
 ## Create an app
@@ -41,7 +43,7 @@ Run `dotnet new izzy-blazor --help` for every option.
 
 ## Documentation
 
-- [Get started](https://izzyblazor.com/docs/get-started)
+- [Create an app](https://izzyblazor.com/docs/get-started/create-app)
 - [Components](https://izzyblazor.com/docs/components)
 - [Source and issues](https://github.com/enabledevmode/izzyblazor)
 
