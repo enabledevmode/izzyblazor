@@ -64,7 +64,8 @@
         </Table>
         <TextBlock>
             Labels come from <Code>[Display(Name)]</Code>, or the property's name in words; column titles from
-            <Code>ShortName</Code>. Keys, read-only and computed properties stay out of the form. Related records, such as a
+            <Code>ShortName</Code>. A key the database makes, read-only properties and computed ones stay out of the
+            form; a key people choose, such as an invoice number, is asked for on New and fixed after. Related records, such as a
             customer's orders, aren't written; izzy names each property it leaves out. After you change the model, run the
             command again with <Code>--diff</Code> to see what changes, and <Code>--overwrite</Code> to take them.
         </TextBlock>
