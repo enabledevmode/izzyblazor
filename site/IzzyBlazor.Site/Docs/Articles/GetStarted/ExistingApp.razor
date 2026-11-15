@@ -18,7 +18,7 @@
             Init adds the package and the lines below, then builds the app. To see the changes before anything is written,
             run <Code>izzy init --dry-run --diff</Code>. Running it again changes nothing.
         </TextBlock>
-        <Table Items="Changes" Caption="What izzy init changes" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
+        <Table Items="Changes" Caption="What izzy init changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
                 <TemplateColumn Title="App" Width="Length.Rem(11)">@context!.App</TemplateColumn>
                 <TemplateColumn Title="What izzy init does">@context!.Change</TemplateColumn>
@@ -141,8 +141,8 @@
     private static readonly Row[] Changes =
     [
         new("Blazor Web App", "Adds the IzzyBlazor package, the stylesheet and IzzyTheme in App.razor, @using IzzyBlazor in _Imports.razor, AddIzzyBlazor() in Program.cs, and a ToastRegion in the layout the router uses."),
-        new("With a .Client project", "The same in the server project. The .Client project gets IzzyBlazor.Core, @using IzzyBlazor and AddIzzyBlazorCore()."),
-        new("MVC or Razor Pages", "Adds the IzzyBlazor package and a Blazor root under Components/ (App, Routes, _Imports and a layout), with AddRazorComponents(), UseAntiforgery() and MapRazorComponents<App>() in Program.cs."),
+        new("With .Client", "The same in the server project. The .Client project gets IzzyBlazor.Core, @using IzzyBlazor and AddIzzyBlazorCore()."),
+        new("MVC, Razor Pages", "Adds the IzzyBlazor package and a Blazor root under Components/ (App, Routes, _Imports and a layout), with AddRazorComponents(), UseAntiforgery() and MapRazorComponents<App>() in Program.cs."),
     ];
 
     private static readonly Row[] Options =
