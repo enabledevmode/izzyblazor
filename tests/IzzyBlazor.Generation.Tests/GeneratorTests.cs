@@ -96,4 +96,42 @@ public class GeneratorTests
         Assert.Contains("one of None, Server, Auto", Assert.Throws<GenerationException>(() => Run(item, ("Mode", "Wasm"))).Message);
         Assert.Contains("true or false", Assert.Throws<GenerationException>(() => Run(item, ("Flag", "yes"))).Message);
     }
+
+    // crud's shape: a field list from the project, a condition on each field, an inner list, and the settings
+    // still readable inside the loop. dotnet new can't read loops, so such an item isn't exported.
+    [Fact]
+    public void Loops_repeat_lines_for_each_record_the_project_gives()
+    {
+        IReadOnlyDictionary<string, object> Field(string name, string kind, params string[] values) => new Dictionary<string, object>
+        {
+            ["Name"] = name, ["Kind"] = kind,
+            ["Values"] = values.Select(v => (IReadOnlyDictionary<string, object>)new Dictionary<string, object> { ["Name"] = v }).ToList(),
+        };
+        var fields = new List<IReadOnlyDictionary<string, object>> { Field("Name", "Text"), Field("Status", "Enum", "Active", "Trial") };
+        var item = Item(("Pages/Form.razor", """
+            @*#each (Field in Fields) *@
+            @*#if (Field.Kind == "Enum") *@
+            <Select @bind-Value="model.{{Field.Name}}">
+            @*#each (Value in Field.Values) *@
+                <option>{{Value.Name}}</option>
+            @*#endeach *@
+            </Select>
+            @*#elif (Flag) *@
+            <TextField @bind-Value="model.{{Field.Name}}" />{{PageName}}
+            @*#endif *@
+            @*#endeach *@
+            """.ReplaceLineEndings("\n") + "\n"));
+        var project = ProjectInfo.ForNewProject("MyApp") with { Facts = new Dictionary<string, object> { ["Fields"] = fields } };
+        var changes = Generator.Generate(item, new Dictionary<string, string> { ["Flag"] = "true" }, project);
+        Assert.Equal("""
+            <TextField @bind-Value="model.Name" />Home
+            <Select @bind-Value="model.Status">
+                <option>Active</option>
+                <option>Trial</option>
+            </Select>
+
+            """.ReplaceLineEndings("\n"), Text(changes, "Pages/Form.razor"));
+
+        Assert.Contains("#each", Assert.Throws<GenerationException>(() => TemplateExport.WriteTemplateFolder(item, Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()))).Message);
+    }
 }

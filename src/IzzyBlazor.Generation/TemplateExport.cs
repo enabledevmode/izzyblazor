@@ -15,6 +15,10 @@ public static class TemplateExport
     /// <summary>Writes <paramref name="item"/> to <paramref name="directory"/> as a template folder.</summary>
     public static void WriteTemplateFolder(ItemDefinition item, string directory)
     {
+        // dotnet new has no loops: an item that uses #each runs only in the engine (izzy add crud).
+        foreach (var (path, bytes) in item.Files)
+            if (!TemplateText.IsBinary(path) && TemplateText.HasLoop(path, System.Text.Encoding.UTF8.GetString(bytes)))
+                throw new GenerationException($"{item.Manifest.Id}: {path} uses #each, which dotnet new can't read, so the item can't be exported.");
         var configDirectory = Path.Combine(directory, ".template.config");
         Directory.CreateDirectory(configDirectory);
         File.WriteAllText(Path.Combine(configDirectory, "template.json"), TemplateJson(item.Manifest));
