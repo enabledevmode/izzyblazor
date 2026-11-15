@@ -12,8 +12,16 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">Install the templates</Heading>
-        <TextBlock>You need the .NET 10 SDK. IzzyBlazor is in preview, so name the version:</TextBlock>
+        <TextBlock>
+            The starter is a <Code>dotnet new</Code> template, like Microsoft's own <Code>blazor</Code> template. Microsoft's
+            come with the .NET SDK; IzzyBlazor's come in a NuGet package, so add them to <Code>dotnet new</Code> once, with
+            the .NET 10 SDK:
+        </TextBlock>
         <Code Block Language="bash">@Install</Code>
+        <TextBlock>
+            The version is there because IzzyBlazor is in preview: without one, <Code>dotnet new install</Code> looks for a
+            stable release.
+        </TextBlock>
 
         <Heading Level="2">Create the app</Heading>
         <Code Block Language="bash">@Create</Code>
