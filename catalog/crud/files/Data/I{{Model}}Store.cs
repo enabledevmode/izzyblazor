@@ -33,6 +33,12 @@ public interface I{{Model}}Store
     ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search);
 #endif
 
+    /// <summary>
+    /// Writes the {{ModelPluralLower}} to an Excel file, as the grid's address asks (<paramref name="query"/>: its search,
+    /// sort and columns).
+    /// </summary>
+    Task ExportAsync(Stream output, string? query, CancellationToken cancellationToken = default);
+
     /// <summary>The {{SingularLower}} with this {{Key}}, or null when there's none.</summary>
     Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default);
 

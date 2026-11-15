@@ -57,6 +57,7 @@
       "pattern": "builder\\.Services\\.Add\\w+<[\\w.]*\\bI{{Model}}Store,\\s*[\\w.]+>\\(\\);",
       "text": "builder.Services.{{StoreLifetime}}<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();"
     },
+    { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "{{RootNamespace}}.Data.{{Model}}Export.Map(app);\n\n" },
     { "if": "NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
     { "if": "!NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
   ]

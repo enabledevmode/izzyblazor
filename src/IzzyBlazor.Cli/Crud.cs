@@ -203,6 +203,9 @@ static partial class Crud
                 : $"{singular} {{x.{info.Key.Name}}}",
             ["TitleSortField"] = (last ?? title ?? info.Key).Name,
             // A string key goes in a URL escaped (INV/001); a number or Guid as it is.
+            // The grid's column layout cookie and the export's file name: the pages' name in kebab case.
+            ["LayoutKey"] = Kebab(name),
+            ["FileName"] = Kebab(name),
             ["UrlKey"] = info.Key.Kind == FieldKind.Text ? "Uri.EscapeDataString(key)" : "key",
             ["KeyLabel"] = info.Key.Label,
             ["KeyLabelLower"] = Lower(info.Key.Label),

@@ -56,6 +56,17 @@ public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}St
         return await request.ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
     }
 
+    public async Task ExportAsync(Stream output, string? query, CancellationToken cancellationToken = default)
+    {
+#if (HasFactory)
+        await using var db = await factory.CreateDbContextAsync(cancellationToken);
+#else
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<{{Context}}>();
+#endif
+        await DataExport.WriteExcelAsync(output, db.{{Set}}.AsNoTracking(), query, DataFields.Of<{{ModelType}}>(), "{{ModelPlural}}", cancellationToken: cancellationToken);
+    }
+
     public async Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default)
     {
 #if (HasFactory)
