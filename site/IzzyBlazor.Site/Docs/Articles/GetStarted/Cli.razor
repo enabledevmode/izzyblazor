@@ -42,6 +42,33 @@
             parts that read the request, such as the cookie notice's, stay in the server project.
         </TextBlock>
 
+        <Heading Level="2">Add CRUD pages</Heading>
+        <TextBlock>
+            <Code>izzy add crud</Code> writes the pages to list, show, add, edit and delete a model's records, for internal
+            tools and admin screens. Name a class from your app; izzy reads it from the source, so the app doesn't have to
+            build first:
+        </TextBlock>
+        <Code Block Language="bash">izzy add crud Customer</Code>
+        <TextBlock>
+            That writes a list at <Code>/customers</Code> with search, a status filter, sorting and pages; a page for each
+            customer; and one form for new and edit, checked against the model's attributes. Every page works on a static
+            page, with no circuit, and on an interactive one. The records are read and written through
+            <Code>ICustomerStore</Code>: through your DbContext when one has a <Code>DbSet&lt;Customer&gt;</Code>, otherwise
+            in memory until the app stops. The pages need signing in when the app has accounts.
+        </TextBlock>
+        <Table Items="CrudOptions" Caption="izzy add crud options" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Labels come from <Code>[Display(Name)]</Code>, or the property's name in words; column titles from
+            <Code>ShortName</Code>. Keys, read-only and computed properties stay out of the form. Related records, such as a
+            customer's orders, aren't written; izzy names each property it leaves out. After you change the model, run the
+            command again with <Code>--diff</Code> to see what changes, and <Code>--overwrite</Code> to take them.
+        </TextBlock>
+
         <Heading Level="2">See the changes first</Heading>
         <Table Items="Previews" Caption="Showing changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
@@ -90,8 +117,18 @@
         new("izzy new <starter> -n <name>", "Makes a new app, as dotnet new does. See Create an app."),
         new("izzy init", "Sets up IzzyBlazor in the app you have. See Add to an existing app."),
         new("izzy add <item>", "Adds a block or page to the app."),
+        new("izzy add crud <Model>", "Adds pages to list, show, add, edit and delete a model's records."),
         new("izzy list", "Lists the catalogue: starters, blocks, pages and recipes. --kind block lists one kind."),
         new("izzy describe <item>", "An item's settings. With --json, also the components it uses, its support in each render mode and its accessibility notes."),
+    ];
+
+    private static readonly Row[] CrudOptions =
+    [
+        new("--mode grid", "One page where the grid adds, edits and deletes in a dialog, for short records such as tags or plans."),
+        new("--name <Plural>", "The folder, the pages' names and the title. Defaults to the model's plural: Customers."),
+        new("--route <path>", "The address the pages start at. Defaults to the name in kebab case: customers."),
+        new("--store ef|memory", "Where the records are kept. ef needs a DbSet of the model; --context picks the DbContext when two have one."),
+        new("--authorize", "Only signed-in people can open the pages. On when the app has accounts."),
     ];
 
     private static readonly Row[] Previews =
