@@ -77,7 +77,7 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
 
     int IToolbarItem.Priority => 0;
 
-    ToolbarOverflow IToolbarItem.Overflow => ToolbarOverflow.Never;
+    Responsive<ToolbarOverflow> IToolbarItem.Overflow => ToolbarOverflow.Never;
 
     bool IToolbarItem.Separator => false;
 

@@ -40,7 +40,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     /// <summary>
     /// Below this width it's a floating button at the screen's bottom corner instead, with its
@@ -112,7 +112,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
     // With CollapseLabels, one with a start icon (and no end icon) shows only that icon, unless it
     // never moves into the menu (in a group, the group's Overflow).
     private bool Collapses => ToolbarControl.Of(Toolbar, Group)?.CollapseLabels == true
-        && ((Group as ToolbarButtonGroup)?.Overflow ?? Overflow) != ToolbarOverflow.Never
+        && !ToolbarOverflows.Never((Group as ToolbarButtonGroup)?.Overflow ?? Overflow)
         && StartIcon is not null && ChildContent is not null && EndIcon is null && !ExternalIcon;
 
     double? IToolbarItem.CollapsedWidth => Collapses ? ButtonWidth.Estimate(EffectiveSize, iconOnly: true, hasLabel: false, null, startIcon: true, endIcon: false) : EstimateWidth();
@@ -172,7 +172,7 @@ public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     bool IToolbarItem.Separator => false;
 
@@ -253,7 +253,7 @@ public sealed class ToolbarButtonGroup : ButtonGroup, IToolbarItem, IDisposable
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     bool IToolbarItem.Separator => false;
 
@@ -363,7 +363,7 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     bool IToolbarItem.Separator => false;
 
@@ -384,7 +384,7 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 
     // With CollapseLabels, a default trigger with a start icon keeps the icon and the chevron,
     // unless it never moves into the menu.
-    private bool Collapses => Toolbar?.CollapseLabels == true && Overflow != ToolbarOverflow.Never && Trigger is null && StartIcon is not null;
+    private bool Collapses => Toolbar?.CollapseLabels == true && !ToolbarOverflows.Never(Overflow) && Trigger is null && StartIcon is not null;
 
     double? IToolbarItem.CollapsedWidth => Collapses
         ? ButtonWidth.Estimate(TriggerSize, iconOnly: false, hasLabel: false, null, startIcon: true, endIcon: true)
@@ -446,7 +446,7 @@ public sealed class ToolbarSplitButton : SplitButton, IToolbarItem, IDisposable
     /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
     /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
     /// </summary>
-    [Parameter] public ToolbarOverflow Overflow { get; set; }
+    [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
     bool IToolbarItem.Separator => false;
 
@@ -502,7 +502,7 @@ public sealed class ToolbarSplitButton : SplitButton, IToolbarItem, IDisposable
 
     // With CollapseLabels, one with a start icon shows only that icon and the arrow, unless it never
     // moves into the menu.
-    private bool Collapses => Toolbar?.CollapseLabels == true && Overflow != ToolbarOverflow.Never
+    private bool Collapses => Toolbar?.CollapseLabels == true && !ToolbarOverflows.Never(Overflow)
         && StartIcon is not null && !IconOnly && !(External && Href is not null);
 
     double? IToolbarItem.CollapsedWidth => EstimateWidth(Collapses);
@@ -576,7 +576,7 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
     {
         if (group is ToolbarButtonGroup buttons)
         {
-            if (button.Position != ToolbarPosition.Start || button.Priority != 0 || button.Overflow != ToolbarOverflow.Auto)
+            if (button.Position != ToolbarPosition.Start || button.Priority != 0 || !button.Overflow.IsEmpty && ToolbarOverflows.Wide(button.Overflow) != ToolbarOverflow.Auto)
             {
                 throw new InvalidOperationException($"A {component} in a ToolbarButtonGroup can't take Position, Priority or Overflow: set them on the group.");
             }
