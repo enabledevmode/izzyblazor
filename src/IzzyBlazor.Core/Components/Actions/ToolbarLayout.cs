@@ -40,21 +40,43 @@ internal interface IToolbarItem
     bool Hidden => false;
 
     /// <summary>
-    /// Below this width it's a floating button instead (<see cref="Floating"/>), in neither the bar nor the
-    /// menu; null keeps it in the toolbar at every width.
+    /// Below this width it floats instead (<see cref="Float"/>), in neither the bar nor the menu; null keeps it
+    /// in the toolbar at every width.
     /// </summary>
     Breakpoint? FloatBelow => null;
 
-    /// <summary>Its floating button, shown below <see cref="FloatBelow"/>.</summary>
-    RenderFragment? Floating => null;
+    /// <summary>
+    /// What it does while it floats: a floating button of its own, or with others floating at the same width,
+    /// an action in the toolbar's speed dial. Null for none just now (its place in the bar stays empty).
+    /// </summary>
+    ToolbarFloat? Float => null;
 }
 
 /// <summary>
 /// The items of one <see cref="Toolbar"/>, in the order they joined (page order, unless a component
 /// of the app's adds one later), and the parts that draw them: an outlet per position and the "…" menu.
 /// </summary>
+/// <summary>A toolbar item's floating action (<c>FloatBelow</c>): a FloatingButton's, or a SpeedDialAction's.</summary>
+internal sealed record ToolbarFloat(IconData Icon, string Label)
+{
+    public string? Href { get; init; }
+    public bool Submit { get; init; }
+    public string? Name { get; init; }
+    public string? Value { get; init; }
+    public string? FormAction { get; init; }
+    public string? Form { get; init; }
+    public bool Disabled { get; init; }
+    public EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs> OnClick { get; init; }
+
+    /// <summary>More attributes for its element, such as a grid's edit hooks.</summary>
+    public IReadOnlyDictionary<string, object>? Attributes { get; init; }
+}
+
 internal sealed class ToolbarContext(string rootId)
 {
+    /// <summary>The speed dial's name when more than one item floats (Toolbar's <c>FloatLabel</c>).</summary>
+    public string? FloatLabel { get; set; }
+
     private readonly List<(IToolbarItem Item, int Id)> _items = [];
     private readonly List<Action> _outlets = [];
     private int _nextId;

@@ -26,7 +26,7 @@ internal interface IDataGridToolbar
 
     RenderFragment AddMenu { get; }
 
-    RenderFragment AddFloating(Breakpoint below);
+    ToolbarFloat? AddFloat { get; }
 
     bool HasExport { get; }
 
@@ -108,7 +108,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     private protected virtual Breakpoint? ItemFloatBelow => null;
 
-    private protected virtual RenderFragment? ItemFloating => null;
+    private protected virtual ToolbarFloat? ItemFloat => null;
 
     private protected abstract double? ItemWidth { get; }
 
@@ -133,7 +133,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     Breakpoint? IToolbarItem.FloatBelow => Target is null ? null : ItemFloatBelow;
 
-    RenderFragment? IToolbarItem.Floating => Target is null ? null : ItemFloating;
+    ToolbarFloat? IToolbarItem.Float => Target is null ? null : ItemFloat;
 
     double? IToolbarItem.Width => EstimatedWidth;
 
@@ -342,7 +342,7 @@ public sealed class DataGridAdd : DataGridToolbarItem
 
     private protected override Breakpoint? ItemFloatBelow => FloatBelow;
 
-    private protected override RenderFragment? ItemFloating => FloatBelow is { } below ? Grid.AddFloating(below) : null;
+    private protected override ToolbarFloat? ItemFloat => FloatBelow is null ? null : Grid.AddFloat;
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.AddLabel, startIcon: true, endIcon: false);
 }
