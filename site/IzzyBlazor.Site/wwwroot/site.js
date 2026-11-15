@@ -37,7 +37,9 @@
       // the docs page around the frame too. A frame later, so a disclosure the link closed is folded.
       if (url.origin === location.origin && url.pathname === location.pathname && url.search === location.search && url.hash) {
         event.preventDefault();
-        history.pushState(history.state, "", url.hash);
+        // The whole address: a bare "#id" would resolve against <base href="/">, moving the frame
+        // to "/", after which its own links (the drawer's close) read as other pages.
+        history.pushState(history.state, "", url.href);
         requestAnimationFrame(() => {
           const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
           if (!target) return;
