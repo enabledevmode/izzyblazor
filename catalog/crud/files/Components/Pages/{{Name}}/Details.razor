@@ -1,0 +1,120 @@
+@page "/{{Route}}/{Id{{KeyConstraint}}}"
+@*#if (Authorize) *@
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@*#endif *@
+@using {{RootNamespace}}.Data
+@*#if (HasModelNamespace) *@
+@using {{ModelNamespace}}
+@*#endif *@
+@inject I{{Model}}Store Store
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+@* One {{SingularLower}}, from izzy add crud: everything about it, Edit, and Delete, which asks first.
+   Delete posts this page's form, so it works with no circuit and no script. *@
+@if (_item is not null)
+{
+    <PageTitle>@_item.{{TitleField}}</PageTitle>
+
+    <Stack Gap="new() { Base = 6, Md = 8 }">
+        <Stack Gap="3">
+            <Breadcrumb>
+                <BreadcrumbItem Href="{{Route}}">{{Plural}}</BreadcrumbItem>
+                <BreadcrumbItem>@_item.{{TitleField}}</BreadcrumbItem>
+            </Breadcrumb>
+            <PageHeader Title="@(_item.{{TitleField}}?.ToString() ?? "")">
+@*#if (HasStatus) *@
+                <Badge Status="Tone(_item.{{StatusField}})" Dot>@Label(_item.{{StatusField}})</Badge>
+@*#endif *@
+                <PageHeaderActions>
+                    <Button Href="@($"{{Route}}/{Id}/edit")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil">Edit</Button>
+                    <form method="post" @formname="delete-{{SingularLower}}" @onsubmit="DeleteAsync" data-enhance>
+                        <AntiforgeryToken />
+                        <ConfirmButton Title="@($"Delete {_item.{{TitleField}}}?")" Message="This can't be undone." ConfirmText="Delete {{SingularLower}}"
+                                       Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</ConfirmButton>
+                    </form>
+                </PageHeaderActions>
+            </PageHeader>
+        </Stack>
+
+        @if (_notDeleted)
+        {
+            <Alert Status="Status.Danger" Title="@($"{_item.{{TitleField}}} wasn't deleted")">Other records point to this {{SingularLower}}. Delete or change those first.</Alert>
+        }
+
+        <Card Padding="new() { Base = 4, Md = 5 }">
+            <DescriptionList Orientation="Orientation.Vertical" Columns="2">
+@*#each (Field in Fields) *@
+@*#if (Field.IsStatus) *@
+                <DescriptionItem Term="{{Field.Label}}">@Label(_item.{{Field.Name}})</DescriptionItem>
+@*#elif (Field.Kind == "Email") *@
+                <DescriptionItem Term="{{Field.Label}}">@if (!string.IsNullOrEmpty(_item.{{Field.Name}})) { <Anchor Href="@($"mailto:{_item.{{Field.Name}}}")">@_item.{{Field.Name}}</Anchor> } else { @NotSet }</DescriptionItem>
+@*#elif (Field.Kind == "Url") *@
+                <DescriptionItem Term="{{Field.Label}}">@if (!string.IsNullOrEmpty(_item.{{Field.Name}})) { <Anchor Href="@_item.{{Field.Name}}">@_item.{{Field.Name}}</Anchor> } else { @NotSet }</DescriptionItem>
+@*#elif (Field.Kind == "Bool") *@
+                <DescriptionItem Term="{{Field.Label}}">@(_item.{{Field.Name}} == true ? "Yes" : "No")</DescriptionItem>
+@*#elif (Field.Wide) *@
+                <DescriptionItem Term="{{Field.Label}}" ColSpan="2"><TextBlock Style="white-space: pre-line">@Show(_item.{{Field.Name}})</TextBlock></DescriptionItem>
+@*#elif (Field.HasFormat) *@
+                <DescriptionItem Term="{{Field.Label}}">@Show(_item.{{Field.Name}}, "{{Field.Format}}")</DescriptionItem>
+@*#else *@
+                <DescriptionItem Term="{{Field.Label}}">@Show(_item.{{Field.Name}})</DescriptionItem>
+@*#endif *@
+@*#endeach *@
+            </DescriptionList>
+        </Card>
+    </Stack>
+}
+
+@code {
+    private const string NotSet = "Not set";
+
+    [Parameter] public {{KeyType}} Id { get; set; }
+
+    private {{Model}}? _item;
+    private bool _notDeleted;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _item = await Store.GetAsync(Id);
+        if (_item is null) Navigation.NotFound();
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (!await Store.DeleteAsync(Id))
+        {
+            _notDeleted = true;
+            return;
+        }
+        Toasts.Success("{{Singular}} deleted");
+        Navigation.NavigateTo("{{Route}}");
+    }
+
+    private static string Show(object? value, string? format = null) => value switch
+    {
+        null => NotSet,
+        string { Length: 0 } => NotSet,
+        IFormattable formattable when format is not null => formattable.ToString(format, null),
+        _ => value.ToString() ?? NotSet,
+    };
+@*#if (HasStatus) *@
+
+    // A badge's color for each {{StatusLabel}}: change them to what each means in your app.
+    private static Status Tone({{StatusType}} value) => value switch
+    {
+@*#each (Value in StatusValues) *@
+        {{StatusType}}.{{Value.Name}} => Status.{{Value.Tone}},
+@*#endeach *@
+        _ => Status.Neutral,
+    };
+
+    private static string Label({{StatusType}} value) => value switch
+    {
+@*#each (Value in StatusValues) *@
+        {{StatusType}}.{{Value.Name}} => "{{Value.Label}}",
+@*#endeach *@
+        _ => value.ToString(),
+    };
+@*#endif *@
+}

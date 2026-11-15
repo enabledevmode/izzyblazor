@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
+    <!-- izzy add crud reads the model from source: syntax trees only, no build or MSBuild. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <InternalsVisibleTo Include="IzzyBlazor.Generation.Tests" />
   </ItemGroup>
 

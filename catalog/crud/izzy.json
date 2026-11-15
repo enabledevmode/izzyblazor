@@ -1,0 +1,56 @@
+// izzy add crud <Model>: pages to list, show, add, edit and delete a model's records, written into the
+// project as code you own. The CLI reads the model from the app's source (no build) and gives the
+// item its fields as lists (Fields, FormFields, ListFields, SearchFields, StatusValues), so the
+// templates loop over them; the settings it leaves out get their defaults there (Crud.Prepare).
+// Pages (C1-C3): a list, a detail page and one form for new and edit. Grid (C4): one page whose
+// DataGrid adds, edits and deletes in a dialog. Both read and write through I{Model}Store, kept in
+// memory or over the app's DbContext. Every page works as static SSR, and interactive too.
+{
+  "id": "crud",
+  "name": "CRUD pages",
+  "kind": "page",
+  "category": "Data",
+  "summary": "Pages to list, show, add, edit and delete a model's records, from the model class in your app: izzy add crud Customer.",
+  "components": ["PageHeader", "FilterForm", "DataGrid", "EmptyState", "FloatingButton", "Breadcrumb", "DescriptionList", "ConfirmButton", "Form", "FormErrors", "FormActions", "Badge"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "none", "Auto": "none" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Model": { "type": "string", "default": "", "x-hidden": true, "description": "The model class, given after crud: izzy add crud Customer." },
+      "Name": { "type": "string", "default": "", "description": "The folder and the pages' names, and the title: the model's plural by default (Customers)." },
+      "Route": { "type": "string", "default": "", "description": "The address the pages start at, such as customers or admin/customers: the name in kebab case by default." },
+      "Mode": {
+        "type": "string", "enum": ["Pages", "Grid"], "default": "Pages",
+        "description": "Pages: a list, a detail page and a form, for records with many fields. Grid: one page that adds, edits and deletes in the grid, for short records such as plans or tags."
+      },
+      "Store": {
+        "type": "string", "enum": ["Ef", "Memory"], "default": "Memory",
+        "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops."
+      },
+      "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
+      "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." }
+    }
+  },
+  "accessibility": [
+    "Each page has one h1, its title; the list's count is a status region, so a search says how many it found.",
+    "A record's name is the link to it, so the row's menu stays a separate stop for keyboard users.",
+    "The form's errors are listed at the top after a failed save, and each field names its own.",
+    "Delete asks first, in a dialog that names the record, with the delete button's text repeating the verb."
+  ],
+  "server": ["Components/**"],
+  "exclude": [
+    { "if": "Mode == \"Grid\"", "paths": ["Components/Pages/{{Name}}/Index.razor", "Components/Pages/{{Name}}/Details.razor", "Components/Pages/{{Name}}/Edit.razor"] },
+    { "if": "Mode == \"Pages\"", "paths": ["Components/Pages/{{Name}}/Grid.razor"] },
+    { "if": "Store == \"Ef\"", "paths": ["Data/Memory{{Model}}Store.cs"] },
+    { "if": "Store == \"Memory\"", "paths": ["Data/Ef{{Model}}Store.cs"] }
+  ],
+  "rename": [
+    { "if": "Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "Components/Pages/{{Name}}/Index.razor" } }
+  ],
+  "inserts": [
+    { "if": "Store == \"Ef\"", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.AddScoped<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.Ef{{Model}}Store>();\n\n" },
+    { "if": "Store == \"Memory\"", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.AddSingleton<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.Memory{{Model}}Store>();\n\n" },
+    { "if": "NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
+    { "if": "!NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
+  ]
+}
