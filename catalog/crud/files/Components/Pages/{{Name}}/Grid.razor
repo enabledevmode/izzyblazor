@@ -19,7 +19,7 @@
     <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" Searchable ColumnPicker ToolbarLabels SmallScreen="DataGridSmallScreen.HideColumns"
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
-              NewItem="() => new {{ModelType}}()" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
+              NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync" Grow>
         <Columns>
 @*#each (Field in Fields) *@
 @*#if (Field.InList) *@

@@ -90,6 +90,13 @@
     [Parameter] public Func<TItem>? NewItem { get; set; }
 
     /// <summary>
+    /// The Add button's text, such as "Add customer". Defaults to "Add" (<see cref="IzzyText"/>). With
+    /// <c>ToolbarLabels</c> or a <c>DataGridAdd</c> showing its label, the button is the toolbar's primary
+    /// one: solid, in the primary accent.
+    /// </summary>
+    [Parameter] public string? AddText { get; set; }
+
+    /// <summary>
     /// Deletes a row, once someone has confirmed it. Setting it adds a Delete action to each row. With no
     /// error added, the dialog closes and the rows load again.
     /// </summary>
@@ -911,22 +918,23 @@
 
     bool IDataGridToolbar.HasAdd => CanAdd;
 
-    string IDataGridToolbar.AddLabel => TextDefaults.Add;
+    string IDataGridToolbar.AddLabel => AddText ?? TextDefaults.Add;
 
     RenderFragment IDataGridToolbar.AddBar(bool showText) => __builder =>
     {
         var plus = IconSet.Current.Get(IconPurpose.Plus);
         @if (UseState)
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); (_stateAdding, _stateAddUnder) = (true, null); })" data-ib-edit />
+            <IconButton Icon="plus" Label="@(AddText ?? TextDefaults.Add)" OnClick="@(() => { EndCell(); (_stateAdding, _stateAddUnder) = (true, null); })" data-ib-edit />
         }
         else if (showText)
         {
-            <Button StartIcon="plus" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@TextDefaults.Add</Button>
+            @* The grid's main action, so it reads as one: solid, in the primary accent. *@
+            <Button StartIcon="plus" Href="@AddRootHref" Variant="ButtonVariant.Solid" Accent="Accent.Primary" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@(AddText ?? TextDefaults.Add)</Button>
         }
         else
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
+            <IconButton Icon="plus" Label="@(AddText ?? TextDefaults.Add)" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
         }
     };
 
