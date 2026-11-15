@@ -18,6 +18,8 @@
     "properties": {
       "Model": { "type": "string", "default": "", "x-hidden": true, "description": "The model class, given after crud: izzy add crud Customer." },
       "Name": { "type": "string", "default": "", "description": "The folder and the pages' names, and the title: the model's plural by default (Customers)." },
+      "Singular": { "type": "string", "default": "", "description": "What one record is called on the pages, such as team member, when it isn't the class's name in words." },
+      "Plural": { "type": "string", "default": "", "description": "What the records are called, such as team members: the title and the nav entry. Defaults to the plural of --singular, else of --name." },
       "Route": { "type": "string", "default": "", "description": "The address the pages start at, such as customers or admin/customers: the name in kebab case by default." },
       "Mode": {
         "type": "string", "enum": ["Pages", "Grid"], "default": "Pages",
