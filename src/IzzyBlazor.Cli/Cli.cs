@@ -189,11 +189,24 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var item = Catalog["init"];
         var settings = Settings(item.Manifest, args);
         var blazor = (bool)project.Facts["Blazor"];
-        if (blazor && settings.ContainsKey("Interactivity"))
-            throw new UsageException($"{project.Name} is a Blazor Web App, which keeps its own render modes: --interactivity is for MVC and Razor Pages apps.");
+        var warnings = new List<string>();
+        var appRazor = project.ReadFile(project.Host + "Components/App.razor") ?? "";
+        if (blazor && settings.Remove("Interactivity", out var interactivity))
+        {
+            // Init's own Blazor root, from an earlier run: the same command again is fine, a new mode is by hand.
+            if (!appRazor.Contains("from izzy init", StringComparison.Ordinal))
+                throw new UsageException($"{project.Name} is a Blazor Web App, which keeps its own render modes: --interactivity is for MVC and Razor Pages apps.");
+            var program = project.ReadFile(project.Host + "Program.cs") ?? "";
+            if (interactivity.Equals("Server", StringComparison.OrdinalIgnoreCase) && !program.Contains("AddInteractiveServerComponents", StringComparison.Ordinal))
+                warnings.Add("IzzyBlazor is set up here already, with every page static. For pages interactive over a circuit, add .AddInteractiveServerComponents() after AddRazorComponents() and .AddInteractiveServerRenderMode() after MapRazorComponents<App>() in Program.cs.");
+        }
+        if ((bool)project.Facts["HasTheme"] && (settings.ContainsKey("Preset") || settings.ContainsKey("Brand")))
+            warnings.Add("App.razor has an IzzyTheme already, so it wasn't changed: set Preset and Brand on it there.");
 
         var generated = Generator.Generate(item, settings, project);
-        var warnings = generated.Warnings.ToList();
+        warnings.InsertRange(0, generated.Warnings);
+        if (blazor && !(bool)project.Facts["HasLayout"])
+            warnings.Add("No layout found from the Router's DefaultLayout, so no ToastRegion was added: put <ToastRegion /> in your layout to show toasts.");
         if (blazor && Setup.UnlayeredElementRules(project) is { Count: > 0 } rules)
             warnings.Add($"{project.Host}wwwroot/app.css styles elements outside a cascade layer, so they win over IzzyBlazor's components: {string.Join("; ", rules)}. "
                 // Bootstrap in a layer now, or from this run.
@@ -202,17 +215,22 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                     ? "Move them into @layer bootstrap { } in app.css to keep them for your pages"
                     : "Remove them, or keep them only for the pages that need them")
                 + ": https://izzyblazor.com/docs/get-started/existing-app#keep-bootstrap");
+        // An AI assistant's config of the user's own is theirs: kept, with the server to add named.
+        var configs = generated.Conflicts.Where(c => c.EndsWith("mcp.json", StringComparison.Ordinal)).ToList();
+        foreach (var config in configs)
+            warnings.Add($"{config} is there already, so it was kept: add IzzyBlazor's docs server to it, \"izzyblazor\": {{ \"type\": \"http\", \"url\": \"https://izzyblazor.com/mcp\" }}.");
         var changes = new Changeset
         {
-            Creates = generated.Creates,
+            Creates = [.. generated.Creates.Where(c => !configs.Contains(c.Path))],
             Inserts = [.. generated.Inserts, .. Setup.QualifyClashes(project)],
             // A package the project has already is nothing to do.
             Packages = [.. generated.Packages.Where(p => !References(Path.Combine(project.Directory!, p.Project), p.Id))],
-            Conflicts = generated.Conflicts,
+            Conflicts = [.. generated.Conflicts.Except(configs)],
             Warnings = warnings,
             Settings = generated.Settings,
         };
-        var writes = !flags.DryRun && changes.Conflicts.Count == 0 && (changes.Creates.Count > 0 || changes.Inserts.Count > 0);
+        var writes = !flags.DryRun && (changes.Conflicts.Count == 0 || flags.Overwrite)
+            && (changes.Creates.Count > 0 || changes.Inserts.Count > 0 || changes.Packages.Count > 0);
         var exit = Finish(item, changes, project, project.Directory!, existing: true, flags);
         return exit == 0 && writes && build ? Build(project, flags.Json) : exit;
     }
@@ -397,6 +415,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             .Where(File.Exists).Distinct()
             .Where(p => File.ReadAllText(p).Contains("Sdk=\"Microsoft.NET.Sdk.Web\"", StringComparison.OrdinalIgnoreCase))
             .ToList();
+        // Two web projects (the app and an API): the one with a .Client project, else ask.
+        if (web.Count > 1 && web.Where(p => Regex.IsMatch(File.ReadAllText(p), @"ProjectReference\s+Include=""[^""]*\.Client\.csproj""", RegexOptions.IgnoreCase)).ToList() is [var app]) return app;
+        if (web.Count > 1)
+            throw new UsageException($"{Path.GetFileName(solutions[0])} has more than one web project ({string.Join(", ", web.Select(Path.GetFileNameWithoutExtension))}); pick one with --project.");
         return web.Count == 1 ? web[0] : null;
     }
 

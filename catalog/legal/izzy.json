@@ -27,8 +27,12 @@
   "preview": { "Routable": "false" },
   "checks": [
     {
-      "file": "Pages/{{Name}}.cshtml", "pattern": "^\\s*@page(?!\\s*\")",
-      "message": "Pages/{{Name}}.cshtml, a Razor Page, answers /{{Route}} too, and the new page wins, so yours stops showing. Give this one another address with --route, or remove yours."
+      "file": "Pages/{{Route}}.cshtml", "pattern": "^\\s*@page(?!\\s*\")",
+      "message": "Pages/{{Route}}.cshtml, a Razor Page, answers /{{Route}} too, and the new page wins, so yours stops showing. Give this one another address with --route, or remove yours."
+    },
+    {
+      "file": "Pages/{{Route}}/Index.cshtml", "pattern": "^\\s*@page(?!\\s*\")",
+      "message": "Pages/{{Route}}/Index.cshtml, a Razor Page, answers /{{Route}} too, and the new page wins, so yours stops showing. Give this one another address with --route, or remove yours."
     }
   ]
 }

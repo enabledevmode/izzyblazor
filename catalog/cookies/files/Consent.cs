@@ -63,6 +63,12 @@ namespace Microsoft.AspNetCore.Builder
             app.MapPost("/consent", ([Microsoft.AspNetCore.Mvc.FromForm] string? choice, [Microsoft.AspNetCore.Mvc.FromForm] string? returnUrl, HttpContext http) =>
             {
                 {{RootNamespace}}.Consent.Write(http, choice == "accept" ? {{RootNamespace}}.Consent.Categories : []);
+                // No return address: the page that posted, when it's this site's.
+                if (returnUrl is null && Uri.TryCreate(http.Request.Headers.Referer.ToString(), UriKind.Absolute, out var from)
+                    && from.Authority == http.Request.Host.Value && from.PathAndQuery.StartsWith(http.Request.PathBase.Value + "/", StringComparison.Ordinal))
+                {
+                    returnUrl = from.PathAndQuery[http.Request.PathBase.Value!.Length..];
+                }
                 return Results.LocalRedirect("~/" + ({{RootNamespace}}.Consent.LocalPath(returnUrl) ?? ""));
             });
     }
